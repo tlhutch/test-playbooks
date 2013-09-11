@@ -1,0 +1,133 @@
+---
+# Base playbook for deploying AWX (more info at
+# https://github.com/ansible/ansible-commander/blob/master/docs/build_system.md)
+
+#
+# Create remote hosts
+#
+- hosts: local
+  tasks:
+
+   - name: site | create rax instances
+     rax:
+       api_key: $rax_api_key
+       username: $rax_username
+       service: cloudservers
+       name: 'testing-{{ item.name }}'
+       flavor: 2 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/content/List_Flavors-d1e3842.html
+       image: '{{ item.uuid }}'
+       region: ORD
+       files:
+         /root/.ssh/authorized_keys: ~/.ssh/id_rsa.pub
+       wait: yes
+       wait_timeout: 1200
+       state: active
+     register: rax
+     with_items: '{{ rax_images }}'
+
+   - name: site | add_host
+     add_host: name={{ item.instances[0].name }}
+        groups=rackspace
+        ansible_ssh_user=root
+        ansible_ssh_host={{ item.instances[0].accessIPv4 }}
+     with_items: '{{ rax.results }}'
+
+#
+# Dynamically create host groups based on distribution
+#
+- hosts: all
+  tasks:
+   - name: site | gather site specific fact data
+     action: site_facts
+
+   - name: site | group hosts by distribution
+     action: group_by key={{ansible_distribution}}
+
+#
+# For RedHat hosts, register to RHN
+#
+- hosts: RedHat
+  tasks:
+   - include: tasks/rhn_register.yml
+     when: rhn_method is defined
+
+#
+# For CentOS and RedHat hosts, install epel-release
+#
+- hosts: ['CentOS', 'RedHat']
+  tasks:
+   - name: site | install epel-release
+     yum: name=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+
+# TODO - install ansible nightly rpm repo
+
+#   - name: install ansible yum repository
+#     template: src=yum_repo.j2 dest=/etc/yum.repos.d/ansible.repo
+#     register: yum_repo
+#
+#   - name: yum clean cached ansible repository information
+#     command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
+#     when: yum_repo.changed
+
+#
+# For Ubuntu, enable the ppa
+#
+- hosts: Ubuntu
+  tasks:
+   - name: site | install debian dependencies
+     apt: pkg=python-pycurl state=latest
+
+   - name: site | enable ppa:rquillo/ansible
+     apt_repository: repo='ppa:rquillo/ansible' state=present
+
+# TODO - install ansible nightly deb repo
+
+#
+# Configure remote hosts
+#
+- hosts: rackspace
+  tasks:
+
+   - name: site | install ansible rpm
+     yum: name=ansible state=latest
+     when: "'${ansible_pkg_mgr}' == 'yum'"
+
+   - name: site | install ansible deb
+     apt: pkg=ansible state=latest update_cache=yes
+     when: "'${ansible_pkg_mgr}' == 'apt'"
+
+   - name: site | download awx-setup-latest.tar.gz
+     get_url: url={{awx_setup_url}} dest=/tmp mode=0640
+     register: tarball
+
+   - name: site | determine awx-setup directory
+     shell: echo {{tarball.dest}} | sed 's|\.tar\.gz$||'
+     register: awx_setup_dir
+
+   - name: site | untar awx-setup
+     shell: tar -xvf {{tarball.dest}} --transform "s|^awx-setup-[^/]*|awx-setup|"
+            chdir=/tmp
+
+   - name: site | check if awx.repo already exists
+     shell: ls /etc/yum.repos.d/awx.repo
+     register: yum_repo_exists
+     ignore_errors: yes
+
+   - name: site | clean repocache
+     shell: yum clean all --enablerepo=ansibleworks-awx
+     when: yum_repo_exists is defined and yum_repo_exists|success
+
+   - name: site | setup.sh
+     shell: bash setup.sh
+            chdir=/tmp/awx-setup
+            # creates=/etc/awx/awx.cert
+     when: aw_repo_url is not defined
+
+   - name: site | setup.sh -e aw_repo_url
+     shell: bash setup.sh -e aw_repo_url={{aw_repo_url}}
+            chdir=/tmp/awx-setup
+            # creates=/etc/awx/awx.cert
+     when: aw_repo_url is defined
+
+  handlers:
+   - include: handlers/restart_services.yml

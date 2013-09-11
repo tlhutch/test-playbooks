@@ -1,0 +1,117 @@
+---
+
+- name: rhevm_setup | install task dependencies
+  yum: name=$item state=present
+  ignore_errors: yes
+  with_items: ['python-argparse', 'python-psycopg2']
+
+- name: rhevm_setup | determine version of rhevm installed
+  shell: rpm -q --qf '%{version}' rhevm
+  register: rhevm_version
+  when: ansible_distribution == 'RedHat'
+
+- name: rhevm_setup | determine version of ovirt-engine installed
+  shell: rpm -q --qf '%{version}' ovirt-engine
+  register: rhevm_version
+  when: ansible_distribution == 'Fedora'
+
+- name: rhevm_setup | generate answers.cfg files
+  template: src=files/answers-{{rhevm_version.stdout}}.cfg.j2 dest={{ovirt_engine_answers}}
+        owner=root group=root mode=0644
+
+- name: rhevm_setup | rhevm-setup --answer-file {{ovirt_engine_answers}}
+  shell: $ovirt_setup --answer-file {{ovirt_engine_answers}}
+     creates=/etc/pki/ovirt-engine/keys/engine.p12
+
+- name: rhevm_setup | mkdir /export
+  shell: mkdir -p /export
+     creates=/export
+
+- name: rhevm_setup | determine vdsm uid
+  shell: getent passwd vdsm | gawk 'BEGIN{FS=":"} {print $3}'
+  register: vdsm_uid
+
+- name: rhevm_setup | determine kvm gid
+  shell: getent group kvm | gawk 'BEGIN{FS=":"} {print $3}'
+  register: kvm_gid
+
+- name: rhevm_setup | adjust /export permissions
+  shell: chown -R {{vdsm_uid.stdout}}:{{kvm_gid.stdout}} /export
+
+- name: rhevm_setup | define NFS export
+  lineinfile: dest=/etc/exports state=present regexp='^/export ' line='/export 0.0.0.0/0.0.0.0(rw)'
+
+- name: rhevm_setup | disable NFS4 support
+  lineinfile: dest=/etc/sysconfig/nfs state=present regexp='^NFS4_SUPPORT=no' line='NFS4_SUPPORT=no'
+
+- name: rhevm_setup | determine if db exists - $ovirt_dwh_dbname
+  shell: PGPASSWORD={{db_local_pass}} psql -U {{db_admin}} $ovirt_dwh_dbname -c "SELECT version()"
+  register: is_engine_history_present
+  ignore_errors: yes
+
+- name: rhevm_setup | rhevm-dwh-setup
+  shell: echo "yes" | $ovirt_dwh_setup
+  when: is_engine_history_present|failed
+
+- name: rhevm_setup | determine if db exists - $ovirt_reports_dbname
+  shell: PGPASSWORD={{db_local_pass}} psql -U {{db_admin}} $ovirt_reports_dbname -c "SELECT version()"
+  register: is_rhevmreports_present
+  ignore_errors: yes
+
+- name: rhevm_setup | rhevm-reports-setup
+  shell: $ovirt_reports_setup
+  when: is_rhevmreports_present|failed
+
+- name: rhevm_setup | make sure ovirt-engine is running
+  service: name=ovirt-engine state=started
+
+- name: rhevm_setup | inspect current iptables rules
+  shell: iptables -L | egrep "({{db_port}}|postgres)"
+  ignore_errors: yes
+  register: is_psql_port_open
+
+- name: rhevm_setup | open port {{db_port}}
+  shell: iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport {{db_port}} -j ACCEPT && service iptables save
+  when: is_psql_port_open|failed
+  notify: restart iptables
+
+- name: rhevm_setup | create cfme psql role
+  postgresql_user: state=present name=cfme password={{db_local_pass}} login_user={{db_admin}} login_password={{db_local_pass}} role_attr_flags=SUPERUSER
+  notify: restart postgresql
+
+- name: rhevm_setup | service nfsd restart
+  service: name=nfs state=restarted
+
+#
+# Prepare and activate export storagedomain
+#
+
+- name: rhevm_setup | hack - sleep 30s
+  shell: sleep 30
+
+- name: rhevm_setup | check if storagedomain is already available
+  local_action: shell files/ovirt-cli.py --url https://{{host_fqdn}}/api --username {{auth_user}} --password {{auth_pass}} storagedomains.list --filter 'name={{export_domain}}'
+  register: is_created
+  ignore_errors: yes
+
+- name: rhevm_setup | ovirt storagedomains.add
+  local_action: shell files/ovirt-cli.py --url https://{{host_fqdn}}/api --username {{auth_user}} --password {{auth_pass}} storagedomains.add --name {{export_domain}}
+  when: is_created|failed
+
+- name: rhevm_setup | check if storagedomain is already attached
+  local_action: shell files/ovirt-cli.py --url https://{{host_fqdn}}/api --username {{auth_user}} --password {{auth_pass}} storagedomains.list --filter 'name={{export_domain}} and datacenter={{datacenter}}'
+  register: is_attached
+  ignore_errors: yes
+
+- name: rhevm_setup | ovirt storagedomains.attach
+  local_action: shell files/ovirt-cli.py --url https://{{host_fqdn}}/api --username {{auth_user}} --password {{auth_pass}} storagedomains.attach --name {{export_domain}} --datacenter {{datacenter}}
+  when: is_attached|failed
+
+- name: rhevm_setup | check if storagedomain is activated
+  local_action: shell files/ovirt-cli.py --url https://{{host_fqdn}}/api --username {{auth_user}} --password {{auth_pass}} storagedomains.list --filter 'name={{export_domain}} and datacenter={{datacenter}} and status=active'
+  register: is_activated
+  ignore_errors: yes
+
+- name: rhevm_setup | ovirt storagedomains.activate
+  local_action: shell files/ovirt-cli.py --url https://{{host_fqdn}}/api --username {{auth_user}} --password {{auth_pass}} storagedomains.activate --name {{export_domain}} --datacenter {{datacenter}}
+  when: is_activated|failed

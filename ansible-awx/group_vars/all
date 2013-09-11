@@ -1,0 +1,9 @@
+aw_repo_url: http://50.116.42.103/awx_nightlies_RTYUIOPOIUYTYU
+awx_setup_url: http://50.116.42.103/awx_nightlies_RTYUIOPOIUYTYU/setup/awx-setup-latest.tar.gz
+
+rax_api_key: ''
+rax_username: ''
+rax_images: [{'name': 'centos-6.4-x86_64', 'uuid': 'e90a24d5-8f13-4936-8d5c-19442b217114'},
+             {'name': 'rhel-6.4-x86_64', 'uuid': 'e39868f3-917a-4505-b1fe-ac0294d14b2e'},
+             {'name': 'fedora-19-x86_64', 'uuid': '8ebd12f6-7335-4a77-adaf-557e58017f35'},
+             {'name': 'ubuntu-12.04-x86_64', 'uuid': '57b37417-bd1a-436d-8c72-0772e1155551'},]
