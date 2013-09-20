@@ -8,15 +8,31 @@
 - hosts: local
   tasks:
 
-   - name: site | create rax instances
+   - name: site | delete existing rax instance(s)
      rax:
        api_key: $rax_api_key
        username: $rax_username
        service: cloudservers
-       name: 'testing-{{ item.name }}'
+       name: '{{ rax_image_prefix }}-{{ item.name }}'
        flavor: 2 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/content/List_Flavors-d1e3842.html
        image: '{{ item.uuid }}'
-       region: ORD
+       region: '{{ rax_region }}'
+       wait: yes
+       wait_timeout: 600
+       state: deleted
+     register: rax
+     with_items: '{{ rax_images }}'
+     when: delete_on_start
+
+   - name: site | create (or locate) rax instance(s)
+     rax:
+       api_key: $rax_api_key
+       username: $rax_username
+       service: cloudservers
+       name: '{{ rax_image_prefix }}-{{ item.name }}'
+       flavor: 2 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/content/List_Flavors-d1e3842.html
+       image: '{{ item.uuid }}'
+       region: '{{ rax_region }}'
        files:
          /root/.ssh/authorized_keys: ~/.ssh/id_rsa.pub
        wait: yes
@@ -117,17 +133,22 @@
      shell: yum clean all --enablerepo=ansibleworks-awx
      when: yum_repo_exists is defined and yum_repo_exists|success
 
+   - name: site | is awx already installed?
+     shell: ls /etc/awx/awx.cert
+     register: is_awx_installed
+     ignore_errors: yes
+
    - name: site | setup.sh
      shell: bash setup.sh
             chdir=/tmp/awx-setup
             # creates=/etc/awx/awx.cert
-     when: aw_repo_url is not defined
+     when: aw_repo_url is not defined and ( is_awx_installed|failed or awx_upgrade )
 
    - name: site | setup.sh -e aw_repo_url
      shell: bash setup.sh -e aw_repo_url={{aw_repo_url}}
             chdir=/tmp/awx-setup
             # creates=/etc/awx/awx.cert
-     when: aw_repo_url is defined
+     when: aw_repo_url is defined and ( is_awx_installed|failed or awx_upgrade )
 
   handlers:
    - include: handlers/restart_services.yml
