@@ -34,7 +34,7 @@
        image: '{{ item.uuid }}'
        region: '{{ rax_region }}'
        files:
-         /root/.ssh/authorized_keys: ~/.ssh/id_rsa.pub
+         /root/.ssh/authorized_keys: '{{ rax_ssh_pubkey }}'
        wait: yes
        wait_timeout: 1200
        state: active
