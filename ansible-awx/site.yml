@@ -62,7 +62,7 @@
 #
 # For RedHat hosts, register to RHN
 #
-- hosts: RedHat
+- hosts: RedHat:!local
   tasks:
    - include: tasks/rhn_register.yml
      when: rhn_method is defined
@@ -70,7 +70,7 @@
 #
 # For CentOS and RedHat hosts, install epel-release
 #
-- hosts: ['CentOS', 'RedHat']
+- hosts: ['CentOS', 'RedHat', '!local']
   tasks:
    - name: site | install epel-release
      yum: name=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
@@ -88,7 +88,7 @@
 #
 # For Ubuntu, enable the ppa
 #
-- hosts: Ubuntu
+- hosts: Ubuntu:!local
   tasks:
    - name: site | install debian dependencies
      apt: pkg=python-pycurl state=latest
