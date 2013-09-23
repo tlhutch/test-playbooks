@@ -104,6 +104,11 @@
 - hosts: rackspace
   tasks:
 
+   - name: site | Add more authorized_keys
+     shell: echo {{item}} >> $HOME/.ssh/authorized_keys
+     with_items: '{{authorized_keys}}'
+     when: authorized_keys is defined
+
    - name: site | install ansible rpm
      yum: name=ansible state=latest
      when: "'${ansible_pkg_mgr}' == 'yum'"
