@@ -18,7 +18,7 @@ rax_api_key: ''
 rax_username: ''
 rax_region: ORD
 rax_image_prefix: testing
-rax_ssh_pubkey: '~/.ssh/id_rsa.pub'
+rax_public_keys: ['$HOME/.ssh/id_rsa.pub']
 
 # Use `nova image-list` to determine active images
 rax_images: [{'name': 'centos-6.4-x86_64',      'uuid': '25a5f2e8-f522-4fe0-b0e0-dbaa62405c25'},
