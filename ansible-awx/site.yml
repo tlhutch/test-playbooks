@@ -14,7 +14,7 @@
 #
 - hosts: all
   tasks:
-   - name: site | group hosts by distribution
+   - name: group hosts by distribution
      action: group_by key={{ansible_distribution}}
 
 #

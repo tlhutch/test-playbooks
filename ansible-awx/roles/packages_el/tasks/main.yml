@@ -16,3 +16,8 @@
 #   - name: yum clean cached ansible repository information
 #     command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
 #     when: yum_repo.changed
+
+- name: install ansible rpm
+  shell: yum -y --enablerepo=updates-testing,epel-testing install ansible
+  when: "'${ansible_pkg_mgr}' == 'yum'"
+

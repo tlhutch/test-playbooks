@@ -1,14 +1,6 @@
 ---
 # Download awx-setup and run the setup playbook
 
-- name: install ansible rpm
-  shell: yum -y --enablerepo=updates-testing,epel-testing install ansible
-  when: "'${ansible_pkg_mgr}' == 'yum'"
-
-- name: install ansible deb
-  apt: pkg=ansible state=latest update_cache=yes
-  when: "'${ansible_pkg_mgr}' == 'apt'"
-
 - name: download awx-setup-latest.tar.gz
   get_url: url={{awx_setup_url}} dest=/tmp mode=0640
   register: tarball
