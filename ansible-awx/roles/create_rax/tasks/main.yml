@@ -1,0 +1,42 @@
+---
+# Tasks to delete (optionally) and create rax instances
+
+- name: delete existing rax instance(s)
+  rax:
+    api_key: '{{ rax_api_key }}'
+    username: '{{ rax_username }}'
+    service: cloudservers
+    name: '{{ rax_image_prefix }}-{{ item.name }}'
+    flavor: 2 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/content/List_Flavors-d1e3842.html
+    image: '{{ item.uuid }}'
+    region: '{{ rax_region }}'
+    wait: yes
+    wait_timeout: 600
+    state: deleted
+  register: rax
+  with_items: '{{ rax_images }}'
+  when: delete_on_start
+
+- name: create (or locate) rax instance(s)
+  rax:
+    api_key: '{{ rax_api_key }}'
+    username: '{{ rax_username }}'
+    service: cloudservers
+    name: '{{ rax_image_prefix }}-{{ item.name }}'
+    flavor: 2 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/content/List_Flavors-d1e3842.html
+    image: '{{ item.uuid }}'
+    region: '{{ rax_region }}'
+    files:
+      /root/.ssh/authorized_keys: '{{ rax_public_key }}'
+    wait: yes
+    wait_timeout: 1200
+    state: active
+  register: rax
+  with_items: '{{ rax_images }}'
+
+- name: add_host
+  add_host: name={{ item.instances[0].name }}
+     groups=all_instances,rax_instances
+     ansible_ssh_user=root
+     ansible_ssh_host={{ item.instances[0].accessIPv4 }}
+  with_items: '{{ rax.results }}'

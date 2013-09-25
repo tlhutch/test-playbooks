@@ -1,0 +1,54 @@
+---
+# Download awx-setup and run the setup playbook
+
+- name: install ansible rpm
+  shell: yum -y --enablerepo=updates-testing,epel-testing install ansible
+  when: "'${ansible_pkg_mgr}' == 'yum'"
+
+- name: install ansible deb
+  apt: pkg=ansible state=latest update_cache=yes
+  when: "'${ansible_pkg_mgr}' == 'apt'"
+
+- name: download awx-setup-latest.tar.gz
+  get_url: url={{awx_setup_url}} dest=/tmp mode=0640
+  register: tarball
+
+- name: determine awx-setup directory
+  shell: echo {{tarball.dest}} | sed 's|\.tar\.gz$||'
+  register: awx_setup_dir
+
+- name: untar awx-setup
+  shell: tar -xvf {{tarball.dest}} --transform "s|^awx-setup-[^/]*|awx-setup|"
+    chdir=/tmp
+
+- name: check if awx.repo already exists
+  shell: ls /etc/yum.repos.d/awx.repo
+  register: yum_repo_exists
+  ignore_errors: yes
+
+- name: clean repocache
+  shell: yum clean all --enablerepo=ansibleworks-awx
+  when: yum_repo_exists is defined and yum_repo_exists|success
+
+- name: is awx already installed?
+  shell: ls /etc/awx/awx.cert
+  register: is_awx_installed
+  ignore_errors: yes
+
+- name: HACK disable sudo requiretty for root
+  lineinfile: dest=/etc/sudoers
+     state=present
+     regexp='^Defaults:root'
+     line='Defaults:root !requiretty'
+
+- name: setup.sh
+  shell: bash -x setup.sh
+     chdir=/tmp/awx-setup
+     # creates=/etc/awx/awx.cert
+  when: aw_repo_url is not defined and ( is_awx_installed|failed or awx_upgrade )
+
+- name: setup.sh -e aw_repo_url
+  shell: bash -x setup.sh -e aw_repo_url={{aw_repo_url}}
+     chdir=/tmp/awx-setup
+     # creates=/etc/awx/awx.cert
+  when: aw_repo_url is defined and ( is_awx_installed|failed or awx_upgrade )

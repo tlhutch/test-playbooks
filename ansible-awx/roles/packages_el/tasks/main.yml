@@ -1,0 +1,18 @@
+---
+# Tasks to install awx-setup package-related dependencies on EL systems
+
+- include: rhn.yml
+  when: rhn_method is defined
+
+- name: install epel-release
+  yum: name=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+
+# TODO - install ansible nightly rpm repo (optional)
+
+#   - name: install ansible yum repository
+#     template: src=yum_repo.j2 dest=/etc/yum.repos.d/ansible.repo
+#     register: yum_repo
+#
+#   - name: yum clean cached ansible repository information
+#     command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
+#     when: yum_repo.changed

@@ -1,52 +1,13 @@
 ---
-# Base playbook for deploying AWX (more info at
-# https://github.com/ansible/ansible-commander/blob/master/docs/build_system.md)
+# This playbook deploys the AWX application (database, web and worker) to a
+# multiple platforms across multiple cloud providers.
 
 #
 # Create remote hosts
 #
 - hosts: local
-  tasks:
-
-   - name: site | delete existing rax instance(s)
-     rax:
-       api_key: $rax_api_key
-       username: $rax_username
-       service: cloudservers
-       name: '{{ rax_image_prefix }}-{{ item.name }}'
-       flavor: 2 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/content/List_Flavors-d1e3842.html
-       image: '{{ item.uuid }}'
-       region: '{{ rax_region }}'
-       wait: yes
-       wait_timeout: 600
-       state: deleted
-     register: rax
-     with_items: '{{ rax_images }}'
-     when: delete_on_start
-
-   - name: site | create (or locate) rax instance(s)
-     rax:
-       api_key: $rax_api_key
-       username: $rax_username
-       service: cloudservers
-       name: '{{ rax_image_prefix }}-{{ item.name }}'
-       flavor: 2 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/content/List_Flavors-d1e3842.html
-       image: '{{ item.uuid }}'
-       region: '{{ rax_region }}'
-       files:
-         /root/.ssh/authorized_keys: '{{ rax_public_key }}'
-       wait: yes
-       wait_timeout: 1200
-       state: active
-     register: rax
-     with_items: '{{ rax_images }}'
-
-   - name: site | add_host
-     add_host: name={{ item.instances[0].name }}
-        groups=rackspace
-        ansible_ssh_user=root
-        ansible_ssh_host={{ item.instances[0].accessIPv4 }}
-     with_items: '{{ rax.results }}'
+  roles:
+    - { role: create_rax }
 
 #
 # Dynamically create host groups based on distribution
@@ -60,106 +21,21 @@
      action: group_by key={{ansible_distribution}}
 
 #
-# For RedHat hosts, register to RHN
+# Install awx_setup on RHEL-like systems
 #
-- hosts: RedHat:!local
-  tasks:
-   - include: tasks/rhn_register.yml
-     when: rhn_method is defined
-
-#
-# For CentOS and RedHat hosts, install epel-release
-#
-- hosts: ['CentOS', 'RedHat', '!local']
-  tasks:
-   - name: site | install epel-release
-     yum: name=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
-
-# TODO - install ansible nightly rpm repo
-
-#   - name: install ansible yum repository
-#     template: src=yum_repo.j2 dest=/etc/yum.repos.d/ansible.repo
-#     register: yum_repo
-#
-#   - name: yum clean cached ansible repository information
-#     command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
-#     when: yum_repo.changed
+- hosts: CentOS:RedHat:&all_instances
+  user: root
+  roles:
+    - { role: packages_el }
+    - { role: auth_keys }
+    - { role: awx_setup }
 
 #
-# For Ubuntu, enable the ppa
+# Install awx_setup on Ubuntu systems
 #
-- hosts: Ubuntu:!local
-  tasks:
-   - name: site | install debian dependencies
-     apt: pkg=python-pycurl state=latest
-
-   - name: site | enable ppa:rquillo/ansible
-     apt_repository: repo='ppa:rquillo/ansible' state=present
-
-# TODO - install ansible nightly deb repo
-
-#
-# Configure remote hosts
-#
-- hosts: rackspace
-  tasks:
-
-   - name: site | Add more authorized_keys
-     shell: echo {{item}} >> $HOME/.ssh/authorized_keys
-     with_items: '{{authorized_keys}}'
-     when: authorized_keys is defined
-
-   - name: site | install ansible rpm
-     shell: yum -y --enablerepo=updates-testing,epel-testing install ansible
-     when: "'${ansible_pkg_mgr}' == 'yum'"
-
-   - name: site | install ansible deb
-     apt: pkg=ansible state=latest update_cache=yes
-     when: "'${ansible_pkg_mgr}' == 'apt'"
-
-   - name: site | download awx-setup-latest.tar.gz
-     get_url: url={{awx_setup_url}} dest=/tmp mode=0640
-     register: tarball
-
-   - name: site | determine awx-setup directory
-     shell: echo {{tarball.dest}} | sed 's|\.tar\.gz$||'
-     register: awx_setup_dir
-
-   - name: site | untar awx-setup
-     shell: tar -xvf {{tarball.dest}} --transform "s|^awx-setup-[^/]*|awx-setup|"
-        chdir=/tmp
-
-   - name: site | check if awx.repo already exists
-     shell: ls /etc/yum.repos.d/awx.repo
-     register: yum_repo_exists
-     ignore_errors: yes
-
-   - name: site | clean repocache
-     shell: yum clean all --enablerepo=ansibleworks-awx
-     when: yum_repo_exists is defined and yum_repo_exists|success
-
-   - name: site | is awx already installed?
-     shell: ls /etc/awx/awx.cert
-     register: is_awx_installed
-     ignore_errors: yes
-
-   - name: site | HACK disable sudo requiretty for root
-     lineinfile: dest=/etc/sudoers
-        state=present
-        regexp='^Defaults:root'
-        line='Defaults:root !requiretty'
-
-   - name: site | setup.sh
-     shell: bash -x setup.sh
-        chdir=/tmp/awx-setup
-        # creates=/etc/awx/awx.cert
-     when: aw_repo_url is not defined and ( is_awx_installed|failed or awx_upgrade )
-
-   - name: site | setup.sh -e aw_repo_url
-     shell: bash -x setup.sh -e aw_repo_url={{aw_repo_url}}
-        chdir=/tmp/awx-setup
-        # creates=/etc/awx/awx.cert
-     when: aw_repo_url is defined and ( is_awx_installed|failed or awx_upgrade )
-
-  handlers:
-   - include: handlers/restart_services.yml
+- hosts: Ubuntu:&all_instances
+  user: root
+  roles:
+    - { role: packages_ubuntu }
+    - { role: auth_keys }
+    - { role: awx_setup }

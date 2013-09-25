@@ -1,0 +1,8 @@
+---
+# Tasks to install awx-setup package-related dependencies on EL systems
+
+- name: site | install debian dependencies
+  apt: pkg=python-pycurl state=latest
+
+- name: site | enable ppa:rquillo/ansible
+  apt_repository: repo='ppa:rquillo/ansible' state=present
