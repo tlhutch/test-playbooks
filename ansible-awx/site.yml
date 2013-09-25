@@ -14,9 +14,6 @@
 #
 - hosts: all
   tasks:
-   - name: site | gather site specific fact data
-     action: site_facts
-
    - name: site | group hosts by distribution
      action: group_by key={{ansible_distribution}}
 
