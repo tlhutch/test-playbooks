@@ -1,4 +1,4 @@
-ansible-rhevm-all-in-one
+ansible-awx
 ========================
 
 [Ansible](http://ansible.cc/) playbook for deploying a Ansible AWX.
