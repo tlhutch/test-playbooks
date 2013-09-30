@@ -23,7 +23,7 @@
 # Install awx_setup on RHEL-like systems
 #
 - hosts: CentOS:RedHat:&all_instances
-  user: root
+  sudo: yes
   roles:
     - { role: packages_el }
     - { role: auth_keys }
@@ -33,7 +33,7 @@
 # Install awx_setup on Ubuntu systems
 #
 - hosts: Ubuntu:&all_instances
-  user: root
+  sudo: yes
   roles:
     - { role: packages_ubuntu }
     - { role: auth_keys }
