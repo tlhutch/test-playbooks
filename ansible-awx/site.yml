@@ -8,6 +8,8 @@
 - hosts: local
   roles:
     - { role: create_rax }
+    - { role: create_ec2 }
+    - { role: save_inventory }
 
 #
 # Dynamically create host groups based on distribution
