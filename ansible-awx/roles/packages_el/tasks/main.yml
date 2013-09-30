@@ -21,3 +21,8 @@
   shell: yum -y --enablerepo=updates-testing,epel-testing install ansible
   when: "'${ansible_pkg_mgr}' == 'yum'"
 
+- name: install non-required dependencies
+  yum: name={{item}} state=installed
+  when: "'${ansible_pkg_mgr}' == 'yum'"
+  with_items:
+    - libselinux-python
