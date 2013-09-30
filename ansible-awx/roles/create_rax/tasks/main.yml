@@ -6,7 +6,7 @@
     api_key: '{{ rax_api_key }}'
     username: '{{ rax_username }}'
     service: cloudservers
-    name: '{{ rax_image_prefix }}-{{ item.name }}'
+    name: '{{ rax_name_prefix }}-{{ item.name }}'
     flavor: 2 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/content/List_Flavors-d1e3842.html
     image: '{{ item.uuid }}'
     region: '{{ rax_region }}'
@@ -22,7 +22,7 @@
     api_key: '{{ rax_api_key }}'
     username: '{{ rax_username }}'
     service: cloudservers
-    name: '{{ rax_image_prefix }}-{{ item.name }}'
+    name: '{{ rax_name_prefix }}-{{ item.name }}'
     flavor: 2 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/content/List_Flavors-d1e3842.html
     image: '{{ item.uuid }}'
     region: '{{ rax_region }}'

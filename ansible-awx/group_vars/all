@@ -22,8 +22,9 @@ aws_secret_key: ''
 aws_region: 'us-east-1'
 aws_instance_type: 't1.micro'
 aws_security_group: 'awx' # sg-b05be0db
-aws_key_name: 'jenkins'
-aws_urlL: 'https://ec2.amazonaws.com'
+aws_key_name: 'testing'
+aws_url: 'https://ec2.amazonaws.com'
+aws_name_prefix: testing
 aws_images: [{'name': 'centos-6.4-x86_64',   'user': 'root',        'id': 'ami-eb6b0182', 'instance_id': 'i-4269df24'},
              {'name': 'rhel-6.4-x86_64',     'user': 'ec2-user',    'id': 'ami-a25415cb', 'instance_id': 'i-79560700'},
              {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-d0f89fb9', 'instance_id': 'i-2e69df48'},
@@ -36,7 +37,7 @@ aws_images: [{'name': 'centos-6.4-x86_64',   'user': 'root',        'id': 'ami-e
 rax_api_key: ''
 rax_username: ''
 rax_region: ORD
-rax_image_prefix: testing
+rax_name_prefix: 'testing'
 rax_public_key: ~/.ssh/id_rsa.pub
 
 # Use `nova image-list` to determine active images
