@@ -62,7 +62,7 @@
   register: aws
 
 - name: ensure instances are listening on port:22
-  shell: nc -d -z -w 30 {{ item.instances[0].public_dns_name }} 22 >>/dev/null
+  shell: nc -d -z -w 60 {{ item.instances[0].public_dns_name }} 22 >>/dev/null
   with_items: '{{ aws.results }}'
 
 - name: add_host
