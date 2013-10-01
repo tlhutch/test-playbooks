@@ -353,6 +353,57 @@ def boto_supports_profile_name_arg(ec2):
     return 'instance_profile_name' in run_instances_method.func_code.co_varnames
 
 
+def get_instances(module, ec2, **kwargs):
+
+    # Gather kwargs
+    state = kwargs.get('state', None)
+    id = kwargs.get('id', None)
+    idempotency_attribute = kwargs.get('idempotency_attribute', None)
+    instance_ids = kwargs.get('instance_ids', [])
+    instance_tags = kwargs.get('instance_tags', None)
+    image = kwargs.get('image', None)
+    group_name = kwargs.get('group_name', None)
+    group_id = kwargs.get('group_id', None)
+
+    # initialize filters dict
+    filters = dict()
+
+    # Filter by state?
+    if state is not None:
+        filters.update({'instance-state-name': state})
+
+    # Filter by instance_id?
+    if id is not None:
+        filters.update({'client-token': id})
+
+    # Filter by a list of instance_ids
+    elif instance_ids:
+        filters.update({'instance-id': instance_ids})
+
+    # Filter by other attribute
+    elif idempotency_attribute is not None:
+        # Custom attribute idempotency requested
+        if idempotency_attribute == "tags":
+            if instance_tags is None:
+                module.fail_json(msg = "Idempotency attribute set to id, so a value for the id option must also be provided.")
+            else:
+                filters.update(dict(("tag:" + tn, tv) for tn, tv in module.from_json(instance_tags).items()))
+        elif idempotency_attribute == "image-id":
+            filters.update({"image-id": image})
+        elif idempotency_attribute == "group-name":
+            filters.update({"group-name": group_name})
+        elif idempotency_attribute == "group_id":
+            filters.update({"group-id": group_id})
+        elif idempotency_attribute == "client-token":
+            if id is None:
+                module.fail_json(msg = "Idempotency attribute set to id, so a value for the id option must also be provided.")
+            else:
+                filters.update({"client-token": id})
+        else:
+            module.fail_json(msg = "Idempotency attribute '%s' not supported." % idempotency_attribute)
+
+    return ec2.get_all_instances(filters=filters)
+
 def create_instances(module, ec2):
     """
     Creates new instances
@@ -368,6 +419,7 @@ def create_instances(module, ec2):
     key_name = module.params.get('key_name')
     id = module.params.get('id')
     idempotency_attribute = module.params.get('idempotency_attribute')
+    instance_ids = module.params.get('instance_ids')
     group_name = module.params.get('group')
     group_id = module.params.get('group_id')
     zone = module.params.get('zone')
@@ -385,7 +437,6 @@ def create_instances(module, ec2):
     vpc_subnet_id = module.params.get('vpc_subnet_id')
     private_ip = module.params.get('private_ip')
     instance_profile_name = module.params.get('instance_profile_name')
-
 
     # group_id and group_name are exclusive of each other
     if group_id and group_name:
@@ -419,35 +470,18 @@ def create_instances(module, ec2):
     running_instances = []
     count_remaining = int(count)
 
+    filter_args = {
+        'id': id,
+        'idempotency_attribute': idempotency_attribute,
+        'instance_ids': instance_ids,
+        'instance_tags': module.params.get('instance_tags'),
+        'image': module.params.get('image'),
+        'group_name': module.params.get('group_name'),
+        'group_id': module.params.get('group_id'),}
 
-    # Is idempotency requested?
-    if any([idempotency_attribute, id]):
-        filter_dict = {'instance-state-name' : 'running'}
-        # Default AWS client-token idempotency requested
-        if id is not None:
-            filter_dict.update({'client-token': id})
-        # Custom attribute idempotency requested
-        elif idempotency_attribute is not None:
-            if idempotency_attribute == "tags":
-                if instance_tags is None:
-                    module.fail_json(msg = "Idempotency attribute set to id, so a value for the id option must also be provided.")
-                else:
-                    filter_dict.update(dict(("tag:" + tn, tv) for tn, tv in module.from_json(instance_tags).items()))
-            elif idempotency_attribute == "image-id":
-                filter_dict.update({"image-id": image})
-            elif idempotency_attribute == "group-name":
-                filter_dict.update({"group-name": group_name})
-            elif idempotency_attribute == "group_id":
-                filter_dict.update({"group-id": group_id})
-            elif idempotency_attribute == "client-token":
-                if id is None:
-                    module.fail_json(msg = "Idempotency attribute set to id, so a value for the id option must also be provided.")
-                else:
-                    filter_dict.update({"client-token": id})
-            else:
-                module.fail_json(msg = "Idempotency attribute '%s' not supported." % idempotency_attribute)
-
-        previous_reservations = ec2.get_all_instances(None, filter_dict)
+    # Idempotency?
+    if any([id, idempotency_attribute, instance_ids]):
+        previous_reservations = get_instances(module, ec2, **dict(state='running', **filter_args))
         for res in previous_reservations:
             for prev_instance in res.instances:
                 running_instances.append(prev_instance)
@@ -510,15 +544,15 @@ def create_instances(module, ec2):
                 module.fail_json(msg = "%s: %s" % (e.error_code, e.error_message))
 
         # wait here until the instances are up
-        this_res = []
+        running = []
         num_running = 0
         wait_timeout = time.time() + wait_timeout
         while wait_timeout > time.time() and num_running < len(instids):
-            res_list = res.connection.get_all_instances(instids)
-            if len(res_list) > 0:
-                this_res = res_list[0]
-                num_running = len([ i for i in this_res.instances if i.state=='running' ])
-            else:
+            response = res.connection.get_all_instances(instids)
+            try:
+                running = response.pop()
+                num_running = len([ i for i in running.instances if i.state=='running' ])
+            except Exception, e:
                 # got a bad response of some sort, possibly due to 
                 # stale/cached data. Wait a second and then try again
                 time.sleep(1)
@@ -532,7 +566,7 @@ def create_instances(module, ec2):
             # waiting took too long
             module.fail_json(msg = "wait for instances running timeout on %s" % time.asctime())
 
-        for inst in this_res.instances:
+        for inst in running.instances:
             running_instances.append(inst)
 
     instance_dict_array = []
@@ -545,14 +579,13 @@ def create_instances(module, ec2):
     return (instance_dict_array, created_instance_ids, changed)
 
 
-def terminate_instances(module, ec2, instance_ids):
+def terminate_instances(module, ec2, instance_termination_filter):
     """
     Terminates a list of instances
 
     module: Ansible module object
     ec2: authenticated ec2 connection object
-    termination_list: a list of instances to terminate in the form of
-      [ {id: <inst-id>}, ..]
+    instance_termination_filter: a dictionary used to determine which intances to terminate
 
     Returns a dictionary of instance information
     about the instances terminated.
@@ -565,11 +598,12 @@ def terminate_instances(module, ec2, instance_ids):
     changed = False
     instance_dict_array = []
 
-    if not isinstance(instance_ids, list) or len(instance_ids) < 1:
-        module.fail_json(msg='instance_ids should be a list of instances, aborting')
+    # Whether to wait for termination to complete before returning
+    wait = module.params.get('wait')
+    wait_timeout = int(module.params.get('wait_timeout'))
 
     terminated_instance_ids = []
-    for res in ec2.get_all_instances(instance_ids):
+    for res in get_instances(module, ec2, **instance_termination_filter):
         for inst in res.instances:
             if inst.state == 'running':
                 terminated_instance_ids.append(inst.id)
@@ -580,8 +614,31 @@ def terminate_instances(module, ec2, instance_ids):
                     module.fail_json(msg='Unable to terminate instance {0}, error: {1}'.format(inst.id, e))
                 changed = True
 
-    return (changed, instance_dict_array, terminated_instance_ids)
+    # wait here until the instances are 'terminated'
+    terminated = []
+    num_terminated = 0
+    wait_timeout = time.time() + wait_timeout
+    while wait_timeout > time.time() and num_terminated < len(terminated_instance_ids):
+        response = get_instances(module, ec2, **dict(state='terminated', **instance_termination_filter))
+        try:
+            terminated = response.pop()
+            num_terminated = len(terminated.instances)
+        except AttributeError, e:
+            # got a bad response of some sort, possibly due to
+            # stale/cached data. Wait a second and then try again
+            time.sleep(1)
+            continue
 
+        if wait and num_terminated < len(terminated_instance_ids):
+            time.sleep(5)
+        else:
+            break
+
+        if wait and wait_timeout <= time.time():
+            # waiting took too long
+            module.fail_json(msg = "wait for instance termination timeout on %s" % time.asctime())
+
+    return (changed, instance_dict_array, terminated_instance_ids)
 
 
 def main():
@@ -621,7 +678,6 @@ def main():
     aws_access_key = module.params.get('aws_access_key')
     region = module.params.get('region')
 
-
     # allow eucarc environment variables to be used if ansible vars aren't set
     if not ec2_url and 'EC2_URL' in os.environ:
         ec2_url = os.environ['EC2_URL']
@@ -660,11 +716,15 @@ def main():
         module.fail_json(msg="Either region or ec2_url must be specified")
 
     if module.params.get('state') == 'absent':
-        instance_ids = module.params.get('instance_ids')
-        if not isinstance(instance_ids, list):
-            module.fail_json(msg='termination_list needs to be a list of instances to terminate')
+        instance_termination_filter = {
+            'instance_ids': module.params.get('instance_ids'),
+            'idempotency_attribute': module.params.get('idempotency_attribute'),
+            'instance_tags': module.params.get('instance_tags'),
+            'image': module.params.get('image'),
+            'group_name': module.params.get('group_name'),
+            'group_id': module.params.get('group_id'),}
 
-        (changed, instance_dict_array, new_instance_ids) = terminate_instances(module, ec2, instance_ids)
+        (changed, instance_dict_array, new_instance_ids) = terminate_instances(module, ec2, instance_termination_filter)
 
     elif module.params.get('state') == 'present':
         # Changed is always set to true when provisioning new instances
