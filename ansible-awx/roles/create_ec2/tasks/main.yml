@@ -28,12 +28,6 @@
         to_port: 443
   ignore_errors: true
 
-# FIXME - need to discover instance_id's
-- name: discover existing ec2 instance ids
-  shell: echo -e "['FIXME','FIXME']"
-  register: aws_instances
-  when: delete_on_start
-
 - name: delete existing ec2 instance(s)
   ec2:
     state: absent
@@ -41,20 +35,20 @@
     aws_secret_key: '{{ aws_secret_key }}'
     region: '{{ aws_region }}'
     instance_type: '{{ aws_instance_type }}'
+    instance_tags: '{"Name": "{{aws_name_prefix}}-{{item.name}}"}'
     group: '{{ aws_security_group }}'
     key_name: '{{ aws_key_name }}'
-    instance_ids: ['{{ item.instance_id }}']
+    # instance_ids: ['{{ item.instance_id }}']
+    idempotency_attribute: 'tags'
+    instance_tags: '{"Name": "{{aws_name_prefix}}-{{item.name}}"}'
     wait: yes
-    wait_timeout: 300
   with_items: '{{ aws_images }}'
   when: delete_on_start
 
-# TODO - use ec2_group to ensure port:22 is open
-
-- name: create/locate existing ec2 instance(s)
+- name: create/locate ec2 instance(s)
   ec2:
     state: present
-    idempotency_attribute: 'image-id'
+    idempotency_attribute: 'tags'
     aws_access_key: '{{ aws_access_key }}'
     aws_secret_key: '{{ aws_secret_key }}'
     region: '{{ aws_region }}'
@@ -64,12 +58,11 @@
     key_name: '{{ aws_key_name }}'
     image: '{{ item.id }}'
     wait: yes
-    wait_timeout: 300
   with_items: '{{ aws_images }}'
   register: aws
 
 - name: add_host
-  add_host: name={{ item.item.name }}
+  add_host: name={{ aws_name_prefix }}-{{ item.item.name }}
      groups=all_instances,aws_instances
      ansible_ssh_user={{ item.item.user }}
      ansible_ssh_host={{ item.instances[0].public_dns_name }}
