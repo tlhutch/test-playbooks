@@ -61,6 +61,10 @@
   with_items: '{{ aws_images }}'
   register: aws
 
+- name: ensure instances are listening on port:22
+  shell: nc -d -z -w 30 {{ item.instances[0].public_dns_name }} 22 >>/dev/null
+  with_items: '{{ aws.results }}'
+
 - name: add_host
   add_host: name={{ aws_name_prefix }}-{{ item.item.name }}
      groups=all_instances,aws_instances
