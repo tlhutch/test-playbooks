@@ -38,7 +38,6 @@
     instance_tags: '{"Name": "{{aws_name_prefix}}-{{item.name}}"}'
     group: '{{ aws_security_group }}'
     key_name: '{{ aws_key_name }}'
-    # instance_ids: ['{{ item.instance_id }}']
     idempotency_attribute: 'tags'
     instance_tags: '{"Name": "{{aws_name_prefix}}-{{item.name}}"}'
     wait: yes
