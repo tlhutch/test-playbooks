@@ -21,7 +21,7 @@ aws_access_key: ''
 aws_secret_key: ''
 aws_region: 'us-east-1'
 aws_instance_type: 't1.micro'
-aws_security_group: 'awx' # sg-b05be0db
+aws_security_group: 'AWX' # sg-b05be0db
 aws_key_name: 'jenkins'
 aws_url: 'https://ec2.amazonaws.com'
 aws_name_prefix: 'testing'

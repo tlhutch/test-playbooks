@@ -1,7 +1,6 @@
 ---
 # Tasks to delete (optionally) and create rax instances
 
-# FIXME - update ec2_group to support state:present
 - name: ensure awx security group exists
   ec2_group:
     state: present
@@ -18,15 +17,11 @@
       - proto: tcp
         from_port: 22
         to_port: 22
-        cidr_ip: 10.0.0.0/8
-      - proto: tcp
-        from_port: 80
-        to_port: 80
-        cidr_ip: 10.0.0.0/8
+        cidr_ip: 0.0.0.0/0
       - proto: tcp
         from_port: 443
         to_port: 443
-  ignore_errors: true
+        cidr_ip: 0.0.0.0/0
 
 - name: delete existing ec2 instance(s)
   ec2:
