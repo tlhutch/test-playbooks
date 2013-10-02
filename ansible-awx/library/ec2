@@ -552,7 +552,7 @@ def create_instances(module, ec2):
             try:
                 running = response.pop()
                 num_running = len([ i for i in running.instances if i.state=='running' ])
-            except Exception, e:
+            except (IndexError, Exception), e:
                 # got a bad response of some sort, possibly due to 
                 # stale/cached data. Wait a second and then try again
                 time.sleep(1)
@@ -623,7 +623,7 @@ def terminate_instances(module, ec2, instance_termination_filter):
         try:
             terminated = response.pop()
             num_terminated = len(terminated.instances)
-        except AttributeError, e:
+        except (IndexError, Exception), e:
             # got a bad response of some sort, possibly due to
             # stale/cached data. Wait a second and then try again
             time.sleep(1)
