@@ -20,7 +20,7 @@ def load_credentials(filename=None):
         credentials_dict = yaml.load(credentials_fh)
         return credentials_dict
     else:
-        msg = 'Usable to load credentials file at %s' % path
+        msg = 'Unable to load credentials file at %s' % path
         raise Exception(msg)
 
 

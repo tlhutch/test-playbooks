@@ -1,10 +1,20 @@
 import json
 import urllib2
+import types
+import requests
+
+def json_func(self):
+    '''monkey-patch a json helpder method for use in urllib2 response object'''
+    try:
+        return json.loads(self.text)
+    except:
+        return self.text
 
 class Connection(object):
 
-    def __init__(self, server):
+    def __init__(self, server, verify=False):
         self.server = server
+        self.verify = verify
 
     def login(username=None, password=None):
 
@@ -21,34 +31,72 @@ class Connection(object):
             raise BaseException(str(e))
 
     def _request(self, endpoint, data=None, method='GET'):
+        method = method.lower()
+        headers = dict()
+        payload = dict()
+
+        # Locate correct requests method
+        if not hasattr(requests, method):
+            raise Exception("Unknown request method: %s" % method)
+        request_handler = getattr(requests, method)
+
+        # Build url, headers and params
+        url = "%s%s" % (self.server, endpoint)
+        headers = {'content-type': 'application/json'}
+        if data is not None:
+            payload = json.dumps(data)
+
+        try:
+            response = request_handler(url,
+                verify=self.verify,
+                headers=headers,
+                data=payload)
+        except Exception, e:
+            err_str = "%s, url: %s" % (str(e), url,)
+
+            if hasattr(e, 'read'):
+                err_str += ", %s" % (e.read())
+            raise BaseException(err_str)
+
+        # Add convenience attribute 'code' to mimick urllib2 response
+        response.code = response.status_code
+
+        return response
+
+    def _request_old(self, endpoint, data=None, method='GET'):
         url = "%s%s" % (self.server, endpoint)
         request = urllib2.Request(url)
 
-        if method in ['PUT', 'PATCH', 'POST', 'DELETE']:
+        #if method in ['PUT', 'PATCH', 'POST', 'DELETE', 'HEAD', 'OPTIONS']:
+        if method != 'GET':
             request.add_header('Content-type', 'application/json')
             request.get_method = lambda: method
 
         if data is not None:
             request.add_data(json.dumps(data))
 
-        data = None
         try:
             response = urllib2.urlopen(request)
-            data = response.read()
         except Exception, e:
-            err_str = "%s, url: %s, data: %s" % (str(e), url, data, )
+            err_str = "%s, url: %s" % (str(e), url,)
 
             if hasattr(e, 'read'):
                 err_str += ", %s" % (e.read())
             raise BaseException(err_str)
-        try:
-            result = json.loads(data)
-            return result
-        except:
-            return data
+
+        # Add convenience .json() method to response object
+        response.text = response.read()
+        response.json = types.MethodType(json_func, response)
+        return response
 
     def get(self, endpoint):
         return self._request(endpoint)
+
+    def head(self, endpoint):
+        return self._request(endpoint, method='HEAD')
+
+    def options(self, endpoint):
+        return self._request(endpoint, method='OPTIONS')
 
     def post(self, endpoint, data):
         return self._request(endpoint, data, method='POST')
