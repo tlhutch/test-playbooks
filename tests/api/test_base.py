@@ -1,57 +1,7 @@
 import pytest
-import jsonschema
 import httplib
 from tests.api import Base_Api_Test
-from common.api import Connection
-
-__get_schema__ = {
-    '$schema': 'http://json-schema.org/draft-04/schema#',
-    'type': 'object',
-    'properties': {
-        'available_versions': {
-            'type': 'object',
-        },
-        'description': {
-            'type': 'string',
-        },
-        'current_version': {
-            'type': 'string',
-        },
-    },
-    'required': ['available_versions', 'description', 'current_version'],
-    'additionalProperties': False,
-}
-
-__options_schema__ = {
-    '$schema': 'http://json-schema.org/draft-04/schema#',
-    'type': 'object',
-    'properties': {
-        'name': {
-            'type': 'string',
-        },
-        'description': {
-            'type': 'string',
-        },
-        'renders': {
-            'type': 'array',
-            "items": {
-                "type": "string"
-            },
-            "minItems": 1,
-            "uniqueItems": True,
-        },
-        'parses': {
-            'type': 'array',
-            "items": {
-                "type": "string"
-            },
-            "minItems": 1,
-            "uniqueItems": True,
-        },
-    },
-    'required': [ 'renders', 'parses' ],
-    'additionalProperties': False,
-}
+from common.api.schema import validate
 
 @pytest.mark.nondestructive
 class Test_Api_Basics(Base_Api_Test):
@@ -66,12 +16,12 @@ class Test_Api_Basics(Base_Api_Test):
     def test_get_schema(self, api):
         r = api.get('/api')
         assert r.status_code == httplib.OK
-        jsonschema.validate(r.json(), __get_schema__)
+        validate(r.json(), '/api', 'get')
 
     def test_options_schema(self, api):
         r = api.options('/api/')
         assert r.status_code == httplib.OK
-        jsonschema.validate(r.json(), __options_schema__)
+        validate(r.json(), '/api', 'options')
 
     def test_head_empty(self, api):
         r = api.head('/api/')

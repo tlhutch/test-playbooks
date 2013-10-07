@@ -86,6 +86,12 @@ def pytest_addoption(parser):
                      default=None,
                      metavar='url',
                      help='base url for the application under test.')
+    group._addoption('--api-version',
+                     action='store',
+                     dest='api_version',
+                     default='current_version',
+                     metavar='API-VERSION',
+                     help='Choose the API version')
     group._addoption('--build',
                      action='store',
                      dest='build',

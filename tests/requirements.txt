@@ -4,6 +4,9 @@
 selenium
 py==1.4.16
 pytest==2.4.0
+pytest-cov==1.6
 pytest-mozwebqa==1.0
 UnittestZero
-# requests==0.13.3
+requests==1.2.3
+PyYAML (3.10)
+jsonschema==2.1.0
