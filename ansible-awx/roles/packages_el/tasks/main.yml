@@ -9,17 +9,22 @@
 
 # TODO - install ansible nightly rpm repo (optional)
 
-#   - name: install ansible yum repository
-#     template: src=yum_repo.j2 dest=/etc/yum.repos.d/ansible.repo
-#     register: yum_repo
-#
-#   - name: yum clean cached ansible repository information
-#     command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
-#     when: yum_repo.changed
+- name: install custom ansible repository
+  template: src=files/ansible_yum_epel.repo.j2 dest=/etc/yum.repos.d/ansible.repo
+  register: yum_repo
+  when: ansible_repo_url is defined
+
+- name: yum clean cached ansible repository information
+  command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
+  when: yum_repo is defined and yum_repo.changed
+
+- name: install nightly ansible rpm
+  shell: yum -y --enablerepo=updates-testing,epel-testing,ansible-nightly install ansible
+  when: ansible_pkg_mgr == 'yum' and ansible_repo_url is defined
 
 - name: install ansible rpm
   shell: yum -y --enablerepo=updates-testing,epel-testing install ansible
-  when: "'${ansible_pkg_mgr}' == 'yum'"
+  when: ansible_pkg_mgr == 'yum' and ansible_repo_url is not defined
 
 - name: install non-required dependencies
   yum: name={{item}} state=installed
