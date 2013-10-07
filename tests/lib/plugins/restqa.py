@@ -75,6 +75,9 @@ def pytest_runtest_teardown(item):
 
 
 def pytest_funcarg__testsetup(request):
+    '''
+    Return initialized REST QA TestSetup object
+    '''
     return TestSetup(request)
 
 

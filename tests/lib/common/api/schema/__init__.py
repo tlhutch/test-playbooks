@@ -9,8 +9,18 @@ available_schemas = defaultdict(dict)
 
 class Awx_Schema(object):
     def __init__(self):
-        '''nothing special'''
+        self.definitions = dict()
         # Raise if not-subclassed
+
+    def format_schema(self, schema):
+        '''
+        If schema definitions are avaiable, merge them with the provided schema
+        '''
+        if self.definitions:
+            return dict(schema.items() + \
+                dict(definitions=self.definitions).items())
+        else:
+            return schema
 
 # find available schema versions
 def find_schema_modules(path, prefix):

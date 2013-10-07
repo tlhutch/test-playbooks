@@ -59,7 +59,7 @@ class Test_Organizations(Base_Api_Test):
 
         # support idempotency
         if r.status_code == httplib.BAD_REQUEST and \
-            data['name'] == ['Organization with this Name already exists.']:
+            data.get('name','') == ['Organization with this Name already exists.']:
             Assert.equal(r.status_code, httplib.BAD_REQUEST)
             validate(data, '/organizations', 'duplicate')
             pytest.skip("Organization already exists")

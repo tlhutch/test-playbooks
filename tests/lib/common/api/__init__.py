@@ -56,8 +56,8 @@ class Connection_urllib2(object):
         response.json = types.MethodType(json_func, response)
         return response
 
-    def get(self, endpoint):
-        return self._request(endpoint)
+    def get(self, endpoint, data=None):
+        return self._request(endpoint, data)
 
     def head(self, endpoint):
         return self._request(endpoint, method='HEAD')
