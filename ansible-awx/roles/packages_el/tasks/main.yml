@@ -7,7 +7,13 @@
 - name: install epel-release
   yum: name=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
 
-# TODO - install ansible nightly rpm repo (optional)
+- name: install non-required dependencies
+  yum: name={{item}} state=installed
+  when: "'${ansible_pkg_mgr}' == 'yum'"
+  with_items:
+    - libselinux-python
+
+# install ansible nightly rpm repo (optional)
 
 - name: install custom ansible repository
   template: src=files/ansible_yum_epel.repo.j2 dest=/etc/yum.repos.d/ansible.repo
@@ -18,6 +24,8 @@
   command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
   when: yum_repo is defined and yum_repo.changed
 
+# install ansible
+
 - name: install nightly ansible rpm
   shell: yum -y --enablerepo=updates-testing,epel-testing,ansible-nightly install ansible
   when: ansible_pkg_mgr == 'yum' and ansible_repo_url is defined
@@ -25,9 +33,3 @@
 - name: install ansible rpm
   shell: yum -y --enablerepo=updates-testing,epel-testing install ansible
   when: ansible_pkg_mgr == 'yum' and ansible_repo_url is not defined
-
-- name: install non-required dependencies
-  yum: name={{item}} state=installed
-  when: "'${ansible_pkg_mgr}' == 'yum'"
-  with_items:
-    - libselinux-python
