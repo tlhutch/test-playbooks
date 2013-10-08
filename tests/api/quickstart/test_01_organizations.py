@@ -62,7 +62,7 @@ class Test_Organizations(Base_Api_Test):
             data.get('name','') == ['Organization with this Name already exists.']:
             Assert.equal(r.status_code, httplib.BAD_REQUEST)
             validate(data, '/organizations', 'duplicate')
-            pytest.skip("Organization already exists")
+            pytest.xfail("Organization already exists")
         else:
             assert r.status_code == httplib.CREATED
             validate(data, '/organizations', 'post')

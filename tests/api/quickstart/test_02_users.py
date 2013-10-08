@@ -65,7 +65,7 @@ class Test_Users(Base_Api_Test):
            data.get('username','') == ['User with this Username already exists.']:
             Assert.equal(r.status_code, httplib.BAD_REQUEST)
             validate(data, '/users', 'duplicate')
-            pytest.skip("User already exists")
+            pytest.xfail("User already exists")
         else:
             assert r.status_code == httplib.CREATED
             validate(data, '/users', 'post')

@@ -21,7 +21,7 @@ def api_inventories(request):
 
     return api.get(api_inventories).json().get('inventory')
 
-class Test_Users(Base_Api_Test):
+class Test_Inventories(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_unauthorized(self, api, api_inventories):
         r = api.get(api_inventories)
@@ -41,61 +41,29 @@ class Test_Users(Base_Api_Test):
         validate(data, '/inventories', 'get')
 
     @pytest.mark.destructive
-    def test_post(self, api, api_inventories):
+    def test_post(self, api, api_inventories, api_base):
         # login
         api.login(self.testsetup.credentials['default']['username'],
                   self.testsetup.credentials['default']['password'])
-
-        # Create a new user
-        payload = dict(name='',
-                       description='',
-                       organization='',)
-        r = api.post(api_inventories, payload)
-        data = r.json()
-
-        # support idempotency
-        assert r.status_code == httplib.CREATED
-        validate(data, '/inventories', 'post')
-
-    @pytest.mark.destructive
-    def test_get_list(self, api, api_inventories):
-        # login
-        api.login(self.testsetup.credentials['default']['username'],
-                  self.testsetup.credentials['default']['password'])
-
-        # Get list of available inventories
-        params = dict(username__exact='dsmith')
-        data = api.get(api_inventories, params=params).json()
-
-        # Validate schema
-        validate(data, '/inventories', 'get')
-
-        num_inventories = len(data.get('results',[]))
-        Assert.true(num_inventories > 0, 'Expecting >0 inventories (%s)' % num_inventories)
-
-    @pytest.mark.destructive
-    def test_add_user_to_org(self, api, api_base):
-        # login
-        api.login(self.testsetup.credentials['default']['username'],
-                  self.testsetup.credentials['default']['password'])
-
-        # Find the desired user
-        params = dict(username__icontains='dsmith')
-        r = api.get(api_base + 'inventories', params)
-        data = r.json()
-        assert data.get('results')[0]['username'] == 'dsmith'
-        user_id = data.get('results')[0]['id']
 
         # Find desired org
         params = dict(name__icontains='Bender Products')
         r = api.get(api_base + 'organizations', params)
         data = r.json()
         assert data.get('results')[0]['name'] == 'Bender Products'
-        org_inventories_link = data.get('results')[0].get('related',{}).get('inventories','')
+        org_id = data.get('results')[0].get('id',None)
 
-        # Add user to org
-        payload = dict(id=user_id)
-        r = api.post(org_inventories_link, payload)
+        # Create a new inventory
+        payload = dict(name='Web Servers',
+                       description='Web server hosts',
+                       organization=org_id,)
+        r = api.post(api_inventories, payload)
+        data = r.json()
 
-        assert r.status_code == httplib.NO_CONTENT
-        assert r.text == ''
+        # support idempotency
+        if r.status_code == httplib.BAD_REQUEST:
+            validate(data, '/inventories', 'duplicate')
+            pytest.xfail("inventory already created")
+        else:
+            assert r.status_code == httplib.CREATED
+            validate(data, '/inventories', 'post')
