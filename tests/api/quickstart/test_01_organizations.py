@@ -64,18 +64,8 @@ class Test_Organizations(Base_Api_Test):
             validate(data, '/organizations', 'duplicate')
             pytest.skip("Organization already exists")
         else:
-            Assert.equal(r.status_code, httplib.OK)
+            assert r.status_code == httplib.CREATED
             validate(data, '/organizations', 'post')
-
-    @pytest.mark.destructive
-    def test_get_one(self, api, api_organizations):
-        # login
-        api.login(self.testsetup.credentials['default']['username'],
-                  self.testsetup.credentials['default']['password'])
-
-        # Get and validate a single organization
-        data = api.get(api_organizations + '/1').json()
-        validate(data, '/organizations', 'post')
 
     @pytest.mark.destructive
     def test_get_list(self, api, api_organizations):
@@ -84,9 +74,10 @@ class Test_Organizations(Base_Api_Test):
                   self.testsetup.credentials['default']['password'])
 
         # Get list of available organizations
-        data = api.get(api_organizations).json()
+        params = dict(name__iexact='Bender Products')
+        data = api.get(api_organizations, params=params).json()
 
-        # Validate schema
+        # validate schema
         validate(data, '/organizations', 'get')
 
         num_orgs = len(data.get('results',[]))

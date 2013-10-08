@@ -67,18 +67,8 @@ class Test_Users(Base_Api_Test):
             validate(data, '/users', 'duplicate')
             pytest.skip("User already exists")
         else:
-            assert r.status_code == httplib.OK
+            assert r.status_code == httplib.CREATED
             validate(data, '/users', 'post')
-
-    @pytest.mark.destructive
-    def test_get_one(self, api, api_users):
-        # login
-        api.login(self.testsetup.credentials['default']['username'],
-                  self.testsetup.credentials['default']['password'])
-
-        # Get and validate a single user
-        data = api.get(api_users + '/1').json()
-        validate(data, '/users', 'post')
 
     @pytest.mark.destructive
     def test_get_list(self, api, api_users):
@@ -87,13 +77,14 @@ class Test_Users(Base_Api_Test):
                   self.testsetup.credentials['default']['password'])
 
         # Get list of available users
-        data = api.get(api_users).json()
+        params = dict(username__exact='dsmith')
+        data = api.get(api_users, params=params).json()
 
         # Validate schema
         validate(data, '/users', 'get')
 
-        num_orgs = len(data.get('results',[]))
-        Assert.true(num_orgs > 0, 'Expecting >0 users (%s)' % num_orgs)
+        num_users = len(data.get('results',[]))
+        Assert.true(num_users > 0, 'Expecting >0 users (%s)' % num_users)
 
     @pytest.mark.destructive
     def test_add_user_to_org(self, api, api_base):
@@ -101,16 +92,23 @@ class Test_Users(Base_Api_Test):
         api.login(self.testsetup.credentials['default']['username'],
                   self.testsetup.credentials['default']['password'])
 
+        # Find the desired user
+        params = dict(username__icontains='dsmith')
+        r = api.get(api_base + 'users', params)
+        data = r.json()
+        assert data.get('results')[0]['username'] == 'dsmith'
+        user_id = data.get('results')[0]['id']
+
         # Find desired org
-        params = dict(icontains='Bender Products')
-        data = api.get(api_base + '/organizations', params)
-        validate(data, '/organizations', 'get')
-        print data
+        params = dict(name__icontains='Bender Products')
+        r = api.get(api_base + 'organizations', params)
+        data = r.json()
+        assert data.get('results')[0]['name'] == 'Bender Products'
+        org_users_link = data.get('results')[0].get('related',{}).get('users','')
 
-        # Get list of available users
-        #data = api.get(api_base + '/organizations/1/users/').json()
+        # Add user to org
+        payload = dict(id=user_id)
+        r = api.post(org_users_link, payload)
 
-        # Validate schema
-
-        #num_orgs = len(data.get('results',[]))
-        #Assert.true(num_orgs > 0, 'Expecting >0 users (%s)' % num_orgs)
+        assert r.status_code == httplib.NO_CONTENT
+        assert r.text == ''
