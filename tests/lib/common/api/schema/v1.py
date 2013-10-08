@@ -333,6 +333,70 @@ class Awx_Schema_v1_Hosts(Awx_Schema_v1):
 class Awx_Schema_v1_Inventories(Awx_Schema_v1):
     component = '/inventories'
 
+    def __init__(self):
+        Awx_Schema_v1.__init__(self)
+
+        self.definitions['inventory'] = {
+            'type': 'object',
+            'required': ['',],
+            'additionalProperties': False,
+            'properties': {
+                'id': { 'type': 'number', 'minimum': 1, },
+                'url': { 'type': 'string', 'format': 'uri'},
+                'related': {
+                    'type': 'object',
+                    'required': ['admin_of_organizations', 'credentials', 'organizations', 'permissions', 'projects', 'teams',],
+                    'additionalProperties': False,
+                    'properties': {
+                        'admin_of_organizations':   { 'type': 'string', 'format': 'uri' },
+                        'credentials':              { 'type': 'string', 'format': 'uri' },
+                        'organizations':            { 'type': 'string', 'format': 'uri' },
+                        'permissions':              { 'type': 'string', 'format': 'uri' },
+                        'projects':                 { 'type': 'string', 'format': 'uri' },
+                        'teams':                    { 'type': 'string', 'format': 'uri' },
+                    },
+                },
+                'summary_fields':  { 'type': 'object', },
+                'created':  { 'type': 'string', 'format': 'date-time', },
+                'modified': { 'type': 'string', 'format': 'date-time', },
+                'name': { 'type': 'string', },
+                'description': { 'type': 'string', },
+                'organization': { 'type': 'string', },
+                'variables': { 'type': 'string', },
+                'has_active_failures': { 'type': 'boolean', },
+                'hosts_with_active_failures': { 'type': 'boolean', },
+            },
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['count', 'next', 'previous', 'results', ],
+            'additionalProperties': False,
+            'properties': {
+                'count': {
+                    'type': 'number',
+                    'minimum': 0,
+                },
+                'next': {
+                    'type': ['string','null'],
+                },
+                'previous': {
+                    'type': ['string','null'],
+                },
+                'results': {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        '$ref': '#definitions/inventory',
+                    },
+                },
+            },
+        })
+
 class Awx_Schema_v1_Groups(Awx_Schema_v1):
     component = '/groups'
 
