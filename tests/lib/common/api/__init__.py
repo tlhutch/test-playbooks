@@ -56,8 +56,8 @@ class Connection_urllib2(object):
         response.json = types.MethodType(json_func, response)
         return response
 
-    def get(self, endpoint, data=None):
-        return self._request(endpoint, data)
+    def get(self, endpoint, params=None):
+        return self._request(endpoint, params=params)
 
     def head(self, endpoint):
         return self._request(endpoint, method='HEAD')
@@ -88,10 +88,10 @@ class Connection_requests(Connection_urllib2):
         '''store credentials for future requests'''
         self.auth = (username, password)
 
-    def _request(self, endpoint, data=None, method='GET'):
+    def _request(self, endpoint, data=None, method='GET', params=None):
         method = method.lower()
         headers = dict()
-        payload = dict()
+        payload = ''
 
         # Locate correct requests method
         if not hasattr(requests, method):
@@ -101,6 +101,7 @@ class Connection_requests(Connection_urllib2):
         # Build url, headers and params
         url = "%s%s" % (self.server, endpoint)
         headers = {'content-type': 'application/json'}
+
         if data is not None:
             payload = json.dumps(data)
 
@@ -108,6 +109,7 @@ class Connection_requests(Connection_urllib2):
             response = request_handler(url,
                 verify=self.verify,
                 headers=headers,
+                params=params,
                 data=payload,
                 auth=self.auth)
         except Exception, e:
