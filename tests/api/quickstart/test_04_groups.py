@@ -21,6 +21,7 @@ def api_groups(request):
 
     return api.get(api_groups).json().get('groups')
 
+
 class Test_Groups(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_unauthorized(self, api, api_groups):

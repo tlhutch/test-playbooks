@@ -21,6 +21,7 @@ def api_hosts(request):
 
     return api.get(api_hosts).json().get('hosts')
 
+
 class Test_Hosts(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_unauthorized(self, api, api_hosts):

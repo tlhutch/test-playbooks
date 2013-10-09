@@ -21,6 +21,7 @@ def api_inventories(request):
 
     return api.get(api_inventories).json().get('inventory')
 
+
 class Test_Inventories(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_unauthorized(self, api, api_inventories):

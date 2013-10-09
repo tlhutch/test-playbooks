@@ -38,6 +38,7 @@ def api_credentials(request):
 
     return api.get(api_credentials).json().get('credentials')
 
+
 class Test_Users(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_unauthorized(self, api, api_users):
