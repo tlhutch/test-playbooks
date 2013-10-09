@@ -21,6 +21,7 @@ def api_projects(request):
 
     return api.get(api_projects).json().get('projects')
 
+
 class Test_Projects(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_unauthorized(self, api, api_projects):
@@ -41,12 +42,15 @@ class Test_Projects(Base_Api_Test):
         validate(data, '/projects', 'get')
 
     @pytest.mark.destructive
-    def test_create_manual(self, api, api_projects, api_base):
+    def test_create_manual(self, api, api_projects, api_base, ansible_runner):
         # login
         api.login(self.testsetup.credentials['default']['username'],
                   self.testsetup.credentials['default']['password'])
 
-        # TODO: SSH and checkout a repository
+        # Checkout a repository on the target system
+        results = ansible_runner.git(
+            repo='https://github.com/ansible/ansible-examples.git',
+            dest='/var/lib/awx/projects/ansible-examples.manual')
 
         # Find desired org
         params = dict(name__icontains='Bender Products')
@@ -58,9 +62,8 @@ class Test_Projects(Base_Api_Test):
         payload = dict(name="ansible-examples",
                        organization=org_id,
                        base_dir="/var/lib/awx/projects",
-                       local_path="ansible-examples",
+                       local_path="ansible-examples.manual",
                        scm_type=None,)
-
         r = api.post(api_projects, payload)
         data = r.json()
 
