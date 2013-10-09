@@ -21,6 +21,23 @@ def api_users(request):
 
     return api.get(api_users).json().get('users')
 
+@pytest.fixture(scope="module")
+def api_credentials(request):
+    '''
+    Navigate the API and return a link to users
+    '''
+    api = request.getfuncargvalue('api')
+    api_version = request.config.getvalue('api_version')
+
+    if api_version == 'current_version':
+        api_credentials = api.get('/api/').json().get('current_version')
+    else:
+        api_credentials = api.get('/api/').json().get('available_versions').get(api_version, None)
+
+    Assert.not_none(api_credentials, "Unsupported api-version specified: %s" % api_version)
+
+    return api.get(api_credentials).json().get('credentials')
+
 class Test_Users(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_unauthorized(self, api, api_users):
@@ -87,14 +104,14 @@ class Test_Users(Base_Api_Test):
         Assert.true(num_users > 0, 'Expecting >0 users (%s)' % num_users)
 
     @pytest.mark.destructive
-    def test_add_user_to_org(self, api, api_base):
+    def test_add_user_to_org(self, api, api_users, api_base):
         # login
         api.login(self.testsetup.credentials['default']['username'],
                   self.testsetup.credentials['default']['password'])
 
         # Find the desired user
         params = dict(username__icontains='dsmith')
-        r = api.get(api_base + 'users', params)
+        r = api.get(api_users, params)
         data = r.json()
         assert data.get('results')[0]['username'] == 'dsmith'
         user_id = data.get('results')[0]['id']
@@ -112,3 +129,27 @@ class Test_Users(Base_Api_Test):
 
         assert r.status_code == httplib.NO_CONTENT
         assert r.text == ''
+
+    @pytest.mark.destructive
+    def test_create_credential(self, api, api_users, api_credentials):
+        # login
+        api.login(self.testsetup.credentials['default']['username'],
+                  self.testsetup.credentials['default']['password'])
+
+        # Find the desired user
+        params = dict(username__icontains='dsmith')
+        data = api.get(api_users, params).json()
+        assert data.get('results')[0]['username'] == 'dsmith'
+        user_id = data.get('results')[0].get('id')
+        user_credential_link = data.get('results')[0].get('related', {}).get('credentials')
+
+        # Add user to org
+        payload = dict(name='root (ask)',
+                       description='user:root, password:ask',
+                       ssh_username='root',
+                       ssh_password='ASK',
+                       user=user_id)
+        r = api.post(user_credential_link, payload)
+
+        assert r.status_code == httplib.CREATED
+        validate(data, '/users', 'get')
