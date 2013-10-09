@@ -4,6 +4,57 @@ class Awx_Schema_v1(Awx_Schema):
     version = 'v1'
     component = '/api'
 
+    def __init__(self):
+        Awx_Schema.__init__(self)
+
+        self.definitions['id'] = dict(type='number', minimum=1)
+        self.definitions['summary_fields_inventory'] = {
+            'type': 'object',
+            'required': ['name', 'description', 'has_active_failures', 'hosts_with_active_failures',],
+            'additionalProperties': False,
+            'properties': {
+                'name':                         { 'type': 'string', },
+                'description':                  { 'type': 'string', },
+                'has_active_failures':          { 'type': 'boolean', },
+                'has_inventory_sources':        { 'type': 'boolean', },
+                'hosts_with_active_failures':   { 'type': 'number', 'minimum': 0, },
+            },
+        }
+        self.definitions['summary_fields_credential'] = {
+            'type': 'object',
+            'required': ['name', 'description', ],
+            'additionalProperties': False,
+            'properties': {
+                'name':        { 'type': 'string', },
+                'description': { 'type': 'string', },
+            },
+        }
+        self.definitions['enum_project_status'] = {
+            'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ]
+        }
+        self.definitions['summary_fields_project'] = {
+            'type': 'object',
+            'required': ['name', 'description', ],
+            'additionalProperties': False,
+            'properties': {
+                'name':        { 'type': 'string', },
+                'description': { 'type': 'string', },
+                'status':      { 'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ] },
+            },
+        }
+        self.definitions['enum_source_status'] = {
+            'enum': [ 'failed', 'never', 'none', 'successful', 'updating']
+        }
+        self.definitions['summary_fields_source'] = {
+            'type': 'object',
+            'required': ['source', 'status'],
+            'additionalProperties': False,
+            'properties': {
+                'source': { 'type': 'string', },
+                'status': { 'enum': [ 'failed', 'never', 'none', 'successful', 'updating'] },
+            },
+        }
+
     @property
     def get(self):
         return {
@@ -462,25 +513,10 @@ class Awx_Schema_v1_Groups(Awx_Schema_v1):
                     'additionalProperties': False,
                     'properties': {
                         "inventory": {
-                            'type': 'object',
-                            'required': ['name', 'description', 'has_active_failures', 'hosts_with_active_failures'],
-                            'additionalProperties': False,
-                            'properties': {
-                                'name':        { 'type': 'string', },
-                                'description': { 'type': 'string', },
-                                'has_active_failures': { 'type': 'boolean', },
-                                'has_inventory_sources': { 'type': 'boolean', },
-                                'hosts_with_active_failures': { 'type': 'number', 'minimum': 0, },
-                            },
+                            '$ref': '#/definitions/summary_fields_inventory',
                         },
                         "inventory_source": {
-                            'type': 'object',
-                            'required': ['source', 'status'],
-                            'additionalProperties': False,
-                            'properties': {
-                                'source': { 'type': 'string', },
-                                'status': { 'enum': [ 'failed', 'never', 'none', 'successful', 'updating'] },
-                            },
+                            '$ref': '#/definitions/summary_fields_source',
                         },
                     },
                 },
@@ -558,19 +594,6 @@ class Awx_Schema_v1_Hosts(Awx_Schema_v1):
             'uniqueItems': True,
             'items': {
                 '$ref': '#/definitions/summary_fields_group',
-            },
-        }
-
-        self.definitions['summary_fields_inventory'] = {
-            'type': 'object',
-            'required': ['name', 'description', 'has_active_failures', 'hosts_with_active_failures',],
-            'additionalProperties': False,
-            'properties': {
-                'name':                         { 'type': 'string', },
-                'description':                  { 'type': 'string', },
-                'has_active_failures':          { 'type': 'boolean', },
-                'has_inventory_sources':        { 'type': 'boolean', },
-                'hosts_with_active_failures':   { 'type': 'number', 'minimum': 0, },
             },
         }
 
@@ -754,7 +777,7 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
                 'last_updated': { 'type': 'string', 'format': 'date-time', },
                 'description': { 'type': 'string', },
                 'last_update_failed': { 'type': 'boolean', },
-                'status': { 'enum': [ 'ok', ] },
+                'status': { 'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ] },
                 'summary_fields': { 'type': 'object', },
                 'local_path': { 'type': 'string', 'format': 'uri', },
                 'scm_type': { 'type': ['string', 'null',] },
@@ -833,11 +856,117 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
             },
         }
 
-class Awx_Schema_v1_Config(Awx_Schema_v1):
-    component = '/config'
-
 class Awx_Schema_v1_Job_templates(Awx_Schema_v1):
     component = '/job_templates'
 
+    def __init__(self):
+        Awx_Schema_v1.__init__(self)
+
+        self.definitions['job_template'] = {
+            'type': 'object',
+            'required': [ 'id', 'name', 'url', 'description', 'created', 'modified', 'job_type', 'inventory', 'project', 'playbook', 'credential', 'forks', 'verbosity', 'limit', 'extra_vars', 'job_tags', 'host_config_key', 'related', 'summary_fields', ],
+            'additionalProperties': False,
+            'properties': {
+                'id': { '$ref': '#/definitions/id', },
+                'name': { 'type': 'string', },
+                'url': { 'type': 'string', 'format': 'uri', },
+                'description': { 'type': 'string', },
+                'created':  { 'type': 'string', 'format': 'date-time', },
+                'modified': { 'type': 'string', 'format': 'date-time', },
+                'job_type': { 'enum': ['run', 'check'], },
+                'inventory': { '$ref': '#/definitions/id', },
+                'project': { '$ref': '#/definitions/id', },
+                'playbook': { 'type': 'string', 'pattern': '.*\.(yaml|yml)' },
+                'credential': { '$ref': '#/definitions/id', },
+                'forks': { 'type': 'number', 'minimum': 0 },
+                'verbosity': { 'type': 'number', 'minimum': 0 },
+                'limit': { 'type': 'string', },
+                'extra_vars': { 'type': 'string', },
+                'job_tags': { 'type': 'string', },
+                'host_config_key': { 'type': 'string', },
+                'related': {
+                    'type': 'object',
+                    'required': [ 'created_by', 'project', 'jobs', 'inventory', 'credential',],
+                    'additionalProperties': False,
+                    'properties': {
+                        'created_by': { 'type': 'string', 'format': 'uri' },
+                        'project': { 'type': 'string', 'format': 'uri' },
+                        'jobs': { 'type': 'string', 'format': 'uri' },
+                        'inventory': { 'type': 'string', 'format': 'uri' },
+                        'credential': { 'type': 'string', 'format': 'uri' },
+                    },
+                },
+                'summary_fields':  {
+                    'type': 'object',
+                    'required': ['inventory', 'project', 'credential',],
+                    'additionalProperties': False,
+                    'properties': {
+                        "inventory": {
+                            '$ref': '#/definitions/summary_fields_inventory',
+                        },
+                        "project": {
+                            '$ref': '#/definitions/summary_fields_project',
+                        },
+                        "credential": {
+                            '$ref': '#/definitions/summary_fields_credential',
+                        },
+                    },
+                },
+            },
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['count', 'next', 'previous', 'results', ],
+            'additionalProperties': False,
+            'properties': {
+                'count': { 'type': 'number', 'minimum': 0, },
+                'next': { 'type': ['string','null'], },
+                'previous': { 'type': ['string','null'], },
+                'results': {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        '$ref': '#/definitions/job_template',
+                    },
+                },
+            },
+        })
+
+    @property
+    def post(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/job_template',
+        })
+
+    @property
+    def duplicate(self):
+        return {
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['name', ],
+            'additionalProperties': False,
+            'properties': {
+                "name": {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        'type': 'string',
+                        'pattern': '^Job template with this Name already exists.',
+                    },
+                },
+            },
+        }
+
 class Awx_Schema_v1_Teams(Awx_Schema_v1):
     component = '/teams'
+
+class Awx_Schema_v1_Config(Awx_Schema_v1):
+    component = '/config'
+
