@@ -29,6 +29,21 @@ class Awx_Schema_v1(Awx_Schema):
                 'description': { 'type': 'string', },
             },
         }
+        self.definitions['summary_fields_job_template'] = {
+            'type': 'object',
+            'required': ['name', 'description', ],
+            'additionalProperties': False,
+            'properties': {
+                'name':        { 'type': 'string', },
+                'description': { 'type': 'string', },
+            },
+        }
+        self.definitions['enum_launch_type'] = {
+            'enum': [ '', 'manual', 'callback', 'scheduled', ]
+        }
+        self.definitions['enum_launch_status'] = {
+            'enum': [ '', 'new', 'pending', 'waiting', 'running', 'successul', 'failed', 'error', 'canceled' ]
+        }
         self.definitions['enum_project_status'] = {
             'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ]
         }
@@ -159,7 +174,7 @@ class Awx_Schema_v1_Organizations(Awx_Schema_v1):
                         'teams':        { 'type': 'string', 'format': 'uri' },
                     },
                 },
-                'summary_fields': { 'type': 'object', },
+                'summary_fields': { 'type': 'object', }, # FIXME
                 'created':  { 'type': 'string', 'format': 'date-time', },
                 'modified': { 'type': 'string', 'format': 'date-time', },
                 'name': { 'type': 'string', },
@@ -255,16 +270,6 @@ class Awx_Schema_v1_Organizations(Awx_Schema_v1):
                 },
             },
         })
-
-
-class Awx_Schema_v1_Me(Awx_Schema_v1):
-    component = '/me'
-
-class Awx_Schema_v1_Authtoken(Awx_Schema_v1):
-    component = '/authtoken'
-
-class Awx_Schema_v1_Jobs(Awx_Schema_v1):
-    component = '/jobs'
 
 class Awx_Schema_v1_Users(Awx_Schema_v1):
     component = '/users'
@@ -964,9 +969,130 @@ class Awx_Schema_v1_Job_templates(Awx_Schema_v1):
             },
         }
 
+class Awx_Schema_v1_Jobs(Awx_Schema_v1):
+    component = '/jobs'
+
+    def __init__(self):
+        Awx_Schema_v1.__init__(self)
+
+        self.definitions['job'] = {
+            'type': 'object',
+            'required': [ 'id', 'name', 'url', 'description', 'created', 'modified', 'job_type', 'inventory', 'project', 'playbook', 'credential', 'forks', 'verbosity', 'limit', 'extra_vars', 'job_tags', 'job_template', 'launch_type', 'status', 'failed', 'result_stdout', 'result_traceback', 'passwords_needed_to_start', 'job_args', 'job_cwd', 'job_env', 'related', 'summary_fields', ],
+            'additionalProperties': False,
+            'properties': {
+                'id': { '$ref': '#/definitions/id', },
+                'name': { 'type': 'string', },
+                'url': { 'type': 'string', 'format': 'uri', },
+                'description': { 'type': 'string', },
+                'created':  { 'type': 'string', 'format': 'date-time', },
+                'modified': { 'type': 'string', 'format': 'date-time', },
+                'job_type': { 'enum': ['run', 'check'], },
+                'inventory': { '$ref': '#/definitions/id', },
+                'project': { '$ref': '#/definitions/id', },
+                'playbook': { 'type': 'string', 'pattern': '.*\.(yaml|yml)' },
+                'credential': { '$ref': '#/definitions/id', },
+                'forks': { 'type': 'number', 'minimum': 0 },
+                'verbosity': { 'type': 'number', 'minimum': 0 },
+                'limit': { 'type': 'string', },
+                'extra_vars': { 'type': 'string', },
+                'job_tags': { 'type': 'string', },
+                'job_template': { '$ref': '#/definitions/id', },
+                'launch_type': { '$ref': '#/definitions/enum_launch_type', },
+                'status': { '$ref': '#/definitions/enum_launch_status', },
+                'failed': { 'type': 'boolean', },
+                'result_stdout': { 'type': 'string', },
+                'result_traceback': { 'type': 'string', },
+                'passwords_needed_to_start': {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        'type': 'string',
+                        'uniqueItems': True,
+                        'enum': [ 'ssh_password', ],
+                    },
+                },
+                'job_args': { 'type': 'string', },
+                'job_cwd': { 'type': 'string', },
+                'job_env': {
+                    'type': 'object',
+                    # FIXME - add fields
+                },
+                'related': {
+                    'type': 'object',
+                    'required': [ 'project', 'job_host_summaries', 'created_by', 'credential', 'job_events', 'inventory', 'job_template', 'start', 'cancel',],
+                    'additionalProperties': False,
+                    'properties': {
+                        'created_by': { 'type': 'string', 'format': 'uri' },
+                        'project': { 'type': 'string', 'format': 'uri', },
+                        'job_host_summaries': { 'type': 'string', 'format': 'uri', },
+                        'credential': { 'type': 'string', 'format': 'uri', },
+                        'job_events': { 'type': 'string', 'format': 'uri', },
+                        'inventory': { 'type': 'string', 'format': 'uri', },
+                        'job_template': { 'type': 'string', 'format': 'uri', },
+                        'start': { 'type': 'string', 'format': 'uri', },
+                        'cancel': { 'type': 'string', 'format': 'uri', },
+                    },
+                },
+                'summary_fields':  {
+                    'type': 'object',
+                    'required': ['inventory', 'project', 'credential',],
+                    'additionalProperties': False,
+                    'properties': {
+                        "inventory": {
+                            '$ref': '#/definitions/summary_fields_inventory',
+                        },
+                        "project": {
+                            '$ref': '#/definitions/summary_fields_project',
+                        },
+                        "credential": {
+                            '$ref': '#/definitions/summary_fields_credential',
+                        },
+                        "job_template": {
+                            '$ref': '#/definitions/summary_fields_job_template',
+                        },
+                    },
+                },
+            },
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['count', 'next', 'previous', 'results', ],
+            'additionalProperties': False,
+            'properties': {
+                'count': { 'type': 'number', 'minimum': 0, },
+                'next': { 'type': ['string','null'], },
+                'previous': { 'type': ['string','null'], },
+                'results': {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        '$ref': '#/definitions/job',
+                    },
+                },
+            },
+        })
+
+    @property
+    def post(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/job',
+        })
+
 class Awx_Schema_v1_Teams(Awx_Schema_v1):
     component = '/teams'
 
 class Awx_Schema_v1_Config(Awx_Schema_v1):
     component = '/config'
 
+class Awx_Schema_v1_Me(Awx_Schema_v1):
+    component = '/me'
+
+class Awx_Schema_v1_Authtoken(Awx_Schema_v1):
+    component = '/authtoken'
