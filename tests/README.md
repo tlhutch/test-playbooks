@@ -3,6 +3,10 @@
 2. Research storing schema as json files (not .py)
 3. Conslidate quickstart into a single suite, and use pytest_testsuite xfail plugin
 4. Research building helpers within api object (related to #1)
+5. Testing cloud inventory
+   * jobs should wait until inventory sync is complete
+6. Testing RBAC
+7. React to credential changes
 
 ## Outstanding questions
 
