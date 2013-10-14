@@ -3,7 +3,7 @@ from common.yaml_file import load_file
 
 def pytest_addoption(parser):
     group = parser.getgroup('awx', 'awx')
-    group._addoption('--awx-data-file', action='store', default='testdata.yaml',
+    group._addoption('--awx-data-file', action='store', default=None, # default='testdata.yaml',
         dest='awx_data_filename', metavar='AWX_DATA',
         help='location of yaml file containing fixture data (default: %default)')
 
