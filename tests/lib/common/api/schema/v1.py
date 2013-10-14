@@ -743,7 +743,7 @@ class Awx_Schema_v1_Credentials(Awx_Schema_v1):
                     'properties': {
                         'user': {
                             'type': 'object',
-                            'required': ['user', 'first_name', 'last_name'],
+                            'required': ['username', 'first_name', 'last_name'],
                             'additionalProperties': False,
                             'properties': {
                                 'username': { 'type': 'string' },
