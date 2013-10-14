@@ -1,0 +1,86 @@
+organizations:
+    - name: Bender Products
+      description: Bender Products, Ltd.
+      users:
+        - dsmith
+    - name: AnsibleWorks
+      description: Just another AnsibleWorks
+      users:
+        - dsmith
+    - name: Fedora
+      description: The Fedora Project
+
+users:
+    - username: dsmith
+      password: password
+      first_name: David
+      last_name: Smith
+      email: dsmith@example.com
+      is_superuser: False
+
+      credentials:
+        - name: root (ask)
+          username: dsmith
+          team: null
+          description: user:root, password:ask
+          ssh_username: root
+          ssh_password: ASK
+
+inventories:
+    - name: Web Servers
+      description: Web server hosts
+      organization: Bender Products
+
+groups:
+    - name: CMS Web
+      description: CMS web servers
+      inventory: Web Servers
+
+hosts:
+    - name: 127.0.0.1
+      description: localhost
+      inventory: Web Servers
+      groups:
+        - CMS Web
+
+    - name: localhost
+      description: localhost
+      inventory: Web Servers
+      groups:
+        - CMS Web
+
+    - name: server1.example.com
+      description: Test server using variables
+      inventory: Web Servers
+      variables: |
+        ansible_ssh_user: root
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - CMS Web
+
+projects:
+    - name: ansible-examples.git (manual)
+      description: scm_type:git, scm_type:manual
+      organization: Bender Products
+      _ansible_module: git
+      scm_type: null # manual
+      scm_url: https://github.com/ansible/ansible-examples.git
+      local_path: ansible-examples.git.manual
+
+    - name: ansible-exampels.svn (manual)
+      description: scm_type:svn, scm_type:manual
+      organization: Bender Products
+      _ansible_module: subversion
+      scm_type: null # manual
+      scm_url: https://github.com/ansible/ansible-examples
+      local_path: ansible-examples.svn.manual
+
+    - name: ansible-helloworld.hg (manual)
+      description: scm_type:hg, scm_type:manual
+      organization: Bender Products
+      _ansible_module: hg
+      scm_type: null # manual
+      scm_url: https://bitbucket.org/jlaska/ansible-helloworld
+      local_path: ansible-helloworld.hg.manual
+
+job_templates:
