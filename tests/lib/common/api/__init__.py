@@ -3,85 +3,29 @@ import urllib2
 import types
 import requests
 
-def json_func(self):
-    '''monkey-patch a json helpder method for use in urllib2 response object'''
-    try:
-        return json.loads(self.text)
-    except:
-        return self.text
+# FIXME - figure out how to link this with pytest --debug-rest
+# http://docs.python-requests.org/en/latest/api/?highlight=logging
+# these two lines enable debugging at httplib level (requests->urllib3->httplib)
+# you will see the REQUEST, including HEADERS and DATA, and RESPONSE with HEADERS but without DATA.
+# the only thing missing will be the response.body which is not logged.
+if False:
+    import logging
+    import httplib
+    httplib.HTTPConnection.debuglevel = 1
 
-class Connection_urllib2(object):
-    def __init__(self, server, version=None, verify=False):
+    logging.basicConfig() # you need to initialize logging, otherwise you will not see anything from requests
+    logging.getLogger().setLevel(logging.DEBUG)
+    requests_log = logging.getLogger("requests.packages.urllib3")
+    requests_log.setLevel(logging.DEBUG)
+    requests_log.propagate = True
+
+class Connection(object):
+    def __init__(self, server, version=None, verify=False, authtoken=None):
         self.server = server
         self.version = version
         self.verify = verify
+        self.authtoken = authtoken
 
-    def login(self, username=None, password=None):
-
-        # Setup urllib2 for basic password authentication.
-        password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        password_mgr.add_password(None, self.server, username, password)
-        handler = urllib2.HTTPBasicAuthHandler(password_mgr)
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
-
-        try:
-            self.get('/api')
-        except Exception, e:
-            raise BaseException(str(e))
-
-    def _request(self, endpoint, data=None, method='GET'):
-        url = "%s%s" % (self.server, endpoint)
-        request = urllib2.Request(url)
-
-        #if method in ['PUT', 'PATCH', 'POST', 'DELETE', 'HEAD', 'OPTIONS']:
-        if method != 'GET':
-            request.add_header('Content-type', 'application/json')
-            request.get_method = lambda: method
-
-        if data is not None:
-            request.add_data(json.dumps(data))
-
-        try:
-            response = urllib2.urlopen(request)
-        except Exception, e:
-            err_str = "%s, url: %s" % (str(e), url,)
-
-            if hasattr(e, 'read'):
-                err_str += ", %s" % (e.read())
-            raise BaseException(err_str)
-
-        # Add convenience .json() method to response object
-        response.text = response.read()
-        response.json = types.MethodType(json_func, response)
-        return response
-
-    def get(self, endpoint, params=None):
-        return self._request(endpoint, params=params)
-
-    def head(self, endpoint):
-        return self._request(endpoint, method='HEAD')
-
-    def options(self, endpoint):
-        return self._request(endpoint, method='OPTIONS')
-
-    def post(self, endpoint, data):
-        return self._request(endpoint, data, method='POST')
-
-    def put(self, endpoint, data):
-        return self._request(endpoint, data, method='PUT')
-
-    def patch(self, endpoint, data):
-        return self._request(endpoint, data, method='PATCH')
-
-    def delete(self, endpoint):
-        return self._request(endpoint, method='DELETE')
-
-
-class Connection_requests(Connection_urllib2):
-    def __init__(self, server, version=None, verify=False):
-        Connection_urllib2.__init__(self, server,
-            version=version, verify=verify)
         self.auth = None
 
     def login(self, username, password):
@@ -100,8 +44,13 @@ class Connection_requests(Connection_urllib2):
 
         # Build url, headers and params
         url = "%s%s" % (self.server, endpoint)
-        headers = {'content-type': 'application/json'}
+        headers['Content-type'] = 'application/json'
 
+        # Pass along authtoken if available
+        if self.authtoken is not None:
+            headers['Authorization'] = 'Token %s' % self.authtoken['token']
+
+        # jsonify the POST payload (if available)
         if data is not None:
             payload = json.dumps(data)
 
@@ -124,4 +73,23 @@ class Connection_requests(Connection_urllib2):
 
         return response
 
-Connection = Connection_requests
+    def get(self, endpoint, params=None):
+        return self._request(endpoint, params=params)
+
+    def head(self, endpoint):
+        return self._request(endpoint, method='HEAD')
+
+    def options(self, endpoint):
+        return self._request(endpoint, method='OPTIONS')
+
+    def post(self, endpoint, data):
+        return self._request(endpoint, data, method='POST')
+
+    def put(self, endpoint, data):
+        return self._request(endpoint, data, method='PUT')
+
+    def patch(self, endpoint, data):
+        return self._request(endpoint, data, method='PATCH')
+
+    def delete(self, endpoint):
+        return self._request(endpoint, method='DELETE')
