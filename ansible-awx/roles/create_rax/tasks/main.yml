@@ -11,7 +11,7 @@
     image: '{{ item.uuid }}'
     region: '{{ rax_region }}'
     wait: yes
-    wait_timeout: 600
+    wait_timeout: 800
     state: deleted
   register: rax
   with_items: '{{ rax_images }}'
