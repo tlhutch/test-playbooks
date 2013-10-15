@@ -67,7 +67,7 @@ projects:
       scm_url: https://github.com/ansible/ansible-examples.git
       local_path: ansible-examples.git.manual
 
-    - name: ansible-exampels.svn (manual)
+    - name: ansible-examples.svn (manual)
       description: scm_type:svn, scm_type:manual
       organization: Bender Products
       _ansible_module: subversion
@@ -84,3 +84,66 @@ projects:
       local_path: ansible-helloworld.hg.manual
 
 job_templates:
+    - name: language_features/loop_plugins.yml (check)
+      job_type: check
+      allow_callbacks: false
+      playbook: language_features/loop_plugins.yml
+      project: ansible-examples.git (manual)
+      inventory: Web Servers
+      credential: root (ask)
+
+    - name: language_features/loop_plugins.yml (run)
+      job_type: run
+      allow_callbacks: false
+      playbook: language_features/loop_plugins.yml
+      project: ansible-examples.git (manual)
+      inventory: Web Servers
+      credential: root (ask)
+
+    - name: language_features/roletest.yml (check)
+      job_type: check
+      allow_callbacks: false
+      playbook: trunk/language_features/roletest.yml
+      project: ansible-examples.svn (manual)
+      inventory: Web Servers
+      credential: root (ask)
+
+    - name: language_features/roletest.yml (run)
+      job_type: run
+      allow_callbacks: false
+      playbook: trunk/language_features/roletest.yml
+      project: ansible-examples.svn (manual)
+      inventory: Web Servers
+      credential: root (ask)
+
+    - name: helloworld site
+      job_type: run
+      playbook: site.yml
+      project: ansible-helloworld.hg (manual)
+      inventory: Web Servers
+      credential: root (ask)
+
+# playbook: language_features/ansible_pull.yml
+# playbook: language_features/register_logic.yml
+# playbook: language_features/batch_size_control.yml
+# playbook: language_features/file_secontext.yml
+# playbook: language_features/loop_with_items.yml
+# playbook: language_features/roletest2.yml
+# playbook: language_features/complex_args.yml
+# playbook: language_features/get_url.yml
+# playbook: language_features/conditionals_part1.yml
+# playbook: language_features/group_by.yml
+# playbook: language_features/nested_playbooks.yml
+# playbook: language_features/selective_file_sources.yml
+# playbook: language_features/conditionals_part2.yml
+# playbook: language_features/group_commands.yml
+# playbook: language_features/tags.yml
+# playbook: language_features/custom_filters.yml
+# playbook: language_features/intermediate_example.yml
+# playbook: language_features/upgraded_vars.yml
+# playbook: language_features/delegation.yml
+# playbook: language_features/intro_example.yml
+# playbook: language_features/prompts.yml
+# playbook: language_features/user_commands.yml
+# playbook: language_features/environment.yml
+# playbook: language_features/loop_nested.yml
