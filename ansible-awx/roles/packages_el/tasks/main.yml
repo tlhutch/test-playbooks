@@ -6,6 +6,10 @@
 
 - name: install epel-release
   yum: name=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+  register: epel_task
+
+- name: debug epel
+  debug: var=epel_task
 
 - name: install non-required dependencies
   yum: name={{item}} state=installed
