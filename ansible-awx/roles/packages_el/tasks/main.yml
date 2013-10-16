@@ -13,7 +13,7 @@
 
 - name: install non-required dependencies
   yum: name={{item}} state=installed
-  when: "'${ansible_pkg_mgr}' == 'yum'"
+  when: ansible_pkg_mgr == 'yum'
   with_items:
     - libselinux-python
 

@@ -9,4 +9,4 @@
 
 - name: install ansible deb
   apt: pkg=ansible state=latest update_cache=yes
-  when: "'${ansible_pkg_mgr}' == 'apt'"
+  when: ansible_pkg_mgr == 'apt'
