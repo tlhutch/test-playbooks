@@ -14,7 +14,7 @@
     wait_timeout: 800
     state: deleted
   register: rax
-  with_items: '{{ rax_images }}'
+  with_items: rax_images
   when: delete_on_start
 
 - name: create (or locate) rax instance(s)
@@ -32,11 +32,11 @@
     wait_timeout: 1200
     state: active
   register: rax
-  with_items: '{{ rax_images }}'
+  with_items: rax_images
 
 - name: add_host
   add_host: name={{ item.instances[0].name }}
      groups=all_instances,rax_instances
      ansible_ssh_user=root
      ansible_ssh_host={{ item.instances[0].accessIPv4 }}
-  with_items: '{{ rax.results }}'
+  with_items: rax.results

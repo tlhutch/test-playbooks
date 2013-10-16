@@ -36,7 +36,7 @@
     idempotency_attribute: 'tags'
     instance_tags: '{"Name": "{{aws_name_prefix}}-{{item.name}}"}'
     wait: yes
-  with_items: '{{ aws_images }}'
+  with_items: aws_images
   when: delete_on_start
 
 - name: create/locate ec2 instance(s)
@@ -52,7 +52,7 @@
     key_name: '{{ aws_key_name }}'
     image: '{{ item.id }}'
     wait: yes
-  with_items: '{{ aws_images }}'
+  with_items: aws_images
   register: aws
 
 # Despite using `wait` on the ec2 module, instances aren't accepting ssh
@@ -63,7 +63,7 @@
     state=started
     host={{ item.instances[0].public_dns_name }}
     port=22
-  with_items: '{{ aws.results }}'
+  with_items: aws.results
 
 - name: add_host
   add_host: name={{ aws_name_prefix }}-{{ item.item.name }}
@@ -71,4 +71,4 @@
      ansible_ssh_user={{ item.item.user }}
      ansible_ssh_host={{ item.instances[0].public_dns_name }}
      # ansible_ssh_private_key_file={{ aws_keypair_private }}
-  with_items: '{{ aws.results }}'
+  with_items: aws.results
