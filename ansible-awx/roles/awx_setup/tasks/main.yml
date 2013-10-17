@@ -33,6 +33,9 @@
      regexp='^Defaults:root'
      line='Defaults:root !requiretty'
 
+# TODO - change postgres passwd
+# TODO - change awx admin passwd
+
 - name: setup.sh
   shell: bash -x setup.sh
      chdir=/tmp/awx-setup
