@@ -175,7 +175,7 @@ def authtoken(request, testsetup):
         testsetup.api.authtoken = r.json()
 
 @pytest.fixture(scope="session")
-def api_config(request, api):
+def awx_config(request, api):
     url = navigate(api, request.config.getvalue('api_version'), 'config',)
     r = api.get(url)
     assert r.status_code == httplib.OK

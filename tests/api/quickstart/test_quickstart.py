@@ -302,7 +302,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             assert r.text == ''
 
     @pytest.mark.destructive
-    def test_project_post(self, api, api_projects, api_organizations, api_config, project, ansible_runner):
+    def test_project_post(self, api, api_projects, api_organizations, awx_config, project, ansible_runner):
 
         # Checkout repository on the target system
         if project['scm_type'] in [None, 'menual'] \
@@ -319,7 +319,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             results = clone_func(
                 force='no',
                 repo=project['scm_url'],
-                dest="%s/%s" % ( api_config['project_base_dir'], \
+                dest="%s/%s" % ( awx_config['project_base_dir'], \
                     project['local_path']))
 
         # Find desired org
