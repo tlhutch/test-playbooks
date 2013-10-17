@@ -58,6 +58,46 @@ def pytest_generate_tests(metafunc):
 class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.destructive
+    def test_install_license(self, api, awx_config, tmpdir, ansible_runner):
+
+        if awx_config['license_info'].get('valid_key', False) and \
+           awx_config['license_info'].get('compliant', False):
+            pytest.skip("Valid license key already active")
+
+        # Create license script
+        py_script = '''#!/usr/bin/python
+import datetime
+import time
+from awx.main.licenses import LicenseWriter
+
+if __name__ == '__main__':
+
+    tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
+
+    writer = LicenseWriter(
+        company_name   = "AnsibleWorks",
+        contact_name   = "Art Vandelay",
+        contact_email  = "art@ansibleworks.com",
+        instance_count = 1000,
+        license_date   = int(float(time.mktime(tomorrow.timetuple()))),
+
+    )
+    fd = open('/etc/awx/license', 'w+')
+    fd.write(writer.get_string())
+    fd.close()
+'''
+        p = tmpdir.mkdir("ansible").join("install_license.py")
+        fd = p.open('w+')
+        fd.write(py_script)
+        fd.close()
+
+        # Using ansible, copy script to target system
+        ansible_runner.copy(src=fd.name, dest='/tmp/%s' % p.basename, mode='0755')
+
+        # Using ansible, run the script
+        ansible_runner.shell('python /tmp/%s' % p.basename, creates='/etc/awx/license')
+
+    @pytest.mark.destructive
     def test_organization_post(self, api, api_organizations, organization):
 
         # Create a new organization
