@@ -27,31 +27,41 @@ users:
           ssh_password: ASK
 
 inventories:
-    - name: Web Servers
-      description: Web server hosts
+    - name: it_inventory
+      description: Inventory tracking internal systems
       organization: Bender Products
 
 groups:
-    - name: CMS Web
-      description: CMS web servers
-      inventory: Web Servers
+    - name: local
+      description: A group for systems that map to localhost
+      inventory: it_inventory
+
+    - name: aws
+      description: Group for tracking Amazon EC2 instances
+      inventory: it_inventory
+
+    - name: rax
+      description: Group for tracking Rackspace mycloud servers
+      inventory: it_inventory
+
+inventory_sources: []
 
 hosts:
     - name: 127.0.0.1
-      description: localhost
-      inventory: Web Servers
+      description: localhost (ip address)
+      inventory: it_inventory
       groups:
         - CMS Web
 
     - name: localhost
-      description: localhost
-      inventory: Web Servers
+      description: localhost (hostname)
+      inventory: it_inventory
       groups:
         - CMS Web
 
     - name: server1.example.com
-      description: Test server using variables
-      inventory: Web Servers
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
       variables: |
         ansible_ssh_user: root
         ansible_ssh_host: 127.0.0.1
@@ -89,7 +99,7 @@ job_templates:
       allow_callbacks: false
       playbook: language_features/loop_plugins.yml
       project: ansible-examples.git (manual)
-      inventory: Web Servers
+      inventory: it_inventory
       credential: root (ask)
 
     - name: language_features/loop_plugins.yml (run)
@@ -97,7 +107,7 @@ job_templates:
       allow_callbacks: false
       playbook: language_features/loop_plugins.yml
       project: ansible-examples.git (manual)
-      inventory: Web Servers
+      inventory: it_inventory
       credential: root (ask)
 
     - name: language_features/roletest.yml (check)
@@ -105,7 +115,7 @@ job_templates:
       allow_callbacks: false
       playbook: trunk/language_features/roletest.yml
       project: ansible-examples.svn (manual)
-      inventory: Web Servers
+      inventory: it_inventory
       credential: root (ask)
 
     - name: language_features/roletest.yml (run)
@@ -113,14 +123,14 @@ job_templates:
       allow_callbacks: false
       playbook: trunk/language_features/roletest.yml
       project: ansible-examples.svn (manual)
-      inventory: Web Servers
+      inventory: it_inventory
       credential: root (ask)
 
     - name: helloworld site
       job_type: run
       playbook: site.yml
       project: ansible-helloworld.hg (manual)
-      inventory: Web Servers
+      inventory: it_inventory
       credential: root (ask)
 
 # playbook: language_features/ansible_pull.yml
