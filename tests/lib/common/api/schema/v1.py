@@ -365,7 +365,8 @@ class Awx_Schema_v1_Inventories(Awx_Schema_v1):
 
         self.definitions['inventory'] = {
             'type': 'object',
-            'required': ['id', 'url', 'related', 'summary_fields', 'created', 'modified', 'name', 'description', 'organization', 'variables', 'has_active_failures', 'hosts_with_active_failures', 'has_inventory_sources', ],
+            'required': ['id', 'url', 'related', 'summary_fields', 'created', 'modified', 'name', 'description', 'organization', 'variables', 'has_active_failures', 'hosts_with_active_failures', 'has_inventory_sources', 'total_inventory_sources', 'total_hosts', 'inventory_sources_with_failures', 'groups_with_active_failures', 'total_groups', ],
+
             'additionalProperties': False,
             'properties': {
                 'id': { 'type': 'number', 'minimum': 1, },
@@ -410,7 +411,12 @@ class Awx_Schema_v1_Inventories(Awx_Schema_v1):
                 'variables': { 'type': 'string', },
                 'has_active_failures': { 'type': 'boolean', },
                 'hosts_with_active_failures': { 'type': 'number', 'minimum': 0, },
+                'total_hosts': { 'type': 'number', 'minimum': 0, },
+                'groups_with_active_failures': { 'type': 'number', 'minimum': 0, },
+                'total_groups': { 'type': 'number', 'minimum': 0, },
+                'total_inventory_sources': { 'type': 'number', 'minimum': 0, },
                 'has_inventory_sources': { 'type': 'boolean', },
+                'inventory_sources_with_failures': { 'type': 'number', 'minimum': 0, },
             },
         }
 
@@ -481,7 +487,7 @@ class Awx_Schema_v1_Groups(Awx_Schema_v1):
 
         self.definitions['group'] = {
             'type': 'object',
-            'required': ['id', 'url', 'created', 'modified', 'name', 'description', 'inventory', 'variables', 'has_active_failures', 'hosts_with_active_failures', 'has_inventory_sources', 'related', 'summary_fields'],
+            'required': ['id', 'url', 'created', 'modified', 'name', 'description', 'inventory', 'variables', 'has_active_failures', 'hosts_with_active_failures', 'has_inventory_sources', 'related', 'summary_fields', 'total_hosts', 'groups_with_active_failures', 'total_groups'],
             'additionalProperties': False,
             'properties': {
                 'id': { 'type': 'number', 'minimum': 1, },
@@ -495,6 +501,9 @@ class Awx_Schema_v1_Groups(Awx_Schema_v1):
                 'has_active_failures': { 'type': 'boolean', },
                 'hosts_with_active_failures': { 'type': 'number', 'minimum': 0, },
                 'has_inventory_sources': { 'type': 'boolean', },
+                'total_hosts': { 'type': 'number', 'minimum': 0, },
+                'groups_with_active_failures': { 'type': 'number', 'minimum': 0, },
+                'total_groups':{ 'type': 'number', 'minimum': 0, },
                 'related': {
                     'type': 'object',
                     'required': [ 'created_by', 'job_host_summaries', 'variable_data', 'inventory_source', 'job_events', 'potential_children', 'all_hosts', 'hosts', 'inventory', 'children',],
