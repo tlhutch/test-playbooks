@@ -27,23 +27,18 @@
   register: is_awx_installed
   ignore_errors: yes
 
-- name: HACK disable sudo requiretty for root
+- name: disable sudo requiretty for root
   lineinfile: dest=/etc/sudoers
      state=present
      regexp='^Defaults:root'
      line='Defaults:root !requiretty'
 
-# TODO - change postgres passwd
-# TODO - change awx admin passwd
-
-- name: setup.sh
-  shell: bash -x setup.sh
-     chdir=/tmp/awx-setup
-     # creates=/etc/awx/awx.cert
-  when: aw_repo_url is not defined and ( is_awx_installed|failed or awx_upgrade )
+- name: install awx vars.yaml
+  template: src=files/awx_vars.yml.j2 dest=/tmp/awx-setup/awx_vars.yaml
+  when: is_awx_installed|failed or awx_upgrade
 
 - name: setup.sh -e aw_repo_url
-  shell: bash -x setup.sh -e aw_repo_url={{aw_repo_url}}
+  shell: bash -x setup.sh -e @awx_vars.yaml
      chdir=/tmp/awx-setup
      # creates=/etc/awx/awx.cert
-  when: aw_repo_url is defined and ( is_awx_installed|failed or awx_upgrade )
+  when: is_awx_installed|failed or awx_upgrade

@@ -14,6 +14,10 @@ awx_setup_url: http://50.116.42.103/awx_nightlies_RTYUIOPOIUYTYU/setup/awx-setup
 aw_repo_url: http://50.116.42.103/awx_nightlies_RTYUIOPOIUYTYU
 # aw_repo_url: http://ansibleworks.com/releases/awx
 
+# Optionally customize the default awx passwords
+# admin_password: fo0m4nchU
+# pg_password: 9CJCSUtePvE
+
 # Choose location for ansible package repository (optional)
 # ansible_repo_url: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi
 

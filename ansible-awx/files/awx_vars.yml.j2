@@ -1,0 +1,11 @@
+# Override awx setup playbook variables
+
+{% if awx_setup_args %}
+aw_repo_url: {{aw_repo_url}}
+{% endif %}
+{% if admin_password %}
+admin_password: {{admin_password}}
+{% endif %}
+{% if pg_password %}
+pg_password: {{pg_password}}
+{% endif %}
