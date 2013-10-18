@@ -33,11 +33,11 @@
      regexp='^Defaults:root'
      line='Defaults:root !requiretty'
 
-- name: install awx vars.yaml
+- name: create awx awx_vars.yaml
   template: src=files/awx_vars.yml.j2 dest=/tmp/awx-setup/awx_vars.yaml
   when: is_awx_installed|failed or awx_upgrade
 
-- name: setup.sh -e aw_repo_url
+- name: setup.sh
   shell: bash -x setup.sh -e @awx_vars.yaml
      chdir=/tmp/awx-setup
      # creates=/etc/awx/awx.cert
