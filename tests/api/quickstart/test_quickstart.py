@@ -43,12 +43,14 @@ def pytest_generate_tests(metafunc):
         # (e.g. if asked for organization, parametrize _each_ organization)
         elif inflect.plural_noun(fixture) in cfg:
             key = inflect.plural_noun(fixture)
-            for value in cfg[key]:
+            for (count, value) in enumerate(cfg[key]):
                 test_set.append(value)
                 if 'name' in value:
                     id_list.append(value['name'])
                 elif 'username' in value:
                     id_list.append(value['username'])
+                else:
+                    id_list.append('item%d' % count)
 
         if test_set and id_list:
             metafunc.parametrize(fixture, test_set, ids=id_list)
@@ -340,6 +342,42 @@ if __name__ == '__main__':
             r = api.post(group['related']['hosts'], payload)
             assert r.status_code == httplib.NO_CONTENT
             assert r.text == ''
+
+    @pytest.mark.destructive
+    def test_inventory_sources_patch(self, api, api_inventory, api_groups, inventory_source):
+        inventory_id = find_object(api, api_inventory, \
+            name__iexact=inventory_source['inventory'])[0]['id']
+        group = find_object(api, api_groups, \
+            name__iexact=inventory_source['group'])[0]
+
+        # Make sure credentials.yaml has what we need
+        assert 'cloud' in self.testsetup.credentials, \
+            'No cloud credentials defined in credentals.yaml'
+        assert inventory_source['source'] in self.testsetup.credentials['cloud'], \
+            'No %s cloud credentials defined in credentals.yaml' % \
+            inventory_source['source']
+
+        # Ensure username and password fields are present
+        creds = self.testsetup.credentials['cloud'][inventory_source['source']]
+        assert all([field in creds for field in ['username', 'password']]), \
+            'No username or password for %s defined in credentials.yaml' % \
+            inventory_source['source']
+
+        payload = dict(source=inventory_source['source'],
+                       source_username=creds['username'],
+                       source_password=creds['password'],
+                       source_regions=inventory_source.get('source_regions', ''),
+                       source_vars=inventory_source.get('source_vars', ''),
+                       source_tags=inventory_source.get('source_tags', ''),
+                       overwrite=inventory_source.get('overwrite', False),
+                       overwrite_vars=inventory_source.get('overwrite_vars', False),
+                      )
+        r = api.patch(group['related']['inventory_source'], payload)
+        assert r.status_code == httplib.OK
+        data = r.json()
+        validate(data, '/inventory_sources', 'patch')
+
+    # FIXME - initiate inventory sync
 
     @pytest.mark.destructive
     def test_project_post(self, api, api_projects, api_organizations, awx_config, project, ansible_runner):

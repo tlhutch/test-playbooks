@@ -44,20 +44,46 @@ groups:
       description: Group for tracking Rackspace mycloud servers
       inventory: it_inventory
 
-inventory_sources: []
+inventory_sources:
+    - name: it_inventory/aws # name is used for internal purposes
+      group: aws
+      inventory: it_inventory
+      source: ec2
+      # source_username: # stored in credentials.yaml
+      # source_password: # stored in credentials.yaml
+      source_vars: ''
+      source_regions: ''
+      overwrite: true
+      overwrite_vars: true
+      update_on_launch: false
+      update_interval: 0
+
+    - name: it_inventory/rax # name is used for internal purposes
+      group: rax
+      inventory: it_inventory
+      source: rackspace
+      # source_username: # stored in credentials.yaml
+      # source_password: # stored in credentials.yaml
+      source_vars: ''
+      source_regions: ''
+      source_tags: ''
+      overwrite: true
+      overwrite_vars: true
+      update_on_launch: false
+      update_interval: 0
 
 hosts:
     - name: 127.0.0.1
       description: localhost (ip address)
       inventory: it_inventory
       groups:
-        - CMS Web
+        - local
 
     - name: localhost
       description: localhost (hostname)
       inventory: it_inventory
       groups:
-        - CMS Web
+        - local
 
     - name: server1.example.com
       description: localhost (ansible_ssh_host)
@@ -66,7 +92,7 @@ hosts:
         ansible_ssh_user: root
         ansible_ssh_host: 127.0.0.1
       groups:
-        - CMS Web
+        - local
 
 projects:
     - name: ansible-examples.git (manual)
