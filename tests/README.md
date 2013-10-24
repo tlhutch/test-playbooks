@@ -1,3 +1,15 @@
+ansibleworks-qa tests
+---------------------
+
+# Instructions
+
+1. Create, and modify, `credentials.yaml`
+    cp credentials.template credentials.yaml
+    vim credentials.yaml
+2. Determine URL for running AWX instance (needed by `--baseurl` parameter)
+3. Run tests:
+    PYTHONPATH=tests/lib py.test -v --baseurl https://example.com tests/api/quickstart --destructive
+
 ## TODO
 1. Research storing schema as json files (not .py)
 2. Research building helpers within api object (related to #1) (similar to mozwebqa page objects)
@@ -17,3 +29,4 @@
 3. Why '/api/v1/inventory' and not '/api/v1/inventories'?
 4. Why does '/api/v1/hosts' POST accept fields 'last_job' and 'last_job_host_summary'
 5. Why are fields duplicated between job_template and job?  Isn't a job a execution of a template?
+
