@@ -17,6 +17,12 @@ class Awx_Schema_v1(Awx_Schema):
         self.definitions['enum_project_status'] = {
             'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ]
         }
+        self.definitions['enum_inventory_status'] = {
+            'enum': [ "", "none", "never updated", "updating", "failed", "successful", ]
+        }
+        self.definitions['enum_source_status'] = {
+            'enum': [ 'failed', 'never updated', 'none', 'successful', 'updating']
+        }
         self.definitions['summary_fields_project'] = {
             'type': 'object',
             'required': ['name', 'description', ],
@@ -26,9 +32,6 @@ class Awx_Schema_v1(Awx_Schema):
                 'description': { 'type': 'string', },
                 'status':      { 'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ] },
             },
-        }
-        self.definitions['enum_source_status'] = {
-            'enum': [ 'failed', 'never', 'none', 'successful', 'updating']
         }
 
         self.definitions['id'] = dict(type='number', minimum=1)
@@ -44,6 +47,11 @@ class Awx_Schema_v1(Awx_Schema):
                 'has_active_failures':          { 'type': 'boolean', },
                 'has_inventory_sources':        { 'type': 'boolean', },
                 'hosts_with_active_failures':   { 'type': 'number', 'minimum': 0, },
+                'groups_with_active_failures':  { 'type': 'number', 'minimum': 0, },
+                'inventory_sources_with_failures': { 'type': 'number', 'minimum': 0, },
+                'total_groups':                 { 'type': 'number', 'minimum': 0, },
+                'total_hosts':                  { 'type': 'number', 'minimum': 0, },
+                'total_inventory_sources':      { 'type': 'number', 'minimum': 0, },
             },
         }
         self.definitions['summary_fields_credential'] = {
@@ -78,7 +86,7 @@ class Awx_Schema_v1(Awx_Schema):
 
         self.definitions['summary_fields_group'] = {
             'type': 'object',
-            'required': [ 'id', 'name', ],
+            'required': [ 'name', 'description', 'has_active_failures', 'has_inventory_sources', 'hosts_with_active_failures', 'total_hosts', 'total_groups', 'groups_with_active_failures', ],
             'additionalProperties': False,
             'properties': {
                 'name': { 'type': 'string', },
@@ -86,6 +94,9 @@ class Awx_Schema_v1(Awx_Schema):
                 'has_active_failures': { 'type': 'boolean', },
                 'has_inventory_sources': { 'type': 'boolean', },
                 'hosts_with_active_failures': { 'type': 'number', 'minimum': 0 },
+                'total_hosts': { 'type': 'number', 'minimum': 0 },
+                'total_groups': { 'type': 'number', 'minimum': 0 },
+                'groups_with_active_failures': { 'type': 'number', 'minimum': 0 },
             },
         }
 
@@ -674,8 +685,8 @@ class Awx_Schema_v1_Hosts(Awx_Schema_v1):
                 'last_job_host_summary': { 'type': ['number', 'null'] },
                 'related': {
                     'type': 'object',
-                    'required': [ 'created_by', 'job_host_summaries', 'variable_data', 'job_events', 'groups', 'all_groups', 'inventory', 'last_job', 'last_job_host_summary'],
-                    'additionalProperties': False,
+                    'required': [ 'created_by', 'job_host_summaries', 'variable_data', 'job_events', 'groups', 'all_groups', 'inventory', ],
+                    'additionalProperties': True,
                     'properties': {
                         'created_by':           { 'type': 'string', 'format': 'uri', },
                         'job_host_summaries':   { 'type': 'string', 'format': 'uri', },
@@ -686,13 +697,12 @@ class Awx_Schema_v1_Hosts(Awx_Schema_v1):
                         'inventory':            { 'type': 'string', 'format': 'uri', },
                         'last_job':             { 'type': 'string', 'format': 'uri', },
                         'last_job_host_summary':{ 'type': 'string', 'format': 'uri', },
-
                     },
                 },
                 'summary_fields':  {
                     'type': 'object',
-                    'required': ['inventory', 'groups', 'all_groups', 'last_job', 'last_job_host_summary', ],
-                    'additionalProperties': False,
+                    'required': ['inventory', 'groups', 'all_groups', ], # 'last_job', 'last_job_host_summary', ],
+                    'additionalProperties': True,
                     'properties': {
                         "inventory": {
                             '$ref': '#/definitions/summary_fields_inventory',
@@ -1154,7 +1164,7 @@ class Awx_Schema_v1_Inventory_Sources(Awx_Schema_v1):
 
         self.definitions['inventory_source'] = {
             'type': 'object',
-            'required': [ ],
+            'required': [ 'id', 'url', 'created', 'modified', 'inventory', 'group', 'overwrite', 'overwrite_vars', 'update_on_launch', 'last_updated', 'last_update_failed', 'status', 'update_interval', "source", "source_path", "source_vars", "source_username", "source_password", "source_regions", 'related', 'summary_fields', ],
             'additionalProperties': False,
             'properties': {
                 'id': { '$ref': '#/definitions/id', },
@@ -1166,8 +1176,9 @@ class Awx_Schema_v1_Inventory_Sources(Awx_Schema_v1):
                 'overwrite': { 'type': 'boolean', },
                 'overwrite_vars': { 'type': 'boolean', },
                 'update_on_launch': { 'type': 'boolean', },
-                'last_updated': { 'type': 'string', 'format': 'date-time', },
-                'status': { '$ref': '#/definitions/enum_launch_status', },
+                'last_updated': { 'type': ['string', 'null'], 'format': 'date-time', },
+                'last_update_failed': { 'type': 'boolean', },
+                'status': { '$ref': '#/definitions/enum_inventory_status', },
                 'update_interval': { 'type': 'number', 'minimum': 0 },
                 "source": { 'type': 'string', },
                 "source_path": { 'type': 'string', },
@@ -1175,22 +1186,23 @@ class Awx_Schema_v1_Inventory_Sources(Awx_Schema_v1):
                 "source_username": { 'type': 'string', },
                 "source_password": { 'type': 'string', },
                 "source_regions": { 'type': 'string', },
-                "source_tags": { 'type': 'string', },
                 'related': {
                     'type': 'object',
-                    'required': [ 'inventory_updates', 'update', 'inventory', 'group', ],
-                    'additionalProperties': False,
+                    'required': [ 'created_by', 'inventory_updates', 'update', 'inventory', 'group', ],
+                    'additionalProperties': True,
                     'properties': {
-                        'inventory_updates': { 'type': 'string', 'format': 'uri' },
-                        'update': { 'type': 'string', 'format': 'uri', },
-                        'inventory': { 'type': 'string', 'format': 'uri', },
-                        'group': { 'type': 'string', 'format': 'uri', },
+                        "created_by": { 'type': 'string', 'format': 'uri' },
+                        "last_update": { 'type': 'string', 'format': 'uri' },
+                        "inventory_updates": { 'type': 'string', 'format': 'uri' },
+                        "update": { 'type': 'string', 'format': 'uri' },
+                        "inventory": { 'type': 'string', 'format': 'uri' },
+                        "group": { 'type': 'string', 'format': 'uri' },
                     },
                 },
                 'summary_fields':  {
                     'type': 'object',
                     'required': ['inventory', 'group', ],
-                    'additionalProperties': False,
+                    'additionalProperties': True,
                     'properties': {
                         "inventory": {
                             '$ref': '#/definitions/summary_fields_inventory',
@@ -1226,11 +1238,19 @@ class Awx_Schema_v1_Inventory_Sources(Awx_Schema_v1):
         })
 
     @property
-    def post(self):
+    def patch(self):
         return self.format_schema({
             '$schema': 'http://json-schema.org/draft-04/schema#',
             '$ref': '#/definitions/inventory_source',
         })
+
+    @property
+    def put(self):
+        return self.patch
+
+    @property
+    def post(self):
+        return self.patch
 
 class Awx_Schema_v1_Teams(Awx_Schema_v1):
     component = '/teams'
