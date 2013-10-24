@@ -1,12 +1,14 @@
 ## TODO
-1. Simplify navigation through API without hard-coding
-2. Research storing schema as json files (not .py)
-3. Conslidate quickstart into a single suite, and use pytest_testsuite xfail plugin
-4. Research building helpers within api object (related to #1)
-5. Testing cloud inventory
+1. Research storing schema as json files (not .py)
+2. Research building helpers within api object (related to #1) (similar to mozwebqa page objects)
+   * GOAL: use the same names regardless of whether testing the API or the UI
+   * api.organizations.[get, put, post, patch, options, delete] ? ... perhaps too atomic
+   * api.organizations.[create, delete, update] ?
+3. Testing cloud inventory
    * jobs should wait until inventory sync is complete
-6. Testing RBAC
-7. React to credential changes
+4. Testing RBAC
+5. React to credential changes
+6. Figure out how to pass along SSH credentials
 
 ## Outstanding questions
 
