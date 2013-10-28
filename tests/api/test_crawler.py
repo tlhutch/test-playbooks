@@ -11,6 +11,7 @@ def setup_function(function):
 
     api = Connection(pytest.config.option.base_url)
 
+@pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 def assert_response(link, method, response_code=httplib.OK, response_schema='unauthorized', data={}):
     global api # yuck
@@ -30,6 +31,7 @@ def assert_response(link, method, response_code=httplib.OK, response_schema='una
     if response_schema is not None:
         validate(r.json(), link[7:-1], response_schema)
 
+@pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 def test_crawl_unauthorized():
     global api # yuck
