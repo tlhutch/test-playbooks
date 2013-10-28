@@ -20,6 +20,9 @@ class Awx_Schema_v1(Awx_Schema):
         self.definitions['enum_inventory_status'] = {
             'enum': [ "", "none", "never updated", "updating", "failed", "successful", ]
         }
+        self.definitions['enum_inventory_update_status'] = {
+            'enum': [ "", "new", "pending", "waiting", "running", "successful", "failed", "error", "canceled", ],
+        }
         self.definitions['enum_source_status'] = {
             'enum': [ 'failed', 'never updated', 'none', 'successful', 'updating']
         }
@@ -52,6 +55,16 @@ class Awx_Schema_v1(Awx_Schema):
                 'total_groups':                 { 'type': 'number', 'minimum': 0, },
                 'total_hosts':                  { 'type': 'number', 'minimum': 0, },
                 'total_inventory_sources':      { 'type': 'number', 'minimum': 0, },
+            },
+        }
+        self.definitions['summary_fields_inventory_source'] = {
+            'type': 'object',
+            'required': ['source', 'last_updated', 'status', ],
+            'additionalProperties': False,
+            'properties': {
+                'source':       { 'type': 'string', },
+                'last_updated': { 'type': 'string', 'format': 'date-time', },
+                'status':       { '$ref': '#/definitions/enum_source_status', },
             },
         }
         self.definitions['summary_fields_credential'] = {
@@ -1251,6 +1264,111 @@ class Awx_Schema_v1_Inventory_Sources(Awx_Schema_v1):
     @property
     def post(self):
         return self.patch
+
+class Awx_Schema_v1_Inventory_Source_Updates(Awx_Schema_v1):
+    component = '/inventory_updates'
+
+    def __init__(self):
+        Awx_Schema_v1.__init__(self)
+
+        self.definitions['inventory_update'] = {
+            'type': 'object',
+            'required': [ 'id', 'url', 'created', 'modified', 'inventory_source', 'status', 'failed', 'result_stdout', 'result_traceback', 'job_args', 'job_cwd', 'job_env', 'related', 'summary_fields', ],
+            'additionalProperties': False,
+            'properties': {
+                'id': { '$ref': '#/definitions/id', },
+                'url': { 'type': 'string', 'format': 'uri', },
+                'created':  { 'type': 'string', 'format': 'date-time', },
+                'modified': { 'type': 'string', 'format': 'date-time', },
+                'inventory_source': { '$ref': '#/definitions/id', },
+                'status': { '$ref': '#/definitions/enum_inventory_update_status', },
+                'failed': { 'type': 'boolean', },
+                'result_stdout': { 'type': 'string', },
+                'result_traceback': { 'type': 'string', },
+                'job_args': {
+                    'type': 'string',
+                    #'type': 'array',
+                    #'minItems': 0,
+                    #'uniqueItems': False,
+                },
+                'job_cwd': { 'type': 'string', },
+                'job_env': {
+                    'type': 'object',
+                    'additionalProperties': True,
+                },
+#            "job_env": {
+#                "_": "/usr/bin/supervisord", 
+#                "ANSIBLE_PARAMIKO_RECORD_HOST_KEYS": "*****", 
+#                "DJANGO_LIVE_TEST_SERVER_ADDRESS": "localhost:9013-9199", 
+#                "_MP_FORK_LOGFILE_": "", 
+#                "RAX_CREDS_FILE": "/tmp/tmpmjVMym", 
+#                "CELERY_LOG_REDIRECT": "1", 
+#                "USER": "awx", 
+#                "HOME": "/var/lib/awx", 
+#                "PATH": "/sbin:/usr/sbin:/bin:/usr/bin", 
+#                "LANG": "en_US.UTF-8", 
+#                "TERM": "xterm-color", 
+#                "TZ": "America/New_York", 
+#                "_MP_FORK_LOGFORMAT_": "[%(asctime)s: %(levelname)s/%(processName)s] %(message)s", 
+#                "SHLVL": "2", 
+#                "RAX_REGION": "", 
+#                "CELERY_LOG_FILE": "", 
+#                "DJANGO_PROJECT_DIR": "/usr/lib/python2.6/site-packages", 
+#                "ANSIBLE_HOST_KEY_CHECKING": "*****", 
+#                "PYTHONPATH": "/usr/lib/python2.6/site-packages/awx/lib/site-packages:", 
+#                "PBR_VERSION": "0.5.21", 
+#                "CELERY_LOADER": "djcelery.loaders.DjangoLoader", 
+#                "_MP_FORK_LOGLEVEL_": "20", 
+#                "ANSIBLE_NOCOLOR": "1", 
+#                "CELERY_LOG_REDIRECT_LEVEL": "WARNING", 
+#                "CELERY_LOG_LEVEL": "20", 
+#                "PWD": "/", 
+#                "DJANGO_SETTINGS_MODULE": "awx.settings.production", 
+#                "INVENTORY_SOURCE_ID": "3"
+#            }
+                'related': {
+                    'type': 'object',
+                    'required': [ 'cancel', 'inventory_source'],
+                    'additionalProperties': False,
+                    'properties': {
+                        "cancel": { 'type': 'string', 'format': 'uri' },
+                        "inventory_source": { 'type': 'string', 'format': 'uri' },
+                    },
+                },
+                'summary_fields':  {
+                    'type': 'object',
+                    'required': ['inventory_source', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        "inventory_source": {
+                            '$ref': '#/definitions/summary_fields_inventory_source',
+                        },
+                    },
+                },
+            },
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['count', 'next', 'previous', 'results', ],
+            'additionalProperties': False,
+            'properties': {
+                'count': { 'type': 'number', 'minimum': 0, },
+                'next': { 'type': ['string','null'], },
+                'previous': { 'type': ['string','null'], },
+                'results': {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        '$ref': '#/definitions/inventory_update',
+                    },
+                },
+            },
+        })
 
 class Awx_Schema_v1_Teams(Awx_Schema_v1):
     component = '/teams'
