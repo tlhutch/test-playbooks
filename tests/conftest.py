@@ -1,8 +1,11 @@
+import os
+import pkgutil
 import pytest
 import plugins
+import plugins.pytest_restqa
 import fixtures
 import markers
-import pkgutil
+import inspect
 
 # Load any plugins, fixtures and markers
 def _pytest_plugins_generator(*extension_pkgs):
@@ -15,3 +18,6 @@ def _pytest_plugins_generator(*extension_pkgs):
                 yield modname
 
 pytest_plugins = tuple(_pytest_plugins_generator(fixtures, markers, plugins))
+
+# Include plugins/pytest_restqa
+pytest_plugins += (plugins.pytest_restqa.pytest_restqa.__name__,)
