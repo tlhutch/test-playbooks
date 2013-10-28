@@ -51,3 +51,9 @@ class Test_Api_Basics(Base_Api_Test):
         assert r.status_code == httplib.OK, 'Unexpected response code'
         assert isinstance(r.json(), dict), 'Unexpected response data'
 
+    def test_description(self, api):
+        r = api.get('/api/')
+        data = r.json()
+        description = data.get('description')
+        assert description == 'AWX REST API', \
+            "/api/description does not match expected"
