@@ -121,7 +121,7 @@ def testsetup(request):
 
 def pytest_addoption(parser):
     group = parser.getgroup('rest', 'rest')
-    group._addoption('--api-url',
+    group._addoption('--api-baseurl',
         action='store',
         dest='base_url',
         default=None,
@@ -139,7 +139,7 @@ def pytest_addoption(parser):
         default=False,
         help='assume that all certificate issuers are untrusted. (default: %default)')
     # FIXME - make this work (refer to lib/common/api.py)
-    group.addoption('--debug-rest',
+    group.addoption('--api-debug',
         action="store_true",
         dest="debug_rest",
         default=False,
