@@ -64,7 +64,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         if awx_config['license_info'].get('valid_key', False) and \
            awx_config['license_info'].get('compliant', False):
-            pytest.skip("Valid license key already active")
+            pytest.xfail("License key already activated")
 
         # Create license script
         py_script = '''#!/usr/bin/python
@@ -377,7 +377,65 @@ if __name__ == '__main__':
         data = r.json()
         validate(data, '/inventory_sources', 'patch')
 
-    # FIXME - initiate inventory sync
+    @pytest.mark.destructive
+    def test_inventory_sources_update(self, api, api_groups, api_inventory_sources, inventory_source):
+        group_id = find_object(api, api_groups, \
+            name__iexact=inventory_source['group'])[0]['id']
+
+        params = dict(group=group_id)
+        r = api.get(api_inventory_sources, params=params)
+        assert r.status_code == httplib.OK
+        data = r.json()
+        validate(data, '/inventory_sources', 'get')
+        assert len(data['results']) == 1, \
+            "A group should only have one inventory source"
+        data = data['results'][0]
+
+        # Ensure inventory_source is ready for update
+        payload = dict()
+        r = api.get(data['related']['update'], payload)
+        assert r.status_code == httplib.OK
+        # FIXME - validate json
+        assert 'can_update' in r.json()
+
+        # Trigger inventory_source update
+        payload = dict()
+        r = api.post(data['related']['update'], payload)
+        assert r.status_code == httplib.ACCEPTED
+
+    @pytest.mark.nondestructive
+    def test_inventory_sources_update_status(self, api, api_groups, api_inventory_sources, inventory_source):
+        # Access the inventory_source via the group
+        group_id = find_object(api, api_groups, \
+            name__iexact=inventory_source['group'])[0]['id']
+
+        params = dict(group=group_id)
+        r = api.get(api_inventory_sources, params=params)
+        assert r.status_code == httplib.OK
+        inventory_sources = r.json()
+        validate(inventory_sources, '/inventory_sources', 'get')
+        assert len(inventory_sources['results']) == 1, \
+            "A group should only have one inventory source"
+
+        # Ensure the update completed successfully
+        updates_link = inventory_sources['results'][0]['related']['inventory_updates']
+
+        attempt = 0
+        status = 'pending'
+        while status in ['pending', 'running']:
+            r = api.get(updates_link)
+            assert r.status_code == httplib.OK
+            data = r.json()
+            validate(data, '/inventory_updates', 'get')
+
+            # Make sure there is no traceback in result_stdout or result_traceback
+            status = data['results'][0]['status'].lower()
+            assert attempt < 20, "inventory_source update (%s)" % attempt
+            attempt += 1
+
+        assert 'successful' == data['results'][0]['status'].lower()
+        assert 'Traceback' not in data['results'][0]['result_traceback']
+        assert 'Traceback' not in data['results'][0]['result_stdout']
 
     @pytest.mark.destructive
     def test_project_post(self, api, api_projects, api_organizations, awx_config, project, ansible_runner):
