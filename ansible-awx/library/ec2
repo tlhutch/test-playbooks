@@ -387,7 +387,8 @@ def get_instances(module, ec2, **kwargs):
             if instance_tags is None:
                 module.fail_json(msg = "Idempotency attribute set to id, so a value for the id option must also be provided.")
             else:
-                filters.update({"tag:" + tn: tv for tn, tv in instance_tags.iteritems()})
+                filters.update(dict("tag:"+tn, tv) for (tn,tv) in instance_tags.iteritems())
+
         elif idempotency_attribute == "image-id":
             filters.update({"image-id": image})
         elif idempotency_attribute == "group-name":
