@@ -30,7 +30,9 @@
     aws_secret_key: '{{ aws_secret_key }}'
     region: '{{ aws_region }}'
     instance_type: '{{ aws_instance_type }}'
-    instance_tags: '{"Name": "{{aws_name_prefix}}-{{item.name}}"}'
+    #instance_tags: '{"Name": "{{aws_name_prefix}}-{{item.name}}"}'
+    instance_tags:
+        Name: '{{aws_name_prefix}}-{{item.name}}'
     group: '{{ aws_security_group }}'
     key_name: '{{ aws_key_name }}'
     idempotency_attribute: 'tags'
@@ -46,7 +48,9 @@
     aws_secret_key: '{{ aws_secret_key }}'
     region: '{{ aws_region }}'
     instance_type: '{{ aws_instance_type }}'
-    instance_tags: '{"Name": "{{aws_name_prefix}}-{{item.name}}"}'
+    #instance_tags: '{"Name": "{{aws_name_prefix}}-{{item.name}}"}'
+    instance_tags:
+        Name: '{{aws_name_prefix}}-{{item.name}}'
     group: '{{ aws_security_group }}'
     key_name: '{{ aws_key_name }}'
     image: '{{ item.id }}'
