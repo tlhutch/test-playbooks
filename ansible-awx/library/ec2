@@ -360,7 +360,7 @@ def get_instances(module, ec2, **kwargs):
     id = kwargs.get('id', None)
     idempotency_attribute = kwargs.get('idempotency_attribute', None)
     instance_ids = kwargs.get('instance_ids', [])
-    instance_tags = kwargs.get('instance_tags', None)
+    instance_tags = kwargs.get('instance_tags')
     image = kwargs.get('image', None)
     group_name = kwargs.get('group_name', None)
     group_id = kwargs.get('group_id', None)
@@ -387,7 +387,7 @@ def get_instances(module, ec2, **kwargs):
             if instance_tags is None:
                 module.fail_json(msg = "Idempotency attribute set to id, so a value for the id option must also be provided.")
             else:
-                filters.update(dict(("tag:" + tn, tv) for tn, tv in module.from_json(instance_tags).items()))
+                filters.update({"tag:" + tn: tv for tn, tv in instance_tags.iteritems()})
         elif idempotency_attribute == "image-id":
             filters.update({"image-id": image})
         elif idempotency_attribute == "group-name":
@@ -539,7 +539,7 @@ def create_instances(module, ec2):
 
         if instance_tags:
             try:
-                ec2.create_tags(instids, module.from_json(instance_tags))
+                ec2.create_tags(instids, instance_tags)
             except boto.exception.EC2ResponseError as e:
                 module.fail_json(msg = "%s: %s" % (e.error_code, e.error_message))
 
@@ -664,7 +664,7 @@ def main():
             aws_access_key = dict(aliases=['ec2_access_key', 'access_key']),
             placement_group = dict(),
             user_data = dict(),
-            instance_tags = dict(),
+            instance_tags = dict(type='dict', default={}),
             vpc_subnet_id = dict(),
             private_ip = dict(),
             instance_profile_name = dict(),
