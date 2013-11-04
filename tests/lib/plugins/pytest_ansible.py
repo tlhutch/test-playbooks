@@ -41,10 +41,18 @@ def pytest_sessionstart(session):
 
             local_inventory = tmpdir.mkdir("ansible").join("inventory.ini").open('a+')
             for line in r.text.split('\n'):
-                # Detect if a host alias is used.  A host alias won't match
-                # with base_url.
+                # Ansible inventory files support host aliasing
+                # (http://www.ansibleworks.com/docs/intro_inventory.html#id10)
+                # If host aliasing is used, the <alias> likely won't match the
+                # base_url.  The following will re-write the provided inventory
+                # file, removing the alias.
+                # For example, an inventory pattern as noted below:
+                #   <alias> ansible_ssh_host=<fqdn> foo=bar
+                # Becomes:
+                #   <fqdn> ansible_ssh_host=<fqdn> foo=bar # <alias>
                 if ansible_hostname in line and not line.startswith(ansible_hostname):
-                    line = "%s %s" % (ansible_hostname, line.split(' ',1).pop())
+                    (alias, remainder) = line.split(' ',1)
+                    line = "%s %s # %s" % (ansible_hostname, remainder, alias)
                 local_inventory.write(line + '\n')
 
             # Remember the local filename
@@ -72,7 +80,7 @@ def pytest_addoption(parser):
                      dest='ansible_inventory',
                      default='/etc/ansible/hosts',
                      metavar='ANSIBLE-INVENTORY',
-                     help='Location of ansible inventory file')
+                     help='ansible inventory file URI')
 
     group._addoption('--ansible-host-pattern',
                      action='store',
@@ -100,10 +108,14 @@ class AnsibleWrapper(object):
 
     def __getattr__(self, name):
         self.module_name = name
-        #return self.ansible_runner
         return self.subprocess_runner
 
     def ansible_runner(self, *args, **kwargs):
+        '''
+        The API provided by ansible is not intended as a public API.
+        Therefore, the following approach isn't guarrunteed to work.  Instead,
+        use subprocess_runner().
+        '''
         # Assemble module argument string
         module_args = [pipes.quote(s) for s in args]
         if kwargs:
@@ -121,6 +133,14 @@ class AnsibleWrapper(object):
         return runner.run()
 
     def subprocess_runner(self, *args, **kwargs):
+        '''
+        Build argument string and run `ansible-playbook ...`
+        Returns: stdout
+        '''
+
+        # Disable host key checking
+        # (http://www.ansibleworks.com/docs/intro_getting_started.html#host-key-checking)
+        # os.environ['ANSIBLE_HOST_KEY_CHECKING'] = 'False'
 
         # Build module arguments
         module_args = []
