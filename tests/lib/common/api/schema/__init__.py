@@ -44,6 +44,18 @@ def get_schema(version=None, component=None, name=None):
     if not available_schemas.has_key(version):
         raise Exception("No schema matching version '%s' found." % version)
 
+    # Remove '/api' prefix
+    if component.startswith('/api'):
+        component = component[4:]
+
+    # Remove '/v1' prefix
+    if component.startswith('/'+version):
+        component = component[len(version)+1:]
+
+    # Remove trailing '/'
+    if component.endswith('/'):
+        component = component[:-1]
+
     if not available_schemas[version].has_key(component):
         raise Exception("No schema component matching '%s' found. " \
                         "Choices include: %s" % (component, available_schemas[version].keys()))
