@@ -34,3 +34,8 @@ The following list was produced with help from the API development team to ident
 4. Upgrades
 5. Inventory_source with update_on_launch and a project with update_on_launch
    - Should see job.status == 'waiting'
+
+# Open Questions
+1. Delete credentials, but they remain attached to jobs ... and available for use
+2. Credentials filtering and __in (comma or list)?
+   - Searching for names with a ',' in them
