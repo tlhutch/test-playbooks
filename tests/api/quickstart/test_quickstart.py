@@ -239,7 +239,7 @@ if __name__ == '__main__':
 
     @pytest.mark.nondestructive
     def test_credentials_get(self, api_credentials_pg, credentials):
-        credential_page = api_credentials_pg.get(name__in=[o['name'] for o in credentials])
+        credential_page = api_credentials_pg.get(or__name=[o['name'] for o in credentials])
         assert len(credentials) == len(credential_page.results)
 
     @pytest.mark.destructive
