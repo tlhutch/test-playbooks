@@ -6,27 +6,31 @@ ansibleworks-qa tests
 1. Create, and modify, `credentials.yaml`
     cp credentials.template credentials.yaml
     vim credentials.yaml
-2. Determine URL for running AWX instance (needed by `--baseurl` parameter)
+2. Determine URL for running AWX instance (needed by `--api-baseurl` parameter)
 3. Run tests:
-    PYTHONPATH=tests/lib py.test -v --baseurl https://example.com tests/api/quickstart --destructive
+    PYTHONPATH=tests/lib py.test --api-baseurl https://example.com  --destructive tests
 
-## TODO
-1. Research storing schema as json files (not .py)
-2. Research building helpers within api object (related to #1) (similar to mozwebqa page objects)
-   * GOAL: use the same names regardless of whether testing the API or the UI
-   * api.organizations.[get, put, post, patch, options, delete] ? ... perhaps too atomic
-   * api.organizations.[create, delete, update] ?
+# TODO
+
+1. Completed SCM tests
+2. Research storing schema as json files (not .py)
 3. Testing cloud inventory
    * jobs should wait until inventory sync is complete
-4. Testing RBAC
-5. React to credential changes
-6. Figure out how to pass along SSH credentials
+4. Test RBAC authentication+permissions
+5. Test SCM projects
 
-## Outstanding questions
+# Unittest gaps
 
-1. Why does adding a user to an org return no data '' and status_code=NO_CONTENT?
-2. Why does the duplicate inventory json have *both* fields ['__all__', 'name']?
-3. Why '/api/v1/inventory' and not '/api/v1/inventories'?
-4. Why does '/api/v1/hosts' POST accept fields 'last_job' and 'last_job_host_summary'
-5. Why are fields duplicated between job_template and job?  Isn't a job a execution of a template?
+The following list was produced with help from the API development team to identify areas where API unittest coverage needs to be supplimented with integrated tests.
 
+1. Anything that drives celery jobs should be covered on installed system
+2. RBAC coverage and permissions
+3. job_template callbacks
+   - test for matching inventory <IP>
+   - test for matching inventory ansible_ssh_host=<IP>
+   - test for matching inventory by reverse lookup of <IP>
+   - test for matching inventory by forward lookup for each host in the inventory, looking for a matching <IP>
+   - test callback from a server not in inventory
+4. Upgrades
+5. Inventory_source with update_on_launch and a project with update_on_launch
+   - Should see job.status == 'waiting'
