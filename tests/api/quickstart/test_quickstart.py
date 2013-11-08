@@ -1,20 +1,25 @@
 import os
+import sys
 import re
 import httplib
 import pytest
-import yaml
+import time
 from inflect import engine
 from unittestzero import Assert
 from common.api.schema import validate
 from common.yaml_file import load_file
 from tests.api import Base_Api_Test
+from common.exceptions import Duplicate_Exception, NoContent_Exception
 
-def find_object(api, base_url, **kwargs):
-    r = api.get(base_url, kwargs)
-    assert r.status_code == httplib.OK
-    data = r.json()
+def get_object_list(api_page, **kwargs):
+    obj = api_page.get(**kwargs)
+    return obj.results
 
-    # FIXME ... perform some assertions on the data?
+def get_object(api_page, **kwargs):
+    return get_object_list(api_page, **kwargs).pop()
+
+def find_object(api_page, **kwargs):
+    r = api_page.get(kwargs)
     return data.get('results')
 
 # Load configuration
@@ -60,34 +65,46 @@ def pytest_generate_tests(metafunc):
 class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.destructive
-    def test_install_license(self, api, awx_config, tmpdir, ansible_runner):
+    def test_install_license(self, awx_config, tmpdir, ansible_runner):
+        # FIXME - parameterize the license info and store it in data.yml
 
         if awx_config['license_info'].get('valid_key', False) and \
            awx_config['license_info'].get('compliant', False):
             pytest.xfail("License key already activated")
 
+        assert 'license' in cfg, \
+            "No license information found in test configuration"
+
+        print cfg['license']
+
         # Create license script
         py_script = '''#!/usr/bin/python
-import datetime
 import time
-from awx.main.licenses import LicenseWriter
+from datetime import datetime, timedelta
+try:
+    from awx.main.licenses import LicenseWriter
+except ImportError:
+    import os, sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+    from awx.main.licenses import LicenseWriter
+
+def to_seconds(itime):
+    return int(float(time.mktime(itime.timetuple())))
 
 if __name__ == '__main__':
 
-    tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
-
     writer = LicenseWriter(
-        company_name   = "AnsibleWorks",
-        contact_name   = "Art Vandelay",
-        contact_email  = "art@ansibleworks.com",
-        instance_count = 1000,
-        license_date   = int(float(time.mktime(tomorrow.timetuple()))),
-
+        company_name   = "{company_name}",
+        contact_name   = "{contact_name}",
+        contact_email  = "{contact_email}",
+        instance_count = {instance_count},
+        license_date   = to_seconds(datetime.now() + timedelta(days={license_days})),
     )
+
     fd = open('/etc/awx/license', 'w+')
     fd.write(writer.get_string())
     fd.close()
-'''
+'''.format(**cfg['license'])
         p = tmpdir.mkdir("ansible").join("install_license.py")
         fd = p.open('w+')
         fd.write(py_script)
@@ -100,43 +117,24 @@ if __name__ == '__main__':
         ansible_runner.shell('python /tmp/%s' % p.basename, creates='/etc/awx/license')
 
     @pytest.mark.destructive
-    def test_organization_post(self, api, api_organizations, organization):
+    def test_organization_post(self, api_organizations_pg, organization):
 
         # Create a new organization
         payload = dict(name=organization['name'],
                        description=organization['description'])
-        r = api.post(api_organizations, payload)
-        data = r.json()
-
-        # support idempotency
-        if r.status_code == httplib.BAD_REQUEST and \
-            data.get('name','') == ['Organization with this Name already exists.']:
-            Assert.equal(r.status_code, httplib.BAD_REQUEST)
-            validate(data, '/organizations', 'duplicate')
-            pytest.xfail("Organization already exists")
-        else:
-            assert r.status_code == httplib.CREATED
-            validate(data, '/organizations', 'post')
+        try:
+            org = api_organizations_pg.post(payload)
+        except Duplicate_Exception, e:
+            pytest.xfail("Already exists")
 
     @pytest.mark.nondestructive
-    def test_organization_get(self, api, api_organizations, organizations):
+    def test_organization_get(self, api_organizations_pg, organizations):
 
-        # Get list of available organizations
-        params = dict(name__in=','.join([o['name'] for o in organizations]))
-        r = api.get(api_organizations, params=params)
-        assert r.status_code == httplib.OK
-        data = r.json()
-
-        # validate schema
-        validate(data, '/organizations', 'get')
-
-        num_orgs = len(data.get('results',[]))
-        Assert.true(num_orgs == len(organizations), \
-            'Expecting %s organizations, found %s' % \
-            (len(organizations), num_orgs))
+        org_page = api_organizations_pg.get(name__in=','.join([o['name'] for o in organizations]))
+        assert len(organizations) == len(org_page.results)
 
     @pytest.mark.destructive
-    def test_users_post(self, api, api_users, user):
+    def test_user_post(self, api_users_pg, user):
 
         payload = dict(username=user['username'],
                        first_name=user['first_name'],
@@ -144,152 +142,159 @@ if __name__ == '__main__':
                        email=user['email'],
                        is_superuser=user['is_superuser'],
                        password=user['password'],)
-        r = api.post(api_users, payload)
-        data = r.json()
 
-        # support idempotency
-        if r.status_code == httplib.BAD_REQUEST and \
-           data.get('username','') == ['User with this Username already exists.']:
-            Assert.equal(r.status_code, httplib.BAD_REQUEST)
-            validate(data, '/users', 'duplicate')
-            pytest.xfail("User already exists")
-        else:
-            assert r.status_code == httplib.CREATED
-            validate(data, '/users', 'post')
+        try:
+            api_users_pg.post(payload)
+        except Duplicate_Exception, e:
+            pytest.xfail("Already exists")
 
     @pytest.mark.nondestructive
-    def test_users_get(self, api, api_users, users):
-        # Get list of created users
-        params = dict(username__in=','.join([o['username'] for o in users]))
-        r = api.get(api_users, params=params)
-        assert r.status_code == httplib.OK
-
-        # Validate schema
-        data = r.json()
-        validate(data, '/users', 'get')
-
-        # Validate number of users found
-        num_users = len(data.get('results',[]))
-        Assert.true(num_users == len(users), 'Expecting %s users (%s)' \
-            % (len(users), num_users))
+    def test_users_get(self, api_users_pg, users):
+        user_page = api_users_pg.get(username__in=','.join([o['username'] for o in users]))
+        assert len(users) == len(user_page.results)
 
     @pytest.mark.destructive
-    def test_users_add_user_to_org(self, api, api_users, api_organizations, organization):
-        # Find desired org
-        org_users_link = find_object(api, api_organizations, \
-            name__iexact=organization['name'])[0]['related']['users']
+    def test_add_user_to_org(self, api_users_pg, api_organizations_pg, organization):
+        # get org related users link
+        matching_orgs = api_organizations_pg.get(name__iexact=organization['name']).results
+        assert len(matching_orgs) == 1
+        org_related_pg = matching_orgs[0].get_related('users')
 
-        for user in organization.get('users', []):
-            # Find the desired user
-            user_id = find_object(api, api_users, \
-                username__iexact=user)[0]['id']
+        # Add each user to the org
+        for username in organization.get('users', []):
+            user = api_users_pg.get(username__iexact=username).results.pop()
 
             # Add user to org
-            payload = dict(id=user_id)
-            r = api.post(org_users_link, payload)
-
-            assert r.status_code == httplib.NO_CONTENT
-            assert r.text == ''
+            payload = dict(id=user.id)
+            with pytest.raises(NoContent_Exception):
+                org_related_pg.post(payload)
 
     @pytest.mark.destructive
-    def test_create_user_credential(self, api, api_users, api_credentials, user):
-        # Find the desired user
-        record = find_object(api, api_users, \
-            username__iexact=user['username'])[0]
-        user_id = record['id']
-        user_credentials_link = record['related']['credentials']
+    def test_team_post(self, api_teams_pg, api_organizations_pg, team):
+        # locate organization
+        org_pg = api_organizations_pg.get(name__iexact=team['organization']).results[0]
 
-        # create user credentials
-        for cred in user.get('credentials', []):
-            payload = dict(name=cred['name'],
-                           description=cred['description'],
-                           ssh_username=cred['ssh_username'],
-                           ssh_password=cred['ssh_password'],
-                           user=user_id)
-            r = api.post(user_credentials_link, payload)
-            assert r.status_code == httplib.CREATED
-            validate(r.json(), '/credentials', 'post')
+        payload = dict(name=team['name'],
+                       description=team['description'],
+                       organization=org_pg.id)
+        try:
+            api_teams_pg.post(payload)
+        except Duplicate_Exception, e:
+            pytest.xfail("Already exists")
+
+    @pytest.mark.nondestructive
+    def test_teams_get(self, api_teams_pg, teams):
+        team_page = api_teams_pg.get(name__in=','.join([o['name'] for o in teams]))
+        assert len(teams) == len(team_page.results)
 
     @pytest.mark.destructive
-    def test_inventory_post(self, api, api_inventory, api_organizations, inventory):
+    def test_credential_post(self, api_users_pg, api_teams_pg, api_credentials_pg, credential):
+
+        # build credential payload
+        payload = dict(name=credential['name'],
+                       description=credential['description'],
+                       kind=credential['kind'],
+                       username=credential.get('username', None),
+                       password=credential.get('password', None),
+                       cloud=credential.get('cloud', False),
+                      )
+
+        # Add user id (optional)
+        if credential['user']:
+            user_pg = api_users_pg.get(username__iexact=credential['user']).results[0]
+            payload['user'] = user_pg.id
+
+        # Add team id (optional)
+        if credential['team']:
+            team_pg = api_teams_pg.get(name__iexact=credential['team']).results[0]
+            payload['team'] = team_pg.id
+
+        # Add machine/scm credential fields
+        if credential['kind'] in ('ssh', 'scm'):
+            payload.update(dict( \
+                ssh_key_data=credential.get('ssh_key_data', ''),
+                ssh_key_unlock=credential.get('ssh_key_unlock', ''),
+                sudo_username=credential.get('sudo_username', ''),
+                sudo_password=credential.get('sudo_password', ''),))
+
+            # Merge with credentials.yaml
+            fields = ['username', 'password', 'ssh_key_data', 'ssh_key_unlock']
+            if credential['kind'] in ('ssh'):
+                fields += ['sudo_username', 'sudo_password']
+            assert self.has_credentials(credential['kind'], fields=fields)
+            for field in fields:
+                payload[field] = payload[field].format(**self.credentials[credential['kind']])
+
+        # Merge with cloud credentials.yaml
+        if credential['cloud']:
+            fields = ['username', 'password']
+            assert self.has_credentials('cloud', credential['kind'], fields=fields)
+            for field in fields:
+                payload[field] = payload[field].format(**self.credentials['cloud'][credential['kind']])
+
+        try:
+            org = api_credentials_pg.post(payload)
+        except Duplicate_Exception, e:
+            pytest.xfail("Already exists")
+
+    @pytest.mark.nondestructive
+    def test_credentials_get(self, api_credentials_pg, credentials):
+        credential_page = api_credentials_pg.get(name__in=[o['name'] for o in credentials])
+        assert len(credentials) == len(credential_page.results)
+
+    @pytest.mark.destructive
+    def test_inventory_post(self, api_inventories_pg, api_organizations_pg, inventory):
 
         # Find desired org
-        org_id = find_object(api, api_organizations, \
-            name__iexact=inventory['organization'])[0]['id']
+        matches = api_organizations_pg.get(name__iexact=inventory['organization']).results
+        assert len(matches) == 1
+        org = matches.pop()
 
         # Create a new inventory
         payload = dict(name=inventory['name'],
                        description=inventory['description'],
-                       organization=org_id,)
-        r = api.post(api_inventory, payload)
-        data = r.json()
+                       organization=org.id,)
 
-        # support idempotency
-        if r.status_code == httplib.BAD_REQUEST:
-            validate(data, '/inventories', 'duplicate')
-            pytest.xfail("inventory already created")
-        else:
-            assert r.status_code == httplib.CREATED
-            validate(data, '/inventories', 'post')
+        try:
+            api_inventories_pg.post(payload)
+        except Duplicate_Exception, e:
+            pytest.xfail("Already exists")
 
     @pytest.mark.nondestructive
-    def test_inventory_get(self, api, api_inventory, inventories):
+    def test_inventory_get(self, api_inventories_pg, inventories):
         # Get list of created inventories
-        params = dict(name__in=','.join([o['name'] for o in inventories]))
-        r = api.get(api_inventory, params=params)
-        assert r.status_code == httplib.OK
-
-        # Validate schema
-        data = r.json()
-        validate(data, '/inventories', 'get')
+        api_inventories_pg.get(name__in=','.join([o['name'] for o in inventories]))
 
         # Validate number of inventories found
-        num_inventories = len(data.get('results',[]))
-        Assert.true(num_inventories == len(inventories), 'Expecting %s inventories (%s)' \
-            % (len(inventories), num_inventories))
+        assert len(inventories) == len(api_inventories_pg.results)
 
     @pytest.mark.destructive
-    def test_groups_post(self, api, api_groups, api_inventory, group):
-        # Find desired org
-        inventory_id = find_object(api, api_inventory, \
-            name__iexact=group['inventory'])[0]['id']
+    def test_groups_post(self, api_groups_pg, api_inventories_pg, group):
+        # Find desired inventory
+        inventory_id = api_inventories_pg.get(name__iexact=group['inventory']).results[0].id
 
         # Create a new inventory
         payload = dict(name=group['name'],
                        description=group['description'],
                        inventory=inventory_id,)
-        r = api.post(api_groups, payload)
-        data = r.json()
-
-        # support idempotency
-        if r.status_code == httplib.BAD_REQUEST:
-            validate(data, '/groups', 'duplicate')
-            pytest.xfail("Group already created")
-        else:
-            assert r.status_code == httplib.CREATED
-            validate(data, '/groups', 'post')
+        try:
+            api_groups_pg.post(payload)
+        except Duplicate_Exception, e:
+            pytest.xfail("Already exists")
 
     @pytest.mark.nondestructive
-    def test_groups_get(self, api, api_groups, groups):
+    def test_groups_get(self, api_groups_pg, groups):
 
         # Get list of created groups
-        params = dict(name__in=','.join([o['name'] for o in groups]))
-        r = api.get(api_groups, params=params)
-        assert r.status_code == httplib.OK
-
-        # Validate schema
-        data = r.json()
-        validate(data, '/groups', 'get')
+        api_groups_pg.get(name__in=','.join([o['name'] for o in groups]))
 
         # Validate number of inventories found
-        num_found = len(data.get('results',[]))
-        Assert.true(num_found == len(groups), 'Expecting %s, found %s' \
-            % (len(groups), num_found))
+        assert len(groups) == len(api_groups_pg.results)
 
     @pytest.mark.destructive
-    def test_hosts_post(self, api, api_hosts, api_inventory, host):
-        inventory_id = find_object(api, api_inventory, \
-            name=host['inventory'])[0].get('id', None)
+    def test_hosts_post(self, api_hosts_pg, api_inventories_pg, host):
+        # Find desired inventory
+        inventory_id = api_inventories_pg.get(name__iexact=host['inventory']).results[0].id
 
         # Create a new host
         payload = dict(name=host['name'],
@@ -297,148 +302,111 @@ if __name__ == '__main__':
                        inventory=inventory_id,
                        variables=host.get('variables',''))
 
-        r = api.post(api_hosts, payload)
-        data = r.json()
-
-        # support idempotency
-        if r.status_code == httplib.BAD_REQUEST:
-            validate(data, '/hosts', 'duplicate')
-            pytest.xfail("host already created")
-        else:
-            assert r.status_code == httplib.CREATED
-            validate(data, '/hosts', 'post')
+        try:
+            api_hosts_pg.post(payload)
+        except Duplicate_Exception, e:
+            pytest.xfail("Already exists")
 
     @pytest.mark.nondestructive
-    def test_hosts_get(self, api, api_hosts, hosts):
+    def test_hosts_get(self, api_hosts_pg, hosts):
         # Get list of available hosts
-        params = dict(name__in=','.join([o['name'] for o in hosts]))
-        r = api.get(api_hosts, params=params)
-        assert r.status_code == httplib.OK
-
-        # Validate schema
-        data = r.json()
-        validate(r.json(), '/hosts', 'get')
+        api_hosts_pg.get(name__in=','.join([o['name'] for o in hosts]))
 
         # Validate number of inventories found
-        num_found = len(data.get('results',[]))
-        Assert.true(num_found == len(hosts), 'Expecting %s, found %s' \
-            % (len(hosts), num_found))
+        assert len(hosts) == len(api_hosts_pg.results)
 
     @pytest.mark.destructive
-    def test_add_host_to_group(self, api, api_hosts, api_groups, host):
+    def test_add_host_to_group(self, api_hosts_pg, api_groups_pg, host):
         # Find desired host
-        host_id = find_object(api, api_hosts, \
-            name=host['name'])[0].get('id', None)
+        host_id = api_hosts_pg.get(name=host['name']).results[0].id
 
-        groups = find_object(api, api_groups, \
-            name__in=','.join([grp for grp in host['groups']]))
+        # Find desired groups
+        groups = api_groups_pg.get(name__in=','.join([grp for grp in host['groups']])).results
 
         if not groups:
             pytest.skip("Not all hosts are associated with a group")
 
+        # Add host to associated groups
+        payload = dict(id=host_id)
         for group in groups:
-            # Add host to group
-            payload = dict(id=host_id)
-            r = api.post(group['related']['hosts'], payload)
-            assert r.status_code == httplib.NO_CONTENT
-            assert r.text == ''
+            groups_host_pg = group.get_related('hosts')
+            with pytest.raises(NoContent_Exception):
+                groups_host_pg.post(payload)
 
     @pytest.mark.destructive
-    def test_inventory_sources_patch(self, api, api_inventory, api_groups, inventory_source):
-        inventory_id = find_object(api, api_inventory, \
-            name__iexact=inventory_source['inventory'])[0]['id']
-        group = find_object(api, api_groups, \
-            name__iexact=inventory_source['group'])[0]
+    def test_inventory_sources_patch(self, api_groups_pg, api_credentials_pg, inventory_source):
+        # Find desired group
+        group_pg = api_groups_pg.get(name__iexact=inventory_source['group']).results[0]
 
-        # Make sure credentials.yaml has what we need
-        assert 'cloud' in self.testsetup.credentials, \
-            'No cloud credentials defined in credentals.yaml'
-        assert inventory_source['source'] in self.testsetup.credentials['cloud'], \
-            'No %s cloud credentials defined in credentals.yaml' % \
-            inventory_source['source']
+        # Find desired credential
+        credential_pg = api_credentials_pg.get(name__iexact=inventory_source['credential']).results[0]
 
-        # Ensure username and password fields are present
-        creds = self.testsetup.credentials['cloud'][inventory_source['source']]
-        assert all([field in creds for field in ['username', 'password']]), \
-            'No username or password for %s defined in credentials.yaml' % \
-            inventory_source['source']
+        # Get Page groups->related->inventory_source
+        inventory_source_pg = group_pg.get_related('inventory_source')
 
         payload = dict(source=inventory_source['source'],
-                       source_username=creds['username'],
-                       source_password=creds['password'],
                        source_regions=inventory_source.get('source_regions', ''),
                        source_vars=inventory_source.get('source_vars', ''),
                        source_tags=inventory_source.get('source_tags', ''),
+                       credential=credential_pg.id,
                        overwrite=inventory_source.get('overwrite', False),
                        overwrite_vars=inventory_source.get('overwrite_vars', False),
+                       update_on_launch=inventory_source.get('update_on_launch', False),
+                       update_interval=inventory_source.get('update_interval', 0),
                       )
-        r = api.patch(group['related']['inventory_source'], payload)
-        assert r.status_code == httplib.OK
-        data = r.json()
-        validate(data, '/inventory_sources', 'patch')
+        inventory_source_pg.patch(**payload)
 
     @pytest.mark.destructive
-    def test_inventory_sources_update(self, api, api_groups, api_inventory_sources, inventory_source):
-        group_id = find_object(api, api_groups, \
-            name__iexact=inventory_source['group'])[0]['id']
+    def test_inventory_sources_update(self, api_groups_pg, api_inventory_sources_pg, inventory_source):
+        # Find desired group
+        group_id = api_groups_pg.get(name__iexact=inventory_source['group']).results[0].id
 
-        params = dict(group=group_id)
-        r = api.get(api_inventory_sources, params=params)
-        assert r.status_code == httplib.OK
-        data = r.json()
-        validate(data, '/inventory_sources', 'get')
-        assert len(data['results']) == 1, \
-            "A group should only have one inventory source"
-        data = data['results'][0]
+        # Find inventory source
+        inv_src = api_inventory_sources_pg.get(group=group_id).results[0]
+
+        # Navigate to related -> update
+        inv_update_pg = inv_src.get_related('update')
 
         # Ensure inventory_source is ready for update
-        payload = dict()
-        r = api.get(data['related']['update'], payload)
-        assert r.status_code == httplib.OK
-        # FIXME - validate json
-        assert 'can_update' in r.json()
+        assert inv_update_pg.json['can_update']
 
         # Trigger inventory_source update
-        payload = dict()
-        r = api.post(data['related']['update'], payload)
-        assert r.status_code == httplib.ACCEPTED
+        inv_update_pg.post()
+        # assert r.status_code == httplib.ACCEPTED
 
     @pytest.mark.nondestructive
-    def test_inventory_sources_update_status(self, api, api_groups, api_inventory_sources, inventory_source):
-        # Access the inventory_source via the group
-        group_id = find_object(api, api_groups, \
-            name__iexact=inventory_source['group'])[0]['id']
+    @pytest.mark.jira('AC-596', run=False)
+    def test_inventory_sources_update_status(self, api_groups_pg, api_inventory_sources_pg, inventory_source):
+        # Find desired group
+        group_id = api_groups_pg.get(name__iexact=inventory_source['group']).results[0].id
 
-        params = dict(group=group_id)
-        r = api.get(api_inventory_sources, params=params)
-        assert r.status_code == httplib.OK
-        inventory_sources = r.json()
-        validate(inventory_sources, '/inventory_sources', 'get')
-        assert len(inventory_sources['results']) == 1, \
-            "A group should only have one inventory source"
+        # Find desired inventory_source
+        inv_src = api_inventory_sources_pg.get(group=group_id).results[0]
+
+        # Navigate to related -> inventory_updates
+        # last_update only appears *after* the update completes
+        # inv_updates_pg = inv_src.get_related('last_update')
+        # Warning, the following sssumes the first update is the most recent
+        inv_updates_pg = inv_src.get_related('inventory_updates').results[0]
 
         # Ensure the update completed successfully
-        updates_link = inventory_sources['results'][0]['related']['inventory_updates']
-
         attempt = 0
-        status = 'pending'
-        while status in ['pending', 'running']:
-            r = api.get(updates_link)
-            assert r.status_code == httplib.OK
-            data = r.json()
-            validate(data, '/inventory_updates', 'get')
-
-            # Make sure there is no traceback in result_stdout or result_traceback
-            status = data['results'][0]['status'].lower()
-            assert attempt < 20, "inventory_source update (%s)" % attempt
+        max_attempts = 30
+        status = inv_updates_pg.status.lower()
+        while status in ['new', 'pending', 'waiting', 'running']:
+            inv_updates_pg.get()
+            status = inv_updates_pg.status.lower()
+            assert attempt < max_attempts, "Exceeded max attempts while polling inventory_source update (status:%s)" % status
             attempt += 1
+            time.sleep(1)
 
-        assert 'successful' == data['results'][0]['status'].lower()
-        assert 'Traceback' not in data['results'][0]['result_traceback']
-        assert 'Traceback' not in data['results'][0]['result_stdout']
+        # Make sure there is no traceback in result_stdout or result_traceback
+        assert 'successful' == inv_updates_pg.status.lower()
+        assert 'Traceback' not in inv_updates_pg.result_traceback
+        assert 'Traceback' not in inv_updates_pg.result_stdout
 
     @pytest.mark.destructive
-    def test_project_post(self, api, api_projects, api_organizations, awx_config, project, ansible_runner):
+    def test_project_post(self, api_projects_pg, api_organizations_pg, awx_config, project, ansible_runner):
 
         # Checkout repository on the target system
         if project['scm_type'] in [None, 'menual'] \
@@ -459,8 +427,7 @@ if __name__ == '__main__':
                     project['local_path']))
 
         # Find desired org
-        org_id = find_object(api, api_organizations, \
-            name=project['organization'])[0].get('id', None)
+        org_id = api_organizations_pg.get(name__iexact=project['organization']).results[0].id
 
         # Create a new project
         payload = dict(name=project['name'],
@@ -468,39 +435,22 @@ if __name__ == '__main__':
                        organization=org_id,
                        local_path=project['local_path'],
                        scm_type=project['scm_type'],)
-        r = api.post(api_projects, payload)
-        data = r.json()
-
-        # support idempotency
-        if r.status_code == httplib.BAD_REQUEST:
-            validate(data, '/projects', 'duplicate')
-            pytest.xfail("project already created")
-        else:
-            assert r.status_code == httplib.CREATED
-            validate(data, '/projects', 'post')
+        try:
+            api_projects_pg.post(payload)
+        except Duplicate_Exception, e:
+            pytest.xfail("Already exists")
 
     @pytest.mark.nondestructive
-    def test_projects_get(self, api, api_projects, projects):
-        # Get list of available hosts
-        params = dict(name__in=','.join([o['name'] for o in projects]))
-        r = api.get(api_projects, params=params)
-        assert r.status_code == httplib.OK
-
-        # Validate schema
-        data = r.json()
-        validate(r.json(), '/projects', 'get')
-
-        # Validate number of inventories found
-        num_found = len(data.get('results',[]))
-        Assert.true(num_found == len(projects), 'Expecting %s, found %s' \
-            % (len(projects), num_found))
+    def test_projects_get(self, api_projects_pg, projects):
+        api_projects_pg.get(name__in=','.join([o['name'] for o in projects]))
+        assert len(projects) == len(api_projects_pg.results)
 
     @pytest.mark.destructive
-    def test_job_templates_post(self, api, api_inventory, api_credentials, api_projects, api_job_templates, job_template):
+    def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg, api_job_templates_pg, job_template):
         # Find desired object identifiers
-        inventory_id = find_object(api, api_inventory, name__exact=job_template['inventory'])[0]['id']
-        credential_id = find_object(api, api_credentials, name__exact=job_template['credential'])[0]['id']
-        project_id = find_object(api, api_projects, name__exact=job_template['project'])[0]['id']
+        inventory_id = api_inventories_pg.get(name__iexact=job_template['inventory']).results[0].id
+        credential_id = api_credentials_pg.get(name__iexact=job_template['credential']).results[0].id
+        project_id = api_projects_pg.get(name__iexact=job_template['project']).results[0].id
 
         # Create a new job_template
         payload = dict(name=job_template['name'],
@@ -512,64 +462,69 @@ if __name__ == '__main__':
                        credential=credential_id,
                        allow_callbacks=job_template.get('allow_callbacks', False),
                       )
-        r = api.post(api_job_templates, payload)
-        data = r.json()
-
-        # support idempotency
-        if r.status_code == httplib.BAD_REQUEST:
-            validate(data, '/job_templates', 'duplicate')
-            pytest.xfail("project already created")
-        else:
-            assert r.status_code == httplib.CREATED
-            validate(data, '/job_templates', 'post')
+        try:
+            api_job_templates_pg.post(payload)
+        except Duplicate_Exception, e:
+            pytest.xfail("Already exists")
 
     @pytest.mark.nondestructive
-    def test_job_templates_get(self, api, api_inventory, api_credentials, api_projects, api_job_templates, job_templates):
-        params = dict(name__in=','.join([o['name'] for o in job_templates]))
-        r = api.get(api_job_templates, params=params)
-        assert r.status_code == httplib.OK
-
-        # Validate schema
-        data = r.json()
-        validate(r.json(), '/job_templates', 'get')
-
-        # Validate number of inventories found
-        num_found = len(data.get('results',[]))
-        Assert.true(num_found == len(job_templates), 'Expecting %s, found %s' \
-            % (len(job_templates), num_found))
+    def test_job_templates_get(self, api_job_templates_pg, job_templates):
+        api_job_templates_pg.get(name__in=','.join([o['name'] for o in job_templates]))
+        assert len(job_templates) == len(api_job_templates_pg.results)
 
     @pytest.mark.destructive
-    def test_jobs_launch(self, api, api_job_templates, api_jobs, job_template):
+    def test_jobs_launch(self, api_job_templates_pg, api_jobs_pg, job_template):
         # Find desired object identifiers
-        template = find_object(api, api_job_templates, name__iexact=job_template['name'])[0]
+        template_pg = api_job_templates_pg.get(name__iexact=job_template['name']).results[0]
 
         # Create the job
-        payload = dict(name=template['name'], # Add Date?
-                       job_template=template['id'],
-                       inventory=template['inventory'],
-                       project=template['project'],
-                       playbook=template['playbook'],
-                       credential=template['credential'],)
-        r = api.post(api_jobs, payload)
-        assert r.status_code == httplib.CREATED
-        data = r.json()
-        validate(data, '/jobs', 'post')
-
-        # Remember related.start link
-        start_link = data.get('related',{}).get('start',None)
+        payload = dict(name=template_pg.name, # Add Date?
+                       job_template=template_pg.id,
+                       inventory=template_pg.inventory,
+                       project=template_pg.project,
+                       playbook=template_pg.playbook,
+                       credential=template_pg.credential,)
+        job_pg = api_jobs_pg.post(payload)
 
         # Determine if job is able to start
-        r = api.get(start_link)
-        assert r.status_code == httplib.OK
-        data = r.json()
-        # FIXME - validate json
-        assert data['can_start']
+        start_pg = job_pg.get_related('start')
+        assert start_pg.json['can_start']
 
         # FIXME - Figure out which passwords are needed
         payload = dict()
-        for pass_field in data.get('passwords_needed_to_start', []):
+        for pass_field in start_pg.json.get('passwords_needed_to_start', []):
             payload[pass_field] = 'thisWillFail'
 
-        # Determine if job is able to start
-        r = api.post(start_link, payload)
-        assert r.status_code == httplib.ACCEPTED
+        # Launch job
+        start_pg.post(payload)
+
+    @pytest.mark.nondestructive
+    def test_jobs_launch_status(self, api_job_templates_pg, api_jobs_pg, job_template):
+
+        # Find desired object identifiers
+        template_pg = api_job_templates_pg.get(name__iexact=job_template['name']).results[0]
+
+        # Find the most recently launched job for the desired job_template
+        matches = api_jobs_pg.get(job_template=template_pg.id, order_by='-id')
+        assert matches.results > 0, "No jobs matching job_template=%s found" % template_pg.id
+        job_pg = matches.results[0]
+
+        # The job should already have launched ... and shouldn't be start'able
+        start_pg = job_pg.get_related('start')
+        assert not start_pg.json['can_start']
+
+        # Ensure the launch completed successfully
+        attempt = 0
+        max_attempts = 30
+        status = job_pg.status.lower()
+        while status in ['new', 'pending', 'waiting', 'running']:
+            job_pg.get()
+            status = job_pg.status.lower()
+            assert attempt < max_attempts, "Exceeded max attempts while polling inventory_source update (status:%s)" % status
+            attempt += 1
+            time.sleep(1)
+
+        # Make sure there is no traceback in result_stdout or result_traceback
+        assert 'successful' == job_pg.status.lower()
+        assert 'Traceback' not in job_pg.result_traceback
+        assert 'Traceback' not in job_pg.result_stdout
