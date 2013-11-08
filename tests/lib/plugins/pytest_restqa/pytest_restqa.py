@@ -45,6 +45,11 @@ def pytest_configure(config):
             else:
                 config.option.markexpr = 'nondestructive'
 
+    # If --debug was provided, set the root logger to logging.DEBUG
+    if config.option.debug:
+        logger = logging.getLogger()
+        logger.setLevel(logging.DEBUG)
+
     if config.option.debug_rest:
         config._debug_rest_hdlr = logging.FileHandler('pytestdebug-rest.log')
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
