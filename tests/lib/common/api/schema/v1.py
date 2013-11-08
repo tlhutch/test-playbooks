@@ -26,6 +26,9 @@ class Awx_Schema_v1(Awx_Schema):
         self.definitions['enum_source_status'] = {
             'enum': [ 'failed', 'never updated', 'none', 'successful', 'updating']
         }
+        self.definitions['enum_kind'] = {
+            'enum': [ 'ssh', 'scm', 'aws', 'rax' ],
+        }
         self.definitions['summary_fields_project'] = {
             'type': 'object',
             'required': ['name', 'description', ],
@@ -59,7 +62,7 @@ class Awx_Schema_v1(Awx_Schema):
         }
         self.definitions['summary_fields_inventory_source'] = {
             'type': 'object',
-            'required': ['source', 'last_updated', 'status', ],
+            'required': ['source', 'status', ],
             'additionalProperties': False,
             'properties': {
                 'source':       { 'type': 'string', },
@@ -69,11 +72,13 @@ class Awx_Schema_v1(Awx_Schema):
         }
         self.definitions['summary_fields_credential'] = {
             'type': 'object',
-            'required': ['name', 'description', ],
+            'required': ['name', 'description', 'kind', 'cloud', ],
             'additionalProperties': False,
             'properties': {
                 'name':        { 'type': 'string', },
                 'description': { 'type': 'string', },
+                'kind':        { '$ref': '#/definitions/enum_kind', },
+                'cloud':       { 'type': 'boolean', },
             },
         }
         self.definitions['summary_fields_job_template'] = {
@@ -134,14 +139,13 @@ class Awx_Schema_v1(Awx_Schema):
 
         self.definitions['summary_fields_last_job'] = {
             'type': 'object',
-            'required': [ 'name', 'description', 'status', 'failed', 'job_template_id', 'job_template_name' ],
+            'required': [ 'description', 'status', 'failed', 'job_template_id', 'job_template_name' ],
             'additionalProperties': False,
             'properties': {
                 'description':          { 'type': 'string', },
                 'failed':               { 'type': 'boolean', },
                 'job_template_id':      { '$ref': '#/definitions/id', },
                 'job_template_name':    { 'type': 'string', },
-                'name':                 { 'type': 'string', },
                 'status':               { '$ref': '#/definitions/enum_source_status', },
             },
         }
@@ -274,7 +278,7 @@ class Awx_Schema_v1_Organizations(Awx_Schema_v1):
             '$schema': 'http://json-schema.org/draft-04/schema#',
             'type': 'object',
             'properties': {
-                "name": {
+                'name': {
                     'type': 'array',
                     'minItems': 0,
                     'uniqueItems': True,
@@ -442,6 +446,9 @@ class Awx_Schema_v1_Users(Awx_Schema_v1):
             '$schema': 'http://json-schema.org/draft-04/schema#',
             '$ref': '#/definitions/user',
         })
+
+class Awx_Schema_v1_Org_Users(Awx_Schema_v1_Users):
+    component = '/organizations/\d+/users'
 
 class Awx_Schema_v1_Inventories(Awx_Schema_v1):
     component = '/inventories'
@@ -691,6 +698,7 @@ class Awx_Schema_v1_Hosts(Awx_Schema_v1):
                 'description': { 'type': 'string', },
                 'inventory': { 'type': 'number', 'minimum': 1, },
                 'variables': { 'type': 'string', },
+                'instance_id': { 'type': 'string', },
                 'enabled': { 'type': 'boolean', },
                 'has_active_failures': { 'type': 'boolean', },
                 'has_inventory_sources': { 'type': 'boolean', },
@@ -786,6 +794,8 @@ class Awx_Schema_v1_Hosts(Awx_Schema_v1):
             },
         }
 
+class Awx_Schema_v1_Group_Hosts(Awx_Schema_v1_Hosts):
+    component = '/groups/\d+/hosts'
 
 class Awx_Schema_v1_Credentials(Awx_Schema_v1):
     component = '/credentials'
@@ -795,34 +805,37 @@ class Awx_Schema_v1_Credentials(Awx_Schema_v1):
 
         self.definitions['credential'] = {
             'type': 'object',
-            'required': [ 'id', 'name', 'url', 'created', 'modified', 'description', 'ssh_username', 'ssh_password', 'ssh_key_data', 'ssh_key_unlock', 'sudo_username', 'sudo_password', 'user', 'team', 'related', 'summary_fields',],
+            'required': [ 'id', 'name', 'username', 'password', 'kind', 'url', 'created', 'modified', 'description', 'ssh_key_data', 'ssh_key_unlock', 'sudo_username', 'sudo_password', 'user', 'team', 'cloud', 'related', 'summary_fields',],
             'additionalProperties': False,
             'properties': {
                 'id': { 'type': 'number', 'minimum': 1, },
                 'name': { 'type': 'string', },
                 'url': { 'type': 'string', 'format': 'uri', },
+                'kind': { '$ref': '#/definitions/enum_kind', },
+                'cloud': { 'type': 'boolean', },
                 'created':  { 'type': 'string', 'format': 'date-time', },
                 'modified': { 'type': 'string', 'format': 'date-time', },
                 'description': { 'type': 'string', },
-                'ssh_username': { 'type': 'string', },
-                'ssh_password': { 'type': 'string', },
+                'username': { 'type': 'string', },
+                'password': { 'type': 'string', },
                 'ssh_key_data': { 'type': 'string', },
                 'ssh_key_unlock': { 'type': 'string', },
                 'sudo_username': { 'type': 'string', },
                 'sudo_password': { 'type': 'string', },
-                'user': { 'type': 'number', 'minimum': 1, },
-                'team': { 'type': ['number', 'null'], },
+                'user': { 'type': ['number', 'null'], 'minimum': 1, },
+                'team': { 'type': ['number', 'null'], 'minimum': 1, },
                 'related': {
                     'type': 'object',
-                    'required': ['user'],
+                    'required': ['created_by'],
                     'additionalProperties': False,
                     'properties': {
                         'user': { 'type': 'string', 'format': 'uri' },
+                        'team': { 'type': 'string', 'format': 'uri' },
+                        'created_by': { 'type': 'string', 'format': 'uri' },
                     },
                 },
                 'summary_fields': {
                     'type': 'object',
-                    'required': ['user'],
                     'additionalProperties': False,
                     'properties': {
                         'user': {
@@ -833,6 +846,15 @@ class Awx_Schema_v1_Credentials(Awx_Schema_v1):
                                 'username': { 'type': 'string' },
                                 'first_name': { 'type': 'string' },
                                 'last_name': { 'type': 'string' },
+                            },
+                        },
+                        'team': {
+                            'type': 'object',
+                            'required': ['name', 'description' ],
+                            'additionalProperties': False,
+                            'properties': {
+                                'name': { 'type': 'string' },
+                                'description': { 'type': 'string' },
                             },
                         },
                     },
@@ -847,6 +869,51 @@ class Awx_Schema_v1_Credentials(Awx_Schema_v1):
             '$ref': '#/definitions/credential',
         })
 
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['count', 'next', 'previous', 'results', ],
+            'additionalProperties': False,
+            'properties': {
+                'count': { 'type': 'number', 'minimum': 0, },
+                'next': { 'type': ['string','null'], },
+                'previous': { 'type': ['string','null'], },
+                'results': {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        '$ref': '#/definitions/credential',
+                    },
+                },
+            },
+        })
+
+    @property
+    def duplicate(self):
+        return {
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['__all__',],
+            'additionalProperties': False,
+            'properties': {
+                "__all__": {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        'type': 'string',
+                        'pattern': '^Credential with this .* already exists.$',
+                    },
+                },
+            },
+        }
+
+class Awx_Schema_v1_User_Credentials(Awx_Schema_v1_Credentials):
+    component = '/users/\d+/credentials'
+
 class Awx_Schema_v1_Projects(Awx_Schema_v1):
     component = '/projects'
 
@@ -855,7 +922,7 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
 
         self.definitions['project'] = {
             'type': 'object',
-            'required': [ 'id', 'name', 'url', 'created', 'modified', 'last_updated', 'description', 'last_update_failed', 'status', 'summary_fields', 'local_path', 'scm_type', 'scm_url', 'scm_branch', 'scm_clean', 'scm_delete_on_update', 'scm_delete_on_next_update', 'scm_update_on_launch', 'scm_username', 'scm_password', 'scm_key_data', 'scm_key_unlock',],
+            'required': [ 'id', 'name', 'url', 'created', 'modified', 'last_updated', 'description', 'last_update_failed', 'status', 'summary_fields', 'local_path', 'scm_type', 'scm_url', 'scm_branch', 'scm_clean', 'scm_delete_on_update', 'scm_delete_on_next_update', 'scm_update_on_launch', 'credential', ],
             'additionalProperties': False,
             'properties': {
                 'id': { 'type': 'number', 'minimum': 1, },
@@ -876,10 +943,7 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
                 'scm_delete_on_update': { 'type': 'boolean', },
                 'scm_delete_on_next_update': { 'type': 'boolean', },
                 'scm_update_on_launch': { 'type': 'boolean', },
-                'scm_username': { 'type': 'string', },
-                'scm_password': { 'type': 'string', },
-                'scm_key_data': { 'type': 'string', },
-                'scm_key_unlock': { 'type': 'string', },
+                'credential': { 'type': ['number','null'], },
                 'related': {
                     'type': 'object',
                     'required': ['created_by', 'organizations', 'project_updates', 'playbooks', 'update', 'teams'],
@@ -930,7 +994,7 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
         return {
             '$schema': 'http://json-schema.org/draft-04/schema#',
             'type': 'object',
-            'required': ['local_path', ],
+            'required': [ 'local_path', ],
             'additionalProperties': False,
             'properties': {
                 "local_path": {
@@ -1061,13 +1125,11 @@ class Awx_Schema_v1_Jobs(Awx_Schema_v1):
 
         self.definitions['job'] = {
             'type': 'object',
-            'required': [ 'id', 'name', 'url', 'description', 'created', 'modified', 'job_type', 'inventory', 'project', 'playbook', 'credential', 'forks', 'verbosity', 'limit', 'extra_vars', 'job_tags', 'job_template', 'launch_type', 'status', 'failed', 'result_stdout', 'result_traceback', 'passwords_needed_to_start', 'job_args', 'job_cwd', 'job_env', 'related', 'summary_fields', ],
+            'required': [ 'id', 'url', 'created', 'modified', 'job_type', 'inventory', 'project', 'playbook', 'credential', 'forks', 'verbosity', 'limit', 'extra_vars', 'job_tags', 'job_template', 'launch_type', 'status', 'failed', 'result_stdout', 'result_traceback', 'passwords_needed_to_start', 'job_args', 'job_cwd', 'job_env', 'related', 'summary_fields', ],
             'additionalProperties': False,
             'properties': {
                 'id': { '$ref': '#/definitions/id', },
-                'name': { 'type': 'string', },
                 'url': { 'type': 'string', 'format': 'uri', },
-                'description': { 'type': 'string', },
                 'created':  { 'type': 'string', 'format': 'date-time', },
                 'modified': { 'type': 'string', 'format': 'date-time', },
                 'job_type': { 'enum': ['run', 'check'], },
@@ -1177,7 +1239,7 @@ class Awx_Schema_v1_Inventory_Sources(Awx_Schema_v1):
 
         self.definitions['inventory_source'] = {
             'type': 'object',
-            'required': [ 'id', 'url', 'created', 'modified', 'inventory', 'group', 'overwrite', 'overwrite_vars', 'update_on_launch', 'last_updated', 'last_update_failed', 'status', 'update_interval', "source", "source_path", "source_vars", "source_username", "source_password", "source_regions", 'related', 'summary_fields', ],
+            'required': [ 'id', 'url', 'created', 'modified', 'inventory', 'group', 'overwrite', 'overwrite_vars', 'update_on_launch', 'last_updated', 'last_update_failed', 'status', 'update_interval', "source", "source_path", "source_vars", "credential", "source_regions", 'related', 'summary_fields', ],
             'additionalProperties': False,
             'properties': {
                 'id': { '$ref': '#/definitions/id', },
@@ -1196,8 +1258,7 @@ class Awx_Schema_v1_Inventory_Sources(Awx_Schema_v1):
                 "source": { 'type': 'string', },
                 "source_path": { 'type': 'string', },
                 "source_vars": { 'type': 'string', },
-                "source_username": { 'type': 'string', },
-                "source_password": { 'type': 'string', },
+                'credential': { '$ref': '#/definitions/id', },
                 "source_regions": { 'type': 'string', },
                 'related': {
                     'type': 'object',
@@ -1265,15 +1326,48 @@ class Awx_Schema_v1_Inventory_Sources(Awx_Schema_v1):
     def post(self):
         return self.patch
 
+class Awx_Schema_v1_Inventory_Sources_Update(Awx_Schema_v1):
+    component = '/inventory_sources/\d+/update'
+
+    def __init__(self):
+        super(Awx_Schema_v1_Inventory_Sources_Update, self).__init__()
+
+        self.definitions['inventory_source_update'] = {
+            'type': 'object',
+            #'required': [ 'can_update', ],
+            'required': [ 'can_update', ],
+            'additionalProperties': True,
+            'properties': {
+                #'can_update': { 'type': 'boolean', },
+                'passwords_needed_to_update': {
+                    'type': 'array',
+                    'minimum': 1,
+                },
+            },
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            '$ref': '#/definitions/inventory_source_update',
+        })
+
+    @property
+    def post(self):
+        return {}
+
 class Awx_Schema_v1_Inventory_Source_Updates(Awx_Schema_v1):
-    component = '/inventory_updates'
+    component = '/inventory_sources/\d+/inventory_updates'
+
 
     def __init__(self):
         Awx_Schema_v1.__init__(self)
 
         self.definitions['inventory_update'] = {
             'type': 'object',
-            'required': [ 'id', 'url', 'created', 'modified', 'inventory_source', 'status', 'failed', 'result_stdout', 'result_traceback', 'job_args', 'job_cwd', 'job_env', 'related', 'summary_fields', ],
+            'required': [ 'id', 'url', 'created', 'modified', 'inventory_source', 'status', 'failed', 'result_stdout', 'result_traceback', 'job_args', 'job_cwd', 'job_env', 'related', 'summary_fields', 'license_error', ],
             'additionalProperties': False,
             'properties': {
                 'id': { '$ref': '#/definitions/id', },
@@ -1283,6 +1377,7 @@ class Awx_Schema_v1_Inventory_Source_Updates(Awx_Schema_v1):
                 'inventory_source': { '$ref': '#/definitions/id', },
                 'status': { '$ref': '#/definitions/enum_inventory_update_status', },
                 'failed': { 'type': 'boolean', },
+                'license_error': { 'type': 'boolean', },
                 'result_stdout': { 'type': 'string', },
                 'result_traceback': { 'type': 'string', },
                 'job_args': {
@@ -1370,8 +1465,115 @@ class Awx_Schema_v1_Inventory_Source_Updates(Awx_Schema_v1):
             },
         })
 
+class Awx_Schema_v1_Inventory_Source_Update(Awx_Schema_v1_Inventory_Source_Updates):
+    component = '/inventory_updates/\d+'
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/inventory_update',
+        })
+
 class Awx_Schema_v1_Teams(Awx_Schema_v1):
     component = '/teams'
+
+    def __init__(self):
+        Awx_Schema_v1.__init__(self)
+
+        self.definitions['team'] = {
+            'type': 'object',
+            'required': ['created', 'id', 'url', 'related', 'summary_fields', 'name', 'description', 'organization'],
+            'additionalProperties': False,
+            'properties': {
+                'id': { 'type': 'number', 'minimum': 1, },
+                'url': { 'type': 'string', 'format': 'uri'},
+                'created':  { 'type': 'string', 'format': 'date-time', },
+                'modified': { 'type': 'string', 'format': 'date-time', },
+                'name': { 'type': 'string', },
+                'description': { 'type': 'string', },
+                'organization': { 'type': 'number', 'minimum': 1, },
+                'related': {
+                    'type': 'object',
+                    'required': [ 'created_by', 'organization', 'permissions', 'users', 'projects', 'credentials', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        'created_by':   { 'type': 'string', 'format': 'uri' },
+                        'organization': { 'type': 'string', 'format': 'uri' },
+                        'permissions':  { 'type': 'string', 'format': 'uri' },
+                        'users':        { 'type': 'string', 'format': 'uri' },
+                        'projects':     { 'type': 'string', 'format': 'uri' },
+                        'credentials':  { 'type': 'string', 'format': 'uri' },
+                    },
+                },
+                'summary_fields':  {
+                    'type': 'object',
+                    'required': ['organization'],
+                    'additionalProperties': False,
+                    'properties': {
+                        'organization': {
+                            'type': 'object',
+                            'required': ['name', 'description'],
+                            'additionalProperties': False,
+                            'properties': {
+                                'name':        { 'type': 'string', },
+                                'description': { 'type': 'string', },
+                            },
+                        },
+                    },
+                },
+            },
+        }
+
+    @property
+    def duplicate(self):
+        return {
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': [ '__all__'],
+            'additionalProperties': False,
+            'properties': {
+                "__all__": {
+                    'type': 'array',
+                    'minItems': 1,
+                    'uniqueItems': True,
+                    'items': {
+                        'type': 'string',
+                        'pattern': '^Team with this Organization and Name already exists.$',
+                    },
+                },
+            },
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['count', 'next', 'previous', 'results', ],
+            'additionalProperties': False,
+            'properties': {
+                'count': { 'type': 'number', 'minimum': 0, },
+                'next': { 'type': ['string','null'], },
+                'previous': { 'type': ['string','null'], },
+                'results': {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        '$ref': '#definitions/team',
+                    },
+                },
+            },
+        })
+
+    @property
+    def post(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/team',
+        })
+
 
 class Awx_Schema_v1_Config(Awx_Schema_v1):
     component = '/config'
