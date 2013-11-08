@@ -1,8 +1,10 @@
 import sys
+import re
 import inspect
 import pkgutil
 import logging
 import jsonschema
+from urlparse import urlparse
 from collections import defaultdict
 
 available_schemas = defaultdict(dict)
@@ -44,6 +46,9 @@ def get_schema(version=None, component=None, name=None):
     if not available_schemas.has_key(version):
         raise Exception("No schema matching version '%s' found." % version)
 
+    # Remove any query string '?...'
+    component = urlparse(component).path
+
     # Remove '/api' prefix
     if component.startswith('/api'):
         component = component[4:]
@@ -56,14 +61,27 @@ def get_schema(version=None, component=None, name=None):
     if component.endswith('/'):
         component = component[:-1]
 
+    # Find a direct component match?
     if not available_schemas[version].has_key(component):
-        raise Exception("No schema component matching '%s' found. " \
-                        "Choices include: %s" % (component, available_schemas[version].keys()))
 
+        # Determine whether we match a provided re?
+        found = False
+        for match_re in available_schemas[version]:
+            if re.match(match_re+'$', component):
+                component = match_re
+                found = True
+                break
+        if not found:
+            raise Exception("No schema component matching '%s' found. " \
+                            "Choices include: %s" % (component, available_schemas[version].keys()))
+
+
+    # Find the schedule attribute (get, post, patch etc....)
     if not hasattr(available_schemas[version][component], name):
         raise Exception("No schema attribute matching '%s' found. " \
                         "Choices include: %s" % (name, dir(available_schemas[version][component])))
 
+    logging.debug("get_schema(version='%s', component='%s', name='%s')" % (version, component, name))
     return getattr(available_schemas[version][component], name)
 
 def validate(data, component, name, version=None):
@@ -77,6 +95,7 @@ def validate(data, component, name, version=None):
             raise ValueError("No version parameter provided and multiple schema versions exist")
 
     # Make debugging easier if we accidentally pass the wrong schema type
+    logging.debug("validate(version='%s', component='%s', name='%s')" % (version, component, name))
     schema = get_schema(version, component, name)
     assert isinstance(schema, dict), \
         "Expecting dict, found %s" % type(schema)
