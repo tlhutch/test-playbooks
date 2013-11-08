@@ -1,3 +1,11 @@
+---
+license:
+    company_name: AnsibleWorks
+    contact_name: Art Vandelay
+    contact_email: art@ansibleworks.com
+    instance_count: 1000
+    license_days: 31
+
 organizations:
     - name: Bender Products
       description: Bender Products, Ltd.
@@ -18,13 +26,284 @@ users:
       email: dsmith@example.com
       is_superuser: False
 
-      credentials:
-        - name: root (ask)
-          username: dsmith
-          team: null
-          description: user:root, password:ask
-          ssh_username: root
-          ssh_password: ASK
+teams:
+    - name: IT
+      description: IT Department
+      organization: Bender Products
+
+credentials:
+    - name: SSH (user:dsmith, password:ASK)
+      description: user:dsmith, ssh_user:root, password:ASK
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: 'ASK'
+      ssh_key_data: ''
+      ssh_key_unlock: ''
+      sudo_username: ''
+      sudo_password: ''
+
+    - name: SSH (user:dsmith, password:***)
+      description: user:dsmith, ssh_user:root, password:***
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: '{password}' # merged from credentials.yaml
+      ssh_key_data: ''
+      ssh_key_unlock: ''
+      sudo_username: ''
+      sudo_password: ''
+
+    - name: SSH (user:dsmith, ssh_key_data)
+      description: user:dsmith, ssh_user:root, ssh_key_data
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: ''
+      ssh_key_data: '{ssh_key_data}' # from credentials.yaml
+      ssh_key_unlock: ''
+      sudo_username: ''
+      sudo_password: ''
+
+    - name: SSH (user:dsmith, ssh_key_data, ssh_key_unlock:ASK)
+      description: user:dsmith, ssh_user:root, ssh_key_data, ssh_key_unlock:ASK
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: ''
+      ssh_key_data: '{ssh_key_data}'
+      ssh_key_unlock: 'ASK'
+      sudo_username: ''
+      sudo_password: ''
+
+    - name: SSH (user:dsmith, ssh_key_data, ssh_key_unlock:***)
+      description: user:dsmith, ssh_user:root, ssh_key_data, ssh_key_unlock:***
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: ''
+      ssh_key_data: '{ssh_key_data}'
+      ssh_key_unlock: '{ssh_key_unlock}'
+      sudo_username: ''
+      sudo_password: ''
+
+    - name: SSH (user:dsmith, sudo_password:ASK)
+      description: user:dsmith, ssh_user:root, sudo_password:ASK
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: '{password}'
+      ssh_key_data: '{ssh_key_data}'
+      ssh_key_unlock: '{ssh_key_unlock}'
+      sudo_username: '{sudo_username}'
+      sudo_password: 'ASK'
+
+    - name: SSH (user:dsmith, sudo_password:***)
+      description: user:dsmith, ssh_user:root, sudo_password:***
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: '{password}'
+      ssh_key_data: '{ssh_key_data}'
+      ssh_key_unlock: '{ssh_key_unlock}'
+      sudo_username: '{sudo_username}'
+      sudo_password: '{sudo_password}'
+
+    - name: SSH (team:IT, password:ASK)
+      description: team:IT, ssh_user:root, password:ASK
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: 'ASK'
+      ssh_key_data: ''
+      ssh_key_unlock: ''
+      sudo_username: ''
+      sudo_password: ''
+
+    - name: SSH (team:IT, password:***)
+      description: team:IT, ssh_user:root, password:***
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: '{password}' # merged from credentials.yaml
+      ssh_key_data: ''
+      ssh_key_unlock: ''
+      sudo_username: ''
+      sudo_password: ''
+
+    - name: SSH (team:IT, ssh_key_data)
+      description: team:IT, ssh_user:root, ssh_key_data
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: ''
+      ssh_key_data: '{ssh_key_data}' # from credentials.yaml
+      ssh_key_unlock: ''
+      sudo_username: ''
+      sudo_password: ''
+
+    - name: SSH (team:IT, ssh_key_data, ssh_key_unlock:ASK)
+      description: team:IT, ssh_user:root, ssh_key_data, ssh_key_unlock:ASK
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: ''
+      ssh_key_data: '{ssh_key_data}'
+      ssh_key_unlock: 'ASK'
+      sudo_username: ''
+      sudo_password: ''
+
+    - name: SSH (team:IT, ssh_key_data, ssh_key_unlock:***)
+      description: team:IT, ssh_user:root, ssh_key_data, ssh_key_unlock:***
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: ''
+      ssh_key_data: '{ssh_key_data}'
+      ssh_key_unlock: '{ssh_key_unlock}'
+      sudo_username: ''
+      sudo_password: ''
+
+    - name: SSH (team:IT, sudo_password:ASK)
+      description: team:IT, ssh_user:root, sudo_password:ASK
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: '{password}'
+      ssh_key_data: '{ssh_key_data}'
+      ssh_key_unlock: '{ssh_key_unlock}'
+      sudo_username: '{sudo_username}'
+      sudo_password: 'ASK'
+
+    - name: SSH (team:IT, sudo_password:***)
+      description: team:IT, ssh_user:root, sudo_password:***
+      kind: ssh
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: '{password}'
+      ssh_key_data: '{ssh_key_data}'
+      ssh_key_unlock: '{ssh_key_unlock}'
+      sudo_username: '{sudo_username}'
+      sudo_password: '{sudo_password}'
+
+    - name: SCM (user:dsmith, password:ASK)
+      description: user:dsmith, ssh_user:root, password:ASK
+      kind: scm
+      user: dsmith
+      team: null
+      cloud: false
+      username: root
+      password: ASK
+      ssh_key_data: ''
+      ssh_key_unlock: ''
+
+    - name: SCM (user:dsmith, password:***)
+      description: user:dsmith, ssh_user:root, password:***
+      kind: scm
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # Gathered from credentials.yaml
+      password: '{password}' # Gathered from credentials.yaml
+      ssh_key_data: ''
+      ssh_key_unlock: ''
+
+    - name: SCM (user:dsmith, ssh_key_data)
+      description: user:dsmith, ssh_user:root, password:***
+      kind: scm
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # Gathered from credentials.yaml
+      password: ''
+      ssh_key_data: '{ssh_key_data}' # from credentials.yaml
+      ssh_key_unlock: ''
+
+    - name: SCM (user:dsmith, ssh_key_data, ssh_key_unlock:ASK)
+      description: user:dsmith, ssh_key_data, ssh_key_unlock:ASK
+      kind: scm
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # Gathered from credentials.yaml
+      password: ''
+      ssh_key_data: '{ssh_key_data}' # from credentials.yaml
+      ssh_key_unlock: 'ASK'
+
+    - name: SCM (user:dsmith, ssh_key_data, ssh_key_unlock:***)
+      description: user:dsmith, ssh_key_data, ssh_key_unlock:***
+      kind: scm
+      user: dsmith
+      team: null
+      cloud: false
+      username: '{username}' # Gathered from credentials.yaml
+      password: ''
+      ssh_key_data: '{ssh_key_data}' # from credentials.yaml
+      ssh_key_unlock: '{ssh_key_unlock}' # from credentials.yaml
+
+    - name: AWS (user:dsmith)
+      description: Amazon AWS credentials for dsmith
+      kind: aws
+      user: dsmith
+      team: null
+      cloud: true
+      username: '{username}' # Gathered from credentials.yaml
+      password: '{password}' # Gathered from credentials.yaml
+
+    - name: AWS (team:IT)
+      description: Amazon AWS credentials for dsmith
+      kind: aws
+      user: null
+      team: IT
+      cloud: true
+      username: '{username}' # Gathered from credentials.yaml
+      password: '{password}' # Gathered from credentials.yaml
+
+    - name: Rackspace (user:dsmith)
+      description: Rackspace Cloudserver credentials for dsmith
+      kind: rax
+      user: dsmith
+      team: null
+      cloud: true
+      username: '{username}' # Gathered from credentials.yaml
+      password: '{password}' # Gathered from credentials.yaml
+
+    - name: Rackspace (team:IT)
+      description: Rackspace Cloudserver credentials for dsmith
+      kind: rax
+      user: null
+      team: IT
+      cloud: true
+      username: '{username}' # Gathered from credentials.yaml
+      password: '{password}' # Gathered from credentials.yaml
 
 inventories:
     - name: it_inventory
@@ -49,8 +328,7 @@ inventory_sources:
       group: aws
       inventory: it_inventory
       source: ec2
-      # source_username: # stored in credentials.yaml
-      # source_password: # stored in credentials.yaml
+      credential: AWS (user:dsmith)
       source_vars: ''
       source_regions: ''
       overwrite: true
@@ -62,6 +340,7 @@ inventory_sources:
       group: rax
       inventory: it_inventory
       source: rackspace
+      credential: Rackspace (user:dsmith)
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
       source_vars: ''
@@ -85,7 +364,7 @@ hosts:
       groups:
         - local
 
-    - name: server1.example.com
+    - name: unresolvable-name.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
       variables: |
@@ -126,7 +405,7 @@ job_templates:
       playbook: language_features/loop_plugins.yml
       project: ansible-examples.git (manual)
       inventory: it_inventory
-      credential: root (ask)
+      credential: SSH (user:dsmith, password:ASK)
 
     - name: language_features/loop_plugins.yml (run)
       job_type: run
@@ -134,7 +413,7 @@ job_templates:
       playbook: language_features/loop_plugins.yml
       project: ansible-examples.git (manual)
       inventory: it_inventory
-      credential: root (ask)
+      credential: SSH (user:dsmith, password:ASK)
 
     - name: language_features/roletest.yml (check)
       job_type: check
@@ -142,7 +421,7 @@ job_templates:
       playbook: trunk/language_features/roletest.yml
       project: ansible-examples.svn (manual)
       inventory: it_inventory
-      credential: root (ask)
+      credential: SSH (user:dsmith, password:ASK)
 
     - name: language_features/roletest.yml (run)
       job_type: run
@@ -150,14 +429,14 @@ job_templates:
       playbook: trunk/language_features/roletest.yml
       project: ansible-examples.svn (manual)
       inventory: it_inventory
-      credential: root (ask)
+      credential: SSH (user:dsmith, password:ASK)
 
-    - name: helloworld site
+    - name: helloworld/site.yml
       job_type: run
       playbook: site.yml
       project: ansible-helloworld.hg (manual)
       inventory: it_inventory
-      credential: root (ask)
+      credential: SSH (user:dsmith, password:ASK)
 
 # playbook: language_features/ansible_pull.yml
 # playbook: language_features/register_logic.yml
