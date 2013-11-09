@@ -18,6 +18,7 @@ ansibleworks-qa tests
    * jobs should wait until inventory sync is complete
 4. Test RBAC authentication+permissions
 5. Test SCM projects
+6. Build basic UI navigation test (capable of offloading to SauceLabs for browser compatability testing)
 
 # Unittest gaps
 
