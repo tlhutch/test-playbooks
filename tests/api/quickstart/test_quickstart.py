@@ -390,14 +390,13 @@ if __name__ == '__main__':
         inv_updates_pg = inv_src.get_related('inventory_updates').results[0]
 
         # Ensure the update completed successfully
-        attempt = 0
-        max_attempts = 30
+        timeout = 120 # status much change in 120 seconds
+        wait_timeout = time.time() + timeout
         status = inv_updates_pg.status.lower()
         while status in ['new', 'pending', 'waiting', 'running']:
             inv_updates_pg.get()
             status = inv_updates_pg.status.lower()
-            assert attempt < max_attempts, "Exceeded max attempts while polling inventory_source update (status:%s)" % status
-            attempt += 1
+            assert wait_timeout > time.time(), "Timeout exceeeded (%s > %s) waiting for inventory_source update to complete (status:%s)" % (wait_timeout, time.time(), status)
             time.sleep(1)
 
         # Make sure there is no traceback in result_stdout or result_traceback
@@ -514,14 +513,13 @@ if __name__ == '__main__':
         assert not start_pg.json['can_start']
 
         # Ensure the launch completed successfully
-        attempt = 0
-        max_attempts = 30
+        timeout = 120 # status much change in 120 seconds
+        wait_timeout = time.time() + timeout
         status = job_pg.status.lower()
         while status in ['new', 'pending', 'waiting', 'running']:
             job_pg.get()
             status = job_pg.status.lower()
-            assert attempt < max_attempts, "Exceeded max attempts while polling inventory_source update (status:%s)" % status
-            attempt += 1
+            assert wait_timeout > time.time(), "Timeout exceeeded (%s > %s) waiting for job completion (status:%s)" % (wait_timeout, time.time(), status)
             time.sleep(1)
 
         # Make sure there is no traceback in result_stdout or result_traceback
