@@ -127,8 +127,30 @@ class Project_Page(base.Base):
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
 
+    def get_related(self, name):
+        assert name in self.json['related']
+        if name == 'last_update':
+            related = Project_Update_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'project_updates':
+            related = Project_Updates_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'update':
+            related = base.Base(self.testsetup, base_url=self.json['related'][name])
+        else:
+            raise NotImplementedError
+        return related.get()
+
 class Projects_Page(Project_Page, base.Base_List):
     base_url = '/api/v1/projects/'
+
+class Project_Update_Page(base.Base_List):
+    base_url = '/api/v1/project/{id}/update/'
+    status = property(base.json_getter('status'), base.json_setter('status'))
+    failed = property(base.json_getter('failed'), base.json_setter('failed'))
+    result_traceback = property(base.json_getter('result_traceback'), base.json_setter('result_traceback'))
+    result_stdout = property(base.json_getter('result_stdout'), base.json_setter('result_stdout'))
+
+class Project_Updates_Page(Project_Update_Page, base.Base_List):
+    base_url = '/api/v1/projects/{id}/project_updates/'
 
 class Job_Template_Page(base.Base):
     base_url = '/api/v1/job_templates/{id}/'
