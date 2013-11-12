@@ -997,10 +997,9 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
         return {
             '$schema': 'http://json-schema.org/draft-04/schema#',
             'type': 'object',
-            'required': [ 'local_path', ],
             'additionalProperties': False,
             'properties': {
-                "local_path": {
+                'local_path': {
                     'type': 'array',
                     'minItems': 0,
                     'uniqueItems': True,
@@ -1009,8 +1008,133 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
                         'pattern': '^Invalid path choice$',
                     },
                 },
+                'name': {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        'type': 'string',
+                        'pattern': '^Project with this Name already exists.$',
+                    },
+                },
             },
         }
+
+class Awx_Schema_v1_Projects_Project_Updates(Awx_Schema_v1):
+    component = '/projects/\d+/project_updates'
+
+    def __init__(self):
+        Awx_Schema_v1.__init__(self)
+
+        self.definitions['project_update'] = {
+            'type': 'object',
+            'required': [ 'id', 'url', 'created', 'modified', 'project', 'status', 'failed', 'result_stdout', 'result_traceback', 'job_args', 'job_cwd', 'job_env', 'related', 'summary_fields', ],
+            'additionalProperties': False,
+            'properties': {
+                'id': { '$ref': '#/definitions/id', },
+                'url': { 'type': 'string', 'format': 'uri', },
+                'created':  { 'type': 'string', 'format': 'date-time', },
+                'modified': { 'type': 'string', 'format': 'date-time', },
+                'project': { '$ref': '#/definitions/id', },
+                'status': { '$ref': '#/definitions/enum_project_status', },
+                'failed': { 'type': 'boolean', },
+                'result_stdout': { 'type': 'string', },
+                'result_traceback': { 'type': 'string', },
+                'job_args': {
+                    'type': 'string',
+                    #'type': 'array',
+                    #'minItems': 0,
+                    #'uniqueItems': False,
+                },
+                'job_cwd': { 'type': 'string', },
+                'job_env': {
+                    'type': 'object',
+                    'additionalProperties': True,
+                },
+                'related': {
+                    'type': 'object',
+                    'required': [ 'cancel', 'project'],
+                    'additionalProperties': False,
+                    'properties': {
+                        "cancel": { 'type': 'string', 'format': 'uri' },
+                        "project": { 'type': 'string', 'format': 'uri' },
+                    },
+                },
+                'summary_fields':  {
+                    'type': 'object',
+                    'required': ['project', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        "project": {
+                            '$ref': '#/definitions/summary_fields_project',
+                        },
+                    },
+                },
+            },
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['count', 'next', 'previous', 'results', ],
+            'additionalProperties': False,
+            'properties': {
+                'count': { 'type': 'number', 'minimum': 0, },
+                'next': { 'type': ['string','null'], },
+                'previous': { 'type': ['string','null'], },
+                'results': {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        '$ref': '#/definitions/project_update',
+                    },
+                },
+            },
+        })
+
+class Awx_Schema_v1_Project_Update(Awx_Schema_v1):
+    component = '/projects/\d+/update'
+
+    def __init__(self):
+        super(Awx_Schema_v1_Project_Update, self).__init__()
+
+        self.definitions['project_update'] = {
+            'type': 'object',
+            'required': [ 'can_update', ],
+            'additionalProperties': True,
+            'properties': {
+                'can_update': { 'type': 'boolean', },
+                'passwords_needed_to_update': {
+                    'type': 'array',
+                    'minimum': 1,
+                },
+            },
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            '$ref': '#/definitions/project_update',
+        })
+
+    @property
+    def post(self):
+        return {}
+
+class Awx_Schema_v1_Project_Updates(Awx_Schema_v1_Projects_Project_Updates):
+    component = '/project_updates/\d+'
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/project_update',
+        })
 
 class Awx_Schema_v1_Job_templates(Awx_Schema_v1):
     component = '/job_templates'
