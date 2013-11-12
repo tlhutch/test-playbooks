@@ -930,7 +930,7 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
                 'url': { 'type': 'string', 'format': 'uri', },
                 'created':  { 'type': 'string', 'format': 'date-time', },
                 'modified': { 'type': 'string', 'format': 'date-time', },
-                'last_updated': { 'type': 'string', 'format': 'date-time', },
+                'last_updated': { 'type': ['string', 'null'], 'format': 'date-time', },
                 'description': { 'type': 'string', },
                 'last_update_failed': { 'type': 'boolean', },
                 'status': { 'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ] },
