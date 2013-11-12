@@ -41,7 +41,23 @@ class Awx_Schema_v1(Awx_Schema):
             },
         }
 
+        # Shared fields
         self.definitions['id'] = dict(type='number', minimum=1)
+
+        self.definitions['job_env'] = {
+            'type': 'object',
+            'additionalProperties': True,
+            'properties': {
+                '_': { 'type': 'string', 'minLength': 1, 'pattern': '^/usr/bin/supervisord', },
+                'USER': { 'type': 'string', 'minLength': 1, 'pattern': '^awx$', },
+                'HOME': { 'type': 'string', 'minLength': 1, 'pattern': '^/var/lib/awx$'},
+                'PWD': { 'type': 'string', 'minLength': 1, },
+                'PATH': { 'type': 'string', 'minLength': 1, },
+                'TERM': { 'type': 'string', 'minLength': 1, },
+                'LANG': { 'type': 'string', 'minLength': 1, },
+                'TZ': { 'type': 'string', 'minLength': 1, },
+            },
+        }
 
         # Shared summary fields
         self.definitions['summary_fields_inventory'] = {
@@ -1047,10 +1063,7 @@ class Awx_Schema_v1_Projects_Project_Updates(Awx_Schema_v1):
                     #'uniqueItems': False,
                 },
                 'job_cwd': { 'type': 'string', },
-                'job_env': {
-                    'type': 'object',
-                    'additionalProperties': True,
-                },
+                'job_env': { '$ref': '#/definitions/job_env', },
                 'related': {
                     'type': 'object',
                     'required': [ 'cancel', 'project'],
@@ -1287,10 +1300,7 @@ class Awx_Schema_v1_Jobs(Awx_Schema_v1):
                 },
                 'job_args': { 'type': 'string', },
                 'job_cwd': { 'type': 'string', },
-                'job_env': {
-                    'type': 'object',
-                    # FIXME - add fields
-                },
+                'job_env': { '$ref': '#/definitions/job_env', },
                 'related': {
                     'type': 'object',
                     'required': [ 'project', 'job_host_summaries', 'created_by', 'credential', 'job_events', 'inventory', 'job_template', 'start', 'cancel',],
@@ -1514,40 +1524,7 @@ class Awx_Schema_v1_Inventory_Source_Updates(Awx_Schema_v1):
                     #'uniqueItems': False,
                 },
                 'job_cwd': { 'type': 'string', },
-                'job_env': {
-                    'type': 'object',
-                    'additionalProperties': True,
-                },
-#            "job_env": {
-#                "_": "/usr/bin/supervisord", 
-#                "ANSIBLE_PARAMIKO_RECORD_HOST_KEYS": "*****", 
-#                "DJANGO_LIVE_TEST_SERVER_ADDRESS": "localhost:9013-9199", 
-#                "_MP_FORK_LOGFILE_": "", 
-#                "RAX_CREDS_FILE": "/tmp/tmpmjVMym", 
-#                "CELERY_LOG_REDIRECT": "1", 
-#                "USER": "awx", 
-#                "HOME": "/var/lib/awx", 
-#                "PATH": "/sbin:/usr/sbin:/bin:/usr/bin", 
-#                "LANG": "en_US.UTF-8", 
-#                "TERM": "xterm-color", 
-#                "TZ": "America/New_York", 
-#                "_MP_FORK_LOGFORMAT_": "[%(asctime)s: %(levelname)s/%(processName)s] %(message)s", 
-#                "SHLVL": "2", 
-#                "RAX_REGION": "", 
-#                "CELERY_LOG_FILE": "", 
-#                "DJANGO_PROJECT_DIR": "/usr/lib/python2.6/site-packages", 
-#                "ANSIBLE_HOST_KEY_CHECKING": "*****", 
-#                "PYTHONPATH": "/usr/lib/python2.6/site-packages/awx/lib/site-packages:", 
-#                "PBR_VERSION": "0.5.21", 
-#                "CELERY_LOADER": "djcelery.loaders.DjangoLoader", 
-#                "_MP_FORK_LOGLEVEL_": "20", 
-#                "ANSIBLE_NOCOLOR": "1", 
-#                "CELERY_LOG_REDIRECT_LEVEL": "WARNING", 
-#                "CELERY_LOG_LEVEL": "20", 
-#                "PWD": "/", 
-#                "DJANGO_SETTINGS_MODULE": "awx.settings.production", 
-#                "INVENTORY_SOURCE_ID": "3"
-#            }
+                'job_env': { '$ref': '#/definitions/job_env', },
                 'related': {
                     'type': 'object',
                     'required': [ 'cancel', 'inventory_source'],
