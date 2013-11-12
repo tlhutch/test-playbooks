@@ -100,8 +100,13 @@ def validate(data, component, name, version=None):
     assert isinstance(schema, dict), \
         "Expecting dict, found %s" % type(schema)
 
-    jsonschema.validate(data, schema,
-        format_checker=jsonschema.FormatChecker())
+    try:
+        jsonschema.validate(data, schema,
+            format_checker=jsonschema.FormatChecker())
+    except jsonschema.ValidationError, e:
+        sys.stderr.write("Failure validating component:%s, version:%s, name:%s\n" % (component, version, name))
+        exc_info = sys.exc_info()
+        raise exc_info[1], None, exc_info[2]
 
 if __name__ == 'common.api.schema':
     path = __path__[0]
