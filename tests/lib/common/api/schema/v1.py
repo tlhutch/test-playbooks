@@ -15,7 +15,8 @@ class Awx_Schema_v1(Awx_Schema):
             'enum': [ '', 'new', 'pending', 'waiting', 'running', 'successul', 'failed', 'error', 'canceled' ]
         }
         self.definitions['enum_project_status'] = {
-            'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ]
+            # 'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ]
+            'enum': [ 'new', 'pending', 'waiting', 'running', 'successful', 'failed', 'error', 'canceled',  ]
         }
         self.definitions['enum_inventory_status'] = {
             'enum': [ "", "none", "never updated", "updating", "failed", "successful", ]
@@ -1361,7 +1362,6 @@ class Awx_Schema_v1_Inventory_Sources_Update(Awx_Schema_v1):
 
 class Awx_Schema_v1_Inventory_Source_Updates(Awx_Schema_v1):
     component = '/inventory_sources/\d+/inventory_updates'
-
 
     def __init__(self):
         Awx_Schema_v1.__init__(self)
