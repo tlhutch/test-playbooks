@@ -1,5 +1,5 @@
 def pytest_addoption(parser):
-    group = parser.getgroup('awx', 'awx')
+    group = parser.getgroup('selenium', 'selenium')
     group._addoption('--highlight',
                      action='store_true',
                      dest='highlight',
