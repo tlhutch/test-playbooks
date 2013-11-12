@@ -405,13 +405,14 @@ if __name__ == '__main__':
         assert 'Traceback' not in inv_updates_pg.result_stdout
 
     @pytest.mark.destructive
-    def test_project_post(self, api_projects_pg, api_organizations_pg, awx_config, project, ansible_runner):
+    def test_projects_post(self, api_projects_pg, api_organizations_pg, awx_config, project, ansible_runner):
 
         # Checkout repository on the target system
-        if project['scm_type'] in [None, 'menual'] \
+        if project['scm_type'] in [None, 'manual'] \
            and 'scm_url' in project:
             assert '_ansible_module' in project, \
                 "Must provide ansible module to use for scm_url: %s " % project['scm_url']
+
             # Make sure the required package(s) are installed
             results = ansible_runner.yum(
                 name=project['_ansible_module'],
@@ -425,15 +426,31 @@ if __name__ == '__main__':
                 dest="%s/%s" % ( awx_config['project_base_dir'], \
                     project['local_path']))
 
-        # Find desired org
+        # Find desired object identifiers
         org_id = api_organizations_pg.get(name__iexact=project['organization']).results[0].id
 
-        # Create a new project
+        # Build payload
         payload = dict(name=project['name'],
                        description=project['description'],
                        organization=org_id,
-                       local_path=project['local_path'],
                        scm_type=project['scm_type'],)
+
+        # Add scm_type specific values
+        if project['scm_type'] in [None, 'manual']:
+            payload['local_path'] = project['local_path']
+        else:
+            payload.update(dict(scm_url=project['scm_url'],
+                                scm_branch=project.get('scm_branch',''),
+                                scm_clean=project.get('scm_clean', False),
+                                scm_delete_on_update=project.get('scm_delete_on_update', False),
+                                scm_update_on_launch=project.get('scm_update_on_launch', False),))
+
+        # Add credential (optional)
+        if 'credential' in project:
+            credential_id = api_credentials_pg.get(name__iexact=project['credential']).results[0].id
+            payload['credential'] = credential_id
+
+        # Create project
         try:
             api_projects_pg.post(payload)
         except Duplicate_Exception, e:
@@ -443,6 +460,45 @@ if __name__ == '__main__':
     def test_projects_get(self, api_projects_pg, projects):
         api_projects_pg.get(name__in=','.join([o['name'] for o in projects]))
         assert len(projects) == len(api_projects_pg.results)
+
+    @pytest.mark.nondestructive
+    def test_projects_update_status(self, api_projects_pg, api_organizations_pg, awx_config, project):
+
+        # Find desired project
+        matches = api_projects_pg.get(name__iexact=project['name'], scm_type=project['scm_type'])
+        assert matches.count == 1
+        project_pg = matches.results.pop()
+
+        # Assert that related->update matches expected
+        update_pg = project_pg.get_related('update')
+        if project['scm_type'] in [None, 'manual']:
+            assert not update_pg.json['can_update'], "Manual projects should not be updateable"
+        else:
+            assert update_pg.json['can_update'], "SCM projects must be updateable"
+
+        # Further inspect project updates
+        project_updates_pg = project_pg.get_related('project_updates')
+        if project['scm_type'] in [None, 'manual']:
+            assert project_updates_pg.count == 0, "Manual projects do not support updates"
+        else:
+            assert project_updates_pg.count > 0, "SCM projects should update after creation, but no updates were found"
+
+            latest_update_pg = project_updates_pg.results.pop()
+
+            # Ensure the update successfully
+            timeout = 120 # status much change in 120 seconds
+            wait_timeout = time.time() + timeout
+            status = latest_update_pg.status.lower()
+            while status in ['new', 'pending', 'waiting', 'running']:
+                latest_update_pg.get()
+                status = latest_update_pg.status.lower()
+                assert wait_timeout > time.time(), "Timeout exceeeded (%s > %s) waiting for project update completion (status:%s)" % (wait_timeout, time.time(), status)
+                time.sleep(1)
+
+            assert 'successful' == latest_update_pg.status.lower()
+            assert not latest_update_pg.failed
+            assert 'Traceback' not in latest_update_pg.result_traceback
+            assert 'Traceback' not in latest_update_pg.result_stdout
 
     @pytest.mark.destructive
     def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg, api_job_templates_pg, job_template):
