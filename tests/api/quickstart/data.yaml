@@ -375,7 +375,7 @@ hosts:
 
 projects:
     - name: ansible-examples.git (manual)
-      description: scm_type:git, scm_type:manual
+      description: scm_type:manual
       organization: Bender Products
       _ansible_module: git
       scm_type: null # manual
@@ -383,7 +383,7 @@ projects:
       local_path: ansible-examples.git.manual
 
     - name: ansible-examples.svn (manual)
-      description: scm_type:svn, scm_type:manual
+      description: scm_type:manual
       organization: Bender Products
       _ansible_module: subversion
       scm_type: null # manual
@@ -391,12 +391,42 @@ projects:
       local_path: ansible-examples.svn.manual
 
     - name: ansible-helloworld.hg (manual)
-      description: scm_type:hg, scm_type:manual
+      description: scm_type:manual
       organization: Bender Products
       _ansible_module: hg
       scm_type: null # manual
       scm_url: https://bitbucket.org/jlaska/ansible-helloworld
       local_path: ansible-helloworld.hg.manual
+
+    - name: ansible-examples.git (git)
+      description: scm_type:git
+      organization: Bender Products
+      scm_type: git
+      scm_url: https://github.com/ansible/ansible-examples.git
+      scm_branch: ''
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+
+    - name: ansible-examples.svn (svn)
+      description: scm_type:svn
+      organization: Bender Products
+      scm_type: svn
+      scm_url: https://github.com/ansible/ansible-examples
+      scm_branch: ''
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+
+    - name: ansible-helloworld.hg (hg)
+      description: scm_type:hg
+      organization: Bender Products
+      scm_type: hg
+      scm_url: https://bitbucket.org/jlaska/ansible-helloworld
+      scm_branch: ''
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
 
 job_templates:
     - name: language_features/loop_plugins.yml (check)
