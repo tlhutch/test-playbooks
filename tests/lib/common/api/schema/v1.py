@@ -952,6 +952,7 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
                     'properties': {
                         'created_by':      { 'type': 'string', 'format': 'uri', },
                         'current_update':  { 'type': 'string', 'format': 'uri', },
+                        'last_update':     { 'type': 'string', 'format': 'uri', },
                         'organizations':   { 'type': 'string', 'format': 'uri', },
                         'project_updates': { 'type': 'string', 'format': 'uri', },
                         'playbooks':       { 'type': 'string', 'format': 'uri', },
@@ -1268,6 +1269,7 @@ class Awx_Schema_v1_Inventory_Sources(Awx_Schema_v1):
                     'additionalProperties': True,
                     'properties': {
                         "created_by": { 'type': 'string', 'format': 'uri' },
+                        "current_update": { 'type': 'string', 'format': 'uri' },
                         "last_update": { 'type': 'string', 'format': 'uri' },
                         "inventory_updates": { 'type': 'string', 'format': 'uri' },
                         "update": { 'type': 'string', 'format': 'uri' },
