@@ -188,7 +188,7 @@ if __name__ == '__main__':
         assert len(teams) == len(team_page.results)
 
     @pytest.mark.destructive
-    def test_credential_post(self, api_users_pg, api_teams_pg, api_credentials_pg, credential):
+    def test_credentials_post(self, api_users_pg, api_teams_pg, api_credentials_pg, credential):
 
         # build credential payload
         payload = dict(name=credential['name'],
@@ -405,7 +405,7 @@ if __name__ == '__main__':
         assert 'Traceback' not in inv_updates_pg.result_stdout
 
     @pytest.mark.destructive
-    def test_projects_post(self, api_projects_pg, api_organizations_pg, awx_config, project, ansible_runner):
+    def test_projects_post(self, api_projects_pg, api_organizations_pg, api_credentials_pg, awx_config, project, ansible_runner):
 
         # Checkout repository on the target system
         if project['scm_type'] in [None, 'manual'] \
@@ -458,8 +458,43 @@ if __name__ == '__main__':
 
     @pytest.mark.nondestructive
     def test_projects_get(self, api_projects_pg, projects):
-        api_projects_pg.get(name__in=','.join([o['name'] for o in projects]))
+        api_projects_pg.get(or__name=[o['name'] for o in projects])
         assert len(projects) == len(api_projects_pg.results)
+
+    @pytest.mark.destructive
+    def test_projects_update(self, api_projects_pg, api_organizations_pg, awx_config, project):
+        # Find desired project
+        matches = api_projects_pg.get(name__iexact=project['name'], scm_type=project['scm_type'])
+        assert matches.count == 1
+        project_pg = matches.results.pop()
+
+        # Assert that related->update matches expected
+        update_pg = project_pg.get_related('update')
+        if project['scm_type'] in [None, 'manual']:
+            assert not update_pg.json['can_update'], "Manual projects should not be updateable"
+            pytest.skip("Manual projects can not be updated")
+        else:
+            assert update_pg.json['can_update'], "SCM projects must be updateable"
+
+            # Has an update already been triggered?
+            if 'last_update' in project_pg.json['related'] or \
+               'current_update' in project_pg.json['related']:
+                # FIXME - maybe we should still update?
+                pytest.xfail("Project already updated")
+            else:
+                # Create password payload
+                payload = dict()
+
+                # Add required password fields (optional)
+                assert self.has_credentials('scm')
+                for field in update_pg.json.get('passwords_needed_to_update', []):
+                    credential_field = field
+                    if field == 'scm_password':
+                        credential_field = 'password'
+                    payload[field] = self.credentials['scm'][credential_field]
+
+                # Initiate update
+                update_pg.post(payload)
 
     @pytest.mark.nondestructive
     def test_projects_update_status(self, api_projects_pg, api_organizations_pg, awx_config, project):
