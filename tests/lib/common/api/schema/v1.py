@@ -974,6 +974,7 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
                         'playbooks':       { 'type': 'string', 'format': 'uri', },
                         'update':          { 'type': 'string', 'format': 'uri', },
                         'teams':           { 'type': 'string', 'format': 'uri', },
+                        'credential':      { 'type': 'string', 'format': 'uri', },
                     },
                 },
             },
