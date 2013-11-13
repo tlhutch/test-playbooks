@@ -214,19 +214,19 @@ credentials:
       sudo_username: '{sudo_username}'
       sudo_password: '{sudo_password}'
 
-    - name: SCM (user:dsmith, password:ASK)
-      description: user:dsmith, ssh_user:root, password:ASK
+    - name: SCM (user:dsmith, username:git, password:ASK)
+      description: 'SCM credential for use with URLs of the format: git@github.com'
       kind: scm
       user: dsmith
       team: null
       cloud: false
-      username: root
+      username: git
       password: ASK
       ssh_key_data: ''
       ssh_key_unlock: ''
 
-    - name: SCM (user:dsmith, password:***)
-      description: user:dsmith, ssh_user:root, password:***
+    - name: SCM (user:dsmith, username:***, password:***)
+      description: 'SCM credential for use with URLs of the format: https://github.com'
       kind: scm
       user: dsmith
       team: null
@@ -236,8 +236,8 @@ credentials:
       ssh_key_data: ''
       ssh_key_unlock: ''
 
-    - name: SCM (user:dsmith, ssh_key_data)
-      description: user:dsmith, ssh_user:root, password:***
+    - name: SCM (user:dsmith, username:***, ssh_key_data)
+      description: 'SCM credential for use with URLs of the format: https://github.com (username, ssh_key_data)'
       kind: scm
       user: dsmith
       team: null
@@ -247,19 +247,8 @@ credentials:
       ssh_key_data: '{ssh_key_data}' # from credentials.yaml
       ssh_key_unlock: ''
 
-    - name: SCM (user:dsmith, ssh_key_data, ssh_key_unlock:ASK)
-      description: user:dsmith, ssh_key_data, ssh_key_unlock:ASK
-      kind: scm
-      user: dsmith
-      team: null
-      cloud: false
-      username: '{username}' # Gathered from credentials.yaml
-      password: ''
-      ssh_key_data: '{ssh_key_data}' # from credentials.yaml
-      ssh_key_unlock: 'ASK'
-
-    - name: SCM (user:dsmith, ssh_key_data, ssh_key_unlock:***)
-      description: user:dsmith, ssh_key_data, ssh_key_unlock:***
+    - name: SCM (user:dsmith, username:***, ssh_key_data, ssh_key_unlock:***)
+      description: 'SCM credential for use with URLs of the format: https://github.com (username, ssh_key_data, ssh_key_unlock)'
       kind: scm
       user: dsmith
       team: null
@@ -427,6 +416,28 @@ projects:
       scm_clean: false
       scm_delete_on_update: false
       scm_update_on_launch: false
+
+    - name: ansible-examples.git (git, credential:ASK)
+      description: scm_type:git, credential:ASK
+      organization: Bender Products
+      scm_type: git
+      scm_url: git@github.com:ansible/ansible-examples.git
+      scm_branch: 'master'
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+      credential: SCM (user:dsmith, username:git, password:ASK)
+
+    - name: ansible-examples.git (git, credential:***)
+      description: scm_type:git, credential:***
+      organization: Bender Products
+      scm_type: git
+      scm_url: https://github.com/ansible/ansible-examples.git
+      scm_branch: 'master'
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+      credential: SCM (user:dsmith, username:***, password:***)
 
 job_templates:
     - name: language_features/loop_plugins.yml (check)
