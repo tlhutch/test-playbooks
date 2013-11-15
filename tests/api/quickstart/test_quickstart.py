@@ -535,6 +535,7 @@ if __name__ == '__main__':
             assert 'Traceback' not in latest_update_pg.result_traceback
             assert 'Traceback' not in latest_update_pg.result_stdout
 
+    @pytest.mark.jira('AC-641', run=True)
     @pytest.mark.destructive
     def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg, api_job_templates_pg, job_template):
         # Find desired object identifiers
@@ -547,6 +548,8 @@ if __name__ == '__main__':
                        description=job_template.get('description',None),
                        job_type=job_template['job_type'],
                        playbook=job_template['playbook'],
+                       job_tags=job_template.get('job_tags', ''),
+                       limit=job_template.get('limit', ''),
                        inventory=inventory_id,
                        project=project_id,
                        credential=credential_id,
@@ -559,7 +562,7 @@ if __name__ == '__main__':
 
     @pytest.mark.nondestructive
     def test_job_templates_get(self, api_job_templates_pg, job_templates):
-        api_job_templates_pg.get(name__in=','.join([o['name'] for o in job_templates]))
+        api_job_templates_pg.get(or__name=[o['name'] for o in job_templates])
         assert len(job_templates) == len(api_job_templates_pg.results)
 
     @pytest.mark.destructive
