@@ -12,7 +12,7 @@ class Awx_Schema_v1(Awx_Schema):
             'enum': [ '', 'manual', 'callback', 'scheduled', ]
         }
         self.definitions['enum_launch_status'] = {
-            'enum': [ '', 'new', 'pending', 'waiting', 'running', 'successul', 'failed', 'error', 'canceled' ]
+            'enum': [ '', 'new', 'pending', 'waiting', 'running', 'successful', 'failed', 'error', 'canceled' ]
         }
         self.definitions['enum_project_status'] = {
             # 'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ]
