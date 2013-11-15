@@ -30,6 +30,24 @@ class Awx_Schema_v1(Awx_Schema):
         self.definitions['enum_kind'] = {
             'enum': [ 'ssh', 'scm', 'aws', 'rax' ],
         }
+        self.definitions['enum_passwords_needed_to_start'] = {
+            'enum': [ 'ssh_password', 'sudo_password', 'ssh_key_unlock', ],
+        }
+
+        # Shared fields
+        self.definitions['id'] = dict(type='number', minimum=1)
+        self.definitions['id_or_null'] = dict(type=['number', 'null'], minimum=1)
+
+        self.definitions['passwords_needed_to_start'] = {
+            'type': 'array',
+            'minItems': 0,
+            'uniqueItems': True,
+            'items': {
+                'type': 'string',
+                'uniqueItems': True,
+                '$ref': '#/definitions/enum_passwords_needed_to_start',
+            },
+        }
         self.definitions['summary_fields_project'] = {
             'type': 'object',
             'required': ['name', 'description', ],
@@ -40,10 +58,6 @@ class Awx_Schema_v1(Awx_Schema):
                 'status':      { 'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ] },
             },
         }
-
-        # Shared fields
-        self.definitions['id'] = dict(type='number', minimum=1)
-
         self.definitions['job_env'] = {
             'type': 'object',
             'additionalProperties': True,
@@ -1122,8 +1136,7 @@ class Awx_Schema_v1_Project_Update(Awx_Schema_v1):
             'properties': {
                 'can_update': { 'type': 'boolean', },
                 'passwords_needed_to_update': {
-                    'type': 'array',
-                    'minimum': 1,
+                    '$ref': '#/definitions/passwords_needed_to_start',
                 },
             },
         }
@@ -1158,7 +1171,7 @@ class Awx_Schema_v1_Job_templates(Awx_Schema_v1):
 
         self.definitions['job_template'] = {
             'type': 'object',
-            'required': [ 'id', 'name', 'url', 'description', 'created', 'modified', 'job_type', 'inventory', 'project', 'playbook', 'credential', 'forks', 'verbosity', 'limit', 'extra_vars', 'job_tags', 'host_config_key', 'related', 'summary_fields', ],
+            'required': [ 'id', 'name', 'url', 'description', 'created', 'modified', 'job_type', 'inventory', 'project', 'playbook', 'credential', 'cloud_credential', 'forks', 'verbosity', 'limit', 'extra_vars', 'job_tags', 'host_config_key', 'related', 'summary_fields', ],
             'additionalProperties': False,
             'properties': {
                 'id': { '$ref': '#/definitions/id', },
@@ -1172,6 +1185,7 @@ class Awx_Schema_v1_Job_templates(Awx_Schema_v1):
                 'project': { '$ref': '#/definitions/id', },
                 'playbook': { 'type': 'string', 'pattern': '.*\.(yaml|yml)' },
                 'credential': { '$ref': '#/definitions/id', },
+                'cloud_credential': { '$ref': '#/definitions/id_or_null', },
                 'forks': { 'type': 'number', 'minimum': 0 },
                 'verbosity': { 'type': 'number', 'minimum': 0 },
                 'limit': { 'type': 'string', },
@@ -1266,7 +1280,7 @@ class Awx_Schema_v1_Jobs(Awx_Schema_v1):
 
         self.definitions['job'] = {
             'type': 'object',
-            'required': [ 'id', 'url', 'created', 'modified', 'job_type', 'inventory', 'project', 'playbook', 'credential', 'forks', 'verbosity', 'limit', 'extra_vars', 'job_tags', 'job_template', 'launch_type', 'status', 'failed', 'result_stdout', 'result_traceback', 'passwords_needed_to_start', 'job_args', 'job_cwd', 'job_env', 'related', 'summary_fields', ],
+            'required': [ 'id', 'url', 'created', 'modified', 'job_type', 'inventory', 'project', 'playbook', 'credential', 'cloud_credential', 'forks', 'verbosity', 'limit', 'extra_vars', 'job_tags', 'job_template', 'launch_type', 'status', 'failed', 'result_stdout', 'result_traceback', 'passwords_needed_to_start', 'job_args', 'job_cwd', 'job_env', 'related', 'summary_fields', ],
             'additionalProperties': False,
             'properties': {
                 'id': { '$ref': '#/definitions/id', },
@@ -1278,6 +1292,7 @@ class Awx_Schema_v1_Jobs(Awx_Schema_v1):
                 'project': { '$ref': '#/definitions/id', },
                 'playbook': { 'type': 'string', 'pattern': '.*\.(yaml|yml)' },
                 'credential': { '$ref': '#/definitions/id', },
+                'cloud_credential': { '$ref': '#/definitions/id_or_null', },
                 'forks': { 'type': 'number', 'minimum': 0 },
                 'verbosity': { 'type': 'number', 'minimum': 0 },
                 'limit': { 'type': 'string', },
@@ -1289,16 +1304,7 @@ class Awx_Schema_v1_Jobs(Awx_Schema_v1):
                 'failed': { 'type': 'boolean', },
                 'result_stdout': { 'type': 'string', },
                 'result_traceback': { 'type': 'string', },
-                'passwords_needed_to_start': {
-                    'type': 'array',
-                    'minItems': 0,
-                    'uniqueItems': True,
-                    'items': {
-                        'type': 'string',
-                        'uniqueItems': True,
-                        'enum': [ 'ssh_password', ],
-                    },
-                },
+                'passwords_needed_to_start': { '$ref': '#/definitions/passwords_needed_to_start', },
                 'job_args': { 'type': 'string', },
                 'job_cwd': { 'type': 'string', },
                 'job_env': { '$ref': '#/definitions/job_env', },
@@ -1473,14 +1479,12 @@ class Awx_Schema_v1_Inventory_Sources_Update(Awx_Schema_v1):
 
         self.definitions['inventory_source_update'] = {
             'type': 'object',
-            #'required': [ 'can_update', ],
             'required': [ 'can_update', ],
             'additionalProperties': True,
             'properties': {
-                #'can_update': { 'type': 'boolean', },
+                'can_update': { 'type': 'boolean', },
                 'passwords_needed_to_update': {
-                    'type': 'array',
-                    'minimum': 1,
+                    '$ref': '#/definitions/passwords_needed_to_start',
                 },
             },
         }
