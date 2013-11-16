@@ -328,7 +328,7 @@ inventory_sources:
     - name: it_inventory/rax # name is used for internal purposes
       group: rax
       inventory: it_inventory
-      source: rackspace
+      source: rax
       credential: Rackspace (user:dsmith)
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
