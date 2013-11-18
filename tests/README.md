@@ -40,3 +40,5 @@ The following list was produced with help from the API development team to ident
 1. Delete credentials, but they remain attached to jobs ... and available for use
 2. Credentials filtering and __in (comma or list)?
    - Searching for names with a ',' in them
+3. The API doesn't always handle converting null values into empty string ''
+   - Example, creating a project with scm_type=null ... should produce a project with scm_type=''
