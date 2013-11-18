@@ -12,7 +12,7 @@
     region: '{{ rax_region }}'
     wait: yes
     wait_timeout: 800
-    state: deleted
+    state: absent
   register: rax
   with_items: rax_images
   when: delete_on_start
