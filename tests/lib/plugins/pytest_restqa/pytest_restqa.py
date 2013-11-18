@@ -35,9 +35,9 @@ def pytest_configure(config):
 
         config.addinivalue_line(
             'markers', 'nondestructive: mark the test as nondestructive. ' \
-            'Tests are assumed to be destructive unless this marker is ' \
-            'present. This reduces the risk of running destructive tests ' \
-            'accidentally.')
+                'Tests are assumed to be destructive unless this marker is ' \
+                'present. This reduces the risk of running destructive ' \
+                'tests accidentally.')
 
         if not config.option.run_destructive:
             if config.option.markexpr:
