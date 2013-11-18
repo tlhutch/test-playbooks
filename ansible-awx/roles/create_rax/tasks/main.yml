@@ -28,7 +28,7 @@
       /root/.ssh/authorized_keys: '{{ rax_public_key }}'
     wait: yes
     wait_timeout: 1500
-    state: active
+    state: present
   register: rax
   with_items: rax_images
 
