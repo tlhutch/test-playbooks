@@ -59,10 +59,8 @@ class Base(page.Page):
         # LoggedIn
         _logout_link_locator = (By.ID, "main_logout")
         _user_indicator_locator = (By.ID, "main_view_user")
-
-        # FIXME - need to figure out how to loop through navmenu tabs
-        _site_navigation_menus_locator = (By.CSS_SELECTOR, "a[id*='main_*_tab']")
-        _site_navigation_min_number_menus = 1
+        _site_navigation_menus_locator = (By.CSS_SELECTOR, "#main_tabs > li")
+        _site_navigation_min_number_menus = 8
 
         @property
         def is_logout_visible(self):

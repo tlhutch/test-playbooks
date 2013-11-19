@@ -1,3 +1,5 @@
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
 from common.ui.pages import *
 #from common.ui.pages.page import Page
 #from common.ui.pages.dashboard import Dashboard
@@ -9,9 +11,6 @@ from common.ui.pages import *
 #from common.ui.pages.inventories import Inventories
 #from common.ui.pages.job_templates import Job_Templates
 #from common.ui.pages.jobs import Jobs
-
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
 
 class HeaderMenu(Page):
     """
@@ -46,17 +45,13 @@ class HeaderMenu(Page):
         name = self._root_element.find_element(
                 *self._name_locator).text.encode('utf-8')
         if not name:
-            # If name is empty, assume Configuration menu
+            # If name is empty, assume Home menu
             name = "Home"
         return name
 
     def click(self):
-        name = self.name
         self._root_element.find_element(*self._name_locator).click()
-        current_subpage = self._item_page[name](self.testsetup).current_subpage
-        if current_subpage is None:
-            current_subpage = Page(self.testsetup)
-        return current_subpage
+        return self._item_page[self.name](self.testsetup)
 
     def hover(self):
         element = self._root_element.find_element(*self._name_locator)

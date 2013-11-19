@@ -14,6 +14,7 @@ class Page(object):
     Base class for all Pages
     '''
     _updating_locator = (By.CSS_SELECTOR, "div.spinny")
+    _current_tab_locator = (By.CSS_SELECTOR, "#main_tabs > li.active")
 
     def __init__(self, testsetup, root=None):
         '''
@@ -40,6 +41,15 @@ class Page(object):
                 lambda s: self.is_element_visible(*locator))
 
     @property
+    def is_the_current_tab(self):
+        current_tab = self.get_current_tab()
+        if self._tab_title:
+            Assert.equal(current_tab.text, self._tab_title,  # IGNORE:E1101
+                "Expected tab title: %s. Actual tab title: %s" %
+                (self._tab_title, current_tab.text))  # IGNORE:E1101
+        return True
+
+    @property
     def is_the_current_page(self):
         if self._page_title:  # IGNORE:E1101
             WebDriverWait(self.selenium, self.timeout).until(
@@ -49,6 +59,9 @@ class Page(object):
             "Expected page title: %s. Actual page title: %s" %
             (self._page_title, self.selenium.title))  # IGNORE:E1101
         return True
+
+    def get_current_tab(self):
+        return self.selenium.find_element(*self._current_tab_locator)
 
     def get_url_current_page(self):
         WebDriverWait(self.selenium, self.timeout).until(
