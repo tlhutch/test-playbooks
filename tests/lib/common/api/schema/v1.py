@@ -481,6 +481,9 @@ class Awx_Schema_v1_Users(Awx_Schema_v1):
 class Awx_Schema_v1_Org_Users(Awx_Schema_v1_Users):
     component = '/organizations/\d+/users'
 
+class Awx_Schema_v1_Org_Admins(Awx_Schema_v1_Users):
+    component = '/organizations/\d+/admins'
+
 class Awx_Schema_v1_Inventories(Awx_Schema_v1):
     component = '/inventories'
 

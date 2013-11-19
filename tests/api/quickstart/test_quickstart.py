@@ -154,7 +154,7 @@ if __name__ == '__main__':
         assert len(users) == len(user_page.results)
 
     @pytest.mark.destructive
-    def test_add_user_to_org(self, api_users_pg, api_organizations_pg, organization):
+    def test_add_org_users(self, api_users_pg, api_organizations_pg, organization):
         # get org related users link
         matching_orgs = api_organizations_pg.get(name__iexact=organization['name']).results
         assert len(matching_orgs) == 1
@@ -162,6 +162,22 @@ if __name__ == '__main__':
 
         # Add each user to the org
         for username in organization.get('users', []):
+            user = api_users_pg.get(username__iexact=username).results.pop()
+
+            # Add user to org
+            payload = dict(id=user.id)
+            with pytest.raises(NoContent_Exception):
+                org_related_pg.post(payload)
+
+    @pytest.mark.destructive
+    def test_add_org_admins(self, api_users_pg, api_organizations_pg, organization):
+        # get org related users link
+        matching_orgs = api_organizations_pg.get(name__iexact=organization['name']).results
+        assert len(matching_orgs) == 1
+        org_related_pg = matching_orgs[0].get_related('admins')
+
+        # Add each user to the org
+        for username in organization.get('admins', []):
             user = api_users_pg.get(username__iexact=username).results.pop()
 
             # Add user to org

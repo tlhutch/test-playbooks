@@ -11,6 +11,8 @@ class Organization_Page(base.Base):
         assert name in self.json['related']
         if name == 'users':
             related = Users_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'admins':
+            related = Users_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get()
