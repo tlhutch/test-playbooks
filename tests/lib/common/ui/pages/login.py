@@ -10,7 +10,7 @@ class LoginPage(base.Base):
     _login_username_field_locator = (By.ID, 'login-username')
     _login_password_field_locator = (By.ID, 'login-password')
     _login_submit_button_locator = (By.ID, 'login-button')
-    _login_demo_ok_button_locator = (By.CSS_SELECTOR, "css=#alert-modal > div.modal-dialog > div.modal-content > div.modal-footer > a.btn.btn-default")
+    _login_demo_ok_button_locator = (By.ID, 'alert_ok_btn')
 
     @property
     def is_the_current_page(self):
@@ -33,8 +33,7 @@ class LoginPage(base.Base):
 
     @property
     def demo_ok_button(self):
-        return self.selenium.find_element_by_link_text('OK')
-        # return self.selenium.find_element(*self._login_demo_ok_button_locator)
+        return self.selenium.find_element(*self._login_demo_ok_button_locator)
 
     def _click_on_login_button(self):
         self.login_button.click()
@@ -66,10 +65,10 @@ class LoginPage(base.Base):
         continue_function()
         self.demo_ok_button.click()
         self._wait_for_results_refresh()
-        # FIXME - return an OrganizationPage
-        #from pages.dashboard import DashboardPage
-        #return DashboardPage(self.testsetup)
-        return base.Base(self.testsetup)
+        # FIXME - This should return the correct redirected page
+        from dashboard import Dashboard
+        return Dashboard(self.testsetup)
+        # return base.Base(self.testsetup)
 
     def __set_login_fields(self, user='default'):
         credentials = self.testsetup.credentials[user]
