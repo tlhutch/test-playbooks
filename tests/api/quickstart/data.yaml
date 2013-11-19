@@ -10,20 +10,52 @@ organizations:
     - name: Bender Products
       description: Bender Products, Ltd.
       users:
-        - dsmith
+        - bender_user1
+      admins:
+        - bender_admin
     - name: AnsibleWorks
       description: Just another AnsibleWorks
       users:
-        - dsmith
+        - ansible_user1
+      admins:
+        - ansible_admin
     - name: Fedora
       description: The Fedora Project
 
 users:
-    - username: dsmith
+    - username: anonymous
+      email: anonymous@example.com
       password: password
-      first_name: David
-      last_name: Smith
-      email: dsmith@example.com
+      first_name: Anonymous
+      last_name: User
+      is_superuser: False
+
+    - username: bender_user1
+      email: bender_user1@bender.com
+      password: password
+      first_name: Bender
+      last_name: User1
+      is_superuser: False
+
+    - username: bender_admin
+      email: bender_admin@bender.com
+      password: password
+      first_name: Bender
+      last_name: Admin
+      is_superuser: False
+
+    - username: ansible_user1
+      email: ansible_user1@ansible.com
+      password: password
+      first_name: Bender
+      last_name: User1
+      is_superuser: False
+
+    - username: ansible_admin
+      email: ansible_admin@ansible.com
+      password: password
+      first_name: Bender
+      last_name: Admin
       is_superuser: False
 
 teams:
@@ -32,10 +64,10 @@ teams:
       organization: Bender Products
 
 credentials:
-    - name: SSH (user:dsmith, password:ASK)
-      description: user:dsmith, ssh_user:root, password:ASK
+    - name: SSH (user:bender_user1, password:ASK)
+      description: user:bender_user1, ssh_user:root, password:ASK
       kind: ssh
-      user: dsmith
+      user: bender_user1
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -45,10 +77,10 @@ credentials:
       sudo_username: ''
       sudo_password: ''
 
-    - name: SSH (user:dsmith, password:***)
-      description: user:dsmith, ssh_user:root, password:***
+    - name: SSH (user:bender_user1, password:***)
+      description: user:bender_user1, ssh_user:root, password:***
       kind: ssh
-      user: dsmith
+      user: bender_user1
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -58,10 +90,10 @@ credentials:
       sudo_username: ''
       sudo_password: ''
 
-    - name: SSH (user:dsmith, ssh_key_data)
-      description: user:dsmith, ssh_user:root, ssh_key_data
+    - name: SSH (user:bender_user1, ssh_key_data)
+      description: user:bender_user1, ssh_user:root, ssh_key_data
       kind: ssh
-      user: dsmith
+      user: bender_user1
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -71,10 +103,10 @@ credentials:
       sudo_username: ''
       sudo_password: ''
 
-    - name: SSH (user:dsmith, ssh_key_data, ssh_key_unlock:ASK)
-      description: user:dsmith, ssh_user:root, ssh_key_data, ssh_key_unlock:ASK
+    - name: SSH (user:bender_user1, ssh_key_data, ssh_key_unlock:ASK)
+      description: user:bender_user1, ssh_user:root, ssh_key_data, ssh_key_unlock:ASK
       kind: ssh
-      user: dsmith
+      user: bender_user1
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -84,10 +116,10 @@ credentials:
       sudo_username: ''
       sudo_password: ''
 
-    - name: SSH (user:dsmith, ssh_key_data, ssh_key_unlock:***)
-      description: user:dsmith, ssh_user:root, ssh_key_data, ssh_key_unlock:***
+    - name: SSH (user:bender_user1, ssh_key_data, ssh_key_unlock:***)
+      description: user:bender_user1, ssh_user:root, ssh_key_data, ssh_key_unlock:***
       kind: ssh
-      user: dsmith
+      user: bender_user1
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -97,10 +129,10 @@ credentials:
       sudo_username: ''
       sudo_password: ''
 
-    - name: SSH (user:dsmith, sudo_password:ASK)
-      description: user:dsmith, ssh_user:root, sudo_password:ASK
+    - name: SSH (user:bender_user1, sudo_password:ASK)
+      description: user:bender_user1, ssh_user:root, sudo_password:ASK
       kind: ssh
-      user: dsmith
+      user: bender_user1
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -110,10 +142,10 @@ credentials:
       sudo_username: '{sudo_username}'
       sudo_password: 'ASK'
 
-    - name: SSH (user:dsmith, sudo_password:***)
-      description: user:dsmith, ssh_user:root, sudo_password:***
+    - name: SSH (user:bender_user1, sudo_password:***)
+      description: user:bender_user1, ssh_user:root, sudo_password:***
       kind: ssh
-      user: dsmith
+      user: bender_user1
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -123,152 +155,124 @@ credentials:
       sudo_username: '{sudo_username}'
       sudo_password: '{sudo_password}'
 
-    - name: SSH (team:IT, password:ASK)
-      description: team:IT, ssh_user:root, password:ASK
-      kind: ssh
-      user: dsmith
-      team: null
-      cloud: false
-      username: '{username}' # merged from credentials.yaml
-      password: 'ASK'
-      ssh_key_data: ''
-      ssh_key_unlock: ''
-      sudo_username: ''
-      sudo_password: ''
-
-    - name: SSH (team:IT, password:***)
-      description: team:IT, ssh_user:root, password:***
-      kind: ssh
-      user: dsmith
-      team: null
-      cloud: false
-      username: '{username}' # merged from credentials.yaml
-      password: '{password}' # merged from credentials.yaml
-      ssh_key_data: ''
-      ssh_key_unlock: ''
-      sudo_username: ''
-      sudo_password: ''
-
-    - name: SSH (team:IT, ssh_key_data)
-      description: team:IT, ssh_user:root, ssh_key_data
-      kind: ssh
-      user: dsmith
-      team: null
-      cloud: false
-      username: '{username}' # merged from credentials.yaml
-      password: ''
-      ssh_key_data: '{ssh_key_data}' # from credentials.yaml
-      ssh_key_unlock: ''
-      sudo_username: ''
-      sudo_password: ''
-
-    - name: SSH (team:IT, ssh_key_data, ssh_key_unlock:ASK)
-      description: team:IT, ssh_user:root, ssh_key_data, ssh_key_unlock:ASK
-      kind: ssh
-      user: dsmith
-      team: null
-      cloud: false
-      username: '{username}' # merged from credentials.yaml
-      password: ''
-      ssh_key_data: '{ssh_key_data}'
-      ssh_key_unlock: 'ASK'
-      sudo_username: ''
-      sudo_password: ''
-
-    - name: SSH (team:IT, ssh_key_data, ssh_key_unlock:***)
-      description: team:IT, ssh_user:root, ssh_key_data, ssh_key_unlock:***
-      kind: ssh
-      user: dsmith
-      team: null
-      cloud: false
-      username: '{username}' # merged from credentials.yaml
-      password: ''
-      ssh_key_data: '{ssh_key_data}'
-      ssh_key_unlock: '{ssh_key_unlock}'
-      sudo_username: ''
-      sudo_password: ''
-
-    - name: SSH (team:IT, sudo_password:ASK)
-      description: team:IT, ssh_user:root, sudo_password:ASK
-      kind: ssh
-      user: dsmith
-      team: null
-      cloud: false
-      username: '{username}' # merged from credentials.yaml
-      password: '{password}'
-      ssh_key_data: '{ssh_key_data}'
-      ssh_key_unlock: '{ssh_key_unlock}'
-      sudo_username: '{sudo_username}'
-      sudo_password: 'ASK'
-
-    - name: SSH (team:IT, sudo_password:***)
-      description: team:IT, ssh_user:root, sudo_password:***
-      kind: ssh
-      user: dsmith
-      team: null
-      cloud: false
-      username: '{username}' # merged from credentials.yaml
-      password: '{password}'
-      ssh_key_data: '{ssh_key_data}'
-      ssh_key_unlock: '{ssh_key_unlock}'
-      sudo_username: '{sudo_username}'
-      sudo_password: '{sudo_password}'
-
-    - name: SCM (user:dsmith, username:git, password:ASK)
-      description: 'SCM credential for use with URLs of the format: git@github.com'
+    #
+    # github credentials
+    #
+    - name: git@github.com (ssh_key_data)
+      description: 'SCM credential for git@github.com (includes ssh_key_data)'
       kind: scm
-      user: dsmith
+      user: bender_user1
       team: null
       cloud: false
       username: git
-      password: ASK
-      ssh_key_data: ''
-      ssh_key_unlock: ''
-
-    - name: SCM (user:dsmith, username:***, password:***)
-      description: 'SCM credential for use with URLs of the format: https://github.com'
-      kind: scm
-      user: dsmith
-      team: null
-      cloud: false
-      username: '{username}' # Gathered from credentials.yaml
-      password: '{password}' # Gathered from credentials.yaml
-      ssh_key_data: ''
-      ssh_key_unlock: ''
-
-    - name: SCM (user:dsmith, username:***, ssh_key_data)
-      description: 'SCM credential for use with URLs of the format: https://github.com (username, ssh_key_data)'
-      kind: scm
-      user: dsmith
-      team: null
-      cloud: false
-      username: '{username}' # Gathered from credentials.yaml
       password: ''
-      ssh_key_data: '{ssh_key_data}' # from credentials.yaml
+      ssh_key_data: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEowIBAAKCAQEA04H3s/QuoPLCQGUW2DBxH+gIIPsDgeMhWIqEQL0XMBtuMZGT
+        rpnfIls/pNohtNCLVVcZSTJDuM39a/kch73T75QOfwawl4wTRskmzFucJcuEid4G
+        ppOJk42KyBipXa28U/P5BFuzSKwCMLDefTGaBcnLjx2ISGo74xsnUzHe+ZkxpWC4
+        m2wV1CckxLTZti0YWCgmVvmv3SPGHKQO6RaLiqCyrS+7uy/ojVCFEKYKQD4fm4Xe
+        GWB0nXps+AuBhOjwh8nx5oQDCeQ8KpEjWbc7WM8KZitk0t716ieU+HiDxmT/nY87
+        NQHKRRmUDTic6vzG6DMRMxxrAOgFKjObN+4k8QIDAQABAoIBAA+lXZ2CQrDFRHlf
+        AQGdE8E4eOF3sBq7oovaM05WrpBwdwZTrokL+OWhumOHf1bQ1n3Jo6U2gqv5EPYb
+        x3CDKlpeqXPcGtQbGJHz71rOrA5fr75DHlrULykrH0kOCflUEMplEdawseJ+Vusj
+        KlI4iRxEgTplBN/We/eg2pfc6JGuEPbJKWAFp9aVWwUm2wKMBflxdwHICICQtkZN
+        noK3pmq7wOH9QbvXC4m/2sxPqyp+c4x68wTVflT3+fZk+yiNYbHjpXkIOtLX3Ik5
+        n2cUgR0LO0E98zzKSlvHxr6LEF5Myw3+5Zs55RBAMLmHQBilxXzRfQ7qS2ZJPnF/
+        ut0BwAECgYEA9Bbwp3t7xapNGGRODilWk3xr0d7FTVnXQNlH2wh/8RWdnZQtsAOD
+        oMSTCG1Tjol+7qHSg8pU440Vtd9BqhZv0E+m6AfBAJHFF7ug60INVGPu97YZJwoZ
+        7Bh7vWCYGp46hCQL3yl6gAAye2wmzU7s9ULtjQs/79MDGwQiBIZBXzECgYEA3dQH
+        Su/U3Jzne1iy04CjYD1ZdGdbjSXgA6AXg0dWwTImzI6LkLqWxMj7xKfWvDu7Eft4
+        PL/PaaWa2CIjUTmjrII0ZHK85FBFMeTln/ni6/GwUj2GmU88omwsIZwBazJ0VpMt
+        1gTLteDtzcQiM0+2XBHkrYiie/5V4SHw1Ir9McECgYEAw+cReOpDmY6oV7ZRa05E
+        PRT0GDnaUs2TVGnPIP1+agj2On2t+YGoiESc2XudP14dMPtR0RJ39TXLwe+QbSma
+        zi7Pf5SRk5pq/DRL3+Vge2XFaqyNHWcfDP1Net3m1h4+SsX/fTl2JvuBiMtxjQAW
+        cHYp4DSyORI7gNhdURJLr1ECgYBGF40GXKnB28I481nuAqOc8UWmxlHjU6ho/Njx
+        HkWHXjVsRU5MOOkS3P7QsMflSmpd0Du51lHPbAh1arQGIlRZWfr8ElUlP0fd8Bmu
+        ZuMQ8ploIxC4uJTMLan0JLs+B/9Cq9a73WAQ5DW/4s17sSBKD01Wl+nfjAnOzU6v
+        mgtPAQKBgGPBXy2/8Mef554K7UbunAi3sMoFmiYly6fUimBkr3uPMBZm+LAqDDPR
+        4frqmYq6EvcD02fUuJFUE4cj0W1UD9aFuet79WBFJ/Jz4A/L2TPcFc0pny7wdukc
+        shbi6WgmwVoIYNuqS4PeusHjD8RlPjTN2y/Bjlr6hhF4HkRgvyxE
+        -----END RSA PRIVATE KEY-----
       ssh_key_unlock: ''
 
-    - name: SCM (user:dsmith, username:***, ssh_key_data, ssh_key_unlock:***)
-      description: 'SCM credential for use with URLs of the format: https://github.com (username, ssh_key_data, ssh_key_unlock)'
+    - name: git@github.com (ssh_key_data, ssh_key_unlock)
+      description: 'SCM credential for git@github.com (includes ssh_key_data and ssh_key_unlock)'
       kind: scm
-      user: dsmith
+      user: bender_user1
       team: null
       cloud: false
-      username: '{username}' # Gathered from credentials.yaml
+      username: git
       password: ''
-      ssh_key_data: '{ssh_key_data}' # from credentials.yaml
-      ssh_key_unlock: '{ssh_key_unlock}' # from credentials.yaml
+      ssh_key_data: '{ssh_key_data}'
+      ssh_key_unlock: '{ssh_key_unlock}'
 
-    - name: AWS (user:dsmith)
-      description: Amazon AWS credentials for dsmith
+    #
+    # bitbucket credentials
+    #
+    - name: hg@bitbucket.org (ssh_key_data)
+      description: 'SCM credential for git@github.com (includes ssh_key_data)'
+      kind: scm
+      user: bender_user1
+      team: null
+      cloud: false
+      username: hg
+      password: ''
+      ssh_key_data: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEowIBAAKCAQEA04H3s/QuoPLCQGUW2DBxH+gIIPsDgeMhWIqEQL0XMBtuMZGT
+        rpnfIls/pNohtNCLVVcZSTJDuM39a/kch73T75QOfwawl4wTRskmzFucJcuEid4G
+        ppOJk42KyBipXa28U/P5BFuzSKwCMLDefTGaBcnLjx2ISGo74xsnUzHe+ZkxpWC4
+        m2wV1CckxLTZti0YWCgmVvmv3SPGHKQO6RaLiqCyrS+7uy/ojVCFEKYKQD4fm4Xe
+        GWB0nXps+AuBhOjwh8nx5oQDCeQ8KpEjWbc7WM8KZitk0t716ieU+HiDxmT/nY87
+        NQHKRRmUDTic6vzG6DMRMxxrAOgFKjObN+4k8QIDAQABAoIBAA+lXZ2CQrDFRHlf
+        AQGdE8E4eOF3sBq7oovaM05WrpBwdwZTrokL+OWhumOHf1bQ1n3Jo6U2gqv5EPYb
+        x3CDKlpeqXPcGtQbGJHz71rOrA5fr75DHlrULykrH0kOCflUEMplEdawseJ+Vusj
+        KlI4iRxEgTplBN/We/eg2pfc6JGuEPbJKWAFp9aVWwUm2wKMBflxdwHICICQtkZN
+        noK3pmq7wOH9QbvXC4m/2sxPqyp+c4x68wTVflT3+fZk+yiNYbHjpXkIOtLX3Ik5
+        n2cUgR0LO0E98zzKSlvHxr6LEF5Myw3+5Zs55RBAMLmHQBilxXzRfQ7qS2ZJPnF/
+        ut0BwAECgYEA9Bbwp3t7xapNGGRODilWk3xr0d7FTVnXQNlH2wh/8RWdnZQtsAOD
+        oMSTCG1Tjol+7qHSg8pU440Vtd9BqhZv0E+m6AfBAJHFF7ug60INVGPu97YZJwoZ
+        7Bh7vWCYGp46hCQL3yl6gAAye2wmzU7s9ULtjQs/79MDGwQiBIZBXzECgYEA3dQH
+        Su/U3Jzne1iy04CjYD1ZdGdbjSXgA6AXg0dWwTImzI6LkLqWxMj7xKfWvDu7Eft4
+        PL/PaaWa2CIjUTmjrII0ZHK85FBFMeTln/ni6/GwUj2GmU88omwsIZwBazJ0VpMt
+        1gTLteDtzcQiM0+2XBHkrYiie/5V4SHw1Ir9McECgYEAw+cReOpDmY6oV7ZRa05E
+        PRT0GDnaUs2TVGnPIP1+agj2On2t+YGoiESc2XudP14dMPtR0RJ39TXLwe+QbSma
+        zi7Pf5SRk5pq/DRL3+Vge2XFaqyNHWcfDP1Net3m1h4+SsX/fTl2JvuBiMtxjQAW
+        cHYp4DSyORI7gNhdURJLr1ECgYBGF40GXKnB28I481nuAqOc8UWmxlHjU6ho/Njx
+        HkWHXjVsRU5MOOkS3P7QsMflSmpd0Du51lHPbAh1arQGIlRZWfr8ElUlP0fd8Bmu
+        ZuMQ8ploIxC4uJTMLan0JLs+B/9Cq9a73WAQ5DW/4s17sSBKD01Wl+nfjAnOzU6v
+        mgtPAQKBgGPBXy2/8Mef554K7UbunAi3sMoFmiYly6fUimBkr3uPMBZm+LAqDDPR
+        4frqmYq6EvcD02fUuJFUE4cj0W1UD9aFuet79WBFJ/Jz4A/L2TPcFc0pny7wdukc
+        shbi6WgmwVoIYNuqS4PeusHjD8RlPjTN2y/Bjlr6hhF4HkRgvyxE
+        -----END RSA PRIVATE KEY-----
+      ssh_key_unlock: ''
+
+    - name: hg@bitbucket.org (ssh_key_data, ssh_key_unlock)
+      description: 'SCM credential for git@github.com (includes ssh_key_data and ssh_key_unlock)'
+      kind: scm
+      user: bender_user1
+      team: null
+      cloud: false
+      username: hg
+      password: ''
+      ssh_key_data: '{ssh_key_data}'
+      ssh_key_unlock: '{ssh_key_unlock}'
+
+    #
+    # Amazon AWS Credentials
+    #
+    - name: AWS (user:bender_user1)
+      description: Amazon AWS credentials for bender_user1
       kind: aws
-      user: dsmith
+      user: bender_user1
       team: null
       cloud: true
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
 
     - name: AWS (team:IT)
-      description: Amazon AWS credentials for dsmith
+      description: Amazon AWS credentials for bender_user1
       kind: aws
       user: null
       team: IT
@@ -276,17 +280,20 @@ credentials:
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
 
-    - name: Rackspace (user:dsmith)
-      description: Rackspace Cloudserver credentials for dsmith
+    #
+    # Rackspace Cloud Credentials
+    #
+    - name: Rackspace (user:bender_user1)
+      description: Rackspace Cloudserver credentials for bender_user1
       kind: rax
-      user: dsmith
+      user: bender_user1
       team: null
       cloud: true
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
 
     - name: Rackspace (team:IT)
-      description: Rackspace Cloudserver credentials for dsmith
+      description: Rackspace Cloudserver credentials for bender_user1
       kind: rax
       user: null
       team: IT
@@ -317,7 +324,7 @@ inventory_sources:
       group: aws
       inventory: it_inventory
       source: ec2
-      credential: AWS (user:dsmith)
+      credential: AWS (user:bender_user1)
       source_vars: ''
       source_regions: ''
       overwrite: true
@@ -329,7 +336,7 @@ inventory_sources:
       group: rax
       inventory: it_inventory
       source: rax
-      credential: Rackspace (user:dsmith)
+      credential: Rackspace (user:bender_user1)
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
       source_vars: ''
@@ -359,6 +366,14 @@ hosts:
       variables: |
         ansible_ssh_user: root
         ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+
+    - name: not a valid hostname
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: localhost
       groups:
         - local
 
@@ -407,7 +422,7 @@ projects:
       scm_delete_on_update: false
       scm_update_on_launch: false
 
-    - name: ansible-helloworld.hg (hg)
+    - name: ansible-helloworld (hg)
       description: scm_type:hg
       organization: Bender Products
       scm_type: hg
@@ -417,8 +432,30 @@ projects:
       scm_delete_on_update: false
       scm_update_on_launch: false
 
-    - name: ansible-examples.git (git, credential:ASK)
-      description: scm_type:git, credential:ASK
+    - name: ansible-helloworld (hg, ssh_key_data)
+      description: ssh://hg@bitbucket.org/jlaska/ansible-helloworld (ssh_key_data)
+      organization: Bender Products
+      scm_type: hg
+      scm_url: ssh://hg@bitbucket.org/jlaska/ansible-helloworld
+      scm_branch: ''
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+      credential: hg@bitbucket.org (ssh_key_data)
+
+    - name: ansible-helloworld (hg, ssh_key_data, ssh_key_unlock)
+      description: ssh://hg@bitbucket.org/jlaska/ansible-helloworld (ssh_key_data)
+      organization: Bender Products
+      scm_type: hg
+      scm_url: ssh://hg@bitbucket.org/jlaska/ansible-helloworld
+      scm_branch: ''
+      scm_clean: true
+      scm_delete_on_update: true
+      scm_update_on_launch: false
+      credential: hg@bitbucket.org (ssh_key_data, ssh_key_unlock)
+
+    - name: ansible-examples.git (github, ssh_key_data)
+      description: git@github.com:ansible/ansible-examples.git (ssh_key_data)
       organization: Bender Products
       scm_type: git
       scm_url: git@github.com:ansible/ansible-examples.git
@@ -426,80 +463,94 @@ projects:
       scm_clean: false
       scm_delete_on_update: false
       scm_update_on_launch: false
-      credential: SCM (user:dsmith, username:git, password:ASK)
+      credential: git@github.com (ssh_key_data)
 
-    - name: ansible-examples.git (git, credential:***)
-      description: scm_type:git, credential:***
+    - name: ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
+      description: git@github.com:ansible/ansible-examples.git (ssh_key_data, ssh_key_unlock)
       organization: Bender Products
       scm_type: git
-      scm_url: https://github.com/ansible/ansible-examples.git
+      scm_url: git@github.com:ansible/ansible-examples.git
       scm_branch: 'master'
       scm_clean: false
       scm_delete_on_update: false
       scm_update_on_launch: false
-      credential: SCM (user:dsmith, username:***, password:***)
+      credential: git@github.com (ssh_key_data, ssh_key_unlock)
 
 job_templates:
-    - name: language_features/loop_plugins.yml (check)
+    - name: language_features/loop_plugins.yml (limit:rax:ORD)
       job_type: check
       allow_callbacks: false
       playbook: language_features/loop_plugins.yml
       project: ansible-examples.git (manual)
       inventory: it_inventory
-      credential: SSH (user:dsmith, password:ASK)
+      credential: SSH (user:bender_user1, ssh_key_data, ssh_key_unlock:***)
+      limit: rax:ORD
 
-    - name: language_features/loop_plugins.yml (run)
+    - name: language_features/loop_plugins.yml (limit:all, ssh_key_unlock:ASK)
       job_type: run
       allow_callbacks: false
       playbook: language_features/loop_plugins.yml
       project: ansible-examples.git (manual)
       inventory: it_inventory
-      credential: SSH (user:dsmith, password:ASK)
+      credential: SSH (user:bender_user1, ssh_key_data, ssh_key_unlock:ASK)
+      limit: key_jenkins:&aws
 
-    - name: language_features/roletest.yml (check)
+    - name: language_features/roletest.yml (sudo_password:ASK)
       job_type: check
       allow_callbacks: false
       playbook: trunk/language_features/roletest.yml
       project: ansible-examples.svn (manual)
       inventory: it_inventory
-      credential: SSH (user:dsmith, password:ASK)
+      credential: SSH (user:bender_user1, sudo_password:ASK)
 
-    - name: language_features/roletest.yml (run)
+    - name: language_features/roletest.yml
       job_type: run
       allow_callbacks: false
       playbook: trunk/language_features/roletest.yml
       project: ansible-examples.svn (manual)
       inventory: it_inventory
-      credential: SSH (user:dsmith, password:ASK)
+      credential: SSH (user:bender_user1, sudo_password:***)
 
-    - name: helloworld/site.yml
+    - name: helloworld/site.yml (limit:local)
       job_type: run
       playbook: site.yml
       project: ansible-helloworld.hg (manual)
       inventory: it_inventory
-      credential: SSH (user:dsmith, password:ASK)
+      credential: SSH (user:bender_user1, password:***)
+      limit: local
 
-# playbook: language_features/ansible_pull.yml
-# playbook: language_features/register_logic.yml
-# playbook: language_features/batch_size_control.yml
-# playbook: language_features/file_secontext.yml
-# playbook: language_features/loop_with_items.yml
-# playbook: language_features/roletest2.yml
-# playbook: language_features/complex_args.yml
-# playbook: language_features/get_url.yml
-# playbook: language_features/conditionals_part1.yml
-# playbook: language_features/group_by.yml
-# playbook: language_features/nested_playbooks.yml
-# playbook: language_features/selective_file_sources.yml
-# playbook: language_features/conditionals_part2.yml
-# playbook: language_features/group_commands.yml
-# playbook: language_features/tags.yml
-# playbook: language_features/custom_filters.yml
-# playbook: language_features/intermediate_example.yml
-# playbook: language_features/upgraded_vars.yml
-# playbook: language_features/delegation.yml
-# playbook: language_features/intro_example.yml
-# playbook: language_features/prompts.yml
-# playbook: language_features/user_commands.yml
-# playbook: language_features/environment.yml
-# playbook: language_features/loop_nested.yml
+    - name: helloworld/site.yml (limit:127.0.0.1)
+      job_type: check
+      playbook: site.yml
+      project: ansible-helloworld (hg, ssh_key_data)
+      inventory: it_inventory
+      credential: SSH (user:bender_user1, password:***)
+      limit: 127.0.0.1
+
+    - name: helloworld/site.yml (password:ASK, limit:localhost)
+      job_type: run
+      playbook: site.yml
+      project: ansible-helloworld (hg, ssh_key_data, ssh_key_unlock)
+      inventory: it_inventory
+      credential: SSH (user:bender_user1, password:ASK)
+      limit: localhost
+
+    - name: language_features/tags.yml (tags:foo, limit:unresolvable-name.example.com)
+      job_type: check
+      allow_callbacks: false
+      playbook: language_features/tags.yml
+      project: ansible-examples.git (github, ssh_key_data)
+      inventory: it_inventory
+      credential: SSH (user:bender_user1, password:***)
+      job_tags: foo
+      limit: unresolvable-name.example.com
+
+    - name: language_features/tags.yml (tags:bar, limit:not a valid hostname)
+      job_type: run
+      allow_callbacks: false
+      playbook: language_features/tags.yml
+      project: ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
+      inventory: it_inventory
+      credential: SSH (user:bender_user1, ssh_key_data)
+      job_tags: bar
+      limit: not a valid hostname
