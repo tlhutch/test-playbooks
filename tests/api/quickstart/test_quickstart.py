@@ -129,7 +129,7 @@ if __name__ == '__main__':
         ansible_runner.shell('python /tmp/%s' % p.basename, creates='/etc/awx/license')
 
     @pytest.mark.destructive
-    def test_organization_post(self, api_organizations_pg, organization):
+    def test_organizations_post(self, api_organizations_pg, organization):
 
         # Create a new organization
         payload = dict(name=organization['name'],
@@ -146,7 +146,7 @@ if __name__ == '__main__':
         assert len(organizations) == len(org_page.results)
 
     @pytest.mark.destructive
-    def test_user_post(self, api_users_pg, user):
+    def test_users_post(self, api_users_pg, user):
 
         payload = dict(username=user['username'],
                        first_name=user['first_name'],
@@ -287,7 +287,7 @@ if __name__ == '__main__':
         assert len(credentials) == len(credential_page.results)
 
     @pytest.mark.destructive
-    def test_inventory_post(self, api_inventories_pg, api_organizations_pg, inventory):
+    def test_inventories_post(self, api_inventories_pg, api_organizations_pg, inventory):
 
         # Find desired org
         matches = api_organizations_pg.get(name__iexact=inventory['organization']).results
@@ -305,7 +305,7 @@ if __name__ == '__main__':
             pytest.xfail("Already exists")
 
     @pytest.mark.nondestructive
-    def test_inventory_get(self, api_inventories_pg, inventories):
+    def test_inventories_get(self, api_inventories_pg, inventories):
         # Get list of created inventories
         api_inventories_pg.get(name__in=','.join([o['name'] for o in inventories]))
 
