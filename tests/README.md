@@ -4,21 +4,19 @@ ansibleworks-qa tests
 # Instructions
 
 1. Create, and modify, `credentials.yaml`
-    cp credentials.template credentials.yaml
-    vim credentials.yaml
-2. Determine URL for running AWX instance (needed by `--api-baseurl` parameter)
-3. Run tests:
-    PYTHONPATH=tests/lib py.test --api-baseurl https://example.com  --destructive tests
+        cp credentials.template credentials.yaml
+        vim credentials.yaml # update as needed
+2. Determine URL for running AWX instance (needed by `--baseurl` parameter)
+3. Run API tests:
+        PYTHONPATH=tests/lib py.test --baseurl https://example.com --destructive tests/api
 
 # TODO
 
-1. Completed SCM tests
-2. Research storing schema as json files (not .py)
-3. Testing cloud inventory
+1. Research storing schema as json files (not .py)
+2. Testing cloud inventory
    * jobs should wait until inventory sync is complete
-4. Test RBAC authentication+permissions
-5. Test SCM projects
-6. Build basic UI navigation test (capable of offloading to SauceLabs for browser compatability testing)
+3. Test RBAC authentication+permissions
+4. Build basic UI navigation test (capable of offloading to SauceLabs for browser compatability testing)
 
 # Unittest gaps
 
