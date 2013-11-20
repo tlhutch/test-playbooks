@@ -4,13 +4,13 @@ license:
     contact_name: Art Vandelay
     contact_email: art@ansibleworks.com
     instance_count: 1000
-    license_days: 31
+    license_days: 1
 
 organizations:
     - name: Bender Products
       description: Bender Products, Ltd.
       users:
-        - bender_user1
+        - bender_eng_user
       admins:
         - bender_admin
       projects:
@@ -24,12 +24,14 @@ organizations:
         - ansible-helloworld (hg, ssh_key_data, ssh_key_unlock)
         - ansible-examples.git (github, ssh_key_data)
         - ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
+
     - name: AnsibleWorks
       description: Just another AnsibleWorks
       users:
-        - ansible_user1
+        - ansible_user
       admins:
         - ansible_admin
+
     - name: Fedora
       description: The Fedora Project
 
@@ -41,11 +43,18 @@ users:
       last_name: User
       is_superuser: False
 
-    - username: bender_user1
-      email: bender_user1@bender.com
+    - username: bender_eng_user
+      email: bender_eng_user@bender.com
       password: password
-      first_name: Bender
-      last_name: User1
+      first_name: Bender Engineering
+      last_name: User
+      is_superuser: False
+
+    - username: bender_it_user
+      email: bender_it_user@bender.com
+      password: password
+      first_name: Bender IT
+      last_name: User
       is_superuser: False
 
     - username: bender_admin
@@ -55,8 +64,8 @@ users:
       last_name: Admin
       is_superuser: False
 
-    - username: ansible_user1
-      email: ansible_user1@ansible.com
+    - username: ansible_user
+      email: ansible_user@ansible.com
       password: password
       first_name: Bender
       last_name: User1
@@ -74,18 +83,18 @@ teams:
       description: IT Department
       organization: Bender Products
       users:
-        - bender_admin
+        - bender_it_user
     - name: Engineering
       description: Engineering Department
       organization: Bender Products
       users:
-        - bender_user1
+        - bender_eng_user
 
 credentials:
-    - name: SSH (user:bender_user1, password:ASK)
-      description: user:bender_user1, ssh_user:root, password:ASK
+    - name: SSH (user:bender_eng_user, password:ASK)
+      description: user:bender_eng_user, ssh_user:root, password:ASK
       kind: ssh
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -95,10 +104,10 @@ credentials:
       sudo_username: ''
       sudo_password: ''
 
-    - name: SSH (user:bender_user1, password:***)
-      description: user:bender_user1, ssh_user:root, password:***
+    - name: SSH (user:bender_eng_user, password:***)
+      description: user:bender_eng_user, ssh_user:root, password:***
       kind: ssh
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -108,10 +117,10 @@ credentials:
       sudo_username: ''
       sudo_password: ''
 
-    - name: SSH (user:bender_user1, ssh_key_data)
-      description: user:bender_user1, ssh_user:root, ssh_key_data
+    - name: SSH (user:bender_eng_user, ssh_key_data)
+      description: user:bender_eng_user, ssh_user:root, ssh_key_data
       kind: ssh
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -121,10 +130,10 @@ credentials:
       sudo_username: ''
       sudo_password: ''
 
-    - name: SSH (user:bender_user1, ssh_key_data, ssh_key_unlock:ASK)
-      description: user:bender_user1, ssh_user:root, ssh_key_data, ssh_key_unlock:ASK
+    - name: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:ASK)
+      description: user:bender_eng_user, ssh_user:root, ssh_key_data, ssh_key_unlock:ASK
       kind: ssh
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -134,10 +143,10 @@ credentials:
       sudo_username: ''
       sudo_password: ''
 
-    - name: SSH (user:bender_user1, ssh_key_data, ssh_key_unlock:***)
-      description: user:bender_user1, ssh_user:root, ssh_key_data, ssh_key_unlock:***
+    - name: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)
+      description: user:bender_eng_user, ssh_user:root, ssh_key_data, ssh_key_unlock:***
       kind: ssh
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -147,10 +156,10 @@ credentials:
       sudo_username: ''
       sudo_password: ''
 
-    - name: SSH (user:bender_user1, sudo_password:ASK)
-      description: user:bender_user1, ssh_user:root, sudo_password:ASK
+    - name: SSH (user:bender_eng_user, sudo_password:ASK)
+      description: user:bender_eng_user, ssh_user:root, sudo_password:ASK
       kind: ssh
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -160,10 +169,10 @@ credentials:
       sudo_username: '{sudo_username}'
       sudo_password: 'ASK'
 
-    - name: SSH (user:bender_user1, sudo_password:***)
-      description: user:bender_user1, ssh_user:root, sudo_password:***
+    - name: SSH (user:bender_eng_user, sudo_password:***)
+      description: user:bender_eng_user, ssh_user:root, sudo_password:***
       kind: ssh
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: false
       username: '{username}' # merged from credentials.yaml
@@ -179,7 +188,7 @@ credentials:
     - name: git@github.com (ssh_key_data)
       description: 'SCM credential for git@github.com (includes ssh_key_data)'
       kind: scm
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: false
       username: git
@@ -217,7 +226,7 @@ credentials:
     - name: git@github.com (ssh_key_data, ssh_key_unlock)
       description: 'SCM credential for git@github.com (includes ssh_key_data and ssh_key_unlock)'
       kind: scm
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: false
       username: git
@@ -231,7 +240,7 @@ credentials:
     - name: hg@bitbucket.org (ssh_key_data)
       description: 'SCM credential for git@github.com (includes ssh_key_data)'
       kind: scm
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: false
       username: hg
@@ -269,7 +278,7 @@ credentials:
     - name: hg@bitbucket.org (ssh_key_data, ssh_key_unlock)
       description: 'SCM credential for git@github.com (includes ssh_key_data and ssh_key_unlock)'
       kind: scm
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: false
       username: hg
@@ -280,17 +289,17 @@ credentials:
     #
     # Amazon AWS Credentials
     #
-    - name: AWS (user:bender_user1)
-      description: Amazon AWS credentials for bender_user1
+    - name: AWS (user:bender_eng_user)
+      description: Amazon AWS credentials for bender_eng_user
       kind: aws
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: true
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
 
     - name: AWS (team:IT)
-      description: Amazon AWS credentials for bender_user1
+      description: Amazon AWS credentials for bender_eng_user
       kind: aws
       user: null
       team: IT
@@ -301,17 +310,17 @@ credentials:
     #
     # Rackspace Cloud Credentials
     #
-    - name: Rackspace (user:bender_user1)
-      description: Rackspace Cloudserver credentials for bender_user1
+    - name: Rackspace (user:bender_eng_user)
+      description: Rackspace Cloudserver credentials for bender_eng_user
       kind: rax
-      user: bender_user1
+      user: bender_eng_user
       team: null
       cloud: true
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
 
     - name: Rackspace (team:IT)
-      description: Rackspace Cloudserver credentials for bender_user1
+      description: Rackspace Cloudserver credentials for bender_eng_user
       kind: rax
       user: null
       team: IT
@@ -342,7 +351,7 @@ inventory_sources:
       group: aws
       inventory: it_inventory
       source: ec2
-      credential: AWS (user:bender_user1)
+      credential: AWS (user:bender_eng_user)
       source_vars: ''
       source_regions: ''
       overwrite: true
@@ -354,7 +363,7 @@ inventory_sources:
       group: rax
       inventory: it_inventory
       source: rax
-      credential: Rackspace (user:bender_user1)
+      credential: Rackspace (user:bender_eng_user)
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
       source_vars: ''
@@ -501,7 +510,7 @@ job_templates:
       playbook: language_features/loop_plugins.yml
       project: ansible-examples.git (manual)
       inventory: it_inventory
-      credential: SSH (user:bender_user1, ssh_key_data, ssh_key_unlock:***)
+      credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)
       limit: rax:ORD
 
     - name: language_features/loop_plugins.yml (limit:all, ssh_key_unlock:ASK)
@@ -510,7 +519,7 @@ job_templates:
       playbook: language_features/loop_plugins.yml
       project: ansible-examples.git (manual)
       inventory: it_inventory
-      credential: SSH (user:bender_user1, ssh_key_data, ssh_key_unlock:ASK)
+      credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:ASK)
       limit: key_jenkins:&aws
 
     - name: language_features/roletest.yml (sudo_password:ASK)
@@ -519,7 +528,7 @@ job_templates:
       playbook: trunk/language_features/roletest.yml
       project: ansible-examples.svn (manual)
       inventory: it_inventory
-      credential: SSH (user:bender_user1, sudo_password:ASK)
+      credential: SSH (user:bender_eng_user, sudo_password:ASK)
 
     - name: language_features/roletest.yml
       job_type: run
@@ -527,14 +536,14 @@ job_templates:
       playbook: trunk/language_features/roletest.yml
       project: ansible-examples.svn (manual)
       inventory: it_inventory
-      credential: SSH (user:bender_user1, sudo_password:***)
+      credential: SSH (user:bender_eng_user, sudo_password:***)
 
     - name: helloworld/site.yml (limit:local)
       job_type: run
       playbook: site.yml
       project: ansible-helloworld.hg (manual)
       inventory: it_inventory
-      credential: SSH (user:bender_user1, password:***)
+      credential: SSH (user:bender_eng_user, password:***)
       limit: local
 
     - name: helloworld/site.yml (limit:127.0.0.1)
@@ -542,7 +551,7 @@ job_templates:
       playbook: site.yml
       project: ansible-helloworld (hg, ssh_key_data)
       inventory: it_inventory
-      credential: SSH (user:bender_user1, password:***)
+      credential: SSH (user:bender_eng_user, password:***)
       limit: 127.0.0.1
 
     - name: helloworld/site.yml (password:ASK, limit:localhost)
@@ -550,7 +559,7 @@ job_templates:
       playbook: site.yml
       project: ansible-helloworld (hg, ssh_key_data, ssh_key_unlock)
       inventory: it_inventory
-      credential: SSH (user:bender_user1, password:ASK)
+      credential: SSH (user:bender_eng_user, password:ASK)
       limit: localhost
 
     - name: language_features/tags.yml (tags:foo, limit:unresolvable-name.example.com)
@@ -559,7 +568,7 @@ job_templates:
       playbook: language_features/tags.yml
       project: ansible-examples.git (github, ssh_key_data)
       inventory: it_inventory
-      credential: SSH (user:bender_user1, password:***)
+      credential: SSH (user:bender_eng_user, password:***)
       job_tags: foo
       limit: unresolvable-name.example.com
 
@@ -569,6 +578,6 @@ job_templates:
       playbook: language_features/tags.yml
       project: ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
       inventory: it_inventory
-      credential: SSH (user:bender_user1, ssh_key_data)
+      credential: SSH (user:bender_eng_user, ssh_key_data)
       job_tags: bar
       limit: not a valid hostname
