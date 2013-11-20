@@ -65,6 +65,17 @@ def pytest_generate_tests(metafunc):
 class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.destructive
+    def test_set_rootpw(self, ansible_runner):
+        '''
+        This test is a hack to make sure all test systems have the proper
+        passwd
+        '''
+
+        assert self.has_credentials('ssh', fields=['username', 'password'])
+        ansible_runner.shell("echo '%s' | passwd --stdin root" % \
+            self.credentials['ssh']['password'])
+
+    @pytest.mark.destructive
     def test_install_license(self, awx_config, tmpdir, ansible_runner):
         # FIXME - parameterize the license info and store it in data.yml
 
