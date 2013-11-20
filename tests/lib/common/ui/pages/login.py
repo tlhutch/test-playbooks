@@ -61,14 +61,19 @@ class LoginPage(base.Base):
     def __do_login(self, continue_function, user='default'):
         self.__set_login_fields(user)
         # TODO: Remove once bug is fixed
-        time.sleep(1.25)
+        # time.sleep(1.25)
         continue_function()
-        self.demo_ok_button.click()
+
+        # Wait for DEMO dialog
+        try:
+            self.demo_ok_button.click()
+        except:
+            pass
         self._wait_for_results_refresh()
+
         # FIXME - This should return the correct redirected page
         from dashboard import Dashboard
         return Dashboard(self.testsetup)
-        # return base.Base(self.testsetup)
 
     def __set_login_fields(self, user='default'):
         credentials = self.testsetup.credentials[user]
