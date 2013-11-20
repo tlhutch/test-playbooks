@@ -17,9 +17,6 @@ class Page(object):
     _current_tab_locator = (By.CSS_SELECTOR, "#main_tabs > li.active")
 
     def __init__(self, testsetup, root=None):
-        '''
-        Constructor
-        '''
         self.testsetup = testsetup
         self.base_url = testsetup.base_url
         self.selenium = testsetup.selenium
