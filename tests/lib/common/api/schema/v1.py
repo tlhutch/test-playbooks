@@ -1057,6 +1057,12 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
             },
         }
 
+class Awx_Schema_v1_Project_Organizations(Awx_Schema_v1_Organizations):
+    component = '/projects/\d+/organizations'
+
+class Awx_Schema_v1_Org_Projects(Awx_Schema_v1_Projects):
+    component = '/organizations/\d+/projects'
+
 class Awx_Schema_v1_Projects_Project_Updates(Awx_Schema_v1):
     component = '/projects/\d+/project_updates'
 
@@ -1689,6 +1695,8 @@ class Awx_Schema_v1_Teams(Awx_Schema_v1):
             '$ref': '#/definitions/team',
         })
 
+class Awx_Schema_v1_Project_Teams(Awx_Schema_v1_Teams):
+    component = '/projects/\d+/teams'
 
 class Awx_Schema_v1_Config(Awx_Schema_v1):
     component = '/config'

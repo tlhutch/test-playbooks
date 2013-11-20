@@ -13,6 +13,17 @@ organizations:
         - bender_user1
       admins:
         - bender_admin
+      projects:
+        - ansible-examples.git (manual)
+        - ansible-examples.svn (manual)
+        - ansible-helloworld.hg (manual)
+        - ansible-examples.git (git)
+        - ansible-examples.svn (svn)
+        - ansible-helloworld (hg)
+        - ansible-helloworld (hg, ssh_key_data)
+        - ansible-helloworld (hg, ssh_key_data, ssh_key_unlock)
+        - ansible-examples.git (github, ssh_key_data)
+        - ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
     - name: AnsibleWorks
       description: Just another AnsibleWorks
       users:

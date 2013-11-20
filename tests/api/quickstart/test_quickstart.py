@@ -507,7 +507,7 @@ if __name__ == '__main__':
         assert len(projects) == len(api_projects_pg.results)
 
     @pytest.mark.destructive
-    def test_projects_update(self, api_projects_pg, api_organizations_pg, awx_config, project):
+    def test_projects_update(self, api_projects_pg, api_organizations_pg, project):
         # Find desired project
         matches = api_projects_pg.get(name__iexact=project['name'], scm_type=project['scm_type'])
         assert matches.count == 1
@@ -542,7 +542,7 @@ if __name__ == '__main__':
                 update_pg.post(payload)
 
     @pytest.mark.nondestructive
-    def test_projects_update_status(self, api_projects_pg, api_organizations_pg, awx_config, project):
+    def test_projects_update_status(self, api_projects_pg, api_organizations_pg, project):
 
         # Find desired project
         matches = api_projects_pg.get(name__iexact=project['name'], scm_type=project['scm_type'])
@@ -579,6 +579,25 @@ if __name__ == '__main__':
             assert not latest_update_pg.failed
             assert 'Traceback' not in latest_update_pg.result_traceback
             assert 'Traceback' not in latest_update_pg.result_stdout
+
+    @pytest.mark.destructive
+    def test_organizations_add_projects(self, api_organizations_pg, api_projects_pg, organization):
+        # locate desired project resource
+        matches = api_organizations_pg.get(name__iexact=organization['name']).results
+        assert len(matches) == 1
+        project_related_pg = matches[0].get_related('projects')
+
+        projects = organization.get('projects', [])
+        if not projects:
+            pytest.skip("No projects associated with organization")
+
+        # Add each team to the project
+        for name in projects:
+            project = api_projects_pg.get(name__iexact=name).results.pop()
+
+            payload = dict(id=project.id)
+            with pytest.raises(NoContent_Exception):
+                project_related_pg.post(payload)
 
     @pytest.mark.jira('AC-641', run=True)
     @pytest.mark.destructive

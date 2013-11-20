@@ -13,6 +13,8 @@ class Organization_Page(base.Base):
             related = Users_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'admins':
             related = Users_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'projects':
+            related = Projects_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get()
@@ -145,6 +147,10 @@ class Project_Page(base.Base):
             related = Project_Updates_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'update':
             related = base.Base(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'organizations':
+            related = Organizations_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'teams':
+            related = Teams_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get()
