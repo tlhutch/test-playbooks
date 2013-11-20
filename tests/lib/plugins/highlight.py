@@ -12,13 +12,21 @@ def highlight(element):
     """
     driver = element._parent
     driver.execute_script("""
-            element = arguments[0];
-            original_style = element.getAttribute('style');
-            element.setAttribute('style', original_style + "; background: yellow;");
-            setTimeout(function(){
-                element.setAttribute('style', original_style);
-            }, 30);
-            """, element)
+        element = arguments[0];
+        highlight_bg = arguments[1];
+        highlight_outline = arguments[2];
+
+        original_bg = element.style.backgroundColor;
+        original_outline = element.style.outline;
+
+        element.style.backgroundColor = highlight_bg;
+        element.style.outline = highlight_outline;
+
+        setTimeout(function(){
+            element.style.backgroundColor = original_bg;
+            element.style.outline = original_outline;
+        }, 10);
+        """, element, "#FFFFCC", "#8f8 solid 1px")
 
 def pytest_configure(config):
     from selenium.webdriver.remote.webelement import WebElement
