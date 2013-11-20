@@ -7,8 +7,10 @@ ansibleworks-qa tests
         cp credentials.template credentials.yaml
         vim credentials.yaml # update as needed
 2. Determine URL for running AWX instance (needed by `--baseurl` parameter)
-3. Run API tests:
-        PYTHONPATH=tests/lib py.test --baseurl https://example.com --destructive tests/api
+3. Disable ansible host key checking
+        export ANSIBLE_HOST_KEY_CHECKING=False
+4. Run the tests:
+        PYTHONPATH=tests/lib py.test --baseurl https://example.com --destructive tests
 
 # TODO
 
