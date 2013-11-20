@@ -504,14 +504,14 @@ projects:
       credential: git@github.com (ssh_key_data, ssh_key_unlock)
 
 job_templates:
-    - name: language_features/loop_plugins.yml (limit:rax:ORD)
+    - name: language_features/loop_plugins.yml (limit:jenkins-nightly*:&ORD)
       job_type: check
       allow_callbacks: false
       playbook: language_features/loop_plugins.yml
       project: ansible-examples.git (manual)
       inventory: it_inventory
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)
-      limit: rax:ORD
+      limit: jenkins-nightly*:&ORD
 
     - name: language_features/loop_plugins.yml (limit:all, ssh_key_unlock:ASK)
       job_type: run
