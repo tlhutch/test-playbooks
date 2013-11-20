@@ -1,23 +1,27 @@
-ansibleworks-qa tests
----------------------
+# ansibleworks-qa tests
 
-# Instructions
+## Instructions
 
 1. Create, and modify, `credentials.yaml`
 
         cp credentials.template credentials.yaml
         vim credentials.yaml # update as needed
 
-2. Determine URL for running AWX instance (needed by `--baseurl` parameter)
-3. Disable ansible host key checking
+2. Create, and modify, `jira.cfg` and be sure a valid `username` and `password` is provided
+
+        cp jira.template jira.cfg
+        vim jira.cfg # update as needed
+
+3. Determine URL for running AWX instance (needed by `--baseurl` parameter)
+4. Disable ansible host key checking
 
         export ANSIBLE_HOST_KEY_CHECKING=False
 
-4. Run the tests:
+5. Run the tests:
 
         PYTHONPATH=tests/lib py.test --baseurl https://example.com --destructive tests
 
-# TODO
+## TODO
 
 1. Research storing schema as json files (not .py)
 2. Testing cloud inventory
@@ -25,7 +29,7 @@ ansibleworks-qa tests
 3. Test RBAC authentication+permissions
 4. Build basic UI navigation test (capable of offloading to SauceLabs for browser compatability testing)
 
-# Unittest gaps
+## Unittest gaps
 
 The following list was produced with help from the API development team to identify areas where API unittest coverage needs to be supplimented with integrated tests.
 
@@ -41,7 +45,7 @@ The following list was produced with help from the API development team to ident
 5. Inventory_source with update_on_launch and a project with update_on_launch
    - Should see job.status == 'waiting'
 
-# Open Questions
+## Open Questions
 1. Delete credentials, but they remain attached to jobs ... and available for use
 2. Credentials filtering and __in (comma or list)?
    - Searching for names with a ',' in them
