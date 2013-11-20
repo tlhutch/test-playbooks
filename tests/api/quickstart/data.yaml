@@ -62,6 +62,13 @@ teams:
     - name: IT
       description: IT Department
       organization: Bender Products
+      users:
+        - bender_admin
+    - name: Engineering
+      description: Engineering Department
+      organization: Bender Products
+      users:
+        - bender_user1
 
 credentials:
     - name: SSH (user:bender_user1, password:ASK)

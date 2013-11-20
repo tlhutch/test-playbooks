@@ -478,6 +478,9 @@ class Awx_Schema_v1_Users(Awx_Schema_v1):
             '$ref': '#/definitions/user',
         })
 
+class Awx_Schema_v1_Team_Users(Awx_Schema_v1_Users):
+    component = '/teams/\d+/users'
+
 class Awx_Schema_v1_Org_Users(Awx_Schema_v1_Users):
     component = '/organizations/\d+/users'
 

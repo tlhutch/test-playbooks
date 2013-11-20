@@ -72,8 +72,9 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         '''
 
         assert self.has_credentials('ssh', fields=['username', 'password'])
-        ansible_runner.shell("echo '%s' | passwd --stdin root" % \
-            self.credentials['ssh']['password'])
+        ansible_runner.shell("echo '{username}:{password}' | chpasswd".format(**self.credentials['ssh']))
+        #ansible_runner.shell("echo '%s' | passwd --stdin root" % \
+        #    self.credentials['ssh']['password'])
 
     @pytest.mark.destructive
     def test_install_license(self, awx_config, tmpdir, ansible_runner):
@@ -197,8 +198,8 @@ if __name__ == '__main__':
                 org_related_pg.post(payload)
 
     @pytest.mark.destructive
-    def test_team_post(self, api_teams_pg, api_organizations_pg, team):
-        # locate organization
+    def test_teams_post(self, api_teams_pg, api_organizations_pg, team):
+        # locate desired organization resource
         org_pg = api_organizations_pg.get(name__iexact=team['organization']).results[0]
 
         payload = dict(name=team['name'],
@@ -213,6 +214,22 @@ if __name__ == '__main__':
     def test_teams_get(self, api_teams_pg, teams):
         team_page = api_teams_pg.get(name__in=','.join([o['name'] for o in teams]))
         assert len(teams) == len(team_page.results)
+
+    @pytest.mark.destructive
+    def test_teams_add_users(self, api_users_pg, api_teams_pg, team):
+        # locate desired team resource
+        matches = api_teams_pg.get(name__iexact=team['name']).results
+        assert len(matches) == 1
+        team_related_pg = matches[0].get_related('users')
+
+        # Add specified users to the team
+        for username in team.get('users', []):
+            user = api_users_pg.get(username__iexact=username).results.pop()
+
+            # Add user to org
+            payload = dict(id=user.id)
+            with pytest.raises(NoContent_Exception):
+                team_related_pg.post(payload)
 
     @pytest.mark.destructive
     def test_credentials_post(self, api_users_pg, api_teams_pg, api_credentials_pg, credential):
@@ -441,9 +458,10 @@ if __name__ == '__main__':
                 "Must provide ansible module to use for scm_url: %s " % project['scm_url']
 
             # Make sure the required package(s) are installed
-            results = ansible_runner.yum(
-                name=project['_ansible_module'],
-                state='installed')
+            results = ansible_runner.shell("test -f /etc/system-release && yum -y install %s || true" \
+                % project['_ansible_module'])
+            results = ansible_runner.shell("grep -qi ubuntu /etc/os-release && apt-get install %s || true" \
+                % project['_ansible_module'])
 
             # Clone the repo
             clone_func = getattr(ansible_runner, project['_ansible_module'])
