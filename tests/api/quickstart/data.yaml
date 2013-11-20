@@ -513,7 +513,7 @@ job_templates:
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)
       limit: jenkins-nightly*:&ORD
 
-    - name: language_features/loop_plugins.yml (limit:all, ssh_key_unlock:ASK)
+    - name: language_features/loop_plugins.yml (limit:key_jenkins:&aws, ssh_key_unlock:ASK)
       job_type: run
       allow_callbacks: false
       playbook: language_features/loop_plugins.yml
