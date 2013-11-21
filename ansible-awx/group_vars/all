@@ -10,10 +10,10 @@ aw_repo_url: http://50.116.42.103/awx_nightlies_RTYUIOPOIUYTYU
 # aw_repo_url: http://ansibleworks.com/releases/awx
 
 # Choose location for awx-setup
-awx_setup_tar: /setup/awx-setup-latest.tar.gz
-# awx_setup_url: http://50.116.42.103/awx_nightlies_RTYUIOPOIUYTYU/setup/awx-setup-latest.tar.gz
-# awx_setup_url: http://ansibleworks.com/releases/awx/setup/awx-setup-1.3.0.tar.gz
-# awx_setup_url: http://ansibleworks.com/releases/awx/setup/awx-setup-1.3.1.tar.gz
+awx_setup_path: /setup/awx-setup-latest.tar.gz
+# awx_setup_path: /setup/awx-setup-latest.tar.gz
+# awx_setup_path: /setup/awx-setup-1.3.0.tar.gz
+# awx_setup_path: /setup/awx-setup-1.3.1.tar.gz
 
 # Optionally customize the default awx passwords
 # admin_password: fo0m4nchU
