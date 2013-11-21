@@ -4,7 +4,7 @@ license:
     contact_name: Art Vandelay
     contact_email: art@ansibleworks.com
     instance_count: 1000
-    license_days: 1
+    license_days: 31
 
 organizations:
     - name: Bender Products
