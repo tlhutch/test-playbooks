@@ -32,36 +32,45 @@ def pytest_sessionstart(session):
     # Sanitize ansible_inventory
     ansible_inventory = session.config.getvalue('ansible_inventory')
     if not session.config.option.collectonly:
-        # Download remote inventory file locally first
-        if '://' in ansible_inventory:
+
+        # Convert file URL to absolute path (file:///path/to/file.ini ->
+        # /path/to/file.ini)
+        if ansible_inventory.startswith('file:///'):
+            ansible_inventory = urlparse(ansible_inventory).path
+
+        # Open inventory file (download if necessary)
+        if os.path.exists(ansible_inventory):
+            fd = open(ansible_inventory, 'r')
+            inventory_data = fd.read()
+        elif '://' in ansible_inventory:
             try:
-                r = requests.get(ansible_inventory)
+                fd = requests.get(ansible_inventory)
             except Exception, e:
                 py.test.exit("Unable to download ansible inventory file - %s" % e)
-
-            local_inventory = tmpdir.mkdir("ansible").join("inventory.ini").open('a+')
-            for line in r.text.split('\n'):
-                # Ansible inventory files support host aliasing
-                # (http://www.ansibleworks.com/docs/intro_inventory.html#id10)
-                # If host aliasing is used, the <alias> likely won't match the
-                # base_url.  The following will re-write the provided inventory
-                # file, removing the alias.
-                # For example, an inventory pattern as noted below:
-                #   <alias> ansible_ssh_host=<fqdn> foo=bar
-                # Becomes:
-                #   <fqdn> ansible_ssh_host=<fqdn> foo=bar # <alias>
-                if ansible_hostname in line and not line.startswith(ansible_hostname):
-                    (alias, remainder) = line.split(' ',1)
-                    line = "%s %s # %s" % (ansible_hostname, remainder, alias)
-                local_inventory.write(line + '\n')
-
-            # Remember the local filename
-            ansible_inventory = local_inventory.name
-            session.config.option.ansible_inventory = local_inventory.name
-
-        # Verify the inventory file exists
-        if not os.path.exists(ansible_inventory):
+            inventory_data = fd.text
+        else:
             py.test.exit("Ansible inventory file not found: %s" % ansible_inventory)
+
+        # Create new inventory in tmpdir
+        local_inventory = tmpdir.mkdir("ansible").join("inventory.ini").open('a+')
+        # Remember the local filename
+        ansible_inventory = local_inventory.name
+        session.config.option.ansible_inventory = local_inventory.name
+
+        # Ansible inventory files support host aliasing
+        # (http://www.ansibleworks.com/docs/intro_inventory.html#id10)
+        # If host aliasing is used, the <alias> likely won't match the
+        # base_url.  The following will re-write the provided inventory
+        # file, removing the alias.
+        # For example, an inventory pattern as noted below:
+        #   <alias> ansible_ssh_host=<fqdn> foo=bar
+        # Becomes:
+        #   <fqdn> ansible_ssh_host=<fqdn> foo=bar # <alias>
+        for line in inventory_data.split('\n'):
+            if ansible_hostname in line and not line.startswith(ansible_hostname):
+                (alias, remainder) = line.split(' ',1)
+                line = "%s %s # %s" % (ansible_hostname, remainder, alias)
+            local_inventory.write(line + '\n')
 
 
 def pytest_funcarg__ansible_runner(request):
