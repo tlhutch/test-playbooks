@@ -434,14 +434,14 @@ if __name__ == '__main__':
         inv_updates_pg = inv_src.get_related('inventory_updates').results[0]
 
         # Ensure the update completed successfully
-        timeout = 120 # status much change in 120 seconds
+        timeout = 240 # status much change in 240 seconds
         wait_timeout = time.time() + timeout
         status = inv_updates_pg.status.lower()
         while status in ['new', 'pending', 'waiting', 'running']:
             inv_updates_pg.get()
             status = inv_updates_pg.status.lower()
             assert wait_timeout > time.time(), "Timeout exceeeded (%s > %s) waiting for inventory_source update to complete (status:%s)" % (wait_timeout, time.time(), status)
-            time.sleep(1)
+            # time.sleep(1)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert 'successful' == inv_updates_pg.status.lower()
@@ -566,14 +566,14 @@ if __name__ == '__main__':
             latest_update_pg = project_updates_pg.results.pop()
 
             # Ensure the update successfully
-            timeout = 120 # status much change in 120 seconds
+            timeout = 240 # status much change in 240 seconds
             wait_timeout = time.time() + timeout
             status = latest_update_pg.status.lower()
             while status in ['new', 'pending', 'waiting', 'running']:
                 latest_update_pg.get()
                 status = latest_update_pg.status.lower()
                 assert wait_timeout > time.time(), "Timeout exceeeded (%s > %s) waiting for project update completion (status:%s)" % (wait_timeout, time.time(), status)
-                time.sleep(1)
+                # time.sleep(1)
 
             assert 'successful' == latest_update_pg.status.lower()
             assert not latest_update_pg.failed
@@ -671,14 +671,14 @@ if __name__ == '__main__':
         assert not start_pg.json['can_start']
 
         # Ensure the launch completed successfully
-        timeout = 120 # status much change in 120 seconds
+        timeout = 240 # status much change in 240 seconds
         wait_timeout = time.time() + timeout
         status = job_pg.status.lower()
         while status in ['new', 'pending', 'waiting', 'running']:
             job_pg.get()
             status = job_pg.status.lower()
             assert wait_timeout > time.time(), "Timeout exceeeded (%s > %s) waiting for job completion (status:%s)" % (wait_timeout, time.time(), status)
-            time.sleep(1)
+            # time.sleep(1)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert 'successful' == job_pg.status.lower()
