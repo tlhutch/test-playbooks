@@ -11,6 +11,7 @@ organizations:
       description: Bender Products, Ltd.
       users:
         - bender_eng_user
+        - bender_it_user
       admins:
         - bender_admin
       projects:
