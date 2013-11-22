@@ -167,4 +167,4 @@ class AnsibleWrapper(object):
         stdout = popen.communicate()[0]
         if popen.returncode:
             raise Exception("Command failed (%s): %s\n%s" % (popen.returncode, cmd, stdout))
-        return stdout
+        return (popen.returncode, stdout)
