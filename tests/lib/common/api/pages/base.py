@@ -51,7 +51,7 @@ class Base(Page):
         assert r.status_code == httplib.OK
         self.json = r.objectify()
         # TODO - validate schema
-        #validate(self.json, '/organizations/N', 'get')
+        #self.validate_json('get')
         return self
 
     def post(self, payload={}):
@@ -69,14 +69,14 @@ class Base(Page):
         assert r.status_code == httplib.OK
         self.json = r.objectify()
         # TODO - validate schema
-        #validate(self.json, '/organizations/N', 'put')
+        #self.validate_json('put')
 
     def patch(self, **payload):
         r = self.api.patch(self.base_url.format(**self.json), payload)
         assert r.status_code == httplib.OK
         self.json = r.objectify()
         # TODO - validate schema
-        #validate(self.json, '/organizations/N', 'patch')
+        #self.validate_json('patch')
 
     def delete(self, **payload):
         r = self.api.delete(self.base_url.format(**self.json))
