@@ -743,7 +743,7 @@ class Awx_Schema_v1_Hosts(Awx_Schema_v1):
                 'last_job_host_summary': { 'type': ['number', 'null'] },
                 'related': {
                     'type': 'object',
-                    'required': [ 'created_by', 'job_host_summaries', 'variable_data', 'job_events', 'groups', 'all_groups', 'inventory', ],
+                    'required': [ 'job_host_summaries', 'variable_data', 'job_events', 'groups', 'all_groups', 'inventory', ],
                     'additionalProperties': True,
                     'properties': {
                         'created_by':           { 'type': 'string', 'format': 'uri', },
