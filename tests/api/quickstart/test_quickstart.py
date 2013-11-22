@@ -357,10 +357,10 @@ if __name__ == '__main__':
         api_hosts_pg.get(name__in=','.join([o['name'] for o in hosts]))
 
         # Validate number of inventories found
-        assert len(hosts) == len(api_hosts_pg.results)
+        assert len(hosts) == api_hosts_pg.count
 
     @pytest.mark.destructive
-    def test_add_host_to_group(self, api_hosts_pg, api_groups_pg, host):
+    def test_hosts_add_group(self, api_hosts_pg, api_groups_pg, host):
         # Find desired host
         host_id = api_hosts_pg.get(name=host['name']).results[0].id
 
@@ -416,7 +416,6 @@ if __name__ == '__main__':
 
         # Trigger inventory_source update
         inv_update_pg.post()
-        # assert r.status_code == httplib.ACCEPTED
 
     @pytest.mark.nondestructive
     @pytest.mark.jira('AC-596', run=False)
@@ -447,6 +446,17 @@ if __name__ == '__main__':
         assert 'successful' == inv_updates_pg.status.lower()
         assert 'Traceback' not in inv_updates_pg.result_traceback
         assert 'Traceback' not in inv_updates_pg.result_stdout
+
+    @pytest.mark.nondestructive
+    def test_inventory_sources_get_hosts(self, api_groups_pg, api_hosts_pg, inventory_source):
+        # Find desired group
+        group = api_groups_pg.get(name__iexact=inventory_source['group']).results[0]
+
+        # Find hosts matching the group
+        group_hosts_pg = group.get_related('hosts')
+
+        # Validate number of inventories found
+        assert group_hosts_pg.count > 0, "No hosts were synced for group '%s'" % group.name
 
     @pytest.mark.destructive
     def test_projects_post(self, api_projects_pg, api_organizations_pg, api_credentials_pg, awx_config, project, ansible_runner):
