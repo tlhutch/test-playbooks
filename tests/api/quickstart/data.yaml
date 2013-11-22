@@ -339,13 +339,27 @@ groups:
       description: A group for systems that map to localhost
       inventory: it_inventory
 
+    - name: local_1-10
+      description: A sub-group for systems that map to localhost
+      inventory: it_inventory
+
+    - name: local_11-20
+      description: A sub-group for systems that map to localhost
+      inventory: it_inventory
+
+    - name: cloud
+      description: Group for dynamic cloud-based inventory
+      inventory: it_inventory
+
     - name: aws
       description: Group for tracking Amazon EC2 instances
       inventory: it_inventory
+      parent: cloud
 
     - name: rax
       description: Group for tracking Rackspace mycloud servers
       inventory: it_inventory
+      parent: cloud
 
 inventory_sources:
     - name: it_inventory/aws # name is used for internal purposes
@@ -404,6 +418,186 @@ hosts:
         ansible_ssh_host: localhost
       groups:
         - local
+
+    - name: host-1.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_1-10
+
+    - name: host-2.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_1-10
+
+    - name: host-3.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_1-10
+
+    - name: host-4.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_1-10
+
+    - name: host-5.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_1-10
+
+    - name: host-6.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_1-10
+
+    - name: host-7.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_1-10
+
+    - name: host-8.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_1-10
+
+    - name: host-9.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_1-10
+
+    - name: host-10.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_1-10
+
+    - name: host-11.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_11-20
+
+    - name: host-12.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_11-20
+
+    - name: host-13.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_11-20
+
+    - name: host-14.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_11-20
+
+    - name: host-15.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_11-20
+
+    - name: host-16.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_11-20
+
+    - name: host-17.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_11-20
+
+    - name: host-18.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_11-20
+
+    - name: host-19.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_11-20
+
+    - name: host-20.example.com
+      description: localhost (ansible_ssh_host)
+      inventory: it_inventory
+      variables: |
+        ansible_ssh_host: 127.0.0.1
+      groups:
+        - local
+        - local_11-20
 
 projects:
     - name: ansible-examples.git (manual)
@@ -514,30 +708,32 @@ job_templates:
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)
       limit: jenkins-nightly*:&ORD
 
-    - name: language_features/loop_plugins.yml (limit:key_jenkins:&aws, ssh_key_unlock:ASK)
+    - name: language_features/loop_plugins.yml (limit:host-1*:&local_1-10, ssh_key_unlock:ASK)
       job_type: run
       allow_callbacks: false
       playbook: language_features/loop_plugins.yml
       project: ansible-examples.git (manual)
       inventory: it_inventory
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:ASK)
-      limit: key_jenkins:&aws
+      limit: host-1*:&local_1-10
 
-    - name: language_features/roletest.yml (sudo_password:ASK)
+    - name: language_features/roletest.yml (limit:~host-1[3-7]+\.example\.com, sudo_password:ASK)
       job_type: check
       allow_callbacks: false
       playbook: trunk/language_features/roletest.yml
       project: ansible-examples.svn (manual)
       inventory: it_inventory
       credential: SSH (user:bender_eng_user, sudo_password:ASK)
+      limit: ~host-1[3-7]+\.example\.com
 
-    - name: language_features/roletest.yml
+    - name: language_features/roletest.yml (limit:all:!awx:!rax)
       job_type: run
       allow_callbacks: false
       playbook: trunk/language_features/roletest.yml
       project: ansible-examples.svn (manual)
       inventory: it_inventory
       credential: SSH (user:bender_eng_user, sudo_password:***)
+      limit: all:!awx:!rax
 
     - name: helloworld/site.yml (limit:local)
       job_type: run

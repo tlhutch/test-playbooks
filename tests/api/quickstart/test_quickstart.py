@@ -321,8 +321,16 @@ if __name__ == '__main__':
         payload = dict(name=group['name'],
                        description=group['description'],
                        inventory=inventory_id,)
+
+        # different behavior depending on if we're creating child or parent
+        if 'parent' in group:
+            parent_pg = api_groups_pg.get(name__exact=group['parent']).results[0]
+            new_group_pg = parent_pg.get_related('children')
+        else:
+            new_group_pg = api_groups_pg
+
         try:
-            api_groups_pg.post(payload)
+            new_group_pg.post(payload)
         except Duplicate_Exception, e:
             pytest.xfail("Already exists")
 

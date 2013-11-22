@@ -87,6 +87,8 @@ class Group_Page(base.Base):
             related = Hosts_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'inventory_source':
             related = Inventory_Source_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'children':
+            related = Groups_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get()

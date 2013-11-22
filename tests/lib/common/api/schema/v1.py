@@ -636,7 +636,7 @@ class Awx_Schema_v1_Groups(Awx_Schema_v1):
                 'total_groups':{ 'type': 'number', 'minimum': 0, },
                 'related': {
                     'type': 'object',
-                    'required': [ 'created_by', 'job_host_summaries', 'variable_data', 'inventory_source', 'job_events', 'potential_children', 'all_hosts', 'hosts', 'inventory', 'children',],
+                    'required': [ 'job_host_summaries', 'variable_data', 'inventory_source', 'job_events', 'potential_children', 'all_hosts', 'hosts', 'inventory', 'children',],
                     'additionalProperties': False,
                     'properties': {
                         "created_by":           { 'type': 'string', 'format': 'uri', },
@@ -715,6 +715,9 @@ class Awx_Schema_v1_Groups(Awx_Schema_v1):
                 },
             },
         }
+
+class Awx_Schema_v1_Group_Children(Awx_Schema_v1_Groups):
+    component = '/groups/\d+/children'
 
 class Awx_Schema_v1_Hosts(Awx_Schema_v1):
     component = '/hosts'
