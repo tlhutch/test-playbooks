@@ -74,6 +74,7 @@ class Connection(object):
         self.verify = verify
         self.authtoken = authtoken
         self.auth = None
+        self.url = ""
 
     # http://docs.python-requests.org/en/latest/api/?highlight=logging
     # these two lines enable debugging at httplib level (requests->urllib3->httplib)
@@ -132,6 +133,9 @@ class Connection(object):
             if hasattr(e, 'read'):
                 err_str += ", %s" % (e.read())
             raise BaseException(err_str)
+
+        # Save the full URL for later inspection
+        self.url = response.url
 
         # Add convenience attribute 'code' to mimick urllib2 response
         response.code = response.status_code

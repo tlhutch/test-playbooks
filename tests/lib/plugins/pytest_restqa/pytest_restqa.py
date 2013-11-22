@@ -165,10 +165,10 @@ def pytest_addoption(parser):
         help="location of yaml file containing user credentials.")
 
 
-def pytest_runtest_makereport(item, call):
-    '''
-    TODO - figure out how to write to pytestdebug-rest.log
-    '''
+def pytest_runtest_makereport(__multicall__, item, call):
+    report = __multicall__.execute()
+
+    # Log the test in the debug_rest_hdlr
     if call.when == 'setup':
         if hasattr(TestSetup, 'api') and TestSetup.api and hasattr(item.config, '_debug_rest_hdlr'):
             '''
@@ -176,6 +176,21 @@ def pytest_runtest_makereport(item, call):
             '''
             item.config._debug_rest_hdlr.stream.write('==== %s ====\n' % item.nodeid)
 
+    # Display failing API URL with any test failures
+    if report.when == 'call':
+        if hasattr(TestSetup, 'api') and TestSetup.api:
+            if report.skipped and 'xfail' in report.keywords or report.failed and 'xfail' not in report.keywords:
+                url = TestSetup.api.url
+                url and item.debug['urls'].append(url)
+                report.sections.append(('pytest-restqa', _debug_summary(item.debug)))
+            report.debug = item.debug
+    return report
+
+def _debug_summary(debug):
+    summary = []
+    if debug['urls']:
+        summary.append('Failing URL: %s' % debug['urls'][-1])
+    return '\n'.join(summary)
 
 class TestSetup:
     '''
