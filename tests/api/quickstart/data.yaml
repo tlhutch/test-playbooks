@@ -726,14 +726,14 @@ job_templates:
       credential: SSH (user:bender_eng_user, sudo_password:ASK)
       limit: ~host-1[3-7]+\.example\.com
 
-    - name: language_features/roletest.yml (limit:all:!awx:!rax)
+    - name: language_features/roletest.yml (limit:all:!cloud)
       job_type: run
       allow_callbacks: false
       playbook: trunk/language_features/roletest.yml
       project: ansible-examples.svn (manual)
       inventory: it_inventory
       credential: SSH (user:bender_eng_user, sudo_password:***)
-      limit: all:!awx:!rax
+      limit: all:!cloud
 
     - name: helloworld/site.yml (limit:local)
       job_type: run
