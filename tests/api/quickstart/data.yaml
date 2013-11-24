@@ -342,10 +342,12 @@ groups:
     - name: local_1-10
       description: A sub-group for systems that map to localhost
       inventory: it_inventory
+      parent: local
 
     - name: local_11-20
       description: A sub-group for systems that map to localhost
       inventory: it_inventory
+      parent: local
 
     - name: cloud
       description: Group for dynamic cloud-based inventory
