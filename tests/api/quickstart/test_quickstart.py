@@ -636,6 +636,7 @@ if __name__ == '__main__':
                        project=project_id,
                        credential=credential_id,
                        allow_callbacks=job_template.get('allow_callbacks', False),
+                       verbosity=job_template.get('verbosity', 0),
                       )
         try:
             api_job_templates_pg.post(payload)
