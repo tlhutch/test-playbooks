@@ -3,6 +3,7 @@ import py
 import pipes
 import subprocess
 import requests
+import pipes
 import ansible.runner
 import ansible.inventory
 from urlparse import urlparse
@@ -156,7 +157,7 @@ class AnsibleWrapper(object):
         if args:
             module_args += list(args)
         if kwargs:
-            module_args += ["%s=%s" % i for i in kwargs.items()]
+            module_args += ["%s=%s" % (k, pipes.quote(v)) for k,v in kwargs.items()]
 
         # Build command
         cmd = ['ansible', self.pattern, '-m', self.module_name, '-i', self.inventory, '--sudo']
