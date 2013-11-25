@@ -1325,7 +1325,7 @@ class Awx_Schema_v1_Jobs(Awx_Schema_v1):
                 'job_env': { '$ref': '#/definitions/job_env', },
                 'related': {
                     'type': 'object',
-                    'required': [ 'project', 'job_host_summaries', 'created_by', 'credential', 'job_events', 'inventory', 'job_template', 'start', 'cancel',],
+                    'required': [ 'project', 'job_host_summaries', 'credential', 'job_events', 'inventory', 'job_template', 'start', 'cancel',],
                     'additionalProperties': False,
                     'properties': {
                         'created_by': { 'type': 'string', 'format': 'uri' },
