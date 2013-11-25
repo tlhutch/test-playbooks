@@ -65,16 +65,20 @@ def pytest_generate_tests(metafunc):
 class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.destructive
-    def test_set_rootpw(self, ansible_runner):
+    def test_environment_setup(self, ansible_runner):
         '''
         This test is a hack to make sure all test systems have the proper
         passwd
         '''
 
+        # Set rootpw to something we know
         assert self.has_credentials('ssh', fields=['username', 'password'])
         ansible_runner.shell("echo '{username}:{password}' | chpasswd".format(**self.credentials['ssh']))
-        #ansible_runner.shell("echo '%s' | passwd --stdin root" % \
-        #    self.credentials['ssh']['password'])
+
+        # Increase MaxSessions and MaxStartups
+        ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxSessions .*", line="MaxSessions 50")
+        ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxStartups .*", line="MaxStartups 50")
+        ansible_runner.service(name="sshd", state="restarted")
 
     @pytest.mark.destructive
     def test_install_license(self, awx_config, tmpdir, ansible_runner):
