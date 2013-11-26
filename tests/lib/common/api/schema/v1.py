@@ -1217,6 +1217,7 @@ class Awx_Schema_v1_Job_templates(Awx_Schema_v1):
                         'jobs': { 'type': 'string', 'format': 'uri' },
                         'inventory': { 'type': 'string', 'format': 'uri' },
                         'credential': { 'type': 'string', 'format': 'uri' },
+                        'cloud_credential': { 'type': 'string', 'format': 'uri' },
                     },
                 },
                 'summary_fields':  {
@@ -1332,6 +1333,7 @@ class Awx_Schema_v1_Jobs(Awx_Schema_v1):
                         'project': { 'type': 'string', 'format': 'uri', },
                         'job_host_summaries': { 'type': 'string', 'format': 'uri', },
                         'credential': { 'type': 'string', 'format': 'uri', },
+                        'cloud_credential': { 'type': 'string', 'format': 'uri', },
                         'job_events': { 'type': 'string', 'format': 'uri', },
                         'inventory': { 'type': 'string', 'format': 'uri', },
                         'job_template': { 'type': 'string', 'format': 'uri', },
