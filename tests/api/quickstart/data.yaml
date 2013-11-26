@@ -349,20 +349,40 @@ groups:
       inventory: it_inventory
       parent: local
 
-    - name: local_21-40
+    - name: local_11-15
       description: A sub-group for systems that map to localhost
       inventory: it_inventory
-      parent: local
+      parent: local_11-20
 
-    - name: local_21-30
+    - name: local_16-20
       description: A sub-group for systems that map to localhost
       inventory: it_inventory
-      parent: local_21-40
+      parent: local_11-20
 
-    - name: local_31-40
+    - name: local_16
       description: A sub-group for systems that map to localhost
       inventory: it_inventory
-      parent: local_21-40
+      parent: local_16-20
+
+    - name: local_17
+      description: A sub-group for systems that map to localhost
+      inventory: it_inventory
+      parent: local_16-20
+
+    - name: local_18
+      description: A sub-group for systems that map to localhost
+      inventory: it_inventory
+      parent: local_16-20
+
+    - name: local_19
+      description: A sub-group for systems that map to localhost
+      inventory: it_inventory
+      parent: local_16-20
+
+    - name: local_20
+      description: A sub-group for systems that map to localhost
+      inventory: it_inventory
+      parent: local_16-20
 
     - name: cloud
       description: Group for dynamic cloud-based inventory
@@ -534,6 +554,7 @@ hosts:
       groups:
         - local
         - local_11-20
+        - local_11-15
 
     - name: host-12.example.com
       description: localhost (ansible_ssh_host)
@@ -543,6 +564,7 @@ hosts:
       groups:
         - local
         - local_11-20
+        - local_11-15
 
     - name: host-13.example.com
       description: localhost (ansible_ssh_host)
@@ -552,6 +574,7 @@ hosts:
       groups:
         - local
         - local_11-20
+        - local_11-15
 
     - name: host-14.example.com
       description: localhost (ansible_ssh_host)
@@ -561,6 +584,7 @@ hosts:
       groups:
         - local
         - local_11-20
+        - local_11-15
 
     - name: host-15.example.com
       description: localhost (ansible_ssh_host)
@@ -570,6 +594,7 @@ hosts:
       groups:
         - local
         - local_11-20
+        - local_11-15
 
     - name: host-16.example.com
       description: localhost (ansible_ssh_host)
@@ -579,6 +604,8 @@ hosts:
       groups:
         - local
         - local_11-20
+        - local_16-20
+        - local_16
 
     - name: host-17.example.com
       description: localhost (ansible_ssh_host)
@@ -588,6 +615,8 @@ hosts:
       groups:
         - local
         - local_11-20
+        - local_16-20
+        - local_17
 
     - name: host-18.example.com
       description: localhost (ansible_ssh_host)
@@ -597,6 +626,8 @@ hosts:
       groups:
         - local
         - local_11-20
+        - local_16-20
+        - local_18
 
     - name: host-19.example.com
       description: localhost (ansible_ssh_host)
@@ -606,6 +637,8 @@ hosts:
       groups:
         - local
         - local_11-20
+        - local_16-20
+        - local_19
 
     - name: host-20.example.com
       description: localhost (ansible_ssh_host)
@@ -615,186 +648,8 @@ hosts:
       groups:
         - local
         - local_11-20
-
-    - name: host-21.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_21-30
-
-    - name: host-22.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_21-30
-
-    - name: host-23.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_21-30
-
-    - name: host-24.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_21-30
-
-    - name: host-25.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_21-30
-
-    - name: host-26.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_21-30
-
-    - name: host-27.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_21-30
-
-    - name: host-28.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_21-30
-
-    - name: host-29.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_21-30
-
-    - name: host-30.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_21-30
-
-    - name: host-31.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_31-40
-
-    - name: host-32.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_31-40
-
-    - name: host-33.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_31-40
-
-    - name: host-34.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_31-40
-
-    - name: host-35.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_31-40
-
-    - name: host-36.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_31-40
-
-    - name: host-37.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_31-40
-
-    - name: host-38.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_31-40
-
-    - name: host-39.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_31-40
-
-    - name: host-40.example.com
-      description: localhost (ansible_ssh_host)
-      inventory: it_inventory
-      variables: |
-        ansible_ssh_host: localhost
-      groups:
-        - local
-        - local_31-40
+        - local_16-20
+        - local_20
 
 projects:
     - name: ansible-examples.git (manual)
@@ -933,6 +788,7 @@ job_templates:
       credential: SSH (user:bender_eng_user, sudo_password:***)
       limit: all:!cloud
       verbosity: 3
+      forks: 50
 
     - name: helloworld/site.yml (limit:local)
       job_type: run
