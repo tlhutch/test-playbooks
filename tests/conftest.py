@@ -1,11 +1,19 @@
 import os
+import sys
 import pkgutil
 import pytest
+import inspect
+
+# Add tests/lib directory to path
+conftest_dir = os.path.dirname(__file__)
+lib_dir = os.path.join(conftest_dir, 'lib')
+if os.path.isdir(lib_dir):
+    sys.path.insert(0, lib_dir)
+
 import plugins
 import plugins.pytest_restqa
 import fixtures
 import markers
-import inspect
 
 # Load any plugins, fixtures and markers
 def _pytest_plugins_generator(*extension_pkgs):
