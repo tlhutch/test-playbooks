@@ -1,8 +1,8 @@
 import pytest
 import httplib
 from unittestzero import Assert
-from common.api import Connection
 from common.api.schema import validate
+from plugins.pytest_restqa.rest_client import Connection
 
 api = None
 
