@@ -19,7 +19,7 @@
 
 5. Run the tests:
 
-        PYTHONPATH=tests/lib py.test --baseurl https://example.com --destructive tests
+        py.test --baseurl https://example.com --destructive tests
 
 ## TODO
 
