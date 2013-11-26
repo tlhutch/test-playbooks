@@ -76,9 +76,19 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         ansible_runner.shell("echo '{username}:{password}' | chpasswd".format(**self.credentials['ssh']))
 
         # Increase MaxSessions and MaxStartups
-        ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxSessions .*", line="MaxSessions 50")
-        ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxStartups .*", line="MaxStartups 50")
-        ansible_runner.service(name="sshd", state="restarted")
+        ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxSessions .*", line="MaxSessions 150")
+        ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxStartups .*", line="MaxStartups 150")
+
+        # Enable PasswordAuth (disabled on AWS instances)
+        ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?PasswordAuthentication .*", line="PasswordAuthentication yes")
+
+        # Restart sshd
+        try:
+            # RPM-based distros call the service: sshd
+            ansible_runner.service(name="sshd", state="restarted")
+        except Exception, e:
+            # Ubuntu calls the service: ssh
+            ansible_runner.service(name="ssh", state="restarted")
 
     @pytest.mark.destructive
     def test_install_license(self, awx_config, tmpdir, ansible_runner):
@@ -445,7 +455,7 @@ if __name__ == '__main__':
         inv_updates_pg = inv_src.get_related('inventory_updates').results[0]
 
         # Ensure the update completed successfully
-        timeout = 240 # status much change in 240 seconds
+        timeout = 480 # status much change in 480 seconds
         wait_timeout = time.time() + timeout
         status = inv_updates_pg.status.lower()
         while status in ['new', 'pending', 'waiting', 'running']:
@@ -641,6 +651,7 @@ if __name__ == '__main__':
                        credential=credential_id,
                        allow_callbacks=job_template.get('allow_callbacks', False),
                        verbosity=job_template.get('verbosity', 0),
+                       forks=job_template.get('forks', 0),
                       )
         try:
             api_job_templates_pg.post(payload)
@@ -694,7 +705,7 @@ if __name__ == '__main__':
         assert not start_pg.json['can_start']
 
         # Ensure the launch completed successfully
-        timeout = 240 # status much change in 240 seconds
+        timeout = 480 # status much change in 480 seconds
         wait_timeout = time.time() + timeout
         status = job_pg.status.lower()
         while status in ['new', 'pending', 'waiting', 'running']:
