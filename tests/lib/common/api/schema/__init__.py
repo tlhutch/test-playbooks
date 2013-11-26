@@ -49,17 +49,20 @@ def get_schema(version=None, component=None, name=None):
     # Remove any query string '?...'
     component = urlparse(component).path
 
-    # Remove '/api' prefix
-    if component.startswith('/api'):
-        component = component[4:]
+    # If we don't find an exact match, fiddle with the component str
+    if not available_schemas[version].has_key(component):
 
-    # Remove '/v1' prefix
-    if component.startswith('/'+version):
-        component = component[len(version)+1:]
+        # Remove '/api' prefix
+        if component.startswith('/api'):
+            component = component[4:]
 
-    # Remove trailing '/'
-    if component.endswith('/'):
-        component = component[:-1]
+        # Remove '/v1' prefix
+        if component.startswith('/'+version):
+            component = component[len(version)+1:]
+
+        # Remove trailing '/'
+        if component.endswith('/'):
+            component = component[:-1]
 
     # Find a direct component match?
     if not available_schemas[version].has_key(component):
