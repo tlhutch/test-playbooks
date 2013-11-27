@@ -41,7 +41,7 @@
     host={{ item.instances[0].accessIPv4 }}
     port=22
   with_items: rax.results
-  when: rax is defined
+  when: rax_images and rax is defined
 
 - name: add_host
   add_host: name={{ item.instances[0].name }}
@@ -49,4 +49,4 @@
      ansible_ssh_user=root
      ansible_ssh_host={{ item.instances[0].accessIPv4 }}
   with_items: rax.results
-  when: rax is defined
+  when: rax_images and rax is defined
