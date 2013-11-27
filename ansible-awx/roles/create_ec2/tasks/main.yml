@@ -67,6 +67,7 @@
     host={{ item.instances[0].public_dns_name }}
     port=22
   with_items: aws.results
+  when: aws is defined
 
 - name: add_host
   add_host: name={{ aws_name_prefix }}-{{ item.item.name }}
@@ -75,3 +76,4 @@
      ansible_ssh_host={{ item.instances[0].public_dns_name }}
      # ansible_ssh_private_key_file={{ aws_keypair_private }}
   with_items: aws.results
+  when: aws is defined
