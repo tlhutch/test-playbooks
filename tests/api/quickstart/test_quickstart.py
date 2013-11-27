@@ -636,7 +636,6 @@ if __name__ == '__main__':
     def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg, api_job_templates_pg, job_template):
         # Find desired object identifiers
         inventory_id = api_inventories_pg.get(name__iexact=job_template['inventory']).results[0].id
-        credential_id = api_credentials_pg.get(name__iexact=job_template['credential']).results[0].id
         project_id = api_projects_pg.get(name__iexact=job_template['project']).results[0].id
 
         # Create a new job_template
@@ -648,11 +647,16 @@ if __name__ == '__main__':
                        limit=job_template.get('limit', ''),
                        inventory=inventory_id,
                        project=project_id,
-                       credential=credential_id,
                        allow_callbacks=job_template.get('allow_callbacks', False),
                        verbosity=job_template.get('verbosity', 0),
                        forks=job_template.get('forks', 0),
                       )
+
+        # Add credential identifiers
+        for cred in ('credential', 'cloud_credential'):
+            if cred in job_template:
+                payload[cred] = api_credentials_pg.get(name__iexact=job_template[cred]).results[0].id
+
         try:
             api_job_templates_pg.post(payload)
         except Duplicate_Exception, e:

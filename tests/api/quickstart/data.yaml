@@ -792,28 +792,30 @@ job_templates:
 
     - name: helloworld/site.yml (limit:local)
       job_type: run
-      playbook: site.yml
       project: ansible-helloworld.hg (manual)
+      playbook: site.yml
       inventory: it_inventory
       credential: SSH (user:bender_eng_user, password:***)
       limit: local
       verbosity: 3
 
-    - name: helloworld/site.yml (limit:127.0.0.1)
-      job_type: check
-      playbook: site.yml
+    - name: helloworld/aws_credentials_test.yml (limit:127.0.0.1)
+      job_type: run
       project: ansible-helloworld (hg, ssh_key_data)
+      playbook: aws_credentials_test.yml
       inventory: it_inventory
       credential: SSH (user:bender_eng_user, password:***)
+      cloud_credential: AWS (user:bender_eng_user)
       limit: 127.0.0.1
       verbosity: 3
 
-    - name: helloworld/site.yml (password:ASK, limit:localhost)
+    - name: helloworld/rax_credentials_test.yml (password:ASK, limit:localhost)
       job_type: run
-      playbook: site.yml
       project: ansible-helloworld (hg, ssh_key_data, ssh_key_unlock)
+      playbook: rax_credentials_test.yml
       inventory: it_inventory
       credential: SSH (user:bender_eng_user, password:ASK)
+      cloud_credential: Rackspace (team:IT)
       limit: localhost
       verbosity: 3
 
