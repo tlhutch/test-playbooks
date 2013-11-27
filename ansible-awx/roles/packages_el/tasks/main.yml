@@ -31,10 +31,10 @@
 
 - name: install nightly ansible rpm
   # shell: yum -y --enablerepo=updates-testing,epel-testing,ansible-nightly install ansible
-  yum: name={{ansible}} enablerepo=updates-testing,epel-testing,ansible-nightly state=installed
+  yum: name=ansible enablerepo=updates-testing,epel-testing,ansible-nightly state=installed
   when: ansible_repo_url is defined
 
 - name: install ansible rpm
   # shell: yum -y --enablerepo=updates-testing,epel-testing install ansible
-  yum: name={{ansible}} enablerepo=updates-testing,epel-testing state=installed
+  yum: name=ansible enablerepo=updates-testing,epel-testing state=installed
   when: ansible_repo_url is not defined
