@@ -5,15 +5,14 @@
   when: rhn_method is defined
 
 - name: install epel-release
-  yum: name=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+  shell: rpm -q epel-release || rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
   register: epel_task
 
 - name: debug epel
   debug: var=epel_task
 
-- name: install non-required dependencies
+- name: install playbook dependencies
   yum: name={{item}} state=installed
-  when: ansible_pkg_mgr == 'yum'
   with_items:
     - libselinux-python
 
@@ -31,9 +30,11 @@
 # install ansible
 
 - name: install nightly ansible rpm
-  shell: yum -y --enablerepo=updates-testing,epel-testing,ansible-nightly install ansible
-  when: ansible_pkg_mgr == 'yum' and ansible_repo_url is defined
+  # shell: yum -y --enablerepo=updates-testing,epel-testing,ansible-nightly install ansible
+  yum: name={{ansible}} enablerepo=updates-testing,epel-testing,ansible-nightly state=installed
+  when: ansible_repo_url is defined
 
 - name: install ansible rpm
-  shell: yum -y --enablerepo=updates-testing,epel-testing install ansible
-  when: ansible_pkg_mgr == 'yum' and ansible_repo_url is not defined
+  # shell: yum -y --enablerepo=updates-testing,epel-testing install ansible
+  yum: name={{ansible}} enablerepo=updates-testing,epel-testing state=installed
+  when: ansible_repo_url is not defined
