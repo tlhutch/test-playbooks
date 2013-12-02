@@ -33,11 +33,51 @@ class Awx_Schema_v1(Awx_Schema):
         self.definitions['enum_passwords_needed_to_start'] = {
             'enum': [ 'ssh_password', 'sudo_password', 'ssh_key_unlock', ],
         }
+        self.definitions['dashboard_inventory_sources_label'] = {
+            'enum': [ 'Amazon EC2', 'Rackspace', ],
+        }
+        self.definitions['dashboard_scm_types_label'] = {
+            'enum': [ 'Subversion', 'Git', 'Mercurial' ],
+        }
+        self.definitions['dashboard_common_core_fields'] = {
+            'url': { 'type': 'string', 'format': 'uri'},
+            'total': { 'type': 'number', 'minimum': 0, },
+        }
+        self.definitions['dashboard_common_base_fields'] = {
+            '$ref': '#/definitions/dashboard_common_core_fields',
+            'failures_url': { 'type': 'string', 'format': 'uri'},
+            'failed': { 'type': 'number', 'minimum': 0, },
+        }
 
         # Shared fields
         self.definitions['id'] = dict(type='number', minimum=1)
         self.definitions['id_or_null'] = dict(type=['number', 'null'], minimum=1)
-
+        self.definitions['dashboard_common_core'] = {
+            'type': 'object',
+            'required': [ 'url', 'total', ],
+            'additionalProperties': False,
+            'properties': {
+                '$ref': '#/definitions/dashboard_common_core_fields',
+            }
+        }
+        self.definitions['dashboard_inventory_sources'] = {
+            'type': 'object',
+            'required': [ 'url', 'total', 'failures_url', 'failed', 'label', ],
+            'additionalProperties': False,
+            'properties': {
+                '$ref': '#/definitions/dashboard_common_base_fields',
+                'label': { 'type': 'string', '$ref': '#/definitions/dashboard_inventory_sources_label', },
+            },
+        }
+        self.definitions['dashboard_scm_types'] = {
+            'type': 'object',
+            'required': [ 'url', 'total', 'failures_url', 'failed', 'label', ],
+            'additionalProperties': False,
+            'properties': {
+                '$ref': '#/definitions/dashboard_common_base_fields',
+                'label': { 'type': 'string', '$ref': '#/definitions/dashboard_scm_types_label', },
+            },
+        }
         self.definitions['passwords_needed_to_start'] = {
             'type': 'array',
             'minItems': 0,
@@ -1711,3 +1751,120 @@ class Awx_Schema_v1_Me(Awx_Schema_v1):
 
 class Awx_Schema_v1_Authtoken(Awx_Schema_v1):
     component = '/authtoken'
+
+class Awx_Schema_v1_Dashboard(Awx_Schema_v1):
+    component = '/dashboard'
+
+    def __init__(self):
+        Awx_Schema_v1.__init__(self)
+
+        self.definitions['dashboard'] = {
+            'type': 'object',
+            'required': [ 'inventories', 'inventory_sources', 'groups', 'hosts', 'projects', 'scm_types', 'jobs', 'users', 'organizations', 'team', 'credentials', 'job_templates', ],
+            'additionalProperties': False,
+            'properties': {
+                'inventories': {
+                    'type': 'object',
+                    'required': [ 'url', 'inventory_failed', 'total', 'total_with_inventory_source', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        'url': { 'type': 'string', 'format': 'uri'},
+                        'total': { 'type': 'number', 'minimum': 0, },
+                        'inventory_failed': { 'type': 'number', 'minimum': 0, },
+                        'total_with_inventory_source': { 'type': 'number', 'minimum': 0, },
+                    }
+                },
+                'inventory_sources': {
+                    'type': 'object',
+                    'required': [ 'ec2', 'rax', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        'ec2': {
+                            'type': 'object',
+                            '$ref': '#/definitions/dashboard_inventory_sources',
+                        },
+                        'rax': {
+                            'type': 'object',
+                            '$ref': '#/definitions/dashboard_inventory_sources',
+                        }
+                    }
+                },
+                'groups': {
+                    'type': 'object',
+                    'required': [ 'url', 'total', 'failures_url', 'inventory_failed', 'job_failed', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        'url': { 'type': 'string', 'format': 'uri'},
+                        'total': { 'type': 'number', 'minimum': 0, },
+                        'failures_url': { 'type': 'string', 'format': 'uri'},
+                        'inventory_failed': { 'type': 'number', 'minimum': 0, },
+                        'job_failed': { 'type': 'number', 'minimum': 0, },
+                    }
+                },
+                'hosts': {
+                    'type': 'object',
+                    'required': [ 'url', 'total', 'failures_url', 'failed', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        '$ref': '#/definitions/dashboard_common_core_fields',
+                    }
+                },
+                'projects': {
+                    'type': 'object',
+                    'required': [ 'url', 'total', 'failures_url', 'failed', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        '$ref': '#/definitions/dashboard_common_core_fields',
+                    }
+                },
+                'scm_types': {
+                    'type': 'object',
+                    'required': [ 'svn', 'git', 'hg', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        'svn': {
+                            'type': 'object',
+                            '$ref': '#/definitions/dashboard_scm_types',
+                        },
+                        'git': {
+                            'type': 'object',
+                            '$ref': '#/definitions/dashboard_scm_types',
+                        },
+                        'hg': {
+                            'type': 'object',
+                            '$ref': '#/definitions/dashboard_scm_types',
+                        }
+                    }
+                },
+                'jobs': {
+                    'type': 'object',
+                    'required': [ 'url', 'total', 'failures_url', 'failed', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        '$ref': '#/definitions/dashboard_common_core_fields',
+                    }
+                },
+                'users': {
+                    '$ref': '#/definitions/dashboard_common_core',
+                },
+                'teams': {
+                    '$ref': '#/definitions/dashboard_common_core',
+                },
+                'organizations': {
+                    '$ref': '#/definitions/dashboard_common_core',
+                },
+                'credentials': {
+                    '$ref': '#/definitions/dashboard_common_core',
+                },
+                'job_templates': {
+                    '$ref': '#/definitions/dashboard_common_core',
+                },
+            }
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/dashboard',
+        })
