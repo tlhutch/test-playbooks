@@ -70,8 +70,9 @@
   when: aws_images and aws is defined
 
 - name: add_host
-  add_host: name={{ aws_name_prefix }}-{{ item.item.name }}
-     groups=all_instances,aws_instances
+  # add_host: name={{ aws_name_prefix }}-{{ item.item.name }}
+  add_host: name={{ item.instances[0].public_dns_name }}
+     groups=cloud,aws,{{ item.item.name }}
      ansible_ssh_user={{ item.item.user }}
      ansible_ssh_host={{ item.instances[0].public_dns_name }}
      # ansible_ssh_private_key_file={{ aws_keypair_private }}

@@ -44,8 +44,9 @@
   when: rax_images and rax is defined
 
 - name: add_host
-  add_host: name={{ item.instances[0].name }}
-     groups=all_instances,rax_instances
+  # add_host: name={{ item.instances[0].name }}
+  add_host: name={{ item.instances[0].accessIPv4 }}
+     groups=cloud,rax,{{item.instances[0].name}}
      ansible_ssh_user=root
      ansible_ssh_host={{ item.instances[0].accessIPv4 }}
   with_items: rax.results
