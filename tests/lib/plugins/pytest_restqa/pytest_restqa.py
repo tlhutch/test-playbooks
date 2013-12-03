@@ -179,11 +179,12 @@ def pytest_runtest_makereport(__multicall__, item, call):
     # Display failing API URL with any test failures
     if report.when == 'call':
         if hasattr(TestSetup, 'api') and TestSetup.api:
-            if report.skipped and 'xfail' in report.keywords or report.failed and 'xfail' not in report.keywords:
-                url = TestSetup.api.url
-                url and item.debug['urls'].append(url)
-                report.sections.append(('pytest-restqa', _debug_summary(item.debug)))
-            report.debug = item.debug
+            if 'skip_restqa' not in item.keywords:
+                if report.skipped and 'xfail' in report.keywords or report.failed and 'xfail' not in report.keywords:
+                    url = TestSetup.api.url
+                    url and item.debug['urls'].append(url)
+                    report.sections.append(('pytest-restqa', _debug_summary(item.debug)))
+                report.debug = item.debug
     return report
 
 def _debug_summary(debug):
