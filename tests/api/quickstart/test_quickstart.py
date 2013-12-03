@@ -11,17 +11,6 @@ from common.yaml_file import load_file
 from tests.api import Base_Api_Test
 from common.exceptions import Duplicate_Exception, NoContent_Exception
 
-def get_object_list(api_page, **kwargs):
-    obj = api_page.get(**kwargs)
-    return obj.results
-
-def get_object(api_page, **kwargs):
-    return get_object_list(api_page, **kwargs).pop()
-
-def find_object(api_page, **kwargs):
-    r = api_page.get(kwargs)
-    return data.get('results')
-
 # Load configuration
 cfg = load_file(os.path.join(os.path.dirname(__file__), 'data.yaml'))
 
