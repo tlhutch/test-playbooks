@@ -33,6 +33,10 @@ class Awx_Schema_v1(Awx_Schema):
         self.definitions['enum_passwords_needed_to_start'] = {
             'enum': [ 'ssh_password', 'sudo_password', 'ssh_key_unlock', ],
         }
+        self.definitions['enum_activity_stream_operation'] = {
+            'type': 'string',
+            'enum': [ 'create', 'update', ], # FIXME - what about delete?
+        }
         self.definitions['dashboard_inventory_sources_label'] = {
             'enum': [ 'Amazon EC2', 'Rackspace', ],
         }
@@ -1868,3 +1872,79 @@ class Awx_Schema_v1_Dashboard(Awx_Schema_v1):
             '$schema': 'http://json-schema.org/draft-04/schema#',
             '$ref': '#/definitions/dashboard',
         })
+
+class Awx_Schema_v1_Activity_Stream(Awx_Schema_v1):
+    component = '/activity_stream'
+
+    def __init__(self):
+        Awx_Schema_v1.__init__(self)
+
+        self.definitions['activity_stream'] = {
+            'type': 'object',
+            'required': [ 'inventories', 'inventory_sources', 'groups', 'hosts', 'projects', 'scm_types', 'jobs', 'users', 'organizations', 'team', 'credentials', 'job_templates', ],
+            'additionalProperties': False,
+            'properties': {
+                'id': { '$ref': '#/definitions/id', },
+                'url': { 'type': 'string', 'format': 'uri'},
+                'related': {
+                    'type': 'object',
+                    'required': [ 'object1', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        'object1':   { 'type': 'string', 'format': 'uri' },
+                    },
+                },
+                'summary_fields': {
+                    'type': 'object',
+                    'required': [ 'object1', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        'object1': {
+                            'type': 'object',
+                            'required': [ 'id', 'base', ],
+                            'additionalProperties': True,
+                            'properties': {
+                                'id': { '$ref': '#/definitions/id', },
+                                'base': { 'type': 'string', },
+                            },
+                        },
+                    },
+                },
+                'timestamp':  { 'type': 'string', 'format': 'date-time', },
+                'operation': { '$ref': '#/definitions/enum_activity_stream_operation', },
+                'object1': { 'type': 'string', },
+                'object1_id': { '$ref': '#/definitions/id', },
+                'object1_type': { 'type': 'string', },
+                'object2': { 'type': 'string', },
+                'object2_id': { '$ref': '#/definitions/id_or_null', },
+                'object2_type': { 'type': 'string', },
+                'object_relationship_type': { 'type': 'string', },
+                'changes': {
+                    'type': 'object',
+                    'additionalProperties': True,
+                },
+            }
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['count', 'next', 'previous', 'results', ],
+            'additionalProperties': False,
+            'properties': {
+                'count': { 'type': 'number', 'minimum': 0, },
+                'next': { 'type': ['string','null'], },
+                'previous': { 'type': ['string','null'], },
+                'results': {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        '$ref': '#definitions/activity_stream',
+                    },
+                },
+            },
+        })
+
