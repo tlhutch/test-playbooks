@@ -37,51 +37,55 @@ class Awx_Schema_v1(Awx_Schema):
             'type': 'string',
             'enum': [ 'create', 'update', ], # FIXME - what about delete?
         }
-        self.definitions['dashboard_inventory_sources_label'] = {
+        self.definitions['enum_dashboard_inventory_sources_label'] = {
+            'type': 'string',
             'enum': [ 'Amazon EC2', 'Rackspace', ],
         }
-        self.definitions['dashboard_scm_types_label'] = {
+        self.definitions['enum_dashboard_scm_types_label'] = {
+            'type': 'string',
             'enum': [ 'Subversion', 'Git', 'Mercurial' ],
-        }
-        self.definitions['dashboard_common_core_fields'] = {
-            'url': { 'type': 'string', 'format': 'uri'},
-            'total': { 'type': 'number', 'minimum': 0, },
-        }
-        self.definitions['dashboard_common_base_fields'] = {
-            '$ref': '#/definitions/dashboard_common_core_fields',
-            'failures_url': { 'type': 'string', 'format': 'uri'},
-            'failed': { 'type': 'number', 'minimum': 0, },
         }
 
         # Shared fields
         self.definitions['id'] = dict(type='number', minimum=1)
         self.definitions['id_or_null'] = dict(type=['number', 'null'], minimum=1)
+
+        self.definitions['dashboard_common_core_fields'] = {
+            'url': { 'type': 'string', 'format': 'uri'},
+            'total': { 'type': 'number', 'minimum': 0, },
+        }
         self.definitions['dashboard_common_core'] = {
             'type': 'object',
             'required': [ 'url', 'total', ],
             'additionalProperties': False,
-            'properties': {
-                '$ref': '#/definitions/dashboard_common_core_fields',
-            }
+            'properties': {}
         }
+        self.definitions['dashboard_common_core']['properties'].update(self.definitions['dashboard_common_core_fields'])
+
         self.definitions['dashboard_inventory_sources'] = {
             'type': 'object',
             'required': [ 'url', 'total', 'failures_url', 'failed', 'label', ],
             'additionalProperties': False,
             'properties': {
-                '$ref': '#/definitions/dashboard_common_base_fields',
-                'label': { 'type': 'string', '$ref': '#/definitions/dashboard_inventory_sources_label', },
+                'failures_url': { 'type': 'string', 'format': 'uri'},
+                'failed': { 'type': 'number', 'minimum': 0, },
+                'label': { '$ref': '#/definitions/enum_dashboard_inventory_sources_label', },
             },
         }
+        self.definitions['dashboard_inventory_sources']['properties'].update(self.definitions['dashboard_common_core_fields'])
+
         self.definitions['dashboard_scm_types'] = {
             'type': 'object',
             'required': [ 'url', 'total', 'failures_url', 'failed', 'label', ],
             'additionalProperties': False,
             'properties': {
-                '$ref': '#/definitions/dashboard_common_base_fields',
-                'label': { 'type': 'string', '$ref': '#/definitions/dashboard_scm_types_label', },
+                'failures_url': { 'type': 'string', 'format': 'uri'},
+                'failed': { 'type': 'number', 'minimum': 0, },
+                'label': { '$ref': '#/definitions/enum_dashboard_scm_types_label', },
             },
         }
+        self.definitions['dashboard_scm_types']['properties'].update(self.definitions['dashboard_common_core_fields'])
+
         self.definitions['passwords_needed_to_start'] = {
             'type': 'array',
             'minItems': 0,
@@ -1784,11 +1788,9 @@ class Awx_Schema_v1_Dashboard(Awx_Schema_v1):
                     'additionalProperties': False,
                     'properties': {
                         'ec2': {
-                            'type': 'object',
                             '$ref': '#/definitions/dashboard_inventory_sources',
                         },
                         'rax': {
-                            'type': 'object',
                             '$ref': '#/definitions/dashboard_inventory_sources',
                         }
                     }
@@ -1842,10 +1844,13 @@ class Awx_Schema_v1_Dashboard(Awx_Schema_v1):
                 },
                 'jobs': {
                     'type': 'object',
-                    'required': [ 'url', 'total', 'failures_url', 'failed', ],
+                    'required': [ 'url', 'total', 'failure_url', 'failed', ],
                     'additionalProperties': False,
                     'properties': {
-                        '$ref': '#/definitions/dashboard_common_core_fields',
+                        'url': { 'type': 'string', 'format': 'uri'},
+                        'total': { 'type': 'number', 'minimum': 0, },
+                        'failure_url': { 'type': 'string', 'format': 'uri'},
+                        'failed': { 'type': 'number', 'minimum': 0, },
                     }
                 },
                 'users': {
