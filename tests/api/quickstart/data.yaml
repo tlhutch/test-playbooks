@@ -194,34 +194,7 @@ credentials:
       cloud: false
       username: git
       password: ''
-      ssh_key_data: |
-        -----BEGIN RSA PRIVATE KEY-----
-        MIIEowIBAAKCAQEA04H3s/QuoPLCQGUW2DBxH+gIIPsDgeMhWIqEQL0XMBtuMZGT
-        rpnfIls/pNohtNCLVVcZSTJDuM39a/kch73T75QOfwawl4wTRskmzFucJcuEid4G
-        ppOJk42KyBipXa28U/P5BFuzSKwCMLDefTGaBcnLjx2ISGo74xsnUzHe+ZkxpWC4
-        m2wV1CckxLTZti0YWCgmVvmv3SPGHKQO6RaLiqCyrS+7uy/ojVCFEKYKQD4fm4Xe
-        GWB0nXps+AuBhOjwh8nx5oQDCeQ8KpEjWbc7WM8KZitk0t716ieU+HiDxmT/nY87
-        NQHKRRmUDTic6vzG6DMRMxxrAOgFKjObN+4k8QIDAQABAoIBAA+lXZ2CQrDFRHlf
-        AQGdE8E4eOF3sBq7oovaM05WrpBwdwZTrokL+OWhumOHf1bQ1n3Jo6U2gqv5EPYb
-        x3CDKlpeqXPcGtQbGJHz71rOrA5fr75DHlrULykrH0kOCflUEMplEdawseJ+Vusj
-        KlI4iRxEgTplBN/We/eg2pfc6JGuEPbJKWAFp9aVWwUm2wKMBflxdwHICICQtkZN
-        noK3pmq7wOH9QbvXC4m/2sxPqyp+c4x68wTVflT3+fZk+yiNYbHjpXkIOtLX3Ik5
-        n2cUgR0LO0E98zzKSlvHxr6LEF5Myw3+5Zs55RBAMLmHQBilxXzRfQ7qS2ZJPnF/
-        ut0BwAECgYEA9Bbwp3t7xapNGGRODilWk3xr0d7FTVnXQNlH2wh/8RWdnZQtsAOD
-        oMSTCG1Tjol+7qHSg8pU440Vtd9BqhZv0E+m6AfBAJHFF7ug60INVGPu97YZJwoZ
-        7Bh7vWCYGp46hCQL3yl6gAAye2wmzU7s9ULtjQs/79MDGwQiBIZBXzECgYEA3dQH
-        Su/U3Jzne1iy04CjYD1ZdGdbjSXgA6AXg0dWwTImzI6LkLqWxMj7xKfWvDu7Eft4
-        PL/PaaWa2CIjUTmjrII0ZHK85FBFMeTln/ni6/GwUj2GmU88omwsIZwBazJ0VpMt
-        1gTLteDtzcQiM0+2XBHkrYiie/5V4SHw1Ir9McECgYEAw+cReOpDmY6oV7ZRa05E
-        PRT0GDnaUs2TVGnPIP1+agj2On2t+YGoiESc2XudP14dMPtR0RJ39TXLwe+QbSma
-        zi7Pf5SRk5pq/DRL3+Vge2XFaqyNHWcfDP1Net3m1h4+SsX/fTl2JvuBiMtxjQAW
-        cHYp4DSyORI7gNhdURJLr1ECgYBGF40GXKnB28I481nuAqOc8UWmxlHjU6ho/Njx
-        HkWHXjVsRU5MOOkS3P7QsMflSmpd0Du51lHPbAh1arQGIlRZWfr8ElUlP0fd8Bmu
-        ZuMQ8ploIxC4uJTMLan0JLs+B/9Cq9a73WAQ5DW/4s17sSBKD01Wl+nfjAnOzU6v
-        mgtPAQKBgGPBXy2/8Mef554K7UbunAi3sMoFmiYly6fUimBkr3uPMBZm+LAqDDPR
-        4frqmYq6EvcD02fUuJFUE4cj0W1UD9aFuet79WBFJ/Jz4A/L2TPcFc0pny7wdukc
-        shbi6WgmwVoIYNuqS4PeusHjD8RlPjTN2y/Bjlr6hhF4HkRgvyxE
-        -----END RSA PRIVATE KEY-----
+      ssh_key_data: '{{ssh_key_data}'
       ssh_key_unlock: ''
 
     - name: git@github.com (ssh_key_data, ssh_key_unlock)
@@ -232,8 +205,8 @@ credentials:
       cloud: false
       username: git
       password: ''
-      ssh_key_data: '{ssh_key_data}'
-      ssh_key_unlock: '{ssh_key_unlock}'
+      ssh_key_data: '{encrypted[ssh_key_data]}'
+      ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
 
     #
     # bitbucket credentials
@@ -246,34 +219,7 @@ credentials:
       cloud: false
       username: hg
       password: ''
-      ssh_key_data: |
-        -----BEGIN RSA PRIVATE KEY-----
-        MIIEowIBAAKCAQEA04H3s/QuoPLCQGUW2DBxH+gIIPsDgeMhWIqEQL0XMBtuMZGT
-        rpnfIls/pNohtNCLVVcZSTJDuM39a/kch73T75QOfwawl4wTRskmzFucJcuEid4G
-        ppOJk42KyBipXa28U/P5BFuzSKwCMLDefTGaBcnLjx2ISGo74xsnUzHe+ZkxpWC4
-        m2wV1CckxLTZti0YWCgmVvmv3SPGHKQO6RaLiqCyrS+7uy/ojVCFEKYKQD4fm4Xe
-        GWB0nXps+AuBhOjwh8nx5oQDCeQ8KpEjWbc7WM8KZitk0t716ieU+HiDxmT/nY87
-        NQHKRRmUDTic6vzG6DMRMxxrAOgFKjObN+4k8QIDAQABAoIBAA+lXZ2CQrDFRHlf
-        AQGdE8E4eOF3sBq7oovaM05WrpBwdwZTrokL+OWhumOHf1bQ1n3Jo6U2gqv5EPYb
-        x3CDKlpeqXPcGtQbGJHz71rOrA5fr75DHlrULykrH0kOCflUEMplEdawseJ+Vusj
-        KlI4iRxEgTplBN/We/eg2pfc6JGuEPbJKWAFp9aVWwUm2wKMBflxdwHICICQtkZN
-        noK3pmq7wOH9QbvXC4m/2sxPqyp+c4x68wTVflT3+fZk+yiNYbHjpXkIOtLX3Ik5
-        n2cUgR0LO0E98zzKSlvHxr6LEF5Myw3+5Zs55RBAMLmHQBilxXzRfQ7qS2ZJPnF/
-        ut0BwAECgYEA9Bbwp3t7xapNGGRODilWk3xr0d7FTVnXQNlH2wh/8RWdnZQtsAOD
-        oMSTCG1Tjol+7qHSg8pU440Vtd9BqhZv0E+m6AfBAJHFF7ug60INVGPu97YZJwoZ
-        7Bh7vWCYGp46hCQL3yl6gAAye2wmzU7s9ULtjQs/79MDGwQiBIZBXzECgYEA3dQH
-        Su/U3Jzne1iy04CjYD1ZdGdbjSXgA6AXg0dWwTImzI6LkLqWxMj7xKfWvDu7Eft4
-        PL/PaaWa2CIjUTmjrII0ZHK85FBFMeTln/ni6/GwUj2GmU88omwsIZwBazJ0VpMt
-        1gTLteDtzcQiM0+2XBHkrYiie/5V4SHw1Ir9McECgYEAw+cReOpDmY6oV7ZRa05E
-        PRT0GDnaUs2TVGnPIP1+agj2On2t+YGoiESc2XudP14dMPtR0RJ39TXLwe+QbSma
-        zi7Pf5SRk5pq/DRL3+Vge2XFaqyNHWcfDP1Net3m1h4+SsX/fTl2JvuBiMtxjQAW
-        cHYp4DSyORI7gNhdURJLr1ECgYBGF40GXKnB28I481nuAqOc8UWmxlHjU6ho/Njx
-        HkWHXjVsRU5MOOkS3P7QsMflSmpd0Du51lHPbAh1arQGIlRZWfr8ElUlP0fd8Bmu
-        ZuMQ8ploIxC4uJTMLan0JLs+B/9Cq9a73WAQ5DW/4s17sSBKD01Wl+nfjAnOzU6v
-        mgtPAQKBgGPBXy2/8Mef554K7UbunAi3sMoFmiYly6fUimBkr3uPMBZm+LAqDDPR
-        4frqmYq6EvcD02fUuJFUE4cj0W1UD9aFuet79WBFJ/Jz4A/L2TPcFc0pny7wdukc
-        shbi6WgmwVoIYNuqS4PeusHjD8RlPjTN2y/Bjlr6hhF4HkRgvyxE
-        -----END RSA PRIVATE KEY-----
+      ssh_key_data: '{ssh_key_data}'
       ssh_key_unlock: ''
 
     - name: hg@bitbucket.org (ssh_key_data, ssh_key_unlock)
@@ -284,8 +230,8 @@ credentials:
       cloud: false
       username: hg
       password: ''
-      ssh_key_data: '{ssh_key_data}'
-      ssh_key_unlock: '{ssh_key_unlock}'
+      ssh_key_data: '{encrypted[ssh_key_data]}'
+      ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
 
     #
     # Amazon AWS Credentials
