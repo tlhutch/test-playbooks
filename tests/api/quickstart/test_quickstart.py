@@ -51,6 +51,7 @@ def pytest_generate_tests(metafunc):
 
 @pytest.mark.usefixtures("authtoken")
 @pytest.mark.incremental
+@pytest.mark.integration
 class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.destructive
