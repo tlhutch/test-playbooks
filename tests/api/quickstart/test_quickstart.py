@@ -459,7 +459,9 @@ if __name__ == '__main__':
             # time.sleep(1)
 
         # Make sure there is no traceback in result_stdout or result_traceback
-        assert 'successful' == inv_updates_pg.status.lower()
+        assert 'successful' == inv_updates_pg.status.lower(), \
+            "Inventory update unsuccessful (%s)\nUpdate result_stdout: %s\nUpdate result_traceback: %s" % \
+            (inv_updates_pg.status, inv_updates_pg.result_stdout, inv_updates_pg.result_traceback)
         assert 'Traceback' not in inv_updates_pg.result_traceback
         assert 'Traceback' not in inv_updates_pg.result_stdout
 
@@ -601,7 +603,9 @@ if __name__ == '__main__':
                 assert wait_timeout > time.time(), "Timeout exceeeded (%s > %s) waiting for project update completion (status:%s)" % (wait_timeout, time.time(), status)
                 # time.sleep(1)
 
-            assert 'successful' == latest_update_pg.status.lower()
+            assert 'successful' == latest_update_pg.status.lower(), \
+                "Project update unsuccessful (%s)\nUpdate result_stdout: %s\nUpdate result_traceback: %s" % \
+                (latest_update_pg.status, latest_update_pg.result_stdout, latest_update_pg.result_traceback)
             assert not latest_update_pg.failed
             assert 'Traceback' not in latest_update_pg.result_traceback
             assert 'Traceback' not in latest_update_pg.result_stdout
@@ -713,6 +717,8 @@ if __name__ == '__main__':
             # time.sleep(1)
 
         # Make sure there is no traceback in result_stdout or result_traceback
-        assert 'successful' == job_pg.status.lower()
+        assert 'successful' == job_pg.status.lower(), \
+            "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s" % \
+            (job_pg.status, job_pg.result_stdout, job_pg.result_traceback)
         assert 'Traceback' not in job_pg.result_traceback
         assert 'Traceback' not in job_pg.result_stdout
