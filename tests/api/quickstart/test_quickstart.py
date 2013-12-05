@@ -467,6 +467,9 @@ if __name__ == '__main__':
         assert 'Traceback' not in inv_updates_pg.result_traceback
         assert 'Traceback' not in inv_updates_pg.result_stdout
 
+        # Display output, even for success
+        print inv_updates_pg.result_stdout
+
     @pytest.mark.nondestructive
     def test_inventory_sources_get_hosts(self, api_groups_pg, api_hosts_pg, inventory_source):
         # Find desired group
@@ -613,6 +616,9 @@ if __name__ == '__main__':
             assert 'Traceback' not in latest_update_pg.result_traceback
             assert 'Traceback' not in latest_update_pg.result_stdout
 
+            # Display output, even for success
+            print latest_update_pg.result_stdout
+
     @pytest.mark.destructive
     def test_organizations_add_projects(self, api_organizations_pg, api_projects_pg, organization):
         # locate desired project resource
@@ -726,3 +732,6 @@ if __name__ == '__main__':
             (job_pg.status, job_pg.result_stdout, job_pg.result_traceback)
         assert 'Traceback' not in job_pg.result_traceback
         assert 'Traceback' not in job_pg.result_stdout
+
+        # Display output, even for success
+        print job_pg.result_stdout
