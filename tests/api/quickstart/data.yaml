@@ -194,7 +194,7 @@ credentials:
       cloud: false
       username: git
       password: ''
-      ssh_key_data: '{{ssh_key_data}'
+      ssh_key_data: '{ssh_key_data}'
       ssh_key_unlock: ''
 
     - name: git@github.com (ssh_key_data, ssh_key_unlock)
