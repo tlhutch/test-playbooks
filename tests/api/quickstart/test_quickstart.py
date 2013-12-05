@@ -259,11 +259,12 @@ if __name__ == '__main__':
         # Add machine/scm credential fields
         if credential['kind'] in ('ssh', 'scm'):
             # Assert the required credentials available?
-            fields = ['username', 'password', 'ssh_key_data', 'encrypted', ]
+            fields = ['username', 'password', 'ssh_key_data', 'ssh_key_unlock', ]
             if credential['kind'] in ('ssh'):
                 fields += ['sudo_username', 'sudo_password']
-            # The field 'encrypted' isn't stored in the variable fields as that would break how .format()
-            assert self.has_credentials(credential['kind'], fields=fields)
+            # The value 'encrypted' is not included in 'fields' because it is
+            # *not* a valid payload key
+            assert self.has_credentials(credential['kind'], fields=fields + ['encrypted'])
 
             # Merge with credentials.yaml
             payload.update(dict( \
@@ -272,7 +273,8 @@ if __name__ == '__main__':
                 sudo_username=credential.get('sudo_username', ''),
                 sudo_password=credential.get('sudo_password', ''),))
 
-            for field in payload.keys():
+            # Apply any variable substitution
+            for field in fields:
                 payload[field] = payload[field].format(**self.credentials[credential['kind']])
 
         # Merge with cloud credentials.yaml
