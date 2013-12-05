@@ -258,17 +258,19 @@ if __name__ == '__main__':
 
         # Add machine/scm credential fields
         if credential['kind'] in ('ssh', 'scm'):
+            # Assert the required credentials available?
+            fields = ['username', 'password', 'ssh_key_data', 'encrypted']
+            if credential['kind'] in ('ssh'):
+                fields += ['sudo_username', 'sudo_password']
+            assert self.has_credentials(credential['kind'], fields=fields)
+
+            # Merge with credentials.yaml
             payload.update(dict( \
                 ssh_key_data=credential.get('ssh_key_data', ''),
                 ssh_key_unlock=credential.get('ssh_key_unlock', ''),
                 sudo_username=credential.get('sudo_username', ''),
                 sudo_password=credential.get('sudo_password', ''),))
 
-            # Merge with credentials.yaml
-            fields = ['username', 'password', 'ssh_key_data', 'ssh_key_unlock']
-            if credential['kind'] in ('ssh'):
-                fields += ['sudo_username', 'sudo_password']
-            assert self.has_credentials(credential['kind'], fields=fields)
             for field in fields:
                 payload[field] = payload[field].format(**self.credentials[credential['kind']])
 
