@@ -457,7 +457,9 @@ if __name__ == '__main__':
         while status in ['new', 'pending', 'waiting', 'running']:
             inv_updates_pg.get()
             status = inv_updates_pg.status.lower()
-            assert wait_timeout > time.time(), "Timeout exceeded (%d seconds) waiting for inventory_source update to complete (status:%s)" % (int(time.time() - start_time), status)
+            assert wait_timeout > time.time(), "Timeout exceeded (%d seconds) waiting for inventory_source update to complete (status:%s)" \
+                "\n== result_stdout ==\n%s" \
+                % (int(time.time() - start_time), status, inv_updates_pg.result_stdout)
             # time.sleep(1)
 
         # Make sure there is no traceback in result_stdout or result_traceback
@@ -606,7 +608,9 @@ if __name__ == '__main__':
             while status in ['new', 'pending', 'waiting', 'running']:
                 latest_update_pg.get()
                 status = latest_update_pg.status.lower()
-                assert wait_timeout > time.time(), "Timeout exceeded (%d seconds) waiting for project update completion (status:%s)" % (int(time.time() - start_time), status)
+                assert wait_timeout > time.time(), "Timeout exceeded (%d seconds) waiting for project update completion (status:%s)" \
+                    "\n== result_stdout ==\n%s" \
+                    % (int(time.time() - start_time), status, latest_update_pg.result_stdout)
                 # time.sleep(1)
 
             assert 'successful' == latest_update_pg.status.lower(), \
@@ -723,7 +727,9 @@ if __name__ == '__main__':
         while status in ['new', 'pending', 'waiting', 'running']:
             job_pg.get()
             status = job_pg.status.lower()
-            assert wait_timeout > time.time(), "Timeout exceeded (%d seconds) waiting for job completion (status:%s)" % (int(time.time() - start_time), status)
+            assert wait_timeout > time.time(), "Timeout exceeded (%d seconds) waiting for job completion (status:%s)" \
+                "\n== result_stdout ==\n%s" \
+                % (int(time.time() - start_time), status, job_pg.result_stdout)
             # time.sleep(1)
 
         # Make sure there is no traceback in result_stdout or result_traceback
