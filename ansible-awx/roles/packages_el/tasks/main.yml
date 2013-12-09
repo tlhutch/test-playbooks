@@ -4,9 +4,11 @@
 - include: rhn.yml
   when: rhn_method is defined
 
+# Mirrors don't always do the right thing ... retry until the package installs
 - name: install epel-release
   shell: rpm -q epel-release || rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
   register: epel_task
+  until: epel_task.rc == 0
 
 - name: debug epel
   debug: var=epel_task
