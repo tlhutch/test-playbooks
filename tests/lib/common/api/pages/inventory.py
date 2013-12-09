@@ -67,6 +67,8 @@ class Inventory_Update_Page(base.Base_List):
     status = property(base.json_getter('status'), base.json_setter('status'))
     result_traceback = property(base.json_getter('result_traceback'), base.json_setter('result_traceback'))
     result_stdout = property(base.json_getter('result_stdout'), base.json_setter('result_stdout'))
+    created = property(base.json_getter('created'), base.json_setter('created'))
+    modified = property(base.json_getter('modified'), base.json_setter('failed'))
 
 class Inventory_Updates_Page(Inventory_Update_Page, base.Base_List):
     base_url = '/api/v1/inventory_sources/{inventory_source}/inventory_updates/'

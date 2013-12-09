@@ -451,7 +451,10 @@ if __name__ == '__main__':
 
         # Ensure the update completed successfully
         timeout = 60 * 8 # 8 minutes
-        start_time = time.time()
+        # Start monitoring from when the inventory update was created, not now()
+        # start_time = time.time()
+        created = time.strptime(inv_updates_pg.created, '%Y-%m-%dT%H:%M:%S.%fZ')
+        start_time = time.mktime(created)
         wait_timeout = start_time + timeout
         status = inv_updates_pg.status.lower()
         while status in ['new', 'pending', 'waiting', 'running']:
@@ -602,7 +605,10 @@ if __name__ == '__main__':
 
             # Ensure the update successfully
             timeout = 60 * 8 # 8 minutes
-            start_time = time.time()
+            # Start monitoring from when the inventory update was created, not now()
+            # start_time = time.time()
+            created = time.strptime(latest_update_pg.created, '%Y-%m-%dT%H:%M:%S.%fZ')
+            start_time = time.mktime(created)
             wait_timeout = start_time + timeout
             status = latest_update_pg.status.lower()
             while status in ['new', 'pending', 'waiting', 'running']:

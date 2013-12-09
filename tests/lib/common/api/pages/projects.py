@@ -33,6 +33,8 @@ class Project_Update_Page(base.Base_List):
     failed = property(base.json_getter('failed'), base.json_setter('failed'))
     result_traceback = property(base.json_getter('result_traceback'), base.json_setter('result_traceback'))
     result_stdout = property(base.json_getter('result_stdout'), base.json_setter('result_stdout'))
+    created = property(base.json_getter('created'), base.json_setter('created'))
+    modified = property(base.json_getter('modified'), base.json_setter('failed'))
 
 class Project_Updates_Page(Project_Update_Page, base.Base_List):
     base_url = '/api/v1/projects/{id}/project_updates/'
