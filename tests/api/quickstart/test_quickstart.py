@@ -721,7 +721,10 @@ if __name__ == '__main__':
 
         # Ensure the launch completed successfully
         timeout = 60 * 8 # 8 minutes
-        start_time = time.time()
+        # Start monitoring from when the job was created, not now()
+        # start_time = time.time()
+        created = time.strptime(job_pg.created, '%Y-%m-%dT%H:%M:%S.%fZ')
+        start_time = time.mktime(created)
         wait_timeout = start_time + timeout
         status = job_pg.status.lower()
         while status in ['new', 'pending', 'waiting', 'running']:
