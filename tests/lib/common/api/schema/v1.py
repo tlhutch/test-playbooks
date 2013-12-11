@@ -332,7 +332,7 @@ class Awx_Schema_v1_Organizations(Awx_Schema_v1):
                 'url': { 'type': 'string', 'format': 'uri'},
                 'related': {
                     'type': 'object',
-                    'required': ['created_by', 'admins', 'inventories', 'users', 'projects', 'teams',],
+                    'required': ['created_by', 'admins', 'inventories', 'users', 'projects', 'teams', 'activity_stream', ],
                     'additionalProperties': False,
                     'properties': {
                         'created_by':   { 'type': 'string', 'format': 'uri' },
@@ -341,6 +341,7 @@ class Awx_Schema_v1_Organizations(Awx_Schema_v1):
                         'users':        { 'type': 'string', 'format': 'uri' },
                         'projects':     { 'type': 'string', 'format': 'uri' },
                         'teams':        { 'type': 'string', 'format': 'uri' },
+                        'activity_stream': { 'type': 'string', 'format': 'uri' },
                     },
                 },
                 'summary_fields': { 'type': 'object', }, # FIXME
@@ -463,7 +464,7 @@ class Awx_Schema_v1_Users(Awx_Schema_v1):
                 'email': { 'type': 'string', 'format': 'email'},
                 'related': {
                     'type': 'object',
-                    'required': ['admin_of_organizations', 'credentials', 'organizations', 'permissions', 'projects', 'teams',],
+                    'required': ['admin_of_organizations', 'credentials', 'organizations', 'permissions', 'projects', 'teams', 'activity_stream', ],
                     'additionalProperties': False,
                     'properties': {
                         'admin_of_organizations':   { 'type': 'string', 'format': 'uri' },
@@ -472,6 +473,7 @@ class Awx_Schema_v1_Users(Awx_Schema_v1):
                         'permissions':              { 'type': 'string', 'format': 'uri' },
                         'projects':                 { 'type': 'string', 'format': 'uri' },
                         'teams':                    { 'type': 'string', 'format': 'uri' },
+                        'activity_stream':          { 'type': 'string', 'format': 'uri' },
                     },
                 },
             },
@@ -551,18 +553,19 @@ class Awx_Schema_v1_Inventories(Awx_Schema_v1):
                 'url': { 'type': 'string', 'format': 'uri'},
                 'related': {
                     'type': 'object',
-                    'required': ['created_by', 'variable_data', 'root_groups', 'script', 'tree', 'hosts', 'groups', 'organization', 'inventory_sources',],
+                    'required': ['created_by', 'variable_data', 'root_groups', 'script', 'tree', 'hosts', 'groups', 'organization', 'inventory_sources', 'activity_stream', ],
                     'additionalProperties': False,
                     'properties': {
-                        "created_by":       { 'type': 'string', 'format': 'uri', },
-                        "variable_data":    { 'type': 'string', 'format': 'uri', },
-                        "root_groups":      { 'type': 'string', 'format': 'uri', },
-                        "script":           { 'type': 'string', 'format': 'uri', },
-                        "tree":             { 'type': 'string', 'format': 'uri', },
-                        "hosts":            { 'type': 'string', 'format': 'uri', },
-                        "groups":           { 'type': 'string', 'format': 'uri', },
-                        "organization":     { 'type': 'string', 'format': 'uri', },
-                        "inventory_sources":{ 'type': 'string', 'format': 'uri', },
+                        'created_by':       { 'type': 'string', 'format': 'uri', },
+                        'variable_data':    { 'type': 'string', 'format': 'uri', },
+                        'root_groups':      { 'type': 'string', 'format': 'uri', },
+                        'script':           { 'type': 'string', 'format': 'uri', },
+                        'tree':             { 'type': 'string', 'format': 'uri', },
+                        'hosts':            { 'type': 'string', 'format': 'uri', },
+                        'groups':           { 'type': 'string', 'format': 'uri', },
+                        'organization':     { 'type': 'string', 'format': 'uri', },
+                        'inventory_sources':{ 'type': 'string', 'format': 'uri', },
+                        'activity_stream': { 'type': 'string', 'format': 'uri' },
                     },
                 },
                 'summary_fields':  {
@@ -684,7 +687,7 @@ class Awx_Schema_v1_Groups(Awx_Schema_v1):
                 'total_groups':{ 'type': 'number', 'minimum': 0, },
                 'related': {
                     'type': 'object',
-                    'required': [ 'job_host_summaries', 'variable_data', 'inventory_source', 'job_events', 'potential_children', 'all_hosts', 'hosts', 'inventory', 'children',],
+                    'required': [ 'job_host_summaries', 'variable_data', 'inventory_source', 'job_events', 'potential_children', 'all_hosts', 'hosts', 'inventory', 'children', 'activity_stream', ],
                     'additionalProperties': False,
                     'properties': {
                         "created_by":           { 'type': 'string', 'format': 'uri', },
@@ -697,6 +700,7 @@ class Awx_Schema_v1_Groups(Awx_Schema_v1):
                         "hosts":                { 'type': 'string', 'format': 'uri', },
                         "inventory":            { 'type': 'string', 'format': 'uri', },
                         "children":             { 'type': 'string', 'format': 'uri', },
+                        'activity_stream': { 'type': 'string', 'format': 'uri' },
                     },
                 },
                 'summary_fields':  {
@@ -914,12 +918,13 @@ class Awx_Schema_v1_Credentials(Awx_Schema_v1):
                 'team': { 'type': ['number', 'null'], 'minimum': 1, },
                 'related': {
                     'type': 'object',
-                    'required': ['created_by'],
+                    'required': ['created_by', 'activity_stream', ],
                     'additionalProperties': False,
                     'properties': {
                         'user': { 'type': 'string', 'format': 'uri' },
                         'team': { 'type': 'string', 'format': 'uri' },
                         'created_by': { 'type': 'string', 'format': 'uri' },
+                        'activity_stream': { 'type': 'string', 'format': 'uri' },
                     },
                 },
                 'summary_fields': {
@@ -1034,7 +1039,7 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
                 'credential': { 'type': ['number','null'], },
                 'related': {
                     'type': 'object',
-                    'required': ['created_by', 'organizations', 'project_updates', 'playbooks', 'update', 'teams'],
+                    'required': ['created_by', 'organizations', 'project_updates', 'playbooks', 'update', 'teams', 'activity_list', ],
                     'additionalProperties': False,
                     'properties': {
                         'created_by':      { 'type': 'string', 'format': 'uri', },
@@ -1046,6 +1051,7 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
                         'update':          { 'type': 'string', 'format': 'uri', },
                         'teams':           { 'type': 'string', 'format': 'uri', },
                         'credential':      { 'type': 'string', 'format': 'uri', },
+                        'activity_list':   { 'type': 'string', 'format': 'uri' },
                     },
                 },
             },
@@ -1257,7 +1263,7 @@ class Awx_Schema_v1_Job_templates(Awx_Schema_v1):
                 'host_config_key': { 'type': 'string', },
                 'related': {
                     'type': 'object',
-                    'required': [ 'created_by', 'project', 'jobs', 'inventory', 'credential',],
+                    'required': [ 'created_by', 'project', 'jobs', 'inventory', 'credential', 'activity_stream', ],
                     'additionalProperties': False,
                     'properties': {
                         'created_by': { 'type': 'string', 'format': 'uri' },
@@ -1266,6 +1272,7 @@ class Awx_Schema_v1_Job_templates(Awx_Schema_v1):
                         'inventory': { 'type': 'string', 'format': 'uri' },
                         'credential': { 'type': 'string', 'format': 'uri' },
                         'cloud_credential': { 'type': 'string', 'format': 'uri' },
+                        'activity_stream': { 'type': 'string', 'format': 'uri' },
                     },
                 },
                 'summary_fields':  {
@@ -1374,7 +1381,7 @@ class Awx_Schema_v1_Jobs(Awx_Schema_v1):
                 'job_env': { '$ref': '#/definitions/job_env', },
                 'related': {
                     'type': 'object',
-                    'required': [ 'project', 'job_host_summaries', 'credential', 'job_events', 'inventory', 'job_template', 'start', 'cancel',],
+                    'required': [ 'project', 'job_host_summaries', 'credential', 'job_events', 'inventory', 'job_template', 'start', 'cancel', 'activity_stream', ],
                     'additionalProperties': False,
                     'properties': {
                         'created_by': { 'type': 'string', 'format': 'uri' },
@@ -1387,6 +1394,7 @@ class Awx_Schema_v1_Jobs(Awx_Schema_v1):
                         'job_template': { 'type': 'string', 'format': 'uri', },
                         'start': { 'type': 'string', 'format': 'uri', },
                         'cancel': { 'type': 'string', 'format': 'uri', },
+                        'activity_stream': { 'type': 'string', 'format': 'uri' },
                     },
                 },
                 'summary_fields':  {
@@ -1669,7 +1677,7 @@ class Awx_Schema_v1_Teams(Awx_Schema_v1):
                 'organization': { 'type': 'number', 'minimum': 1, },
                 'related': {
                     'type': 'object',
-                    'required': [ 'created_by', 'organization', 'permissions', 'users', 'projects', 'credentials', ],
+                    'required': [ 'created_by', 'organization', 'permissions', 'users', 'projects', 'credentials', 'activity_stream', ],
                     'additionalProperties': False,
                     'properties': {
                         'created_by':   { 'type': 'string', 'format': 'uri' },
@@ -1678,6 +1686,7 @@ class Awx_Schema_v1_Teams(Awx_Schema_v1):
                         'users':        { 'type': 'string', 'format': 'uri' },
                         'projects':     { 'type': 'string', 'format': 'uri' },
                         'credentials':  { 'type': 'string', 'format': 'uri' },
+                        'activity_stream': { 'type': 'string', 'format': 'uri' },
                     },
                 },
                 'summary_fields':  {
