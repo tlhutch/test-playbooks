@@ -78,3 +78,8 @@
      # ansible_ssh_private_key_file={{ aws_keypair_private }}
   with_items: aws.results
   when: aws_images and aws is defined
+
+# HACK: While sshd may be listening, it may not fully accept connections
+# immediately
+- name: sleep 30s
+  command: sleep 30s
