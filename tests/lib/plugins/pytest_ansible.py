@@ -160,7 +160,7 @@ class AnsibleWrapper(object):
             module_args += ["%s=%s" % (k, pipes.quote(v)) for k,v in kwargs.items()]
 
         # Build command
-        cmd = ['ansible', self.pattern, '-m', self.module_name, '-i', self.inventory, '--sudo']
+        cmd = ['ansible', '-vvvv', self.pattern, '-m', self.module_name, '-i', self.inventory, '--sudo']
         if module_args:
             cmd += ['-a', ' '.join(module_args)]
 
