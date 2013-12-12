@@ -1039,7 +1039,7 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
                 'credential': { 'type': ['number','null'], },
                 'related': {
                     'type': 'object',
-                    'required': ['created_by', 'organizations', 'project_updates', 'playbooks', 'update', 'teams', 'activity_list', ],
+                    'required': ['created_by', 'organizations', 'project_updates', 'playbooks', 'update', 'teams', 'activity_stream', ],
                     'additionalProperties': False,
                     'properties': {
                         'created_by':      { 'type': 'string', 'format': 'uri', },
@@ -1051,7 +1051,7 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
                         'update':          { 'type': 'string', 'format': 'uri', },
                         'teams':           { 'type': 'string', 'format': 'uri', },
                         'credential':      { 'type': 'string', 'format': 'uri', },
-                        'activity_list':   { 'type': 'string', 'format': 'uri' },
+                        'activity_stream': { 'type': 'string', 'format': 'uri' },
                     },
                 },
             },
