@@ -25,7 +25,7 @@ class Awx_Schema_v1(Awx_Schema):
             'enum': [ "", "new", "pending", "waiting", "running", "successful", "failed", "error", "canceled", ],
         }
         self.definitions['enum_source_status'] = {
-            'enum': [ 'failed', 'never updated', 'none', 'successful', 'updating']
+            'enum': [ 'error', 'failed', 'never updated', 'none', 'successful', 'updating']
         }
         self.definitions['enum_kind'] = {
             'enum': [ 'ssh', 'scm', 'aws', 'rax' ],
