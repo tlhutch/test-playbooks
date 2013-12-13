@@ -51,7 +51,7 @@ for VARNAME in AW_REPO_URL \
                AWS_NAME_PREFIX ;
 do
     # If defined, set the value in vars.yaml
-    if [ -z "${!VARNAME}" ]; then
+    if [ -n "${!VARNAME}" ]; then
         echo "${VARNAME,,}: '${!VARNAME}'" >> vars.yaml
     fi
 done
