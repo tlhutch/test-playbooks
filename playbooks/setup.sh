@@ -20,7 +20,7 @@ gen_passwd() {
 # Convenience function to load images from group_vars/all
 #
 filter_images() {
-    # $1 = [aws,rax]
+    # $1 = [ec2,rax]
     # $2 = [all,rhel,ubuntu,centos]
     python -c "import yaml; data = yaml.load(open('roles/create_${1}/defaults/main.yml','r')); print [i for i in data['${1}_images'] if '${2}' in i['name']]"
 }
@@ -55,7 +55,7 @@ for VARNAME in AW_REPO_URL \
                RAX_NAME_PREFIX \
                AWS_ACCESS_KEY \
                AWS_SECRET_KEY \
-               AWS_NAME_PREFIX ;
+               EC2_NAME_PREFIX ;
 do
     # If defined, set the value in vars.yaml
     if [ -n "${!VARNAME}" ]; then
@@ -79,18 +79,18 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
     ec2-*)
         # disable rax
         RAX_IMAGES="[]"
-        # use desired aws distro
-        AWS_IMAGES=$(filter_images aws ${PLATFORM})
+        # use desired ec2 distro
+        EC2_IMAGES=$(filter_images ec2 ${PLATFORM})
         ;;
     # All rax distros
     rax-all)
-        # disable aws
-        AWS_IMAGES="[]" #
+        # disable ec2
+        EC2_IMAGES="[]" #
         ;;
     # A specific rax distro
     rax-*)
-        # disable aws
-        AWS_IMAGES="[]"
+        # disable ec2
+        EC2_IMAGES="[]"
         # use desired rax distro
         RAX_IMAGES=$(filter_images rax ${PLATFORM})
         ;;
@@ -98,8 +98,8 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
         # the default is all clouds, all distros ... no action required
         ;;
     all-*)
-        # use desired aws distro
-        AWS_IMAGES=$(filter_images aws ${PLATFORM})
+        # use desired ec2 distro
+        EC2_IMAGES=$(filter_images ec2 ${PLATFORM})
         # use desired rax distro
         RAX_IMAGES=$(filter_images rax ${PLATFORM})
         ;;
@@ -112,8 +112,8 @@ esac
 if [ -n "${RAX_IMAGES}" ]; then
     echo "rax_images: ${RAX_IMAGES}" >> vars.yaml
 fi
-if [ -n "${AWS_IMAGES}" ]; then
-    echo "aws_images: ${AWS_IMAGES}" >> vars.yaml
+if [ -n "${EC2_IMAGES}" ]; then
+    echo "ec2_images: ${EC2_IMAGES}" >> vars.yaml
 fi
 
 #
