@@ -1,0 +1,19 @@
+# Whether to upgrade an existing awx installation
+awx_upgrade: false
+
+# Choose location for awx package repository
+aw_repo_url: http://50.116.42.103/awx_nightlies_RTYUIOPOIUYTYU
+# aw_repo_url: http://ansibleworks.com/releases/awx
+
+# Choose location for awx-setup
+awx_setup_path: /setup/awx-setup-latest.tar.gz
+# awx_setup_path: /setup/awx-setup-latest.tar.gz
+# awx_setup_path: /setup/awx-setup-1.3.0.tar.gz
+# awx_setup_path: /setup/awx-setup-1.3.1.tar.gz
+
+# Optionally customize the default awx passwords
+# admin_password: fo0m4nchU
+# pg_password: 9CJCSUtePvE
+
+# Choose location for ansible package repository (optional)
+# ansible_repo_url: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi

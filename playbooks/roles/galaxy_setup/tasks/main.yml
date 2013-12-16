@@ -1,0 +1,37 @@
+---
+# Download galaxy-setup and run the setup playbook
+
+- name: download galaxy-setup-latest.tar.gz
+  get_url: url={{aw_repo_url}}/{{galaxy_setup_path}} dest=/tmp mode=0640
+  register: tarball
+
+- name: determine galaxy-setup directory
+  shell: echo {{tarball.dest}} | sed 's|\.tar\.gz$||'
+  register: galaxy_setup_dir
+
+- name: untar galaxy-setup
+  shell: tar -xvf {{tarball.dest}} --transform "s|^galaxy-setup-[^/]*|galaxy-setup|"
+    chdir=/tmp
+
+- name: is galaxy already installed?
+  shell: ls /etc/galaxy/galaxy.cert
+  register: is_galaxy_installed
+  ignore_errors: yes
+
+- name: disable sudo requiretty for root
+  lineinfile: dest=/etc/sudoers
+     state=present
+     regexp='^Defaults:root'
+     line='Defaults:root !requiretty'
+
+- name: create galaxy galaxy_vars.yaml
+  #template: src=galaxy_vars.yml.j2 dest=/tmp/galaxy-setup/galaxy_vars.yaml
+  template: src=galaxy_vars.yml.j2 dest=/tmp/galaxy-setup/group_vars/all
+  when: is_galaxy_installed|failed or galaxy_upgrade
+
+- name: setup.sh
+  #shell: bash -x setup.sh -e @galaxy_vars.yaml
+  shell: bash -x setup.sh
+     chdir=/tmp/galaxy-setup
+     # creates=/etc/galaxy/galaxy.cert
+  when: is_galaxy_installed|failed or galaxy_upgrade

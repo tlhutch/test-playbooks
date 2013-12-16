@@ -34,7 +34,7 @@
      line='Defaults:root !requiretty'
 
 - name: create awx awx_vars.yaml
-  template: src=files/awx_vars.yml.j2 dest=/tmp/awx-setup/awx_vars.yaml
+  template: src=awx_vars.yml.j2 dest=/tmp/awx-setup/awx_vars.yaml
   when: is_awx_installed|failed or awx_upgrade
 
 - name: setup.sh

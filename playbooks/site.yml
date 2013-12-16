@@ -1,0 +1,3 @@
+---
+- include: awx.yml
+- include: galaxy.yml

@@ -3,9 +3,11 @@
 
 - name: install debian dependencies
   apt: pkg=python-pycurl state=latest
+  when: ansible_pkg_mgr == 'apt'
 
 - name: enable ppa:rquillo/ansible
   apt_repository: repo='ppa:rquillo/ansible' state=present
+  when: ansible_pkg_mgr == 'apt'
 
 - name: install ansible deb
   apt: pkg=ansible state=latest update_cache=yes

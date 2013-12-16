@@ -83,3 +83,4 @@
 # immediately
 - name: sleep 30s
   command: sleep 30s
+  when: aws_images and aws is defined

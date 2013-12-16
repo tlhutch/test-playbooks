@@ -25,6 +25,13 @@ filter_images() {
     python -c "import yaml; data = yaml.load(open('group_vars/all','r')); print [i for i in data['${1}_images'] if '${2}' in i['name']]"
 }
 
+# Determine which playbook was requested
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <playbook>"
+    exit 1
+fi
+PLAYBOOK=${1}
+
 # Assert expected environment variables exist
 for VARNAME in JOB_NAME JENKINS_HOME ;
 do
@@ -142,4 +149,4 @@ if [[ "${VERBOSE}" == true ]]; then
   ARGS="-vvvv"
 fi
 
-ansible-playbook ${ARGS} -i inventory -e @vars.yaml site.yml
+ansible-playbook ${ARGS} -i inventory -e @vars.yaml "${PLAYBOOK}"

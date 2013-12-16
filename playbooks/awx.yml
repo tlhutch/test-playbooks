@@ -1,0 +1,26 @@
+---
+# This playbook deploys the AWX application (database, web and worker) to a
+# multiple platforms across multiple cloud providers.
+
+#
+# Create remote hosts
+#
+- hosts: local
+  roles:
+    - { role: deploy_cloud }
+
+#
+# Dynamically create host groups based on distribution
+#
+- hosts: all
+  tasks:
+   - name: group hosts by distribution
+     action: group_by key={{ansible_distribution}}
+
+#
+# Install on RHEL-like systems
+#
+- hosts: '!local'
+  sudo: yes
+  roles:
+    - { role: awx_setup }
