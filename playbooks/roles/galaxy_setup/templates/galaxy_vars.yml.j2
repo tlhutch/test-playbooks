@@ -1,13 +1,14 @@
 # Override galaxy setup playbook variables
-
 {% if aw_repo_url is defined %}
 aw_repo_url: {{aw_repo_url}}
 {% endif %}
 {% if admin_password is defined %}
 admin_password: {{admin_password}}
 {% endif %}
+
+# Postgresql settings
 {% if pg_password is defined %}
-pg_password: {{pg_password}}
+galaxy_postgresql_password: {{pg_password}}
 {% endif %}
 
 # Galaxy settings
