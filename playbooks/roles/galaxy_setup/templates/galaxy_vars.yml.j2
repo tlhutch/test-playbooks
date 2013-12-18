@@ -9,3 +9,35 @@ admin_password: {{admin_password}}
 {% if pg_password is defined %}
 pg_password: {{pg_password}}
 {% endif %}
+
+# Galaxy settings
+galaxy_site_aliases: ["{{ hostvars[item]['ansible_default_ipv4']['address'] }}", "{{ hostvars[item]['ansible_hostname'] }}"]
+
+# GitHub settings
+{% if galaxy_github_api_username is defined %}
+galaxy_github_api_username: {{galaxy_github_api_username}}
+{% endif %}
+{% if galaxy_github_api_token is defined %}
+galaxy_github_api_token: {{galaxy_github_api_token}}
+{% endif %}
+
+# Outbound SMTP settings
+{% if galaxy_email_hostname is defined %}
+galaxy_email_hostname: {{galaxy_email_hostname}}
+{% endif %}
+{% if galaxy_email_port is defined %}
+galaxy_email_port: {{galaxy_email_port}}
+{% else %}
+galaxy_email_port: 25
+{% endif %}
+{% if galaxy_email_username is defined %}
+galaxy_email_username: {{galaxy_email_username}}
+{% else %}
+galaxy_email_username: ''
+{% endif %}
+{% if galaxy_email_password is defined %}
+galaxy_email_password: {{galaxy_email_password}}
+{% else %}
+galaxy_email_password: ''
+{% endif %}
+
