@@ -46,21 +46,22 @@ cat << EOF >vars.yaml
 ---
 EOF
 
-# Append variables to argument file
-for VARNAME in AW_REPO_URL \
-               AWX_SETUP_PATH \
-               DELETE_ON_START \
-               RAX_USERNAME \
-               RAX_API_KEY \
-               RAX_NAME_PREFIX \
-               AWS_ACCESS_KEY \
-               AWS_SECRET_KEY \
-               EC2_NAME_PREFIX ;
-do
-    # If defined, set the value in vars.yaml
-    if [ -n "${!VARNAME}" ]; then
-        echo "${VARNAME,,}: '${!VARNAME}'" >> vars.yaml
-    fi
+# Append desired variables to argument file.  This looks through the current
+# `env` and stores variables matching a pattern
+OFS="$IFS"
+IFS=$'\n'
+for LINE in $(env) ; do
+    IFS="="
+    set -- $LINE
+    VARNAME="$1"
+    case $VARNAME in
+        AWX*|GALAXY*|AWS*|EC2*|RAX*|AW_REPO_URL|DELETE_ON_START)
+            echo "${VARNAME,,}: '${!VARNAME}'" >> vars.yaml
+            ;;
+        *)
+            echo "Ignoring environment variable: $VARNAME"
+            ;;
+    esac
 done
 
 # Enable nightly ansible repository?
