@@ -48,6 +48,7 @@ class LoginPage(base.Base):
 
     def login(self, user='default'):
         return self.login_with_mouse_click(user)
+        # return self.login_with_enter_key(user)
 
     def login_with_enter_key(self, user='default'):
         return self.__do_login(self._press_enter_on_login_button, user)
@@ -61,7 +62,7 @@ class LoginPage(base.Base):
     def __do_login(self, continue_function, user='default'):
         self.__set_login_fields(user)
         # TODO: Remove once bug is fixed
-        # time.sleep(1.25)
+        time.sleep(1.0)
         continue_function()
 
         # Wait for DEMO dialog
@@ -69,6 +70,8 @@ class LoginPage(base.Base):
             self.demo_ok_button.click()
         except:
             pass
+
+        # Wait for "busy" throbber to go away
         self._wait_for_results_refresh()
 
         # FIXME - This should return the correct redirected page
