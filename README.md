@@ -22,7 +22,13 @@ On a daily interval, jenkins will trigger the development build process with the
 
 All jenkins jobs can be triggered manually.  Jenkins will prompt for any required build parameters.
 
-## Nightly Build Workflow
+## Build Workflow
+
+There are two primary workflows through the AWX build process:
+1. `OFFICIAL=yes` - builds `.rpm`, `.deb` and `.tgz` files for official product releases
+1. `OFFICIAL=no` - builds `.rpm`, `.deb` and `.tgz` files for internal testing purposes
+
+### Nightly
 
 The nightly build workflow is triggered on a ... wait for it ... nightly basis by jenkins.  All jobs use the parameter `OFFICIAL=no`.  Build artifacts (e.g. `.rpm`, `.deb` and `.tgz` files) are intended for internal testing purposes only.
 
@@ -35,7 +41,7 @@ The nightly build workflow is triggered on a ... wait for it ... nightly basis b
     * [AWX_Nightly_Install]((http://50.116.42.103/view/AWX/job/AWX_Nightly_Install) (for ubuntu only)
       * [AWX_Integration_Test](http://50.116.42.103/view/AWX/job/AWX_Integration_Test) (for ubuntu only)
 
-## Official Build Workflow
+### Official Build Workflow
 
 The official build workflow is triggered by the job [AnsibleWorks_Release_Tag_Scan](http://50.116.42.103/view/AWX/job/AnsibleWorks%20Release%20Tag%20Scan/).  All jobs in this workflow use the parameter `OFFICIAL=yes`.  Build artifacts (e.g. `.rpm`, `.deb` and `.tgz` files) are intended for production-use.
 
