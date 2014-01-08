@@ -44,15 +44,64 @@ ASCII-version
     |
     +--> AWX_Build_RPM
     |    |
-    |    + AWX_Nightly_Install (for rpm-based distros only)
-    |      |
-    |      +--> AWX_Integration_Test (for rpm-based distros only)
+    |    +--> AWX_Nightly_Install (PLATFORM=rhel-6.4-x86_64, PROVIDER=rax)
+    |    |    |
+    |    |    +--> AWX_Integration_Test (PLATFORM=rhel-6.4-x86_64, PROVIDER=rax)
+    |    |
+    |    +--> AWX_Nightly_Install (PLATFORM=centos-6.4-x86_64, PROVIDER=rax)
+    |    |    |
+    |    |    +--> AWX_Integration_Test (PLATFORM=centos-6.4-x86_64, PROVIDER=rax)
+    |    |
+    |    +--> AWX_Nightly_Install (PLATFORM=rhel-6.4-x86_64, PROVIDER=ec2)
+    |    |    |
+    |    |    +--> AWX_Integration_Test (PLATFORM=rhel-6.4-x86_64, PROVIDER=ec2)
+    |    |
+    |    +--> AWX_Nightly_Install (PLATFORM=centos-6.4-x86_64, PROVIDER=ec2)
+    |         |
+    |         +--> AWX_Integration_Test (PLATFORM=centos-6.4-x86_64, PROVIDER=ec2)
     |
     +--> AWX_Build_DEB
          |
-         +--> AWX_Nightly_Install (for ubuntu only)
-           |
-           +--> AWX_Integration_Test (for ubuntu only)
+         +--> AWX_Nightly_Install (PLATFORM=ubuntu-12.04-x86_64, PROVIDER=rax)
+         |    |
+         |    +--> AWX_Integration_Test (PLATFORM=ubuntu-12.04-x86_64, PROVIDER=rax)
+         |
+         +--> AWX_Nightly_Install (PLATFORM=ubuntu-12.04-x86_64, PROVIDER=ec2)
+              |
+              +--> AWX_Integration_Test (PLATFORM=ubuntu-12.04-x86_64, PROVIDER=ec2)
+
+
+    Nightly_Build - AWX
+    |
+    +--> AWX_Build_Setup_TAR
+    |
+    +--> AWX_Build_RPM
+    |    |
+    |    |   +--------------------------------------------------------------+
+    |    |   |AWX_Nightly_Install (PLATFORM=rhel-6.4-x86_64, PROVIDER=ec2)  |
+    |    |   |AWX_Nightly_Install (PLATFORM=rhel-6.4-x86_64, PROVIDER=rax)  |
+    |    +-->|AWX_Nightly_Install (PLATFORM=centos-6.4-x86_64, PROVIDER=ec2)|
+    |        |AWX_Nightly_Install (PLATFORM=centos-6.4-x86_64, PROVIDER=rax)|
+    |        +--------------------------------------------------------------+
+    |         |
+    |         |   +---------------------------------------------------------------+
+    |         |   |AWX_Integration_Test (PLATFORM=rhel-6.4-x86_64, PROVIDER=ec2)  |
+    |         |   |AWX_Integration_Test (PLATFORM=rhel-6.4-x86_64, PROVIDER=rax)  |
+    |         +-->|AWX_Integration_Test (PLATFORM=centos-6.4-x86_64, PROVIDER=ec2)|
+    |             |AWX_Integration_Test (PLATFORM=centos-6.4-x86_64, PROVIDER=rax)|
+    |             +---------------------------------------------------------------+
+    |
+    +--> AWX_Build_DEB
+         |
+         |   +-----------------------------------------------------------------+
+         |   |AWX_Nightly_Install (PLATFORM=ubuntu-12.04-x86_64, PROVIDER=rax) |
+         +-->|AWX_Nightly_Install (PLATFORM=ubuntu-12.04-x86_64, PROVIDER=ec2) |
+             +-----------------------------------------------------------------+
+              |
+              |   +------------------------------------------------------------------+
+              |   |AWX_Integration_Test (PLATFORM=ubuntu-12.04-x86_64, PROVIDER=rax) |
+              +-->|AWX_Integration_Test (PLATFORM=ubuntu-12.04-x86_64, PROVIDER=ec2) |
+                  +------------------------------------------------------------------+
 
 ## Official Build Workflow
 
