@@ -25,8 +25,8 @@ All jenkins jobs can be triggered manually.  Jenkins will prompt for any require
 ## Build Workflow
 
 There are two primary workflows through the AWX build process:
-1. `OFFICIAL=yes` - builds `.rpm`, `.deb` and `.tgz` files for official product releases
-1. `OFFICIAL=no` - builds `.rpm`, `.deb` and `.tgz` files for internal testing purposes
+ 1. `OFFICIAL=yes` - builds `.rpm`, `.deb` and `.tgz` files for official product releases
+ 1. `OFFICIAL=no` - builds `.rpm`, `.deb` and `.tgz` files for internal testing purposes
 
 ### Nightly
 
