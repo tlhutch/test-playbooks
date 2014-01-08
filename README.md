@@ -28,13 +28,13 @@ All jenkins jobs can be triggered manually.  Jenkins will prompt you for any req
 The nightly build workflow is triggered on a, wait for it, nightly basis by jenkins.  All jobs use the parameter `OFFICIAL=no`.
 
 1. [Nightly_Build - AWX](http://50.116.42.103/view/AWX/job/Nightly%20Build%20-%20AWX/)
-..1. [AWX_Build_Setup_TAR]((http://50.116.42.103/view/AWX/job/AWX_Build_Setup_TAR)
-..1. [AWX_Build_RPM]((http://50.116.42.103/view/AWX/job/AWX_Build_RPM)
-....1. [AWX_Nightly_Install]((http://50.116.42.103/view/AWX/job/AWX_Nightly_Install)  (for rpm-based distros only)
-......1. [AWX_Integration_Test](http://50.116.42.103/view/AWX/job/AWX_Integration_Test) (for rpm-based distros only)
-...1. [AWX_Build_DEB]((http://50.116.42.103/view/AWX/job/AWX_Build_DEB)
-.....1. [AWX_Nightly_Install]((http://50.116.42.103/view/AWX/job/AWX_Nightly_Install)  (for ubuntu only)
-.......1. [AWX_Integration_Test](http://50.116.42.103/view/AWX/job/AWX_Integration_Test) (for ubuntu only)
+  1. [AWX_Build_Setup_TAR]((http://50.116.42.103/view/AWX/job/AWX_Build_Setup_TAR)
+  1. [AWX_Build_RPM]((http://50.116.42.103/view/AWX/job/AWX_Build_RPM)
+    1. [AWX_Nightly_Install]((http://50.116.42.103/view/AWX/job/AWX_Nightly_Install)  (for rpm-based distros only)
+      1. [AWX_Integration_Test](http://50.116.42.103/view/AWX/job/AWX_Integration_Test) (for rpm-based distros only)
+   1. [AWX_Build_DEB]((http://50.116.42.103/view/AWX/job/AWX_Build_DEB)
+     1. [AWX_Nightly_Install]((http://50.116.42.103/view/AWX/job/AWX_Nightly_Install)  (for ubuntu only)
+       1. [AWX_Integration_Test](http://50.116.42.103/view/AWX/job/AWX_Integration_Test) (for ubuntu only)
 
       Nightly_Build - AWX
       |
