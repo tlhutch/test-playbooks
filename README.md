@@ -8,11 +8,12 @@ The following test events will trigger jenkins jobs.
 
 ### git-push
 
-Any time code changes are pushed into the git repository, jenkins will trigger the *AWX_Unittest* job.
+Any time code changes are pushed into the git repository, jenkins will trigger the [AWX_Unittest](http://50.116.42.103/view/AWX/job/AWX_Unittest/) job.
+
 
 ### git-tag
 
-Jenkins regularly monitors the awx git repository for the presence of new tags.  If a new git-tag is deteced, the production build process is triggered.  The job used to detect the presence of new git-tags is *AnsibleWorks_Release_Tag_Scan*
+Jenkins regularly monitors the awx git repository for the presence of new tags.  If a new git-tag is deteced, the production build process is triggered.  The job used to detect the presence of new git-tags is [AnsibleWorks_Release_Tag_Scan](http://50.116.42.103/view/AWX/job/AnsibleWorks_Release_Tag_Scan/)
 
 ### cron
 
@@ -26,7 +27,7 @@ All jenkins jobs can be triggered manually.  Jenkins will prompt you for any req
 
 The nightly build workflow is triggered on a, wait for it, nightly basis by jenkins.  All jobs use the parameter `OFFICIAL=no`.
 
-      Nightly_Build - AWX
+      [Nightly_Build - AWX](http://50.116.42.103/view/AWX/job/Nightly%20Build%20-%20AWX/)
       |
       +--> AWX_Build_Setup_TAR
       |
@@ -44,7 +45,7 @@ The nightly build workflow is triggered on a, wait for it, nightly basis by jenk
 
 ## Official Build Workflow
 
-The official build workflow is triggered by the job *AnsibleWorks_Release_Tag_Scan*.  All jobs use the parameter `OFFICIAL=yes`.
+The official build workflow is triggered by the job [AnsibleWorks_Release_Tag_Scan](http://50.116.42.103/view/AWX/job/AnsibleWorks_Release_Tag_Scan/).  All jobs use the parameter `OFFICIAL=yes`.
 
       AnsibleWorks_Release_Tag_Scan
       |
