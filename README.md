@@ -4,7 +4,7 @@ This repository is a landing place for ansibleworks testing.  At present, it's n
 
 ## Build Triggers
 
-The following test events will trigger jenkins jobs.
+The following test events are used to trigger jenkins jobs.
 
 ### git-push
 
@@ -19,13 +19,13 @@ Jenkins regularly monitors the awx git repository for the presence of new tags. 
 
 On a daily interval, jenkins will trigger the development build process with the job [Nightly_Build - AWX](http://50.116.42.103/view/AWX/job/Nightly%20Build%20-%20AWX/).
 
-### Manual
+### manual
 
 All jenkins jobs can be triggered manually.  Jenkins will prompt you for any required build parameters.
 
 ## Nightly Build Workflow
 
-The nightly build workflow is triggered on a ... wait for it ... nightly basis by jenkins.  All jobs use the parameter `OFFICIAL=no`.
+The nightly build workflow is triggered on a ... wait for it ... nightly basis by jenkins.  All jobs use the parameter `OFFICIAL=no`.  Builds are intended for internal use only.
 
 * [Nightly_Build - AWX](http://50.116.42.103/view/AWX/job/Nightly%20Build%20-%20AWX/)
   * [AWX_Build_Setup_TAR]((http://50.116.42.103/view/AWX/job/AWX_Build_Setup_TAR)
@@ -56,7 +56,14 @@ ASCII-version
 
 ## Official Build Workflow
 
-The official build workflow is triggered by the job [AnsibleWorks_Release_Tag_Scan](http://50.116.42.103/view/AWX/job/AnsibleWorks_Release_Tag_Scan/).  All jobs use the parameter `OFFICIAL=yes`.
+The official build workflow is triggered by the job [AnsibleWorks_Release_Tag_Scan](http://50.116.42.103/view/AWX/job/AnsibleWorks_Release_Tag_Scan/).  All jobs use the parameter `OFFICIAL=yes`.  Builds are intended for production-use.
+
+* [AnsibleWorks_Release_Tag_Scan](http://50.116.42.103/view/AWX/job/AnsibleWorks_Release_Tag_Scan/)
+  * [AWX_Build_Setup_TAR]((http://50.116.42.103/view/AWX/job/AWX_Build_Setup_TAR)
+  * [AWX_Build_RPM]((http://50.116.42.103/view/AWX/job/AWX_Build_RPM)
+  * [AWX_Build_DEB]((http://50.116.42.103/view/AWX/job/AWX_Build_DEB)
+
+ASCII-version
 
     AnsibleWorks_Release_Tag_Scan
     |
