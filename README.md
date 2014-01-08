@@ -44,9 +44,9 @@ The nightly build workflow is triggered on a ... wait for it ... nightly basis b
 * [Nightly_Build - AWX](http://50.116.42.103/view/AWX/job/Nightly%20Build%20-%20AWX/)
   * [AWX_Build_Setup_TAR](http://50.116.42.103/view/AWX/job/Build%20AnsibleWorks%20Setup%20TAR/)
   * [AWX_Build_RPM](http://50.116.42.103/view/AWX/job/Build%20AnsibleWorks%20RPM/)
-    * [AWX_Nightly_Install]((http://50.116.42.103/view/AWX/job/AWX_Nightly_Install) (for rpm-based distros only)
+    * [AWX_Nightly_Install](http://50.116.42.103/view/AWX/job/AWX_Nightly_Install) (for rpm-based distros only)
       * [AWX_Integration_Test](http://50.116.42.103/view/AWX/job/AWX_Integration_Test) (for rpm-based distros only)
   * [AWX_Build_DEB](http://50.116.42.103/view/AWX/job/Build%20AnsibleWorks%20DEB/)
-    * [AWX_Nightly_Install]((http://50.116.42.103/view/AWX/job/AWX_Nightly_Install) (for ubuntu only)
+    * [AWX_Nightly_Install](http://50.116.42.103/view/AWX/job/AWX_Nightly_Install) (for ubuntu only)
       * [AWX_Integration_Test](http://50.116.42.103/view/AWX/job/AWX_Integration_Test) (for ubuntu only)
 
