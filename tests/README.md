@@ -23,6 +23,7 @@
    * jobs should wait until inventory sync is complete
 3. Test RBAC authentication+permissions
 4. Build basic UI navigation test (capable of offloading to SauceLabs for browser compatability testing)
+5. Add license verification (adding hosts when expired, decrementing #hosts)
 
 ## Unittest gaps
 
