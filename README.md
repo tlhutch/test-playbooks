@@ -35,40 +35,6 @@ The nightly build workflow is triggered on a ... wait for it ... nightly basis b
     * [AWX_Nightly_Install]((http://50.116.42.103/view/AWX/job/AWX_Nightly_Install) (for ubuntu only)
       * [AWX_Integration_Test](http://50.116.42.103/view/AWX/job/AWX_Integration_Test) (for ubuntu only)
 
-ASCII-version
-
-    Nightly_Build - AWX
-    |
-    +--> AWX_Build_Setup_TAR
-    |
-    +--> AWX_Build_RPM
-    |    |
-    |    |   +--------------------------------------------------------------+
-    |    |   |AWX_Nightly_Install (PLATFORM=rhel-6.4-x86_64, PROVIDER=ec2)  |
-    |    |   |AWX_Nightly_Install (PLATFORM=rhel-6.4-x86_64, PROVIDER=rax)  |
-    |    +-->|AWX_Nightly_Install (PLATFORM=centos-6.4-x86_64, PROVIDER=ec2)|
-    |        |AWX_Nightly_Install (PLATFORM=centos-6.4-x86_64, PROVIDER=rax)|
-    |        +--------------------------------------------------------------+
-    |         |
-    |         |   +---------------------------------------------------------------+
-    |         |   |AWX_Integration_Test (PLATFORM=rhel-6.4-x86_64, PROVIDER=ec2)  |
-    |         |   |AWX_Integration_Test (PLATFORM=rhel-6.4-x86_64, PROVIDER=rax)  |
-    |         +-->|AWX_Integration_Test (PLATFORM=centos-6.4-x86_64, PROVIDER=ec2)|
-    |             |AWX_Integration_Test (PLATFORM=centos-6.4-x86_64, PROVIDER=rax)|
-    |             +---------------------------------------------------------------+
-    |
-    +--> AWX_Build_DEB
-         |
-         |   +-----------------------------------------------------------------+
-         |   |AWX_Nightly_Install (PLATFORM=ubuntu-12.04-x86_64, PROVIDER=rax) |
-         +-->|AWX_Nightly_Install (PLATFORM=ubuntu-12.04-x86_64, PROVIDER=ec2) |
-             +-----------------------------------------------------------------+
-              |
-              |   +------------------------------------------------------------------+
-              |   |AWX_Integration_Test (PLATFORM=ubuntu-12.04-x86_64, PROVIDER=rax) |
-              +-->|AWX_Integration_Test (PLATFORM=ubuntu-12.04-x86_64, PROVIDER=ec2) |
-                  +------------------------------------------------------------------+
-
 ## Official Build Workflow
 
 The official build workflow is triggered by the job [AnsibleWorks_Release_Tag_Scan](http://50.116.42.103/view/AWX/job/AnsibleWorks%20Release%20Tag%20Scan/).  All jobs in this workflow use the parameter `OFFICIAL=yes`.  Build artifacts (e.g. `.rpm`, `.deb` and `.tgz` files) are intended for production-use.
@@ -77,13 +43,3 @@ The official build workflow is triggered by the job [AnsibleWorks_Release_Tag_Sc
   * [AWX_Build_Setup_TAR](http://50.116.42.103/view/AWX/job/Build%20AnsibleWorks%20Setup%20TAR/)
   * [AWX_Build_RPM](http://50.116.42.103/view/AWX/job/Build%20AnsibleWorks%20RPM/)
   * [AWX_Build_DEB](http://50.116.42.103/view/AWX/job/Build%20AnsibleWorks%20DEB/)
-
-ASCII-version
-
-    AnsibleWorks_Release_Tag_Scan
-    |
-    +--> AWX_Build_Setup_TAR
-    |
-    +--> AWX_Build_RPM
-    |
-    +--> AWX_Build_DEB
