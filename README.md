@@ -27,11 +27,11 @@ All jenkins jobs can be triggered manually.  Jenkins will prompt for any require
 The nightly build workflow is triggered on a ... wait for it ... nightly basis by jenkins.  All jobs use the parameter `OFFICIAL=no`.  Build artifacts (e.g. `.rpm`, `.deb` and `.tgz` files) are intended for internal testing purposes only.
 
 * [Nightly_Build - AWX](http://50.116.42.103/view/AWX/job/Nightly%20Build%20-%20AWX/)
-  * [AWX_Build_Setup_TAR]((http://50.116.42.103/view/AWX/job/AWX_Build_Setup_TAR)
-  * [AWX_Build_RPM]((http://50.116.42.103/view/AWX/job/AWX_Build_RPM)
+  * [AWX_Build_Setup_TAR](http://50.116.42.103/view/AWX/job/Build%20AnsibleWorks%20Setup%20TAR/)
+  * [AWX_Build_RPM](http://50.116.42.103/view/AWX/job/Build%20AnsibleWorks%20RPM/)
     * [AWX_Nightly_Install]((http://50.116.42.103/view/AWX/job/AWX_Nightly_Install) (for rpm-based distros only)
       * [AWX_Integration_Test](http://50.116.42.103/view/AWX/job/AWX_Integration_Test) (for rpm-based distros only)
-  * [AWX_Build_DEB]((http://50.116.42.103/view/AWX/job/AWX_Build_DEB)
+  * [AWX_Build_DEB](http://50.116.42.103/view/AWX/job/Build%20AnsibleWorks%20DEB/)
     * [AWX_Nightly_Install]((http://50.116.42.103/view/AWX/job/AWX_Nightly_Install) (for ubuntu only)
       * [AWX_Integration_Test](http://50.116.42.103/view/AWX/job/AWX_Integration_Test) (for ubuntu only)
 
@@ -74,9 +74,9 @@ ASCII-version
 The official build workflow is triggered by the job [AnsibleWorks_Release_Tag_Scan](http://50.116.42.103/view/AWX/job/AnsibleWorks%20Release%20Tag%20Scan/).  All jobs in this workflow use the parameter `OFFICIAL=yes`.  Build artifacts (e.g. `.rpm`, `.deb` and `.tgz` files) are intended for production-use.
 
 * [AnsibleWorks_Release_Tag_Scan](http://50.116.42.103/view/AWX/job/AnsibleWorks%20Release%20Tag%20Scan/)
-  * [AWX_Build_Setup_TAR]((http://50.116.42.103/view/AWX/job/AWX_Build_Setup_TAR)
-  * [AWX_Build_RPM]((http://50.116.42.103/view/AWX/job/AWX_Build_RPM)
-  * [AWX_Build_DEB]((http://50.116.42.103/view/AWX/job/AWX_Build_DEB)
+  * [AWX_Build_Setup_TAR](http://50.116.42.103/view/AWX/job/Build%20AnsibleWorks%20Setup%20TAR/)
+  * [AWX_Build_RPM](http://50.116.42.103/view/AWX/job/Build%20AnsibleWorks%20RPM/)
+  * [AWX_Build_DEB](http://50.116.42.103/view/AWX/job/Build%20AnsibleWorks%20DEB/)
 
 ASCII-version
 
