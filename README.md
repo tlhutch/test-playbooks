@@ -17,7 +17,7 @@ Jenkins regularly monitors the awx git repository for the presence of new tags. 
 
 ### cron
 
-Jenkins is configured to initiate the build process on a nightly basis.
+On a daily interval, jenkins will trigger the development build process with the job [Nightly_Build - AWX](http://50.116.42.103/view/AWX/job/Nightly%20Build%20-%20AWX/).
 
 ### Manual
 
