@@ -1,11 +1,11 @@
-from common.api.schema import Awx_Schema
+from common.api.schema import Awx_Schema_Base
 
-class Awx_Schema_v1(Awx_Schema):
+class Awx_Schema(Awx_Schema_Base):
     version = 'v1'
     component = '/api'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        Awx_Schema_Base.__init__(self)
 
         # Shared enum's
         self.definitions['enum_launch_type'] = {
@@ -15,8 +15,7 @@ class Awx_Schema_v1(Awx_Schema):
             'enum': [ '', 'new', 'pending', 'waiting', 'running', 'successful', 'failed', 'error', 'canceled' ]
         }
         self.definitions['enum_project_status'] = {
-            # 'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ]
-            'enum': [ 'new', 'pending', 'waiting', 'running', 'successful', 'failed', 'error', 'canceled',  ]
+            'enum': [ 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ]
         }
         self.definitions['enum_inventory_status'] = {
             'enum': [ "", "none", "never updated", "updating", "failed", "successful", ]
@@ -35,7 +34,7 @@ class Awx_Schema_v1(Awx_Schema):
         }
         self.definitions['enum_activity_stream_operation'] = {
             'type': 'string',
-            'enum': [ 'create', 'update', ], # FIXME - what about delete?
+            'enum': [ 'create', 'update', 'delete', 'associate', 'disassociate'],
         }
         self.definitions['enum_dashboard_inventory_sources_label'] = {
             'type': 'string',
@@ -50,17 +49,15 @@ class Awx_Schema_v1(Awx_Schema):
         self.definitions['id'] = dict(type='number', minimum=1)
         self.definitions['id_or_null'] = dict(type=['number', 'null'], minimum=1)
 
-        self.definitions['dashboard_common_core_fields'] = {
-            'url': { 'type': 'string', 'format': 'uri'},
-            'total': { 'type': 'number', 'minimum': 0, },
-        }
         self.definitions['dashboard_common_core'] = {
             'type': 'object',
             'required': [ 'url', 'total', ],
             'additionalProperties': False,
-            'properties': {}
+            'properties': {
+                'url': { 'type': 'string', 'format': 'uri'},
+                'total': { 'type': 'number', 'minimum': 0, },
+            }
         }
-        self.definitions['dashboard_common_core']['properties'].update(self.definitions['dashboard_common_core_fields'])
 
         self.definitions['dashboard_inventory_sources'] = {
             'type': 'object',
@@ -70,10 +67,10 @@ class Awx_Schema_v1(Awx_Schema):
                 'failures_url': { 'type': 'string', 'format': 'uri'},
                 'failed': { 'type': 'number', 'minimum': 0, },
                 'label': { '$ref': '#/definitions/enum_dashboard_inventory_sources_label', },
+                'url': { 'type': 'string', 'format': 'uri'},
+                'total': { 'type': 'number', 'minimum': 0, },
             },
         }
-        self.definitions['dashboard_inventory_sources']['properties'].update(self.definitions['dashboard_common_core_fields'])
-
         self.definitions['dashboard_scm_types'] = {
             'type': 'object',
             'required': [ 'url', 'total', 'failures_url', 'failed', 'label', ],
@@ -82,9 +79,10 @@ class Awx_Schema_v1(Awx_Schema):
                 'failures_url': { 'type': 'string', 'format': 'uri'},
                 'failed': { 'type': 'number', 'minimum': 0, },
                 'label': { '$ref': '#/definitions/enum_dashboard_scm_types_label', },
+                'url': { 'type': 'string', 'format': 'uri'},
+                'total': { 'type': 'number', 'minimum': 0, },
             },
         }
-        self.definitions['dashboard_scm_types']['properties'].update(self.definitions['dashboard_common_core_fields'])
 
         self.definitions['passwords_needed_to_start'] = {
             'type': 'array',
@@ -103,7 +101,7 @@ class Awx_Schema_v1(Awx_Schema):
             'properties': {
                 'name':        { 'type': 'string', },
                 'description': { 'type': 'string', },
-                'status':      { 'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ] },
+                'status':      { '$ref': '#/definitions/enum_project_status' },
             },
         }
         self.definitions['job_env'] = {
@@ -238,6 +236,37 @@ class Awx_Schema_v1(Awx_Schema):
             },
         }
 
+        self.definitions['user'] = {
+            'type': 'object',
+            'required': ['created', 'email', 'first_name', 'id', 'is_superuser', 'last_name', 'ldap_dn', 'related', 'url', 'username'],
+            'additionalProperties': False,
+            'properties': {
+                'id': { 'type': 'number', 'minimum': 1, },
+                'url': { 'type': 'string', 'format': 'uri'},
+                'created':  { 'type': 'string', 'format': 'date-time', },
+                'modified': { 'type': 'string', 'format': 'date-time', },
+                'first_name': { 'type': 'string', },
+                'last_name': { 'type': 'string', },
+                'username': { 'type': 'string', },
+                'ldap_dn': { 'type': 'string', },
+                'is_superuser': { 'type': 'boolean', },
+                'email': { 'type': 'string', 'format': 'email'},
+                'related': {
+                    'type': 'object',
+                    'required': ['admin_of_organizations', 'credentials', 'organizations', 'permissions', 'projects', 'teams', 'activity_stream', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        'admin_of_organizations':   { 'type': 'string', 'format': 'uri' },
+                        'credentials':              { 'type': 'string', 'format': 'uri' },
+                        'organizations':            { 'type': 'string', 'format': 'uri' },
+                        'permissions':              { 'type': 'string', 'format': 'uri' },
+                        'projects':                 { 'type': 'string', 'format': 'uri' },
+                        'teams':                    { 'type': 'string', 'format': 'uri' },
+                        'activity_stream':          { 'type': 'string', 'format': 'uri' },
+                    },
+                },
+            },
+        }
 
     @property
     def get(self):
@@ -317,11 +346,41 @@ class Awx_Schema_v1(Awx_Schema):
             'additionalProperties': False,
         }
 
-class Awx_Schema_v1_Organizations(Awx_Schema_v1):
+class Awx_Schema_v1(Awx_Schema):
+    component = '/api/v1'
+
+    @property
+    def get(self):
+        return {
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': [ ],
+            'additionalProperties': False,
+            'properties': {
+                'authtoken': { 'type': 'string', 'format': 'uri' },
+                'config': { 'type': 'string', 'format': 'uri' },
+                'me': { 'type': 'string', 'format': 'uri' },
+                'dashboard': { 'type': 'string', 'format': 'uri' },
+                'organizations': { 'type': 'string', 'format': 'uri' },
+                'users': { 'type': 'string', 'format': 'uri' },
+                'projects': { 'type': 'string', 'format': 'uri' },
+                'teams': { 'type': 'string', 'format': 'uri' },
+                'credentials': { 'type': 'string', 'format': 'uri' },
+                'inventory': { 'type': 'string', 'format': 'uri' },
+                'inventory_sources': { 'type': 'string', 'format': 'uri' },
+                'groups': { 'type': 'string', 'format': 'uri' },
+                'hosts': { 'type': 'string', 'format': 'uri' },
+                'job_templates': { 'type': 'string', 'format': 'uri' },
+                'jobs': { 'type': 'string', 'format': 'uri' },
+                'activity_stream': { 'type': 'string', 'format': 'uri' },
+            },
+        }
+
+class Awx_Schema_Organizations(Awx_Schema):
     component = '/organizations'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['organization'] = {
             'type': 'object',
@@ -441,43 +500,8 @@ class Awx_Schema_v1_Organizations(Awx_Schema_v1):
             },
         })
 
-class Awx_Schema_v1_Users(Awx_Schema_v1):
+class Awx_Schema_Users(Awx_Schema):
     component = '/users'
-
-    def __init__(self):
-        Awx_Schema_v1.__init__(self)
-
-        self.definitions['user'] = {
-            'type': 'object',
-            'required': ['created', 'email', 'first_name', 'id', 'is_superuser', 'last_name', 'ldap_dn', 'related', 'url', 'username'],
-            'additionalProperties': False,
-            'properties': {
-                'id': { 'type': 'number', 'minimum': 1, },
-                'url': { 'type': 'string', 'format': 'uri'},
-                'created':  { 'type': 'string', 'format': 'date-time', },
-                'modified': { 'type': 'string', 'format': 'date-time', },
-                'first_name': { 'type': 'string', },
-                'last_name': { 'type': 'string', },
-                'username': { 'type': 'string', },
-                'ldap_dn': { 'type': 'string', },
-                'is_superuser': { 'type': 'boolean', },
-                'email': { 'type': 'string', 'format': 'email'},
-                'related': {
-                    'type': 'object',
-                    'required': ['admin_of_organizations', 'credentials', 'organizations', 'permissions', 'projects', 'teams', 'activity_stream', ],
-                    'additionalProperties': False,
-                    'properties': {
-                        'admin_of_organizations':   { 'type': 'string', 'format': 'uri' },
-                        'credentials':              { 'type': 'string', 'format': 'uri' },
-                        'organizations':            { 'type': 'string', 'format': 'uri' },
-                        'permissions':              { 'type': 'string', 'format': 'uri' },
-                        'projects':                 { 'type': 'string', 'format': 'uri' },
-                        'teams':                    { 'type': 'string', 'format': 'uri' },
-                        'activity_stream':          { 'type': 'string', 'format': 'uri' },
-                    },
-                },
-            },
-        }
 
     @property
     def duplicate(self):
@@ -528,20 +552,20 @@ class Awx_Schema_v1_Users(Awx_Schema_v1):
             '$ref': '#/definitions/user',
         })
 
-class Awx_Schema_v1_Team_Users(Awx_Schema_v1_Users):
+class Awx_Schema_Team_Users(Awx_Schema_Users):
     component = '/teams/\d+/users'
 
-class Awx_Schema_v1_Org_Users(Awx_Schema_v1_Users):
+class Awx_Schema_Org_Users(Awx_Schema_Users):
     component = '/organizations/\d+/users'
 
-class Awx_Schema_v1_Org_Admins(Awx_Schema_v1_Users):
+class Awx_Schema_Org_Admins(Awx_Schema_Users):
     component = '/organizations/\d+/admins'
 
-class Awx_Schema_v1_Inventories(Awx_Schema_v1):
+class Awx_Schema_Inventories(Awx_Schema):
     component = '/inventories'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['inventory'] = {
             'type': 'object',
@@ -660,11 +684,11 @@ class Awx_Schema_v1_Inventories(Awx_Schema_v1):
         }
 
 
-class Awx_Schema_v1_Groups(Awx_Schema_v1):
+class Awx_Schema_Groups(Awx_Schema):
     component = '/groups'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['group'] = {
             'type': 'object',
@@ -768,14 +792,14 @@ class Awx_Schema_v1_Groups(Awx_Schema_v1):
             },
         }
 
-class Awx_Schema_v1_Group_Children(Awx_Schema_v1_Groups):
+class Awx_Schema_Group_Children(Awx_Schema_Groups):
     component = '/groups/\d+/children'
 
-class Awx_Schema_v1_Hosts(Awx_Schema_v1):
+class Awx_Schema_Hosts(Awx_Schema):
     component = '/hosts'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['host'] = {
             'type': 'object',
@@ -886,14 +910,14 @@ class Awx_Schema_v1_Hosts(Awx_Schema_v1):
             },
         }
 
-class Awx_Schema_v1_Group_Hosts(Awx_Schema_v1_Hosts):
+class Awx_Schema_Group_Hosts(Awx_Schema_Hosts):
     component = '/groups/\d+/hosts'
 
-class Awx_Schema_v1_Credentials(Awx_Schema_v1):
+class Awx_Schema_Credentials(Awx_Schema):
     component = '/credentials'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['credential'] = {
             'type': 'object',
@@ -1004,14 +1028,14 @@ class Awx_Schema_v1_Credentials(Awx_Schema_v1):
             },
         }
 
-class Awx_Schema_v1_User_Credentials(Awx_Schema_v1_Credentials):
+class Awx_Schema_User_Credentials(Awx_Schema_Credentials):
     component = '/users/\d+/credentials'
 
-class Awx_Schema_v1_Projects(Awx_Schema_v1):
+class Awx_Schema_Projects(Awx_Schema):
     component = '/projects'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['project'] = {
             'type': 'object',
@@ -1114,17 +1138,17 @@ class Awx_Schema_v1_Projects(Awx_Schema_v1):
             },
         }
 
-class Awx_Schema_v1_Project_Organizations(Awx_Schema_v1_Organizations):
+class Awx_Schema_Project_Organizations(Awx_Schema_Organizations):
     component = '/projects/\d+/organizations'
 
-class Awx_Schema_v1_Org_Projects(Awx_Schema_v1_Projects):
+class Awx_Schema_Org_Projects(Awx_Schema_Projects):
     component = '/organizations/\d+/projects'
 
-class Awx_Schema_v1_Projects_Project_Updates(Awx_Schema_v1):
+class Awx_Schema_Projects_Project_Updates(Awx_Schema):
     component = '/projects/\d+/project_updates'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['project_update'] = {
             'type': 'object',
@@ -1192,11 +1216,11 @@ class Awx_Schema_v1_Projects_Project_Updates(Awx_Schema_v1):
             },
         })
 
-class Awx_Schema_v1_Project_Update(Awx_Schema_v1):
+class Awx_Schema_Project_Update(Awx_Schema):
     component = '/projects/\d+/update'
 
     def __init__(self):
-        super(Awx_Schema_v1_Project_Update, self).__init__()
+        super(Awx_Schema_Project_Update, self).__init__()
 
         self.definitions['project_update'] = {
             'type': 'object',
@@ -1222,7 +1246,7 @@ class Awx_Schema_v1_Project_Update(Awx_Schema_v1):
     def post(self):
         return {}
 
-class Awx_Schema_v1_Project_Updates(Awx_Schema_v1_Projects_Project_Updates):
+class Awx_Schema_Project_Updates(Awx_Schema_Projects_Project_Updates):
     component = '/project_updates/\d+'
 
     @property
@@ -1232,11 +1256,11 @@ class Awx_Schema_v1_Project_Updates(Awx_Schema_v1_Projects_Project_Updates):
             '$ref': '#/definitions/project_update',
         })
 
-class Awx_Schema_v1_Job_templates(Awx_Schema_v1):
+class Awx_Schema_Job_templates(Awx_Schema):
     component = '/job_templates'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['job_template'] = {
             'type': 'object',
@@ -1343,11 +1367,11 @@ class Awx_Schema_v1_Job_templates(Awx_Schema_v1):
             },
         }
 
-class Awx_Schema_v1_Jobs(Awx_Schema_v1):
+class Awx_Schema_Jobs(Awx_Schema):
     component = '/jobs'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['job'] = {
             'type': 'object',
@@ -1448,11 +1472,11 @@ class Awx_Schema_v1_Jobs(Awx_Schema_v1):
             '$ref': '#/definitions/job',
         })
 
-class Awx_Schema_v1_Inventory_Sources(Awx_Schema_v1):
+class Awx_Schema_Inventory_Sources(Awx_Schema):
     component = '/inventory_sources'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['inventory_source'] = {
             'type': 'object',
@@ -1475,11 +1499,11 @@ class Awx_Schema_v1_Inventory_Sources(Awx_Schema_v1):
                 "source": { 'type': 'string', },
                 "source_path": { 'type': 'string', },
                 "source_vars": { 'type': 'string', },
-                'credential': { '$ref': '#/definitions/id', },
+                'credential': { '$ref': '#/definitions/id_or_null', },
                 "source_regions": { 'type': 'string', },
                 'related': {
                     'type': 'object',
-                    'required': [ 'created_by', 'inventory_updates', 'update', 'inventory', 'group', ],
+                    'required': [ 'inventory_updates', 'update', 'inventory', 'group', ],
                     'additionalProperties': True,
                     'properties': {
                         "created_by": { 'type': 'string', 'format': 'uri' },
@@ -1544,11 +1568,11 @@ class Awx_Schema_v1_Inventory_Sources(Awx_Schema_v1):
     def post(self):
         return self.patch
 
-class Awx_Schema_v1_Inventory_Sources_Update(Awx_Schema_v1):
+class Awx_Schema_Inventory_Sources_Update(Awx_Schema):
     component = '/inventory_sources/\d+/update'
 
     def __init__(self):
-        super(Awx_Schema_v1_Inventory_Sources_Update, self).__init__()
+        super(Awx_Schema_Inventory_Sources_Update, self).__init__()
 
         self.definitions['inventory_source_update'] = {
             'type': 'object',
@@ -1574,11 +1598,11 @@ class Awx_Schema_v1_Inventory_Sources_Update(Awx_Schema_v1):
     def post(self):
         return {}
 
-class Awx_Schema_v1_Inventory_Source_Updates(Awx_Schema_v1):
+class Awx_Schema_Inventory_Source_Updates(Awx_Schema):
     component = '/inventory_sources/\d+/inventory_updates'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['inventory_update'] = {
             'type': 'object',
@@ -1647,7 +1671,7 @@ class Awx_Schema_v1_Inventory_Source_Updates(Awx_Schema_v1):
             },
         })
 
-class Awx_Schema_v1_Inventory_Source_Update(Awx_Schema_v1_Inventory_Source_Updates):
+class Awx_Schema_Inventory_Source_Update(Awx_Schema_Inventory_Source_Updates):
     component = '/inventory_updates/\d+'
 
     @property
@@ -1657,11 +1681,11 @@ class Awx_Schema_v1_Inventory_Source_Update(Awx_Schema_v1_Inventory_Source_Updat
             '$ref': '#/definitions/inventory_update',
         })
 
-class Awx_Schema_v1_Teams(Awx_Schema_v1):
+class Awx_Schema_Teams(Awx_Schema):
     component = '/teams'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['team'] = {
             'type': 'object',
@@ -1757,27 +1781,101 @@ class Awx_Schema_v1_Teams(Awx_Schema_v1):
             '$ref': '#/definitions/team',
         })
 
-class Awx_Schema_v1_Project_Teams(Awx_Schema_v1_Teams):
+class Awx_Schema_Project_Teams(Awx_Schema_Teams):
     component = '/projects/\d+/teams'
 
-class Awx_Schema_v1_Config(Awx_Schema_v1):
+class Awx_Schema_Config(Awx_Schema):
     component = '/config'
 
-class Awx_Schema_v1_Me(Awx_Schema_v1):
+    def __init__(self):
+        Awx_Schema.__init__(self)
+
+        self.definitions['config'] = {
+            'type': 'object',
+            'required': [ 'license_info', 'ansible_version', 'version', 'project_base_dir', 'time_zone', 'project_local_paths', ],
+            'additionalProperties': False,
+            'properties': {
+                'license_info': {
+                    'type': 'object',
+                    'required': [ 'available_instances', 'current_instances', 'free_instances', 'instance_count', 'license_date', 'time_remaining', 'license_key', 'company_name', 'compliant', 'contact_email', 'contact_name', 'date_expired', 'date_warning', 'valid_key', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        'available_instances': { 'type': 'number', 'minimum': 0 },
+                        'current_instances':   { 'type': 'number', 'minimum': 0 },
+                        'free_instances':      { 'type': 'number', 'minimum': 0 },
+                        'instance_count':      { 'type': 'number', 'minimum': 0 },
+                        'license_date':        { 'type': 'number', 'minimum': 0 },
+                        'time_remaining':      { 'type': 'number', 'minimum': 0 },
+                        'license_key':         { 'type': 'string', },
+                        'company_name':        { 'type': 'string', },
+                        'compliant':           { 'type': 'boolean', },
+                        'contact_email':       { 'type': 'string', },
+                        'contact_name':        { 'type': 'string', },
+                        'date_expired':        { 'type': 'boolean', },
+                        'date_warning':        { 'type': 'boolean', },
+                        'valid_key':           { 'type': 'boolean', },
+                    },
+                },
+                'ansible_version':  { 'type': 'string', 'pattern': '^(\d+\.)?(\d+\.)?(\d+)$'},
+                'version':          { 'type': 'string', 'pattern': '^(\d+\.)?(\d+\.)?(\d+)$'},
+                'project_base_dir': { 'type': 'string', 'minLength': 1, },
+                'time_zone': { 'type': 'string', 'minLength': 1, },
+                'project_local_paths': {
+                    'type': 'array',
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 0,
+                    "uniqueItems": True,
+                },
+            },
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/config',
+        })
+
+class Awx_Schema_Me(Awx_Schema):
     component = '/me'
 
-class Awx_Schema_v1_Authtoken(Awx_Schema_v1):
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['count', 'next', 'previous', 'results', ],
+            'additionalProperties': False,
+            'properties': {
+                'count': { 'type': 'number', 'minimum': 0, },
+                'next': { 'type': ['string','null'], },
+                'previous': { 'type': ['string','null'], },
+                'results': {
+                    'type': 'array',
+                    'minItems': 1,
+                    'maxItems': 1,
+                    'uniqueItems': True,
+                    'items': {
+                        '$ref': '#definitions/user',
+                    },
+                },
+            },
+        })
+
+class Awx_Schema_Authtoken(Awx_Schema):
     component = '/authtoken'
 
-class Awx_Schema_v1_Dashboard(Awx_Schema_v1):
+class Awx_Schema_Dashboard(Awx_Schema):
     component = '/dashboard'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['dashboard'] = {
             'type': 'object',
-            'required': [ 'inventories', 'inventory_sources', 'groups', 'hosts', 'projects', 'scm_types', 'jobs', 'users', 'organizations', 'team', 'credentials', 'job_templates', ],
+            'required': [ 'inventories', 'inventory_sources', 'groups', 'hosts', 'projects', 'scm_types', 'jobs', 'users', 'organizations', 'teams', 'credentials', 'job_templates', ],
             'additionalProperties': False,
             'properties': {
                 'inventories': {
@@ -1821,7 +1919,10 @@ class Awx_Schema_v1_Dashboard(Awx_Schema_v1):
                     'required': [ 'url', 'total', 'failures_url', 'failed', ],
                     'additionalProperties': False,
                     'properties': {
-                        '$ref': '#/definitions/dashboard_common_core_fields',
+                        'url': { 'type': 'string', 'format': 'uri'},
+                        'total': { 'type': 'number', 'minimum': 0, },
+                        'failures_url': { 'type': 'string', 'format': 'uri'},
+                        'failed': { 'type': 'number', 'minimum': 0, },
                     }
                 },
                 'projects': {
@@ -1829,7 +1930,10 @@ class Awx_Schema_v1_Dashboard(Awx_Schema_v1):
                     'required': [ 'url', 'total', 'failures_url', 'failed', ],
                     'additionalProperties': False,
                     'properties': {
-                        '$ref': '#/definitions/dashboard_common_core_fields',
+                        'url': { 'type': 'string', 'format': 'uri'},
+                        'total': { 'type': 'number', 'minimum': 0, },
+                        'failures_url': { 'type': 'string', 'format': 'uri'},
+                        'failed': { 'type': 'number', 'minimum': 0, },
                     }
                 },
                 'scm_types': {
@@ -1887,52 +1991,42 @@ class Awx_Schema_v1_Dashboard(Awx_Schema_v1):
             '$ref': '#/definitions/dashboard',
         })
 
-class Awx_Schema_v1_Activity_Stream(Awx_Schema_v1):
+class Awx_Schema_Activity_Stream(Awx_Schema):
     component = '/activity_stream'
 
     def __init__(self):
-        Awx_Schema_v1.__init__(self)
+        Awx_Schema.__init__(self)
 
         self.definitions['activity_stream'] = {
             'type': 'object',
-            'required': [ 'inventories', 'inventory_sources', 'groups', 'hosts', 'projects', 'scm_types', 'jobs', 'users', 'organizations', 'team', 'credentials', 'job_templates', ],
+            'required': [ 'id', 'url', 'related', 'summary_fields', 'timestamp', 'operation', 'object1', 'object2', 'changes', ],
             'additionalProperties': False,
             'properties': {
                 'id': { '$ref': '#/definitions/id', },
                 'url': { 'type': 'string', 'format': 'uri'},
                 'related': {
                     'type': 'object',
-                    'required': [ 'object1', ],
-                    'additionalProperties': False,
+                    'required': [ 'actor', ],
+                    'additionalProperties': True,
                     'properties': {
-                        'object1':   { 'type': 'string', 'format': 'uri' },
+                        'actor': { 'type': 'string', 'format': 'uri'},
                     },
                 },
                 'summary_fields': {
                     'type': 'object',
-                    'required': [ 'object1', ],
-                    'additionalProperties': False,
+                    'required': [ 'actor', ],
+                    'additionalProperties': True,
                     'properties': {
-                        'object1': {
+                        'actor': {
                             'type': 'object',
-                            'required': [ 'id', 'base', ],
                             'additionalProperties': True,
-                            'properties': {
-                                'id': { '$ref': '#/definitions/id', },
-                                'base': { 'type': 'string', },
-                            },
                         },
                     },
                 },
                 'timestamp':  { 'type': 'string', 'format': 'date-time', },
                 'operation': { '$ref': '#/definitions/enum_activity_stream_operation', },
                 'object1': { 'type': 'string', },
-                'object1_id': { '$ref': '#/definitions/id', },
-                'object1_type': { 'type': 'string', },
                 'object2': { 'type': 'string', },
-                'object2_id': { '$ref': '#/definitions/id_or_null', },
-                'object2_type': { 'type': 'string', },
-                'object_relationship_type': { 'type': 'string', },
                 'changes': {
                     'type': 'object',
                     'additionalProperties': True,

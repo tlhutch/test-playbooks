@@ -9,7 +9,7 @@ from collections import defaultdict
 
 available_schemas = defaultdict(dict)
 
-class Awx_Schema(object):
+class Awx_Schema_Base(object):
     def __init__(self):
         self.definitions = dict()
         # Raise if not-subclassed
@@ -124,7 +124,7 @@ if __name__ == 'common.api.schema':
 
             # Load class from imported module
             for (name, cls) in inspect.getmembers(loaded_mod, inspect.isclass):
-                if issubclass(cls, Awx_Schema) and cls != Awx_Schema \
+                if issubclass(cls, Awx_Schema_Base) and cls != Awx_Schema_Base \
                    and hasattr(cls, 'version') and hasattr(cls, 'component'):
                     logging.debug("load_commands() - found '%s'" % name)
                     logging.debug("available_schemas[%s][%s] = %s" % (cls.version, cls.component, name))
