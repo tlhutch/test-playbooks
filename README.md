@@ -25,7 +25,7 @@ All jenkins jobs can be triggered manually.  Jenkins will prompt you for any req
 
 ## Nightly Build Workflow
 
-The nightly build workflow is triggered on a, wait for it, nightly basis by jenkins.  All jobs use the parameter `OFFICIAL=no`.
+The nightly build workflow is triggered on a ... wait for it ... nightly basis by jenkins.  All jobs use the parameter `OFFICIAL=no`.
 
 * [Nightly_Build - AWX](http://50.116.42.103/view/AWX/job/Nightly%20Build%20-%20AWX/)
   * [AWX_Build_Setup_TAR]((http://50.116.42.103/view/AWX/job/AWX_Build_Setup_TAR)
@@ -38,7 +38,7 @@ The nightly build workflow is triggered on a, wait for it, nightly basis by jenk
 
 ASCII-version
 
-    <a href="http://50.116.42.103/view/AWX/job/Nightly%20Build%20-%20AWX/">Nightly_Build - AWX</a>
+    Nightly_Build - AWX
     |
     +--> AWX_Build_Setup_TAR
     |
@@ -58,10 +58,10 @@ ASCII-version
 
 The official build workflow is triggered by the job [AnsibleWorks_Release_Tag_Scan](http://50.116.42.103/view/AWX/job/AnsibleWorks_Release_Tag_Scan/).  All jobs use the parameter `OFFICIAL=yes`.
 
-      AnsibleWorks_Release_Tag_Scan
-      |
-      +--> AWX_Build_Setup_TAR
-      |
-      +--> AWX_Build_RPM
-      |
-      +--> AWX_Build_DEB
+    AnsibleWorks_Release_Tag_Scan
+    |
+    +--> AWX_Build_Setup_TAR
+    |
+    +--> AWX_Build_RPM
+    |
+    +--> AWX_Build_DEB
