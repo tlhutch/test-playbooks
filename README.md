@@ -1,10 +1,10 @@
 # ansibleworks-qa
 
-The build, test and deployment process for [AnsibleWorks (AWX) is managed by Jenkins](http://50.116.42.103/view/AWX/).  This document describes the relevant triggers, jobs and workflow.
+The build, test and deployment process for AnsibleWorks (AWX) is managed by [Jenkins](http://50.116.42.103).  This document describes the relevant triggers, jobs and workflow.
 
 ## Build Triggers
 
-The following test events are used to trigger AWX jenkins jobs.
+The following test events are used to trigger [AWX jenkins jobs](http://50.116.42.103/view/AWX/).
 
 ### git-push
 
