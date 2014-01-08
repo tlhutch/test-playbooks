@@ -36,22 +36,23 @@ The nightly build workflow is triggered on a, wait for it, nightly basis by jenk
     * [AWX_Nightly_Install]((http://50.116.42.103/view/AWX/job/AWX_Nightly_Install)  (for ubuntu only)
       * [AWX_Integration_Test](http://50.116.42.103/view/AWX/job/AWX_Integration_Test) (for ubuntu only)
 
+ASCII-version
 
-      Nightly_Build - AWX
-      |
-      +--> AWX_Build_Setup_TAR
-      |
-      +--> AWX_Build_RPM
-      |    |
-      |    + AWX_Nightly_Install (for rpm-based distros only)
-      |      |
-      |      +--> AWX_Integration_Test (for rpm-based distros only)
-      |
-      +--> AWX_Build_DEB
+    <a href="http://50.116.42.103/view/AWX/job/Nightly%20Build%20-%20AWX/">Nightly_Build - AWX</a>
+    |
+    +--> AWX_Build_Setup_TAR
+    |
+    +--> AWX_Build_RPM
+    |    |
+    |    + AWX_Nightly_Install (for rpm-based distros only)
+    |      |
+    |      +--> AWX_Integration_Test (for rpm-based distros only)
+    |
+    +--> AWX_Build_DEB
+         |
+         +--> AWX_Nightly_Install (for ubuntu only)
            |
-           +--> AWX_Nightly_Install (for ubuntu only)
-             |
-             +--> AWX_Integration_Test (for ubuntu only)
+           +--> AWX_Integration_Test (for ubuntu only)
 
 ## Official Build Workflow
 
