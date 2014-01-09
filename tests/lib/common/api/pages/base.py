@@ -78,7 +78,7 @@ class Base(Page):
         # TODO - validate schema
         #self.validate_json('patch')
 
-    def delete(self, **payload):
+    def delete(self):
         r = self.api.delete(self.base_url.format(**self.json))
         assert r.status_code == httplib.NO_CONTENT
 
