@@ -1797,7 +1797,7 @@ class Awx_Schema_Config(Awx_Schema):
             'properties': {
                 'license_info': {
                     'type': 'object',
-                    'required': [ 'available_instances', 'current_instances', 'free_instances', 'instance_count', 'license_date', 'time_remaining', 'license_key', 'company_name', 'compliant', 'contact_email', 'contact_name', 'date_expired', 'date_warning', 'valid_key', ],
+                    'required': [ 'available_instances', 'current_instances', 'free_instances', ],
                     'additionalProperties': False,
                     'properties': {
                         'available_instances': { 'type': 'number', 'minimum': 0 },
@@ -1814,6 +1814,8 @@ class Awx_Schema_Config(Awx_Schema):
                         'date_expired':        { 'type': 'boolean', },
                         'date_warning':        { 'type': 'boolean', },
                         'valid_key':           { 'type': 'boolean', },
+                        'demo':                { 'type': 'boolean', },
+                        'key_present':         { 'type': 'boolean', },
                     },
                 },
                 'ansible_version':  { 'type': 'string', 'pattern': '^(\d+\.)?(\d+\.)?(\d+)$'},
