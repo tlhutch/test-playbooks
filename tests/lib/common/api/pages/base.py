@@ -61,10 +61,29 @@ class Base(Page):
         except ValueError, e:
             '''If there was no json to parse'''
             data = dict()
-        assert r.status_code == httplib.OK
-        self.json = r.objectify()
-        # FIXME - this should return a populated object
-        # return self.__class__(self.testsetup, base_url=data['url'], json=data)
+
+        exc_str = "%s (%s) received" % (httplib.responses[r.status_code], r.status_code)
+        if r.status_code in (httplib.OK, httplib.CREATED, httplib.ACCEPTED):
+            self.validate_json(json=data, request='post')
+            # FIXME - this should return a populated object
+            # return self.__class__(self.testsetup, base_url=data['url'], json=data)
+            return self.__class__(self.testsetup, base_url=data['url'], json=r.objectify())
+        elif r.status_code == httplib.NO_CONTENT:
+            raise NoContent_Exception(exc_str)
+        elif r.status_code == httplib.FORBIDDEN:
+            raise Forbidden_Exception(exc_str)
+        elif r.status_code == httplib.BAD_REQUEST:
+            # Attempt to validate the json response.  If it validates against a
+            # 'duplicate' method, then we return a Duplicate_Exception.  If
+            # validation fails, raise BadRequest_Exception.
+            try:
+                self.validate_json(json=data, request='duplicate')
+            except:
+                raise BadRequest_Exception(exc_str + ": %s" % data)
+            else:
+                raise Duplicate_Exception(exc_str + ". However, JSON validation determined the cause was a duplicate object already exists: %s" % data)
+        else:
+            raise Unknown_Exception(exc_str + ": %s" % data)
 
     def put(self):
         r = self.api.put(self.base_url.format(**self.json), self.json)
@@ -125,8 +144,6 @@ class Base_List(Base):
         return self
 
     def post(self, payload={}):
-
-        # Create a new object
         r = self.api.post(self.base_url, payload)
         try:
             data = r.json()
@@ -148,6 +165,8 @@ class Base_List(Base):
             return self.__parent__(self.testsetup, base_url=data['url'], json=r.objectify())
         elif r.status_code == httplib.NO_CONTENT:
             raise NoContent_Exception(exc_str)
+        elif r.status_code == httplib.FORBIDDEN:
+            raise Forbidden_Exception(exc_str)
         elif r.status_code == httplib.BAD_REQUEST:
             # Attempt to validate the json response.  If it validates against a
             # 'duplicate' method, then we return a Duplicate_Exception.  If
