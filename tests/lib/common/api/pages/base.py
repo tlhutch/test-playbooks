@@ -61,6 +61,8 @@ class Base(Page):
         except ValueError, e:
             '''If there was no json to parse'''
             data = dict()
+        assert r.status_code == httplib.OK
+        self.json = r.objectify()
         # FIXME - this should return a populated object
         # return self.__class__(self.testsetup, base_url=data['url'], json=data)
 
@@ -137,7 +139,13 @@ class Base_List(Base):
             self.validate_json(json=data, request='post')
             # With an inheritence of Org_List -> Org -> Base -> Page, the following
             # will find the parent class of the current object (e.g. 'Org').
-            return self.__parent__(self.testsetup, base_url=data['url'], json=data)
+
+            # Also, don't forget to call r.objectify() on the json structure.
+            # Without that call, it will simply be a json dictionary.  By calling
+            # r.objectify(), it behaves like a classic dictionary, but also is
+            # JSON_Wrapped() to allow attribute access (e.g.
+            # self.json['username'] == self.username)
+            return self.__parent__(self.testsetup, base_url=data['url'], json=r.objectify())
         elif r.status_code == httplib.NO_CONTENT:
             raise NoContent_Exception(exc_str)
         elif r.status_code == httplib.BAD_REQUEST:
