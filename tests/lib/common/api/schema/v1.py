@@ -44,6 +44,10 @@ class Awx_Schema(Awx_Schema_Base):
             'type': 'string',
             'enum': [ 'Subversion', 'Git', 'Mercurial' ],
         }
+        self.definitions['enum_permission_type'] = {
+            'type': 'string',
+            'enum': [ 'read', 'write', 'admin', 'run', 'check' ],
+        }
 
         # Shared fields
         self.definitions['id'] = dict(type='number', minimum=1)
@@ -1031,6 +1035,81 @@ class Awx_Schema_Credentials(Awx_Schema):
 class Awx_Schema_User_Credentials(Awx_Schema_Credentials):
     component = '/users/\d+/credentials'
 
+class Awx_Schema_User_Permissions(Awx_Schema):
+    component = '/users/\d+/permissions'
+
+    def __init__(self):
+        Awx_Schema.__init__(self)
+
+        self.definitions['permission'] = {
+            'type': 'object',
+            'required': [ 'id', 'url', 'created', 'modified', 'name', 'description', 'user', 'team', 'project', 'inventory', 'permission_type', 'related', 'summary_fields', ],
+            'additionalProperties': False,
+            'properties': {
+                'id': { 'type': 'number', 'minimum': 1, },
+                'url': { 'type': 'string', 'format': 'uri', },
+                'created':  { 'type': 'string', 'format': 'date-time', },
+                'modified': { 'type': 'string', 'format': 'date-time', },
+                'name': { 'type': 'string', },
+                'description': { 'type': 'string', },
+
+                'user': { '$ref': '#/definitions/id_or_null', },
+                'team': { '$ref': '#/definitions/id_or_null', },
+                'project': { '$ref': '#/definitions/id_or_null', },
+                'inventory': { '$ref': '#/definitions/id_or_null', },
+                'permission_type': { '$ref': '#/definitions/enum_permission_type', },
+
+                'related': {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {
+                        'user': { 'type': 'string', 'format': 'uri', },
+                        'team': { 'type': 'string', 'format': 'uri', },
+                        'inventory': { 'type': 'string', 'format': 'uri', },
+                        'project': { 'type': 'string', 'format': 'uri', },
+                    },
+                },
+                'summary_fields': {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {
+                        'user': { 'type': 'object', },
+                        'team': { 'type': 'object', },
+                        'inventory': { 'type': 'object', },
+                        'project': { 'type': 'object', },
+                    },
+                },
+            },
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['count', 'next', 'previous', 'results', ],
+            'additionalProperties': False,
+            'properties': {
+                'count': { 'type': 'number', 'minimum': 0, },
+                'next': { 'type': ['string','null'], },
+                'previous': { 'type': ['string','null'], },
+                'results': {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        '$ref': '#/definitions/permission',
+                    },
+                },
+            },
+        })
+
+    @property
+    def post(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/permission',
+        })
 class Awx_Schema_Projects(Awx_Schema):
     component = '/projects'
 

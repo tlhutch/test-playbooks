@@ -1,5 +1,6 @@
 import base
 from credentials import Credentials_Page
+from permissions import Permissions_Page
 from common.exceptions import *
 
 class User_Page(base.Base):
@@ -13,6 +14,8 @@ class User_Page(base.Base):
         assert name in self.json['related']
         if name == 'credentials':
             related = Credentials_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'permissions':
+            related = Permissions_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get()
