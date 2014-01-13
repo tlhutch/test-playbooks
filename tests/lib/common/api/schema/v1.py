@@ -49,6 +49,26 @@ class Awx_Schema(Awx_Schema_Base):
             'enum': [ 'read', 'write', 'admin', 'run', 'check' ],
         }
 
+        # Shared errors
+        self.definitions['error_required_field'] = {
+            'type': 'array',
+            'minItems': 1,
+            'uniqueItems': True,
+            'items': {
+                'type': 'string',
+                'pattern': '^This field is required.$',
+            },
+        }
+
+        self.definitions['error_login_failure'] = {
+            'type': 'array',
+            'minItems': 0,
+            'uniqueItems': True,
+            'items': {
+                'type': 'string', 'pattern': '^Unable to login with provided credentials.$',
+            },
+        }
+
         # Shared fields
         self.definitions['id'] = dict(type='number', minimum=1)
         self.definitions['id_or_null'] = dict(type=['number', 'null'], minimum=1)
@@ -273,8 +293,24 @@ class Awx_Schema(Awx_Schema_Base):
         }
 
     @property
+    def put(self):
+        return {}
+
+    @property
+    def patch(self):
+        return {}
+
+    @property
+    def post(self):
+        return {}
+
+    @property
+    def head(self):
+        return {}
+
+    @property
     def get(self):
-        return {
+        return self.format_schema({
             '$schema': 'http://json-schema.org/draft-04/schema#',
             'type': 'object',
             'properties': {
@@ -284,13 +320,15 @@ class Awx_Schema(Awx_Schema_Base):
             },
             'required': ['available_versions', 'description', 'current_version'],
             'additionalProperties': False,
-        }
+        })
 
     @property
     def options(self):
-        return {
+        return self.format_schema({
             '$schema': 'http://json-schema.org/draft-04/schema#',
             'type': 'object',
+            'required': [ 'renders', 'parses' ],
+            'additionalProperties': True,
             'properties': {
                 'name': {
                     'type': 'string',
@@ -301,54 +339,77 @@ class Awx_Schema(Awx_Schema_Base):
                 'renders': {
                     'type': 'array',
                     "items": {
-                        "type": "string"
+                        'type': 'string'
                     },
-                    "minItems": 1,
-                    "uniqueItems": True,
+                    'minItems': 1,
+                    'uniqueItems': True,
                 },
                 'parses': {
                     'type': 'array',
-                    "items": {
-                        "type": "string"
+                    'items': {
+                        'type': 'string'
                     },
-                    "minItems": 1,
-                    "uniqueItems": True,
+                    'minItems': 1,
+                    'uniqueItems': True,
                 },
+                'search_fields': {
+                    'type': 'array',
+                    'minItems': 1,
+                    'uniqueItems': True,
+                    'items': {
+                        'type': 'string'
+                    },
+                }
             },
-            'required': [ 'renders', 'parses' ],
-            'additionalProperties': False,
-        }
+        })
 
     @property
-    def unauthorized(self):
-        return {
+    def bad_request(self):
+        return self.format_schema({
             '$schema': 'http://json-schema.org/draft-04/schema#',
             'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                'name': { '$ref': '#/definitions/error_required_field' },
+                'username': { '$ref': '#/definitions/error_required_field' },
+                'password': { '$ref': '#/definitions/error_required_field' },
+                'organization': { '$ref': '#/definitions/error_required_field' },
+                'inventory': { '$ref': '#/definitions/error_required_field' },
+                'job_type': { '$ref': '#/definitions/error_required_field' },
+                'playbook': { '$ref': '#/definitions/error_required_field' },
+                'non_field_errors': { '$ref': '#/definitions/error_login_failure' },
+            },
+        })
+
+    @property
+    def method_not_allowed(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['detail', ],
+            'additionalProperties': False,
             'properties': {
                 'detail': {
                     'type': 'string',
+                    'pattern': "^Method '[A-Z]+' not allowed.$",
                 },
             },
-            'required': ['detail', ],
-            'additionalProperties': False,
-        }
+        })
 
     @property
-    def bad_password(self):
-        return {
+    def unauthorized(self):
+        return self.format_schema({
             '$schema': 'http://json-schema.org/draft-04/schema#',
             'type': 'object',
+            'required': ['detail', ],
+            'additionalProperties': False,
             'properties': {
-                "username": {
-                    'type': 'array',
-                },
-                "password": {
-                    'type': 'array',
+                'detail': {
+                    'type': 'string',
+                    'pattern': '^Authentication credentials were not provided.$'
                 },
             },
-            'required': ['username', 'password', ],
-            'additionalProperties': False,
-        }
+        })
 
 class Awx_Schema_v1(Awx_Schema):
     component = '/api/v1'
@@ -462,46 +523,6 @@ class Awx_Schema_Organizations(Awx_Schema):
         return self.format_schema({
             '$schema': 'http://json-schema.org/draft-04/schema#',
             '$ref': '#/definitions/organization',
-        })
-
-    @property
-    def options(self):
-        return self.format_schema({
-            '$schema': 'http://json-schema.org/draft-04/schema#',
-            'type': 'object',
-            # 'required': ['', '', ''],
-            'additionalProperties': False,
-            'properties': {
-                'name': {
-                    'type': 'string',
-                },
-                'description': {
-                    'type': 'string',
-                },
-                'renders': {
-                    'type': 'array',
-                    "minItems": 1,
-                    "uniqueItems": True
-                },
-                'parses': {
-                    'type': 'array',
-                    "minItems": 1,
-                    "uniqueItems": True
-                },
-                'actions': {
-                    'type': 'object',
-                    'properties': {
-                        'POST': {
-                            'type': 'string',
-                            'properties': {
-                                'id': {
-                                    'type': 'object',
-                                },
-                            },
-                        },
-                    },
-                },
-            },
         })
 
 class Awx_Schema_Users(Awx_Schema):
@@ -1551,6 +1572,7 @@ class Awx_Schema_Jobs(Awx_Schema):
             '$ref': '#/definitions/job',
         })
 
+
 class Awx_Schema_Inventory_Sources(Awx_Schema):
     component = '/inventory_sources'
 
@@ -1640,11 +1662,11 @@ class Awx_Schema_Inventory_Sources(Awx_Schema):
         })
 
     @property
-    def put(self):
+    def post(self):
         return self.patch
 
     @property
-    def post(self):
+    def put(self):
         return self.patch
 
 class Awx_Schema_Inventory_Sources_Update(Awx_Schema):
@@ -1898,7 +1920,7 @@ class Awx_Schema_Config(Awx_Schema):
                     },
                 },
                 'ansible_version':  { 'type': 'string', 'pattern': '^(\d+\.)?(\d+\.)?(\d+)$'},
-                'version':          { 'type': 'string', 'pattern': '^(\d+\.)?(\d+\.)?(\d+)$'},
+                'version':          { 'type': 'string', 'pattern': '^(\d+\.)?(\d+\.)?(\d+)(.*)$'},
                 'project_base_dir': { 'type': 'string', 'minLength': 1, },
                 'time_zone': { 'type': 'string', 'minLength': 1, },
                 'project_local_paths': {
@@ -1921,6 +1943,18 @@ class Awx_Schema_Config(Awx_Schema):
 
 class Awx_Schema_Me(Awx_Schema):
     component = '/me'
+
+    @property
+    def put(self):
+        return {}
+
+    @property
+    def patch(self):
+        return {}
+
+    @property
+    def post(self):
+        return {}
 
     @property
     def get(self):
@@ -1947,6 +1981,41 @@ class Awx_Schema_Me(Awx_Schema):
 
 class Awx_Schema_Authtoken(Awx_Schema):
     component = '/authtoken'
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                'detail': {
+                    'type': 'string',
+                    'pattern': "^Method '[A-Z]+' not allowed.$",
+                },
+            },
+        })
+
+    @property
+    def put(self):
+        return {}
+
+    @property
+    def patch(self):
+        return {}
+
+    @property
+    def post(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'additionalProperties': False,
+            'required': [ 'token', 'expires', ],
+            'properties': {
+                'token': { 'type': 'string', },
+                'expires':  { 'type': 'string', 'format': 'date-time', },
+            },
+        })
 
 class Awx_Schema_Dashboard(Awx_Schema):
     component = '/dashboard'

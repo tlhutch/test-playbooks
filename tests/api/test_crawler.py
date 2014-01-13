@@ -14,20 +14,27 @@ def setup_function(function):
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 def assert_response(api, link, method, response_code=httplib.OK, response_schema='unauthorized', data={}):
-    # Call requested api method
+
+    # Determine requested api method
     method = method.lower()
-    func_method = getattr(api, method)
+
+    # Does the method require a payload argument?
     if method in ['get', 'head', 'options']:
-        r = func_method(link)
+        r = getattr(api, method)(link)
     else:
-        r = func_method(link, data)
+        r = getattr(api, method)(link, data)
 
     # Assert api response code matches expected
     assert r.code == response_code
 
+    # Extract JSON response
+    try:
+        json = r.json()
+    except ValueError:
+        json = dict()
+
     # validate api json response matches expected
-    if response_schema is not None:
-        validate(r.json(), link[7:-1], response_schema)
+    validate(json, link[7:-1], response_schema)
 
 @pytest.mark.nondestructive
 @pytest.mark.skip_selenium
@@ -41,25 +48,38 @@ def test_crawl_unauthorized():
     data = r.json()
     current_version = data.get('current_version')
     r = api.get(current_version)
+
+    expected_response = {
+        'HEAD': (httplib.UNAUTHORIZED, 'head'),
+        'GET': (httplib.UNAUTHORIZED, 'unauthorized'),
+        'POST': (httplib.UNAUTHORIZED, 'unauthorized'),
+        'PUT': (httplib.UNAUTHORIZED, 'unauthorized'),
+        'PATCH': (httplib.UNAUTHORIZED, 'unauthorized'),
+        'OPTIONS': (httplib.UNAUTHORIZED, 'unauthorized'),
+    }
+
+    exception_matrix = {
+        '/api/v1/authtoken/': {
+            'HEAD': (httplib.METHOD_NOT_ALLOWED, 'head'),
+            'GET': (httplib.METHOD_NOT_ALLOWED, 'get'),
+            'PUT': (httplib.METHOD_NOT_ALLOWED, 'put'),
+            'PATCH': (httplib.METHOD_NOT_ALLOWED, 'patch'),
+            'OPTIONS': (httplib.OK, 'options'),
+            'POST': (httplib.BAD_REQUEST, 'bad_request'),
+        },
+    }
+
+    # Navigate through top-level API
     for key, link in r.json().items():
-        for method in ['GET', 'PUT', 'POST', 'PATCH', 'HEAD', 'OPTIONS']:
-            expected_response_code = httplib.UNAUTHORIZED
-            expected_response_schema = 'unauthorized'
+        for method in expected_response.keys():
 
-            # authtoken only supports POST, OPTIONS
-            if key == 'authtoken':
-                if method in ['HEAD', 'GET', 'PUT', 'PATCH']:
-                    expected_response_code = httplib.METHOD_NOT_ALLOWED
-                elif method in ['OPTIONS']:
-                    expected_response_code = httplib.OK
-                    expected_response_schema = None
-                elif method in ['POST']:
-                    expected_response_code = httplib.BAD_REQUEST
-                    expected_response_schema = 'bad_password'
+            # Generic response
+            (expected_response_code, expected_response_schema) = expected_response[method]
 
-            # No json response for 'HEAD'
-            if method == 'HEAD':
-                expected_response_schema = None
+            # Check if any api link requires special handling
+            if link in exception_matrix:
+                if method in exception_matrix[link]:
+                    (expected_response_code, expected_response_schema) = exception_matrix[link][method]
 
             # assert!
             yield "%s:%s" % (method, link), assert_response, api, link, method, expected_response_code, expected_response_schema
@@ -77,26 +97,50 @@ def test_crawl_authorized():
     data = r.json()
     current_version = data.get('current_version')
     r = api.get(current_version)
+
+    expected_response = {
+        'HEAD': (httplib.OK, 'head'),
+        'GET': (httplib.OK, 'get'),
+        'POST': (httplib.BAD_REQUEST, 'bad_request'),
+        'PUT': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        'PATCH': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        'OPTIONS': (httplib.OK, 'options'),
+    }
+
+    exception_matrix = {
+        '/api/v1/activity_stream/': {
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
+        '/api/v1/authtoken/': {
+            'HEAD': (httplib.METHOD_NOT_ALLOWED, 'head'),
+            'GET': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+            'POST': (httplib.BAD_REQUEST, 'bad_request'),
+        },
+        '/api/v1/config/': {
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
+        '/api/v1/dashboard/': {
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
+        '/api/v1/me/': {
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
+        '/api/v1/inventory_sources/': {
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
+    }
+
+    # Navigate through top-level API
     for key, link in r.json().items():
-        for method in ['GET', ]: # 'PUT', 'POST', 'PATCH', 'HEAD',]:
-            expected_response_code = httplib.OK
-            expected_response_schema = method.lower()
+        for method in expected_response.keys():
 
-            # authtoken only supports POST, OPTIONS
-            if key == 'authtoken':
-                if method in ['HEAD', 'GET', 'PUT', 'PATCH']:
-                    expected_response_code = httplib.METHOD_NOT_ALLOWED
-                    expected_response_schema = 'unauthorized'
-                elif method in ['OPTIONS']:
-                    # expected_response_code = httplib.OK
-                    expected_response_schema = None
-                elif method in ['POST']:
-                    # expected_response_code = httplib.BAD_REQUEST
-                    expected_response_schema = None
+            # Generic resopnse
+            (expected_response_code, expected_response_schema) = expected_response[method]
 
-            # No json response for 'HEAD'
-            if method == 'HEAD':
-                expected_response_schema = None
+            # Check if any api link requires special handling
+            if link in exception_matrix:
+                if method in exception_matrix[link]:
+                    (expected_response_code, expected_response_schema) = exception_matrix[link][method]
 
             # assert!
             yield "%s:%s" % (method, link), assert_response, api, link, method, expected_response_code, expected_response_schema
