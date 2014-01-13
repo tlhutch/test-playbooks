@@ -10,5 +10,8 @@ class NoContent_Exception(Exception):
 class Forbidden_Exception(Exception):
     pass
 
+class Method_Not_Allowed_Exception(Exception):
+    pass
+
 class Unknown_Exception(Exception):
     pass
