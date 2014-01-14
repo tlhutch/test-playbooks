@@ -15,7 +15,10 @@ class Awx_Schema(Awx_Schema_Base):
             'enum': [ '', 'new', 'pending', 'waiting', 'running', 'successful', 'failed', 'error', 'canceled' ]
         }
         self.definitions['enum_project_status'] = {
-            'enum': [ 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ]
+            'enum': [ 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful', ]
+        }
+        self.definitions['enum_project_update_status'] = {
+            'enum': [ 'new', 'pending', 'waiting', 'running', 'successful', 'failed', 'error', 'canceled', ],
         }
         self.definitions['enum_inventory_status'] = {
             'enum': [ "", "none", "never updated", "updating", "failed", "successful", ]
@@ -1150,7 +1153,7 @@ class Awx_Schema_Projects(Awx_Schema):
                 'last_updated': { 'type': ['string', 'null'], 'format': 'date-time', },
                 'description': { 'type': 'string', },
                 'last_update_failed': { 'type': 'boolean', },
-                'status': { 'enum': [ '', 'ok', 'missing', 'never updated', 'updating', 'failed', 'successful' ] },
+                'status': { '$ref': '#/definitions/enum_project_status' },
                 'summary_fields': { 'type': 'object', },
                 'local_path': { 'type': 'string', 'format': 'uri', },
                 'scm_type': { 'type': ['string', 'null',] },
@@ -1260,7 +1263,7 @@ class Awx_Schema_Projects_Project_Updates(Awx_Schema):
                 'created':  { 'type': 'string', 'format': 'date-time', },
                 'modified': { 'type': 'string', 'format': 'date-time', },
                 'project': { '$ref': '#/definitions/id', },
-                'status': { '$ref': '#/definitions/enum_project_status', },
+                'status': { '$ref': '#/definitions/enum_project_update_status', },
                 'failed': { 'type': 'boolean', },
                 'result_stdout': { 'type': 'string', },
                 'result_traceback': { 'type': 'string', },
