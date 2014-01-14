@@ -3,16 +3,21 @@ import httplib
 from unittestzero import Assert
 from common.api.schema import validate
 from plugins.pytest_restqa.rest_client import Connection
+from plugins.pytest_restqa.pytest_restqa import load_credentials
 
 api = None
+credentials = None
 
-# def setup_module(module):
-def setup_function(function):
-    global api # yuck
+# def setup_function(function):
+def setup_module(module):
+    global api, credentials # yuck
     api = Connection(pytest.config.option.base_url)
+    credentials = load_credentials(filename=pytest.config.option.credentials_file)
 
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
+# Not sure the following does anything
+## @pytest.yield_fixture(scope='function')
 def assert_response(api, link, method, response_code=httplib.OK, response_schema='unauthorized', data={}):
 
     # Determine requested api method
@@ -44,6 +49,7 @@ def test_crawl_unauthorized():
     # Clear out any authentication credentials
     api.auth = None
 
+    # Navigate to the api->$current_version
     r = api.get('/api/')
     data = r.json()
     current_version = data.get('current_version')
@@ -88,11 +94,12 @@ def test_crawl_unauthorized():
 @pytest.mark.skip_selenium
 @pytest.mark.usefixtures("authtoken")
 def test_crawl_authorized():
-    global api # yuck
+    global api, credentials # yuck
 
     # Login
-    api.login('admin', 'fo0m4nchU')
+    api.login(*credentials['default'].values())
 
+    # Navigate to the api->$current_version
     r = api.get('/api/')
     data = r.json()
     current_version = data.get('current_version')
