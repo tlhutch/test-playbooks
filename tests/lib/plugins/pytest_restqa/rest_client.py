@@ -65,7 +65,14 @@ def objectify(self):
     Returns an initialized JSON_Wrapper object.  Used by the Connection class
     for monkey patching the request response.
     '''
-    return JSON_Wrapper(json=self.json())
+    # If the JSON response fails to parse (typically for an empty dict), return
+    # an empty-dict
+    try:
+        json = self.json()
+    except ValueError:
+        json = dict()
+
+    return JSON_Wrapper(json=json)
 
 class Connection(object):
     def __init__(self, server, version=None, verify=False, authtoken=None):
