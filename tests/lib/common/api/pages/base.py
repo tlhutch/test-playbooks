@@ -37,7 +37,7 @@ class Base(Page):
             self.base_url = kwargs.get('base_url')
 
     @property
-    def __item_cls__(self):
+    def __item_class__(self):
         '''Returns the class representing a single 'Base' item'''
         return self.__class__
 
