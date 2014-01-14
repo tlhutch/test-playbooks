@@ -445,7 +445,7 @@ class Awx_Schema_Organizations(Awx_Schema):
     component = '/organizations'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Organizations, self).__init__()
 
         self.definitions['organization'] = {
             'type': 'object',
@@ -590,7 +590,7 @@ class Awx_Schema_Inventories(Awx_Schema):
     component = '/inventories'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Inventories, self).__init__()
 
         self.definitions['inventory'] = {
             'type': 'object',
@@ -713,7 +713,7 @@ class Awx_Schema_Groups(Awx_Schema):
     component = '/groups'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Groups, self).__init__()
 
         self.definitions['group'] = {
             'type': 'object',
@@ -824,7 +824,7 @@ class Awx_Schema_Hosts(Awx_Schema):
     component = '/hosts'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Hosts, self).__init__()
 
         self.definitions['host'] = {
             'type': 'object',
@@ -942,7 +942,7 @@ class Awx_Schema_Credentials(Awx_Schema):
     component = '/credentials'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Credentials, self).__init__()
 
         self.definitions['credential'] = {
             'type': 'object',
@@ -1060,7 +1060,7 @@ class Awx_Schema_User_Permissions(Awx_Schema):
     component = '/users/\d+/permissions'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_User_Permissions, self).__init__()
 
         self.definitions['permission'] = {
             'type': 'object',
@@ -1135,7 +1135,7 @@ class Awx_Schema_Projects(Awx_Schema):
     component = '/projects'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Projects, self).__init__()
 
         self.definitions['project'] = {
             'type': 'object',
@@ -1248,7 +1248,7 @@ class Awx_Schema_Projects_Project_Updates(Awx_Schema):
     component = '/projects/\d+/project_updates'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Projects_Project_Updates, self).__init__()
 
         self.definitions['project_update'] = {
             'type': 'object',
@@ -1356,11 +1356,11 @@ class Awx_Schema_Project_Updates(Awx_Schema_Projects_Project_Updates):
             '$ref': '#/definitions/project_update',
         })
 
-class Awx_Schema_Job_templates(Awx_Schema):
+class Awx_Schema_Job_Templates(Awx_Schema):
     component = '/job_templates'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Job_Templates, self).__init__()
 
         self.definitions['job_template'] = {
             'type': 'object',
@@ -1471,7 +1471,7 @@ class Awx_Schema_Jobs(Awx_Schema):
     component = '/jobs'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Jobs, self).__init__()
 
         self.definitions['job'] = {
             'type': 'object',
@@ -1577,7 +1577,7 @@ class Awx_Schema_Inventory_Sources(Awx_Schema):
     component = '/inventory_sources'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Inventory_Sources, self).__init__()
 
         self.definitions['inventory_source'] = {
             'type': 'object',
@@ -1662,11 +1662,11 @@ class Awx_Schema_Inventory_Sources(Awx_Schema):
         })
 
     @property
-    def post(self):
+    def put(self):
         return self.patch
 
     @property
-    def put(self):
+    def post(self):
         return self.patch
 
 class Awx_Schema_Inventory_Sources_Update(Awx_Schema):
@@ -1703,7 +1703,7 @@ class Awx_Schema_Inventory_Source_Updates(Awx_Schema):
     component = '/inventory_sources/\d+/inventory_updates'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Inventory_Source_Updates, self).__init__()
 
         self.definitions['inventory_update'] = {
             'type': 'object',
@@ -1786,7 +1786,7 @@ class Awx_Schema_Teams(Awx_Schema):
     component = '/teams'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Teams, self).__init__()
 
         self.definitions['team'] = {
             'type': 'object',
@@ -1889,7 +1889,7 @@ class Awx_Schema_Config(Awx_Schema):
     component = '/config'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Config, self).__init__()
 
         self.definitions['config'] = {
             'type': 'object',
@@ -2021,7 +2021,7 @@ class Awx_Schema_Dashboard(Awx_Schema):
     component = '/dashboard'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Dashboard, self).__init__()
 
         self.definitions['dashboard'] = {
             'type': 'object',
@@ -2145,7 +2145,7 @@ class Awx_Schema_Activity_Stream(Awx_Schema):
     component = '/activity_stream'
 
     def __init__(self):
-        Awx_Schema.__init__(self)
+        super(Awx_Schema_Activity_Stream, self).__init__()
 
         self.definitions['activity_stream'] = {
             'type': 'object',
