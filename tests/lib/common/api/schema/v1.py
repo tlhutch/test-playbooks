@@ -295,6 +295,60 @@ class Awx_Schema(Awx_Schema_Base):
             },
         }
 
+        self.definitions['inventory_source'] = {
+            'type': 'object',
+            'required': [ 'id', 'url', 'created', 'modified', 'inventory', 'group', 'overwrite', 'overwrite_vars', 'update_on_launch', 'last_updated', 'last_update_failed', 'status', 'update_interval', "source", "source_path", "source_vars", "credential", "source_regions", 'related', 'summary_fields', ],
+            'additionalProperties': False,
+            'properties': {
+                'id': { '$ref': '#/definitions/id', },
+                'url': { 'type': 'string', 'format': 'uri', },
+                'created':  { 'type': 'string', 'format': 'date-time', },
+                'modified': { 'type': 'string', 'format': 'date-time', },
+                'inventory': { '$ref': '#/definitions/id', },
+                'group': { '$ref': '#/definitions/id', },
+                'overwrite': { 'type': 'boolean', },
+                'overwrite_vars': { 'type': 'boolean', },
+                'update_on_launch': { 'type': 'boolean', },
+                'last_updated': { 'type': ['string', 'null'], 'format': 'date-time', },
+                'last_update_failed': { 'type': 'boolean', },
+                'status': { '$ref': '#/definitions/enum_inventory_status', },
+                'update_interval': { 'type': 'number', 'minimum': 0 },
+                "source": { 'type': 'string', },
+                "source_path": { 'type': 'string', },
+                "source_vars": { 'type': 'string', },
+                'credential': { '$ref': '#/definitions/id_or_null', },
+                "source_regions": { 'type': 'string', },
+                'related': {
+                    'type': 'object',
+                    'required': [ 'inventory_updates', 'update', 'inventory', 'group', ],
+                    'additionalProperties': True,
+                    'properties': {
+                        "created_by": { 'type': 'string', 'format': 'uri' },
+                        "current_update": { 'type': 'string', 'format': 'uri' },
+                        "last_update": { 'type': 'string', 'format': 'uri' },
+                        "inventory_updates": { 'type': 'string', 'format': 'uri' },
+                        "update": { 'type': 'string', 'format': 'uri' },
+                        "inventory": { 'type': 'string', 'format': 'uri' },
+                        "group": { 'type': 'string', 'format': 'uri' },
+                    },
+                },
+                'summary_fields':  {
+                    'type': 'object',
+                    'required': ['inventory', 'group', ],
+                    'additionalProperties': True,
+                    'properties': {
+                        "inventory": {
+                            '$ref': '#/definitions/summary_fields_inventory',
+                        },
+                        "group": {
+                            '$ref': '#/definitions/summary_fields_group',
+                        },
+                    },
+                },
+            },
+        }
+
+
     @property
     def put(self):
         return {}
@@ -575,6 +629,16 @@ class Awx_Schema_Users(Awx_Schema):
 
     @property
     def post(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/user',
+        })
+
+class Awx_Schema_Users_N(Awx_Schema_Users):
+    component = '/users/\d+'
+
+    @property
+    def get(self):
         return self.format_schema({
             '$schema': 'http://json-schema.org/draft-04/schema#',
             '$ref': '#/definitions/user',
@@ -1579,62 +1643,6 @@ class Awx_Schema_Jobs(Awx_Schema):
 class Awx_Schema_Inventory_Sources(Awx_Schema):
     component = '/inventory_sources'
 
-    def __init__(self):
-        super(Awx_Schema_Inventory_Sources, self).__init__()
-
-        self.definitions['inventory_source'] = {
-            'type': 'object',
-            'required': [ 'id', 'url', 'created', 'modified', 'inventory', 'group', 'overwrite', 'overwrite_vars', 'update_on_launch', 'last_updated', 'last_update_failed', 'status', 'update_interval', "source", "source_path", "source_vars", "credential", "source_regions", 'related', 'summary_fields', ],
-            'additionalProperties': False,
-            'properties': {
-                'id': { '$ref': '#/definitions/id', },
-                'url': { 'type': 'string', 'format': 'uri', },
-                'created':  { 'type': 'string', 'format': 'date-time', },
-                'modified': { 'type': 'string', 'format': 'date-time', },
-                'inventory': { '$ref': '#/definitions/id', },
-                'group': { '$ref': '#/definitions/id', },
-                'overwrite': { 'type': 'boolean', },
-                'overwrite_vars': { 'type': 'boolean', },
-                'update_on_launch': { 'type': 'boolean', },
-                'last_updated': { 'type': ['string', 'null'], 'format': 'date-time', },
-                'last_update_failed': { 'type': 'boolean', },
-                'status': { '$ref': '#/definitions/enum_inventory_status', },
-                'update_interval': { 'type': 'number', 'minimum': 0 },
-                "source": { 'type': 'string', },
-                "source_path": { 'type': 'string', },
-                "source_vars": { 'type': 'string', },
-                'credential': { '$ref': '#/definitions/id_or_null', },
-                "source_regions": { 'type': 'string', },
-                'related': {
-                    'type': 'object',
-                    'required': [ 'inventory_updates', 'update', 'inventory', 'group', ],
-                    'additionalProperties': True,
-                    'properties': {
-                        "created_by": { 'type': 'string', 'format': 'uri' },
-                        "current_update": { 'type': 'string', 'format': 'uri' },
-                        "last_update": { 'type': 'string', 'format': 'uri' },
-                        "inventory_updates": { 'type': 'string', 'format': 'uri' },
-                        "update": { 'type': 'string', 'format': 'uri' },
-                        "inventory": { 'type': 'string', 'format': 'uri' },
-                        "group": { 'type': 'string', 'format': 'uri' },
-                    },
-                },
-                'summary_fields':  {
-                    'type': 'object',
-                    'required': ['inventory', 'group', ],
-                    'additionalProperties': True,
-                    'properties': {
-                        "inventory": {
-                            '$ref': '#/definitions/summary_fields_inventory',
-                        },
-                        "group": {
-                            '$ref': '#/definitions/summary_fields_group',
-                        },
-                    },
-                },
-            },
-        }
-
     @property
     def get(self):
         return self.format_schema({
@@ -1671,6 +1679,16 @@ class Awx_Schema_Inventory_Sources(Awx_Schema):
     @property
     def post(self):
         return self.patch
+
+class Awx_Schema_Inventory_Sources_N(Awx_Schema_Inventory_Sources):
+    component = '/inventory_sources/\d+'
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/inventory_source',
+        })
 
 class Awx_Schema_Inventory_Sources_Update(Awx_Schema):
     component = '/inventory_sources/\d+/update'
