@@ -108,6 +108,7 @@ class Connection(object):
     def logout(self):
         '''Remove stored credentials for future requests'''
         self.auth = None
+        self.authtoken = None
 
     def _request(self, endpoint, data=None, method='GET', params=None):
         method = method.lower()
