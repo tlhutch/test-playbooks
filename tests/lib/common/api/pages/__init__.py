@@ -8,3 +8,4 @@ from projects import *
 from inventory import *
 from job_templates import *
 from jobs import *
+from config import *
