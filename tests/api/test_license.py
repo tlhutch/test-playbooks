@@ -18,18 +18,9 @@
 '''
 
 import pytest
-import json
 import jsonschema
-import hashlib
-import time
-from datetime import datetime, timedelta
+import common.tower.license
 from tests.api import Base_Api_Test
-
-def to_seconds(itime):
-    '''
-    Convenience method to convert a time into seconds
-    '''
-    return int(float(time.mktime(itime.timetuple())))
 
 # The following fixture runs once for this entire module
 @pytest.fixture(scope='module')
@@ -52,29 +43,9 @@ def install_demo_license(request, ansible_runner):
 @pytest.fixture(scope='class')
 def install_license(request, ansible_runner):
 
-    # Generate license key (see ansible-commander/private/license_writer.py)
-    meta = dict(instance_count=20,
-        contact_email="art@ansibleworks.com",
-        company_name="AnsibleWorks",
-        contact_name="Art Vandelay",
-        license_date=to_seconds(datetime.now() + timedelta(days=31)))
-
-    sha = hashlib.sha256()
-    sha.update("ansibleworks.license.000")
-    sha.update(meta['company_name'])
-    sha.update(str(meta['instance_count']))
-    sha.update(str(meta['license_date']))
-    meta['license_key'] = sha.hexdigest()
-
-    # FIXME - I'm unable to use tmpdir
-    #p = tmpdir.mkdir("ansible").join("license.json")
-    #fd = p.open('w+')
-    fd = open('/tmp/license.json', 'w+')
-    json.dump(meta, fd)
-    fd.close()
-
+    fname = common.tower.license.generate_license_file(instance_count=20, days=31)
     # Using ansible, copy the license to the target system
-    ansible_runner.copy(src=fd.name, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
 
     def teardown():
         ansible_runner.file(path='/etc/awx/license', state='absent')
@@ -82,26 +53,11 @@ def install_license(request, ansible_runner):
 
 # The following fixture runs once for each class that uses it
 @pytest.fixture(scope='class')
-def install_aws_license(request, testsetup, ansible_runner):
+def install_aws(request, testsetup, ansible_runner):
 
-    # Generate license key (see ansible-commander/private/license_writer.py)
-    meta = dict(instance_count=30)
-
-    sha = hashlib.sha256()
-    sha.update("ansibleworks.license.000")
-    sha.update(str(meta['instance_count']))
-    sha.update('ami-eb81b182')  # Just guessing using an existing AMI
-    sha.update('i-fd64c1d3')    # Same, just using an existing instance
-    meta['license_key'] = sha.hexdigest()
-
-    # FIXME - I'm unable to use tmpdir
-    #p = tmpdir.mkdir("ansible").join("license.json")
-    #fd = p.open('w+')
-    fd = open('/tmp/foo.txt', 'w+')
-    json.dump(meta, fd)
-    fd.close()
-
-    ansible_runner.copy(src=fd.name, dest='/etc/awx/aws', owner='awx', group='awx', mode='0600')
+    fname = common.tower.license.generate_aws_file(instance_count=20)
+    # Using ansible, copy the license to the target system
+    ansible_runner.copy(src=fname, dest='/etc/awx/aws', owner='awx', group='awx', mode='0600')
 
     def teardown():
         ansible_runner.file(path='/etc/awx/aws', state='absent')
@@ -137,7 +93,7 @@ class Test_Demo_License(Base_Api_Test):
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 class Test_AWS_License(Base_Api_Test):
-    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_aws_license')
+    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_aws')
     def test_metadata(self, api_config_pg):
 
         #     "valid_key": true, 
@@ -179,7 +135,7 @@ class Test_AWS_License(Base_Api_Test):
         assert 'instance_count' in conf.license_info
 
     # Create inventory and hosts
-    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_aws_license')
+    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_aws')
     def test_instance_counts(self, api_config_pg):
         conf = api_config_pg.get()
 
