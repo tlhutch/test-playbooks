@@ -5,29 +5,47 @@ from common.api.schema import validate
 from plugins.pytest_restqa.rest_client import Connection
 from plugins.pytest_restqa.pytest_restqa import load_credentials
 
-api = None
-credentials = None
+# Generate fixture values for 'method' and 'resource'
+def pytest_generate_tests(metafunc):
 
-# def setup_function(function):
-def setup_module(module):
-    global api, credentials # yuck
-    api = Connection(pytest.config.option.base_url)
-    credentials = load_credentials(filename=pytest.config.option.credentials_file)
+    for fixture in metafunc.fixturenames:
+        test_set = list()
+        id_list = list()
 
-@pytest.mark.skip_selenium
-@pytest.mark.nondestructive
-# Not sure the following does anything
-## @pytest.yield_fixture(scope='function')
-def assert_response(api, link, method, response_code=httplib.OK, response_schema='unauthorized', data={}):
+        if fixture == 'method':
+            request_methods = [ 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', ]
+            test_set.extend(request_methods)
+            id_list.extend(request_methods)
+
+        if fixture == 'resource':
+            # Discover available API resources
+            api = Connection(pytest.config.option.base_url)
+            r = api.get('/api/')
+            data = r.json()
+            current_version = data.get('current_version')
+            r = api.get(current_version)
+            api_resources = r.json().values()
+
+            test_set.extend(api_resources)
+            id_list.extend(api_resources)
+
+        if test_set and id_list:
+            metafunc.parametrize(fixture, test_set, ids=id_list)
+
+def assert_response(api, resource, method, response_code=httplib.OK, response_schema='unauthorized', data={}):
+    '''Issue the desired API method on the provided resource.  Assert that the
+    http response and JSON schema are valid
+    '''
 
     # Determine requested api method
     method = method.lower()
 
-    # Does the method require a payload argument?
+    # Call the desired API $method on the provided $resource (e.g.
+    # api.get('/api/v1/me/')
     if method in ['get', 'head', 'options']:
-        r = getattr(api, method)(link)
+        r = getattr(api, method)(resource)
     else:
-        r = getattr(api, method)(link, data)
+        r = getattr(api, method)(resource, data)
 
     # Assert api response code matches expected
     assert r.code == response_code
@@ -38,22 +56,23 @@ def assert_response(api, link, method, response_code=httplib.OK, response_schema
     except ValueError:
         json = dict()
 
-    # validate api json response matches expected
-    validate(json, link[7:-1], response_schema)
+    # Validate API JSON response
+    validate(json, resource[7:-1], response_schema)
 
-@pytest.mark.nondestructive
+@pytest.fixture(scope="function")
+def logout(api):
+    '''Logout of the API on each function call'''
+    api.logout()
+
+@pytest.fixture(scope="function")
+def login(api, testsetup):
+    '''Login to the API on each function call'''
+    api.login(*testsetup.credentials['default'].values())
+
 @pytest.mark.skip_selenium
-def test_crawl_unauthorized():
-    global api # yuck
-
-    # Clear out any authentication credentials
-    api.auth = None
-
-    # Navigate to the api->$current_version
-    r = api.get('/api/')
-    data = r.json()
-    current_version = data.get('current_version')
-    r = api.get(current_version)
+@pytest.mark.nondestructive
+@pytest.mark.usefixtures("logout")
+def test_unauthenticated(api, resource, method):
 
     expected_response = {
         'HEAD': (httplib.UNAUTHORIZED, 'head'),
@@ -75,35 +94,22 @@ def test_crawl_unauthorized():
         },
     }
 
-    # Navigate through top-level API
-    for key, link in r.json().items():
-        for method in expected_response.keys():
+    # Generic response
+    (expected_response_code, expected_response_schema) = expected_response[method]
 
-            # Generic response
-            (expected_response_code, expected_response_schema) = expected_response[method]
+    # Check if any api link requires special handling
+    if resource in exception_matrix:
+        if method in exception_matrix[resource]:
+            (expected_response_code, expected_response_schema) = exception_matrix[resource][method]
 
-            # Check if any api link requires special handling
-            if link in exception_matrix:
-                if method in exception_matrix[link]:
-                    (expected_response_code, expected_response_schema) = exception_matrix[link][method]
+    assert_response(api, resource, method, expected_response_code, expected_response_schema)
 
-            # assert!
-            yield "%s:%s" % (method, link), assert_response, api, link, method, expected_response_code, expected_response_schema
-
-@pytest.mark.nondestructive
 @pytest.mark.skip_selenium
+@pytest.mark.nondestructive
+# Either works ...
+## @pytest.mark.usefixtures("login")
 @pytest.mark.usefixtures("authtoken")
-def test_crawl_authorized():
-    global api, credentials # yuck
-
-    # Login
-    api.login(*credentials['default'].values())
-
-    # Navigate to the api->$current_version
-    r = api.get('/api/')
-    data = r.json()
-    current_version = data.get('current_version')
-    r = api.get(current_version)
+def test_authenticated(api, resource, method):
 
     expected_response = {
         'HEAD': (httplib.OK, 'head'),
@@ -137,17 +143,12 @@ def test_crawl_authorized():
         },
     }
 
-    # Navigate through top-level API
-    for key, link in r.json().items():
-        for method in expected_response.keys():
+    # Generic response
+    (expected_response_code, expected_response_schema) = expected_response[method]
 
-            # Generic resopnse
-            (expected_response_code, expected_response_schema) = expected_response[method]
+    # Check if any api link requires special handling
+    if resource in exception_matrix:
+        if method in exception_matrix[resource]:
+            (expected_response_code, expected_response_schema) = exception_matrix[resource][method]
 
-            # Check if any api link requires special handling
-            if link in exception_matrix:
-                if method in exception_matrix[link]:
-                    (expected_response_code, expected_response_schema) = exception_matrix[link][method]
-
-            # assert!
-            yield "%s:%s" % (method, link), assert_response, api, link, method, expected_response_code, expected_response_schema
+    assert_response(api, resource, method, expected_response_code, expected_response_schema)
