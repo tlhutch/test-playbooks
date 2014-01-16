@@ -6,7 +6,7 @@ delete_on_start: false
 # Rackspace variables
 rax_api_key: ''
 rax_username: ''
-rax_flavor: 3 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/content/List_Flavors-d1e3842.html
+rax_flavor: 4 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/content/List_Flavors-d1e3842.html
 
 rax_region: ORD
 rax_name_prefix: 'testing'
