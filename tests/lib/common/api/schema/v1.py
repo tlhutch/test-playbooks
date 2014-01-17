@@ -348,6 +348,59 @@ class Awx_Schema(Awx_Schema_Base):
             },
         }
 
+        self.definitions['config_license_demo'] = {
+            'required': [ 'demo', 'key_present', 'current_instances', 'free_instances', 'available_instances' ],
+            'additionalProperties': False,
+            'properties': {
+                'demo':               { 'type': 'boolean', },
+                'key_present':        { 'type': 'boolean', },
+                'current_instances':  { 'type': 'number', 'minimum': 0 },
+                'free_instances':     { 'type': 'number', 'minimum': 0 },
+                'available_instances':{ 'type': 'number', 'minimum': 0 , 'maximum': 10},
+            },
+        }
+
+        self.definitions['config_license_aws'] = {
+            'required': [ 'valid_key', 'date_expired', 'available_instances', 'license_date', 'current_instances', 'ami-id', 'instance_count', 'compliant', 'is_aws', 'time_remaining', 'license_key', 'free_instances', 'date_warning', 'instance-id',],
+            'additionalProperties': False,
+            'properties': {
+                'valid_key':           { 'type': 'boolean', },
+                'date_expired':        { 'type': 'boolean', },
+                'available_instances': { 'type': 'number', 'minimum': 0 },
+                'license_date':        { 'type': 'number', 'minimum': 0 },
+                'current_instances':   { 'type': 'number', 'minimum': 0 },
+                'ami-id':              { 'type': 'string', 'pattern': '^ami-[0-9a-zA-Z]+$'},
+                'instance_count':      { 'type': 'number', 'minimum': 0 },
+                'compliant':           { 'type': 'boolean', },
+                'is_aws':              { 'type': 'boolean', },
+                'time_remaining':      { 'type': 'number', 'minimum': 0 },
+                'license_key':         { 'type': 'string', },
+                'free_instances':      { 'type': 'number', 'minimum': 0 },
+                'date_warning':        { 'type': 'boolean', },
+                'instance-id':         { 'type': 'string', 'pattern': '^i-[0-9a-zA-Z]+$'},
+            },
+        }
+
+        self.definitions['config_license'] = {
+            'required': [ 'valid_key', 'date_expired', 'available_instances', 'current_instances', 'free_instances', 'instance_count', 'compliant', 'contact_email', 'company_name', 'date_warning', 'time_remaining', 'contact_name', 'license_date', 'license_key', ],
+            'additionalProperties': False,
+            'properties': {
+                'valid_key':           { 'type': 'boolean', },
+                'date_expired':        { 'type': 'boolean', },
+                'available_instances': { 'type': 'number', 'minimum': 0 },
+                'current_instances':   { 'type': 'number', 'minimum': 0 },
+                'free_instances':      { 'type': 'number', 'minimum': 0 },
+                'instance_count':      { 'type': 'number', 'minimum': 0 },
+                'compliant':           { 'type': 'boolean', },
+                'contact_email':       { 'type': 'string', },
+                'company_name':        { 'type': 'string', },
+                'date_warning':        { 'type': 'boolean', },
+                'time_remaining':      { 'type': 'number', 'minimum': 0 },
+                'contact_name':        { 'type': 'string', },
+                'license_date':        { 'type': 'number', 'minimum': 0 },
+                'license_key':         { 'type': 'string', },
+            },
+        }
 
     @property
     def put(self):
@@ -1919,29 +1972,11 @@ class Awx_Schema_Config(Awx_Schema):
             'properties': {
                 'license_info': {
                     'type': 'object',
-                    'required': [ 'available_instances', 'current_instances', 'free_instances', ],
-                    'additionalProperties': False,
-                    'properties': {
-                        'available_instances': { 'type': 'number', 'minimum': 0 },
-                        'current_instances':   { 'type': 'number', 'minimum': 0 },
-                        'free_instances':      { 'type': 'number', 'minimum': 0 },
-                        'instance_count':      { 'type': 'number', 'minimum': 0 },
-                        'license_date':        { 'type': 'number', 'minimum': 0 },
-                        'time_remaining':      { 'type': 'number', 'minimum': 0 },
-                        'license_key':         { 'type': 'string', },
-                        'company_name':        { 'type': 'string', },
-                        'compliant':           { 'type': 'boolean', },
-                        'contact_email':       { 'type': 'string', },
-                        'contact_name':        { 'type': 'string', },
-                        'date_expired':        { 'type': 'boolean', },
-                        'date_warning':        { 'type': 'boolean', },
-                        'valid_key':           { 'type': 'boolean', },
-                        'demo':                { 'type': 'boolean', },
-                        'key_present':         { 'type': 'boolean', },
-                        'is_aws':              { 'type': 'boolean', },
-                        'ami-id':              { 'type': 'string', 'pattern': '^ami-[0-9a-zA-Z]+$'},
-                        'instance-id':         { 'type': 'string', 'pattern': '^i-[0-9a-zA-Z]+$'},
-                    },
+                    'oneOf': [
+                        { '$ref': '#/definitions/config_license_demo', },
+                        { '$ref': '#/definitions/config_license_aws', },
+                        { '$ref': '#/definitions/config_license', },
+                    ]
                 },
                 'ansible_version':  { 'type': 'string', 'pattern': '^(\d+\.)?(\d+\.)?(\d+)$'},
                 'version':          { 'type': 'string', 'pattern': '^(\d+\.)?(\d+\.)?(\d+)(.*)$'},
