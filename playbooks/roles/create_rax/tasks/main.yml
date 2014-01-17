@@ -24,6 +24,7 @@
     flavor: '{{ rax_flavor }}'
     image: '{{ item.uuid }}'
     region: '{{ rax_region }}'
+    meta: '{{ rax_meta }}'
     files:
       /root/.ssh/authorized_keys: '{{ rax_public_key }}'
     wait: yes

@@ -11,6 +11,8 @@ rax_flavor: 4 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/
 rax_region: ORD
 rax_name_prefix: 'testing'
 rax_public_key: ~/.ssh/id_rsa.pub
+rax_meta:
+    group: 'jenkins-nightly'
 
 # Use `nova image-list` to determine active images
 rax_images: [{'name': 'centos-6.4-x86_64',   'uuid': '25a5f2e8-f522-4fe0-b0e0-dbaa62405c25'},
