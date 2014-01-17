@@ -476,11 +476,41 @@ if __name__ == '__main__':
         print inv_updates_pg.result_stdout
 
     @pytest.mark.nondestructive
-    def test_inventory_sources_get_hosts(self, api_groups_pg, api_hosts_pg, inventory_source):
+    def test_inventory_sources_get_children(self, api_groups_pg, inventory_source, region_choices):
+        '''
+        Tests that an inventory_sync created expected sub-groups
+        '''
         # Find desired group
         group = api_groups_pg.get(name__iexact=inventory_source['group']).results[0]
 
-        # Find hosts matching the group
+        # Find sub-groups
+        children_pg = group.get_related('children')
+
+        # Assert sub-groups were synced
+        assert children_pg.count > 0, "No sub-groups were created for inventory '%s'" % inventory_source['name']
+
+        # Ensure all only groups matching source_regions were imported
+        if 'source_regions' in inventory_source:
+            expected_source_regions = re.split(r'[,\s]+', inventory_source['source_regions'])
+            for child in children_pg.results:
+                # If the group is an official region (e.g. 'us-east-1' or
+                # 'ORD'), make sure it's one we asked for
+                if child.name in region_choices[inventory_source['source']]:
+                    assert child.name in expected_source_regions, \
+                        "Imported group (%s) isn't in expected source_regions (%s)" % \
+                        (child.name, source_regions)
+                else:
+                    print "Ignoring group '%s', it appears to not be a cloud region" % child.name
+
+    @pytest.mark.nondestructive
+    def test_inventory_sources_get_hosts(self, api_groups_pg, api_hosts_pg, inventory_source):
+        '''
+        Tests that an inventory_sync successfully imported hosts
+        '''
+        # Find desired group
+        group = api_groups_pg.get(name__iexact=inventory_source['group']).results[0]
+
+        # Find hosts within the group
         group_hosts_pg = group.get_related('hosts')
 
         # Validate number of inventories found

@@ -365,7 +365,7 @@ inventory_sources:
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
       source_vars: ''
-      source_regions: ''
+      source_regions: 'ORD'
       source_tags: ''
       overwrite: true
       overwrite_vars: true
