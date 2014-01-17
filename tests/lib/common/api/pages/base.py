@@ -154,7 +154,8 @@ class Base_List(Base):
         return [self.__item_class__(self.testsetup, base_url=data.get('url',None), json=data) for data in self.json['results']]
 
     def options(self, **kwargs):
-        raise NotImplementedError
+        r = self.api.options(self.base_url.format(**self.json))
+        return self.handle_request(r)
 
     def head(self, **kwargs):
         raise NotImplementedError
