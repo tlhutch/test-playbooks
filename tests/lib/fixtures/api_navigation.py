@@ -246,3 +246,12 @@ def awx_config(api, api_home):
     r = api.get(url)
     assert r.status_code == httplib.OK
     return r.json()
+
+@pytest.fixture(scope="session")
+def region_choices(api_inventory_sources_pg):
+    options = api_inventory_sources_pg.options()
+
+    # The format is a list of lists in the format: [['<internal-string>', '<human-readable-string>'], ...]
+    return dict(ec2=[r[0] for r in options.json.get('actions',{}).get('GET',{}).get('source_regions',{}).get('ec2_region_choices',[])],
+                rax=[r[0] for r in options.json.get('actions',{}).get('GET',{}).get('source_regions',{}).get('rax_region_choices',[])])
+
