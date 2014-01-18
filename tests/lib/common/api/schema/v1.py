@@ -355,7 +355,7 @@ class Awx_Schema(Awx_Schema_Base):
                 'demo':               { 'type': 'boolean', },
                 'key_present':        { 'type': 'boolean', },
                 'current_instances':  { 'type': 'number', 'minimum': 0 },
-                'free_instances':     { 'type': 'number', 'minimum': 0 },
+                'free_instances':     { 'type': 'number', },
                 'available_instances':{ 'type': 'number', 'minimum': 0 , 'maximum': 10},
             },
         }
@@ -389,7 +389,7 @@ class Awx_Schema(Awx_Schema_Base):
                 'date_expired':        { 'type': 'boolean', },
                 'available_instances': { 'type': 'number', 'minimum': 0 },
                 'current_instances':   { 'type': 'number', 'minimum': 0 },
-                'free_instances':      { 'type': 'number', 'minimum': 0 },
+                'free_instances':      { 'type': 'number', },
                 'instance_count':      { 'type': 'number', 'minimum': 0 },
                 'compliant':           { 'type': 'boolean', },
                 'contact_email':       { 'type': 'string', },
