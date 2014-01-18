@@ -375,7 +375,7 @@ class Awx_Schema(Awx_Schema_Base):
                 'is_aws':              { 'type': 'boolean', },
                 'time_remaining':      { 'type': 'number', 'minimum': 0 },
                 'license_key':         { 'type': 'string', },
-                'free_instances':      { 'type': 'number', 'minimum': 0 },
+                'free_instances':      { 'type': 'number', },
                 'date_warning':        { 'type': 'boolean', },
                 'instance-id':         { 'type': 'string', 'pattern': '^i-[0-9a-zA-Z]+$'},
             },
