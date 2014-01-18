@@ -51,12 +51,20 @@ def install_license(request, ansible_runner):
         ansible_runner.file(path='/etc/awx/license', state='absent')
     request.addfinalizer(teardown)
 
+@pytest.fixture(scope='session')
+def ami_id(ansible_runner):
+    output = ansible_runner.command('/usr/bin/ec2metadata --ami-id')
+    return output['stdout']
+
+@pytest.fixture(scope='session')
+def instance_id(ansible_runner):
+    output = ansible_runner.command('/usr/bin/ec2metadata --instance-id')
+    return output['stdout']
+
 # The following fixture runs once for each class that uses it
 @pytest.fixture(scope='class')
-def install_aws(request, testsetup, ansible_runner):
-
-    fname = common.tower.license.generate_aws_file(instance_count=20)
-    # Using ansible, copy the license to the target system
+def install_aws(request, testsetup, ansible_runner, ami_id, instance_id):
+    fname = common.tower.license.generate_aws_file(instance_count=20, ami_id=ami_id, instance_id=instance_id)
     ansible_runner.copy(src=fname, dest='/etc/awx/aws', owner='awx', group='awx', mode='0600')
 
     def teardown():
@@ -92,27 +100,11 @@ class Test_Demo_License(Base_Api_Test):
 
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
+# AWS licensing only works when tested on an ec2 instance
+@pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
 class Test_AWS_License(Base_Api_Test):
     @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_aws')
     def test_metadata(self, api_config_pg):
-
-        #     "valid_key": true, 
-        #     "license_key": "e8bd586ce98a692e8549a63d070d9ed2db888a0163ad1bc395d70550d2fc7a55", 
-        #     "license_date": 9223372036854775807, 
-
-        #     "compliant": true, 
-        #     "free_instances": 30, 
-        #     "available_instances": 30, 
-        #     "current_instances": 0, 
-        #     "instance_count": 30, 
-
-        #     "time_remaining": 9223372036854775807, 
-        #     "date_expired": false, 
-        #     "date_warning": false, 
-
-        #     "is_aws": true, 
-        #     "ami-id": "ami-eb81b182", 
-        #     "instance-id": "i-fd64c1d3"
 
         conf = api_config_pg.get()
 
@@ -153,20 +145,6 @@ class Test_AWS_License(Base_Api_Test):
 class Test_License(Base_Api_Test):
     @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license')
     def test_metadata(self, api_config_pg):
-
-        # 'valid_key': True,
-        # 'license_key': u'768a4aad8cbb49c4762a097f004e0c32783301dfbd20c50edebdbf17cbc42877',
-        # 'license_date': 1392497194,
-
-        # 'compliant': True,
-        # 'current_instances': 0,
-        # 'available_instances': 20,
-        # 'free_instances': 20,
-        # 'instance_count': 20,
-
-        # 'date_expired': False,
-        # 'date_warning': False,
-        # 'time_remaining': 2678396,
 
         conf = api_config_pg.get()
 
