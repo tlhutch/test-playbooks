@@ -121,7 +121,8 @@ class AnsibleWrapper(object):
 
     def __getattr__(self, name):
         self.module_name = name
-        return self.subprocess_runner
+        return self.ansible_runner
+        # return self.subprocess_runner
 
     def ansible_runner(self, *args, **kwargs):
         '''
@@ -129,21 +130,37 @@ class AnsibleWrapper(object):
         Therefore, the following approach isn't guarrunteed to work.  Instead,
         use subprocess_runner().
         '''
-        # Assemble module argument string
-        module_args = [pipes.quote(s) for s in args]
-        if kwargs:
-            module_args += ["%s=%s" % i for i in kwargs.items()]
-        module_args = ' '.join(module_args)
-
         inventory = ansible.inventory.Inventory(self.inventory)
+
+        # Assemble module argument string
+        # module_args = [pipes.quote(s) for s in args]
+        # if kwargs:
+        #     module_args += ["%s=%s" % i for i in kwargs.items()]
+        # module_args = ' '.join(module_args)
+        module_args = []
+        if args:
+            module_args += list(args)
+
+        #if kwargs:
+        #    module_args += ["%s=%s" % (k, pipes.quote(v)) for k,v in kwargs.items()]
+
+        module_args = ' '.join(module_args)
 
         runner = ansible.runner.Runner(
            inventory=inventory,
            pattern=self.pattern,
            module_name=self.module_name,
            module_args=module_args,
+           complex_args=kwargs,
+           sudo=True,
            )
-        return runner.run()
+        result = runner.run()
+
+        # Handle response
+        if self.pattern in result['dark']:
+            raise Exception("Command failed: %s" % self.module_name, result['dark'][self.pattern])
+        else:
+            return result['contacted'][self.pattern]
 
     def subprocess_runner(self, *args, **kwargs):
         '''
@@ -171,4 +188,6 @@ class AnsibleWrapper(object):
         stdout = popen.communicate()[0]
         if popen.returncode:
             raise Exception("Command failed (%s): %s\n%s" % (popen.returncode, cmd, stdout))
+        # Drop the first line of output ... it's just a status line
+        stdout = '\n'.join(stdout.split('\n')[1:])
         return (popen.returncode, stdout)
