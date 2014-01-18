@@ -490,15 +490,15 @@ if __name__ == '__main__':
         assert children_pg.count > 0, "No sub-groups were created for inventory '%s'" % inventory_source['name']
 
         # Ensure all only groups matching source_regions were imported
-        if 'source_regions' in inventory_source:
+        if 'source_regions' in inventory_source and inventory_source['source_regions'] != '':
             expected_source_regions = re.split(r'[,\s]+', inventory_source['source_regions'])
             for child in children_pg.results:
                 # If the group is an official region (e.g. 'us-east-1' or
                 # 'ORD'), make sure it's one we asked for
                 if child.name in region_choices[inventory_source['source']]:
                     assert child.name in expected_source_regions, \
-                        "Imported group (%s) isn't in expected source_regions (%s)" % \
-                        (child.name, source_regions)
+                        "Imported region (%s) that wasn't in list of expected regions (%s)" % \
+                        (child.name, expected_source_regions)
                 else:
                     print "Ignoring group '%s', it appears to not be a cloud region" % child.name
 
