@@ -55,7 +55,7 @@ for LINE in $(env) ; do
     set -- $LINE
     VARNAME="$1"
     case $VARNAME in
-        AWX*|GALAXY*|AWS*|EC2*|RAX*|AW_REPO_URL|DELETE_ON_START)
+        AWX*|GALAXY*|AWS*|EC2*|RAX*|DELETE_ON_START)
             echo "${VARNAME,,}: '${!VARNAME}'" >> vars.yaml
             ;;
         *)
@@ -67,6 +67,14 @@ done
 # Enable nightly ansible repository?
 if [[ "${ENABLE_ANSIBLE_NIGHTLY_REPO}" == true ]]; then
     echo "ansible_repo_url: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi" >> vars.yaml
+fi
+
+# If OFFICIAL=yes, use the public repository. Otherwise, use the nightly
+# repository.
+if [[ "${OFFICIAL}" == true ]]; then
+    echo "aw_repo_url: http://releases.ansible.com/awx" >> vars.yaml
+else
+    echo "aw_repo_url: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi" >> vars.yaml
 fi
 
 # Determine which distros to deploy
