@@ -69,13 +69,20 @@ if [[ "${ENABLE_ANSIBLE_NIGHTLY_REPO}" == true ]]; then
     echo "ansible_repo_url: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi" >> vars.yaml
 fi
 
+# Establish the aw_repo_url.  This is the baseurl used by the install playbook.
 # If OFFICIAL=yes, use the public repository. Otherwise, use the nightly
 # repository.
-if [[ "${OFFICIAL}" == true ]]; then
-    echo "aw_repo_url: http://releases.ansible.com/awx" >> vars.yaml
-else
-    echo "aw_repo_url: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi" >> vars.yaml
-fi
+case "${PLAYBOOK}-${OFFICIAL}" in
+    awx*-false)
+        echo "aw_repo_url: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi" >> vars.yaml
+        ;;
+    galaxy*-false)
+        echo "aw_repo_url: http://50.116.42.103/galaxy_nightlies_Y6ptm6ES82A5h79V" >> vars.yaml
+        ;;
+    *)
+        echo "aw_repo_url: http://releases.ansible.com/${PLAYBOOK%%.yml}" >> vars.yaml
+        ;;
+esac
 
 # Determine which distros to deploy
 case ${CLOUD_PROVIDER}-${PLATFORM} in
