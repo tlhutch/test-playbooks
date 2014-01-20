@@ -74,7 +74,7 @@ fi
 # repository.
 case "${PLAYBOOK}-${OFFICIAL}" in
     awx*-false)
-        echo "aw_repo_url: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi" >> vars.yaml
+        echo "aw_repo_url: http://50.116.42.103/awx_nightlies_RTYUIOPOIUYTYU" >> vars.yaml
         ;;
     galaxy*-false)
         echo "aw_repo_url: http://50.116.42.103/galaxy_nightlies_Y6ptm6ES82A5h79V" >> vars.yaml
