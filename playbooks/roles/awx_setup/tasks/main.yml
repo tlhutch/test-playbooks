@@ -42,3 +42,9 @@
      chdir=/tmp/awx-setup
      # creates=/etc/awx/awx.cert
   when: is_awx_installed|failed or awx_upgrade
+  register: setup_log
+
+- name: store setup.log
+  shell: bash -x setup.sh -v -e @awx_vars.yaml
+     chdir=/tmp/awx-setup
+  when: setup_log is defined
