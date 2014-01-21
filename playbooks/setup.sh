@@ -160,9 +160,11 @@ fi
 # Disable strict host key checking
 export ANSIBLE_HOST_KEY_CHECKING=False
 
-# Enable verbosity?
+# How much verbosity do you want ...
 if [[ "${VERBOSE}" == true ]]; then
   ARGS="-vvvv"
+else
+  ARGS="-v"
 fi
 
 ansible-playbook ${ARGS} -i inventory -e @vars.yaml "${PLAYBOOK}"
