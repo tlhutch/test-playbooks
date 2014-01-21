@@ -165,4 +165,4 @@ if [[ "${VERBOSE}" == true ]]; then
   ARGS="-vvvv"
 fi
 
-ansible-playbook ${ARGS} -i inventory -e @vars.yaml "${PLAYBOOK}" | tee playbook.log
+ansible-playbook ${ARGS} -i inventory -e @vars.yaml "${PLAYBOOK}"
