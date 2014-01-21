@@ -1692,6 +1692,16 @@ class Awx_Schema_Jobs(Awx_Schema):
             '$ref': '#/definitions/job',
         })
 
+class Awx_Schema_Job(Awx_Schema_Jobs):
+    component = '/jobs/\d+'
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/job',
+        })
+
 class Awx_Schema_Job_Start(Awx_Schema):
     component = '/jobs/\d+/start'
 
