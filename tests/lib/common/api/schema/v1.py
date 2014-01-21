@@ -1692,6 +1692,35 @@ class Awx_Schema_Jobs(Awx_Schema):
             '$ref': '#/definitions/job',
         })
 
+class Awx_Schema_Job_Start(Awx_Schema):
+    component = '/jobs/\d+/start'
+
+    def __init__(self):
+        super(Awx_Schema_Job_Start, self).__init__()
+
+        self.definitions['job_start'] = {
+            'type': 'object',
+            'required': [ 'can_start', ],
+            'additionalProperties': True,
+            'properties': {
+                'can_start': { 'type': 'boolean', },
+                'passwords_needed_to_start': {
+                    '$ref': '#/definitions/passwords_needed_to_start',
+                },
+            },
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            '$ref': '#/definitions/job_start',
+        })
+
+    @property
+    def post(self):
+        return {}
 
 class Awx_Schema_Inventory_Sources(Awx_Schema):
     component = '/inventory_sources'
