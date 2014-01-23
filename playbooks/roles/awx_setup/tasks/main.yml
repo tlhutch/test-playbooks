@@ -1,9 +1,6 @@
 ---
 # Download awx-setup and run the setup playbook
 
-- name: 'AC-932 - install github.com rsa key'
-  shell: ssh-keyscan github.com >> /etc/ssh/ssh_known_hosts
-
 - name: download awx-setup-latest.tar.gz
   get_url: url={{aw_repo_url}}/{{awx_setup_path}} dest=/tmp mode=0640
   register: tarball
