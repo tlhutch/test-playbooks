@@ -962,23 +962,24 @@ EOF
         (hours, minutes, seconds) = result['delta'].split(':')
 
         # Calculate total seconds
-        seconds = seconds + 60*float(minutes) + 60*60*float(hours)
+        seconds = float(seconds) + 60*float(minutes) + 60*60*float(hours)
 
         # Verify the import completed in a timely manner
         assert seconds <= 30.0
+        print "Import took %s seconds" % seconds
 
     def test_group_count(self, api_groups_pg, inventory):
         '''Verify the import created the expected groups'''
         obj = api_groups_pg.get(inventory=inventory.id)
         assert obj.count == len(inventory_dict.keys())
+        print "Number of groups imported: %s" % obj.count
 
     def test_hosts_count(self, api_hosts_pg, inventory):
         '''Verify the import created the expected hosts'''
         # Count the number of unique hosts in the all groups
-        host_dict = 0
-        for group_hosts in inventory_dict.values():
-            host_dict.update({host:None for host in group_hosts})
+        host_count = len({host:None for hosts in inventory_dict.values() for host in hosts })
 
         # Verify the number of hosts matches what was imported
         obj = api_hosts_pg.get(inventory=inventory.id)
-        assert obj.count == len(host_dict)
+        assert obj.count == host_count
+        print "Number of hosts imported: %s" % obj.count
