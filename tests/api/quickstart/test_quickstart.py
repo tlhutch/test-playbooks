@@ -90,28 +90,7 @@ def set_rootpw(request, ansible_runner, testsetup):
     assert 'password' in testsetup.credentials['ssh'], "No SSH password defined in credentials"
     ansible_runner.shell("echo '{username}:{password}' | chpasswd".format(**testsetup.credentials['ssh']))
 
-@pytest.fixture(scope='module')
-def hack_pexpect_timeout(request, ansible_runner, awx_config):
-    '''Increase AWX PEXPECT_TIMEOUT'''
-
-    # Set PEXPECT_TIMEOUT
-    ansible_runner.lineinfile(dest="/etc/awx/settings.py", regexp="^PEXPECT_TIMEOUT", line="PEXPECT_TIMEOUT=10")
-
-    # Restart httpd
-    # RPM-based distros call the service: httpd
-    if ansible_runner.service(name="httpd", state="restarted").get('failed', False):
-        # Ubuntu calls the service: apache2
-        ansible_runner.service(name="apache2", state="restarted")
-
-    # Restart supervisord
-    # RPM-based distros call the service: supervisord
-    if ansible_runner.service(name="supervisord", state="restarted").get('failed', False):
-        # Ubuntu calls the service: supervisor
-        ansible_runner.service(name="supervisor", state="restarted")
-        # The ubuntu service script sucks and doesn't restart the child celery processes
-        ansible_runner.shell("pkill -9 -f celery")
-
-@pytest.mark.usefixtures("authtoken", "install_license", "update_sshd_config", "set_rootpw", "hack_pexpect_timeout")
+@pytest.mark.usefixtures("authtoken", "install_license", "update_sshd_config", "set_rootpw")
 @pytest.mark.incremental
 @pytest.mark.integration
 class Test_Quickstart_Scenario(Base_Api_Test):
