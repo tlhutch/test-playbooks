@@ -4,6 +4,7 @@ import re
 import httplib
 import pytest
 import time
+import common.tower.license
 from inflect import engine
 from unittestzero import Assert
 from common.api.schema import validate
@@ -49,88 +50,50 @@ def pytest_generate_tests(metafunc):
         if test_set and id_list:
             metafunc.parametrize(fixture, test_set, ids=id_list)
 
-@pytest.mark.usefixtures("authtoken")
+@pytest.fixture(scope='module')
+def install_license(request, ansible_runner, awx_config):
+    '''If a suitable license is not already installed, install a new license'''
+    if not (awx_config['license_info'].get('valid_key', False) and \
+            awx_config['license_info'].get('compliant', False) and \
+            awx_config['license_info'].get('available_instances',0) >= 1001 ):
+
+        # Backup any aws license
+        ansible_runner.shell('test -f /etc/awx/aws && mv /etc/awx/aws /etc/awx/.aws', creates='/etc/awx/.aws', removes='/etc/awx/aws')
+        # Install/replace license
+        fname = common.tower.license.generate_license_file(instance_count=1000, days=60)
+        ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+
+@pytest.fixture(scope='module')
+def update_sshd_config(request, ansible_runner):
+    '''Update /etc/ssh/sshd_config to increase MaxSessions'''
+
+    # Increase MaxSessions and MaxStartups
+    ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxSessions .*", line="MaxSessions 150")
+    ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxStartups .*", line="MaxStartups 150")
+
+    # Enable PasswordAuth (disabled on AWS instances)
+    ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?PasswordAuthentication .*", line="PasswordAuthentication yes")
+
+    # Restart sshd
+    try:
+        # RPM-based distros call the service: sshd
+        ansible_runner.service(name="sshd", state="restarted")
+    except Exception, e:
+        # Ubuntu calls the service: ssh
+        ansible_runner.service(name="ssh", state="restarted")
+
+@pytest.fixture(scope='module')
+def set_rootpw(request, ansible_runner, testsetup):
+    '''Set the rootpw to something we use in credentials'''
+    assert 'ssh' in testsetup.credentials, "No SSH credentials defined"
+    assert 'username' in testsetup.credentials['ssh'], "No SSH username defined in credentials"
+    assert 'password' in testsetup.credentials['ssh'], "No SSH password defined in credentials"
+    ansible_runner.shell("echo '{username}:{password}' | chpasswd".format(**testsetup.credentials['ssh']))
+
+@pytest.mark.usefixtures("authtoken", "install_license", "update_sshd_config", "set_rootpw")
 @pytest.mark.incremental
 @pytest.mark.integration
 class Test_Quickstart_Scenario(Base_Api_Test):
-
-    @pytest.mark.destructive
-    def test_environment_setup(self, ansible_runner):
-        '''
-        This test is a hack to make sure all test systems have the proper
-        passwd
-        '''
-
-        # Set rootpw to something we know
-        assert self.has_credentials('ssh', fields=['username', 'password'])
-        ansible_runner.shell("echo '{username}:{password}' | chpasswd".format(**self.credentials['ssh']))
-
-        # Increase MaxSessions and MaxStartups
-        ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxSessions .*", line="MaxSessions 150")
-        ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxStartups .*", line="MaxStartups 150")
-
-        # Enable PasswordAuth (disabled on AWS instances)
-        ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?PasswordAuthentication .*", line="PasswordAuthentication yes")
-
-        # Restart sshd
-        try:
-            # RPM-based distros call the service: sshd
-            ansible_runner.service(name="sshd", state="restarted")
-        except Exception, e:
-            # Ubuntu calls the service: ssh
-            ansible_runner.service(name="ssh", state="restarted")
-
-    @pytest.mark.destructive
-    def test_install_license(self, awx_config, tmpdir, ansible_runner):
-        # FIXME - parameterize the license info and store it in data.yml
-
-        if awx_config['license_info'].get('valid_key', False) and \
-           awx_config['license_info'].get('compliant', False):
-            pytest.xfail("License key already activated")
-
-        assert 'license' in cfg, \
-            "No license information found in test configuration"
-
-        print cfg['license']
-
-        # Create license script
-        py_script = '''#!/usr/bin/python
-import time
-from datetime import datetime, timedelta
-try:
-    from awx.main.licenses import LicenseWriter
-except ImportError:
-    import os, sys
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-    from awx.main.licenses import LicenseWriter
-
-def to_seconds(itime):
-    return int(float(time.mktime(itime.timetuple())))
-
-if __name__ == '__main__':
-
-    writer = LicenseWriter(
-        company_name   = "{company_name}",
-        contact_name   = "{contact_name}",
-        contact_email  = "{contact_email}",
-        instance_count = {instance_count},
-        license_date   = to_seconds(datetime.now() + timedelta(days={license_days})),
-    )
-
-    fd = open('/etc/awx/license', 'w+')
-    fd.write(writer.get_string())
-    fd.close()
-'''.format(**cfg['license'])
-        p = tmpdir.mkdir("ansible").join("install_license.py")
-        fd = p.open('w+')
-        fd.write(py_script)
-        fd.close()
-
-        # Using ansible, copy script to target system
-        ansible_runner.copy(src=fd.name, dest='/tmp/%s' % p.basename, mode='0755')
-
-        # Using ansible, run the script
-        ansible_runner.shell('python /tmp/%s' % p.basename, creates='/etc/awx/license')
 
     @pytest.mark.destructive
     def test_organizations_post(self, api_organizations_pg, organization):
