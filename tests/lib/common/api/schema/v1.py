@@ -1497,7 +1497,7 @@ class Awx_Schema_Job_Templates(Awx_Schema):
                 'inventory': { '$ref': '#/definitions/id', },
                 'project': { '$ref': '#/definitions/id', },
                 'playbook': { 'type': 'string', 'pattern': '.*\.(yaml|yml)' },
-                'credential': { '$ref': '#/definitions/id', },
+                'credential': { '$ref': '#/definitions/id_or_null', },
                 'cloud_credential': { '$ref': '#/definitions/id_or_null', },
                 'forks': { 'type': 'number', 'minimum': 0 },
                 'verbosity': { 'type': 'number', 'minimum': 0 },
