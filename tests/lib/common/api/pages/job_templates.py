@@ -8,6 +8,7 @@ class Job_Template_Page(base.Base):
     inventory = property(base.json_getter('inventory'), base.json_setter('inventory'))
     project = property(base.json_getter('project'), base.json_setter('project'))
     playbook = property(base.json_getter('playbook'), base.json_setter('playbook'))
+    forks = property(base.json_getter('forks'), base.json_setter('forks'))
     credential = property(base.json_getter('credential'), base.json_setter('credential'))
 
     def get_related(self, name):
