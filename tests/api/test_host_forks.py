@@ -2,12 +2,14 @@ import os
 import pytest
 import json
 import tempfile
+import time
+import datetime
+import common.utils
 import common.tower.license
 from tests.api import Base_Api_Test
-from common import randomness
 
-NUM_HOSTS = 500
-NUM_FORKS = 500
+NUM_HOSTS = 400
+NUM_FORKS = 400
 
 # The following fixture runs once for this entire module
 @pytest.fixture(scope='module')
@@ -23,7 +25,7 @@ def backup_license(request, ansible_runner):
 # The following fixture runs once for each class that uses it
 @pytest.fixture(scope='class')
 def install_license(request, ansible_runner):
-    fname = common.tower.license.generate_license_file(instance_count=NUM_HOSTS, days=7)
+    fname = common.tower.license.generate_license_file(instance_count=NUM_HOSTS*10, days=7)
     ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
 
     def teardown():
@@ -32,7 +34,7 @@ def install_license(request, ansible_runner):
 
 @pytest.fixture(scope="class")
 def organization(request, testsetup, api_organizations_pg):
-    payload = dict(name="org-%s" % randomness.generate_random_string())
+    payload = dict(name="org-%s" % common.utils.random_ascii())
     testsetup.api.login(*testsetup.credentials['default'].values())
     obj = api_organizations_pg.post(payload)
     #request.addfinalizer(obj.delete)
@@ -43,8 +45,7 @@ def organization(request, testsetup, api_organizations_pg):
 def credential(request, testsetup, api_credentials_pg, api_users_pg):
     testsetup.api.login(*testsetup.credentials['default'].values())
 
-    payload = dict(name="credential-%s" % randomness.generate_random_string(),
-                   kind='ssh')
+    payload = dict(name="credential-%s" % common.utils.random_ascii(), kind='ssh')
     # Add user id
     admin = api_users_pg.get(username__exact='admin').results.pop()
     payload['user'] = admin.id
@@ -57,17 +58,20 @@ def credential(request, testsetup, api_credentials_pg, api_users_pg):
 @pytest.fixture(scope="class")
 def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups_pg, api_hosts_pg, organization):
     # Create inventory
-    payload = dict(name="inventory-%s" % randomness.generate_random_string(),
+    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
                    organization=organization.id,
-                   variables=json.dumps(dict(connection='local')))
+                   variables=json.dumps(dict(ansible_connection='local')))
     testsetup.api.login(*testsetup.credentials['default'].values())
     inventory = api_inventories_pg.post(payload)
     #request.addfinalizer(inventory.delete)
 
     # Batch create group+hosts using awx-manage
-    grp_name = "group-%s" % randomness.generate_random_string()
-    inventory_dict = {grp_name: []}
-    inventory_dict[grp_name] = ['host-%s' % num for num in range(NUM_HOSTS)]
+    grp_name = "group-%s" % common.utils.random_ascii()
+    inventory_dict = {grp_name: dict(hosts=[], vars={})}
+    inventory_dict[grp_name]['hosts'] = ['host-%s' % num for num in range(NUM_HOSTS)]
+    inventory_dict[grp_name]['vars'] = dict(ansible_connection='local')
+    # inventory_dict['_meta'] = dict(hostvars=dict(ansible_ssh_host='localhost', connection='local'))
+    # inventory_dict = {grp_name: dict(hosts=[], vars=[])}
 
     # Create an inventory script
     sh_script = '''#!/bin/bash
@@ -96,7 +100,7 @@ EOF
 @pytest.fixture(scope="class")
 def project(request, testsetup, api_projects_pg, organization):
     # Create project
-    payload = dict(name="project-%s" % randomness.generate_random_string(),
+    payload = dict(name="project-%s" % common.utils.random_ascii(),
                    organization=organization.id,
                    scm_type='hg',
                    scm_url='https://bitbucket.org/jlaska/ansible-helloworld',
@@ -119,11 +123,21 @@ def project(request, testsetup, api_projects_pg, organization):
 
     return obj
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="class", params=[ \
+    {'playbook': 'debug.yml', 'forks': 200, }, \
+    {'playbook': 'debug.yml', 'forks': 400, }, \
+    {'playbook': 'debug.yml', 'forks': 600, }, \
+    {'playbook': 'debug.yml', 'forks': 800, }, \
+    {'playbook': 'debug.yml', 'forks': 1000, }, \
+    {'playbook': 'debug2.yml', 'forks': 200, }, \
+    {'playbook': 'debug2.yml', 'forks': 400, }, \
+    {'playbook': 'debug2.yml', 'forks': 600, }, \
+    {'playbook': 'debug2.yml', 'forks': 800, }, \
+    {'playbook': 'debug2.yml', 'forks': 1000, },])
 def job_template(request, testsetup, api_job_templates_pg, inventory, project, credential):
-    payload = dict(name="template-%s" % randomness.generate_random_string(),
+    payload = dict(name="template-%s-%s" % (request.param, common.utils.random_ascii()),
                    job_type='run',
-                   playbook='ping.yml',
+                   playbook=request.param['playbook'],
                    job_tags='',
                    limit='',
                    inventory=inventory.id,
@@ -131,7 +145,8 @@ def job_template(request, testsetup, api_job_templates_pg, inventory, project, c
                    credential=credential.id,
                    allow_callbacks=False,
                    verbosity=0,
-                   forks=NUM_FORKS,)
+                   forks=request.param['forks'])
+                   # forks=NUM_FORKS,)
 
     testsetup.api.login(*testsetup.credentials['default'].values())
     obj = api_job_templates_pg.post(payload)
@@ -140,9 +155,10 @@ def job_template(request, testsetup, api_job_templates_pg, inventory, project, c
     return obj
 
 @pytest.mark.skip_selenium
-@pytest.mark.nondestructive
+@pytest.mark.usefixtures('backup_license', 'install_license')
 class Test_Host_Fork(Base_Api_Test):
-    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license')
+
+    @pytest.mark.usefixtures('authtoken')
     def test_job_launch(self, api_jobs_pg, job_template):
         '''
         1) Launch the job_template
@@ -162,43 +178,23 @@ class Test_Host_Fork(Base_Api_Test):
         start_pg = job_pg.get_related('start')
         assert start_pg.json['can_start']
 
-        # FIXME - Figure out which passwords are needed
-        payload = dict()
-        for pass_field in start_pg.json.get('passwords_needed_to_start', []):
-            payload[pass_field] = 'thisWillFail'
+        # No passwords should be required to launch
+        assert not start_pg.json.get('passwords_needed_to_start', [])
 
         # Launch job
         start_pg.post(payload)
 
-    def test_jobs_launch_status(self, api_jobs_pg, job_template):
-        # Find the most recently launched job for the desired job_template
-        matches = api_jobs_pg.get(job_template=job_template.id, order_by='-id')
-        assert matches.results > 0, "No jobs matching job_template=%s found" % job_template.id
-        job_pg = matches.results[0]
-
-        # Ensure the launch completed successfully
-        timeout = 60 * 8 # 8 minutes
-        # Start monitoring from when the job was created, not now()
-        # start_time = time.time()
-        created = time.strptime(job_pg.created, '%Y-%m-%dT%H:%M:%S.%fZ')
-        start_time = time.mktime(created)
-        wait_timeout = start_time + timeout
-        status = job_pg.status.lower()
-        while status in ['new', 'pending', 'waiting', 'running']:
-            job_pg.get()
-            status = job_pg.status.lower()
-            assert wait_timeout > time.time(), "Timeout exceeded (%d seconds) waiting for job completion (status:%s)" \
-                "\n== result_stdout ==\n%s" \
-                % (int(time.time() - start_time), status, job_pg.result_stdout)
-            time.sleep(1)
+        # Wait for job to complete
+        job_pg = job_pg.wait_until_completed()
 
         # Make sure there is no traceback in result_stdout or result_traceback
-        assert 'successful' == job_pg.status.lower(), \
+        assert job_pg.is_successful, \
             "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s" % \
             (job_pg.status, job_pg.result_stdout, job_pg.result_traceback)
         assert 'Traceback' not in job_pg.result_traceback
         assert 'Traceback' not in job_pg.result_stdout
 
-        # Display output, even for success
-        print job_pg.result_stdout
-
+        created = datetime.datetime.strptime(job_pg.created, '%Y-%m-%dT%H:%M:%S.%fZ')
+        modified = datetime.datetime.strptime(job_pg.modified, '%Y-%m-%dT%H:%M:%S.%fZ')
+        delta = modified - created
+        print "playbook:%s, forks:%s, runtime:%s (%s seconds)" % (job_template.playbook, job_template.forks, delta, delta.total_seconds())
