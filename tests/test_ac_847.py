@@ -900,7 +900,7 @@ def organization(request, testsetup, api, api_organizations_pg):
     obj = api_organizations_pg.post(payload)
 
     # Add finalizer to delete the object
-    # request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.delete)
 #    def teardown():
 #        api.login(*testsetup.credentials['default'].values())
 #        obj.delete()
@@ -918,7 +918,7 @@ def inventory(request, testsetup, api, api_inventories_pg, organization):
     obj = api_inventories_pg.post(payload)
 
     # Add finalizer to delete the object
-    # request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.delete)
 #    def teardown():
 #        api.login(*testsetup.credentials['default'].values())
 #        obj.delete()
