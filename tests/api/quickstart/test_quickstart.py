@@ -70,9 +70,10 @@ def update_sshd_config(request, ansible_runner):
     # Increase MaxSessions and MaxStartups
     ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxSessions .*", line="MaxSessions 150")
     ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxStartups .*", line="MaxStartups 150")
-
     # Enable PasswordAuth (disabled on AWS instances)
     ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?PasswordAuthentication .*", line="PasswordAuthentication yes")
+    # Permit root login
+    ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?PermitRootLogin .*", line="PermitRootLogin yes")
 
     # Restart sshd
     try:
