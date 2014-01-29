@@ -159,7 +159,7 @@ def job_template(request, testsetup, api_job_templates_pg, inventory, project, c
 class Test_Host_Fork(Base_Api_Test):
 
     @pytest.mark.usefixtures('authtoken')
-    def test_job_launch(self, api_jobs_pg, job_template):
+    def test_awx_job_launch(self, api_jobs_pg, job_template):
         '''
         1) Launch the job_template
         2) Poll for status
@@ -184,8 +184,8 @@ class Test_Host_Fork(Base_Api_Test):
         # Launch job
         start_pg.post(payload)
 
-        # Wait for job to complete
-        job_pg = job_pg.wait_until_completed()
+        # Wait 20mins for job to complete
+        job_pg = job_pg.wait_until_completed(timeout=60*20)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, \
@@ -198,3 +198,12 @@ class Test_Host_Fork(Base_Api_Test):
         modified = datetime.datetime.strptime(job_pg.modified, '%Y-%m-%dT%H:%M:%S.%fZ')
         delta = modified - created
         print "playbook:%s, forks:%s, runtime:%s (%s seconds)" % (job_template.playbook, job_template.forks, delta, delta.total_seconds())
+
+    def test_ansible_job_launch(self, ansible_runner, inventory, job_template):
+
+        pytest.skip("Not implemented")
+
+        # Create static inventory file
+        # Run play
+        results = ansible_runner.shell('ansible-playbook -i /path/to/inventory, --forks FIXME /var/lib/awx/projects/*/FIXME')
+        # Record results
