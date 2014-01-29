@@ -16,11 +16,9 @@ class Job_Page(base.Base):
     def is_successful(self):
         return 'successful' == self.status.lower()
 
-    def wait_until_completed(self):
+    def wait_until_completed(self, interval=5, verbose=0, timeout=60*8):
         return common.utils.wait_until(self, 'status', ('successful', 'failed', 'error', 'canceled',),
-            interval=5,     # Continously poll the server for status
-            verbose=0,      # Enable verbosity
-            timeout=60*8,   # 8 minutes
+            interval=interval, verbose=verbose, timeout=timeout,
             start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
 
 class Jobs_Page(Job_Page, base.Base_List):
