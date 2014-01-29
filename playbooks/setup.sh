@@ -73,8 +73,8 @@ fi
 # If OFFICIAL=yes, use the public repository. Otherwise, use the nightly
 # repository.
 case "${PLAYBOOK}-${OFFICIAL}" in
-    awx*-false|awx*-no)
-        echo "aw_repo_url: http://50.116.42.103/awx_nightlies_RTYUIOPOIUYTYU" >> vars.yaml
+    awx*-false|awx*-no|ansible-tower*-false|ansible-tower*-no)
+        echo "aw_repo_url: http://50.116.42.103/ansible-tower_nightlies_RTYUIOPOIUYTYU" >> vars.yaml
         ;;
     galaxy*-false|galaxy*-no)
         echo "aw_repo_url: http://50.116.42.103/galaxy_nightlies_Y6ptm6ES82A5h79V" >> vars.yaml
