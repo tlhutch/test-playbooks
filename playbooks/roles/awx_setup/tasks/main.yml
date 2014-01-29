@@ -1,16 +1,16 @@
 ---
-# Download awx-setup and run the setup playbook
+# Download ansible-tower-setup and run the setup playbook
 
-- name: download awx-setup-latest.tar.gz
+- name: download ansible-tower-setup-latest.tar.gz
   get_url: url={{aw_repo_url}}/{{awx_setup_path}} dest=/tmp mode=0640
   register: tarball
 
-- name: determine awx-setup directory
+- name: determine ansible-tower-setup directory
   shell: echo {{tarball.dest}} | sed 's|\.tar\.gz$||'
   register: awx_setup_dir
 
-- name: untar awx-setup
-  shell: tar -xvf {{tarball.dest}} --transform "s|^awx-setup-[^/]*|awx-setup|"
+- name: untar ansible-tower-setup
+  shell: tar -xvf {{tarball.dest}} --transform "s|^ansible-tower-setup-[^/]*|ansible-tower-setup|"
     chdir=/tmp
 
 - name: check if awx.repo already exists
@@ -34,11 +34,11 @@
      line='Defaults:root !requiretty'
 
 - name: create awx awx_vars.yaml
-  template: src=awx_vars.yml.j2 dest=/tmp/awx-setup/awx_vars.yaml
+  template: src=awx_vars.yml.j2 dest=/tmp/ansible-tower-setup/awx_vars.yaml
   when: is_awx_installed|failed or awx_upgrade
 
 - name: setup.sh
   shell: bash -x setup.sh -e @awx_vars.yaml
-     chdir=/tmp/awx-setup
+     chdir=/tmp/ansible-tower-setup
      # creates=/etc/awx/awx.cert
   when: is_awx_installed|failed or awx_upgrade
