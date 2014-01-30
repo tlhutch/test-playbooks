@@ -72,6 +72,7 @@ def update_sshd_config(request, ansible_runner):
     ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxStartups .*", line="MaxStartups 150")
     # Enable PasswordAuth (disabled on AWS instances)
     ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?PasswordAuthentication .*", line="PasswordAuthentication yes")
+    ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?ChallengeResponseAuthentication .*", line="ChallengeResponseAuthentication yes")
     # Permit root login
     ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?PermitRootLogin .*", line="PermitRootLogin yes")
 
