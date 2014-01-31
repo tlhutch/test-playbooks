@@ -221,12 +221,12 @@ class Task_Page(Base):
     jobs)
     """
 
-    status = property(base.json_getter('status'), base.json_setter('status'))
-    failed = property(base.json_getter('failed'), base.json_setter('failed'))
-    result_traceback = property(base.json_getter('result_traceback'), base.json_setter('result_traceback'))
-    result_stdout = property(base.json_getter('result_stdout'), base.json_setter('result_stdout'))
-    created = property(base.json_getter('created'), base.json_setter('created'))
-    modified = property(base.json_getter('modified'), base.json_setter('failed'))
+    status = property(json_getter('status'), json_setter('status'))
+    failed = property(json_getter('failed'), json_setter('failed'))
+    result_traceback = property(json_getter('result_traceback'), json_setter('result_traceback'))
+    result_stdout = property(json_getter('result_stdout'), json_setter('result_stdout'))
+    created = property(json_getter('created'), json_setter('created'))
+    modified = property(json_getter('modified'), json_setter('failed'))
 
     @property
     def is_successful(self):
