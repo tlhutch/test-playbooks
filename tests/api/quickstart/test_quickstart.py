@@ -78,9 +78,9 @@ def update_sshd_config(request, ansible_runner):
 
     # Restart sshd
     # RPM-based distros call the service: sshd
-    result =ansible_runner.service(name="sshd", state="restarted")
+    result = ansible_runner.service(name="sshd", state="restarted")
     # Ubuntu calls the service: ssh
-    if result['rc'] != 0:
+    if 'failed' in result and result['failed']:
         ansible_runner.service(name="ssh", state="restarted")
 
 @pytest.fixture(scope='module')
