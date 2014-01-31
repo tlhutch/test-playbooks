@@ -413,25 +413,12 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Warning, the following sssumes the first update is the most recent
         inv_updates_pg = inv_src.get_related('inventory_updates').results[0]
 
-        # Ensure the update completed successfully
-        timeout = 60 * 8 # 8 minutes
-        # Start monitoring from when the inventory update was created, not now()
-        # start_time = time.time()
-        created = time.strptime(inv_updates_pg.created, '%Y-%m-%dT%H:%M:%S.%fZ')
-        start_time = time.mktime(created)
-        wait_timeout = start_time + timeout
-        status = inv_updates_pg.status.lower()
-        while status in ['new', 'pending', 'waiting', 'running']:
-            inv_updates_pg.get()
-            status = inv_updates_pg.status.lower()
-            assert wait_timeout > time.time(), "Timeout exceeded (%d seconds) waiting for inventory_source update to complete (status:%s)" \
-                "\n== result_stdout ==\n%s" \
-                % (int(time.time() - start_time), status, inv_updates_pg.result_stdout)
-            # time.sleep(1)
+        # Wait for task to complete
+        inv_updates_pg = inv_updates_pg.wait_until_completed()
 
         # Make sure there is no traceback in result_stdout or result_traceback
-        assert 'successful' == inv_updates_pg.status.lower(), \
-            "Inventory update unsuccessful (%s)\nUpdate result_stdout: %s\nUpdate result_traceback: %s" % \
+        assert inv_updates_pg.is_successful, \
+            "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s" % \
             (inv_updates_pg.status, inv_updates_pg.result_stdout, inv_updates_pg.result_traceback)
         assert 'Traceback' not in inv_updates_pg.result_traceback
         assert 'Traceback' not in inv_updates_pg.result_stdout
@@ -597,26 +584,13 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
             latest_update_pg = project_updates_pg.results.pop()
 
-            # Ensure the update successfully
-            timeout = 60 * 8 # 8 minutes
-            # Start monitoring from when the inventory update was created, not now()
-            # start_time = time.time()
-            created = time.strptime(latest_update_pg.created, '%Y-%m-%dT%H:%M:%S.%fZ')
-            start_time = time.mktime(created)
-            wait_timeout = start_time + timeout
-            status = latest_update_pg.status.lower()
-            while status in ['new', 'pending', 'waiting', 'running']:
-                latest_update_pg.get()
-                status = latest_update_pg.status.lower()
-                assert wait_timeout > time.time(), "Timeout exceeded (%d seconds) waiting for project update completion (status:%s)" \
-                    "\n== result_stdout ==\n%s" \
-                    % (int(time.time() - start_time), status, latest_update_pg.result_stdout)
-                # time.sleep(1)
+            # Wait 8mins for job to complete
+            latest_update_pg = latest_update_pg.wait_until_completed()
 
-            assert 'successful' == latest_update_pg.status.lower(), \
-                "Project update unsuccessful (%s)\nUpdate result_stdout: %s\nUpdate result_traceback: %s" % \
+            # Make sure there is no traceback in result_stdout or result_traceback
+            assert latest_update_pg.is_successful, \
+                "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s" % \
                 (latest_update_pg.status, latest_update_pg.result_stdout, latest_update_pg.result_traceback)
-            assert not latest_update_pg.failed
             assert 'Traceback' not in latest_update_pg.result_traceback
             assert 'Traceback' not in latest_update_pg.result_stdout
 
