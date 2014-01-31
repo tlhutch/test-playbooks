@@ -734,7 +734,7 @@ job_templates:
       credential: SSH (user:bender_eng_user, sudo_password:***)
       limit: all:!cloud
       verbosity: 2
-      forks: 50
+      forks: 20
 
     - name: helloworld/site.yml (limit:local)
       job_type: run
