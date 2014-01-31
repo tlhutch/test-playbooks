@@ -77,11 +77,10 @@ def update_sshd_config(request, ansible_runner):
     ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?PermitRootLogin .*", line="PermitRootLogin yes")
 
     # Restart sshd
-    try:
-        # RPM-based distros call the service: sshd
-        ansible_runner.service(name="sshd", state="restarted")
-    except Exception, e:
-        # Ubuntu calls the service: ssh
+    # RPM-based distros call the service: sshd
+    result =ansible_runner.service(name="sshd", state="restarted")
+    # Ubuntu calls the service: ssh
+    if result['rc'] != 0:
         ansible_runner.service(name="ssh", state="restarted")
 
 @pytest.fixture(scope='module')
