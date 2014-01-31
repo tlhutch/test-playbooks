@@ -1,6 +1,4 @@
-import time
 import base
-import common.utils
 from common.exceptions import *
 
 class Project_Page(base.Base):
@@ -29,23 +27,8 @@ class Project_Page(base.Base):
 class Projects_Page(Project_Page, base.Base_List):
     base_url = '/api/v1/projects/'
 
-class Project_Update_Page(base.Base_List):
+class Project_Update_Page(base.Task_Page):
     base_url = '/api/v1/project/{id}/update/'
-    status = property(base.json_getter('status'), base.json_setter('status'))
-    failed = property(base.json_getter('failed'), base.json_setter('failed'))
-    result_traceback = property(base.json_getter('result_traceback'), base.json_setter('result_traceback'))
-    result_stdout = property(base.json_getter('result_stdout'), base.json_setter('result_stdout'))
-    created = property(base.json_getter('created'), base.json_setter('created'))
-    modified = property(base.json_getter('modified'), base.json_setter('failed'))
-
-    @property
-    def is_successful(self):
-        return 'successful' == self.status.lower()
-
-    def wait_until_completed(self, interval=5, verbose=0, timeout=60*8):
-        return common.utils.wait_until(self, 'status', ('successful', 'failed', 'error', 'canceled',),
-            interval=interval, verbose=verbose, timeout=timeout,
-            start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
 
 class Project_Updates_Page(Project_Update_Page, base.Base_List):
     base_url = '/api/v1/projects/{id}/project_updates/'
