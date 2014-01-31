@@ -719,24 +719,11 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         start_pg = job_pg.get_related('start')
         assert not start_pg.json['can_start']
 
-        # Ensure the launch completed successfully
-        timeout = 60 * 8 # 8 minutes
-        # Start monitoring from when the job was created, not now()
-        # start_time = time.time()
-        created = time.strptime(job_pg.created, '%Y-%m-%dT%H:%M:%S.%fZ')
-        start_time = time.mktime(created)
-        wait_timeout = start_time + timeout
-        status = job_pg.status.lower()
-        while status in ['new', 'pending', 'waiting', 'running']:
-            job_pg.get()
-            status = job_pg.status.lower()
-            assert wait_timeout > time.time(), "Timeout exceeded (%d seconds) waiting for job completion (status:%s)" \
-                "\n== result_stdout ==\n%s" \
-                % (int(time.time() - start_time), status, job_pg.result_stdout)
-            # time.sleep(1)
+        # Wait 10mins for job to complete
+        job_pg = job_pg.wait_until_completed(timeout=60*10)
 
         # Make sure there is no traceback in result_stdout or result_traceback
-        assert 'successful' == job_pg.status.lower(), \
+        assert job_pg.is_successful, \
             "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s" % \
             (job_pg.status, job_pg.result_stdout, job_pg.result_traceback)
         assert 'Traceback' not in job_pg.result_traceback
