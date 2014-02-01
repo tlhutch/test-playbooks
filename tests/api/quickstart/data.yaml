@@ -734,7 +734,9 @@ job_templates:
       credential: SSH (user:bender_eng_user, sudo_password:***)
       limit: all:!cloud
       verbosity: 2
-      forks: 20
+      forks: 50
+      variables: |
+        ansible_connection: local
 
     - name: helloworld/site.yml (limit:local)
       job_type: run
