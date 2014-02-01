@@ -637,7 +637,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                        allow_callbacks=job_template.get('allow_callbacks', False),
                        verbosity=job_template.get('verbosity', 0),
                        forks=job_template.get('forks', 0),
-                       variables=job_template.get('variables','')
+                       extra_vars=job_template.get('extra_vars','')
                       )
 
         # Add credential identifiers

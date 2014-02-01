@@ -735,7 +735,7 @@ job_templates:
       limit: all:!cloud
       verbosity: 2
       forks: 50
-      variables: |
+      extra_vars: |
         ansible_connection: local
 
     - name: helloworld/site.yml (limit:local)
