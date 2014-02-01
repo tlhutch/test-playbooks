@@ -270,7 +270,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Create a new inventory
         payload = dict(name=inventory['name'],
                        description=inventory['description'],
-                       organization=org.id,)
+                       organization=org.id,
+                       variables=inventory.get('variables',''))
 
         try:
             api_inventories_pg.post(payload)
@@ -293,7 +294,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Create a new inventory
         payload = dict(name=group['name'],
                        description=group['description'],
-                       inventory=inventory_id,)
+                       inventory=inventory_id,
+                       variables=group.get('variables',''))
 
         # different behavior depending on if we're creating child or parent
         if 'parent' in group:
@@ -635,6 +637,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                        allow_callbacks=job_template.get('allow_callbacks', False),
                        verbosity=job_template.get('verbosity', 0),
                        forks=job_template.get('forks', 0),
+                       variables=job_template.get('variables','')
                       )
 
         # Add credential identifiers
