@@ -4,7 +4,6 @@ import re
 import httplib
 import pytest
 import time
-import datetime
 import common.tower.license
 from inflect import engine
 from unittestzero import Assert
@@ -708,8 +707,4 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         assert 'Traceback' not in job_pg.result_stdout
 
         # Display output, even for success
-        created = datetime.datetime.strptime(job_pg.created, '%Y-%m-%dT%H:%M:%S.%fZ')
-        modified = datetime.datetime.strptime(job_pg.modified, '%Y-%m-%dT%H:%M:%S.%fZ')
-        delta = modified - created
-        print "job_template:%s, runtime:%s (%s seconds)" % (job_template['name'], delta, delta.total_seconds())
         print job_pg.result_stdout
