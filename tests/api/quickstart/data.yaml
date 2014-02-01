@@ -728,7 +728,7 @@ job_templates:
     - name: language_features/roletest.yml (limit:all:!cloud)
       job_type: run
       allow_callbacks: false
-      playbook: trunk/language_features/roletest.yml
+      playbook: trunk/language_features/environment.yml
       project: ansible-examples.svn (manual)
       inventory: it_inventory
       credential: SSH (user:bender_eng_user, sudo_password:***)
