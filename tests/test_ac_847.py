@@ -870,28 +870,6 @@ inventory_dict = {
   ]
 }
 
-# The following fixture runs once for this entire module
-@pytest.fixture(scope='module')
-def backup_license(request, ansible_runner):
-    ansible_runner.shell('test -f /etc/awx/aws && mv /etc/awx/aws /etc/awx/.aws', creates='/etc/awx/.aws', removes='/etc/awx/aws')
-    ansible_runner.shell('test -f /etc/awx/license && mv /etc/awx/license /etc/awx/.license', creates='/etc/awx/.license', removes='/etc/awx/license')
-
-    def teardown():
-        ansible_runner.shell('test -f /etc/awx/.aws && mv /etc/awx/.aws /etc/awx/aws', creates='/etc/awx/aws', removes='/etc/awx/.aws')
-        ansible_runner.shell('test -f /etc/awx/.license && mv /etc/awx/.license /etc/awx/license', creates='/etc/awx/license', removes='/etc/awx/.license')
-    request.addfinalizer(teardown)
-
-# The following fixture runs once for each class that uses it
-@pytest.fixture(scope='class')
-def install_license(request, ansible_runner):
-
-    fname = common.tower.license.generate_license_file(instance_count=1000, days=365)
-    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
-
-    def teardown():
-        ansible_runner.file(path='/etc/awx/license', state='absent')
-    request.addfinalizer(teardown)
-
 @pytest.fixture(scope="class")
 def organization(request, testsetup, api, api_organizations_pg):
     payload = dict(name="org-%s" % randomness.generate_random_string(),
@@ -901,12 +879,6 @@ def organization(request, testsetup, api, api_organizations_pg):
 
     # Add finalizer to delete the object
     request.addfinalizer(obj.delete)
-#    def teardown():
-#        api.login(*testsetup.credentials['default'].values())
-#        obj.delete()
-#        api.logout()
-#    request.addfinalizer(teardown)
-
     return obj
 
 @pytest.fixture(scope="class")
@@ -919,18 +891,12 @@ def inventory(request, testsetup, api, api_inventories_pg, organization):
 
     # Add finalizer to delete the object
     request.addfinalizer(obj.delete)
-#    def teardown():
-#        api.login(*testsetup.credentials['default'].values())
-#        obj.delete()
-#        api.logout()
-#    request.addfinalizer(teardown)
-
     return obj
 
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 class Test_AC_847(Base_Api_Test):
-    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license')
+    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000')
     def test_import(self, ansible_runner, tmpdir, inventory):
         '''Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner
