@@ -1,20 +1,19 @@
 '''
  == Demo Tests ==
- 1. Ensure instance counts are correct
- 2. Add systems and verify counts adjust
- 3. Manually add a system to exceed demo instance max
- 4. Import inventory that would exceed instance_max
- 5. Disable existing hosts and verify instance counts
+ [X] Ensure instance counts are correct
+ [X] Add systems and verify counts adjust
+ [X] Manually add a system to exceed demo instance max
+ [ ] Import inventory that would exceed instance_max
+ [ ] Disable existing hosts and verify instance counts
 
  == Demo Tests ==
- 1. Verify a valid license has no warning or expired
- 2. Verify a valid license has expected system counts
- 3. Add systems and verify instance_counts
- 4. Exceed instance_max manually and via inventory sync
- 5. Disable existing hosts and verify instance counts
- 6. Test upgrading license ... does it increase instance_count?
- 7. Test date_warning=False, date_warning=True, and date_expired=True
-
+ [X] Verify a valid license has no warning or expired
+ [X] Verify a valid license has expected system counts
+ [X] Add systems and verify instance_counts
+ [X] Exceed instance_max manually and via inventory sync
+ [ ] Disable existing hosts and verify instance counts
+ [ ] Test upgrading license ... does it increase instance_count?
+ [ ] Test date_warning=False, date_warning=True, and date_expired=True
 '''
 
 import json
@@ -55,6 +54,24 @@ def install_license(request, ansible_runner, license_instance_count):
     # Using ansible, copy the license to the target system
     ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
 
+    def teardown():
+        ansible_runner.file(path='/etc/awx/license', state='absent')
+    request.addfinalizer(teardown)
+
+# The following fixture runs once for each class that uses it
+@pytest.fixture(scope='class')
+def install_license_warning(request, ansible_runner, license_instance_count):
+    fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=1)
+    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+    def teardown():
+        ansible_runner.file(path='/etc/awx/license', state='absent')
+    request.addfinalizer(teardown)
+
+# The following fixture runs once for each class that uses it
+@pytest.fixture(scope='class')
+def install_license_expired(request, ansible_runner, license_instance_count):
+    fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=-1)
+    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
     def teardown():
         ansible_runner.file(path='/etc/awx/license', state='absent')
     request.addfinalizer(teardown)
@@ -105,6 +122,7 @@ def group(request, authtoken, api_groups_pg, inventory):
     return obj
 
 class Base_License_Test(Base_Api_Test):
+    '''Base class for sharing test_instance_count method'''
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
 
@@ -145,7 +163,6 @@ class Base_License_Test(Base_Api_Test):
         assert conf.license_info.available_instances == license_instance_count
 
 @pytest.mark.skip_selenium
-@pytest.mark.nondestructive
 class Test_Demo_License(Base_License_Test):
     @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_demo_license')
     def test_metadata(self, api_config_pg):
@@ -164,7 +181,6 @@ class Test_Demo_License(Base_License_Test):
         super(Test_Demo_License, self).test_instance_counts(api_config_pg, 10, inventory, group)
 
 @pytest.mark.skip_selenium
-@pytest.mark.nondestructive
 class Test_AWS_License(Base_License_Test):
     # AWS licensing only works when tested on an ec2 instance
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
@@ -198,7 +214,6 @@ class Test_AWS_License(Base_License_Test):
         super(Test_AWS_License, self).test_instance_counts(api_config_pg, license_instance_count, inventory, group)
 
 @pytest.mark.skip_selenium
-@pytest.mark.nondestructive
 class Test_License(Base_License_Test):
     @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license')
     def test_metadata(self, api_config_pg):
@@ -227,3 +242,53 @@ class Test_License(Base_License_Test):
     @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license')
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         super(Test_License, self).test_instance_counts(api_config_pg, license_instance_count, inventory, group)
+
+@pytest.mark.skip_selenium
+class Test_License_Warning(Base_Api_Test):
+    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_warning')
+    def test_metadata(self, api_config_pg):
+
+        conf = api_config_pg.get()
+
+        # Assert NOT Demo mode
+        assert 'demo' not in conf.license_info
+        assert 'key_present' not in conf.license_info
+
+        # Assert a valid key
+        assert conf.license_info.valid_key
+        assert 'license_key' in conf.license_info
+        assert 'instance_count' in conf.license_info
+
+        # Assert dates look sane?
+        assert not conf.license_info.date_expired
+        assert conf.license_info.date_warning
+
+        # Assert not AWS information
+        assert 'is_aws' not in conf.license_info
+        assert 'ami-id' not in conf.license_info
+        assert 'instance-id' not in conf.license_info
+
+@pytest.mark.skip_selenium
+class Test_License_Expired(Base_Api_Test):
+    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_expired')
+    def test_metadata(self, api_config_pg):
+
+        conf = api_config_pg.get()
+
+        # Assert NOT Demo mode
+        assert 'demo' not in conf.license_info
+        assert 'key_present' not in conf.license_info
+
+        # Assert a valid key
+        assert conf.license_info.valid_key
+        assert 'license_key' in conf.license_info
+        assert 'instance_count' in conf.license_info
+
+        # Assert dates look sane?
+        assert conf.license_info.date_expired
+        assert conf.license_info.date_warning
+
+        # Assert not AWS information
+        assert 'is_aws' not in conf.license_info
+        assert 'ami-id' not in conf.license_info
+        assert 'instance-id' not in conf.license_info
