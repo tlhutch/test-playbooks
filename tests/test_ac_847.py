@@ -943,7 +943,8 @@ EOF
     def test_hosts_count(self, api_hosts_pg, inventory):
         '''Verify the import created the expected hosts'''
         # Count the number of unique hosts in the all groups
-        host_count = len({host:None for hosts in inventory_dict.values() for host in hosts })
+        # host_count = len({host:None for hosts in inventory_dict.values() for host in hosts })
+        host_count = len(dict((host, None) for hosts in inventory_dict.values() for host in hosts))
 
         # Verify the number of hosts matches what was imported
         obj = api_hosts_pg.get(inventory=inventory.id)
