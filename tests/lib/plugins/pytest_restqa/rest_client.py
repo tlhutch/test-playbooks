@@ -82,6 +82,7 @@ class Connection(object):
         self.authtoken = authtoken
         self.auth = None
         self.url = ""
+        self.requests_log = None
 
     # http://docs.python-requests.org/en/latest/api/?highlight=logging
     # these two lines enable debugging at httplib level (requests->urllib3->httplib)
@@ -95,11 +96,11 @@ class Connection(object):
             import httplib
             httplib.HTTPConnection.debuglevel = 1
 
-        requests_log = logging.getLogger("requests.packages.urllib3")
-        requests_log.setLevel(logging.DEBUG)
+        self.requests_log = logging.getLogger("requests.packages.urllib3")
+        self.requests_log.setLevel(logging.DEBUG)
 
         if hdlr:
-            requests_log.addHandler(hdlr)
+            self.requests_log.addHandler(hdlr)
 
     def login(self, username, password):
         '''store credentials for future requests'''
@@ -132,13 +133,19 @@ class Connection(object):
         if data is not None:
             payload = json.dumps(data)
 
+        # Define requests hook to display API elapsed time
+        def log_elapsed(r, *args, **kwargs):
+            if self.requests_log:
+                self.requests_log.debug("\"%s %s\" elapsed: %s" % (r.request.method, r.url, r.elapsed))
+
         try:
             response = request_handler(url,
                 verify=self.verify,
                 headers=headers,
                 params=params,
                 data=payload,
-                auth=self.auth)
+                auth=self.auth,
+                hooks=dict(response=log_elapsed))
         except Exception, e:
             err_str = "%s, url: %s" % (str(e), url,)
 
