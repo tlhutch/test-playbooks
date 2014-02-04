@@ -50,8 +50,8 @@ def pytest_generate_tests(metafunc):
         if test_set and id_list:
             metafunc.parametrize(fixture, test_set, ids=id_list)
 
-@pytest.fixture(scope='module')
-def install_license(request, ansible_runner, awx_config):
+@pytest.fixture(scope='class')
+def install_license(request, authtoken, ansible_runner, awx_config):
     '''If a suitable license is not already installed, install a new license'''
     if not (awx_config['license_info'].get('valid_key', False) and \
             awx_config['license_info'].get('compliant', False) and \
@@ -63,7 +63,7 @@ def install_license(request, ansible_runner, awx_config):
         fname = common.tower.license.generate_license_file(instance_count=1000, days=60)
         ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='class')
 def update_sshd_config(request, ansible_runner):
     '''Update /etc/ssh/sshd_config to increase MaxSessions'''
 
@@ -83,7 +83,7 @@ def update_sshd_config(request, ansible_runner):
     if 'failed' in result and result['failed']:
         ansible_runner.service(name="ssh", state="restarted")
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='class')
 def set_rootpw(request, ansible_runner, testsetup):
     '''Set the rootpw to something we use in credentials'''
     assert 'ssh' in testsetup.credentials, "No SSH credentials defined"
@@ -94,6 +94,7 @@ def set_rootpw(request, ansible_runner, testsetup):
 @pytest.mark.usefixtures("authtoken", "install_license", "update_sshd_config", "set_rootpw")
 @pytest.mark.incremental
 @pytest.mark.integration
+@pytest.mark.skip_selenium
 class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.destructive
