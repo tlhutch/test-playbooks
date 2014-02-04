@@ -89,7 +89,12 @@ class Base(Page):
         elif r.status_code == httplib.NO_CONTENT:
             raise NoContent_Exception(exc_str)
         elif r.status_code == httplib.FORBIDDEN:
-            raise Forbidden_Exception(exc_str)
+            try:
+                self.validate_json(json=data, request='license_exceeded')
+            except:
+                raise Forbidden_Exception(exc_str)
+            else:
+                raise LicenseExceeded_Exception(exc_str)
         elif r.status_code == httplib.BAD_REQUEST:
             # Attempt to validate the json response.  If it validates against a
             # 'duplicate' method, then we return a Duplicate_Exception.  If
@@ -193,7 +198,12 @@ class Base_List(Base):
         elif r.status_code == httplib.NO_CONTENT:
             raise NoContent_Exception(exc_str)
         elif r.status_code == httplib.FORBIDDEN:
-            raise Forbidden_Exception(exc_str)
+            try:
+                self.validate_json(json=data, request='license_exceeded')
+            except:
+                raise Forbidden_Exception(exc_str)
+            else:
+                raise LicenseExceeded_Exception(exc_str)
         elif r.status_code == httplib.BAD_REQUEST:
             # Attempt to validate the json response.  If it validates against a
             # 'duplicate' method, then we return a Duplicate_Exception.  If

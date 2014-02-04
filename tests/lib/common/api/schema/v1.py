@@ -521,6 +521,21 @@ class Awx_Schema(Awx_Schema_Base):
             },
         })
 
+    @property
+    def license_exceeded(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['detail', ],
+            'additionalProperties': False,
+            'properties': {
+                'detail': {
+                    'type': 'string',
+                    'pattern': '^license range of \d+ instances has been exceeded$'
+                },
+            },
+        })
+
 class Awx_Schema_v1(Awx_Schema):
     component = '/api/v1'
 
