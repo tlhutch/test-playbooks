@@ -15,6 +15,7 @@ class Group_Page(base.Base):
     base_url = '/api/v1/groups/{id}/'
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
+    inventory = property(base.json_getter('inventory'), base.json_setter('inventory'))
 
     def get_related(self, name):
         assert name in self.json['related']
