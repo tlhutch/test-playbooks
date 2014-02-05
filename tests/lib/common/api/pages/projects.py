@@ -5,6 +5,7 @@ class Project_Page(base.Base):
     base_url = '/api/v1/projects/{id}/'
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
+    local_path = property(base.json_getter('local_path'), base.json_setter('local_path'))
 
     def get_related(self, name):
         assert name in self.json['related']
