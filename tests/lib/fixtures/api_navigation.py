@@ -229,16 +229,15 @@ def authtoken(api, testsetup, api_authtoken_url):
     home page
     '''
 
-    # Did we already acquire a token
-    if hasattr(testsetup.api, 'cached_authtoken'):
-        testsetup.api.authtoken = testsetup.api.cached_authtoken
-    else:
-        payload = dict(username=testsetup.credentials['default']['username'],
-                       password=testsetup.credentials['default']['password'])
+    payload = dict(username=testsetup.credentials['default']['username'],
+                   password=testsetup.credentials['default']['password'])
 
-        r = api.post(api_authtoken_url, payload)
-        assert r.status_code == httplib.OK
-        testsetup.api.authtoken = r.json()
+    r = api.post(api_authtoken_url, payload)
+    assert r.status_code == httplib.OK
+    # FIXME - build and return a Authtoken_Page() object
+    json = r.json()
+    testsetup.api.login(token=json['token'])
+    return json
 
 @pytest.fixture(scope="session")
 def awx_config(api, api_home):

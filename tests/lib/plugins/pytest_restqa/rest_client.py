@@ -74,12 +74,20 @@ def objectify(self):
 
     return JSON_Wrapper(json=json)
 
+class Token_Auth(requests.auth.AuthBase):
+    '''Implement token based authentication for requests'''
+    def __init__(self, token):
+        self.token = token
+
+    def __call__(self, request):
+        request.headers['Authorization'] = 'Token %s' % self.token
+        return request
+
 class Connection(object):
-    def __init__(self, server, version=None, verify=False, authtoken=None):
+    def __init__(self, server, version=None, verify=False):
         self.server = server
         self.version = version
         self.verify = verify
-        self.authtoken = authtoken
         self.auth = None
         self.url = ""
         self.requests_log = None
@@ -102,14 +110,18 @@ class Connection(object):
         if hdlr:
             self.requests_log.addHandler(hdlr)
 
-    def login(self, username, password):
-        '''store credentials for future requests'''
-        self.auth = (username, password)
+    def login(self, username=None, password=None, token=None):
+        '''Store authentication credentials for future requests'''
+        if username and password:
+            self.auth = (username, password)
+        elif token:
+            self.auth = Token_Auth(token)
+        else:
+            self.auth = None
 
     def logout(self):
         '''Remove stored credentials for future requests'''
         self.auth = None
-        self.authtoken = None
 
     def _request(self, endpoint, data=None, method='GET', params=None):
         method = method.lower()
@@ -124,10 +136,6 @@ class Connection(object):
         # Build url, headers and params
         url = "%s%s" % (self.server, endpoint)
         headers['Content-type'] = 'application/json'
-
-        # Pass along authtoken if available
-        if self.authtoken is not None:
-            headers['Authorization'] = 'Token %s' % self.authtoken['token']
 
         # jsonify the POST payload (if available)
         if data is not None:
