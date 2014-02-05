@@ -2149,6 +2149,7 @@ class Awx_Schema_Dashboard(Awx_Schema):
                         'url': { 'type': 'string', 'format': 'uri'},
                         'total': { 'type': 'number', 'minimum': 0, },
                         'inventory_failed': { 'type': 'number', 'minimum': 0, },
+                        'job_failed': { 'type': 'number', 'minimum': 0, },
                         'total_with_inventory_source': { 'type': 'number', 'minimum': 0, },
                     }
                 },
@@ -2269,7 +2270,7 @@ class Awx_Schema_Activity_Stream(Awx_Schema):
                 'url': { 'type': 'string', 'format': 'uri'},
                 'related': {
                     'type': 'object',
-                    'required': [ 'actor', ],
+                    # 'required': [ 'actor', ],
                     'additionalProperties': True,
                     'properties': {
                         'actor': { 'type': 'string', 'format': 'uri'},
@@ -2277,7 +2278,7 @@ class Awx_Schema_Activity_Stream(Awx_Schema):
                 },
                 'summary_fields': {
                     'type': 'object',
-                    'required': [ 'actor', ],
+                    # 'required': [ 'actor', ],
                     'additionalProperties': True,
                     'properties': {
                         'actor': {
