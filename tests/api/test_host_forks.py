@@ -11,33 +11,12 @@ from tests.api import Base_Api_Test
 NUM_HOSTS = 400
 NUM_FORKS = 400
 
-# The following fixture runs once for this entire module
-@pytest.fixture(scope='module')
-def backup_license(request, ansible_runner):
-    ansible_runner.shell('test -f /etc/awx/aws && mv /etc/awx/aws /etc/awx/.aws', creates='/etc/awx/.aws', removes='/etc/awx/aws')
-    ansible_runner.shell('test -f /etc/awx/license && mv /etc/awx/license /etc/awx/.license', creates='/etc/awx/.license', removes='/etc/awx/license')
-
-    def teardown():
-        ansible_runner.shell('test -f /etc/awx/.aws && mv /etc/awx/.aws /etc/awx/aws', creates='/etc/awx/aws', removes='/etc/awx/.aws')
-        ansible_runner.shell('test -f /etc/awx/.license && mv /etc/awx/.license /etc/awx/license', creates='/etc/awx/license', removes='/etc/awx/.license')
-    request.addfinalizer(teardown)
-
-# The following fixture runs once for each class that uses it
-@pytest.fixture(scope='class')
-def install_license(request, ansible_runner):
-    fname = common.tower.license.generate_license_file(instance_count=NUM_HOSTS*10, days=7)
-    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
-
-    def teardown():
-        ansible_runner.file(path='/etc/awx/license', state='absent')
-    request.addfinalizer(teardown)
-
 @pytest.fixture(scope="class")
 def organization(request, testsetup, api_organizations_pg):
     payload = dict(name="org-%s" % common.utils.random_ascii())
     testsetup.api.login(*testsetup.credentials['default'].values())
     obj = api_organizations_pg.post(payload)
-    #request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.delete)
 
     return obj
 
@@ -51,7 +30,7 @@ def credential(request, testsetup, api_credentials_pg, api_users_pg):
     payload['user'] = admin.id
 
     obj = api_credentials_pg.post(payload)
-    #request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.delete)
 
     return obj
 
@@ -63,7 +42,7 @@ def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups
                    variables=json.dumps(dict(ansible_connection='local')))
     testsetup.api.login(*testsetup.credentials['default'].values())
     inventory = api_inventories_pg.post(payload)
-    #request.addfinalizer(inventory.delete)
+    request.addfinalizer(inventory.delete)
 
     # Batch create group+hosts using awx-manage
     grp_name = "group-%s" % common.utils.random_ascii()
@@ -110,7 +89,7 @@ def project(request, testsetup, api_projects_pg, organization):
 
     testsetup.api.login(*testsetup.credentials['default'].values())
     obj = api_projects_pg.post(payload)
-    #request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.delete)
 
     # Wait for project update to complete
     updates_pg = obj.get_related('project_updates')
@@ -123,17 +102,18 @@ def project(request, testsetup, api_projects_pg, organization):
 
     return obj
 
-@pytest.fixture(scope="class", params=[ \
-    {'playbook': 'debug.yml', 'forks': 200, }, \
-    {'playbook': 'debug.yml', 'forks': 400, }, \
-    {'playbook': 'debug.yml', 'forks': 600, }, \
-    {'playbook': 'debug.yml', 'forks': 800, }, \
-    {'playbook': 'debug.yml', 'forks': 1000, }, \
-    {'playbook': 'debug2.yml', 'forks': 200, }, \
-    {'playbook': 'debug2.yml', 'forks': 400, }, \
-    {'playbook': 'debug2.yml', 'forks': 600, }, \
-    {'playbook': 'debug2.yml', 'forks': 800, }, \
-    {'playbook': 'debug2.yml', 'forks': 1000, },])
+@pytest.fixture(scope="class", params=[
+    {'playbook': 'debug.yml', 'forks': 200, },
+    {'playbook': 'debug.yml', 'forks': 400, },
+    {'playbook': 'debug.yml', 'forks': 600, },
+    {'playbook': 'debug.yml', 'forks': 800, },
+    {'playbook': 'debug.yml', 'forks': 1000, },
+    {'playbook': 'debug2.yml', 'forks': 200, },
+    {'playbook': 'debug2.yml', 'forks': 400, },
+    {'playbook': 'debug2.yml', 'forks': 600, },
+    {'playbook': 'debug2.yml', 'forks': 800, },
+    {'playbook': 'debug2.yml', 'forks': 1000, },
+    ])
 def job_template(request, testsetup, api_job_templates_pg, inventory, project, credential):
     payload = dict(name="template-%s-%s" % (request.param, common.utils.random_ascii()),
                    job_type='run',
@@ -150,12 +130,11 @@ def job_template(request, testsetup, api_job_templates_pg, inventory, project, c
 
     testsetup.api.login(*testsetup.credentials['default'].values())
     obj = api_job_templates_pg.post(payload)
-    #request.addfinalizer(obj.delete)
-
+    request.addfinalizer(obj.delete)
     return obj
 
 @pytest.mark.skip_selenium
-@pytest.mark.usefixtures('backup_license', 'install_license')
+@pytest.mark.usefixtures('backup_license', 'install_license_1000')
 class Test_Host_Fork(Base_Api_Test):
 
     @pytest.mark.usefixtures('authtoken')
@@ -197,13 +176,61 @@ class Test_Host_Fork(Base_Api_Test):
         created = datetime.datetime.strptime(job_pg.created, '%Y-%m-%dT%H:%M:%S.%fZ')
         modified = datetime.datetime.strptime(job_pg.modified, '%Y-%m-%dT%H:%M:%S.%fZ')
         delta = modified - created
-        print "playbook:%s, forks:%s, runtime:%s (%s seconds)" % (job_template.playbook, job_template.forks, delta, delta.total_seconds())
 
-    def test_ansible_job_launch(self, ansible_runner, inventory, job_template):
+        # print "playbook:%s, forks:%s, runtime:%s (%s seconds)" % (job_template.playbook, job_template.forks, delta, delta.total_seconds())
 
-        pytest.skip("Not implemented")
+        # Now determine when the job_events complete by looking for an event 'playbook_on_stats'
+        job_events_pg = job_pg.get_related('job_events', event='playbook_on_stats')
+        attempts = 1
+        while job_events_pg.count != 1 and attempts < 40:
+            # print "job_events (event=playbook_on_stats) found: %s" % job_events_pg.count
+            time.sleep(5)
+            job_events_pg.get()
+            attempts += 1
+        assert job_events_pg.count == 1, "job_event 'playbook_on_stats' not found for job:%s" % job_pg.id
+        job_event_pg = job_events_pg.results.pop()
 
-        # Create static inventory file
-        # Run play
-        results = ansible_runner.shell('ansible-playbook -i /path/to/inventory, --forks FIXME /var/lib/awx/projects/*/FIXME')
-        # Record results
+        event_completed = datetime.datetime.strptime(job_event_pg.modified, '%Y-%m-%dT%H:%M:%S.%fZ')
+        event_delta = event_completed - modified
+
+        self.metrics['tower'].append(dict(playbook=job_template.playbook, forks=job_template.forks, \
+            runtime=delta.total_seconds(), event_time=event_delta.total_seconds()))
+
+    def test_ansible_job_launch(self, ansible_runner, inventory, project, job_template):
+
+        cmd = "REST_API_URL='http://{username}:{password}@localhost'".format(**self.credentials['default'])
+        cmd += " INVENTORY_HOSTVARS=1"
+        cmd += " INVENTORY_ID='%s'" % inventory.id
+        cmd += " ansible-playbook -i /usr/lib/python2.7/dist-packages/awx/plugins/inventory/awxrest.py" \
+               " --forks %s /var/lib/awx/projects/%s/%s" % \
+               (job_template.forks, project.local_path, job_template.playbook)
+        results = ansible_runner.shell(cmd)
+
+        # Convert HH:MM:SS.SSSSS into datetime object
+        (hours, minutes, seconds) = results['delta'].split(':')
+        delta = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=float(seconds))
+
+        # print "playbook:%s, forks:%s, runtime:%s (%s seconds)" % (job_template.playbook, job_template.forks, delta, delta.total_seconds())
+        self.metrics['ansible'].append(dict(playbook=job_template.playbook, forks=job_template.forks, runtime=delta.total_seconds()))
+
+    @classmethod
+    def setup_class(self):
+        super(Test_Host_Fork, self).setup_class()
+        self.metrics = dict(tower=[], ansible=[])
+
+    @classmethod
+    def teardown_class(self):
+
+        assert 'tower' in self.metrics
+        assert 'ansible' in self.metrics
+        assert len(self.metrics['tower']) == len(self.metrics['ansible'])
+
+        print
+        print
+        print "%-12s %12s %15s %15s %18s" % ('Playbook', 'Num_Forks', 'Tower', 'Event_Delay', 'Ansible')
+        print "%s=%s=%s=%s=%s" % ('='*12, '='*12, '='*15, '='*15, '='*18)
+        for (tower, ansible) in zip(self.metrics['tower'], self.metrics['ansible']):
+            assert tower['playbook'] == ansible['playbook']
+            assert tower['forks'] == ansible['forks']
+            print "%-12s %12s %15.2f %15.2f %18.2f" % \
+                (tower['playbook'], tower['forks'], tower['runtime'], tower['event_time'], ansible['runtime'])
