@@ -2332,7 +2332,7 @@ class Awx_Schema_Job_Events(Awx_Schema):
     def __init__(self):
         super(Awx_Schema_Job_Events, self).__init__()
 
-        self.definitions['activity_stream'] = {
+        self.definitions['job_event'] = {
             'type': 'object',
             'required': [ 'id', 'url', 'created', 'modified', 'job', 'event', 'event_display', 'event_level', 'failed', 'changed', 'host', 'parent', 'play', 'task', 'event_data', 'related', 'summary_fields', ],
             'additionalProperties': False,
