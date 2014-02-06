@@ -226,11 +226,12 @@ class Test_Host_Fork(Base_Api_Test):
         assert len(self.metrics['tower']) == len(self.metrics['ansible'])
 
         print
+        print "Playbook Performance"
         print
-        print "%-12s %12s %15s %15s %18s" % ('Playbook', 'Num_Forks', 'Tower', 'Event_Delay', 'Ansible')
-        print "%s=%s=%s=%s=%s" % ('='*12, '='*12, '='*15, '='*15, '='*18)
+        print "%-12s %12s %15s %15s %15s" % ('Playbook', 'Num_Forks', 'Ansible', 'Tower', 'Event_Delay')
+        print "%s=%s=%s=%s=%s" % ('='*12, '='*12, '='*15, '='*15, '='*15)
         for (tower, ansible) in zip(self.metrics['tower'], self.metrics['ansible']):
             assert tower['playbook'] == ansible['playbook']
             assert tower['forks'] == ansible['forks']
-            print "%-12s %12s %15.2f %15.2f %18.2f" % \
-                (tower['playbook'], tower['forks'], tower['runtime'], tower['event_time'], ansible['runtime'])
+            print "%-12s %12s %15.2f %15.2f %15.2f" % \
+                (tower['playbook'], tower['forks'], ansible['runtime'], tower['runtime'], tower['event_time'],)
