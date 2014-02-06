@@ -51,12 +51,6 @@ class Awx_Schema(Awx_Schema_Base):
             'type': 'string',
             'enum': [ 'read', 'write', 'admin', 'run', 'check' ],
         }
-        self.definitions['enum_job_event_data'] = {
-            'type': 'array',
-            'items': { 'type': 'string' },
-            'minItems': 1,
-            'uniqueItems': True,
-        }
 
         # Shared errors
         self.definitions['error_required_field'] = {
@@ -2349,7 +2343,7 @@ class Awx_Schema_Job_Events(Awx_Schema):
                 'event_level': { 'type': 'number' },
                 'failed': { 'type': 'boolean', },
                 'changed': { 'type': 'boolean', },
-                'host': { 'type': 'number', 'minimum': 1 },
+                'host': { '$ref': '#/definitions/id_or_null', },
                 'parent': { 'type': 'number', 'minimum': 1 },
                 'play': { 'type': 'string', },
                 'task': { 'type': 'string', },
@@ -2358,12 +2352,12 @@ class Awx_Schema_Job_Events(Awx_Schema):
                     'required': [ 'skipped', 'ok', 'changed', 'dark', 'processed', 'failures' ],
                     'additionalProperties': False,
                     'properties': {
-                        'skipped':  { '$ref': '#/definitions/enum_job_event_data', },
-                        'ok':  { '$ref': '#/definitions/enum_job_event_data', },
-                        'changed':  { '$ref': '#/definitions/enum_job_event_data', },
-                        'dark':  { '$ref': '#/definitions/enum_job_event_data', },
-                        'processed':  { '$ref': '#/definitions/enum_job_event_data', },
-                        'failures':  { '$ref': '#/definitions/enum_job_event_data', },
+                        'skipped':  { 'type': 'object', },
+                        'ok':  { 'type': 'object', },
+                        'changed':  { 'type': 'object', },
+                        'dark':  { 'type': 'object', },
+                        'processed':  { 'type': 'object', },
+                        'failures':  { 'type': 'object', },
                     },
                 },
                 'related': {
