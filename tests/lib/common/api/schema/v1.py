@@ -51,6 +51,12 @@ class Awx_Schema(Awx_Schema_Base):
             'type': 'string',
             'enum': [ 'read', 'write', 'admin', 'run', 'check' ],
         }
+        self.definitions['enum_job_event_data'] = {
+            'type': 'array',
+            'items': { 'type': 'string' },
+            'minItems': 1,
+            'uniqueItems': True,
+        }
 
         # Shared errors
         self.definitions['error_required_field'] = {
@@ -2318,5 +2324,100 @@ class Awx_Schema_Activity_Stream(Awx_Schema):
                     },
                 },
             },
+        })
+
+class Awx_Schema_Job_Events(Awx_Schema):
+    component = '/jobs/\d+/job_events'
+
+    def __init__(self):
+        super(Awx_Schema_Job_Events, self).__init__()
+
+        self.definitions['activity_stream'] = {
+            'type': 'object',
+            'required': [ 'id', 'url', 'created', 'modified', 'job', 'event', 'event_display', 'event_level', 'failed', 'changed', 'host', 'parent', 'play', 'task', 'event_data', 'related', 'summary_fields', ],
+            'additionalProperties': False,
+            'properties': {
+                'id': { 'type': 'number', 'minimum': 1, },
+                'url': { 'type': 'string', 'format': 'uri'},
+                'created':  { 'type': 'string', 'format': 'date-time', },
+                'modified': { 'type': 'string', 'format': 'date-time', },
+                'job': { 'type': 'number', 'minimum': 1, },
+                'event': { 'type': 'string' },
+                # 'event': { '$ref': '#/definitions/enum_job_event', },
+                'event_display': { 'type': 'string' },
+                # 'event_display': { '$ref': '#/definitions/enum_job_event_display', },
+                'event_level': { 'type': 'number' },
+                'failed': { 'type': 'boolean', },
+                'changed': { 'type': 'boolean', },
+                'host': { 'type': 'number', 'minimum': 1 },
+                'parent': { 'type': 'number', 'minimum': 1 },
+                'play': { 'type': 'string', },
+                'task': { 'type': 'string', },
+                'event_data': {
+                    'type': 'object',
+                    'required': [ 'skipped', 'ok', 'changed', 'dark', 'processed', 'failures' ],
+                    'additionalProperties': False,
+                    'properties': {
+                        'skipped':  { '$ref': '#/definitions/enum_job_event_data', },
+                        'ok':  { '$ref': '#/definitions/enum_job_event_data', },
+                        'changed':  { '$ref': '#/definitions/enum_job_event_data', },
+                        'dark':  { '$ref': '#/definitions/enum_job_event_data', },
+                        'processed':  { '$ref': '#/definitions/enum_job_event_data', },
+                        'failures':  { '$ref': '#/definitions/enum_job_event_data', },
+                    },
+                },
+                'related': {
+                    'type': 'object',
+                    'required': [ 'job', 'parent', ],
+                    'additionalProperties': False,
+                    'properties': {
+                        'job':   { 'type': 'string', 'format': 'uri' },
+                        'parent': { 'type': 'string', 'format': 'uri' },
+                        'children': { 'type': 'string', 'format': 'uri' },
+                        'host': { 'type': 'string', 'format': 'uri' },
+                        'hosts': { 'type': 'string', 'format': 'uri' },
+                    },
+                },
+                'summary_fields':  {
+                    'type': 'object',
+                    'required': [ 'job', ],
+                    'additionalProperties': True,
+                    'properties': {
+                        "job": { '$ref': '#/definitions/summary_fields_last_job', },
+                    }
+                }
+            }
+        }
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            'type': 'object',
+            'required': ['count', 'next', 'previous', 'results', ],
+            'additionalProperties': False,
+            'properties': {
+                'count': { 'type': 'number', 'minimum': 0, },
+                'next': { 'type': ['string','null'], },
+                'previous': { 'type': ['string','null'], },
+                'results': {
+                    'type': 'array',
+                    'minItems': 0,
+                    'uniqueItems': True,
+                    'items': {
+                        '$ref': '#/definitions/job_event',
+                    },
+                },
+            },
+        })
+
+class Awx_Schema_Job_Event(Awx_Schema_Job_Events):
+    component = '/jobs/\d+/job_events/\d+'
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/job_event',
         })
 
