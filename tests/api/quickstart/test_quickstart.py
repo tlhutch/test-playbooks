@@ -423,8 +423,6 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         assert inv_updates_pg.is_successful, \
             "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s" % \
             (inv_updates_pg.status, inv_updates_pg.result_stdout, inv_updates_pg.result_traceback)
-        assert 'Traceback' not in inv_updates_pg.result_traceback
-        assert 'Traceback' not in inv_updates_pg.result_stdout
 
         # Display output, even for success
         print inv_updates_pg.result_stdout
@@ -594,8 +592,6 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             assert latest_update_pg.is_successful, \
                 "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s" % \
                 (latest_update_pg.status, latest_update_pg.result_stdout, latest_update_pg.result_traceback)
-            assert 'Traceback' not in latest_update_pg.result_traceback
-            assert 'Traceback' not in latest_update_pg.result_stdout
 
             # Display output, even for success
             print latest_update_pg.result_stdout
@@ -704,8 +700,6 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         assert job_pg.is_successful, \
             "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s" % \
             (job_pg.status, job_pg.result_stdout, job_pg.result_traceback)
-        assert 'Traceback' not in job_pg.result_traceback
-        assert 'Traceback' not in job_pg.result_stdout
 
         # Display output, even for success
         print job_pg.result_stdout

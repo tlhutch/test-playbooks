@@ -242,7 +242,12 @@ class Task_Page(Base):
 
     @property
     def is_successful(self):
-        return 'successful' == self.status.lower()
+        return 'successful' == self.status.lower() and not self.has_traceback
+
+    @property
+    def has_traceback(self):
+        return 'Traceback' in job_pg.result_traceback or \
+               'Traceback' in job_pg.result_stdout
 
     def wait_until_completed(self, interval=5, verbose=0, timeout=60*8):
         return common.utils.wait_until(self, 'status', ('successful', 'failed', 'error', 'canceled',),
