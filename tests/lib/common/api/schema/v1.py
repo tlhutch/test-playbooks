@@ -1526,7 +1526,7 @@ class Awx_Schema_Job_Templates(Awx_Schema):
                     'additionalProperties': False,
                     'properties': {
                         'created_by': { 'type': 'string', 'format': 'uri' },
-                        'project': { 'type': 'string', 'format': 'uri' },
+                        'project': { 'type': ['array', 'string'], 'format': 'uri' },
                         'jobs': { 'type': 'string', 'format': 'uri' },
                         'inventory': { 'type': 'string', 'format': 'uri' },
                         'credential': { 'type': 'string', 'format': 'uri' },
