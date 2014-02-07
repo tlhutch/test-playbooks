@@ -246,8 +246,8 @@ class Task_Page(Base):
 
     @property
     def has_traceback(self):
-        return 'Traceback' in job_pg.result_traceback or \
-               'Traceback' in job_pg.result_stdout
+        return 'Traceback' in self.result_traceback or \
+               'Traceback' in self.result_stdout
 
     def wait_until_completed(self, interval=5, verbose=0, timeout=60*8):
         return common.utils.wait_until(self, 'status', ('successful', 'failed', 'error', 'canceled',),
