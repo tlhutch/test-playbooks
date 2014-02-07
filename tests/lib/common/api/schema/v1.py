@@ -1610,7 +1610,7 @@ class Awx_Schema_Jobs(Awx_Schema):
 
         self.definitions['job'] = {
             'type': 'object',
-            'required': [ 'id', 'url', 'created', 'modified', 'job_type', 'inventory', 'project', 'playbook', 'credential', 'cloud_credential', 'forks', 'verbosity', 'limit', 'extra_vars', 'job_tags', 'job_template', 'launch_type', 'status', 'failed', 'result_stdout', 'result_traceback', 'passwords_needed_to_start', 'job_args', 'job_cwd', 'job_env', 'related', 'summary_fields', ],
+            'required': [ 'id', 'url', 'created', 'modified', 'job_type', 'inventory', 'project', 'playbook', 'credential', 'cloud_credential', 'forks', 'verbosity', 'limit', 'extra_vars', 'job_tags', 'job_template', 'launch_type', 'status', 'failed', 'result_traceback', 'passwords_needed_to_start', 'job_args', 'job_cwd', 'job_env', 'related', 'summary_fields', ],
             'additionalProperties': False,
             'properties': {
                 'id': { '$ref': '#/definitions/id', },
