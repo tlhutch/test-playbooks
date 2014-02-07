@@ -9,7 +9,6 @@ import common.tower.license
 from tests.api import Base_Api_Test
 
 NUM_HOSTS = 400
-NUM_FORKS = 400
 
 @pytest.fixture(scope="class")
 def organization(request, testsetup, api_organizations_pg):
@@ -113,6 +112,11 @@ def project(request, testsetup, api_projects_pg, organization):
     {'playbook': 'debug2.yml', 'forks': 600, },
     {'playbook': 'debug2.yml', 'forks': 800, },
     {'playbook': 'debug2.yml', 'forks': 1000, },
+    {'playbook': 'debug-50.yml', 'forks': 25, },
+    {'playbook': 'debug-50.yml', 'forks': 50, },
+    {'playbook': 'debug-50.yml', 'forks': 100, },
+    {'playbook': 'debug-50.yml', 'forks': 200, },
+    {'playbook': 'debug-50.yml', 'forks': 400, },
     ])
 def job_template(request, testsetup, api_job_templates_pg, inventory, project, credential):
     payload = dict(name="template-%s-%s" % (request.param, common.utils.random_ascii()),
@@ -126,7 +130,6 @@ def job_template(request, testsetup, api_job_templates_pg, inventory, project, c
                    allow_callbacks=False,
                    verbosity=0,
                    forks=request.param['forks'])
-                   # forks=NUM_FORKS,)
 
     testsetup.api.login(*testsetup.credentials['default'].values())
     obj = api_job_templates_pg.post(payload)
@@ -163,15 +166,13 @@ class Test_Host_Fork(Base_Api_Test):
         # Launch job
         start_pg.post(payload)
 
-        # Wait 20mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60*20)
+        # Wait 30mins for job to complete
+        job_pg = job_pg.wait_until_completed(timeout=60*30)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, \
             "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s" % \
             (job_pg.status, job_pg.result_stdout, job_pg.result_traceback)
-        assert 'Traceback' not in job_pg.result_traceback
-        assert 'Traceback' not in job_pg.result_stdout
 
         created = datetime.datetime.strptime(job_pg.created, '%Y-%m-%dT%H:%M:%S.%fZ')
         modified = datetime.datetime.strptime(job_pg.modified, '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -226,7 +227,7 @@ class Test_Host_Fork(Base_Api_Test):
         assert len(self.metrics['tower']) == len(self.metrics['ansible'])
 
         print
-        print "Playbook Performance"
+        print "Playbook Performance (%s hosts)" % NUM_HOSTS
         print
         print "%-12s %12s %15s %15s %15s" % ('Playbook', 'Num_Forks', 'Ansible', 'Tower', 'Event_Delay')
         print "%s=%s=%s=%s=%s" % ('='*12, '='*12, '='*15, '='*15, '='*15)
