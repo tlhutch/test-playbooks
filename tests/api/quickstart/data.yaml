@@ -746,6 +746,8 @@ job_templates:
       credential: SSH (user:bender_eng_user, password:***)
       limit: local
       verbosity: 1
+      extra_vars: |
+        ansible_connection: local
 
     - name: helloworld/aws_credentials_test.yml (limit:127.0.0.1)
       job_type: run
