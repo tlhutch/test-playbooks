@@ -51,7 +51,7 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize(fixture, test_set, ids=id_list)
 
 @pytest.fixture(scope='class')
-def install_license(request, authtoken, ansible_runner, awx_config):
+def install_integration_license(request, authtoken, ansible_runner, awx_config):
     '''If a suitable license is not already installed, install a new license'''
     if not (awx_config['license_info'].get('valid_key', False) and \
             awx_config['license_info'].get('compliant', False) and \
@@ -59,6 +59,7 @@ def install_license(request, authtoken, ansible_runner, awx_config):
 
         # Backup any aws license
         ansible_runner.shell('test -f /etc/awx/aws && mv /etc/awx/aws /etc/awx/.aws', creates='/etc/awx/.aws', removes='/etc/awx/aws')
+
         # Install/replace license
         fname = common.tower.license.generate_license_file(instance_count=1000, days=60)
         ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
@@ -91,7 +92,7 @@ def set_rootpw(request, ansible_runner, testsetup):
     assert 'password' in testsetup.credentials['ssh'], "No SSH password defined in credentials"
     ansible_runner.shell("echo '{username}:{password}' | chpasswd".format(**testsetup.credentials['ssh']))
 
-@pytest.mark.usefixtures("authtoken", "install_license", "update_sshd_config", "set_rootpw")
+@pytest.mark.usefixtures("authtoken", "install_integration_license", "update_sshd_config", "set_rootpw")
 @pytest.mark.incremental
 @pytest.mark.integration
 @pytest.mark.skip_selenium
