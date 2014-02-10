@@ -25,7 +25,6 @@
 
 - name: delete existing ec2 instance(s)
   ec2:
-    state: absent
     aws_access_key: '{{ aws_access_key }}'
     aws_secret_key: '{{ aws_secret_key }}'
     region: '{{ ec2_region }}'
@@ -43,7 +42,6 @@
 
 - name: create/locate ec2 instance(s)
   ec2:
-    state: present
     aws_access_key: '{{ aws_access_key }}'
     aws_secret_key: '{{ aws_secret_key }}'
     region: '{{ ec2_region }}'
