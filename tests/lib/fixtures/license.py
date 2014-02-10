@@ -14,13 +14,24 @@ def backup_license(request, ansible_runner):
         ansible_runner.shell('test -f /etc/awx/.license && mv /etc/awx/.license /etc/awx/license', creates='/etc/awx/license', removes='/etc/awx/.license')
     request.addfinalizer(teardown)
 
-# The following fixture runs once for each class that uses it
 @pytest.fixture(scope='module')
 def install_license_1000(request, ansible_runner):
     '''Install a license where instance_count=1000
     '''
 
     fname = common.tower.license.generate_license_file(instance_count=1000, days=365)
+    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+
+    def teardown():
+        ansible_runner.file(path='/etc/awx/license', state='absent')
+    request.addfinalizer(teardown)
+
+@pytest.fixture(scope='module')
+def install_license_10000(request, ansible_runner):
+    '''Install a license where instance_count=1000
+    '''
+
+    fname = common.tower.license.generate_license_file(instance_count=10000, days=365)
     ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
 
     def teardown():
