@@ -356,7 +356,7 @@ class Awx_Schema(Awx_Schema_Base):
                 'key_present':        { 'type': 'boolean', },
                 'current_instances':  { 'type': 'number', 'minimum': 0 },
                 'free_instances':     { 'type': 'number', },
-                'available_instances':{ 'type': 'number', 'minimum': 0 , 'maximum': 10},
+                'available_instances':{ 'type': 'number', 'minimum': 0 , 'maximum': 5},
             },
         }
 
