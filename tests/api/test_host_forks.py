@@ -8,7 +8,7 @@ import common.utils
 import common.tower.license
 from tests.api import Base_Api_Test
 
-NUM_HOSTS = 400
+NUM_HOSTS = 100
 
 @pytest.fixture(scope="class")
 def organization(request, testsetup, api_organizations_pg):
