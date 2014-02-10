@@ -26,7 +26,7 @@ class AnsibleInventory(ConfigParser.SafeConfigParser):
 user = 'jlaska'
 password = 'd6733c68ed00072ee47822c16af14662'
 base_url = 'http://50.116.42.103/'
-job_path = 'job/AWX_Nightly_Install/CLOUD_PROVIDER={cloud_provider},PLATFORM={platform},label={label}/lastBuild/'
+job_path = 'job/Test_Tower_Install/CLOUD_PROVIDER={cloud_provider},PLATFORM={platform},label={label}/lastBuild/'
 artifact_path = 'artifact/playbooks/inventory.log/*view*/'
 
 cfg = AnsibleInventory()
