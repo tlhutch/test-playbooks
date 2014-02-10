@@ -1,0 +1,15 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+type: object
+additionalProperties: false
+properties:
+    name: { $ref: '#/definitions/error_required_field' }
+    username: { $ref: '#/definitions/error_required_field' }
+    password: { $ref: '#/definitions/error_required_field' }
+    organization: { $ref: '#/definitions/error_required_field' }
+    inventory: { $ref: '#/definitions/error_required_field' }
+    job_type: { $ref: '#/definitions/error_required_field' }
+    playbook: { $ref: '#/definitions/error_required_field' }
+    non_field_errors: { $ref: '#/definitions/error_login_failure' }
+definitions:
+  !include '../definitions/*.yml'

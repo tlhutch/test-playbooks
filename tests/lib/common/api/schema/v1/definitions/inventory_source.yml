@@ -1,0 +1,48 @@
+---
+inventory_source:
+  additionalProperties: false
+  properties:
+    created: {format: date-time, type: string}
+    credential: {$ref: '#/definitions/id_or_null'}
+    group: {$ref: '#/definitions/id'}
+    id: {$ref: '#/definitions/id'}
+    inventory: {$ref: '#/definitions/id'}
+    last_update_failed: {type: boolean}
+    last_updated:
+      format: date-time
+      type: [string, 'null']
+    modified: {format: date-time, type: string}
+    overwrite: {type: boolean}
+    overwrite_vars: {type: boolean}
+    related:
+      additionalProperties: true
+      properties:
+        created_by: {format: uri, type: string}
+        current_update: {format: uri, type: string}
+        group: {format: uri, type: string}
+        inventory: {format: uri, type: string}
+        inventory_updates: {format: uri, type: string}
+        last_update: {format: uri, type: string}
+        update: {format: uri, type: string}
+        activity_stream: {format: uri, type: string}
+      required: [inventory_updates, update, inventory, group]
+      type: object
+    source: {type: string}
+    source_path: {type: string}
+    source_regions: {type: string}
+    source_vars: {type: string}
+    status: {$ref: '#/definitions/enum_inventory_status'}
+    summary_fields:
+      additionalProperties: true
+      properties:
+        group: {$ref: '#/definitions/summary_fields_group'}
+        inventory: {$ref: '#/definitions/summary_fields_inventory'}
+      required: [inventory, group]
+      type: object
+    update_interval: {minimum: 0, type: number}
+    update_on_launch: {type: boolean}
+    url: {format: uri, type: string}
+  required: [id, url, created, modified, inventory, group, overwrite, overwrite_vars,
+    update_on_launch, last_updated, last_update_failed, status, update_interval,
+    source, source_path, source_vars, credential, source_regions, related, summary_fields]
+  type: object

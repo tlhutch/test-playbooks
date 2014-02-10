@@ -67,9 +67,9 @@ def load_file(filename=None):
 
     if path.check():
         fp = path.open()
-        data = yaml.load(fp)
+        # FIXME - support load_all()
+        data = yaml.load(fp, Loader=Loader)
         return RandomizeValues.from_dict(data)
     else:
         msg = 'Usable to load data file at %s' % path
         raise Exception(msg)
-

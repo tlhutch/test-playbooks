@@ -1,0 +1,33 @@
+---
+permission:
+    type: object
+    required: [ id, url, created, modified, name, description, user, team, project, inventory, permission_type, related, summary_fields, ]
+    additionalProperties: false
+    properties:
+        id: { type: number, minimum: 1, }
+        url: { type: string, format: uri, }
+        created:  { type: string, format: date-time, }
+        modified: { type: string, format: date-time, }
+        name: { type: string }
+        description: { type: string }
+        user: { $ref: '#/definitions/id_or_null' }
+        team: { $ref: '#/definitions/id_or_null' }
+        project: { $ref: '#/definitions/id_or_null' }
+        inventory: { $ref: '#/definitions/id_or_null' }
+        permission_type: { $ref: '#/definitions/enum_permission_type' }
+        related:
+            type: object
+            additionalProperties: false
+            properties:
+                user: { type: string, format: uri, }
+                team: { type: string, format: uri, }
+                inventory: { type: string, format: uri, }
+                project: { type: string, format: uri, }
+        summary_fields:
+            type: object
+            additionalProperties: false
+            properties:
+                user: { type: object, }
+                team: { type: object, }
+                inventory: { type: object, }
+                project: { type: object, }

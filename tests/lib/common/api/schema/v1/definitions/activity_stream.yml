@@ -1,0 +1,39 @@
+activity_stream:
+  additionalProperties: false
+  properties:
+    id: {$ref: '#/definitions/id'}
+    url: {format: uri, type: string}
+    related:
+      additionalProperties: true
+      properties:
+        actor: {format: uri, type: string}
+      required: [actor]
+      type: object
+    summary_fields:
+      additionalProperties: true
+      properties:
+        actor: {$ref: '#/definitions/summary_fields_user'}
+      required: [actor]
+      type: object
+    timestamp: {format: date-time, type: string}
+    operation: {$ref: '#/definitions/enum_activity_stream_operation'}
+    changes:
+      type: object
+      additionalProperties: true
+      properties:
+        modified_by: {type: [string, 'null']}
+        description: {type: string}
+        created: {format: date-time, type: string}
+        modified: {format: date-time, type: string}
+        created_by: {type: string}
+        # The following should be boolean -- filed as AC-911
+        # active: {type: boolean}
+        active: {type: [string, boolean], pattern: '^([Tt]rue|[Ff]alse)$' }
+        # The following should be a numeric id -- filed as AC-911
+        # id: {$ref: '#/definitions/id'}
+        id: {minLength: 1, pattern: '^[0-9]+$', type: string}
+        name: {type: string}
+    object1: {type: string}
+    object2: {type: string}
+  required: [id, url, related, summary_fields, timestamp, operation, changes, object1, object2]
+  type: object

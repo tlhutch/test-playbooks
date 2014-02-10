@@ -1,0 +1,13 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+type: object
+required: [__all__,]
+additionalProperties: false
+properties:
+    __all__:
+        type: array
+        minItems: 0
+        uniqueItems: true
+        items:
+            type: string
+            pattern: '^Host with this Name and Inventory already exists.$'

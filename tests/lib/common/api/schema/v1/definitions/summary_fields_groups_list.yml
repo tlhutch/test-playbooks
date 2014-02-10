@@ -1,0 +1,6 @@
+---
+summary_fields_groups_list:
+    items: {$ref: '#/definitions/summary_fields_groups'}
+    minItems: 0
+    type: array
+    uniqueItems: true

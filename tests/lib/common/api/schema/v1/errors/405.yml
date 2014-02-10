@@ -1,0 +1,9 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+type: object
+required: [detail, ]
+additionalProperties: False
+properties:
+    detail:
+        type: string
+        pattern: "^Method [A-Z]+ not allowed.$"

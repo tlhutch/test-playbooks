@@ -1,0 +1,48 @@
+host:
+  additionalProperties: false
+  properties:
+    created: {format: date-time, type: string}
+    description: {type: string}
+    enabled: {type: boolean}
+    has_active_failures: {type: boolean}
+    has_inventory_sources: {type: boolean}
+    id: {minimum: 1, type: number}
+    instance_id: {type: string}
+    inventory: {minimum: 1, type: number}
+    last_job:
+      type: [number, 'null']
+    last_job_host_summary:
+      type: [number, 'null']
+    modified: {format: date-time, type: string}
+    name: {type: string}
+    related:
+      additionalProperties: true
+      properties:
+        all_groups: {format: uri, type: string}
+        created_by: {format: uri, type: string}
+        groups: {format: uri, type: string}
+        inventory: {format: uri, type: string}
+        job_events: {format: uri, type: string}
+        job_host_summaries: {format: uri, type: string}
+        last_job: {format: uri, type: string}
+        last_job_host_summary: {format: uri, type: string}
+        variable_data: {format: uri, type: string}
+      required: [job_host_summaries, variable_data, job_events, groups, all_groups,
+        inventory]
+      type: object
+    summary_fields:
+      additionalProperties: true
+      properties:
+        all_groups: {$ref: '#/definitions/summary_fields_groups_list'}
+        groups: {$ref: '#/definitions/summary_fields_groups_list'}
+        inventory: {$ref: '#/definitions/summary_fields_inventory'}
+        last_job: {$ref: '#/definitions/summary_fields_last_job'}
+        last_job_host_summary: {$ref: '#/definitions/summary_fields_last_job_host_summary'}
+      required: [inventory, groups, all_groups]
+      type: object
+    url: {format: uri, type: string}
+    variables: {type: string}
+  required: [id, url, created, modified, name, description, inventory, variables,
+    enabled, has_active_failures, has_inventory_sources, last_job, last_job_host_summary,
+    related, summary_fields]
+  type: object

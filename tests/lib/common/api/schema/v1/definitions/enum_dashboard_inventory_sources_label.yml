@@ -1,0 +1,4 @@
+---
+enum_dashboard_inventory_sources_label:
+    enum: [Amazon EC2, Rackspace]
+    type: string

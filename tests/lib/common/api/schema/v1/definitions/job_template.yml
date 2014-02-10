@@ -1,0 +1,46 @@
+job_template:
+  additionalProperties: false
+  properties:
+    cloud_credential: {$ref: '#/definitions/id_or_null'}
+    created: {format: date-time, type: string}
+    credential: {$ref: '#/definitions/id'}
+    description: {type: string}
+    extra_vars: {type: string}
+    forks: {minimum: 0, type: number}
+    host_config_key: {type: string}
+    id: {$ref: '#/definitions/id'}
+    inventory: {$ref: '#/definitions/id'}
+    job_tags: {type: string}
+    job_type:
+      enum: [run, check]
+    limit: {type: string}
+    modified: {format: date-time, type: string}
+    name: {type: string}
+    playbook: {pattern: .*\.(yaml|yml), type: string}
+    project: {$ref: '#/definitions/id'}
+    related:
+      additionalProperties: false
+      properties:
+        activity_stream: {format: uri, type: string}
+        cloud_credential: {format: uri, type: string}
+        created_by: {format: uri, type: string}
+        credential: {format: uri, type: string}
+        inventory: {format: uri, type: string}
+        jobs: {format: uri, type: string}
+        project: {format: uri, type: string}
+      required: [created_by, project, jobs, inventory, credential, activity_stream]
+      type: object
+    summary_fields:
+      additionalProperties: false
+      properties:
+        credential: {$ref: '#/definitions/summary_fields_credential'}
+        inventory: {$ref: '#/definitions/summary_fields_inventory'}
+        project: {$ref: '#/definitions/summary_fields_project'}
+      required: [inventory, project, credential]
+      type: object
+    url: {format: uri, type: string}
+    verbosity: {minimum: 0, type: number}
+  required: [id, name, url, description, created, modified, job_type, inventory,
+    project, playbook, credential, cloud_credential, forks, verbosity, limit, extra_vars,
+    job_tags, host_config_key, related, summary_fields]
+  type: object

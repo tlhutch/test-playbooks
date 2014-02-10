@@ -2,6 +2,7 @@ import sys
 import httplib
 import pytest
 import common.api
+import logging
 from common.api.pages import *
 from unittestzero import Assert
 
@@ -34,13 +35,20 @@ def api_home(request, api):
     For example, if --api-version=v1, returns string '/api/v1/'
     '''
     api_version = request.config.getvalue('api_version')
+    available_versions = navigate(api, '/api', 'available_versions')
 
     if api_version in [None, 'current_version']:
-        return navigate(api, '/api', 'current_version')
+        current_version = navigate(api, '/api', 'current_version')
+        # Update the stored api.version
+        for version, link in available_versions.items():
+            if current_version == link:
+                api.version = version
+                request.config.option.api_version = version
+                break
+        return current_version
     else:
-        versions = navigate(api, '/api', 'available_versions')
-        assert api_version in versions
-        return versions.get(api_version)
+        assert api_version in available_versions
+        return available_versions.get(api_version)
 
 #
 # /api/v1/authtoken

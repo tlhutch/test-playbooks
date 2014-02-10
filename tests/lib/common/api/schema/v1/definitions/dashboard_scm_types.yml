@@ -1,0 +1,11 @@
+---
+dashboard_scm_types:
+    additionalProperties: false
+    properties:
+      failed: {minimum: 0, type: number}
+      failures_url: {format: uri, type: string}
+      label: {$ref: '#/definitions/enum_dashboard_scm_types_label'}
+      total: {minimum: 0, type: number}
+      url: {format: uri, type: string}
+    required: [url, total, failures_url, failed, label]
+    type: object

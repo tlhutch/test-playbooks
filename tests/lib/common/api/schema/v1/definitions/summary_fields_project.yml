@@ -1,0 +1,11 @@
+---
+summary_fields_project:
+    type: object
+    required: [name, description]
+    additionalProperties: false
+    properties:
+      description: {type: string}
+      name: {type: string}
+      status:
+        $ref: '#/definitions/enum_project_status'
+

@@ -1,0 +1,115 @@
+---
+dashboard:
+  type: object
+  required: [inventories, inventory_sources, groups, hosts, projects, scm_types,
+    jobs, users, organizations, teams, credentials, job_templates]
+  additionalProperties: false
+
+  properties:
+    credentials: # {$ref: '#/definitions/dashboard_common_core'}
+      additionalProperties: false
+      properties:
+        total: {minimum: 0, type: number}
+        url: {format: uri, type: string}
+      required: [url, total, ]
+      type: object
+
+    organizations: # {$ref: '#/definitions/dashboard_common_core'}
+      additionalProperties: false
+      properties:
+        total: {minimum: 0, type: number}
+        url: {format: uri, type: string}
+      required: [url, total, ]
+      type: object
+
+    teams: # {$ref: '#/definitions/dashboard_common_core'}
+      additionalProperties: false
+      properties:
+        total: {minimum: 0, type: number}
+        url: {format: uri, type: string}
+      required: [url, total, ]
+      type: object
+
+    users: # {$ref: '#/definitions/dashboard_common_core'}
+      additionalProperties: false
+      properties:
+        total: {minimum: 0, type: number}
+        url: {format: uri, type: string}
+      required: [url, total, ]
+      type: object
+
+    job_templates: # {$ref: '#/definitions/dashboard_common_core'}
+      additionalProperties: false
+      properties:
+        total: {minimum: 0, type: number}
+        url: {format: uri, type: string}
+      required: [url, total, ]
+      type: object
+
+    groups:
+      additionalProperties: false
+      properties:
+        failures_url: {format: uri, type: string}
+        inventory_failed: {minimum: 0, type: number}
+        job_failed: {minimum: 0, type: number}
+        total: {minimum: 0, type: number}
+        url: {format: uri, type: string}
+      required: [url, total, failures_url, inventory_failed, job_failed]
+      type: object
+
+    hosts: # {$ref: '#/definitions/dashboard_common_base'}
+      type: object
+      required: [url, total, failed, failures_url]
+      additionalProperties: false
+      properties:
+        total: {minimum: 0, type: number}
+        url: {format: uri, type: string}
+        failed: {minimum: 0, type: number}
+        failures_url: {format: uri, type: string}
+
+    projects: # {$ref: '#/definitions/dashboard_common_base'}
+      type: object
+      required: [url, total, failed, failures_url]
+      additionalProperties: false
+      properties:
+        total: {minimum: 0, type: number}
+        url: {format: uri, type: string}
+        failed: {minimum: 0, type: number}
+        failures_url: {format: uri, type: string}
+
+    inventories:
+      additionalProperties: false
+      properties:
+        inventory_failed: {minimum: 0, type: number}
+        total: {minimum: 0, type: number}
+        total_with_inventory_source: {minimum: 0, type: number}
+        url: {format: uri, type: string}
+      required: [url, inventory_failed, total, total_with_inventory_source]
+      type: object
+
+    inventory_sources:
+      additionalProperties: false
+      properties:
+        ec2: {$ref: '#/definitions/dashboard_inventory_sources'}
+        rax: {$ref: '#/definitions/dashboard_inventory_sources'}
+      required: [ec2, rax]
+      type: object
+
+    jobs:
+      additionalProperties: false
+      properties:
+        failed: {minimum: 0, type: number}
+        failure_url: {format: uri, type: string}
+        total: {minimum: 0, type: number}
+        url: {format: uri, type: string}
+      required: [url, total, failure_url, failed]
+      type: object
+
+    scm_types:
+      additionalProperties: false
+      properties:
+        git: {$ref: '#/definitions/dashboard_scm_types', type: object}
+        hg: {$ref: '#/definitions/dashboard_scm_types', type: object}
+        svn: {$ref: '#/definitions/dashboard_scm_types', type: object}
+      required: [svn, git, hg]
+      type: object

@@ -1,0 +1,9 @@
+---
+summary_fields_user:
+    additionalProperties: false
+    properties:
+      username: {type: string}
+      first_name: {type: string}
+      last_name: {type: string}
+    required: [username, first_name, last_name]
+    type: object

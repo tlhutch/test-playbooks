@@ -1,0 +1,33 @@
+---
+inventory_update:
+  additionalProperties: false
+  properties:
+    created: {format: date-time, type: string}
+    failed: {type: boolean}
+    id: {$ref: '#/definitions/id'}
+    inventory_source: {$ref: '#/definitions/id'}
+    job_args: {type: string}
+    job_cwd: {type: string}
+    job_env: {$ref: '#/definitions/job_env'}
+    license_error: {type: boolean}
+    modified: {format: date-time, type: string}
+    related:
+      additionalProperties: false
+      properties:
+        cancel: {format: uri, type: string}
+        inventory_source: {format: uri, type: string}
+      required: [cancel, inventory_source]
+      type: object
+    result_stdout: {type: string}
+    result_traceback: {type: string}
+    status: {$ref: '#/definitions/enum_inventory_update_status'}
+    summary_fields:
+      additionalProperties: false
+      properties:
+        inventory_source: {$ref: '#/definitions/summary_fields_inventory_source'}
+      required: [inventory_source]
+      type: object
+    url: {format: uri, type: string}
+  required: [id, url, created, modified, inventory_source, status, failed, result_stdout,
+    result_traceback, job_args, job_cwd, job_env, related, summary_fields, license_error]
+  type: object

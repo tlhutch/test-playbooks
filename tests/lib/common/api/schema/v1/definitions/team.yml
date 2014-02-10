@@ -1,0 +1,38 @@
+---
+team:
+  type: object
+  additionalProperties: false
+  required: [created, id, url, related, summary_fields, name, description, organization]
+  properties:
+    created: {format: date-time, type: string}
+    description: {type: string}
+    id: {minimum: 1, type: number}
+    modified: {format: date-time, type: string}
+    name: {type: string}
+    organization: {minimum: 1, type: number}
+    related:
+      additionalProperties: false
+      properties:
+        activity_stream: { $ref: '#/definitions/uri' }
+        created_by: { $ref: '#/definitions/uri' }
+        credentials: { $ref: '#/definitions/uri' }
+        organization: { $ref: '#/definitions/uri' }
+        permissions: { $ref: '#/definitions/uri' }
+        projects: { $ref: '#/definitions/uri' }
+        users: { $ref: '#/definitions/uri' }
+      required: [created_by, organization, permissions, users, projects, credentials,
+        activity_stream]
+      type: object
+    summary_fields:
+      additionalProperties: false
+      properties:
+        organization:
+          additionalProperties: false
+          properties:
+            description: {type: string}
+            name: {type: string}
+          required: [name, description]
+          type: object
+      required: [organization]
+      type: object
+    url: { $ref: '#/definitions/uri' }

@@ -1,0 +1,6 @@
+---
+dashboard_common_base_fields:
+    total: {minimum: 0, type: number}
+    url: {format: uri, type: string}
+    failed: {minimum: 0, type: number}
+    failures_url: {format: uri, type: string}

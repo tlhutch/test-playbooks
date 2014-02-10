@@ -1,0 +1,7 @@
+---
+summary_fields_last_job_host_summary:
+    additionalProperties: false
+    properties:
+      failed: {type: boolean}
+    required: [failed]
+    type: object

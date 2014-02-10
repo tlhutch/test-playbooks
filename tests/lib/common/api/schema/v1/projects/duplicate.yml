@@ -1,0 +1,19 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+type: object
+additionalProperties: false
+properties:
+    local_path:
+        type: array
+        minItems: 0
+        uniqueItems: true
+        items:
+            type: string
+            pattern: '^Invalid path choice$'
+    name:
+        type: array
+        minItems: 0
+        uniqueItems: true
+        items:
+            type: string
+            pattern: '^Project with this Name already exists.$'

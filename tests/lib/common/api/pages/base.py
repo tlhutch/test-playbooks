@@ -48,9 +48,11 @@ class Base(Page):
         Perform JSON validation on JSON response
         '''
         if json is None:
-            validate(self.json, self.base_url, request.lower())
+            validate(self.json, self.base_url, request.lower(), version=self.testsetup.request.config.getvalue('api_version'))
+            # validate(self.json, self.base_url, request.lower(), version=self.testsetup.api.version)
         else:
-            validate(json, self.base_url, request.lower())
+            validate(json, self.base_url, request.lower(), version=self.testsetup.request.config.getvalue('api_version'))
+            # validate(json, self.base_url, request.lower(), version=self.testsetup.api.version)
 
     def handle_request(self, r):
         try:

@@ -1,0 +1,4 @@
+---
+dashboard_common_core_fields:
+    total: {minimum: 0, type: number}
+    url: {format: uri, type: string}

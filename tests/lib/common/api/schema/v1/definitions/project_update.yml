@@ -1,0 +1,31 @@
+---
+project_update:
+  additionalProperties: false
+  properties:
+    created: {format: date-time, type: string}
+    failed: {type: boolean}
+    id: {$ref: '#/definitions/id'}
+    project: {$ref: '#/definitions/id'}
+    job_args: {type: string}
+    job_cwd: {type: string}
+    job_env: {$ref: '#/definitions/job_env'}
+    modified: {format: date-time, type: string}
+    related:
+      additionalProperties: false
+      properties:
+        cancel: {format: uri, type: string}
+        project: {format: uri, type: string}
+      required: [cancel, project]
+      type: object
+    result_stdout: {type: string}
+    result_traceback: {type: string}
+    status: {$ref: '#/definitions/enum_project_update_status'}
+    summary_fields:
+      additionalProperties: false
+      properties:
+        project: {$ref: '#/definitions/summary_fields_project'}
+      required: [project]
+      type: object
+    url: {format: uri, type: string}
+  required: [id, url, created, modified, project, status, failed, result_stdout, result_traceback, job_args, job_cwd, job_env, related, summary_fields]
+  type: object

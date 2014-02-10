@@ -1,0 +1,5 @@
+---
+version_string:
+    type: string
+    pattern: '^(\d+\.)?(\d+)?\.?(\d+)?-?(\d)$'
+

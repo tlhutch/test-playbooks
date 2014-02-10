@@ -1,0 +1,25 @@
+---
+$schema: 'http://json-schema.org/draft-04/schema#'
+id: '/api/v1/config/'
+type: object
+additionalAttributes: false
+required: [version, license_info, project_local_paths, project_base_dir, time_zone, ansible_version]
+properties:
+    version:
+        $ref: '#/definitions/version_string'
+    license_info:
+        type: object
+        additionalAttributes: false
+        properties:
+            demo: {type: boolean}
+            key_present: {type: boolean}
+            current_instances: {type: number}
+            free_instances: {type: number}
+            available_instances: {type: number}
+    project_local_paths: {type: array}
+    project_base_dir: { type: string, format: uri }
+    time_zone: { type: string }
+    ansible_version:
+        $ref: '#/definitions/version_string'
+definitions:
+  !include 'definitions/*.yml'

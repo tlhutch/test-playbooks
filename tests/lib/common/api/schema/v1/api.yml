@@ -1,0 +1,10 @@
+---
+$schema: 'http://json-schema.org/draft-04/schema#'
+id: '/api/'
+type: object
+additionalAttributes: false
+required: [available_versions, description, current_version]
+properties:
+  available_versions: {type: object}
+  description: {type: string}
+  current_version: {type: string}

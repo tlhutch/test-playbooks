@@ -1,0 +1,3 @@
+---
+enum_launch_status:
+    enum: ['', new, pending, waiting, running, successful, failed, error, canceled]

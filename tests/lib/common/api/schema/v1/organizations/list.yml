@@ -1,0 +1,20 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/organizations/'
+type: object
+additionalProperties: false
+required: [count, next, previous, results]
+properties:
+  count: {minimum: 0, type: number}
+  next:
+    type: [string, 'null']
+  previous:
+    type: [string, 'null']
+  results:
+    type: array
+    minItems: 0
+    uniqueItems: true
+    items:
+        $ref: '#/definitions/organization'
+definitions:
+  !include '../definitions/*.yml'

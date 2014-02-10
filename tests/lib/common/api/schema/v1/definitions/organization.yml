@@ -1,0 +1,25 @@
+---
+organization:
+    type: object
+    required: [id, url, name, description, created, modified, summary_fields, related]
+    additionalProperties: false
+    properties:
+      created: {format: date-time, type: string}
+      description: {type: string}
+      id: {minimum: 1, type: number}
+      modified: {format: date-time, type: string}
+      name: {type: string}
+      related:
+        additionalProperties: false
+        properties:
+          activity_stream: {format: uri, type: string}
+          admins: {format: uri, type: string}
+          created_by: {format: uri, type: string}
+          inventories: {format: uri, type: string}
+          projects: {format: uri, type: string}
+          teams: {format: uri, type: string}
+          users: {format: uri, type: string}
+        required: [created_by, admins, inventories, users, projects, teams, activity_stream]
+        type: object
+      summary_fields: {type: object}
+      url: {format: uri, type: string}

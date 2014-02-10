@@ -1,0 +1,53 @@
+---
+inventory:
+  additionalProperties: false
+  properties:
+    created: {format: date-time, type: string}
+    description: {type: string}
+    groups_with_active_failures: {minimum: 0, type: number}
+    has_active_failures: {type: boolean}
+    has_inventory_sources: {type: boolean}
+    hosts_with_active_failures: {minimum: 0, type: number}
+    id: {minimum: 1, type: number}
+    inventory_sources_with_failures: {minimum: 0, type: number}
+    modified: {format: date-time, type: string}
+    name: {type: string}
+    organization: {minimum: 1, type: number}
+    related:
+      additionalProperties: false
+      properties:
+        activity_stream: {format: uri, type: string}
+        created_by: {format: uri, type: string}
+        groups: {format: uri, type: string}
+        hosts: {format: uri, type: string}
+        inventory_sources: {format: uri, type: string}
+        organization: {format: uri, type: string}
+        root_groups: {format: uri, type: string}
+        script: {format: uri, type: string}
+        tree: {format: uri, type: string}
+        variable_data: {format: uri, type: string}
+      required: [created_by, variable_data, root_groups, script, tree, hosts, groups,
+        organization, inventory_sources, activity_stream]
+      type: object
+    summary_fields:
+      additionalProperties: false
+      properties:
+        organization:
+          additionalProperties: false
+          properties:
+            description: {type: string}
+            name: {type: string}
+          required: [name, description]
+          type: object
+      required: [organization]
+      type: object
+    total_groups: {minimum: 0, type: number}
+    total_hosts: {minimum: 0, type: number}
+    total_inventory_sources: {minimum: 0, type: number}
+    url: {format: uri, type: string}
+    variables: {type: string}
+  required: [id, url, related, summary_fields, created, modified, name, description,
+    organization, variables, has_active_failures, hosts_with_active_failures, has_inventory_sources,
+    total_inventory_sources, total_hosts, inventory_sources_with_failures, groups_with_active_failures,
+    total_groups]
+  type: object

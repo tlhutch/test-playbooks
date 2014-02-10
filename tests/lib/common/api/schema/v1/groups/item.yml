@@ -1,0 +1,6 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/groups/\d+/'
+$ref: '#/definitions/group'
+definitions:
+  !include '../definitions/*.yml'

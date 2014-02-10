@@ -1,0 +1,60 @@
+job:
+  additionalProperties: false
+  properties:
+    cloud_credential: {$ref: '#/definitions/id_or_null'}
+    created: {format: date-time, type: string}
+    credential: {$ref: '#/definitions/id'}
+    extra_vars: {type: string}
+    failed: {type: boolean}
+    forks: {minimum: 0, type: number}
+    id: {$ref: '#/definitions/id'}
+    inventory: {$ref: '#/definitions/id'}
+    job_args: {type: string}
+    job_cwd: {type: string}
+    job_env: {$ref: '#/definitions/job_env'}
+    job_tags: {type: string}
+    job_template: {$ref: '#/definitions/id'}
+    job_type:
+      enum: [run, check]
+    launch_type: {$ref: '#/definitions/enum_launch_type'}
+    limit: {type: string}
+    modified: {format: date-time, type: string}
+    passwords_needed_to_start: {$ref: '#/definitions/passwords_needed_to_start'}
+    playbook: {pattern: .*\.(yaml|yml), type: string}
+    project: {$ref: '#/definitions/id'}
+    related:
+      additionalProperties: false
+      properties:
+        activity_stream: {format: uri, type: string}
+        cancel: {format: uri, type: string}
+        cloud_credential: {format: uri, type: string}
+        created_by: {format: uri, type: string}
+        credential: {format: uri, type: string}
+        inventory: {format: uri, type: string}
+        job_events: {format: uri, type: string}
+        job_host_summaries: {format: uri, type: string}
+        job_template: {format: uri, type: string}
+        project: {format: uri, type: string}
+        start: {format: uri, type: string}
+      required: [project, job_host_summaries, credential, job_events, inventory,
+        job_template, start, cancel, activity_stream]
+      type: object
+    result_stdout: {type: string}
+    result_traceback: {type: string}
+    status: {$ref: '#/definitions/enum_launch_status'}
+    summary_fields:
+      additionalProperties: false
+      properties:
+        credential: {$ref: '#/definitions/summary_fields_credential'}
+        inventory: {$ref: '#/definitions/summary_fields_inventory'}
+        job_template: {$ref: '#/definitions/summary_fields_job_template'}
+        project: {$ref: '#/definitions/summary_fields_project'}
+      required: [inventory, project, credential]
+      type: object
+    url: {format: uri, type: string}
+    verbosity: {minimum: 0, type: number}
+  required: [id, url, created, modified, job_type, inventory, project, playbook,
+    credential, cloud_credential, forks, verbosity, limit, extra_vars, job_tags,
+    job_template, launch_type, status, failed, result_traceback,
+    passwords_needed_to_start, job_args, job_cwd, job_env, related, summary_fields]
+  type: object

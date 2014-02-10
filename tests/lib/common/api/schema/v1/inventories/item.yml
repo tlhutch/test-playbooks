@@ -1,0 +1,6 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/inventories/\d+/'
+$ref: '#/definitions/inventory'
+definitions:
+  !include '../definitions/*.yml'

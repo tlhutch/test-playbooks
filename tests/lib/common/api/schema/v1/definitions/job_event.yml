@@ -1,0 +1,49 @@
+---
+job_event:
+    type: object
+    required: [ id, url, created, modified, job, event, event_display, event_level, failed, changed, host, parent, play, task, event_data, related, summary_fields, ]
+    additionalProperties: False
+    properties:
+        id: { type: number, minimum: 1, }
+        url: { type: string, format: uri}
+        created:  { type: string, format: date-time, }
+        modified: { type: string, format: date-time, }
+        job: { type: number, minimum: 1, }
+        event: { type: string }
+        # event: { $ref: '#/definitions/enum_job_event' }
+        event_display: { type: string }
+        # event_display: { $ref: '#/definitions/enum_job_event_display' }
+        event_level: { type: number }
+        failed: { type: boolean, }
+        changed: { type: boolean, }
+        host: { $ref: '#/definitions/id_or_null' }
+        parent: { type: number, minimum: 1 }
+        play: { type: string, }
+        task: { type: string, }
+        event_data:
+            type: object
+            required: [ skipped, ok, changed, dark, processed, failures ]
+            additionalProperties: False
+            properties:
+                skipped:  { type: object, }
+                ok:  { type: object, }
+                changed:  { type: object, }
+                dark:  { type: object, }
+                processed:  { type: object, }
+                failures:  { type: object, }
+        related:
+            type: object
+            required: [ job, parent, ]
+            additionalProperties: False
+            properties:
+                job:   { type: string, format: uri }
+                parent: { type: string, format: uri }
+                children: { type: string, format: uri }
+                host: { type: string, format: uri }
+                hosts: { type: string, format: uri }
+        summary_fields:
+            type: object
+            required: [ job, ]
+            additionalProperties: True
+            properties:
+                "job": { $ref: '#/definitions/summary_fields_last_job' }

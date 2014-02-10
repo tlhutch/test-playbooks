@@ -1,0 +1,4 @@
+---
+enum_activity_stream_operation:
+    enum: [create, update, delete, associate, disassociate]
+    type: string

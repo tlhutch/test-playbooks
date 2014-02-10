@@ -1,0 +1,6 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/this/should/match/nothing/'
+$ref: '#/definitions/request_options'
+definitions:
+  !include 'definitions/request_options.yml'

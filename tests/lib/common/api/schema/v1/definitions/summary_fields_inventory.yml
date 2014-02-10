@@ -1,0 +1,16 @@
+---
+summary_fields_inventory:
+    additionalProperties: false
+    properties:
+      description: {type: string}
+      groups_with_active_failures: {minimum: 0, type: number}
+      has_active_failures: {type: boolean}
+      has_inventory_sources: {type: boolean}
+      hosts_with_active_failures: {minimum: 0, type: number}
+      inventory_sources_with_failures: {minimum: 0, type: number}
+      name: {type: string}
+      total_groups: {minimum: 0, type: number}
+      total_hosts: {minimum: 0, type: number}
+      total_inventory_sources: {minimum: 0, type: number}
+    required: [name, description, has_active_failures, hosts_with_active_failures]
+    type: object
