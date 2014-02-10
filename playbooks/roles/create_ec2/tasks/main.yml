@@ -33,6 +33,7 @@
         Name: '{{ec2_name_prefix}}-{{item.name}}'
     group: '{{ ec2_security_group }}'
     key_name: '{{ ec2_key_name }}'
+    image: '{{ item.id }}'
     exact_count: 0
     count_tag:
         Name: '{{ec2_name_prefix}}-{{item.name}}'
