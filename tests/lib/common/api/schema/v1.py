@@ -843,6 +843,15 @@ class Awx_Schema_Inventories(Awx_Schema):
             },
         }
 
+class Awx_Schema_Inventories_N(Awx_Schema_Inventories):
+    component = '/inventories/\d+'
+
+    @property
+    def get(self):
+        return self.format_schema({
+            '$schema': 'http://json-schema.org/draft-04/schema#',
+            '$ref': '#/definitions/inventory',
+        })
 
 class Awx_Schema_Groups(Awx_Schema):
     component = '/groups'
