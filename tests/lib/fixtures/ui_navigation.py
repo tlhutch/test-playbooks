@@ -19,39 +19,39 @@ def _submenu(home_pg, main_menu, submenu):
 @pytest.fixture
 def ui_organizations_pg(home_page_logged_in):
     '''Navigate to the Organizations tab and return it'''
-    return home_pg.header.site_navigation_menu('Organizations').click()
+    return home_page_logged_in.header.site_navigation_menu('Organizations').click()
 
 @pytest.fixture
 def ui_users_pg(home_page_logged_in):
     '''Navigate to the Users tab and return it'''
-    return home_pg.header.site_navigation_menu('Users').click()
+    return home_page_logged_in.header.site_navigation_menu('Users').click()
 
 @pytest.fixture
 def ui_teams_pg(home_page_logged_in):
     '''Navigate to the Teams tab and return it'''
-    return home_pg.header.site_navigation_menu('Teams').click()
+    return home_page_logged_in.header.site_navigation_menu('Teams').click()
 
 @pytest.fixture
 def ui_credentials_pg(home_page_logged_in):
     '''Navigate to the Credentials tab and return it'''
-    return home_pg.header.site_navigation_menu('Credentials').click()
+    return home_page_logged_in.header.site_navigation_menu('Credentials').click()
 
 @pytest.fixture
 def ui_projects_pg(home_page_logged_in):
     '''Navigate to the Projects tab and return it'''
-    return home_pg.header.site_navigation_menu('Projects').click()
+    return home_page_logged_in.header.site_navigation_menu('Projects').click()
 
 @pytest.fixture
 def ui_inventories_pg(home_page_logged_in):
     '''Navigate to the Inventories tab and return it'''
-    return home_pg.header.site_navigation_menu('Inventories').click()
+    return home_page_logged_in.header.site_navigation_menu('Inventories').click()
 
 @pytest.fixture
 def ui_job_Templates_pg(home_page_logged_in):
     '''Navigate to the Job_Templates tab and return it'''
-    return home_pg.header.site_navigation_menu('Job Templates').click()
+    return home_page_logged_in.header.site_navigation_menu('Job Templates').click()
 
 @pytest.fixture
 def ui_jobs_pg(home_page_logged_in):
     '''Navigate to the Jobs tab and return it'''
-    return home_pg.header.site_navigation_menu('Jobs').click()
+    return home_page_logged_in.header.site_navigation_menu('Jobs').click()
