@@ -388,7 +388,7 @@ hosts:
     - name: unresolvable-name.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_user: root
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -397,7 +397,7 @@ hosts:
     - name: not a valid hostname
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: localhost
       groups:
         - local
@@ -405,7 +405,7 @@ hosts:
     - name: host-1.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -414,7 +414,7 @@ hosts:
     - name: host-2.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -423,7 +423,7 @@ hosts:
     - name: host-3.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -432,7 +432,7 @@ hosts:
     - name: host-4.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -441,7 +441,7 @@ hosts:
     - name: host-5.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -450,7 +450,7 @@ hosts:
     - name: host-6.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -459,7 +459,7 @@ hosts:
     - name: host-7.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -468,7 +468,7 @@ hosts:
     - name: host-8.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -477,7 +477,7 @@ hosts:
     - name: host-9.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -486,7 +486,7 @@ hosts:
     - name: host-10.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -495,7 +495,7 @@ hosts:
     - name: host-11.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -505,7 +505,7 @@ hosts:
     - name: host-12.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -515,7 +515,7 @@ hosts:
     - name: host-13.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -525,7 +525,7 @@ hosts:
     - name: host-14.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -535,7 +535,7 @@ hosts:
     - name: host-15.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -545,7 +545,7 @@ hosts:
     - name: host-16.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -556,7 +556,7 @@ hosts:
     - name: host-17.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -567,7 +567,7 @@ hosts:
     - name: host-18.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -578,7 +578,7 @@ hosts:
     - name: host-19.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -589,7 +589,7 @@ hosts:
     - name: host-20.example.com
       description: localhost (ansible_ssh_host)
       inventory: it_inventory
-      variables: |
+      variables:
         ansible_ssh_host: 127.0.0.1
       groups:
         - local
@@ -735,7 +735,7 @@ job_templates:
       limit: all:!cloud
       verbosity: 2
       forks: 50
-      extra_vars: |
+      extra_vars:
         ansible_connection: local
 
     - name: helloworld/site.yml (limit:local)
@@ -746,7 +746,7 @@ job_templates:
       credential: SSH (user:bender_eng_user, password:***)
       limit: local
       verbosity: 1
-      extra_vars: |
+      extra_vars:
         ansible_connection: local
 
     - name: helloworld/aws_credentials_test.yml (limit:127.0.0.1)
