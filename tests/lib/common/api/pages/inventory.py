@@ -6,6 +6,7 @@ class Inventory_Page(base.Base):
     base_url = '/api/v1/inventory/{id}/'
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
+    variables = property(base.json_getter('variables'), base.json_setter('variables'))
 
 class Inventories_Page(Inventory_Page, base.Base_List):
     base_url = '/api/v1/inventory/'
@@ -16,6 +17,7 @@ class Group_Page(base.Base):
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
     inventory = property(base.json_getter('inventory'), base.json_setter('inventory'))
+    variables = property(base.json_getter('variables'), base.json_setter('variables'))
 
     def get_related(self, name):
         assert name in self.json['related']
@@ -37,6 +39,7 @@ class Host_Page(base.Base):
     base_url = '/api/v1/hosts/{id}/'
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
+    variables = property(base.json_getter('variables'), base.json_setter('variables'))
 
 class Hosts_Page(Host_Page, base.Base_List):
     base_url = '/api/v1/hosts/'
