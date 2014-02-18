@@ -14,14 +14,14 @@ class Test_Api_Basics(Base_Api_Test):
         assert r.status_code == httplib.NOT_FOUND
 
     def test_get_schema(self, api):
-        r = api.get('/api')
+        r = api.get('/api/')
         assert r.status_code == httplib.OK
-        validate(r.json(), '/api', 'get')
+        validate(r.json(), '/api/', 'get')
 
     def test_options_schema(self, api):
         r = api.options('/api/')
         assert r.status_code == httplib.OK
-        validate(r.json(), '/api', 'options')
+        validate(r.json(), '/api/', 'options')
 
     def test_head_empty(self, api):
         r = api.head('/api/')
@@ -55,5 +55,4 @@ class Test_Api_Basics(Base_Api_Test):
         r = api.get('/api/')
         data = r.json()
         description = data.get('description')
-        assert description == 'AWX REST API', \
-            "/api/description does not match expected"
+        assert description == 'Ansible Tower REST API'
