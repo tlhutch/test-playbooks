@@ -274,7 +274,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         payload = dict(name=inventory['name'],
                        description=inventory['description'],
                        organization=org.id,
-                       variables=json.dumps(inventory.get('variables','')))
+                       variables=json.dumps(inventory.get('variables',None)))
 
         try:
             api_inventories_pg.post(payload)
@@ -298,7 +298,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         payload = dict(name=group['name'],
                        description=group['description'],
                        inventory=inventory_id,
-                       variables=json.dumps(group.get('variables','')))
+                       variables=json.dumps(group.get('variables',None)))
 
         # different behavior depending on if we're creating child or parent
         if 'parent' in group:
@@ -330,7 +330,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         payload = dict(name=host['name'],
                        description=host['description'],
                        inventory=inventory_id,
-                       variables=json.dumps(host.get('variables','')))
+                       variables=json.dumps(host.get('variables',None)))
 
         try:
             api_hosts_pg.post(payload)
@@ -636,7 +636,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                        allow_callbacks=job_template.get('allow_callbacks', False),
                        verbosity=job_template.get('verbosity', 0),
                        forks=job_template.get('forks', 0),
-                       extra_vars=json.dumps(job_template.get('extra_vars','')),
+                       extra_vars=json.dumps(job_template.get('extra_vars',None)),
                       )
 
         # Add credential identifiers
