@@ -57,7 +57,7 @@ def assert_response(api, resource, method, response_code=httplib.OK, response_sc
         json = dict()
 
     # Validate API JSON response
-    validate(json, resource[7:-1], response_schema)
+    validate(json, resource, response_schema)
 
 @pytest.fixture(scope="function")
 def logout(api):
