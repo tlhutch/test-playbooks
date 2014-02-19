@@ -10,13 +10,13 @@
     image: '{{ item.uuid }}'
     region: '{{ rax_region }}'
     wait: yes
-    wait_timeout: 800
+    wait_timeout: 300
     state: absent
   register: rax
   with_items: rax_images
   when: delete_on_start
-  # until: rax|success
-  # retries: 3
+  until: rax|success
+  retries: 5
 
 - name: create (or locate) rax instance(s)
   rax:
