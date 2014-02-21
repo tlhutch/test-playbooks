@@ -157,10 +157,10 @@ class AnsibleWrapper(object):
         result = runner.run()
 
         # Handle response
-        if self.pattern in result['dark']:
-            raise Exception("Command failed: %s" % self.module_name, result['dark'][self.pattern])
-        else:
+        if self.pattern in result['contacted']:
             return result['contacted'][self.pattern]
+        else:
+            raise Exception("Command failed: %s" % self.module_name, result)
 
     def subprocess_runner(self, *args, **kwargs):
         '''
