@@ -5,12 +5,8 @@
   get_url: url={{aw_repo_url}}/{{galaxy_setup_path}} dest=/tmp mode=0640
   register: tarball
 
-- name: determine galaxy-setup directory
-  shell: echo {{tarball.dest}} | sed 's|\.tar\.gz$||'
-  register: galaxy_setup_dir
-
 - name: untar galaxy-setup
-  shell: tar -xvf {{tarball.dest}} --transform "s|^galaxy-setup-[^/]*|galaxy-setup|"
+  shell: tar -xvf {{tarball.dest}} --transform "s|^[^/]*|setup|"
     chdir=/tmp
 
 - name: is galaxy already installed?
