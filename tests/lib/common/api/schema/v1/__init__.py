@@ -18,19 +18,18 @@ class Awx_Schema(Schema_Base):
             logging.debug(e)
             return {}
 
-#    @property
-#    def put(self):
-#        return {}
-#    @property
-#    def patch(self):
-#        return {}
-#    @property
-#    def post(self):
-#        return {}
-#    @property
-#    def head(self):
-#        return {}
-
+    @property
+    def put(self):
+        return self.load_file('empty.yml')
+    @property
+    def patch(self):
+        return self.load_file('empty.yml')
+    @property
+    def post(self):
+        return self.load_file('empty.yml')
+    @property
+    def head(self):
+        return self.load_file('empty.yml')
     @property
     def get(self):
         return self.load_file('api.yml')
@@ -213,8 +212,7 @@ class Awx_Schema_Project_Update(Awx_Schema):
         return self.load_file('projects/update.yml')
     @property
     def post(self):
-        # FIXME - have an actualy schema that defines 'empty'
-        return {}
+        return self.load_file('empty.yml')
 
 class Awx_Schema_Project_Updates(Awx_Schema_Projects_Project_Updates):
     resource = '/api/v1/project_updates/\d+/'
@@ -261,8 +259,7 @@ class Awx_Schema_Job_Start(Awx_Schema):
         return self.load_file('jobs/start.yml')
     @property
     def post(self):
-        # FIXME - have an actualy schema that defines 'empty'
-        return {}
+        return self.load_file('empty.yml')
 
 class Awx_Schema_Inventory_Sources(Awx_Schema):
     resource = '/api/v1/inventory_sources/'
@@ -298,8 +295,7 @@ class Awx_Schema_Inventory_Sources_Update(Awx_Schema):
         return self.load_file('inventory_sources/update.yml')
     @property
     def post(self):
-        # FIXME - have an actualy schema that defines 'empty'
-        return {}
+        return self.load_file('empty.yml')
 
 class Awx_Schema_Inventory_Source_Updates(Awx_Schema):
     resource = '/api/v1/inventory_sources/\d+/inventory_updates/'
@@ -343,19 +339,13 @@ class Awx_Schema_Me(Awx_Schema):
 
     @property
     def put(self):
-        # FIXME - have an actualy schema that defines 'empty'
-        return {}
-
+        return self.load_file('empty.yml')
     @property
     def patch(self):
-        # FIXME - have an actualy schema that defines 'empty'
-        return {}
-
+        return self.load_file('empty.yml')
     @property
     def post(self):
-        # FIXME - have an actualy schema that defines 'empty'
-        return {}
-
+        return self.load_file('empty.yml')
     @property
     def get(self):
         return self.load_file('users/item.yml')
@@ -368,12 +358,10 @@ class Awx_Schema_Authtoken(Awx_Schema):
         return self.load_file('errors/405.yml')
     @property
     def put(self):
-        # FIXME - have an actualy schema that defines 'empty'
-        return {}
+        return self.load_file('errors/405.yml')
     @property
     def patch(self):
-        # FIXME - have an actualy schema that defines 'empty'
-        return {}
+        return self.load_file('errors/405.yml')
     @property
     def post(self):
         return self.load_file('authtoken.yml')
