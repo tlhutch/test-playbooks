@@ -12,4 +12,4 @@ properties:
     playbook: { $ref: '#/definitions/error_required_field' }
     non_field_errors: { $ref: '#/definitions/error_login_failure' }
 definitions:
-  !include '../definitions/*.yml'
+  !include '../definitions/error*.yml'

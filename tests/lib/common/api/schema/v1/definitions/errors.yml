@@ -1,0 +1,17 @@
+---
+error_required_field:
+    type: array
+    minItems: 1
+    uniqueItems: True
+    items:
+        type: string
+        pattern: '^This field is required.$'
+
+---
+error_login_failure:
+    type: array
+    minItems: 0
+    uniqueItems: True
+    items:
+        type: string
+        pattern: '^Unable to login with provided credentials.$'
