@@ -11,6 +11,7 @@ class LoginPage(base.Base):
     _login_password_field_locator = (By.ID, 'login-password')
     _login_submit_button_locator = (By.ID, 'login-button')
     _login_demo_ok_button_locator = (By.ID, 'alert_ok_btn')
+    _login_license_warning_button_locator = (By.ID, 'alert2_ok_btn')
 
     @property
     def is_the_current_page(self):
@@ -34,6 +35,10 @@ class LoginPage(base.Base):
     @property
     def demo_ok_button(self):
         return self.selenium.find_element(*self._login_demo_ok_button_locator)
+
+    @property
+    def license_warning_button(self):
+        return self.selenium.find_element(*self._login_license_warning_button_locator)
 
     def _click_on_login_button(self):
         self.login_button.click()
@@ -61,13 +66,21 @@ class LoginPage(base.Base):
 
     def __do_login(self, continue_function, user='default'):
         self.__set_login_fields(user)
-        # TODO: Remove once bug is fixed
-        time.sleep(1.0)
+        # Submit field (click submit, press <enter> etc...)
         continue_function()
 
-        # Wait for DEMO dialog
+        # Wait for "busy" throbber to go away
+        self._wait_for_results_refresh()
+
+        # Acknowledge DEMO dialog
         try:
             self.demo_ok_button.click()
+        except:
+            pass
+
+        # Acknowledge license warning dialog
+        try:
+            self.license_warning_button.click()
         except:
             pass
 

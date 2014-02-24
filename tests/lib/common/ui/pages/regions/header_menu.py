@@ -51,6 +51,8 @@ class HeaderMenu(Page):
 
     def click(self):
         self._root_element.find_element(*self._name_locator).click()
+        # Wait for 'Working...' spinner to appear, and go away
+        self._wait_for_results_refresh()
         return self._item_page[self.name](self.testsetup)
 
     def hover(self):

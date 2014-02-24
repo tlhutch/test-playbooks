@@ -25,6 +25,8 @@ class Page(object):
             self._root_element = root
 
     def _wait_for_results_refresh(self):
+        # Allow 400ms for the 'Working...' dialog to appear
+        time.sleep(0.5)
         # On pages that do not have ajax refresh this wait will have no effect.
         WebDriverWait(self.selenium, self.timeout).until(
                 lambda s: not self.is_element_visible(*self._updating_locator))
