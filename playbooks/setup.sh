@@ -55,7 +55,7 @@ for LINE in $(env) ; do
     set -- $LINE
     VARNAME="$1"
     case $VARNAME in
-        AWX*|GALAXY*|AWS*|EC2*|RAX*|DELETE_ON_START)
+        AWX*|GALAXY*|AWS*|EC2*|RAX*|DELETE_ON_START|INSTANCE*)
             echo "${VARNAME,,}: '${!VARNAME}'" >> vars.yaml
             ;;
         *)
