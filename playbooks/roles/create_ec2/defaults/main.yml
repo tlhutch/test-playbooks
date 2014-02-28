@@ -20,6 +20,6 @@ ec2_images: [{'name': 'centos-6.4-x86_64',   'user': 'root',        'id': 'ami-e
              {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-d0f89fb9', },
              # ubuntu-14.04 images available at http://cloud-images.ubuntu.com/trusty/current/
              {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-21565548', },
-             {'name': 'fedora-19-x86_64',    'user': 'ec2-user',    'id': 'ami-b22e5cdb', },
-             {'name': 'fedora-20-x86_64',    'user': 'ec2-user',    'id': 'ami-1337187a', },
+             {'name': 'fedora-19-x86_64',    'user': 'fedora',      'id': 'ami-b22e5cdb', },
+             {'name': 'fedora-20-x86_64',    'user': 'fedora',      'id': 'ami-1337187a', },
             ]
