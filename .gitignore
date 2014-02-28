@@ -6,3 +6,5 @@ results.xml
 *.log
 *.cfg
 *.jsonc
+*vars.*
+inventory.*
