@@ -1,0 +1,31 @@
+---
+# Tasks to install ansible and dependencies on Fedora systems
+
+- name: install playbook dependencies
+  yum: name={{item}} state=installed
+  with_items:
+    - libselinux-python
+  when: ansible_pkg_mgr == 'yum' and ansible_distribution == 'Fedora'
+
+# install ansible nightly rpm repo (optional)
+
+- name: install custom ansible repository
+  template: src=files/ansible_yum_fedora.repo.j2 dest=/etc/yum.repos.d/ansible.repo
+  register: yum_repo
+  when: ansible_pkg_mgr == 'yum' and ansible_distribution == 'Fedora' and ansible_repo_url is defined
+
+- name: yum clean cached ansible repository information
+  command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
+  when: ansible_pkg_mgr == 'yum' and ansible_distribution == 'Fedora' and ansible_repo_url is defined and yum_repo is defined and yum_repo.changed
+
+# install ansible
+
+- name: install nightly ansible rpm
+  # shell: yum -y --enablerepo=updates-testing,fedora-testing,ansible-nightly install ansible
+  yum: name=ansible enablerepo=updates-testing,ansible-nightly state=installed
+  when: ansible_pkg_mgr == 'yum' and ansible_distribution == 'Fedora' and ansible_repo_url is defined
+
+- name: install ansible rpm
+  # shell: yum -y --enablerepo=updates-testing,fedora-testing install ansible
+  yum: name=ansible enablerepo=updates-testing state=installed
+  when: ansible_pkg_mgr == 'yum' and ansible_distribution == 'Fedora' and ansible_repo_url is defined
