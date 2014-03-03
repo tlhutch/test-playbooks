@@ -1,18 +1,19 @@
 ---
-# checkout ansible and run: make
 
-- name: install git rpm
+- name: install rpm dependencies
   yum: name={{item}} state=installed
   when: ansible_pkg_mgr == 'yum'
   with_items:
     - git
     - make
 
-- name: install git deb
+- name: install deb dependencies
   apt: pkg={{item}} state=installed
   when: ansible_pkg_mgr == 'apt'
   with_items:
     - git
+    - svn
+    - hg
     - make
 
 - name: checkout ansible
@@ -22,6 +23,6 @@
        accept_hostkey=true
   register: ansible_git
 
-- name: make integration
+- name: run integration tests
   shell: cd test/integration && make
        chdir=/tmp/ansible.git

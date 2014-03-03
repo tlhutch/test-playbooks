@@ -24,3 +24,11 @@
   sudo: yes
   roles:
     - { role: ansible_install }
+
+#
+# Destroy remote hosts
+#
+- hosts: local
+  roles:
+    - { role: destroy_cloud }
+
