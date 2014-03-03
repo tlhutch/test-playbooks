@@ -7,11 +7,13 @@
   register: installed_pips
   ignore_errors: true
 
+- debug: var=installed_pips
+
+# The following will only run if pip modules were detected in the previous task
 - name: remove any pip installed packages
   pip:
     state: absent
     name: '{{ item }}'
   with_items:
     - PyYAML
-  when: installed_pips is defined and installed_pips|success
-
+  when: installed_pips|success and installed_pips.stdout_lines
