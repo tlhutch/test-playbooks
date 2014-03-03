@@ -13,4 +13,5 @@
     name: '{{ item }}'
   with_items:
     - PyYAML
-  when: installed_pips is defined
+  when: installed_pips is defined and installed_pips|success
+
