@@ -10,6 +10,7 @@ rax_flavor: 4 # refer to http://docs.rackspace.com/servers/api/v1.0/cs-devguide/
 
 rax_region: ORD
 rax_name_prefix: '{{ instance_name_prefix }}'
+rax_key_name: 'jenkins'
 rax_public_key: ~/.ssh/id_rsa.pub
 rax_meta:
     group: 'jenkins-nightly'

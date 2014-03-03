@@ -1,6 +1,18 @@
 ---
 # Tasks to delete (optionally) and create rax instances
 
+- name: ensure keypair exists
+  rax_keypair:
+    api_key: '{{ rax_api_key }}'
+    username: '{{ rax_username }}'
+    region: '{{ rax_region }}'
+    name: '{{ rax_key_name }}'
+    public_key: '{{ item }}'
+    state: present
+  register: keypair
+  with_file: rax_public_key
+  when: rax_images
+
 - name: delete existing rax instance(s)
   rax:
     api_key: '{{ rax_api_key }}'

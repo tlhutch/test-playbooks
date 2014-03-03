@@ -23,6 +23,19 @@
         to_port: 443
         cidr_ip: 0.0.0.0/0
 
+- name: ensure keypair exists
+  ec2_key:
+    aws_access_key: '{{ aws_access_key }}'
+    aws_secret_key: '{{ aws_secret_key }}'
+    region: '{{ rax_region }}'
+    name: '{{ ec2_key_name }}'
+    key_material: "{{ item }}"
+  with_file: ec2_public_key
+  register: keypair
+  when: ec2_images and ec2 is defined
+
+- debug: var=keypair
+
 - name: delete existing ec2 instance(s)
   ec2:
     aws_access_key: '{{ aws_access_key }}'
