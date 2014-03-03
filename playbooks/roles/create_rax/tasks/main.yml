@@ -13,23 +13,6 @@
   with_file: rax_public_key
   when: rax_images
 
-- name: delete existing rax instance(s)
-  rax:
-    api_key: '{{ rax_api_key }}'
-    username: '{{ rax_username }}'
-    name: '{{ rax_name_prefix }}-{{ item.name }}'
-    flavor: '{{ rax_flavor }}'
-    image: '{{ item.uuid }}'
-    region: '{{ rax_region }}'
-    wait: yes
-    wait_timeout: 300
-    state: absent
-  register: rax
-  with_items: rax_images
-  when: delete_on_start
-  until: rax|success
-  retries: 5
-
 - name: create (or locate) rax instance(s)
   rax:
     api_key: '{{ rax_api_key }}'

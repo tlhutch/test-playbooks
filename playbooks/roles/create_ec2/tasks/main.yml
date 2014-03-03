@@ -32,27 +32,7 @@
     key_material: "{{ item }}"
   with_file: ec2_public_key
   register: keypair
-  when: ec2_images and ec2 is defined
-
-- debug: var=keypair
-
-- name: delete existing ec2 instance(s)
-  ec2:
-    aws_access_key: '{{ aws_access_key }}'
-    aws_secret_key: '{{ aws_secret_key }}'
-    region: '{{ ec2_region }}'
-    instance_type: '{{ ec2_instance_type }}'
-    instance_tags:
-        Name: '{{ec2_name_prefix}}-{{item.name}}'
-    group: '{{ ec2_security_group }}'
-    key_name: '{{ ec2_key_name }}'
-    image: '{{ item.id }}'
-    exact_count: 0
-    count_tag:
-        Name: '{{ec2_name_prefix}}-{{item.name}}'
-    wait: yes
-  with_items: ec2_images
-  when: delete_on_start
+  when: ec2_images
 
 - name: create/locate ec2 instance(s)
   ec2:
