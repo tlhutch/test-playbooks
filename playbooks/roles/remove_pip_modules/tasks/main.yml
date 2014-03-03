@@ -1,0 +1,16 @@
+---
+
+# RHEL-6.5 rax images are pre-loaded with pip installed packages.  This breaks
+# distro packaging (see support ticket 140303-00299-3).
+- name: detect pip installed packages
+  shell: pip list | awk '{print $1}'
+  register: installed_pips
+  ignore_errors: true
+
+- name: remove any pip installed packages
+  pip:
+    state: absent
+    name: '{{ item }}'
+  with_items:
+    - PyYAML
+  when: installed_pips is defined
