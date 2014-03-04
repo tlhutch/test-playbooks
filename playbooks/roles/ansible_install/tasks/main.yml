@@ -6,15 +6,19 @@
   with_items:
     - git
     - make
+    - subversion
+    - hg
+    - python-pip
 
 - name: install deb dependencies
   apt: pkg={{item}} state=installed
   when: ansible_pkg_mgr == 'apt'
   with_items:
     - git
-    - svn
-    - hg
+    - subversion
+    - mercurial
     - make
+    - python-pip
 
 - name: checkout ansible
   git: repo={{ansible_git_repo}}
@@ -23,6 +27,10 @@
        accept_hostkey=true
   register: ansible_git
 
-- name: run integration tests
-  shell: cd test/integration && make
-       chdir=/tmp/ansible.git
+- name: pip install ansible
+  pip: name=/tmp/ansible.git state=latest
+
+#- name: run integration tests
+#  shell: cd test/integration && make
+#       chdir=/tmp/ansible.git
+#  ignore_errors: true
