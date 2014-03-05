@@ -17,4 +17,4 @@
         Name: '{{ec2_name_prefix}}-{{item.name}}'
     wait: yes
   with_items: ec2_images
-  when: delete_on_start
+  when: not skip

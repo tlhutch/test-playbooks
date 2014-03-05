@@ -1,7 +1,7 @@
 ---
-# If the desired image exists, the value of `delete_on_start` determines
+# If the desired image exists, the value of `skip` determines
 # whether to use the existing image, or to delete it before proceeding
-delete_on_start: false
+skip: false
 
 # AWS variables
 aws_url: 'https://ec2.amazonaws.com'

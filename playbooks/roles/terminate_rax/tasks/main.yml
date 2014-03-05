@@ -14,6 +14,6 @@
     state: absent
   register: rax
   with_items: rax_images
-  when: delete_on_start
+  when: not skip
   until: rax|success
   retries: 5

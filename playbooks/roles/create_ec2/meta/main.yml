@@ -1,2 +1,2 @@
 dependencies:
- - { role: terminate_ec2 }
+ - { role: terminate_ec2, skip: delete_on_start }

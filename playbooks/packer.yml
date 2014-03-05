@@ -26,5 +26,4 @@
   gather_facts: false
   roles:
     - { role: create_ami }
-    - { role: terminate_ec2, delete_on_start: true }
-
+    - { role: terminate_ec2 }
