@@ -6,17 +6,10 @@
 # Create remote hosts
 #
 - hosts: local
+  gather_facts: false
   roles:
     - { role: create_ec2 }
     - { role: save_inventory }
-
-#
-# Dynamically create host groups based on distribution
-#
-- hosts: all
-  tasks:
-   - name: group hosts by distribution
-     action: group_by key={{ansible_distribution}}
 
 #
 # Install ansible
@@ -27,9 +20,10 @@
     - { role: ansible_install }
 
 #
-# Destroy remote hosts
+# Create AMI and terminate instance
 #
 - hosts: local
+  gather_facts: false
   roles:
     - { role: create_ami }
     - { role: terminate_ec2, delete_on_start: true }
