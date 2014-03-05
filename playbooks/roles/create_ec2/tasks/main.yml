@@ -77,4 +77,4 @@
 # immediately
 - name: sleep 30s
   command: sleep 30s
-  when: ec2_images and ec2 is defined
+  when: ec2_images and ec2 is defined and ec2.changed
