@@ -7,7 +7,8 @@
 #
 - hosts: local
   roles:
-    - { role: deploy_cloud }
+    - { role: create_ec2 }
+    - { role: save_inventory }
 
 #
 # Dynamically create host groups based on distribution
@@ -30,5 +31,6 @@
 #
 - hosts: local
   roles:
-    - { role: destroy_cloud }
+    - { role: create_ami }
+    - { role: terminate_ec2, delete_on_start: true }
 
