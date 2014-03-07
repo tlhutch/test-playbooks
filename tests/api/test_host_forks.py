@@ -137,6 +137,7 @@ def job_template(request, testsetup, api_job_templates_pg, inventory, project, c
     return obj
 
 @pytest.mark.skip_selenium
+@pytest.mark.performance
 @pytest.mark.usefixtures('backup_license', 'install_license_1000')
 class Test_Host_Fork(Base_Api_Test):
 
