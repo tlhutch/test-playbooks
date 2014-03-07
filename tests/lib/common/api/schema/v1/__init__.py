@@ -110,6 +110,14 @@ class Awx_Schema_Inventories(Awx_Schema):
         return self.load_file('inventories/item.yml')
 
     @property
+    def put(self):
+        return self.load_file('inventories/item.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('inventories/item.yml')
+
+    @property
     def duplicate(self):
         return self.load_file('inventories/duplicate.yml')
 
