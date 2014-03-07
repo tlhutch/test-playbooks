@@ -10,6 +10,7 @@ class Job_Template_Page(base.Base):
     playbook = property(base.json_getter('playbook'), base.json_setter('playbook'))
     forks = property(base.json_getter('forks'), base.json_setter('forks'))
     credential = property(base.json_getter('credential'), base.json_setter('credential'))
+    extra_vars = property(base.json_getter('extra_vars'), base.json_setter('extra_vars'))
 
     def get_related(self, name):
         assert name in self.json['related']
