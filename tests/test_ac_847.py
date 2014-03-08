@@ -870,34 +870,11 @@ inventory_dict = {
   ]
 }
 
-@pytest.fixture(scope="class")
-def organization(request, testsetup, api, api_organizations_pg):
-    payload = dict(name="org-%s" % randomness.generate_random_string(),
-                   description="Test organization",)
-    api.login(*testsetup.credentials['default'].values())
-    obj = api_organizations_pg.post(payload)
-
-    # Add finalizer to delete the object
-    request.addfinalizer(obj.delete)
-    return obj
-
-@pytest.fixture(scope="class")
-def inventory(request, testsetup, api, api_inventories_pg, organization):
-    payload = dict(name="inventory-%s" % randomness.generate_random_string(),
-                   description="Test inventory",
-                   organization=organization.id)
-    api.login(*testsetup.credentials['default'].values())
-    obj = api_inventories_pg.post(payload)
-
-    # Add finalizer to delete the object
-    request.addfinalizer(obj.delete)
-    return obj
-
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 class Test_AC_847(Base_Api_Test):
     @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000')
-    def test_import(self, ansible_runner, tmpdir, inventory):
+    def test_import(self, ansible_runner, tmpdir, random_inventory):
         '''Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner
         '''
@@ -918,7 +895,7 @@ EOF
 
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source /tmp/%s' \
-            % (inventory.name, p.basename))
+            % (random_inventory.name, p.basename))
 
         # Verify the import completed successfully
         assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
@@ -934,19 +911,19 @@ EOF
         assert seconds <= 30.0
         print "Import took %s seconds" % seconds
 
-    def test_group_count(self, api_groups_pg, inventory):
+    def test_group_count(self, api_groups_pg, random_inventory):
         '''Verify the import created the expected groups'''
-        obj = api_groups_pg.get(inventory=inventory.id)
+        obj = api_groups_pg.get(inventory=random_inventory.id)
         assert obj.count == len(inventory_dict.keys())
         print "Number of groups imported: %s" % obj.count
 
-    def test_hosts_count(self, api_hosts_pg, inventory):
+    def test_hosts_count(self, api_hosts_pg, random_inventory):
         '''Verify the import created the expected hosts'''
         # Count the number of unique hosts in the all groups
         # host_count = len({host:None for hosts in inventory_dict.values() for host in hosts })
         host_count = len(dict((host, None) for hosts in inventory_dict.values() for host in hosts))
 
         # Verify the number of hosts matches what was imported
-        obj = api_hosts_pg.get(inventory=inventory.id)
+        obj = api_hosts_pg.get(inventory=random_inventory.id)
         assert obj.count == host_count
         print "Number of hosts imported: %s" % obj.count
