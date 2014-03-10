@@ -32,7 +32,7 @@ artifact_path = 'artifact/playbooks/inventory.log/*view*/'
 cfg = AnsibleInventory()
 
 for cloud_provider in ['rax', 'ec2']:
-    for platform in ['rhel-6.4-x86_64', 'centos-6.4-x86_64', 'ubuntu-12.04-x86_64']:
+    for platform in ['rhel-6.4-x86_64', 'rhel-6.5-x86_64', 'centos-6.4-x86_64', 'centos-6.5-x86_64', 'ubuntu-12.04-x86_64', 'ubuntu-14.04-x86_64']:
         for label in ['test']:
             url = base_url + job_path + artifact_path
             url = url.format(**dict(cloud_provider=cloud_provider, platform=platform, label=label))
