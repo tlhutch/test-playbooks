@@ -8,8 +8,6 @@
   when: ansible_pkg_mgr == 'apt'
   with_items:
     - python-pycurl
-    - python2.7-dev # needed for pip task below (remove later)
-    - python-pip    # needed for pip task below (remove later)
 
 # install ansible ppa
 
@@ -27,9 +25,4 @@
 
 - name: install ansible deb
   apt: pkg=ansible state=latest update_cache=yes force=yes
-  when: ansible_pkg_mgr == 'apt' and ansible_distribution_release != 'trusty'
-
-# TODO: remove the following when 'trusty' packages are available
-- name: install ansible pip
-  pip: name=ansible state=latest
-  when: ansible_pkg_mgr == 'apt' and ansible_distribution_release == 'trusty'
+  when: ansible_pkg_mgr == 'apt'
