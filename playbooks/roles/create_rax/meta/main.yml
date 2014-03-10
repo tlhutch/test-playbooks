@@ -1,2 +1,2 @@
 dependencies:
- - { role: terminate_rax, skip: delete_on_start }
+ - { role: terminate_rax, skip_delete: 'not {{delete_on_start}}' }

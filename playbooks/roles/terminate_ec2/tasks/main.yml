@@ -17,4 +17,6 @@
         Name: '{{ec2_name_prefix}}-{{item.name}}'
     wait: yes
   with_items: ec2_images
-  when: not skip
+  when: not {{skip_delete}}
+
+- fail: msg='jlaska'

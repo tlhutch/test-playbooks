@@ -1,7 +1,7 @@
 ---
-# If the desired image exists, the value of `skip` determines
+# If the desired image exists, the value of `skip_delete` determines
 # whether to use the existing image, or to delete it before proceeding
-skip: false
+skip_delete: True
 
 # Rackspace variables
 rax_api_key: ''
