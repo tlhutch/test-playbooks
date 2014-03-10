@@ -18,5 +18,3 @@
     wait: yes
   with_items: ec2_images
   when: not {{skip_delete}}
-
-- fail: msg='jlaska'
