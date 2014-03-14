@@ -16,12 +16,5 @@ rax_meta:
     group: 'jenkins-nightly'
 
 # Use `nova image-list` to determine active images
-rax_images: [{'name': 'centos-6.4-x86_64',   'uuid': 'f70ed7c7-b42e-4d77-83d8-40fa29825b85'},
-             {'name': 'centos-6.5-x86_64',   'uuid': 'ea8fdf8a-c0e4-4a1f-b17f-f5a421cda051'},
-             {'name': 'rhel-6.4-x86_64',     'uuid': 'c6e2fed0-75bf-420d-a744-7cfc75a1889e'},
-             {'name': 'rhel-6.5-x86_64',     'uuid': '1705c794-5d7e-44d6-87da-596e3cf92144'},
-             {'name': 'ubuntu-12.04-x86_64', 'uuid': '80fbcb55-b206-41f9-9bc2-2dd7aac6c061'},
-             # {'name': 'ubuntu-14.04-x86_64', 'uuid': ''},
-             {'name': 'fedora-19-x86_64',    'uuid': '8500226f-b193-4471-9eff-9cba8440bfc8'},
-             {'name': 'fedora-20-x86_64',    'uuid': '5ef987c7-0dda-4ebe-ae71-7f5c4a425faa'},
-            ]
+# rax_images are defined in group_vars/all since they are needed by multiple roles
+# rax_images: []

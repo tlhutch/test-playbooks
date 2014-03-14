@@ -13,14 +13,5 @@ ec2_security_group: 'AWX' # sg-b05be0db
 ec2_key_name: 'jenkins'
 ec2_public_key: '~/.ssh/id_rsa.pub'
 ec2_name_prefix: '{{ instance_name_prefix }}'
-ec2_images: [{'name': 'centos-6.4-x86_64',   'user': 'root',        'id': 'ami-eb6b0182', },
-             # TODO: Add centos-6.5 AMI when it's available
-             {'name': 'rhel-6.4-x86_64',     'user': 'ec2-user',    'id': 'ami-a25415cb', },
-             {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-63b6910a', },
-             {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-5b183532', },
-             {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-d0f89fb9', },
-             # ubuntu-14.04 images available at http://cloud-images.ubuntu.com/trusty/current/
-             {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-1be5e672', },
-             {'name': 'fedora-19-x86_64',    'user': 'fedora',      'id': 'ami-b22e5cdb', },
-             {'name': 'fedora-20-x86_64',    'user': 'fedora',      'id': 'ami-1337187a', },
-            ]
+# ec2_images are defined in group_vars/all since they are needed by multiple roles
+# ec2_images: []
