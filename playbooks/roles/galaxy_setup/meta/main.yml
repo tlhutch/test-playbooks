@@ -1,4 +1,3 @@
 dependencies:
-- { role: packages_el }
-- { role: packages_ubuntu }
+- { role: packages }
 - { role: auth_keys }

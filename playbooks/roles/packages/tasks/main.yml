@@ -1,0 +1,82 @@
+---
+# Tasks to install awx-setup package-related dependencies on EL systems
+
+- include: rhn.yml
+  when: ansible_distribution in ['RedHat']
+
+# Mirrors don't always do the right thing ... retry until the package installs
+- name: install epel-release
+  shell: rpm -q epel-release || rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+  register: epel_task
+  until: epel_task.rc == 0
+  when: ansible_distribution in ['RedHat', 'CentOS', 'ScientificLinux']
+
+# Install dependencies
+
+- name: install playbook dependency rpms
+  yum: name={{item}} state=installed
+  with_items:
+    - libselinux-python
+    - python-pip
+    - python-devel
+    - autoconf
+    - make
+    - gcc
+  when: ansible_pkg_mgr == 'yum'
+
+- name: install playbook dependency debs
+  apt: pkg={{item}} state=latest update_cache=yes
+  with_items:
+    - python-pycurl
+    - python-pip
+    - python-dev
+    - autoconf
+    - make
+    - gcc
+  when: ansible_pkg_mgr == 'apt'
+
+# install ansible nightly rpm repo (optional)
+
+- name: install ansible epel repository
+  template: src=files/ansible_yum_epel.repo.j2 dest=/etc/yum.repos.d/ansible.repo
+  register: yum_repo
+  when: ansible_repo_url is defined and ansible_distribution in ['RedHat', 'CentOS', 'ScientificLinux']
+
+- name: install ansible fedora repository
+  template: src=files/ansible_yum_fedora.repo.j2 dest=/etc/yum.repos.d/ansible.repo
+  register: yum_repo
+  when: ansible_repo_url is defined and ansible_distribution in ['Fedora']
+
+- name: yum clean cached ansible repository information
+  command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
+  when: yum_repo is defined and yum_repo.changed
+
+# install ansible nightly rpm repo (optional)
+
+- name: install nightly ansible repository
+  template: src=files/ansible_apt.repo.j2 dest=/etc/apt/sources.list.d/ansible_repo.list
+  when: ansible_pkg_mgr == 'apt' and ansible_repo_url is defined
+
+# install ansible ppa
+
+- name: enable ppa:rquillo/ansible
+  apt_repository: repo={{ansible_ppa}} state=present
+  when: ansible_pkg_mgr == 'apt' and ansible_ppa is defined
+
+# install ansible
+
+- name: install nightly ansible rpm
+  yum: name=ansible enablerepo=*-testing,ansible-nightly state=installed
+  when: ansible_pkg_mgr == 'yum' and ansible_repo_url is defined
+
+- name: install ansible rpm
+  yum: name=ansible enablerepo=*-testing state=installed
+  when: ansible_pkg_mgr == 'yum' and ansible_repo_url is not defined
+
+- name: install ansible deb
+  apt: pkg=ansible state=latest update_cache=yes force=yes
+  when: ansible_pkg_mgr == 'apt'
+
+- name: install ansible pip
+  pip: name={{ansible_pip}} state=latest
+  when: ansible_pip is defined

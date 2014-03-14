@@ -1,5 +1,3 @@
 dependencies:
-- { role: packages_el }
-- { role: packages_fedora }
-- { role: packages_ubuntu }
+- { role: packages }
 - { role: auth_keys }

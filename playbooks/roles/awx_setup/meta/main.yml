@@ -1,6 +1,4 @@
 dependencies:
 - { role: remove_pip_modules }
-- { role: packages_el }
-- { role: packages_fedora }
-- { role: packages_ubuntu }
+- { role: packages }
 - { role: auth_keys }
