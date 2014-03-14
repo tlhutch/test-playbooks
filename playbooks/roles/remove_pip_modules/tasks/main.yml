@@ -7,8 +7,6 @@
   register: installed_pips
   ignore_errors: true
 
-- debug: var=installed_pips
-
 # The following will only run if pip modules were detected in the previous task
 - name: remove any pip installed packages
   pip:
