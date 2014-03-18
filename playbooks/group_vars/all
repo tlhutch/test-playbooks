@@ -27,6 +27,7 @@ rax_images: [{'name': 'centos-6.4-x86_64',   'uuid': 'f70ed7c7-b42e-4d77-83d8-40
              {'name': 'centos-6.5-x86_64',   'uuid': '4b14a92e-84c8-4770-9245-91ecb8501cc2'},
              {'name': 'rhel-6.4-x86_64',     'uuid': 'c6e2fed0-75bf-420d-a744-7cfc75a1889e'},
              {'name': 'rhel-6.5-x86_64',     'uuid': 'ccdad303-f9d4-4a2f-b202-e73f1c155a4e'},
+             # {'name': 'rhel-7.0-x86_64',     'uuid': ''},
              {'name': 'ubuntu-12.04-x86_64', 'uuid': '80fbcb55-b206-41f9-9bc2-2dd7aac6c061'},
              # {'name': 'ubuntu-14.04-x86_64', 'uuid': ''},
              {'name': 'fedora-19-x86_64',    'uuid': '8500226f-b193-4471-9eff-9cba8440bfc8'},
