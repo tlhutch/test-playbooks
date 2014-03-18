@@ -29,7 +29,6 @@
     - autoconf
     - make
     - gcc
-    - redhat-lsb-core
   when: ansible_pkg_mgr == 'yum'
 
 - name: install playbook dependency debs
