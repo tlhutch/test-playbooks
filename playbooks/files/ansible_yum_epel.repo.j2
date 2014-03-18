@@ -1,6 +1,6 @@
 [ansible-nightly]
-name=Nightly Ansible Repository - EL6 $basearch
-baseurl={{ ansible_repo_url }}/rpm/epel-6-$basearch
+name=Nightly Ansible Repository - $releasever $basearch
+baseurl={{ ansible_repo_url }}/rpm/epel-{{ ansible_lsb.major_release }}-$basearch
 gpgcheck=0
 enabled=0
 metadata_expire=7d
