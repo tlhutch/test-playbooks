@@ -44,15 +44,10 @@
 
 # install ansible nightly rpm repo (optional)
 
-- name: install ansible epel repository
-  template: src=files/ansible_yum_epel.repo.j2 dest=/etc/yum.repos.d/ansible.repo
+- name: install ansible nightly yum repository
+  template: src=files/ansible_yum.repo.j2 dest=/etc/yum.repos.d/ansible.repo
   register: yum_repo
-  when: ansible_repo_url is defined and ansible_distribution in ['RedHat', 'CentOS', 'ScientificLinux']
-
-- name: install ansible fedora repository
-  template: src=files/ansible_yum_fedora.repo.j2 dest=/etc/yum.repos.d/ansible.repo
-  register: yum_repo
-  when: ansible_repo_url is defined and ansible_distribution in ['Fedora']
+  when: ansible_pkg_mgr == 'yum' and ansible_nightly_repo is defined
 
 - name: yum clean cached ansible repository information
   command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
@@ -60,13 +55,13 @@
 
 # install ansible nightly rpm repo (optional)
 
-- name: install nightly ansible repository
+- name: install ansible nightly apt repository
   template: src=files/ansible_apt.repo.j2 dest=/etc/apt/sources.list.d/ansible_repo.list
-  when: ansible_pkg_mgr == 'apt' and ansible_repo_url is defined
+  when: ansible_pkg_mgr == 'apt' and ansible_nightly_repo is defined
 
 # install ansible ppa
 
-- name: enable ppa:rquillo/ansible
+- name: install ansible stable apt repository
   apt_repository: repo={{ansible_ppa}} state=present
   when: ansible_pkg_mgr == 'apt' and ansible_ppa is defined
 
@@ -74,16 +69,16 @@
 
 - name: install ansible rpm (stable)
   yum: name=ansible state=latest
-  when: ansible_pkg_mgr == 'yum' and ansible_repo_url is not defined
+  when: ansible_pkg_mgr == 'yum' and ansible_nightly_repo is not defined
 
 # epel-7 does not support 'epel-testing' repository during beta
 - name: install ansible rpm (testing)
   yum: name=ansible enablerepo='*-testing' state=latest
-  when: ansible_pkg_mgr == 'yum' and ansible_repo_url is not defined and ansible_distribution_version.startswith('6')
+  when: ansible_pkg_mgr == 'yum' and ansible_nightly_repo is not defined and not ansible_distribution_version.startswith('7')
 
 - name: install ansible rpm (nightly)
   yum: name=ansible enablerepo=ansible-nightly state=latest
-  when: ansible_pkg_mgr == 'yum' and ansible_repo_url is defined
+  when: ansible_pkg_mgr == 'yum' and ansible_nightly_repo is defined
 
 - name: install ansible deb
   apt: pkg=ansible state=latest update_cache=yes force=yes
