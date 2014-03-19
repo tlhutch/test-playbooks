@@ -1,7 +1,8 @@
 ---
 
 # Specify the package repositry base URL for ansible
-ansible_repo_url: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi
+# ansible_repo_url: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi
+ansible_repo_url: http://releases.ansible.com/ansible/
 
 # Specify an ansible pip package name/version.  Can use any format accepted by
 # 'pip' module (including URL to tarball)
