@@ -7,7 +7,7 @@ from tests.api import Base_Api_Test
 
 @pytest.fixture(scope="class")
 def organization(request, authtoken, api_organizations_pg):
-    payload = dict(name="org-%s" % common.utils.random_ascii(),
+    payload = dict(name="org-%s" % common.utils.random_unicode(),
                    description="Test organization",)
     obj = api_organizations_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -16,7 +16,7 @@ def organization(request, authtoken, api_organizations_pg):
 @pytest.fixture(scope="class")
 def project(request, authtoken, api_projects_pg, organization):
     # Create project
-    payload = dict(name="project-%s" % common.utils.random_ascii(),
+    payload = dict(name="project-%s" % common.utils.random_unicode(),
                    organization=organization.id,
                    scm_type='hg',
                    scm_url='https://bitbucket.org/jlaska/ansible-helloworld',
@@ -52,7 +52,7 @@ def variables_json(request, variables_yaml):
 
 @pytest.fixture(scope="class")
 def inventory_yaml(request, authtoken, api_inventories_pg, organization, variables_yaml):
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
+    payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    description="Test inventory",
                    organization=organization.id,
                    variables=variables_yaml)
@@ -62,7 +62,7 @@ def inventory_yaml(request, authtoken, api_inventories_pg, organization, variabl
 
 @pytest.fixture(scope="class")
 def inventory_json(request, authtoken, api_inventories_pg, organization, variables_json):
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
+    payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    description="Test inventory",
                    organization=organization.id,
                    variables=variables_json)
@@ -75,7 +75,7 @@ def inventory_json(request, authtoken, api_inventories_pg, organization, variabl
 #
 @pytest.fixture(scope="class")
 def groups_json(request, authtoken, api_groups_pg, inventory_json, variables_json):
-    payload = dict(name="group-%s" % common.utils.random_ascii(),
+    payload = dict(name="group-%s" % common.utils.random_unicode(),
                    inventory=inventory_json.id,
                    variables=variables_json)
     obj = api_groups_pg.post(payload)
@@ -84,7 +84,7 @@ def groups_json(request, authtoken, api_groups_pg, inventory_json, variables_jso
 
 @pytest.fixture(scope="class")
 def groups_yaml(request, authtoken, api_groups_pg, inventory_json, variables_yaml):
-    payload = dict(name="group-%s" % common.utils.random_ascii(),
+    payload = dict(name="group-%s" % common.utils.random_unicode(),
                    inventory=inventory_json.id,
                    variables=variables_yaml)
     obj = api_groups_pg.post(payload)
@@ -96,7 +96,7 @@ def groups_yaml(request, authtoken, api_groups_pg, inventory_json, variables_yam
 #
 @pytest.fixture(scope="class")
 def hosts_json(request, authtoken, api_hosts_pg, inventory_json, variables_json):
-    payload = dict(name="host-%s" % common.utils.random_ascii(),
+    payload = dict(name="host-%s" % common.utils.random_unicode(),
                    inventory=inventory_json.id,
                    variables=variables_json)
     obj = api_hosts_pg.post(payload)
@@ -105,7 +105,7 @@ def hosts_json(request, authtoken, api_hosts_pg, inventory_json, variables_json)
 
 @pytest.fixture(scope="class")
 def hosts_yaml(request, authtoken, api_hosts_pg, inventory_json, variables_yaml):
-    payload = dict(name="host-%s" % common.utils.random_ascii(),
+    payload = dict(name="host-%s" % common.utils.random_unicode(),
                    inventory=inventory_json.id,
                    variables=variables_yaml)
     obj = api_hosts_pg.post(payload)
@@ -118,7 +118,7 @@ def hosts_yaml(request, authtoken, api_hosts_pg, inventory_json, variables_yaml)
 @pytest.fixture(scope="class")
 def job_templates_json(request, authtoken, api_job_templates_pg, project, inventory_json, variables_json):
 
-    payload = dict(name="template-%s" % common.utils.random_ascii(),
+    payload = dict(name="template-%s" % common.utils.random_unicode(),
                    extra_vars=variables_json,
                    inventory=inventory_json.id,
                    job_type='run',
@@ -130,7 +130,7 @@ def job_templates_json(request, authtoken, api_job_templates_pg, project, invent
 
 @pytest.fixture(scope="class")
 def job_templates_yaml(request, authtoken, api_job_templates_pg, project, inventory_yaml, variables_yaml):
-    payload = dict(name="template-%s" % common.utils.random_ascii(),
+    payload = dict(name="template-%s" % common.utils.random_unicode(),
                    extra_vars=variables_yaml,
                    inventory=inventory_yaml.id,
                    job_type='run',

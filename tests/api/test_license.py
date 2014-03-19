@@ -98,14 +98,14 @@ def install_aws(request, ansible_runner, license_instance_count, ami_id, instanc
 
 @pytest.fixture(scope="class")
 def organization(request, authtoken, api_organizations_pg):
-    payload = dict(name="org-%s" % common.utils.random_ascii())
+    payload = dict(name="org-%s" % common.utils.random_unicode())
     obj = api_organizations_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 @pytest.fixture(scope="class")
 def inventory(request, authtoken, api_inventories_pg, api_groups_pg, api_hosts_pg, organization):
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
+    payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    organization=organization.id,
                    variables=json.dumps(dict(ansible_connection='local')))
     obj = api_inventories_pg.post(payload)
@@ -114,7 +114,7 @@ def inventory(request, authtoken, api_inventories_pg, api_groups_pg, api_hosts_p
 
 @pytest.fixture(scope="class")
 def group(request, authtoken, api_groups_pg, inventory):
-    payload = dict(name="group-%s" % common.utils.random_ascii(),
+    payload = dict(name="group-%s" % common.utils.random_unicode(),
                    inventory=inventory.id,
                    variables=json.dumps(dict(ansible_connection='local')))
     obj = api_groups_pg.post(payload)
@@ -144,7 +144,7 @@ class Base_License_Test(Base_Api_Test):
                  conf.license_info.available_instances )
 
             # Add a host to the inventory group
-            payload = dict(name="host-%s" % common.utils.random_ascii(),
+            payload = dict(name="host-%s" % common.utils.random_unicode(),
                            inventory=group.inventory)
             # The first 20 hosts should succeed
             if current_hosts < license_instance_count:

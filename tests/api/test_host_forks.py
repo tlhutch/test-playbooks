@@ -12,7 +12,7 @@ NUM_HOSTS = 100
 
 @pytest.fixture(scope="class")
 def organization(request, testsetup, api_organizations_pg):
-    payload = dict(name="org-%s" % common.utils.random_ascii())
+    payload = dict(name="org-%s" % common.utils.random_unicode())
     testsetup.api.login(*testsetup.credentials['default'].values())
     obj = api_organizations_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -23,7 +23,7 @@ def organization(request, testsetup, api_organizations_pg):
 def credential(request, testsetup, api_credentials_pg, api_users_pg):
     testsetup.api.login(*testsetup.credentials['default'].values())
 
-    payload = dict(name="credential-%s" % common.utils.random_ascii(), kind='ssh')
+    payload = dict(name="credential-%s" % common.utils.random_unicode(), kind='ssh')
     # Add user id
     admin = api_users_pg.get(username__exact='admin').results.pop()
     payload['user'] = admin.id
@@ -36,7 +36,7 @@ def credential(request, testsetup, api_credentials_pg, api_users_pg):
 @pytest.fixture(scope="class")
 def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups_pg, api_hosts_pg, organization):
     # Create inventory
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
+    payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    organization=organization.id,
                    variables=json.dumps(dict(ansible_connection='local')))
     testsetup.api.login(*testsetup.credentials['default'].values())
@@ -44,7 +44,7 @@ def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups
     request.addfinalizer(inventory.delete)
 
     # Batch create group+hosts using awx-manage
-    grp_name = "group-%s" % common.utils.random_ascii()
+    grp_name = "group-%s" % common.utils.random_unicode()
     inventory_dict = {grp_name: dict(hosts=[], vars={})}
     inventory_dict[grp_name]['hosts'] = ['host-%s' % num for num in range(NUM_HOSTS)]
     inventory_dict[grp_name]['vars'] = dict(ansible_connection='local')
@@ -78,7 +78,7 @@ EOF
 @pytest.fixture(scope="class")
 def project(request, testsetup, api_projects_pg, organization):
     # Create project
-    payload = dict(name="project-%s" % common.utils.random_ascii(),
+    payload = dict(name="project-%s" % common.utils.random_unicode(),
                    organization=organization.id,
                    scm_type='hg',
                    scm_url='https://bitbucket.org/jlaska/ansible-helloworld',
@@ -119,7 +119,7 @@ def project(request, testsetup, api_projects_pg, organization):
     {'playbook': 'debug-50.yml', 'forks': 400, },
     ])
 def job_template(request, testsetup, api_job_templates_pg, inventory, project, credential):
-    payload = dict(name="template-%s-%s" % (request.param, common.utils.random_ascii()),
+    payload = dict(name="template-%s-%s" % (request.param, common.utils.random_unicode()),
                    job_type='run',
                    playbook=request.param['playbook'],
                    job_tags='',

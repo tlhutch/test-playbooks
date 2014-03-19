@@ -6,7 +6,7 @@ from tests.api import Base_Api_Test
 
 @pytest.fixture(scope="class")
 def random_organization(request, authtoken, api_organizations_pg):
-    payload = dict(name="org-%s" % common.utils.random_ascii(),
+    payload = dict(name="org-%s" % common.utils.random_unicode(),
                    description="Random organization",)
     obj = api_organizations_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -15,7 +15,7 @@ def random_organization(request, authtoken, api_organizations_pg):
 @pytest.fixture(scope="class")
 def random_project(request, authtoken, api_projects_pg, random_organization):
     # Create project
-    payload = dict(name="project-%s" % common.utils.random_ascii(),
+    payload = dict(name="project-%s" % common.utils.random_unicode(),
                    organization=random_organization.id,
                    scm_type='hg',
                    scm_url='https://bitbucket.org/jlaska/ansible-helloworld',
@@ -39,7 +39,7 @@ def random_project(request, authtoken, api_projects_pg, random_organization):
 
 @pytest.fixture(scope="class")
 def random_inventory(request, authtoken, api_inventories_pg, random_organization):
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
+    payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    description="Random inventory",
                    organization=random_organization.id,)
     obj = api_inventories_pg.post(payload)
@@ -51,7 +51,7 @@ def random_inventory(request, authtoken, api_inventories_pg, random_organization
 #
 @pytest.fixture(scope="class")
 def random_group(request, authtoken, api_groups_pg, random_inventory):
-    payload = dict(name="group-%s" % common.utils.random_ascii(),
+    payload = dict(name="group-%s" % common.utils.random_unicode(),
                    inventory=random_inventory.id)
     obj = api_groups_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -62,7 +62,7 @@ def random_group(request, authtoken, api_groups_pg, random_inventory):
 #
 @pytest.fixture(scope="class")
 def random_host(request, authtoken, api_hosts_pg, random_inventory):
-    payload = dict(name="host-%s" % common.utils.random_ascii(),
+    payload = dict(name="host-%s" % common.utils.random_unicode(),
                    inventory=random_inventory.id,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -74,7 +74,7 @@ def random_host(request, authtoken, api_hosts_pg, random_inventory):
 @pytest.fixture(scope="class")
 def random_job_template(request, authtoken, api_job_templates_pg, random_project, random_inventory):
 
-    payload = dict(name="template-%s" % common.utils.random_ascii(),
+    payload = dict(name="template-%s" % common.utils.random_unicode(),
                    description="Random job_template",
                    inventory=random_inventory.id,
                    job_type='run',
