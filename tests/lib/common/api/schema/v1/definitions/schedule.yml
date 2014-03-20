@@ -1,0 +1,37 @@
+---
+schedule:
+  type: object
+  additionalProperties: false
+  required: [ ]
+  properties:
+    id: { $ref: '#/definitions/id' }
+    url: {format: uri, type: string}
+    created: {format: date-time, type: string}
+    modified: {format: date-time, type: string}
+    name: {type: string}
+    description: {type: string}
+    dtstart: {format: date-time, type: string}
+    dtend: {format: date-time, type: string}
+    rrule: {type: string}
+    job_template: { $ref: '#/definitions/id_or_null' }
+    project: { $ref: '#/definitions/id_or_null' }
+    inventory_source: { $ref: '#/definitions/id_or_null' }
+    related:
+      type: object
+      additionalProperties: false
+      properties:
+          project: {format: uri, type: string}
+          job_template: {format: uri, type: string}
+          inventory_source: {format: uri, type: string}
+    summary_fields:
+      type: object
+      additionalProperties: false
+          project:
+              type: object
+              additionalProperties: true
+          job_template:
+              type: object
+              additionalProperties: true
+          inventory_source:
+              type: object
+              additionalProperties: true

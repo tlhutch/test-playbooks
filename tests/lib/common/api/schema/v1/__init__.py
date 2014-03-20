@@ -408,3 +408,43 @@ class Awx_Schema_Job_Event(Awx_Schema_Job_Events):
     @property
     def get(self):
         return self.load_file('job_events/item.yml')
+
+#
+# /schedules
+#
+
+class Awx_Schema_Schedules(Awx_Schema):
+    resource = '/api/v1/schedules/'
+
+    @property
+    def get(self):
+        return self.load_file('schedules/list.yml')
+    @property
+    def post(self):
+        return self.load_file('schedules/item.yml')
+
+class Awx_Schema_Schedule(Awx_Schema_Schedules):
+    resource = '/api/v1/schedules/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('schedules/item.yml')
+
+class Awx_Schema_Project_Schedules(Awx_Schema_Schedules):
+    resource = '/api/v1/projects/\d+/schedules/'
+
+class Awx_Schema_Project_Schedule(Awx_Schema_Schedule):
+    resource = '/api/v1/projects/\d+/schedules/\d+/'
+
+class Awx_Schema_Inventory_Source_Schedules(Awx_Schema_Schedules):
+    resource = '/api/v1/inventory_sources/\d+/schedules/'
+
+class Awx_Schema_Inventory_Source_Schedule(Awx_Schema_Schedule):
+    resource = '/api/v1/inventory_sources/\d+/schedules/\d+/'
+
+class Awx_Schema_Job_Template_Schedules(Awx_Schema_Schedules):
+    resource = '/api/v1/job_templates/\d+/schedules/'
+
+class Awx_Schema_Job_Template_Schedule(Awx_Schema_Schedule):
+    resource = '/api/v1/job_templates/\d+/schedules/\d+/'
+
