@@ -11,7 +11,7 @@ instance_name_prefix: 'testing'
 
 # Available ec2_images
 ec2_images: [{'name': 'centos-6.4-x86_64',   'user': 'root',        'id': 'ami-eb6b0182', },
-             {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-8997afe0', },
+             # TODO: Add centos-6.5 AMI when it's available
              {'name': 'rhel-6.4-x86_64',     'user': 'ec2-user',    'id': 'ami-a25415cb', },
              {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-63b6910a', },
              {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-5b183532', },
