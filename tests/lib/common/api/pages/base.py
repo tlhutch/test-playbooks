@@ -67,8 +67,10 @@ class Base(Page):
 
             # Not all JSON responses include a URL.  Grab it from the request
             # object, if needed.
-            if not 'url' in data:
-                data['url'] = r.request.path_url
+            if 'url' in data:
+                base_url = data['url']
+            else:
+                base_url = r.request.path_url
 
             # Also, don't forget to call r.objectify() on the json structure.
             # Without that call, it will simply be a json dictionary.  By calling
@@ -82,12 +84,12 @@ class Base(Page):
             # return an object of type 'Users'.  A GET on /api/v1/users/4/
             # would return an object of type 'User'.
             if r.request.method.lower() == 'get':
-                return self.__class__(self.testsetup, base_url=data['url'], json=self.json)
+                return self.__class__(self.testsetup, base_url=base_url, json=self.json)
             # Other requests (POST, PATCH, PUT etc...) always return a singular
             # element.  For example, a POST to /api/v1/users will return a 'User'
             # object.
             else:
-                return self.__item_class__(self.testsetup, base_url=data['url'], json=self.json)
+                return self.__item_class__(self.testsetup, base_url=base_url, json=self.json)
         elif r.status_code == httplib.NO_CONTENT:
             raise NoContent_Exception(exc_str)
         elif r.status_code == httplib.FORBIDDEN:
@@ -111,7 +113,6 @@ class Base(Page):
             raise Unknown_Exception(exc_str + ": %s" % data)
 
     def get(self, **params):
-        ''' disables json validation '''
         r = self.api.get(self.base_url.format(**self.json), params=params)
         self.handle_request(r)
         return self

@@ -128,6 +128,17 @@ class Awx_Schema_Inventories_N(Awx_Schema_Inventories):
     def get(self):
         return self.load_file('inventories/item.yml')
 
+class Awx_Schema_Variable_Data(Awx_Schema):
+    resource = '/api/v1/.*\/variable_data/'
+
+    @property
+    def get(self):
+        return self.load_file('dict.yml')
+    def put(self):
+        return self.get
+    def patch(self):
+        return self.get
+
 class Awx_Schema_Groups(Awx_Schema):
     resource = '/api/v1/groups/'
 
@@ -229,6 +240,9 @@ class Awx_Schema_Project_Updates(Awx_Schema_Projects_Project_Updates):
     def get(self):
         return self.load_file('project_updates/item.yml')
 
+#
+# /job_templates
+#
 class Awx_Schema_Job_Templates(Awx_Schema):
     resource = '/api/v1/job_templates/'
 
@@ -242,6 +256,22 @@ class Awx_Schema_Job_Templates(Awx_Schema):
     def duplicate(self):
         return self.load_file('job_templates/duplicate.yml')
 
+class Awx_Schema_Job_Template(Awx_Schema_Job_Templates):
+    resource = '/api/v1/job_templates/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('job_templates/item.yml')
+    @property
+    def patch(self):
+        return self.get
+    @property
+    def put(self):
+        return self.get
+
+#
+# /jobs
+#
 class Awx_Schema_Jobs(Awx_Schema):
     resource = '/api/v1/jobs/'
 
@@ -269,6 +299,23 @@ class Awx_Schema_Job_Start(Awx_Schema):
     def post(self):
         return self.load_file('empty.yml')
 
+class Awx_Schema_Job_Events(Awx_Schema):
+    resource = '/api/v1/jobs/\d+/job_events/'
+
+    @property
+    def get(self):
+        return self.load_file('job_events/list.yml')
+
+class Awx_Schema_Job_Event(Awx_Schema_Job_Events):
+    resource = '/api/v1/jobs/\d+/job_events/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('job_events/item.yml')
+
+#
+# /inventory_sources
+#
 class Awx_Schema_Inventory_Sources(Awx_Schema):
     resource = '/api/v1/inventory_sources/'
 
@@ -319,6 +366,9 @@ class Awx_Schema_Inventory_Source_Update(Awx_Schema_Inventory_Source_Updates):
     def get(self):
         return self.load_file('inventory_updates/item.yml')
 
+#
+# /teams
+#
 class Awx_Schema_Teams(Awx_Schema):
     resource = '/api/v1/teams/'
 
@@ -335,6 +385,9 @@ class Awx_Schema_Teams(Awx_Schema):
 class Awx_Schema_Project_Teams(Awx_Schema_Teams):
     resource = '/api/v1/projects/\d+/teams/'
 
+#
+# /config
+#
 class Awx_Schema_Config(Awx_Schema):
     resource = '/api/v1/config/'
 
@@ -342,6 +395,9 @@ class Awx_Schema_Config(Awx_Schema):
     def get(self):
         return self.load_file('config.yml')
 
+#
+# /me
+#
 class Awx_Schema_Me(Awx_Schema):
     resource = '/api/v1/me/'
 
@@ -358,6 +414,9 @@ class Awx_Schema_Me(Awx_Schema):
     def get(self):
         return self.load_file('users/item.yml')
 
+#
+# /authtoken
+#
 class Awx_Schema_Authtoken(Awx_Schema):
     resource = '/api/v1/authtoken/'
 
@@ -374,6 +433,9 @@ class Awx_Schema_Authtoken(Awx_Schema):
     def post(self):
         return self.load_file('authtoken.yml')
 
+#
+# /dashboard
+#
 class Awx_Schema_Dashboard(Awx_Schema):
     resource = '/api/v1/dashboard/'
 
@@ -381,6 +443,9 @@ class Awx_Schema_Dashboard(Awx_Schema):
     def get(self):
         return self.load_file('dashboard.yml')
 
+#
+# /activity_stream
+#
 class Awx_Schema_Activity_Stream(Awx_Schema):
     resource = '/api/v1/activity_stream/'
 
@@ -394,20 +459,6 @@ class Awx_Schema_Activity_Stream_N(Awx_Schema_Activity_Stream):
     @property
     def get(self):
         return self.load_file('activity_stream/item.yml')
-
-class Awx_Schema_Job_Events(Awx_Schema):
-    resource = '/api/v1/jobs/\d+/job_events/'
-
-    @property
-    def get(self):
-        return self.load_file('job_events/list.yml')
-
-class Awx_Schema_Job_Event(Awx_Schema_Job_Events):
-    resource = '/api/v1/jobs/\d+/job_events/\d+/'
-
-    @property
-    def get(self):
-        return self.load_file('job_events/item.yml')
 
 #
 # /schedules
