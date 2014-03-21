@@ -15,4 +15,4 @@ pip
 setuptools
 inflect
 ansible
-dateutil
+python-dateutil
