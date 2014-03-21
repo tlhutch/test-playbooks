@@ -11,15 +11,6 @@ from tests.api import Base_Api_Test
 NUM_HOSTS = 100
 
 @pytest.fixture(scope="class")
-def organization(request, testsetup, api_organizations_pg):
-    payload = dict(name="org-%s" % common.utils.random_unicode())
-    testsetup.api.login(*testsetup.credentials['default'].values())
-    obj = api_organizations_pg.post(payload)
-    request.addfinalizer(obj.delete)
-
-    return obj
-
-@pytest.fixture(scope="class")
 def credential(request, testsetup, api_credentials_pg, api_users_pg):
     testsetup.api.login(*testsetup.credentials['default'].values())
 
@@ -34,10 +25,10 @@ def credential(request, testsetup, api_credentials_pg, api_users_pg):
     return obj
 
 @pytest.fixture(scope="class")
-def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups_pg, api_hosts_pg, organization):
+def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups_pg, api_hosts_pg, random_organization):
     # Create inventory
     payload = dict(name="inventory-%s" % common.utils.random_unicode(),
-                   organization=organization.id,
+                   organization=random_organization.id,
                    variables=json.dumps(dict(ansible_connection='local')))
     testsetup.api.login(*testsetup.credentials['default'].values())
     inventory = api_inventories_pg.post(payload)
@@ -75,32 +66,6 @@ EOF
 
     return inventory
 
-@pytest.fixture(scope="class")
-def project(request, testsetup, api_projects_pg, organization):
-    # Create project
-    payload = dict(name="project-%s" % common.utils.random_unicode(),
-                   organization=organization.id,
-                   scm_type='hg',
-                   scm_url='https://bitbucket.org/jlaska/ansible-helloworld',
-                   scm_clean=False,
-                   scm_delete_on_update=False,
-                   scm_update_on_launch=False,)
-
-    testsetup.api.login(*testsetup.credentials['default'].values())
-    obj = api_projects_pg.post(payload)
-    request.addfinalizer(obj.delete)
-
-    # Wait for project update to complete
-    updates_pg = obj.get_related('project_updates')
-    assert updates_pg.count > 0, 'No project updates found'
-    latest_update_pg = updates_pg.results.pop()
-    count = 0
-    while count <30 and latest_update_pg.status.lower() != 'successful':
-        latest_update_pg.get()
-        count +=1
-
-    return obj
-
 @pytest.fixture(scope="class", params=[
 #    {'playbook': 'debug.yml', 'forks': 200, },
 #    {'playbook': 'debug.yml', 'forks': 400, },
@@ -118,14 +83,14 @@ def project(request, testsetup, api_projects_pg, organization):
     {'playbook': 'debug-50.yml', 'forks': 200, },
     {'playbook': 'debug-50.yml', 'forks': 400, },
     ])
-def job_template(request, testsetup, api_job_templates_pg, inventory, project, credential):
+def job_template(request, testsetup, api_job_templates_pg, inventory, random_project, credential):
     payload = dict(name="template-%s-%s" % (request.param, common.utils.random_unicode()),
                    job_type='run',
                    playbook=request.param['playbook'],
                    job_tags='',
                    limit='',
                    inventory=inventory.id,
-                   project=project.id,
+                   project=random_project.id,
                    credential=credential.id,
                    allow_callbacks=False,
                    verbosity=0,
@@ -198,14 +163,14 @@ class Test_Host_Fork(Base_Api_Test):
         self.metrics['tower'].append(dict(playbook=job_template.playbook, forks=job_template.forks, \
             runtime=delta.total_seconds(), event_time=event_delta.total_seconds()))
 
-    def test_ansible_job_launch(self, ansible_runner, inventory, project, job_template):
+    def test_ansible_job_launch(self, ansible_runner, inventory, random_project, job_template):
 
         cmd = "REST_API_URL='http://{username}:{password}@localhost'".format(**self.credentials['default'])
         cmd += " INVENTORY_HOSTVARS=1"
         cmd += " INVENTORY_ID='%s'" % inventory.id
         cmd += " ansible-playbook -i /usr/lib/python2.7/dist-packages/awx/plugins/inventory/awxrest.py" \
                " --forks %s /var/lib/awx/projects/%s/%s" % \
-               (job_template.forks, project.local_path, job_template.playbook)
+               (job_template.forks, random_project.local_path, job_template.playbook)
         results = ansible_runner.shell(cmd)
 
         # Convert HH:MM:SS.SSSSS into datetime object

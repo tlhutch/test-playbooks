@@ -6,39 +6,6 @@ import common.utils
 from tests.api import Base_Api_Test
 
 @pytest.fixture(scope="class")
-def organization(request, authtoken, api_organizations_pg):
-    payload = dict(name="org-%s" % common.utils.random_unicode(),
-                   description="Test organization",)
-    obj = api_organizations_pg.post(payload)
-    request.addfinalizer(obj.delete)
-    return obj
-
-@pytest.fixture(scope="class")
-def project(request, authtoken, api_projects_pg, organization):
-    # Create project
-    payload = dict(name="project-%s" % common.utils.random_unicode(),
-                   organization=organization.id,
-                   scm_type='hg',
-                   scm_url='https://bitbucket.org/jlaska/ansible-helloworld',
-                   scm_clean=False,
-                   scm_delete_on_update=False,
-                   scm_update_on_launch=False,)
-
-    obj = api_projects_pg.post(payload)
-    request.addfinalizer(obj.delete)
-
-    # Wait for project update to complete
-    updates_pg = obj.get_related('project_updates')
-    assert updates_pg.count > 0, 'No project updates found'
-    latest_update_pg = updates_pg.results.pop()
-    count = 0
-    while count <30 and latest_update_pg.status.lower() != 'successful':
-        latest_update_pg.get()
-        count +=1
-
-    return obj
-
-@pytest.fixture(scope="class")
 def variables_yaml(request):
     return yaml.load('''
 variables: |
@@ -51,20 +18,20 @@ def variables_json(request, variables_yaml):
     return json.dumps(variables_yaml)
 
 @pytest.fixture(scope="class")
-def inventory_yaml(request, authtoken, api_inventories_pg, organization, variables_yaml):
+def inventory_yaml(request, authtoken, api_inventories_pg, random_organization, variables_yaml):
     payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    description="Test inventory",
-                   organization=organization.id,
+                   organization=random_organization.id,
                    variables=variables_yaml)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 @pytest.fixture(scope="class")
-def inventory_json(request, authtoken, api_inventories_pg, organization, variables_json):
+def inventory_json(request, authtoken, api_inventories_pg, random_organization, variables_json):
     payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    description="Test inventory",
-                   organization=organization.id,
+                   organization=random_organization.id,
                    variables=variables_json)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -116,25 +83,25 @@ def hosts_yaml(request, authtoken, api_hosts_pg, inventory_json, variables_yaml)
 # /job_templates
 #
 @pytest.fixture(scope="class")
-def job_templates_json(request, authtoken, api_job_templates_pg, project, inventory_json, variables_json):
+def job_templates_json(request, authtoken, api_job_templates_pg, random_project, inventory_json, variables_json):
 
     payload = dict(name="template-%s" % common.utils.random_unicode(),
                    extra_vars=variables_json,
                    inventory=inventory_json.id,
                    job_type='run',
-                   project=project.id,
+                   project=random_project.id,
                    playbook='site.yml', ) # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 @pytest.fixture(scope="class")
-def job_templates_yaml(request, authtoken, api_job_templates_pg, project, inventory_yaml, variables_yaml):
+def job_templates_yaml(request, authtoken, api_job_templates_pg, random_project, inventory_yaml, variables_yaml):
     payload = dict(name="template-%s" % common.utils.random_unicode(),
                    extra_vars=variables_yaml,
                    inventory=inventory_yaml.id,
                    job_type='run',
-                   project=project.id,
+                   project=random_project.id,
                    playbook='site.yml', ) # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
