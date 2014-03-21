@@ -12,5 +12,7 @@ requests
 PyYAML
 jsonschema
 pip
+setuptools
 inflect
 ansible
+dateutil
