@@ -11,6 +11,14 @@ class Inventory_Page(base.Base):
 class Inventories_Page(Inventory_Page, base.Base_List):
     base_url = '/api/v1/inventory/'
 
+    def get_related(self, name):
+        assert name in self.json['related']
+        if name == 'variable_data':
+            related = Base_Page(self.testsetup, base_url=self.json['related'][name])
+        else:
+            raise NotImplementedError
+        return related.get()
+
 class Group_Page(base.Base):
     # FIXME - it would be nice for base_url to always return self.json.url.
     base_url = '/api/v1/groups/{id}/'
@@ -27,6 +35,8 @@ class Group_Page(base.Base):
             related = Inventory_Source_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'children':
             related = Groups_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'variable_data':
+            related = Base_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get()
@@ -40,6 +50,14 @@ class Host_Page(base.Base):
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
     variables = property(base.json_getter('variables'), base.json_setter('variables'))
+
+    def get_related(self, name):
+        assert name in self.json['related']
+        if name == 'variable_data':
+            related = Base_Page(self.testsetup, base_url=self.json['related'][name])
+        else:
+            raise NotImplementedError
+        return related.get()
 
 class Hosts_Page(Host_Page, base.Base_List):
     base_url = '/api/v1/hosts/'
