@@ -252,7 +252,14 @@ class Task_Page(Base):
         return 'Traceback' in self.result_traceback or \
                'Traceback' in self.result_stdout
 
+    def wait_until_started(self, interval=1, verbose=0, timeout=60):
+        return common.utils.wait_until(self, 'status',
+            ('pending', 'waiting', 'running', 'successful', 'failed', 'error', 'canceled',),
+            interval=interval, verbose=verbose, timeout=timeout,
+            start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
+
     def wait_until_completed(self, interval=5, verbose=0, timeout=60*8):
-        return common.utils.wait_until(self, 'status', ('successful', 'failed', 'error', 'canceled',),
+        return common.utils.wait_until(self, 'status',
+            ('successful', 'failed', 'error', 'canceled',),
             interval=interval, verbose=verbose, timeout=timeout,
             start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))

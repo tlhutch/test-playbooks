@@ -691,7 +691,10 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         assert matches.results > 0, "No jobs matching job_template=%s found" % template_pg.id
         job_pg = matches.results[0]
 
-        # The job should already have launched ... and shouldn't be start'able
+        # Wait 1 min for job to start (aka, leave 'new' state)
+        job_pg = job_pg.wait_until_started(timeout=60)
+
+        # With the job started, it shouldn't be start'able anymore
         start_pg = job_pg.get_related('start')
         assert not start_pg.json['can_start']
 
