@@ -696,7 +696,9 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # With the job started, it shouldn't be start'able anymore
         start_pg = job_pg.get_related('start')
-        assert not start_pg.json['can_start']
+        assert not start_pg.json['can_start'], \
+            "Job id:%s launched (status:%s), but can_start: %s\nJob result_stdout: %s\nJob result_traceback: %s" % \
+            (job_pg.id, job_pg.status, start_pg.json['can_start'], job_pg.result_stdout, job_pg.result_traceback)
 
         # Wait 15mins for job to complete
         job_pg = job_pg.wait_until_completed(timeout=60*15)
