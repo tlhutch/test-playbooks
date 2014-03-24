@@ -14,8 +14,8 @@ job:
     job_env: {$ref: '#/definitions/job_env'}
     job_tags: {type: string}
     job_template: {$ref: '#/definitions/id'}
-    job_type:
-      enum: [run, check]
+    type: {$ref: '#/definitions/enum_job_type'}
+    job_type: {$ref: '#/definitions/enum_job_job_type'}
     launch_type: {$ref: '#/definitions/enum_launch_type'}
     limit: {type: string}
     modified: {format: date-time, type: string}

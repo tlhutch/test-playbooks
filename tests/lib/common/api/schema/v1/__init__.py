@@ -273,7 +273,7 @@ class Awx_Schema_Job_Template(Awx_Schema_Job_Templates):
 # /jobs
 #
 class Awx_Schema_Jobs(Awx_Schema):
-    resource = '/api/v1/jobs/'
+    resource = '/api/v1/(unified_)?jobs/'
 
     @property
     def get(self):
@@ -283,14 +283,14 @@ class Awx_Schema_Jobs(Awx_Schema):
         return self.load_file('jobs/item.yml')
 
 class Awx_Schema_Job(Awx_Schema_Jobs):
-    resource = '/api/v1/jobs/\d+/'
+    resource = '/api/v1/(unified_)?jobs/\d+/'
 
     @property
     def get(self):
         return self.load_file('jobs/item.yml')
 
 class Awx_Schema_Job_Start(Awx_Schema):
-    resource = '/api/v1/jobs/\d+/start/'
+    resource = '/api/v1/(unified_)?jobs/\d+/start/'
 
     @property
     def get(self):
@@ -300,14 +300,14 @@ class Awx_Schema_Job_Start(Awx_Schema):
         return self.load_file('empty.yml')
 
 class Awx_Schema_Job_Events(Awx_Schema):
-    resource = '/api/v1/jobs/\d+/job_events/'
+    resource = '/api/v1/(unified_)?jobs/\d+/job_events/'
 
     @property
     def get(self):
         return self.load_file('job_events/list.yml')
 
 class Awx_Schema_Job_Event(Awx_Schema_Job_Events):
-    resource = '/api/v1/jobs/\d+/job_events/\d+/'
+    resource = '/api/v1/(unified_)?jobs/\d+/job_events/\d+/'
 
     @property
     def get(self):
