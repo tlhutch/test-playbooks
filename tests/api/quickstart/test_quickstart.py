@@ -672,7 +672,10 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         start_pg = job_pg.get_related('start')
         assert start_pg.json['can_start']
 
-        # FIXME - Figure out which passwords are needed
+        # If the credential used requires a password, provide a password.
+        # Note, the password here is bogus and would fail if used.  In the
+        # current scenario, the test systems do not require sudo passwords, so
+        # the bogus value provided isn't used by the playbooks/hosts.
         payload = dict()
         for pass_field in start_pg.json.get('passwords_needed_to_start', []):
             payload[pass_field] = 'thisWillFail'
