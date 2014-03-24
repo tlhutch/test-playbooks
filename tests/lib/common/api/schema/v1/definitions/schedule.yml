@@ -26,6 +26,7 @@ schedule:
     summary_fields:
       type: object
       additionalProperties: false
+      properties:
           project:
               type: object
               additionalProperties: true
