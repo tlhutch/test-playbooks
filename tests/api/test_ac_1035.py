@@ -113,9 +113,8 @@ def job_templates_yaml(request, authtoken, api_job_templates_pg, random_project,
 @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000')
 class Test_AC_1035(Base_Api_Test):
     '''
-    Test JSON variable POST, PUT, PATCH
-    Test YAML variable POST, PUT, PATCH
-    FIXME: Test related -> variable_data
+    For API objects that support a 'variables' (or 'extra_vars') attribute,
+    verify they support storing and retrieving JSON/YAML data.
     '''
     #
     # /inventories
