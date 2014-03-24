@@ -694,7 +694,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         assert matches.results > 0, "No jobs matching job_template=%s found" % template_pg.id
         job_pg = matches.results[0]
 
-        # Wait 1 min for job to start (aka, leave 'new' state)
+        # Wait 5mins for job to start (aka, enter 'pending' state)
         job_pg = job_pg.wait_until_started(timeout=60*5, verbose=1)
 
         # With the job started, it shouldn't be start'able anymore
