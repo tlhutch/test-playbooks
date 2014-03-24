@@ -254,7 +254,7 @@ class Task_Page(Base):
 
     def wait_until_started(self, interval=1, verbose=0, timeout=60):
         return common.utils.wait_until(self, 'status',
-            ('pending', 'waiting', 'running', 'successful', 'failed', 'error', 'canceled',),
+            ('pending', 'running', 'successful', 'failed', 'error', 'canceled',),
             interval=interval, verbose=verbose, timeout=timeout,
             start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
 
