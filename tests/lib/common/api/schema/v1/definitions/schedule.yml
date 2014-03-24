@@ -2,7 +2,7 @@
 schedule:
   type: object
   additionalProperties: false
-  required: [ ]
+  # required: [ ]
   properties:
     id: { $ref: '#/definitions/id' }
     url: {format: uri, type: string}
