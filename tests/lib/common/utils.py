@@ -81,7 +81,7 @@ def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_
     if start_time is None:
         start_time = time.time()
     elif isinstance(start_time, time.struct_time):
-        start_time = time.mktime(start_time) - time.timezone
+        start_time = time.mktime(start_time) - time.altzone
 
     while infinite or (attempt < attempts):
         try:
