@@ -1,3 +1,3 @@
 ---
-enum_job_template_type:
+enum_job_type:
     enum: [inventory_sync, project_update, playbook_run]
