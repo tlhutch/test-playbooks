@@ -15,6 +15,9 @@ class Organization_Page(base.Base):
         elif name == 'projects':
             from projects import Projects_Page
             related = Projects_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'activity_stream':
+            from activity_stream import Activity_Stream_Page
+            related = Activity_Stream_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get()

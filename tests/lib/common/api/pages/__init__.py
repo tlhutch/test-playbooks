@@ -9,3 +9,4 @@ from inventory import *
 from job_templates import *
 from jobs import *
 from config import *
+from activity_stream import *
