@@ -1,16 +1,21 @@
 ---
 project:
   type: object
-  required: [id, name, url, created, modified, last_updated, description, last_update_failed,
+  required: [id, name, url, created, modified, last_job_run, description, last_job_failed,
     status, summary_fields, local_path, scm_type, scm_url, scm_branch, scm_clean,
-    scm_delete_on_update, scm_delete_on_next_update, scm_update_on_launch, credential]
+    scm_delete_on_update, scm_delete_on_next_update, scm_update_on_launch, credential, type]
   additionalProperties: false
   properties:
+    type: {type: string, pattern: ^project$}
     created: {format: date-time, type: string}
     credential:
       type: [number, 'null']
     description: {type: string}
     id: {minimum: 1, type: number}
+    last_job_failed: {type: boolean}
+    last_job_run:
+      format: date-time
+      type: [string, 'null']
     last_update_failed: {type: boolean}
     last_updated:
       format: date-time
@@ -25,6 +30,7 @@ project:
         created_by: {format: uri, type: string}
         credential: {format: uri, type: string}
         current_update: {format: uri, type: string}
+        last_job: {format: uri, type: string}
         last_update: {format: uri, type: string}
         organizations: {format: uri, type: string}
         playbooks: {format: uri, type: string}

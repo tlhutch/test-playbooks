@@ -1,6 +1,7 @@
 host:
   additionalProperties: false
   properties:
+    type: {type: string, pattern: ^host$}
     created: {format: date-time, type: string}
     description: {type: string}
     enabled: {type: boolean}
@@ -44,5 +45,5 @@ host:
     variables: {type: string}
   required: [id, url, created, modified, name, description, inventory, variables,
     enabled, has_active_failures, has_inventory_sources, last_job, last_job_host_summary,
-    related, summary_fields]
+    related, summary_fields, type]
   type: object

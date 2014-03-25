@@ -1,6 +1,7 @@
 job_template:
   additionalProperties: false
   properties:
+    type: {type: string, pattern: ^job_template$}
     cloud_credential: {$ref: '#/definitions/id_or_null'}
     created: {format: date-time, type: string}
     credential: {$ref: '#/definitions/id'}
@@ -43,5 +44,5 @@ job_template:
     verbosity: {minimum: 0, type: number}
   required: [id, name, url, description, created, modified, job_type, inventory,
     project, playbook, credential, cloud_credential, forks, verbosity, limit, extra_vars,
-    job_tags, host_config_key, related, summary_fields]
+    job_tags, host_config_key, related, summary_fields, type]
   type: object

@@ -2,8 +2,9 @@
 team:
   type: object
   additionalProperties: false
-  required: [created, id, url, related, summary_fields, name, description, organization]
+  required: [created, id, url, related, summary_fields, name, description, organization, type]
   properties:
+    type: {type: string, pattern: ^team$}
     created: {format: date-time, type: string}
     description: {type: string}
     id: {minimum: 1, type: number}

@@ -1,9 +1,10 @@
 ---
 job_event:
     type: object
-    required: [ id, url, created, modified, job, event, event_display, event_level, failed, changed, host, parent, play, task, event_data, related, summary_fields, ]
+    required: [ id, url, created, modified, job, event, event_display, event_level, failed, changed, host, parent, play, task, event_data, related, summary_fields, type]
     additionalProperties: False
     properties:
+        type: { type: string, pattern: ^job_event$ }
         id: { type: number, minimum: 1, }
         url: { type: string, format: uri}
         created:  { type: string, format: date-time, }

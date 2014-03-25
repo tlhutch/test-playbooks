@@ -1,9 +1,10 @@
 ---
 permission:
     type: object
-    required: [ id, url, created, modified, name, description, user, team, project, inventory, permission_type, related, summary_fields, ]
+    required: [ id, url, created, modified, name, description, user, team, project, inventory, permission_type, related, summary_fields, type]
     additionalProperties: false
     properties:
+        type: {type: string, pattern: ^permission$}
         id: { type: number, minimum: 1, }
         url: { type: string, format: uri, }
         created:  { type: string, format: date-time, }

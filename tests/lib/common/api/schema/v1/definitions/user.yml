@@ -2,9 +2,10 @@
 user:
   type: object
   required: [created, email, first_name, id, is_superuser, last_name, ldap_dn, related,
-    url, username]
+    url, username, type]
   additionalProperties: false
   properties:
+    type: {type: string, pattern: ^user$}
     created: {format: date-time, type: string}
     email: {format: email, type: string}
     first_name: {type: string}

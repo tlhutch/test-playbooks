@@ -2,6 +2,7 @@
 project_update:
   additionalProperties: false
   properties:
+    type: {type: string, pattern: ^project_update$}
     created: {format: date-time, type: string}
     failed: {type: boolean}
     id: {$ref: '#/definitions/id'}
@@ -24,8 +25,11 @@ project_update:
       additionalProperties: false
       properties:
         project: {$ref: '#/definitions/summary_fields_project'}
+        credential: {$ref: '#/definitions/summary_fields_credential'}
       required: [project]
       type: object
     url: {format: uri, type: string}
-  required: [id, url, created, modified, project, status, failed, result_stdout, result_traceback, job_args, job_cwd, job_env, related, summary_fields]
+  required: [id, url, created, modified, project, status, failed,
+  result_stdout, result_traceback, job_args, job_cwd, job_env, related,
+  summary_fields, type]
   type: object

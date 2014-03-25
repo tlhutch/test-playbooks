@@ -4,6 +4,7 @@ schedule:
   additionalProperties: false
   # required: [ ]
   properties:
+    type: {type: string, pattern: ^schedule$}
     id: { $ref: '#/definitions/id' }
     url: {format: uri, type: string}
     created: {format: date-time, type: string}

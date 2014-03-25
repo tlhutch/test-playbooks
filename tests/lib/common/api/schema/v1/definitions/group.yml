@@ -1,6 +1,7 @@
 group:
   additionalProperties: false
   properties:
+    type: {type: string, pattern: ^group$}
     created: {format: date-time, type: string}
     description: {type: string}
     groups_with_active_failures: {minimum: 0, type: number}
@@ -41,5 +42,5 @@ group:
     variables: {type: string}
   required: [id, url, created, modified, name, description, inventory, variables,
     has_active_failures, hosts_with_active_failures, has_inventory_sources, related,
-    summary_fields, total_hosts, groups_with_active_failures, total_groups]
+    summary_fields, total_hosts, groups_with_active_failures, total_groups, type]
   type: object
