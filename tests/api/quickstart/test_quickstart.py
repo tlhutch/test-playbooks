@@ -694,8 +694,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         assert matches.results > 0, "No jobs matching job_template=%s found" % template_pg.id
         job_pg = matches.results[0]
 
-        # Wait 5mins for job to start (aka, enter 'pending' state)
-        job_pg = job_pg.wait_until_started(timeout=60*5, verbose=1)
+        # Wait 15mins for job to start (aka, enter 'pending' state)
+        job_pg = job_pg.wait_until_started(timeout=60*15)
 
         # With the job started, it shouldn't be start'able anymore
         start_pg = job_pg.get_related('start')
@@ -704,7 +704,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             (job_pg.id, job_pg.status, start_pg.json['can_start'], job_pg.result_stdout, job_pg.result_traceback)
 
         # Wait 15mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60*15, verbose=1)
+        # TODO: It might be nice to wait 15 mins from when the job started
+        job_pg = job_pg.wait_until_completed(timeout=60*15)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, \
