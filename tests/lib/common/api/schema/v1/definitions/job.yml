@@ -41,7 +41,7 @@ job:
       type: object
     result_stdout: {type: string}
     result_traceback: {type: string}
-    status: {$ref: '#/definitions/enum_launch_status'}
+    status: {$ref: '#/definitions/enum_task_status'}
     summary_fields:
       additionalProperties: false
       properties:

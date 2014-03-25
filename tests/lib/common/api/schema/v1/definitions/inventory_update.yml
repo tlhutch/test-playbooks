@@ -20,7 +20,7 @@ inventory_update:
       type: object
     result_stdout: {type: string}
     result_traceback: {type: string}
-    status: {$ref: '#/definitions/enum_inventory_update_status'}
+    status: {$ref: '#/definitions/enum_task_status'}
     summary_fields:
       additionalProperties: false
       properties:

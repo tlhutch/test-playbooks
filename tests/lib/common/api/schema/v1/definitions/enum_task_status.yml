@@ -1,0 +1,3 @@
+---
+enum_task_status:
+    enum: [new, pending, waiting, running, successful, failed, error, canceled]

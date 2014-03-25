@@ -1,3 +1,0 @@
----
-enum_inventory_update_status:
-    enum: ['', new, pending, waiting, running, successful, failed, error, canceled]

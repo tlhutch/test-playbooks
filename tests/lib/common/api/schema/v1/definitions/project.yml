@@ -43,7 +43,6 @@ project:
       type: [string, 'null']
     scm_update_on_launch: {type: boolean}
     scm_url: {type: string}
-    status:
-      enum: ['', ok, missing, never updated, updating, failed, successful]
+    status: { $ref: '#/definitions/enum_project_status' }
     summary_fields: {type: object}
     url: {format: uri, type: string}

@@ -1,4 +1,3 @@
 ---
 enum_project_status:
-    # enum: [new, pending, waiting, running, successful, failed, error, canceled]
-    enum: [ok, missing, never updated, updating, failed, successful]
+    enum: ['', ok, missing, never updated, updating, failed, successful]
