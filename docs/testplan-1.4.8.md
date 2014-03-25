@@ -29,3 +29,8 @@ TDB
 
 ## Feature: Unified Jobs View
 1. Update existing job_status API automation
+
+## Feature: Failure recovery
+1. Catastrophic fail - Launch jobs, sysrq-trigger before jobs complete, all jobs should resume or failed
+2. Celery fail - celery dies, we should accept jobs, but not process process.  Running jobs will be marked fail.  Resuming celery should continue running jobs.
+3. Task Manager fail - task_mgr dies, should queue and start jobs, but not run.
