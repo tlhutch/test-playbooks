@@ -5,6 +5,7 @@ import httplib
 import pytest
 import time
 import json
+import logging
 import common.tower.license
 from inflect import engine
 from unittestzero import Assert
@@ -51,17 +52,20 @@ def pytest_generate_tests(metafunc):
         if test_set and id_list:
             metafunc.parametrize(fixture, test_set, ids=id_list)
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='module')
 def install_integration_license(request, authtoken, ansible_runner, awx_config):
     '''If a suitable license is not already installed, install a new license'''
+    logging.debug("calling fixture install_integration_license")
     if not (awx_config['license_info'].get('valid_key', False) and \
             awx_config['license_info'].get('compliant', False) and \
             awx_config['license_info'].get('available_instances',0) >= 1001 ):
 
+        logging.debug("backing up existing license")
         # Backup any aws license
         ansible_runner.shell('test -f /etc/awx/aws && mv /etc/awx/aws /etc/awx/.aws', creates='/etc/awx/.aws', removes='/etc/awx/aws')
 
         # Install/replace license
+        logging.debug("installing license /etc/awx/license")
         fname = common.tower.license.generate_license_file(instance_count=1000, days=60)
         ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
 
