@@ -37,6 +37,7 @@ job_template:
         credential: {$ref: '#/definitions/summary_fields_credential'}
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         project: {$ref: '#/definitions/summary_fields_project'}
+        current_update: {$ref: '#/definitions/summary_fields_job'}
       required: [inventory, project, credential]
       type: object
     url: {format: uri, type: string}
