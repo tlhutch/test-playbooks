@@ -1,0 +1,10 @@
+---
+summary_fields_job:
+    additionalProperties: false
+    properties:
+      description: {type: string}
+      name: {type: string}
+      failed: {type: boolean}
+      status: {$ref: '#/definitions/enum_task_status'}
+    required: [name, description]
+    type: object
