@@ -49,7 +49,6 @@ job:
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         job_template: {$ref: '#/definitions/summary_fields_job_template'}
         project: {$ref: '#/definitions/summary_fields_project'}
-        job: {$ref: '#/definitions/summary_fields_job'}
       required: [inventory, project, credential]
       type: object
     url: {format: uri, type: string}
