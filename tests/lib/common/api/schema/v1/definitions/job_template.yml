@@ -12,7 +12,6 @@ job_template:
     id: {$ref: '#/definitions/id'}
     inventory: {$ref: '#/definitions/id'}
     job_tags: {type: string}
-    type: {$ref: '#/definitions/enum_job_type'}
     job_type: {$ref: '#/definitions/enum_job_job_type'}
     limit: {type: string}
     modified: {format: date-time, type: string}
