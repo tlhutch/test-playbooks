@@ -24,8 +24,8 @@ inventory_update:
     source_vars: {type: string}
     overwrite: {type: boolean}
     overwrite_vars: {type: boolean}
-    started: {format: date-time, type: string}
-    finished: {format: date-time, type: string}
+    started: {format: date-time, type: [string, 'null']}
+    finished: {format: date-time, type: [string, 'null']}
     elapsed: {type: string} # {type: number}
     launch_type: {$ref: '#/definitions/enum_launch_type'}
     # FIXME: Remove the following eventually, it's an internal tower field
