@@ -29,6 +29,7 @@ project:
         activity_stream: {format: uri, type: string}
         created_by: {format: uri, type: string}
         credential: {format: uri, type: string}
+        current_job: {format: uri, type: string}
         current_update: {format: uri, type: string}
         last_job: {format: uri, type: string}
         last_update: {format: uri, type: string}
