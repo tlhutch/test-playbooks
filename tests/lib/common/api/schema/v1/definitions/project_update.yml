@@ -2,6 +2,16 @@
 project_update:
   additionalProperties: false
   properties:
+    credential: {$ref: '#/definitions/id_or_null'}
+    description: {type: string}
+    local_path: {format: uri, type: string}
+    name: {type: string}
+    scm_branch: {type: string}
+    scm_clean: {type: boolean}
+    scm_delete_on_update: {type: boolean}
+    scm_type: {type: [string, 'null']}
+    scm_url: {type: string}
+    unified_job_template: {$ref: '#/definitions/id_or_null'}
     type: {type: string, pattern: ^project_update$}
     created: {format: date-time, type: string}
     failed: {type: boolean}
@@ -11,11 +21,17 @@ project_update:
     job_cwd: {type: string}
     job_env: {$ref: '#/definitions/job_env'}
     modified: {format: date-time, type: string}
+    started: {format: date-time, type: string}
+    finished: {format: date-time, type: string}
+    elapsed: {type: string} # {type: number}
+    launch_type: {$ref: '#/definitions/enum_launch_type'}
     related:
       additionalProperties: false
       properties:
         cancel: {format: uri, type: string}
         project: {format: uri, type: string}
+        credential: {format: uri, type: string}
+        unified_job_template: {format: uri, type: string}
       required: [cancel, project]
       type: object
     result_stdout: {type: string}
@@ -31,5 +47,7 @@ project_update:
     url: {format: uri, type: string}
   required: [id, url, created, modified, project, status, failed,
   result_stdout, result_traceback, job_args, job_cwd, job_env, related,
-  summary_fields, type]
+  summary_fields, type, started, finished, elapsed, launch_type, credential,
+  description, local_path, name, scm_branch, scm_clean, scm_delete_on_update,
+  scm_type, scm_url ]
   type: object

@@ -1,12 +1,27 @@
+---
 job_template:
+  type: object
+  required: [id, cloud_credential, created, credential, description,
+  extra_vars, forks, has_schedules, host_config_key, inventory,
+  job_tags, job_type, last_job_failed, last_job_run, limit, modified, name,
+  next_job_run, playbook, project, related, status, summary_fields, type, url,
+  verbosity, ]
   additionalProperties: false
   properties:
     type: {type: string, pattern: ^job_template$}
     cloud_credential: {$ref: '#/definitions/id_or_null'}
     created: {format: date-time, type: string}
     credential: {$ref: '#/definitions/id'}
-    description: {type: string}
     extra_vars: {type: string}
+    has_schedules: {type: boolean}
+    status: {$ref: '#/definitions/enum_job_template_status'}
+    next_job_run:
+      format: date-time
+      type: [string, 'null']
+    last_job_run:
+      format: date-time
+      type: [string, 'null']
+    last_job_failed: {type: boolean}
     forks: {minimum: 0, type: number}
     host_config_key: {type: string}
     id: {$ref: '#/definitions/id'}
@@ -16,6 +31,7 @@ job_template:
     limit: {type: string}
     modified: {format: date-time, type: string}
     name: {type: string}
+    description: {type: string}
     playbook: {pattern: .*\.(yaml|yml), type: string}
     project: {$ref: '#/definitions/id'}
     related:
@@ -29,20 +45,23 @@ job_template:
         jobs: {format: uri, type: string}
         project: {format: uri, type: string}
         schedules: {format: uri, type: string}
+        last_job: {format: uri, type: string}
+        current_job: {format: uri, type: string}
       required: [created_by, project, jobs, inventory, credential, activity_stream]
       type: object
     summary_fields:
       additionalProperties: false
       properties:
+        cloud_credential: {$ref: '#/definitions/summary_fields_credential'}
         credential: {$ref: '#/definitions/summary_fields_credential'}
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         project: {$ref: '#/definitions/summary_fields_project'}
+        current_update: {$ref: '#/definitions/summary_fields_job'}
+        last_job: {$ref: '#/definitions/summary_fields_job'}
+        last_update: {$ref: '#/definitions/summary_fields_job'}
+        current_job: {$ref: '#/definitions/summary_fields_job'}
         current_update: {$ref: '#/definitions/summary_fields_job'}
       required: [inventory, project, credential]
       type: object
     url: {format: uri, type: string}
     verbosity: {minimum: 0, type: number}
-  required: [id, name, url, description, created, modified, job_type, inventory,
-    project, playbook, credential, cloud_credential, forks, verbosity, limit, extra_vars,
-    job_tags, host_config_key, related, summary_fields, type]
-  type: object

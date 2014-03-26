@@ -12,16 +12,35 @@ inventory_update:
     job_env: {$ref: '#/definitions/job_env'}
     license_error: {type: boolean}
     modified: {format: date-time, type: string}
+    result_stdout: {type: string}
+    result_traceback: {type: string}
+    status: {$ref: '#/definitions/enum_task_status'}
+    credential: {$ref: '#/definitions/id_or_null'}
+    name: {type: string}
+    description: {type: string}
+    source: {type: string}
+    source_path: {type: string}
+    source_regions: {type: string}
+    source_vars: {type: string}
+    overwrite: {type: boolean}
+    overwrite_vars: {type: boolean}
+    started: {format: date-time, type: string}
+    finished: {format: date-time, type: string}
+    elapsed: {type: string} # {type: number}
+    launch_type: {$ref: '#/definitions/enum_launch_type'}
+    # FIXME: Remove the following eventually, it's an internal tower field
+    unified_job_template: {$ref: '#/definitions/id_or_null'}
+    url: {format: uri, type: string}
     related:
       additionalProperties: false
       properties:
         cancel: {format: uri, type: string}
+        credential: {format: uri, type: string}
         inventory_source: {format: uri, type: string}
-      required: [cancel, inventory_source]
+        # FIXME: Remove the following eventually, it's an internal tower field
+        unified_job_template: {format: uri, type: string}
+      required: [cancel, inventory_source, credential]
       type: object
-    result_stdout: {type: string}
-    result_traceback: {type: string}
-    status: {$ref: '#/definitions/enum_task_status'}
     summary_fields:
       additionalProperties: false
       properties:
@@ -29,8 +48,9 @@ inventory_update:
         credential: {$ref: '#/definitions/summary_fields_credential'}
       required: [inventory_source]
       type: object
-    url: {format: uri, type: string}
   required: [id, url, created, modified, inventory_source, status, failed,
   result_stdout, result_traceback, job_args, job_cwd, job_env, related,
-  summary_fields, license_error, type]
+  summary_fields, license_error, type, credential, name, description, source,
+  source_path, source_regions, source_vars, overwrite, overwrite_vars, started,
+  finished, elapsed, ]
   type: object

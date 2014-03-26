@@ -1,6 +1,9 @@
 job:
   additionalProperties: false
   properties:
+    name: {type: string}
+    description: {type: string}
+    unified_job_template: {$ref: '#/definitions/id_or_null'}
     cloud_credential: {$ref: '#/definitions/id_or_null'}
     created: {format: date-time, type: string}
     credential: {$ref: '#/definitions/id'}
@@ -16,6 +19,9 @@ job:
     job_template: {$ref: '#/definitions/id'}
     type: {$ref: '#/definitions/enum_job_type'}
     job_type: {$ref: '#/definitions/enum_job_job_type'}
+    started: {format: date-time, type: [string, 'null']}
+    finished: {format: date-time, type: [string, 'null']}
+    elapsed: {type: string} # {type: number}
     launch_type: {$ref: '#/definitions/enum_launch_type'}
     limit: {type: string}
     modified: {format: date-time, type: string}
@@ -36,6 +42,7 @@ job:
         job_template: {format: uri, type: string}
         project: {format: uri, type: string}
         start: {format: uri, type: string}
+        unified_job_template: {format: uri, type: string}
       required: [project, job_host_summaries, credential, job_events, inventory,
         job_template, start, cancel, activity_stream]
       type: object
@@ -45,6 +52,7 @@ job:
     summary_fields:
       additionalProperties: false
       properties:
+        cloud_credential: {$ref: '#/definitions/summary_fields_credential'}
         credential: {$ref: '#/definitions/summary_fields_credential'}
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         job_template: {$ref: '#/definitions/summary_fields_job_template'}
@@ -55,7 +63,7 @@ job:
     verbosity: {minimum: 0, type: number}
   required: [id, url, created, modified, job_type, inventory, project,
   playbook, credential, cloud_credential, forks, verbosity, limit, extra_vars,
-  job_tags, job_template, launch_type, status, failed, result_traceback,
-  passwords_needed_to_start, job_args, job_cwd, job_env, related,
-  summary_fields, type]
+  job_tags, job_template, launch_type, started, elapsed, finished, status,
+  failed, result_traceback, passwords_needed_to_start, job_args, job_cwd,
+  job_env, related, summary_fields, type, name, description]
   type: object
