@@ -2,28 +2,23 @@
 project:
   type: object
   required: [id, name, url, created, modified, last_job_run, description,
-  last_job_failed, status, summary_fields, local_path, scm_type, scm_url,
-  scm_branch, scm_clean, scm_delete_on_update, scm_delete_on_next_update,
-  scm_update_on_launch, credential, type, has_schedules, next_job_run]
+  last_job_failed, status, summary_fields, local_path, scm_type,
+  scm_update_cache_timeout, scm_url, scm_branch, scm_clean,
+  scm_delete_on_update, scm_delete_on_next_update, scm_update_on_launch,
+  credential, type, has_schedules, next_job_run]
   additionalProperties: false
   properties:
     type: {type: string, pattern: ^project$}
     created: {format: date-time, type: string}
-    credential:
-      type: [number, 'null']
+    credential: { type: [number, 'null'] }
     description: {type: string}
     id: {minimum: 1, type: number}
     has_schedules: {type: boolean}
-    next_job_run:
-      format: date-time
-    last_job_run:
-      format: date-time
-      type: [string, 'null']
+    next_job_run: { format: date-time, type: [string, 'null'] }
+    last_job_run: { format: date-time, type: [string, 'null'] }
     last_job_failed: {type: boolean}
     last_update_failed: {type: boolean}
-    last_updated:
-      format: date-time
-      type: [string, 'null']
+    last_updated: { format: date-time, type: [string, 'null'] }
     local_path: {format: uri, type: string}
     modified: {format: date-time, type: string}
     name: {type: string}
@@ -31,8 +26,8 @@ project:
     scm_clean: {type: boolean}
     scm_delete_on_next_update: {type: boolean}
     scm_delete_on_update: {type: boolean}
-    scm_type:
-      type: [string, 'null']
+    scm_type: { type: [string, 'null'] }
+    scm_update_cache_timeout: { minimum: 0, type: integer }
     scm_update_on_launch: {type: boolean}
     scm_url: {type: string}
     status: { $ref: '#/definitions/enum_project_status' }
