@@ -26,7 +26,7 @@ inventory_update:
     overwrite_vars: {type: boolean}
     started: {format: date-time, type: [string, 'null']}
     finished: {format: date-time, type: [string, 'null']}
-    elapsed: {type: string} # {type: number}
+    elapsed: {type: number}
     launch_type: {$ref: '#/definitions/enum_launch_type'}
     # FIXME: Remove the following eventually, it's an internal tower field
     unified_job_template: {$ref: '#/definitions/id_or_null'}
