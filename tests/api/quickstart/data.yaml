@@ -284,6 +284,8 @@ groups:
     - name: local
       description: A group for systems that map to localhost
       inventory: it_inventory
+      variables:
+        ansible_connection: local
 
     - name: local_1-10
       description: A sub-group for systems that map to localhost
@@ -736,7 +738,7 @@ job_templates:
       verbosity: 2
       forks: 50
       extra_vars:
-        ansible_connection: local
+        ansible_connection: ssh
 
     - name: helloworld/site.yml (limit:local)
       job_type: run
