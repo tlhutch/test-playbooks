@@ -738,7 +738,7 @@ job_templates:
       verbosity: 2
       forks: 50
       extra_vars:
-        ansible_connection: ssh
+        ansible_connection: smart
 
     - name: helloworld/site.yml (limit:local)
       job_type: run
