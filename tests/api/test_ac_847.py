@@ -894,8 +894,8 @@ EOF
         ansible_runner.copy(src=fd.name, dest='/tmp/%s' % p.basename, mode='0755')
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source /tmp/%s' \
-            % (random_inventory.name, p.basename))
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source /tmp/%s' \
+            % (random_inventory.id, p.basename))
 
         # Verify the import completed successfully
         assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
