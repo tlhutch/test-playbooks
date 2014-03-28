@@ -45,8 +45,7 @@ project_update:
       required: [project]
       type: object
     url: {format: uri, type: string}
-  required: [id, url, created, modified, project, status, failed,
-  result_stdout, result_traceback, job_args, job_cwd, job_env, related,
+  required: [id, url, created, modified, project, status, failed, related,
   summary_fields, type, started, finished, elapsed, launch_type, credential,
   description, local_path, name, scm_branch, scm_clean, scm_delete_on_update,
   scm_type, scm_url ]

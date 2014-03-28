@@ -49,8 +49,7 @@ inventory_update:
       required: [inventory_source]
       type: object
   required: [id, url, created, modified, inventory_source, status, failed,
-  result_stdout, result_traceback, job_args, job_cwd, job_env, related,
-  summary_fields, license_error, type, credential, name, description, source,
-  source_path, source_regions, source_vars, overwrite, overwrite_vars, started,
-  finished, elapsed, ]
+  related, summary_fields, license_error, type, credential, name, description,
+  source, source_path, source_regions, source_vars, overwrite, overwrite_vars,
+  started, finished, elapsed, ]
   type: object
