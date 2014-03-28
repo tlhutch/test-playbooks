@@ -2,6 +2,7 @@
 activity_stream:
   additionalProperties: false
   properties:
+    type: {type: string, pattern: ^activity_stream$}
     id: {$ref: '#/definitions/id'}
     url: {format: uri, type: string}
     related:
@@ -27,12 +28,8 @@ activity_stream:
         created: {format: date-time, type: string}
         modified: {format: date-time, type: string}
         created_by: {type: string}
-        # The following should be boolean -- filed as AC-911
-        # active: {type: boolean}
-        active: {type: [string, boolean], pattern: '^([Tt]rue|[Ff]alse)$' }
-        # The following should be a numeric id -- filed as AC-911
-        # id: {$ref: '#/definitions/id'}
-        id: {minLength: 1, pattern: '^[0-9]+$', type: string}
+        active: {type: boolean}
+        id: {$ref: '#/definitions/id'}
         name: {type: string}
     object1: {type: string}
     object2: {type: string}

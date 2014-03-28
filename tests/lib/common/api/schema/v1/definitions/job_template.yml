@@ -47,7 +47,7 @@ job_template:
         schedules: {format: uri, type: string}
         last_job: {format: uri, type: string}
         current_job: {format: uri, type: string}
-      required: [created_by, project, jobs, inventory, activity_stream]
+      required: [created_by, jobs, activity_stream, schedules]
       type: object
     summary_fields:
       additionalProperties: false
