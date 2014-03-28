@@ -241,6 +241,26 @@ class Awx_Schema_Project_Updates(Awx_Schema_Projects_Project_Updates):
         return self.load_file('project_updates/item.yml')
 
 #
+# /unified_job_templates
+#
+class Awx_Schema_Unified_Job_Templates(Awx_Schema):
+    resource = '/api/v1/unified_job_templates/'
+
+    @property
+    def get(self):
+        return self.load_file('unified_job_templates/list.yml')
+
+#
+# /unified_jobs
+#
+class Awx_Schema_Unified_Jobs(Awx_Schema):
+    resource = '/api/v1/unified_jobs/'
+
+    @property
+    def get(self):
+        return self.load_file('unified_jobs/list.yml')
+
+#
 # /job_templates
 #
 class Awx_Schema_Job_Templates(Awx_Schema):
@@ -273,7 +293,7 @@ class Awx_Schema_Job_Template(Awx_Schema_Job_Templates):
 # /jobs
 #
 class Awx_Schema_Jobs(Awx_Schema):
-    resource = '/api/v1/(unified_)?jobs/'
+    resource = '/api/v1/jobs/'
 
     @property
     def get(self):
@@ -283,14 +303,14 @@ class Awx_Schema_Jobs(Awx_Schema):
         return self.load_file('jobs/item.yml')
 
 class Awx_Schema_Job(Awx_Schema_Jobs):
-    resource = '/api/v1/(unified_)?jobs/\d+/'
+    resource = '/api/v1/jobs/\d+/'
 
     @property
     def get(self):
         return self.load_file('jobs/item.yml')
 
 class Awx_Schema_Job_Start(Awx_Schema):
-    resource = '/api/v1/(unified_)?jobs/\d+/start/'
+    resource = '/api/v1/jobs/\d+/start/'
 
     @property
     def get(self):
@@ -300,14 +320,14 @@ class Awx_Schema_Job_Start(Awx_Schema):
         return self.load_file('empty.yml')
 
 class Awx_Schema_Job_Events(Awx_Schema):
-    resource = '/api/v1/(unified_)?jobs/\d+/job_events/'
+    resource = '/api/v1/jobs/\d+/job_events/'
 
     @property
     def get(self):
         return self.load_file('job_events/list.yml')
 
 class Awx_Schema_Job_Event(Awx_Schema_Job_Events):
-    resource = '/api/v1/(unified_)?jobs/\d+/job_events/\d+/'
+    resource = '/api/v1/jobs/\d+/job_events/\d+/'
 
     @property
     def get(self):
@@ -412,7 +432,7 @@ class Awx_Schema_Me(Awx_Schema):
         return self.load_file('empty.yml')
     @property
     def get(self):
-        return self.load_file('users/item.yml')
+        return self.load_file('users/list.yml')
 
 #
 # /authtoken

@@ -81,6 +81,7 @@ dashboard:
       additionalProperties: false
       properties:
         inventory_failed: {minimum: 0, type: number}
+        job_failed: {minimum: 0, type: number}
         total: {minimum: 0, type: number}
         total_with_inventory_source: {minimum: 0, type: number}
         url: {format: uri, type: string}

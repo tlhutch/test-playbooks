@@ -141,6 +141,12 @@ def test_authenticated(api, resource, method):
         '/api/v1/inventory_sources/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },
+        '/api/v1/unified_jobs/': {
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
+        '/api/v1/unified_job_templates/': {
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
     }
 
     # Generic response

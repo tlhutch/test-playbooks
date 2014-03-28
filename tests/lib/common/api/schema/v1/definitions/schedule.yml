@@ -2,7 +2,9 @@
 schedule:
   type: object
   additionalProperties: false
-  # required: [ ]
+  required: [ type, id, url, created, modified, name, description, dtstart,
+  dtend, rrule, job_template, project, inventory_source, related,
+  summary_fields, ]
   properties:
     type: {type: string, pattern: ^schedule$}
     id: { $ref: '#/definitions/id' }
