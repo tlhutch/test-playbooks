@@ -46,6 +46,7 @@ inventory_update:
       properties:
         inventory_source: {$ref: '#/definitions/summary_fields_inventory_source'}
         credential: {$ref: '#/definitions/summary_fields_credential'}
+        unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
       required: [inventory_source]
       type: object
   required: [id, url, created, modified, inventory_source, status, failed,
