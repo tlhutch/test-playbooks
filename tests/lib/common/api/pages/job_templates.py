@@ -16,6 +16,9 @@ class Job_Template_Page(base.Base):
         assert name in self.json['related']
         if name == 'start':
             related = base.Base(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'schedules':
+            from schedules import Schedules_Page
+            related = Schedules_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get()

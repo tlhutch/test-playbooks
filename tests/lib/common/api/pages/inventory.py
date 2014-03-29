@@ -77,6 +77,9 @@ class Inventory_Source_Page(base.Base):
         elif name == 'update':
             # FIXME - this should have it's own object
             related = base.Base(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'schedules':
+            from schedules import Schedules_Page
+            related = Schedules_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get()

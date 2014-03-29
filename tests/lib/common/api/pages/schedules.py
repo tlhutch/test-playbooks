@@ -1,6 +1,6 @@
 import base
 from projects import Project_Page
-from inventories import Inventory_Page
+from inventory import Inventory_Page
 from job_templates import Job_Template_Page
 from common.exceptions import *
 

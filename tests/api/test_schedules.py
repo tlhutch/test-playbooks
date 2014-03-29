@@ -3,6 +3,10 @@ import json
 import yaml
 import common.tower.license
 import common.utils
+import dateutil.rrule
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from dateutil.parser import parse
 from tests.api import Base_Api_Test
 
 @pytest.mark.skip_selenium
@@ -39,18 +43,34 @@ class Test_Schedules_Project(Base_Api_Test):
         assert schedules_pg.count == 0
 
     def test_schedule_post(self, random_project):
+        schedules_pg = random_project.get_related('schedules')
+
+        now = datetime.now()
+        next_week = now + relativedelta(weeks=+1)
+        rrule = dateutil.rrule.rrule(dateutil.rrule.DAILY, dtstart=now, until=next_week)
+        payload = dict(name="user-%s" % common.utils.random_unicode(),
+                       description="%s" % common.utils.random_unicode(),
+                       enabled=True,
+                       rrule=rrule)
+        schedules_pg.post(payload)
         pass
 
+        schedules_pg.get()
+        assert schedules_pg.count == 1
+
     def test_schedule_put(self, random_project):
+        schedules_pg = random_project.get_related('schedules')
         pass
 
     def test_schedule_patch(self, random_project):
-        pass
-
-    def test_schedule_get_again(self, random_project):
-
         schedules_pg = random_project.get_related('schedules')
-        assert schedules_pg.count == 1
+        pass
 
     def test_schedule_delete(self, random_project):
+        schedules_pg = random_project.get_related('schedules')
         pass
+
+        assert schedules_pg.count == 1
+        schedules_pg.results[0].delete()
+        assert schedules_pg.count == 0
+

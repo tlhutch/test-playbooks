@@ -21,6 +21,9 @@ class Project_Page(base.Base):
         elif name == 'teams':
             from teams import Teams_Page
             related = Teams_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'schedules':
+            from schedules import Schedules_Page
+            related = Schedules_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get()
