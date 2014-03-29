@@ -54,6 +54,7 @@ inventory_source:
       properties:
         group: {$ref: '#/definitions/summary_fields_group'}
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
+        unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
       required: [inventory, group]
       type: object
   required: [id, url, created, modified, inventory, group, overwrite,

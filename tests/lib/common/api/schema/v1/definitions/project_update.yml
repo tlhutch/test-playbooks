@@ -42,6 +42,7 @@ project_update:
       properties:
         project: {$ref: '#/definitions/summary_fields_project'}
         credential: {$ref: '#/definitions/summary_fields_credential'}
+        unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
       required: [project]
       type: object
     url: {format: uri, type: string}
