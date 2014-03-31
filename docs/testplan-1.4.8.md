@@ -26,9 +26,13 @@ TDB
 1. Add scheduler API tests for inventory_sync
 2. Add scheduler API tests for project_update
 3. Add scheduler API tests for job_launch
+4. Ensure multiple jobs cant run at the same time
 
 ## Feature: Unified Jobs View
 1. Update existing job_status API automation
+
+## Feature: Vault credential support
+1. Add support for vault credential usage
 
 ## Feature: Failure recovery
 1. Catastrophic fail - Launch jobs, sysrq-trigger before jobs complete, all jobs should resume or failed
