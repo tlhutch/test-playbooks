@@ -18,7 +18,7 @@ class RRule(dateutil.rrule.rrule):
     def __str__(self):
         parts = list()
         parts.append('FREQ=' + self.FREQNAMES[self._freq])
-        if self._interval != 1:
+        if self._interval:
             parts.append('INTERVAL=' + str(self._interval))
         if self._wkst:
             parts.append('WKST=' + str(self._wkst))
@@ -44,6 +44,8 @@ class RRule(dateutil.rrule.rrule):
 
 # Create fixture for testing unsupported RRULES
 unsupported_rrules = [
+    # empty string
+    "",
     # missing RRULE
     "DTSTART:%s" % ('asdf asdf', ),
     # missing DTSTART
@@ -92,25 +94,57 @@ class Test_Schedules_Project(Base_Api_Test):
       - user w/ update perm can *only* view/create/update schedules
     '''
 
-    def test_schedule_post(self, random_project):
+    def test_schedule_empty(self, random_project):
+        '''assert a fresh project has no schedules'''
         schedules_pg = random_project.get_related('schedules')
         assert schedules_pg.count == 0
 
-        # next_week = now + relativedelta(weeks=+1)
-        rrule = RRule(dateutil.rrule.WEEKLY, dtstart=datetime.now(), count=5, interval=10)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="%s" % common.utils.random_unicode(),
-                       enabled=True,
-                       rrule=str(rrule))
-        print payload
-        schedules_pg.post(payload)
+    def test_schedule_post_past(self, random_project):
+        '''assert creating a schedule with only past occurances'''
+        schedules_pg = random_project.get_related('schedules')
 
-        schedules_pg.get()
-        assert schedules_pg.count == 1
+        # commemorate first 10 years of pearl_harbor
+        pearl_harbor = parse("Dec 7 1942")
+        rrule = RRule(dateutil.rrule.YEARLY, dtstart=pearl_harbor, count=10, interval=1)
+        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+                       description="Commemorate the attack on pearl harbor (%s)" % common.utils.random_unicode(),
+                       rrule=str(rrule))
+        schedule_pg = schedules_pg.post(payload)
+        assert schedule_pg.next_run is None
+
+    def test_schedule_post_future(self, random_project):
+        '''assert creating a schedule with only future occurances'''
+        schedules_pg = random_project.get_related('schedules')
+
+        # celebrate Odyssey three date
+        odyssey_three = parse("Jan 1 2061")
+        rrule = RRule(dateutil.rrule.YEARLY, dtstart=odyssey_three, interval=1)
+        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+                       description="2061: Odyssey Three (%s)" % common.utils.random_unicode(),
+                       rrule=str(rrule))
+        schedule_pg = schedules_pg.post(payload)
+        assert schedule_pg.next_run is not None
+        # assert schedule_pg.next_run == '2061-01-01T00:00:00Z'
+        assert schedule_pg.next_run == rrule[0].isoformat() + 'Z'
+
+    def test_schedule_post_overlap(self, random_project):
+        '''assert creating a schedule with past and future occurances'''
+        schedules_pg = random_project.get_related('schedules')
+
+        last_week = datetime.now() + relativedelta(weeks=-1)
+        next_week = datetime.now() + relativedelta(weeks=+1)
+        rrule = RRule(dateutil.rrule.DAILY, dtstart=last_week, until=next_week)
+        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+                       description="Daily project update",
+                       rrule=str(rrule))
+        schedule_pg = schedules_pg.post(payload)
+        assert schedule_pg.next_run is not None
+        assert schedule_pg.next_run == rrule.after(datetime.now(), inc=False).isoformat() + 'Z'
 
     def test_schedule_put(self, random_project):
+        '''assert successful schedule PUT'''
         schedules_pg = random_project.get_related('schedules')
-        assert schedules_pg.count == 1
+        assert schedules_pg.count > 0
 
         schedule_pg = schedules_pg.results[0]
         old_desc = schedule_pg.description
@@ -121,8 +155,9 @@ class Test_Schedules_Project(Base_Api_Test):
         assert schedule_pg.description == new_desc
 
     def test_schedule_patch(self, random_project):
+        '''assert successful schedule PATCH'''
         schedules_pg = random_project.get_related('schedules')
-        assert schedules_pg.count == 1
+        assert schedules_pg.count > 0
 
         schedule_pg = schedules_pg.results[0]
         old_desc = schedule_pg.description
@@ -132,14 +167,18 @@ class Test_Schedules_Project(Base_Api_Test):
         assert schedule_pg.description == new_desc
 
     def test_schedule_delete(self, random_project):
+        '''assert successful schedule DELETE'''
         schedules_pg = random_project.get_related('schedules')
-        assert schedules_pg.count == 1
+        assert schedules_pg.count > 0
+        schedules_count = schedules_pg.count
         schedules_pg.results[0].delete()
 
+        # There should be one fewer schedule
         schedules_pg.get()
-        assert schedules_pg.count == 0
+        assert schedules_pg.count == schedules_count - 1
 
     def test_schedule_post_invalid(self, random_project, unsupported_rrule):
+        '''assert unsupported rrules are rejected'''
         schedules_pg = random_project.get_related('schedules')
 
         payload = dict(name="schedule-%s" % common.utils.random_unicode(),
@@ -149,3 +188,36 @@ class Test_Schedules_Project(Base_Api_Test):
         with pytest.raises(common.exceptions.BadRequest_Exception):
             schedules_pg.post(payload)
 
+    # SEE JIRA(AC-1106)
+    def test_schedule_cascade_delete(self, api_projects_pg, api_schedules_pg, random_organization):
+        '''assert that schedules are deleted when a project is deleted'''
+        # create a project
+        payload = dict(name="project-%s" % common.utils.random_unicode(),
+                       organization=random_organization.id,
+                       scm_type='hg',
+                       scm_url='https://bitbucket.org/jlaska/ansible-helloworld')
+        project = api_projects_pg.post(payload)
+
+        # create schedules
+        schedules_pg = project.get_related('schedules')
+        assert schedules_pg.count == 0
+
+        schedule_ids = list()
+        for repeat in [dateutil.rrule.WEEKLY, dateutil.rrule.MONTHLY, dateutil.rrule.YEARLY]:
+            rrule = RRule(repeat, dtstart=datetime.now())
+            payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+                           description=common.utils.random_unicode(),
+                           rrule=str(rrule))
+            schedule_pg = schedules_pg.post(payload)
+            schedule_ids.append(schedule_pg.id)
+
+        # assert the schedules exist
+        schedules_pg = project.get_related('schedules')
+        assert schedules_pg.count == 3
+
+        # delete the project
+        project.delete()
+
+        # assert the schedules are gone
+        remaining_schedules = api_schedules_pg.get(id__in=','.join([str(sid) for sid in schedule_ids]))
+        assert remaining_schedules.count == 0
