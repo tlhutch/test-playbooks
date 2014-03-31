@@ -6,6 +6,12 @@ from common.exceptions import *
 
 class Schedule_Page(base.Task_Page):
     base_url = '/api/v1/schedules/{id}/'
+    name = property(base.json_getter('name'), base.json_setter('name'))
+    description = property(base.json_getter('description'), base.json_setter('description'))
+    enabled = property(base.json_getter('enabled'), base.json_setter('enabled'))
+    dtstart = property(base.json_getter('dtstart'), base.json_setter('dtstart'))
+    dtend = property(base.json_getter('dtend'), base.json_setter('dtend'))
+    rrule = property(base.json_getter('rrule'), base.json_setter('rrule'))
 
     def get_related(self, name, **params):
         assert name in self.json['related']
