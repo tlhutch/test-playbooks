@@ -493,10 +493,15 @@ class Awx_Schema_Schedules(Awx_Schema):
     @property
     def post(self):
         return self.load_file('schedules/item.yml')
+    @property
+    def patch(self):
+        return self.post
+    @property
+    def put(self):
+        return self.post
 
 class Awx_Schema_Schedule(Awx_Schema_Schedules):
     resource = '/api/v1/schedules/\d+/'
-
     @property
     def get(self):
         return self.load_file('schedules/item.yml')
