@@ -12,6 +12,7 @@ class Schedule_Page(base.Task_Page):
     dtstart = property(base.json_getter('dtstart'), base.json_setter('dtstart'))
     dtend = property(base.json_getter('dtend'), base.json_setter('dtend'))
     rrule = property(base.json_getter('rrule'), base.json_setter('rrule'))
+    next_run = property(base.json_getter('next_run'), base.json_setter('next_run'))
 
     def get_related(self, name, **params):
         assert name in self.json['related']
