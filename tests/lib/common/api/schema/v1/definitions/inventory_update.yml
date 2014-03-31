@@ -10,6 +10,7 @@ inventory_update:
     job_args: {type: string}
     job_cwd: {type: string}
     job_env: {$ref: '#/definitions/job_env'}
+    job_explanation: {type: string}
     license_error: {type: boolean}
     modified: {format: date-time, type: string}
     result_stdout: {type: string}
@@ -52,5 +53,5 @@ inventory_update:
   required: [id, url, created, modified, inventory_source, status, failed,
   related, summary_fields, license_error, type, credential, name, description,
   source, source_path, source_regions, source_vars, overwrite, overwrite_vars,
-  started, finished, elapsed, ]
+  started, finished, elapsed, job_explanation ]
   type: object

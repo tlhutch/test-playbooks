@@ -3,8 +3,7 @@ schedule:
   type: object
   additionalProperties: false
   required: [ type, id, url, created, modified, name, description, dtstart,
-  dtend, rrule, job_template, project, inventory_source, related,
-  summary_fields, ]
+  dtend, rrule, unified_job_template, related, summary_fields, ]
   properties:
     type: {type: string, pattern: ^schedule$}
     id: { $ref: '#/definitions/id' }
@@ -12,30 +11,21 @@ schedule:
     created: {format: date-time, type: string}
     modified: {format: date-time, type: string}
     name: {type: string}
+    enabled: {type: boolean}
     description: {type: string}
-    dtstart: {format: date-time, type: string}
-    dtend: {format: date-time, type: string}
+    dtstart: {format: date-time, type: ['null', string]}
+    dtend: {format: date-time, type: ['null', string]}
+    next_run: {format: date-time, type: ['null', string]}
     rrule: {type: string}
-    job_template: { $ref: '#/definitions/id_or_null' }
-    project: { $ref: '#/definitions/id_or_null' }
-    inventory_source: { $ref: '#/definitions/id_or_null' }
+    unified_job_template: { $ref: '#/definitions/id_or_null' }
     related:
       type: object
       additionalProperties: false
       properties:
-          project: {format: uri, type: string}
-          job_template: {format: uri, type: string}
-          inventory_source: {format: uri, type: string}
+          unified_job_template: {format: uri, type: string}
+          unified_jobs: {format: uri, type: string}
     summary_fields:
       type: object
       additionalProperties: false
       properties:
-          project:
-              type: object
-              additionalProperties: true
-          job_template:
-              type: object
-              additionalProperties: true
-          inventory_source:
-              type: object
-              additionalProperties: true
+          unified_job_template: {$ref: '#/definitions/summary_fields_job_template' }

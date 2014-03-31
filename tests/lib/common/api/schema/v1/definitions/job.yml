@@ -17,6 +17,7 @@ job:
     job_env: {$ref: '#/definitions/job_env'}
     job_tags: {type: string}
     job_template: {$ref: '#/definitions/id'}
+    job_explanation: {type: string}
     type: {$ref: '#/definitions/enum_job_type'}
     job_type: {$ref: '#/definitions/enum_job_job_type'}
     started: {format: date-time, type: [string, 'null']}
@@ -65,5 +66,6 @@ job:
   required: [id, url, created, modified, job_type, inventory, project,
   playbook, credential, cloud_credential, forks, verbosity, limit, extra_vars,
   job_template, launch_type, started, elapsed, finished, status, failed,
-  passwords_needed_to_start, related, summary_fields, type, name, description]
+  passwords_needed_to_start, related, summary_fields, type, name, description,
+  job_explanation]
   type: object

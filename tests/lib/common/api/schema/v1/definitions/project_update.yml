@@ -20,6 +20,7 @@ project_update:
     job_args: {type: string}
     job_cwd: {type: string}
     job_env: {$ref: '#/definitions/job_env'}
+    job_explanation: {type: string}
     modified: {format: date-time, type: string}
     started: {format: date-time, type: [string, 'null']}
     finished: {format: date-time, type: [string, 'null']}
@@ -49,5 +50,5 @@ project_update:
   required: [id, url, created, modified, project, status, failed, related,
   summary_fields, type, started, finished, elapsed, launch_type, credential,
   description, local_path, name, scm_branch, scm_clean, scm_delete_on_update,
-  scm_type, scm_url ]
+  scm_type, scm_url, job_explanation ]
   type: object
