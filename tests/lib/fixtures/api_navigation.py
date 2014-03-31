@@ -219,6 +219,18 @@ def api_job_templates_pg(testsetup, api_job_templates_url):
         base_url=api_job_templates_url)
 
 #
+# /api/v1/schedules
+#
+@pytest.fixture(scope="module")
+def api_schedules_url(api, api_home):
+    return navigate(api, api_home, 'schedules')
+
+@pytest.fixture(scope="module")
+def api_schedules_pg(testsetup, api_schedules_url):
+    return Schedules_Page(testsetup, \
+        base_url=api_schedules_url)
+
+#
 # /api/v1/jobs
 #
 @pytest.fixture(scope="module")
