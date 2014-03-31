@@ -2,6 +2,7 @@ import pytest
 import json
 import yaml
 import re
+import time
 import common.tower.license
 import common.utils
 import common.exceptions
@@ -69,7 +70,7 @@ def unsupported_rrule(request):
 @pytest.mark.nondestructive
 # @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000')
 @pytest.mark.usefixtures('authtoken')
-class Test_Schedules_Project(Base_Api_Test):
+class Test_Project_Schedules(Base_Api_Test):
     '''
     Test basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
 
@@ -99,6 +100,17 @@ class Test_Schedules_Project(Base_Api_Test):
         schedules_pg = random_project.get_related('schedules')
         assert schedules_pg.count == 0
 
+    def test_schedule_post_invalid(self, random_project, unsupported_rrule):
+        '''assert unsupported rrules are rejected'''
+        schedules_pg = random_project.get_related('schedules')
+
+        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+                       description="%s" % common.utils.random_unicode(),
+                       enabled=True,
+                       rrule=str(unsupported_rrule))
+        with pytest.raises(common.exceptions.BadRequest_Exception):
+            schedules_pg.post(payload)
+
     def test_schedule_post_past(self, random_project):
         '''assert creating a schedule with only past occurances'''
         schedules_pg = random_project.get_related('schedules')
@@ -123,23 +135,20 @@ class Test_Schedules_Project(Base_Api_Test):
                        description="2061: Odyssey Three (%s)" % common.utils.random_unicode(),
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
-        assert schedule_pg.next_run is not None
-        # assert schedule_pg.next_run == '2061-01-01T00:00:00Z'
         assert schedule_pg.next_run == rrule[0].isoformat() + 'Z'
 
     def test_schedule_post_overlap(self, random_project):
         '''assert creating a schedule with past and future occurances'''
         schedules_pg = random_project.get_related('schedules')
 
-        last_week = datetime.now() + relativedelta(weeks=-1)
-        next_week = datetime.now() + relativedelta(weeks=+1)
+        last_week = datetime.utcnow() + relativedelta(weeks=-1)
+        next_week = datetime.utcnow() + relativedelta(weeks=+1)
         rrule = RRule(dateutil.rrule.DAILY, dtstart=last_week, until=next_week)
         payload = dict(name="schedule-%s" % common.utils.random_unicode(),
                        description="Daily project update",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
-        assert schedule_pg.next_run is not None
-        assert schedule_pg.next_run == rrule.after(datetime.now(), inc=False).isoformat() + 'Z'
+        assert schedule_pg.next_run == rrule.after(datetime.utcnow(), inc=False).isoformat() + 'Z'
 
     def test_schedule_put(self, random_project):
         '''assert successful schedule PUT'''
@@ -170,23 +179,36 @@ class Test_Schedules_Project(Base_Api_Test):
         '''assert successful schedule DELETE'''
         schedules_pg = random_project.get_related('schedules')
         assert schedules_pg.count > 0
-        schedules_count = schedules_pg.count
-        schedules_pg.results[0].delete()
+        for schedule in schedules_pg.results:
+            schedule.delete()
 
-        # There should be one fewer schedule
         schedules_pg.get()
-        assert schedules_pg.count == schedules_count - 1
+        assert schedules_pg.count == 0
 
-    def test_schedule_post_invalid(self, random_project, unsupported_rrule):
-        '''assert unsupported rrules are rejected'''
+    def test_schedule_update(self, random_project):
+        '''assert project updates actually happen'''
         schedules_pg = random_project.get_related('schedules')
 
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="%s" % common.utils.random_unicode(),
-                       enabled=True,
-                       rrule=str(unsupported_rrule))
-        with pytest.raises(common.exceptions.BadRequest_Exception):
-            schedules_pg.post(payload)
+        now = datetime.utcnow()
+        now_plus_5m = now + relativedelta(minutes=+5)
+        rrule = RRule(dateutil.rrule.MINUTELY, dtstart=now, count=3, until=now_plus_5m)
+        payload = dict(name="minutely-%s" % common.utils.random_unicode(),
+                       description="Update every minute (count:3)",
+                       rrule=str(rrule))
+        schedule_pg = schedules_pg.post(payload)
+
+        # determine how many project updates already exist
+        project_updates_pg = random_project.get_related('project_updates')
+        start_count = project_updates_pg.count
+        print "start_count: %s" % start_count
+
+        # wait 4 minutes for scheduled updates to complete
+        project_updates_pg = common.utils.wait_until(project_updates_pg, 'count', start_count+3,
+            interval=1, verbose=True, timeout=60*4)
+
+        # ensure scheduled project updates ran
+        print project_updates_pg.count
+        assert project_updates_pg.count == start_count + rrule.count
 
     # SEE JIRA(AC-1106)
     def test_schedule_cascade_delete(self, api_projects_pg, api_schedules_pg, random_organization):
@@ -204,7 +226,7 @@ class Test_Schedules_Project(Base_Api_Test):
 
         schedule_ids = list()
         for repeat in [dateutil.rrule.WEEKLY, dateutil.rrule.MONTHLY, dateutil.rrule.YEARLY]:
-            rrule = RRule(repeat, dtstart=datetime.now())
+            rrule = RRule(repeat, dtstart=datetime.utcnow())
             payload = dict(name="schedule-%s" % common.utils.random_unicode(),
                            description=common.utils.random_unicode(),
                            rrule=str(rrule))
@@ -221,3 +243,4 @@ class Test_Schedules_Project(Base_Api_Test):
         # assert the schedules are gone
         remaining_schedules = api_schedules_pg.get(id__in=','.join([str(sid) for sid in schedule_ids]))
         assert remaining_schedules.count == 0
+
