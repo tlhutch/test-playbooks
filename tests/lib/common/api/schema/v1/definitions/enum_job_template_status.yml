@@ -1,3 +1,3 @@
 ---
 enum_job_template_status:
-    enum: [updating, never updated, failed, successful]
+    enum: [none, never updated, updating, running, failed, successful, ok, missing ]
