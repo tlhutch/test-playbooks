@@ -33,6 +33,7 @@ project_update:
         project: {format: uri, type: string}
         credential: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
+        schedule: {format: uri, type: string}
       required: [cancel, project]
       type: object
     result_stdout: {type: string}
@@ -44,6 +45,7 @@ project_update:
         project: {$ref: '#/definitions/summary_fields_project'}
         credential: {$ref: '#/definitions/summary_fields_credential'}
         unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
+        schedule: {$ref: '#/definitions/summary_fields_schedule'}
       required: [project]
       type: object
     url: {format: uri, type: string}

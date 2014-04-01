@@ -1,0 +1,9 @@
+---
+summary_fields_schedule:
+    type: object
+    required: [name, description]
+    additionalProperties: false
+    properties:
+      description: {type: string}
+      name: {type: string}
+      next_run: {format: date-time, type: ['null', string]}
