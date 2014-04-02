@@ -35,6 +35,8 @@ project_update:
         unified_job_template: {format: uri, type: string}
         schedule: {format: uri, type: string}
         stdout: {format: uri, type: string}
+        created_by: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
       required: [cancel, project]
       type: object
     result_stdout: {type: string}
