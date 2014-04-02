@@ -46,6 +46,7 @@ project:
         playbooks: {format: uri, type: string}
         project_updates: {format: uri, type: string}
         teams: {format: uri, type: string}
+        next_schedule: {format: uri, type: string}
         update: {format: uri, type: string}
         schedules: {format: uri, type: string}
       required: [created_by, organizations, project_updates, playbooks, update,
