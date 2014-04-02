@@ -24,6 +24,8 @@ schedule:
       properties:
           unified_job_template: {format: uri, type: string}
           unified_jobs: {format: uri, type: string}
+          created_by: {format: uri, type: string}
+          modified_by: {format: uri, type: string}
     summary_fields:
       type: object
       additionalProperties: false
