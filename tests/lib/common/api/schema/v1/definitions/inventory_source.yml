@@ -38,6 +38,7 @@ inventory_source:
       additionalProperties: true
       properties:
         created_by: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
         current_update: {format: uri, type: string}
         group: {format: uri, type: string}
         inventory: {format: uri, type: string}

@@ -16,12 +16,13 @@ team:
       properties:
         activity_stream: { $ref: '#/definitions/uri' }
         created_by: { $ref: '#/definitions/uri' }
+        modified_by: { $ref: '#/definitions/uri' }
         credentials: { $ref: '#/definitions/uri' }
         organization: { $ref: '#/definitions/uri' }
         permissions: { $ref: '#/definitions/uri' }
         projects: { $ref: '#/definitions/uri' }
         users: { $ref: '#/definitions/uri' }
-      required: [created_by, organization, permissions, users, projects, credentials,
+      required: [created_by, modified_by, organization, permissions, users, projects, credentials,
         activity_stream]
       type: object
     summary_fields:

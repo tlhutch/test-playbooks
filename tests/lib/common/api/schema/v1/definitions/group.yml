@@ -20,6 +20,7 @@ group:
         all_hosts: {format: uri, type: string}
         children: {format: uri, type: string}
         created_by: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
         hosts: {format: uri, type: string}
         inventory: {format: uri, type: string}
         inventory_source: {format: uri, type: string}

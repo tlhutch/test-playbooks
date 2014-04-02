@@ -15,11 +15,12 @@ organization:
           activity_stream: { $ref: '#/definitions/uri' }
           admins: { $ref: '#/definitions/uri' }
           created_by: { $ref: '#/definitions/uri' }
+          modified_by: { $ref: '#/definitions/uri' }
           inventories: { $ref: '#/definitions/uri' }
           projects: { $ref: '#/definitions/uri' }
           teams: { $ref: '#/definitions/uri' }
           users: { $ref: '#/definitions/uri' }
-        required: [created_by, admins, inventories, users, projects, teams, activity_stream]
+        required: [created_by, modified_by, admins, inventories, users, projects, teams, activity_stream]
         type: object
       summary_fields: {type: object}
       url: {format: uri, type: string}

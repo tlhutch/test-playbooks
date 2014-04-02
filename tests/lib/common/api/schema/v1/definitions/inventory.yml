@@ -19,6 +19,7 @@ inventory:
       properties:
         activity_stream: {format: uri, type: string}
         created_by: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
         groups: {format: uri, type: string}
         hosts: {format: uri, type: string}
         inventory_sources: {format: uri, type: string}
@@ -27,8 +28,8 @@ inventory:
         script: {format: uri, type: string}
         tree: {format: uri, type: string}
         variable_data: {format: uri, type: string}
-      required: [created_by, variable_data, root_groups, script, tree, hosts, groups,
-        organization, inventory_sources, activity_stream]
+      required: [created_by, modified_by, variable_data, root_groups, script,
+      tree, hosts, groups, organization, inventory_sources, activity_stream]
       type: object
     summary_fields:
       additionalProperties: false

@@ -36,6 +36,7 @@ job:
         cancel: {format: uri, type: string}
         cloud_credential: {format: uri, type: string}
         created_by: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
         credential: {format: uri, type: string}
         inventory: {format: uri, type: string}
         job_events: {format: uri, type: string}

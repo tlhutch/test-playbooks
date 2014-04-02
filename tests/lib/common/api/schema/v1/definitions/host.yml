@@ -22,6 +22,7 @@ host:
       properties:
         all_groups: {format: uri, type: string}
         created_by: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
         groups: {format: uri, type: string}
         inventory: {format: uri, type: string}
         job_events: {format: uri, type: string}

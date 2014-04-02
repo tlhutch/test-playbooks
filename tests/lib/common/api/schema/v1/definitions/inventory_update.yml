@@ -39,6 +39,8 @@ inventory_update:
         inventory_source: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
         stdout: {format: uri, type: string}
+        created_by: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
       required: [cancel, inventory_source, credential]
       type: object
     summary_fields:

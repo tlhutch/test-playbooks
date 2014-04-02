@@ -37,6 +37,7 @@ project:
       properties:
         activity_stream: {format: uri, type: string}
         created_by: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
         credential: {format: uri, type: string}
         current_job: {format: uri, type: string}
         current_update: {format: uri, type: string}
@@ -49,7 +50,7 @@ project:
         next_schedule: {format: uri, type: string}
         update: {format: uri, type: string}
         schedules: {format: uri, type: string}
-      required: [created_by, organizations, project_updates, playbooks, update,
-        teams, activity_stream]
+      required: [created_by, modified_by, organizations, project_updates,
+      playbooks, update, teams, activity_stream]
       type: object
     summary_fields: {type: object}
