@@ -4,7 +4,8 @@ summary_fields_job_template:
     properties:
       description: {type: string}
       name: {type: string}
-      type: {$ref: '#/definitions/enum_job_template_type'}
-      job_type: {$ref: '#/definitions/enum_job_job_type'}
+      # FIXME - once AC-1121 is fixed
+      # job_type: {$ref: '#/definitions/enum_job_template_type'}
+      job_type: {type: string}
     required: [name, description]
     type: object
