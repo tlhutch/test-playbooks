@@ -29,7 +29,6 @@ inventory_update:
     finished: {format: date-time, type: [string, 'null']}
     elapsed: {type: number}
     launch_type: {$ref: '#/definitions/enum_launch_type'}
-    # FIXME: Remove the following eventually, it's an internal tower field
     unified_job_template: {$ref: '#/definitions/id_or_null'}
     url: {format: uri, type: string}
     related:
@@ -38,8 +37,8 @@ inventory_update:
         cancel: {format: uri, type: string}
         credential: {format: uri, type: string}
         inventory_source: {format: uri, type: string}
-        # FIXME: Remove the following eventually, it's an internal tower field
         unified_job_template: {format: uri, type: string}
+        stdout: {format: uri, type: string}
       required: [cancel, inventory_source, credential]
       type: object
     summary_fields:
