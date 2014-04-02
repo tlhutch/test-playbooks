@@ -42,6 +42,7 @@ job:
         job_host_summaries: {format: uri, type: string}
         job_template: {format: uri, type: string}
         project: {format: uri, type: string}
+        schedule: {format: uri, type: string}
         start: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
         stdout: {format: uri, type: string}
@@ -59,6 +60,7 @@ job:
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         job_template: {$ref: '#/definitions/summary_fields_job_template'}
         project: {$ref: '#/definitions/summary_fields_project'}
+        schedule: {$ref: '#/definitions/summary_fields_schedule'}
         unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
       required: [inventory, project, credential]
       type: object
