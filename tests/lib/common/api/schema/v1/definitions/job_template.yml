@@ -50,7 +50,7 @@ job_template:
         last_job: {format: uri, type: string}
         current_job: {format: uri, type: string}
         next_schedule: {format: uri, type: string}
-      required: [created_by, modified_by, jobs, activity_stream]
+      required: [created_by, jobs, activity_stream]
       type: object
     summary_fields:
       additionalProperties: false
