@@ -47,19 +47,19 @@ unsupported_rrules = [
     # empty string
     "",
     # missing RRULE
-    "DTSTART:%s" % ('asdf asdf', ),
+    "DTSTART:asdf asdf",
     # missing DTSTART
-    "RRULE:%s" % ('asdf asdf', ),
+    "RRULE:asdf asdf",
     # empty RRULE
-    "DTSTART:%s RRULE:%s" % ('20030925T104941Z', ''),
+    "DTSTART:20030925T104941Z RRULE:",
     # empty DTSTART
-    "DTSTART:%s RRULE:%s" % ('', 'FREQ=DAILY;INTERVAL=10;COUNT=5'),
+    "DTSTART: RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
     # multiple RRULES
-    "DTSTART:%s RRULE:%s RRULE:%s" % ('20030925T104941Z', 'FREQ=DAILY;INTERVAL=10;COUNT=5', 'FREQ=WEEKLY;INTERVAL=10;COUNT=1'),
+    "DTSTART:20030925T104941Z RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5 RRULE:FREQ=WEEKLY;INTERVAL=10;COUNT=1",
     # multiple DSTARTS
-    "DTSTART:%s DTSTART:%s RRULE:%s" % ('20030925T104941Z', '20130925T104941Z', 'FREQ=DAILY;INTERVAL=10;COUNT=5',),
+    "DTSTART:20030925T104941Z DTSTART:20130925T104941Z RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
     # timezone
-    "DTSTART:%s RRULE:%s"% (parse("Thu, 25 Sep 2003 10:49:41 -0300"), 'FREQ=DAILY;INTERVAL=10;COUNT=5'),
+    "DTSTART:%s RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5" % parse("Thu, 25 Sep 2003 10:49:41 -0300"),
     # taken from tower unittests
     "DTSTART:20140331T055000 RRULE:FREQ=MINUTELY;INTERVAL=10;COUNT=5",
     "RRULE:FREQ=MINUTELY;INTERVAL=10;COUNT=5",
@@ -288,8 +288,8 @@ class Test_Project_Schedules(Base_Api_Test):
         schedules_pg.get()
         assert schedules_pg.count == 0
 
-    def test_schedule_update(self, random_project):
-        '''assert project updates actually happen'''
+    def test_schedule_update_minutely(self, random_project):
+        '''assert a minutely schedule launches properly'''
         schedules_pg = random_project.get_related('schedules')
 
         # determine how many project updates already exist (an update may have
@@ -305,7 +305,9 @@ class Test_Project_Schedules(Base_Api_Test):
                        description="Update every minute (count:3)",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
-        print "rrule: %s" % schedule_pg.rrule
+
+        # Is the next_run what we expect?
+        assert schedule_pg.next_run == rrule[1].strftime("%Y-%m-%dT%H:%M:%SZ")
 
         # wait 5 minutes for scheduled updates to complete
         project_updates_pg = common.utils.wait_until(project_updates_pg, 'count', start_count+rrule.count(),
@@ -328,12 +330,15 @@ class Test_Project_Schedules(Base_Api_Test):
         start_count = project_updates_pg.count
 
         # Create schedule
-        last_month = utcnow + relativedelta(months=-1, minutes=+1, seconds=+30)
+        last_month = utcnow + relativedelta(months=-1, seconds=+30)
         rrule = RRule(dateutil.rrule.MONTHLY, dtstart=last_month)
         payload = dict(name="monthly-%s" % common.utils.random_unicode(),
                        description="Update every month",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
+
+        # Is the next_run what we expect?
+        assert schedule_pg.next_run == rrule[1].strftime("%Y-%m-%dT%H:%M:%SZ")
 
         # wait 2 minutes for scheduled update to complete
         project_updates_pg = common.utils.wait_until(project_updates_pg, 'count',
@@ -343,7 +348,7 @@ class Test_Project_Schedules(Base_Api_Test):
         # ensure scheduled project updates ran
         assert project_updates_pg.count == start_count + 1
 
-        # ensure the schedule next_run is correct
+        # Is the next_run still what we expect?
         schedule_pg.get()
         assert schedule_pg.next_run == rrule[2].strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -357,14 +362,17 @@ class Test_Project_Schedules(Base_Api_Test):
         start_count = project_updates_pg.count
 
         # Create schedule
-        last_year = utcnow + relativedelta(years=-1, minutes=+1, seconds=+30)
+        last_year = utcnow + relativedelta(years=-1, seconds=+30)
         rrule = RRule(dateutil.rrule.YEARLY, dtstart=last_year)
         payload = dict(name="yearly-%s" % common.utils.random_unicode(),
                        description="Update every year",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
 
-        # wait 2 minutes for scheduled update to complete
+        # Is the next_run what we expect?
+        assert schedule_pg.next_run == rrule[1].strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        # Is the next_run still what we expect?
         project_updates_pg = common.utils.wait_until(project_updates_pg, 'count',
             start_count + 1,
             interval=15, verbose=True, timeout=60*2)
