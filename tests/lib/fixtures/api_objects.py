@@ -38,6 +38,10 @@ def random_project(request, authtoken, api_projects_pg, random_organization):
     return obj
 
 @pytest.fixture(scope="class")
+def admin_user(request, authtoken, api_users_pg):
+    return api_users_pg.get(username__iexact='admin').results[0]
+
+@pytest.fixture(scope="class")
 def random_inventory(request, authtoken, api_inventories_pg, random_organization):
     payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    description="Random inventory",
