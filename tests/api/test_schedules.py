@@ -26,20 +26,19 @@ class RRule(dateutil.rrule.rrule):
         if self._count:
             parts.append('COUNT=' + str(self._count))
 
-        if False:
-            for name, value in [
-                    ('BYSETPOS', self._bysetpos),
-                    ('BYMONTH', self._bymonth),
-                    ('BYMONTHDAY', self._bymonthday),
-                    ('BYYEARDAY', self._byyearday),
-                    ('BYWEEKNO', self._byweekno),
-                    ('BYWEEKDAY', self._byweekday),
-                    ('BYHOUR', self._byhour),
-                    ('BYMINUTE', self._byminute),
-                    ('BYSECOND', self._bysecond),
-                    ]:
-                if value:
-                    parts.append(name + '=' + ','.join(str(v) for v in value))
+        for name, value in [
+                ('BYSETPOS', self._bysetpos),
+                ('BYMONTH', self._bymonth),
+                ('BYMONTHDAY', self._bymonthday),
+                ('BYYEARDAY', self._byyearday),
+                ('BYWEEKNO', self._byweekno),
+                ('BYWEEKDAY', self._byweekday),
+                ('BYHOUR', self._byhour),
+                ('BYMINUTE', self._byminute),
+                ('BYSECOND', self._bysecond),
+                ]:
+            if value:
+                parts.append(name + '=' + ','.join(str(v) for v in value))
 
         return '''DTSTART:%s RRULE:%s ''' % (re.sub(r'[:-]', '', self._dtstart.strftime("%Y%m%dT%H%M%SZ")), ';'.join(parts))
 
@@ -79,14 +78,14 @@ unsupported_rrules = [
 def unsupported_rrule(request):
     return request.param
 
-@pytest.fixture()
-def now(request):
+@pytest.fixture(scope="function")
+def utcnow(request):
     return datetime.utcnow()
 
 @pytest.fixture()
-def minutely_schedule(request, random_project, now):
+def minutely_schedule(request, random_project, utcnow):
     schedules_pg = random_project.get_related('schedules')
-    rrule = RRule(dateutil.rrule.HOURLY, dtstart=now, interval=1, count=5)
+    rrule = RRule(dateutil.rrule.HOURLY, dtstart=utcnow, interval=1, count=5)
     payload = dict(name="minutely-%s" % common.utils.random_unicode(),
                    description="Update every minute (interval:1, count:5)",
                    rrule=str(rrule))
@@ -95,23 +94,44 @@ def minutely_schedule(request, random_project, now):
     return obj
 
 @pytest.fixture()
-def hourly_schedule(request, random_project, now):
+def hourly_schedule(request, random_project, utcnow):
     schedules_pg = random_project.get_related('schedules')
-    now = datetime.utcnow()
-    rrule = RRule(dateutil.rrule.HOURLY, dtstart=now, interval=1, count=3)
+    rrule = RRule(dateutil.rrule.HOURLY, dtstart=utcnow, interval=1, count=3)
     payload = dict(name="hourly-%s" % common.utils.random_unicode(),
-                   description="Update every hour (interval:1, count:3)",
+                   description="Update hourly (interval:1, count:3)",
                    rrule=str(rrule))
     obj = schedules_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 @pytest.fixture()
-def daily_schedule(request, random_project, now):
+def daily_schedule(request, random_project, utcnow):
     schedules_pg = random_project.get_related('schedules')
-    rrule = RRule(dateutil.rrule.DAILY, dtstart=now, interval=2)
+    rrule = RRule(dateutil.rrule.DAILY, dtstart=utcnow, interval=2)
     payload = dict(name="daily-%s" % common.utils.random_unicode(),
-                   description="Update every daily (interval:2)",
+                   description="Update daily (interval:2)",
+                   rrule=str(rrule))
+    obj = schedules_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+@pytest.fixture()
+def monthly_schedule(request, random_project, utcnow):
+    schedules_pg = random_project.get_related('schedules')
+    rrule = RRule(dateutil.rrule.DAILY, dtstart=utcnow, interval=2)
+    payload = dict(name="monthly-%s" % common.utils.random_unicode(),
+                   description="Update monthly (interval:1)",
+                   rrule=str(rrule))
+    obj = schedules_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+@pytest.fixture()
+def yearly_schedule(request, random_project, utcnow):
+    schedules_pg = random_project.get_related('schedules')
+    rrule = RRule(dateutil.rrule.DAILY, dtstart=utcnow, interval=2)
+    payload = dict(name="yearly-%s" % common.utils.random_unicode(),
+                   description="Update yearly (interval:1)",
                    rrule=str(rrule))
     obj = schedules_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -272,28 +292,24 @@ class Test_Project_Schedules(Base_Api_Test):
         '''assert project updates actually happen'''
         schedules_pg = random_project.get_related('schedules')
 
+        # determine how many project updates already exist (an update may have
+        # been triggered when the project was created)
+        project_updates_pg = random_project.get_related('project_updates')
+        start_count = project_updates_pg.count
+
+        # Create schedule
         now = datetime.utcnow() + relativedelta(seconds=+30)
         now_plus_5m = now + relativedelta(minutes=+5)
-        print "now: %s" % now
-        print "now_plus_5m: %s" % now_plus_5m
         rrule = RRule(dateutil.rrule.MINUTELY, dtstart=now, count=3, until=now_plus_5m)
         payload = dict(name="minutely-%s" % common.utils.random_unicode(),
                        description="Update every minute (count:3)",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
         print "rrule: %s" % schedule_pg.rrule
-        print "dtstart: %s" % schedule_pg.dtstart
-        print "dtend: %s" % schedule_pg.dtend
-
-        # determine how many project updates already exist
-        project_updates_pg = random_project.get_related('project_updates')
-        start_count = project_updates_pg.count
-        print "start_count: %s" % start_count
-        print "rrule.count: %s" % rrule.count()
 
         # wait 5 minutes for scheduled updates to complete
         project_updates_pg = common.utils.wait_until(project_updates_pg, 'count', start_count+rrule.count(),
-            interval=30, verbose=True, timeout=60*5)
+            interval=1, verbose=True, timeout=60*5)
 
         # ensure scheduled project updates ran
         assert project_updates_pg.count == start_count + rrule.count()
@@ -301,6 +317,64 @@ class Test_Project_Schedules(Base_Api_Test):
         # ensure the schedule has no remaining runs
         schedule_pg.get()
         assert schedule_pg.next_run is None
+
+    def test_schedule_update_monthly(self, random_project, utcnow):
+        '''assert a monthly schedule launches properly'''
+        schedules_pg = random_project.get_related('schedules')
+
+        # determine how many project updates already exist (an update may have
+        # been triggered when the project was created)
+        project_updates_pg = random_project.get_related('project_updates')
+        start_count = project_updates_pg.count
+
+        # Create schedule
+        last_month = utcnow + relativedelta(months=-1, minutes=+1, seconds=+30)
+        rrule = RRule(dateutil.rrule.MONTHLY, dtstart=last_month)
+        payload = dict(name="monthly-%s" % common.utils.random_unicode(),
+                       description="Update every month",
+                       rrule=str(rrule))
+        schedule_pg = schedules_pg.post(payload)
+
+        # wait 2 minutes for scheduled update to complete
+        project_updates_pg = common.utils.wait_until(project_updates_pg, 'count',
+            start_count + 1,
+            interval=15, verbose=True, timeout=60*2)
+
+        # ensure scheduled project updates ran
+        assert project_updates_pg.count == start_count + 1
+
+        # ensure the schedule next_run is correct
+        schedule_pg.get()
+        assert schedule_pg.next_run == rrule[2].strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    def test_schedule_update_yearly(self, random_project, utcnow):
+        '''assert a yearly schedule launches properly'''
+        schedules_pg = random_project.get_related('schedules')
+
+        # determine how many project updates already exist (an update may have
+        # been triggered when the project was created)
+        project_updates_pg = random_project.get_related('project_updates')
+        start_count = project_updates_pg.count
+
+        # Create schedule
+        last_year = utcnow + relativedelta(years=-1, minutes=+1, seconds=+30)
+        rrule = RRule(dateutil.rrule.YEARLY, dtstart=last_year)
+        payload = dict(name="yearly-%s" % common.utils.random_unicode(),
+                       description="Update every year",
+                       rrule=str(rrule))
+        schedule_pg = schedules_pg.post(payload)
+
+        # wait 2 minutes for scheduled update to complete
+        project_updates_pg = common.utils.wait_until(project_updates_pg, 'count',
+            start_count + 1,
+            interval=15, verbose=True, timeout=60*2)
+
+        # ensure scheduled project updates ran
+        assert project_updates_pg.count == start_count + 1
+
+        # ensure the schedule next_run is correct
+        schedule_pg.get()
+        assert schedule_pg.next_run == rrule[2].strftime("%Y-%m-%dT%H:%M:%SZ")
 
     # SEE JIRA(AC-1106)
     def test_schedule_project_delete(self, api_projects_pg, api_schedules_pg, random_organization):
