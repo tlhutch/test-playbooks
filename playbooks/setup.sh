@@ -55,11 +55,11 @@ for LINE in $(env) ; do
     set -- $LINE
     VARNAME="$1"
     case $VARNAME in
+        DELETE_ON_START|AWX_UPGRADE)
+            echo "${VARNAME,,}: ${!VARNAME}" >> vars.yaml
+            ;;
         AWX*|GALAXY*|AWS*|EC2*|RAX*|INSTANCE*)
             echo "${VARNAME,,}: '${!VARNAME}'" >> vars.yaml
-            ;;
-        DELETE_ON_START)
-            echo "${VARNAME,,}: ${!VARNAME}" >> vars.yaml
             ;;
         *)
             echo "Ignoring environment variable: $VARNAME"
