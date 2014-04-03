@@ -373,7 +373,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.next_run == ro_schedule.next_run
 
     def test_schedule_update_with_credential_prompt(self, random_project_with_credential_prompt, utcnow):
-        '''FIXME'''
+        '''assert projects with credential prompts launch, but fail'''
         schedules_pg = random_project_with_credential_prompt.get_related('schedules')
 
         # Create a schedule
