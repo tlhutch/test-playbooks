@@ -260,6 +260,9 @@ class Awx_Schema_Unified_Jobs(Awx_Schema):
     def get(self):
         return self.load_file('unified_jobs/list.yml')
 
+class Awx_Schema_Schedules_Jobs(Awx_Schema_Unified_Jobs):
+    resource = '/api/v1/schedules/\d+/jobs/'
+
 #
 # /job_templates
 #
@@ -499,6 +502,9 @@ class Awx_Schema_Schedules(Awx_Schema):
     @property
     def put(self):
         return self.post
+    @property
+    def duplicate(self):
+        return self.load_file('schedules/duplicate.yml')
 
 class Awx_Schema_Schedule(Awx_Schema_Schedules):
     resource = '/api/v1/schedules/\d+/'
