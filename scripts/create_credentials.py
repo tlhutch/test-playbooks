@@ -51,15 +51,15 @@ for ec2 in ['aws','ec2']:
     cfg['cloud'][ec2]['password'] = os.environ["AWS_SECRET_KEY"]
 
 # Set SCM info
-cfg['scm']['password'] = os.environ["SCM_PASSWORD"]
+cfg['scm']['password'] = os.environ.get("SCM_PASSWORD","")
 cfg['scm']['ssh_key_data'] = literal(open(os.environ["SCM_KEY_DATA"],'r').read())
 cfg['scm']['encrypted']['ssh_key_data'] = literal(open(os.environ["SCM_KEY_DATA_ENCRYPTED"],'r').read())
-cfg['scm']['encrypted']['ssh_key_unlock'] = os.environ["SCM_KEY_UNLOCK"]
+cfg['scm']['encrypted']['ssh_key_unlock'] = os.environ.get("SCM_KEY_UNLOCK","")
 
 # Set SSH info
-cfg['ssh']['password'] = os.environ["SSH_PASSWORD"]
+cfg['ssh']['password'] = os.environ.get("SSH_PASSWORD", "")
 cfg['ssh']['ssh_key_data'] = literal(open(os.environ["SSH_KEY_DATA"],'r').read())
 cfg['ssh']['encrypted']['ssh_key_data'] = literal(open(os.environ["SSH_KEY_DATA_ENCRYPTED"],'r').read())
-cfg['ssh']['encrypted']['ssh_key_unlock'] = os.environ["SSH_KEY_UNLOCK"]
+cfg['ssh']['encrypted']['ssh_key_unlock'] = os.environ.get("SSH_KEY_UNLOCK", "")
 
 yaml.dump(cfg, open(credentials_file, 'w+'))
