@@ -41,6 +41,7 @@
 1. [ ] Update automation to unified jobs API (projects/inventory_updates/jobs)
 2. [ ] Add scheduler API tests
 3. [ ] Add RBAC tests for scheduler
+4. [ ] Verify Callbacks
 
 ## Feature: Scheduler
 1. [X] Add scheduler API tests for project_update
