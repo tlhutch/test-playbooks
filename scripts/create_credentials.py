@@ -9,15 +9,15 @@ credentials_file = "tests/credentials.yaml"
 
 # Gather SCM private key credentials
 if not "SCM_KEY_DATA" in os.environ:
-    os.environ["SCM_KEY_DATA"] = os.path.realpath("$HOME/.ssh/id_rsa.github-ansible-jenkins-nopassphrase")
+    os.environ["SCM_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/id_rsa.github-ansible-jenkins-nopassphrase")
 if not "SCM_KEY_DATA_ENCRYPTED" in os.environ:
-    os.environ["SCM_KEY_DATA_ENCRYPTED"] = os.path.realpath("$HOME/.ssh/id_rsa.github-ansible-jenkins-passphrase")
+    os.environ["SCM_KEY_DATA_ENCRYPTED"] = os.path.expandvars("$HOME/.ssh/id_rsa.github-ansible-jenkins-passphrase")
 
 # Gather SSH private key credentials
 if not "SSH_KEY_DATA" in os.environ:
-    os.environ["SSH_KEY_DATA"] = os.path.realpath("$HOME/.ssh/id_rsa.jenkins-nopassphrase")
+    os.environ["SSH_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/id_rsa.jenkins-nopassphrase")
 if not "SSH_KEY_DATA_ENCRYPTED" in os.environ:
-    os.environ["SSH_KEY_DATA_ENCRYPTED"] = os.path.realpath("$HOME/.ssh/id_rsa.jenkins-passphrase")
+    os.environ["SSH_KEY_DATA_ENCRYPTED"] = os.path.expandvars("$HOME/.ssh/id_rsa.jenkins-passphrase")
 
 # Allow for folded/literal yaml blocks (see
 # http://stackoverflow.com/questions/6432605/any-yaml-libraries-in-python-that-support-dumping-of-long-strings-as-block-liter)
