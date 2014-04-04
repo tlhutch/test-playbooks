@@ -17,12 +17,12 @@ gen_passwd() {
 }
 
 #
-# Convenience function to load images from group_vars/all
+# Convenience function to load images from playbooks/group_vars/all
 #
 filter_images() {
     # $1 = [ec2,rax]
     # $2 = [all,rhel,ubuntu,centos]
-    python -c "import yaml; data = yaml.load(open('group_vars/all','r')); print [i for i in data['${1}_images'] if '${2}' in i['name']]"
+    python -c "import yaml; data = yaml.load(open('playbooks/group_vars/all','r')); print [i for i in data['${1}_images'] if '${2}' in i['name']]"
 }
 
 # Determine which playbook was requested
