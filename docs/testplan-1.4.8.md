@@ -3,8 +3,12 @@
 ## Resources
 * 1 full-time quality engineer (jlaska)
 
-## Not Tested
-TDB
+## Assumptions
+1. UI testing is performed manually.  While basic automated coverage exists, it is insufficient to test customer workflows.
+
+## Features Not Tested
+1. Vault passphrase
+2. Comprehensive RBAC coverage
 
 ## Features Tested
 
@@ -33,9 +37,10 @@ TDB
 4. Test upgrades with data, and ensure projects/inventory/jobs run post-upgrade
 
 ### Integration
-1. Update automation to unified jobs API (projects/inventory_updates/jobs)
-2. Add scheduler API tests
-3. Add RBAC tests for scheduler
+1. [X] End-to-End integration completed on all supported platforms
+1. [ ] Update automation to unified jobs API (projects/inventory_updates/jobs)
+2. [ ] Add scheduler API tests
+3. [ ] Add RBAC tests for scheduler
 
 ## Feature: Scheduler
 1. [X] Add scheduler API tests for project_update
@@ -45,16 +50,13 @@ TDB
 4. [ ] Test celeryd/task_manager recovery
 
 ## Feature: Unified Jobs View
-1. Update existing job_status API automation
+1. [X] Update existing job_status API automation
 
 ## Feature: Vault credential support
-1. Add support for vault credential usage
+1. [ ] Add support for vault credential usage
 
 ## Feature: Failure recovery
-1. Catastrophic fail - Launch jobs, sysrq-trigger before jobs complete, all jobs should resume or failed
-2. Celery fail - celery dies, we should accept jobs, but not process process.  Running jobs will be marked fail.  Resuming celery should continue running jobs.
-3. Task Manager fail - task_mgr dies, should queue and start jobs, but not run.
+1. [ ] Catastrophic fail - Launch jobs, sysrq-trigger before jobs complete, all jobs should resume or fail (no stuck jobs).  The jobs queue is capable of running new jobs.
+2. [ ] Celery fail - celery dies, we should accept jobs, but not process process.  Running jobs will be marked fail.  Resuming celery should continue running jobs.
+3. [ ] Task Manager fail - task_mgr dies, should queue and start jobs, but not run.
 
-## Features Not Tested
-1. Vault passphrase
-1. Comprehensive RBAC coverage
