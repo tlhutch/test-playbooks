@@ -101,6 +101,7 @@ def set_rootpw(request, ansible_runner, testsetup):
 @pytest.mark.incremental
 @pytest.mark.integration
 @pytest.mark.skip_selenium
+@pytest.mark.trylast
 class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.destructive
