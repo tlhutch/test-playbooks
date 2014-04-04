@@ -32,6 +32,7 @@ if [ $# -ne 1 ]; then
 fi
 
 PLAYBOOK_PATH=${1}
+PLAYBOOK_DIR=$(dirname ${PLAYBOOK_PATH})
 PLAYBOOK=$(basename ${PLAYBOOK_PATH})
 
 # Assert expected environment variables exist
@@ -44,7 +45,7 @@ do
 done
 
 # Create json argument file
-cat << EOF >vars.yaml
+cat << EOF >${PLAYBOOK_DIR}/vars.yaml
 ---
 EOF
 
@@ -58,10 +59,10 @@ for LINE in $(env) ; do
     VARNAME="$1"
     case $VARNAME in
         DELETE_ON_START|AWX_UPGRADE)
-            echo "${VARNAME,,}: ${!VARNAME}" >> vars.yaml
+            echo "${VARNAME,,}: ${!VARNAME}" >> ${PLAYBOOK_DIR}/vars.yaml
             ;;
         AWX*|GALAXY*|AWS*|EC2*|RAX*|INSTANCE*)
-            echo "${VARNAME,,}: '${!VARNAME}'" >> vars.yaml
+            echo "${VARNAME,,}: '${!VARNAME}'" >> ${PLAYBOOK_DIR}/vars.yaml
             ;;
         *)
             echo "Ignoring environment variable: $VARNAME"
@@ -71,7 +72,7 @@ done
 
 # Enable nightly ansible repository?
 if [[ "${ENABLE_ANSIBLE_NIGHTLY_REPO}" == true ]]; then
-    echo "ansible_nightly_repo: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi" >> vars.yaml
+    echo "ansible_nightly_repo: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi" >> ${PLAYBOOK_DIR}/vars.yaml
 fi
 
 # Establish the aw_repo_url.  This is the baseurl used by the install playbook.
@@ -79,13 +80,13 @@ fi
 # repository.
 case "${PLAYBOOK}-${OFFICIAL}" in
     awx*-false|awx*-no|ansible-tower*-false|ansible-tower*-no)
-        echo "aw_repo_url: http://50.116.42.103/ansible-tower_nightlies_RTYUIOPOIUYTYU" >> vars.yaml
+        echo "aw_repo_url: http://50.116.42.103/ansible-tower_nightlies_RTYUIOPOIUYTYU" >> ${PLAYBOOK_DIR}/vars.yaml
         ;;
     galaxy*-false|galaxy*-no)
-        echo "aw_repo_url: http://50.116.42.103/galaxy_nightlies_Y6ptm6ES82A5h79V" >> vars.yaml
+        echo "aw_repo_url: http://50.116.42.103/galaxy_nightlies_Y6ptm6ES82A5h79V" >> ${PLAYBOOK_DIR}/vars.yaml
         ;;
     *)
-        echo "aw_repo_url: http://releases.ansible.com/${PLAYBOOK%%.yml}" >> vars.yaml
+        echo "aw_repo_url: http://releases.ansible.com/${PLAYBOOK%%.yml}" >> ${PLAYBOOK_DIR}/vars.yaml
         ;;
 esac
 
@@ -129,12 +130,12 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
         ;;
 esac
 
-# If custom distros are needed, save them in vars.yaml
+# If custom distros are needed, save them in ${PLAYBOOK_DIR}/vars.yaml
 if [ -n "${RAX_IMAGES}" ]; then
-    echo "rax_images: ${RAX_IMAGES}" >> vars.yaml
+    echo "rax_images: ${RAX_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yaml
 fi
 if [ -n "${EC2_IMAGES}" ]; then
-    echo "ec2_images: ${EC2_IMAGES}" >> vars.yaml
+    echo "ec2_images: ${EC2_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yaml
 fi
 
 #
@@ -144,21 +145,21 @@ fi
 
 AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD-$(gen_passwd)}
 if [ -n "${AWX_ADMIN_PASSWORD}" ]; then
-    echo "admin_password: ${AWX_ADMIN_PASSWORD}" >> vars.yaml
+    echo "admin_password: ${AWX_ADMIN_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yaml
 fi
 
 AWX_PG_PASSWORD=${AWX_PG_PASSWORD-$(gen_passwd)}
 if [ -n "${AWX_PG_PASSWORD}" ]; then
-    echo "pg_password: ${AWX_PG_PASSWORD}" >> vars.yaml
+    echo "pg_password: ${AWX_PG_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yaml
 fi
 
 # Add custom ssh pubkeys
 if [ -n "${AUTHORIZED_KEYS}" ]; then
-    echo "authorized_keys: " >> vars.yaml
+    echo "authorized_keys: " >> ${PLAYBOOK_DIR}/vars.yaml
     echo "${AUTHORIZED_KEYS}" | while read LINE;
     do
         test -z "${LINE}" && continue
-        echo  "  - '${LINE}'" >> vars.yaml
+        echo  "  - '${LINE}'" >> ${PLAYBOOK_DIR}/vars.yaml
     done
 fi
 
@@ -172,4 +173,4 @@ else
   ARGS="-v"
 fi
 
-ansible-playbook ${ARGS} -i inventory -e @vars.yaml "${PLAYBOOK_PATH}"
+ansible-playbook ${ARGS} -i ${PLAYBOOK_DIR}/inventory -e @${PLAYBOOK_DIR}/vars.yaml "${PLAYBOOK_PATH}"
