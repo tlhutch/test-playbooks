@@ -17,7 +17,7 @@ if not "SCM_KEY_DATA_ENCRYPTED" in os.environ:
 if not "SSH_KEY_DATA" in os.environ:
     os.environ["SSH_KEY_DATA"] = os.path.realpath("$HOME/.ssh/id_rsa.jenkins-nopassphrase")
 if not "SSH_KEY_DATA_ENCRYPTED" in os.environ:
-    os.environ["SSH_KEY_DATA_ENCRYPTED"] = os.realpath("$HOME/.ssh/id_rsa.jenkins-passphrase")
+    os.environ["SSH_KEY_DATA_ENCRYPTED"] = os.path.realpath("$HOME/.ssh/id_rsa.jenkins-passphrase")
 
 # Allow for folded/literal yaml blocks (see
 # http://stackoverflow.com/questions/6432605/any-yaml-libraries-in-python-that-support-dumping-of-long-strings-as-block-liter)
