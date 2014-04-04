@@ -705,8 +705,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # With the job started, it shouldn't be start'able anymore
         start_pg = job_pg.get_related('start')
         assert not start_pg.json['can_start'], \
-            "Job id:%s launched (status:%s), but can_start: %s\nJob result_stdout: %s\nJob result_traceback: %s" % \
-            (job_pg.id, job_pg.status, start_pg.json['can_start'], job_pg.result_stdout, job_pg.result_traceback)
+            "Job id:%s launched (status:%s), but can_start: %s\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
+            (job_pg.id, job_pg.status, start_pg.json['can_start'], job_pg.result_stdout, job_pg.result_traceback, job_pg.job_explanation)
 
         # Wait 20mins for job to complete
         # TODO: It might be nice to wait 15 mins from when the job started
@@ -714,8 +714,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, \
-            "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s" % \
-            (job_pg.status, job_pg.result_stdout, job_pg.result_traceback)
+            "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
+            (job_pg.status, job_pg.result_stdout, job_pg.result_traceback, job_pg.job_explanation)
 
         # Display output, even for success
         print job_pg.result_stdout
