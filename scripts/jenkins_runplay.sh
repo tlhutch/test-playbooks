@@ -27,10 +27,12 @@ filter_images() {
 
 # Determine which playbook was requested
 if [ $# -ne 1 ]; then
-    echo "Usage: $0 <playbook>"
+    echo "Usage: $0 <path/playbook.yml>"
     exit 1
 fi
-PLAYBOOK=${1}
+
+PLAYBOOK_PATH=${1}
+PLAYBOOK=$(basename ${PLAYBOOK_PATH})
 
 # Assert expected environment variables exist
 for VARNAME in JOB_NAME JENKINS_HOME ;
@@ -170,4 +172,4 @@ else
   ARGS="-v"
 fi
 
-ansible-playbook ${ARGS} -i inventory -e @vars.yaml "${PLAYBOOK}"
+ansible-playbook ${ARGS} -i inventory -e @vars.yaml "${PLAYBOOK_PATH}"
