@@ -17,7 +17,7 @@ for SCRIPT_DIR in "scripts" "." ; do
         break
     fi
 done
-echo python ${SCRIPT_DIR}/${SCRIPT_NAME} tests/credentials.template tests/credentials.yaml
+python ${SCRIPT_DIR}/${SCRIPT_NAME} tests/credentials.template tests/credentials.yaml
 
 export ANSIBLE_NOCOLOR=True
 export ANSIBLE_HOST_KEY_CHECKING=False
