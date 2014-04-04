@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
+import sys
 import os
 import yaml
 
+if len(sys.argv) != 3:
+    echo "usage: %s <template> <output_file>" % sys.argv[0]
+
 # FIXME - support optparser parameters
-credentials_template = "tests/credentials.template"
-credentials_file = "tests/credentials.yaml"
+(credentials_template, credentials_file) = sys.argv[1:3]
 
 # Gather SCM private key credentials
 if not "SCM_KEY_DATA" in os.environ:
