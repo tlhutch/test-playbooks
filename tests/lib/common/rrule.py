@@ -1,3 +1,4 @@
+import re
 import dateutil.rrule
 
 class RRule(dateutil.rrule.rrule):
