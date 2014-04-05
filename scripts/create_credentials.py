@@ -5,7 +5,8 @@ import os
 import yaml
 
 if len(sys.argv) != 3:
-    echo "usage: %s <template> <output_file>" % sys.argv[0]
+    print "usage: %s <template> <output_file>" % sys.argv[0]
+    sys.exit(1)
 
 # FIXME - support optparser parameters
 (credentials_template, credentials_file) = sys.argv[1:3]
