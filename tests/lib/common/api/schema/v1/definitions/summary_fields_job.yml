@@ -6,5 +6,6 @@ summary_fields_job:
       name: {type: string}
       failed: {type: boolean}
       status: {$ref: '#/definitions/enum_task_status'}
+      finished: {format: date-time, type: string}
     required: [name, description]
     type: object

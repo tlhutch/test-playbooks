@@ -7,7 +7,6 @@ summary_fields_last_job:
       failed: {type: boolean}
       job_template_id: {$ref: '#/definitions/id'}
       job_template_name: {type: string}
-      finished: {format: date-time, type: string}
       status: {$ref: '#/definitions/enum_source_status'}
     required: [name, description, status, failed, job_template_id, job_template_name]
     type: object
