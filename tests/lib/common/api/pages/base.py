@@ -240,6 +240,7 @@ class Task_Page(Base):
     failed = property(json_getter('failed'), json_setter('failed'))
     result_traceback = property(json_getter('result_traceback'), json_setter('result_traceback'))
     result_stdout = property(json_getter('result_stdout'), json_setter('result_stdout'))
+    job_explanation = property(json_getter('job_explanation'), json_setter('job_explanation'))
     created = property(json_getter('created'), json_setter('created'))
     modified = property(json_getter('modified'), json_setter('failed'))
 
