@@ -3,6 +3,9 @@
 # Use inventory.log artifact (requires copy artifact plugin)
 ANSIBLE_INVENTORY="playbooks/inventory.log"
 
+JUNIT_XML=${JUNIT_XML:-tests/results.xml}
+WEBQA_REPORT=${WEBQA_REPORT:-tests/results/index.html}
+
 # Determine BASEURL by finding a host in PLATFORM within the inventory file
 INVENTORY_LINE=$(grep "^\[ ${PLATFORM} \]" -A1 ${ANSIBLE_INVENTORY} | tail -n1)
 set -- ${INVENTORY_LINE}
@@ -26,8 +29,8 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 py.test -v -m integration \
   --destructive \
   --api-debug \
-  --junit-xml tests/results.xml \
-  --webqareport tests/results/index.html \
+  --junit-xml "${JUNIT_XML}" \
+  --webqareport "${WEBQA_REPORT}" \
   --baseurl "${BASEURL}" \
   --ansible-inventory "${ANSIBLE_INVENTORY}" \
   tests/
