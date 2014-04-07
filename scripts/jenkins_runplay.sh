@@ -174,3 +174,5 @@ else
 fi
 
 ansible-playbook ${ARGS} -i ${PLAYBOOK_DIR}/inventory -e @${PLAYBOOK_DIR}/vars.yaml "${PLAYBOOK_PATH}"
+
+exit $?

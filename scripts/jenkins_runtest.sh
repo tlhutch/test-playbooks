@@ -31,3 +31,5 @@ py.test -v -m integration \
   --baseurl "${BASEURL}" \
   --ansible-inventory "${ANSIBLE_INVENTORY}" \
   tests/
+
+exit $?
