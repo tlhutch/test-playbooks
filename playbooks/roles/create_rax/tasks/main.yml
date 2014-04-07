@@ -26,9 +26,11 @@
     files:
       /root/.ssh/authorized_keys: '{{ rax_public_key }}'
     wait: yes
-    wait_timeout: 1500
+    wait_timeout: 800
     state: present
   register: rax
+  retries: 3
+  until: rax|success
   with_items: rax_images
 
 # Despite using `wait` on the ec2 module, instances aren't accepting ssh
