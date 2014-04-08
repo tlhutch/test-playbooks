@@ -43,8 +43,8 @@ def admin_user(request, authtoken, api_users_pg):
 
 @pytest.fixture(scope="class")
 def random_inventory(request, authtoken, api_inventories_pg, random_organization):
-    payload = dict(name="inventory-%s" % common.utils.random_unicode(),
-                   description="Random inventory",
+    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
+                   description="Random inventory - %s" % common.utils.random_unicode(),
                    organization=random_organization.id,)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -60,6 +60,51 @@ def random_group(request, authtoken, api_groups_pg, random_inventory):
     obj = api_groups_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
+#
+# /inventory_source
+#
+@pytest.fixture(scope="class")
+def random_inventory_source(request, authtoken, random_group):
+    return random_group.get_related('inventory_source')
+
+#
+# /credentials
+#
+@pytest.fixture(scope="class")
+def random_aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    # Create scm credential with scm_key_unlock='ASK'
+    payload = dict(name="credentials-%s" % common.utils.random_unicode(),
+                   description="AWS credential %s" % common.utils.random_unicode(),
+                   kind='aws',
+                   user=admin_user.id,
+                   username=testsetup.credentials['cloud']['aws']['username'],
+                   password=testsetup.credentials['cloud']['aws']['password'],
+                  )
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+@pytest.fixture(scope="class")
+def random_aws_group(request, authtoken, api_groups_pg, random_inventory, random_aws_credential):
+    payload = dict(name="aws-group-%s" % common.utils.random_ascii(),
+                   description="AWS group %s" % common.utils.random_unicode(),
+                   inventory=random_inventory.id,
+                   credential=random_aws_credential.id)
+    obj = api_groups_pg.post(payload)
+    request.addfinalizer(obj.delete)
+
+    # Set the inventory_source.sourc = 'ec2'
+    inv_source = obj.get_related('inventory_source')
+    inv_source.patch(source='ec2', credential=random_aws_credential.id)
+    return obj
+
+#
+# /inventory_source
+#
+@pytest.fixture(scope="class")
+def random_aws_inventory_source(request, authtoken, random_aws_group):
+    return random_aws_group.get_related('inventory_source')
 
 #
 # /hosts
