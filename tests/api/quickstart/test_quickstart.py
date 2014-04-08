@@ -625,10 +625,18 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.jira('AC-641', run=True)
     @pytest.mark.destructive
-    def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg, api_job_templates_pg, job_template, ansible_facts):
+    def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg, api_job_templates_pg, job_template, ansible_facts, ansible_runner):
         # Find desired object identifiers
         inventory_id = api_inventories_pg.get(name__iexact=job_template['inventory']).results[0].id
         project_id = api_projects_pg.get(name__iexact=job_template['project']).results[0].id
+
+        # This is slightly nuts ... please look away
+        if 'inventory_hostname' not in ansible_facts:
+            if ansible_facts['ansible_domain'] == 'ec2.internal':
+                ec2_facts = ansible_runner.ec2_facts()
+                ansible_facts['inventory_hostname'] = ec2_facts['ansible_facts']['ansible_ec2_public_hostname']
+            else:
+                ansible_facts['inventory_hostname'] = ansible_facts['ansible_fqdn'].replace('x86-64','x86_64')
 
         # Substitute any template parameters
         limit = job_template.get('limit', '').format(**ansible_facts)

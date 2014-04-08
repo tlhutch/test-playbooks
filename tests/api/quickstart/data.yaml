@@ -713,14 +713,14 @@ projects:
       credential: git@github.com (ssh_key_data, ssh_key_unlock)
 
 job_templates:
-    - name: language_features/loop_plugins.yml (limit:jenkins-nightly*:&ORD)
+    - name: language_features/loop_plugins.yml (limit:{inventory_hostname}:&cloud)
       job_type: check
       allow_callbacks: false
       playbook: language_features/loop_plugins.yml
       project: ansible-examples.git (manual)
       inventory: it_inventory
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)
-      limit: '{ansible_fqdn}:&jenkins-nightly*:&ORD'
+      limit: '{inventory_hostname}:&cloud'
 
     - name: language_features/loop_nested.yml (limit:host-1*:&local_1-10, ssh_key_unlock:ASK)
       job_type: run
