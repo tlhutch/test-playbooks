@@ -41,6 +41,7 @@ inventory_update:
         stdout: {format: uri, type: string}
         created_by: {format: uri, type: string}
         modified_by: {format: uri, type: string}
+        schedule: {format: uri, type: string}
       required: [cancel, inventory_source, credential]
       type: object
     summary_fields:
@@ -49,6 +50,7 @@ inventory_update:
         inventory_source: {$ref: '#/definitions/summary_fields_inventory_source'}
         credential: {$ref: '#/definitions/summary_fields_credential'}
         unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
+        schedule: {$ref: '#/definitions/summary_fields_schedule'}
       required: [inventory_source]
       type: object
   required: [id, url, created, modified, inventory_source, status, failed,
