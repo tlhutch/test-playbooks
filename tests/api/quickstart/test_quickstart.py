@@ -630,7 +630,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         inventory_id = api_inventories_pg.get(name__iexact=job_template['inventory']).results[0].id
         project_id = api_projects_pg.get(name__iexact=job_template['project']).results[0].id
 
-        # Parse any template parameters
+        # Substitute any template parameters
         limit = job_template.get('limit', '').format(**ansible_facts)
 
         # Create a new job_template
