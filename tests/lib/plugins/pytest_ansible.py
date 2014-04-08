@@ -77,6 +77,19 @@ def pytest_sessionstart(session):
 
 # def pytest_funcarg__ansible_runner(request):
 @pytest.fixture(scope='session')
+def ansible_facts(request, ansible_runner):
+    '''
+    Return ansible_facts dictionary
+    '''
+    results = ansible_runner.setup()
+    if isinstance(results, dict):
+        return results.get('ansible_facts', {})
+    else:
+        return dict()
+
+
+# def pytest_funcarg__ansible_runner(request):
+@pytest.fixture(scope='session')
 def ansible_runner(request):
     '''
     Return initialized ansibleWrapper
