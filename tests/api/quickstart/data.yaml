@@ -157,6 +157,20 @@ credentials:
       sudo_username: ''
       sudo_password: ''
 
+    - name: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***, vault_password:***)
+      description: user:bender_eng_user, ssh_user:root, ssh_key_data, ssh_key_unlock:***, vault_password:***
+      kind: ssh
+      user: bender_eng_user
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: ''
+      ssh_key_data: '{ssh_key_data}'
+      ssh_key_unlock: '{ssh_key_unlock}'
+      sudo_username: ''
+      sudo_password: ''
+      vault_password: '{vault_password}'
+
     - name: SSH (user:bender_eng_user, sudo_password:ASK)
       description: user:bender_eng_user, ssh_user:root, sudo_password:ASK
       kind: ssh
@@ -707,6 +721,7 @@ job_templates:
       inventory: it_inventory
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)
       limit: jenkins-nightly*:&ORD
+      # FIXME ^^^ prefix the 'limit' with the current server ipv4 address to restrict this to a single system
 
     - name: language_features/loop_nested.yml (limit:host-1*:&local_1-10, ssh_key_unlock:ASK)
       job_type: run
@@ -750,6 +765,14 @@ job_templates:
       verbosity: 1
       extra_vars:
         ansible_connection: local
+
+    - name: helloworld/vault.yml (limit:local)
+      job_type: run
+      project: ansible-helloworld (hg, ssh_key_data)
+      playbook: vault.yml
+      inventory: it_inventory
+      credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***, vault_password:***)
+      limit: local
 
     - name: helloworld/aws_credentials_test.yml (limit:127.0.0.1)
       job_type: run
