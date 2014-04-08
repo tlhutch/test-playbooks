@@ -75,7 +75,6 @@ def pytest_sessionstart(session):
             local_inventory.write(line + '\n')
 
 
-# def pytest_funcarg__ansible_runner(request):
 @pytest.fixture(scope='session')
 def ansible_facts(request, ansible_runner):
     '''
