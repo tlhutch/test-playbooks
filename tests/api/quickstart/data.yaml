@@ -720,8 +720,7 @@ job_templates:
       project: ansible-examples.git (manual)
       inventory: it_inventory
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)
-      limit: jenkins-nightly*:&ORD
-      # FIXME ^^^ prefix the 'limit' with the current server ipv4 address to restrict this to a single system
+      limit: '{ansible_fqdn}:&jenkins-nightly*:&ORD'
 
     - name: language_features/loop_nested.yml (limit:host-1*:&local_1-10, ssh_key_unlock:ASK)
       job_type: run

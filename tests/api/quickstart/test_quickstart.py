@@ -625,10 +625,13 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.jira('AC-641', run=True)
     @pytest.mark.destructive
-    def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg, api_job_templates_pg, job_template):
+    def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg, api_job_templates_pg, job_template, ansible_facts):
         # Find desired object identifiers
         inventory_id = api_inventories_pg.get(name__iexact=job_template['inventory']).results[0].id
         project_id = api_projects_pg.get(name__iexact=job_template['project']).results[0].id
+
+        # Parse any template parameters
+        limit = job_template.get('limit', '').format(**ansible_facts)
 
         # Create a new job_template
         payload = dict(name=job_template['name'],
@@ -636,7 +639,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                        job_type=job_template['job_type'],
                        playbook=job_template['playbook'],
                        job_tags=job_template.get('job_tags', ''),
-                       limit=job_template.get('limit', ''),
+                       limit = limit,
                        inventory=inventory_id,
                        project=project_id,
                        allow_callbacks=job_template.get('allow_callbacks', False),
