@@ -77,91 +77,34 @@ def rrule_frequency(request):
 def utcnow(request):
     return datetime.utcnow()
 
-@pytest.fixture()
-def minutely_schedule(request, random_project, utcnow):
-    schedules_pg = random_project.get_related('schedules')
-    rrule = RRule(dateutil.rrule.HOURLY, dtstart=utcnow, interval=1, count=5)
-    payload = dict(name="minutely-%s" % common.utils.random_unicode(),
-                   description="Update every minute (interval:1, count:5)",
-                   rrule=str(rrule))
-    obj = schedules_pg.post(payload)
-    request.addfinalizer(obj.delete)
-    return obj
+@pytest.fixture(scope="function")
+def rrule_minutely(request, utcnow):
+    return RRule(dateutil.rrule.MINUTELY, dtstart=utcnow + relativedelta(minutes=-1, seconds=+30))
 
 @pytest.fixture()
-def hourly_schedule(request, random_project, utcnow):
-    schedules_pg = random_project.get_related('schedules')
-    rrule = RRule(dateutil.rrule.HOURLY, dtstart=utcnow, interval=1, count=3)
-    payload = dict(name="hourly-%s" % common.utils.random_unicode(),
-                   description="Update hourly (interval:1, count:3)",
-                   rrule=str(rrule))
-    obj = schedules_pg.post(payload)
-    request.addfinalizer(obj.delete)
-    return obj
-
-@pytest.fixture()
-def daily_schedule(request, random_project, utcnow):
-    schedules_pg = random_project.get_related('schedules')
-    rrule = RRule(dateutil.rrule.DAILY, dtstart=utcnow, interval=2)
-    payload = dict(name="daily-%s" % common.utils.random_unicode(),
-                   description="Update daily (interval:2)",
-                   rrule=str(rrule))
-    obj = schedules_pg.post(payload)
-    request.addfinalizer(obj.delete)
-    return obj
-
-@pytest.fixture()
-def weekly_schedule(request, random_project, utcnow):
-    return 'FIXME'
-
-@pytest.fixture()
-def monthly_schedule(request, random_project, utcnow):
-    schedules_pg = random_project.get_related('schedules')
-    rrule = RRule(dateutil.rrule.MONTHLY, dtstart=utcnow, interval=2)
-    payload = dict(name="monthly-%s" % common.utils.random_unicode(),
-                   description="Update monthly (interval:1)",
-                   rrule=str(rrule))
-    obj = schedules_pg.post(payload)
-    request.addfinalizer(obj.delete)
-    return obj
-
-@pytest.fixture()
-def yearly_schedule(request, random_project, utcnow):
-    schedules_pg = random_project.get_related('schedules')
-
-    last_year = utcnow + relativedelta(years=-1, seconds=+30)
-    rrule = RRule(dateutil.rrule.YEARLY, dtstart=last_year)
-    payload = dict(name="yearly-%s" % common.utils.random_unicode(),
-                   description="Update every year, starting last",
-                   rrule=str(rrule))
-    obj = schedules_pg.post(payload)
-    request.addfinalizer(obj.delete)
-    return obj
-
-@pytest.fixture()
-def disabled_rrule(request, utcnow):
-    return RRule(dateutil.rrule.YEARLY, dtstart=utcnow)
+def disabled_rrule_minutely(request, utcnow):
+    return RRule(dateutil.rrule.MINUTELY, dtstart=utcnow + relativedelta(minutes=-1, seconds=+30))
 
 @pytest.fixture(scope="function")
-def disabled_project_schedule(request, random_project, disabled_rrule):
+def disabled_project_schedule(request, random_project, disabled_rrule_minutely):
     schedules_pg = random_project.get_related('schedules')
 
     payload = dict(name="disabled-%s" % common.utils.random_unicode(),
                    description="Disabled schedule",
                    enabled=False,
-                   rrule=str(disabled_rrule))
+                   rrule=str(disabled_rrule_minutely))
     obj = schedules_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 @pytest.fixture(scope="function")
-def disabled_inventory_schedule(request, random_aws_inventory_source, disabled_rrule):
+def disabled_inventory_schedule(request, random_aws_inventory_source, disabled_rrule_minutely):
     schedules_pg = random_aws_inventory_source.get_related('schedules')
 
     payload = dict(name="disabled-%s" % common.utils.random_unicode(),
                    description="Disabled schedule",
                    enabled=False,
-                   rrule=str(disabled_rrule))
+                   rrule=str(disabled_rrule_minutely))
     obj = schedules_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -222,12 +165,12 @@ class Test_Project_Schedules(Base_Api_Test):
       - user w/ update perm can *only* view/create/update schedules
     '''
 
-    def test_schedule_empty(self, random_project):
+    def test_empty(self, random_project):
         '''assert a fresh project has no schedules'''
         schedules_pg = random_project.get_related('schedules')
         assert schedules_pg.count == 0
 
-    def test_schedule_post_invalid(self, random_project, unsupported_rrule):
+    def test_post_invalid(self, random_project, unsupported_rrule):
         '''assert unsupported rrules are rejected'''
         schedules_pg = random_project.get_related('schedules')
 
@@ -238,7 +181,7 @@ class Test_Project_Schedules(Base_Api_Test):
         with pytest.raises(common.exceptions.BadRequest_Exception):
             schedules_pg.post(payload)
 
-    def test_schedule_post_duplicate(self, random_project, disabled_project_schedule):
+    def test_post_duplicate(self, random_project, disabled_project_schedule):
         '''assert duplicate schedules are rejected'''
         schedules_pg = random_project.get_related('schedules')
 
@@ -247,7 +190,7 @@ class Test_Project_Schedules(Base_Api_Test):
         with pytest.raises(common.exceptions.Duplicate_Exception):
             schedules_pg.post(payload)
 
-    def test_schedule_post_disabled(self, random_project, disabled_project_schedule):
+    def test_post_disabled(self, random_project, disabled_project_schedule):
         '''assert can POST disabled schedules'''
         assert not disabled_project_schedule.enabled
         schedules_pg = random_project.get_related('schedules')
@@ -255,7 +198,7 @@ class Test_Project_Schedules(Base_Api_Test):
         # Appears in related->schedules
         assert disabled_project_schedule.id in [sched.id for sched in schedules_pg.results]
 
-    def test_schedule_post_past(self, random_project):
+    def test_post_past(self, random_project):
         '''assert creating a schedule with only past occurances'''
         schedules_pg = random_project.get_related('schedules')
 
@@ -269,7 +212,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.dtstart == pearl_harbor.strftime("%Y-%m-%dT%H:%M:%SZ")
         assert schedule_pg.next_run is None
 
-    def test_schedule_post_future(self, random_project):
+    def test_post_future(self, random_project):
         '''assert creating a schedule with only future occurances'''
         schedules_pg = random_project.get_related('schedules')
 
@@ -283,20 +226,20 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.dtstart == odyssey_three.strftime("%Y-%m-%dT%H:%M:%SZ")
         assert schedule_pg.next_run == rrule[0].isoformat() + 'Z'
 
-    def test_schedule_post_overlap(self, random_project, utcnow):
+    def test_post_overlap(self, random_project):
         '''assert creating a schedule with past and future occurances'''
         schedules_pg = random_project.get_related('schedules')
 
-        last_week = utcnow + relativedelta(weeks=-1)
-        next_week = utcnow + relativedelta(weeks=+1)
+        last_week = datetime.utcnow() + relativedelta(weeks=-1, minutes=+1)
+        next_week = datetime.utcnow() + relativedelta(weeks=+1, minutes=+1)
         rrule = RRule(dateutil.rrule.DAILY, dtstart=last_week, until=next_week)
         payload = dict(name="schedule-%s" % common.utils.random_unicode(),
                        description="Daily update",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
-        assert schedule_pg.next_run == rrule.after(utcnow).isoformat() + 'Z'
+        assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
-    def test_schedule_put(self, random_project):
+    def test_put(self, random_project):
         '''assert successful schedule PUT'''
         schedules_pg = random_project.get_related('schedules')
         assert schedules_pg.count > 0
@@ -313,7 +256,7 @@ class Test_Project_Schedules(Base_Api_Test):
         # Was the description changed?
         assert schedule_pg.description == new_desc
 
-    def test_schedule_patch(self, random_project):
+    def test_patch(self, random_project):
         '''assert successful schedule PATCH'''
         schedules_pg = random_project.get_related('schedules')
         assert schedules_pg.count > 0
@@ -327,7 +270,7 @@ class Test_Project_Schedules(Base_Api_Test):
         schedule_pg.get()
         assert schedule_pg.description == new_desc
 
-    def test_schedule_readonly_fields(self, api_schedules_pg, random_project):
+    def test_readonly_fields(self, api_schedules_pg, random_project):
         '''assert read-only fields are not writable'''
         schedules_pg = random_project.get_related('schedules')
 
@@ -351,19 +294,19 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.dtend == ro_schedule.dtend
         assert schedule_pg.next_run == ro_schedule.next_run
 
-    def test_schedule_update_with_credential_prompt(self, random_project_with_credential_prompt, utcnow):
+    def test_update_with_credential_prompt(self, random_project_with_credential_prompt):
         '''assert projects with credential prompts launch, but fail'''
         schedules_pg = random_project_with_credential_prompt.get_related('schedules')
 
         # Create a schedule
-        rrule = RRule(dateutil.rrule.MINUTELY, dtstart=utcnow + relativedelta(seconds=+30), count=1)
+        rrule = RRule(dateutil.rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(seconds=+30), count=1)
         payload = dict(name="schedule-%s" % common.utils.random_unicode(),
                        description="Update %s (interval:60, count:2)" % common.utils.random_unicode(),
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
 
         # Is the next_run what we expect?
-        assert schedule_pg.next_run == rrule.after(utcnow).isoformat() + 'Z'
+        assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
         # wait 2 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
@@ -374,23 +317,44 @@ class Test_Project_Schedules(Base_Api_Test):
         assert unified_jobs_pg.count == 1
 
         # Ensure the job status is failed
-        assert unified_jobs_pg.results[0].status == 'failed'
+        job_pg = unified_jobs_pg.results[0]
+        job_pg = common.utils.wait_until(job_pg, 'status', 'failed',
+            interval=15, verbose=True, timeout=60)
+        assert job_pg.status == 'failed'
 
         # Is the next_run still what we expect?
         schedule_pg.get()
         assert schedule_pg.next_run is None
 
-    def test_schedule_delete(self, random_project):
+    def test_delete(self, random_project, rrule_minutely):
         '''assert successful schedule DELETE'''
         schedules_pg = random_project.get_related('schedules')
-        assert schedules_pg.count > 0
+
+        # Create a schedule
+        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+                       rrule=str(rrule_minutely))
+        schedule_pg = schedules_pg.post(payload)
+
+        # Record number of schedules
+        schedules_pg.get()
+        schedules_count = schedules_pg.count
+
+        # Delete single schedule
+        schedule_pg.delete()
+
+        # Check number of schedules
+        schedules_pg.get()
+        assert schedules_pg.count == schedules_count - 1
+
+        # Delete any remaining schedules
         for schedule in schedules_pg.results:
             schedule.delete()
 
+        # Assert no remaining schedules
         schedules_pg.get()
         assert schedules_pg.count == 0
 
-    def test_schedule_update_count1(self, random_project, utcnow, rrule_frequency):
+    def test_update_count1(self, random_project, rrule_frequency):
         '''assert a schedule launches at the proper interval'''
         schedules_pg = random_project.get_related('schedules')
 
@@ -402,7 +366,7 @@ class Test_Project_Schedules(Base_Api_Test):
         schedule_pg = schedules_pg.post(payload)
 
         # Is the next_run what we expect?
-        assert schedule_pg.next_run == rrule_frequency.after(utcnow).isoformat() + 'Z'
+        assert schedule_pg.next_run == rrule_frequency.after(datetime.utcnow()).isoformat() + 'Z'
 
         # wait 2 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
@@ -416,12 +380,12 @@ class Test_Project_Schedules(Base_Api_Test):
         schedule_pg.get()
         assert schedule_pg.next_run == rrule_frequency.after(datetime.utcnow()).isoformat() + 'Z'
 
-    def test_schedule_update_minutely_count3(self, random_project, utcnow):
+    def test_update_minutely_count3(self, random_project):
         '''assert a minutely schedule launches properly'''
         schedules_pg = random_project.get_related('schedules')
 
         # Create schedule
-        now = utcnow + relativedelta(seconds=+30)
+        now = datetime.utcnow() + relativedelta(seconds=+30)
         now_plus_5m = now + relativedelta(minutes=+5)
         rrule = RRule(dateutil.rrule.MINUTELY, dtstart=now, count=3, until=now_plus_5m)
         payload = dict(name="minutely-%s" % common.utils.random_unicode(),
@@ -430,7 +394,7 @@ class Test_Project_Schedules(Base_Api_Test):
         schedule_pg = schedules_pg.post(payload)
 
         # Is the next_run what we expect?
-        assert schedule_pg.next_run == rrule.after(utcnow).isoformat() + 'Z'
+        assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
         # wait 5 minutes for scheduled updates to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
@@ -445,7 +409,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.next_run is None
 
     # SEE JIRA(AC-1106)
-    def test_schedule_project_delete(self, api_projects_pg, api_schedules_pg, random_organization):
+    def test_project_delete(self, api_projects_pg, api_schedules_pg, random_organization):
         '''assert that schedules are deleted when a project is deleted'''
         # create a project
         payload = dict(name="project-%s" % common.utils.random_unicode(),
@@ -507,16 +471,16 @@ class Test_Inventory_Schedules(Base_Api_Test):
       - user w/ update perm can *only* view/create/update schedules
     '''
 
-    def test_schedule_empty(self, random_inventory_source):
+    def test_empty(self, random_inventory_source):
         '''assert a fresh inventory_source has no schedules'''
         schedules_pg = random_inventory_source.get_related('schedules')
         assert schedules_pg.count == 0
 
-    def test_schedule_post_nocloud(self, random_inventory_source, utcnow):
+    def test_post_nocloud(self, random_inventory_source):
         '''assert unable to schedule against an non-cloud inventory'''
         schedules_pg = random_inventory_source.get_related('schedules')
 
-        rrule = RRule(dateutil.rrule.DAILY, dtstart=utcnow, count=10, interval=5)
+        rrule = RRule(dateutil.rrule.DAILY, dtstart=datetime.utcnow(), count=10, interval=5)
         payload = dict(name="schedule-%s" % common.utils.random_unicode(),
                        description="%s" % common.utils.random_unicode(),
                        enabled=True,
@@ -524,7 +488,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         with pytest.raises(common.exceptions.BadRequest_Exception):
             schedules_pg.post(payload)
 
-    def test_schedule_post_invalid(self, random_aws_inventory_source, unsupported_rrule):
+    def test_post_invalid(self, random_aws_inventory_source, unsupported_rrule):
         '''assert unsupported rrules are rejected'''
         schedules_pg = random_aws_inventory_source.get_related('schedules')
 
@@ -535,7 +499,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         with pytest.raises(common.exceptions.BadRequest_Exception):
             schedules_pg.post(payload)
 
-    def test_schedule_post_duplicate(self, random_aws_inventory_source, disabled_inventory_schedule):
+    def test_post_duplicate(self, random_aws_inventory_source, disabled_inventory_schedule):
         '''assert duplicate schedules are rejected'''
         schedules_pg = random_aws_inventory_source.get_related('schedules')
 
@@ -544,7 +508,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         with pytest.raises(common.exceptions.Duplicate_Exception):
             schedules_pg.post(payload)
 
-    def test_schedule_post_disabled(self, random_aws_inventory_source, disabled_inventory_schedule):
+    def test_post_disabled(self, random_aws_inventory_source, disabled_inventory_schedule):
         '''assert can POST disabled schedules'''
         assert not disabled_inventory_schedule.enabled
         schedules_pg = random_aws_inventory_source.get_related('schedules')
@@ -552,7 +516,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         # Appears in related->schedules
         assert disabled_inventory_schedule.id in [sched.id for sched in schedules_pg.results]
 
-    def test_schedule_post_past(self, random_aws_inventory_source):
+    def test_post_past(self, random_aws_inventory_source):
         '''assert creating a schedule with only past occurances'''
         schedules_pg = random_aws_inventory_source.get_related('schedules')
 
@@ -566,7 +530,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.dtstart == pearl_harbor.strftime("%Y-%m-%dT%H:%M:%SZ")
         assert schedule_pg.next_run is None
 
-    def test_schedule_post_future(self, random_aws_inventory_source):
+    def test_post_future(self, random_aws_inventory_source):
         '''assert creating a schedule with only future occurances'''
         schedules_pg = random_aws_inventory_source.get_related('schedules')
 
@@ -580,20 +544,20 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.dtstart == odyssey_three.strftime("%Y-%m-%dT%H:%M:%SZ")
         assert schedule_pg.next_run == rrule[0].isoformat() + 'Z'
 
-    def test_schedule_post_overlap(self, random_aws_inventory_source, utcnow):
+    def test_post_overlap(self, random_aws_inventory_source):
         '''assert creating a schedule with past and future occurances'''
         schedules_pg = random_aws_inventory_source.get_related('schedules')
 
-        last_week = utcnow + relativedelta(weeks=-1)
-        next_week = utcnow + relativedelta(weeks=+1)
+        last_week = datetime.utcnow() + relativedelta(weeks=-1, minutes=+1)
+        next_week = datetime.utcnow() + relativedelta(weeks=+1, minutes=+1)
         rrule = RRule(dateutil.rrule.DAILY, dtstart=last_week, until=next_week)
         payload = dict(name="schedule-%s" % common.utils.random_unicode(),
                        description="Daily update",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
-        assert schedule_pg.next_run == rrule.after(utcnow).isoformat() + 'Z'
+        assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
-    def test_schedule_put(self, random_aws_inventory_source):
+    def test_put(self, random_aws_inventory_source):
         '''assert successful schedule PUT'''
         schedules_pg = random_aws_inventory_source.get_related('schedules')
         assert schedules_pg.count > 0
@@ -610,7 +574,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         # Was the description changed?
         assert schedule_pg.description == new_desc
 
-    def test_schedule_patch(self, random_aws_inventory_source):
+    def test_patch(self, random_aws_inventory_source):
         '''assert successful schedule PATCH'''
         schedules_pg = random_aws_inventory_source.get_related('schedules')
         assert schedules_pg.count > 0
@@ -624,7 +588,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedule_pg.get()
         assert schedule_pg.description == new_desc
 
-    def test_schedule_readonly_fields(self, api_schedules_pg, random_aws_inventory_source):
+    def test_readonly_fields(self, api_schedules_pg, random_aws_inventory_source):
         '''assert read-only fields are not writable'''
         schedules_pg = random_aws_inventory_source.get_related('schedules')
 
@@ -648,19 +612,19 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.dtend == ro_schedule.dtend
         assert schedule_pg.next_run == ro_schedule.next_run
 
-    def XXX_test_schedule_update_with_credential_prompt(self, random_inventory_with_credential_prompt, utcnow):
+    def XXX_test_schedule_update_with_credential_prompt(self, random_inventory_with_credential_prompt):
         '''assert inventory with credential prompts launch, but fail'''
         schedules_pg = random_inventory_with_credential_prompt.get_related('schedules')
 
         # Create a schedule
-        rrule = RRule(dateutil.rrule.MINUTELY, dtstart=utcnow + relativedelta(seconds=+30), count=1)
+        rrule = RRule(dateutil.rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(seconds=+30), count=1)
         payload = dict(name="schedule-%s" % common.utils.random_unicode(),
                        description="Update %s (interval:60, count:2)" % common.utils.random_unicode(),
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
 
         # Is the next_run what we expect?
-        assert schedule_pg.next_run == rrule.after(utcnow).isoformat() + 'Z'
+        assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
         # wait 2 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
@@ -671,23 +635,45 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert unified_jobs_pg.count == 1
 
         # Ensure the job status is failed
-        assert unified_jobs_pg.results[0].status == 'failed'
+        job_pg = unified_jobs_pg.results[0]
+        job_pg = common.utils.wait_until(job_pg, 'status', 'failed',
+            interval=15, verbose=True, timeout=60)
+        assert job_pg.status == 'failed'
 
         # Is the next_run still what we expect?
         schedule_pg.get()
         assert schedule_pg.next_run is None
 
-    def test_schedule_delete(self, random_aws_inventory_source):
+    def test_delete(self, random_aws_inventory_source, rrule_minutely):
         '''assert successful schedule DELETE'''
         schedules_pg = random_aws_inventory_source.get_related('schedules')
-        assert schedules_pg.count > 0
+
+        # Create a schedule
+        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+                       rrule=str(rrule_minutely))
+        schedule_pg = schedules_pg.post(payload)
+
+        # Record number of schedules
+        schedules_pg.get()
+        schedules_count = schedules_pg.count
+
+        # Delete single schedule
+        schedule_pg.delete()
+
+        # Check number of schedules
+        schedules_pg.get()
+        assert schedules_pg.count == schedules_count - 1
+
+        # Delete any remaining schedules
         for schedule in schedules_pg.results:
             schedule.delete()
 
+        # Assert no remaining schedules
         schedules_pg.get()
         assert schedules_pg.count == 0
 
-    def test_schedule_update_count1(self, random_aws_inventory_source, utcnow, rrule_frequency):
+
+    def test_update_count1(self, random_aws_inventory_source, rrule_frequency):
         '''assert a schedule launches at the proper interval'''
         schedules_pg = random_aws_inventory_source.get_related('schedules')
 
@@ -699,7 +685,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedule_pg = schedules_pg.post(payload)
 
         # Is the next_run what we expect?
-        assert schedule_pg.next_run == rrule_frequency.after(utcnow).isoformat() + 'Z'
+        assert schedule_pg.next_run == rrule_frequency.after(datetime.utcnow()).isoformat() + 'Z'
 
         # wait 2 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
@@ -713,12 +699,12 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedule_pg.get()
         assert schedule_pg.next_run == rrule_frequency.after(datetime.utcnow()).isoformat() + 'Z'
 
-    def test_schedule_update_minutely_count3(self, random_aws_inventory_source, utcnow):
+    def test_update_minutely_count3(self, random_aws_inventory_source):
         '''assert a minutely schedule launches properly'''
         schedules_pg = random_aws_inventory_source.get_related('schedules')
 
         # Create schedule
-        now = utcnow + relativedelta(seconds=+30)
+        now = datetime.utcnow() + relativedelta(seconds=+30)
         now_plus_5m = now + relativedelta(minutes=+5)
         rrule = RRule(dateutil.rrule.MINUTELY, dtstart=now, count=3, until=now_plus_5m)
         payload = dict(name="minutely-%s" % common.utils.random_unicode(),
@@ -727,7 +713,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedule_pg = schedules_pg.post(payload)
 
         # Is the next_run what we expect?
-        assert schedule_pg.next_run == rrule.after(utcnow).isoformat() + 'Z'
+        assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
         # wait 5 minutes for scheduled updates to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
@@ -742,21 +728,23 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.next_run is None
 
     # SEE JIRA(AC-1106)
-    def test_schedule_inventory_delete(self, api_inventories_pg, api_schedules_pg, random_aws_inventory_source):
-        '''assert that schedules are deleted when a project is deleted'''
-        pytest.skip("TODO")
+    def test_inventory_group_delete(self, api_schedules_pg, api_groups_pg, random_inventory, random_aws_credential):
+        '''assert that schedules are deleted when a inventory group is deleted'''
 
-        # create a group
-        payload = dict(name="project-%s" % common.utils.random_unicode(),
-                       organization=random_organization.id,
-                       scm_type='hg',
-                       scm_url='https://bitbucket.org/jlaska/ansible-helloworld')
-        project_pg = api_projects_pg.post(payload)
+        # create group/inventory_source
+        payload = dict(name="aws-group-%s" % common.utils.random_ascii(),
+                       description="AWS group %s" % common.utils.random_unicode(),
+                       inventory=random_inventory.id,
+                       credential=random_aws_credential.id)
+        random_aws_group = api_groups_pg.post(payload)
+        random_aws_inventory_source = random_aws_group.get_related('inventory_source')
+        random_aws_inventory_source.patch(source='ec2', credential=random_aws_credential.id)
 
-        # create schedules
-        schedules_pg = project_pg.get_related('schedules')
+        # assert no schedules exist
+        schedules_pg = random_aws_inventory_source.get_related('schedules')
         assert schedules_pg.count == 0
 
+        # create schedules
         schedule_ids = list()
         for repeat in [dateutil.rrule.WEEKLY, dateutil.rrule.MONTHLY, dateutil.rrule.YEARLY]:
             rrule = RRule(repeat, dtstart=datetime.utcnow())
@@ -768,11 +756,11 @@ class Test_Inventory_Schedules(Base_Api_Test):
             schedule_ids.append(schedule_pg.id)
 
         # assert the schedules exist
-        schedules_pg = project_pg.get_related('schedules')
+        schedules_pg = random_aws_inventory_source.get_related('schedules')
         assert schedules_pg.count == 3
 
-        # delete the project
-        project_pg.delete()
+        # delete the group
+        random_aws_group.delete()
 
         # assert the project schedules are gone
         remaining_schedules = api_schedules_pg.get(id__in=','.join([str(sid) for sid in schedule_ids]))
