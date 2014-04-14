@@ -476,6 +476,10 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Validate number of inventories found
         assert group_hosts_pg.count > 0, "No hosts were synced for group '%s'" % group.name
 
+        # Assert all hosts are enabled
+        disabled_hosts = group_hosts_pg.get(enabled=False)
+        assert disabled_hosts.count == 0, "ERROR: detected disabled inventory_update groups\n%s" % group.get_related('inventory_source').get_related('last_update').result_stdout
+
     @pytest.mark.destructive
     def test_projects_post(self, api_projects_pg, api_organizations_pg, api_credentials_pg, awx_config, project, ansible_runner):
 
