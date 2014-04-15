@@ -162,7 +162,7 @@ class Test_Job_Callback(Base_Api_Test):
         # Wait for job to complete
         jobs_pg = random_job_template_with_limit.get_related('jobs').get(launch_type='callback', order_by='-id')
         assert jobs_pg.count == 1
-        job_pg = jobs_pg.results[0].wait_until_completed(timeout=4)
+        job_pg = jobs_pg.results[0].wait_until_completed(timeout=2*60)
 
         assert job_pg.launch_type == "callback"
 
@@ -192,7 +192,7 @@ class Test_Job_Callback(Base_Api_Test):
         # Wait for job to complete
         jobs_pg = random_job_template.get_related('jobs').get(launch_type='callback', order_by='-id')
         assert jobs_pg.count == 1
-        job_pg = jobs_pg.results[0].wait_until_completed(timeout=4)
+        job_pg = jobs_pg.results[0].wait_until_completed(timeout=2*60)
 
         assert job_pg.launch_type == "callback"
 
