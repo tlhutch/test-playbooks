@@ -8,6 +8,8 @@ class Job_Page(base.Task_Page):
         assert name in self.json['related']
         if name == 'job_events':
             related = Job_Events_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'job_host_summaries':
+            related = Job_Host_Summaries_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'start':
             related = base.Base(self.testsetup, base_url=self.json['related'][name])
         else:
@@ -34,3 +36,19 @@ class Job_Event_Page(base.Base):
 
 class Job_Events_Page(Job_Event_Page, base.Base_List):
     base_url = '/api/v1/jobs/{id}/job_events/'
+
+class Job_Host_Summary_Page(base.Base):
+    base_url = '/api/v1/jobs/{id}/job_host_summaries/{id}/'
+
+    play = property(base.json_getter('play'), base.json_setter('play'))
+    job = property(base.json_getter('job'), base.json_setter('job'))
+    host = property(base.json_getter('host'), base.json_setter('host'))
+    changed = property(base.json_getter('changed'), base.json_setter('changed'))
+    dark = property(base.json_getter('dark'), base.json_setter('dark'))
+    ok = property(base.json_getter('ok'), base.json_setter('ok'))
+    failures = property(base.json_getter('failures'), base.json_setter('failures'))
+    processed = property(base.json_getter('processed'), base.json_setter('processed'))
+    skipped = property(base.json_getter('skipped'), base.json_setter('skipped'))
+
+class Job_Host_Summaries_Page(Job_Host_Summary_Page, base.Base_List):
+    base_url = '/api/v1/jobs/{id}/job_host_summaries/'

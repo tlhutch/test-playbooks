@@ -242,7 +242,8 @@ class Task_Page(Base):
     result_stdout = property(json_getter('result_stdout'), json_setter('result_stdout'))
     job_explanation = property(json_getter('job_explanation'), json_setter('job_explanation'))
     created = property(json_getter('created'), json_setter('created'))
-    modified = property(json_getter('modified'), json_setter('failed'))
+    modified = property(json_getter('modified'), json_setter('modified'))
+    launch_type = property(json_getter('launch_type'), json_setter('launch_type'))
 
     @property
     def is_successful(self):
