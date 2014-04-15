@@ -15,7 +15,7 @@ ec2_images: [{'name': 'centos-6.4-x86_64',   'user': 'root',        'id': 'ami-e
              {'name': 'rhel-6.4-x86_64',     'user': 'ec2-user',    'id': 'ami-a25415cb', },
              {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-63b6910a', },
              {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-5b183532', },
-             {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-d0f89fb9', },
+             {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-5db4a934', },
              {'name': 'ubuntu-12.10-x86_64', 'user': 'ubuntu',      'id': 'ami-fd4e4394', },
              {'name': 'ubuntu-13.10-x86_64', 'user': 'ubuntu',      'id': 'ami-2f252646', },
              # ubuntu-14.04 images available at https://uec-images.ubuntu.com/releases/trusty/
