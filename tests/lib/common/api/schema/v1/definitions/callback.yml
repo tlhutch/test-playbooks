@@ -1,0 +1,13 @@
+---
+callback:
+  type: object
+  required: [ host_config_key, matching_hosts ]
+  additionalProperties: false
+  properties:
+    host_config_key: {type: string}
+    matching_hosts:
+      type: array
+      minItems: 0
+      uniqueItems: True
+      items:
+          type: string

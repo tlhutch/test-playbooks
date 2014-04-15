@@ -1,8 +1,4 @@
 import pytest
-import json
-import yaml
-import re
-import time
 import common.tower.license
 import common.utils
 import common.exceptions

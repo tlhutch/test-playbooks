@@ -171,6 +171,9 @@ class Awx_Schema_Hosts(Awx_Schema):
 class Awx_Schema_Group_Hosts(Awx_Schema_Hosts):
     resource = '/api/v1/groups/\d+/hosts/'
 
+class Awx_Schema_Inventory_Hosts(Awx_Schema_Hosts):
+    resource = '/api/v1/inventories/\d+/hosts/'
+
 class Awx_Schema_Credentials(Awx_Schema):
     resource = '/api/v1/credentials/'
 
@@ -293,6 +296,16 @@ class Awx_Schema_Job_Template(Awx_Schema_Job_Templates):
         return self.get
 
 #
+# /job_template/N/callback/
+#
+class Awx_Schema_Job_Template_Callback(Awx_Schema):
+    resource = '/api/v1/job_templates/\d+/callback/'
+
+    @property
+    def get(self):
+        return self.load_file('job_templates/callback.yml')
+
+#
 # /jobs
 #
 class Awx_Schema_Jobs(Awx_Schema):
@@ -335,6 +348,20 @@ class Awx_Schema_Job_Event(Awx_Schema_Job_Events):
     @property
     def get(self):
         return self.load_file('job_events/item.yml')
+
+class Awx_Schema_Job_Host_Summaries(Awx_Schema):
+    resource = '/api/v1/jobs/\d+/job_host_summaries/'
+
+    @property
+    def get(self):
+        return self.load_file('job_host_summaries/list.yml')
+
+class Awx_Schema_Job_Host_Summary(Awx_Schema_Job_Host_Summaries):
+    resource = '/api/v1/jobs/\d+/job_host_summaries/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('job_host_summaries/item.yml')
 
 #
 # /inventory_sources
@@ -530,3 +557,5 @@ class Awx_Schema_Job_Template_Schedules(Awx_Schema_Schedules):
 class Awx_Schema_Job_Template_Schedule(Awx_Schema_Schedule):
     resource = '/api/v1/job_templates/\d+/schedules/\d+/'
 
+class Awx_Schema_Job_Template_Jobs(Awx_Schema_Jobs):
+    resource = '/api/v1/job_templates/\d+/jobs/'

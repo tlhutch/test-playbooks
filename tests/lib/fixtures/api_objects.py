@@ -71,6 +71,21 @@ def random_inventory_source(request, authtoken, random_group):
 #
 # /credentials
 #
+
+@pytest.fixture(scope="class")
+def random_ssh_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    # Create ssh credential
+    payload = dict(name="credentials-%s" % common.utils.random_unicode(),
+                   description="machine credential - %s" % common.utils.random_unicode(),
+                   kind='ssh',
+                   user=admin_user.id,
+                   username=testsetup.credentials['ssh']['username'],
+                   password=testsetup.credentials['ssh']['password'],
+                  )
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
 @pytest.fixture(scope="class")
 def random_aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
     # Create scm credential with scm_key_unlock='ASK'
@@ -121,13 +136,29 @@ def random_host(request, authtoken, api_hosts_pg, random_inventory):
 # /job_templates
 #
 @pytest.fixture(scope="class")
-def random_job_template(request, authtoken, api_job_templates_pg, random_project, random_inventory):
+def random_job_template_no_credential(request, authtoken, api_job_templates_pg, random_project, random_inventory):
+    '''Define a job_template with no machine credential'''
 
-    payload = dict(name="template-%s" % common.utils.random_unicode(),
-                   description="Random job_template",
+    payload = dict(name="job_template-%s" % common.utils.random_unicode(),
+                   description="Random job_template without credentials - %s" % common.utils.random_unicode(),
                    inventory=random_inventory.id,
                    job_type='run',
                    project=random_project.id,
+                   playbook='site.yml', ) # This depends on the project selected
+    obj = api_job_templates_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+@pytest.fixture(scope="class")
+def random_job_template(request, authtoken, api_job_templates_pg, random_project, random_inventory, random_ssh_credential):
+    '''Define a job_template with a valid machine credential'''
+
+    payload = dict(name="job_template-%s" % common.utils.random_unicode(),
+                   description="Random job_template with machine credentials - %s" % common.utils.random_unicode(),
+                   inventory=random_inventory.id,
+                   job_type='run',
+                   project=random_project.id,
+                   credential=random_ssh_credential.id,
                    playbook='site.yml', ) # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)

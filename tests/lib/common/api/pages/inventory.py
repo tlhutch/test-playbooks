@@ -8,6 +8,14 @@ class Inventory_Page(base.Base):
     description = property(base.json_getter('description'), base.json_setter('description'))
     variables = property(base.json_getter('variables'), base.json_setter('variables'))
 
+    def get_related(self, name):
+        assert name in self.json['related']
+        if name == 'hosts':
+            related = Hosts_Page(self.testsetup, base_url=self.json['related'][name])
+        else:
+            raise NotImplementedError
+        return related.get()
+
 class Inventories_Page(Inventory_Page, base.Base_List):
     base_url = '/api/v1/inventory/'
 
@@ -55,6 +63,8 @@ class Host_Page(base.Base):
         assert name in self.json['related']
         if name == 'variable_data':
             related = Base_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'inventory':
+            related = Inventory_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get()
