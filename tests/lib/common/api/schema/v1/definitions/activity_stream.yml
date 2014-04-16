@@ -13,10 +13,6 @@ activity_stream:
       type: object
     summary_fields:
       additionalProperties: true
-      properties:
-        actor: {$ref: '#/definitions/summary_fields_user'}
-        group: {$ref: '#/definitions/summary_fields_group'}
-        host: {$ref: '#/definitions/summary_fields_host'}
       type: object
     timestamp: {format: date-time, type: string}
     operation: {$ref: '#/definitions/enum_activity_stream_operation'}
