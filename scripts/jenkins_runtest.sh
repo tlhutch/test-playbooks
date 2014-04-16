@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+# Establish the MARKEXPR py.test parameter
+MARKEXPR=${@:-not (performance or selenium)}
+
 # Use inventory.log artifact (requires copy artifact plugin)
 ANSIBLE_INVENTORY="playbooks/inventory.log"
 
@@ -26,13 +29,13 @@ export ANSIBLE_NOCOLOR=True
 export ANSIBLE_HOST_KEY_CHECKING=False
 
 # Run the tests ...
-py.test -v -m '(not performance)' \
-  --destructive \
+py.test -v \
   --api-debug \
   --junit-xml "${JUNIT_XML}" \
   --webqareport "${WEBQA_REPORT}" \
   --baseurl "${BASEURL}" \
   --ansible-inventory "${ANSIBLE_INVENTORY}" \
+  -m "${MARKEXPR}" \
   tests/
 
 exit $?
