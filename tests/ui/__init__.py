@@ -1,6 +1,7 @@
 import pytest
 
 @pytest.mark.skip_restqa
+@pytest.mark.selenium
 class Base_UI_Test(object):
     '''
     Base class
