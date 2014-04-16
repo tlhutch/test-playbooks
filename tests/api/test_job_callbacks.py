@@ -209,7 +209,7 @@ class Test_Job_Callback(Base_Api_Test):
         # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
 
         # Wait for job to complete
-        jobs_pg = random_job_template_with_limit.get_related('jobs').get(launch_type='callback', order_by='-id')
+        jobs_pg = random_job_template_with_limit.get_related('jobs', launch_type='callback', order_by='-id')
         assert jobs_pg.count == 1
         job_pg = jobs_pg.results[0].wait_until_completed(timeout=5*60)
 
@@ -242,7 +242,7 @@ class Test_Job_Callback(Base_Api_Test):
         # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
 
         # Wait for job to complete
-        jobs_pg = random_job_template.get_related('jobs').get(launch_type='callback', order_by='-id')
+        jobs_pg = random_job_template.get_related('jobs', launch_type='callback', order_by='-id')
         assert jobs_pg.count == 1
         job_pg = jobs_pg.results[0].wait_until_completed(timeout=5*60)
 
