@@ -87,6 +87,20 @@ def random_ssh_credential(request, authtoken, api_credentials_pg, admin_user, te
     return obj
 
 @pytest.fixture(scope="class")
+def random_ssh_credential_ask(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    # Create ssh credential with 'ASK' password
+    payload = dict(name="credentials-%s" % common.utils.random_unicode(),
+                   description="machine credential with ASK password - %s" % common.utils.random_unicode(),
+                   kind='ssh',
+                   user=admin_user.id,
+                   username=testsetup.credentials['ssh']['username'],
+                   password='ASK',
+                  )
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+@pytest.fixture(scope="class")
 def random_aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
     # Create scm credential with scm_key_unlock='ASK'
     payload = dict(name="credentials-%s" % common.utils.random_unicode(),
@@ -125,8 +139,9 @@ def random_aws_inventory_source(request, authtoken, random_aws_group):
 # /hosts
 #
 @pytest.fixture(scope="class")
-def random_host(request, authtoken, api_hosts_pg, random_inventory):
+def random_host(request, authtoken, api_hosts_pg, random_inventory, random_group):
     payload = dict(name="host-%s" % common.utils.random_unicode(),
+                   group=random_group.id,
                    inventory=random_inventory.id,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)

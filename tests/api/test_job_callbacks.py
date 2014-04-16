@@ -14,38 +14,43 @@ pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_lic
 
 @pytest.fixture(scope="class")
 def host_config_key():
+    '''Returns a uuid4 string for use as a host_config_key.'''
     return str(uuid.uuid4())
 
 @pytest.fixture(scope="function")
-def inventory_localhost(request, authtoken, api_hosts_pg, random_inventory):
+def inventory_localhost(request, authtoken, api_hosts_pg, random_group):
     payload = dict(name="localhost",
                    description="host-%s" % common.utils.random_unicode(),
-                   inventory=random_inventory.id,)
+                   group=random_group.id,
+                   inventory=random_group.inventory,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 @pytest.fixture(scope="function")
-def inventory_127001(request, authtoken, api_hosts_pg, random_inventory):
+def inventory_127001(request, authtoken, api_hosts_pg, random_group):
     payload = dict(name="127.0.0.1",
                    description="host-%s" % common.utils.random_unicode(),
-                   inventory=random_inventory.id,)
+                   group=random_group.id,
+                   inventory=random_group.inventory,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 @pytest.fixture(scope="function")
-def inventory_current(request, authtoken, api_hosts_pg, random_inventory):
+def inventory_current(request, authtoken, api_hosts_pg, random_group):
+    # Determine public IP address for current system
     my_ip = json.load(urllib2.urlopen('http://httpbin.org/ip'))['origin']
     payload = dict(name=my_ip,
                    description="test host %s" % common.utils.random_unicode(),
-                   inventory=random_inventory.id,)
+                   group=random_group.id,
+                   inventory=random_group.inventory,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 @pytest.fixture(scope="function")
-def random_job_template_with_limit(request, authtoken, api_job_templates_pg, random_project, random_inventory, random_ssh_credential):
+def random_job_template_with_limit(request, authtoken, api_job_templates_pg, random_project, random_inventory, random_ssh_credential, host_config_key):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
 
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
@@ -55,15 +60,26 @@ def random_job_template_with_limit(request, authtoken, api_job_templates_pg, ran
                    project=random_project.id,
                    limit='No_Match',
                    credential=random_ssh_credential.id,
+                   host_config_key=host_config_key,
                    playbook='site.yml', ) # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 @pytest.fixture(scope="function")
-def random_job_template_ask(request, authtoken, api_job_templates_pg, random_project, random_inventory, random_ssh_credential):
+def random_job_template_ask(request, authtoken, api_job_templates_pg, random_project, random_inventory, random_ssh_credential_ask, host_config_key):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
-    return False
+    payload = dict(name="job_template-%s" % common.utils.random_unicode(),
+                   description="Random job_template with ASK credential - %s" % common.utils.random_unicode(),
+                   inventory=random_inventory.id,
+                   job_type='run',
+                   project=random_project.id,
+                   credential=random_ssh_credential_ask.id,
+                   host_config_key=host_config_key,
+                   playbook='site.yml', ) # This depends on the project selected
+    obj = api_job_templates_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
 
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -128,6 +144,20 @@ class Test_Job_Callback(Base_Api_Test):
         assert result['status'] == httplib.BAD_REQUEST
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
+    def test_launch_ask_credential(self, api_jobs_pg, ansible_runner, random_job_template_ask, inventory_localhost, host_config_key):
+        '''Verify launch failure when launching a job_template with ASK credentials'''
+        assert random_job_template_ask.host_config_key == host_config_key
+        args = dict(method="POST",
+                    status_code=202,
+                    url="http://localhost/%s" % random_job_template_ask.json['related']['callback'],
+                    body="host_config_key=%s" % host_config_key,)
+        args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
+        result = ansible_runner.uri(**args)
+
+        assert result['failed']
+        assert result['status'] == httplib.BAD_REQUEST
+        assert result['json']['msg'] == 'Cannot start automatically, user input required!'
+
     def test_launch_multiple_hosts(self, api_jobs_pg, ansible_runner, random_job_template_no_credential, inventory_localhost, inventory_127001, host_config_key):
         '''Verify launch failure when launching a job_template where multiple hosts match '''
 
@@ -146,7 +176,6 @@ class Test_Job_Callback(Base_Api_Test):
     def test_launch_success_limit(self, api_jobs_pg, ansible_runner, random_job_template_with_limit, inventory_localhost, host_config_key):
         '''Assert that launching a callback job against a job_template with an existing 'limit' parameter successfully launches, but the job fails because no matching hosts were found.'''
 
-        random_job_template_with_limit = random_job_template_with_limit.patch(host_config_key=host_config_key)
         assert random_job_template_with_limit.host_config_key == host_config_key
 
         args = dict(method="POST",
