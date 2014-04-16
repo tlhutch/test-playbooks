@@ -7,7 +7,7 @@ job_host_summary:
     properties:
         id: { type: number, minimum: 1, }
         url: { type: string, format: uri}
-        type: { type: string, pattern: ^job_event$ }
+        type: { type: string, pattern: ^job_host_summary$ }
         created:  { type: string, format: date-time, }
         modified: { type: string, format: date-time, }
         job: { type: number, minimum: 1, }
