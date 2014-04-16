@@ -28,13 +28,13 @@ def random_project(request, authtoken, api_projects_pg, random_organization):
     request.addfinalizer(obj.delete)
 
     # Wait for project update to complete
-    updates_pg = obj.get_related('project_updates')
+    updates_pg = obj.get_related('project_updates', order_by="-id")
     assert updates_pg.count > 0, 'No project updates found'
-    latest_update_pg = updates_pg.results.pop()
-    count = 0
-    while count <30 and latest_update_pg.status.lower() != 'successful':
-        latest_update_pg.get()
-        count +=1
+    latest_update_pg = updates_pg.results.pop().wait_until_completed()
+    # Assert project_update completed successfully
+    assert latest_update_pg.is_successful, \
+        "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
+        (latest_update_pg.status, latest_update_pg.result_stdout, latest_update_pg.result_traceback, latest_update_pg.job_explanation)
 
     return obj
 
