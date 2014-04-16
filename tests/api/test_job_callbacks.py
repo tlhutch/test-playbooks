@@ -21,7 +21,7 @@ def host_config_key():
 def inventory_localhost(request, authtoken, api_hosts_pg, random_group):
     payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
                    description="host-%s" % common.utils.random_unicode(),
-                   variables=json.dumps(dict(ansible_ssh_host="127.0.0.1")),
+                   variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
                    inventory=random_group.inventory,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -34,7 +34,7 @@ def inventory_localhost(request, authtoken, api_hosts_pg, random_group):
 def inventory_127001(request, authtoken, api_hosts_pg, random_group):
     payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
                    description="host-%s" % common.utils.random_unicode(),
-                   variables=json.dumps(dict(ansible_ssh_host="127.0.0.1")),
+                   variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
                    inventory=random_group.inventory,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)

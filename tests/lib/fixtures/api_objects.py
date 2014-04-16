@@ -144,6 +144,7 @@ def random_aws_inventory_source(request, authtoken, random_aws_group):
 def random_host(request, authtoken, api_hosts_pg, random_inventory, random_group):
     payload = dict(name="random.host.%s" % common.utils.random_ascii(),
                    description="random description - %s" % common.utils.random_unicode(),
+                   variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
                    inventory=random_inventory.id,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
