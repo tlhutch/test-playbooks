@@ -152,6 +152,9 @@ class Awx_Schema_Groups(Awx_Schema):
     def duplicate(self):
         return self.load_file('groups/duplicate.yml')
 
+class Awx_Schema_Host_Groups(Awx_Schema_Groups):
+    resource = '/api/v1/hosts/\d+/groups/'
+
 class Awx_Schema_Group_Children(Awx_Schema_Groups):
     resource = '/api/v1/groups/\d+/children/'
 
