@@ -60,6 +60,11 @@ def random_job_template_with_limit(request, authtoken, api_job_templates_pg, ran
     request.addfinalizer(obj.delete)
     return obj
 
+@pytest.fixture(scope="function")
+def random_job_template_ask(request, authtoken, api_job_templates_pg, random_project, random_inventory, random_ssh_credential):
+    '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
+    return False
+
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Callback(Base_Api_Test):
@@ -206,4 +211,4 @@ class Test_Job_Callback(Base_Api_Test):
         assert host_summaries_pg.count == 1
 
         # Assert the expected host matches
-        assert host_summaries_pg.results[0].host == job_pg.id
+        assert host_summaries_pg.results[0].host == inventory_localhost.id
