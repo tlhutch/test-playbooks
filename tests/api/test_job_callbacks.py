@@ -19,22 +19,28 @@ def host_config_key():
 
 @pytest.fixture(scope="function")
 def inventory_localhost(request, authtoken, api_hosts_pg, random_group):
-    payload = dict(name="localhost",
+    payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
                    description="host-%s" % common.utils.random_unicode(),
-                   group=random_group.id,
+                   variables=json.dumps(dict(ansible_ssh_host="127.0.0.1")),
                    inventory=random_group.inventory,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
+    # Add to group
+    with pytest.raises(common.exceptions.NoContent_Exception):
+        obj.get_related('groups').post(dict(id=random_group.id))
     return obj
 
 @pytest.fixture(scope="function")
 def inventory_127001(request, authtoken, api_hosts_pg, random_group):
-    payload = dict(name="127.0.0.1",
+    payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
                    description="host-%s" % common.utils.random_unicode(),
-                   group=random_group.id,
+                   variables=json.dumps(dict(ansible_ssh_host="127.0.0.1")),
                    inventory=random_group.inventory,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
+    # Add to group
+    with pytest.raises(common.exceptions.NoContent_Exception):
+        obj.get_related('groups').post(dict(id=random_group.id))
     return obj
 
 @pytest.fixture(scope="function")
@@ -205,7 +211,7 @@ class Test_Job_Callback(Base_Api_Test):
         # Wait for job to complete
         jobs_pg = random_job_template_with_limit.get_related('jobs').get(launch_type='callback', order_by='-id')
         assert jobs_pg.count == 1
-        job_pg = jobs_pg.results[0].wait_until_completed(timeout=2*60)
+        job_pg = jobs_pg.results[0].wait_until_completed(timeout=5*60)
 
         assert job_pg.launch_type == "callback"
 
@@ -238,7 +244,7 @@ class Test_Job_Callback(Base_Api_Test):
         # Wait for job to complete
         jobs_pg = random_job_template.get_related('jobs').get(launch_type='callback', order_by='-id')
         assert jobs_pg.count == 1
-        job_pg = jobs_pg.results[0].wait_until_completed(timeout=2*60)
+        job_pg = jobs_pg.results[0].wait_until_completed(timeout=5*60)
 
         assert job_pg.launch_type == "callback"
 
