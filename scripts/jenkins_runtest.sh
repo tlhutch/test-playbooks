@@ -26,7 +26,7 @@ export ANSIBLE_NOCOLOR=True
 export ANSIBLE_HOST_KEY_CHECKING=False
 
 # Run the tests ...
-py.test -v -m integration \
+py.test -v -m '(not performance)' \
   --destructive \
   --api-debug \
   --junit-xml "${JUNIT_XML}" \
