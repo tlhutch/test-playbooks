@@ -25,7 +25,7 @@ import common.exceptions
 from tests.api import Base_Api_Test
 
 # The following fixture runs once for this entire module
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='class')
 def backup_license(request, ansible_runner):
     ansible_runner.shell('test -f /etc/awx/aws && mv /etc/awx/aws /etc/awx/.aws', creates='/etc/awx/.aws', removes='/etc/awx/aws')
     ansible_runner.shell('test -f /etc/awx/license && mv /etc/awx/license /etc/awx/.license', creates='/etc/awx/.license', removes='/etc/awx/license')
@@ -37,7 +37,7 @@ def backup_license(request, ansible_runner):
 
 # The following fixture runs once for each class that uses it
 @pytest.fixture(scope='class')
-def install_demo_license(request, ansible_runner):
+def install_demo_license(request, backup_license, ansible_runner):
     ansible_runner.file(path='/etc/awx/aws', state='absent')
     ansible_runner.file(path='/etc/awx/license', state='absent')
 
@@ -48,8 +48,7 @@ def license_instance_count(request, ansible_runner):
 
 # The following fixture runs once for each class that uses it
 @pytest.fixture(scope='class')
-def install_license(request, ansible_runner, license_instance_count):
-
+def install_license(request, ansible_runner, license_instance_count, backup_license):
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=31)
     # Using ansible, copy the license to the target system
     ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
@@ -60,7 +59,7 @@ def install_license(request, ansible_runner, license_instance_count):
 
 # The following fixture runs once for each class that uses it
 @pytest.fixture(scope='class')
-def install_license_warning(request, ansible_runner, license_instance_count):
+def install_license_warning(request, ansible_runner, license_instance_count, backup_license):
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=1)
     ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
     def teardown():
@@ -69,7 +68,7 @@ def install_license_warning(request, ansible_runner, license_instance_count):
 
 # The following fixture runs once for each class that uses it
 @pytest.fixture(scope='class')
-def install_license_expired(request, ansible_runner, license_instance_count):
+def install_license_expired(request, ansible_runner, license_instance_count, backup_license):
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=-1)
     ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
     def teardown():
@@ -77,18 +76,20 @@ def install_license_expired(request, ansible_runner, license_instance_count):
     request.addfinalizer(teardown)
 
 @pytest.fixture(scope='session')
+# FIXME - replace with ansible_runner.ec2_facts()
 def ami_id(ansible_runner):
     output = ansible_runner.command('/usr/bin/ec2metadata --ami-id')
     return output['stdout']
 
 @pytest.fixture(scope='session')
+# FIXME - replace with ansible_runner.ec2_facts()
 def instance_id(ansible_runner):
     output = ansible_runner.command('/usr/bin/ec2metadata --instance-id')
     return output['stdout']
 
 # The following fixture runs once for each class that uses it
 @pytest.fixture(scope='class')
-def install_aws(request, ansible_runner, license_instance_count, ami_id, instance_id):
+def install_aws(request, ansible_runner, license_instance_count, ami_id, instance_id, backup_license):
     fname = common.tower.license.generate_aws_file(instance_count=license_instance_count, ami_id=ami_id, instance_id=instance_id)
     ansible_runner.copy(src=fname, dest='/etc/awx/aws', owner='awx', group='awx', mode='0600')
 
@@ -144,7 +145,8 @@ class Base_License_Test(Base_Api_Test):
                  conf.license_info.available_instances )
 
             # Add a host to the inventory group
-            payload = dict(name="host-%s" % common.utils.random_unicode(),
+            payload = dict(name="host-%s" % common.utils.random_ascii(),
+                           description="host-%s" % common.utils.random_unicode(),
                            inventory=group.inventory)
             # The first 20 hosts should succeed
             if current_hosts < license_instance_count:
@@ -164,7 +166,8 @@ class Base_License_Test(Base_Api_Test):
 
 @pytest.mark.skip_selenium
 class Test_Demo_License(Base_License_Test):
-    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_demo_license')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_demo_license')
+
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
 
@@ -176,15 +179,15 @@ class Test_Demo_License(Base_License_Test):
         assert 'key_present' in conf.license_info
         assert not conf.license_info.key_present
 
-    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_demo_license')
     def test_instance_counts(self, api_config_pg, inventory, group):
         super(Test_Demo_License, self).test_instance_counts(api_config_pg, 10, inventory, group)
 
 @pytest.mark.skip_selenium
 class Test_AWS_License(Base_License_Test):
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_aws')
+
     # AWS licensing only works when tested on an ec2 instance
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
-    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_aws')
     def test_metadata(self, api_config_pg):
 
         conf = api_config_pg.get()
@@ -208,14 +211,14 @@ class Test_AWS_License(Base_License_Test):
         assert 'instance_count' in conf.license_info
 
     # AWS licensing only works when tested on an ec2 instance
-    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_aws')
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         super(Test_AWS_License, self).test_instance_counts(api_config_pg, license_instance_count, inventory, group)
 
 @pytest.mark.skip_selenium
 class Test_License(Base_License_Test):
-    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license')
+
     def test_metadata(self, api_config_pg):
 
         conf = api_config_pg.get()
@@ -239,13 +242,13 @@ class Test_License(Base_License_Test):
         assert 'instance-id' not in conf.license_info
 
     # Create inventory and hosts
-    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license')
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         super(Test_License, self).test_instance_counts(api_config_pg, license_instance_count, inventory, group)
 
 @pytest.mark.skip_selenium
 class Test_License_Warning(Base_Api_Test):
-    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_warning')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_warning')
+
     def test_metadata(self, api_config_pg):
 
         conf = api_config_pg.get()
@@ -270,7 +273,8 @@ class Test_License_Warning(Base_Api_Test):
 
 @pytest.mark.skip_selenium
 class Test_License_Expired(Base_Api_Test):
-    @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_expired')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_expired')
+
     def test_metadata(self, api_config_pg):
 
         conf = api_config_pg.get()

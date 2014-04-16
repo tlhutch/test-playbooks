@@ -52,7 +52,7 @@ def pytest_generate_tests(metafunc):
         if test_set and id_list:
             metafunc.parametrize(fixture, test_set, ids=id_list)
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='class')
 def install_integration_license(request, authtoken, ansible_runner, awx_config):
     '''If a suitable license is not already installed, install a new license'''
     logging.debug("calling fixture install_integration_license")

@@ -3,7 +3,7 @@ import pytest
 import common.tower.license
 
 # The following fixture runs once for this entire module
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='class')
 def backup_license(request, ansible_runner):
     '''Backup and existing license files. The files will be restored upon teardown.
     '''
@@ -16,7 +16,7 @@ def backup_license(request, ansible_runner):
         ansible_runner.shell('test -f /etc/awx/.license && mv /etc/awx/.license /etc/awx/license', creates='/etc/awx/license', removes='/etc/awx/.license')
     request.addfinalizer(teardown)
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='class')
 def install_license_1000(request, ansible_runner):
     '''Install a license where instance_count=1000
     '''
@@ -29,7 +29,7 @@ def install_license_1000(request, ansible_runner):
         ansible_runner.file(path='/etc/awx/license', state='absent')
     request.addfinalizer(teardown)
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='class')
 def install_license_10000(request, ansible_runner):
     '''Install a license where instance_count=1000
     '''
