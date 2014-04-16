@@ -39,7 +39,7 @@ for cloud_provider in ['rax', 'ec2']:
             r = requests.get(url, verify=False, auth=(user, password))
             try:
                 cfg.readfp(StringIO.StringIO(r.text))
-            except ConfigParser.MissingSectionHeaderError, e:
+            except (ConfigParser.MissingSectionHeaderError, ConfigParser.ParsingError) as e:
                 sys.stderr.write("Failed to download inventory.log: %s\n" % url)
                 continue
 
