@@ -152,7 +152,7 @@ class Test_Job_Callback(Base_Api_Test):
 
         args = dict(method="POST",
                     status_code=202,
-                    url="http://%s/%s" % (ansible_default_ipv4, random_job_template.json['related']['callback']),
+                    url="http://%s/%s" % (ansible_default_ipv4, random_job_template_no_credential.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         result = ansible_runner.uri(**args)
@@ -168,7 +168,7 @@ class Test_Job_Callback(Base_Api_Test):
 
         args = dict(method="POST",
                     status_code=202,
-                    url="http://%s/%s" % (ansible_default_ipv4, random_job_template.json['related']['callback']),
+                    url="http://%s/%s" % (ansible_default_ipv4, random_job_template_ask.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         result = ansible_runner.uri(**args)
@@ -202,7 +202,7 @@ class Test_Job_Callback(Base_Api_Test):
 
         args = dict(method="POST",
                     status_code=202,
-                    url="http://%s/%s" % (ansible_default_ipv4, random_job_template.json['related']['callback']),
+                    url="http://%s/%s" % (ansible_default_ipv4, random_job_template_with_limit.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         result = ansible_runner.uri(**args)
