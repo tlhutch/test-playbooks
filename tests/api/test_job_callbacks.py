@@ -84,17 +84,12 @@ def random_job_template_ask(request, authtoken, api_job_templates_pg, random_pro
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Callback(Base_Api_Test):
-    def test_config(self, random_job_template, random_job_template_no_credential, host_config_key):
-        '''Configure job_template(s) to allow callbacks'''
-        template_pg = random_job_template.patch(allow_callbacks=True, host_config_key=host_config_key)
-        assert template_pg.host_config_key == host_config_key
-
-        template_pg = random_job_template_no_credential.patch(allow_callbacks=True, host_config_key=host_config_key)
-        assert template_pg.host_config_key == host_config_key
-
     def test_get(self, api_jobs_pg, ansible_runner, random_job_template, inventory_current, host_config_key):
         '''Assert a GET on the /callback resource returns a list of matching hosts'''
+        # enable callback
+        random_job_template.patch(host_config_key=host_config_key)
         assert random_job_template.host_config_key == host_config_key
+
         callback_pg = random_job_template.get_related('callback')
         assert callback_pg.host_config_key == host_config_key
         all_inventory_hosts = inventory_current.get_related('inventory').get_related('hosts')
@@ -104,7 +99,10 @@ class Test_Job_Callback(Base_Api_Test):
 
     def test_launch_nohosts(self, api_jobs_pg, ansible_runner, random_job_template, host_config_key):
         '''Verify launch failure when no matching inventory host can be found'''
+        # enable callback
+        random_job_template.patch(host_config_key=host_config_key)
         assert random_job_template.host_config_key == host_config_key
+
         args = dict(method="POST",
                     status_code=202,
                     url="http://localhost/%s" % random_job_template.json['related']['callback'],
@@ -112,13 +110,16 @@ class Test_Job_Callback(Base_Api_Test):
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         result = ansible_runner.uri(**args)
 
-        assert result['failed']
         assert result['status'] == httplib.BAD_REQUEST
+        assert result['failed']
         assert result['json']['msg'] == 'No matching host could be found!'
 
     def test_launch_badkey(self, api_jobs_pg, ansible_runner, random_job_template, inventory_localhost, host_config_key):
         '''Verify launch failure when providing incorrect host_config_key'''
+        # enable callback
+        random_job_template.patch(host_config_key=host_config_key)
         assert random_job_template.host_config_key == host_config_key
+
         args = dict(method="POST",
                     status_code=202,
                     url="http://localhost/%s" % random_job_template.json['related']['callback'],
@@ -126,13 +127,16 @@ class Test_Job_Callback(Base_Api_Test):
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         result = ansible_runner.uri(**args)
 
-        assert result['failed']
         assert result['status'] == httplib.FORBIDDEN
+        assert result['failed']
         assert result['json']['detail'] == 'You do not have permission to perform this action.'
 
     def test_launch_no_credential(self, api_jobs_pg, ansible_runner, random_job_template_no_credential, inventory_localhost, host_config_key):
         '''Verify launch failure when launching a job_template with no credentials'''
+        # enable callback
+        random_job_template_no_credential.patch(host_config_key=host_config_key)
         assert random_job_template_no_credential.host_config_key == host_config_key
+
         args = dict(method="POST",
                     status_code=202,
                     url="http://localhost/%s" % random_job_template_no_credential.json['related']['callback'],
@@ -140,13 +144,15 @@ class Test_Job_Callback(Base_Api_Test):
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         result = ansible_runner.uri(**args)
 
-        assert result['failed']
         assert result['status'] == httplib.BAD_REQUEST
+        assert result['failed']
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
     def test_launch_ask_credential(self, api_jobs_pg, ansible_runner, random_job_template_ask, inventory_localhost, host_config_key):
         '''Verify launch failure when launching a job_template with ASK credentials'''
+        # assert callback
         assert random_job_template_ask.host_config_key == host_config_key
+
         args = dict(method="POST",
                     status_code=202,
                     url="http://localhost/%s" % random_job_template_ask.json['related']['callback'],
@@ -154,23 +160,26 @@ class Test_Job_Callback(Base_Api_Test):
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         result = ansible_runner.uri(**args)
 
-        assert result['failed']
         assert result['status'] == httplib.BAD_REQUEST
+        assert result['failed']
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
-    def test_launch_multiple_hosts(self, api_jobs_pg, ansible_runner, random_job_template_no_credential, inventory_localhost, inventory_127001, host_config_key):
+    def test_launch_multiple_hosts(self, api_jobs_pg, ansible_runner, random_job_template, inventory_localhost, inventory_127001, host_config_key):
         '''Verify launch failure when launching a job_template where multiple hosts match '''
 
-        assert random_job_template_no_credential.host_config_key == host_config_key
+        # enable callback
+        random_job_template.patch(host_config_key=host_config_key)
+        assert random_job_template.host_config_key == host_config_key
+
         args = dict(method="POST",
                     status_code=202,
-                    url="http://localhost/%s" % random_job_template_no_credential.json['related']['callback'],
+                    url="http://localhost/%s" % random_job_template.json['related']['callback'],
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         result = ansible_runner.uri(**args)
 
-        assert result['failed']
         assert result['status'] == httplib.BAD_REQUEST
+        assert 'failed' in result and result['failed']
         assert result['json']['msg'] == 'Multiple hosts matched the request!'
 
     def test_launch_success_limit(self, api_jobs_pg, ansible_runner, random_job_template_with_limit, inventory_localhost, host_config_key):
@@ -207,7 +216,10 @@ class Test_Job_Callback(Base_Api_Test):
     def test_launch_success(self, api_jobs_pg, ansible_runner, random_job_template, inventory_localhost, host_config_key):
         '''Assert that launching a callback job against a job_template with an existing 'limit' parameter successfully launches, and the job successfully runs on a single host..'''
 
+        # enable callback
+        random_job_template.patch(host_config_key=host_config_key)
         assert random_job_template.host_config_key == host_config_key
+
         args = dict(method="POST",
                     status_code=202,
                     url="http://localhost/%s" % random_job_template.json['related']['callback'],

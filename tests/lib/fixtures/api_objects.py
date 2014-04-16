@@ -150,7 +150,7 @@ def random_host(request, authtoken, api_hosts_pg, random_inventory, random_group
 #
 # /job_templates
 #
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def random_job_template_no_credential(request, authtoken, api_job_templates_pg, random_project, random_inventory):
     '''Define a job_template with no machine credential'''
 
@@ -164,7 +164,7 @@ def random_job_template_no_credential(request, authtoken, api_job_templates_pg, 
     request.addfinalizer(obj.delete)
     return obj
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def random_job_template(request, authtoken, api_job_templates_pg, random_project, random_inventory, random_ssh_credential):
     '''Define a job_template with a valid machine credential'''
 
