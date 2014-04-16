@@ -7,7 +7,7 @@ class Project_Page(base.Base):
     description = property(base.json_getter('description'), base.json_setter('description'))
     local_path = property(base.json_getter('local_path'), base.json_setter('local_path'))
 
-    def get_related(self, name):
+    def get_related(self, name, **kwargs):
         assert name in self.json['related']
         if name == 'last_update':
             related = Project_Update_Page(self.testsetup, base_url=self.json['related'][name])
@@ -26,7 +26,7 @@ class Project_Page(base.Base):
             related = Schedules_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
-        return related.get()
+        return related.get(**kwargs)
 
 class Projects_Page(Project_Page, base.Base_List):
     base_url = '/api/v1/projects/'

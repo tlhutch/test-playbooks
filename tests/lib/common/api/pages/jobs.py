@@ -4,7 +4,7 @@ from common.exceptions import *
 class Job_Page(base.Task_Page):
     base_url = '/api/v1/jobs/{id}/'
 
-    def get_related(self, name, **params):
+    def get_related(self, name, **kwargs):
         assert name in self.json['related']
         if name == 'job_events':
             related = Job_Events_Page(self.testsetup, base_url=self.json['related'][name])
@@ -14,7 +14,7 @@ class Job_Page(base.Task_Page):
             related = base.Base(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
-        return related.get(**params)
+        return related.get(**kwargs)
 
 class Jobs_Page(Job_Page, base.Base_List):
     base_url = '/api/v1/jobs/'

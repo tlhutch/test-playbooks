@@ -10,7 +10,7 @@ class User_Page(base.Base):
     first_name = property(base.json_getter('first_name'), base.json_setter('first_name'))
     last_name = property(base.json_getter('last_name'), base.json_setter('last_name'))
 
-    def get_related(self, name):
+    def get_related(self, name, **kwargs):
         assert name in self.json['related']
         if name == 'credentials':
             related = Credentials_Page(self.testsetup, base_url=self.json['related'][name])
@@ -18,7 +18,7 @@ class User_Page(base.Base):
             related = Permissions_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
-        return related.get()
+        return related.get(**kwargs)
 
 class Users_Page(User_Page, base.Base_List):
     base_url = '/api/v1/users/'

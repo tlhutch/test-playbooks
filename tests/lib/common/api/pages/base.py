@@ -136,9 +136,9 @@ class Base(Page):
         except NoContent_Exception:
             pass
 
-    def get_related(self, name):
+    def get_related(self, name, **kwargs):
         assert name in self.json['related']
-        return Base(self.testsetup, base_url=self.json['related'][name]).get()
+        return Base(self.testsetup, base_url=self.json['related'][name]).get(**kwargs)
 
 class Base_List(Base):
     '''

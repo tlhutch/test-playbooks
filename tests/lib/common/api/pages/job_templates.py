@@ -19,7 +19,7 @@ class Job_Template_Page(base.Base):
     extra_vars = property(base.json_getter('extra_vars'), base.json_setter('extra_vars'))
     host_config_key = property(base.json_getter('host_config_key'), base.json_setter('host_config_key'))
 
-    def get_related(self, name):
+    def get_related(self, name, **kwargs):
         assert name in self.json['related']
         if name == 'start':
             related = base.Base(self.testsetup, base_url=self.json['related'][name])
@@ -33,7 +33,7 @@ class Job_Template_Page(base.Base):
             related = Jobs_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
-        return related.get()
+        return related.get(**kwargs)
 
 class Job_Templates_Page(Job_Template_Page, base.Base_List):
     base_url = '/api/v1/job_templates/'

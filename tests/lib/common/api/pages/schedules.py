@@ -15,7 +15,7 @@ class Schedule_Page(base.Task_Page):
     rrule = property(base.json_getter('rrule'), base.json_setter('rrule'))
     next_run = property(base.json_getter('next_run'), base.json_setter('next_run'))
 
-    def get_related(self, name, **params):
+    def get_related(self, name, **kwargs):
         assert name in self.json['related']
         if name == 'project':
             related = Project_Page(self.testsetup, base_url=self.json['related'][name])
@@ -27,7 +27,7 @@ class Schedule_Page(base.Task_Page):
             related = Job_Template_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
-        return related.get(**params)
+        return related.get(**kwargs)
 
 class Schedules_Page(Schedule_Page, base.Base_List):
     base_url = '/api/v1/schedules/'
