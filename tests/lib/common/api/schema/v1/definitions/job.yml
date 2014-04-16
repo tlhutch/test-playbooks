@@ -47,8 +47,7 @@ job:
         start: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
         stdout: {format: uri, type: string}
-      required: [job_host_summaries, credential, job_events, inventory,
-        job_template, start, cancel, activity_stream]
+      required: [job_host_summaries, job_events, job_template, start, cancel, activity_stream]
       type: object
     result_stdout: {type: string}
     result_traceback: {type: string}
