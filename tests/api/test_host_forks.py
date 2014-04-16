@@ -101,8 +101,13 @@ def job_template(request, testsetup, api_job_templates_pg, inventory, random_pro
     request.addfinalizer(obj.delete)
     return obj
 
-@pytest.mark.skip_selenium
-@pytest.mark.performance
+
+# For some reason, the following 'mark' causes all subsequent tests to skip as
+# well.  Setting 'pytestmark' works around this issue.
+# @pytest.mark.performance
+# @pytest.mark.skip_selenium
+pytestmark = [pytest.mark.performance, pytest.mark.skip_selenium]
+
 @pytest.mark.usefixtures('backup_license', 'install_license_1000')
 class Test_Host_Fork(Base_Api_Test):
 
