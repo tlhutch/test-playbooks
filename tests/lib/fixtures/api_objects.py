@@ -2,6 +2,7 @@ import pytest
 import json
 import yaml
 import common.utils
+import common.exceptions
 from tests.api import Base_Api_Test
 
 @pytest.fixture(scope="class")
@@ -55,7 +56,8 @@ def random_inventory(request, authtoken, api_inventories_pg, random_organization
 #
 @pytest.fixture(scope="class")
 def random_group(request, authtoken, api_groups_pg, random_inventory):
-    payload = dict(name="group-%s" % common.utils.random_unicode(),
+    payload = dict(name="group-%s" % common.utils.random_ascii(),
+                   description="group description - %s" % common.utils.random_unicode(),
                    inventory=random_inventory.id)
     obj = api_groups_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -140,11 +142,14 @@ def random_aws_inventory_source(request, authtoken, random_aws_group):
 #
 @pytest.fixture(scope="class")
 def random_host(request, authtoken, api_hosts_pg, random_inventory, random_group):
-    payload = dict(name="host-%s" % common.utils.random_unicode(),
-                   group=random_group.id,
+    payload = dict(name="random.host.%s" % common.utils.random_ascii(),
+                   description="random description - %s" % common.utils.random_unicode(),
                    inventory=random_inventory.id,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
+    # Add host to random_group
+    with pytest.raises(common.exceptions.NoContent_Exception):
+        obj.get_related('groups').post(dict(id=random_group.id))
     return obj
 
 #
