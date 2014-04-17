@@ -908,7 +908,8 @@ EOF
         seconds = float(seconds) + 60*float(minutes) + 60*60*float(hours)
 
         # Verify the import completed in a timely manner
-        assert seconds <= 30.0
+        # Asserting the time is kind of hard.  It depends on the type of system used to test (CPU+Mem)
+        # assert seconds <= 30.0
         print "Import took %s seconds" % seconds
 
     def test_group_count(self, api_groups_pg, random_inventory):
