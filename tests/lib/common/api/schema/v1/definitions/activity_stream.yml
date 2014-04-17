@@ -7,9 +7,6 @@ activity_stream:
     url: {format: uri, type: string}
     related:
       additionalProperties: true
-      properties:
-        actor: {format: uri, type: string}
-      required: [actor]
       type: object
     summary_fields:
       additionalProperties: true
