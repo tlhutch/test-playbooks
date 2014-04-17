@@ -1,6 +1,7 @@
 import pytest
 import uuid
 import time
+import random
 import httplib
 import json
 import urllib2
@@ -17,20 +18,22 @@ def host_config_key():
     '''Returns a uuid4 string for use as a host_config_key.'''
     return str(uuid.uuid4())
 
-@pytest.fixture(scope="session")
-def my_ip(request):
-    # Determine public IP address for current system
-    return json.load(urllib2.urlopen('http://httpbin.org/ip'))['origin']
+@pytest.fixture(scope="function")
+def random_ipv4(request, ansible_facts):
+    '''Return a randomly generated ipv4 address.'''
+    return ".".join(str(random.randint(1, 255)) for i in range(4))
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="class")
 def ansible_default_ipv4(request, ansible_facts):
+    '''Return the ansible_default_ipv4 from ansible_facts of the system under test.'''
     return ansible_facts['ansible_default_ipv4']['address']
 
 @pytest.fixture(scope="function")
-def inventory_localhost(request, authtoken, api_hosts_pg, random_group, my_ip):
+def inventory_localhost(request, authtoken, api_hosts_pg, random_group, ansible_default_ipv4):
+    '''Create a random inventory host where ansible_ssh_host == ansible_default_ipv4.'''
     payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
                    description="host-%s" % common.utils.random_unicode(),
-                   variables=json.dumps(dict(ansible_ssh_host=my_ip, ansible_connection="local")),
+                   variables=json.dumps(dict(ansible_ssh_host=ansible_default_ipv4, ansible_connection="local")),
                    inventory=random_group.inventory,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -40,10 +43,11 @@ def inventory_localhost(request, authtoken, api_hosts_pg, random_group, my_ip):
     return obj
 
 @pytest.fixture(scope="function")
-def inventory_127001(request, authtoken, api_hosts_pg, random_group, my_ip):
+def inventory_127001(request, authtoken, api_hosts_pg, random_group, ansible_default_ipv4):
+    '''Create a random inventory host where ansible_ssh_host == ansible_default_ipv4.'''
     payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
                    description="host-%s" % common.utils.random_unicode(),
-                   variables=json.dumps(dict(ansible_ssh_host=my_ip, ansible_connection="local")),
+                   variables=json.dumps(dict(ansible_ssh_host=ansible_default_ipv4, ansible_connection="local")),
                    inventory=random_group.inventory,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -52,20 +56,41 @@ def inventory_127001(request, authtoken, api_hosts_pg, random_group, my_ip):
         obj.get_related('groups').post(dict(id=random_group.id))
     return obj
 
+@pytest.fixture(scope="class")
+def my_ip(request):
+    '''Return the IP address of the system running pytest'''
+    return json.load(urllib2.urlopen('http://httpbin.org/ip'))['origin']
+
 @pytest.fixture(scope="function")
-def inventory_current(request, authtoken, api_hosts_pg, random_group, my_ip):
+def inventory_this_host(request, authtoken, api_hosts_pg, random_group, my_ip):
+    '''Create an inventory host matching the public ipv4 address of the system running pytest.'''
     payload = dict(name=my_ip,
                    description="test host %s" % common.utils.random_unicode(),
-                   group=random_group.id,
                    inventory=random_group.inventory,)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
+    # Add to group
+    with pytest.raises(common.exceptions.NoContent_Exception):
+        obj.get_related('groups').post(dict(id=random_group.id))
+    return obj
+
+@pytest.fixture(scope="function")
+def inventory_this_host_with_alias(request, authtoken, api_hosts_pg, random_group, my_ip, random_ipv4):
+    '''Create an inventory host matching the public ipv4 address of the system running pytest, but use a rando'''
+    payload = dict(name=my_ip,
+                   description="test host %s" % common.utils.random_unicode(),
+                   variables=json.dumps(dict(ansible_ssh_host=random_ipv4, ansible_connection="local")),
+                   inventory=random_group.inventory,)
+    obj = api_hosts_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    # Add to group
+    with pytest.raises(common.exceptions.NoContent_Exception):
+        obj.get_related('groups').post(dict(id=random_group.id))
     return obj
 
 @pytest.fixture(scope="function")
 def random_job_template_with_limit(request, authtoken, api_job_templates_pg, random_project, random_inventory, random_ssh_credential, host_config_key):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
-
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template with limit - %s" % common.utils.random_unicode(),
                    inventory=random_inventory.id,
@@ -97,33 +122,57 @@ def random_job_template_ask(request, authtoken, api_job_templates_pg, random_pro
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Callback(Base_Api_Test):
-    def test_get(self, api_jobs_pg, ansible_runner, random_job_template, inventory_current, host_config_key):
+    def test_get(self, api_jobs_pg, ansible_runner, random_job_template, host_config_key, inventory_this_host, inventory_localhost):
         '''Assert a GET on the /callback resource returns a list of matching hosts'''
         # enable callback
         random_job_template.patch(host_config_key=host_config_key)
         assert random_job_template.host_config_key == host_config_key
 
+        # Assert the GET response includes the proper host_config_key
         callback_pg = random_job_template.get_related('callback')
         assert callback_pg.host_config_key == host_config_key
-        all_inventory_hosts = inventory_current.get_related('inventory').get_related('hosts')
-        assert len(callback_pg.matching_hosts) == all_inventory_hosts.count
-        for inv_host in all_inventory_hosts.results:
-            assert inv_host.name in callback_pg.matching_hosts
 
-    def test_launch_nohosts(self, api_jobs_pg, ansible_runner, random_job_template, host_config_key, ansible_default_ipv4):
+        # Assert the GET response includes expected inventory counts
+        all_inventory_hosts = inventory_this_host.get_related('inventory').get_related('hosts')
+        assert all_inventory_hosts.count == 2, "Unexpected number of inventory_hosts (%s != 2)" % all_inventory_hosts.count
+        assert len(callback_pg.matching_hosts) == 1, "Unexpected number of matching_hosts (%s != 1)" % len(callback_pg.matching_hosts)
+
+        # Assert the GET response includes expected values in matching_hosts
+        assert inventory_this_host.name in callback_pg.matching_hosts
+        assert inventory_localhost.name not in callback_pg.matching_hosts
+
+    def test_launch_no_hosts(self, api_jobs_pg, ansible_runner, random_job_template, host_config_key, ansible_default_ipv4):
         '''Verify launch failure when no matching inventory host can be found'''
         # enable callback
         random_job_template.patch(host_config_key=host_config_key)
         assert random_job_template.host_config_key == host_config_key
 
         args = dict(method="POST",
-                    status_code=202,
+                    status_code=httplib.ACCEPTED,
                     url="http://%s/%s" % (ansible_default_ipv4, random_job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         result = ansible_runner.uri(**args)
 
-        assert result['status'] == httplib.BAD_REQUEST
+        assert result['status'] == httplib.BAD_REQUEST, "Unexpected response code (%s!=%s)\n%s" % (result['status'], httplib.BAD_REQUEST, result)
+        assert result['failed']
+        assert result['json']['msg'] == 'No matching host could be found!'
+
+    def test_launch_no_hosts_match(self, api_jobs_pg, ansible_runner, random_job_template, host_config_key, ansible_default_ipv4, inventory_this_host_with_alias):
+        '''Verify launch failure when a matching host.name is found, but ansible_ssh_host is different.'''
+        # enable callback
+        random_job_template.patch(host_config_key=host_config_key)
+        assert random_job_template.host_config_key == host_config_key
+
+        args = dict(method="POST",
+                    status_code=httplib.ACCEPTED,
+                    url="http://%s/%s" % (ansible_default_ipv4, random_job_template.json['related']['callback']),
+                    body="host_config_key=%s" % host_config_key,)
+        args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
+        result = ansible_runner.uri(**args)
+
+        assert 'status' in result, "Unxpected response: %s" % result
+        assert result['status'] == httplib.BAD_REQUEST, "Unexpected response code (%s!=%s)\n%s" % (result['status'], httplib.BAD_REQUEST, result)
         assert result['failed']
         assert result['json']['msg'] == 'No matching host could be found!'
 
@@ -134,13 +183,13 @@ class Test_Job_Callback(Base_Api_Test):
         assert random_job_template.host_config_key == host_config_key
 
         args = dict(method="POST",
-                    status_code=202,
+                    status_code=httplib.ACCEPTED,
                     url="http://%s/%s" % (ansible_default_ipv4, random_job_template.json['related']['callback']),
                     body="host_config_key=BOGUS",)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         result = ansible_runner.uri(**args)
 
-        assert result['status'] == httplib.FORBIDDEN
+        assert result['status'] == httplib.FORBIDDEN, "Unexpected response code (%s!=%s)\n%s" % (result['status'], httplib.FORBIDDEN, result)
         assert result['failed']
         assert result['json']['detail'] == 'You do not have permission to perform this action.'
 
@@ -151,7 +200,7 @@ class Test_Job_Callback(Base_Api_Test):
         assert random_job_template_no_credential.host_config_key == host_config_key
 
         args = dict(method="POST",
-                    status_code=202,
+                    status_code=httplib.ACCEPTED,
                     url="http://%s/%s" % (ansible_default_ipv4, random_job_template_no_credential.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -167,7 +216,7 @@ class Test_Job_Callback(Base_Api_Test):
         assert random_job_template_ask.host_config_key == host_config_key
 
         args = dict(method="POST",
-                    status_code=202,
+                    status_code=httplib.ACCEPTED,
                     url="http://%s/%s" % (ansible_default_ipv4, random_job_template_ask.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -185,7 +234,7 @@ class Test_Job_Callback(Base_Api_Test):
         assert random_job_template.host_config_key == host_config_key
 
         args = dict(method="POST",
-                    status_code=202,
+                    status_code=httplib.ACCEPTED,
                     url="http://%s/%s" % (ansible_default_ipv4, random_job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -201,7 +250,7 @@ class Test_Job_Callback(Base_Api_Test):
         assert random_job_template_with_limit.host_config_key == host_config_key
 
         args = dict(method="POST",
-                    status_code=202,
+                    status_code=httplib.ACCEPTED,
                     url="http://%s/%s" % (ansible_default_ipv4, random_job_template_with_limit.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -234,7 +283,7 @@ class Test_Job_Callback(Base_Api_Test):
         assert random_job_template.host_config_key == host_config_key
 
         args = dict(method="POST",
-                    status_code=202,
+                    status_code=httplib.ACCEPTED,
                     url="http://%s/%s" % (ansible_default_ipv4, random_job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
