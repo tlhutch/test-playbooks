@@ -271,9 +271,9 @@ class Test_Project_Schedules(Base_Api_Test):
         schedules_pg = random_project.get_related('schedules')
 
         # Create a schedule
-        rrule = RRule(dateutil.rrule.MINUTELY, dtstart=datetime.utcnow(), count=2, interval=60)
+        rrule = RRule(dateutil.rrule.HOURLY, dtstart=datetime.utcnow() + relativedelta(seconds=-30), count=2)
         payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="Update (interval:60, count:2)",
+                       description="Update (count:2)",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
 
@@ -589,9 +589,9 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedules_pg = random_aws_inventory_source.get_related('schedules')
 
         # Create a schedule
-        rrule = RRule(dateutil.rrule.MINUTELY, dtstart=datetime.utcnow(), count=2, interval=60)
+        rrule = RRule(dateutil.rrule.HOURLY, dtstart=datetime.utcnow() + relativedelta(seconds=-30), count=2)
         payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="Update (interval:60, count:2)",
+                       description="Update (count:2)",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
 
