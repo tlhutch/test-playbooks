@@ -304,10 +304,10 @@ class Test_Project_Schedules(Base_Api_Test):
         # Is the next_run what we expect?
         assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
-        # wait 2 minutes for 1 scheduled update to complete
+        # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
         unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1,
-            interval=15, verbose=True, timeout=60*2)
+            interval=15, verbose=True, timeout=60*5)
 
         # Ensure correct number of scheduled launches occurred
         assert unified_jobs_pg.count == 1
@@ -315,7 +315,7 @@ class Test_Project_Schedules(Base_Api_Test):
         # Ensure the job status is failed
         job_pg = unified_jobs_pg.results[0]
         job_pg = common.utils.wait_until(job_pg, 'status', 'failed',
-            interval=15, verbose=True, timeout=60)
+            interval=15, verbose=True, timeout=60*5)
         assert job_pg.status == 'failed'
 
         # Is the next_run still what we expect?
@@ -364,10 +364,10 @@ class Test_Project_Schedules(Base_Api_Test):
         # Is the next_run what we expect?
         assert schedule_pg.next_run == rrule_frequency.after(datetime.utcnow()).isoformat() + 'Z'
 
-        # wait 2 minutes for 1 scheduled update to complete
+        # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
         unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1,
-            interval=15, verbose=True, timeout=60*2)
+            interval=15, verbose=True, timeout=60*5)
 
         # Ensure correct number of scheduled launches occured
         assert unified_jobs_pg.count == 1
@@ -622,10 +622,10 @@ class Test_Inventory_Schedules(Base_Api_Test):
         # Is the next_run what we expect?
         assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
-        # wait 2 minutes for 1 scheduled update to complete
+        # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
         unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1,
-            interval=15, verbose=True, timeout=60*2)
+            interval=15, verbose=True, timeout=60*5)
 
         # Ensure correct number of scheduled launches occurred
         assert unified_jobs_pg.count == 1
@@ -633,7 +633,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         # Ensure the job status is failed
         job_pg = unified_jobs_pg.results[0]
         job_pg = common.utils.wait_until(job_pg, 'status', 'failed',
-            interval=15, verbose=True, timeout=60)
+            interval=15, verbose=True, timeout=60*5)
         assert job_pg.status == 'failed'
 
         # Is the next_run still what we expect?
@@ -683,10 +683,10 @@ class Test_Inventory_Schedules(Base_Api_Test):
         # Is the next_run what we expect?
         assert schedule_pg.next_run == rrule_frequency.after(datetime.utcnow()).isoformat() + 'Z'
 
-        # wait 2 minutes for 1 scheduled update to complete
+        # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
         unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1,
-            interval=15, verbose=True, timeout=60*2)
+            interval=15, verbose=True, timeout=60*5)
 
         # Ensure correct number of scheduled launches occured
         assert unified_jobs_pg.count == 1
