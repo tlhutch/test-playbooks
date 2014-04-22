@@ -765,14 +765,14 @@ job_templates:
       extra_vars:
         ansible_connection: local
 
-#    - name: helloworld/vault.yml (limit:local)
-#      job_type: run
-#      project: ansible-helloworld (hg, ssh_key_data)
-#      playbook: vault.yml
-#      inventory: it_inventory
-#      credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***, vault_password:***)
-#      limit: local
-#
+    - name: helloworld/vault.yml (limit:local)
+      job_type: run
+      project: ansible-helloworld (hg, ssh_key_data)
+      playbook: vault.yml
+      inventory: it_inventory
+      credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***, vault_password:***)
+      limit: local
+
     - name: helloworld/aws_credentials_test.yml (limit:127.0.0.1)
       job_type: run
       project: ansible-helloworld (hg, ssh_key_data)
