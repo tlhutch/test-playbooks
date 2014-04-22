@@ -31,7 +31,7 @@ class Api_Browser_Page(base.Base):
         return self.selenium.find_element(*self._options_button_locator)
 
 class Api_Browser_Home(Api_Browser_Page):
-    _page_title = u"REST API \xb7 AWX REST API"
+    _page_title = u"REST API \xb7 Ansible Tower REST API"
     _href_locator = (By.CSS_SELECTOR, "a[href = '{href}']")
     _v1_link_locator = (By.CSS_SELECTOR, "a[href = '/api/v1/']")
 
@@ -56,5 +56,5 @@ class Api_Browser_Home(Api_Browser_Page):
         #popup.accept()
 
 class Api_Browser_v1(Api_Browser_Page):
-    _page_title = u"Version 1 \xb7 AWX REST API"
+    _page_title = u"Version 1 \xb7 Ansible Tower REST API"
 
