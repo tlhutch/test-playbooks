@@ -556,10 +556,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             assert update_pg.json['can_update'], "SCM projects must be updateable"
 
             # Has an update already been triggered?
-            if 'last_update' in project_pg.json['related'] or \
-               'current_update' in project_pg.json['related']:
-                # FIXME - maybe we should still update?
-                pytest.xfail("Project already updated")
+            if 'current_update' in project_pg.json['related']:
+                pytest.xfail("Project update already queued")
             else:
                 # Create password payload
                 payload = dict()
