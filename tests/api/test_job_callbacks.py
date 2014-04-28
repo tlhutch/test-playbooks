@@ -10,9 +10,6 @@ import common.utils
 import common.exceptions
 from tests.api import Base_Api_Test
 
-# module-wide fixtures
-pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000')
-
 @pytest.fixture(scope="class")
 def host_config_key():
     '''Returns a uuid4 string for use as a host_config_key.'''
@@ -122,6 +119,9 @@ def random_job_template_ask(request, authtoken, api_job_templates_pg, random_pro
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Callback(Base_Api_Test):
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000')
+
     def test_get(self, api_jobs_pg, ansible_runner, random_job_template, host_config_key, inventory_this_host, inventory_localhost):
         '''Assert a GET on the /callback resource returns a list of matching hosts'''
         # enable callback

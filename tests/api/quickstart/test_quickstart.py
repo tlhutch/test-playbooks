@@ -97,12 +97,13 @@ def set_rootpw(request, ansible_runner, testsetup):
     assert 'password' in testsetup.credentials['ssh'], "No SSH password defined in credentials"
     ansible_runner.shell("echo '{username}:{password}' | chpasswd".format(**testsetup.credentials['ssh']))
 
-@pytest.mark.usefixtures("authtoken", "install_integration_license", "update_sshd_config", "set_rootpw")
 @pytest.mark.incremental
 @pytest.mark.integration
 @pytest.mark.skip_selenium
 @pytest.mark.trylast
 class Test_Quickstart_Scenario(Base_Api_Test):
+
+    pytestmark = pytest.mark.usefixtures("authtoken", "install_integration_license", "update_sshd_config", "set_rootpw")
 
     @pytest.mark.destructive
     def test_organizations_post(self, api_organizations_pg, organization):
