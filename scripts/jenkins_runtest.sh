@@ -36,6 +36,7 @@ py.test -v \
   --baseurl "${BASEURL}" \
   --ansible-inventory "${ANSIBLE_INVENTORY}" \
   -m "${MARKEXPR}" \
+  --destructive \
   tests/
 
 exit $?
