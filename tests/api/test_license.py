@@ -24,17 +24,6 @@ import common.tower.license
 import common.exceptions
 from tests.api import Base_Api_Test
 
-# The following fixture runs once for this entire module
-@pytest.fixture(scope='class')
-def backup_license(request, ansible_runner):
-    ansible_runner.shell('test -f /etc/awx/aws && mv /etc/awx/aws /etc/awx/.aws', creates='/etc/awx/.aws', removes='/etc/awx/aws')
-    ansible_runner.shell('test -f /etc/awx/license && mv /etc/awx/license /etc/awx/.license', creates='/etc/awx/.license', removes='/etc/awx/license')
-
-    def teardown():
-        ansible_runner.shell('test -f /etc/awx/.aws && mv /etc/awx/.aws /etc/awx/aws', creates='/etc/awx/aws', removes='/etc/awx/.aws')
-        ansible_runner.shell('test -f /etc/awx/.license && mv /etc/awx/.license /etc/awx/license', creates='/etc/awx/license', removes='/etc/awx/.license')
-    request.addfinalizer(teardown)
-
 # The following fixture runs once for each class that uses it
 @pytest.fixture(scope='class')
 def install_demo_license(request, backup_license, ansible_runner):
