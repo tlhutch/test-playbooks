@@ -12,6 +12,7 @@ def backup_license(request, ansible_runner):
     ansible_runner.shell('test -f /etc/awx/license && mv /etc/awx/license /etc/awx/.license', creates='/etc/awx/.license', removes='/etc/awx/license')
 
     def teardown():
+        logging.debug("calling teardown backup_license")
         ansible_runner.shell('test -f /etc/awx/.aws && mv /etc/awx/.aws /etc/awx/aws', creates='/etc/awx/aws', removes='/etc/awx/.aws')
         ansible_runner.shell('test -f /etc/awx/.license && mv /etc/awx/.license /etc/awx/license', creates='/etc/awx/license', removes='/etc/awx/.license')
     request.addfinalizer(teardown)
@@ -26,6 +27,7 @@ def install_license_1000(request, ansible_runner):
     ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
 
     def teardown():
+        logging.debug("calling teardown install_license_1000")
         ansible_runner.file(path='/etc/awx/license', state='absent')
     request.addfinalizer(teardown)
 
@@ -39,5 +41,6 @@ def install_license_10000(request, ansible_runner):
     ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
 
     def teardown():
+        logging.debug("calling teardown install_license_10000")
         ansible_runner.file(path='/etc/awx/license', state='absent')
     request.addfinalizer(teardown)
