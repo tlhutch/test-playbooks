@@ -35,20 +35,25 @@ inventory_source:
     url: {format: uri, type: string}
 
     related:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         created_by: {format: uri, type: string}
         modified_by: {format: uri, type: string}
         current_update: {format: uri, type: string}
         group: {format: uri, type: string}
+        groups: {format: uri, type: string}
+        hosts: {format: uri, type: string}
         inventory: {format: uri, type: string}
+        last_job: {format: uri, type: string}
+        current_job: {format: uri, type: string}
         inventory_updates: {format: uri, type: string}
         last_update: {format: uri, type: string}
         update: {format: uri, type: string}
         activity_stream: {format: uri, type: string}
         schedules: {format: uri, type: string}
         next_schedule: {format: uri, type: string}
-      required: [inventory_updates, update, inventory, group]
+        next_job: {format: uri, type: string}
+      required: [inventory_updates, update, inventory]
       type: object
 
     summary_fields:
