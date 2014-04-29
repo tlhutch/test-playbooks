@@ -67,7 +67,7 @@ def install_license_expired(request, ansible_runner, license_instance_count, bac
 @pytest.fixture(scope='class')
 def ansible_ec2_facts(ansible_runner):
     '''This will only work on an ec2 system'''
-    return ansible_runner.ec2_facts()
+    return ansible_runner.ec2_facts().get('ansible_facts',{})
 
 @pytest.fixture(scope='class')
 def ami_id(ansible_ec2_facts):
