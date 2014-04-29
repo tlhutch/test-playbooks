@@ -9,11 +9,11 @@ inventory:
     has_active_failures: {type: boolean}
     has_inventory_sources: {type: boolean}
     hosts_with_active_failures: {minimum: 0, type: number}
-    id: {minimum: 1, type: number}
+    id: {$ref: '#/definitions/id'}
     inventory_sources_with_failures: {minimum: 0, type: number}
     modified: {format: date-time, type: string}
     name: {type: string}
-    organization: {minimum: 1, type: number}
+    organization: {$ref: '#/definitions/id_or_null'}
     related:
       additionalProperties: false
       properties:
@@ -29,7 +29,7 @@ inventory:
         tree: {format: uri, type: string}
         variable_data: {format: uri, type: string}
       required: [created_by, variable_data, root_groups, script,
-      tree, hosts, groups, organization, inventory_sources, activity_stream]
+      tree, hosts, groups, inventory_sources, activity_stream]
       type: object
     summary_fields:
       additionalProperties: false
@@ -41,7 +41,6 @@ inventory:
             name: {type: string}
           required: [name, description]
           type: object
-      required: [organization]
       type: object
     total_groups: {minimum: 0, type: number}
     total_hosts: {minimum: 0, type: number}
