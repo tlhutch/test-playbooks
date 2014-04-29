@@ -64,17 +64,18 @@ def install_license_expired(request, ansible_runner, license_instance_count, bac
         ansible_runner.file(path='/etc/awx/license', state='absent')
     request.addfinalizer(teardown)
 
-@pytest.fixture(scope='session')
-# FIXME - replace with ansible_runner.ec2_facts()
-def ami_id(ansible_runner):
-    output = ansible_runner.command('/usr/bin/ec2metadata --ami-id')
-    return output['stdout']
+@pytest.fixture(scope='class')
+def ansible_ec2_facts(ansible_runner):
+    '''This will only work on an ec2 system'''
+    return ansible_runner.ec2_facts()
 
-@pytest.fixture(scope='session')
-# FIXME - replace with ansible_runner.ec2_facts()
-def instance_id(ansible_runner):
-    output = ansible_runner.command('/usr/bin/ec2metadata --instance-id')
-    return output['stdout']
+@pytest.fixture(scope='class')
+def ami_id(ansible_ec2_facts):
+    return ansible_ec2_facts['ansible_ec2_ami_id']
+
+@pytest.fixture(scope='class')
+def instance_id(ansible_ec2_facts):
+    return ansible_ec2_facts['ansible_ec2_instance_id']
 
 # The following fixture runs once for each class that uses it
 @pytest.fixture(scope='class')
