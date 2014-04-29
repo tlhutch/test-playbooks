@@ -62,5 +62,6 @@ cfg['ssh']['password'] = os.environ.get("SSH_PASSWORD", "")
 cfg['ssh']['ssh_key_data'] = literal(open(os.environ["SSH_KEY_DATA"],'r').read())
 cfg['ssh']['encrypted']['ssh_key_data'] = literal(open(os.environ["SSH_KEY_DATA_ENCRYPTED"],'r').read())
 cfg['ssh']['encrypted']['ssh_key_unlock'] = os.environ.get("SSH_KEY_UNLOCK", "")
+cfg['ssh']['vault_password'] = os.environ.get("VAULT_PASSWORD", "")
 
 yaml.dump(cfg, open(credentials_file, 'w+'))
