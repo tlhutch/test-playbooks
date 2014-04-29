@@ -273,7 +273,7 @@ class Test_Job_Callback(Base_Api_Test):
 
         # Assert job failed because no hosts were found
         assert job_pg.status == "failed"
-        assert job_pg.result_stdout.startswith("ERROR: provided hosts list is empty")
+        assert "ERROR: provided hosts list is empty" in job_pg.result_stdout
 
     def test_launch_success(self, api_jobs_pg, ansible_runner, random_job_template, inventory_localhost, host_config_key, ansible_default_ipv4):
         '''Assert that launching a callback job against a job_template with an existing 'limit' parameter successfully launches, and the job successfully runs on a single host..'''
