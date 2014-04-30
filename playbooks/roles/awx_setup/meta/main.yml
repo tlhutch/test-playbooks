@@ -2,3 +2,4 @@ dependencies:
 - { role: remove_pip_modules }
 - { role: packages }
 - { role: auth_keys }
+- { role: ntp }
