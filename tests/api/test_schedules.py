@@ -759,9 +759,9 @@ class Test_Inventory_Schedules(Base_Api_Test):
         random_aws_group.delete()
 
         # assert the group schedules are gone
-        # Group deletes take much longer than project deletes.  wait 1 minute for
+        # Group deletes take much longer than project deletes.  Wait 2 minutes for
         # cascade schedule deletion.
         remaining_schedules = common.utils.wait_until(
             api_schedules_pg.get(id__in=','.join([str(sid) for sid in schedule_ids])),
-            'count', 0, interval=5, verbose=True, timeout=60*1)
+            'count', 0, interval=5, verbose=True, timeout=60*2)
         assert remaining_schedules.count == 0
