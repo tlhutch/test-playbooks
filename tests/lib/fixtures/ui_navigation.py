@@ -17,6 +17,11 @@ def _submenu(home_pg, main_menu, submenu):
             main_menu).sub_navigation_menu(submenu).click()
 
 @pytest.fixture
+def ui_dashboard_pg(home_page_logged_in):
+    '''Navigate to the Organizations tab and return it'''
+    return home_page_logged_in.header.site_navigation_menu('Home').click()
+
+@pytest.fixture
 def ui_organizations_pg(home_page_logged_in):
     '''Navigate to the Organizations tab and return it'''
     return home_page_logged_in.header.site_navigation_menu('Organizations').click()
