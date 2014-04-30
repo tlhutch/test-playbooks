@@ -44,7 +44,7 @@ from tests.api import Base_Api_Test
 def unsupported_rrule(request):
     return request.param
 
-@pytest.fixture(params=["MINUTELY", "HOURLY", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"])
+@pytest.fixture(scope="function", params=["MINUTELY", "HOURLY", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"])
 def rrule_frequency(request):
     utcnow = datetime.utcnow()
     if request.param == "MINUTELY":
@@ -297,7 +297,7 @@ class Test_Project_Schedules(Base_Api_Test):
         # Create a schedule
         rrule = RRule(dateutil.rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(seconds=+30), count=1)
         payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="Update %s (interval:60, count:2)" % common.utils.random_unicode(),
+                       description="Update %s (interval:60, count:1)" % common.utils.random_unicode(),
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
 
