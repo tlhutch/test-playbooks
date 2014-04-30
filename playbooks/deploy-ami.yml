@@ -11,14 +11,46 @@
     ec2_region: us-east-1
     ec2_security_group: AWX
     ec2_key_name: jenkins
-    instance_name: jlaska-slave-test
+    ec2_public_key: '~/.ssh/id_rsa.jenkins.pub'
+    instance_name: jlaska-perf-test
     instances:
-        - {'name': 'centos-6.4-x86_64',   'user': 'root',     'id': 'ami-eb6b0182', 'type': 'm3.medium' }
-        - {'name': 'rhel-6.4-x86_64',     'user': 'ec2-user', 'id': 'ami-a25415cb', 'type': 'm3.medium' }
-        - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',   'id': 'ami-d0f89fb9', 'type': 'm3.medium' }
-        - {'name': 'fedora-20-x86_64',    'user': 'fedora',   'id': 'ami-1337187a', 'type': 'm3.medium' }
+        - {'name': 'fedora-20-x86_64',    'user': 'fedora',   'id': 'ami-f8f1c8bd', 'type': 't1.micro' }
 
   tasks:
+    - name: ensure security group exists
+      ec2_group:
+        state: present
+        name: '{{ ec2_security_group }}'
+        description: Security Group for AWX instances
+        region: '{{ ec2_region }}'
+        rules:
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 8080
+            to_port: 8080
+            cidr_ip: 0.0.0.0/0
+      when: instances
+
+    - name: ensure keypair exists
+      ec2_key:
+        region: '{{ ec2_region }}'
+        name: '{{ ec2_key_name }}'
+        key_material: "{{ item }}"
+      with_file: ec2_public_key
+      register: keypair
+      when: instances
+
     - name: launch amis
       ec2:
         region: '{{ ec2_region }}'
