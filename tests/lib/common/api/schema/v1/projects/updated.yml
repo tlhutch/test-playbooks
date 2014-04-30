@@ -1,0 +1,10 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/projects/\d+/update/'
+type: object
+additionalProperties: false
+required: [project_update]
+properties:
+    project_update:
+        type: number
+        minimum: 1

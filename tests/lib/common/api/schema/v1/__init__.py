@@ -237,7 +237,7 @@ class Awx_Schema_Project_Update(Awx_Schema):
         return self.load_file('projects/update.yml')
     @property
     def post(self):
-        return self.load_file('empty.yml')
+        return self.load_file('projects/updated.yml')
 
 class Awx_Schema_Project_Updates(Awx_Schema_Projects_Project_Updates):
     resource = '/api/v1/project_updates/\d+/'
@@ -403,7 +403,7 @@ class Awx_Schema_Inventory_Sources_Update(Awx_Schema):
         return self.load_file('inventory_sources/update.yml')
     @property
     def post(self):
-        return self.load_file('empty.yml')
+        return self.load_file('inventory_sources/updated.yml')
 
 class Awx_Schema_Inventory_Source_Updates(Awx_Schema):
     resource = '/api/v1/inventory_sources/\d+/inventory_updates/'
