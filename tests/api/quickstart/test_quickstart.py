@@ -430,8 +430,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert inv_updates_pg.is_successful, \
-            "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
-            (inv_updates_pg.status, inv_updates_pg.result_stdout, inv_updates_pg.result_traceback, inv_updates_pg.job_explanation)
+            "Job unsuccessful (status:%s, failed:%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
+            (inv_updates_pg.status, inv_updates_pg.failed, inv_updates_pg.result_stdout, inv_updates_pg.result_traceback, inv_updates_pg.job_explanation)
 
         # Display output, even for success
         print inv_updates_pg.result_stdout
@@ -603,8 +603,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
             # Make sure there is no traceback in result_stdout or result_traceback
             assert latest_update_pg.is_successful, \
-                "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
-                (latest_update_pg.status, latest_update_pg.result_stdout, latest_update_pg.result_traceback, latest_update_pg.job_explanation)
+                "Job unsuccessful (status:%s, failed:%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
+                (latest_update_pg.status, latest_update_pg.failed, latest_update_pg.result_stdout, latest_update_pg.result_traceback, latest_update_pg.job_explanation)
 
             # Display output, even for success
             print latest_update_pg.result_stdout
@@ -731,8 +731,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, \
-            "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
-            (job_pg.status, job_pg.result_stdout, job_pg.result_traceback, job_pg.job_explanation)
+            "Job unsuccessful (status:%s, failed:%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
+            (job_pg.status, job_pg.failed, job_pg.result_stdout, job_pg.result_traceback, job_pg.job_explanation)
 
         # Display output, even for success
         print job_pg.result_stdout

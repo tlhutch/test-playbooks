@@ -247,7 +247,8 @@ class Task_Page(Base):
 
     @property
     def is_successful(self):
-        return 'successful' == self.status.lower() and not self.has_traceback
+        return 'successful' == self.status.lower() and \
+            not (self.has_traceback or self.failed)
 
     @property
     def has_traceback(self):
