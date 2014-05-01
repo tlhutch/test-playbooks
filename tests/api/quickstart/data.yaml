@@ -1,8 +1,8 @@
 ---
 license:
-    company_name: AnsibleWorks
+    company_name: Ansible, Inc
     contact_name: Art Vandelay
-    contact_email: art@ansibleworks.com
+    contact_email: art@ansible.com
     instance_count: 1000
     license_days: 31
 
@@ -26,8 +26,8 @@ organizations:
         - ansible-examples.git (github, ssh_key_data)
         - ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
 
-    - name: AnsibleWorks
-      description: Just another AnsibleWorks
+    - name: ansible, inc
+      description: Ansible is the simplest way to automate IT.
       users:
         - ansible_user
       admins:
