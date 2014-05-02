@@ -29,8 +29,9 @@
     wait_timeout: 800
     state: present
   register: rax
-  retries: 3
-  until: rax|success
+  # disable retry for now
+  # retries: 3
+  # until: rax|success
   with_items: rax_images
 
 # Despite using `wait` on the ec2 module, instances aren't accepting ssh
