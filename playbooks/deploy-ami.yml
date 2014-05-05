@@ -14,7 +14,8 @@
     ec2_public_key: '~/.ssh/id_rsa.jenkins.pub'
     instance_name: jlaska-perf-test
     instances:
-        - {'name': 'fedora-20-x86_64',    'user': 'fedora',   'id': 'ami-f8f1c8bd', 'type': 't1.micro' }
+        - {'name': 'fedora-20-x86_64', 'user': 'fedora', 'id': 'ami-1337187a', 'type': 't1.micro' }
+        # - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu', 'id': 'ami-018c9568', 'type': 'm3.medium' }
 
   tasks:
     - name: ensure security group exists
