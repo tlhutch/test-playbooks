@@ -279,7 +279,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Create a new inventory
         payload = dict(name=inventory['name'],
-                       description=inventory['description'],
+                       description=inventory.get('description',''),
                        organization=org.id,
                        variables=json.dumps(inventory.get('variables',None)))
 
@@ -303,7 +303,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Create a new inventory
         payload = dict(name=group['name'],
-                       description=group['description'],
+                       description=group.get('description',''),
                        inventory=inventory_id,
                        variables=json.dumps(group.get('variables',None)))
 
