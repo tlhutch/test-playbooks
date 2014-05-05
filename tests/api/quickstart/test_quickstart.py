@@ -119,7 +119,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_organization_get(self, api_organizations_pg, organizations):
 
-        org_page = api_organizations_pg.get(name__in=','.join([o['name'] for o in organizations]))
+        org_page = api_organizations_pg.get(or__name=[o['name'] for o in organizations])
         assert len(organizations) == len(org_page.results)
 
     @pytest.mark.destructive
