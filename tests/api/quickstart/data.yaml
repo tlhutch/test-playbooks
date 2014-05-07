@@ -26,7 +26,7 @@ organizations:
         - ansible-examples.git (github, ssh_key_data)
         - ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
 
-    - name: ansible, inc
+    - name: Ansible, Inc
       description: Ansible is the simplest way to automate IT.
       users:
         - ansible_user
@@ -294,6 +294,15 @@ inventories:
       description: Inventory tracking internal systems
       organization: Bender Products
 
+    - name: ansibleworks-it
+      organization: Ansible, Inc
+
+    - name: ansible-aws
+      organization: Ansible, Inc
+
+    - name: ansible-rax
+      organization: Ansible, Inc
+
 groups:
     - name: local
       description: A group for systems that map to localhost
@@ -360,6 +369,12 @@ groups:
       inventory: it_inventory
       parent: cloud
 
+    - name: Amazon EC2 Instances
+      inventory: ansible-aws
+
+    - name: Rackspace Cloud Servers
+      inventory: ansible-rax
+
 inventory_sources:
     - name: it_inventory/aws # name is used for internal purposes
       group: aws
@@ -386,6 +401,33 @@ inventory_sources:
       overwrite: true
       overwrite_vars: true
       update_on_launch: true
+      update_interval: 0
+
+    - name: ansible-aws # name is used for internal purposes
+      group: Amazon EC2 Instances
+      inventory: ansible-aws
+      source: ec2
+      credential: AWS (team:IT)
+      source_vars: ''
+      source_regions: ''
+      overwrite: true
+      overwrite_vars: true
+      update_on_launch: false
+      update_interval: 0
+
+    - name: ansible-rax # name is used for internal purposes
+      group: Rackspace Cloud Servers
+      inventory: ansible-rax
+      source: rax
+      credential: Rackspace (team:IT)
+      # source_username: # stored in credentials.yaml
+      # source_password: # stored in credentials.yaml
+      source_vars: ''
+      source_regions: 'ORD'
+      source_tags: ''
+      overwrite: true
+      overwrite_vars: true
+      update_on_launch: false
       update_interval: 0
 
 hosts:
@@ -712,6 +754,17 @@ projects:
       scm_update_on_launch: false
       credential: git@github.com (ssh_key_data, ssh_key_unlock)
 
+    - name: ansible-commander.git (github, ssh_key_data)
+      description: git@github.com:ansible/ansible-commander.git (ssh_key_data)
+      organization: Ansible, Inc
+      scm_type: git
+      scm_url: git@github.com:ansible/ansible-commander.git
+      scm_branch: 'master'
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+      credential: git@github.com (ssh_key_data)
+
 job_templates:
     - name: language_features/loop_plugins.yml (limit:{inventory_hostname}:&cloud)
       job_type: check
@@ -812,3 +865,14 @@ job_templates:
       credential: SSH (user:bender_eng_user, ssh_key_data)
       job_tags: bar
       limit: not a valid hostname
+
+#    - name: ansible-commander.git/setup/site.yml
+#      job_type: run
+#      playbook: setup/site.yml
+#      project: ansible-commander.git (github, ssh_key_data)
+#      inventory: ansible-aws
+#      credential: SSH (user:bender_eng_user, ssh_key_data)
+#      limit: ansible-tower
+#      extra_vars:
+#        sudo: true
+#        sudo_user: root

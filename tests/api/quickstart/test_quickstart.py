@@ -145,7 +145,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.destructive
     def test_organizations_add_users(self, api_users_pg, api_organizations_pg, organization):
         # get org related users link
-        matches = api_organizations_pg.get(name__iexact=organization['name']).results
+        matches = api_organizations_pg.get(name__exact=organization['name']).results
         assert len(matches) == 1
         org_related_pg = matches[0].get_related('users')
 
@@ -161,7 +161,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.destructive
     def test_organizations_add_admins(self, api_users_pg, api_organizations_pg, organization):
         # get org related users link
-        matches = api_organizations_pg.get(name__iexact=organization['name']).results
+        matches = api_organizations_pg.get(name__exact=organization['name']).results
         assert len(matches) == 1
         org_related_pg = matches[0].get_related('admins')
 
@@ -177,7 +177,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.destructive
     def test_teams_post(self, api_teams_pg, api_organizations_pg, team):
         # locate desired organization resource
-        org_pg = api_organizations_pg.get(name__iexact=team['organization']).results[0]
+        org_pg = api_organizations_pg.get(name__exact=team['organization']).results[0]
 
         payload = dict(name=team['name'],
                        description=team['description'],
@@ -273,7 +273,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     def test_inventories_post(self, api_inventories_pg, api_organizations_pg, inventory):
 
         # Find desired org
-        matches = api_organizations_pg.get(name__iexact=inventory['organization']).results
+        matches = api_organizations_pg.get(name__exact=inventory['organization']).results
         assert len(matches) == 1
         org = matches.pop()
 
@@ -507,7 +507,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                     project['local_path']))
 
         # Find desired object identifiers
-        org_id = api_organizations_pg.get(name__iexact=project['organization']).results[0].id
+        org_id = api_organizations_pg.get(name__exact=project['organization']).results[0].id
 
         # Build payload
         payload = dict(name=project['name'],
@@ -612,7 +612,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.destructive
     def test_organizations_add_projects(self, api_organizations_pg, api_projects_pg, organization):
         # locate desired project resource
-        matches = api_organizations_pg.get(name__iexact=organization['name']).results
+        matches = api_organizations_pg.get(name__exact=organization['name']).results
         assert len(matches) == 1
         project_related_pg = matches[0].get_related('projects')
 
