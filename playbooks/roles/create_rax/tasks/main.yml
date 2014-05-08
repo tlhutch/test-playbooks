@@ -33,7 +33,7 @@
   # NOTE: This if rax.instances contains more than one instance, which
   # different status, this will incorrectly succeed
   # until: rax|success and 'ACTIVE' in rax.instances|selectattr('rax_status')
-  until: "'ACTIVE' in rax.instances|selectattr('rax_status')"
+  until: rax.instances[0].rax_status == 'ACTIVE'
   with_items: rax_images
 
 # Despite using `wait` on the ec2 module, instances aren't accepting ssh
