@@ -18,6 +18,8 @@
   until: epel_task.rc == 0
   when: ansible_distribution in ['RedHat', 'CentOS'] and ansible_distribution_version.startswith('7')
 
+# FIXME - Enable RHEL 'optional' repository (needed for python-jinja2)
+
 # Install dependencies
 
 - name: install playbook dependency rpms
