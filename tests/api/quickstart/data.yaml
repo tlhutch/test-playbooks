@@ -876,3 +876,14 @@ job_templates:
 #      extra_vars:
 #        sudo: true
 #        sudo_user: root
+
+#    - name: ansible-helloworld.hg/dynamic_inventory.yml
+#      job_type: run
+#      project: ansible-helloworld (hg, ssh_key_data)
+#      playbook: dynamic_inventory.yml
+#      inventory: it_inventory
+#      credential: SSH (user:bender_eng_user, ssh_key_data)
+#      limit: '{inventory_hostname}'
+#      extra_vars:
+#        num_hosts: 10000
+#        ansible_connection: local
