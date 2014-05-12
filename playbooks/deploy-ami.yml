@@ -12,10 +12,14 @@
     ec2_security_group: AWX
     ec2_key_name: jenkins
     ec2_public_key: '~/.ssh/id_rsa.jenkins.pub'
-    instance_name: jlaska-perf-test
+    instance_name: ansible-tower
     instances:
-        - {'name': 'fedora-20-x86_64', 'user': 'fedora', 'id': 'ami-1337187a', 'type': 't1.micro' }
-        # - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu', 'id': 'ami-018c9568', 'type': 'm3.medium' }
+        - {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-eb6b0182', 'type': 'm3.medium' }
+        - {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-63b6910a', 'type': 'm3.medium' }
+        - {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-5b183532', 'type': 'm3.medium' }
+        - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-5db4a934', 'type': 'm3.medium' }
+        - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-018c9568', 'type': 'm3.medium' }
+        - {'name': 'fedora-20-x86_64',    'user': 'fedora',      'id': 'ami-1337187a', 'type': 'm3.medium' }
 
   tasks:
     - name: ensure security group exists
@@ -59,6 +63,7 @@
         instance_tags:
             Name: '{{ instance_name }}-{{ item.name }}'
         count_tag:
+            Name: '{{ instance_name }}-{{ item.name }}'
             Name: '{{ instance_name }}-{{ item.name }}'
         exact_count: '{{ exact_count }}'
         group: '{{ ec2_security_group }}'
