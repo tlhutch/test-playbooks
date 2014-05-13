@@ -2,10 +2,10 @@
 job_template:
   type: object
   required: [id, cloud_credential, created, credential, description,
-  extra_vars, forks, has_schedules, host_config_key, inventory,
-  job_tags, job_type, last_job_failed, last_job_run, limit, modified, name,
-  next_job_run, playbook, project, related, status, summary_fields, type, url,
-  verbosity, ]
+  extra_vars, forks, has_schedules, vars_prompt_on_launch, host_config_key,
+  inventory, job_tags, job_type, last_job_failed, last_job_run, limit,
+  modified, name, next_job_run, playbook, project, related, status,
+  summary_fields, type, url, verbosity, ]
   additionalProperties: false
   properties:
     type: {type: string, pattern: ^job_template$}
@@ -24,6 +24,7 @@ job_template:
     last_job_failed: {type: boolean}
     forks: {minimum: 0, type: number}
     host_config_key: {type: string}
+    vars_prompt_on_launch: {type: boolean}
     id: {$ref: '#/definitions/id'}
     inventory: {$ref: '#/definitions/id'}
     job_tags: {type: string}
