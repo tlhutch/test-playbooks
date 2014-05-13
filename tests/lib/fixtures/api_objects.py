@@ -14,6 +14,31 @@ def random_organization(request, authtoken, api_organizations_pg):
     return obj
 
 @pytest.fixture(scope="class")
+def project_ansible_helloworld_hg(request, authtoken, api_projects_pg, random_organization):
+    # Create project
+    payload = dict(name="project-%s" % common.utils.random_unicode(),
+                   organization=random_organization.id,
+                   scm_type='hg',
+                   scm_url='https://bitbucket.org/jlaska/ansible-helloworld',
+                   scm_clean=False,
+                   scm_delete_on_update=False,
+                   scm_update_on_launch=False,)
+
+    obj = api_projects_pg.post(payload)
+    request.addfinalizer(obj.delete)
+
+    # Wait for project update to complete
+    updates_pg = obj.get_related('project_updates', order_by="-id")
+    assert updates_pg.count > 0, 'No project updates found'
+    latest_update_pg = updates_pg.results.pop().wait_until_completed()
+    # Assert project_update completed successfully
+    assert latest_update_pg.is_successful, \
+        "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
+        (latest_update_pg.status, latest_update_pg.result_stdout, latest_update_pg.result_traceback, latest_update_pg.job_explanation)
+
+    return obj
+
+@pytest.fixture(scope="class")
 def random_project(request, authtoken, api_projects_pg, random_organization):
     # Create project
     payload = dict(name="project-%s" % common.utils.random_unicode(),
