@@ -30,6 +30,7 @@ job:
     # validates an empty string, or a YAML filename
     playbook: {pattern: '^(|.*\.ya?ml)$', type: string}
     project: {$ref: '#/definitions/id_or_null'}
+    vars_prompt_on_launch: {type: boolean}
     related:
       additionalProperties: false
       properties:
@@ -69,6 +70,6 @@ job:
   required: [id, url, created, modified, job_type, inventory, project,
   playbook, credential, cloud_credential, forks, verbosity, limit, extra_vars,
   job_template, launch_type, started, elapsed, finished, status, failed,
-  passwords_needed_to_start, related, summary_fields, type, name, description,
-  job_explanation]
+  passwords_needed_to_start, vars_prompt_on_launch, related, summary_fields,
+  type, name, description, job_explanation]
   type: object
