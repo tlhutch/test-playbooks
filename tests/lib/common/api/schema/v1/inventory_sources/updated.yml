@@ -3,7 +3,8 @@ $schema: http://json-schema.org/draft-04/schema#
 id: '/api/v1/inventory_sources/\d+/update/'
 type: object
 additionalProperties: false
-required: [inventory_update]
+# FIXME - once 1.4.11 is released, the following should be required
+# required: [inventory_update]
 properties:
     inventory_update:
         type: number
