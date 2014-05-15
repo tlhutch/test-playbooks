@@ -128,6 +128,23 @@ def random_ssh_credential_ask(request, authtoken, api_credentials_pg, admin_user
     return obj
 
 @pytest.fixture(scope="class")
+def random_ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    # Create ssh credential with 'ASK' password
+    payload = dict(name="credentials-%s" % common.utils.random_unicode(),
+                   description="machine credential with mulit-ASK password - %s" % common.utils.random_unicode(),
+                   kind='ssh',
+                   user=admin_user.id,
+                   username=testsetup.credentials['ssh']['username'],
+                   password='ASK',
+                   ssh_key_unlock='ASK',
+                   sudo_username=testsetup.credentials['ssh']['sudo_username'],
+                   sudo_password='ASK',
+                  )
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+@pytest.fixture(scope="class")
 def random_aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
     # Create scm credential with scm_key_unlock='ASK'
     payload = dict(name="credentials-%s" % common.utils.random_unicode(),
