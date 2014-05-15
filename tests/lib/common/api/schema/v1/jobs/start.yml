@@ -9,7 +9,7 @@ properties:
     type: boolean
   passwords_needed_to_start:
     $ref: '#/definitions/passwords_needed_to_start'
-  vars_prompt_on_launch:
+  ask_variables_on_launch:
     type: boolean
 definitions:
     !include '../definitions/*passwords_needed_to_start.yml'

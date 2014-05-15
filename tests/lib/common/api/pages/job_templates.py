@@ -18,7 +18,7 @@ class Job_Template_Page(base.Base):
     credential = property(base.json_getter('credential'), base.json_setter('credential'))
     extra_vars = property(base.json_getter('extra_vars'), base.json_setter('extra_vars'))
     host_config_key = property(base.json_getter('host_config_key'), base.json_setter('host_config_key'))
-    vars_prompt_on_launch = property(base.json_getter('vars_prompt_on_launch'), base.json_setter('vars_prompt_on_launch'))
+    ask_variables_on_launch = property(base.json_getter('ask_variables_on_launch'), base.json_setter('ask_variables_on_launch'))
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
