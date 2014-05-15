@@ -327,6 +327,12 @@ class Awx_Schema_Job(Awx_Schema_Jobs):
     @property
     def get(self):
         return self.load_file('jobs/item.yml')
+    @property
+    def patch(self):
+        return self.post
+    @property
+    def put(self):
+        return self.post
 
 class Awx_Schema_Job_Start(Awx_Schema):
     resource = '/api/v1/jobs/\d+/start/'
