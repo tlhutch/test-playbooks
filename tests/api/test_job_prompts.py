@@ -48,12 +48,12 @@ def job_template_no_credential(request, authtoken, api_job_templates_pg, project
 @pytest.fixture(scope="function")
 def job_template_prompt_vars(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, inventory_localhost, random_ssh_credential, extra_vars):
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
-                   description="Random job_template with vars_prompt_on_launch - %s" % common.utils.random_unicode(),
+                   description="Random job_template with ask_variables_on_launch - %s" % common.utils.random_unicode(),
                    inventory=inventory_localhost.inventory,
                    job_type='run',
                    limit=inventory_localhost.name,
                    credential=random_ssh_credential.id,
-                   vars_prompt_on_launch=True,
+                   ask_variables_on_launch=True,
                    extra_vars=extra_vars,
                    project=project_ansible_helloworld_hg.id,
                    playbook='fail_unless.yml', ) # This depends on the project selected
@@ -97,12 +97,12 @@ def job_template_prompt_multipass(request, authtoken, api_job_templates_pg, proj
 def job_template_prompt_multipass_vars(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, inventory_localhost, random_ssh_credential_multi_ask, extra_vars):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
-                   description="Random job_template with multi-ASK credential and vars_prompt_on_launch - %s" % common.utils.random_unicode(),
+                   description="Random job_template with multi-ASK credential and ask_variables_on_launch - %s" % common.utils.random_unicode(),
                    inventory=inventory_localhost.inventory,
                    job_type='run',
                    limit=inventory_localhost.name,
                    credential=random_ssh_credential_multi_ask.id,
-                   vars_prompt_on_launch=True,
+                   ask_variables_on_launch=True,
                    extra_vars=extra_vars,
                    project=project_ansible_helloworld_hg.id,
                    playbook='fail_unless.yml', ) # This depends on the project selected
@@ -119,14 +119,14 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
       * launching a job with no credential
       * launching a job with a password:ASK credential
       * launching a job with a password:ASK, sudo_password:ASK and ssh_keyunlock credential
-      * launching a job with a vars_prompt_on_launch
-      * launching a job with a vars_prompt_on_launch and password:ASK, sudo_password:ASK and ssh_keyunlock credential
+      * launching a job with a ask_variables_on_launch
+      * launching a job with a ask_variables_on_launch and password:ASK, sudo_password:ASK and ssh_keyunlock credential
     '''
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000', 'inventory_localhost')
 
     def test_no_credential(self, job_template_no_credential):
-        assert not job_template_no_credential.vars_prompt_on_launch
+        assert not job_template_no_credential.ask_variables_on_launch
         assert job_template_no_credential.credential is None
 
         # POST a job
@@ -136,9 +136,9 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         start_pg = job_pg.get_related('start')
         assert start_pg.json['can_start']
         assert 'passwords_needed_to_start' in start_pg.json
-        assert 'vars_prompt_on_launch' in start_pg.json
+        assert 'ask_variables_on_launch' in start_pg.json
         assert not start_pg.json['passwords_needed_to_start']
-        assert not start_pg.json['vars_prompt_on_launch']
+        assert not start_pg.json['ask_variables_on_launch']
 
         # POST to start
         start_pg.post()
@@ -150,7 +150,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     def test_prompt_vars(self, job_template_prompt_vars, prompt_extra_vars):
-        assert job_template_prompt_vars.vars_prompt_on_launch
+        assert job_template_prompt_vars.ask_variables_on_launch
         assert job_template_prompt_vars.credential is not None
 
         # POST a job
@@ -160,9 +160,9 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         start_pg = job_pg.get_related('start')
         assert start_pg.json['can_start']
         assert 'passwords_needed_to_start' in start_pg.json
-        assert 'vars_prompt_on_launch' in start_pg.json
+        assert 'ask_variables_on_launch' in start_pg.json
         assert not start_pg.json['passwords_needed_to_start']
-        assert start_pg.json['vars_prompt_on_launch']
+        assert start_pg.json['ask_variables_on_launch']
 
         # PATCH extra_vars to simulate how the UI prompts
         job_pg = job_pg.patch(extra_vars=prompt_extra_vars)
@@ -180,7 +180,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     def test_prompt_pass(self, job_template_prompt_pass):
-        assert not job_template_prompt_pass.vars_prompt_on_launch
+        assert not job_template_prompt_pass.ask_variables_on_launch
         assert job_template_prompt_pass.credential is not None
 
         # POST a job
@@ -190,9 +190,9 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         start_pg = job_pg.get_related('start')
         assert start_pg.json['can_start']
         assert 'passwords_needed_to_start' in start_pg.json
-        assert 'vars_prompt_on_launch' in start_pg.json
+        assert 'ask_variables_on_launch' in start_pg.json
         assert start_pg.json['passwords_needed_to_start']
-        assert not start_pg.json['vars_prompt_on_launch']
+        assert not start_pg.json['ask_variables_on_launch']
 
         # POST to start
         passwords = dict(ssh_password="Doesn't matter")
@@ -205,7 +205,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     def test_prompt_multipass(self, job_template_prompt_multipass):
-        assert not job_template_prompt_multipass.vars_prompt_on_launch
+        assert not job_template_prompt_multipass.ask_variables_on_launch
         assert job_template_prompt_multipass.credential is not None
 
         # POST a job
@@ -215,10 +215,10 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         start_pg = job_pg.get_related('start')
         assert start_pg.json['can_start']
         assert 'passwords_needed_to_start' in start_pg.json
-        assert 'vars_prompt_on_launch' in start_pg.json
+        assert 'ask_variables_on_launch' in start_pg.json
         assert start_pg.json['passwords_needed_to_start'], 'expecting non-empty list of passwords needed to start'
         assert len(start_pg.json['passwords_needed_to_start']) > 1, 'expecting multiple passwords to start'
-        assert not start_pg.json['vars_prompt_on_launch']
+        assert not start_pg.json['ask_variables_on_launch']
 
         # POST to start
         passwords = dict(ssh_password="Doesn't matter", sudo_password="Still doesn't matter")
@@ -231,7 +231,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     def test_prompt_multipass_vars(self, job_template_prompt_multipass_vars, prompt_extra_vars):
-        assert job_template_prompt_multipass_vars.vars_prompt_on_launch
+        assert job_template_prompt_multipass_vars.ask_variables_on_launch
         assert job_template_prompt_multipass_vars.credential is not None
 
         # POST a job
@@ -241,10 +241,10 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         start_pg = job_pg.get_related('start')
         assert start_pg.json['can_start']
         assert 'passwords_needed_to_start' in start_pg.json
-        assert 'vars_prompt_on_launch' in start_pg.json
+        assert 'ask_variables_on_launch' in start_pg.json
         assert start_pg.json['passwords_needed_to_start'], 'expecting non-empty list of passwords needed to start'
         assert len(start_pg.json['passwords_needed_to_start']) > 1, 'expecting multiple passwords to start'
-        assert start_pg.json['vars_prompt_on_launch']
+        assert start_pg.json['ask_variables_on_launch']
 
         # PATCH extra_vars to simulate how the UI prompts
         job_pg = job_pg.patch(extra_vars=prompt_extra_vars)
