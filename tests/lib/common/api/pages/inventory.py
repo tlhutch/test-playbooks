@@ -57,6 +57,7 @@ class Host_Page(base.Base):
     base_url = '/api/v1/hosts/{id}/'
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
+    inventory = property(base.json_getter('inventory'), base.json_setter('inventory'))
     variables = property(base.json_getter('variables'), base.json_setter('variables'))
 
     def get_related(self, name, **kwargs):
