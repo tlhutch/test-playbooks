@@ -236,6 +236,7 @@ class Task_Page(Base):
     jobs)
     """
 
+    name = property(json_getter('name'), json_setter('name'))
     status = property(json_getter('status'), json_setter('status'))
     failed = property(json_getter('failed'), json_setter('failed'))
     result_traceback = property(json_getter('result_traceback'), json_setter('result_traceback'))
@@ -244,6 +245,10 @@ class Task_Page(Base):
     created = property(json_getter('created'), json_setter('created'))
     modified = property(json_getter('modified'), json_setter('modified'))
     launch_type = property(json_getter('launch_type'), json_setter('launch_type'))
+
+    def __str__(self):
+        return "Job id:%s, status:%s, failed:%s\nJob name:%s\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
+            (self.id, self.status, self.failed, self.name, self.result_stdout, self.result_traceback, self.job_explanation)
 
     @property
     def is_successful(self):
