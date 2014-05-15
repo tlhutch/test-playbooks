@@ -1,7 +1,8 @@
 import base
+from job_templates import Job_Template_Page
 from common.exceptions import *
 
-class Job_Page(base.Task_Page):
+class Job_Page(base.Task_Page, Job_Template_Page):
     base_url = '/api/v1/jobs/{id}/'
 
     def get_related(self, name, **kwargs):
