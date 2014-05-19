@@ -64,4 +64,3 @@ def generate_aws(instance_count=30, ami_id="ami-eb81b182", instance_id="i-fd64c1
     meta['license_key'] = sha.hexdigest()
 
     return meta
-
