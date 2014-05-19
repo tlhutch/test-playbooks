@@ -1,5 +1,5 @@
+import sys
 import time
-import calendar
 import random
 import string
 
@@ -118,6 +118,10 @@ def _print_state(obj, att, attval, elapsed, verbose_atts):
         msgs.append("%s=%s" % (vatt, vattval))
     print " ".join(msgs)
 
+def random_int(maxint=sys.maxint):
+    max = int(maxint)
+    return random.randint(0, max)
+
 def _join_chars(chars, length):
     """
     Used by the random character functions.
@@ -137,7 +141,6 @@ def random_unicode(length=10):
         return unichr(random.randint(32, 1000))
     chars = u"".join([get_char() for ii in xrange(length)])
     return _join_chars(chars, length)
-
 
 def random_ascii(length=10, ascii_only=False):
     """
