@@ -36,12 +36,13 @@ host:
     summary_fields:
       additionalProperties: true
       properties:
-        all_groups: {$ref: '#/definitions/summary_fields_groups_list'}
-        groups: {$ref: '#/definitions/summary_fields_groups_list'}
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         last_job: {$ref: '#/definitions/summary_fields_last_job'}
         last_job_host_summary: {$ref: '#/definitions/summary_fields_last_job_host_summary'}
-      required: [inventory, groups, all_groups]
+        total_groups: {minimum: 0, type: number}
+        total_hosts: {minimum: 0, type: number}
+        total_inventory_sources: {minimum: 0, type: number}
+      required: [inventory]
       type: object
     url: {format: uri, type: string}
     variables: {type: string}
