@@ -12,6 +12,8 @@ class Inventory_Page(base.Base):
         assert name in self.json['related']
         if name == 'hosts':
             related = Hosts_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'groups':
+            related = Groups_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
