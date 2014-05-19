@@ -4,7 +4,9 @@ __pycache__
 results
 results.xml
 *.log
-*.cfg
 *.jsonc
 *vars.*
 inventory.*
+jira.cfg
+credentials.yaml
+sauce_labs.yaml
