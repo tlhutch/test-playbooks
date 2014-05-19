@@ -69,6 +69,7 @@ class CleanCommand(Command):
 setup(
     name="ansibleworks-qa",
     # tests_require=open('requirements.txt', 'r').readlines(),
+    setup_requires=['setuptools-pep8'],
     cmdclass = {'test': PyTest,
                 'clean': CleanCommand,
                 # 'build_sphinx': BuildSphinx},
