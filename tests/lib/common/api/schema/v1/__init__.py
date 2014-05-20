@@ -180,6 +180,9 @@ class Awx_Schema_Inventory_Hosts(Awx_Schema_Hosts):
 class Awx_Schema_Inventory_Groups(Awx_Schema_Groups):
     resource = '/api/v1/inventories/\d+/groups/'
 
+class Awx_Schema_Inventory_Root_Groups(Awx_Schema_Groups):
+    resource = '/api/v1/inventories/\d+/root_groups/'
+
 class Awx_Schema_Credentials(Awx_Schema):
     resource = '/api/v1/credentials/'
 
