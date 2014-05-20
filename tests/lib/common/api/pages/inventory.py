@@ -8,12 +8,14 @@ class Inventory_Page(base.Base):
     description = property(base.json_getter('description'), base.json_setter('description'))
     variables = property(base.json_getter('variables'), base.json_setter('variables'))
 
-    def get_related(self, name, **kwargs):
-        assert name in self.json['related']
-        if name == 'hosts':
-            related = Hosts_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'groups':
-            related = Groups_Page(self.testsetup, base_url=self.json['related'][name])
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related']
+        if attr == 'hosts':
+            related = Hosts_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'groups':
+            related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'root_groups':
+            related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
@@ -37,16 +39,16 @@ class Group_Page(base.Base):
     inventory = property(base.json_getter('inventory'), base.json_setter('inventory'))
     variables = property(base.json_getter('variables'), base.json_setter('variables'))
 
-    def get_related(self, name, **kwargs):
-        assert name in self.json['related']
-        if name == 'hosts':
-            related = Hosts_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'inventory_source':
-            related = Inventory_Source_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'children':
-            related = Groups_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'variable_data':
-            related = Base_Page(self.testsetup, base_url=self.json['related'][name])
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related']
+        if attr == 'hosts':
+            related = Hosts_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'inventory_source':
+            related = Inventory_Source_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'children':
+            related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'variable_data':
+            related = Base_Page(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
@@ -62,14 +64,14 @@ class Host_Page(base.Base):
     inventory = property(base.json_getter('inventory'), base.json_setter('inventory'))
     variables = property(base.json_getter('variables'), base.json_setter('variables'))
 
-    def get_related(self, name, **kwargs):
-        assert name in self.json['related']
-        if name == 'variable_data':
-            related = Base_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'inventory':
-            related = Inventory_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'groups':
-            related = Groups_Page(self.testsetup, base_url=self.json['related'][name])
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related']
+        if attr == 'variable_data':
+            related = Base_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'inventory':
+            related = Inventory_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'groups':
+            related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
