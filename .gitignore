@@ -5,8 +5,8 @@ results
 results.xml
 *.log
 *.jsonc
-*vars.*
-inventory.*
-jira.cfg
-credentials.yaml
-sauce_labs.yaml
+/playbooks/*vars.*
+/playbooks/inventory.*
+/tests/jira.cfg
+/tests/credentials.yaml
+/tests/sauce_labs.yaml
