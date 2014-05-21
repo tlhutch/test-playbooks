@@ -3,6 +3,7 @@ import os
 import glob
 import shutil
 import time
+from distutils import log
 from setuptools import setup,Command
 from setuptools.command.test import test as TestCommand
 
@@ -28,7 +29,7 @@ class PyTest(TestCommand):
     def run_tests(self):
         #import here, cause outside the eggs aren't loaded elsewhere
         import pytest
-        print "Running: pytest %s" % self.test_args
+        log.info("Running: pytest %s" % self.test_args)
         sys.path.insert(0, 'lib')
         pytest.main(self.test_args)
 
@@ -60,7 +61,7 @@ class CleanCommand(Command):
 
         # Zap!
         for rm in rm_list:
-            if self.verbose: print "Removing '%s'" % rm
+            log.info("Removing '%s'" % rm)
             if os.path.isdir(rm):
                 if not self.dry_run: shutil.rmtree(rm)
             else:
