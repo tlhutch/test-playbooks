@@ -43,6 +43,8 @@ class Group_Page(base.Base):
         assert attr in self.json['related']
         if attr == 'hosts':
             related = Hosts_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'inventory':
+            related = Inventory_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'inventory_source':
             related = Inventory_Source_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'children':
@@ -52,6 +54,24 @@ class Group_Page(base.Base):
         else:
             raise NotImplementedError
         return related.get(**kwargs)
+
+    @property
+    def is_root_group(self):
+        '''
+        Returns whether the current group is a top-level root group in the inventory
+        '''
+        return self.get_related('inventory').get_related('root_groups', id=self.id).count == 1
+
+    def get_parents(self):
+        '''
+        Inspects the API and returns all groups that include the current group
+        as a child.
+        '''
+        parents = list()
+        for candidate in self.get_related('inventory').get_related('groups'):
+            if candidate.get_related('children', id=self.id).count > 0:
+                parents.append(candidate.id)
+        return parents
 
 class Groups_Page(Group_Page, base.Base_List):
     base_url = '/api/v1/groups/'
