@@ -191,6 +191,7 @@ class Test_Group(Base_Api_Test):
         # disassociate top-level group
         payload = dict(id=group.id, disassociate=True)
         with pytest.raises(common.exceptions.NoContent_Exception):
+            # POST to /inventories/N/groups
             root_variation.get_related('groups').post(payload)
 
         # Verify top-level group deleted
@@ -213,29 +214,31 @@ class Test_Group(Base_Api_Test):
         assert non_root_variation.get_related('groups', name='na').count == 1
         parent_group = non_root_variation.get_related('groups', name='na').results.pop()
         assert non_root_variation.get_related('groups', name='usa').count == 1
-        child_group = non_root_variation.get_related('groups', name='usa').results.pop()
+        group = non_root_variation.get_related('groups', name='usa').results.pop()
 
         # Record before counts
         total_inv_groups = non_root_variation.get_related('groups').count
         total_inv_root_groups = non_root_variation.get_related('root_groups').count
         total_inv_hosts = non_root_variation.get_related('hosts').count
-        total_group_children = child_group.get_related('children').count
-        total_group_hosts = child_group.get_related('hosts').count
+        total_group_children = group.get_related('children').count
+        total_group_hosts = group.get_related('hosts').count
         total_parent_children = parent_group.get_related('children').count
         total_parent_hosts = parent_group.get_related('hosts').count
 
-        # disassociate all matching child_group
-        payload = dict(id=child_group.id, disassociate=True)
+        # delete group, and promote it's children
+        payload = dict(disassociate=True)
         with pytest.raises(common.exceptions.NoContent_Exception):
-            # 1) FIXME - disassociate all matching groups
+            # 1) FIXME - disassociate all matching groups - /inventories/N/groups
+            # Would need to add variations to verify the above scenario
             # non_root_variation.get_related('groups').post(payload)
 
             # 2) disassociate group from parent - /groups/N/children/
-            parent_group.get_related('children').post(payload)
+            # POST to /groups/N/children
+            group.get_related('children').post(payload)
 
         # Verify group deleted
-        assert non_root_variation.get_related('root_groups', name=child_group.name).count == 0
-        assert non_root_variation.get_related('groups', name=child_group.name).count == 0
+        assert non_root_variation.get_related('root_groups', name=group.name).count == 0
+        assert non_root_variation.get_related('groups', name=group.name).count == 0
 
         # Verify root_group count stays the same
         assert non_root_variation.get_related('root_groups').count == total_inv_root_groups
@@ -252,45 +255,68 @@ class Test_Group(Base_Api_Test):
         # Verify hosts were promoted
         assert parent_group.get_related('hosts').count == total_parent_hosts + total_group_hosts
 
-    def test_group_delete(self, variation):
-        '''verify behavior of disassociate of a child group'''
+    def test_group_delete(self, api_groups_pg, variation):
+        '''verify behavior of group DELETE'''
 
         # Locate parent and child group
-        assert variation.get_related('groups', name='na').count == 1
-        parent_group = variation.get_related('groups', name='na').results.pop()
         assert variation.get_related('groups', name='usa').count == 1
-        child_group = variation.get_related('groups', name='usa').results.pop()
+        group = variation.get_related('groups', name='usa').results.pop()
+        # If a child group, get the parent
+        if group.is_root_group:
+            assert variation.get_related('groups', name='na').count == 1
+            parent_group = variation.get_related('groups', name='na').results.pop()
+        else:
+            parent_group = None
 
         # Record before counts
         total_inv_groups = variation.get_related('groups').count
+        total_matching_groups = variation.get_related('groups', name=group.name).count
         total_inv_root_groups = variation.get_related('root_groups').count
+        total_matching_root_groups = variation.get_related('root_groups', name=group.name).count
         total_inv_hosts = variation.get_related('hosts').count
-        total_group_children = child_group.get_related('children').count
-        total_group_hosts = child_group.get_related('hosts').count
-        total_parent_children = parent_group.get_related('children').count
-        total_parent_hosts = parent_group.get_related('hosts').count
+        total_group_children = group.get_related('children').count
+        total_group_hosts = group.get_related('hosts').count
+        # FIXME - Count the number of children that exist *only* in this group
+        # total_exclusive_group_children = 0
+        # FIXME - Count the number of hosts that exist *only* in this group
+        # total_exclusive_group_hosts = 0
+        if parent_group is not None:
+            total_parent_children = parent_group.get_related('children').count
+            total_parent_hosts = parent_group.get_related('hosts').count
+        else:
+            parents = group.get_parents()
 
         # DELETE the group
-        child_group.delete()
+        group.delete()
 
-        # Verify group deleted
-        assert variation.get_related('root_groups', name=child_group.name).count == 0
-        assert variation.get_related('groups', name=child_group.name).count == 0
+        # Verify the group has been 'supa' deleted
+        remaining_root_groups
+        assert variation.get_related('root_groups', name=group.name).count == 0
+        assert variation.get_related('groups', name=group.name).count == 0
+        assert api_groups_pg.get(name=group.name, inventory=group.inventory).count == 0
 
-        # Verify root_group count stays the same
-        assert variation.get_related('root_groups').count == total_inv_root_groups
+        # Verify root_groups adjusts appropriately
+        assert variation.get_related('root_groups').count == total_inv_root_groups - total_matching_root_groups
 
-        # Verify group counts decremented properly
-        assert variation.get_related('groups').count == total_inv_groups - 1
+        # Verify total group counts decremented properly
+        assert variation.get_related('groups').count == total_inv_groups - total_matching_groups
 
-        # Verify no hosts were removed
-        assert variation.get_related('hosts').count == total_inv_hosts
+        # Verify exclusive hosts were removed
+        assert variation.get_related('hosts').count == total_inv_hosts - total_exclusive_group_hosts
 
-        # Verify groups were promoted
-        assert parent_group.get_related('children').count == total_parent_children + total_group_children - 1
+        if parent_group:
+            # Verify that group children were deleted accordingly
+            # NOTE: this doesn't account for child groups that
+            assert parent_group.get_related('children').count == total_parent_children - total_group_children - 1
 
-        # Verify hosts were promoted
-        assert parent_group.get_related('hosts').count == total_parent_hosts + total_group_hosts
+            # Verify that group hosts were deleted/promoted accordingly
+            assert parent_group.get_related('hosts').count == total_parent_hosts - total_group_hosts
+
+    def test_move(self, random_inventory):
+        pytest.skip("FIXME")
+
+    def test_copy(self, random_inventory):
+        pytest.skip("FIXME")
 
     def test_circular_dependency(self, random_inventory):
         '''verify unable to add a circular dependency (top -> ... -> leaf -> top)'''
@@ -334,6 +360,7 @@ class Test_Group(Base_Api_Test):
             parent_group.get_related('children').post(payload)
 
         # Create a group with a duplicate name, in another inventory
+        # FIXME: should 'inventory'
         payload = dict(name=parent_group.name, inventory=another_random_inventory.id)
         new_parent = another_random_inventory.get_related('groups').post(payload)
 
