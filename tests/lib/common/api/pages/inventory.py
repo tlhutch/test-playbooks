@@ -16,17 +16,54 @@ class Inventory_Page(base.Base):
             related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'root_groups':
             related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'script':
+            related = base.Base(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
 
+    def print_ini(self):
+        '''
+        Print an ini version of the inventory
+        '''
+        output = list()
+        inv_dict = self.get_related('script', hostvars=1).json
+
+        for group in inv_dict.keys():
+            if group == '_meta':
+                continue
+
+            if inv_dict[group].get('hosts', []):
+                # output host groups
+                output.append('[%s]' % group)
+                for host in inv_dict[group].get('hosts', []):
+                    # FIXME ... include hostvars
+                    output.append(host)
+                output.append('') # newline
+
+            # output child groups
+            if inv_dict[group].get('children', []):
+                output.append('[%s:children]' % group)
+                for child in inv_dict[group].get('children', []):
+                    output.append(child)
+                output.append('') # newline
+
+            # output group vars
+            if inv_dict[group].get('vars', {}).items():
+                output.append('[%s:vars]' % group)
+                for k,v in inv_dict[group].get('vars', {}).items():
+                    output.append('%s=%s' % (k,v))
+                output.append('') # newline
+
+        print '\n'.join(output)
+
 class Inventories_Page(Inventory_Page, base.Base_List):
     base_url = '/api/v1/inventory/'
 
-    def get_related(self, name, **kwargs):
-        assert name in self.json['related']
-        if name == 'variable_data':
-            related = Base_Page(self.testsetup, base_url=self.json['related'][name])
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related']
+        if attr == 'variable_data':
+            related = base.Base(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
@@ -50,7 +87,7 @@ class Group_Page(base.Base):
         elif attr == 'children':
             related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'variable_data':
-            related = Base_Page(self.testsetup, base_url=self.json['related'][attr])
+            related = base.Base(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
@@ -87,7 +124,7 @@ class Host_Page(base.Base):
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related']
         if attr == 'variable_data':
-            related = Base_Page(self.testsetup, base_url=self.json['related'][attr])
+            related = base.Base(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'inventory':
             related = Inventory_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'groups':
@@ -105,18 +142,18 @@ class Inventory_Source_Page(base.Base):
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
 
-    def get_related(self, name, **kwargs):
-        assert name in self.json['related']
-        if name == 'last_update':
-            related = Inventory_Update_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'inventory_updates':
-            related = Inventory_Updates_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'update':
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related']
+        if attr == 'last_update':
+            related = Inventory_Update_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'inventory_updates':
+            related = Inventory_Updates_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'update':
             # FIXME - this should have it's own object
-            related = base.Base(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'schedules':
+            related = base.Base(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'schedules':
             from schedules import Schedules_Page
-            related = Schedules_Page(self.testsetup, base_url=self.json['related'][name])
+            related = Schedules_Page(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)

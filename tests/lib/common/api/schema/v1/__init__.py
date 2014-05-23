@@ -183,6 +183,17 @@ class Awx_Schema_Inventory_Groups(Awx_Schema_Groups):
 class Awx_Schema_Inventory_Root_Groups(Awx_Schema_Groups):
     resource = '/api/v1/inventories/\d+/root_groups/'
 
+class Awx_Schema_Inventory_Script(Awx_Schema):
+    resource = '/api/v1/inventories/\d+/script/'
+
+    @property
+    def get(self):
+        return self.load_file('dict.yml')
+    def put(self):
+        return self.get
+    def patch(self):
+        return self.get
+
 class Awx_Schema_Credentials(Awx_Schema):
     resource = '/api/v1/credentials/'
 
