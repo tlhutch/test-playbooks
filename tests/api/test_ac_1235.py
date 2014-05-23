@@ -22187,7 +22187,7 @@ EOF''' % (json.dumps(inventory_dict, indent=4),))
 
         # Verify the import completed in a timely manner
         # Asserting the time is kind of hard.  It depends on the type of system used to test (CPU+Mem)
-        assert seconds <= 3 * 60, "Import took longer than 3 minutes (%d)" % seconds
+        assert seconds <= 180, "Import took longer than 180 seconds (%f seconds)" % seconds
         print "Import took %s seconds" % seconds
 
         # Verify the import created the expected groups
