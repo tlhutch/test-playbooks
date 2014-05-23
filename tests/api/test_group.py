@@ -68,7 +68,7 @@ uk-host-1
 
 @pytest.fixture(scope="function", params=root_variations)
 def root_variation(request, authtoken, random_inventory, ansible_runner):
-    results = ansible_runner.copy(dest='/tmp/inventory.ini', force=True, content='''# --inventory-id %s
+    results = ansible_runner.copy(dest='/tmp/inventory.ini', force=True, mode='0644', content='''# --inventory-id %s
 %s''' % (random_inventory.id, request.param['inventory']))
     assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
@@ -114,7 +114,7 @@ non_root_variations = [dict(name=item['name'], inventory=inventory_prefix + item
 
 @pytest.fixture(scope="function", params=non_root_variations)
 def non_root_variation(request, authtoken, random_inventory, ansible_runner):
-    results = ansible_runner.copy(dest='/tmp/inventory.ini', force=True, content='''# --inventory-id %s
+    results = ansible_runner.copy(dest='/tmp/inventory.ini', force=True, mode='0644', content='''# --inventory-id %s
 %s''' % (random_inventory.id, request.param['inventory']))
     assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
@@ -176,6 +176,8 @@ class Test_Group(Base_Api_Test):
 
     def test_root_group_disassociate(self, root_variation):
         '''verify behavior of disassociate of a top-level group'''
+        # For convenience, display the INI file
+        root_variation.print_ini()
 
         # Locate top-level group
         root_groups_pg = root_variation.get_related('root_groups', name='usa')
@@ -209,6 +211,8 @@ class Test_Group(Base_Api_Test):
 
     def test_non_root_group_disassociate(self, non_root_variation):
         '''verify behavior of disassociate of a child group'''
+        # For convenience, display the INI file
+        non_root_variation.print_ini()
 
         # Locate parent and child group
         assert non_root_variation.get_related('groups', name='na').count == 1
@@ -257,12 +261,14 @@ class Test_Group(Base_Api_Test):
 
     def test_group_delete(self, api_groups_pg, variation):
         '''verify behavior of group DELETE'''
+        # For convenience, display the INI file
+        variation.print_ini()
 
         # Locate parent and child group
         assert variation.get_related('groups', name='usa').count == 1
         group = variation.get_related('groups', name='usa').results.pop()
         # If a child group, get the parent
-        if group.is_root_group:
+        if not group.is_root_group:
             assert variation.get_related('groups', name='na').count == 1
             parent_group = variation.get_related('groups', name='na').results.pop()
         else:
@@ -276,10 +282,11 @@ class Test_Group(Base_Api_Test):
         total_inv_hosts = variation.get_related('hosts').count
         total_group_children = group.get_related('children').count
         total_group_hosts = group.get_related('hosts').count
+        total_group_all_hosts = group.get_related('all_hosts').count
         # FIXME - Count the number of children that exist *only* in this group
-        # total_exclusive_group_children = 0
+        total_exclusive_group_children = total_group_children
         # FIXME - Count the number of hosts that exist *only* in this group
-        # total_exclusive_group_hosts = 0
+        total_exclusive_group_hosts = total_group_hosts
         if parent_group is not None:
             total_parent_children = parent_group.get_related('children').count
             total_parent_hosts = parent_group.get_related('hosts').count
@@ -302,15 +309,17 @@ class Test_Group(Base_Api_Test):
         assert variation.get_related('groups').count == total_inv_groups - total_matching_groups
 
         # Verify exclusive hosts were removed
-        assert variation.get_related('hosts').count == total_inv_hosts - total_exclusive_group_hosts
+        assert variation.get_related('hosts').count == total_inv_hosts - total_group_all_hosts
 
         if parent_group:
             # Verify that group children were deleted accordingly
-            # NOTE: this doesn't account for child groups that
-            assert parent_group.get_related('children').count == total_parent_children - total_group_children - 1
+            assert parent_group.get_related('children').count == total_parent_children - 1
 
             # Verify that group hosts were deleted/promoted accordingly
-            assert parent_group.get_related('hosts').count == total_parent_hosts - total_group_hosts
+            assert parent_group.get_related('hosts').count == total_parent_hosts
+
+            # Verify that group hosts were deleted/promoted accordingly
+            assert parent_group.get_related('all_hosts').count == total_parent_hosts - total_group_all_hosts
 
     def test_move(self, random_inventory):
         pytest.skip("FIXME")
