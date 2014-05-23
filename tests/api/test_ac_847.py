@@ -909,22 +909,19 @@ EOF
 
         # Verify the import completed in a timely manner
         # Asserting the time is kind of hard.  It depends on the type of system used to test (CPU+Mem)
-        # assert seconds <= 30.0
+        assert seconds <= 60.0
         print "Import took %s seconds" % seconds
 
-    def test_group_count(self, api_groups_pg, random_inventory):
-        '''Verify the import created the expected groups'''
-        obj = api_groups_pg.get(inventory=random_inventory.id)
-        assert obj.count == len(inventory_dict.keys())
+        # Verify the import created the expected groups
+        assert random_inventory.get_related('groups').count == len(inventory_dict.keys())
         print "Number of groups imported: %s" % obj.count
 
-    def test_hosts_count(self, api_hosts_pg, random_inventory):
-        '''Verify the import created the expected hosts'''
+        # Verify the import created the expected hosts
         # Count the number of unique hosts in the all groups
         # host_count = len({host:None for hosts in inventory_dict.values() for host in hosts })
         host_count = len(dict((host, None) for hosts in inventory_dict.values() for host in hosts))
 
         # Verify the number of hosts matches what was imported
-        obj = api_hosts_pg.get(inventory=random_inventory.id)
-        assert obj.count == host_count
-        print "Number of hosts imported: %s" % obj.count
+        inv_hosts = random_inventory.get_related('hosts').count
+        assert inv_host == host_count
+        print "Number of hosts imported: %s" % inv_host
