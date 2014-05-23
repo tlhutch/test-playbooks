@@ -33,7 +33,7 @@ class Test_Inventory(Base_Api_Test):
     with, and without, available licenses is also confirmed.
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_100')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
 
     def upload_inventory_script(self, ansible_runner, tmpdir, nhosts=10, ini=False):
         '''
@@ -136,6 +136,52 @@ EOF''' % common.tower.inventory.json_inventory(nhosts)
         # Verify inventory group/host counts
         assert import_inventory.get_related('groups').count > 0
         assert import_inventory.get_related('hosts').count == 10
+
+    def test_import_multiple(self, ansible_runner, tmpdir, import_inventory):
+        '''Verify that subsequent imports are faster'''
+        # Upload inventory script
+        copy = self.upload_inventory_script(ansible_runner, tmpdir, nhosts=100, ini=True)
+
+        # Run first awx-manage inventory_import
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' \
+            % (import_inventory.name, copy['dest']))
+        # Verify the import completed successfully
+        assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
+            % (result['stdout'], result['stderr'])
+
+        # Verify inventory group/host counts
+        assert import_inventory.get_related('groups').count > 0
+        assert import_inventory.get_related('hosts').count == 100
+
+        # Calculate total seconds. The expected delta format is - H:MM:SS.SSSSS
+        (hours, minutes, seconds) = result['delta'].split(':')
+        first_import = float(seconds) + 60*float(minutes) + 60*60*float(hours)
+
+        # Run second awx-manage inventory_import
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s --overwrite' \
+            % (import_inventory.name, copy['dest']))
+        # Verify the import completed successfully
+        assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
+            % (result['stdout'], result['stderr'])
+
+        # Calculate total seconds. The expected delta format is - H:MM:SS.SSSSS
+        (hours, minutes, seconds) = result['delta'].split(':')
+        second_import = float(seconds) + 60*float(minutes) + 60*60*float(hours)
+
+        # Run third awx-manage inventory_import
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' \
+            % (import_inventory.name, copy['dest']))
+        # Verify the import completed successfully
+        assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
+            % (result['stdout'], result['stderr'])
+
+        # Calculate total seconds. The expected delta format is - H:MM:SS.SSSSS
+        (hours, minutes, seconds) = result['delta'].split(':')
+        third_import = float(seconds) + 60*float(minutes) + 60*60*float(hours)
+
+        assert first_import > second_import > third_import, \
+            "Unexpected timing when importing inventory multiple times: %s, %s, %s" % \
+            (first_import, second_import, third_import)
 
     def test_import_license_exceeded(self, ansible_runner, tmpdir, import_inventory):
 
