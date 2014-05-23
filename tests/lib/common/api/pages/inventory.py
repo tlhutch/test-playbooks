@@ -68,7 +68,7 @@ class Group_Page(base.Base):
         as a child.
         '''
         parents = list()
-        for candidate in self.get_related('inventory').get_related('groups'):
+        for candidate in self.get_related('inventory').get_related('groups').results:
             if candidate.get_related('children', id=self.id).count > 0:
                 parents.append(candidate.id)
         return parents
