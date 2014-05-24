@@ -67,7 +67,7 @@ def random_project(request, authtoken, api_projects_pg, random_organization):
 def admin_user(request, authtoken, api_users_pg):
     return api_users_pg.get(username__iexact='admin').results[0]
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="class")
 def random_inventory(request, authtoken, api_inventories_pg, random_organization):
     payload = dict(name="inventory-%s" % common.utils.random_ascii(),
                    description="Random inventory - %s" % common.utils.random_unicode(),
@@ -79,7 +79,7 @@ def random_inventory(request, authtoken, api_inventories_pg, random_organization
 #
 # /groups
 #
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="class")
 def random_group(request, authtoken, api_groups_pg, random_inventory):
     payload = dict(name="group-%s" % common.utils.random_ascii(),
                    description="group description - %s" % common.utils.random_unicode(),
@@ -91,7 +91,7 @@ def random_group(request, authtoken, api_groups_pg, random_inventory):
 #
 # /inventory_source
 #
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="class")
 def random_inventory_source(request, authtoken, random_group):
     return random_group.get_related('inventory_source')
 

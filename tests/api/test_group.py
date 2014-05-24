@@ -72,7 +72,7 @@ def root_variation(request, authtoken, random_inventory, ansible_runner):
 %s''' % (random_inventory.id, request.param['inventory']))
     assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
-    results = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source /tmp/inventory.ini' % random_inventory.id)
+    results = ansible_runner.shell('awx-manage inventory_import --overwrite --inventory-id %s --source /tmp/inventory.ini' % random_inventory.id)
     assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
 
     # Re-GET the resource to populate host/group information
@@ -118,7 +118,7 @@ def non_root_variation(request, authtoken, random_inventory, ansible_runner):
 %s''' % (random_inventory.id, request.param['inventory']))
     assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
-    results = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source /tmp/inventory.ini' % random_inventory.id)
+    results = ansible_runner.shell('awx-manage inventory_import --overwrite --inventory-id %s --source /tmp/inventory.ini' % random_inventory.id)
     assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
 
     # Re-GET the resource to populate host/group information
@@ -135,7 +135,7 @@ def variation(request, authtoken, random_inventory, ansible_runner):
 %s''' % (random_inventory.id, request.param['inventory']))
     assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
-    results = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source /tmp/inventory.ini' % random_inventory.id)
+    results = ansible_runner.shell('awx-manage inventory_import --overwrite --inventory-id %s --source /tmp/inventory.ini' % random_inventory.id)
     assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
 
     # Re-GET the resource to populate host/group information
