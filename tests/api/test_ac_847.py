@@ -913,8 +913,10 @@ EOF
         print "Import took %s seconds" % seconds
 
         # Verify the import created the expected groups
-        assert random_inventory.get_related('groups').count == len(inventory_dict.keys())
-        print "Number of groups imported: %s" % obj.count
+        imported_groups = random_inventory.get_related('groups').count
+        expected_groups = len(inventory_dict.keys())
+        assert expected_groups == imported_groups
+        print "Number of groups imported: %s" % imported_groups
 
         # Verify the import created the expected hosts
         # Count the number of unique hosts in the all groups
