@@ -22192,7 +22192,7 @@ EOF''' % (json.dumps(inventory_dict, indent=4),))
 
         # Verify the import created the expected groups
         groups_created = random_inventory.get_related('groups').count
-        groups_expected = [group for group in inventory_dict.keys() if group not in ('all','_meta')]
+        groups_expected = len([group for group in inventory_dict.keys() if group not in ('all','_meta')])
         assert groups_created == groups_expected
         print "Number of groups imported: %s" % groups_created
 
