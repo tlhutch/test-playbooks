@@ -80,6 +80,8 @@ class Group_Page(base.Base):
         assert attr in self.json['related']
         if attr == 'hosts':
             related = Hosts_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'all_hosts':
+            related = Hosts_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'inventory':
             related = Inventory_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'inventory_source':

@@ -174,6 +174,9 @@ class Awx_Schema_Hosts(Awx_Schema):
 class Awx_Schema_Group_Hosts(Awx_Schema_Hosts):
     resource = '/api/v1/groups/\d+/hosts/'
 
+class Awx_Schema_Group_All_Hosts(Awx_Schema_Hosts):
+    resource = '/api/v1/groups/\d+/all_hosts/'
+
 class Awx_Schema_Inventory_Hosts(Awx_Schema_Hosts):
     resource = '/api/v1/inventories/\d+/hosts/'
 
