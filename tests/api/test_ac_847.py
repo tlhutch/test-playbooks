@@ -918,12 +918,10 @@ EOF
         assert expected_groups == imported_groups
         print "Number of groups imported: %s" % imported_groups
 
-        # Verify the import created the expected hosts
         # Count the number of unique hosts in the all groups
         # host_count = len({host:None for hosts in inventory_dict.values() for host in hosts })
         host_count = len(dict((host, None) for hosts in inventory_dict.values() for host in hosts))
-
-        # Verify the number of hosts matches what was imported
+        # Count the number of hosts imported
         inv_hosts = random_inventory.get_related('hosts').count
-        assert inv_host == host_count
-        print "Number of hosts imported: %s" % inv_host
+        assert inv_hosts == host_count
+        print "Number of hosts imported: %s" % inv_hosts

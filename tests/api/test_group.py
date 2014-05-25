@@ -297,7 +297,6 @@ class Test_Group(Base_Api_Test):
         group.delete()
 
         # Verify the group has been 'supa' deleted
-        remaining_root_groups
         assert variation.get_related('root_groups', name=group.name).count == 0
         assert variation.get_related('groups', name=group.name).count == 0
         assert api_groups_pg.get(name=group.name, inventory=group.inventory).count == 0
