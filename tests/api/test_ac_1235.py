@@ -2098,11 +2098,11 @@ inventory_dict = {
     "_meta": {
         "hostvars":  {} # pruned to reduce the size of the dataset
     },
-    "all": {
-        "vars": {
-            "vpc_destination_variable": "private_ip_address"
-        }
-    },
+#    "all": {
+#        "vars": {
+#            "vpc_destination_variable": "private_ip_address"
+#        }
+#    },
     "ec2": {
         "children": [],
         "hosts": [
@@ -22200,7 +22200,7 @@ EOF''' % (json.dumps(inventory_dict, indent=4),))
         # Count the number of unique hosts in the all groups
         # host_count = len({host:None for hosts in inventory_dict.values() for host in hosts })
         hosts_created = random_inventory.get_related('hosts').count
-        hosts_expected = sum([len(group.get('hosts',[])) for group in inventory_dict.values() if group not in ('all','_meta')])
+        hosts_expected = len(dict((host, None) for group in inventory_dict.values() for host in group.get('hosts',[])))
 
         # Verify the number of hosts matches what was imported
         assert hosts_created == hosts_expected
