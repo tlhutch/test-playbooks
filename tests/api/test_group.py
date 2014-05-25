@@ -305,7 +305,7 @@ class Test_Group(Base_Api_Test):
         assert variation.get_related('root_groups').count == total_inv_root_groups - total_matching_root_groups
 
         # Verify total group counts decremented properly
-        assert variation.get_related('groups').count == total_inv_groups - total_matching_groups
+        assert variation.get_related('groups').count == total_inv_groups - total_matching_groups - total_group_children
 
         # Verify exclusive hosts were removed
         assert variation.get_related('hosts').count == total_inv_hosts - total_group_all_hosts
