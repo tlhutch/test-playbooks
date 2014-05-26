@@ -289,9 +289,9 @@ class Test_Group(Base_Api_Test):
         total_exclusive_group_hosts = total_group_hosts
         if parent_group is not None:
             total_parent_children = parent_group.get_related('children').count
-            total_parent_hosts = parent_group.get_related('hosts').count
-        else:
-            parents = group.get_parents()
+            total_parent_hosts = parent_group.get_related('all_hosts').count
+            # FIXME - find all parents of this group
+            # parents = []
 
         # DELETE the group
         group.delete()
