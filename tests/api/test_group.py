@@ -289,7 +289,8 @@ class Test_Group(Base_Api_Test):
         total_exclusive_group_hosts = total_group_hosts
         if parent_group is not None:
             total_parent_children = parent_group.get_related('children').count
-            total_parent_hosts = parent_group.get_related('all_hosts').count
+            total_parent_hosts = parent_group.get_related('hosts').count
+            total_parent_all_hosts = parent_group.get_related('all_hosts').count
             # FIXME - find all parents of this group
             # parents = []
 
@@ -318,7 +319,7 @@ class Test_Group(Base_Api_Test):
             assert parent_group.get_related('hosts').count == total_parent_hosts
 
             # Verify that group hosts were deleted/promoted accordingly
-            assert parent_group.get_related('all_hosts').count == total_parent_hosts - total_group_all_hosts
+            assert parent_group.get_related('all_hosts').count == total_parent_all_hosts - total_group_all_hosts
 
     def test_move(self, random_inventory):
         pytest.skip("FIXME")
