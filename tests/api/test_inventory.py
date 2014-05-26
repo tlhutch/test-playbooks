@@ -186,7 +186,7 @@ EOF''' % common.tower.inventory.json_inventory(nhosts)
     def test_import_license_exceeded(self, ansible_runner, tmpdir, import_inventory):
 
         # Upload inventory script
-        copy = self.upload_inventory_script(ansible_runner, tmpdir, nhosts=200)
+        copy = self.upload_inventory_script(ansible_runner, tmpdir, nhosts=2000)
 
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' \
