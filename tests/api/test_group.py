@@ -312,13 +312,13 @@ class Test_Group(Base_Api_Test):
         assert variation.get_related('hosts').count == total_inv_hosts - total_group_all_hosts
 
         if parent_group:
-            # Verify that group children were deleted accordingly
+            # Verify that a single child was removed from the parent group
             assert parent_group.get_related('children').count == total_parent_children - 1
 
-            # Verify that group hosts were deleted/promoted accordingly
+            # Verify that the parent.hosts has not changed
             assert parent_group.get_related('hosts').count == total_parent_hosts
 
-            # Verify that group hosts were deleted/promoted accordingly
+            # Verify that the parent.all_hosts has changed
             assert parent_group.get_related('all_hosts').count == total_parent_all_hosts - total_group_all_hosts
 
     def test_move(self, random_inventory):
