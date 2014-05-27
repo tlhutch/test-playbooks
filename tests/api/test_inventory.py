@@ -54,7 +54,7 @@ EOF''' % common.tower.inventory.json_inventory(nhosts)
 
         # Copy script to test system
         results = ansible_runner.copy(dest=copy_dest, force=True, mode=copy_mode, content=copy_content)
-        assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
+        assert 'failed' not in results, "Failed to create inventory file: %s" % results
         return results
 
     def test_import_bad_id(self, ansible_runner, api_inventories_pg, import_inventory):
