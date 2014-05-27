@@ -33,13 +33,12 @@ class Inventory_Page(base.Base):
             if group == '_meta':
                 continue
 
-            if inv_dict[group].get('hosts', []):
-                # output host groups
-                output.append('[%s]' % group)
-                for host in inv_dict[group].get('hosts', []):
-                    # FIXME ... include hostvars
-                    output.append(host)
-                output.append('') # newline
+            # output host groups
+            output.append('[%s]' % group)
+            for host in inv_dict[group].get('hosts', []):
+                # FIXME ... include hostvars
+                output.append(host)
+            output.append('') # newline
 
             # output child groups
             if inv_dict[group].get('children', []):
