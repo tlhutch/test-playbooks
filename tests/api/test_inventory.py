@@ -35,23 +35,25 @@ class Test_Inventory(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
 
-    def upload_inventory_script(self, ansible_runner, tmpdir, nhosts=10, ini=False):
+    def upload_inventory_script(self, ansible_runner, nhosts=10, ini=False):
         '''
         Helper to upload inventory script to target host
         '''
         # Create an inventory script
         if ini:
-            sh_mode = '0644'
-            sh_content = common.tower.inventory.ini_inventory(nhosts)
+            copy_mode = '0644'
+            copy_dest = '/tmp/inventory.ini'
+            copy_content = common.tower.inventory.ini_inventory(nhosts)
         else:
-            sh_mode = '0755'
-            sh_content = '''#!/bin/bash
+            copy_mode = '0755'
+            copy_dest = '/tmp/inventory.sh'
+            copy_content = '''#!/bin/bash
 cat <<EOF
 %s
 EOF''' % common.tower.inventory.json_inventory(nhosts)
 
         # Copy script to test system
-        results = ansible_runner.copy(dest='/tmp/inventory.sh', force=True, mode=sh_mode, content=sh_content)
+        results = ansible_runner.copy(dest=copy_dest, force=True, mode=copy_mode, content=copy_content)
         assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
         return results
 
@@ -80,10 +82,10 @@ EOF''' % common.tower.inventory.json_inventory(nhosts)
         assert result['rc'] == 1, "awx-manage inventory_import succeeded unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
             % (result['stdout'], result['stderr'])
 
-    def test_import_by_id(self, ansible_runner, tmpdir, import_inventory):
+    def test_import_by_id(self, ansible_runner, import_inventory):
 
         # Upload inventory script
-        copy = self.upload_inventory_script(ansible_runner, tmpdir, nhosts=10)
+        copy = self.upload_inventory_script(ansible_runner, nhosts=10)
 
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' \
@@ -98,10 +100,10 @@ EOF''' % common.tower.inventory.json_inventory(nhosts)
         assert import_inventory.get_related('groups').count > 0
         assert import_inventory.get_related('hosts').count == 10
 
-    def test_import_by_name(self, ansible_runner, tmpdir, import_inventory):
+    def test_import_by_name(self, ansible_runner, import_inventory):
 
         # Upload inventory script
-        copy = self.upload_inventory_script(ansible_runner, tmpdir, nhosts=10)
+        copy = self.upload_inventory_script(ansible_runner, nhosts=10)
 
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' \
@@ -116,10 +118,10 @@ EOF''' % common.tower.inventory.json_inventory(nhosts)
         assert import_inventory.get_related('groups').count > 0
         assert import_inventory.get_related('hosts').count == 10
 
-    def test_import_ini(self, ansible_runner, tmpdir, import_inventory):
+    def test_import_ini(self, ansible_runner, import_inventory):
 
         # Upload inventory script
-        copy = self.upload_inventory_script(ansible_runner, tmpdir, nhosts=10, ini=True)
+        copy = self.upload_inventory_script(ansible_runner, nhosts=10, ini=True)
 
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' \
@@ -134,10 +136,10 @@ EOF''' % common.tower.inventory.json_inventory(nhosts)
         assert import_inventory.get_related('groups').count > 0
         assert import_inventory.get_related('hosts').count == 10
 
-    def test_import_multiple(self, ansible_runner, tmpdir, import_inventory):
+    def test_import_multiple(self, ansible_runner, import_inventory):
         '''Verify that subsequent imports are faster'''
         # Upload inventory script
-        copy = self.upload_inventory_script(ansible_runner, tmpdir, nhosts=100, ini=True)
+        copy = self.upload_inventory_script(ansible_runner, nhosts=100, ini=True)
 
         # Run first awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' \
@@ -180,10 +182,10 @@ EOF''' % common.tower.inventory.json_inventory(nhosts)
             "Unexpected timing when importing inventory multiple times: %s, %s, %s" % \
             (first_import, second_import, third_import)
 
-    def test_import_license_exceeded(self, ansible_runner, tmpdir, import_inventory):
+    def test_import_license_exceeded(self, ansible_runner, import_inventory):
 
         # Upload inventory script
-        copy = self.upload_inventory_script(ansible_runner, tmpdir, nhosts=2000)
+        copy = self.upload_inventory_script(ansible_runner, nhosts=2000)
 
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' \
@@ -198,11 +200,11 @@ EOF''' % common.tower.inventory.json_inventory(nhosts)
         assert import_inventory.get_related('groups').count == 0
         assert import_inventory.get_related('hosts').count == 0
 
-    def test_cascade_delete(self, ansible_runner, tmpdir, delete_inventory, api_groups_pg, api_hosts_pg):
+    def test_cascade_delete(self, ansible_runner, delete_inventory, api_groups_pg, api_hosts_pg):
         '''Verify DELETE removes associated groups and hosts'''
 
         # Upload inventory script
-        copy = self.upload_inventory_script(ansible_runner, tmpdir, nhosts=10)
+        copy = self.upload_inventory_script(ansible_runner, nhosts=10)
 
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' \
