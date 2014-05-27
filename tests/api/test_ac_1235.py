@@ -22177,7 +22177,7 @@ EOF''' % (json.dumps(inventory_dict, indent=4),))
         # Run awx-manage inventory_import
         result = ansible_runner.command('awx-manage inventory_import --inventory-id %s --source /tmp/inventory.sh' % random_inventory.id)
         assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % result
-        print result['stdout']
+        print result
 
         # The expected delta format is - H:MM:SS.SSSSS
         (hours, minutes, seconds) = result['delta'].split(':')
