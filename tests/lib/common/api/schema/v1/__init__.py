@@ -539,6 +539,9 @@ class Awx_Schema_Activity_Stream_N(Awx_Schema_Activity_Stream):
     def get(self):
         return self.load_file('activity_stream/item.yml')
 
+class Awx_Schema_Object_Activity_Stream(Awx_Schema_Activity_Stream):
+    resource = '/api/v1/[^/]+/\d+/activity_stream/'
+
 #
 # /schedules
 #
