@@ -174,20 +174,22 @@ class Test_Group(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
 
-    def test_root_group_disassociate(self, root_variation):
-        '''verify behavior of disassociate of a top-level group'''
+    def test_disassociate_root_group(self, root_variation):
+        '''verify behavior of disassociate of a top-level group.
+           POST {id=N, disassociate=True} to /inventories/N/groups
+        '''
         # For convenience, display the INI file
         root_variation.print_ini()
 
         # Locate top-level group
-        root_groups_pg = root_variation.get_related('root_groups', name='usa')
-        assert root_groups_pg.count == 1
-        group = root_groups_pg.results[0]
+        assert root_variation.get_related('groups', name='usa').count == 1
+        group = root_variation.get_related('groups', name='usa').results.pop()
 
-        # Record group counts
+        # record inventory data
         total_inv_groups = root_variation.get_related('groups').count
         total_inv_root_groups = root_variation.get_related('root_groups').count
         total_inv_hosts = root_variation.get_related('hosts').count
+        # record group data
         total_group_children = group.get_related('children').count
 
         # disassociate top-level group
@@ -209,8 +211,10 @@ class Test_Group(Base_Api_Test):
         # Verify no hosts were removed
         assert root_variation.get_related('hosts').count == total_inv_hosts
 
-    def test_non_root_group_disassociate(self, non_root_variation):
-        '''verify behavior of disassociate of a child group'''
+    def test_disassociate_non_root_group(self, non_root_variation):
+        '''verify behavior of disassociate of a child group
+           POST {disassociate=True} /groups/N/children
+        '''
         # For convenience, display the INI file
         non_root_variation.print_ini()
 
@@ -220,12 +224,14 @@ class Test_Group(Base_Api_Test):
         assert non_root_variation.get_related('groups', name='usa').count == 1
         group = non_root_variation.get_related('groups', name='usa').results.pop()
 
-        # Record before counts
+        # record inventory data
         total_inv_groups = non_root_variation.get_related('groups').count
         total_inv_root_groups = non_root_variation.get_related('root_groups').count
         total_inv_hosts = non_root_variation.get_related('hosts').count
+        # record group data
         total_group_children = group.get_related('children').count
         total_group_hosts = group.get_related('hosts').count
+        # record parent_group data
         total_parent_children = parent_group.get_related('children').count
         total_parent_hosts = parent_group.get_related('hosts').count
 
@@ -259,8 +265,10 @@ class Test_Group(Base_Api_Test):
         # Verify hosts were promoted
         assert parent_group.get_related('hosts').count == total_parent_hosts + total_group_hosts
 
-    def test_group_delete(self, api_groups_pg, variation):
-        '''verify behavior of group DELETE'''
+    def test_delete(self, api_groups_pg, variation):
+        '''verify behavior of group delete
+           DELETE /groups/N
+        '''
         # For convenience, display the INI file
         variation.print_ini()
 
@@ -321,11 +329,221 @@ class Test_Group(Base_Api_Test):
             # Verify that the parent.all_hosts has changed
             assert parent_group.get_related('all_hosts').count == total_parent_all_hosts - total_group_all_hosts
 
-    def test_move(self, random_inventory):
-        pytest.skip("FIXME")
+    def test_associate_with_root_group(self, non_root_variation):
+        '''Verify expected behavior when disassociating a group from it's parent, thereby creating a root group.
+           POST {id=M, disassociate=True} /groups/N/children
+        '''
 
-    def test_copy(self, random_inventory):
-        pytest.skip("FIXME")
+        # For convenience, display the INI file
+        non_root_variation.print_ini()
+
+        # Locate the source group
+        assert non_root_variation.get_related('groups', name='usa').count == 1
+        group = non_root_variation.get_related('groups', name='usa').results.pop()
+
+        # Locate the parent_group (optional)
+        if not group.is_root_group:
+            assert non_root_variation.get_related('groups', name='na').count == 1
+            parent_group = non_root_variation.get_related('groups', name='na').results.pop()
+        else:
+            parent_group = None
+
+        # decord data on inventory
+        total_inv_groups = non_root_variation.get_related('groups').count
+        total_matching_groups = non_root_variation.get_related('groups', name=group.name).count
+        total_inv_root_groups = non_root_variation.get_related('root_groups').count
+        total_matching_root_groups = non_root_variation.get_related('root_groups', name=group.name).count
+        total_inv_hosts = non_root_variation.get_related('hosts').count
+        # record data on group
+        total_group_children = group.get_related('children').count
+        total_group_hosts = group.get_related('hosts').count
+        total_group_all_hosts = group.get_related('all_hosts').count
+        # record data on parent_group (optional)
+        if parent_group is not None:
+            total_parent_children = parent_group.get_related('children').count
+            total_parent_hosts = parent_group.get_related('hosts').count
+            total_parent_all_hosts = parent_group.get_related('all_hosts').count
+
+        # To associate a root_group, dissociate the group from the parent_group
+        payload = dict(id=group.id, disassociate=True)
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            parent_group.get_related('children').post(payload)
+
+        # Verify root_groups adjusts appropriately
+        assert non_root_variation.get_related('root_groups').count == total_inv_root_groups + 1
+
+        # Verify total group counts haven't changed
+        assert non_root_variation.get_related('groups').count == total_inv_groups
+
+        # Verify host counts haven't changed
+        assert non_root_variation.get_related('hosts').count == total_inv_hosts
+
+        if parent_group:
+            # Verify that a single child was removed from the parent group
+            assert parent_group.get_related('children').count == total_parent_children - 1
+
+            # Verify that the parent.hosts has not changed
+            assert parent_group.get_related('hosts').count == total_parent_hosts
+
+            # Verify that the parent.all_hosts has changed
+            assert parent_group.get_related('all_hosts').count == total_parent_all_hosts - total_group_all_hosts
+
+    def test_associate_with_non_root_group(self, root_variation):
+        '''Verify expected behavior for a group association
+           POST {id=N} /group/<new_parent>/children
+        '''
+        # For convenience, display the INI file
+        root_variation.print_ini()
+
+        # Locate the source group
+        assert root_variation.get_related('groups', name='usa').count == 1
+        group = root_variation.get_related('groups', name='usa').results.pop()
+
+        # Locate the dest group
+        assert root_variation.get_related('groups', name='de').count == 1
+        dest_group = root_variation.get_related('groups', name='de').results.pop()
+
+        # Locate the parent_group (optional)
+        if not group.is_root_group:
+            assert root_variation.get_related('groups', name='na').count == 1
+            parent_group = root_variation.get_related('groups', name='na').results.pop()
+        else:
+            parent_group = None
+
+        # decord data on inventory
+        total_inv_groups = root_variation.get_related('groups').count
+        total_matching_groups = root_variation.get_related('groups', name=group.name).count
+        total_inv_root_groups = root_variation.get_related('root_groups').count
+        total_matching_root_groups = root_variation.get_related('root_groups', name=group.name).count
+        total_inv_hosts = root_variation.get_related('hosts').count
+        # record data on group
+        total_group_children = group.get_related('children').count
+        total_group_hosts = group.get_related('hosts').count
+        total_group_all_hosts = group.get_related('all_hosts').count
+        # record data on dest_group
+        total_dest_group_children = dest_group.get_related('children').count
+        total_dest_group_hosts = dest_group.get_related('hosts').count
+        total_dest_group_all_hosts = dest_group.get_related('all_hosts').count
+        # record data on parent_group (optional)
+        if parent_group is not None:
+            total_parent_children = parent_group.get_related('children').count
+            total_parent_hosts = parent_group.get_related('hosts').count
+            total_parent_all_hosts = parent_group.get_related('all_hosts').count
+
+        # Associate group with dest_group
+        payload = dict(id=group.id)
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            dest_group.get_related('children').post(payload)
+
+        # Verify root_groups adjusts appropriately
+        assert root_variation.get_related('root_groups').count == total_inv_root_groups - total_matching_root_groups
+
+        # Verify total group counts haven't changed
+        assert root_variation.get_related('groups').count == total_inv_groups
+
+        # Verify host counts haven't changed
+        assert root_variation.get_related('hosts').count == total_inv_hosts
+
+        # Verify that a single child was added to dest_group
+        assert dest_group.get_related('children').count == total_dest_group_children + 1
+
+        # Verify that the dest_group.hosts has not changed
+        assert dest_group.get_related('hosts').count == total_dest_group_hosts
+
+        # Verify that the parent.all_hosts has changed
+        assert dest_group.get_related('all_hosts').count == total_dest_group_all_hosts + total_group_all_hosts
+
+        if parent_group:
+            # Verify that a the number of parent_group children is unchanged
+            assert parent_group.get_related('children').count == total_parent_children
+
+            # Verify that the parent.hosts has not changed
+            assert parent_group.get_related('hosts').count == total_parent_hosts
+
+            # Verify that the parent.all_hosts has changed
+            assert parent_group.get_related('all_hosts').count == total_parent_all_hosts
+
+    def test_reassociate_with_non_root_group(self, non_root_variation):
+        '''Verify expected behavior for moving a group from one non-root-group to another
+           POST {id=M} /groups/<new_parent>/children
+           POST {id=M, disassociate=True} /groups/<old_parent>/children
+        '''
+        # For convenience, display the INI file
+        non_root_variation.print_ini()
+
+        # Locate the source group
+        assert non_root_variation.get_related('groups', name='usa').count == 1
+        group = non_root_variation.get_related('groups', name='usa').results.pop()
+
+        # Locate the dest group
+        assert non_root_variation.get_related('groups', name='de').count == 1
+        dest_group = non_root_variation.get_related('groups', name='de').results.pop()
+
+        # Locate the parent_group (optional)
+        if not group.is_root_group:
+            assert non_root_variation.get_related('groups', name='na').count == 1
+            parent_group = non_root_variation.get_related('groups', name='na').results.pop()
+        else:
+            parent_group = None
+
+        # decord data on inventory
+        total_inv_groups = non_root_variation.get_related('groups').count
+        total_matching_groups = non_root_variation.get_related('groups', name=group.name).count
+        total_inv_root_groups = non_root_variation.get_related('root_groups').count
+        total_matching_root_groups = non_root_variation.get_related('root_groups', name=group.name).count
+        total_inv_hosts = non_root_variation.get_related('hosts').count
+        # record data on group
+        total_group_children = group.get_related('children').count
+        total_group_hosts = group.get_related('hosts').count
+        total_group_all_hosts = group.get_related('all_hosts').count
+        # record data on dest_group
+        total_dest_group_children = dest_group.get_related('children').count
+        total_dest_group_hosts = dest_group.get_related('hosts').count
+        total_dest_group_all_hosts = dest_group.get_related('all_hosts').count
+        # record data on parent_group (optional)
+        if parent_group is not None:
+            total_parent_children = parent_group.get_related('children').count
+            total_parent_hosts = parent_group.get_related('hosts').count
+            total_parent_all_hosts = parent_group.get_related('all_hosts').count
+
+        # Associate group with dest_group
+        payload = dict(id=group.id)
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            dest_group.get_related('children').post(payload)
+
+        # Disassociate group from parent_group
+        if parent_group:
+            payload = dict(id=group.id, disassociate=True)
+            with pytest.raises(common.exceptions.NoContent_Exception):
+                parent_group.get_related('children').post(payload)
+
+        # Verify root_groups adjusts appropriately
+        assert non_root_variation.get_related('root_groups').count == total_inv_root_groups - total_matching_root_groups
+
+        # Verify total group counts haven't changed
+        assert non_root_variation.get_related('groups').count == total_inv_groups
+
+        # Verify host counts haven't changed
+        assert non_root_variation.get_related('hosts').count == total_inv_hosts
+
+        # Verify that a single child was added to dest_group
+        assert dest_group.get_related('children').count == total_dest_group_children + 1
+
+        # Verify that the dest_group.hosts has not changed
+        assert dest_group.get_related('hosts').count == total_dest_group_hosts
+
+        # Verify that the parent.all_hosts has changed
+        assert dest_group.get_related('all_hosts').count == total_dest_group_all_hosts + total_group_all_hosts
+
+        if parent_group:
+            # Verify that a single child was removed from the parent group
+            assert parent_group.get_related('children').count == total_parent_children - 1
+
+            # Verify that the parent.hosts has not changed
+            assert parent_group.get_related('hosts').count == total_parent_hosts
+
+            # Verify that the parent.all_hosts has changed
+            assert parent_group.get_related('all_hosts').count == total_parent_all_hosts - total_group_all_hosts
 
     def test_circular_dependency(self, random_inventory):
         '''verify unable to add a circular dependency (top -> ... -> leaf -> top)'''
@@ -347,7 +565,27 @@ class Test_Group(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             grandchild_group.get_related('children').post(payload)
 
-    def test_duplicate(self, random_inventory, another_random_inventory):
+    def test_unique(self, random_inventory, another_random_inventory):
+        '''verify duplicate group names are allowed if in a different inventory'''
+
+        # Create random_inventory.parent_group
+        payload = dict(name="root-%s" % common.utils.random_ascii(), inventory=random_inventory.id)
+        parent_group = random_inventory.get_related('groups').post(payload)
+
+        # Create random_inventory.child_group
+        payload = dict(name="child-%s" % common.utils.random_ascii(), inventory=random_inventory.id)
+        child_group = parent_group.get_related('children').post(payload)
+
+        # Create another_random_inventory.parent_group (duplicate name, but different inventory)
+        payload = dict(name=parent_group.name, inventory=another_random_inventory.id)
+        new_parent = another_random_inventory.get_related('groups').post(payload)
+
+        # Create another_random_inventory.child_group (duplicate name, but different inventory)
+        # Create a child group with a duplicate name, in another inventory
+        payload = dict(name=child_group.name, inventory=another_random_inventory.id)
+        new_parent.get_related('children').post(payload)
+
+    def test_duplicate(self, random_inventory):
         '''verify duplicate group names, in the same inventory, are not allowed'''
 
         # Add parent_group
@@ -367,12 +605,3 @@ class Test_Group(Base_Api_Test):
         payload = dict(name=parent_group.name, inventory=random_inventory.id)
         with pytest.raises(common.exceptions.Duplicate_Exception):
             parent_group.get_related('children').post(payload)
-
-        # Create a group with a duplicate name, in another inventory
-        # FIXME: should 'inventory'
-        payload = dict(name=parent_group.name, inventory=another_random_inventory.id)
-        new_parent = another_random_inventory.get_related('groups').post(payload)
-
-        # Create a child group with a duplicate name, in another inventory
-        payload = dict(name=child_group.name, inventory=another_random_inventory.id)
-        new_parent.get_related('children').post(payload)
