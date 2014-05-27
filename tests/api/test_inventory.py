@@ -42,21 +42,18 @@ class Test_Inventory(Base_Api_Test):
         # Create an inventory script
         if ini:
             sh_mode = '0644'
-            sh_script = common.tower.inventory.ini_inventory(nhosts)
+            sh_content = common.tower.inventory.ini_inventory(nhosts)
         else:
             sh_mode = '0755'
-            sh_script = '''#!/bin/bash
+            sh_content = '''#!/bin/bash
 cat <<EOF
 %s
 EOF''' % common.tower.inventory.json_inventory(nhosts)
-        p = tmpdir.mkdir("ansible").join("inventory.ini")
-        fd = p.open('w+')
-        fd.write(sh_script)
-        fd.close()
 
         # Copy script to test system
-        result = ansible_runner.copy(src=fd.name, dest='/tmp/%s' % p.basename, mode=sh_mode)
-        return result
+        results = ansible_runner.copy(dest='/tmp/inventory.sh', force=True, mode=sh_mode, content=sh_content)
+        assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
+        return results
 
     def test_import_bad_id(self, ansible_runner, api_inventories_pg, import_inventory):
 
