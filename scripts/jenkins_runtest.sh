@@ -15,8 +15,7 @@ if [ $? -ne 0 -o ${INVENTORY_HOST} = "No hosts matched" ]; then
     echo "Unable to find a matching host: ${PLATFORM}:&${CLOUD_PROVIDER}"
     exit 1
 fi
-INVENTORY_HOST="${INVENTORY_HOST%%[![:space:]]*}"   # remove leading whitespace characters
-INVENTORY_HOST="${INVENTORY_HOST##*[![:space:]]}"   # remove trailing whitespace characters
+INVENTORY_HOST="${INVENTORY_HOST//[[:space:]]/}"    # remove whitespace
 
 BASEURL="https://${INVENTORY_HOST}"
 
