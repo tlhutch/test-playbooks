@@ -8,11 +8,14 @@ ANSIBLE_INVENTORY="playbooks/inventory.log"
 
 JUNIT_XML=${JUNIT_XML:-tests/results.xml}
 WEBQA_REPORT=${WEBQA_REPORT:-tests/results/index.html}
-
-# Determine BASEURL by finding a host in PLATFORM within the inventory file
-INVENTORY_LINE=$(grep "^\[ ${PLATFORM} \]" -A1 ${ANSIBLE_INVENTORY} | tail -n1)
-set -- ${INVENTORY_LINE}
-BASEURL="https://$1"
+ 
+# Determine BASEURL using 'ansible --list-hosts'
+INVENTORY_HOST=$(ansible "${PLATFORM}:&${CLOUD_PROVIDER}" -i ${ANSIBLE_INVENTORY} --list-hosts)
+if [ $? -ne 0 -o ${INVENTORY_HOST} = "No hosts matched" ]; then
+    echo "Unable to find a matching host: ${PLATFORM}:&${CLOUD_PROVIDER}"
+    exit 1
+fi
+BASEURL="https://${INVENTORY_HOST}"
 
 # Create and modify credentials.yaml
 SCRIPT_NAME="create_credentials.py"
