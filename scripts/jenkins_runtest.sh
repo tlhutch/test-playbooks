@@ -8,13 +8,16 @@ ANSIBLE_INVENTORY="playbooks/inventory.log"
 
 JUNIT_XML=${JUNIT_XML:-tests/results.xml}
 WEBQA_REPORT=${WEBQA_REPORT:-tests/results/index.html}
- 
+
 # Determine BASEURL using 'ansible --list-hosts'
 INVENTORY_HOST=$(ansible "${PLATFORM}:&${CLOUD_PROVIDER}" -i ${ANSIBLE_INVENTORY} --list-hosts)
 if [ $? -ne 0 -o ${INVENTORY_HOST} = "No hosts matched" ]; then
     echo "Unable to find a matching host: ${PLATFORM}:&${CLOUD_PROVIDER}"
     exit 1
 fi
+INVENTORY_HOST="${INVENTORY_HOST%%[![:space:]]*}"   # remove leading whitespace characters
+INVENTORY_HOST="${INVENTORY_HOST##*[![:space:]]}"   # remove trailing whitespace characters
+
 BASEURL="https://${INVENTORY_HOST}"
 
 # Create and modify credentials.yaml
