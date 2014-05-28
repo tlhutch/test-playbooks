@@ -58,7 +58,7 @@ def install_integration_license(request, authtoken, ansible_runner, awx_config):
     logging.debug("calling fixture install_integration_license")
     if not (awx_config['license_info'].get('valid_key', False) and \
             awx_config['license_info'].get('compliant', False) and \
-            awx_config['license_info'].get('available_instances',0) >= 1001 ):
+            awx_config['license_info'].get('available_instances',0) >= 10001 ):
 
         logging.debug("backing up existing license")
         # Backup any aws license
@@ -66,7 +66,7 @@ def install_integration_license(request, authtoken, ansible_runner, awx_config):
 
         # Install/replace license
         logging.debug("installing license /etc/awx/license")
-        fname = common.tower.license.generate_license_file(instance_count=1000, days=60)
+        fname = common.tower.license.generate_license_file(instance_count=10000, days=60)
         ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
 
 @pytest.fixture(scope='class')
@@ -728,6 +728,10 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Wait 20mins for job to complete
         # TODO: It might be nice to wait 15 mins from when the job started
         job_pg = job_pg.wait_until_completed(timeout=60*20)
+
+        # xfail for known vault packaging failure
+        if job_pg.failed and 'ERROR: ansible-vault requires a newer version of pycrypto than the one installed on your platform.' in job_pg.result_stdout:
+            pytest.xfail("Vault tests are expected to fail when tested with an older pycrypto")
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, \
