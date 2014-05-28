@@ -1,17 +1,27 @@
 ---
-
 # RHEL-6.5 rax images are pre-loaded with pip installed packages.  This breaks
 # distro packaging (see support ticket 140303-00299-3).
+
+- name: detect if PyYAML rpm is installed
+  command: rpm -q PyYAML
+  ignore_errors: true
+  register: is_pyyaml_pkg_installed
+  when: ansible_distribution in ['RedHat', 'CentOS']
+
+- name: detect if PyYAML deb is installed
+  command: dpkg -l python-yaml
+  ignore_errors: true
+  register: is_pyyaml_pkg_installed
+  when: ansible_distribution in ['Ubuntu',]
+
 - name: detect pip installed packages
   shell: pip list | awk '{print $1}'
   register: installed_pips
   ignore_errors: true
 
 # The following will only run if pip modules were detected in the previous task
-- name: remove any pip installed packages
+- name: remove unpackaged PyYAML library
   pip:
     state: absent
-    name: '{{ item }}'
-  with_items:
-    - PyYAML
-  when: installed_pips|success and installed_pips.stdout_lines
+    name: PyYAML
+  when: installed_pips|success and 'PyYAML' in installed_pips.stdout and is_pyyaml_pkg_installed|failed
