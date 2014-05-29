@@ -16,11 +16,7 @@
 
 - name: Copy the ntp.conf template file
   template: src=ntp.conf.j2 dest=/etc/ntp.conf
-
-- name: Stop {{ntp_svc_name}}
-  service: name={{ ntp_svc_name }} state=stopped enabled=yes
-
-- name: Force clock sync
-  command: ntpd -gq
-  notify:
+  notify: 
    - restart ntp
+
+ 
