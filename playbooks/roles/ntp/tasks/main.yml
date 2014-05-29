@@ -16,7 +16,8 @@
 
 - name: Copy the ntp.conf template file
   template: src=ntp.conf.j2 dest=/etc/ntp.conf
-  notify: 
-   - restart ntp
 
- 
+# Using a handler will wait until the play completes, I'd like this to happen
+# soner to give ntpd a chance to catch up.
+- name: Ensure ntp is started and enabled
+  service: name={{ ntp_svc_name }} state=restarted enabled=yes
