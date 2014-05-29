@@ -22187,8 +22187,8 @@ EOF''' % (json.dumps(inventory_dict, indent=4),))
 
         # Verify the import completed in a timely manner
         # Asserting the time is kind of hard.  It depends on the type of system used to test (CPU+Mem)
-        # On a m3.medium EC2 instance, the import should take ~185 seconds
-        assert seconds <= 200, "Import took longer than 200 seconds (%f seconds)" % seconds
+        # On a m3.medium EC2 instance, the import should take ~300 seconds
+        assert seconds <= 300, "Import took longer than 300 seconds (%f seconds)" % seconds
         print "Import took %s seconds" % seconds
 
         # Verify the import created the expected groups
