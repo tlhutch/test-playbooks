@@ -21,6 +21,7 @@
 # Install AWX
 #
 - hosts: '!local'
+  gather_facts: no
   sudo: yes
   roles:
     - { role: awx_setup }
