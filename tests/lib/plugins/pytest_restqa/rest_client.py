@@ -92,6 +92,13 @@ class Connection(object):
         self.url = ""
         self.requests_log = None
 
+        # prepare session object
+        self.session = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(max_retries=3)
+        self.session.mount('http://', adapter)
+        self.session.mount('https://', adapter)
+        self.session.headers['Content-type'] = 'application/json'
+
     # http://docs.python-requests.org/en/latest/api/?highlight=logging
     # these two lines enable debugging at httplib level (requests->urllib3->httplib)
     # you will see the REQUEST, including HEADERS and DATA, and RESPONSE with HEADERS but without DATA.
@@ -113,29 +120,27 @@ class Connection(object):
     def login(self, username=None, password=None, token=None):
         '''Store authentication credentials for future requests'''
         if username and password:
-            self.auth = (username, password)
+            self.session.auth = (username, password)
         elif token:
-            self.auth = Token_Auth(token)
+            self.session.auth = Token_Auth(token)
         else:
-            self.auth = None
+            self.session.auth = None
 
     def logout(self):
         '''Remove stored credentials for future requests'''
-        self.auth = None
+        self.session.auth = None
 
     def _request(self, endpoint, data=None, method='GET', params=None):
-        method = method.lower()
-        headers = dict()
         payload = ''
 
         # Locate correct requests method
-        if not hasattr(requests, method):
+        method = method.lower()
+        if not hasattr(self.session, method):
             raise Exception("Unknown request method: %s" % method)
-        request_handler = getattr(requests, method)
+        request_handler = getattr(self.session, method)
 
-        # Build url, headers and params
+        # Build url
         url = "%s%s" % (self.server, endpoint)
-        headers['Content-type'] = 'application/json'
 
         # jsonify the POST payload (if available)
         if data is not None:
@@ -149,10 +154,8 @@ class Connection(object):
         try:
             response = request_handler(url,
                 verify=self.verify,
-                headers=headers,
                 params=params,
                 data=payload,
-                auth=self.auth,
                 hooks=dict(response=log_elapsed))
         except Exception, e:
             err_str = "%s, url: %s" % (str(e), url,)
