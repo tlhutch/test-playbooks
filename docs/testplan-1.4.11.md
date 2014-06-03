@@ -13,44 +13,44 @@
 
 ### Installation
 1. Installation completes successfully on all supported platforms
-    [ ] ubuntu-12.04
-    [ ] ubuntu-14.04
-    [ ] rhel-6.5
-    [ ] rhel-7.0 (beta)
-    [ ] centos-6.5
+    [x] ubuntu-12.04
+    [x] ubuntu-14.04
+    [x] rhel-6.5
+    [x] rhel-7.0 (rc)
+    [x] centos-6.5
 
 ### Upgrade
 1. Upgrade completes on all supported platforms
-    [ ] ubuntu-12.04
-    [ ] ubuntu-14.04
-    [ ] rhel-6.5
-    [ ] rhel-7.0 (beta)
-    [ ] centos-6.5
-2. [ ] Test upgrades using the proper username/password (should pass)
-3. [ ] Test upgrades using the improper username/password (should use existing password, pass)
-4. [ ] Test upgrades with data, and ensure projects/inventory/jobs run post-upgrade
+    [x] ubuntu-12.04
+    [x] ubuntu-14.04
+    [x] rhel-6.5
+    [x] rhel-7.0 (beta)
+    [x] centos-6.5
+2. [x] Test upgrades using the proper username/password (should pass)
+3. [x] Test upgrades using the improper username/password (should use existing password, pass)
+4. [x] Test upgrades with data, and ensure projects/inventory/jobs run post-upgrade
 
 ### Integration
-1. [ ] End-to-end integration completed on all supported platforms
-2. [ ] Add inventory_import tests
-3. [ ] Add group disassociate/delete tests
+1. [x] End-to-end integration completed on all supported platforms
+2. [x] Add inventory_import tests
+3. [x] Add group disassociate/delete tests
 
 ### Feature: Installation improvements
-1. [ ] Verify setup playbook w/o ansible installed
-1. [ ] Verify setup playbook success (setup.log is saved to /var/log/awx/, appropriate message to console)
-1. [ ] Verify setup playbook failure (setup.log is saved to /var/log/awx/, appropriate message to console)
+1. [x] Verify setup playbook w/o ansible installed
+1. [x] Verify setup playbook success (setup.log is saved to /var/log/awx/, appropriate message to console)
+1. [x] Verify setup playbook failure (setup.log is saved to /var/log/awx/, appropriate message to console)
 
 ### Feature: Inventory Performance
-1. [ ] Verify POST to /inventory/N/groups/
-2. [ ] Verify POST to /groups/N/children/
-3. [ ] Verify DELETE to /groups/N/
-4. [ ] Verify splunk inventory data
-4. [ ] Verify UI behaves as expected
+1. [x] Verify POST to /inventory/N/groups/
+2. [x] Verify POST to /groups/N/children/
+3. [x] Verify DELETE to /groups/N/
+4. [x] Verify splunk inventory data
+4. [x] Verify UI behaves as expected
 
 ### UI Regresion
-1. [ ] Verify links from Dashboard are correct
-1. [ ] Verify organization CRUD
-1. [ ] Verify user CRUD
+1. [x] Verify links from Dashboard are correct
+1. [x] Verify organization CRUD
+1. [x] Verify user CRUD
 1. [ ] Verify team CRUD
 1. [ ] Verify project CRUD
 1. [ ] Verify inventory CRUD
