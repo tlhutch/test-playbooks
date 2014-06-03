@@ -55,3 +55,9 @@
      ansible_ssh_host={{ item.instances[0].accessIPv4 }}
   with_items: rax.results
   when: rax_images and rax is defined
+
+# HACK: While sshd may be listening, it may not fully accept connections
+# immediately
+- name: sleep 30s
+  command: sleep 30s
+  when: rax_images and rax is defined and rax.changed
