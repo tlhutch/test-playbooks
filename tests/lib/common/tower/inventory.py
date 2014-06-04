@@ -1,6 +1,28 @@
 import optparse
 import json
 
+def upload_inventory(ansible_runner, nhosts=10, ini=False):
+    '''
+    Helper to upload inventory script to target host
+    '''
+    # Create an inventory script
+    if ini:
+        copy_mode = '0644'
+        copy_dest = '/tmp/inventory.ini'
+        copy_content = ini_inventory(nhosts)
+    else:
+        copy_mode = '0755'
+        copy_dest = '/tmp/inventory.sh'
+        copy_content = '''#!/bin/bash
+cat <<EOF
+%s
+EOF''' % json_inventory(nhosts)
+
+    # Copy script to test system
+    results = ansible_runner.copy(dest=copy_dest, force=True, mode=copy_mode, content=copy_content)
+    assert 'failed' not in results, "Failed to create inventory file: %s" % results
+    return results
+
 def generate_inventory(nhosts=100):
     '''
     Generate a somewhat complex inventory with a configurable number of hosts
