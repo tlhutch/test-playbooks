@@ -109,6 +109,8 @@ class Base(Page):
                 raise BadRequest_Exception(exc_str + ": %s" % data)
             else:
                 raise Duplicate_Exception(exc_str + ". However, JSON validation determined the cause was a duplicate object already exists: %s" % data)
+        elif r.status_code == httplib.INTERNAL_SERVER_ERROR:
+            raise InternalServerError_Exception(exc_str + ": %s" % data)
         else:
             raise Unknown_Exception(exc_str + ": %s" % data)
 

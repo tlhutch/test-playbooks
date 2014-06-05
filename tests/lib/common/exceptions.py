@@ -16,5 +16,8 @@ class LicenseExceeded_Exception(Exception):
 class Method_Not_Allowed_Exception(Exception):
     pass
 
+class InternalServerError_Exception(Exception):
+    pass
+
 class Unknown_Exception(Exception):
     pass
