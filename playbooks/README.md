@@ -1,9 +1,10 @@
-ansible-awx
-========================
+ansibleworks-qa playbooks
+=========================
 
-[Ansible](http://ansible.cc/) playbook for deploying a Ansible AWX.
+[Ansible](http://ansible.cc/) playbook/roles for deploying a Ansible Tower and
+related services.
 
-## ansible-cfme repository/structure
+## ansibleworks-qa repository/structure
 
  * files - files and templates for use in playbooks/tasks
  * group_vars - customize deployment by setting/replacing variables
@@ -12,7 +13,7 @@ ansible-awx
  * tasks - snippets of tasks that should be included in plays
 
 ## Dependencies
- * [ansible-1.2](https://github.com/ansible/ansible) (or newer)
+ * [ansible](https://github.com/ansible/ansible)
 
 ## Instructions
 1. Clone this repo
