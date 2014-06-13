@@ -180,48 +180,6 @@ class Base_List(Base):
         r = self.api.post(self.base_url, payload)
         return self.handle_request(r)
 
-    # This method id already defined
-    def _OLD_handle_request(self, r):
-        try:
-            data = r.json()
-        except ValueError, e:
-            '''If there was no json to parse'''
-            data = dict()
-
-        exc_str = "%s (%s) received" % (httplib.responses[r.status_code], r.status_code)
-        if r.status_code in (httplib.OK, httplib.CREATED, httplib.ACCEPTED):
-            self.validate_json(json=data, request=r.request.method)
-            # With an inheritence of Org_List -> Org -> Base -> Page, the following
-            # will find the parent class of the current object (e.g. 'Org').
-
-            # Also, don't forget to call r.objectify() on the json structure.
-            # Without that call, it will simply be a json dictionary.  By calling
-            # r.objectify(), it behaves like a classic dictionary, but also is
-            # JSON_Wrapped() to allow attribute access (e.g.
-            # self.json['username'] == self.username)
-            return self.__item_class__(self.testsetup, base_url=data['url'], json=r.objectify())
-        elif r.status_code == httplib.NO_CONTENT:
-            raise NoContent_Exception(exc_str)
-        elif r.status_code == httplib.FORBIDDEN:
-            try:
-                self.validate_json(json=data, request='license_exceeded')
-            except:
-                raise Forbidden_Exception(exc_str)
-            else:
-                raise LicenseExceeded_Exception(exc_str)
-        elif r.status_code == httplib.BAD_REQUEST:
-            # Attempt to validate the json response.  If it validates against a
-            # 'duplicate' method, then we return a Duplicate_Exception.  If
-            # validation fails, raise BadRequest_Exception.
-            try:
-                self.validate_json(json=data, request='duplicate')
-            except:
-                raise BadRequest_Exception(exc_str + ": %s" % data)
-            else:
-                raise Duplicate_Exception(exc_str + ". However, JSON validation determined the cause was a duplicate object already exists: %s" % data)
-        else:
-            raise Unknown_Exception(exc_str + ": %s" % data)
-
     def go_to_next(self):
         if self.next:
             next_page = self.__class__(self.testsetup, base_url=self.next)
