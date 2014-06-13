@@ -114,7 +114,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         try:
             org = api_organizations_pg.post(payload)
         except Duplicate_Exception, e:
-            pytest.xfail("Already exists")
+            pytest.xfail(e)
 
     @pytest.mark.nondestructive
     def test_organization_get(self, api_organizations_pg, organizations):
@@ -135,7 +135,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         try:
             api_users_pg.post(payload)
         except Duplicate_Exception, e:
-            pytest.xfail("Already exists")
+            pytest.xfail(e)
 
     @pytest.mark.nondestructive
     def test_users_get(self, api_users_pg, users):
@@ -185,7 +185,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         try:
             api_teams_pg.post(payload)
         except Duplicate_Exception, e:
-            pytest.xfail("Already exists")
+            pytest.xfail(e)
 
     @pytest.mark.nondestructive
     def test_teams_get(self, api_teams_pg, teams):
@@ -262,7 +262,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         try:
             org = api_credentials_pg.post(payload)
         except Duplicate_Exception, e:
-            pytest.xfail("Already exists")
+            pytest.xfail(e)
 
     @pytest.mark.nondestructive
     def test_credentials_get(self, api_credentials_pg, credentials):
@@ -286,7 +286,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         try:
             api_inventories_pg.post(payload)
         except Duplicate_Exception, e:
-            pytest.xfail("Already exists")
+            pytest.xfail(e)
 
     @pytest.mark.nondestructive
     def test_inventories_get(self, api_inventories_pg, inventories):
@@ -317,7 +317,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         try:
             new_group_pg.post(payload)
         except Duplicate_Exception, e:
-            pytest.xfail("Already exists")
+            pytest.xfail(e)
 
     @pytest.mark.nondestructive
     def test_groups_get(self, api_groups_pg, groups):
@@ -342,7 +342,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         try:
             api_hosts_pg.post(payload)
         except Duplicate_Exception, e:
-            pytest.xfail("Already exists")
+            pytest.xfail(e)
 
     @pytest.mark.nondestructive
     def test_hosts_get(self, api_hosts_pg, hosts):
@@ -534,7 +534,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         try:
             api_projects_pg.post(payload)
         except Duplicate_Exception, e:
-            pytest.xfail("Already exists")
+            pytest.xfail(e)
 
     @pytest.mark.nondestructive
     def test_projects_get(self, api_projects_pg, projects):
@@ -669,7 +669,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         try:
             api_job_templates_pg.post(payload)
         except Duplicate_Exception, e:
-            pytest.xfail("Already exists")
+            pytest.xfail(e)
 
     @pytest.mark.nondestructive
     def test_job_templates_get(self, api_job_templates_pg, job_templates):
