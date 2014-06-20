@@ -42,6 +42,8 @@ job:
         credential: {format: uri, type: string}
         inventory: {format: uri, type: string}
         job_events: {format: uri, type: string}
+        job_plays: {format: uri, type: string}
+        job_tasks: {format: uri, type: string}
         job_host_summaries: {format: uri, type: string}
         job_template: {format: uri, type: string}
         project: {format: uri, type: string}
@@ -49,7 +51,7 @@ job:
         start: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
         stdout: {format: uri, type: string}
-      required: [job_host_summaries, job_events, start, cancel, activity_stream]
+      required: [job_host_summaries, job_events, job_plays, job_tasks, start, cancel, activity_stream]
       type: object
     result_stdout: {type: string}
     result_traceback: {type: string}
