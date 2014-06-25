@@ -69,7 +69,7 @@ class Test_Inventory(Base_Api_Test):
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' \
             % (import_inventory.id, copy['dest']))
-        logging.info(result['stdout']))
+        logging.info(result['stdout'])
 
         # Verify the import completed successfully
         assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
