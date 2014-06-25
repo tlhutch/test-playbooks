@@ -1,5 +1,6 @@
 import pytest
 import json
+import logging
 import common.tower.inventory
 import common.exceptions
 from tests.api import Base_Api_Test
@@ -44,7 +45,7 @@ class Test_Inventory(Base_Api_Test):
 
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source /etc/fstab' % bad_id)
-        print result['stdout']
+        logging.info(result['stdout'])
 
         # Verify the import failed
         assert result['rc'] == 1, "awx-manage inventory_import succeeded unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
@@ -54,7 +55,7 @@ class Test_Inventory(Base_Api_Test):
 
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-name "%s" --source /etc/fstab' % common.utils.random_ascii())
-        print result['stdout']
+        logging.info(result['stdout'])
 
         # Verify the import failed
         assert result['rc'] == 1, "awx-manage inventory_import succeeded unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
@@ -68,7 +69,7 @@ class Test_Inventory(Base_Api_Test):
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' \
             % (import_inventory.id, copy['dest']))
-        print result['stdout']
+        logging.info(result['stdout']))
 
         # Verify the import completed successfully
         assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
@@ -86,7 +87,7 @@ class Test_Inventory(Base_Api_Test):
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' \
             % (import_inventory.name, copy['dest']))
-        print result['stdout']
+        logging.info(result['stdout'])
 
         # Verify the import completed successfully
         assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
@@ -104,7 +105,7 @@ class Test_Inventory(Base_Api_Test):
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' \
             % (import_inventory.name, copy['dest']))
-        print result['stdout']
+        logging.info(result['stdout'])
 
         # Verify the import completed successfully
         assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
@@ -169,7 +170,7 @@ class Test_Inventory(Base_Api_Test):
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' \
             % (import_inventory.id, copy['dest']))
-        print result['stdout']
+        logging.info(result['stdout'])
 
         # Verify the import failed
         assert result['rc'] == 1, "awx-manage inventory_import succeeded unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
@@ -188,7 +189,7 @@ class Test_Inventory(Base_Api_Test):
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' \
             % (delete_inventory.id, copy['dest']))
-        print result['stdout']
+        logging.info(result['stdout'])
 
         # Verify the import completed successfully
         assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
