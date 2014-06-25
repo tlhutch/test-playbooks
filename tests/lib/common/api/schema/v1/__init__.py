@@ -249,6 +249,13 @@ class Awx_Schema_Projects_Project_Updates(Awx_Schema):
     def get(self):
         return self.load_file('project_updates/list.yml')
 
+class Awx_Schema_Project_Playbooks(Awx_Schema):
+    resource = '/api/v1/projects/\d+/playbooks/'
+
+    @property
+    def get(self):
+        return self.load_file('list.yml')
+
 class Awx_Schema_Project_Update(Awx_Schema):
     resource = '/api/v1/projects/\d+/update/'
 

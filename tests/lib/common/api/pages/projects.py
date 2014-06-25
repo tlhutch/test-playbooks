@@ -15,6 +15,8 @@ class Project_Page(base.Base):
             related = Project_Updates_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'update':
             related = base.Base(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'playbooks':
+            related = Playbooks_Page(self.testsetup, base_url=self.json['related'][name], objectify=False)
         elif name == 'organizations':
             from organizations import Organizations_Page
             related = Organizations_Page(self.testsetup, base_url=self.json['related'][name])
@@ -36,3 +38,6 @@ class Project_Update_Page(base.Task_Page):
 
 class Project_Updates_Page(Project_Update_Page, base.Base_List):
     base_url = '/api/v1/projects/{id}/project_updates/'
+
+class Playbooks_Page(base.Base):
+    base_url = '/api/v1/projects/{id}/playbooks/'

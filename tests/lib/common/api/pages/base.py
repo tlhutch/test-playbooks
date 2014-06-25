@@ -34,6 +34,7 @@ class Base(Page):
     def __init__(self, *args, **kwargs):
         super(Base, self).__init__(*args)
         self.json = kwargs.get('json', {})
+        self.objectify = kwargs.get('objectify', True)
 
         if kwargs.get('base_url', False):
             self.base_url = kwargs.get('base_url')
@@ -77,7 +78,10 @@ class Base(Page):
             # r.objectify(), it behaves like a classic dictionary, but also is
             # JSON_Wrapped() to allow attribute access (e.g.
             # self.json['username'] == self.username)
-            self.json = r.objectify()
+            if self.objectify:
+                self.json = r.objectify()
+            else:
+                self.json = r.json()
 
             # GET requests should return an object of the same type that made
             # the request.  For example, when performing a GET on /api/v1/users,
