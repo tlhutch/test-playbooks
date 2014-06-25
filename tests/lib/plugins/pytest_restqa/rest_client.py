@@ -20,6 +20,7 @@ class JSON_Wrapper(dict):
         # If the json parameter doesn't support iteritems(), move on.  This
         # addresses the scenario when:
         #   json = {u'name': [u'Organization with this Name already exists.']}
+        #   json = [u'setfact_50.yml']
         if not hasattr(json, 'iteritems'):
             warnings.warn("Attempting to wrap non-dict object: %s" % json)
             return
@@ -69,7 +70,8 @@ def objectify(self):
     # an empty-dict
     try:
         json = self.json()
-    except ValueError:
+    except ValueError, e:
+        warnings.warn("Unable to parse JSON response: " % e)
         json = dict()
 
     return JSON_Wrapper(json=json)
