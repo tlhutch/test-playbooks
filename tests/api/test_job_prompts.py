@@ -40,7 +40,7 @@ def job_template_no_credential(request, authtoken, api_job_templates_pg, project
                    limit=inventory_localhost.name,
                    extra_vars=extra_vars,
                    project=project_ansible_helloworld_hg.id,
-                   playbook='pass_unless.yml', ) # This depends on the project selected
+                   playbook='pass_unless.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -56,7 +56,7 @@ def job_template_prompt_vars(request, authtoken, api_job_templates_pg, project_a
                    ask_variables_on_launch=True,
                    extra_vars=extra_vars,
                    project=project_ansible_helloworld_hg.id,
-                   playbook='fail_unless.yml', ) # This depends on the project selected
+                   playbook='fail_unless.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -72,7 +72,7 @@ def job_template_prompt_pass(request, authtoken, api_job_templates_pg, project_a
                    credential=random_ssh_credential_ask.id,
                    extra_vars=extra_vars,
                    project=project_ansible_helloworld_hg.id,
-                   playbook='pass_unless.yml', ) # This depends on the project selected
+                   playbook='pass_unless.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -88,7 +88,7 @@ def job_template_prompt_multipass(request, authtoken, api_job_templates_pg, proj
                    credential=random_ssh_credential_multi_ask.id,
                    extra_vars=extra_vars,
                    project=project_ansible_helloworld_hg.id,
-                   playbook='pass_unless.yml', ) # This depends on the project selected
+                   playbook='pass_unless.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -105,7 +105,7 @@ def job_template_prompt_multipass_vars(request, authtoken, api_job_templates_pg,
                    ask_variables_on_launch=True,
                    extra_vars=extra_vars,
                    project=project_ansible_helloworld_hg.id,
-                   playbook='fail_unless.yml', ) # This depends on the project selected
+                   playbook='fail_unless.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -144,7 +144,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         start_pg.post()
 
         # Wait 10mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60*10)
+        job_pg = job_pg.wait_until_completed(timeout=60 * 10)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
@@ -174,7 +174,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         start_pg.post()
 
         # Wait 10mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60*10)
+        job_pg = job_pg.wait_until_completed(timeout=60 * 10)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
@@ -199,7 +199,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         start_pg.post(passwords)
 
         # Wait 10mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60*10)
+        job_pg = job_pg.wait_until_completed(timeout=60 * 10)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
@@ -225,7 +225,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         start_pg.post(passwords)
 
         # Wait 10mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60*10)
+        job_pg = job_pg.wait_until_completed(timeout=60 * 10)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
@@ -255,7 +255,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         start_pg.post(passwords)
 
         # Wait 10mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60*10)
+        job_pg = job_pg.wait_until_completed(timeout=60 * 10)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg

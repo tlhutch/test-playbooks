@@ -83,7 +83,7 @@ def root_variation(request, authtoken, random_inventory, ansible_runner):
 
 # Ansible inventory variations for testing 'non-root' group removal.  These are
 # the same as root_variations ... but they are nested a level deeper.
-inventory_prefix= '''
+inventory_prefix = '''
 [continents]
 content-host-1
 

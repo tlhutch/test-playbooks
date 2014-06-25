@@ -54,4 +54,3 @@ class Base_Api_Test(object):
                 ctype
 
         return True
-

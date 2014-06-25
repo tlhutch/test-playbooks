@@ -67,8 +67,7 @@ class Test_Inventory(Base_Api_Test):
         copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' \
-            % (import_inventory.id, copy['dest']))
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (import_inventory.id, copy['dest']))
         logging.info(result['stdout'])
 
         # Verify the import completed successfully
@@ -85,8 +84,7 @@ class Test_Inventory(Base_Api_Test):
         copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' \
-            % (import_inventory.name, copy['dest']))
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, copy['dest']))
         logging.info(result['stdout'])
 
         # Verify the import completed successfully
@@ -103,8 +101,7 @@ class Test_Inventory(Base_Api_Test):
         copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10, ini=True)
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' \
-            % (import_inventory.name, copy['dest']))
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, copy['dest']))
         logging.info(result['stdout'])
 
         # Verify the import completed successfully
@@ -121,8 +118,7 @@ class Test_Inventory(Base_Api_Test):
         copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=100, ini=True)
 
         # Run first awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' \
-            % (import_inventory.name, copy['dest']))
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, copy['dest']))
         # Verify the import completed successfully
         assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
             % (result['stdout'], result['stderr'])
@@ -133,29 +129,27 @@ class Test_Inventory(Base_Api_Test):
 
         # Calculate total seconds. The expected delta format is - H:MM:SS.SSSSS
         (hours, minutes, seconds) = result['delta'].split(':')
-        first_import = float(seconds) + 60*float(minutes) + 60*60*float(hours)
+        first_import = float(seconds) + 60 * float(minutes) + 60 * 60 * float(hours)
 
         # Run second awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s --overwrite' \
-            % (import_inventory.name, copy['dest']))
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s --overwrite' % (import_inventory.name, copy['dest']))
         # Verify the import completed successfully
         assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
             % (result['stdout'], result['stderr'])
 
         # Calculate total seconds. The expected delta format is - H:MM:SS.SSSSS
         (hours, minutes, seconds) = result['delta'].split(':')
-        second_import = float(seconds) + 60*float(minutes) + 60*60*float(hours)
+        second_import = float(seconds) + 60 * float(minutes) + 60 * 60 * float(hours)
 
         # Run third awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' \
-            % (import_inventory.name, copy['dest']))
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, copy['dest']))
         # Verify the import completed successfully
         assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
             % (result['stdout'], result['stderr'])
 
         # Calculate total seconds. The expected delta format is - H:MM:SS.SSSSS
         (hours, minutes, seconds) = result['delta'].split(':')
-        third_import = float(seconds) + 60*float(minutes) + 60*60*float(hours)
+        third_import = float(seconds) + 60 * float(minutes) + 60 * 60 * float(hours)
 
         assert first_import > second_import > third_import, \
             "Unexpected timing when importing inventory multiple times: %s, %s, %s" % \
@@ -168,8 +162,7 @@ class Test_Inventory(Base_Api_Test):
         copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=2000)
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' \
-            % (import_inventory.id, copy['dest']))
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (import_inventory.id, copy['dest']))
         logging.info(result['stdout'])
 
         # Verify the import failed
@@ -187,8 +180,7 @@ class Test_Inventory(Base_Api_Test):
         copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' \
-            % (delete_inventory.id, copy['dest']))
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (delete_inventory.id, copy['dest']))
         logging.info(result['stdout'])
 
         # Verify the import completed successfully

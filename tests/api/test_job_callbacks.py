@@ -72,7 +72,7 @@ def random_job_template_with_limit(request, authtoken, api_job_templates_pg, ran
                    limit='No_Match',
                    credential=random_ssh_credential.id,
                    host_config_key=host_config_key,
-                   playbook='site.yml', ) # This depends on the project selected
+                   playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -87,7 +87,7 @@ def random_job_template_ask(request, authtoken, api_job_templates_pg, random_pro
                    project=random_project.id,
                    credential=random_ssh_credential_ask.id,
                    host_config_key=host_config_key,
-                   playbook='site.yml', ) # This depends on the project selected
+                   playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -243,7 +243,7 @@ class Test_Job_Callback(Base_Api_Test):
         # Wait for job to complete
         jobs_pg = random_job_template_with_limit.get_related('jobs', launch_type='callback', order_by='-id')
         assert jobs_pg.count == 1
-        job_pg = jobs_pg.results[0].wait_until_completed(timeout=5*60)
+        job_pg = jobs_pg.results[0].wait_until_completed(timeout=5 * 60)
 
         assert job_pg.launch_type == "callback"
 
@@ -276,7 +276,7 @@ class Test_Job_Callback(Base_Api_Test):
         # Wait for job to complete
         jobs_pg = random_job_template.get_related('jobs', launch_type='callback', order_by='-id')
         assert jobs_pg.count == 1
-        job_pg = jobs_pg.results[0].wait_until_completed(timeout=5*60)
+        job_pg = jobs_pg.results[0].wait_until_completed(timeout=5 * 60)
 
         assert job_pg.launch_type == "callback"
 

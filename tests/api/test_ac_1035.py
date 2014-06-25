@@ -91,7 +91,7 @@ def job_templates_json(request, authtoken, api_job_templates_pg, random_project,
                    inventory=inventory_json.id,
                    job_type='run',
                    project=random_project.id,
-                   playbook='site.yml', ) # This depends on the project selected
+                   playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -103,7 +103,7 @@ def job_templates_yaml(request, authtoken, api_job_templates_pg, random_project,
                    inventory=inventory_yaml.id,
                    job_type='run',
                    project=random_project.id,
-                   playbook='site.yml', ) # This depends on the project selected
+                   playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -238,4 +238,3 @@ class Test_AC_1035(Base_Api_Test):
     def test_job_templates_extra_var_attr_invalid(self, job_templates_yaml):
         '''Assert that no data validation happens updating extra_vars with invalid JSON/YAML'''
         job_templates_yaml.patch(extra_vars="{")
-

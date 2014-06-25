@@ -5,7 +5,8 @@
 #
 # Create remote hosts
 #
-- hosts: local
+- name: 'deploy cloud instances'
+  hosts: local
   vars:
     exact_count: 1
     ec2_region: us-east-1
@@ -14,12 +15,12 @@
     ec2_public_key: '~/.ssh/id_rsa.jenkins.pub'
     instance_name: ansible-tower
     instances:
-        - {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-eb6b0182', 'type': 'm3.medium' }
-        - {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-63b6910a', 'type': 'm3.medium' }
-        - {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-08aa4c60', 'type': 'm3.medium' }
-        - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-5db4a934', 'type': 'm3.medium' }
-        - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-018c9568', 'type': 'm3.medium' }
-        - {'name': 'fedora-20-x86_64',    'user': 'fedora',      'id': 'ami-1337187a', 'type': 'm3.medium' }
+        - {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-eb6b0182', 'type': 'm3.medium', }
+        - {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-63b6910a', 'type': 'm3.medium', }
+        - {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-785bae10', 'type': 'm3.medium', }
+        - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-5db4a934', 'type': 'm3.medium', }
+        - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-018c9568', 'type': 'm3.medium', }
+        - {'name': 'fedora-20-x86_64',    'user': 'fedora',      'id': 'ami-1337187a', 'type': 'm3.medium', }
 
   tasks:
     - name: ensure security group exists

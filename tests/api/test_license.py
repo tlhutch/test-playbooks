@@ -67,7 +67,7 @@ def install_license_expired(request, ansible_runner, license_instance_count, bac
 @pytest.fixture(scope='class')
 def ansible_ec2_facts(ansible_runner):
     '''This will only work on an ec2 system'''
-    return ansible_runner.ec2_facts().get('ansible_facts',{})
+    return ansible_runner.ec2_facts().get('ansible_facts', {})
 
 @pytest.fixture(scope='class')
 def ami_id(ansible_ec2_facts):
@@ -131,8 +131,8 @@ class Base_License_Test(Base_Api_Test):
                 license_instance_count - current_hosts
             assert conf.license_info.available_instances == license_instance_count
             print "current_instances:%s, free_instances:%s, available_instances:%s" % \
-                (conf.license_info.current_instances, conf.license_info.free_instances, \
-                 conf.license_info.available_instances )
+                (conf.license_info.current_instances, conf.license_info.free_instances,
+                 conf.license_info.available_instances)
 
             # Add a host to the inventory group
             payload = dict(name="host-%s" % common.utils.random_ascii(),

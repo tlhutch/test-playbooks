@@ -10,37 +10,39 @@ from dateutil.parser import parse
 from tests.api import Base_Api_Test
 
 # Create fixture for testing unsupported RRULES
-@pytest.fixture(params=[
-    # empty string
-    "",
-    # missing RRULE
-    "DTSTART:asdf asdf",
-    # missing DTSTART
-    "RRULE:asdf asdf",
-    # empty RRULE
-    "DTSTART:20030925T104941Z RRULE:",
-    # empty DTSTART
-    "DTSTART: RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
-    # multiple RRULES
-    "DTSTART:20030925T104941Z RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5 RRULE:FREQ=WEEKLY;INTERVAL=10;COUNT=1",
-    # multiple DSTARTS
-    "DTSTART:20030925T104941Z DTSTART:20130925T104941Z RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
-    # timezone
-    "DTSTART:%s RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5" % parse("Thu, 25 Sep 2003 10:49:41 -0300"),
-    # taken from tower unittests
-    "DTSTART:20140331T055000 RRULE:FREQ=MINUTELY;INTERVAL=10;COUNT=5",
-    "RRULE:FREQ=MINUTELY;INTERVAL=10;COUNT=5",
-    "FREQ=MINUTELY;INTERVAL=10;COUNT=5",
-    "DTSTART:20240331T075000Z RRULE:FREQ=DAILY;INTERVAL=1;COUNT=10000000",
-    "DTSTART;TZID=US-Eastern:19961105T090000 RRULE:FREQ=MINUTELY;INTERVAL=10;COUNT=5",
-    "DTSTART:20140331T055000Z RRULE:FREQ=SECONDLY;INTERVAL=1",
-    "DTSTART:20140331T055000Z RRULE:FREQ=SECONDLY",
-    "DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYDAY=20MO;INTERVAL=1",
-    "DTSTART:20140331T055000Z RRULE:FREQ=MONTHLY;BYMONTHDAY=10,15;INTERVAL=1",
-    "DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYMONTH=1,2;INTERVAL=1",
-    "DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYYEARDAY=120;INTERVAL=1",
-    "DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYWEEKNO=10;INTERVAL=1",
-    ])
+@pytest.fixture(
+    params=[
+        # empty string
+        "",
+        # missing RRULE
+        "DTSTART:asdf asdf",
+        # missing DTSTART
+        "RRULE:asdf asdf",
+        # empty RRULE
+        "DTSTART:20030925T104941Z RRULE:",
+        # empty DTSTART
+        "DTSTART: RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
+        # multiple RRULES
+        "DTSTART:20030925T104941Z RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5 RRULE:FREQ=WEEKLY;INTERVAL=10;COUNT=1",
+        # multiple DSTARTS
+        "DTSTART:20030925T104941Z DTSTART:20130925T104941Z RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
+        # timezone
+        "DTSTART:%s RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5" % parse("Thu, 25 Sep 2003 10:49:41 -0300"),
+        # taken from tower unittests
+        "DTSTART:20140331T055000 RRULE:FREQ=MINUTELY;INTERVAL=10;COUNT=5",
+        "RRULE:FREQ=MINUTELY;INTERVAL=10;COUNT=5",
+        "FREQ=MINUTELY;INTERVAL=10;COUNT=5",
+        "DTSTART:20240331T075000Z RRULE:FREQ=DAILY;INTERVAL=1;COUNT=10000000",
+        "DTSTART;TZID=US-Eastern:19961105T090000 RRULE:FREQ=MINUTELY;INTERVAL=10;COUNT=5",
+        "DTSTART:20140331T055000Z RRULE:FREQ=SECONDLY;INTERVAL=1",
+        "DTSTART:20140331T055000Z RRULE:FREQ=SECONDLY",
+        "DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYDAY=20MO;INTERVAL=1",
+        "DTSTART:20140331T055000Z RRULE:FREQ=MONTHLY;BYMONTHDAY=10,15;INTERVAL=1",
+        "DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYMONTH=1,2;INTERVAL=1",
+        "DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYYEARDAY=120;INTERVAL=1",
+        "DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYWEEKNO=10;INTERVAL=1",
+    ]
+)
 def unsupported_rrule(request):
     return request.param
 
@@ -113,8 +115,7 @@ def random_credential_scm_key_unlock_ASK(request, authtoken, api_credentials_pg,
                    kind='scm',
                    username='git',
                    scm_key_unlock='ASK',
-                   user=admin_user.id,
-                  )
+                   user=admin_user.id,)
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -127,8 +128,7 @@ def random_project_with_credential_prompt(request, authtoken, api_projects_pg, r
                    scm_type='git',
                    scm_url='git@github.com:ansible/ansible-examples.git',
                    scm_key_unlock='ASK',
-                   credential=random_credential_scm_key_unlock_ASK.id,
-                  )
+                   credential=random_credential_scm_key_unlock_ASK.id,)
     obj = api_projects_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -306,16 +306,14 @@ class Test_Project_Schedules(Base_Api_Test):
 
         # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1,
-            interval=15, verbose=True, timeout=60*5)
+        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
 
         # Ensure correct number of scheduled launches occurred
         assert unified_jobs_pg.count == 1
 
         # Ensure the job status is failed
         job_pg = unified_jobs_pg.results[0]
-        job_pg = common.utils.wait_until(job_pg, 'status', 'failed',
-            interval=15, verbose=True, timeout=60*5)
+        job_pg = common.utils.wait_until(job_pg, 'status', 'failed', interval=15, verbose=True, timeout=60 * 5)
         assert job_pg.status == 'failed'
 
         # Is the next_run still what we expect?
@@ -366,8 +364,7 @@ class Test_Project_Schedules(Base_Api_Test):
 
         # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1,
-            interval=15, verbose=True, timeout=60*5)
+        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
 
         # Ensure correct number of scheduled launches occured
         assert unified_jobs_pg.count == 1
@@ -394,8 +391,7 @@ class Test_Project_Schedules(Base_Api_Test):
 
         # wait 5 minutes for scheduled updates to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', rrule.count(),
-            interval=15, verbose=True, timeout=60*5)
+        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', rrule.count(), interval=15, verbose=True, timeout=60 * 5)
 
         # ensure scheduled project updates ran
         assert unified_jobs_pg.count == rrule.count()
@@ -624,16 +620,14 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
         # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1,
-            interval=15, verbose=True, timeout=60*5)
+        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
 
         # Ensure correct number of scheduled launches occurred
         assert unified_jobs_pg.count == 1
 
         # Ensure the job status is failed
         job_pg = unified_jobs_pg.results[0]
-        job_pg = common.utils.wait_until(job_pg, 'status', 'failed',
-            interval=15, verbose=True, timeout=60*5)
+        job_pg = common.utils.wait_until(job_pg, 'status', 'failed', interval=15, verbose=True, timeout=60 * 5)
         assert job_pg.status == 'failed'
 
         # Is the next_run still what we expect?
@@ -668,7 +662,6 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedules_pg.get()
         assert schedules_pg.count == 0
 
-
     def test_update_count1(self, random_aws_inventory_source, rrule_frequency):
         '''assert a schedule launches at the proper interval'''
         schedules_pg = random_aws_inventory_source.get_related('schedules')
@@ -685,8 +678,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
         # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1,
-            interval=15, verbose=True, timeout=60*5)
+        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
 
         # Ensure correct number of scheduled launches occured
         assert unified_jobs_pg.count == 1
@@ -713,8 +705,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
         # wait 5 minutes for scheduled updates to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', rrule.count(),
-            interval=15, verbose=True, timeout=60*5)
+        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', rrule.count(), interval=15, verbose=True, timeout=60 * 5)
 
         # ensure scheduled updates ran
         assert unified_jobs_pg.count == rrule.count()
@@ -763,5 +754,5 @@ class Test_Inventory_Schedules(Base_Api_Test):
         # cascade schedule deletion.
         remaining_schedules = common.utils.wait_until(
             api_schedules_pg.get(id__in=','.join([str(sid) for sid in schedule_ids])),
-            'count', 0, interval=5, verbose=True, timeout=60*2)
+            'count', 0, interval=5, verbose=True, timeout=60 * 2)
         assert remaining_schedules.count == 0

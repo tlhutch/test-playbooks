@@ -13,7 +13,7 @@ def pytest_generate_tests(metafunc):
         id_list = list()
 
         if fixture == 'method':
-            request_methods = [ 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', ]
+            request_methods = ['HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', ]
             test_set.extend(request_methods)
             id_list.extend(request_methods)
 
@@ -107,7 +107,9 @@ def test_unauthenticated(api, resource, method):
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 # Either works ...
-## @pytest.mark.usefixtures("login")
+#  @pytest.mark.usefixtures("login")
+# Or ...
+#  @pytest.mark.usefixtures("authtoken")
 @pytest.mark.usefixtures("authtoken")
 def test_authenticated(api, resource, method):
 
@@ -147,7 +149,7 @@ def test_authenticated(api, resource, method):
         '/api/v1/unified_job_templates/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },
-        '/api/v1/schedules/': { # Doesn't yet support POST
+        '/api/v1/schedules/': {  # Doesn't yet support POST
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },
     }

@@ -57,8 +57,8 @@ EOF
     ansible_runner.copy(src=fname, dest=remote_fname, mode='0755')
 
     # Run awx-manage inventory_import
-    result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' \
-        % (inventory.name, remote_fname))
+    result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s'
+                                  % (inventory.name, remote_fname))
 
     # Verify the import completed successfully
     assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
@@ -66,23 +66,16 @@ EOF
 
     return inventory
 
-@pytest.fixture(scope="class", params=[
-#    {'playbook': 'debug.yml', 'forks': 200, },
-#    {'playbook': 'debug.yml', 'forks': 400, },
-#    {'playbook': 'debug.yml', 'forks': 600, },
-#    {'playbook': 'debug.yml', 'forks': 800, },
-#    {'playbook': 'debug.yml', 'forks': 1000, },
-#    {'playbook': 'debug2.yml', 'forks': 200, },
-#    {'playbook': 'debug2.yml', 'forks': 400, },
-#    {'playbook': 'debug2.yml', 'forks': 600, },
-#    {'playbook': 'debug2.yml', 'forks': 800, },
-#    {'playbook': 'debug2.yml', 'forks': 1000, },
-    {'playbook': 'debug-50.yml', 'forks': 25, },
-    {'playbook': 'debug-50.yml', 'forks': 50, },
-    {'playbook': 'debug-50.yml', 'forks': 100, },
-    {'playbook': 'debug-50.yml', 'forks': 200, },
-    {'playbook': 'debug-50.yml', 'forks': 400, },
-    ])
+@pytest.fixture(
+    scope="class",
+    params=[
+        {'playbook': 'debug-50.yml', 'forks': 25, },
+        {'playbook': 'debug-50.yml', 'forks': 50, },
+        {'playbook': 'debug-50.yml', 'forks': 100, },
+        {'playbook': 'debug-50.yml', 'forks': 200, },
+        {'playbook': 'debug-50.yml', 'forks': 400, },
+    ]
+)
 def job_template(request, testsetup, api_job_templates_pg, inventory, random_project, credential):
     payload = dict(name="template-%s-%s" % (request.param, common.utils.random_unicode()),
                    job_type='run',
@@ -119,7 +112,7 @@ class Test_Host_Fork(Base_Api_Test):
         3) Assert results
         '''
         # Create the job
-        payload = dict(name=job_template.name, # Add Date?
+        payload = dict(name=job_template.name,  # Add Date?
                        job_template=job_template.id,
                        inventory=job_template.inventory,
                        project=job_template.project,
@@ -138,7 +131,7 @@ class Test_Host_Fork(Base_Api_Test):
         start_pg.post(payload)
 
         # Wait 30mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60*30)
+        job_pg = job_pg.wait_until_completed(timeout=60 * 30)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, \
@@ -165,8 +158,10 @@ class Test_Host_Fork(Base_Api_Test):
         event_completed = datetime.datetime.strptime(job_event_pg.modified, '%Y-%m-%dT%H:%M:%S.%fZ')
         event_delta = event_completed - modified
 
-        self.metrics['tower'].append(dict(playbook=job_template.playbook, forks=job_template.forks, \
-            runtime=delta.total_seconds(), event_time=event_delta.total_seconds()))
+        self.metrics['tower'].append(dict(playbook=job_template.playbook,
+                                          forks=job_template.forks,
+                                          runtime=delta.total_seconds(),
+                                          event_time=event_delta.total_seconds()))
 
     def test_ansible_job_launch(self, ansible_runner, inventory, random_project, job_template):
 
@@ -201,7 +196,7 @@ class Test_Host_Fork(Base_Api_Test):
         print "Playbook Performance (%s hosts)" % NUM_HOSTS
         print
         print "%-12s %12s %15s %15s %15s" % ('Playbook', 'Num_Forks', 'Ansible', 'Tower', 'Event_Delay')
-        print "%s=%s=%s=%s=%s" % ('='*12, '='*12, '='*15, '='*15, '='*15)
+        print "%s=%s=%s=%s=%s" % ('=' * 12, '=' * 12, '=' * 15, '=' * 15, '=' * 15)
         for (tower, ansible) in zip(self.metrics['tower'], self.metrics['ansible']):
             assert tower['playbook'] == ansible['playbook']
             assert tower['forks'] == ansible['forks']

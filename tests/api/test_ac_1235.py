@@ -2096,13 +2096,8 @@ inventory_dict = {
         }
     },
     "_meta": {
-        "hostvars":  {} # pruned to reduce the size of the dataset
+        "hostvars": {}  # pruned to reduce the size of the dataset
     },
-#    "all": {
-#        "vars": {
-#            "vpc_destination_variable": "private_ip_address"
-#        }
-#    },
     "ec2": {
         "children": [],
         "hosts": [
@@ -22183,7 +22178,7 @@ EOF''' % (json.dumps(inventory_dict, indent=4),))
         (hours, minutes, seconds) = result['delta'].split(':')
 
         # Calculate total seconds
-        seconds = float(seconds) + 60*float(minutes) + 60*60*float(hours)
+        seconds = float(seconds) + 60 * float(minutes) + 60 * 60 * float(hours)
 
         # Verify the import completed in a timely manner
         # Asserting the time is kind of hard.  It depends on the type of system used to test (CPU+Mem)
@@ -22193,7 +22188,7 @@ EOF''' % (json.dumps(inventory_dict, indent=4),))
 
         # Verify the import created the expected groups
         groups_created = random_inventory.get_related('groups').count
-        groups_expected = len([group for group in inventory_dict.keys() if group not in ('all','_meta')])
+        groups_expected = len([group for group in inventory_dict.keys() if group not in ('all', '_meta')])
         assert groups_created == groups_expected
         print "Number of groups imported: %s" % groups_created
 
@@ -22201,7 +22196,7 @@ EOF''' % (json.dumps(inventory_dict, indent=4),))
         # Count the number of unique hosts in the all groups
         # host_count = len({host:None for hosts in inventory_dict.values() for host in hosts })
         hosts_created = random_inventory.get_related('hosts').count
-        hosts_expected = len(dict((host, None) for group in inventory_dict.values() for host in group.get('hosts',[])))
+        hosts_expected = len(dict((host, None) for group in inventory_dict.values() for host in group.get('hosts', [])))
 
         # Verify the number of hosts matches what was imported
         assert hosts_created == hosts_expected
