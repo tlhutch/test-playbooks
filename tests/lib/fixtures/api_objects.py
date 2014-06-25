@@ -5,6 +5,9 @@ import common.utils
 import common.exceptions
 from tests.api import Base_Api_Test
 
+#
+# /api/v1/organizations
+#
 @pytest.fixture(scope="class")
 def random_organization(request, authtoken, api_organizations_pg):
     payload = dict(name="org-%s" % common.utils.random_unicode(),
@@ -13,6 +16,9 @@ def random_organization(request, authtoken, api_organizations_pg):
     request.addfinalizer(obj.delete)
     return obj
 
+#
+# /api/v1/projects
+#
 @pytest.fixture(scope="class")
 def project_ansible_helloworld_hg(request, authtoken, api_projects_pg, random_organization):
     # Create project
@@ -63,10 +69,16 @@ def random_project(request, authtoken, api_projects_pg, random_organization):
 
     return obj
 
+#
+# /api/v1/users
+#
 @pytest.fixture(scope="class")
 def admin_user(request, authtoken, api_users_pg):
     return api_users_pg.get(username__iexact='admin').results[0]
 
+#
+# /api/v1/inventory
+#
 @pytest.fixture(scope="class")
 def random_inventory(request, authtoken, api_inventories_pg, random_organization):
     payload = dict(name="inventory-%s" % common.utils.random_ascii(),
@@ -74,6 +86,30 @@ def random_inventory(request, authtoken, api_inventories_pg, random_organization
                    organization=random_organization.id,)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
+    return obj
+
+@pytest.fixture(scope="function")
+def random_ipv4(request, ansible_facts):
+    '''Return a randomly generated ipv4 address.'''
+    return ".".join(str(random.randint(1, 255)) for i in range(4))
+
+@pytest.fixture(scope="class")
+def ansible_default_ipv4(request, ansible_facts):
+    '''Return the ansible_default_ipv4 from ansible_facts of the system under test.'''
+    return ansible_facts['ansible_default_ipv4']['address']
+
+@pytest.fixture(scope="function")
+def inventory_localhost(request, authtoken, api_hosts_pg, random_group, ansible_default_ipv4):
+    '''Create a random inventory host where ansible_ssh_host == ansible_default_ipv4.'''
+    payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
+                   description="host-%s" % common.utils.random_unicode(),
+                   variables=json.dumps(dict(ansible_ssh_host=ansible_default_ipv4, ansible_connection="local")),
+                   inventory=random_group.inventory,)
+    obj = api_hosts_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    # Add to group
+    with pytest.raises(common.exceptions.NoContent_Exception):
+        obj.get_related('groups').post(dict(id=random_group.id))
     return obj
 
 #

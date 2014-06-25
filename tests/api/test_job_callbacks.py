@@ -16,30 +16,6 @@ def host_config_key():
     return str(uuid.uuid4())
 
 @pytest.fixture(scope="function")
-def random_ipv4(request, ansible_facts):
-    '''Return a randomly generated ipv4 address.'''
-    return ".".join(str(random.randint(1, 255)) for i in range(4))
-
-@pytest.fixture(scope="class")
-def ansible_default_ipv4(request, ansible_facts):
-    '''Return the ansible_default_ipv4 from ansible_facts of the system under test.'''
-    return ansible_facts['ansible_default_ipv4']['address']
-
-@pytest.fixture(scope="function")
-def inventory_localhost(request, authtoken, api_hosts_pg, random_group, ansible_default_ipv4):
-    '''Create a random inventory host where ansible_ssh_host == ansible_default_ipv4.'''
-    payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
-                   description="host-%s" % common.utils.random_unicode(),
-                   variables=json.dumps(dict(ansible_ssh_host=ansible_default_ipv4, ansible_connection="local")),
-                   inventory=random_group.inventory,)
-    obj = api_hosts_pg.post(payload)
-    request.addfinalizer(obj.delete)
-    # Add to group
-    with pytest.raises(common.exceptions.NoContent_Exception):
-        obj.get_related('groups').post(dict(id=random_group.id))
-    return obj
-
-@pytest.fixture(scope="function")
 def inventory_127001(request, authtoken, api_hosts_pg, random_group, ansible_default_ipv4):
     '''Create a random inventory host where ansible_ssh_host == ansible_default_ipv4.'''
     payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
