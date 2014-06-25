@@ -47,6 +47,10 @@
        * identify where things start to breakdown
 1. [ ] Verify client memory requirements, does it scale
 1. [ ] Verify that the events sent via socket-io, match the events sent via endpoint /jobs/N/job_events?
+1. [ ] Verify job page in supported browsers
+       * ff latest
+       * chrome latest
+       * safari latest
 
 ### UI Regresion
 1. [ ] Verify links from Dashboard are correct
