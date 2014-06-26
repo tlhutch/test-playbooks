@@ -33,7 +33,7 @@ organizations:
       admins:
         - ansible_admin
       projects:
-        - ansible-playbooks.git (github, ssh_key_data))
+        - ansible-playbooks.git (github, ssh_key_data)
 
     - name: Fedora
       description: The Fedora Project
