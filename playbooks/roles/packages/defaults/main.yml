@@ -8,4 +8,4 @@
 # ansible_pip: 'ansible'
 
 # Specify the PPA that provides 'ansible' stable releases (Ubuntu only)
-ansible_ppa: 'ppa:rquillo/ansible'
+ansible_ppa: 'ppa:ansible/ansible'
