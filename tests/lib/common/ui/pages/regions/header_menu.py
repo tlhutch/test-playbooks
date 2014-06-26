@@ -1,16 +1,16 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from common.ui.pages import *
-#from common.ui.pages.page import Page
-#from common.ui.pages.dashboard import Dashboard
-#from common.ui.pages.organizations import Organizations
-#from common.ui.pages.users import Users
-#from common.ui.pages.teams import Teams
-#from common.ui.pages.credentials import Credentials
-#from common.ui.pages.projects import Projects
-#from common.ui.pages.inventories import Inventories
-#from common.ui.pages.job_templates import Job_Templates
-#from common.ui.pages.jobs import Jobs
+# from common.ui.pages.page import Page
+# from common.ui.pages.dashboard import Dashboard
+# from common.ui.pages.organizations import Organizations
+# from common.ui.pages.users import Users
+# from common.ui.pages.teams import Teams
+# from common.ui.pages.credentials import Credentials
+# from common.ui.pages.projects import Projects
+# from common.ui.pages.inventories import Inventories
+# from common.ui.pages.job_templates import Job_Templates
+# from common.ui.pages.jobs import Jobs
 
 class HeaderMenu(Page):
     """
@@ -42,8 +42,7 @@ class HeaderMenu(Page):
     @property
     def name(self):
         # The page is encoded in UTF-8. Convert to it.
-        name = self._root_element.find_element(
-                *self._name_locator).text.encode('utf-8')
+        name = self._root_element.find_element(*self._name_locator).text.encode('utf-8')
         if not name:
             # If name is empty, assume Home menu
             name = "Home"
@@ -73,5 +72,4 @@ class HeaderMenu(Page):
         for menu in self.items:
             if menu.name == value:
                 return menu
-        raise Exception("Menu not found: '%s'. Menus: %s" % (
-                value, [menu.name for menu in self.items]))
+        raise Exception("Menu not found: '%s'. Menus: %s" % (value, [menu.name for menu in self.items]))

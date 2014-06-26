@@ -84,20 +84,17 @@ def load_data_file(filename, replacements=None):
 
 def find_data_file(filename, base_path, testmod_path=None):
     if testmod_path:
-        for attempt in [os.path.join(base_path, os.path.dirname(testmod_path), 'data', filename), \
-                        os.path.join(base_path, os.path.dirname(testmod_path), filename), \
-                       ]:
+        for attempt in [os.path.join(base_path, os.path.dirname(testmod_path), 'data', filename),
+                        os.path.join(base_path, os.path.dirname(testmod_path), filename), ]:
             if os.path.isfile(attempt):
                 new_path = attempt
                 break
     else:
         # No testmod_path? Well that's a lot easier!
         # Just join it with the data root, minus its leading slash
-        for attempt in [os.path.join(base_path, 'data', filename), \
-                        os.path.join(base_path, filename), \
-                       ]:
+        for attempt in [os.path.join(base_path, 'data', filename),
+                        os.path.join(base_path, filename), ]:
             if os.path.isfile(attempt):
                 new_path = attempt
 
     return new_path
-

@@ -39,8 +39,8 @@ class JSON_Wrapper(dict):
                     setattr(self, k, (JSON_Wrapper(item) for item in v))
             elif isinstance(v, dict):
                 setattr(self, k, JSON_Wrapper(v))
-            #else:
-            #    setattr(self, k, v)
+            # else:
+            #     setattr(self, k, v)
 
     def __getattr__(self, item):
         """Maps values to attributes.
@@ -56,7 +56,7 @@ class JSON_Wrapper(dict):
         Only if we are initialised
         """
         # any normal attributes are handled normally
-        if self.__dict__.has_key(item):
+        if item in self.__dict__:
             super(JSON_Wrapper, self).__setattr__(item, value)
         else:
             self.__setitem__(item, value)
@@ -154,7 +154,8 @@ class Connection(object):
                 self.requests_log.debug("\"%s %s\" elapsed: %s" % (r.request.method, r.url, r.elapsed))
 
         try:
-            response = request_handler(url,
+            response = request_handler(
+                url,
                 verify=self.verify,
                 params=params,
                 data=payload,

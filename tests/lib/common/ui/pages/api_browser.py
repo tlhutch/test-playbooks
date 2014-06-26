@@ -53,8 +53,7 @@ class Api_Browser_Home(Api_Browser_Page):
         popup = self.selenium.switch_to_alert()
         print popup.text
         popup.dismiss()
-        #popup.accept()
+        # popup.accept()
 
 class Api_Browser_v1(Api_Browser_Page):
     _page_title = u"Version 1 \xb7 Ansible Tower REST API"
-

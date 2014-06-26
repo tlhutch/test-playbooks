@@ -29,7 +29,7 @@ class Base(page.Page):
     @property
     def current_subpage(self):
         submenu_name = self.selenium.find_element_by_tag_name("body").get_attribute("id")
-        return self.submenus[submenu_name](self.testsetup) #IGNORE:E1101
+        return self.submenus[submenu_name](self.testsetup)  # IGNORE:E1101
 
     @property
     def csrf_token(self):
@@ -87,8 +87,8 @@ class Base(page.Page):
         def site_navigation_menus(self):
             # returns a list containing all the site navigation menus
             WebDriverWait(self.selenium, self.timeout).until(
-                    lambda s: len(s.find_elements(*self._site_navigation_menus_locator))
-                    >= self._site_navigation_min_number_menus)
+                lambda s: len(s.find_elements(*self._site_navigation_menus_locator))
+                >= self._site_navigation_min_number_menus)
             from regions.header_menu import HeaderMenu
             return [HeaderMenu(self.testsetup, web_element) for web_element in self.selenium.find_elements(*self._site_navigation_menus_locator)]
 
@@ -96,7 +96,7 @@ class Base(page.Page):
         _flash_div_locator = (By.CSS_SELECTOR, "div#flash_text_div")
         _flash_message_locator = (By.CSS_SELECTOR, "ul li")
 
-        def __init__(self,setup):
+        def __init__(self, setup):
             self.testsetup = setup
             self._root_element = self.testsetup.selenium.find_element(*self._flash_div_locator)
 

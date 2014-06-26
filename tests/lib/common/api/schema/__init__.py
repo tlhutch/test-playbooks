@@ -34,28 +34,27 @@ class Schema_Collection(object):
             if len(self.schemas) == 1:
                 version = self.schemas.keys()[0]
             else:
-                raise Exception("No schema version '%s' found. " \
+                raise Exception("No schema version '%s' found. "
                                 "Choices include: %s" % (version, self.schemas.keys()))
 
         # Determine whether provided resource matches as a regular expression
         if resource not in self.schemas[version]:
             for match_re in self.schemas[version]:
-                if re.match(match_re+'$', resource):
+                if re.match(match_re + '$', resource):
                     resource = match_re
                     break
 
         # Assert the resource exists
         if resource not in self.schemas[version]:
-            raise Exception("No schema resource '%s' found. " \
+            raise Exception("No schema resource '%s' found. "
                             "Choices include: %s" % (resource, self.schemas[version].keys()))
 
         # Validate the schema request type (get, post, put, patch etc...)
         if not hasattr(self.schemas[version][resource], request):
-            properties = [meth[0] \
-                for meth in inspect.getmembers(self.schemas[version][resource].__class__, lambda x: isinstance(x, property))]
-            raise Exception("No schema request '%s' found. " \
-                            "Choices include: %s" % (request, \
-                            properties))
+            properties = [meth[0]
+                          for meth in inspect.getmembers(self.schemas[version][resource].__class__, lambda x: isinstance(x, property))]
+            raise Exception("No schema request '%s' found. "
+                            "Choices include: %s" % (request, properties))
 
         return getattr(self.schemas[version][resource], request)
 

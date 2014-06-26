@@ -40,4 +40,3 @@ def pytest_configure(config):
     if (config.option.highlight):
         WebElement._old_execute = WebElement._execute
         WebElement._execute = _execute
-

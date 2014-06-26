@@ -22,4 +22,3 @@ class User_Page(base.Base):
 
 class Users_Page(User_Page, base.Base_List):
     base_url = '/api/v1/users/'
-

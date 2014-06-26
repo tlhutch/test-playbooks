@@ -48,7 +48,7 @@ class RandomizeValues(object):
         """
 
         # The following isn't cool, but it's python-2.6 friendly
-        return dict((k, cls._randomize_item(v)) for k,v in d.items())
+        return dict((k, cls._randomize_item(v)) for k, v in d.items())
         # return {k: cls._randomize_item(v) for k,v in d.items()}
 
     @classmethod

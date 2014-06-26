@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 class Dashboard(base.Base):
     '''FIXME'''
     _tab_title = "Home"
-    _job_status_pane_selector = ( By.CSS_SELECTOR, "div#container1")
+    _job_status_pane_selector = (By.CSS_SELECTOR, "div#container1")
 
     @property
     def job_status_pane(self):

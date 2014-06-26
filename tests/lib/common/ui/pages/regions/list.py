@@ -14,8 +14,7 @@ class ListRegion(Page):
     def items(self):
         '''Returns a list of items represented by _item_cls'''
         return [self._item_cls(self.testsetup, web_element)
-                for web_element in self._root_element.find_elements(
-                        *self._items_locator)]
+                for web_element in self._root_element.find_elements(*self._items_locator)]
 
 class ListItem(Page):
     '''Represents an item in the list'''
@@ -29,6 +28,4 @@ class ListItem(Page):
     @property
     def _item_data(self):  # IGNORE:C0111
         return [web_element
-                for web_element in self._root_element.find_elements(
-                        *self._item_data_locator)]
-
+                for web_element in self._root_element.find_elements(*self._item_data_locator)]

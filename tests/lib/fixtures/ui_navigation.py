@@ -13,8 +13,7 @@ def home_page_logged_in(mozwebqa):
     return home_pg
 
 def _submenu(home_pg, main_menu, submenu):
-    return home_pg.header.site_navigation_menu(
-            main_menu).sub_navigation_menu(submenu).click()
+    return home_pg.header.site_navigation_menu(main_menu).sub_navigation_menu(submenu).click()
 
 @pytest.fixture
 def ui_dashboard_pg(home_page_logged_in):

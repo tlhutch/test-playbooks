@@ -167,7 +167,7 @@ class Base_List(Base):
 
     @property
     def results(self):
-        return [self.__item_class__(self.testsetup, base_url=data.get('url',None), json=data) for data in self.json['results']]
+        return [self.__item_class__(self.testsetup, base_url=data.get('url', None), json=data) for data in self.json['results']]
 
     def options(self, **kwargs):
         r = self.api.options(self.base_url.format(**self.json))
@@ -225,13 +225,15 @@ class Task_Page(Base):
                'Traceback' in self.result_stdout
 
     def wait_until_started(self, interval=1, verbose=0, timeout=60):
-        return common.utils.wait_until(self, 'status',
+        return common.utils.wait_until(
+            self, 'status',
             ('pending', 'running', 'successful', 'failed', 'error', 'canceled',),
             interval=interval, verbose=verbose, timeout=timeout,
             start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
 
-    def wait_until_completed(self, interval=5, verbose=0, timeout=60*8):
-        return common.utils.wait_until(self, 'status',
+    def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 8):
+        return common.utils.wait_until(
+            self, 'status',
             ('successful', 'failed', 'error', 'canceled',),
             interval=interval, verbose=verbose, timeout=timeout,
             start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))

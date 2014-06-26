@@ -50,4 +50,3 @@ class Base_UI_Test(object):
                 ctype
 
         return True
-

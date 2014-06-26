@@ -38,21 +38,21 @@ class Inventory_Page(base.Base):
             for host in inv_dict[group].get('hosts', []):
                 # FIXME ... include hostvars
                 output.append(host)
-            output.append('') # newline
+            output.append('')  # newline
 
             # output child groups
             if inv_dict[group].get('children', []):
                 output.append('[%s:children]' % group)
                 for child in inv_dict[group].get('children', []):
                     output.append(child)
-                output.append('') # newline
+                output.append('')  # newline
 
             # output group vars
             if inv_dict[group].get('vars', {}).items():
                 output.append('[%s:vars]' % group)
-                for k,v in inv_dict[group].get('vars', {}).items():
-                    output.append('%s=%s' % (k,v))
-                output.append('') # newline
+                for k, v in inv_dict[group].get('vars', {}).items():
+                    output.append('%s=%s' % (k, v))
+                output.append('')  # newline
 
         print '\n'.join(output)
 

@@ -11,7 +11,7 @@ class Page(object):
     def open(self):
         """Open the specified url_fragment, which is relative to the base_url, in the current window."""
         return self.get()
-        #self.is_the_current_page
+        # self.is_the_current_page
 
     @property
     def base_url(self):

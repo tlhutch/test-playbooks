@@ -93,19 +93,19 @@ def ini_inventory(nhosts=10):
         output.append('[%s]' % group)
         for host in inv_list[group].get('hosts', []):
             output.append(host)
-        output.append('') # newline
+        output.append('')  # newline
 
         # output child groups
         output.append('[%s:children]' % group)
         for child in inv_list[group].get('children', []):
             output.append(child)
-        output.append('') # newline
+        output.append('')  # newline
 
         # output group vars
         output.append('[%s:vars]' % group)
-        for k,v in inv_list[group].get('vars', {}).items():
-            output.append('%s=%s' % (k,v))
-        output.append('') # newline
+        for k, v in inv_list[group].get('vars', {}).items():
+            output.append('%s=%s' % (k, v))
+        output.append('')  # newline
 
     return '\n'.join(output)
 
@@ -124,4 +124,3 @@ if __name__ == '__main__':
         print json_inventory(nhosts=options.nhosts)['_meta']['hostvars'][options.hostname]
     else:
         print json.dumps({}, indent=4)
-

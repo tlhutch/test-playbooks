@@ -59,8 +59,7 @@ def api_authtoken_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_authtoken_pg(testsetup, api_authtoken_url):
-    return AuthToken_Page(testsetup, \
-        base_url=api_authtoken_url)
+    return AuthToken_Page(testsetup, base_url=api_authtoken_url)
 
 #
 # /api/v1/config
@@ -71,8 +70,7 @@ def api_config_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_config_pg(testsetup, api_config_url):
-    return Config_Page(testsetup, \
-        base_url=api_config_url)
+    return Config_Page(testsetup, base_url=api_config_url)
 
 #
 # /api/v1/me
@@ -83,8 +81,7 @@ def api_me_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_me_pg(testsetup, api_me_url):
-    return Me_Page(testsetup, \
-        base_url=api_me_url)
+    return Me_Page(testsetup, base_url=api_me_url)
 
 #
 # /api/v1/organizations
@@ -95,8 +92,7 @@ def api_organizations_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_organizations_pg(testsetup, api_organizations_url):
-    return Organizations_Page(testsetup, \
-        base_url=api_organizations_url)
+    return Organizations_Page(testsetup, base_url=api_organizations_url)
 
 #
 # /api/v1/users
@@ -107,8 +103,7 @@ def api_users_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_users_pg(testsetup, api_users_url):
-    return Users_Page(testsetup, \
-        base_url=api_users_url)
+    return Users_Page(testsetup, base_url=api_users_url)
 
 #
 # /api/v1/teams
@@ -119,8 +114,7 @@ def api_teams_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_teams_pg(testsetup, api_teams_url):
-    return Teams_Page(testsetup, \
-        base_url=api_teams_url)
+    return Teams_Page(testsetup, base_url=api_teams_url)
 
 #
 # /api/v1/projects
@@ -131,8 +125,7 @@ def api_projects_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_projects_pg(testsetup, api_projects_url):
-    return Projects_Page(testsetup, \
-        base_url=api_projects_url)
+    return Projects_Page(testsetup, base_url=api_projects_url)
 
 #
 # /api/v1/teams
@@ -143,8 +136,7 @@ def api_teams_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_teams_pg(testsetup, api_teams_url):
-    return Teams_Page(testsetup, \
-        base_url=api_teams_url)
+    return Teams_Page(testsetup, base_url=api_teams_url)
 
 #
 # /api/v1/credentials
@@ -155,8 +147,7 @@ def api_credentials_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_credentials_pg(testsetup, api_credentials_url):
-    return Credentials_Page(testsetup, \
-        base_url=api_credentials_url)
+    return Credentials_Page(testsetup, base_url=api_credentials_url)
 
 #
 # /api/v1/inventory
@@ -167,8 +158,7 @@ def api_inventories_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_inventories_pg(testsetup, api_inventories_url):
-    return Inventories_Page(testsetup, \
-        base_url=api_inventories_url)
+    return Inventories_Page(testsetup, base_url=api_inventories_url)
 
 #
 # /api/v1/inventory_sources
@@ -179,8 +169,7 @@ def api_inventory_sources_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_inventory_sources_pg(testsetup, api_inventory_sources_url):
-    return Inventory_Sources_Page(testsetup, \
-        base_url=api_inventory_sources_url)
+    return Inventory_Sources_Page(testsetup, base_url=api_inventory_sources_url)
 
 #
 # /api/v1/groups
@@ -191,8 +180,7 @@ def api_groups_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_groups_pg(testsetup, api_groups_url):
-    return Groups_Page(testsetup, \
-        base_url=api_groups_url)
+    return Groups_Page(testsetup, base_url=api_groups_url)
 
 #
 # /api/v1/hosts
@@ -203,8 +191,7 @@ def api_hosts_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_hosts_pg(testsetup, api_hosts_url):
-    return Hosts_Page(testsetup, \
-        base_url=api_hosts_url)
+    return Hosts_Page(testsetup, base_url=api_hosts_url)
 
 #
 # /api/v1/job_templates
@@ -215,8 +202,7 @@ def api_job_templates_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_job_templates_pg(testsetup, api_job_templates_url):
-    return Job_Templates_Page(testsetup, \
-        base_url=api_job_templates_url)
+    return Job_Templates_Page(testsetup, base_url=api_job_templates_url)
 
 #
 # /api/v1/schedules
@@ -227,8 +213,7 @@ def api_schedules_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_schedules_pg(testsetup, api_schedules_url):
-    return Schedules_Page(testsetup, \
-        base_url=api_schedules_url)
+    return Schedules_Page(testsetup, base_url=api_schedules_url)
 
 #
 # /api/v1/jobs
@@ -239,8 +224,7 @@ def api_jobs_url(api, api_home):
 
 @pytest.fixture(scope="module")
 def api_jobs_pg(testsetup, api_jobs_url):
-    return Jobs_Page(testsetup, \
-        base_url=api_jobs_url)
+    return Jobs_Page(testsetup, base_url=api_jobs_url)
 
 @pytest.fixture(scope="module")
 def authtoken(api, testsetup, api_authtoken_url):
@@ -271,6 +255,5 @@ def region_choices(api_inventory_sources_pg):
     options = api_inventory_sources_pg.options()
 
     # The format is a list of lists in the format: [['<internal-string>', '<human-readable-string>'], ...]
-    return dict(ec2=[r[0] for r in options.json.get('actions',{}).get('GET',{}).get('source_regions',{}).get('ec2_region_choices',[])],
-                rax=[r[0] for r in options.json.get('actions',{}).get('GET',{}).get('source_regions',{}).get('rax_region_choices',[])])
-
+    return dict(ec2=[r[0] for r in options.json.get('actions', {}).get('GET', {}).get('source_regions', {}).get('ec2_region_choices', [])],
+                rax=[r[0] for r in options.json.get('actions', {}).get('GET', {}).get('source_regions', {}).get('rax_region_choices', [])])

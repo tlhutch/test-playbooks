@@ -95,4 +95,3 @@ class LoginPage(base.Base):
         credentials = self.testsetup.credentials[user]
         self.username.send_keys(credentials['username'])
         self.password.send_keys(credentials['password'])
-

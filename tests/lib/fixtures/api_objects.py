@@ -144,8 +144,7 @@ def random_ssh_credential(request, authtoken, api_credentials_pg, admin_user, te
                    kind='ssh',
                    user=admin_user.id,
                    username=testsetup.credentials['ssh']['username'],
-                   password=testsetup.credentials['ssh']['password'],
-                  )
+                   password=testsetup.credentials['ssh']['password'],)
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -158,8 +157,7 @@ def random_ssh_credential_ask(request, authtoken, api_credentials_pg, admin_user
                    kind='ssh',
                    user=admin_user.id,
                    username=testsetup.credentials['ssh']['username'],
-                   password='ASK',
-                  )
+                   password='ASK',)
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -175,8 +173,7 @@ def random_ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admi
                    password='ASK',
                    ssh_key_unlock='ASK',
                    sudo_username=testsetup.credentials['ssh']['sudo_username'],
-                   sudo_password='ASK',
-                  )
+                   sudo_password='ASK',)
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -189,8 +186,7 @@ def random_aws_credential(request, authtoken, api_credentials_pg, admin_user, te
                    kind='aws',
                    user=admin_user.id,
                    username=testsetup.credentials['cloud']['aws']['username'],
-                   password=testsetup.credentials['cloud']['aws']['password'],
-                  )
+                   password=testsetup.credentials['cloud']['aws']['password'],)
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -244,7 +240,7 @@ def random_job_template_no_credential(request, authtoken, api_job_templates_pg, 
                    inventory=random_inventory.id,
                    job_type='run',
                    project=random_project.id,
-                   playbook='site.yml', ) # This depends on the project selected
+                   playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -259,7 +255,7 @@ def random_job_template(request, authtoken, api_job_templates_pg, random_project
                    job_type='run',
                    project=random_project.id,
                    credential=random_ssh_credential.id,
-                   playbook='site.yml', ) # This depends on the project selected
+                   playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj

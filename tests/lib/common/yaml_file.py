@@ -9,7 +9,7 @@ class Loader(yaml.CLoader):
         self._root = os.path.split(stream.name)[0]
         super(Loader, self).__init__(stream)
         Loader.add_constructor('!include', Loader.include)
-        Loader.add_constructor('!import',  Loader.include)
+        Loader.add_constructor('!import', Loader.include)
 
     def include(self, node):
         if isinstance(node, yaml.ScalarNode):
@@ -23,7 +23,7 @@ class Loader(yaml.CLoader):
 
         elif isinstance(node, yaml.MappingNode):
             result = {}
-            for k,v in self.construct_mapping(node).iteritems():
+            for k, v in self.construct_mapping(node).iteritems():
                 result[k] = self.extractFile(v)
             return result
 

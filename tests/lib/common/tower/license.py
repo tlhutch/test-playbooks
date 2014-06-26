@@ -32,9 +32,9 @@ def generate_license(instance_count=20, contact_email="art@vandelay.com", compan
 
     # Generate license key (see ansible-commander/private/license_writer.py)
     meta = dict(instance_count=instance_count,
-        contact_email=contact_email,
-        company_name=company_name,
-        contact_name="Art Vandelay")
+                contact_email=contact_email,
+                company_name=company_name,
+                contact_name="Art Vandelay")
 
     # Determine license_date
     if days is not None:

@@ -19,7 +19,7 @@ def pytest_sessionstart(session):
     '''
 
     # Yuck, is there a better way to benefit from pytest_tmpdir?
-    tmpdir = session.config.pluginmanager.getplugin("tmpdir").TempdirHandler(\
+    tmpdir = session.config.pluginmanager.getplugin("tmpdir").TempdirHandler(
         session.config).getbasetemp()
 
     # Sanitize ansible_hostname
@@ -70,7 +70,7 @@ def pytest_sessionstart(session):
         #   <fqdn> ansible_ssh_host=<fqdn> foo=bar # <alias>
         for line in inventory_data.split('\n'):
             if ansible_hostname in line and not line.startswith(ansible_hostname):
-                (alias, remainder) = line.split(' ',1)
+                (alias, remainder) = line.split(' ', 1)
                 line = "%s %s # %s" % (ansible_hostname, remainder, alias)
             local_inventory.write(line + '\n')
 
@@ -153,19 +153,18 @@ class AnsibleWrapper(object):
         if args:
             module_args += list(args)
 
-        #if kwargs:
-        #    module_args += ["%s=%s" % (k, pipes.quote(v)) for k,v in kwargs.items()]
+        # if kwargs:
+        #     module_args += ["%s=%s" % (k, pipes.quote(v)) for k,v in kwargs.items()]
 
         module_args = ' '.join(module_args)
 
         runner = ansible.runner.Runner(
-           inventory=inventory,
-           pattern=self.pattern,
-           module_name=self.module_name,
-           module_args=module_args,
-           complex_args=kwargs,
-           sudo=True,
-           )
+            inventory=inventory,
+            pattern=self.pattern,
+            module_name=self.module_name,
+            module_args=module_args,
+            complex_args=kwargs,
+            sudo=True,)
         result = runner.run()
 
         # Handle response
@@ -189,7 +188,7 @@ class AnsibleWrapper(object):
         if args:
             module_args += list(args)
         if kwargs:
-            module_args += ["%s=%s" % (k, pipes.quote(v)) for k,v in kwargs.items()]
+            module_args += ["%s=%s" % (k, pipes.quote(v)) for k, v in kwargs.items()]
 
         # Build command
         cmd = ['ansible', '-vvvv', self.pattern, '-m', self.module_name, '-i', self.inventory, '--sudo']

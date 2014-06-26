@@ -40,10 +40,9 @@ class Job_Template_Page(base.Base):
         '''
         Create a job by issuing a POST to related->jobs
         '''
-        if not 'job_template' in kwargs:
+        if 'job_template' not in kwargs:
             kwargs['job_template'] = self.id
         return self.get_related('jobs').post(kwargs)
 
 class Job_Templates_Page(Job_Template_Page, base.Base_List):
     base_url = '/api/v1/job_templates/'
-

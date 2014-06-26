@@ -53,15 +53,15 @@ def wait_until(obj, att, desired, callback=None, interval=5, attempts=0, timeout
     '''
     if callback:
         raise NotImplementedError("Coming soon!")
-        #waiter = _WaitThread(obj=obj, att=att, desired=desired, callback=callback,
-        #        interval=interval, attempts=attempts, verbose=verbose,
-        #        verbose_atts=verbose_atts)
-        #waiter.start()
-        #return waiter
+        # waiter = _WaitThread(obj=obj, att=att, desired=desired, callback=callback,
+        #          interval=interval, attempts=attempts, verbose=verbose,
+        #          verbose_atts=verbose_atts)
+        # waiter.start()
+        # return waiter
     else:
         return _wait_until(obj=obj, att=att, desired=desired, callback=None,
-                interval=interval, attempts=attempts, timeout=timeout,
-                start_time=start_time, verbose=verbose, verbose_atts=verbose_atts)
+                           interval=interval, attempts=attempts, timeout=timeout,
+                           start_time=start_time, verbose=verbose, verbose_atts=verbose_atts)
 
 def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_time, verbose, verbose_atts):
     '''
@@ -92,8 +92,7 @@ def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_
                 obj = obj.manager.get(obj.id)
             except AttributeError:
                 # punt
-                raise NoReloadError("The 'wait_until' method is not "
-                        "supported for '%s' objects." % obj.__class__)
+                raise NoReloadError("The 'wait_until' method is not supported for '%s' objects." % obj.__class__)
         attval = getattr(obj, att)
         elapsed = time.time() - start_time
         if verbose:

@@ -25,4 +25,3 @@ class Test_Api_Browser(Base_UI_Test):
 #        config_pg = v1_pg.click_by_href('/api/v1/config/')
 #        config_pg.login()
 #        assert home_pg.is_logged_in, 'Unable to determine if logged in'
-

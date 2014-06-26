@@ -29,7 +29,7 @@ class Page(object):
         time.sleep(0.5)
         # On pages that do not have ajax refresh this wait will have no effect.
         WebDriverWait(self.selenium, self.timeout).until(
-                lambda s: not self.is_element_visible(*self._updating_locator))
+            lambda s: not self.is_element_visible(*self._updating_locator))
 
     def _wait_for_visible_element(self, *locator):
         # Used in forms where an element (submit button) is displayed after ajax
@@ -37,26 +37,26 @@ class Page(object):
         # notification loadmask so _wait_for_results_refresh can't be used.
         # On pages that do not have ajax refresh this wait will have no effect.
         WebDriverWait(self.selenium, self.timeout).until(
-                lambda s: self.is_element_visible(*locator))
+            lambda s: self.is_element_visible(*locator))
 
     @property
     def is_the_current_tab(self):
         current_tab = self.get_current_tab()
         if self._tab_title:
             Assert.equal(current_tab.text, self._tab_title,  # IGNORE:E1101
-                "Expected tab title: %s. Actual tab title: %s" %
-                (self._tab_title, current_tab.text))  # IGNORE:E1101
+                         "Expected tab title: %s. Actual tab title: %s" %
+                         (self._tab_title, current_tab.text))  # IGNORE:E1101
         return True
 
     @property
     def is_the_current_page(self):
         if self._page_title:  # IGNORE:E1101
             WebDriverWait(self.selenium, self.timeout).until(
-                    lambda s: self.selenium.title)
+                lambda s: self.selenium.title)
 
         Assert.equal(self.selenium.title, self._page_title,  # IGNORE:E1101
-            "Expected page title: %s. Actual page title: %s" %
-            (self._page_title, self.selenium.title))  # IGNORE:E1101
+                     "Expected page title: %s. Actual page title: %s" %
+                     (self._page_title, self.selenium.title))  # IGNORE:E1101
         return True
 
     def get_current_tab(self):
@@ -64,7 +64,7 @@ class Page(object):
 
     def get_url_current_page(self):
         WebDriverWait(self.selenium, self.timeout).until(
-                lambda s: self.selenium.title)
+            lambda s: self.selenium.title)
         return self.selenium.current_url
 
     def get_context_current_page(self):
@@ -105,7 +105,7 @@ class Page(object):
         popup.dismiss() if cancel else popup.accept()
 
     def fill_field_element_with_wait(self, data, field_element):
-        field_element = self.fill_field_element(data,field_element)
+        field_element = self.fill_field_element(data, field_element)
         # Stupid wait for ajax interval
         time.sleep(2)
         return field_element
@@ -139,4 +139,3 @@ class Page(object):
     def select_dropdown_by_value(self, value, *element):
         select = Select(self.selenium.find_element(*element))
         select.select_by_value(value)
-
