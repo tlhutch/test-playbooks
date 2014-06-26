@@ -1,15 +1,10 @@
 import os
-import sys
 import re
-import httplib
 import pytest
-import time
 import json
 import logging
 import common.tower.license
 from inflect import engine
-from unittestzero import Assert
-from common.api.schema import validate
 from common.yaml_file import load_file
 from tests.api import Base_Api_Test
 from common.exceptions import Duplicate_Exception, NoContent_Exception
@@ -56,9 +51,9 @@ def pytest_generate_tests(metafunc):
 def install_integration_license(request, authtoken, ansible_runner, awx_config):
     '''If a suitable license is not already installed, install a new license'''
     logging.debug("calling fixture install_integration_license")
-    if not (awx_config['license_info'].get('valid_key', False) and \
-            awx_config['license_info'].get('compliant', False) and \
-            awx_config['license_info'].get('available_instances',0) >= 10001 ):
+    if not (awx_config['license_info'].get('valid_key', False) and
+            awx_config['license_info'].get('compliant', False) and
+            awx_config['license_info'].get('available_instances', 0) >= 10001):
 
         logging.debug("backing up existing license")
         # Backup any aws license
@@ -217,8 +212,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                        kind=credential['kind'],
                        username=credential.get('username', None),
                        password=credential.get('password', None),
-                       cloud=credential.get('cloud', False),
-                      )
+                       cloud=credential.get('cloud', False),)
 
         # Add user id (optional)
         if credential['user']:
@@ -241,7 +235,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             assert self.has_credentials(credential['kind'], fields=fields + ['encrypted'])
 
             # Merge with credentials.yaml
-            payload.update(dict( \
+            payload.update(dict(
                 ssh_key_data=credential.get('ssh_key_data', ''),
                 ssh_key_unlock=credential.get('ssh_key_unlock', ''),
                 sudo_username=credential.get('sudo_username', ''),
@@ -279,9 +273,9 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Create a new inventory
         payload = dict(name=inventory['name'],
-                       description=inventory.get('description',''),
+                       description=inventory.get('description', ''),
                        organization=org.id,
-                       variables=json.dumps(inventory.get('variables',None)))
+                       variables=json.dumps(inventory.get('variables', None)))
 
         try:
             api_inventories_pg.post(payload)
@@ -303,9 +297,9 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Create a new inventory
         payload = dict(name=group['name'],
-                       description=group.get('description',''),
+                       description=group.get('description', ''),
                        inventory=inventory_id,
-                       variables=json.dumps(group.get('variables',None)))
+                       variables=json.dumps(group.get('variables', None)))
 
         # different behavior depending on if we're creating child or parent
         if 'parent' in group:
@@ -337,7 +331,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         payload = dict(name=host['name'],
                        description=host['description'],
                        inventory=inventory_id,
-                       variables=json.dumps(host.get('variables',None)))
+                       variables=json.dumps(host.get('variables', None)))
 
         try:
             api_hosts_pg.post(payload)
@@ -389,8 +383,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                        overwrite=inventory_source.get('overwrite', False),
                        overwrite_vars=inventory_source.get('overwrite_vars', False),
                        update_on_launch=inventory_source.get('update_on_launch', False),
-                       update_interval=inventory_source.get('update_interval', 0),
-                      )
+                       update_interval=inventory_source.get('update_interval', 0),)
         inventory_source_pg.patch(**payload)
 
     @pytest.mark.destructive
@@ -493,18 +486,17 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 "Must provide ansible module to use for scm_url: %s " % project['scm_url']
 
             # Make sure the required package(s) are installed
-            results = ansible_runner.shell("test -f /etc/system-release && yum -y install %s || true" \
-                % project['_ansible_module'])
-            results = ansible_runner.shell("grep -qi ubuntu /etc/os-release && apt-get install %s || true" \
-                % project['_ansible_module'])
+            results = ansible_runner.shell("test -f /etc/system-release && yum -y install %s || true"
+                                           % project['_ansible_module'])
+            results = ansible_runner.shell("grep -qi ubuntu /etc/os-release && apt-get install %s || true"
+                                           % project['_ansible_module'])
 
             # Clone the repo
             clone_func = getattr(ansible_runner, project['_ansible_module'])
             results = clone_func(
                 force='no',
                 repo=project['scm_url'],
-                dest="%s/%s" % ( awx_config['project_base_dir'], \
-                    project['local_path']))
+                dest="%s/%s" % (awx_config['project_base_dir'], project['local_path']))
 
         # Find desired object identifiers
         org_id = api_organizations_pg.get(name__exact=project['organization']).results[0].id
@@ -520,7 +512,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             payload['local_path'] = project['local_path']
         else:
             payload.update(dict(scm_url=project['scm_url'],
-                                scm_branch=project.get('scm_branch',''),
+                                scm_branch=project.get('scm_branch', ''),
                                 scm_clean=project.get('scm_clean', False),
                                 scm_delete_on_update=project.get('scm_delete_on_update', False),
                                 scm_update_on_launch=project.get('scm_update_on_launch', False),))
@@ -641,25 +633,24 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 ec2_facts = ansible_runner.ec2_facts()
                 ansible_facts['inventory_hostname'] = ec2_facts['ansible_facts']['ansible_ec2_public_hostname']
             else:
-                ansible_facts['inventory_hostname'] = ansible_facts['ansible_fqdn'].replace('x86-64','x86_64')
+                ansible_facts['inventory_hostname'] = ansible_facts['ansible_fqdn'].replace('x86-64', 'x86_64')
 
         # Substitute any template parameters
         limit = job_template.get('limit', '').format(**ansible_facts)
 
         # Create a new job_template
         payload = dict(name=job_template['name'],
-                       description=job_template.get('description',None),
+                       description=job_template.get('description', None),
                        job_type=job_template['job_type'],
                        playbook=job_template['playbook'],
                        job_tags=job_template.get('job_tags', ''),
-                       limit = limit,
+                       limit=limit,
                        inventory=inventory_id,
                        project=project_id,
                        allow_callbacks=job_template.get('allow_callbacks', False),
                        verbosity=job_template.get('verbosity', 0),
                        forks=job_template.get('forks', 0),
-                       extra_vars=json.dumps(job_template.get('extra_vars',None)),
-                      )
+                       extra_vars=json.dumps(job_template.get('extra_vars', None)),)
 
         # Add credential identifiers
         for cred in ('credential', 'cloud_credential'):
@@ -682,7 +673,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         template_pg = api_job_templates_pg.get(name__iexact=job_template['name']).results[0]
 
         # Create the job
-        payload = dict(name=template_pg.name, # Add Date?
+        payload = dict(name=template_pg.name,  # Add Date?
                        job_template=template_pg.id,
                        inventory=template_pg.inventory,
                        project=template_pg.project,
@@ -717,7 +708,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         job_pg = matches.results[0]
 
         # Wait 20mins for job to start (aka, enter 'pending' state)
-        job_pg = job_pg.wait_until_started(timeout=60*20)
+        job_pg = job_pg.wait_until_started(timeout=60 * 20)
 
         # With the job started, it shouldn't be start'able anymore
         start_pg = job_pg.get_related('start')
@@ -727,7 +718,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Wait 20mins for job to complete
         # TODO: It might be nice to wait 15 mins from when the job started
-        job_pg = job_pg.wait_until_completed(timeout=60*20)
+        job_pg = job_pg.wait_until_completed(timeout=60 * 20)
 
         # xfail for known vault packaging failure
         if job_pg.failed and 'ERROR: ansible-vault requires a newer version of pycrypto than the one installed on your platform.' in job_pg.result_stdout:
