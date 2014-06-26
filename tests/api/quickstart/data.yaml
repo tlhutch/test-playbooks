@@ -879,16 +879,17 @@ job_templates:
       job_tags: bar
       limit: not a valid hostname
 
-#    - name: ansible-commander.git/setup/site.yml
-#      job_type: run
-#      playbook: setup/site.yml
-#      project: ansible-commander.git (github, ssh_key_data)
-#      inventory: ansible-aws
-#      credential: SSH (user:bender_eng_user, ssh_key_data)
-#      limit: ansible-tower
-#      extra_vars:
-#        sudo: true
-#        sudo_user: root
+    - name: ansible-commander.git/setup/site.yml
+      _launch: false
+      job_type: run
+      playbook: setup/site.yml
+      project: ansible-commander.git (github, ssh_key_data)
+      inventory: ansible-aws
+      credential: SSH (user:bender_eng_user, ssh_key_data)
+      limit: ansible-tower
+      extra_vars:
+        sudo: true
+        sudo_user: root
 
 #    - name: ansible-helloworld.hg/dynamic_inventory.yml
 #      job_type: run
