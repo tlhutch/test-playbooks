@@ -71,7 +71,7 @@ def objectify(self):
     try:
         json = self.json()
     except ValueError, e:
-        warnings.warn("Unable to parse JSON response: " % e)
+        warnings.warn("Unable to parse JSON response: " % self.text)
         json = dict()
 
     return JSON_Wrapper(json=json)
