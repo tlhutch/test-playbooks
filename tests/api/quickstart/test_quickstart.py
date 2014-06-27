@@ -702,6 +702,9 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_jobs_launch_status(self, api_job_templates_pg, api_jobs_pg, job_template):
+        # If desired, skip launch
+        if not job_template.get('_launch', True):
+            pytest.skip("Per-request, skipping launch: %s" % job_template['name'])
 
         # Find desired object identifiers
         template_pg = api_job_templates_pg.get(name__iexact=job_template['name']).results[0]
