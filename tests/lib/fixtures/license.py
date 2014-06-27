@@ -1,3 +1,4 @@
+import sys
 import logging
 import pytest
 import common.tower.license
@@ -47,7 +48,7 @@ def install_license_1000(request, ansible_runner):
 
 @pytest.fixture(scope='class')
 def install_license_10000(request, ansible_runner):
-    '''Install a license where instance_count=1000
+    '''Install a license where instance_count=10000
     '''
 
     logging.debug("calling fixture install_license_10000")
@@ -56,5 +57,19 @@ def install_license_10000(request, ansible_runner):
 
     def teardown():
         logging.debug("calling teardown install_license_10000")
+        ansible_runner.file(path='/etc/awx/license', state='absent')
+    request.addfinalizer(teardown)
+
+@pytest.fixture(scope='class')
+def install_license_unlimited(request, ansible_runner):
+    '''Install a license where instance_count=unlimited
+    '''
+
+    logging.debug("calling fixture install_license_unlimited")
+    fname = common.tower.license.generate_license_file(instance_count=sys.maxint, days=365)
+    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+
+    def teardown():
+        logging.debug("calling teardown install_license_unlimited")
         ansible_runner.file(path='/etc/awx/license', state='absent')
     request.addfinalizer(teardown)
