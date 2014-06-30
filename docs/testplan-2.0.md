@@ -20,6 +20,12 @@
     [ ] rhel-7.0
     [ ] centos-6.5
 
+2. Verify AWS AMI boot successfully, and include the appropriate license information
+    [ ] license: 10
+    [ ] license: 50
+    [ ] license: 100
+    [ ] license: 250
+
 ### Upgrade
 1. Upgrade completes on all supported platforms
     [ ] ubuntu-12.04
