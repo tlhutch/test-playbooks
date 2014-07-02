@@ -305,6 +305,9 @@ inventories:
     - name: ansible-rax
       organization: Ansible, Inc
 
+    - name: local,
+      organization: Ansible, Inc
+
 groups:
     - name: local
       description: A group for systems that map to localhost
@@ -657,6 +660,9 @@ hosts:
         - local_16-20
         - local_20
 
+    - name: local
+      inventory: local,
+
 projects:
     - name: ansible-examples.git (manual)
       description: scm_type:manual
@@ -891,14 +897,13 @@ job_templates:
         sudo: true
         sudo_user: root
 
-#     - name: ansible-helloworld.hg/dynamic_inventory.yml
-#       _launch: false
-#       job_type: run
-#       project: ansible-helloworld (hg, ssh_key_data)
-#       playbook: dynamic_inventory.yml
-#       inventory: it_inventory
-#       credential: SSH (user:bender_eng_user, ssh_key_data)
-#       limit: '{inventory_hostname}'
-#       extra_vars:
-#         num_hosts: 1000
-#         ansible_connection: local
+    - name: ansible-helloworld.hg/dynamic_inventory.yml
+      _launch: false
+      job_type: run
+      project: ansible-helloworld (hg, ssh_key_data)
+      playbook: dynamic_inventory.yml
+      inventory: local,
+      credential: SSH (user:bender_eng_user, ssh_key_data)
+      extra_vars:
+        num_hosts: 1000
+        ansible_connection: local
