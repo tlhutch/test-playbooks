@@ -285,7 +285,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_inventories_get(self, api_inventories_pg, inventories):
         # Get list of created inventories
-        api_inventories_pg.get(name__in=','.join([o['name'] for o in inventories]))
+        api_inventories_pg.get(or__name=[o['name'] for o in inventories])
 
         # Validate number of inventories found
         assert len(inventories) == len(api_inventories_pg.results)
@@ -329,7 +329,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Create a new host
         payload = dict(name=host['name'],
-                       description=host['description'],
+                       description=host.get('description',None),
                        inventory=inventory_id,
                        variables=json.dumps(host.get('variables', None)))
 
@@ -341,7 +341,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_hosts_get(self, api_hosts_pg, hosts):
         # Get list of available hosts
-        api_hosts_pg.get(name__in=','.join([o['name'] for o in hosts]))
+        api_hosts_pg.get(or__name=[o['name'] for o in hosts])
 
         # Validate number of inventories found
         assert len(hosts) == api_hosts_pg.count
