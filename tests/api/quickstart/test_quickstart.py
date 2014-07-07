@@ -329,7 +329,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Create a new host
         payload = dict(name=host['name'],
-                       description=host.get('description',None),
+                       description=host.get('description', None),
                        inventory=inventory_id,
                        variables=json.dumps(host.get('variables', None)))
 
