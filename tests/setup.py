@@ -12,6 +12,7 @@ results_timestamp = time.strftime("%s", time.localtime())
 default_args = '-v -l --tb=native --junitxml=%s/%s.xml --resultlog=%s/%s.log' % \
     (results_dir, results_timestamp, results_dir, results_timestamp)
 
+
 class PyTest(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
@@ -33,13 +34,17 @@ class PyTest(TestCommand):
         sys.path.insert(0, 'lib')
         pytest.main(self.test_args)
 
+
 class CleanCommand(Command):
     description = "Custom clean command that forcefully removes dist/build directories"
     user_options = []
+
     def initialize_options(self):
         self.cwd = None
+
     def finalize_options(self):
         self.cwd = os.getcwd()
+
     def run(self):
         assert os.getcwd() == self.cwd, 'Must be in package root: %s' % self.cwd
 
@@ -71,7 +76,7 @@ class CleanCommand(Command):
 setup(
     name="ansibleworks-qa",
     # tests_require=open('requirements.txt', 'r').readlines(),
-    setup_requires=['setuptools-pep8'],
+    setup_requires=['setuptools-pep8', 'setuptools_pyflakes'],
     cmdclass={
         'test': PyTest,
         'clean': CleanCommand,
