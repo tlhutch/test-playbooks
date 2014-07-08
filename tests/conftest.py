@@ -17,7 +17,6 @@ if os.path.isdir(lib_dir):
     sys.path.insert(0, lib_dir)
 
 import plugins
-import plugins.pytest_restqa
 import fixtures
 import markers
 
@@ -34,4 +33,9 @@ def _pytest_plugins_generator(*extension_pkgs):
 pytest_plugins = tuple(_pytest_plugins_generator(fixtures, markers, plugins))
 
 # Include plugins/pytest_restqa
-pytest_plugins += (plugins.pytest_restqa.pytest_restqa.__name__,)
+import plugins.pytest_restqa
+pytest_plugins += tuple(_pytest_plugins_generator(plugins.pytest_restqa))
+
+# Include fixtures.api
+import fixtures.api
+pytest_plugins += tuple(_pytest_plugins_generator(fixtures.api))
