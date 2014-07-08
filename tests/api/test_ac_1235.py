@@ -1,8 +1,7 @@
 import pytest
 import json
-import common.tower.license
+
 from tests.api import Base_Api_Test
-from common import randomness
 
 # Actual splunk.json observed in AC-1235 ... don't judge!
 inventory_dict = {
@@ -22157,7 +22156,7 @@ class Test_AC_1235(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_10000')
 
-    def test_import(self, ansible_runner, tmpdir, random_inventory):
+    def test_import(self, ansible_runner, tmpdir, inventory):
         '''Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner
         '''
@@ -22170,7 +22169,7 @@ EOF''' % (json.dumps(inventory_dict, indent=4),))
         assert 'failed' not in result, "Failed to create inventory file: %s" % result
 
         # Run awx-manage inventory_import
-        result = ansible_runner.command('awx-manage inventory_import --inventory-id %s --source /tmp/inventory.sh' % random_inventory.id)
+        result = ansible_runner.command('awx-manage inventory_import --inventory-id %s --source /tmp/inventory.sh' % inventory.id)
         assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % result
         print result
 
@@ -22187,7 +22186,7 @@ EOF''' % (json.dumps(inventory_dict, indent=4),))
         print "Import took %s seconds" % seconds
 
         # Verify the import created the expected groups
-        groups_created = random_inventory.get_related('groups').count
+        groups_created = inventory.get_related('groups').count
         groups_expected = len([group for group in inventory_dict.keys() if group not in ('all', '_meta')])
         assert groups_created == groups_expected
         print "Number of groups imported: %s" % groups_created
@@ -22195,7 +22194,7 @@ EOF''' % (json.dumps(inventory_dict, indent=4),))
         # Verify the import created the expected hosts
         # Count the number of unique hosts in the all groups
         # host_count = len({host:None for hosts in inventory_dict.values() for host in hosts })
-        hosts_created = random_inventory.get_related('hosts').count
+        hosts_created = inventory.get_related('hosts').count
         hosts_expected = len(dict((host, None) for group in inventory_dict.values() for host in group.get('hosts', [])))
 
         # Verify the number of hosts matches what was imported

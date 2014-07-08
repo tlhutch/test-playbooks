@@ -1,8 +1,7 @@
 import pytest
-import common.tower.inventory
+import common.utils
 import common.exceptions
 from tests.api import Base_Api_Test
-from pprint import pprint
 
 # Ansible inventory variations for testing 'root' group removal
 root_variations = [
@@ -67,19 +66,19 @@ uk-host-1
 ]
 
 @pytest.fixture(scope="function", params=root_variations)
-def root_variation(request, authtoken, random_inventory, ansible_runner):
+def root_variation(request, authtoken, inventory, ansible_runner):
     results = ansible_runner.copy(dest='/tmp/inventory.ini', force=True, mode='0644', content='''# --inventory-id %s
-%s''' % (random_inventory.id, request.param['inventory']))
+%s''' % (inventory.id, request.param['inventory']))
     assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
-    results = ansible_runner.shell('awx-manage inventory_import --overwrite --inventory-id %s --source /tmp/inventory.ini' % random_inventory.id)
+    results = ansible_runner.shell('awx-manage inventory_import --overwrite --inventory-id %s --source /tmp/inventory.ini' % inventory.id)
     assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
 
     # Re-GET the resource to populate host/group information
-    random_inventory = random_inventory.get()
-    assert random_inventory.get_related('groups').count > 0
-    assert random_inventory.get_related('hosts').count > 0
-    return random_inventory
+    inventory = inventory.get()
+    assert inventory.get_related('groups').count > 0
+    assert inventory.get_related('hosts').count > 0
+    return inventory
 
 # Ansible inventory variations for testing 'non-root' group removal.  These are
 # the same as root_variations ... but they are nested a level deeper.
@@ -113,42 +112,42 @@ de
 non_root_variations = [dict(name=item['name'], inventory=inventory_prefix + item['inventory']) for item in root_variations]
 
 @pytest.fixture(scope="function", params=non_root_variations)
-def non_root_variation(request, authtoken, random_inventory, ansible_runner):
+def non_root_variation(request, authtoken, inventory, ansible_runner):
     results = ansible_runner.copy(dest='/tmp/inventory.ini', force=True, mode='0644', content='''# --inventory-id %s
-%s''' % (random_inventory.id, request.param['inventory']))
+%s''' % (inventory.id, request.param['inventory']))
     assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
-    results = ansible_runner.shell('awx-manage inventory_import --overwrite --inventory-id %s --source /tmp/inventory.ini' % random_inventory.id)
+    results = ansible_runner.shell('awx-manage inventory_import --overwrite --inventory-id %s --source /tmp/inventory.ini' % inventory.id)
     assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
 
     # Re-GET the resource to populate host/group information
-    random_inventory = random_inventory.get()
-    assert random_inventory.get_related('groups').count > 0
-    assert random_inventory.get_related('hosts').count > 0
-    return random_inventory
+    inventory = inventory.get()
+    assert inventory.get_related('groups').count > 0
+    assert inventory.get_related('hosts').count > 0
+    return inventory
 
 all_variations = root_variations + non_root_variations
 
 @pytest.fixture(scope="function", params=all_variations)
-def variation(request, authtoken, random_inventory, ansible_runner):
+def variation(request, authtoken, inventory, ansible_runner):
     results = ansible_runner.copy(dest='/tmp/inventory.ini', force=True, content='''# --inventory-id %s
-%s''' % (random_inventory.id, request.param['inventory']))
+%s''' % (inventory.id, request.param['inventory']))
     assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
-    results = ansible_runner.shell('awx-manage inventory_import --overwrite --inventory-id %s --source /tmp/inventory.ini' % random_inventory.id)
+    results = ansible_runner.shell('awx-manage inventory_import --overwrite --inventory-id %s --source /tmp/inventory.ini' % inventory.id)
     assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
 
     # Re-GET the resource to populate host/group information
-    random_inventory = random_inventory.get()
-    assert random_inventory.get_related('groups').count > 0
-    assert random_inventory.get_related('hosts').count > 0
-    return random_inventory
+    inventory = inventory.get()
+    assert inventory.get_related('groups').count > 0
+    assert inventory.get_related('hosts').count > 0
+    return inventory
 
 @pytest.fixture(scope="function")
-def another_random_inventory(request, authtoken, api_inventories_pg, random_organization):
+def another_inventory(request, authtoken, api_inventories_pg, organization):
     payload = dict(name="inventory-%s" % common.utils.random_ascii(),
                    description="Another random inventory - %s" % common.utils.random_unicode(),
-                   organization=random_organization.id,)
+                   organization=organization.id,)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -545,19 +544,19 @@ class Test_Group(Base_Api_Test):
             # Verify that the parent.all_hosts has changed
             assert parent_group.get_related('all_hosts').count == total_parent_all_hosts - total_group_all_hosts
 
-    def test_circular_dependency(self, random_inventory):
+    def test_circular_dependency(self, inventory):
         '''verify unable to add a circular dependency (top -> ... -> leaf -> top)'''
 
         # Add parent_group
-        payload = dict(name="root-%s" % common.utils.random_ascii(), inventory=random_inventory.id)
-        parent_group = random_inventory.get_related('groups').post(payload)
+        payload = dict(name="root-%s" % common.utils.random_ascii(), inventory=inventory.id)
+        parent_group = inventory.get_related('groups').post(payload)
 
         # Add child_group
-        payload = dict(name="child-%s" % common.utils.random_ascii(), inventory=random_inventory.id)
+        payload = dict(name="child-%s" % common.utils.random_ascii(), inventory=inventory.id)
         child_group = parent_group.get_related('children').post(payload)
 
         # Add grandchild_group
-        payload = dict(name="grandchild-%s" % common.utils.random_ascii(), inventory=random_inventory.id)
+        payload = dict(name="grandchild-%s" % common.utils.random_ascii(), inventory=inventory.id)
         grandchild_group = child_group.get_related('children').post(payload)
 
         # Attempt to associate circular dependency
@@ -565,43 +564,43 @@ class Test_Group(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             grandchild_group.get_related('children').post(payload)
 
-    def test_unique(self, random_inventory, another_random_inventory):
+    def test_unique(self, inventory, another_inventory):
         '''verify duplicate group names are allowed if in a different inventory'''
 
-        # Create random_inventory.parent_group
-        payload = dict(name="root-%s" % common.utils.random_ascii(), inventory=random_inventory.id)
-        parent_group = random_inventory.get_related('groups').post(payload)
+        # Create inventory.parent_group
+        payload = dict(name="root-%s" % common.utils.random_ascii(), inventory=inventory.id)
+        parent_group = inventory.get_related('groups').post(payload)
 
-        # Create random_inventory.child_group
-        payload = dict(name="child-%s" % common.utils.random_ascii(), inventory=random_inventory.id)
+        # Create inventory.child_group
+        payload = dict(name="child-%s" % common.utils.random_ascii(), inventory=inventory.id)
         child_group = parent_group.get_related('children').post(payload)
 
-        # Create another_random_inventory.parent_group (duplicate name, but different inventory)
-        payload = dict(name=parent_group.name, inventory=another_random_inventory.id)
-        new_parent = another_random_inventory.get_related('groups').post(payload)
+        # Create another_inventory.parent_group (duplicate name, but different inventory)
+        payload = dict(name=parent_group.name, inventory=another_inventory.id)
+        new_parent = another_inventory.get_related('groups').post(payload)
 
-        # Create another_random_inventory.child_group (duplicate name, but different inventory)
+        # Create another_inventory.child_group (duplicate name, but different inventory)
         # Create a child group with a duplicate name, in another inventory
-        payload = dict(name=child_group.name, inventory=another_random_inventory.id)
+        payload = dict(name=child_group.name, inventory=another_inventory.id)
         new_parent.get_related('children').post(payload)
 
-    def test_duplicate(self, random_inventory):
+    def test_duplicate(self, inventory):
         '''verify duplicate group names, in the same inventory, are not allowed'''
 
         # Add parent_group
-        payload = dict(name="root-%s" % common.utils.random_ascii(), inventory=random_inventory.id)
-        parent_group = random_inventory.get_related('groups').post(payload)
+        payload = dict(name="root-%s" % common.utils.random_ascii(), inventory=inventory.id)
+        parent_group = inventory.get_related('groups').post(payload)
 
         # Add child_group
-        payload = dict(name="child-%s" % common.utils.random_ascii(), inventory=random_inventory.id)
+        payload = dict(name="child-%s" % common.utils.random_ascii(), inventory=inventory.id)
         child_group = parent_group.get_related('children').post(payload)
 
         # Attempt to create duplicate group as a root_group
-        payload = dict(name=child_group.name, inventory=random_inventory.id)
+        payload = dict(name=child_group.name, inventory=inventory.id)
         with pytest.raises(common.exceptions.Duplicate_Exception):
-            random_inventory.get_related('groups').post(payload)
+            inventory.get_related('groups').post(payload)
 
         # Attempt to create duplicate group as a child_group
-        payload = dict(name=parent_group.name, inventory=random_inventory.id)
+        payload = dict(name=parent_group.name, inventory=inventory.id)
         with pytest.raises(common.exceptions.Duplicate_Exception):
             parent_group.get_related('children').post(payload)

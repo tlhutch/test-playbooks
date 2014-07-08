@@ -1,8 +1,6 @@
 import pytest
 import json
-import common.tower.license
 from tests.api import Base_Api_Test
-from common import randomness
 
 # Actual ec2.out.txt observed in AC-847 ... don't judge!
 inventory_dict = {
@@ -874,7 +872,7 @@ inventory_dict = {
 @pytest.mark.nondestructive
 class Test_AC_847(Base_Api_Test):
     @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000')
-    def test_import(self, ansible_runner, tmpdir, random_inventory):
+    def test_import(self, ansible_runner, tmpdir, inventory):
         '''Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner
         '''
@@ -895,7 +893,7 @@ EOF
 
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source /tmp/%s'
-                                      % (random_inventory.id, p.basename))
+                                      % (inventory.id, p.basename))
 
         # Verify the import completed successfully
         assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
@@ -913,7 +911,7 @@ EOF
         print "Import took %s seconds" % seconds
 
         # Verify the import created the expected groups
-        imported_groups = random_inventory.get_related('groups').count
+        imported_groups = inventory.get_related('groups').count
         expected_groups = len(inventory_dict.keys())
         assert expected_groups == imported_groups
         print "Number of groups imported: %s" % imported_groups
@@ -922,6 +920,6 @@ EOF
         # host_count = len({host:None for hosts in inventory_dict.values() for host in hosts })
         host_count = len(dict((host, None) for hosts in inventory_dict.values() for host in hosts))
         # Count the number of hosts imported
-        inv_hosts = random_inventory.get_related('hosts').count
+        inv_hosts = inventory.get_related('hosts').count
         assert inv_hosts == host_count
         print "Number of hosts imported: %s" % inv_hosts

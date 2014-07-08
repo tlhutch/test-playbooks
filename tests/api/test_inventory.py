@@ -1,26 +1,23 @@
 import pytest
-import json
 import logging
 import common.tower.inventory
 import common.exceptions
 from tests.api import Base_Api_Test
 
-# https://gist.github.com/cchurch/171de35cb1f01547c813
-
 @pytest.fixture(scope="function")
-def import_inventory(request, authtoken, api_inventories_pg, random_organization):
+def import_inventory(request, authtoken, api_inventories_pg, organization):
     payload = dict(name="inventory-%s" % common.utils.random_ascii(),
                    description="Random inventory - %s" % common.utils.random_unicode(),
-                   organization=random_organization.id,)
+                   organization=organization.id,)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 @pytest.fixture(scope="function")
-def delete_inventory(request, authtoken, api_inventories_pg, random_organization):
+def delete_inventory(request, authtoken, api_inventories_pg, organization):
     payload = dict(name="inventory-%s" % common.utils.random_ascii(),
                    description="Random inventory - %s" % common.utils.random_unicode(),
-                   organization=random_organization.id,)
+                   organization=organization.id,)
     obj = api_inventories_pg.post(payload)
     # NOTE: This intentionally has no finalizer
     return obj

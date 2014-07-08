@@ -12,32 +12,13 @@ def extra_vars(request):
 def prompt_extra_vars(request):
     return json.dumps(dict(overloaded=True, fail=False))
 
-@pytest.fixture(scope="class")
-def ansible_default_ipv4(request, ansible_facts):
-    '''Return the ansible_default_ipv4 from ansible_facts of the system under test.'''
-    return ansible_facts['ansible_default_ipv4']['address']
-
 @pytest.fixture(scope="function")
-def inventory_localhost(request, authtoken, api_hosts_pg, random_group, ansible_default_ipv4):
-    '''Create a random inventory host where ansible_ssh_host == ansible_default_ipv4.'''
-    payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
-                   description="host-%s" % common.utils.random_unicode(),
-                   variables=json.dumps(dict(ansible_ssh_host='localhost', ansible_connection="local")),
-                   inventory=random_group.inventory,)
-    obj = api_hosts_pg.post(payload)
-    request.addfinalizer(obj.delete)
-    # Add to group
-    with pytest.raises(common.exceptions.NoContent_Exception):
-        obj.get_related('groups').post(dict(id=random_group.id))
-    return obj
-
-@pytest.fixture(scope="function")
-def job_template_no_credential(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, inventory_localhost, extra_vars):
+def job_template_no_credential(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, host_ipv4, extra_vars):
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template with no credential - %s" % common.utils.random_unicode(),
-                   inventory=inventory_localhost.inventory,
+                   inventory=host_ipv4.inventory,
                    job_type='run',
-                   limit=inventory_localhost.name,
+                   limit=host_ipv4.name,
                    extra_vars=extra_vars,
                    project=project_ansible_helloworld_hg.id,
                    playbook='pass_unless.yml', )  # This depends on the project selected
@@ -46,13 +27,13 @@ def job_template_no_credential(request, authtoken, api_job_templates_pg, project
     return obj
 
 @pytest.fixture(scope="function")
-def job_template_prompt_vars(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, inventory_localhost, random_ssh_credential, extra_vars):
+def job_template_prompt_vars(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, host_ipv4, ssh_credential, extra_vars):
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template with ask_variables_on_launch - %s" % common.utils.random_unicode(),
-                   inventory=inventory_localhost.inventory,
+                   inventory=host_ipv4.inventory,
                    job_type='run',
-                   limit=inventory_localhost.name,
-                   credential=random_ssh_credential.id,
+                   limit=host_ipv4.name,
+                   credential=ssh_credential.id,
                    ask_variables_on_launch=True,
                    extra_vars=extra_vars,
                    project=project_ansible_helloworld_hg.id,
@@ -62,14 +43,14 @@ def job_template_prompt_vars(request, authtoken, api_job_templates_pg, project_a
     return obj
 
 @pytest.fixture(scope="function")
-def job_template_prompt_pass(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, inventory_localhost, random_ssh_credential_ask, extra_vars):
+def job_template_prompt_pass(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, host_ipv4, ssh_credential_ask, extra_vars):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template with ASK credential - %s" % common.utils.random_unicode(),
-                   inventory=inventory_localhost.inventory,
+                   inventory=host_ipv4.inventory,
                    job_type='run',
-                   limit=inventory_localhost.name,
-                   credential=random_ssh_credential_ask.id,
+                   limit=host_ipv4.name,
+                   credential=ssh_credential_ask.id,
                    extra_vars=extra_vars,
                    project=project_ansible_helloworld_hg.id,
                    playbook='pass_unless.yml', )  # This depends on the project selected
@@ -78,14 +59,14 @@ def job_template_prompt_pass(request, authtoken, api_job_templates_pg, project_a
     return obj
 
 @pytest.fixture(scope="function")
-def job_template_prompt_multipass(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, inventory_localhost, random_ssh_credential_multi_ask, extra_vars):
+def job_template_prompt_multipass(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, host_ipv4, ssh_credential_multi_ask, extra_vars):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template with multi-ASK credential - %s" % common.utils.random_unicode(),
-                   inventory=inventory_localhost.inventory,
+                   inventory=host_ipv4.inventory,
                    job_type='run',
-                   limit=inventory_localhost.name,
-                   credential=random_ssh_credential_multi_ask.id,
+                   limit=host_ipv4.name,
+                   credential=ssh_credential_multi_ask.id,
                    extra_vars=extra_vars,
                    project=project_ansible_helloworld_hg.id,
                    playbook='pass_unless.yml', )  # This depends on the project selected
@@ -94,14 +75,14 @@ def job_template_prompt_multipass(request, authtoken, api_job_templates_pg, proj
     return obj
 
 @pytest.fixture(scope="function")
-def job_template_prompt_multipass_vars(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, inventory_localhost, random_ssh_credential_multi_ask, extra_vars):
+def job_template_prompt_multipass_vars(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, host_ipv4, ssh_credential_multi_ask, extra_vars):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template with multi-ASK credential and ask_variables_on_launch - %s" % common.utils.random_unicode(),
-                   inventory=inventory_localhost.inventory,
+                   inventory=host_ipv4.inventory,
                    job_type='run',
-                   limit=inventory_localhost.name,
-                   credential=random_ssh_credential_multi_ask.id,
+                   limit=host_ipv4.name,
+                   credential=ssh_credential_multi_ask.id,
                    ask_variables_on_launch=True,
                    extra_vars=extra_vars,
                    project=project_ansible_helloworld_hg.id,
@@ -123,7 +104,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
       * launching a job with a ask_variables_on_launch and password:ASK, sudo_password:ASK and ssh_keyunlock credential
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000', 'inventory_localhost')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000', 'host_ipv4')
 
     def test_no_credential(self, job_template_no_credential):
         assert not job_template_no_credential.ask_variables_on_launch

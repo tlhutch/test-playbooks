@@ -3,6 +3,7 @@ import json
 import yaml
 import common.tower.license
 import common.utils
+
 from common.exceptions import *
 from tests.api import Base_Api_Test
 
@@ -19,20 +20,20 @@ def variables_json(request, variables_yaml):
     return json.dumps(variables_yaml)
 
 @pytest.fixture(scope="class")
-def inventory_yaml(request, authtoken, api_inventories_pg, random_organization, variables_yaml):
+def inventory_yaml(request, authtoken, api_inventories_pg, organization, variables_yaml):
     payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    description="Test inventory",
-                   organization=random_organization.id,
+                   organization=organization.id,
                    variables=variables_yaml)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 @pytest.fixture(scope="class")
-def inventory_json(request, authtoken, api_inventories_pg, random_organization, variables_json):
+def inventory_json(request, authtoken, api_inventories_pg, organization, variables_json):
     payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    description="Test inventory",
-                   organization=random_organization.id,
+                   organization=organization.id,
                    variables=variables_json)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -84,25 +85,25 @@ def hosts_yaml(request, authtoken, api_hosts_pg, inventory_json, variables_yaml)
 # /job_templates
 #
 @pytest.fixture(scope="class")
-def job_templates_json(request, authtoken, api_job_templates_pg, random_project, inventory_json, variables_json):
+def job_templates_json(request, authtoken, api_job_templates_pg, project, inventory_json, variables_json):
 
     payload = dict(name="template-%s" % common.utils.random_unicode(),
                    extra_vars=variables_json,
                    inventory=inventory_json.id,
                    job_type='run',
-                   project=random_project.id,
+                   project=project.id,
                    playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 @pytest.fixture(scope="class")
-def job_templates_yaml(request, authtoken, api_job_templates_pg, random_project, inventory_yaml, variables_yaml):
+def job_templates_yaml(request, authtoken, api_job_templates_pg, project, inventory_yaml, variables_yaml):
     payload = dict(name="template-%s" % common.utils.random_unicode(),
                    extra_vars=variables_yaml,
                    inventory=inventory_yaml.id,
                    job_type='run',
-                   project=random_project.id,
+                   project=project.id,
                    playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
