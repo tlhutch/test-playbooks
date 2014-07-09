@@ -1,9 +1,9 @@
 import pytest
 import common.utils
 
-from credentials import ssh_credential
-from projects import project
-from inventories import inventory
+# from credentials import ssh_credential
+# from projects import project
+# from inventories import inventory
 
 
 @pytest.fixture(scope="function")

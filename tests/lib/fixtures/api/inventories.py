@@ -2,7 +2,6 @@ import pytest
 import json
 import uuid
 import urllib2
-import yaml
 import random
 import common.utils
 import common.exceptions

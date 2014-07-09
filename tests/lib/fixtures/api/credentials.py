@@ -1,6 +1,6 @@
 import pytest
 import common.utils
-from users import admin_user
+# from users import admin_user
 
 
 @pytest.fixture(scope="class")

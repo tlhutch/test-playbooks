@@ -1,8 +1,8 @@
 import pytest
 import common.utils
 
-from organizations import organization
-from credentials import scm_credential_key_unlock_ASK
+# from organizations import organization
+# from credentials import scm_credential_key_unlock_ASK
 
 @pytest.fixture(scope="class")
 def project_ansible_helloworld_hg(request, authtoken, api_projects_pg, organization):
