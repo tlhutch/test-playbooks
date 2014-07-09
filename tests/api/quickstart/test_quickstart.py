@@ -9,9 +9,6 @@ from common.yaml_file import load_file
 from tests.api import Base_Api_Test
 from common.exceptions import Duplicate_Exception, NoContent_Exception
 
-# Load configuration
-cfg = load_file(os.path.join(os.path.dirname(__file__), 'data.yaml'))
-
 # Initialize inflection engine
 inflect = engine()
 
@@ -25,17 +22,24 @@ def pytest_generate_tests(metafunc):
         test_set = list()
         id_list = list()
 
+        # HACK - to avoid fixture namespace collision, we prefix fixtures with
+        # '_' in this module.  The following will identify such fixtures, and
+        # find the appropriate YAML configuration.
+        config_key = fixture
+        if config_key.startswith('_'):
+            config_key = config_key[1:]
+
         # plural - parametrize entire list
         # (e.g. if asked for organizations, give _all_ organizations)
-        if fixture in cfg:
-            test_set.append(cfg[fixture])
+        if config_key in metafunc.cls.config:
+            test_set.append(metafunc.cls.config[config_key])
             id_list.append(fixture)
 
         # singular - parametrize every time on list
         # (e.g. if asked for organization, parametrize _each_ organization)
-        elif inflect.plural_noun(fixture) in cfg:
-            key = inflect.plural_noun(fixture)
-            for (count, value) in enumerate(cfg[key]):
+        elif inflect.plural_noun(config_key) in metafunc.cls.config:
+            key = inflect.plural_noun(config_key)
+            for (count, value) in enumerate(metafunc.cls.config[key]):
                 test_set.append(value)
                 if 'name' in value:
                     id_list.append(value['name'])
@@ -100,8 +104,11 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures("authtoken", "install_integration_license", "update_sshd_config", "set_rootpw")
 
+    # Load test configuration
+    config = load_file(os.path.join(os.path.dirname(__file__), 'data.yaml'))
+
     @pytest.mark.destructive
-    def test_organizations_post(self, api_organizations_pg, organization):
+    def test_organizations_post(self, api_organizations_pg, _organization):
 
         # Create a new organization
         payload = dict(name=organization['name'],
@@ -112,13 +119,13 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
-    def test_organization_get(self, api_organizations_pg, organizations):
+    def test_organization_get(self, api_organizations_pg, _organizations):
 
         org_page = api_organizations_pg.get(or__name=[o['name'] for o in organizations])
         assert len(organizations) == len(org_page.results)
 
     @pytest.mark.destructive
-    def test_users_post(self, api_users_pg, user):
+    def test_users_post(self, api_users_pg, _user):
 
         payload = dict(username=user['username'],
                        first_name=user['first_name'],
@@ -133,12 +140,12 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
-    def test_users_get(self, api_users_pg, users):
+    def test_users_get(self, api_users_pg, _users):
         user_page = api_users_pg.get(username__in=','.join([o['username'] for o in users]))
         assert len(users) == len(user_page.results)
 
     @pytest.mark.destructive
-    def test_organizations_add_users(self, api_users_pg, api_organizations_pg, organization):
+    def test_organizations_add_users(self, api_users_pg, api_organizations_pg, _organization):
         # get org related users link
         matches = api_organizations_pg.get(name__exact=organization['name']).results
         assert len(matches) == 1
@@ -154,7 +161,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 org_related_pg.post(payload)
 
     @pytest.mark.destructive
-    def test_organizations_add_admins(self, api_users_pg, api_organizations_pg, organization):
+    def test_organizations_add_admins(self, api_users_pg, api_organizations_pg, _organization):
         # get org related users link
         matches = api_organizations_pg.get(name__exact=organization['name']).results
         assert len(matches) == 1
@@ -170,7 +177,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 org_related_pg.post(payload)
 
     @pytest.mark.destructive
-    def test_teams_post(self, api_teams_pg, api_organizations_pg, team):
+    def test_teams_post(self, api_teams_pg, api_organizations_pg, _team):
         # locate desired organization resource
         org_pg = api_organizations_pg.get(name__exact=team['organization']).results[0]
 
@@ -183,12 +190,12 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
-    def test_teams_get(self, api_teams_pg, teams):
+    def test_teams_get(self, api_teams_pg, _teams):
         team_page = api_teams_pg.get(name__in=','.join([o['name'] for o in teams]))
         assert len(teams) == len(team_page.results)
 
     @pytest.mark.destructive
-    def test_teams_add_users(self, api_users_pg, api_teams_pg, team):
+    def test_teams_add_users(self, api_users_pg, api_teams_pg, _team):
         # locate desired team resource
         matches = api_teams_pg.get(name__iexact=team['name']).results
         assert len(matches) == 1
@@ -204,7 +211,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 team_related_pg.post(payload)
 
     @pytest.mark.destructive
-    def test_credentials_post(self, api_users_pg, api_teams_pg, api_credentials_pg, credential):
+    def test_credentials_post(self, api_users_pg, api_teams_pg, api_credentials_pg, _credential):
 
         # build credential payload
         payload = dict(name=credential['name'],
@@ -259,12 +266,12 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
-    def test_credentials_get(self, api_credentials_pg, credentials):
+    def test_credentials_get(self, api_credentials_pg, _credentials):
         credential_page = api_credentials_pg.get(or__name=[o['name'] for o in credentials])
         assert len(credentials) == len(credential_page.results)
 
     @pytest.mark.destructive
-    def test_inventories_post(self, api_inventories_pg, api_organizations_pg, inventory):
+    def test_inventories_post(self, api_inventories_pg, api_organizations_pg, _inventory):
 
         # Find desired org
         matches = api_organizations_pg.get(name__exact=inventory['organization']).results
@@ -283,7 +290,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
-    def test_inventories_get(self, api_inventories_pg, inventories):
+    def test_inventories_get(self, api_inventories_pg, _inventories):
         # Get list of created inventories
         api_inventories_pg.get(or__name=[o['name'] for o in inventories])
 
@@ -291,7 +298,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         assert len(inventories) == len(api_inventories_pg.results)
 
     @pytest.mark.destructive
-    def test_groups_post(self, api_groups_pg, api_inventories_pg, group):
+    def test_groups_post(self, api_groups_pg, api_inventories_pg, _group):
         # Find desired inventory
         inventory_id = api_inventories_pg.get(name__iexact=group['inventory']).results[0].id
 
@@ -314,7 +321,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
-    def test_groups_get(self, api_groups_pg, groups):
+    def test_groups_get(self, api_groups_pg, _groups):
 
         # Get list of created groups
         api_groups_pg.get(name__in=','.join([o['name'] for o in groups]))
@@ -323,7 +330,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         assert len(groups) == len(api_groups_pg.results)
 
     @pytest.mark.destructive
-    def test_hosts_post(self, api_hosts_pg, api_inventories_pg, host):
+    def test_hosts_post(self, api_hosts_pg, api_inventories_pg, _host):
         # Find desired inventory
         inventory_id = api_inventories_pg.get(name__iexact=host['inventory']).results[0].id
 
@@ -339,7 +346,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
-    def test_hosts_get(self, api_hosts_pg, hosts):
+    def test_hosts_get(self, api_hosts_pg, _hosts):
         # Get list of available hosts
         api_hosts_pg.get(or__name=[o['name'] for o in hosts])
 
@@ -347,7 +354,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         assert len(hosts) == api_hosts_pg.count
 
     @pytest.mark.destructive
-    def test_hosts_add_group(self, api_hosts_pg, api_groups_pg, host):
+    def test_hosts_add_group(self, api_hosts_pg, api_groups_pg, _host):
         # Find desired host
         host_id = api_hosts_pg.get(name=host['name']).results[0].id
 
@@ -365,7 +372,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 groups_host_pg.post(payload)
 
     @pytest.mark.destructive
-    def test_inventory_sources_patch(self, api_groups_pg, api_credentials_pg, inventory_source):
+    def test_inventory_sources_patch(self, api_groups_pg, api_credentials_pg, _inventory_source):
         # Find desired group
         group_pg = api_groups_pg.get(name__iexact=inventory_source['group']).results[0]
 
@@ -387,7 +394,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         inventory_source_pg.patch(**payload)
 
     @pytest.mark.destructive
-    def test_inventory_sources_update(self, api_groups_pg, api_inventory_sources_pg, inventory_source):
+    def test_inventory_sources_update(self, api_groups_pg, api_inventory_sources_pg, _inventory_source):
         # Find desired group
         group_id = api_groups_pg.get(name__iexact=inventory_source['group']).results[0].id
 
@@ -405,7 +412,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     @pytest.mark.jira('AC-596', run=False)
-    def test_inventory_sources_update_status(self, api_groups_pg, api_inventory_sources_pg, inventory_source):
+    def test_inventory_sources_update_status(self, api_groups_pg, api_inventory_sources_pg, _inventory_source):
         # Find desired group
         group_id = api_groups_pg.get(name__iexact=inventory_source['group']).results[0].id
 
@@ -430,7 +437,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         print inv_updates_pg.result_stdout
 
     @pytest.mark.nondestructive
-    def test_inventory_sources_get_children(self, api_groups_pg, inventory_source, region_choices):
+    def test_inventory_sources_get_children(self, api_groups_pg, _inventory_source, region_choices):
         '''
         Tests that an inventory_sync created expected sub-groups
         '''
@@ -457,7 +464,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                     print "Ignoring group '%s', it appears to not be a cloud region" % child.name
 
     @pytest.mark.nondestructive
-    def test_inventory_sources_get_hosts(self, api_groups_pg, api_hosts_pg, inventory_source):
+    def test_inventory_sources_get_hosts(self, api_groups_pg, api_hosts_pg, _inventory_source):
         '''
         Tests that an inventory_sync successfully imported hosts
         '''
@@ -477,7 +484,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # assert disabled_hosts.count == 0, "ERROR: detected disabled inventory_update groups\n%s" % group.get_related('inventory_source').get_related('last_update').result_stdout
 
     @pytest.mark.destructive
-    def test_projects_post(self, api_projects_pg, api_organizations_pg, api_credentials_pg, awx_config, project, ansible_runner):
+    def test_projects_post(self, api_projects_pg, api_organizations_pg, api_credentials_pg, awx_config, _project, ansible_runner):
 
         # Checkout repository on the target system
         if project['scm_type'] in [None, 'manual'] \
@@ -529,12 +536,12 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
-    def test_projects_get(self, api_projects_pg, projects):
+    def test_projects_get(self, api_projects_pg, _projects):
         api_projects_pg.get(or__name=[o['name'] for o in projects])
         assert len(projects) == len(api_projects_pg.results)
 
     @pytest.mark.destructive
-    def test_projects_update(self, api_projects_pg, api_organizations_pg, project):
+    def test_projects_update(self, api_projects_pg, api_organizations_pg, _project):
         # Find desired project
         matches = api_projects_pg.get(name__iexact=project['name'], scm_type=project['scm_type'])
         assert matches.count == 1
@@ -567,7 +574,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 update_pg.post(payload)
 
     @pytest.mark.nondestructive
-    def test_projects_update_status(self, api_projects_pg, api_organizations_pg, project):
+    def test_projects_update_status(self, api_projects_pg, api_organizations_pg, _project):
 
         # Find desired project
         matches = api_projects_pg.get(name__iexact=project['name'], scm_type=project['scm_type'])
@@ -602,7 +609,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             print latest_update_pg.result_stdout
 
     @pytest.mark.destructive
-    def test_organizations_add_projects(self, api_organizations_pg, api_projects_pg, organization):
+    def test_organizations_add_projects(self, api_organizations_pg, api_projects_pg, _organization):
         # locate desired project resource
         matches = api_organizations_pg.get(name__exact=organization['name']).results
         assert len(matches) == 1
@@ -622,7 +629,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.jira('AC-641', run=True)
     @pytest.mark.destructive
-    def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg, api_job_templates_pg, job_template, ansible_facts, ansible_runner):
+    def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg, api_job_templates_pg, _job_template, ansible_facts, ansible_runner):
         # Find desired object identifiers
         inventory_id = api_inventories_pg.get(name__iexact=job_template['inventory']).results[0].id
         project_id = api_projects_pg.get(name__iexact=job_template['project']).results[0].id
@@ -663,12 +670,12 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
-    def test_job_templates_get(self, api_job_templates_pg, job_templates):
+    def test_job_templates_get(self, api_job_templates_pg, _job_templates):
         api_job_templates_pg.get(or__name=[o['name'] for o in job_templates])
         assert len(job_templates) == len(api_job_templates_pg.results)
 
     @pytest.mark.destructive
-    def test_jobs_launch(self, api_job_templates_pg, api_jobs_pg, job_template):
+    def test_jobs_launch(self, api_job_templates_pg, api_jobs_pg, _job_template):
         # If desired, skip launch
         if not job_template.get('_launch', True):
             pytest.skip("Per-request, skipping launch: %s" % job_template['name'])
@@ -701,7 +708,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         start_pg.post(payload)
 
     @pytest.mark.nondestructive
-    def test_jobs_launch_status(self, api_job_templates_pg, api_jobs_pg, job_template):
+    def test_jobs_launch_status(self, api_job_templates_pg, api_jobs_pg, _job_template):
         # If desired, skip launch
         if not job_template.get('_launch', True):
             pytest.skip("Per-request, skipping launch: %s" % job_template['name'])
