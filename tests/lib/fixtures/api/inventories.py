@@ -28,7 +28,7 @@ def inventory(request, authtoken, api_inventories_pg, organization):
     return obj
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="class")
 def host_ipv4(request, authtoken, api_hosts_pg, group, ansible_default_ipv4):
     '''Create a random inventory host where ansible_ssh_host == ansible_default_ipv4.'''
     payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
@@ -49,7 +49,7 @@ def my_public_ipv4(request):
     return json.load(urllib2.urlopen('http://httpbin.org/ip'))['origin']
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="class")
 def host_public_ipv4(request, authtoken, api_hosts_pg, group, my_public_ipv4):
     '''Create an inventory host matching the public ipv4 address of the system running pytest.'''
     payload = dict(name=my_public_ipv4,
