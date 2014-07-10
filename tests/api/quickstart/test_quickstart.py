@@ -109,10 +109,9 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.destructive
     def test_organizations_post(self, api_organizations_pg, _organization):
-
         # Create a new organization
-        payload = dict(name=organization['name'],
-                       description=organization['description'])
+        payload = dict(name=_organization['name'],
+                       description=_organization['description'])
         try:
             org = api_organizations_pg.post(payload)
         except Duplicate_Exception, e:
@@ -120,19 +119,17 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_organization_get(self, api_organizations_pg, _organizations):
-
-        org_page = api_organizations_pg.get(or__name=[o['name'] for o in organizations])
-        assert len(organizations) == len(org_page.results)
+        org_page = api_organizations_pg.get(or__name=[o['name'] for o in _organizations])
+        assert len(_organizations) == len(org_page.results)
 
     @pytest.mark.destructive
     def test_users_post(self, api_users_pg, _user):
-
-        payload = dict(username=user['username'],
-                       first_name=user['first_name'],
-                       last_name=user['last_name'],
-                       email=user['email'],
-                       is_superuser=user['is_superuser'],
-                       password=user['password'],)
+        payload = dict(username=_user['username'],
+                       first_name=_user['first_name'],
+                       last_name=_user['last_name'],
+                       email=_user['email'],
+                       is_superuser=_user['is_superuser'],
+                       password=_user['password'],)
 
         try:
             api_users_pg.post(payload)
@@ -141,18 +138,18 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_users_get(self, api_users_pg, _users):
-        user_page = api_users_pg.get(username__in=','.join([o['username'] for o in users]))
-        assert len(users) == len(user_page.results)
+        user_page = api_users_pg.get(username__in=','.join([o['username'] for o in _users]))
+        assert len(_users) == len(user_page.results)
 
     @pytest.mark.destructive
     def test_organizations_add_users(self, api_users_pg, api_organizations_pg, _organization):
         # get org related users link
-        matches = api_organizations_pg.get(name__exact=organization['name']).results
+        matches = api_organizations_pg.get(name__exact=_organization['name']).results
         assert len(matches) == 1
         org_related_pg = matches[0].get_related('users')
 
         # Add each user to the org
-        for username in organization.get('users', []):
+        for username in _organization.get('users', []):
             user = api_users_pg.get(username__iexact=username).results.pop()
 
             # Add user to org
@@ -163,12 +160,12 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.destructive
     def test_organizations_add_admins(self, api_users_pg, api_organizations_pg, _organization):
         # get org related users link
-        matches = api_organizations_pg.get(name__exact=organization['name']).results
+        matches = api_organizations_pg.get(name__exact=_organization['name']).results
         assert len(matches) == 1
         org_related_pg = matches[0].get_related('admins')
 
         # Add each user to the org
-        for username in organization.get('admins', []):
+        for username in _organization.get('admins', []):
             user = api_users_pg.get(username__iexact=username).results.pop()
 
             # Add user to org
@@ -179,10 +176,10 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.destructive
     def test_teams_post(self, api_teams_pg, api_organizations_pg, _team):
         # locate desired organization resource
-        org_pg = api_organizations_pg.get(name__exact=team['organization']).results[0]
+        org_pg = api_organizations_pg.get(name__exact=_team['organization']).results[0]
 
-        payload = dict(name=team['name'],
-                       description=team['description'],
+        payload = dict(name=_team['name'],
+                       description=_team['description'],
                        organization=org_pg.id)
         try:
             api_teams_pg.post(payload)
@@ -191,18 +188,19 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_teams_get(self, api_teams_pg, _teams):
+        teams = _teams
         team_page = api_teams_pg.get(name__in=','.join([o['name'] for o in teams]))
         assert len(teams) == len(team_page.results)
 
     @pytest.mark.destructive
     def test_teams_add_users(self, api_users_pg, api_teams_pg, _team):
         # locate desired team resource
-        matches = api_teams_pg.get(name__iexact=team['name']).results
+        matches = api_teams_pg.get(name__iexact=_team['name']).results
         assert len(matches) == 1
         team_related_pg = matches[0].get_related('users')
 
         # Add specified users to the team
-        for username in team.get('users', []):
+        for username in _team.get('users', []):
             user = api_users_pg.get(username__iexact=username).results.pop()
 
             # Add user to org
@@ -212,53 +210,52 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.destructive
     def test_credentials_post(self, api_users_pg, api_teams_pg, api_credentials_pg, _credential):
-
         # build credential payload
-        payload = dict(name=credential['name'],
-                       description=credential['description'],
-                       kind=credential['kind'],
-                       username=credential.get('username', None),
-                       password=credential.get('password', None),
-                       cloud=credential.get('cloud', False),)
+        payload = dict(name=_credential['name'],
+                       description=_credential['description'],
+                       kind=_credential['kind'],
+                       username=_credential.get('username', None),
+                       password=_credential.get('password', None),
+                       cloud=_credential.get('cloud', False),)
 
         # Add user id (optional)
-        if credential['user']:
-            user_pg = api_users_pg.get(username__iexact=credential['user']).results[0]
+        if _credential['user']:
+            user_pg = api_users_pg.get(username__iexact=_credential['user']).results[0]
             payload['user'] = user_pg.id
 
         # Add team id (optional)
-        if credential['team']:
-            team_pg = api_teams_pg.get(name__iexact=credential['team']).results[0]
+        if _credential['team']:
+            team_pg = api_teams_pg.get(name__iexact=_credential['team']).results[0]
             payload['team'] = team_pg.id
 
         # Add machine/scm credential fields
-        if credential['kind'] in ('ssh', 'scm'):
+        if _credential['kind'] in ('ssh', 'scm'):
             # Assert the required credentials available?
             fields = ['username', 'password', 'ssh_key_data', 'ssh_key_unlock', ]
-            if credential['kind'] in ('ssh'):
+            if _credential['kind'] in ('ssh'):
                 fields += ['sudo_username', 'sudo_password', 'vault_password']
             # The value 'encrypted' is not included in 'fields' because it is
             # *not* a valid payload key
-            assert self.has_credentials(credential['kind'], fields=fields + ['encrypted'])
+            assert self.has_credentials(_credential['kind'], fields=fields + ['encrypted'])
 
             # Merge with credentials.yaml
             payload.update(dict(
-                ssh_key_data=credential.get('ssh_key_data', ''),
-                ssh_key_unlock=credential.get('ssh_key_unlock', ''),
-                sudo_username=credential.get('sudo_username', ''),
-                sudo_password=credential.get('sudo_password', ''),
-                vault_password=credential.get('vault_password', ''),))
+                ssh_key_data=_credential.get('ssh_key_data', ''),
+                ssh_key_unlock=_credential.get('ssh_key_unlock', ''),
+                sudo_username=_credential.get('sudo_username', ''),
+                sudo_password=_credential.get('sudo_password', ''),
+                vault_password=_credential.get('vault_password', ''),))
 
             # Apply any variable substitution
             for field in fields:
-                payload[field] = payload[field].format(**self.credentials[credential['kind']])
+                payload[field] = payload[field].format(**self.credentials[_credential['kind']])
 
         # Merge with cloud credentials.yaml
-        if credential['cloud']:
+        if _credential['cloud']:
             fields = ['username', 'password']
-            assert self.has_credentials('cloud', credential['kind'], fields=fields)
+            assert self.has_credentials('cloud', _credential['kind'], fields=fields)
             for field in fields:
-                payload[field] = payload[field].format(**self.credentials['cloud'][credential['kind']])
+                payload[field] = payload[field].format(**self.credentials['cloud'][_credential['kind']])
 
         try:
             org = api_credentials_pg.post(payload)
@@ -267,22 +264,21 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_credentials_get(self, api_credentials_pg, _credentials):
-        credential_page = api_credentials_pg.get(or__name=[o['name'] for o in credentials])
-        assert len(credentials) == len(credential_page.results)
+        credential_page = api_credentials_pg.get(or__name=[o['name'] for o in _credentials])
+        assert len(_credentials) == len(credential_page.results)
 
     @pytest.mark.destructive
     def test_inventories_post(self, api_inventories_pg, api_organizations_pg, _inventory):
-
         # Find desired org
-        matches = api_organizations_pg.get(name__exact=inventory['organization']).results
+        matches = api_organizations_pg.get(name__exact=_inventory['organization']).results
         assert len(matches) == 1
         org = matches.pop()
 
         # Create a new inventory
-        payload = dict(name=inventory['name'],
-                       description=inventory.get('description', ''),
+        payload = dict(name=_inventory['name'],
+                       description=_inventory.get('description', ''),
                        organization=org.id,
-                       variables=json.dumps(inventory.get('variables', None)))
+                       variables=json.dumps(_inventory.get('variables', None)))
 
         try:
             api_inventories_pg.post(payload)
@@ -292,25 +288,25 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_inventories_get(self, api_inventories_pg, _inventories):
         # Get list of created inventories
-        api_inventories_pg.get(or__name=[o['name'] for o in inventories])
+        api_inventories_pg.get(or__name=[o['name'] for o in _inventories])
 
         # Validate number of inventories found
-        assert len(inventories) == len(api_inventories_pg.results)
+        assert len(_inventories) == len(api_inventories_pg.results)
 
     @pytest.mark.destructive
     def test_groups_post(self, api_groups_pg, api_inventories_pg, _group):
         # Find desired inventory
-        inventory_id = api_inventories_pg.get(name__iexact=group['inventory']).results[0].id
+        inventory_id = api_inventories_pg.get(name__iexact=_group['inventory']).results[0].id
 
         # Create a new inventory
-        payload = dict(name=group['name'],
-                       description=group.get('description', ''),
+        payload = dict(name=_group['name'],
+                       description=_group.get('description', ''),
                        inventory=inventory_id,
-                       variables=json.dumps(group.get('variables', None)))
+                       variables=json.dumps(_group.get('variables', None)))
 
         # different behavior depending on if we're creating child or parent
-        if 'parent' in group:
-            parent_pg = api_groups_pg.get(name__exact=group['parent']).results[0]
+        if 'parent' in _group:
+            parent_pg = api_groups_pg.get(name__exact=_group['parent']).results[0]
             new_group_pg = parent_pg.get_related('children')
         else:
             new_group_pg = api_groups_pg
@@ -322,7 +318,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_groups_get(self, api_groups_pg, _groups):
-
+        groups = _groups
         # Get list of created groups
         api_groups_pg.get(name__in=','.join([o['name'] for o in groups]))
 
@@ -331,6 +327,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.destructive
     def test_hosts_post(self, api_hosts_pg, api_inventories_pg, _host):
+        host = _host
         # Find desired inventory
         inventory_id = api_inventories_pg.get(name__iexact=host['inventory']).results[0].id
 
@@ -347,6 +344,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_hosts_get(self, api_hosts_pg, _hosts):
+        hosts = _hosts
         # Get list of available hosts
         api_hosts_pg.get(or__name=[o['name'] for o in hosts])
 
@@ -356,10 +354,10 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.destructive
     def test_hosts_add_group(self, api_hosts_pg, api_groups_pg, _host):
         # Find desired host
-        host_id = api_hosts_pg.get(name=host['name']).results[0].id
+        host_id = api_hosts_pg.get(name=_host['name']).results[0].id
 
         # Find desired groups
-        groups = api_groups_pg.get(name__in=','.join([grp for grp in host['groups']])).results
+        groups = api_groups_pg.get(name__in=','.join([grp for grp in _host.get('groups', [])])).results
 
         if not groups:
             pytest.skip("Not all hosts are associated with a group")
@@ -374,29 +372,29 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.destructive
     def test_inventory_sources_patch(self, api_groups_pg, api_credentials_pg, _inventory_source):
         # Find desired group
-        group_pg = api_groups_pg.get(name__iexact=inventory_source['group']).results[0]
+        group_pg = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0]
 
         # Find desired credential
-        credential_pg = api_credentials_pg.get(name__iexact=inventory_source['credential']).results[0]
+        credential_pg = api_credentials_pg.get(name__iexact=_inventory_source['credential']).results[0]
 
         # Get Page groups->related->inventory_source
-        inventory_source_pg = group_pg.get_related('inventory_source')
+        inventory_source_pg = group_pg.get_related('_inventory_source')
 
-        payload = dict(source=inventory_source['source'],
-                       source_regions=inventory_source.get('source_regions', ''),
-                       source_vars=inventory_source.get('source_vars', ''),
-                       source_tags=inventory_source.get('source_tags', ''),
+        payload = dict(source=_inventory_source['source'],
+                       source_regions=_inventory_source.get('source_regions', ''),
+                       source_vars=_inventory_source.get('source_vars', ''),
+                       source_tags=_inventory_source.get('source_tags', ''),
                        credential=credential_pg.id,
-                       overwrite=inventory_source.get('overwrite', False),
-                       overwrite_vars=inventory_source.get('overwrite_vars', False),
-                       update_on_launch=inventory_source.get('update_on_launch', False),
-                       update_interval=inventory_source.get('update_interval', 0),)
+                       overwrite=_inventory_source.get('overwrite', False),
+                       overwrite_vars=_inventory_source.get('overwrite_vars', False),
+                       update_on_launch=_inventory_source.get('update_on_launch', False),
+                       update_interval=_inventory_source.get('update_interval', 0),)
         inventory_source_pg.patch(**payload)
 
     @pytest.mark.destructive
     def test_inventory_sources_update(self, api_groups_pg, api_inventory_sources_pg, _inventory_source):
         # Find desired group
-        group_id = api_groups_pg.get(name__iexact=inventory_source['group']).results[0].id
+        group_id = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0].id
 
         # Find inventory source
         inv_src = api_inventory_sources_pg.get(group=group_id).results[0]
@@ -414,7 +412,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.jira('AC-596', run=False)
     def test_inventory_sources_update_status(self, api_groups_pg, api_inventory_sources_pg, _inventory_source):
         # Find desired group
-        group_id = api_groups_pg.get(name__iexact=inventory_source['group']).results[0].id
+        group_id = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0].id
 
         # Find desired inventory_source
         inv_src = api_inventory_sources_pg.get(group=group_id).results[0]
@@ -442,21 +440,21 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         Tests that an inventory_sync created expected sub-groups
         '''
         # Find desired group
-        group = api_groups_pg.get(name__iexact=inventory_source['group']).results[0]
+        group = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0]
 
         # Find sub-groups
         children_pg = group.get_related('children')
 
         # Assert sub-groups were synced
-        assert children_pg.count > 0, "No sub-groups were created for inventory '%s'" % inventory_source['name']
+        assert children_pg.count > 0, "No sub-groups were created for inventory '%s'" % _inventory_source['name']
 
         # Ensure all only groups matching source_regions were imported
-        if 'source_regions' in inventory_source and inventory_source['source_regions'] != '':
-            expected_source_regions = re.split(r'[,\s]+', inventory_source['source_regions'])
+        if 'source_regions' in _inventory_source and _inventory_source['source_regions'] != '':
+            expected_source_regions = re.split(r'[,\s]+', _inventory_source['source_regions'])
             for child in children_pg.results:
                 # If the group is an official region (e.g. 'us-east-1' or
                 # 'ORD'), make sure it's one we asked for
-                if child.name in region_choices[inventory_source['source']]:
+                if child.name in region_choices[_inventory_source['source']]:
                     assert child.name in expected_source_regions, \
                         "Imported region (%s) that wasn't in list of expected regions (%s)" % \
                         (child.name, expected_source_regions)
@@ -469,7 +467,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         Tests that an inventory_sync successfully imported hosts
         '''
         # Find desired group
-        group = api_groups_pg.get(name__iexact=inventory_source['group']).results[0]
+        group = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0]
 
         # Find hosts within the group
         group_hosts_pg = group.get_related('hosts')
@@ -485,48 +483,47 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.destructive
     def test_projects_post(self, api_projects_pg, api_organizations_pg, api_credentials_pg, awx_config, _project, ansible_runner):
-
         # Checkout repository on the target system
-        if project['scm_type'] in [None, 'manual'] \
-           and 'scm_url' in project:
-            assert '_ansible_module' in project, \
-                "Must provide ansible module to use for scm_url: %s " % project['scm_url']
+        if _project['scm_type'] in [None, 'manual'] \
+           and 'scm_url' in _project:
+            assert '_ansible_module' in _project, \
+                "Must provide ansible module to use for scm_url: %s " % _project['scm_url']
 
             # Make sure the required package(s) are installed
             results = ansible_runner.shell("test -f /etc/system-release && yum -y install %s || true"
-                                           % project['_ansible_module'])
+                                           % _project['_ansible_module'])
             results = ansible_runner.shell("grep -qi ubuntu /etc/os-release && apt-get install %s || true"
-                                           % project['_ansible_module'])
+                                           % _project['_ansible_module'])
 
             # Clone the repo
-            clone_func = getattr(ansible_runner, project['_ansible_module'])
+            clone_func = getattr(ansible_runner, _project['_ansible_module'])
             results = clone_func(
                 force='no',
-                repo=project['scm_url'],
-                dest="%s/%s" % (awx_config['project_base_dir'], project['local_path']))
+                repo=_project['scm_url'],
+                dest="%s/%s" % (awx_config['project_base_dir'], _project['local_path']))
 
         # Find desired object identifiers
-        org_id = api_organizations_pg.get(name__exact=project['organization']).results[0].id
+        org_id = api_organizations_pg.get(name__exact=_project['organization']).results[0].id
 
         # Build payload
-        payload = dict(name=project['name'],
-                       description=project['description'],
+        payload = dict(name=_project['name'],
+                       description=_project['description'],
                        organization=org_id,
-                       scm_type=project['scm_type'],)
+                       scm_type=_project['scm_type'],)
 
         # Add scm_type specific values
-        if project['scm_type'] in [None, 'manual']:
-            payload['local_path'] = project['local_path']
+        if _project['scm_type'] in [None, 'manual']:
+            payload['local_path'] = _project['local_path']
         else:
-            payload.update(dict(scm_url=project['scm_url'],
-                                scm_branch=project.get('scm_branch', ''),
-                                scm_clean=project.get('scm_clean', False),
-                                scm_delete_on_update=project.get('scm_delete_on_update', False),
-                                scm_update_on_launch=project.get('scm_update_on_launch', False),))
+            payload.update(dict(scm_url=_project['scm_url'],
+                                scm_branch=_project.get('scm_branch', ''),
+                                scm_clean=_project.get('scm_clean', False),
+                                scm_delete_on_update=_project.get('scm_delete_on_update', False),
+                                scm_update_on_launch=_project.get('scm_update_on_launch', False),))
 
         # Add credential (optional)
-        if 'credential' in project:
-            credential_id = api_credentials_pg.get(name__iexact=project['credential']).results[0].id
+        if 'credential' in _project:
+            credential_id = api_credentials_pg.get(name__iexact=_project['credential']).results[0].id
             payload['credential'] = credential_id
 
         # Create project
@@ -537,19 +534,19 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_projects_get(self, api_projects_pg, _projects):
-        api_projects_pg.get(or__name=[o['name'] for o in projects])
-        assert len(projects) == len(api_projects_pg.results)
+        api_projects_pg.get(or__name=[o['name'] for o in _projects])
+        assert len(_projects) == len(api_projects_pg.results)
 
     @pytest.mark.destructive
     def test_projects_update(self, api_projects_pg, api_organizations_pg, _project):
         # Find desired project
-        matches = api_projects_pg.get(name__iexact=project['name'], scm_type=project['scm_type'])
+        matches = api_projects_pg.get(name__iexact=_project['name'], scm_type=_project['scm_type'])
         assert matches.count == 1
         project_pg = matches.results.pop()
 
         # Assert that related->update matches expected
         update_pg = project_pg.get_related('update')
-        if project['scm_type'] in [None, 'manual']:
+        if _project['scm_type'] in [None, 'manual']:
             assert not update_pg.json['can_update'], "Manual projects should not be updateable"
             pytest.skip("Manual projects can not be updated")
         else:
@@ -575,22 +572,21 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_projects_update_status(self, api_projects_pg, api_organizations_pg, _project):
-
         # Find desired project
-        matches = api_projects_pg.get(name__iexact=project['name'], scm_type=project['scm_type'])
+        matches = api_projects_pg.get(name__iexact=_project['name'], scm_type=_project['scm_type'])
         assert matches.count == 1
         project_pg = matches.results.pop()
 
         # Assert that related->update matches expected
         update_pg = project_pg.get_related('update')
-        if project['scm_type'] in [None, 'manual']:
+        if _project['scm_type'] in [None, 'manual']:
             assert not update_pg.json['can_update'], "Manual projects should not be updateable"
         else:
             assert update_pg.json['can_update'], "SCM projects must be updateable"
 
         # Further inspect project updates
         project_updates_pg = project_pg.get_related('project_updates')
-        if project['scm_type'] in [None, 'manual']:
+        if _project['scm_type'] in [None, 'manual']:
             assert project_updates_pg.count == 0, "Manual projects do not support updates"
         else:
             assert project_updates_pg.count > 0, "SCM projects should update after creation, but no updates were found"
@@ -611,11 +607,11 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.destructive
     def test_organizations_add_projects(self, api_organizations_pg, api_projects_pg, _organization):
         # locate desired project resource
-        matches = api_organizations_pg.get(name__exact=organization['name']).results
+        matches = api_organizations_pg.get(name__exact=_organization['name']).results
         assert len(matches) == 1
         project_related_pg = matches[0].get_related('projects')
 
-        projects = organization.get('projects', [])
+        projects = _organization.get('projects', [])
         if not projects:
             pytest.skip("No projects associated with organization")
 
@@ -631,8 +627,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.destructive
     def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg, api_job_templates_pg, _job_template, ansible_facts, ansible_runner):
         # Find desired object identifiers
-        inventory_id = api_inventories_pg.get(name__iexact=job_template['inventory']).results[0].id
-        project_id = api_projects_pg.get(name__iexact=job_template['project']).results[0].id
+        inventory_id = api_inventories_pg.get(name__iexact=_job_template['inventory']).results[0].id
+        project_id = api_projects_pg.get(name__iexact=_job_template['project']).results[0].id
 
         # This is slightly nuts ... please look away
         if 'inventory_hostname' not in ansible_facts:
@@ -643,26 +639,26 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 ansible_facts['inventory_hostname'] = ansible_facts['ansible_fqdn'].replace('x86-64', 'x86_64')
 
         # Substitute any template parameters
-        limit = job_template.get('limit', '').format(**ansible_facts)
+        limit = _job_template.get('limit', '').format(**ansible_facts)
 
         # Create a new job_template
-        payload = dict(name=job_template['name'],
-                       description=job_template.get('description', None),
-                       job_type=job_template['job_type'],
-                       playbook=job_template['playbook'],
-                       job_tags=job_template.get('job_tags', ''),
+        payload = dict(name=_job_template['name'],
+                       description=_job_template.get('description', None),
+                       job_type=_job_template['job_type'],
+                       playbook=_job_template['playbook'],
+                       job_tags=_job_template.get('job_tags', ''),
                        limit=limit,
                        inventory=inventory_id,
                        project=project_id,
-                       allow_callbacks=job_template.get('allow_callbacks', False),
-                       verbosity=job_template.get('verbosity', 0),
-                       forks=job_template.get('forks', 0),
-                       extra_vars=json.dumps(job_template.get('extra_vars', None)),)
+                       allow_callbacks=_job_template.get('allow_callbacks', False),
+                       verbosity=_job_template.get('verbosity', 0),
+                       forks=_job_template.get('forks', 0),
+                       extra_vars=json.dumps(_job_template.get('extra_vars', None)),)
 
         # Add credential identifiers
         for cred in ('credential', 'cloud_credential'):
-            if cred in job_template:
-                payload[cred] = api_credentials_pg.get(name__iexact=job_template[cred]).results[0].id
+            if cred in _job_template:
+                payload[cred] = api_credentials_pg.get(name__iexact=_job_template[cred]).results[0].id
 
         try:
             api_job_templates_pg.post(payload)
@@ -671,21 +667,21 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_job_templates_get(self, api_job_templates_pg, _job_templates):
-        api_job_templates_pg.get(or__name=[o['name'] for o in job_templates])
-        assert len(job_templates) == len(api_job_templates_pg.results)
+        api_job_templates_pg.get(or__name=[o['name'] for o in _job_templates])
+        assert len(_job_templates) == len(api_job_templates_pg.results)
 
     @pytest.mark.destructive
     def test_jobs_launch(self, api_job_templates_pg, api_jobs_pg, _job_template):
         # If desired, skip launch
-        if not job_template.get('_launch', True):
-            pytest.skip("Per-request, skipping launch: %s" % job_template['name'])
+        if not _job_template.get('_launch', True):
+            pytest.skip("Per-request, skipping launch: %s" % _job_template['name'])
 
         # Find desired object identifiers
-        template_pg = api_job_templates_pg.get(name__iexact=job_template['name']).results[0]
+        template_pg = api_job_templates_pg.get(name__iexact=_job_template['name']).results[0]
 
         # Create the job
         payload = dict(name=template_pg.name,  # Add Date?
-                       job_template=template_pg.id,
+                       _job_template=template_pg.id,
                        inventory=template_pg.inventory,
                        project=template_pg.project,
                        playbook=template_pg.playbook,
@@ -710,14 +706,14 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_jobs_launch_status(self, api_job_templates_pg, api_jobs_pg, _job_template):
         # If desired, skip launch
-        if not job_template.get('_launch', True):
-            pytest.skip("Per-request, skipping launch: %s" % job_template['name'])
+        if not _job_template.get('_launch', True):
+            pytest.skip("Per-request, skipping launch: %s" % _job_template['name'])
 
         # Find desired object identifiers
-        template_pg = api_job_templates_pg.get(name__iexact=job_template['name']).results[0]
+        template_pg = api_job_templates_pg.get(name__iexact=_job_template['name']).results[0]
 
         # Find the most recently launched job for the desired job_template
-        matches = api_jobs_pg.get(job_template=template_pg.id, order_by='-id')
+        matches = api_jobs_pg.get(_job_template=template_pg.id, order_by='-id')
         assert matches.results > 0, "No jobs matching job_template=%s found" % template_pg.id
         job_pg = matches.results[0]
 
