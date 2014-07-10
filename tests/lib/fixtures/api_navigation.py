@@ -226,6 +226,17 @@ def api_jobs_url(api, api_home):
 def api_jobs_pg(testsetup, api_jobs_url):
     return Jobs_Page(testsetup, base_url=api_jobs_url)
 
+#
+# /api/v1/unified_jobs
+#
+@pytest.fixture(scope="module")
+def api_unified_jobs_url(api, api_home):
+    return navigate(api, api_home, 'unified_jobs')
+
+@pytest.fixture(scope="module")
+def api_unified_jobs_pg(testsetup, api_unified_jobs_url):
+    return Jobs_Page(testsetup, base_url=api_unified_jobs_url)
+
 @pytest.fixture(scope="module")
 def authtoken(api, testsetup, api_authtoken_url):
     '''
