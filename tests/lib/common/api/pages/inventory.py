@@ -142,6 +142,8 @@ class Inventory_Source_Page(base.Base):
     base_url = '/api/v1/inventory_sources/{id}/'
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
+    last_updated = property(base.json_getter('last_updated'), base.json_setter('last_updated'))
+    last_update_failed = property(base.json_getter('last_update_failed'), base.json_setter('last_update_failed'))
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related']
