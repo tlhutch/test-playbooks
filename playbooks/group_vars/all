@@ -26,6 +26,7 @@ ec2_images: [{'name': 'centos-6.4-x86_64',   'user': 'root',        'id': 'ami-e
 # Use `nova image-list` to determine active images
 rax_images: [{'name': 'centos-6.4-x86_64',   'uuid': 'f70ed7c7-b42e-4d77-83d8-40fa29825b85'},
              {'name': 'centos-6.5-x86_64',   'uuid': '042395fc-728c-4763-86f9-9b0cacb00701'},
+             {'name': 'centos-7.0-x86_64',   'uuid': 'f0d3b38b-61e3-47c4-83c7-98c4e7038809'},
              {'name': 'rhel-6.4-x86_64',     'uuid': 'c6e2fed0-75bf-420d-a744-7cfc75a1889e'},
              {'name': 'rhel-6.5-x86_64',     'uuid': 'd1b6eba3-aece-407c-8ef3-4488b452336b'},
              # {'name': 'rhel-7.0-x86_64',     'uuid': ''},
