@@ -378,7 +378,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         credential_pg = api_credentials_pg.get(name__iexact=_inventory_source['credential']).results[0]
 
         # Get Page groups->related->inventory_source
-        inventory_source_pg = group_pg.get_related('_inventory_source')
+        inventory_source_pg = group_pg.get_related('inventory_source')
 
         payload = dict(source=_inventory_source['source'],
                        source_regions=_inventory_source.get('source_regions', ''),
