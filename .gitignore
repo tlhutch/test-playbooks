@@ -6,9 +6,9 @@ results
 results.xml
 *.log
 *.jsonc
+.cache
 /playbooks/*vars.*
 /playbooks/inventory.*
 /tests/jira.cfg
 /tests/credentials.yaml
 /tests/sauce_labs.yaml
-/tests/.cache
