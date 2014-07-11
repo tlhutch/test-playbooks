@@ -7,7 +7,7 @@ import common.utils
 from common.exceptions import *
 from tests.api import Base_Api_Test
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def variables_yaml(request):
     return yaml.load('''
 variables: |
@@ -15,11 +15,11 @@ variables: |
     ansible_ssh_user: ubuntu
 ''')['variables']
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def variables_json(request, variables_yaml):
     return json.dumps(variables_yaml)
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def inventory_yaml(request, authtoken, api_inventories_pg, organization, variables_yaml):
     payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    description="Test inventory",
@@ -29,7 +29,7 @@ def inventory_yaml(request, authtoken, api_inventories_pg, organization, variabl
     request.addfinalizer(obj.delete)
     return obj
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def inventory_json(request, authtoken, api_inventories_pg, organization, variables_json):
     payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    description="Test inventory",
@@ -42,7 +42,7 @@ def inventory_json(request, authtoken, api_inventories_pg, organization, variabl
 #
 # /groups
 #
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def groups_json(request, authtoken, api_groups_pg, inventory_json, variables_json):
     payload = dict(name="group-%s" % common.utils.random_unicode(),
                    inventory=inventory_json.id,
@@ -51,7 +51,7 @@ def groups_json(request, authtoken, api_groups_pg, inventory_json, variables_jso
     request.addfinalizer(obj.delete)
     return obj
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def groups_yaml(request, authtoken, api_groups_pg, inventory_json, variables_yaml):
     payload = dict(name="group-%s" % common.utils.random_unicode(),
                    inventory=inventory_json.id,
@@ -63,7 +63,7 @@ def groups_yaml(request, authtoken, api_groups_pg, inventory_json, variables_yam
 #
 # /hosts
 #
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def hosts_json(request, authtoken, api_hosts_pg, inventory_json, variables_json):
     payload = dict(name="host-%s" % common.utils.random_unicode(),
                    inventory=inventory_json.id,
@@ -72,7 +72,7 @@ def hosts_json(request, authtoken, api_hosts_pg, inventory_json, variables_json)
     request.addfinalizer(obj.delete)
     return obj
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def hosts_yaml(request, authtoken, api_hosts_pg, inventory_json, variables_yaml):
     payload = dict(name="host-%s" % common.utils.random_unicode(),
                    inventory=inventory_json.id,
@@ -84,7 +84,7 @@ def hosts_yaml(request, authtoken, api_hosts_pg, inventory_json, variables_yaml)
 #
 # /job_templates
 #
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def job_templates_json(request, authtoken, api_job_templates_pg, project, inventory_json, variables_json):
 
     payload = dict(name="template-%s" % common.utils.random_unicode(),
@@ -97,7 +97,7 @@ def job_templates_json(request, authtoken, api_job_templates_pg, project, invent
     request.addfinalizer(obj.delete)
     return obj
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def job_templates_yaml(request, authtoken, api_job_templates_pg, project, inventory_yaml, variables_yaml):
     payload = dict(name="template-%s" % common.utils.random_unicode(),
                    extra_vars=variables_yaml,
