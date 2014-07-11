@@ -3,7 +3,7 @@ import common.utils
 # from users import admin_user
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def ssh_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create ssh credential'''
     payload = dict(name="credentials-%s" % common.utils.random_unicode(),
@@ -17,7 +17,7 @@ def ssh_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
     return obj
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def ssh_credential_ask(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create ssh credential with 'ASK' password'''
     payload = dict(name="credentials-%s" % common.utils.random_unicode(),
@@ -31,7 +31,7 @@ def ssh_credential_ask(request, authtoken, api_credentials_pg, admin_user, tests
     return obj
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create ssh credential with 'ASK' password'''
     payload = dict(name="credentials-%s" % common.utils.random_unicode(),
@@ -48,7 +48,7 @@ def ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user,
     return obj
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create a randomly named Amazon Cloud credential'''
     payload = dict(name="credentials-%s" % common.utils.random_unicode(),
@@ -62,7 +62,7 @@ def aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
     return obj
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def rax_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create a randomly named Rackspace Cloud credential'''
     payload = dict(name="credentials-%s" % common.utils.random_unicode(),

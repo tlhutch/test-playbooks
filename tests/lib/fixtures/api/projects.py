@@ -4,7 +4,7 @@ import common.utils
 # from organizations import organization
 # from credentials import scm_credential_key_unlock_ASK
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def project_ansible_helloworld_hg(request, authtoken, api_projects_pg, organization):
     # Create project
     payload = dict(name="project-%s" % common.utils.random_unicode(),
@@ -29,7 +29,7 @@ def project_ansible_helloworld_hg(request, authtoken, api_projects_pg, organizat
 
     return obj
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def project_ansible_playbooks_git(request, authtoken, api_projects_pg, organization):
     # Create project
     payload = dict(name="ansible-playbooks.git - %s" % common.utils.random_unicode(),
@@ -53,7 +53,7 @@ def project_ansible_playbooks_git(request, authtoken, api_projects_pg, organizat
 
     return obj
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def project(request, authtoken, api_projects_pg, organization):
     # Create project
     payload = dict(name="project-%s" % common.utils.random_unicode(),
