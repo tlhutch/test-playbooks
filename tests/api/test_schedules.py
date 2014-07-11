@@ -523,7 +523,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedule_pg = schedules_pg.post(payload)
         assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
-    def test_put(self, aws_inventory_source):
+    def test_put(self, aws_inventory_source, disabled_inventory_schedule):
         '''assert successful schedule PUT'''
         schedules_pg = aws_inventory_source.get_related('schedules')
         assert schedules_pg.count > 0
@@ -540,7 +540,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         # Was the description changed?
         assert schedule_pg.description == new_desc
 
-    def test_patch(self, aws_inventory_source):
+    def test_patch(self, aws_inventory_source, disabled_inventory_schedule):
         '''assert successful schedule PATCH'''
         schedules_pg = aws_inventory_source.get_related('schedules')
         assert schedules_pg.count > 0
