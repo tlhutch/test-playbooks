@@ -209,7 +209,7 @@ class Test_Project_Schedules(Base_Api_Test):
         schedule_pg = schedules_pg.post(payload)
         assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
-    def test_put(self, project):
+    def test_put(self, project, disabled_project_schedule):
         '''assert successful schedule PUT'''
         schedules_pg = project.get_related('schedules')
         assert schedules_pg.count > 0
@@ -226,7 +226,7 @@ class Test_Project_Schedules(Base_Api_Test):
         # Was the description changed?
         assert schedule_pg.description == new_desc
 
-    def test_patch(self, project):
+    def test_patch(self, project, disabled_project_schedule):
         '''assert successful schedule PATCH'''
         schedules_pg = project.get_related('schedules')
         assert schedules_pg.count > 0
