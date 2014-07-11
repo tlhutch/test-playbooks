@@ -255,14 +255,7 @@ class Test_Job_Callback(Base_Api_Test):
         # Assert the affected host matches expected
         assert host_summaries_pg.results[0].host == host_ipv4.id
 
-
-@pytest.mark.skip_selenium
-@pytest.mark.destructive
-class Test_Job_Callback_With_Update(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000')
-
-    def test_launch(self, ansible_runner, job_template, host_config_key, cloud_group, ansible_default_ipv4):
+    def test_launch_with_inventory_update(self, ansible_runner, job_template, host_config_key, cloud_group, ansible_default_ipv4):
         '''Assert that a callback job against a job_template also initiates an aws inventory_update (when configured).'''
 
         # Change the job_template inventory to match cloud_group
@@ -301,14 +294,7 @@ class Test_Job_Callback_With_Update(Base_Api_Test):
         assert cloud_group.get_related('inventory_source').last_updated is not None
         assert not cloud_group.get_related('inventory_source').last_update_failed
 
-
-@pytest.mark.skip_selenium
-@pytest.mark.destructive
-class Test_Job_Callback_Without_Update(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000')
-
-    def test_launch(self, ansible_runner, job_template, host_config_key, cloud_group, ansible_default_ipv4):
+    def test_launch_without_inventory_update(self, ansible_runner, job_template, host_config_key, cloud_group, ansible_default_ipv4):
         '''Assert that a callback job against a job_template does not initiate an inventory_update'''
 
         # Change the job_template inventory to match cloud_group
