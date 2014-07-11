@@ -22,7 +22,7 @@ def host_ipv4_again(request, authtoken, api_hosts_pg, host_ipv4):
 
 @pytest.fixture(scope="function")
 def host_public_ipv4_alias(request, authtoken, api_hosts_pg, group, my_public_ipv4, random_ipv4):
-    '''Create an inventory host matching the public ipv4 address of the system running pytest, but use a rando'''
+    '''Create an inventory host matching the public ipv4 address of the system running pytest, but use a random ipv4 address'''
     payload = dict(name=my_public_ipv4,
                    description="test host %s" % common.utils.random_unicode(),
                    variables=json.dumps(dict(ansible_ssh_host=random_ipv4, ansible_connection="local")),
