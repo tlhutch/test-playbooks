@@ -681,7 +681,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Create the job
         payload = dict(name=template_pg.name,  # Add Date?
-                       _job_template=template_pg.id,
+                       job_template=template_pg.id,
                        inventory=template_pg.inventory,
                        project=template_pg.project,
                        playbook=template_pg.playbook,
@@ -713,7 +713,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         template_pg = api_job_templates_pg.get(name__iexact=_job_template['name']).results[0]
 
         # Find the most recently launched job for the desired job_template
-        matches = api_jobs_pg.get(_job_template=template_pg.id, order_by='-id')
+        matches = api_jobs_pg.get(job_template=template_pg.id, order_by='-id')
         assert matches.results > 0, "No jobs matching job_template=%s found" % template_pg.id
         job_pg = matches.results[0]
 
