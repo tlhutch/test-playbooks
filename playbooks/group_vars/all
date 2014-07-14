@@ -10,30 +10,31 @@ delete_on_start: false
 instance_name_prefix: 'testing'
 
 # Available ec2_images
-ec2_images: [{'name': 'centos-6.4-x86_64',   'user': 'root',        'id': 'ami-eb6b0182', },
-             {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-eb6b0182', },
-             {'name': 'rhel-6.4-x86_64',     'user': 'ec2-user',    'id': 'ami-a25415cb', },
-             {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-63b6910a', },
-             {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-785bae10', },
-             {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-5db4a934', },
-             {'name': 'ubuntu-12.10-x86_64', 'user': 'ubuntu',      'id': 'ami-fd4e4394', },
-             {'name': 'ubuntu-13.10-x86_64', 'user': 'ubuntu',      'id': 'ami-2f252646', },
-             {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-018c9568', },
-             {'name': 'fedora-19-x86_64',    'user': 'fedora',      'id': 'ami-b22e5cdb', },
-             {'name': 'fedora-20-x86_64',    'user': 'fedora',      'id': 'ami-1337187a', },
-            ]
+ec2_images:
+    - {'name': 'centos-6.4-x86_64',   'user': 'root',        'id': 'ami-eb6b0182', 'type': 'm3.medium' }
+    - {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-eb6b0182', 'type': 'm3.medium' }
+    # - {'name': 'centos-7.0-x86_64',   'user': 'root',        'id': 'ami-FIXME', 'type': 'm3.medium' }
+    - {'name': 'rhel-6.4-x86_64',     'user': 'ec2-user',    'id': 'ami-a25415cb', 'type': 'm3.medium' }
+    - {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-63b6910a', 'type': 'm3.medium' }
+    - {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-785bae10', 'type': 'm3.medium' }
+    - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-5db4a934', 'type': 'm3.medium' }
+    - {'name': 'ubuntu-12.10-x86_64', 'user': 'ubuntu',      'id': 'ami-fd4e4394', 'type': 'm3.medium' }
+    - {'name': 'ubuntu-13.10-x86_64', 'user': 'ubuntu',      'id': 'ami-2f252646', 'type': 'm3.medium' }
+    - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-018c9568', 'type': 'm3.medium' }
+    - {'name': 'fedora-19-x86_64',    'user': 'fedora',      'id': 'ami-b22e5cdb', 'type': 'm3.medium' }
+    - {'name': 'fedora-20-x86_64',    'user': 'fedora',      'id': 'ami-1337187a', 'type': 'm3.medium' }
 
 # Use `nova image-list` to determine active images
-rax_images: [{'name': 'centos-6.4-x86_64',   'uuid': 'f70ed7c7-b42e-4d77-83d8-40fa29825b85'},
-             {'name': 'centos-6.5-x86_64',   'uuid': '042395fc-728c-4763-86f9-9b0cacb00701'},
-             {'name': 'centos-7.0-x86_64',   'uuid': 'f0d3b38b-61e3-47c4-83c7-98c4e7038809'},
-             {'name': 'rhel-6.4-x86_64',     'uuid': 'c6e2fed0-75bf-420d-a744-7cfc75a1889e'},
-             {'name': 'rhel-6.5-x86_64',     'uuid': 'd1b6eba3-aece-407c-8ef3-4488b452336b'},
-             # {'name': 'rhel-7.0-x86_64',     'uuid': ''},
-             {'name': 'ubuntu-12.04-x86_64', 'uuid': 'a4286a42-137c-46ce-a796-dbd2b12a078c'},
-             {'name': 'ubuntu-12.10-x86_64', 'uuid': 'ffa476b1-9b14-46bd-99a8-862d1d94eb7a'},
-             {'name': 'ubuntu-13.10-x86_64', 'uuid': '7b8abc3f-5fd2-4d02-9e9a-16d43fc7128e'},
-             {'name': 'ubuntu-14.04-x86_64', 'uuid': '5cc098a5-7286-4b96-b3a2-49f4c4f82537'},
-             {'name': 'fedora-19-x86_64',    'uuid': '4b81c45a-90d6-4654-972c-73972b1d0aea'},
-             {'name': 'fedora-20-x86_64',    'uuid': 'c21acd84-a6c5-44df-ba7d-2483cd5b3ccb'},
-            ]
+rax_images:
+    - {'name': 'centos-6.4-x86_64',   'uuid': 'f70ed7c7-b42e-4d77-83d8-40fa29825b85', 'flavor': '5' }
+    - {'name': 'centos-6.5-x86_64',   'uuid': '042395fc-728c-4763-86f9-9b0cacb00701', 'flavor': '5' }
+    - {'name': 'centos-7.0-x86_64',   'uuid': 'f0d3b38b-61e3-47c4-83c7-98c4e7038809', 'flavor': '5' }
+    - {'name': 'rhel-6.4-x86_64',     'uuid': 'c6e2fed0-75bf-420d-a744-7cfc75a1889e', 'flavor': '5' }
+    - {'name': 'rhel-6.5-x86_64',     'uuid': 'd1b6eba3-aece-407c-8ef3-4488b452336b', 'flavor': '5' }
+    # {'name': 'rhel-7.0-x86_64',     'uuid': 'FIXME', 'flavor': '5' }
+    - {'name': 'ubuntu-12.04-x86_64', 'uuid': 'a4286a42-137c-46ce-a796-dbd2b12a078c', 'flavor': '5' }
+    - {'name': 'ubuntu-12.10-x86_64', 'uuid': 'ffa476b1-9b14-46bd-99a8-862d1d94eb7a', 'flavor': '5' }
+    - {'name': 'ubuntu-13.10-x86_64', 'uuid': '7b8abc3f-5fd2-4d02-9e9a-16d43fc7128e', 'flavor': '5' }
+    - {'name': 'ubuntu-14.04-x86_64', 'uuid': '5cc098a5-7286-4b96-b3a2-49f4c4f82537', 'flavor': '5' }
+    - {'name': 'fedora-19-x86_64',    'uuid': '4b81c45a-90d6-4654-972c-73972b1d0aea', 'flavor': '5' }
+    - {'name': 'fedora-20-x86_64',    'uuid': 'c21acd84-a6c5-44df-ba7d-2483cd5b3ccb', 'flavor': '5' }
