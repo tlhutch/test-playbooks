@@ -1,8 +1,9 @@
 ---
 job_host_summary:
     type: object
-    required: [ id, url, type, created, modified, job, host, ok, changed, dark,
-    failures, processed, skipped, failed, related, summary_fields, ]
+    required: [ id, url, type, created, modified, job, host, host_name, ok,
+    changed, dark, failures, processed, skipped, failed, related,
+    summary_fields, ]
     additionalProperties: False
     properties:
         id: { type: number, minimum: 1, }
@@ -12,6 +13,7 @@ job_host_summary:
         modified: { type: string, format: date-time, }
         job: { type: number, minimum: 1, }
         host: { type: number, minimum: 1, }
+        host_name:  { type: string }
         ok: { type: number }
         changed: { type: number }
         dark: { type: number }
