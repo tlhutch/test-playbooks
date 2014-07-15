@@ -44,5 +44,22 @@ class Job_Template_Page(base.Base):
             kwargs['job_template'] = self.id
         return self.get_related('jobs').post(kwargs)
 
+    def launch_job(self, **kwargs):
+        '''
+        Create and launch a job
+        '''
+        # Create a job
+        job_pg = self.post_job(**kwargs)
+
+        # GET related->start
+        start_pg = job_pg.get_related('start')
+        assert start_pg.json['can_start'], \
+            "The created job is not able to launch (can_start:%s)" % start_pg.json['can_start']
+
+        # Launch job, passing kwargs (if provided)
+        start_pg.post(**kwargs)
+
+        return job_pg
+
 class Job_Templates_Page(Job_Template_Page, base.Base_List):
     base_url = '/api/v1/job_templates/'
