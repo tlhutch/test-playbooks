@@ -79,6 +79,19 @@ def inventory_source(request, authtoken, group):
 
 
 @pytest.fixture(scope="function")
+def host_local(request, authtoken, api_hosts_pg, inventory, group):
+    payload = dict(name="local",
+                   description="a non-random local host",
+                   variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
+                   inventory=inventory.id,)
+    obj = api_hosts_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    # Add host to group
+    with pytest.raises(common.exceptions.NoContent_Exception):
+        obj.get_related('groups').post(dict(id=group.id))
+    return obj
+
+@pytest.fixture(scope="function")
 def host(request, authtoken, api_hosts_pg, inventory, group):
     payload = dict(name="random.host.%s" % common.utils.random_ascii(),
                    description="random description - %s" % common.utils.random_unicode(),
