@@ -215,12 +215,29 @@ class Task_Page(Base):
             (self.id, self.status, self.failed, self.name, self.result_stdout, self.result_traceback, self.job_explanation)
 
     @property
+    def is_completed(self):
+        '''
+        Return whether the current task has finished.  This does not indicate
+        whether the task completed successfully.
+        '''
+        return self.status.lower() in ['successful', 'failed', 'error', 'canceled']
+
     def is_successful(self):
+        '''
+        Return whether the current has completed successfully.  This means that:
+         * self.status == 'successful'
+         * self.has_traceback == False
+         * self.failed == False
+        '''
         return 'successful' == self.status.lower() and \
             not (self.has_traceback or self.failed)
 
     @property
     def has_traceback(self):
+        '''
+        Return whether a traceback has been detected in result_traceback or
+        result_stdout
+        '''
         return 'Traceback' in self.result_traceback or \
                'Traceback' in self.result_stdout
 
