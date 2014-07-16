@@ -2,10 +2,16 @@
 dashboard:
   type: object
   required: [inventories, inventory_sources, groups, hosts, projects, scm_types,
-    jobs, users, organizations, teams, credentials, job_templates]
+    jobs, users, organizations, teams, credentials, job_templates, related]
   additionalProperties: false
 
   properties:
+    related:
+      additionalProperties: false
+      properties:
+        inventory_graph: {format: uri, type: string}
+        jobs_graph: {format: uri, type: string}
+
     credentials: # {$ref: '#/definitions/dashboard_common_core'}
       additionalProperties: false
       properties:
