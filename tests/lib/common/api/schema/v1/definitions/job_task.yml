@@ -1,0 +1,23 @@
+---
+job_task:
+    type: object
+    required: [ id, name, failed, changed, created, modified, reported_hosts, successful_count, changed_count, skipped_count, host_count, failed_count, unreachable_count, ]
+    additionalProperties: False
+    properties:
+        id: { type: number, minimum: 1, }
+        name: { type: string }
+        failed: { type: boolean, }
+        changed: { type: boolean, }
+        created:  { type: string, format: date-time, }
+        modified:  { type: string, format: date-time, }
+        reported_hosts: { type: number, minimum: 0 }
+        successful_count: { type: number, minimum: 0 }
+        changed_count: { type: number, minimum: 0 }
+        skipped_count: { type: number, minimum: 0 }
+        host_count: { type: number, minimum: 0 }
+        failed_count: { type: number, minimum: 0 }
+        unreachable_count: { type: number, minimum: 0 }
+        related:
+            type: object
+        summary_fields:
+            type: object

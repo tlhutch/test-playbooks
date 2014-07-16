@@ -399,6 +399,34 @@ class Awx_Schema_Job_Host_Summary(Awx_Schema_Job_Host_Summaries):
     def get(self):
         return self.load_file('job_host_summaries/item.yml')
 
+class Awx_Schema_Job_Plays(Awx_Schema):
+    resource = '/api/v1/jobs/\d+/job_plays/'
+
+    @property
+    def get(self):
+        return self.load_file('job_plays/list.yml')
+
+class Awx_Schema_Job_Play(Awx_Schema_Job_Plays):
+    resource = '/api/v1/jobs/\d+/job_plays/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('job_plays/item.yml')
+
+class Awx_Schema_Job_Tasks(Awx_Schema):
+    resource = '/api/v1/jobs/\d+/job_tasks/'
+
+    @property
+    def get(self):
+        return self.load_file('job_tasks/list.yml')
+
+class Awx_Schema_Job_Task(Awx_Schema_Job_Tasks):
+    resource = '/api/v1/jobs/\d+/job_tasks/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('job_tasks/item.yml')
+
 #
 # /inventory_sources
 #

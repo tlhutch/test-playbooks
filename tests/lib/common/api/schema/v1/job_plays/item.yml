@@ -1,0 +1,6 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/jobs/\d+/job_plays/\d+/'
+$ref: '#/definitions/job_play'
+definitions:
+  !include '../definitions/*.yml'

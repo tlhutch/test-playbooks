@@ -1,0 +1,21 @@
+---
+job_play:
+    type: object
+    required: [ play, failed_count, changed_count, started, changed, skipped_count, failed, ok_count, unreachable_count, id ]
+    additionalProperties: False
+    properties:
+        id: { type: number, minimum: 1, }
+        play: { type: string }
+        started:  { type: string, format: date-time, }
+        failed: { type: boolean, }
+        changed: { type: boolean, }
+        failed_count: { type: number, minimum: 0, }
+        changed_count: { type: number, minimum: 0, }
+        skipped_count: { type: number, minimum: 0, }
+        ok_count: { type: number, minimum: 0, }
+        unreachable_count: { type: number, minimum: 0, }
+
+        related:
+            type: object
+        summary_fields:
+            type: object
