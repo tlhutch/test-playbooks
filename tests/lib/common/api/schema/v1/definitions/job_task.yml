@@ -1,9 +1,10 @@
 ---
 job_task:
     type: object
-    required: [ id, name, failed, changed, created, modified, reported_hosts, successful_count, changed_count, skipped_count, host_count, failed_count, unreachable_count, ]
+    required: [ type, id, name, failed, changed, created, modified, reported_hosts, successful_count, changed_count, skipped_count, host_count, failed_count, unreachable_count, ]
     additionalProperties: False
     properties:
+        type: { type: string, pattern: ^job_event$ }
         id: { type: number, minimum: 1, }
         name: { type: string }
         failed: { type: boolean, }

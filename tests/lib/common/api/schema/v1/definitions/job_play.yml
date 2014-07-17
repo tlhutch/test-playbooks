@@ -1,9 +1,10 @@
 ---
 job_play:
     type: object
-    required: [ play, failed_count, changed_count, started, changed, skipped_count, failed, ok_count, unreachable_count, id ]
+    required: [ type, play, failed_count, changed_count, started, changed, skipped_count, failed, ok_count, unreachable_count, id ]
     additionalProperties: False
     properties:
+        type: { type: string, pattern: ^job_event$ }
         id: { type: number, minimum: 1, }
         play: { type: string }
         started:  { type: string, format: date-time, }
