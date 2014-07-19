@@ -905,5 +905,5 @@ job_templates:
       inventory: local,
       credential: SSH (user:bender_eng_user, ssh_key_data)
       extra_vars:
-        num_hosts: 1000
+        num_hosts: 100
         ansible_connection: local
