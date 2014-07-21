@@ -113,8 +113,4 @@ class Test_Job_Events(Base_Api_Test):
                 "expected number of tasks for play:%s (%d != %d)" \
                 % (play.id, job_tasks_pg.count, job_events_tasks.count)
 
-    def test_dynamic_inventory_socketio(self, dynamic_inventory, num_hosts):
-        '''
-        Verify the correct events are sent via socketio
-        '''
-        pytest.skip("Not implemented")
+            # Inspect events to determine if task successful
