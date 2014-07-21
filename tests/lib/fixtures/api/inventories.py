@@ -92,6 +92,16 @@ def host_local(request, authtoken, api_hosts_pg, inventory, group):
     return obj
 
 @pytest.fixture(scope="function")
+def host_without_group(request, authtoken, inventory):
+    payload = dict(name="random.host.%s" % common.utils.random_ascii(),
+                   description="a host detached from any groups - %s" % common.utils.random_unicode(),
+                   variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
+                   inventory=inventory.id,)
+    obj = inventory.get_related('hosts').post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+@pytest.fixture(scope="function")
 def host(request, authtoken, api_hosts_pg, inventory, group):
     payload = dict(name="random.host.%s" % common.utils.random_ascii(),
                    description="random description - %s" % common.utils.random_unicode(),
