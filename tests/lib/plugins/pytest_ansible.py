@@ -10,9 +10,27 @@ import ansible.inventory
 from urlparse import urlparse
 
 __version__ = '1.0'
+log = logging.getLogger(__name__)
 
 
-def pytest_sessionstart(session):
+def pytest_addoption(parser):
+    group = parser.getgroup('ansible', 'ansible')
+    group.addoption('--ansible-inventory',
+                     action='store',
+                     dest='ansible_inventory',
+                     default='/etc/ansible/hosts',
+                     metavar='ANSIBLE-INVENTORY',
+                     help='ansible inventory file URI')
+
+    group.addoption('--ansible-host-pattern',
+                     action='store',
+                     dest='ansible_host_pattern',
+                     default=None,
+                     metavar='ANSIBLE-HOST-PATTERN',
+                     help='Specify ansible host pattern')
+
+
+def pytest_configure(config):
     '''
     Sanitize --ansible-* parameters.
     Ensure --ansible-inventory references a valid file. If a remote URL is
@@ -20,21 +38,20 @@ def pytest_sessionstart(session):
     '''
 
     # Yuck, is there a better way to benefit from pytest_tmpdir?
-    tmpdir = session.config.pluginmanager.getplugin("tmpdir").TempdirHandler(
-        session.config).getbasetemp()
+    tmpdir = config.pluginmanager.getplugin("tmpdir").TempdirHandler(config).getbasetemp()
 
     # Sanitize ansible_hostname
-    ansible_hostname = session.config.getvalue('ansible_host_pattern')
+    ansible_hostname = config.getvalue('ansible_host_pattern')
     # If using pytest_mozwebqa, just use the the value of --baseurl
-    if ansible_hostname is None and hasattr(session.config.option, 'base_url'):
+    if ansible_hostname is None and hasattr(config.option, 'base_url'):
         # attempt to use --baseurl as ansible_host_pattern
-        ansible_hostname = urlparse(session.config.getvalue('base_url')).hostname
+        ansible_hostname = urlparse(config.getvalue('base_url')).hostname
     if ansible_hostname is None:
         py.test.exit("No ansible host pattern provided (--ansible-host-pattern)")
 
     # Sanitize ansible_inventory
-    ansible_inventory = session.config.getvalue('ansible_inventory')
-    if not session.config.option.collectonly:
+    ansible_inventory = config.getvalue('ansible_inventory')
+    if not config.option.collectonly:
 
         # Convert file URL to absolute path (file:///path/to/file.ini ->
         # /path/to/file.ini)
@@ -58,7 +75,7 @@ def pytest_sessionstart(session):
         local_inventory = tmpdir.mkdir("ansible").join("inventory.ini").open('a+')
         # Remember the local filename
         ansible_inventory = local_inventory.name
-        session.config.option.ansible_inventory = local_inventory.name
+        config.option.ansible_inventory = local_inventory.name
 
         # Ansible inventory files support host aliasing
         # (http://www.ansibleworks.com/docs/intro_inventory.html#id10)
@@ -99,23 +116,6 @@ def ansible_runner(request):
     return AnsibleWrapper(inventory, hostname)
 
 
-def pytest_addoption(parser):
-    group = parser.getgroup('ansible', 'ansible')
-    group._addoption('--ansible-inventory',
-                     action='store',
-                     dest='ansible_inventory',
-                     default='/etc/ansible/hosts',
-                     metavar='ANSIBLE-INVENTORY',
-                     help='ansible inventory file URI')
-
-    group._addoption('--ansible-host-pattern',
-                     action='store',
-                     dest='ansible_host_pattern',
-                     default=None,
-                     metavar='ANSIBLE-HOST-PATTERN',
-                     help='Specify ansible host pattern')
-
-
 class AnsibleWrapper(object):
     '''
     Wrapper around ansible.runner.Runner()
@@ -128,9 +128,6 @@ class AnsibleWrapper(object):
     '''
 
     def __init__(self, inventory, pattern='all'):
-        self.logging = logging.getLogger("pytest_ansible")
-        self.logging.setLevel(logging.DEBUG)
-
         self.inventory = inventory
         self.pattern = pattern
         self.module_name = None
@@ -163,7 +160,7 @@ class AnsibleWrapper(object):
         module_args = ' '.join(module_args)
 
         # Log the module and parameters
-        self.logging.debug("[%s] calling %s: %s, %s" % (self.pattern, self.module_name, self.module_args, kwargs))
+        log.debug("[%s] %s: %s, %s" % (self.pattern, self.module_name, module_args, kwargs))
 
         runner = ansible.runner.Runner(
             inventory=inventory,
@@ -175,7 +172,7 @@ class AnsibleWrapper(object):
         result = runner.run()
 
         # FIXME - improve result output logging
-        self.logging.debug(result)
+        log.debug(result)
 
         # Catch any failures in the response
         for host in result['contacted'].values():

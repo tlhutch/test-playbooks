@@ -12,20 +12,45 @@ from rest_client import Connection
 __version__ = '1.0'
 
 
-def load_credentials(filename=None):
-    if filename is None:
-        this_file = os.path.abspath(__file__)
-        path = py.path.local(this_file).new(basename='credentials.yaml')
-    else:
-        path = py.path.local(filename)
+def pytest_addoption(parser):
+    group = parser.getgroup('rest', 'rest')
+    group.addoption('--api-baseurl',
+                     action='store',
+                     dest='base_url',
+                     default=None,
+                     metavar='url',
+                     help='base url for the application under test.')
+    group.addoption('--api-version',
+                     action='store',
+                     dest='api_version',
+                     default='current_version',
+                     metavar='API-VERSION',
+                     help='Choose the API version')
+    group.addoption('--api-untrusted',
+                     action='store_true',
+                     dest='assume_untrusted',
+                     default=False,
+                     help='assume that all certificate issuers are untrusted. (default: %default)')
+    # FIXME - make this work (refer to lib/common/api.py)
+    group.addoption('--api-debug',
+                    action="store_true",
+                    dest="debug_rest",
+                    default=False,
+                    help="record REST API calls 'pytestdebug-rest.log'.")
 
-    if path.check():
-        credentials_fh = path.open()
-        credentials_dict = yaml.load(credentials_fh)
-        return credentials_dict
-    else:
-        msg = 'Unable to load credentials file at %s' % path
-        raise Exception(msg)
+    group = parser.getgroup('safety', 'safety')
+    group.addoption('--api-destructive',
+                     action='store_true',
+                     dest='run_destructive',
+                     default=False,
+                     help='include destructive tests (tests not explicitly marked as \'nondestructive\'). (default: %default)')
+
+    group = parser.getgroup('credentials', 'credentials')
+    group.addoption("--api-credentials",
+                     action="store",
+                     dest='credentials_file',
+                     metavar='path',
+                     help="location of yaml file containing user credentials.")
 
 
 def pytest_configure(config):
@@ -53,12 +78,50 @@ def pytest_configure(config):
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         config._debug_rest_hdlr.setFormatter(formatter)
 
+    if config.option.base_url and not config.option.collectonly:
+        try:
+            r = requests.get(config.option.base_url, verify=False, timeout=5)
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
+            py.test.exit("Unable to connect to %s" % (config.option.base_url,))
+
+        assert r.status_code == httplib.OK, \
+            "Base URL did not return status code %s. (URL: %s, Response: %s)" % \
+            (httplib.OK, config.option.base_url, r.status_code)
+
+        TestSetup.base_url = config.option.base_url
+
+        # Load credentials.yaml
+        if config.option.credentials_file:
+            TestSetup.credentials = load_credentials(config.option.credentials_file)
+
+        TestSetup.api = Connection(config.getvalue('base_url'),
+                                   version=config.getvalue('api_version'),
+                                   verify=not config.getvalue('assume_untrusted'))
+        if config.option.debug_rest and hasattr(config, '_debug_rest_hdlr'):
+            TestSetup.api.setup_logging(config._debug_rest_hdlr)
+
 
 @pytest.mark.trylast
 def pytest_unconfigure(config):
     # Print reminder about pytestdebug-rest.log
     if hasattr(config, '_debug_rest_hdlr'):
         sys.stderr.write("Wrote pytest-rest information to %s\n" % config._debug_rest_hdlr.baseFilename)
+
+
+def load_credentials(filename=None):
+    if filename is None:
+        this_file = os.path.abspath(__file__)
+        path = py.path.local(this_file).new(basename='credentials.yaml')
+    else:
+        path = py.path.local(filename)
+
+    if path.check():
+        credentials_fh = path.open()
+        credentials_dict = yaml.load(credentials_fh)
+        return credentials_dict
+    else:
+        msg = 'Unable to load credentials file at %s' % path
+        raise Exception(msg)
 
 
 def pytest_sessionstart(session):
@@ -88,80 +151,12 @@ def pytest_sessionstart(session):
             TestSetup.api.setup_logging(session.config._debug_rest_hdlr)
 
 
-def pytest_runtest_setup(item):
-    '''
-    Per-test setup
-    '''
-    # NOTE: the following is commented out to speed up tests.  Instead,
-    # TestSetup is prepared on a per-session basis (see pytest_sessionstart)
-
-    # TestSetup.base_url = item.config.option.base_url
-
-    # Load credentials.yaml
-    # if item.config.option.credentials_file:
-    #     TestSetup.credentials = load_credentials(item.config.option.credentials_file)
-
-    # Initialize API Connection
-    # TestSetup.api = Connection(TestSetup.base_url,
-    #     version=item.config.getvalue('api_version'),
-    #     verify=not item.config.getvalue('assume_untrusted'))
-    # if item.config.option.debug_rest:
-    #     TestSetup.api.setup_logging(item.config._debug_rest_hdlr)
-
-
-def pytest_runtest_teardown(item):
-    '''
-    Per-test cleanup
-    '''
-
-
 @pytest.fixture(scope="session")
 def testsetup(request):
     '''
     Return initialized REST QA TestSetup object
     '''
     return TestSetup(request)
-
-
-def pytest_addoption(parser):
-    group = parser.getgroup('rest', 'rest')
-    group._addoption('--api-baseurl',
-                     action='store',
-                     dest='base_url',
-                     default=None,
-                     metavar='url',
-                     help='base url for the application under test.')
-    group._addoption('--api-version',
-                     action='store',
-                     dest='api_version',
-                     default='current_version',
-                     metavar='API-VERSION',
-                     help='Choose the API version')
-    group._addoption('--api-untrusted',
-                     action='store_true',
-                     dest='assume_untrusted',
-                     default=False,
-                     help='assume that all certificate issuers are untrusted. (default: %default)')
-    # FIXME - make this work (refer to lib/common/api.py)
-    group.addoption('--api-debug',
-                    action="store_true",
-                    dest="debug_rest",
-                    default=False,
-                    help="record REST API calls 'pytestdebug-rest.log'.")
-
-    group = parser.getgroup('safety', 'safety')
-    group._addoption('--api-destructive',
-                     action='store_true',
-                     dest='run_destructive',
-                     default=False,
-                     help='include destructive tests (tests not explicitly marked as \'nondestructive\'). (default: %default)')
-
-    group = parser.getgroup('credentials', 'credentials')
-    group._addoption("--api-credentials",
-                     action="store",
-                     dest='credentials_file',
-                     metavar='path',
-                     help="location of yaml file containing user credentials.")
 
 
 def pytest_runtest_makereport(__multicall__, item, call):
