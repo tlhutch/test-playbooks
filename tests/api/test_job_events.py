@@ -112,5 +112,3 @@ class Test_Job_Events(Base_Api_Test):
                 "The endpoints /job_tasks and /job_events differ on the " \
                 "expected number of tasks for play:%s (%d != %d)" \
                 % (play.id, job_tasks_pg.count, job_events_tasks.count)
-
-            # Inspect events to determine if task successful
