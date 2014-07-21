@@ -178,11 +178,11 @@ class AnsibleWrapper(object):
         self.logging.debug(result)
 
         # Catch any failures in the response
-        for result in results['contacted'].values():
-            if 'failed' in result or result.get('rc', 0) != 0:
+        for host in result['contacted'].values():
+            if 'failed' in host or host.get('rc', 0) != 0:
                 raise Exception("Command failed: %s" % self.module_name, result)
-        if results['dark']:
-            raise Exception("Host unreachable: %s" % self.module_name, results['dark'])
+        if result['dark']:
+            raise Exception("Host unreachable: %s" % self.module_name, result['dark'])
 
         # Success!
         return result['contacted'][self.pattern]
