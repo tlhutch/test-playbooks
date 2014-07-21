@@ -6,7 +6,8 @@
   register: tarball
 
 - name: untar ansible-tower-setup
-  shell: "tar -xvf {{tarball.dest}} --transform 's|^[^/]*|setup|' chdir=/tmp"
+  shell: tar -xvf {{tarball.dest}} --transform "s|^[^/]*|setup|"
+    chdir: /tmp
 
 - name: check if awx.repo already exists
   shell: ls /etc/yum.repos.d/awx.repo
