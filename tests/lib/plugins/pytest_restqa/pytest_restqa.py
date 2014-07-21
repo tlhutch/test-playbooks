@@ -1,8 +1,6 @@
 import os
 import sys
-import re
 import yaml
-import json
 import requests
 import httplib
 import py
@@ -70,7 +68,7 @@ def pytest_sessionstart(session):
     if session.config.option.base_url and not session.config.option.collectonly:
         try:
             r = requests.get(session.config.option.base_url, verify=False, timeout=5)
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError), e:
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
             py.test.exit("Unable to connect to %s" % (session.config.option.base_url,))
 
         assert r.status_code == httplib.OK, \
@@ -88,6 +86,7 @@ def pytest_sessionstart(session):
                                    verify=not session.config.getvalue('assume_untrusted'))
         if session.config.option.debug_rest and hasattr(session.config, '_debug_rest_hdlr'):
             TestSetup.api.setup_logging(session.config._debug_rest_hdlr)
+
 
 def pytest_runtest_setup(item):
     '''
@@ -114,6 +113,7 @@ def pytest_runtest_teardown(item):
     '''
     Per-test cleanup
     '''
+
 
 @pytest.fixture(scope="session")
 def testsetup(request):
@@ -186,11 +186,13 @@ def pytest_runtest_makereport(__multicall__, item, call):
                 report.debug = item.debug
     return report
 
+
 def _debug_summary(debug):
     summary = []
     if debug['urls']:
         summary.append('Failing URL: %s' % debug['urls'][-1])
     return '\n'.join(summary)
+
 
 class TestSetup:
     '''
