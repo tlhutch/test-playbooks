@@ -4,6 +4,7 @@ import common.tower.inventory
 import common.exceptions
 from tests.api import Base_Api_Test
 
+
 @pytest.fixture(scope="function")
 def import_inventory(request, authtoken, api_inventories_pg, organization):
     payload = dict(name="inventory-%s" % common.utils.random_ascii(),
@@ -13,6 +14,7 @@ def import_inventory(request, authtoken, api_inventories_pg, organization):
     request.addfinalizer(obj.delete)
     return obj
 
+
 @pytest.fixture(scope="function")
 def delete_inventory(request, authtoken, api_inventories_pg, organization):
     payload = dict(name="inventory-%s" % common.utils.random_ascii(),
@@ -21,6 +23,7 @@ def delete_inventory(request, authtoken, api_inventories_pg, organization):
     obj = api_inventories_pg.post(payload)
     # NOTE: This intentionally has no finalizer
     return obj
+
 
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -204,3 +207,29 @@ class Test_Inventory(Base_Api_Test):
         # Assert associated hosts have been deleted
         hosts_pg = api_hosts_pg.get(id=delete_inventory.id)
         assert hosts_pg.count == 0, "ERROR: not all inventory hosts were deleted"
+
+    def test_host_without_group(self, ansible_runner, host_without_group):
+        '''
+        Verify https://trello.com/c/kDdqEaOW
+            1) Create inventory with hosts, but no groups
+            2) Verify the hosts appear in related->hosts
+            2) Verify the hosts appear in related->script
+        '''
+        inventory_pg = host_without_group.get_related('inventory')
+
+        # Verify /groups is empty
+        assert inventory_pg.get_related('groups').count == 0, \
+            "Inventory unexpectedly has groups (%s)" % inventory_pg.get_related('groups').count
+        # Verify /root_groups is empty
+        assert inventory_pg.get_related('root_groups').count == 0, \
+            "Inventory unexpectedly has root_groups (%s)" % inventory_pg.get_related('root_groups').count
+
+        all_hosts = inventory_pg.get_related('hosts')
+        assert all_hosts.count == 1
+
+        script = inventory_pg.get_related('script').json
+        script_all_hosts = len(script['all']['hosts'])
+
+        assert all_hosts.count == script_all_hosts, \
+            "The number of inventory hosts differs between endpoints " \
+            "/hosts (%s) and /script (%s)" % (all_hosts.count, script_all_hosts)
