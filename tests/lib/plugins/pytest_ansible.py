@@ -1,15 +1,16 @@
 import os
 import py
 import pytest
-import pipes
 import subprocess
 import requests
 import pipes
+import logging
 import ansible.runner
 import ansible.inventory
 from urlparse import urlparse
 
 __version__ = '1.0'
+
 
 def pytest_sessionstart(session):
     '''
@@ -127,6 +128,9 @@ class AnsibleWrapper(object):
     '''
 
     def __init__(self, inventory, pattern='all'):
+        self.logging = logging.getLogger("pytest_ansible")
+        self.logging.setLevel(logging.DEBUG)
+
         self.inventory = inventory
         self.pattern = pattern
         self.module_name = None
@@ -158,6 +162,9 @@ class AnsibleWrapper(object):
 
         module_args = ' '.join(module_args)
 
+        # Log the module and parameters
+        self.logging.debug("[%s] calling %s: %s, %s" % (self.pattern, self.module_name, self.module_args, kwargs))
+
         runner = ansible.runner.Runner(
             inventory=inventory,
             pattern=self.pattern,
@@ -167,11 +174,18 @@ class AnsibleWrapper(object):
             sudo=True,)
         result = runner.run()
 
-        # Handle response
-        if self.pattern in result['contacted']:
-            return result['contacted'][self.pattern]
-        else:
-            raise Exception("Command failed: %s" % self.module_name, result)
+        # FIXME - improve result output logging
+        self.logging.debug(result)
+
+        # Catch any failures in the response
+        for result in results['contacted'].values():
+            if 'failed' in result or result.get('rc', 0) != 0:
+                raise Exception("Command failed: %s" % self.module_name, result)
+        if results['dark']:
+            raise Exception("Host unreachable: %s" % self.module_name, results['dark'])
+
+        # Success!
+        return result['contacted'][self.pattern]
 
     def subprocess_runner(self, *args, **kwargs):
         '''
