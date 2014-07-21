@@ -281,8 +281,9 @@ class Test_Job_Callback(Base_Api_Test):
         result = ansible_runner.uri(**args)
         print result
 
-        assert result['status'] in [httplib.ACCEPTED, httplib.BAD_REQUEST]
         assert 'failed' not in result, "Callback failed\n%s" % result
+        assert 'status' in result, "Unexpected callback response"
+        assert result['status'] in [httplib.ACCEPTED, httplib.BAD_REQUEST]
         assert not result['changed']
         # Note, for this test, it is expected that no host will match
         # assert result['json']['msg'] == 'No matching host could be found!'
