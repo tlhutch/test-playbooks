@@ -2,6 +2,6 @@
 # Tasks for adding ssh public keys to $HOME/.ssh/authorized_keys
 
 - name: Setup authorized_keys for root user
-  authorized_key: user=root key={{item|quote}}
+  authorized_key: user=root key="{{item}}"
   with_items: authorized_keys
   when: authorized_keys is defined
