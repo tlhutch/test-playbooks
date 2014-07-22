@@ -9,17 +9,8 @@
   shell: tar -xvf {{tarball.dest}} --transform "s|^[^/]*|setup|"
     chdir=/tmp
 
-- name: check if awx.repo already exists
-  shell: ls /etc/yum.repos.d/awx.repo
-  register: yum_repo_exists
-  ignore_errors: yes
-
-- name: clean repocache
-  shell: yum clean all --enablerepo=ansibleworks-awx
-  when: yum_repo_exists is defined and yum_repo_exists|success
-
 - name: is awx already installed?
-  shell: ls /etc/awx/awx.cert
+  stat: path=/etc/awx/awx.cert
   register: is_awx_installed
   ignore_errors: yes
 
@@ -31,10 +22,10 @@
 
 - name: create awx awx_vars.yaml
   template: src=awx_vars.yml.j2 dest=/tmp/setup/awx_vars.yaml
-  when: is_awx_installed|failed or awx_upgrade
+  when: not is_awx_installed.stat.exists or awx_upgrade
 
 - name: setup.sh
   shell: bash -x setup.sh -e @awx_vars.yaml
      chdir=/tmp/setup
      # creates=/etc/awx/awx.cert
-  when: is_awx_installed|failed or awx_upgrade
+  when: not is_awx_installed.stat.exists or awx_upgrade
