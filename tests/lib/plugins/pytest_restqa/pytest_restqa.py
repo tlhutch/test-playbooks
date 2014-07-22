@@ -124,33 +124,6 @@ def load_credentials(filename=None):
         raise Exception(msg)
 
 
-def pytest_sessionstart(session):
-    '''
-    Determine if provided base_url is available
-    '''
-    if session.config.option.base_url and not session.config.option.collectonly:
-        try:
-            r = requests.get(session.config.option.base_url, verify=False, timeout=5)
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
-            py.test.exit("Unable to connect to %s" % (session.config.option.base_url,))
-
-        assert r.status_code == httplib.OK, \
-            "Base URL did not return status code %s. (URL: %s, Response: %s)" % \
-            (httplib.OK, session.config.option.base_url, r.status_code)
-
-        TestSetup.base_url = session.config.option.base_url
-
-        # Load credentials.yaml
-        if session.config.option.credentials_file:
-            TestSetup.credentials = load_credentials(session.config.option.credentials_file)
-
-        TestSetup.api = Connection(session.config.getvalue('base_url'),
-                                   version=session.config.getvalue('api_version'),
-                                   verify=not session.config.getvalue('assume_untrusted'))
-        if session.config.option.debug_rest and hasattr(session.config, '_debug_rest_hdlr'):
-            TestSetup.api.setup_logging(session.config._debug_rest_hdlr)
-
-
 @pytest.fixture(scope="session")
 def testsetup(request):
     '''
