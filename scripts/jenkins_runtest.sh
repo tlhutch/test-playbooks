@@ -39,7 +39,7 @@ py.test -v \
   --junit-xml "${JUNIT_XML}" \
   --webqareport "${WEBQA_REPORT}" \
   --baseurl "${BASEURL}" \
-  --ansible-inventory "${ANSIBLE_INVENTORY}" \
+  --ansible-inventory="${ANSIBLE_INVENTORY}" \
   -m "${MARKEXPR}" \
   --destructive \
   tests/
