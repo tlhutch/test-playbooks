@@ -20,7 +20,7 @@ gen_passwd() {
 # Convenience function to load images from playbooks/group_vars/all
 #
 filter_images() {
-    # $1 = [ec2,rax]
+    # $1 = [ec2,rax,gce]
     # $2 = [all,rhel,ubuntu,centos]
     python -c "import yaml; data = yaml.load(open('playbooks/group_vars/all','r')); print [i for i in data['${1}_images'] if '${2}' in i['name']]"
 }
@@ -61,7 +61,7 @@ for LINE in $(env) ; do
         DELETE_ON_START|AWX_UPGRADE)
             echo "${VARNAME,,}: ${!VARNAME}" >> ${PLAYBOOK_DIR}/vars.yaml
             ;;
-        AWX*|GALAXY*|AWS*|EC2*|RAX*|INSTANCE*)
+        AWX*|GALAXY*|AWS*|EC2*|RAX*|GCE*|INSTANCE*)
             echo "${VARNAME,,}: '${!VARNAME}'" >> ${PLAYBOOK_DIR}/vars.yaml
             ;;
         *)
@@ -94,27 +94,39 @@ esac
 case ${CLOUD_PROVIDER}-${PLATFORM} in
     # All ec2 distros
     ec2-all)
-        # disable rax
         RAX_IMAGES="[]"
+        GCE_IMAGES="[]"
         ;;
     # A specific ec2 distro
     ec2-*)
-        # disable rax
         RAX_IMAGES="[]"
+        GCE_IMAGES="[]"
         # use desired ec2 distro
         EC2_IMAGES=$(filter_images ec2 ${PLATFORM})
         ;;
     # All rax distros
     rax-all)
-        # disable ec2
-        EC2_IMAGES="[]" #
+        EC2_IMAGES="[]"
+        GCE_IMAGES="[]"
         ;;
     # A specific rax distro
     rax-*)
-        # disable ec2
         EC2_IMAGES="[]"
+        GCE_IMAGES="[]"
         # use desired rax distro
         RAX_IMAGES=$(filter_images rax ${PLATFORM})
+        ;;
+    # All gce distros
+    gce-all)
+        EC2_IMAGES="[]"
+        RAX_IMAGES="[]"
+        ;;
+    # A specific gce distro
+    gce-*)
+        EC2_IMAGES="[]"
+        RAX_IMAGES="[]"
+        # use desired rax distro
+        GCE_IMAGES=$(filter_images gce ${PLATFORM})
         ;;
     all-all)
         # the default is all clouds, all distros ... no action required
@@ -124,6 +136,8 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
         EC2_IMAGES=$(filter_images ec2 ${PLATFORM})
         # use desired rax distro
         RAX_IMAGES=$(filter_images rax ${PLATFORM})
+        # use desired gce distro
+        GCE_IMAGES=$(filter_images gce ${PLATFORM})
         ;;
     *)
         # the default is all clouds, all distros ... no action required
@@ -131,11 +145,14 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
 esac
 
 # If custom distros are needed, save them in ${PLAYBOOK_DIR}/vars.yaml
+if [ -n "${EC2_IMAGES}" ]; then
+    echo "ec2_images: ${EC2_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yaml
+fi
 if [ -n "${RAX_IMAGES}" ]; then
     echo "rax_images: ${RAX_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yaml
 fi
-if [ -n "${EC2_IMAGES}" ]; then
-    echo "ec2_images: ${EC2_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yaml
+if [ -n "${GCE_IMAGES}" ]; then
+    echo "gce_images: ${GCE_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yaml
 fi
 
 #

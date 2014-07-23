@@ -38,3 +38,8 @@ rax_images:
     - {'name': 'ubuntu-14.04-x86_64', 'uuid': '5cc098a5-7286-4b96-b3a2-49f4c4f82537', 'flavor': '5' }
     - {'name': 'fedora-19-x86_64',    'uuid': '4b81c45a-90d6-4654-972c-73972b1d0aea', 'flavor': '5' }
     - {'name': 'fedora-20-x86_64',    'uuid': 'c21acd84-a6c5-44df-ba7d-2483cd5b3ccb', 'flavor': '5' }
+
+# Use `gcutil listimages --project=<project_id>` to list available images
+gce_images:
+    - {'name': 'centos-6',  'image': 'centos-6',  'machine_type': 'n1-standard-1', 'zone': 'us-central1-a' }
+    - {'name': 'rhel-6',    'image': 'rhel-6',    'machine_type': 'n1-standard-1', 'zone': 'us-central1-a' }
