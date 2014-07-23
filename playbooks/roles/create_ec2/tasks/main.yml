@@ -26,6 +26,7 @@
         from_port: 8080
         to_port: 8080
         cidr_ip: 0.0.0.0/0
+  when: ec2_images
 
 - name: ensure keypair exists
   ec2_key:
