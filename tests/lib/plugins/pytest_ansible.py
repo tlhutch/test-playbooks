@@ -174,10 +174,14 @@ class AnsibleWrapper(object):
         # FIXME - improve result output logging
         log.debug(result)
 
+        # FIXME - should command failures raise an exception, or return?
+        # If we choose to raise, callers will need to adapt accordingly
         # Catch any failures in the response
-        for host in result['contacted'].values():
-            if 'failed' in host or host.get('rc', 0) != 0:
-                raise Exception("Command failed: %s" % self.module_name, result)
+        # for host in result['contacted'].values():
+        #     if 'failed' in host or host.get('rc', 0) != 0:
+        #         raise Exception("Command failed: %s" % self.module_name, result)
+
+        # Raise exception if host was unreachable
         if result['dark']:
             raise Exception("Host unreachable: %s" % self.module_name, result['dark'])
 
