@@ -222,6 +222,7 @@ class Task_Page(Base):
         '''
         return self.status.lower() in ['successful', 'failed', 'error', 'canceled']
 
+    @property
     def is_successful(self):
         '''
         Return whether the current has completed successfully.  This means that:
