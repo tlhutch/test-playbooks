@@ -7,7 +7,7 @@ from tests.api import Base_Api_Test
 
 @pytest.fixture(scope="function")
 def import_inventory(request, authtoken, api_inventories_pg, organization):
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
+    payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    description="Random inventory - %s" % common.utils.random_unicode(),
                    organization=organization.id,)
     obj = api_inventories_pg.post(payload)
@@ -17,7 +17,7 @@ def import_inventory(request, authtoken, api_inventories_pg, organization):
 
 @pytest.fixture(scope="function")
 def delete_inventory(request, authtoken, api_inventories_pg, organization):
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
+    payload = dict(name="inventory-%s" % common.utils.random_unicode(),
                    description="Random inventory - %s" % common.utils.random_unicode(),
                    organization=organization.id,)
     obj = api_inventories_pg.post(payload)
@@ -54,7 +54,7 @@ class Test_Inventory(Base_Api_Test):
     def test_import_bad_name(self, ansible_runner, import_inventory):
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name "%s" --source /etc/fstab' % common.utils.random_ascii())
+        result = ansible_runner.shell('awx-manage inventory_import --inventory-name "%s" --source /etc/fstab' % common.utils.random_unicode())
         logging.info(result['stdout'])
 
         # Verify the import failed

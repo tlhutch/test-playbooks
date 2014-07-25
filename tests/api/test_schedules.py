@@ -693,7 +693,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         '''assert that schedules are deleted when a inventory group is deleted'''
 
         # create group/inventory_source
-        payload = dict(name="aws-group-%s" % common.utils.random_ascii(),
+        payload = dict(name="aws-group-%s" % common.utils.random_unicode(),
                        description="AWS group %s" % common.utils.random_unicode(),
                        inventory=inventory.id,
                        credential=aws_credential.id)
