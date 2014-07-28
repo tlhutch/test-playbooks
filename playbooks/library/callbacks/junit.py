@@ -16,14 +16,13 @@
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import sys
 import json
 import datetime
 import junit_xml
 import inspect
 import logging
-import Queue
 import multiprocessing
+import xml.etree.ElementTree as ET
 
 # logger = multiprocessing.log_to_stderr()
 # logger.setLevel(multiprocessing.SUBDEBUG)
@@ -35,7 +34,8 @@ class JUnitFile(object):
         self.plays = list()
 
         if append:
-            raise NotImplementedError("FIXME load data from existing XML file")
+            # raise NotImplementedError("FIXME load data from existing XML file")
+            self.read(filename)
 
     @property
     def current_play(self):
@@ -75,12 +75,16 @@ class JUnitFile(object):
     def add_host_event(self, **event_data):
         host = event_data.get('host', '')
         task = event_data.get('task', '')
+        role = event_data.get('role', '')
+        res = event_data.get('res', {})
+
         if task == '':
             task = "GATHERING FACTS"
         else:
-            task = "TASK[%s]" % task
-        role = event_data.get('role', '')
-        res = event_data.get('res', {})
+            if role:
+                task = "TASK[%s | %s]" % (role, task)
+            else:
+                task = "TASK[%s]" % task
 
         stdout = ''
         stderr = ''
@@ -103,14 +107,49 @@ class JUnitFile(object):
             test_case.elapsed_sec = (endd - startd).total_seconds()
 
         self.current_play.test_cases.append(test_case)
-        unique_names = dict((tc.name,None) for tc in self.current_play.test_cases)
         return test_case
-        return self.current_play.test_cases[-1]
+        # return self.current_play.test_cases[-1]
+
+    def read(self, filename=None):
+        '''Read data from existing junit XML file'''
+        if not os.path.isfile(filename or self.filename):
+            return
+
+        tree = ET.parse(filename or self.filename)
+        root = tree.getroot()
+        # Import existing test suites
+        for suite in root.iter('testsuite'):
+            name = suite.attrib['name']
+            id = suite.attrib.get('id', None)
+            hostname = suite.attrib.get('hostname', None)
+            package = suite.attrib.get('package', None)
+            properties = suite.attrib.get('properties', None)
+            self.plays.append(junit_xml.TestSuite(name, id=id, hostname=hostname, package=package, properties=properties))
+
+            # Import existing test cases
+            for case in suite.iter('testcase'):
+                name = case.attrib['name']
+                classname = case.attrib['classname']
+                time = float(case.attrib.get('time', 0))
+                stdout = case.find('system-out')
+                stderr = case.find('system-err')
+                self.current_play.test_cases.append(junit_xml.TestCase(name, classname=classname, elapsed_sec=time, stdout=stdout, stderr=stderr))
+
+                skipped = case.find('skipped')
+                if skipped is not None:
+                    self.current_host_event.add_skipped_info(message=skipped.attrib['message'])
+                failure = case.find('failure')
+                if failure is not None:
+                    self.current_host_event.add_failure_info(message=failure.attrib['message'])
+                error = case.find('error')
+                if error is not None:
+                    self.current_host_event.add_error_info(message=error.attrib['message'])
 
     def write(self, filename=None):
-        with open(self.filename, 'wb') as fd:
-            # self.plays[0].write_to_file(fd, prettyprint=True)
+        '''Write junit XML file'''
+        with open(filename or self.filename, 'wb') as fd:
             self.plays[0].to_file(fd, self.plays, encoding='UTF-8', prettyprint=True)
+
 
 class CallbackModule(object):
     """
@@ -135,8 +174,8 @@ class CallbackModule(object):
     def __init__(self, *args, **kwargs):
         self.m = multiprocessing.Manager()
         self.l = self.m.list()
-        self.d = self.m.dict()
-        self.q = multiprocessing.Queue()
+        # self.d = self.m.dict()
+        # self.q = multiprocessing.Queue()
         self._init_logging()
 
     def _init_logging(self):
@@ -174,13 +213,10 @@ class CallbackModule(object):
         if role_name and event not in self.EVENTS_WITHOUT_TASK:
             event_data['role'] = role_name
 
-        if 'host' in event_data:
-            host = event_data['host']
-            self.l.append(host)
-            self.d[host] = self.d.get(host, 0) + 1
-        self.logger.debug("self.q.put('%s', ...)" % event)
-        self.q.put((event, event_data))
-        self.logger.debug(" ... completed")
+        # self.logger.debug("self.q.put('%s', ...)" % event)
+        self.logger.debug("self.q.put('%s', %s)" % (event, json.dumps(event_data)))
+        self.l.append((event, event_data))
+        # self.q.put((event, event_data))
 
     def on_any(self, *args, **kwargs):
         pass
@@ -262,25 +298,28 @@ class CallbackModule(object):
         self._log_event('playbook_on_play_start', name=name, pattern=pattern)
 
     def playbook_on_stats(self, stats):
+        '''Write Junit XML file describing playbook'''
+        # Debugging
         d = {}
         for attr in ('changed', 'dark', 'failures', 'ok', 'processed', 'skipped'):
             d[attr] = getattr(stats, attr)
         self._log_event('playbook_on_stats', **d)
 
-        # Display queue stats
-        print self.l
-        print self.d
-
         # Create JUnit XML from event queue
-        junit = JUnitFile(append=False)
-        while not self.q.empty():
-            (event, event_data) = self.q.get()
+        junit = JUnitFile(filename=os.environ.get('JUNIT_CALLBACK_PATH', 'results.xml'),
+                          append=True)
+
+        # NOTE: multiprocessing.Queue deadlocks :(
+        # while not self.q.empty():
+        #     (event, event_data) = self.q.get()
+        # for i, (event, event_data) in enumerate(self.l):
+        for (i, (event, event_data)) in enumerate(self.l):
             self.logger.debug(event)
 
             # Debugging
             if event == 'playbook_on_play_start':
                 self.logger.debug("%s('%s')" % (event, event_data['play']))
-            if event in ['playbook_on_setup', 'playbook_on_task_start']:
+            elif event in ['playbook_on_setup', 'playbook_on_task_start']:
                 self.logger.debug("  %s('%s')" % (event, event_data.get('task', 'GATHERING FACTS')))
             elif event.startswith('runner_on_'):
                 self.logger.debug("    %s('%s')" % (event, event_data.get('task', '')))
@@ -303,7 +342,5 @@ class CallbackModule(object):
                 junit.add_host_unreachable(**event_data)
             elif event in ['playbook_on_stats', 'playbook_on_notify', 'playbook_on_start']:
                 pass
-            else:
-                print "    ?%s('%s')" % (event, event_data.get('task', ''))
 
         junit.write()
