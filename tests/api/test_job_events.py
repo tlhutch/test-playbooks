@@ -35,7 +35,7 @@ inventory_hosts = [200, 500, 1000, 5000, 10000]
 
 @pytest.fixture(params=inventory_hosts)
 def import_inventory(request, authtoken, api_inventories_pg, organization, ansible_runner):
-    payload = dict(name="inventory:%s, hosts:%s" % (common.utils.random_unicode(), request.param),
+    payload = dict(name="inventory:%s, hosts:%s" % (common.utils.random_ascii(), request.param),
                    description="Random inventory %s with %s hosts" % (common.utils.random_unicode(), request.param),
                    organization=organization.id,)
     obj = api_inventories_pg.post(payload)

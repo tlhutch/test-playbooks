@@ -135,7 +135,7 @@ class Base_License_Test(Base_Api_Test):
                  conf.license_info.available_instances)
 
             # Add a host to the inventory group
-            payload = dict(name="host-%s" % common.utils.random_unicode(),
+            payload = dict(name="host-%s" % common.utils.random_ascii(),
                            description="host-%s" % common.utils.random_unicode(),
                            inventory=group.inventory)
             # The first 20 hosts should succeed
