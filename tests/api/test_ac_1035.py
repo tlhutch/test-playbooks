@@ -65,7 +65,7 @@ def groups_yaml(request, authtoken, api_groups_pg, inventory_json, variables_yam
 #
 @pytest.fixture(scope="function")
 def hosts_json(request, authtoken, api_hosts_pg, inventory_json, variables_json):
-    payload = dict(name="host-%s" % common.utils.random_unicode(),
+    payload = dict(name="host-%s" % common.utils.random_unicode().strip(':'),
                    inventory=inventory_json.id,
                    variables=variables_json)
     obj = api_hosts_pg.post(payload)
@@ -74,7 +74,7 @@ def hosts_json(request, authtoken, api_hosts_pg, inventory_json, variables_json)
 
 @pytest.fixture(scope="function")
 def hosts_yaml(request, authtoken, api_hosts_pg, inventory_json, variables_yaml):
-    payload = dict(name="host-%s" % common.utils.random_unicode(),
+    payload = dict(name="host-%s" % common.utils.random_unicode().strip(':'),
                    inventory=inventory_json.id,
                    variables=variables_yaml)
     obj = api_hosts_pg.post(payload)

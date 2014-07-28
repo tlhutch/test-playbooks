@@ -10,7 +10,7 @@ from tests.api import Base_Api_Test
 def host_ipv4_again(request, authtoken, api_hosts_pg, host_ipv4):
     '''Create a another host object matching host_ipv4'''
     payload = host_ipv4.json
-    payload.update(name="host_ipv4_again - %s" % common.utils.random_unicode(),)
+    payload.update(name="host_ipv4_again - %s" % common.utils.random_unicode().strip(':'),)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
     # Add to group(s)

@@ -31,7 +31,7 @@ def inventory(request, authtoken, api_inventories_pg, organization):
 @pytest.fixture(scope="function")
 def host_ipv4(request, authtoken, api_hosts_pg, group, ansible_default_ipv4):
     '''Create a random inventory host where ansible_ssh_host == ansible_default_ipv4.'''
-    payload = dict(name="random_host_alias - %s" % common.utils.random_unicode(),
+    payload = dict(name="random_host_alias - %s" % common.utils.random_unicode().strip(':'),
                    description="host-%s" % common.utils.random_unicode(),
                    variables=json.dumps(dict(ansible_ssh_host=ansible_default_ipv4, ansible_connection="local")),
                    inventory=group.inventory,)
@@ -103,7 +103,7 @@ def host_without_group(request, authtoken, inventory):
 
 @pytest.fixture(scope="function")
 def host(request, authtoken, api_hosts_pg, inventory, group):
-    payload = dict(name="random.host.%s" % common.utils.random_unicode(),
+    payload = dict(name="random.host.%s" % common.utils.random_unicode().strip(':'),
                    description="random description - %s" % common.utils.random_unicode(),
                    variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
                    inventory=inventory.id,)
