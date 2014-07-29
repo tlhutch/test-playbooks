@@ -62,6 +62,23 @@ def api_authtoken_url(api, api_home):
 def api_authtoken_pg(testsetup, api_authtoken_url):
     return AuthToken_Page(testsetup, base_url=api_authtoken_url)
 
+@pytest.fixture(scope="module")
+def authtoken(api, testsetup, api_authtoken_url):
+    '''
+    Logs in to the application with default credentials and returns the
+    home page
+    '''
+
+    payload = dict(username=testsetup.credentials['default']['username'],
+                   password=testsetup.credentials['default']['password'])
+
+    r = api.post(api_authtoken_url, payload)
+    assert r.status_code == httplib.OK
+    # FIXME - build and return a Authtoken_Page() object
+    json = r.json()
+    testsetup.api.login(token=json['token'])
+    return json
+
 #
 # /api/v1/config
 #
@@ -74,12 +91,20 @@ def api_config_pg(testsetup, api_config_url):
     return Config_Page(testsetup, base_url=api_config_url)
 
 @pytest.fixture(scope="module")
-def tower_version(request, api_config_pg):
-    return api_config_pg.get().version
+def tower_version(request, awx_config):
+    return awx_config['version']
+    # return api_config_pg.get().version
 
 @pytest.fixture(scope="module")
 def tower_version_cmp(request, tower_version):
     return lambda x: common.tower.version_cmp(tower_version, x)
+
+@pytest.fixture(scope="module")
+def awx_config(api, api_home):
+    url = navigate(api, api_home, 'config')
+    r = api.get(url)
+    assert r.status_code == httplib.OK
+    return r.json()
 
 #
 # /api/v1/me
@@ -245,30 +270,6 @@ def api_unified_jobs_url(api, api_home):
 @pytest.fixture(scope="module")
 def api_unified_jobs_pg(testsetup, api_unified_jobs_url):
     return Jobs_Page(testsetup, base_url=api_unified_jobs_url)
-
-@pytest.fixture(scope="module")
-def authtoken(api, testsetup, api_authtoken_url):
-    '''
-    Logs in to the application with default credentials and returns the
-    home page
-    '''
-
-    payload = dict(username=testsetup.credentials['default']['username'],
-                   password=testsetup.credentials['default']['password'])
-
-    r = api.post(api_authtoken_url, payload)
-    assert r.status_code == httplib.OK
-    # FIXME - build and return a Authtoken_Page() object
-    json = r.json()
-    testsetup.api.login(token=json['token'])
-    return json
-
-@pytest.fixture(scope="module")
-def awx_config(api, api_home):
-    url = navigate(api, api_home, 'config')
-    r = api.get(url)
-    assert r.status_code == httplib.OK
-    return r.json()
 
 @pytest.fixture(scope="module")
 def region_choices(api_inventory_sources_pg):
