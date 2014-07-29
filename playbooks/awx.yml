@@ -10,12 +10,12 @@
     - { role: deploy_cloud }
 
 #
-# Dynamically create host groups based on distribution
+# Dynamically create host groups based on 'distribution-version'
 #
-- hosts: all
+- hosts: '!local'
   tasks:
-   - name: group hosts by distribution
-     action: group_by key={{ansible_distribution}}
+   - name: group hosts by distribution_major_version
+     action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
 #
 # Install AWX

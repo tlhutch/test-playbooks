@@ -9,14 +9,14 @@
   shell: rpm -q epel-release || rpm -Uvh http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
   register: epel_task
   until: epel_task.rc == 0
-  when: ansible_distribution in ['RedHat', 'CentOS'] and ansible_distribution_version.startswith('6')
+  when: ansible_distribution in ['RedHat', 'CentOS'] and ansible_distribution_major_version == '6'
 
 # Mirrors don't always do the right thing ... retry until the package installs
 - name: install epel-release-7
   shell: rpm -q epel-release || rpm -Uvh https://dl.fedoraproject.org/pub/epel/beta/7/x86_64/epel-release-7-0.2.noarch.rpm
   register: epel_task
   until: epel_task.rc == 0
-  when: ansible_distribution in ['RedHat', 'CentOS'] and ansible_distribution_version.startswith('7')
+  when: ansible_distribution in ['RedHat', 'CentOS'] and ansible_distribution_major_version == '7'
 
 # FIXME - Enable RHEL 'optional' repository (needed for python-jinja2) when RHEL7 is released
 #- name: enable rhel-7-optional repository
@@ -52,7 +52,7 @@
 - name: install ansible nightly yum repository
   template: src=files/ansible_yum.repo.j2 dest=/etc/yum.repos.d/ansible.repo
   register: yum_repo
-  when: ansible_pkg_mgr == 'yum' and ansible_nightly_repo is defined
+  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
 
 - name: yum clean cached ansible repository information
   command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
@@ -62,7 +62,7 @@
 
 - name: install ansible nightly apt repository
   template: src=files/ansible_apt.repo.j2 dest=/etc/apt/sources.list.d/ansible_repo.list
-  when: ansible_pkg_mgr == 'apt' and ansible_nightly_repo is defined
+  when: ansible_pkg_mgr == 'apt' and ansible_install_method == 'nightly'
 
 # install ansible ppa
 
@@ -74,21 +74,25 @@
 
 - name: install ansible rpm (stable)
   yum: name=ansible state=latest
-  when: ansible_pkg_mgr == 'yum' and ansible_nightly_repo is not defined
+  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'stable'
 
 # epel-7 does not support 'epel-testing' repository during beta
 - name: install ansible rpm (testing)
   yum: name=ansible enablerepo='*-testing' state=latest
-  when: ansible_pkg_mgr == 'yum' and ansible_nightly_repo is not defined and not ansible_distribution_version.startswith('7')
+  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'testing' and ansible_distribution_major_version != '7'
 
 - name: install ansible rpm (nightly)
   yum: name=ansible enablerepo=ansible-nightly state=latest
-  when: ansible_pkg_mgr == 'yum' and ansible_nightly_repo is defined
+  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
 
 - name: install ansible deb
   apt: pkg=ansible state=latest update_cache=yes force=yes
-  when: ansible_pkg_mgr == 'apt'
+  when: ansible_pkg_mgr == 'apt' and ansible_install_method in ['stable', 'testing', 'nightly']
 
 - name: install ansible pip
   pip: name={{ansible_pip}} state=latest
-  when: ansible_pip is defined
+  when: ansible_install_method == 'pip'
+
+- name: verify that ansible was installed
+  command: ansible --version
+  changed_when: false
