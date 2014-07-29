@@ -21,6 +21,7 @@
   register: gce
 
 - debug: var=gce
+  when: gce_images and gce is defined
 
 # Despite using `wait` on the gce module, instances aren't accepting ssh
 # connections immediately.  The following will ensure systems are ready for use
