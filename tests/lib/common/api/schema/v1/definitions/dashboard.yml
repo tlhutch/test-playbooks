@@ -2,7 +2,7 @@
 dashboard:
   type: object
   required: [inventories, inventory_sources, groups, hosts, projects, scm_types,
-    jobs, users, organizations, teams, credentials, job_templates, related]
+    jobs, users, organizations, teams, credentials, job_templates]
   additionalProperties: false
 
   properties:
