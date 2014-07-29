@@ -1,8 +1,10 @@
 import pytest
 import json
 import logging
+import common.tower
 import common.tower.inventory
 import common.utils
+from pkg_resources import parse_version
 from tests.api import Base_Api_Test
 
 
@@ -77,11 +79,16 @@ class Test_Job_Events(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
 
-    def test_dynamic_inventory(self, dynamic_inventory, num_hosts):
+    def test_dynamic_inventory(self, dynamic_inventory, num_hosts, tower_version_cmp):
         '''
         Verify that the /job_tasks and /job_plays endpoints are correctly
         aggregating data from /job_events
         '''
+
+        # Only supported >- tower-2.0.0
+        if tower_version_cmp('2.0.0') < 0:
+            pytest.xfail("Only supported on tower-2.0.0 (or newer)")
+
         # launch job
         job_pg = dynamic_inventory.launch_job()
 

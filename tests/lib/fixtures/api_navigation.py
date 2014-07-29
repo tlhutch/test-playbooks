@@ -2,6 +2,7 @@ import sys
 import httplib
 import pytest
 import common.api
+import common.tower
 import logging
 from common.api.pages import *
 from unittestzero import Assert
@@ -71,6 +72,14 @@ def api_config_url(api, api_home):
 @pytest.fixture(scope="module")
 def api_config_pg(testsetup, api_config_url):
     return Config_Page(testsetup, base_url=api_config_url)
+
+@pytest.fixture(scope="module")
+def tower_version(request, api_config_pg):
+    return api_config_pg.get().version
+
+@pytest.fixture(scope="module")
+def tower_version_cmp(request, tower_version):
+    return lambda x: common.tower.version_cmp(tower_version, x)
 
 #
 # /api/v1/me
