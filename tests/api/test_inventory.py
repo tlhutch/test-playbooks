@@ -208,13 +208,17 @@ class Test_Inventory(Base_Api_Test):
         hosts_pg = api_hosts_pg.get(id=delete_inventory.id)
         assert hosts_pg.count == 0, "ERROR: not all inventory hosts were deleted"
 
-    def test_host_without_group(self, ansible_runner, host_without_group):
+    def test_host_without_group(self, ansible_runner, host_without_group, tower_version_cmp):
         '''
         Verify https://trello.com/c/kDdqEaOW
             1) Create inventory with hosts, but no groups
             2) Verify the hosts appear in related->hosts
             2) Verify the hosts appear in related->script
         '''
+
+        if tower_version_cmp('2.0.0') < 0:
+            pytest.xfail("Only supported on tower-2.0.0 (or newer)")
+
         inventory_pg = host_without_group.get_related('inventory')
 
         # Verify /groups is empty
