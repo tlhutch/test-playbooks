@@ -17,3 +17,4 @@ jsonschema
 inflect
 ansible
 python-dateutil
+azure

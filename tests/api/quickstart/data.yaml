@@ -291,6 +291,31 @@ credentials:
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
 
+    #
+    # Microsoft Azure Cloud Credentials
+    #
+    - name: Microsoft Azure (team:IT)
+      description: Microsoft Azure for team:IT
+      kind: azure
+      user: null
+      team: IT
+      cloud: true
+      username: '{username}' # Gathered from credentials.yaml
+      ssh_key_data: '{ssh_key_data}' # Gathered from credentials.yaml
+
+    #
+    # Google Compute Credentials
+    #
+    - name: Google Compute (team:IT)
+      description: Google Compute for team:IT
+      kind: gce
+      user: null
+      team: IT
+      cloud: true
+      username: '{username}' # Gathered from credentials.yaml
+      project: '{project}'   # Gathered from credentials.yaml
+      ssh_key_data: '{ssh_key_data}' # Gathered from credentials.yaml
+
 inventories:
     - name: it_inventory
       description: Inventory tracking internal systems
@@ -303,6 +328,12 @@ inventories:
       organization: Ansible, Inc
 
     - name: ansible-rax
+      organization: Ansible, Inc
+
+    - name: ansible-gce
+      organization: Ansible, Inc
+
+    - name: ansible-azure
       organization: Ansible, Inc
 
     - name: local,
@@ -380,6 +411,12 @@ groups:
     - name: Rackspace Cloud Servers
       inventory: ansible-rax
 
+    - name: Google Compute Engine
+      inventory: ansible-gce
+
+    - name: Microsoft Azure
+      inventory: ansible-azure
+
 inventory_sources:
     - name: it_inventory/aws # name is used for internal purposes
       group: aws
@@ -432,6 +469,36 @@ inventory_sources:
       source_tags: ''
       overwrite: true
       overwrite_vars: true
+      update_on_launch: false
+      update_interval: 0
+
+    - name: ansible-gce # name is used for internal purposes
+      group: Google Compute Engine
+      inventory: ansible-gce
+      source: gce
+      credential: Google Compute (team:IT)
+      # source_username: # stored in credentials.yaml
+      # source_password: # stored in credentials.yaml
+      source_vars: ''
+      source_regions: ''
+      source_tags: ''
+      overwrite: false
+      overwrite_vars: false
+      update_on_launch: false
+      update_interval: 0
+
+    - name: ansible-azure # name is used for internal purposes
+      group: Google Compute Engine
+      inventory: ansible-azure
+      source: azure
+      credential: Microsoft Azure (team:IT)
+      # source_username: # stored in credentials.yaml
+      # source_password: # stored in credentials.yaml
+      source_vars: ''
+      source_regions: ''
+      source_tags: ''
+      overwrite: false
+      overwrite_vars: false
       update_on_launch: false
       update_interval: 0
 
