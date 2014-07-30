@@ -1,0 +1,47 @@
+---
+# Tasks to delete (optionally) and create rax instances
+
+# - name: ensure keypair exists
+
+- name: create/locate instance(s)
+  azure:
+    state: present
+    name: '{{azure_name_prefix}}-{{item.name}}'
+    role_size: '{{item.role_size}}'
+    image: '{{item.image}}'
+    location: '{{ azure_location }}'
+    user: '{{ azure_ssh_user }}'
+    management_cert_path: '{{ azure_management_cert_path }}'
+    ssh_cert_path: '{{ azure_ssh_cert_path }}'
+    endpoints: '{{ azure_endpoints }}'
+    storage_account: '{{ azure_storage_account }}'
+    subscription_id: '{{ azure_subscription_id }}'
+    wait: yes
+  with_items: azure_images
+  register: azure
+
+# Despite using `wait` on the azure module, instances aren't accepting ssh
+# connections immediately.  The following will ensure systems are ready for use
+# before proceeding.
+- name: wait for instances to listen on port:22
+  wait_for:
+    state=started
+    host={{ item.public_dns_name }}
+    port=22
+  with_items: azure.results
+  when: azure_images and azure is defined
+
+- name: add_host
+  add_host: name={{ item.deployment.name }}
+     groups=cloud,azure,{{ item.deployment.name }}
+     ansible_ssh_user={{ azure_ssh_user|default('root') }}
+     ansible_ssh_host={{ item.public_dns_name }}
+     # ansible_ssh_private_key_file={{ azure_keypair_private }}
+  with_items: azure.results
+  when: azure_images and azure is defined
+
+# HACK: While sshd may be listening, it may not fully accept connections
+# immediately
+- name: sleep 30s
+  command: sleep 30s
+  when: azure_images and azure is defined and azure.changed

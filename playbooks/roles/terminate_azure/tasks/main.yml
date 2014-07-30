@@ -1,0 +1,18 @@
+---
+
+- name: delete existing azure instance(s)
+  azure:
+    state: absent
+    name: '{{azure_name_prefix}}-{{item.name}}'
+    role_size: '{{item.role_size}}'
+    image: '{{item.image}}'
+    location: '{{ azure_location }}'
+    user: '{{ azure_ssh_user }}'
+    management_cert_path: '{{ azure_management_cert_path }}'
+    ssh_cert_path: '{{ azure_ssh_cert_path }}'
+    endpoints: '{{ azure_endpoints }}'
+    storage_account: '{{ azure_storage_account }}'
+    subscription_id: '{{ azure_subscription_id }}'
+    wait: yes
+  with_items: azure_images
+  when: not {{skip_delete}}

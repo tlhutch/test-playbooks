@@ -8,3 +8,4 @@
     - { role: terminate_rax }
     - { role: terminate_ec2 }
     - { role: terminate_gce }
+    - { role: terminate_azure }

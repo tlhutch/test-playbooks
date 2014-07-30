@@ -2,4 +2,5 @@ dependencies:
 - { role: create_rax }
 - { role: create_ec2 }
 - { role: create_gce }
+- { role: create_azure }
 - { role: save_inventory }
