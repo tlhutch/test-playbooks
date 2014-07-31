@@ -20,7 +20,7 @@ gen_passwd() {
 # Convenience function to load images from playbooks/group_vars/all
 #
 filter_images() {
-    # $1 = [ec2,rax,gce]
+    # $1 = [ec2,rax,gce,azure]
     # $2 = [all,rhel,ubuntu,centos]
     python -c "import yaml; data = yaml.load(open('playbooks/group_vars/all','r')); print [i for i in data['${1}_images'] if '${2}' in i['name']]"
 }
@@ -96,11 +96,13 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
     ec2-all)
         RAX_IMAGES="[]"
         GCE_IMAGES="[]"
+        AZURE_IMAGES="[]"
         ;;
     # A specific ec2 distro
     ec2-*)
         RAX_IMAGES="[]"
         GCE_IMAGES="[]"
+        AZURE_IMAGES="[]"
         # use desired ec2 distro
         EC2_IMAGES=$(filter_images ec2 ${PLATFORM})
         ;;
@@ -108,11 +110,13 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
     rax-all)
         EC2_IMAGES="[]"
         GCE_IMAGES="[]"
+        AZURE_IMAGES="[]"
         ;;
     # A specific rax distro
     rax-*)
         EC2_IMAGES="[]"
         GCE_IMAGES="[]"
+        AZURE_IMAGES="[]"
         # use desired rax distro
         RAX_IMAGES=$(filter_images rax ${PLATFORM})
         ;;
@@ -120,24 +124,38 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
     gce-all)
         EC2_IMAGES="[]"
         RAX_IMAGES="[]"
+        AZURE_IMAGES="[]"
         ;;
     # A specific gce distro
     gce-*)
         EC2_IMAGES="[]"
         RAX_IMAGES="[]"
+        AZURE_IMAGES="[]"
         # use desired rax distro
         GCE_IMAGES=$(filter_images gce ${PLATFORM})
+        ;;
+    # All azure distros
+    azure-all)
+        EC2_IMAGES="[]"
+        RAX_IMAGES="[]"
+        GCE_IMAGES="[]"
+        ;;
+    # A specific azure distro
+    azure-*)
+        EC2_IMAGES="[]"
+        RAX_IMAGES="[]"
+        GCE_IMAGES="[]"
+        # use desired rax distro
+        AZURE_IMAGES=$(filter_images azure ${PLATFORM})
         ;;
     all-all)
         # the default is all clouds, all distros ... no action required
         ;;
     all-*)
-        # use desired ec2 distro
         EC2_IMAGES=$(filter_images ec2 ${PLATFORM})
-        # use desired rax distro
         RAX_IMAGES=$(filter_images rax ${PLATFORM})
-        # use desired gce distro
         GCE_IMAGES=$(filter_images gce ${PLATFORM})
+        AZURE_IMAGES=$(filter_images azure ${PLATFORM})
         ;;
     *)
         # the default is all clouds, all distros ... no action required
@@ -153,6 +171,9 @@ if [ -n "${RAX_IMAGES}" ]; then
 fi
 if [ -n "${GCE_IMAGES}" ]; then
     echo "gce_images: ${GCE_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yaml
+fi
+if [ -n "${AZURE_IMAGES}" ]; then
+    echo "azure_images: ${AZURE_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yaml
 fi
 
 #
