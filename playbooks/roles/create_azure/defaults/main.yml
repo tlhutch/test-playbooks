@@ -12,5 +12,3 @@ azure_ssh_user: ''
 azure_ssh_cert_path: ''
 azure_storage_account: ''
 azure_subscription_id: ''
-
-azure_images: []
