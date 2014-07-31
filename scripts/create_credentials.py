@@ -51,6 +51,15 @@ for ec2 in ['aws','ec2']:
     cfg['cloud'][ec2]['username'] = os.environ["AWS_ACCESS_KEY"]
     cfg['cloud'][ec2]['password'] = os.environ["AWS_SECRET_KEY"]
 
+# Set gce info
+cfg['cloud']['gce']['username'] = os.environ["GCE_USERNAME"]
+cfg['cloud']['gce']['project'] = os.environ["GCE_PROJECT"]
+cfg['cloud']['gce']['ssh_key_data'] = literal(open(os.environ["GCE_SCM_KEY_DATA_ENCRYPTED"],'r').read())
+
+# Set azure info
+cfg['cloud']['azure']['username'] = os.environ["AZURE_USERNAME"]
+cfg['cloud']['azure']['ssh_key_data'] = literal(open(os.environ["AZURE_SCM_KEY_DATA_ENCRYPTED"],'r').read())
+
 # Set SCM info
 cfg['scm']['password'] = os.environ.get("SCM_PASSWORD","")
 cfg['scm']['ssh_key_data'] = literal(open(os.environ["SCM_KEY_DATA"],'r').read())
