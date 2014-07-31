@@ -23,6 +23,12 @@ if not "SSH_KEY_DATA" in os.environ:
 if not "SSH_KEY_DATA_ENCRYPTED" in os.environ:
     os.environ["SSH_KEY_DATA_ENCRYPTED"] = os.path.expandvars("$HOME/.ssh/id_rsa.jenkins-passphrase")
 
+# Gather GCE and Azure KEY_DATA
+if not "GCE_KEY_DATA" in os.environ:
+    os.environ["GCE_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/id_rsa.gce.pem")
+if not "AZURE_KEY_DATA" in os.environ:
+    os.environ["AZURE_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/id_rsa.azure.pem")
+
 # Allow for folded/literal yaml blocks (see
 # http://stackoverflow.com/questions/6432605/any-yaml-libraries-in-python-that-support-dumping-of-long-strings-as-block-liter)
 class folded(unicode): pass
@@ -54,11 +60,11 @@ for ec2 in ['aws','ec2']:
 # Set gce info
 cfg['cloud']['gce']['username'] = os.environ["GCE_USERNAME"]
 cfg['cloud']['gce']['project'] = os.environ["GCE_PROJECT"]
-cfg['cloud']['gce']['ssh_key_data'] = literal(open(os.environ["GCE_SCM_KEY_DATA_ENCRYPTED"],'r').read())
+cfg['cloud']['gce']['ssh_key_data'] = literal(open(os.environ["GCE_KEY_DATA"],'r').read())
 
 # Set azure info
 cfg['cloud']['azure']['username'] = os.environ["AZURE_USERNAME"]
-cfg['cloud']['azure']['ssh_key_data'] = literal(open(os.environ["AZURE_SCM_KEY_DATA_ENCRYPTED"],'r').read())
+cfg['cloud']['azure']['ssh_key_data'] = literal(open(os.environ["AZURE_KEY_DATA"],'r').read())
 
 # Set SCM info
 cfg['scm']['password'] = os.environ.get("SCM_PASSWORD","")
