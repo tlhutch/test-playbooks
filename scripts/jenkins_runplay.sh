@@ -61,7 +61,7 @@ for LINE in $(env) ; do
         DELETE_ON_START|AWX_UPGRADE)
             echo "${VARNAME,,}: ${!VARNAME}" >> ${PLAYBOOK_DIR}/vars.yaml
             ;;
-        AWX*|GALAXY*|AWS*|EC2*|RAX*|GCE*|INSTANCE*)
+        AWX*|GALAXY*|AWS*|EC2*|RAX*|GCE*|AZURE*|INSTANCE*)
             echo "${VARNAME,,}: '${!VARNAME}'" >> ${PLAYBOOK_DIR}/vars.yaml
             ;;
         *)
