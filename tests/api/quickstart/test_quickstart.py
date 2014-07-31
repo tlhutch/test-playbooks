@@ -252,7 +252,12 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Merge with cloud credentials.yaml
         if _credential['cloud']:
-            fields = ['username', 'password']
+            if _credential['kind'] == 'gce':
+                fields = ['username', 'project', 'ssh_key_data']
+            elif _credential['kind'] == 'azure':
+                fields = ['username', 'ssh_key_data']
+            else:
+                fields = ['username', 'password']
             assert self.has_credentials('cloud', _credential['kind'], fields=fields)
             for field in fields:
                 payload[field] = payload[field].format(**self.credentials['cloud'][_credential['kind']])
