@@ -260,7 +260,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 fields = ['username', 'password']
             assert self.has_credentials('cloud', _credential['kind'], fields=fields)
             for field in fields:
-                payload[field] = payload[field].format(**self.credentials['cloud'][_credential['kind']])
+                payload[field] = _credential[field].format(**self.credentials['cloud'][_credential['kind']])
 
         try:
             org = api_credentials_pg.post(payload)
