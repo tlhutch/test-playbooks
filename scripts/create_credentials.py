@@ -25,7 +25,7 @@ if not "SSH_KEY_DATA_ENCRYPTED" in os.environ:
 
 # Gather GCE and Azure KEY_DATA
 if not "GCE_KEY_DATA" in os.environ:
-    os.environ["GCE_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/id_rsa.gce.pem")
+    os.environ["GCE_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/google_compute_engine-c0945457e76d.pem")
 if not "AZURE_KEY_DATA" in os.environ:
     os.environ["AZURE_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/id_rsa.azure.pem")
 
