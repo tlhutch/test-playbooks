@@ -3,8 +3,8 @@ import httplib
 import json
 import common.utils
 import common.exceptions
-
 from tests.api import Base_Api_Test
+
 
 @pytest.fixture(scope="function")
 def host_ipv4_again(request, authtoken, api_hosts_pg, host_ipv4):
@@ -34,12 +34,17 @@ def host_public_ipv4_alias(request, authtoken, api_hosts_pg, group, my_public_ip
         obj.get_related('groups').post(dict(id=group.id))
     return obj
 
-@pytest.fixture(scope="function", params=['aws', 'rax'])
-def cloud_group(request, aws_group, rax_group):
+
+@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce'])
+def cloud_group(request, aws_group, rax_group, azure_group, gce_group):
     if request.param == 'aws':
         return aws_group
     elif request.param == 'rax':
         return rax_group
+    elif request.param == 'azure':
+        return azure_group
+    elif request.param == 'gce':
+        return gce_group
     else:
         raise Exception("Unhandled cloud type: %s" % request.param)
 
@@ -182,7 +187,10 @@ class Test_Job_Callback(Base_Api_Test):
         assert result['json']['msg'] == 'Multiple hosts matched the request!'
 
     def test_launch_success_limit(self, ansible_runner, job_template_with_limit, host_ipv4, host_config_key, ansible_default_ipv4):
-        '''Assert that launching a callback job against a job_template with an existing 'limit' parameter successfully launches, but the job fails because no matching hosts were found.'''
+        '''Assert that launching a callback job against a job_template with an
+        existing 'limit' parameter successfully launches, but the job fails
+        because no matching hosts were found.
+        '''
 
         # validate host_config_key
         job_template_with_limit.patch(host_config_key=host_config_key)
