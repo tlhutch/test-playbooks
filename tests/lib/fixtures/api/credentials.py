@@ -51,7 +51,7 @@ def ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user,
 @pytest.fixture(scope="function")
 def aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create a randomly named Amazon Cloud credential'''
-    payload = dict(name="credentials-%s" % common.utils.random_unicode(),
+    payload = dict(name="awx-credential-%s" % common.utils.random_unicode(),
                    description="AWS credential %s" % common.utils.random_unicode(),
                    kind='aws',
                    user=admin_user.id,
@@ -65,12 +65,41 @@ def aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
 @pytest.fixture(scope="function")
 def rax_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create a randomly named Rackspace Cloud credential'''
-    payload = dict(name="credentials-%s" % common.utils.random_unicode(),
+    payload = dict(name="rax-credential-%s" % common.utils.random_unicode(),
                    description="Rackspace credential %s" % common.utils.random_unicode(),
                    kind='rax',
                    user=admin_user.id,
                    username=testsetup.credentials['cloud']['rax']['username'],
                    password=testsetup.credentials['cloud']['rax']['password'],)
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def azure_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create a randomly named Azure Cloud credential'''
+    payload = dict(name="azure-credential-%s" % common.utils.random_unicode(),
+                   description="Microsoft Azure credential %s" % common.utils.random_unicode(),
+                   kind='azure',
+                   user=admin_user.id,
+                   username=testsetup.credentials['cloud']['azure']['username'],
+                   ssh_key_data=testsetup.credentials['cloud']['azure']['ssh_key_data'],)
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def gce_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create a randomly named Google Compute Engine credential'''
+    payload = dict(name="gce-credential-%s" % common.utils.random_unicode(),
+                   description="Google Compute Engine credential %s" % common.utils.random_unicode(),
+                   kind='gce',
+                   user=admin_user.id,
+                   username=testsetup.credentials['cloud']['gce']['username'],
+                   project=testsetup.credentials['cloud']['gce']['project'],)
+                   ssh_key_data=testsetup.credentials['cloud']['gce']['ssh_key_data'],)
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj

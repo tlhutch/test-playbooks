@@ -7,6 +7,12 @@ import common.utils
 import common.exceptions
 
 @pytest.fixture(scope="function")
+def host_config_key():
+    '''Returns a uuid4 string for use as a host_config_key.'''
+    return str(uuid.uuid4())
+
+
+@pytest.fixture(scope="function")
 def random_ipv4(request):
     '''Return a randomly generated ipv4 address.'''
     return ".".join(str(random.randint(1, 255)) for i in range(4))
@@ -161,7 +167,42 @@ def rax_inventory_source(request, authtoken, rax_group):
     return rax_group.get_related('inventory_source')
 
 
+#
+# Azure group
+#
 @pytest.fixture(scope="function")
-def host_config_key():
-    '''Returns a uuid4 string for use as a host_config_key.'''
-    return str(uuid.uuid4())
+def azure_group(request, authtoken, api_groups_pg, inventory, azure_credential):
+    payload = dict(name="azure-group-%s" % common.utils.random_ascii(),
+                   description="Microsoft Azure %s" % common.utils.random_unicode(),
+                   inventory=inventory.id,
+                   credential=azure_credential.id)
+    obj = api_groups_pg.post(payload)
+    request.addfinalizer(obj.delete)
+
+    # Set the inventory_source.sourc = 'azure'
+    inv_source = obj.get_related('inventory_source')
+    inv_source.patch(source='azure', credential=azure_credential.id)
+    return obj
+
+
+#
+# GCE group
+#
+@pytest.fixture(scope="function")
+def gce_group(request, authtoken, api_groups_pg, inventory, gce_credential):
+    payload = dict(name="gce-group-%s" % common.utils.random_ascii(),
+                   description="Google Compute Engine %s" % common.utils.random_unicode(),
+                   inventory=inventory.id,
+                   credential=gce_credential.id)
+    obj = api_groups_pg.post(payload)
+    request.addfinalizer(obj.delete)
+
+    # Set the inventory_source.sourc = 'gce'
+    inv_source = obj.get_related('inventory_source')
+    inv_source.patch(source='gce', credential=gce_credential.id)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def azure_inventory_source(request, authtoken, azure_group):
+    return azure_group.get_related('inventory_source')
