@@ -98,7 +98,7 @@ def gce_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
                    kind='gce',
                    user=admin_user.id,
                    username=testsetup.credentials['cloud']['gce']['username'],
-                   project=testsetup.credentials['cloud']['gce']['project'],)
+                   project=testsetup.credentials['cloud']['gce']['project'],
                    ssh_key_data=testsetup.credentials['cloud']['gce']['ssh_key_data'],)
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
