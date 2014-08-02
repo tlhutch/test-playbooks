@@ -210,6 +210,13 @@ class Awx_Schema_Credentials(Awx_Schema):
     def duplicate(self):
         return self.load_file('credentials/duplicate.yml')
 
+class Awx_Schema_Credential(Awx_Schema_Credentials):
+    resource = '/api/v1/credentials/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('credentials/item.yml')
+
 class Awx_Schema_User_Credentials(Awx_Schema_Credentials):
     resource = '/api/v1/users/\d+/credentials/'
 

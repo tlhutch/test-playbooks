@@ -209,6 +209,7 @@ class Task_Page(Base):
     created = property(json_getter('created'), json_setter('created'))
     modified = property(json_getter('modified'), json_setter('modified'))
     launch_type = property(json_getter('launch_type'), json_setter('launch_type'))
+    job_env = property(json_getter('job_env'), json_setter('job_env'))
 
     def __str__(self):
         return "Job id:%s, status:%s, failed:%s\nJob name:%s\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \

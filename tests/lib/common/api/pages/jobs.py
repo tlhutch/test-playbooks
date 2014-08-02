@@ -17,6 +17,12 @@ class Job_Page(base.Task_Page, Job_Template_Page):
             related = Job_Host_Summaries_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'start':
             related = base.Base(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'credential':
+            from credentials import Credential_Page
+            related = Credential_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'cloud_credential':
+            from credentials import Credential_Page
+            related = Credential_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
