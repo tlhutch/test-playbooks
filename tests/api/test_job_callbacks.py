@@ -264,7 +264,7 @@ class Test_Job_Callback(Base_Api_Test):
         assert host_summaries_pg.results[0].host == host_ipv4.id
 
     def test_launch_with_inventory_update(self, ansible_runner, job_template, host_config_key, cloud_group, ansible_default_ipv4, tower_version_cmp):
-        '''Assert that a callback job against a job_template also initiates an aws inventory_update (when configured).'''
+        '''Assert that a callback job against a job_template also initiates an inventory_update (when configured).'''
 
         if tower_version_cmp('2.0.0') < 0:
             pytest.xfail("Only supported on tower-2.0.0 (or newer)")
@@ -296,11 +296,13 @@ class Test_Job_Callback(Base_Api_Test):
         assert 'status' in result, "Unexpected callback response"
         assert result['status'] in [httplib.ACCEPTED, httplib.BAD_REQUEST]
         assert not result['changed']
-        # Note, for this test, it is expected that no host will match
-        # assert result['json']['msg'] == 'No matching host could be found!'
+        # NOTE: for this test, it is expected that no host will match
+        assert result['json']['msg'] == 'No matching host could be found!'
 
-        assert cloud_group.get_related('hosts').count > 0, "No aws hosts found.  An inventory_update was not triggered by the callback as expected"
-        assert cloud_group.get_related('children').count > 0, "No aws children found.  An inventory_update was not triggered by the callback as expected"
+        # NOTE: We can't guarruntee that any cloud instances are running, so we don't
+        # assert that cloud hosts were imported.
+        # assert cloud_group.get_related('hosts').count > 0, "No hosts found after inventory_update.  An inventory_update was not triggered by the callback as expected"
+        assert cloud_group.get_related('children').count > 0, "No child groups found after inventory_update.  An inventory_update was not triggered by the callback as expected"
 
         # Assert that an inventory_update took place
         assert cloud_group.get_related('inventory_source').last_updated is not None
