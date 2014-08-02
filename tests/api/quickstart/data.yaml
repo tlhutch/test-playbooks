@@ -912,44 +912,6 @@ job_templates:
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***, vault_password:***)
       limit: local
 
-    - name: helloworld/aws_credentials_test.yml (limit:127.0.0.1)
-      job_type: run
-      project: ansible-helloworld (hg, ssh_key_data)
-      playbook: aws_credentials_test.yml
-      inventory: it_inventory
-      credential: SSH (user:bender_eng_user, password:***)
-      cloud_credential: AWS (user:bender_eng_user)
-      limit: 127.0.0.1
-      verbosity: 2
-
-    - name: helloworld/rax_credentials_test.yml (password:ASK, limit:localhost)
-      job_type: run
-      project: ansible-helloworld (hg, ssh_key_data, ssh_key_unlock)
-      playbook: rax_credentials_test.yml
-      inventory: it_inventory
-      credential: SSH (user:bender_eng_user, password:ASK)
-      cloud_credential: Rackspace (team:IT)
-      limit: localhost
-      verbosity: 2
-
-    - name: helloworld/azure_credentials_test.yml
-      description: A playbook to verify that Microsoft Azure credentials are sent as environment variables to the playbook
-      job_type: run
-      project: ansible-playbooks.git (github, ssh_key_data)
-      playbook: azure_credentials_test.yml
-      inventory: local,
-      credential: SSH (user:bender_eng_user, ssh_key_data)
-      cloud_credential: Microsoft Azure (team:IT)
-
-    - name: helloworld/gce_credentials_test.yml
-      description: A playbook to verify that Google Compute Engine credentials are sent as environment variables to the playbook
-      job_type: run
-      project: ansible-playbooks.git (github, ssh_key_data)
-      playbook: gce_credentials_test.yml
-      inventory: local,
-      credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:ASK)
-      cloud_credential: Google Compute (team:IT)
-
     - name: language_features/tags.yml (tags:foo, limit:unresolvable-name.example.com)
       job_type: check
       allow_callbacks: false
