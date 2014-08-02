@@ -50,7 +50,7 @@ class Base_Api_Test(object):
         # Ensure requested fields are present
         if fields:
             assert all([field in creds for field in fields]), \
-                "Not all requested credential fields for section '%s' defined credentials.yaml" % \
-                ctype
+                "Missing required credentials (%s) for section '%s' in credentials.yaml" % \
+                (', '.join(fields), ctype)
 
         return True
