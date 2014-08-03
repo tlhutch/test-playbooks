@@ -488,7 +488,7 @@ inventory_sources:
       update_interval: 0
 
     - name: ansible-azure # name is used for internal purposes
-      group: Google Compute Engine
+      group: Microsoft Azure
       inventory: ansible-azure
       source: azure
       credential: Microsoft Azure (team:IT)
