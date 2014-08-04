@@ -48,7 +48,7 @@ def api_home(request, api):
                 break
         return current_version
     else:
-        assert api_version in available_versions
+        assert api_version in available_versions, "Requested tower version (%s) not available.  Choices include: %s" % (api_version, available_versions)
         return available_versions.get(api_version)
 
 #
