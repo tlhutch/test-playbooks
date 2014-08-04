@@ -5,6 +5,7 @@ import tempfile
 import json
 from datetime import datetime, timedelta
 
+
 def generate_license_file(**kwargs):
     meta = generate_license(**kwargs)
 
@@ -13,6 +14,7 @@ def generate_license_file(**kwargs):
     os.close(fd)
 
     return fname
+
 
 def generate_aws_file(**kwargs):
     meta = generate_aws(**kwargs)
@@ -23,7 +25,8 @@ def generate_aws_file(**kwargs):
 
     return fname
 
-def generate_license(instance_count=20, contact_email="art@vandelay.com", company_name="Vandelay Industries", contact_name="Art Vandelay", license_date=None, days=None):
+
+def generate_license(instance_count=20, contact_email="art@vandelay.com", company_name="Vandelay Industries", contact_name="Art Vandelay", license_date=None, days=None, trial=False):
     def to_seconds(itime):
         '''
         Convenience method to convert a time into seconds
@@ -47,12 +50,14 @@ def generate_license(instance_count=20, contact_email="art@vandelay.com", compan
     sha.update(meta['company_name'])
     sha.update(str(meta['instance_count']))
     sha.update(str(meta['license_date']))
+    if isinstance(trail, bool) and trial:
+        sha.update(str(meta['trial']))
     meta['license_key'] = sha.hexdigest()
 
     return meta
 
-def generate_aws(instance_count=30, ami_id="ami-eb81b182", instance_id="i-fd64c1d3"):
 
+def generate_aws(instance_count=30, ami_id="ami-eb81b182", instance_id="i-fd64c1d3"):
     # Generate license key (see ansible-commander/private/license_writer.py)
     meta = dict(instance_count=instance_count)
 
