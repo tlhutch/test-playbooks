@@ -50,7 +50,7 @@ def generate_license(instance_count=20, contact_email="art@vandelay.com", compan
     sha.update(meta['company_name'])
     sha.update(str(meta['instance_count']))
     sha.update(str(meta['license_date']))
-    if isinstance(trail, bool) and trial:
+    if isinstance(trial, bool) and trial:
         sha.update(str(meta['trial']))
     meta['license_key'] = sha.hexdigest()
 
