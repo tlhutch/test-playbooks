@@ -26,7 +26,7 @@ def generate_aws_file(**kwargs):
     return fname
 
 
-def generate_license(instance_count=20, contact_email="art@vandelay.com", company_name="Vandelay Industries", contact_name="Art Vandelay", license_date=None, days=None, trial=False):
+def generate_license(instance_count=20, contact_email="art@vandelay.com", company_name="Vandelay Industries", contact_name="Art Vandelay", license_date=None, days=None, trial=None):
     def to_seconds(itime):
         '''
         Convenience method to convert a time into seconds
@@ -39,6 +39,10 @@ def generate_license(instance_count=20, contact_email="art@vandelay.com", compan
                 company_name=company_name,
                 contact_name="Art Vandelay")
 
+    # Only generate a trial license if requested
+    if isinstance(trial, bool):
+        meta['trial'] = trial
+
     # Determine license_date
     if days is not None:
         meta['license_date'] = to_seconds(datetime.now() + timedelta(days=days))
@@ -50,10 +54,12 @@ def generate_license(instance_count=20, contact_email="art@vandelay.com", compan
     sha.update(meta['company_name'])
     sha.update(str(meta['instance_count']))
     sha.update(str(meta['license_date']))
-    if isinstance(trial, bool) and trial:
-        sha.update(str(meta['trial']))
-    meta['license_key'] = sha.hexdigest()
 
+    # Only generate a trial license if requested
+    if meta.get('trial', False):
+        sha.update(str(meta['trial']))
+
+    meta['license_key'] = sha.hexdigest()
     return meta
 
 
