@@ -1,4 +1,5 @@
 import pytest
+import contextlib
 
 @pytest.mark.skip_selenium
 class Base_Api_Test(object):
@@ -54,3 +55,12 @@ class Base_Api_Test(object):
                 (', '.join(fields), ctype)
 
         return True
+
+    @contextlib.contextmanager
+    def current_user(self, username, password):
+        try:
+            previous_auth = self.api.session.auth
+            self.api.login(username, password)
+            yield
+        finally:
+            self.api.session.auth = previous_auth
