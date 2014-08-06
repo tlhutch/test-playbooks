@@ -18,10 +18,13 @@
   until: epel_task.rc == 0
   when: ansible_distribution in ['RedHat', 'CentOS'] and ansible_distribution_major_version == '7'
 
-# FIXME - Enable RHEL 'optional' repository (needed for python-jinja2) when RHEL7 is released
-#- name: enable rhel-7-optional repository
-#  template: src=rhel-7-optional.repo.j2 dest=/etc/yum.repos.d/rhel-7-optional.repo
-#  when: ansible_distribution in ['RedHat'] and ansible_distribution_version.startswith('7')
+- name: update rh-amazon-rhui-client (rhel7 ec2 only)
+  yum: name=rh-amazon-rhui-client status=latest
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7' and inventory_hostname.endswith('amazonaws.com')
+
+- name: enable rhel-server-optional (rhel7 ec2 only)
+  shell: yum-config-manager --enable rhui-REGION-rhel-server-optional 2>/dev/null
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7' and inventory_hostname.endswith('amazonaws.com')
 
 # Install dependencies
 
