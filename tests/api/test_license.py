@@ -336,8 +336,9 @@ class Test_License_Grace_Period(Base_Api_Test):
     def test_job_launch(self, job_template):
         '''Verify that job_templates cannot be launched'''
         job_pg = job_template.launch_job()
-        job_pg = job_pg.wait_until_completed(timeout=60 * 5)
-        assert job_pg.is_completed, "Job not completed - %s " % job_pg
+        # FIXME - should we wait for job completion?
+        # job_pg = job_pg.wait_until_completed(timeout=60 * 5)
+        # assert job_pg.is_completed, "Job not completed - %s " % job_pg
 
 
 @pytest.mark.skip_selenium
