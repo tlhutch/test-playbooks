@@ -26,7 +26,7 @@
     files:
       /root/.ssh/authorized_keys: '{{ rax_public_key }}'
     wait: yes
-    wait_timeout: 800
+    wait_timeout: 1200
     state: present
   register: rax
   # NOTE: This if rax.instances contains more than one instance, which
