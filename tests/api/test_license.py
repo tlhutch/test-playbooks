@@ -60,6 +60,13 @@ def install_license_warning(request, ansible_runner, license_instance_count):
 @pytest.fixture(scope='class')
 def install_license_expired(request, ansible_runner, license_instance_count):
     log.debug("calling fixture install_license_expired")
+    fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=-61)
+    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+
+
+@pytest.fixture(scope='class')
+def install_license_grace_period(request, ansible_runner, license_instance_count):
+    log.debug("calling fixture install_license_grace_period")
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=-1)
     ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
 
@@ -293,6 +300,47 @@ class Test_License_Warning(Base_Api_Test):
 
 
 @pytest.mark.skip_selenium
+class Test_License_Grace_Period(Base_Api_Test):
+    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_grace_period')
+
+    def test_metadata(self, api_config_pg):
+        conf = api_config_pg.get()
+        print json.dumps(conf.json, indent=4)
+
+        # Assert NOT Demo mode
+        assert 'demo' not in conf.license_info
+        assert 'key_present' not in conf.license_info
+
+        # Assert a valid key
+        assert conf.license_info.valid_key
+        assert 'license_key' in conf.license_info
+        assert 'instance_count' in conf.license_info
+
+        # Assert dates look sane?
+        assert conf.license_info.date_expired
+        assert conf.license_info.date_warning
+
+        # Assert not AWS information
+        assert 'is_aws' not in conf.license_info
+        assert 'ami-id' not in conf.license_info
+        assert 'instance-id' not in conf.license_info
+
+        # Assert grace_period is 30 days + time_remaining
+        assert int(conf.license_info['grace_period_remaining']) == \
+            int(conf.license_info['time_remaining']) + 2592000
+
+    def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
+        '''Verify that hosts can be added up to the 'license_instance_count' '''
+        assert_instance_counts(api_config_pg, license_instance_count, inventory, group)
+
+    def test_job_launch(self, job_template):
+        '''Verify that job_templates cannot be launched'''
+        job_pg = job_template.launch_job()
+        job_pg = job_pg.wait_until_completed(timeout=60 * 5)
+        assert job_pg.is_completed, "Job not completed - %s " % job_pg
+
+
+@pytest.mark.skip_selenium
 class Test_License_Expired(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_expired')
 
@@ -321,6 +369,15 @@ class Test_License_Expired(Base_Api_Test):
         # Assert grace_period is 30 days + time_remaining
         assert int(conf.license_info['grace_period_remaining']) == \
             int(conf.license_info['time_remaining']) + 2592000
+
+    def test_host(self, inventory, group):
+        '''Verify that no hosts can be added'''
+        payload = dict(name="host-%s" % common.utils.random_unicode(),
+                       description="host-%s" % common.utils.random_unicode(),
+                       inventory=group.inventory)
+        group_hosts_pg = group.get_related('hosts')
+        with pytest.raises(common.exceptions.Forbidden_Exception):
+            group_hosts_pg.post(payload)
 
     def test_job_launch(self, job_template):
         '''Verify that job_templates cannot be launched'''
