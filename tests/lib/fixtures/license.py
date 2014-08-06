@@ -12,13 +12,13 @@ def backup_license(request, ansible_runner):
     '''Backup and existing license files. The files will be restored upon teardown.
     '''
     log.debug("calling fixture backup_license")
-    ansible_runner.shell('test -f /etc/awx/aws && mv /etc/awx/aws /etc/awx/.aws', creates='/etc/awx/.aws', removes='/etc/awx/aws')
-    ansible_runner.shell('test -f /etc/awx/license && mv /etc/awx/license /etc/awx/.license', creates='/etc/awx/.license', removes='/etc/awx/license')
+    ansible_runner.shell('mv /etc/awx/aws /etc/awx/.aws', removes='/etc/awx/aws')
+    ansible_runner.shell('mv /etc/awx/license /etc/awx/.license', removes='/etc/awx/license')
 
     def teardown():
         log.debug("calling teardown backup_license")
-        ansible_runner.shell('test -f /etc/awx/.aws && mv /etc/awx/.aws /etc/awx/aws', creates='/etc/awx/aws', removes='/etc/awx/.aws')
-        ansible_runner.shell('test -f /etc/awx/.license && mv /etc/awx/.license /etc/awx/license', creates='/etc/awx/license', removes='/etc/awx/.license')
+        ansible_runner.shell('mv /etc/awx/.aws /etc/awx/aws', removes='/etc/awx/.aws')
+        ansible_runner.shell('mv /etc/awx/.license /etc/awx/license', removes='/etc/awx/.license')
     request.addfinalizer(teardown)
 
 
