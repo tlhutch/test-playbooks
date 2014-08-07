@@ -19,7 +19,7 @@
   when: ansible_distribution in ['RedHat', 'CentOS'] and ansible_distribution_major_version == '7'
 
 - name: update rh-amazon-rhui-client (rhel7 ec2 only)
-  yum: name=rh-amazon-rhui-client status=latest
+  yum: name=rh-amazon-rhui-client state=latest
   when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7' and inventory_hostname.endswith('amazonaws.com')
 
 - name: enable rhel-server-optional (rhel7 ec2 only)
