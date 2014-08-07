@@ -31,13 +31,35 @@
     [ ] ubuntu-12.04
     [ ] ubuntu-14.04
     [ ] rhel-6.5
-    [ ] rhel-7.0 (beta)
+    [ ] rhel-7.0
     [ ] centos-6.5
 2. [ ] Test upgrades using correct and incorrect values for the following fields: [admin_password, pg_password, rabbitmq_password]
 3. [ ] Test upgrades with data, and ensure projects/inventory/jobs run post-upgrade
 
 ### Integration
 1. [ ] End-to-end integration completed on all supported platforms
+
+### Feature: trial license
+1. [ ] Automated API tests
+       > no license - can't launch jobs and can't add hosts
+       > expired trial license - can't launch jobs and can't add hosts
+       > expired license, within grace_period - can launch jobs and can add hosts
+       > expired license, beyond grace_period - can't launch jobs or add hosts
+       > able to POST a new license
+2. [ ] UI tests
+       > no license - verify login dialog, and POST license
+       > expired trial license - verify login prompt and wording in about->license
+       > expired license, within grace_period - verify login prompt and wording in about->license
+       > expired license, beyond grace_period - verify login prompt and wording in about->license
+
+### Feature: ansible-tower service
+1. [ ] Verify ansible-tower start/stop/restart/status on all platforms
+       [ ] ubuntu-12.04
+       [ ] ubuntu-14.04
+       [ ] rhel-6.5
+       [ ] rhel-7.0
+       [ ] centos-6.5
+1. [X] Verify ansible-tower is used by setup playbook
 
 ### Feature: socket-io asynchronous updates
 1. [ ] Verify asynchronous project_update (success, cancelled, failure, error)
@@ -70,3 +92,4 @@
 9. [ ] Verify job_template CRUD
 10. [ ] Verify job CRUD
 11. [ ] Verify job dialog tabs for various job types present correct information
+12. [ ] Verify tower menu displays and works on a smaller resolution
