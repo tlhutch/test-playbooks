@@ -514,7 +514,13 @@ class Awx_Schema_Config(Awx_Schema):
 
     @property
     def get(self):
-        return self.load_file('config.yml')
+        return self.load_file('config/list.yml')
+    @property
+    def post(self):
+        return self.load_file('config/license.yml')
+    @property
+    def license_invalid(self):
+        return self.load_file('errors/license_invalid.yml')
 
 #
 # /me

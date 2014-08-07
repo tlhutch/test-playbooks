@@ -134,6 +134,9 @@ def test_authenticated(api, resource, method):
         '/api/v1/dashboard/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },
+        '/api/v1/config/': {
+            'POST': (httplib.BAD_REQUEST, 'license_invalid'),
+        },
         '/api/v1/me/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },

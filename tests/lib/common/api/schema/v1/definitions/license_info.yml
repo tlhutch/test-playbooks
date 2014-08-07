@@ -1,0 +1,21 @@
+---
+license_info:
+    type: object
+    additionalAttributes: false
+    properties:
+        key_present: {type: boolean}
+        grace_period_remaining: {type: number}
+        date_expired: {type: boolean}
+        available_instances: {minimum: 0, type: number}
+        current_instances: {type: number}
+        free_instances: {type: number}
+        instance_count: {minimum: 0, type: number}
+        compliant: {type: boolean}
+        valid_key: {type: boolean}
+        contact_email: {format: email, type: string}
+        company_name: {type: string}
+        date_warning: {type: boolean}
+        time_remaining: {type: number}
+        contact_name: {type: string}
+        license_date: {type: number}
+        license_key: {type: string}
