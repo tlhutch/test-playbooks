@@ -41,8 +41,8 @@ class Test_Job(Base_Api_Test):
     # def test_no_such_playbook(self, utf8_template):
 
 
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce'])
-def cloud_credential(request, aws_credential, rax_credential, azure_credential, gce_credential):
+@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
+def cloud_credential(request, aws_credential, rax_credential, azure_credential, gce_credential, vmware_credential):
     if request.param == 'aws':
         return aws_credential
     elif request.param == 'rax':
@@ -51,6 +51,8 @@ def cloud_credential(request, aws_credential, rax_credential, azure_credential, 
         return azure_credential
     elif request.param == 'gce':
         return gce_credential
+    elif request.param == 'vmware':
+        return vmware_credential
     else:
         raise Exception("Unhandled cloud credential type: %s" % request.param)
 
@@ -63,8 +65,8 @@ def job_template_with_cloud_credential(request, job_template, host, cloud_creden
     return job_template
 
 
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce'])
-def cloud_group(request, aws_group, rax_group, azure_group, gce_group):
+@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
+def cloud_group(request, aws_group, rax_group, azure_group, gce_group, vmware_group):
     if request.param == 'aws':
         return aws_group
     elif request.param == 'rax':
@@ -73,6 +75,8 @@ def cloud_group(request, aws_group, rax_group, azure_group, gce_group):
         return azure_group
     elif request.param == 'gce':
         return gce_group
+    elif request.param == 'vmware':
+        return vmware_group
     else:
         raise Exception("Unhandled cloud type: %s" % request.param)
 
@@ -110,6 +114,8 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
             required_envvars = ['GCE_EMAIL', 'GCE_PROJECT', 'GCE_PEM_FILE_PATH']
         elif cred.kind == 'azure':
             required_envvars = ['AZURE_SUBSCRIPTION_ID', 'AZURE_CERT_PATH']
+        elif cred.kind == 'vmware':
+            required_envvars = ['VMWARE_HOST', 'VMWARE_USER', 'VMWARE_PASSWORD']
         else:
             raise Exception("Unhandled cloud type: %s" % request.param)
 

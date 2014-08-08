@@ -106,6 +106,20 @@ def gce_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
 
 
 @pytest.fixture(scope="function")
+def vmware_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create a randomly named VMware vCenter credential'''
+    payload = dict(name="vmware-credential-%s" % common.utils.random_unicode(),
+                   description="VMware vCenter credential %s" % common.utils.random_unicode(),
+                   kind='vmware',
+                   user=admin_user.id,
+                   username=testsetup.credentials['cloud']['vmware']['username'],
+                   ssh_key_data=testsetup.credentials['cloud']['vmware']['password'],)
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
 def scm_credential_key_unlock_ASK(request, authtoken, api_credentials_pg, admin_user):
     '''Create scm credential with scm_key_unlock="ASK"'''
     payload = dict(name="credentials-%s" % common.utils.random_unicode(),

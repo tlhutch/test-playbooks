@@ -203,6 +203,24 @@ def gce_group(request, authtoken, api_groups_pg, inventory, gce_credential):
     return obj
 
 
+#
+# VMware group
+#
+@pytest.fixture(scope="function")
+def vmware_group(request, authtoken, api_groups_pg, inventory, vmware_credential):
+    payload = dict(name="vmware-group-%s" % common.utils.random_ascii(),
+                   description="VMware vCenter %s" % common.utils.random_unicode(),
+                   inventory=inventory.id,
+                   credential=vmware_credential.id)
+    obj = api_groups_pg.post(payload)
+    request.addfinalizer(obj.delete)
+
+    # Set the inventory_source.sourc = 'vmware'
+    inv_source = obj.get_related('inventory_source')
+    inv_source.patch(source='vmware', credential=vmware_credential.id)
+    return obj
+
+
 @pytest.fixture(scope="function")
 def azure_inventory_source(request, authtoken, azure_group):
     return azure_group.get_related('inventory_source')
