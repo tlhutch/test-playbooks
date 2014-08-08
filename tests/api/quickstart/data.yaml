@@ -304,18 +304,6 @@ credentials:
       ssh_key_data: '{ssh_key_data}' # Gathered from credentials.yaml
 
     #
-    # VMware vCenter Credential
-    #
-    - name: VMware vCenter (team:IT)
-      description: VMware vCenter (team:IT)
-      kind: vmware
-      user: null
-      team: IT
-      cloud: true
-      username: '{username}' # Gathered from credentials.yaml
-      password: '{password}' # Gathered from credentials.yaml
-
-    #
     # Google Compute Credential
     #
     - name: Google Compute (team:IT)
@@ -328,24 +316,39 @@ credentials:
       project: '{project}'   # Gathered from credentials.yaml
       ssh_key_data: '{ssh_key_data}' # Gathered from credentials.yaml
 
+    #
+    # VMware vCenter Credential
+    #
+    - name: VMware vCenter (team:IT)
+      description: VMware vCenter (team:IT)
+      kind: vmware
+      user: null
+      team: IT
+      cloud: true
+      username: '{username}' # Gathered from credentials.yaml
+      password: '{password}' # Gathered from credentials.yaml
+
 inventories:
-    - name: it_inventory
+    - name: all_inventory
       description: Inventory tracking internal systems
       organization: Bender Products
 
     - name: ansibleworks-it
       organization: Ansible, Inc
 
-    - name: ansible-aws
+    - name: inventory-aws
       organization: Ansible, Inc
 
-    - name: ansible-rax
+    - name: inventory-rax
       organization: Ansible, Inc
 
-    - name: ansible-gce
+    - name: inventory-gce
       organization: Ansible, Inc
 
-    - name: ansible-azure
+    - name: inventory-azure
+      organization: Ansible, Inc
+
+    - name: inventory-vmware
       organization: Ansible, Inc
 
     - name: local,
@@ -354,100 +357,110 @@ inventories:
 groups:
     - name: local
       description: A group for systems that map to localhost
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_connection: local
 
     - name: local_1-10
       description: A sub-group for systems that map to localhost
-      inventory: it_inventory
+      inventory: all_inventory
       parent: local
 
     - name: local_11-20
       description: A sub-group for systems that map to localhost
-      inventory: it_inventory
+      inventory: all_inventory
       parent: local
 
     - name: local_11-15
       description: A sub-group for systems that map to localhost
-      inventory: it_inventory
+      inventory: all_inventory
       parent: local_11-20
 
     - name: local_16-20
       description: A sub-group for systems that map to localhost
-      inventory: it_inventory
+      inventory: all_inventory
       parent: local_11-20
 
     - name: local_16
       description: A sub-group for systems that map to localhost
-      inventory: it_inventory
+      inventory: all_inventory
       parent: local_16-20
 
     - name: local_17
       description: A sub-group for systems that map to localhost
-      inventory: it_inventory
+      inventory: all_inventory
       parent: local_16-20
 
     - name: local_18
       description: A sub-group for systems that map to localhost
-      inventory: it_inventory
+      inventory: all_inventory
       parent: local_16-20
 
     - name: local_19
       description: A sub-group for systems that map to localhost
-      inventory: it_inventory
+      inventory: all_inventory
       parent: local_16-20
 
     - name: local_20
       description: A sub-group for systems that map to localhost
-      inventory: it_inventory
+      inventory: all_inventory
       parent: local_16-20
 
     - name: cloud
       description: Group for dynamic cloud-based inventory
-      inventory: it_inventory
+      inventory: all_inventory
 
     - name: aws
       description: Group for tracking Amazon EC2 instances
-      inventory: it_inventory
+      inventory: all_inventory
       parent: cloud
 
     - name: rax
       description: Group for tracking Rackspace mycloud servers
-      inventory: it_inventory
+      inventory: all_inventory
+      parent: cloud
+
+    - name: gce
+      description: Group for tracking Google Compute servers
+      inventory: all_inventory
+      parent: cloud
+
+    - name: azure
+      description: Group for tracking Microsoft Azure servers
+      inventory: all_inventory
       parent: cloud
 
     - name: Amazon EC2 Instances
-      inventory: ansible-aws
+      inventory: inventory-aws
 
     - name: Rackspace Cloud Servers
-      inventory: ansible-rax
+      inventory: inventory-rax
 
     - name: Google Compute Engine
-      inventory: ansible-gce
+      inventory: inventory-gce
 
     - name: Microsoft Azure
-      inventory: ansible-azure
+      inventory: inventory-azure
 
     - name: VMware vCenter
-      inventory: ansible-vmware
+      inventory: inventory-vmware
 
 inventory_sources:
-    - name: it_inventory/aws # name is used for internal purposes
+    - name: all_inventory/aws # name is used for internal purposes
       group: aws
-      inventory: it_inventory
+      inventory: all_inventory
       source: ec2
       credential: AWS (user:bender_eng_user)
       source_vars: ''
       source_regions: ''
       overwrite: true
       overwrite_vars: true
-      update_on_launch: false
+      update_on_launch: true
       update_interval: 0
 
-    - name: it_inventory/rax # name is used for internal purposes
+    - name: all_inventory/rax # name is used for internal purposes
       group: rax
-      inventory: it_inventory
+      inventory: all_inventory
       source: rax
       credential: Rackspace (user:bender_eng_user)
       # source_username: # stored in credentials.yaml
@@ -460,9 +473,39 @@ inventory_sources:
       update_on_launch: true
       update_interval: 0
 
-    - name: ansible-aws # name is used for internal purposes
+    - name: all_inventory/gce # name is used for internal purposes
+      group: gce
+      inventory: all_inventory
+      source: gce
+      credential: Google Compute (team:IT)
+      # source_username: # stored in credentials.yaml
+      # source_password: # stored in credentials.yaml
+      source_vars: ''
+      source_regions: ''
+      source_tags: ''
+      overwrite: true
+      overwrite_vars: true
+      update_on_launch: true
+      update_interval: 0
+
+    - name: all_inventory/azure # name is used for internal purposes
+      group: azure
+      inventory: all_inventory
+      source: azure
+      credential: Microsoft Azure (team:IT)
+      # source_username: # stored in credentials.yaml
+      # source_password: # stored in credentials.yaml
+      source_vars: ''
+      source_regions: ''
+      source_tags: ''
+      overwrite: true
+      overwrite_vars: true
+      update_on_launch: true
+      update_interval: 0
+
+    - name: inventory-aws # name is used for internal purposes
       group: Amazon EC2 Instances
-      inventory: ansible-aws
+      inventory: inventory-aws
       source: ec2
       credential: AWS (team:IT)
       source_vars: ''
@@ -472,9 +515,9 @@ inventory_sources:
       update_on_launch: false
       update_interval: 0
 
-    - name: ansible-rax # name is used for internal purposes
+    - name: inventory-rax # name is used for internal purposes
       group: Rackspace Cloud Servers
-      inventory: ansible-rax
+      inventory: inventory-rax
       source: rax
       credential: Rackspace (team:IT)
       # source_username: # stored in credentials.yaml
@@ -487,9 +530,9 @@ inventory_sources:
       update_on_launch: false
       update_interval: 0
 
-    - name: ansible-gce # name is used for internal purposes
+    - name: inventory-gce # name is used for internal purposes
       group: Google Compute Engine
-      inventory: ansible-gce
+      inventory: inventory-gce
       source: gce
       credential: Google Compute (team:IT)
       # source_username: # stored in credentials.yaml
@@ -502,9 +545,9 @@ inventory_sources:
       update_on_launch: false
       update_interval: 0
 
-    - name: ansible-azure # name is used for internal purposes
+    - name: inventory-azure # name is used for internal purposes
       group: Microsoft Azure
-      inventory: ansible-azure
+      inventory: inventory-azure
       source: azure
       credential: Microsoft Azure (team:IT)
       # source_username: # stored in credentials.yaml
@@ -517,9 +560,9 @@ inventory_sources:
       update_on_launch: false
       update_interval: 0
 
-    - name: ansible-vmware # name is used for internal purposes
+    - name: inventory-vmware # name is used for internal purposes
       group: VMware vCenter
-      inventory: ansible-vmware
+      inventory: inventory-vmware
       source: vmware
       credential: VMware vCenter (team:IT)
       # source_username: # stored in credentials.yaml
@@ -535,19 +578,19 @@ inventory_sources:
 hosts:
     - name: 127.0.0.1
       description: localhost (ip address)
-      inventory: it_inventory
+      inventory: all_inventory
       groups:
         - local
 
     - name: localhost
       description: localhost (hostname)
-      inventory: it_inventory
+      inventory: all_inventory
       groups:
         - local
 
     - name: unresolvable-name.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_user: root
         ansible_ssh_host: 127.0.0.1
@@ -556,7 +599,7 @@ hosts:
 
     - name: not a valid hostname
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: localhost
       groups:
@@ -564,7 +607,7 @@ hosts:
 
     - name: host-1.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -573,7 +616,7 @@ hosts:
 
     - name: host-2.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -582,7 +625,7 @@ hosts:
 
     - name: host-3.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -591,7 +634,7 @@ hosts:
 
     - name: host-4.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -600,7 +643,7 @@ hosts:
 
     - name: host-5.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -609,7 +652,7 @@ hosts:
 
     - name: host-6.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -618,7 +661,7 @@ hosts:
 
     - name: host-7.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -627,7 +670,7 @@ hosts:
 
     - name: host-8.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -636,7 +679,7 @@ hosts:
 
     - name: host-9.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -645,7 +688,7 @@ hosts:
 
     - name: host-10.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -654,7 +697,7 @@ hosts:
 
     - name: host-11.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -664,7 +707,7 @@ hosts:
 
     - name: host-12.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -674,7 +717,7 @@ hosts:
 
     - name: host-13.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -684,7 +727,7 @@ hosts:
 
     - name: host-14.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -694,7 +737,7 @@ hosts:
 
     - name: host-15.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -704,7 +747,7 @@ hosts:
 
     - name: host-16.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -715,7 +758,7 @@ hosts:
 
     - name: host-17.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -726,7 +769,7 @@ hosts:
 
     - name: host-18.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -737,7 +780,7 @@ hosts:
 
     - name: host-19.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -748,7 +791,7 @@ hosts:
 
     - name: host-20.example.com
       description: localhost (ansible_ssh_host)
-      inventory: it_inventory
+      inventory: all_inventory
       variables:
         ansible_ssh_host: 127.0.0.1
       groups:
@@ -887,7 +930,7 @@ job_templates:
       allow_callbacks: false
       playbook: language_features/loop_plugins.yml
       project: ansible-examples.git (manual)
-      inventory: it_inventory
+      inventory: all_inventory
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)
       limit: '{inventory_hostname}:&cloud'
 
@@ -896,7 +939,7 @@ job_templates:
       allow_callbacks: false
       playbook: language_features/loop_nested.yml
       project: ansible-examples.git (manual)
-      inventory: it_inventory
+      inventory: all_inventory
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:ASK)
       limit: host-1*:&local_1-10
 
@@ -905,7 +948,7 @@ job_templates:
       allow_callbacks: false
       playbook: trunk/language_features/roletest.yml
       project: ansible-examples.svn (manual)
-      inventory: it_inventory
+      inventory: all_inventory
       credential: SSH (user:bender_eng_user, sudo_password:ASK)
       limit: ~host-1[3-7]+\.example\.com
       verbosity: 2
@@ -915,7 +958,7 @@ job_templates:
       allow_callbacks: false
       playbook: trunk/language_features/environment.yml
       project: ansible-examples.svn (manual)
-      inventory: it_inventory
+      inventory: all_inventory
       credential: SSH (user:bender_eng_user, sudo_password:***)
       limit: all:!cloud
       verbosity: 2
@@ -927,7 +970,7 @@ job_templates:
       job_type: run
       project: ansible-helloworld.hg (manual)
       playbook: site.yml
-      inventory: it_inventory
+      inventory: all_inventory
       credential: SSH (user:bender_eng_user, password:***)
       limit: local
       verbosity: 1
@@ -938,7 +981,7 @@ job_templates:
       job_type: run
       project: ansible-helloworld (hg, ssh_key_data)
       playbook: vault.yml
-      inventory: it_inventory
+      inventory: all_inventory
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***, vault_password:***)
       limit: local
 
@@ -947,7 +990,7 @@ job_templates:
       allow_callbacks: false
       playbook: language_features/tags.yml
       project: ansible-examples.git (github, ssh_key_data)
-      inventory: it_inventory
+      inventory: all_inventory
       credential: SSH (user:bender_eng_user, password:***)
       job_tags: foo
       limit: unresolvable-name.example.com
@@ -957,7 +1000,7 @@ job_templates:
       allow_callbacks: false
       playbook: language_features/tags.yml
       project: ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
-      inventory: it_inventory
+      inventory: all_inventory
       credential: SSH (user:bender_eng_user, ssh_key_data)
       job_tags: bar
       limit: not a valid hostname
@@ -967,7 +1010,7 @@ job_templates:
       job_type: run
       playbook: setup/site.yml
       project: ansible-commander.git (github, ssh_key_data)
-      inventory: ansible-aws
+      inventory: inventory-aws
       credential: SSH (user:bender_eng_user, ssh_key_data)
       limit: ansible-tower
       extra_vars:
