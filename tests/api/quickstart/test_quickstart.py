@@ -256,6 +256,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 fields = ['username', 'project', 'ssh_key_data']
             elif _credential['kind'] == 'azure':
                 fields = ['username', 'ssh_key_data']
+            elif _credential['kind'] == 'vmare':
+                fields = ['username', 'password', 'host']
             else:
                 fields = ['username', 'password']
             assert self.has_credentials('cloud', _credential['kind'], fields=fields)
