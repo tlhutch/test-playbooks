@@ -44,6 +44,16 @@ class Test_Users(Base_Api_Test):
     '''
     pytestmark = pytest.mark.usefixtures('authtoken')
 
+    def test_duplicate(self, api_users_pg, some_user):
+        '''Verify that usernames are unique'''
+        payload = dict(username=some_user.username,
+                       first_name="Another Joe (%s)" % common.utils.random_unicode(),
+                       last_name="User (%s)" % common.utils.random_unicode(),
+                       email="org_user_%s@example.com" % common.utils.random_ascii(),
+                       password='password')
+        with pytest.raises(common.exceptions.Duplicate_Exception):
+            obj = api_users_pg.post(payload)
+
     def test_cascade_delete(self, api_credentials_pg, some_user, some_ssh_credential):
         '''Verify that a credentials, owned by a user, are deleted when the user is deleted'''
 
