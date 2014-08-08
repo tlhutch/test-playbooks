@@ -256,7 +256,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 fields = ['username', 'project', 'ssh_key_data']
             elif _credential['kind'] == 'azure':
                 fields = ['username', 'ssh_key_data']
-            elif _credential['kind'] == 'vmare':
+            elif _credential['kind'] == 'vmware':
                 fields = ['username', 'password', 'host']
             else:
                 fields = ['username', 'password']
@@ -265,6 +265,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 payload[field] = _credential[field].format(**self.credentials['cloud'][_credential['kind']])
 
         try:
+            print json.dumps(payload, indent=4)
             org = api_credentials_pg.post(payload)
         except Duplicate_Exception, e:
             pytest.xfail(str(e))
