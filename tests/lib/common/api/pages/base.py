@@ -96,6 +96,8 @@ class Base(Page):
                 return self.__item_class__(self.testsetup, base_url=base_url, json=self.json)
         elif r.status_code == httplib.NO_CONTENT:
             raise NoContent_Exception(exc_str)
+        elif r.status_code == httplib.NOT_FOUND:
+            raise NotFound_Exception(exc_str)
         elif r.status_code == httplib.FORBIDDEN:
             try:
                 self.validate_json(json=data, request='license_exceeded')
@@ -140,6 +142,16 @@ class Base(Page):
         try:
             return self.handle_request(r)
         except NoContent_Exception:
+            pass
+
+    def quiet_delete(self):
+        '''
+        Delete the object.  If it's already deleted, ignore the error
+        '''
+        r = self.api.delete(self.base_url.format(**self.json))
+        try:
+            return self.handle_request(r)
+        except (NoContent_Exception, NotFound_Exception):
             pass
 
     def get_related(self, name, **kwargs):

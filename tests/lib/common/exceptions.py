@@ -19,5 +19,8 @@ class Method_Not_Allowed_Exception(Exception):
 class InternalServerError_Exception(Exception):
     pass
 
+class NotFound_Exception(Exception):
+    pass
+
 class Unknown_Exception(Exception):
     pass
