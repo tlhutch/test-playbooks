@@ -112,8 +112,9 @@ def vmware_credential(request, authtoken, api_credentials_pg, admin_user, testse
                    description="VMware vCenter credential %s" % common.utils.random_unicode(),
                    kind='vmware',
                    user=admin_user.id,
+                   host=testsetup.credentials['cloud']['vmware']['host'],
                    username=testsetup.credentials['cloud']['vmware']['username'],
-                   ssh_key_data=testsetup.credentials['cloud']['vmware']['password'],)
+                   password=testsetup.credentials['cloud']['vmware']['password'],)
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
