@@ -1,4 +1,0 @@
-#
-# Specify the ansible installation method
-#
-ansible_install_method: pip
