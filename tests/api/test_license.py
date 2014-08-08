@@ -42,6 +42,16 @@ def install_trial_license(request, ansible_runner, license_instance_count):
     ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
 
 
+@pytest.fixture(scope='function')
+def license_json(request, ansible_runner, license_instance_count):
+    return common.tower.license.generate_license(instance_count=license_instance_count, days=31)
+
+
+@pytest.fixture(scope='function')
+def trial_license_json(request, ansible_runner, license_instance_count):
+    return common.tower.license.generate_license(instance_count=license_instance_count, days=31, trial=True)
+
+
 @pytest.fixture(scope='class')
 def install_license(request, ansible_runner, license_instance_count):
     log.debug("calling fixture install_license")
@@ -173,6 +183,32 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             job_template.launch_job()
 
+    def test_install_license_invalid(self, api_config_pg, ansible_runner):
+        '''Verify that various bogus license formats fail to successfully install'''
+        with pytest.raises(common.exceptions.BadRequest_Exception):
+            api_config_pg.post()
+
+        for invalid in [0, 1, -1, True, common.utils.random_unicode(), {}]:
+            with pytest.raises(common.exceptions.BadRequest_Exception):
+                api_config_pg.post(invalid)
+
+        # Assert that /etc/awx/license does not exist
+        result = ansible_runner.stat(path='/etc/awx/license')
+        assert not result['stat']['exists'], "No license was expected, but one was found"
+
+    def test_install_license(self, api_config_pg, license_json, ansible_runner):
+        '''Verify that a license can be installed by issuing a POST to the /config endpoint'''
+        # Assert that /etc/awx/license does not exist
+        result = ansible_runner.stat(path='/etc/awx/license')
+        assert not result['stat']['exists'], "No license was expected, but one was found"
+
+        # Install the license
+        api_config_pg.post(license_json)
+
+        # Assert that /etc/awx/license was created
+        result = ansible_runner.stat(path='/etc/awx/license')
+        assert result['stat']['exists'], "A license was not succesfully installed to /etc/awx/license. %s"
+
 
 @pytest.mark.skip_selenium
 class Test_AWS_License(Base_Api_Test):
@@ -298,6 +334,20 @@ class Test_License_Warning(Base_Api_Test):
         assert int(conf.license_info['grace_period_remaining']) == \
             int(conf.license_info['time_remaining']) + 2592000
 
+    def test_update_license(self, api_config_pg, license_json):
+        '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
+        # Record the license md5
+        result = ansible_runner.stat(path='/etc/awx/license')
+        before_md5 = result['stat']['md5']
+
+        # Update the license
+        api_config_pg.post(license_json)
+
+        # Assert that /etc/awx/license was modified
+        result = ansible_runner.stat(path='/etc/awx/license')
+        after_md5 = result['stat']['md5']
+        assert before_md5 != after_md5, "The license file was not modified as expected"
+
 
 @pytest.mark.skip_selenium
 class Test_License_Grace_Period(Base_Api_Test):
@@ -385,6 +435,20 @@ class Test_License_Expired(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             job_template.launch_job()
 
+    def test_update_license(self, api_config_pg, license_json):
+        '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
+        # Record the license md5
+        result = ansible_runner.stat(path='/etc/awx/license')
+        before_md5 = result['stat']['md5']
+
+        # Update the license
+        api_config_pg.post(license_json)
+
+        # Assert that /etc/awx/license was modified
+        result = ansible_runner.stat(path='/etc/awx/license')
+        after_md5 = result['stat']['md5']
+        assert before_md5 != after_md5, "The license file was not modified as expected"
+
 
 @pytest.mark.skip_selenium
 class Test_Trial_License(Base_Api_Test):
@@ -430,3 +494,17 @@ class Test_Trial_License(Base_Api_Test):
             print json.dumps(conf.json, indent=4)
             assert 'license_info' in conf.json
             assert 'license_key' not in conf.license_info
+
+    def test_update_license(self, api_config_pg, trial_license_json):
+        '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
+        # Record the license md5
+        result = ansible_runner.stat(path='/etc/awx/license')
+        before_md5 = result['stat']['md5']
+
+        # Update the license
+        api_config_pg.post(license_json)
+
+        # Assert that /etc/awx/license was modified
+        result = ansible_runner.stat(path='/etc/awx/license')
+        after_md5 = result['stat']['md5']
+        assert before_md5 != after_md5, "The license file was not modified as expected"
