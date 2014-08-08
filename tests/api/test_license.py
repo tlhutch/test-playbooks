@@ -178,7 +178,6 @@ class Test_No_License(Base_Api_Test):
 class Test_AWS_License(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_aws')
 
-    # AWS licensing only works when tested on an ec2 instance
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -202,17 +201,18 @@ class Test_AWS_License(Base_Api_Test):
         assert 'instance-id' in conf.license_info
         assert 'instance_count' in conf.license_info
 
-    # AWS licensing only works when tested on an ec2 instance
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         assert_instance_counts(api_config_pg, license_instance_count, inventory, group)
 
+    @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_key_visibility_admin(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
         assert 'license_info' in conf.json
         assert 'license_key' in conf.license_info
 
+    @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_key_visibility_non_admin(self, api_config_pg, non_admin_user, user_password):
         with self.current_user(non_admin_user.username, user_password):
             conf = api_config_pg.get()
