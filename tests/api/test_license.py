@@ -43,12 +43,12 @@ def install_trial_license(request, ansible_runner, license_instance_count):
 
 
 @pytest.fixture(scope='function')
-def license_json(request, ansible_runner, license_instance_count):
+def license_json(request, license_instance_count):
     return common.tower.license.generate_license(instance_count=license_instance_count, days=31)
 
 
 @pytest.fixture(scope='function')
-def trial_license_json(request, ansible_runner, license_instance_count):
+def trial_license_json(request, license_instance_count):
     return common.tower.license.generate_license(instance_count=license_instance_count, days=31, trial=True)
 
 
@@ -334,7 +334,7 @@ class Test_License_Warning(Base_Api_Test):
         assert int(conf.license_info['grace_period_remaining']) == \
             int(conf.license_info['time_remaining']) + 2592000
 
-    def test_update_license(self, api_config_pg, license_json):
+    def test_update_license(self, api_config_pg, license_json, ansible_runner):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
         # Record the license md5
         result = ansible_runner.stat(path='/etc/awx/license')
@@ -435,7 +435,7 @@ class Test_License_Expired(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             job_template.launch_job()
 
-    def test_update_license(self, api_config_pg, license_json):
+    def test_update_license(self, api_config_pg, license_json, ansible_runner):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
         # Record the license md5
         result = ansible_runner.stat(path='/etc/awx/license')
@@ -495,7 +495,7 @@ class Test_Trial_License(Base_Api_Test):
             assert 'license_info' in conf.json
             assert 'license_key' not in conf.license_info
 
-    def test_update_license(self, api_config_pg, trial_license_json):
+    def test_update_license(self, api_config_pg, trial_license_json, ansible_runner):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
         # Record the license md5
         result = ansible_runner.stat(path='/etc/awx/license')
