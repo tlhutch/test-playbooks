@@ -292,7 +292,7 @@ credentials:
       password: '{password}' # Gathered from credentials.yaml
 
     #
-    # Microsoft Azure Cloud Credentials
+    # Microsoft Azure Cloud Credential
     #
     - name: Microsoft Azure (team:IT)
       description: Microsoft Azure for team:IT
@@ -304,7 +304,19 @@ credentials:
       ssh_key_data: '{ssh_key_data}' # Gathered from credentials.yaml
 
     #
-    # Google Compute Credentials
+    # VMware vCenter Credential
+    #
+    - name: VMware vCenter (team:IT)
+      description: VMware vCenter (team:IT)
+      kind: vmware
+      user: null
+      team: IT
+      cloud: true
+      username: '{username}' # Gathered from credentials.yaml
+      password: '{password}' # Gathered from credentials.yaml
+
+    #
+    # Google Compute Credential
     #
     - name: Google Compute (team:IT)
       description: Google Compute for team:IT
@@ -417,6 +429,9 @@ groups:
     - name: Microsoft Azure
       inventory: ansible-azure
 
+    - name: VMware vCenter
+      inventory: ansible-vmware
+
 inventory_sources:
     - name: it_inventory/aws # name is used for internal purposes
       group: aws
@@ -492,6 +507,21 @@ inventory_sources:
       inventory: ansible-azure
       source: azure
       credential: Microsoft Azure (team:IT)
+      # source_username: # stored in credentials.yaml
+      # source_password: # stored in credentials.yaml
+      source_vars: ''
+      source_regions: ''
+      source_tags: ''
+      overwrite: false
+      overwrite_vars: false
+      update_on_launch: false
+      update_interval: 0
+
+    - name: ansible-vmware # name is used for internal purposes
+      group: VMware vCenter
+      inventory: ansible-vmware
+      source: vmware
+      credential: VMware vCenter (team:IT)
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
       source_vars: ''
