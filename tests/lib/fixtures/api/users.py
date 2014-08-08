@@ -28,7 +28,7 @@ def org_admin(request, authtoken, organization, user_password):
 
 @pytest.fixture(scope="function")
 def org_user(request, authtoken, organization, user_password):
-    payload = dict(username="org_admin_%s" % common.utils.random_ascii(),
+    payload = dict(username="org_user_%s" % common.utils.random_ascii(),
                    first_name="Organization",
                    last_name="User (%s)" % common.utils.random_unicode(),
                    email="org_user_%s@example.com" % common.utils.random_ascii(),
