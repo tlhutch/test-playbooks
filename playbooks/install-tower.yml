@@ -1,14 +1,4 @@
 ---
-# This playbook deploys the AWX application (database, web and worker) to a
-# multiple platforms across multiple cloud providers.
-
-#
-# Create remote hosts
-#
-- hosts: local
-  roles:
-    - { role: deploy_cloud }
-
 #
 # Dynamically create host groups based on 'distribution-version'
 #
