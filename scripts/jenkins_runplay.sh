@@ -191,6 +191,16 @@ if [ -n "${AWX_PG_PASSWORD}" ]; then
     echo "pg_password: ${AWX_PG_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yaml
 fi
 
+AWX_RABBITMQ_PASSWORD=${AWX_RABBITMQ_PASSWORD-$(gen_passwd)}
+if [ -n "${AWX_RABBITMQ_PASSWORD}" ]; then
+    echo "rabbitmq_password: ${AWX_RABBITMQ_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yaml
+fi
+
+AWX_MUNIN_PASSWORD=${AWX_MUNIN_PASSWORD-$(gen_passwd)}
+if [ -n "${AWX_MUNIN_PASSWORD}" ]; then
+    echo "munin_password: ${AWX_MUNIN_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yaml
+fi
+
 # Add custom ssh pubkeys
 if [ -n "${AUTHORIZED_KEYS}" ]; then
     echo "authorized_keys: " >> ${PLAYBOOK_DIR}/vars.yaml

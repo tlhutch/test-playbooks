@@ -14,3 +14,5 @@ awx_setup_path: /setup/ansible-tower-setup-latest.tar.gz
 # Optionally customize the default awx passwords
 # admin_password: fo0m4nchU
 # pg_password: 9CJCSUtePvE
+# rabbitmq_password: 9CJCSUtePvE
+# munin_password: 9CJCSUtePvE
