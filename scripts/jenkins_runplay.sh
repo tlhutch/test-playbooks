@@ -78,15 +78,12 @@ fi
 # Establish the aw_repo_url.  This is the baseurl used by the install playbook.
 # If OFFICIAL=yes, use the public repository. Otherwise, use the nightly
 # repository.
-case "${PLAYBOOK}-${OFFICIAL}" in
-    awx*-false|awx*-no|ansible-tower*-false|ansible-tower*-no)
+case "${OFFICIAL}" in
+    no)
         echo "aw_repo_url: http://50.116.42.103/ansible-tower_nightlies_RTYUIOPOIUYTYU" >> ${PLAYBOOK_DIR}/vars.yaml
         ;;
-    galaxy*-false|galaxy*-no)
-        echo "aw_repo_url: http://50.116.42.103/galaxy_nightlies_Y6ptm6ES82A5h79V" >> ${PLAYBOOK_DIR}/vars.yaml
-        ;;
     *)
-        echo "aw_repo_url: http://releases.ansible.com/${PLAYBOOK%%.yml}" >> ${PLAYBOOK_DIR}/vars.yaml
+        echo "aw_repo_url: http://releases.ansible.com/ansible-tower" >> ${PLAYBOOK_DIR}/vars.yaml
         ;;
 esac
 
