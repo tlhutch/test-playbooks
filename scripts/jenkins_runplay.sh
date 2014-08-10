@@ -79,11 +79,11 @@ fi
 # If OFFICIAL=yes, use the public repository. Otherwise, use the nightly
 # repository.
 case "${OFFICIAL}" in
-    no)
-        echo "aw_repo_url: http://50.116.42.103/ansible-tower_nightlies_RTYUIOPOIUYTYU" >> ${PLAYBOOK_DIR}/vars.yaml
+    [Yy]es|[Tt]rue)
+        echo "aw_repo_url: http://releases.ansible.com/ansible-tower" >> ${PLAYBOOK_DIR}/vars.yaml
         ;;
     *)
-        echo "aw_repo_url: http://releases.ansible.com/ansible-tower" >> ${PLAYBOOK_DIR}/vars.yaml
+        echo "aw_repo_url: http://50.116.42.103/ansible-tower_nightlies_RTYUIOPOIUYTYU" >> ${PLAYBOOK_DIR}/vars.yaml
         ;;
 esac
 
