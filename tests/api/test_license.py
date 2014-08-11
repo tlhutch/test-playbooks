@@ -116,7 +116,7 @@ def non_admin_user(request, org_admin, org_user, anonymous_user):
         raise Exception("Unhandled fixture parameter: %s" % request.param)
 
 
-def assert_instance_counts(api_config_pg, license_instance_count, inventory, group):
+def assert_instance_counts(api_config_pg, license_instance_count, group):
     '''Verify hosts can be added up to the provided 'license_instance_count' variable'''
 
     # Get API resource /groups/N/hosts
@@ -239,7 +239,7 @@ class Test_AWS_License(Base_Api_Test):
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
-        assert_instance_counts(api_config_pg, license_instance_count, inventory, group)
+        assert_instance_counts(api_config_pg, license_instance_count, group)
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_key_visibility_admin(self, api_config_pg):
@@ -288,7 +288,7 @@ class Test_License(Base_Api_Test):
             int(conf.license_info['time_remaining']) + 2592000
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
-        assert_instance_counts(api_config_pg, license_instance_count, inventory, group)
+        assert_instance_counts(api_config_pg, license_instance_count, group)
 
     def test_key_visibility_admin(self, api_config_pg):
         conf = api_config_pg.get()
@@ -381,7 +381,7 @@ class Test_License_Grace_Period(Base_Api_Test):
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        assert_instance_counts(api_config_pg, license_instance_count, inventory, group)
+        assert_instance_counts(api_config_pg, license_instance_count, group)
 
     def test_job_launch(self, job_template):
         '''Verify that job_templates cannot be launched'''
@@ -480,7 +480,7 @@ class Test_Trial_License(Base_Api_Test):
         assert conf.license_info['grace_period_remaining'] == conf.license_info['time_remaining']
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
-        assert_instance_counts(api_config_pg, license_instance_count, inventory, group)
+        assert_instance_counts(api_config_pg, license_instance_count, group)
 
     def test_key_visibility_admin(self, api_config_pg):
         conf = api_config_pg.get()
