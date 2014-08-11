@@ -69,6 +69,6 @@ class Test_Users(Base_Api_Test):
         assert remaining_creds.count == 0, "The user was deleted, however a credential owned by the user (id:%s) remains" % remaining_creds.results[0].id
 
         # The credential should have been deleted
-        with pytest.raises(common.exceptions.Forbidden_Exception):
+        with pytest.raises(common.exceptions.NotFound_Exception):
             some_ssh_credential.get()
 
