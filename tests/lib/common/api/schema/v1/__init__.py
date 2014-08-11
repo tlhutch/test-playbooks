@@ -290,6 +290,19 @@ class Awx_Schema_Unified_Job_Templates(Awx_Schema):
     def get(self):
         return self.load_file('unified_job_templates/list.yml')
 
+class Awx_Schema_Unified_Job_Template(Awx_Schema_Unified_Job_Templates):
+    resource = '/api/v1/unified_job_templates/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('unified_job_templates/item.yml')
+    @property
+    def patch(self):
+        return self.get
+    @property
+    def put(self):
+        return self.get
+
 #
 # /unified_jobs
 #
