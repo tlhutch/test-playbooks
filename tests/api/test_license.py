@@ -502,7 +502,7 @@ class Test_Trial_License(Base_Api_Test):
         before_md5 = result['stat']['md5']
 
         # Update the license
-        api_config_pg.post(license_json)
+        api_config_pg.post(trial_license_json)
 
         # Assert that /etc/awx/license was modified
         result = ansible_runner.stat(path='/etc/awx/license')
