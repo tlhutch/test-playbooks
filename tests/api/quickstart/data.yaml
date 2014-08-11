@@ -1028,3 +1028,25 @@ job_templates:
       extra_vars:
         num_hosts: 100
         ansible_connection: local
+
+schedules:
+    - name: Update ansible-playbooks.git every 30 minutes
+      _type: project
+      description: Update every 30m with a COUNT=10
+      unified_job_template: ansible-playbooks.git (github, ssh_key_data)
+      enabled: true
+      rrule: 'FREQ=MINUTELY;DTSTART={dtstart};INTERVAL=30;COUNT=10'
+
+    - name: Update inventory-aws every hour
+      _type: inventory_source
+      description: Update every hour with a COUNT=5
+      unified_job_template: inventory-aws
+      enabled: true
+      rrule: 'FREQ=HOURLY;DTSTART={dtstart};INTERVAL=1;COUNT=5'
+
+    - name: Update inventory-rax every day
+      _type: inventory_source
+      description: Update every day
+      unified_job_template: inventory-rax
+      enabled: true
+      rrule: 'FREQ=DAILY;DTSTART={dtstart};INTERVAL=1'

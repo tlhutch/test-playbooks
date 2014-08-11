@@ -4,6 +4,8 @@ import pytest
 import json
 import logging
 import common.tower.license
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from inflect import engine
 from common.yaml_file import load_file
 from tests.api import Base_Api_Test
@@ -749,3 +751,19 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Display output, even for success
         print job_pg.result_stdout
+
+    @pytest.mark.destructive
+    def test_schedules_post(self, api_unified_job_templates_pg, _schedule):
+        matches = api_unified_job_templates_pg.get(name=_schedule['unified_job_template'])
+        assert matches.count == 1, "Unexpected number of unified_job_templates found (%s != 1)" % matches.count
+
+        # POST schedule
+        schedules_pg = matches.results[0].get_related('schedules')
+        utcnow = datetime.utcnow()
+        dtstart = utcnow + relativedelta(minutes=-1)
+        payload = dict(name=_inventory_schedule['name'],
+            description=_inventory_schedule.get('description', None),
+            enabled=_inventory_schedule.get('enabled', True),
+            unified_job_template=matches.results[0].id,
+            rrule=_inventory_schedule['rrule'].format(utcnow=utcnow, dtstart=dtstart))
+        schedules_pg.post(payload)
