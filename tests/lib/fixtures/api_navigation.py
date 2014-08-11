@@ -271,6 +271,17 @@ def api_unified_jobs_url(api, api_home):
 def api_unified_jobs_pg(testsetup, api_unified_jobs_url):
     return Jobs_Page(testsetup, base_url=api_unified_jobs_url)
 
+#
+# /api/v1/unified_job_templates
+#
+@pytest.fixture(scope="module")
+def api_unified_job_templates_url(api, api_home):
+    return navigate(api, api_home, 'unified_job_templates')
+
+@pytest.fixture(scope="module")
+def api_unified_job_templates_pg(testsetup, api_unified_job_templates_url):
+    return Unified_Job_Templates_Page(testsetup, base_url=api_unified_job_templates_url)
+
 @pytest.fixture(scope="module")
 def region_choices(api_inventory_sources_pg):
     options = api_inventory_sources_pg.options()
