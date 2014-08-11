@@ -66,6 +66,11 @@ cfg['cloud']['gce']['ssh_key_data'] = literal(open(os.environ["GCE_KEY_DATA"],'r
 cfg['cloud']['azure']['username'] = os.environ["AZURE_USERNAME"]
 cfg['cloud']['azure']['ssh_key_data'] = literal(open(os.environ["AZURE_KEY_DATA"],'r').read())
 
+# Set vmware info
+cfg['cloud']['vmware']['username'] = os.environ["VMWARE_USERNAME"]
+cfg['cloud']['vmware']['password'] = os.environ["VMWARE_PASSWORD"]
+cfg['cloud']['vmware']['host'] = os.environ["VMWARE_HOST"]
+
 # Set SCM info
 cfg['scm']['password'] = os.environ.get("SCM_PASSWORD","")
 cfg['scm']['ssh_key_data'] = literal(open(os.environ["SCM_KEY_DATA"],'r').read())
