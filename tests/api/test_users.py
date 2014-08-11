@@ -50,7 +50,7 @@ class Test_Users(Base_Api_Test):
                        first_name="Another Joe (%s)" % common.utils.random_unicode(),
                        last_name="User (%s)" % common.utils.random_unicode(),
                        email="org_user_%s@example.com" % common.utils.random_ascii(),
-                       password='password')
+                       password=common.utils.random_unicode())
         with pytest.raises(common.exceptions.Duplicate_Exception):
             obj = api_users_pg.post(payload)
 
