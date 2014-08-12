@@ -4,7 +4,6 @@ import logging
 import common.tower
 import common.tower.inventory
 import common.utils
-from pkg_resources import parse_version
 from tests.api import Base_Api_Test
 
 
@@ -25,7 +24,7 @@ def dynamic_inventory(request, authtoken, api_job_templates_pg, project_ansible_
                    job_type='run',
                    project=project_ansible_playbooks_git.id,
                    credential=ssh_credential.id,
-                   extra_vars=json.dumps(dict(num_hosts=num_hosts, ansible_connection='local')),
+                   extra_vars=json.dumps(dict(num_hosts=num_hosts)),
                    playbook='dynamic_inventory.yml',)
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
