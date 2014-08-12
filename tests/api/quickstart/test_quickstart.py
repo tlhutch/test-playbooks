@@ -773,5 +773,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                        description=_schedule.get('description', None),
                        enabled=_schedule.get('enabled', True),
                        unified_job_template=matches.results[0].id,
-                       rrule=_schedule['rrule'].format(utcnow=utcnow, dtstart=dtstart))
-        schedules_pg.post(payload)
+                       rrule=_schedule['rrule'].format(utcnow=utcnow, dtstart=dtstart.strftime("%Y%m%dT%H%M%SZ")))
+        try:
+            schedules_pg.post(payload)
+        except Duplicate_Exception, e:
+            pytest.xfail(str(e))
