@@ -12,6 +12,12 @@ class Team_Page(base.Base):
         assert name in self.json['related']
         if name == 'users':
             related = Users_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'credentials':
+            from credentials import Credentials_Page
+            related = Credentials_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'permissions':
+            from permissions import Permissions_Page
+            related = Permissions_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get(**kwargs)

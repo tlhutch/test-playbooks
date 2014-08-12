@@ -23,7 +23,7 @@ def some_user(request, testsetup, authtoken, api_users_pg):
 
 
 @pytest.fixture(scope="function")
-def some_ssh_credential(request, testsetup, authtoken, api_credentials_pg, some_user):
+def some_ssh_credential(request, testsetup, authtoken, some_user):
     '''Create ssh credential'''
     payload = dict(name="credential-%s" % common.utils.random_unicode(),
                    description="machine credential for user:%s" % some_user.username,
@@ -31,7 +31,7 @@ def some_ssh_credential(request, testsetup, authtoken, api_credentials_pg, some_
                    user=some_user.id,
                    username=testsetup.credentials['ssh']['username'],
                    password=testsetup.credentials['ssh']['password'],)
-    obj = api_credentials_pg.post(payload)
+    obj = some_user.get_related('credentials').post(payload)
     request.addfinalizer(obj.quiet_delete)
     return obj
 
