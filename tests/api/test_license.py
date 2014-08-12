@@ -256,6 +256,35 @@ class Test_AWS_License(Base_Api_Test):
             assert 'license_info' in conf.json
             assert 'license_key' not in conf.license_info
 
+    @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
+    def test_update_license(self, api_config_pg, license_json, ansible_runner):
+        '''Verify that a regular license can be installed by issuing a POST to
+        the /config endpoint.  The regular license should win out over the AWS
+        license.
+        '''
+        # Assert that /etc/awx/aws exists
+        result = ansible_runner.stat(path='/etc/awx/aws')
+        assert result['stat']['exists'], "A AWS license was expected, but none were found. %s" % result
+
+        # Assert that /etc/awx/license does not exist
+        result = ansible_runner.stat(path='/etc/awx/license')
+        assert not result['stat']['exists'], "No license was expected, but one was found. %s" % result
+
+        # Record the license md5
+        result = ansible_runner.stat(path='/etc/awx/aws')
+        result['stat']['md5']
+
+        # Update the license
+        api_config_pg.post(license_json)
+
+        # Assert that /etc/awx/license was created
+        result = ansible_runner.stat(path='/etc/awx/license')
+        assert result['stat']['exists'], "A license was expected, but none were found. %s" % result
+
+        # Assert that /etc/awx/aws was removed
+        result = ansible_runner.stat(path='/etc/awx/aws')
+        assert not result['stat']['exists'], "No AWS license was expected, but one was found. %s" % result
+
 
 @pytest.mark.skip_selenium
 class Test_License(Base_Api_Test):
