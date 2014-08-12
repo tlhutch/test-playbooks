@@ -71,4 +71,3 @@ class Test_Users(Base_Api_Test):
         # The credential should have been deleted
         with pytest.raises(common.exceptions.NotFound_Exception):
             some_ssh_credential.get()
-

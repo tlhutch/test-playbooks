@@ -16,18 +16,18 @@ log = logging.getLogger(__name__)
 def pytest_addoption(parser):
     group = parser.getgroup('ansible', 'ansible')
     group.addoption('--ansible-inventory',
-                     action='store',
-                     dest='ansible_inventory',
-                     default='/etc/ansible/hosts',
-                     metavar='ANSIBLE-INVENTORY',
-                     help='ansible inventory file URI')
+                    action='store',
+                    dest='ansible_inventory',
+                    default='/etc/ansible/hosts',
+                    metavar='ANSIBLE-INVENTORY',
+                    help='ansible inventory file URI')
 
     group.addoption('--ansible-host-pattern',
-                     action='store',
-                     dest='ansible_host_pattern',
-                     default=None,
-                     metavar='ANSIBLE-HOST-PATTERN',
-                     help='Specify ansible host pattern')
+                    action='store',
+                    dest='ansible_host_pattern',
+                    default=None,
+                    metavar='ANSIBLE-HOST-PATTERN',
+                    help='Specify ansible host pattern')
 
 
 def pytest_configure(config):

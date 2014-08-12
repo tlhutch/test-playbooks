@@ -11,11 +11,11 @@ from common.yaml_file import load_file
 from tests.api import Base_Api_Test
 from common.exceptions import Duplicate_Exception, NoContent_Exception
 
-# Initialize inflection engine
-inflect = engine()
 
 # Parameterize tests based on yaml configuration
 def pytest_generate_tests(metafunc):
+    # Initialize inflection engine
+    inflect = engine()
 
     # FIXME ... access the value of a fixture?
     # Wouldn't it be nice if one could use datafile() here?
@@ -53,6 +53,7 @@ def pytest_generate_tests(metafunc):
         if test_set and id_list:
             metafunc.parametrize(fixture, test_set, ids=id_list)
 
+
 @pytest.fixture(scope='class')
 def install_integration_license(request, authtoken, ansible_runner, awx_config):
     '''If a suitable license is not already installed, install a new license'''
@@ -69,6 +70,7 @@ def install_integration_license(request, authtoken, ansible_runner, awx_config):
         logging.debug("installing license /etc/awx/license")
         fname = common.tower.license.generate_license_file(instance_count=10000, days=60)
         ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+
 
 @pytest.fixture(scope='class')
 def update_sshd_config(request, ansible_runner):
@@ -90,6 +92,7 @@ def update_sshd_config(request, ansible_runner):
     if 'failed' in result and result['failed']:
         ansible_runner.service(name="ssh", state="restarted")
 
+
 @pytest.fixture(scope='class')
 def set_rootpw(request, ansible_runner, testsetup):
     '''Set the rootpw to something we use in credentials'''
@@ -97,6 +100,7 @@ def set_rootpw(request, ansible_runner, testsetup):
     assert 'username' in testsetup.credentials['ssh'], "No SSH username defined in credentials"
     assert 'password' in testsetup.credentials['ssh'], "No SSH password defined in credentials"
     ansible_runner.shell("echo '{username}:{password}' | chpasswd".format(**testsetup.credentials['ssh']))
+
 
 @pytest.mark.incremental
 @pytest.mark.integration
@@ -115,7 +119,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         payload = dict(name=_organization['name'],
                        description=_organization['description'])
         try:
-            org = api_organizations_pg.post(payload)
+            api_organizations_pg.post(payload)
         except Duplicate_Exception, e:
             pytest.xfail(str(e))
 
@@ -268,7 +272,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         try:
             print json.dumps(payload, indent=4)
-            org = api_credentials_pg.post(payload)
+            api_credentials_pg.post(payload)
         except Duplicate_Exception, e:
             pytest.xfail(str(e))
 
@@ -489,7 +493,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # disabled hosts isn't bad.  This may happen with systems are coming
         # online when the inventory import happens.
         # disabled_hosts = group_hosts_pg.get(enabled=False)
-        # assert disabled_hosts.count == 0, "ERROR: detected disabled inventory_update groups\n%s" % group.get_related('inventory_source').get_related('last_update').result_stdout
+        # assert disabled_hosts.count == 0, \
+        #    "ERROR: detected disabled inventory_update groups\n%s" % group.get_related('inventory_source').get_related('last_update').result_stdout
 
     @pytest.mark.destructive
     def test_projects_post(self, api_projects_pg, api_organizations_pg, api_credentials_pg, awx_config, _project, ansible_runner):
@@ -511,6 +516,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 force='no',
                 repo=_project['scm_url'],
                 dest="%s/%s" % (awx_config['project_base_dir'], _project['local_path']))
+            assert 'failed' not in results, "Clone failed\n%s" % json.dumps(results, indent=4)
 
         # Find desired object identifiers
         org_id = api_organizations_pg.get(name__exact=_project['organization']).results[0].id
@@ -609,7 +615,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             # Make sure there is no traceback in result_stdout or result_traceback
             assert latest_update_pg.is_successful, \
                 "Job unsuccessful (status:%s, failed:%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
-                (latest_update_pg.status, latest_update_pg.failed, latest_update_pg.result_stdout, latest_update_pg.result_traceback, latest_update_pg.job_explanation)
+                (latest_update_pg.status, latest_update_pg.failed, latest_update_pg.result_stdout,
+                 latest_update_pg.result_traceback, latest_update_pg.job_explanation)
 
             # Display output, even for success
             print latest_update_pg.result_stdout
@@ -635,7 +642,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.jira('AC-641', run=True)
     @pytest.mark.destructive
-    def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg, api_job_templates_pg, _job_template, ansible_facts, ansible_runner):
+    def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg,
+                                api_job_templates_pg, _job_template, ansible_facts, ansible_runner):
         # Find desired object identifiers
         inventory_id = api_inventories_pg.get(name__iexact=_job_template['inventory']).results[0].id
         project_id = api_projects_pg.get(name__iexact=_job_template['project']).results[0].id
@@ -761,9 +769,9 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         schedules_pg = matches.results[0].get_related('schedules')
         utcnow = datetime.utcnow()
         dtstart = utcnow + relativedelta(minutes=-1)
-        payload = dict(name=_inventory_schedule['name'],
-            description=_inventory_schedule.get('description', None),
-            enabled=_inventory_schedule.get('enabled', True),
-            unified_job_template=matches.results[0].id,
-            rrule=_inventory_schedule['rrule'].format(utcnow=utcnow, dtstart=dtstart))
+        payload = dict(name=_schedule['name'],
+                       description=_schedule.get('description', None),
+                       enabled=_schedule.get('enabled', True),
+                       unified_job_template=matches.results[0].id,
+                       rrule=_schedule['rrule'].format(utcnow=utcnow, dtstart=dtstart))
         schedules_pg.post(payload)

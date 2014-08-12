@@ -15,42 +15,42 @@ __version__ = '1.0'
 def pytest_addoption(parser):
     group = parser.getgroup('rest', 'rest')
     group.addoption('--api-baseurl',
-                     action='store',
-                     dest='base_url',
-                     default=None,
-                     metavar='url',
-                     help='base url for the application under test.')
+                    action='store',
+                    dest='base_url',
+                    default=None,
+                    metavar='url',
+                    help='base url for the application under test.')
     group.addoption('--api-version',
-                     action='store',
-                     dest='api_version',
-                     default='current_version',
-                     metavar='API-VERSION',
-                     help='Choose the API version')
+                    action='store',
+                    dest='api_version',
+                    default='current_version',
+                    metavar='API-VERSION',
+                    help='Choose the API version')
     group.addoption('--api-untrusted',
-                     action='store_true',
-                     dest='assume_untrusted',
-                     default=False,
-                     help='assume that all certificate issuers are untrusted. (default: %default)')
+                    action='store_true',
+                    dest='assume_untrusted',
+                    default=False,
+                    help='assume that all certificate issuers are untrusted. (default: %default)')
     # FIXME - make this work (refer to lib/common/api.py)
     group.addoption('--api-debug',
-                    action="store_true",
-                    dest="debug_rest",
+                    action='store_true',
+                    dest='debug_rest',
                     default=False,
-                    help="record REST API calls 'pytestdebug-rest.log'.")
+                    help='record REST API calls in pytestdebug-rest.log.')
 
     group = parser.getgroup('safety', 'safety')
     group.addoption('--api-destructive',
-                     action='store_true',
-                     dest='run_destructive',
-                     default=False,
-                     help='include destructive tests (tests not explicitly marked as \'nondestructive\'). (default: %default)')
+                    action='store_true',
+                    dest='run_destructive',
+                    default=False,
+                    help='include destructive tests (tests not explicitly marked as \'nondestructive\'). (default: %default)')
 
     group = parser.getgroup('credentials', 'credentials')
-    group.addoption("--api-credentials",
-                     action="store",
-                     dest='credentials_file',
-                     metavar='path',
-                     help="location of yaml file containing user credentials.")
+    group.addoption('--api-credentials',
+                    action='store',
+                    dest='credentials_file',
+                    metavar='path',
+                    help='location of yaml file containing user credentials.')
 
 
 def pytest_configure(config):
