@@ -65,22 +65,6 @@ def job_template_with_cloud_credential(request, job_template, host, cloud_creden
     return job_template
 
 
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
-def cloud_group(request, aws_group, rax_group, azure_group, gce_group, vmware_group):
-    if request.param == 'aws':
-        return aws_group
-    elif request.param == 'rax':
-        return rax_group
-    elif request.param == 'azure':
-        return azure_group
-    elif request.param == 'gce':
-        return gce_group
-    elif request.param == 'vmware':
-        return vmware_group
-    else:
-        raise Exception("Unhandled cloud type: %s" % request.param)
-
-
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Cloud_Credential_Job(Base_Api_Test):

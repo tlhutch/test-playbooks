@@ -9,6 +9,7 @@ from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse
 from tests.api import Base_Api_Test
 
+
 # Create fixture for testing unsupported RRULES
 @pytest.fixture(
     params=[
@@ -46,6 +47,7 @@ from tests.api import Base_Api_Test
 def unsupported_rrule(request):
     return request.param
 
+
 @pytest.fixture(scope="function", params=["MINUTELY", "HOURLY", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"])
 def rrule_frequency(request):
     utcnow = datetime.utcnow()
@@ -71,17 +73,21 @@ def rrule_frequency(request):
         raise Exception("Unsupported frequency:%s" % request.param)
     return RRule(freq, dtstart=dtstart)
 
+
 @pytest.fixture(scope="function")
 def utcnow(request):
     return datetime.utcnow()
+
 
 @pytest.fixture(scope="function")
 def rrule_minutely(request, utcnow):
     return RRule(dateutil.rrule.MINUTELY, dtstart=utcnow + relativedelta(minutes=-1, seconds=+30))
 
+
 @pytest.fixture()
 def disabled_rrule_minutely(request, utcnow):
     return RRule(dateutil.rrule.MINUTELY, dtstart=utcnow + relativedelta(minutes=-1, seconds=+30))
+
 
 @pytest.fixture(scope="function")
 def disabled_project_schedule(request, project, disabled_rrule_minutely):
@@ -95,6 +101,7 @@ def disabled_project_schedule(request, project, disabled_rrule_minutely):
     request.addfinalizer(obj.delete)
     return obj
 
+
 @pytest.fixture(scope="function")
 def disabled_inventory_schedule(request, aws_inventory_source, disabled_rrule_minutely):
     schedules_pg = aws_inventory_source.get_related('schedules')
@@ -106,6 +113,7 @@ def disabled_inventory_schedule(request, aws_inventory_source, disabled_rrule_mi
     obj = schedules_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
 
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -481,6 +489,20 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
         # Appears in related->schedules
         assert disabled_inventory_schedule.id in [sched.id for sched in schedules_pg.results]
+
+    def test_post_cloud(self, cloud_group):
+        '''Verify successful schedule creation for all supported cloud types inventory_source'''
+        schedules_pg = cloud_group.get_related('inventory_source').get_related('schedules')
+
+        # commemorate first 10 years of pearl_harbor
+        pearl_harbor = parse("Dec 7 1942")
+        rrule = RRule(dateutil.rrule.YEARLY, dtstart=pearl_harbor, count=10, interval=1)
+        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+                       description="Commemorate the attack on pearl harbor (%s)" % common.utils.random_unicode(),
+                       rrule=str(rrule))
+        schedule_pg = schedules_pg.post(payload)
+        assert schedule_pg.dtstart == pearl_harbor.strftime("%Y-%m-%dT%H:%M:%SZ")
+        assert schedule_pg.next_run is None
 
     def test_post_past(self, aws_inventory_source):
         '''assert creating a schedule with only past occurances'''

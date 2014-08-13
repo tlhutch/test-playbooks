@@ -35,22 +35,6 @@ def host_public_ipv4_alias(request, authtoken, api_hosts_pg, group, my_public_ip
     return obj
 
 
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
-def cloud_group(request, aws_group, rax_group, azure_group, gce_group, vmware_group):
-    if request.param == 'aws':
-        return aws_group
-    elif request.param == 'rax':
-        return rax_group
-    elif request.param == 'azure':
-        return azure_group
-    elif request.param == 'gce':
-        return gce_group
-    elif request.param == 'vmware':
-        return vmware_group
-    else:
-        raise Exception("Unhandled cloud type: %s" % request.param)
-
-
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Callback(Base_Api_Test):
