@@ -65,6 +65,7 @@ uk-host-1
 '''),
 ]
 
+
 @pytest.fixture(scope="function", params=root_variations)
 def root_variation(request, authtoken, inventory, ansible_runner):
     results = ansible_runner.copy(dest='/tmp/inventory.ini', force=True, mode='0644', content='''# --inventory-id %s
@@ -79,6 +80,7 @@ def root_variation(request, authtoken, inventory, ansible_runner):
     assert inventory.get_related('groups').count > 0
     assert inventory.get_related('hosts').count > 0
     return inventory
+
 
 # Ansible inventory variations for testing 'non-root' group removal.  These are
 # the same as root_variations ... but they are nested a level deeper.
@@ -109,7 +111,10 @@ fr
 uk
 de
 '''
+
+
 non_root_variations = [dict(name=item['name'], inventory=inventory_prefix + item['inventory']) for item in root_variations]
+
 
 @pytest.fixture(scope="function", params=non_root_variations)
 def non_root_variation(request, authtoken, inventory, ansible_runner):
@@ -126,7 +131,9 @@ def non_root_variation(request, authtoken, inventory, ansible_runner):
     assert inventory.get_related('hosts').count > 0
     return inventory
 
+
 all_variations = root_variations + non_root_variations
+
 
 @pytest.fixture(scope="function", params=all_variations)
 def variation(request, authtoken, inventory, ansible_runner):
@@ -143,6 +150,7 @@ def variation(request, authtoken, inventory, ansible_runner):
     assert inventory.get_related('hosts').count > 0
     return inventory
 
+
 @pytest.fixture(scope="function")
 def another_inventory(request, authtoken, api_inventories_pg, organization):
     payload = dict(name="inventory-%s" % common.utils.random_ascii(),
@@ -151,6 +159,16 @@ def another_inventory(request, authtoken, api_inventories_pg, organization):
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
+
+@pytest.fixture(scope="function")
+def some_group(request, authtoken, inventory):
+    payload = dict(name="group-%s" % common.utils.random_unicode(),
+                   inventory=inventory.id,)
+    obj = inventory.get_related('groups').post(payload)
+    request.addfinalizer(obj.quiet_delete)
+    return obj
+
 
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -604,3 +622,15 @@ class Test_Group(Base_Api_Test):
         payload = dict(name=parent_group.name, inventory=inventory.id)
         with pytest.raises(common.exceptions.Duplicate_Exception):
             parent_group.get_related('children').post(payload)
+
+    def test_name_reuse(self, some_group):
+        '''verify one can re-use the name of a previously deleted group'''
+
+        groups_pg = some_group.get_related('inventory').get_related('groups')
+
+        # Delete the group
+        some_group.delete()
+
+        # Create a new group, with the same name
+        payload = dict(name=some_group.name, inventory=some_group.inventory)
+        groups_pg.post(payload)
