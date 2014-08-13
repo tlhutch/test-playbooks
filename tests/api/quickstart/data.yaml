@@ -431,6 +431,11 @@ groups:
       inventory: all_inventory
       parent: cloud
 
+    - name: vmware
+      description: Group for tracking VMware vCenter hosts
+      inventory: all_inventory
+      parent: cloud
+
     - name: Amazon EC2 Instances
       inventory: inventory-aws
 
@@ -494,6 +499,21 @@ inventory_sources:
       inventory: all_inventory
       source: azure
       credential: Microsoft Azure (team:IT)
+      # source_username: # stored in credentials.yaml
+      # source_password: # stored in credentials.yaml
+      source_vars: ''
+      source_regions: ''
+      source_tags: ''
+      overwrite: true
+      overwrite_vars: true
+      update_on_launch: true
+      update_interval: 0
+
+    - name: all_inventory/vmware # name is used for internal purposes
+      group: vmware
+      inventory: all_inventory
+      source: vmware
+      credential: VMware vCenter (team:IT)
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
       source_vars: ''
