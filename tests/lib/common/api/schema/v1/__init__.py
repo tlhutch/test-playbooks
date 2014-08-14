@@ -519,6 +519,12 @@ class Awx_Schema_Teams(Awx_Schema):
 class Awx_Schema_Project_Teams(Awx_Schema_Teams):
     resource = '/api/v1/projects/\d+/teams/'
 
+class Awx_Schema_Org_Teams(Awx_Schema_Teams):
+    resource = '/api/v1/organizations/\d+/teams/'
+
+class Awx_Schema_Team_Credentials(Awx_Schema_Credentials):
+    resource = '/api/v1/teams/\d+/credentials/'
+
 #
 # /config
 #
