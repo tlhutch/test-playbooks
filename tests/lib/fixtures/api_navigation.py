@@ -80,6 +80,17 @@ def authtoken(api, testsetup, api_authtoken_url):
     return json
 
 #
+# /api/v1/dashboard
+#
+@pytest.fixture(scope="module")
+def api_dashboard_url(api, api_home):
+    return navigate(api, api_home, 'dashboard')
+
+@pytest.fixture(scope="module")
+def api_dashboard_pg(testsetup, api_dashboard_url):
+    return Dashboard_Page(testsetup, base_url=api_dashboard_url)
+
+#
 # /api/v1/config
 #
 @pytest.fixture(scope="module")
