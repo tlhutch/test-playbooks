@@ -3,6 +3,7 @@ import common.utils
 import common.exceptions
 from tests.api import Base_Api_Test
 
+
 # Ansible inventory variations for testing 'root' group removal
 root_variations = [
     dict(name='children:0, hosts:0',
@@ -631,6 +632,23 @@ class Test_Group(Base_Api_Test):
         # Delete the group
         some_group.delete()
 
+        # The group should immediately be marked as inactive (aka deleted) by Tower
+        with pytest.raises(common.exceptions.NotFound_Exception):
+            some_group.get()
+
         # Create a new group, with the same name
+        # NOTE: Tower processes group DELETE's asynchronously, so it can take a
+        # bit for the group actually delete.  We'll attempt to create a new
+        # group, with the same name.  This should eventually succeed.
         payload = dict(name=some_group.name, inventory=some_group.inventory)
-        groups_pg.post(payload)
+        tries = 1
+        max_tries = 10
+        while True:
+            try:
+                groups_pg.post(payload)
+            except common.exceptions.Duplicate_Exception:
+                if tries > max_tries:
+                    raise Exception("The group '%s' (id: %s) wasn't cleaned up after %d attempts" % (some_group.name, some_group.id, tries))
+                tries += 1
+            else:
+                break
