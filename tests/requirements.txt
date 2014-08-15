@@ -9,6 +9,7 @@ pytest
 pytest-cov
 pytest-mozwebqa
 pytest-capturelog
+pytest-instafail
 # pytest-jira # Don't install until we fix the pytest-jira plugin
 UnittestZero
 requests
