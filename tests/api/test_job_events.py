@@ -114,7 +114,7 @@ class Test_Job_Events(Base_Api_Test):
             # 'playbook_on_no_hosts_matched' indicates there are will be
             # host_events associated with the task
             job_events_tasks = job_pg.get_related('job_events', parent=play.id,
-                not__event='playbook_on_notify', not__event='playbook_on_no_hosts_matched')
+                not__event__in=','.join(('playbook_on_notify', 'playbook_on_no_hosts_matched')))
             job_tasks_pg = job_pg.get_related('job_tasks', event_id=play.id)
 
             assert job_tasks_pg.count == job_events_tasks.count, \
