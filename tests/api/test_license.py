@@ -116,6 +116,23 @@ def non_admin_user(request, org_admin, org_user, anonymous_user):
         raise Exception("Unhandled fixture parameter: %s" % request.param)
 
 
+@pytest.fixture(scope="function")
+def inventory_no_free_instances(request, authtoken, api_inventories_pg, organization, api_config_pg):
+    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
+                   description="Random inventory - %s" % common.utils.random_unicode(),
+                   organization=organization.id,)
+    obj = api_inventories_pg.post(payload)
+    request.addfinalizer(obj.delete)
+
+    # Add hosts until the number of free_instances is 0
+    hosts_pg = obj.get_related('hosts')
+    while api_config_pg.get().license_info.free_instances > 0:
+        payload = dict(name="host-%s" % common.utils.random_unicode(),
+                       inventory=obj.id)
+        hosts_pg.post(payload)
+    return obj
+
+
 def assert_instance_counts(api_config_pg, license_instance_count, group):
     '''Verify hosts can be added up to the provided 'license_instance_count' variable'''
 
@@ -220,22 +237,17 @@ class Test_AWS_License(Base_Api_Test):
         print json.dumps(conf.license_info)
 
         # Assert NOT Demo mode
-        assert 'demo' not in conf.license_info
-        assert 'key_present' not in conf.license_info
+        assert not conf.is_demo_license
 
-        # Assert a valid key
-        assert conf.license_info.valid_key
-        assert 'license_key' in conf.license_info
+        # Assert AWS info
+        assert conf.license_info.is_aws
+
+        # Assert the license is valid
+        assert conf.is_valid_license
 
         # Assert dates look sane?
         assert not conf.license_info.date_expired
         assert not conf.license_info.date_warning
-
-        # AWS info
-        assert conf.license_info.is_aws
-        assert 'ami-id' in conf.license_info
-        assert 'instance-id' in conf.license_info
-        assert 'instance_count' in conf.license_info
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
@@ -245,7 +257,6 @@ class Test_AWS_License(Base_Api_Test):
     def test_key_visibility_admin(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
-        assert 'license_info' in conf.json
         assert 'license_key' in conf.license_info
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
@@ -253,7 +264,6 @@ class Test_AWS_License(Base_Api_Test):
         with self.current_user(non_admin_user.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
-            assert 'license_info' in conf.json
             assert 'license_key' not in conf.license_info
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
@@ -281,9 +291,10 @@ class Test_AWS_License(Base_Api_Test):
         result = ansible_runner.stat(path='/etc/awx/license')
         assert result['stat']['exists'], "A license was expected, but none were found. %s" % result
 
-        # Assert that /etc/awx/aws was removed
-        result = ansible_runner.stat(path='/etc/awx/aws')
-        assert not result['stat']['exists'], "No AWS license was expected, but one was found. %s" % result
+        # Assert the current license is NOT an aws license
+        conf = api_config_pg.get()
+        assert not conf.is_aws_license, "After installing a regular license, the /config endpoint reports that a AWS license is active. %s" \
+            % json.dumps(conf.json, indent=4)
 
 
 @pytest.mark.skip_selenium
@@ -295,22 +306,17 @@ class Test_License(Base_Api_Test):
         print json.dumps(conf.json, indent=4)
 
         # Assert NOT Demo mode
-        assert 'demo' not in conf.license_info
-        assert 'key_present' not in conf.license_info
+        assert not conf.is_demo_license
 
-        # Assert a valid key
-        assert conf.license_info.valid_key
-        assert 'license_key' in conf.license_info
-        assert 'instance_count' in conf.license_info
+        # Assert NOT AWS
+        assert not conf.is_aws_license
+
+        # Assert the license is valid
+        assert conf.is_valid_license
 
         # Assert dates look sane?
         assert not conf.license_info.date_expired
         assert not conf.license_info.date_warning
-
-        # Assert not AWS information
-        assert 'is_aws' not in conf.license_info
-        assert 'ami-id' not in conf.license_info
-        assert 'instance-id' not in conf.license_info
 
         # Assert grace_period is 30 days + time_remaining
         assert int(conf.license_info['grace_period_remaining']) == \
@@ -322,14 +328,12 @@ class Test_License(Base_Api_Test):
     def test_key_visibility_admin(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
-        assert 'license_info' in conf.json
         assert 'license_key' in conf.license_info
 
     def test_key_visibility_non_admin(self, api_config_pg, non_admin_user, user_password):
         with self.current_user(non_admin_user.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
-            assert 'license_info' in conf.json
             assert 'license_key' not in conf.license_info
 
 
@@ -342,22 +346,17 @@ class Test_License_Warning(Base_Api_Test):
         print json.dumps(conf.json, indent=4)
 
         # Assert NOT Demo mode
-        assert 'demo' not in conf.license_info
-        assert 'key_present' not in conf.license_info
+        assert not conf.is_demo_license
 
-        # Assert a valid key
-        assert conf.license_info.valid_key
-        assert 'license_key' in conf.license_info
-        assert 'instance_count' in conf.license_info
+        # Assert NOT AWS information
+        assert not conf.is_aws_license
+
+        # Assert the license is valid
+        assert conf.is_valid_license
 
         # Assert dates look sane?
         assert not conf.license_info.date_expired
         assert conf.license_info.date_warning
-
-        # Assert not AWS information
-        assert 'is_aws' not in conf.license_info
-        assert 'ami-id' not in conf.license_info
-        assert 'instance-id' not in conf.license_info
 
         # Assert grace_period is 30 days + time_remaining
         assert int(conf.license_info['grace_period_remaining']) == \
@@ -387,22 +386,17 @@ class Test_License_Grace_Period(Base_Api_Test):
         print json.dumps(conf.json, indent=4)
 
         # Assert NOT Demo mode
-        assert 'demo' not in conf.license_info
-        assert 'key_present' not in conf.license_info
+        assert not conf.is_demo_license
 
-        # Assert a valid key
-        assert conf.license_info.valid_key
-        assert 'license_key' in conf.license_info
-        assert 'instance_count' in conf.license_info
+        # Assert NOT AWS information
+        assert not conf.is_aws_license
+
+        # Assert the license is valid
+        assert conf.is_valid_license
 
         # Assert dates look sane?
         assert conf.license_info.date_expired
         assert conf.license_info.date_warning
-
-        # Assert not AWS information
-        assert 'is_aws' not in conf.license_info
-        assert 'ami-id' not in conf.license_info
-        assert 'instance-id' not in conf.license_info
 
         # Assert grace_period is 30 days + time_remaining
         assert int(conf.license_info['grace_period_remaining']) == \
@@ -412,12 +406,25 @@ class Test_License_Grace_Period(Base_Api_Test):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
-    def test_job_launch(self, job_template):
-        '''Verify that job_templates cannot be launched'''
-        job_template.launch_job()
-        # FIXME - should we wait for job completion?
-        # job_pg = job_pg.wait_until_completed(timeout=60 * 5)
-        # assert job_pg.is_completed, "Job not completed - %s " % job_pg
+    def test_job_launch(self, api_config_pg, job_template):
+        '''Verify that job_templates can be launched while there are remaining free_instances'''
+
+        conf = api_config_pg.get()
+        if conf.license_info.free_instances < 0:
+            pytest.skip("Unable to test because there are no free_instances remaining")
+        else:
+            job_template.launch_job()
+            # FIXME - should we wait for job completion?
+            # job_pg = job_pg.wait_until_completed(timeout=60 * 5)
+            # assert job_pg.is_completed, "Job not completed - %s " % job_pg
+
+    def test_job_launch_hosts_exceeded(self, inventory_no_free_instances, job_template):
+        '''Verify that job_templates cannot be launched if there are no remaining free_instances'''
+
+        job_template.patch(inventory=inventory_no_free_instances.id)
+
+        with pytest.raises(common.exceptions.Forbidden_Exception):
+            job_template.launch_job()
 
 
 @pytest.mark.skip_selenium
@@ -429,22 +436,17 @@ class Test_License_Expired(Base_Api_Test):
         print json.dumps(conf.json, indent=4)
 
         # Assert NOT Demo mode
-        assert 'demo' not in conf.license_info
-        assert 'key_present' not in conf.license_info
+        assert not conf.is_demo_license
 
-        # Assert a valid key
-        assert conf.license_info.valid_key
-        assert 'license_key' in conf.license_info
-        assert 'instance_count' in conf.license_info
+        # Assert NOT AWS information
+        assert not conf.is_aws_license
+
+        # Assert the license is valid
+        assert conf.is_valid_license
 
         # Assert dates look sane?
         assert conf.license_info.date_expired
         assert conf.license_info.date_warning
-
-        # Assert not AWS information
-        assert 'is_aws' not in conf.license_info
-        assert 'ami-id' not in conf.license_info
-        assert 'instance-id' not in conf.license_info
 
         # Assert grace_period is 30 days + time_remaining
         assert int(conf.license_info['grace_period_remaining']) == \
@@ -488,22 +490,17 @@ class Test_Trial_License(Base_Api_Test):
         print json.dumps(conf.json, indent=4)
 
         # Assert NOT Demo mode
-        assert 'demo' not in conf.license_info
-        assert 'key_present' not in conf.license_info
+        assert not conf.is_demo_license
 
         # Assert a valid key
-        assert conf.license_info.valid_key
-        assert 'license_key' in conf.license_info
-        assert 'instance_count' in conf.license_info
+        assert conf.is_trial_license
 
         # Assert dates look sane?
         assert not conf.license_info.date_expired
         assert not conf.license_info.date_warning
 
         # Assert not AWS information
-        assert 'is_aws' not in conf.license_info
-        assert 'ami-id' not in conf.license_info
-        assert 'instance-id' not in conf.license_info
+        assert not conf.is_aws_license
 
         # Assert there is no grace_period, it should match time_remaining
         assert conf.license_info['grace_period_remaining'] == conf.license_info['time_remaining']
@@ -514,14 +511,12 @@ class Test_Trial_License(Base_Api_Test):
     def test_key_visibility_admin(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
-        assert 'license_info' in conf.json
-        assert 'license_key' in conf.license_info
+        assert conf.is_trial_license
 
     def test_key_visibility_non_admin(self, api_config_pg, non_admin_user, user_password):
         with self.current_user(non_admin_user.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
-            assert 'license_info' in conf.json
             assert 'license_key' not in conf.license_info
 
     def test_update_license(self, api_config_pg, trial_license_json, ansible_runner):

@@ -10,5 +10,6 @@ from unified_job_templates import *
 from job_templates import *
 from jobs import *
 from config import *
+from dashboard import *
 from activity_stream import *
 from schedules import *
