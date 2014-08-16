@@ -117,19 +117,24 @@ def non_admin_user(request, org_admin, org_user, anonymous_user):
 
 
 @pytest.fixture(scope="function")
-def inventory_no_free_instances(request, authtoken, api_inventories_pg, organization, api_config_pg):
+def inventory_no_free_instances(request, authtoken, api_config_pg, api_inventories_pg, organization):
     payload = dict(name="inventory-%s" % common.utils.random_ascii(),
                    description="Random inventory - %s" % common.utils.random_unicode(),
                    organization=organization.id,)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
 
-    # Add hosts until the number of free_instances is 0
+    # Ensure there are at least 5 active hosts
     hosts_pg = obj.get_related('hosts')
-    while api_config_pg.get().license_info.free_instances > 0:
+    while api_config_pg.get().license_info.instance_count < 5:
         payload = dict(name="host-%s" % common.utils.random_unicode(),
                        inventory=obj.id)
         hosts_pg.post(payload)
+
+    # Install a license with instance_count=3
+    json = common.tower.license.generate_license(instance_count=3, trial=False, days=-1)
+    api_config_pg.post(json)
+
     return obj
 
 
@@ -251,6 +256,9 @@ class Test_AWS_License(Base_Api_Test):
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
+        '''Verify that hosts can be added up to the 'license_instance_count' '''
+        if api_config_pg.get().license_info.instance_count > 0:
+            pytest.skip("Skipping test because instance_count > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
@@ -323,6 +331,9 @@ class Test_License(Base_Api_Test):
             int(conf.license_info['time_remaining']) + 2592000
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
+        '''Verify that hosts can be added up to the 'license_instance_count' '''
+        if api_config_pg.get().license_info.instance_count > 0:
+            pytest.skip("Skipping test because instance_count > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
     def test_key_visibility_admin(self, api_config_pg):
@@ -404,6 +415,8 @@ class Test_License_Grace_Period(Base_Api_Test):
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
+        if api_config_pg.get().license_info.instance_count > 0:
+            pytest.skip("Skipping test because instance_count > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
     def test_job_launch(self, api_config_pg, job_template):
@@ -414,14 +427,9 @@ class Test_License_Grace_Period(Base_Api_Test):
             pytest.skip("Unable to test because there are no free_instances remaining")
         else:
             job_template.launch_job()
-            # FIXME - should we wait for job completion?
-            # job_pg = job_pg.wait_until_completed(timeout=60 * 5)
-            # assert job_pg.is_completed, "Job not completed - %s " % job_pg
 
     def test_job_launch_hosts_exceeded(self, inventory_no_free_instances, job_template):
-        '''Verify that job_templates cannot be launched if there are no remaining free_instances'''
-
-        job_template.patch(inventory=inventory_no_free_instances.id)
+        '''Verify that job_templates cannot be launched if remaining free_instances < 0'''
 
         with pytest.raises(common.exceptions.Forbidden_Exception):
             job_template.launch_job()
@@ -506,6 +514,9 @@ class Test_Trial_License(Base_Api_Test):
         assert conf.license_info['grace_period_remaining'] == conf.license_info['time_remaining']
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
+        '''Verify that hosts can be added up to the 'license_instance_count' '''
+        if api_config_pg.get().license_info.instance_count > 0:
+            pytest.skip("Skipping test because instance_count > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
     def test_key_visibility_admin(self, api_config_pg):
