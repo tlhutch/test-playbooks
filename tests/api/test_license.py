@@ -428,9 +428,8 @@ class Test_License_Grace_Period(Base_Api_Test):
         else:
             job_template.launch_job()
 
-    def test_job_launch_hosts_exceeded(self, inventory_no_free_instances, job_template):
-        '''Verify that job_templates cannot be launched if remaining free_instances < 0'''
-
+    def FIXME_test_job_launch_hosts_exceeded(self, inventory_no_free_instances, job_template):
+        '''Verify that job_templates cannot be launched when free_instances < 0'''
         with pytest.raises(common.exceptions.Forbidden_Exception):
             job_template.launch_job()
 
