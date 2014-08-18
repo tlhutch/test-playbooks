@@ -1071,3 +1071,10 @@ schedules:
       unified_job_template: Rackspace Cloud Servers (inventory-rax)
       enabled: true
       rrule: 'DTSTART:{dtstart}; RRULE:FREQ=DAILY;INTERVAL=1'
+
+    - name: Launch language_features/tag.yml on Sunday
+      _type: job_template
+      description: Update every Sunday at 2am
+      unified_job_template: 'language_features/tags.yml (tags:foo, limit:unresolvable-name.example.com)'
+      enabled: true
+      rrule: 'DTSTART:{dtstart}; RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=SU'
