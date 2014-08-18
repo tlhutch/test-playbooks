@@ -11,6 +11,8 @@ class Project_Page(base.Base):
         assert name in self.json['related']
         if name == 'last_update':
             related = Project_Update_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'current_update':
+            related = Project_Update_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'project_updates':
             related = Project_Updates_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'update':

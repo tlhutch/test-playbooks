@@ -149,6 +149,8 @@ class Inventory_Source_Page(base.Base):
         assert attr in self.json['related']
         if attr == 'last_update':
             related = Inventory_Update_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'current_update':
+            related = Inventory_Update_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'inventory_updates':
             related = Inventory_Updates_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'update':
