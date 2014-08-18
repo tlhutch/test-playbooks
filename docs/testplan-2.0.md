@@ -20,7 +20,7 @@
     [ ] rhel-7.0
     [ ] centos-6.5
 
-2. Verify AWS AMI boot successfully, and include the appropriate license information
+2. Verify AWS AMI boot successfully, and includes the expected license information
     [ ] license: 10
     [ ] license: 50
     [ ] license: 100
@@ -32,8 +32,8 @@
     [ ] ubuntu-14.04
     [ ] rhel-6.5
     [ ] rhel-7.0
-    [ ] centos-6.5
-2. [ ] Test upgrades using correct and incorrect values for the following fields: [admin_password, pg_password, rabbitmq_password]
+    [x] centos-6.5 (manual)
+2. [X] Test upgrades using correct and incorrect values for the following fields: [admin_password, pg_password, rabbitmq_password]
 3. [ ] Test upgrades with data, and ensure projects/inventory/jobs run post-upgrade
 
 ### Integration
@@ -44,8 +44,11 @@
        > no license - can't launch jobs and can't add hosts
        > expired trial license - can't launch jobs and can't add hosts
        > expired license, within grace_period - can launch jobs and can add hosts
+       > expired license, within grace_period but hosts exceeded - can't launch jobs or can add hosts
        > expired license, beyond grace_period - can't launch jobs or add hosts
        > able to POST a new license
+       > able to POST a new license (going from AWS -> Normal)
+       > Verified that a Trial license has _no_ grace period
 2. [ ] UI tests
        > no license - verify login dialog, and POST license
        > expired trial license - verify login prompt and wording in about->license
