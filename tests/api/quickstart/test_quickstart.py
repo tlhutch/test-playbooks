@@ -320,7 +320,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # different behavior depending on if we're creating child or parent
         if 'parent' in _group:
-            parent_pg = api_groups_pg.get(name__exact=_group['parent']).results[0]
+            parent_pg = api_groups_pg.get(name__exact=_group['parent'], inventory=inventory_id).results[0]
             new_group_pg = parent_pg.get_related('children')
         else:
             new_group_pg = api_groups_pg
@@ -354,7 +354,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         try:
             api_hosts_pg.post(payload)
         except Duplicate_Exception, e:
-            pytest.xfail(str(e))
+            pytest.skip(str(e))
 
     @pytest.mark.nondestructive
     def test_hosts_get(self, api_hosts_pg, _hosts):
@@ -366,12 +366,15 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         assert len(hosts) == api_hosts_pg.count
 
     @pytest.mark.destructive
-    def test_hosts_add_group(self, api_hosts_pg, api_groups_pg, _host):
+    def test_hosts_add_group(self, api_inventories_pg, api_hosts_pg, api_groups_pg, _host):
         # Find desired host
         host_id = api_hosts_pg.get(name=_host['name']).results[0].id
 
+        # Find desired inventory
+        inventory_id = api_inventories_pg.get(name__iexact=_host['inventory']).results[0].id
+
         # Find desired groups
-        groups = api_groups_pg.get(name__in=','.join([grp for grp in _host.get('groups', [])])).results
+        groups = api_groups_pg.get(name__in=','.join([grp for grp in _host.get('groups', [])]), inventory=inventory_id).results
 
         if not groups:
             pytest.skip("Not all hosts are associated with a group")
@@ -431,19 +434,14 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Find desired inventory_source
         inv_src = api_inventory_sources_pg.get(group=group_id).results[0]
 
-        # Navigate to related -> inventory_updates
-        # last_update only appears *after* the update completes
-        # inv_updates_pg = inv_src.get_related('last_update')
-        # Warning, the following sssumes the first update is the most recent
-        inv_updates_pg = inv_src.get_related('inventory_updates').results[0]
+        # Assume that there is an update inprogress
+        inv_updates_pg = inv_src.get_related('current_update')
 
         # Wait for task to complete
         inv_updates_pg = inv_updates_pg.wait_until_completed()
 
         # Make sure there is no traceback in result_stdout or result_traceback
-        assert inv_updates_pg.is_successful, \
-            "Job unsuccessful (status:%s, failed:%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
-            (inv_updates_pg.status, inv_updates_pg.failed, inv_updates_pg.result_stdout, inv_updates_pg.result_traceback, inv_updates_pg.job_explanation)
+        assert inv_updates_pg.is_successful, "Job unsuccessful - %s" % inv_updates_pg
 
         # Display output, even for success
         print inv_updates_pg.result_stdout
@@ -570,7 +568,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
             # Has an update already been triggered?
             if 'current_update' in project_pg.json['related']:
-                pytest.xfail("Project update already queued")
+                pytest.skip("Project update already queued")
             else:
                 # Create password payload
                 payload = dict()
@@ -613,10 +611,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             latest_update_pg = latest_update_pg.wait_until_completed()
 
             # Make sure there is no traceback in result_stdout or result_traceback
-            assert latest_update_pg.is_successful, \
-                "Job unsuccessful (status:%s, failed:%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
-                (latest_update_pg.status, latest_update_pg.failed, latest_update_pg.result_stdout,
-                 latest_update_pg.result_traceback, latest_update_pg.job_explanation)
+            assert latest_update_pg.is_successful, "Job unsuccessful - %s" % latest_update_pg
 
             # Display output, even for success
             print latest_update_pg.result_stdout
@@ -741,8 +736,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # With the job started, it shouldn't be start'able anymore
         start_pg = job_pg.get_related('start')
         assert not start_pg.json['can_start'], \
-            "Job id:%s launched (status:%s), but can_start: %s\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
-            (job_pg.id, job_pg.status, start_pg.json['can_start'], job_pg.result_stdout, job_pg.result_traceback, job_pg.job_explanation)
+            "Job id:%s launched (status:%s), but can_start: %s\n%s" % \
+            (job_pg.id, job_pg.status, start_pg.json['can_start'], job_pg)
 
         # Wait 20mins for job to complete
         # TODO: It might be nice to wait 15 mins from when the job started
@@ -753,9 +748,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             pytest.xfail("Vault tests are expected to fail when tested with an older pycrypto")
 
         # Make sure there is no traceback in result_stdout or result_traceback
-        assert job_pg.is_successful, \
-            "Job unsuccessful (status:%s, failed:%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
-            (job_pg.status, job_pg.failed, job_pg.result_stdout, job_pg.result_traceback, job_pg.job_explanation)
+        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
         # Display output, even for success
         print job_pg.result_stdout
