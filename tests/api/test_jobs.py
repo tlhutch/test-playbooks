@@ -148,6 +148,36 @@ class Test_Update_On_Launch(Base_Api_Test):
         last_update = inv_src_pg.get_related('last_update')
         assert last_update.is_successful, "last_update unsuccessful - %s" % json.dumps(last_update.json, indent=4)
 
+    def test_inventory_multiple(self, job_template, aws_inventory_source, rax_inventory_source):
+        '''Verify that multiple inventory_update are triggered by job launch'''
+
+        # 1) Set update_on_launch
+        aws_inventory_source.patch(update_on_launch=True)
+        assert aws_inventory_source.update_on_launch
+        assert aws_inventory_source.update_cache_timeout == 0
+        assert aws_inventory_source.last_updated is None, "Not expecting inventory_source to have been updated - %s" % \
+            json.dumps(aws_inventory_source.json, indent=4)
+        rax_inventory_source.patch(update_on_launch=True)
+        assert rax_inventory_source.update_on_launch
+        assert rax_inventory_source.update_cache_timeout == 0
+        assert rax_inventory_source.last_updated is None, "Not expecting inventory_source to have been updated - %s" % \
+            json.dumps(rax_inventory_source.json, indent=4)
+
+        # 2) Update job_template to cloud inventory
+        assert rax_inventory_source.inventory == aws_inventory_source.inventory, "The inventory differs between the two inventory sources"
+        job_template.patch(inventory=aws_inventory_source.inventory)
+
+        # 3) Launch job_template and wait for completion
+        job_template.launch_job().wait_until_completed(timeout=50 * 10)
+
+        # 4) Ensure inventory_update was triggered
+        aws_inventory_source.get()
+        assert aws_inventory_source.is_successful, "aws inventory update did not happen as expected - %s" % \
+            json.dumps(aws_inventory_source.json, indent=4)
+        rax_inventory_source.get()
+        assert rax_inventory_source.is_successful, "rax inventory update did not happen as expected - %s" % \
+            json.dumps(rax_inventory_source.json, indent=4)
+
     def test_inventory_cache_timeout(self, cloud_inventory_job_template, cloud_group):
         '''Verify that an inventory_update is not triggered by job launch if the cache is still valid'''
 

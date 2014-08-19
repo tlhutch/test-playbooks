@@ -149,6 +149,7 @@ class Inventory_Source_Page(base.Base):
     last_job_run = property(base.json_getter('last_job_run'), base.json_setter('last_job_run'))
     update_cache_timeout = property(base.json_getter('update_cache_timeout'), base.json_setter('update_cache_timeout'))
     update_on_launch = property(base.json_getter('update_on_launch'), base.json_setter('update_on_launch'))
+    inventory = property(base.json_getter('inventory'), base.json_setter('inventory'))
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related']
