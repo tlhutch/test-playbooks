@@ -434,8 +434,10 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Find desired inventory_source
         inv_src = api_inventory_sources_pg.get(group=group_id).results[0]
 
-        # Assume that there is an update inprogress
-        inv_updates_pg = inv_src.get_related('current_update')
+        # Navigate to related -> inventory_updates
+        #  * current_update only appears *during* the update is running
+        #  * last_update only appears *after* the update completes
+        inv_updates_pg = inv_src.get_related('inventory_updates', order_by='-id').results[0]
 
         # Wait for task to complete
         inv_updates_pg = inv_updates_pg.wait_until_completed()
