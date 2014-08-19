@@ -101,12 +101,20 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
         elif cred.kind == 'vmware':
             required_envvars = ['VMWARE_HOST', 'VMWARE_USER', 'VMWARE_PASSWORD']
         else:
-            raise Exception("Unhandled cloud type: %s" % request.param)
+            raise Exception("Unhandled cloud type: %s" % cred.kind)
 
         for required in required_envvars:
             assert required in job_pg.job_env, \
                 "Missing required %s environment variable (%s) in job_env.\n%s" % \
                 (cred.kind, required, json.dumps(job_pg.job_env))
+
+
+@pytest.fixture(scope="function")
+def cloud_inventory_job_template(request, job_template, cloud_group):
+    # PATCH the job_template with the correct inventory and cloud_credential
+    job_template.patch(inventory=cloud_group.inventory)
+    return job_template
+
 
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -118,18 +126,118 @@ class Test_Update_On_Launch(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
 
-    def test_inventory(self, ansible_runner, job_template, cloud_group):
+    def test_inventory(self, cloud_inventory_job_template, cloud_group):
         '''Verify that an inventory_update is triggered by job launch'''
-        pytest.skip("FIXME - Not implemented yet")
 
-    def test_inventory_cache_timeout(self, ansible_runner, job_template, cloud_group):
+        # 1) Set update_on_launch
+        inv_src_pg = cloud_group.get_related('inventory_source')
+        inv_src_pg.patch(update_on_launch=True)
+        assert inv_src_pg.update_cache_timeout == 0
+        assert inv_src_pg.last_updated is None, "Not expecting inventory_source an have been updated - %s" % json.dumps(inv_src_pg.json, indent=4)
+
+        # 2) Update job_template to cloud inventory
+        cloud_inventory_job_template.patch(inventory=cloud_group.inventory)
+
+        # 3) Launch job_template and wait for completion
+        cloud_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+
+        # 4) Ensure inventory_update was triggered
+        inv_src_pg.get()
+        assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
+
+        last_update = inv_src_pg.get_related('last_update')
+        assert last_update.is_successful, "last_update unsuccessful - %s" % json.dumps(last_update.json, indent=4)
+
+    def test_inventory_cache_timeout(self, cloud_inventory_job_template, cloud_group):
         '''Verify that an inventory_update is not triggered by job launch if the cache is still valid'''
-        pytest.skip("FIXME - Not implemented yet")
 
-    def test_project(self, ansible_runner, job_template, cloud_group):
+        # 1) Set update_on_launch and a 5min update_cache_timeout
+        inv_src_pg = cloud_group.get_related('inventory_source')
+        cache_timeout = 60 * 5
+        inv_src_pg.patch(update_on_launch=True, update_cache_timeout=cache_timeout)
+        assert inv_src_pg.update_cache_timeout == cache_timeout
+        assert inv_src_pg.last_updated is None, "Not expecting inventory_source an have been updated - %s" % json.dumps(inv_src_pg.json, indent=4)
+
+        # 2) Update job_template to cloud inventory
+        cloud_inventory_job_template.patch(inventory=cloud_group.inventory)
+
+        # 3) Launch job_template and wait for completion
+        cloud_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+
+        # 4) Ensure inventory_update was triggered
+        inv_src_pg.get()
+        assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
+        last_updated = inv_src_pg.last_updated
+        last_job_run = inv_src_pg.last_job_run
+
+        # 5) Launch job_template and wait for completion
+        cloud_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+
+        # 6) Ensure inventory_update was *NOT* triggered
+        inv_src_pg.get()
+        assert inv_src_pg.last_updated == last_updated, "An inventory_update was unexpectedly triggered (last_updated changed)- %s" % \
+            json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_job_run == last_job_run, "An inventory_update was unexpectedly triggered (last_job_run changed)- %s" % \
+            json.dumps(inv_src_pg.json, indent=4)
+
+    def test_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
         '''Verify that a project_update is triggered by job launch'''
-        pytest.skip("FIXME - Not implemented yet")
 
-    def test_project_and_inventory(self, ansible_runner, job_template, cloud_group):
-        '''Verify that a project_update and inventory_update is triggered by job launch'''
-        pytest.skip("FIXME - Not implemented yet")
+        # 1) set scm_update_on_launch for the project
+        project_ansible_playbooks_git.patch(scm_update_on_launch=True)
+        assert project_ansible_playbooks_git.scm_update_on_launch
+        assert project_ansible_playbooks_git.scm_update_cache_timeout == 0
+        last_updated = project_ansible_playbooks_git.last_updated
+
+        # 2) Launch job_template and wait for completion
+        job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
+
+        # 3) Ensure project_update was triggered
+        project_ansible_playbooks_git.get()
+        assert project_ansible_playbooks_git.last_updated != last_updated
+
+    def test_project_cache_timeout(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
+        '''Verify that a project_update is not triggered when the cache_timeout has not exceeded'''
+
+        # 1) set scm_update_on_launch for the project
+        cache_timeout = 60 * 5
+        project_ansible_playbooks_git.patch(scm_update_on_launch=True, scm_update_cache_timeout=cache_timeout)
+        assert project_ansible_playbooks_git.scm_update_on_launch
+        assert project_ansible_playbooks_git.scm_update_cache_timeout == cache_timeout
+        assert project_ansible_playbooks_git.last_updated is not None
+        last_updated = project_ansible_playbooks_git.last_updated
+
+        # 2) Launch job_template and wait for completion
+        job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
+
+        # 3) Ensure project_update was *NOT* triggered
+        project_ansible_playbooks_git.get()
+        assert project_ansible_playbooks_git.last_updated == last_updated, "A project_update happened, but none were expected"
+
+    def test_inventory_and_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git, cloud_group):
+        '''Verify that a project_update and inventory_update are triggered by job launch'''
+
+        # 1) Set scm_update_on_launch for the project
+        project_ansible_playbooks_git.patch(scm_update_on_launch=True)
+        assert project_ansible_playbooks_git.scm_update_on_launch
+        last_updated = project_ansible_playbooks_git.last_updated
+
+        # 2) Set update_on_launch for the inventory
+        inv_src_pg = cloud_group.get_related('inventory_source')
+        inv_src_pg.patch(update_on_launch=True)
+        assert inv_src_pg.update_on_launch
+
+        # 3) Update job_template to cloud inventory
+        job_template_ansible_playbooks_git.patch(inventory=cloud_group.inventory)
+
+        # 4) Launch job_template and wait for completion
+        job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
+
+        # 5) Ensure inventory_update was triggered
+        inv_src_pg.get()
+        assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
+
+        # 6) Ensure project_update was triggered
+        project_ansible_playbooks_git.get()
+        assert project_ansible_playbooks_git.last_updated != last_updated, \
+            "project_update was not triggered - %s" % json.dumps(project_ansible_playbooks_git.json, indent=4)

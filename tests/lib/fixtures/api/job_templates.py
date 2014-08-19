@@ -53,6 +53,22 @@ def job_template_ask(request, authtoken, api_job_templates_pg, project, inventor
 
 
 @pytest.fixture(scope="function")
+def job_template_ansible_playbooks_git(request, authtoken, api_job_templates_pg, project_ansible_playbooks_git, inventory, ssh_credential):
+    '''Define a job_template with a valid machine credential'''
+
+    payload = dict(name="job_template-%s" % common.utils.random_unicode(),
+                   description="Random job_template using ansible-playbooks.git - %s" % common.utils.random_unicode(),
+                   inventory=inventory.id,
+                   job_type='run',
+                   project=project_ansible_playbooks_git.id,
+                   credential=ssh_credential.id,
+                   playbook='site.yml', )  # This depends on the project selected
+    obj = api_job_templates_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
 def job_template(request, authtoken, api_job_templates_pg, project, inventory, ssh_credential):
     '''Define a job_template with a valid machine credential'''
 

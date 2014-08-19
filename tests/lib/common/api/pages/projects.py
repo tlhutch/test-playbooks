@@ -5,7 +5,15 @@ class Project_Page(base.Base):
     base_url = '/api/v1/projects/{id}/'
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
+    status = property(base.json_getter('status'), base.json_setter('status'))
     local_path = property(base.json_getter('local_path'), base.json_setter('local_path'))
+    last_updated = property(base.json_getter('last_updated'), base.json_setter('last_updated'))
+    last_update_failed = property(base.json_getter('last_update_failed'), base.json_setter('last_update_failed'))
+    last_job_run = property(base.json_getter('last_job_run'), base.json_setter('last_job_run'))
+    last_job_failed = property(base.json_getter('last_job_failed'), base.json_setter('last_job_failed'))
+    scm_delete_on_next_update = property(base.json_getter('scm_delete_on_next_update'), base.json_setter('scm_delete_on_next_update'))
+    scm_update_on_launch = property(base.json_getter('scm_update_on_launch'), base.json_setter('scm_update_on_launch'))
+    scm_update_cache_timeout = property(base.json_getter('scm_update_cache_timeout'), base.json_setter('scm_update_cache_timeout'))
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']

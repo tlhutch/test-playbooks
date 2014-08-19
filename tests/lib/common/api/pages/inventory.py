@@ -141,9 +141,14 @@ class Inventory_Source_Page(base.Base):
     # FIXME - it would be nice for base_url to always return self.json.url.
     base_url = '/api/v1/inventory_sources/{id}/'
     name = property(base.json_getter('name'), base.json_setter('name'))
+    source = property(base.json_getter('source'), base.json_setter('source'))
+    status = property(base.json_getter('status'), base.json_setter('status'))
     description = property(base.json_getter('description'), base.json_setter('description'))
     last_updated = property(base.json_getter('last_updated'), base.json_setter('last_updated'))
     last_update_failed = property(base.json_getter('last_update_failed'), base.json_setter('last_update_failed'))
+    last_job_run = property(base.json_getter('last_job_run'), base.json_setter('last_job_run'))
+    update_cache_timeout = property(base.json_getter('update_cache_timeout'), base.json_setter('update_cache_timeout'))
+    update_on_launch = property(base.json_getter('update_on_launch'), base.json_setter('update_on_launch'))
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related']
@@ -162,6 +167,19 @@ class Inventory_Source_Page(base.Base):
         else:
             raise NotImplementedError
         return related.get(**kwargs)
+
+    @property
+    def is_successful(self):
+        '''An inventory_source is considered successful when:
+            0) source != ""
+            1) status == 'successful'
+            2) not last_update_failed
+            3) last_updated
+        '''
+        return self.source != "" and \
+            self.status == 'successful' and \
+            not self.last_update_failed and \
+            self.last_updated is not None
 
 class Inventory_Sources_Page(Inventory_Source_Page, base.Base_List):
     base_url = '/api/v1/inventory_sources/'

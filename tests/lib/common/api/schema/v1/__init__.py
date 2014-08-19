@@ -243,6 +243,19 @@ class Awx_Schema_Projects(Awx_Schema):
     def duplicate(self):
         return self.load_file('projects/duplicate.yml')
 
+class Awx_Schema_Project(Awx_Schema_Projects):
+    resource = '/api/v1/projects/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('projects/item.yml')
+    @property
+    def patch(self):
+        return self.get
+    @property
+    def put(self):
+        return self.get
+
 class Awx_Schema_Project_Organizations(Awx_Schema_Organizations):
     resource = '/api/v1/projects/\d+/organizations/'
 

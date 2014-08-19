@@ -185,6 +185,11 @@ def azure_group(request, authtoken, api_groups_pg, inventory, azure_credential):
     return obj
 
 
+@pytest.fixture(scope="function")
+def azure_inventory_source(request, authtoken, azure_group):
+    return azure_group.get_related('inventory_source')
+
+
 #
 # GCE group
 #
@@ -201,6 +206,11 @@ def gce_group(request, authtoken, api_groups_pg, inventory, gce_credential):
     inv_source = obj.get_related('inventory_source')
     inv_source.patch(source='gce', credential=gce_credential.id)
     return obj
+
+
+@pytest.fixture(scope="function")
+def gce_inventory_source(request, authtoken, gce_group):
+    return gce_group.get_related('inventory_source')
 
 
 #
@@ -221,6 +231,11 @@ def vmware_group(request, authtoken, api_groups_pg, inventory, vmware_credential
     return obj
 
 
+@pytest.fixture(scope="function")
+def vmware_inventory_source(request, authtoken, vmware_group):
+    return vmware_group.get_related('inventory_source')
+
+
 #
 # Convenience fixture that iterates through supported cloud_groups
 #
@@ -238,8 +253,3 @@ def cloud_group(request, aws_group, rax_group, azure_group, gce_group, vmware_gr
         return vmware_group
     else:
         raise Exception("Unhandled cloud type: %s" % request.param)
-
-
-@pytest.fixture(scope="function")
-def azure_inventory_source(request, authtoken, azure_group):
-    return azure_group.get_related('inventory_source')
