@@ -1,7 +1,7 @@
 ---
 job_event:
     type: object
-    required: [ id, url, created, modified, job, event, event_display, event_level, failed, changed, host, parent, play, task, event_data, related, summary_fields, type]
+    required: [ id, url, created, modified, job, event, event_display, event_level, failed, changed, host, parent, play, task, event_data, related, summary_fields, counter, type]
     additionalProperties: False
     properties:
         type: { type: string, pattern: ^job_event$ }
@@ -20,6 +20,7 @@ job_event:
         host: { $ref: '#/definitions/id_or_null' }
         host_name: { type: string }
         parent: { type: number, minimum: 1 }
+        counter: { type: number, minimum: 0 }
         play: { type: string, }
         task: { type: string, }
         role: { type: string }
