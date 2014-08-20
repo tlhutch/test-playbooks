@@ -72,20 +72,14 @@ class LoginPage(base.Base):
         # Wait for "busy" throbber to go away
         self._wait_for_results_refresh()
 
-        # Acknowledge DEMO dialog
-        try:
-            self.demo_ok_button.click()
-        except:
-            pass
-
-        # Acknowledge license warning dialog
-        try:
-            self.license_warning_button.click()
-        except:
-            pass
+        # FIXME - Acknowledge license warning dialog
+        # try:
+        #     self.license_warning_button.click()
+        # except:
+        #     pass
 
         # Wait for "busy" throbber to go away
-        self._wait_for_results_refresh()
+        # self._wait_for_results_refresh()
 
         # FIXME - This should return the correct redirected page
         from dashboard import Dashboard

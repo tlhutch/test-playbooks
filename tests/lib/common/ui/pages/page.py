@@ -85,15 +85,32 @@ class Page(object):
 
     def is_element_visible(self, *locator):
         try:
-            return self.selenium.find_element(*locator).is_displayed()
+            for el in self.selenium.find_elements(*locator):
+                if el.is_displayed():
+                    return True
         except NoSuchElementException, ElementNotVisibleException:
             return False
+        else:
+            return False
 
-    def return_to_previous_page(self):
-        self.selenium.back()
+    def get_visible_element(self, *locator):
+        for el in self.selenium.find_elements(*locator):
+            if el.is_displayed():
+                return el
+        raise NoSuchElementException('element not found: %s' % str(locator))
+
+    def get_visible_elements(self, *locator):
+        result = list()
+        for el in self.selenium.find_elements(*locator):
+            if el.is_displayed():
+                result.append(el)
+        return result
 
     def get_element(self, *element):
         return self.selenium.find_element(*element)
+
+    def return_to_previous_page(self):
+        self.selenium.back()
 
     def handle_popup(self, cancel=False):
         wait = WebDriverWait(self.selenium, self.timeout)
