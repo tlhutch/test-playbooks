@@ -70,6 +70,10 @@
 3. [X] Verify asynchronous job (success, cancelled, failure, error)
 4. [X] Verify schedules (status, next_run, deletion)
 
+### Feature: sosreport
+1. [X] Verify sosreport plugin installs on all supported platforms
+1. [X] Verify sosreport tower report generation
+
 ### Feature: socket-io job_events
 1. [X] Verify expected job events are available from /jobs/N/events
 1. [X] Verify socket.io sends the right events
