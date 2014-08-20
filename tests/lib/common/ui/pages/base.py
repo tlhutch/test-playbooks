@@ -1,9 +1,28 @@
-#!/usr/bin/env python
-
 import page
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+
+
+def input_getter(locator):
+    '''
+    Generic property fget method
+    '''
+    def get_field(self):
+        return self.get_visible_element(*locator).get_attribute('value')
+    return get_field
+
+
+def input_setter(locator):
+    '''
+    Generic property fset method
+    '''
+    def set_field(self, value):
+        el = self.get_visible_element(*locator)
+        el.clear()
+        el.send_keys(value)
+    return set_field
+
 
 class Base(page.Page):
     '''

@@ -33,6 +33,10 @@ class AccountMenu(Page):
             return submenu.is_displayed()
 
     @property
+    def is_logged_in(self):
+        return self._root_element.find_element(*self._menu_link_locator).is_displayed()
+
+    @property
     def items(self):
         return dict((el.get_attribute('id'), el) for el in self._root_element.find_elements(*self._item_locator))
 

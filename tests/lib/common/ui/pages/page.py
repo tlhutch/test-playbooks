@@ -14,7 +14,7 @@ class Page(object):
     Base class for all Pages
     '''
     _updating_locator = (By.CSS_SELECTOR, "div.spinny")
-    _current_tab_locator = (By.CSS_SELECTOR, "#main_tabs > li.active")
+    _current_tab_locator = (By.CSS_SELECTOR, "#ansible-main-menu > li.active")
 
     def __init__(self, testsetup, root=None):
         self.testsetup = testsetup
