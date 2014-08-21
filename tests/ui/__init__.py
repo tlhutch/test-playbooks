@@ -50,3 +50,15 @@ class Base_UI_Test(object):
                 ctype
 
         return True
+
+    @contextlib.contextmanager
+    def current_user(self, username, password):
+        raise NotImplementedError("UI support for the context manager is not yet implemented")
+        try:
+            '''login as the provided user'''
+            previous_auth = self.api.session.auth
+            self.api.login(username, password)
+            yield
+        finally:
+            '''restore authentication'''
+            self.api.session.auth = previous_auth

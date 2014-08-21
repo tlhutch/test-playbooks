@@ -1,4 +1,5 @@
 import pytest
+import common.utils
 from tests.ui import Base_UI_Test
 
 @pytest.mark.usefixtures("maximized")
@@ -17,5 +18,12 @@ class Test_Organization(Base_UI_Test):
 
     def test_add(self, ui_organizations_pg):
         add_pg = ui_organizations_pg.click_add()
+
+        add_pg.name = "Random Organization - %s" % common.utils.random_unicode()
+        add_pg.description = "Random description - %s" % common.utils.random_unicode()
         org_pg = add_pg.click_reset()
         assert org_pg.is_the_current_tab
+
+    def test_activity_stream(self, ui_organizations_pg):
+        '''Verify that the organization activity stream can be open and closed'''
+        stream_pg = ui_organizations_pg.click_activity_stream()

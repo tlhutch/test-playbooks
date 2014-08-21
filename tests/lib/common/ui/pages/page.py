@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException

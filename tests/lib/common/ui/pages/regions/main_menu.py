@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
 from common.ui.pages import *
 
-class MainMenu(Page):
+class Main_Menu(Page):
     '''
     '''
     _main_menu_locator = (By.CSS_SELECTOR, '#ansible-main-menu')
@@ -18,7 +18,7 @@ class MainMenu(Page):
     _current_item_locator = (By.CSS_SELECTOR, "#ansible-main-menu > li.active > a")
 
     def __init__(self, testsetup):
-        super(MainMenu, self).__init__(testsetup)
+        super(Main_Menu, self).__init__(testsetup)
         self._root_element = self.get_visible_element(*self._main_menu_locator)
 
     def is_displayed(self):

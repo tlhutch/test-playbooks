@@ -1,14 +1,18 @@
 import pytest
 from common.ui.pages import *
-from unittestzero import Assert
 
 @pytest.fixture
-def home_page_logged_in(mozwebqa):
+def ui_login_pg(mozwebqa):
     '''Logs in to the application with default credentials and returns the
     home page'''
-    login_pg = LoginPage(mozwebqa)
-    login_pg.go_to_login_page()
-    home_pg = login_pg.login()
+    login_pg = Login_Page(mozwebqa)
+    return login_pg.go_to_login_page()
+
+@pytest.fixture
+def home_page_logged_in(ui_login_pg):
+    '''Logs in to the application with default credentials and returns the
+    home page'''
+    home_pg = ui_login_pg.login()
     assert home_pg.is_logged_in, 'Unable to determine if logged in'
     return home_pg
 

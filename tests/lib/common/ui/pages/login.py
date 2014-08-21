@@ -1,54 +1,60 @@
-import time
-import base
-import page
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from common.ui.pages import *
+from common.ui.pages.forms import input_getter, input_setter
 
-class LoginPage(base.Base):
+class Login_Page(Base):
     # TODO: This obviously should change. File bug
-    _page_title = "AnsibleWorks AWX"
-    _login_username_field_locator = (By.ID, 'login-username')
-    _login_password_field_locator = (By.ID, 'login-password')
-    _login_submit_button_locator = (By.ID, 'login-button')
-    _login_demo_ok_button_locator = (By.ID, 'alert_ok_btn')
+    _page_title = "Ansible Tower"
+
+    # The following should move to using alert_dialog
     _login_license_warning_button_locator = (By.ID, 'alert2_ok_btn')
+
+    _locators = {
+        'username': (By.CSS_SELECTOR, '#login-username'),
+        'password': (By.CSS_SELECTOR, '#login-password'),
+        'login_btn': (By.CSS_SELECTOR, '#login-button'),
+    }
+
+    _save_btn_locator = (By.CSS_SELECTOR, '#organization_save_btn')
+    _reset_btn_locator = (By.CSS_SELECTOR, '#organization_reset_btn')
+
+    username = property(input_getter(_locators['username']), input_setter(_locators['username']))
+    password = property(input_getter(_locators['password']), input_setter(_locators['password']))
+
+    def click_save(self):
+        self.get_visible_element(*self._save_btn_locator).click()
+        return Organizations_Page(self.testsetup)
+
+    def click_reset(self):
+        self.get_visible_element(*self._reset_btn_locator).click()
+        return Organizations_Page(self.testsetup)
 
     @property
     def is_the_current_page(self):
         '''Override the base implementation to make sure that we are actually on the login screen
         and not the actual dashboard
         '''
-        return Base.is_the_current_page and self.is_element_visible(*self._login_submit_button_locator)
+        return Base.is_the_current_page and self.is_element_visible(*self._locators['login_btn'])
 
     @property
-    def username(self):
-        return self.selenium.find_element(*self._login_username_field_locator)
-
-    @property
-    def password(self):
-        return self.selenium.find_element(*self._login_password_field_locator)
-
-    @property
-    def login_button(self):
-        return self.selenium.find_element(*self._login_submit_button_locator)
-
-    @property
-    def demo_ok_button(self):
-        return self.selenium.find_element(*self._login_demo_ok_button_locator)
+    def login_btn(self):
+        return self.selenium.find_element(*self._locators['login_btn'])
 
     @property
     def license_warning_button(self):
         return self.selenium.find_element(*self._login_license_warning_button_locator)
 
-    def _click_on_login_button(self):
-        self.login_button.click()
+    def click_on_login_button(self):
+        self.login_btn.click()
 
-    def _press_enter_on_login_button(self):
-        self.login_button.send_keys(Keys.RETURN)
+    def press_enter_on_login_button(self):
+        self.login_btn.send_keys(Keys.RETURN)
 
-    def _click_on_login_and_send_window_size(self):
-        self.login_button.click()
-        driver = self.login_button.parent
+    def click_on_login_and_send_window_size(self):
+        self.login_btn.click()
+        driver = self.login_btn.parent
         driver.execute_script("""miqResetSizeTimer();""")
 
     def login(self, user='default'):
@@ -56,18 +62,24 @@ class LoginPage(base.Base):
         # return self.login_with_enter_key(user)
 
     def login_with_enter_key(self, user='default'):
-        return self.__do_login(self._press_enter_on_login_button, user)
+        return self.__do_login(self.press_enter_on_login_button, user)
 
     def login_with_mouse_click(self, user='default'):
-        return self.__do_login(self._click_on_login_button, user)
+        return self.__do_login(self.click_on_login_button, user)
 
     def login_and_send_window_size(self, user='default'):
-        return self.__do_login(self._click_on_login_and_send_window_size, user)
+        return self.__do_login(self.click_on_login_and_send_window_size, user)
 
-    def __do_login(self, continue_function, user='default'):
+    def __do_login(self, login_method, user='default'):
+        '''
+        login to the application using the specified 'login_method'
+        '''
+        # Wait for "busy" throbber to go away
+        self._wait_for_results_refresh()
+
         self.__set_login_fields(user)
         # Submit field (click submit, press <enter> etc...)
-        continue_function()
+        login_method()
 
         # Wait for "busy" throbber to go away
         self._wait_for_results_refresh()
@@ -87,5 +99,5 @@ class LoginPage(base.Base):
 
     def __set_login_fields(self, user='default'):
         credentials = self.testsetup.credentials[user]
-        self.username.send_keys(credentials['username'])
-        self.password.send_keys(credentials['password'])
+        self.username = credentials['username']
+        self.password = credentials['password']

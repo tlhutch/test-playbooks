@@ -1,7 +1,7 @@
 import base
+import forms
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
-from common.ui.pages.regions.breadcrumb import BreadCrumb
 
 
 class Organizations_Page(base.Base):
@@ -46,9 +46,10 @@ class Organization_Activity_Page(base.Base):
     '''fixme'''
 
 
-class Organization_Edit_Page(base.Base):
+class Organization_Edit_Page(forms.Form_Page):
     '''Describes the organization edit page'''
 
+    _breadcrumb_title = 'Create Organization'
     _locators = {
         'name': (By.CSS_SELECTOR, '#organization_name'),
         'description': (By.CSS_SELECTOR, '#organization_description')
@@ -56,12 +57,8 @@ class Organization_Edit_Page(base.Base):
     _save_btn_locator = (By.CSS_SELECTOR, '#organization_save_btn')
     _reset_btn_locator = (By.CSS_SELECTOR, '#organization_reset_btn')
 
-    name = property(base.input_getter(_locators['name']), base.input_setter(_locators['name']))
-    description = property(base.input_getter(_locators['description']), base.input_setter(_locators['description']))
-
-    @property
-    def breadcrumb(self):
-        return BreadCrumb(self.testsetup)
+    name = property(forms.input_getter(_locators['name']), forms.input_setter(_locators['name']))
+    description = property(forms.input_getter(_locators['description']), forms.input_setter(_locators['description']))
 
     def click_save(self):
         self.get_visible_element(*self._save_btn_locator).click()

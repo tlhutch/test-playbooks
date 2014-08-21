@@ -2,7 +2,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from common.ui.pages import *
 
-class AccountMenu(Page):
+class Account_Menu(Page):
     """
     Describes the account menu
     """
@@ -13,7 +13,7 @@ class AccountMenu(Page):
     _item_locator = (By.CSS_SELECTOR, '#account-submenu > li > a')
 
     def __init__(self, testsetup):
-        super(AccountMenu, self).__init__(testsetup)
+        super(Account_Menu, self).__init__(testsetup)
         self._root_element = self.get_visible_element(*self._menu_locator)
 
     def show(self):
@@ -66,4 +66,4 @@ class AccountMenu(Page):
 
     def click_logout(self):
         self.click('main_logout')
-        # TODO: return a Login_Page object
+        return Login_Page(self.testsetup)
