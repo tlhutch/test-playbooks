@@ -37,6 +37,7 @@ class Test_Inventory(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
 
     def test_import_bad_id(self, ansible_runner, api_inventories_pg, import_inventory):
+        '''Verify that importing inventory using a bogus --inventory-id=<ID> fails'''
 
         # find an inventory_id that doesn't exist
         bad_id = common.utils.random_int()
@@ -52,6 +53,7 @@ class Test_Inventory(Base_Api_Test):
             % (result['stdout'], result['stderr'])
 
     def test_import_bad_name(self, ansible_runner, import_inventory):
+        '''Verify that importing inventory using a bogus --inventory-name=<NAME> fails'''
 
         # Run awx-manage inventory_import
         result = ansible_runner.shell('awx-manage inventory_import --inventory-name "%s" --source /etc/fstab' % common.utils.random_ascii())
@@ -62,6 +64,7 @@ class Test_Inventory(Base_Api_Test):
             % (result['stdout'], result['stderr'])
 
     def test_import_by_id(self, ansible_runner, import_inventory):
+        '''Verify that importing inventory using --inventory-id=<ID> succeeds'''
 
         # Upload inventory script
         copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
@@ -79,6 +82,7 @@ class Test_Inventory(Base_Api_Test):
         assert import_inventory.get_related('hosts').count == 10
 
     def test_import_by_name(self, ansible_runner, import_inventory):
+        '''Verify that importing inventory using --inventory-name=<NAME> succeeds'''
 
         # Upload inventory script
         copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
@@ -96,6 +100,7 @@ class Test_Inventory(Base_Api_Test):
         assert import_inventory.get_related('hosts').count == 10
 
     def test_import_ini(self, ansible_runner, import_inventory):
+        '''Verify that importing inventory from a .INI file succeeds'''
 
         # Upload inventory script
         copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10, ini=True)
@@ -113,7 +118,7 @@ class Test_Inventory(Base_Api_Test):
         assert import_inventory.get_related('hosts').count == 10
 
     def test_import_multiple(self, ansible_runner, import_inventory):
-        '''Verify that subsequent imports are faster'''
+        '''Verify that multiple imports of the same inventory are subsequently are faster'''
         # Upload inventory script
         copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=100, ini=True)
 
@@ -156,7 +161,7 @@ class Test_Inventory(Base_Api_Test):
             (first_import, second_import, third_import)
 
     def test_import_license_exceeded(self, ansible_runner, import_inventory):
-        '''Verify awx-manage inventory_import fails if the number of imported hosts will exceed licensed amount'''
+        '''Verify inventory_import fails if the number of imported hosts will exceed licensed amount'''
 
         # Upload inventory script
         copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=2000)
