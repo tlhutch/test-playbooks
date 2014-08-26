@@ -1,11 +1,13 @@
 import pytest
 import common.utils
-from common.ui.pages import Login_Page
 from tests.ui import Base_UI_Test
 
+
+@pytest.mark.selenium
 @pytest.mark.nondestructive
-@pytest.mark.usefixtures("maximized")
 class Test_Login(Base_UI_Test):
+
+    pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
 
     def test_login(self, home_page_logged_in):
         '''Verify a successful login'''

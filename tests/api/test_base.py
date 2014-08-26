@@ -3,6 +3,7 @@ import httplib
 from tests.api import Base_Api_Test
 from common.api.schema import validate
 
+@pytest.mark.api
 @pytest.mark.nondestructive
 class Test_Api_Basics(Base_Api_Test):
     def test_get_200(self, api):

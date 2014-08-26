@@ -22150,6 +22150,7 @@ inventory_dict = {
     }
 }
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 class Test_AC_1235(Base_Api_Test):

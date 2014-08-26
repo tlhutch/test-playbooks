@@ -25,6 +25,7 @@ def delete_inventory(request, authtoken, api_inventories_pg, organization):
     return obj
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Inventory(Base_Api_Test):

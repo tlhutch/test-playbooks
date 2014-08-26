@@ -179,6 +179,7 @@ def assert_instance_counts(api_config_pg, license_instance_count, group):
     assert conf.license_info.available_instances == license_instance_count
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_No_License(Base_Api_Test):
     '''

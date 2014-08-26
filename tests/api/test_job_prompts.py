@@ -91,6 +91,8 @@ def job_template_prompt_multipass_vars(request, authtoken, api_job_templates_pg,
     request.addfinalizer(obj.delete)
     return obj
 
+
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Launch_Prompts(Base_Api_Test):

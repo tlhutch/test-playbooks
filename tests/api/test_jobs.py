@@ -19,6 +19,7 @@ def utf8_template(request, authtoken, api_job_templates_pg, project_ansible_play
     return obj
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job(Base_Api_Test):
@@ -65,6 +66,7 @@ def job_template_with_cloud_credential(request, job_template, host, cloud_creden
     return job_template
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Cloud_Credential_Job(Base_Api_Test):
@@ -116,6 +118,7 @@ def cloud_inventory_job_template(request, job_template, cloud_group):
     return job_template
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Update_On_Launch(Base_Api_Test):

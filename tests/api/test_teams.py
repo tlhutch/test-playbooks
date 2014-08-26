@@ -32,6 +32,7 @@ def some_team_credential(request, testsetup, authtoken, some_team):
     return obj
 
 
+@pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Teams(Base_Api_Test):

@@ -1,10 +1,9 @@
-import base
+from common.ui.pages import Page
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-class Api_Browser_Page(base.Base):
-    # TODO: This obviously should change. File bug
+class Api_Browser_Page(Page):
     _logo_locator = (By.CSS_SELECTOR, 'img.logo')
     _get_button_locator = (By.CSS_SELECTOR, 'form#get-form a.btn')
     _options_button_locator = (By.CSS_SELECTOR, 'form.button-form > button.btn')

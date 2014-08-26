@@ -1,15 +1,23 @@
-from common.ui.pages import Page
+from selenium.webdriver.common.by import By
+from common.ui.pages import *
 from common.ui.pages.regions.main_menu import Main_Menu
 from common.ui.pages.regions.account_menu import Account_Menu
-from selenium.webdriver.common.by import By
 
-class HeaderRegion(Page):
+
+class HeaderRegion(PageRegion):
+    _root_locator = (By.ID, 'main-menu-container')
+
+    @property
+    def account_menu(self):
+        return Account_Menu(self.testsetup)
+
+    @property
+    def main_menu(self):
+        return Main_Menu(self.testsetup)
 
     @property
     def is_logged_in(self):
-        # _account_menu_locator = (By.ID, "account-menu-link")
-        # return self.is_element_visible(*_account_menu_locator)
-        return Account_Menu(self.testsetup).is_logged_in
+        return self.account_menu.is_logged_in
 
     def logout(self):
         self.account_menu.show()
@@ -17,10 +25,3 @@ class HeaderRegion(Page):
         from common.ui.pages.login import Login_Page
         return Login_Page(self.testsetup)
 
-    @property
-    def main_menu(self):
-        return Main_Menu(self.testsetup)
-
-    @property
-    def account_menu(self):
-        return Account_Menu(self.testsetup)

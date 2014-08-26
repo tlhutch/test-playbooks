@@ -171,6 +171,7 @@ def some_group(request, authtoken, inventory):
     return obj
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Group(Base_Api_Test):

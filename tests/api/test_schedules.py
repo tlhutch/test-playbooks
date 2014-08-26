@@ -115,6 +115,7 @@ def disabled_inventory_schedule(request, aws_inventory_source, disabled_rrule_mi
     return obj
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken')

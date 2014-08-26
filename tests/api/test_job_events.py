@@ -72,6 +72,7 @@ def setfact_50(request, authtoken, api_job_templates_pg, project_ansible_playboo
     return obj
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Events(Base_Api_Test):

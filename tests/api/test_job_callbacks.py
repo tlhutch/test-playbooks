@@ -35,6 +35,7 @@ def host_public_ipv4_alias(request, authtoken, api_hosts_pg, group, my_public_ip
     return obj
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Callback(Base_Api_Test):

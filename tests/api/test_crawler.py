@@ -69,6 +69,7 @@ def login(api, testsetup):
     '''Login to the API on each function call'''
     api.login(*testsetup.credentials['default'].values())
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 @pytest.mark.usefixtures("logout")
@@ -104,6 +105,7 @@ def test_unauthenticated(api, resource, method):
 
     assert_response(api, resource, method, expected_response_code, expected_response_schema)
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 # Either works ...

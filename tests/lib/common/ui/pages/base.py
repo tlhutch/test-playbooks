@@ -1,38 +1,39 @@
-from common.ui.pages import Page
+import logging
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
+from common.ui.pages import Page, PageRegion
+from unittestzero import Assert
+
+
+log = logging.getLogger(__name__)
 
 
 class Base(Page):
     '''
-    Base class for global project specific functions
+    Base class for Tower UI pages
     '''
 
-    _breadcrumb_title = 'Not defined'
-
-    @property
-    def page_title(self):
-        WebDriverWait(self.selenium, self.timeout).until(lambda s: self.selenium.title)
-        return self.selenium.title
+    _breadcrumb_title = 'UNDEFINED'
 
     def go_to_login_page(self):
         self.selenium.get(self.base_url)
         from common.ui.pages.login import Login_Page
+        self.wait_for_spinny()
         return Login_Page(self.testsetup)
 
-    def logout(self):
-        '''convenience method to logout of tower by accessing the header'''
-        return self.header.logout()
-
     @property
-    def header(self):
-        from common.ui.pages.regions.header import HeaderRegion
-        return HeaderRegion(self.testsetup)
+    def account_menu(self):
+        from common.ui.pages.regions.account_menu import Account_Menu
+        return Account_Menu(self.testsetup)
 
     @property
     def is_logged_in(self):
-        return self.header.is_logged_in
+        return self.account_menu.is_logged_in
+
+    def logout(self):
+        self.account_menu.show()
+        return self.account_menu.click_logout()
 
     @property
     def alert_dialog(self):
@@ -76,3 +77,41 @@ class Base(Page):
             }
         ''' % value
         self.selenium.execute_script(script)
+
+    @property
+    def is_on_dashboard_page(self):
+        '''Return whether the currently loaded page is the dashboard page'''
+        return self.get_current_page_path().startswith('/home')
+
+    @property
+    def main_menu(self):
+        from common.ui.pages.regions.main_menu import Main_Menu
+        return Main_Menu(self.testsetup)
+
+    @property
+    def is_the_active_tab(self):
+        '''Return whether the current page is the active/highlighted tab'''
+        if not hasattr(self, '_tab_title'):
+            log.warning("_tab_title is not set for class '%s'" % self.__class__.__name__)
+            return True
+
+        # determine selected tab
+        try:
+            active_tab = self.main_menu.active_item
+        except NoSuchElementException:
+            log.warning("unable to determine the active tab")
+            active_tab = None
+
+        # if no selected tab, is dashboard page active
+        if active_tab is None and self.is_on_dashboard_page:
+            active_tab = "Home"
+
+        Assert.equal(self._tab_title, active_tab,  # IGNORE:E1101
+                     "Expected tab title: %s. Actual tab title: %s" %
+                     (self._tab_title, active_tab))  # IGNORE:E1101
+
+        return True
+
+
+class BaseRegion(PageRegion, Base):
+    '''sub-class'''

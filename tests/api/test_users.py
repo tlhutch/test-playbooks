@@ -36,6 +36,7 @@ def some_ssh_credential(request, testsetup, authtoken, some_user):
     return obj
 
 
+@pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Users(Base_Api_Test):

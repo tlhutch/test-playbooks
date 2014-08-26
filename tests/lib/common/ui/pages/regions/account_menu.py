@@ -1,44 +1,41 @@
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
-from common.ui.pages import *
+from common.ui.pages import PageRegion, Login_Page
 
-class Account_Menu(Page):
+
+class Account_Menu(PageRegion):
     """
     Describes the account menu
     """
 
-    _menu_locator = (By.CSS_SELECTOR, '#account-menu')
+    _root_locator = (By.CSS_SELECTOR, '#account-menu')
     _menu_link_locator = (By.CSS_SELECTOR, '#account-menu-link')
+    _current_user_locator = (By.CSS_SELECTOR, '#account-menu-link > span.ng-binding')
     _submenu_locator = (By.CSS_SELECTOR, '#account-submenu')
     _item_locator = (By.CSS_SELECTOR, '#account-submenu > li > a')
 
-    def __init__(self, testsetup):
-        super(Account_Menu, self).__init__(testsetup)
-        self._root_element = self.get_visible_element(*self._menu_locator)
-
     def show(self):
-        if not self.is_displayed():
-            self._root_element.find_element(*self._menu_link_locator).click()
+        '''Show the account submenu'''
+        if self.is_element_not_visible(*self._submenu_locator):
+            self.find_element(*self._menu_link_locator).click()
 
     def hide(self):
-        if self.is_displayed():
-            self._root_element.find_element(*self._menu_link_locator).click()
+        '''Hide the account submenu'''
+        if self.is_element_visible(*self._submenu_locator):
+            self.find_element(*self._menu_link_locator).click()
 
-    def is_displayed(self):
-        try:
-            submenu = self._root_element.find_element(*self._submenu_locator)
-        except NoSuchElementException, e:
-            return False
-        else:
-            return submenu.is_displayed()
+    @property
+    def current_user(self):
+        '''Return the username of the current user'''
+        return self.find_element(*self._current_user_locator).text
 
     @property
     def is_logged_in(self):
-        return self._root_element.find_element(*self._menu_link_locator).is_displayed()
+        '''Return true if the current page is logged in'''
+        return self.find_element(*self._menu_link_locator).is_displayed()
 
     @property
     def items(self):
-        return dict((el.get_attribute('id'), el) for el in self._root_element.find_elements(*self._item_locator))
+        return dict((el.get_attribute('id'), el) for el in self.find_elements(*self._item_locator))
 
     def click(self, name):
         if name in self.items:

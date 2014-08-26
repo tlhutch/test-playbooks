@@ -109,6 +109,8 @@ def job_templates_yaml(request, authtoken, api_job_templates_pg, project, invent
     request.addfinalizer(obj.delete)
     return obj
 
+
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000')

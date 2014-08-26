@@ -25,6 +25,7 @@ def unprivileged_user(request, org_user, anonymous_user):
         raise Exception("Unhandled fixture parameter: %s" % request.param)
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_Config(Base_Api_Test):
     '''

@@ -868,6 +868,7 @@ inventory_dict = {
     ]
 }
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 class Test_AC_847(Base_Api_Test):

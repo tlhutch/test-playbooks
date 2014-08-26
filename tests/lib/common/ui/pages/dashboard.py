@@ -1,6 +1,7 @@
 import base
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
+from common.ui.pages.regions.stream_container import Activity_Stream_Region
 
 
 class Dashboard(base.Base):
@@ -14,7 +15,7 @@ class Dashboard(base.Base):
 
     @property
     def activity_stream_button(self):
-        return self.get_visible_element(*self._activity_stream_button_locator)
+        return self.find_visible_element(*self._activity_stream_button_locator)
 
     @property
     def has_activity_stream_button(self):
@@ -25,11 +26,13 @@ class Dashboard(base.Base):
 
     def click_activity_stream(self):
         self.activity_stream_button.click()
-        return Organization_Activity_Page(self.testsetup)
+        obj = Dashboard_Activity_Page(self.testsetup)
+        obj.wait_for_slidein()
+        return obj
 
     @property
     def job_status_graph(self):
-        return self.get_visible_element(*self._job_status_graph_locator)
+        return self.find_visible_element(*self._job_status_graph_locator)
 
     @property
     def has_job_status_graph(self):
@@ -40,7 +43,7 @@ class Dashboard(base.Base):
 
     @property
     def host_status_graph(self):
-        return self.get_visible_element(*self._host_status_graph_locator)
+        return self.find_visible_element(*self._host_status_graph_locator)
 
     @property
     def has_host_status_graph(self):
@@ -51,7 +54,7 @@ class Dashboard(base.Base):
 
     @property
     def jobs_list(self):
-        return self.get_visible_element(*self._jobs_list_locator)
+        return self.find_visible_element(*self._jobs_list_locator)
 
     @property
     def has_jobs_list(self):
@@ -62,7 +65,7 @@ class Dashboard(base.Base):
 
     @property
     def host_count_graph(self):
-        return self.get_visible_element(*self._host_count_graph_locator)
+        return self.find_visible_element(*self._host_count_graph_locator)
 
     @property
     def has_host_count_graph(self):
@@ -71,6 +74,8 @@ class Dashboard(base.Base):
         except NoSuchElementException:
             return False
 
-class Dashboard_Activity_Page(base.Base):
-    '''fixme'''
 
+class Dashboard_Activity_Page(Activity_Stream_Region):
+    '''Dashboard Activity Stream page'''
+    _tab_title = "Home"
+    _parent_object = Dashboard

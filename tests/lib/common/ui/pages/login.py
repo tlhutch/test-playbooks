@@ -5,9 +5,6 @@ from common.ui.pages import *
 from common.ui.pages.forms import input_getter, input_setter
 
 class Login_Page(Base):
-    # TODO: This obviously should change. File bug
-    _page_title = "Ansible Tower"
-
     # The following should move to using alert_dialog
     _login_license_warning_button_locator = (By.ID, 'alert2_ok_btn')
 
@@ -22,14 +19,6 @@ class Login_Page(Base):
 
     username = property(input_getter(_locators['username']), input_setter(_locators['username']))
     password = property(input_getter(_locators['password']), input_setter(_locators['password']))
-
-    def click_save(self):
-        self.get_visible_element(*self._save_btn_locator).click()
-        return Organizations_Page(self.testsetup)
-
-    def click_reset(self):
-        self.get_visible_element(*self._reset_btn_locator).click()
-        return Organizations_Page(self.testsetup)
 
     @property
     def is_the_current_page(self):
@@ -52,11 +41,6 @@ class Login_Page(Base):
     def press_enter_on_login_button(self):
         self.login_btn.send_keys(Keys.RETURN)
 
-    def click_on_login_and_send_window_size(self):
-        self.login_btn.click()
-        driver = self.login_btn.parent
-        driver.execute_script("""miqResetSizeTimer();""")
-
     def login(self, user='default'):
         return self.login_with_mouse_click(user)
         # return self.login_with_enter_key(user)
@@ -67,22 +51,19 @@ class Login_Page(Base):
     def login_with_mouse_click(self, user='default'):
         return self.__do_login(self.click_on_login_button, user)
 
-    def login_and_send_window_size(self, user='default'):
-        return self.__do_login(self.click_on_login_and_send_window_size, user)
-
     def __do_login(self, login_method, user='default'):
         '''
         login to the application using the specified 'login_method'
         '''
         # Wait for "busy" throbber to go away
-        self._wait_for_results_refresh()
+        self.wait_for_spinny()
 
         self.__set_login_fields(user)
         # Submit field (click submit, press <enter> etc...)
         login_method()
 
         # Wait for "busy" throbber to go away
-        self._wait_for_results_refresh()
+        self.wait_for_spinny()
 
         # FIXME - Acknowledge license warning dialog
         # try:
@@ -91,13 +72,13 @@ class Login_Page(Base):
         #     pass
 
         # Wait for "busy" throbber to go away
-        # self._wait_for_results_refresh()
+        # self.wait_for_spinny()
 
         # FIXME - This should return the correct redirected page
         from dashboard import Dashboard
         return Dashboard(self.testsetup)
 
     def __set_login_fields(self, user='default'):
-        credentials = self.testsetup.credentials[user]
+        credentials = self.testsetup.credentials['users'][user]
         self.username = credentials['username']
         self.password = credentials['password']

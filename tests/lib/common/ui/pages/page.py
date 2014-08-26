@@ -1,114 +1,223 @@
 import time
+import logging
+import urlparse
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import ElementNotVisibleException
+from selenium.common.exceptions import NoSuchElementException, ElementNotVisibleException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import Select
 from unittestzero import Assert
+
+
+log = logging.getLogger(__name__)
+
 
 class Page(object):
     '''
     Base class for all Pages
     '''
-    _updating_locator = (By.CSS_SELECTOR, "div.spinny")
-    _current_tab_locator = (By.CSS_SELECTOR, "#ansible-main-menu > li.active")
+    _spinny_locator = (By.CSS_SELECTOR, "div.spinny")
+    _logo_locator = (By.CSS_SELECTOR, "#ansible-brand-logo")
 
-    def __init__(self, testsetup, root=None):
+    def __init__(self, testsetup):
         self.testsetup = testsetup
         self.base_url = testsetup.base_url
         self.selenium = testsetup.selenium
         self.timeout = testsetup.timeout
-        if root is not None:
-            self._root_element = root
+        self._selenium_root = hasattr(self, '_root_element') and self._root_element or self.selenium
 
-    def _wait_for_results_refresh(self):
-        # Allow 400ms for the 'Working...' dialog to appear
+    def wait_for_spinny(self):
+        '''Wait for the 'Working...' spinner to disappear'''
+        # Wait for spinner to appear
         time.sleep(0.5)
-        # On pages that do not have ajax refresh this wait will have no effect.
-        WebDriverWait(self.selenium, self.timeout).until(
-            lambda s: not self.is_element_visible(*self._updating_locator))
+        # WebDriverWait(self.selenium, 1).until(lambda s: s.find_element(*self._spinny_locator).is_displayed())
 
-    def _wait_for_visible_element(self, *locator):
-        # Used in forms where an element (submit button) is displayed after ajax
-        # validation is done, this validation request doesn't use the common
-        # notification loadmask so _wait_for_results_refresh can't be used.
-        # On pages that do not have ajax refresh this wait will have no effect.
-        WebDriverWait(self.selenium, self.timeout).until(
-            lambda s: self.is_element_visible(*locator))
+        # Wait for spinner to disappear
+        WebDriverWait(self.selenium, self.timeout).until(lambda s: not s.find_element(*self._spinny_locator).is_displayed())
+
+    def open(self, url_fragment=""):
+        '''Open the specified url_fragment, which is relative to the base_url, in the current window.'''
+        self.selenium.get(self.base_url + url_fragment)
+        self.is_the_current_page
+
+    def back(self):
+        '''Simulate clicking the browser 'Back' button'''
+        self.selenium.back()
 
     @property
-    def is_the_current_tab(self):
-        current_tab = self.get_current_tab()
-        if self._tab_title:
-            Assert.equal(current_tab.text, self._tab_title,  # IGNORE:E1101
-                         "Expected tab title: %s. Actual tab title: %s" %
-                         (self._tab_title, current_tab.text))  # IGNORE:E1101
-        return True
+    def page_title(self):
+        """
+        Return the page title from Selenium.
+        This is different from _page_title,
+        which is defined for a specific page object and is the expected title of the page.
+        """
+        WebDriverWait(self.selenium, self.timeout).until(lambda s: self.selenium.title)
+        return self.selenium.title
 
     @property
     def is_the_current_page(self):
+        """Return true if the actual page title matches the expected title stored in _page_title."""
         if self._page_title:  # IGNORE:E1101
-            WebDriverWait(self.selenium, self.timeout).until(
-                lambda s: self.selenium.title)
-
-        Assert.equal(self.selenium.title, self._page_title,  # IGNORE:E1101
-                     "Expected page title: %s. Actual page title: %s" %
-                     (self._page_title, self.selenium.title))  # IGNORE:E1101
+            Assert.equal(self.page_title, self._page_title,  # IGNORE:E1101
+                         "Actual page title: %s. Expected page title: %s" %
+                         (self.page_title, self._page_title))  # IGNORE:E1101
         return True
 
-    def get_current_tab(self):
-        return self.selenium.find_element(*self._current_tab_locator)
-
-    def get_url_current_page(self):
-        WebDriverWait(self.selenium, self.timeout).until(
-            lambda s: self.selenium.title)
+    def get_current_page_url(self):
+        '''Return the current selenium URL'''
         return self.selenium.current_url
 
-    def get_context_current_page(self):
-        url = self.get_url_current_page()
-        stripped = url.lstrip('https://')
-        return stripped[stripped.find('/'):stripped.rfind('?')]
+    def get_current_page_path(self):
+        '''Return the path from the current selenium URL'''
+        url = self.get_current_page_url()
+        path = urlparse.urlparse(url, allow_fragments=False).path
+        if path.startswith('/#/'):
+            path = path[2:]
+        return path
 
     def is_element_present(self, *locator):
+        """
+        Return true if the element at the specified locator is present in the DOM.
+        Note: It returns false immediately if the element is not found.
+        """
         self.selenium.implicitly_wait(0)
         try:
-            self.selenium.find_element(*locator)
+            self._selenium_root.find_element(*locator)
             return True
         except NoSuchElementException:
             return False
         finally:
-            # set back to where you once belonged
+            # set the implicit wait back
             self.selenium.implicitly_wait(self.testsetup.default_implicit_wait)
 
     def is_element_visible(self, *locator):
+        """
+        Return true if the element at the specified locator is visible in the browser.
+        Note: It uses an implicit wait if it cannot find the element immediately.
+        """
+        try:
+            return self._selenium_root.find_element(*locator).is_displayed()
+        except (NoSuchElementException, ElementNotVisibleException):
+            return False
+
+    def is_element_not_visible(self, *locator):
+        """
+        Return true if the element at the specified locator is not visible in the browser.
+        Note: It returns true immediately if the element is not found.
+        """
+        self.selenium.implicitly_wait(0)
+        try:
+            return not self._selenium_root.find_element(*locator).is_displayed()
+        except (NoSuchElementException, ElementNotVisibleException):
+            return True
+        finally:
+            # set the implicit wait back
+            self.selenium.implicitly_wait(self.testsetup.default_implicit_wait)
+
+    def wait_for_element_present(self, *locator):
+        """Wait for the element at the specified locator to be present in the DOM."""
+        count = 0
+        while not self.is_element_present(*locator):
+            time.sleep(1)
+            count += 1
+            if count == self.timeout:
+                raise Exception(locator[1] + ' has not loaded')
+
+    def wait_for_element_visible(self, *locator):
+        """Wait for the element at the specified locator to be visible in the browser."""
+        count = 0
+        while not self.is_element_visible(*locator):
+            time.sleep(1)
+            count += 1
+            if count == self.timeout:
+                raise Exception(locator[1] + " is not visible")
+
+    def wait_for_element_not_present(self, *locator):
+        """Wait for the element at the specified locator to be not present in the DOM."""
+        self.selenium.implicitly_wait(0)
+        try:
+            WebDriverWait(self.selenium, self.timeout).until(lambda s: len(self.find_elements(*locator)) < 1)
+            return True
+        except TimeoutException:
+            Assert.fail(TimeoutException)
+        finally:
+            self.selenium.implicitly_wait(self.testsetup.default_implicit_wait)
+
+    def wait_for_element_not_visible(self, *locator):
+        """Wait for the element at the specified locator to be not visible in the DOM."""
+        self.selenium.implicitly_wait(0)
+        try:
+            WebDriverWait(self.selenium, self.timeout).until(lambda s: not self.is_element_visible(*locator))
+            return True
+        except TimeoutException:
+            Assert.fail(TimeoutException)
+        finally:
+            self.selenium.implicitly_wait(self.testsetup.default_implicit_wait)
+
+    def find_element(self, *locator):
+        """Return the element at the specified locator."""
+        return self._selenium_root.find_element(*locator)
+
+    def find_elements(self, *locator):
+        """Return a list of elements at the specified locator."""
+        return self._selenium_root.find_elements(*locator)
+
+    def link_destination(self, locator):
+        """Return the href attribute of the element at the specified locator."""
+        link = self.find_element(*locator)
+        return link.get_attribute('href')
+
+    def image_source(self, locator):
+        """Return the src attribute of the element at the specified locator."""
+        link = self.find_element(*locator)
+        return link.get_attribute('src')
+
+    def OLD_is_element_present(self, *locator):
+        """
+        Return true if the element at the specified locator is present in the DOM.
+        Note: It returns false immediately if the element is not found.
+        """
+        self.selenium.implicitly_wait(0)
+        try:
+            self._selenium_root.find_element(*locator)
+            return True
+        except NoSuchElementException:
+            return False
+        finally:
+            # restore the implicit wait time
+            self.selenium.implicitly_wait(self.testsetup.default_implicit_wait)
+
+    def OLD_is_element_visible(self, *locator):
+        """
+        Return true if the element at the specified locator is visible in the browser.
+        Note: It uses an implicit wait if it cannot find the element immediately.
+        """
+        try:
+            return self._selenium_root.find_element(*locator).is_displayed()
+        except (NoSuchElementException, ElementNotVisibleException):
+            return False
+
+        self.selenium.implicitly_wait(0)
         try:
             for el in self.selenium.find_elements(*locator):
                 if el.is_displayed():
                     return True
-        except NoSuchElementException, ElementNotVisibleException:
+        except (NoSuchElementException, ElementNotVisibleException):
             return False
-        else:
+        finally:
+            # set back to where you once belonged
+            self.selenium.implicitly_wait(self.testsetup.default_implicit_wait)
             return False
 
-    def get_visible_element(self, *locator):
-        for el in self.selenium.find_elements(*locator):
+    def find_visible_element(self, *locator):
+        '''FIXME'''
+        for el in self.find_elements(*locator):
             if el.is_displayed():
                 return el
         raise NoSuchElementException('element not found: %s' % str(locator))
 
-    def get_visible_elements(self, *locator):
-        result = list()
-        for el in self.selenium.find_elements(*locator):
-            if el.is_displayed():
-                result.append(el)
-        return result
-
-    def get_element(self, *element):
-        return self.selenium.find_element(*element)
-
-    def return_to_previous_page(self):
-        self.selenium.back()
+    def find_visible_elements(self, *locator):
+        '''FIXME'''
+        return [el for el in self.find_elements(*locator) if el.is_displayed()]
 
     def handle_popup(self, cancel=False):
         wait = WebDriverWait(self.selenium, self.timeout)
@@ -119,38 +228,22 @@ class Page(object):
         print popup.text + " ...clicking " + answer
         popup.dismiss() if cancel else popup.accept()
 
-    def fill_field_element_with_wait(self, data, field_element):
-        field_element = self.fill_field_element(data, field_element)
-        # Stupid wait for ajax interval
-        time.sleep(2)
-        return field_element
 
-    def fill_field_element_clears_text(self, data, field_element):
-        '''Fill field with workaround for javascript clearing behavior'''
-        field_element.click()
-        time.sleep(1)
-        field_element.clear()
-        field_element.send_keys(data)
+class PageRegion(Page):
+    """Base class for a page region (generally an element in a list of elements)."""
 
-    def fill_field_element(self, data, field_element):
-        field_element.clear()
-        field_element.send_keys(data)
-        return field_element
+    def __init__(self, testsetup, element=None, locator=None):
+        '''Initialize the region using a provided element, or locator'''
+        if element is not None:
+            self._root_element = element
+        else:
+            if locator is None:
+                locator = getattr(self, '_root_locator', None)
+            if locator is not None:
+                self._root_element = testsetup.selenium.find_element(*locator)
 
-    def fill_field_by_locator(self, data, *locator):
-        field_element = self.get_element(*locator)
-        self.fill_field_element(data, field_element)
-        return field_element
+        super(PageRegion, self).__init__(testsetup)
 
-    def fill_field_by_locator_with_wait(self, data, *locator):
-        field_element = self.get_element(*locator)
-        self.fill_field_element_with_wait(data, field_element)
-        return field_element
-
-    def select_dropdown(self, value, *element):
-        select = Select(self.selenium.find_element(*element))
-        select.select_by_visible_text(value)
-
-    def select_dropdown_by_value(self, value, *element):
-        select = Select(self.selenium.find_element(*element))
-        select.select_by_value(value)
+    def is_displayed(self):
+        '''Return true if the _root_element is currently visible'''
+        return self._root_element.is_displayed()
