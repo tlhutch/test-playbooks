@@ -37,9 +37,12 @@ def _pytest_plugins_generator(*extension_pkgs):
 
 
 # Automatically import plugins
-pytest_plugins = tuple(_pytest_plugins_generator(fixtures, markers, plugins))
+pytest_plugins = tuple(_pytest_plugins_generator(fixtures, markers, plugins, fixtures.api, fixtures.ui))
 
 
 # Manually add other plugins
 # TODO: this should be magically imported
-pytest_plugins += ('plugins.pytest_restqa.pytest_restqa', 'fixtures.api', 'fixtures.ui')
+pytest_plugins += (plugins.pytest_restqa.pytest_restqa.__name__,)
+pytest_plugins += (fixtures.api.__name__,)
+pytest_plugins += (fixtures.ui.__name__,)
+
