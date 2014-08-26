@@ -7,8 +7,7 @@
 import os
 import sys
 import pkgutil
-import pytest
-import inspect
+
 
 # Add tests/lib directory to path
 conftest_dir = os.path.dirname(__file__)
@@ -16,12 +15,18 @@ lib_dir = os.path.join(conftest_dir, 'lib')
 if os.path.isdir(lib_dir):
     sys.path.insert(0, lib_dir)
 
+
 import plugins
-import fixtures
+import plugins.pytest_restqa
 import markers
+import fixtures
+import fixtures.api
+import fixtures.ui
+
 
 # Load any plugins, fixtures and markers
 def _pytest_plugins_generator(*extension_pkgs):
+    print(extension_pkgs)
     # Finds all submodules in pytest extension packages and loads them
     for extension_pkg in extension_pkgs:
         path = extension_pkg.__path__
@@ -30,12 +35,11 @@ def _pytest_plugins_generator(*extension_pkgs):
             if not is_package:
                 yield modname
 
+
+# Automatically import plugins
 pytest_plugins = tuple(_pytest_plugins_generator(fixtures, markers, plugins))
 
-# Include plugins/pytest_restqa
-import plugins.pytest_restqa
-pytest_plugins += tuple(_pytest_plugins_generator(plugins.pytest_restqa))
 
-# Include fixtures.api
-import fixtures.api
-pytest_plugins += tuple(_pytest_plugins_generator(fixtures.api))
+# Manually add other plugins
+# TODO: this should be magically imported
+pytest_plugins += ('plugins.pytest_restqa.pytest_restqa', 'fixtures.api', 'fixtures.ui')
