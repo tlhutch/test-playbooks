@@ -82,7 +82,7 @@ class Base(Page):
         self.selenium.execute_script(script)
 
     @property
-    def is_on_dashboard_page(self):
+    def is_the_dashboard_page(self):
         '''Return whether the currently loaded page is the dashboard page'''
         return self.get_current_page_path().startswith('/home')
 
@@ -106,7 +106,7 @@ class Base(Page):
             active_tab = None
 
         # if no selected tab, is dashboard page active
-        if active_tab is None and self.is_on_dashboard_page:
+        if active_tab is None and self.is_the_dashboard_page:
             active_tab = "Home"
 
         assert self._tab_title == active_tab, \
