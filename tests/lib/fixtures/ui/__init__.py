@@ -19,7 +19,10 @@ def home_page_logged_in(ui_login_pg):
 @pytest.fixture
 def ui_dashboard_pg(home_page_logged_in):
     '''Navigate to the Organizations tab and return it'''
-    return home_page_logged_in.main_menu.click('Home')
+    if home_page_logged_in.is_the_dashboard_page:
+        return home_page_logged_in
+    else:
+        return home_page_logged_in.main_menu.click('Home')
 
 @pytest.fixture
 def ui_organizations_pg(home_page_logged_in):
