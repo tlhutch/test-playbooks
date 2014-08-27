@@ -49,3 +49,18 @@ class Activity_Stream_Region(BaseRegion):
         self.close_button.click()
         self.wait_for_slideout()
         return self._parent_object(self.testsetup)
+
+
+class Activity_Stream_Button(BaseRegion):
+    '''Region describing the activity stream button'''
+    _root_locator = (By.CSS_SELECTOR, '#stream_btn')
+    _item_class = None  # provided by caller (must be a subclass of Activity_Stream_Region)
+
+    def is_displayed(self):
+        return self._root_element.is_displayed()
+
+    def click(self):
+        self._root_element.click()
+        obj = self._item_class(self.testsetup)
+        obj.wait_for_slidein()
+        return obj
