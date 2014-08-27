@@ -18,10 +18,8 @@ class Test_Organization(Base_UI_Test):
 
     def test_activity_stream(self, ui_organizations_pg):
         '''Verify that the organization activity stream can be open and closed'''
-        assert ui_organizations_pg.has_activity_stream_button, "Unable to locate activity stream button"
-
         # Open activity_stream
-        orgs_activity_pg = ui_organizations_pg.click_activity_stream()
+        orgs_activity_pg = ui_organizations_pg.activity_stream_btn.click()
         assert orgs_activity_pg.is_the_active_tab
         assert orgs_activity_pg.is_the_active_breadcrumb
 
@@ -49,3 +47,42 @@ class Test_Organization(Base_UI_Test):
         add_pg.click_reset()
         assert add_pg.name == "", "Reset button did not reset the field: name"
         assert add_pg.description == "", "Reset button did not reset the field: description"
+
+    def test_accordions(self, ui_organizations_pg, organization):
+        '''Verify the organiation accordions behave properly'''
+        # Open edit page
+        edit_pg = ui_organizations_pg.open(organization.id)
+        assert edit_pg.is_the_active_tab
+        assert edit_pg.is_the_active_breadcrumb
+
+        # Assert default collapsed accordions
+        assert edit_pg.accordion.get('Properties')[0].is_expanded(), "The properties accordion was not expanded as expected"
+        assert edit_pg.accordion.get('Users')[0].is_collapsed(), "The users accordion was not collapsed as expected"
+        assert edit_pg.accordion.get('Administrators')[0].is_collapsed(), "The administrators accordion was not collapsed as expected"
+
+        # Expand the Users accordion
+        edit_pg.accordion.get('Users')[0].expand()
+        assert edit_pg.accordion.get('Properties')[0].is_collapsed(), "The properties accordion was not collapse as expected"
+        assert edit_pg.accordion.get('Users')[0].is_expanded(), "The users accordion was not expand as expected"
+        assert edit_pg.accordion.get('Administrators')[0].is_collapsed(), "The administrators accordion was not collapse as expected"
+
+        # Re-open edit page and verify accordion memory
+        edit_pg = ui_organizations_pg.open(organization.id)
+        assert edit_pg.is_the_active_tab
+        assert edit_pg.accordion.get('Properties')[0].is_collapsed(), "The properties accordion was not collapse as expected"
+        assert edit_pg.accordion.get('Users')[0].is_expanded(), "The users accordion was not expand as expected"
+        assert edit_pg.accordion.get('Administrators')[0].is_collapsed(), "The administrators accordion was not collapse as expected"
+
+    def test_edit(self, ui_organizations_pg, organization):
+        '''Verify basic organiation form fields when editing an organization'''
+        edit_pg = ui_organizations_pg.open(organization.id)
+        assert edit_pg.is_the_active_tab
+        assert edit_pg.is_the_active_breadcrumb
+
+        # Access the edit region
+        edit_region = edit_pg.accordion.get('Properties')[1]
+
+        # Inspect Edit form
+        edit_region.name = common.utils.random_unicode()
+        edit_region.click_reset()
+        assert edit_region.name == organization.name, "The reset button did not work (%s != %s)" % (edit_region.name, organization.name)
