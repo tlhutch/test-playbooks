@@ -1,34 +1,20 @@
 import base
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
-from common.ui.pages.regions.stream_container import Activity_Stream_Region
+from common.ui.pages.regions.stream_container import Activity_Stream_Region, Activity_Stream_Button
 
 
 class Dashboard(base.Base):
     '''FIXME'''
     _tab_title = "Home"
-    _activity_stream_button_locator = (By.CSS_SELECTOR, '#stream_btn')
     _job_status_graph_locator = (By.CSS_SELECTOR, '#dash-job-status-graph')
     _host_status_graph_locator = (By.CSS_SELECTOR, '#dash-host-status-graph')
     _jobs_list_locator = (By.CSS_SELECTOR, '#dash-jobs-list')
     _host_count_graph_locator = (By.CSS_SELECTOR, '#dash-host-count-graph')
 
     @property
-    def activity_stream_button(self):
-        return self.find_visible_element(*self._activity_stream_button_locator)
-
-    @property
-    def has_activity_stream_button(self):
-        try:
-            return self.activity_stream_button.is_displayed()
-        except NoSuchElementException:
-            return False
-
-    def click_activity_stream(self):
-        self.activity_stream_button.click()
-        obj = Dashboard_Activity_Page(self.testsetup)
-        obj.wait_for_slidein()
-        return obj
+    def activity_stream_btn(self):
+        return Activity_Stream_Button(self.testsetup, _item_class=Dashboard_Activity_Page)
 
     @property
     def job_status_graph(self):

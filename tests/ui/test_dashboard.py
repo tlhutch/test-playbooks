@@ -12,7 +12,7 @@ class Test_Dashboard(Base_UI_Test):
         '''Verify basic page layout'''
         assert ui_dashboard_pg.is_the_active_tab, "Expecting the dashboard page"
 
-        assert ui_dashboard_pg.has_activity_stream_button, "Unable to locate activity stream button"
+        assert ui_dashboard_pg.activity_stream_btn, "Unable to locate activity stream button"
 
         assert ui_dashboard_pg.has_job_status_graph, "Unable to locate job status graph"
         assert ui_dashboard_pg.has_host_status_graph, "Unable to locate host status graph"
@@ -32,10 +32,10 @@ class Test_Dashboard(Base_UI_Test):
 
     def test_activity_stream(self, ui_dashboard_pg):
         '''Verify that the activity stream can be open and closed'''
-        assert ui_dashboard_pg.has_activity_stream_button, "Unable to locate activity stream button"
+        assert ui_dashboard_pg.activity_stream_btn, "Unable to locate activity stream button"
 
         # Open activity_stream
-        activity_pg = ui_dashboard_pg.click_activity_stream()
+        activity_pg = ui_dashboard_pg.activity_stream_btn.click()
         assert activity_pg.is_the_active_tab
         assert activity_pg.is_the_active_breadcrumb
 
