@@ -18,12 +18,14 @@ class Page(object):
     _spinny_locator = (By.CSS_SELECTOR, "div.spinny")
     _logo_locator = (By.CSS_SELECTOR, "#ansible-brand-logo")
 
-    def __init__(self, testsetup):
+    def __init__(self, testsetup, **kwargs):
         self.testsetup = testsetup
         self.base_url = testsetup.base_url
         self.selenium = testsetup.selenium
         self.timeout = testsetup.timeout
         self._selenium_root = hasattr(self, '_root_element') and self._root_element or self.selenium
+        if '_breadcrumb_title' in kwargs:
+            self._breadcrumb_title = kwargs['_breadcrumb_title']
 
     def wait_for_spinny(self):
         '''Wait for the 'Working...' spinner to disappear'''
@@ -56,7 +58,7 @@ class Page(object):
     @property
     def is_the_current_page(self):
         """Return true if the actual page title matches the expected title stored in _page_title."""
-        if self._page_title:  # IGNORE:E1101
+        if hasattr(self, '_page_title') and self._page_title:  # IGNORE:E1101
             Assert.equal(self.page_title, self._page_title,  # IGNORE:E1101
                          "Actual page title: %s. Expected page title: %s" %
                          (self.page_title, self._page_title))  # IGNORE:E1101
@@ -171,43 +173,6 @@ class Page(object):
         link = self.find_element(*locator)
         return link.get_attribute('src')
 
-    def OLD_is_element_present(self, *locator):
-        """
-        Return true if the element at the specified locator is present in the DOM.
-        Note: It returns false immediately if the element is not found.
-        """
-        self.selenium.implicitly_wait(0)
-        try:
-            self._selenium_root.find_element(*locator)
-            return True
-        except NoSuchElementException:
-            return False
-        finally:
-            # restore the implicit wait time
-            self.selenium.implicitly_wait(self.testsetup.default_implicit_wait)
-
-    def OLD_is_element_visible(self, *locator):
-        """
-        Return true if the element at the specified locator is visible in the browser.
-        Note: It uses an implicit wait if it cannot find the element immediately.
-        """
-        try:
-            return self._selenium_root.find_element(*locator).is_displayed()
-        except (NoSuchElementException, ElementNotVisibleException):
-            return False
-
-        self.selenium.implicitly_wait(0)
-        try:
-            for el in self.selenium.find_elements(*locator):
-                if el.is_displayed():
-                    return True
-        except (NoSuchElementException, ElementNotVisibleException):
-            return False
-        finally:
-            # set back to where you once belonged
-            self.selenium.implicitly_wait(self.testsetup.default_implicit_wait)
-            return False
-
     def find_visible_element(self, *locator):
         '''FIXME'''
         for el in self.find_elements(*locator):
@@ -232,15 +197,19 @@ class Page(object):
 class PageRegion(Page):
     """Base class for a page region (generally an element in a list of elements)."""
 
-    def __init__(self, testsetup, element=None, locator=None):
-        '''Initialize the region using a provided element, or locator'''
-        if element is not None:
-            self._root_element = element
-        else:
+    def __init__(self, testsetup, **kwargs):
+        '''Initialize the region using a provided _root_element, or _root_locator'''
+
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+        if not hasattr(self, '_root_element') or self._root_element is None:
+            '''if _root_element was not provided, lookup using _root_locator'''
+            locator = kwargs.get('_root_locator', getattr(self, '_root_locator', None))
             if locator is None:
-                locator = getattr(self, '_root_locator', None)
-            if locator is not None:
-                self._root_element = testsetup.selenium.find_element(*locator)
+                raise Exception("No _root_element or _root_locator provided")
+            # NOTE: We cannot use 'Page.find_element()' as it's not yet initialized
+            self._root_element = testsetup.selenium.find_element(*locator)
 
         super(PageRegion, self).__init__(testsetup)
 
