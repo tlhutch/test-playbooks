@@ -1,9 +1,6 @@
 import logging
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.by import By
 from common.ui.pages import Page, PageRegion
-from unittestzero import Assert
 
 
 log = logging.getLogger(__name__)
@@ -14,6 +11,7 @@ class Base(Page):
     Base class for Tower UI pages
     '''
 
+    _page_title = 'Ansible Tower'
     _breadcrumb_title = 'UNDEFINED'
 
     def go_to_login_page(self):
@@ -55,7 +53,12 @@ class Base(Page):
 
     @property
     def is_the_active_breadcrumb(self):
-        return self.has_breadcrumb and self._breadcrumb_title == self.breadcrumb.active_crumb
+        assert self.has_breadcrumb, "No breadcrumb visible"
+        assert self._breadcrumb_title == self.breadcrumb.active_crumb, \
+            "Expected breadcrumb title: %s. Actual breadcrumb title: %s" % \
+            (self._breadcrumb_title, self.breadcrumb.active_crumb)  # IGNORE:E1101
+
+        return True
 
     @property
     def csrf_token(self):
@@ -106,9 +109,9 @@ class Base(Page):
         if active_tab is None and self.is_on_dashboard_page:
             active_tab = "Home"
 
-        Assert.equal(self._tab_title, active_tab,  # IGNORE:E1101
-                     "Expected tab title: %s. Actual tab title: %s" %
-                     (self._tab_title, active_tab))  # IGNORE:E1101
+        assert self._tab_title == active_tab, \
+            "Expected tab title: %s. Actual tab title: %s" % \
+            (self._tab_title, active_tab)
 
         return True
 
