@@ -46,7 +46,6 @@ class Accordion_Content(BaseRegion):
 
 class Accordion_Header(BaseRegion):
     _root_locator = None  # Set by caller
-    _item_locator = (By.CLASS_NAME, 'ui-accordion-header')
     _icon_locator = (By.CLASS_NAME, 'ui-accordion-header-icon')
 
     def expand(self):
