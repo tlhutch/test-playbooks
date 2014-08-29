@@ -8,7 +8,7 @@ def input_getter(locator):
     Generic property fget method
     '''
     def get_field(self):
-        return self.find_visible_element(*locator).get_attribute('value')
+        return self.find_element(*locator).get_attribute('value')
     return get_field
 
 
@@ -17,7 +17,7 @@ def input_setter(locator):
     Generic property fset method
     '''
     def set_field(self, value):
-        el = self.find_visible_element(*locator)
+        el = self.find_element(*locator)
         el.clear()
         el.send_keys(value)
     return set_field
