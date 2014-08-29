@@ -14,10 +14,6 @@ class Activity_Stream_Region(BaseRegion):
         return Activity_Stream_Refresh_Button(self.testsetup, _click_post=self.wait_for_spinny)
 
     @property
-    def click_refresh(self):
-        self.find_element(*(By.CSS_SELECTOR, '#refresh_btn')).click()
-
-    @property
     def close_btn(self):
         return Close_Button(self.testsetup, _item_class=self._item_class, _click_post=self.wait_for_slideout)
 
