@@ -1,11 +1,12 @@
-import base
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
-from common.ui.pages.regions.stream_container import Activity_Stream_Region, Activity_Stream_Button
+from common.ui.pages import Base
+from common.ui.pages.regions.stream_container import Activity_Stream_Region
+from common.ui.pages.regions.buttons import Activity_Stream_Button
 
 
-class Dashboard(base.Base):
-    '''FIXME'''
+class Dashboard_Page(Base):
+    '''Describe the Home dashboard page'''
     _tab_title = "Home"
     _job_status_graph_locator = (By.CSS_SELECTOR, '#dash-job-status-graph')
     _host_status_graph_locator = (By.CSS_SELECTOR, '#dash-host-status-graph')
@@ -64,4 +65,4 @@ class Dashboard(base.Base):
 class Dashboard_Activity_Page(Activity_Stream_Region):
     '''Dashboard Activity Stream page'''
     _tab_title = "Home"
-    _parent_object = Dashboard
+    _item_class = Dashboard_Page

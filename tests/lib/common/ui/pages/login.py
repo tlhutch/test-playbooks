@@ -75,8 +75,8 @@ class Login_Page(Base):
         # self.wait_for_spinny()
 
         # FIXME - This should return the correct redirected page
-        from dashboard import Dashboard
-        return Dashboard(self.testsetup)
+        from dashboard import Dashboard_Page
+        return Dashboard_Page(self.testsetup)
 
     def __set_login_fields(self, user='default'):
         credentials = self.testsetup.credentials['users'][user]

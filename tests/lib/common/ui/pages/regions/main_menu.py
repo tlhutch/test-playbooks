@@ -8,7 +8,7 @@ class Main_Menu(PageRegion):
     _root_locator = (By.CSS_SELECTOR, '#ansible-main-menu')
     _item_locator = (By.CSS_SELECTOR, 'a')
     _logo_locator = (By.CSS_SELECTOR, '#ansible-brand-logo')
-    _item_to_page = {"Home": Dashboard,
+    _item_to_page = {"Home": Dashboard_Page,
                      "Organizations": Organizations_Page,
                      "Users": Users,
                      "Teams": Teams,
