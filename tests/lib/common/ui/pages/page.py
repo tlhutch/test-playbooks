@@ -208,8 +208,10 @@ class PageRegion(Page):
             locator = kwargs.get('_root_locator', getattr(self, '_root_locator', None))
             if locator is None:
                 raise Exception("No _root_element or _root_locator provided")
-            # NOTE: We cannot use 'Page.find_element()' as it's not yet initialized
-            self._root_element = testsetup.selenium.find_element(*locator)
+            # NOTE: We cannot use 'Page.find_element()' as 'self._selenium_root' is not yet initialized
+            # The following works fine, unless there are multiple matching elements
+            # self._root_element = testsetup.selenium.find_element(*locator)
+            self._root_element = [el for el in testsetup.selenium.find_elements(*locator) if el.is_displayed()][0]
 
         super(PageRegion, self).__init__(testsetup)
 
