@@ -40,8 +40,8 @@ class Test_Dashboard(Base_UI_Test):
         assert activity_pg.is_the_active_breadcrumb
 
         # Refresh activity_stream
-        activity_pg.click_refresh()
+        activity_pg.refresh_btn.click()
 
         # Close activity_stream
-        ui_dashboard_pg = activity_pg.click_close()
+        ui_dashboard_pg = activity_pg.close_btn.click()
         assert ui_dashboard_pg.is_the_active_tab, "Expecting the dashboard page"
