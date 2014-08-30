@@ -233,6 +233,7 @@ class Test_No_License(Base_Api_Test):
         assert result['stat']['exists'], "A license was not succesfully installed to /etc/awx/license. %s"
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_AWS_License(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_aws')
@@ -306,6 +307,7 @@ class Test_AWS_License(Base_Api_Test):
             % json.dumps(conf.json, indent=4)
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_License(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license')
@@ -349,6 +351,7 @@ class Test_License(Base_Api_Test):
             assert 'license_key' not in conf.license_info
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_License_Warning(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_warning')
@@ -389,6 +392,7 @@ class Test_License_Warning(Base_Api_Test):
         assert before_md5 != after_md5, "The license file was not modified as expected"
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_License_Grace_Period(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_grace_period')
@@ -435,6 +439,7 @@ class Test_License_Grace_Period(Base_Api_Test):
             job_template.launch_job()
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_License_Expired(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_expired')
@@ -489,6 +494,7 @@ class Test_License_Expired(Base_Api_Test):
         assert before_md5 != after_md5, "The license file was not modified as expected"
 
 
+@pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_Trial_License(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_trial_license')

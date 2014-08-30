@@ -225,7 +225,6 @@ class Test_Project_Schedules(Base_Api_Test):
 
         schedule_pg = schedules_pg.results[0]
         # change description
-        old_desc = schedule_pg.description
         new_desc = common.utils.random_unicode()
         schedule_pg.description = new_desc
         # PUT changes
@@ -241,7 +240,6 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedules_pg.count > 0
 
         schedule_pg = schedules_pg.results[0]
-        old_desc = schedule_pg.description
         new_desc = common.utils.random_unicode()
         # PATCH changes
         schedule_pg.patch(description=new_desc)
@@ -418,6 +416,8 @@ class Test_Project_Schedules(Base_Api_Test):
         remaining_schedules = api_schedules_pg.get(id__in=','.join([str(sid) for sid in schedule_ids]))
         assert remaining_schedules.count == 0
 
+
+@pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000')
@@ -553,7 +553,6 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
         schedule_pg = schedules_pg.results[0]
         # change description
-        old_desc = schedule_pg.description
         new_desc = common.utils.random_unicode()
         schedule_pg.description = new_desc
         # PUT changes
@@ -569,7 +568,6 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedules_pg.count > 0
 
         schedule_pg = schedules_pg.results[0]
-        old_desc = schedule_pg.description
         new_desc = common.utils.random_unicode()
         # PATCH changes
         schedule_pg.patch(description=new_desc)
