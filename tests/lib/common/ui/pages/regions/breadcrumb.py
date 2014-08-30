@@ -2,10 +2,8 @@ from selenium.webdriver.common.by import By
 from common.ui.pages import PageRegion
 
 
-class BreadCrumb(PageRegion):
-    """
-    Describes page breadcrumbs
-    """
+class Breadcrumb_Region(PageRegion):
+    '''Describes the breadcrumb region'''
 
     _root_locator = (By.CSS_SELECTOR, 'ul.ansible-breadcrumb')
     _item_locator = (By.CSS_SELECTOR, 'a')
@@ -15,12 +13,11 @@ class BreadCrumb(PageRegion):
     def active_crumb(self):
         return self.find_element(*self._active_breadcrumb_locator).get_attribute('text')
 
-    @property
-    def items(self):
-        return dict((el.get_attribute('text'), el) for el in self.find_elements(*self._item_locator))
+    def get(self, name):
+        for el in self.items():
+            if el.get_attribute('text') == name:
+                return el
+        raise Exception("Breadcrumb named '%s' not found" % name)
 
-    def click(self, name):
-        if name in self.items:
-            self.items[name].click()
-        else:
-            raise Exception("Breadcrumb named '%s' not found" % name)
+    def items(self):
+        return self.find_elements(*self._item_locator)

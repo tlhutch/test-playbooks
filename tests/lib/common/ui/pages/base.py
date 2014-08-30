@@ -44,8 +44,8 @@ class Base(Page):
 
     @property
     def breadcrumb(self):
-        from common.ui.pages.regions.breadcrumb import BreadCrumb
-        return BreadCrumb(self.testsetup)
+        from common.ui.pages.regions.breadcrumb import Breadcrumb_Region
+        return Breadcrumb_Region(self.testsetup)
 
     @property
     def has_breadcrumb(self):

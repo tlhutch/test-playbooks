@@ -3,11 +3,23 @@ from selenium.webdriver.common.action_chains import ActionChains
 from common.ui.pages import *
 
 
+class Table_Region(PageRegion):
+    '''Represents a table list region'''
+    _item_locator = (By.CSS_SELECTOR, "tr")
+
+    def get(self, name):
+        return None
+
+    def items(self):
+        '''Returns a list of items represented by _item_cls'''
+        return [self._item_cls(self.testsetup, web_element)
+                for web_element in self._root_element.find_elements(*self._items_locator)]
+
+
 class ListRegion(PageRegion):
     '''Represents a table list region'''
     _items_locator = (By.CSS_SELECTOR, "tr")
 
-    @property
     def items(self):
         '''Returns a list of items represented by _item_cls'''
         return [self._item_cls(self.testsetup, web_element)

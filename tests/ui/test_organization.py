@@ -95,15 +95,23 @@ class Test_Organization(Base_UI_Test):
         assert edit_region.name == organization.name, "The reset button did not restore the 'name' (%s != %s)" % (edit_region.name, organization.name)
         assert edit_region.description == organization.description, "The reset button did not restore the 'description' (%s != %s)" % (edit_region.description, organization.description)
 
-    def FIXME_test_edit_users(self, ui_organizations_pg, organization):
+    def test_edit_users(self, ui_organizations_pg, organization):
         '''Verify basic operation of organizations users accordion'''
         edit_pg = ui_organizations_pg.open(organization.id)
         # Access the users region
-        users_region = edit_pg.accordion.get('Users')[1]
+        (users_header, users_region) = edit_pg.accordion.get('Users')
+        users_header.expand()
+        org_users_pg = users_region.add_btn.click()
+        assert org_users_pg.is_the_active_tab
+        assert org_users_pg.is_the_active_breadcrumb
 
-    def FIXME_test_edit_admins(self, ui_organizations_pg, organization):
+    def test_edit_admins(self, ui_organizations_pg, organization):
         '''Verify basic operation of organizations admins accordion'''
 
         edit_pg = ui_organizations_pg.open(organization.id)
         # Access the users region
-        admins_region = edit_pg.accordion.get('Administrators')[1]
+        (users_header, users_region) = edit_pg.accordion.get('Administrators')
+        users_header.expand()
+        org_users_pg = users_region.add_btn.click()
+        assert org_users_pg.is_the_active_tab
+        assert org_users_pg.is_the_active_breadcrumb

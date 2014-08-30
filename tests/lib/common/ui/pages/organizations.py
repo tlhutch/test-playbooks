@@ -1,10 +1,11 @@
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
-from common.ui.pages import *
+from common.ui.pages import Base, BaseRegion
 from common.ui.pages.forms import input_getter, input_setter, Form_Page
 from common.ui.pages.regions.stream_container import Activity_Stream_Region
 from common.ui.pages.regions.accordion import Accordion_Region
 from common.ui.pages.regions.buttons import Activity_Stream_Button, Base_Button, Add_Button, Help_Button
+from common.ui.pages.regions.lists import Table_Region
 
 
 class Organizations_Page(Base):
@@ -63,23 +64,54 @@ class Organization_Create_Page(Base):
 
 
 class Organization_Edit_Properties_Region(BaseRegion, Organization_Create_Page):
-    '''Describes the organization edit region'''
+    '''Describes the organization edit accordion region'''
 
     @property
     def activity_stream_btn(self):
         return Activity_Stream_Button(self.testsetup, _item_class=Organization_Activity_Page)
 
 
-class Organization_Edit_Users_Region(BaseRegion):
-    '''Describes the organization users region'''
+class Organization_Users_Page(Base):
+    '''Describes the organization users page'''
     _tab_title = "Organizations"
     _breadcrumb_title = 'Add Users'
-    _search_widget_locator = (By.CSS_SELECTOR, '#search-widget-container')
 
     @property
     def add_btn(self):
-        raise NotImplementedError("Coming soon!")
-        #  return Add_Button(self.testsetup, _item_class=Organization_Users_Page)
+        return Add_Button(self.testsetup, _item_class=NotImplementedError)
+
+    @property
+    def help_btn(self):
+        return Help_Button(self.testsetup, _item_class=NotImplementedError)
+
+
+class Organization_Admins_Page(Base):
+    '''Describes the organization admin page'''
+    _tab_title = "Organizations"
+    _breadcrumb_title = 'Add Administrators'
+
+    @property
+    def help_btn(self):
+        return Help_Button(self.testsetup, _item_class=NotImplementedError)
+
+
+class Organization_Edit_Users_Region(BaseRegion):
+    '''Describes the organization users region'''
+    _tab_title = "Organizations"
+    _search_widget_locator = (By.CSS_SELECTOR, '#search-widget-container')
+
+    @property
+    def _breadcrumb_title(self):
+        '''The breadcrumb title should always match organization name'''
+        return self.name
+
+    @property
+    def add_btn(self):
+        return Add_Button(self.testsetup, _item_class=Organization_Users_Page)
+
+    @property
+    def users(self):
+        return Table_Region(self.testsetup)
 
 
 class Organization_Edit_Admins_Region(Organization_Edit_Users_Region):
@@ -93,7 +125,7 @@ class Organization_Edit_Page(Organization_Create_Page):
     _tab_title = "Organizations"
     _region_map = {"Properties": Organization_Edit_Properties_Region,
                    "Users": Organization_Edit_Users_Region,
-                   "Administrators": Organization_Edit_Admins_Region,}
+                   "Administrators": Organization_Edit_Admins_Region}
 
     @property
     def _breadcrumb_title(self):
@@ -110,5 +142,3 @@ class Organization_Activity_Page(Activity_Stream_Region):
     '''Activity stream page for a single organizations'''
     _tab_title = "Organizations"
     _item_class = Organization_Edit_Page
-
-
