@@ -13,6 +13,18 @@ class Accordion_Region(BaseRegion):
         i = self._find_header_by_name(name)
         return (self.headers[i], self.contents[i])
 
+    def click(self, name):
+        '''Expand an according and return the related content object'''
+        (hdr, content) = self.get(name)
+        hdr.expand()
+        return content
+
+    def _find_header_by_name(self, name):
+        for i, hdr in enumerate(self.headers):
+            if hdr.title == name:
+                return i
+        raise Exception("No accordion found with name:%s" % name)
+
     def items(self):
         '''Returns a list of tuples for each accordion (header, content)'''
         return zip(self.headers, self.contents)
@@ -32,12 +44,6 @@ class Accordion_Region(BaseRegion):
             region_class = self._region_map.get(self.headers[i].title, Accordion_Content)
             result.append(region_class(self.testsetup, _root_element=el))
         return result
-
-    def _find_header_by_name(self, name):
-        for i, hdr in enumerate(self.headers):
-            if hdr.title == name:
-                return i
-        raise Exception("No accordion found with name:%s" % name)
 
 
 class Accordion_Content(BaseRegion):

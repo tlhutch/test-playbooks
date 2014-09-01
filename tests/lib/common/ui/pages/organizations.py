@@ -32,6 +32,10 @@ class Organizations_Page(Base):
         super(Organizations_Page, self).open('/#/organizations/%d' % id)
         return Organization_Edit_Page(self.testsetup)
 
+    @property
+    def organizations(self):
+        return Table_Region(self.testsetup, _root_locator=self._table_locator)
+
 
 class Organizations_Activity_Page(Activity_Stream_Region):
     '''Activity stream page for all organizations'''
@@ -75,6 +79,7 @@ class Organization_Users_Page(Base):
     '''Describes the organization users page'''
     _tab_title = "Organizations"
     _breadcrumb_title = 'Add Users'
+    _table_locator = (By.CSS_SELECTOR, '#users_table')
 
     @property
     def add_btn(self):
@@ -84,6 +89,9 @@ class Organization_Users_Page(Base):
     def help_btn(self):
         return Help_Button(self.testsetup, _item_class=NotImplementedError)
 
+    @property
+    def users(self):
+        return Table_Region(self.testsetup, _root_locator=self._table_locator)
 
 class Organization_Admins_Page(Base):
     '''Describes the organization admin page'''
@@ -99,6 +107,7 @@ class Organization_Edit_Users_Region(BaseRegion):
     '''Describes the organization users region'''
     _tab_title = "Organizations"
     _search_widget_locator = (By.CSS_SELECTOR, '#search-widget-container')
+    _table_locator = (By.CSS_SELECTOR, '#users_table')
 
     @property
     def _breadcrumb_title(self):
@@ -111,7 +120,7 @@ class Organization_Edit_Users_Region(BaseRegion):
 
     @property
     def users(self):
-        return Table_Region(self.testsetup)
+        return Table_Region(self.testsetup, _root_locator=_self.table_locator)
 
 
 class Organization_Edit_Admins_Region(Organization_Edit_Users_Region):
