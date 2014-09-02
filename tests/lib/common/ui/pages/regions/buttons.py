@@ -1,10 +1,6 @@
-import logging
 import types
 from selenium.webdriver.common.by import By
-from common.ui.pages import *
-
-
-log = logging.getLogger(__name__)
+from common.ui.pages import BaseRegion
 
 
 class Base_Button(BaseRegion):
@@ -62,3 +58,10 @@ class Activity_Stream_Refresh_Button(Base_Button):
     _root_locator = (By.CSS_SELECTOR, '#stream-container #refresh_btn')
 
 
+class Page_Button(Base_Button):
+    '''Region describing a pagination [1] button'''
+    _root_locator = None
+
+    def __init__(self, testsetup, **kwargs):
+        super(Page_Button, self).__init__(testsetup, **kwargs)
+        self._click_post = self.wait_for_spinny

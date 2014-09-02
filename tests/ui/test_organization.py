@@ -3,6 +3,31 @@ import common.utils
 from tests.ui import Base_UI_Test
 
 
+@pytest.fixture(scope="function")
+def table_sort(request, admin_user, org_admin):
+    return [('name', 'ascending'),
+            ('name', 'descending'),
+            ('description', 'ascending'),
+            ('description', 'descending')]
+
+
+@pytest.fixture(scope="function")
+def many_organizations_count(request):
+    return 55
+
+@pytest.fixture(scope="function")
+def many_organizations(request, authtoken, api_organizations_pg, many_organizations_count):
+
+    obj_list = list()
+    for i in range(many_organizations_count):
+        payload = dict(name="org %s %s" % (common.utils.random_unicode(), i),
+            description="Random organization %s %s" % (common.utils.random_unicode(), i))
+        obj = api_organizations_pg.post(payload)
+        request.addfinalizer(obj.delete)
+        obj_list.append(obj)
+    return obj_list
+
+
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Organization(Base_UI_Test):
@@ -29,6 +54,96 @@ class Test_Organization(Base_UI_Test):
         # Close activity_stream
         ui_organizations_pg = orgs_activity_pg.close_btn.click()
         assert ui_organizations_pg.is_the_active_tab
+
+    def test_sort(self, many_organizations, table_sort, ui_organizations_pg):
+        '''Verify organiation table sorting'''
+        assert ui_organizations_pg.is_the_active_tab
+
+        # Verify default table sort column
+        assert ui_organizations_pg.organizations.sorted_by == 'name', \
+            "Unexpected default table sort column (%s != %s)" % \
+            (ui_organizations_pg.organizations.sorted_by, 'name')
+
+        # Verify default table sort order
+        assert ui_organizations_pg.organizations.sort_order == 'ascending', \
+            "Unexpected default table sort order (%s != %s)" % \
+            (ui_organizations_pg.organizations.sort_order, 'ascending')
+
+        for sorted_by, sort_order in table_sort:
+            # Change table sort
+            ui_organizations_pg.organizations.sort_by(sorted_by, sort_order)
+
+            # Verify new table sort column
+            assert ui_organizations_pg.organizations.sorted_by == sorted_by, \
+                "Unexpected default table sort column (%s != %s)" % \
+                (ui_organizations_pg.organizations.sorted_by, sorted_by)
+
+            # Verify new table sort order
+            assert ui_organizations_pg.organizations.sort_order == sort_order, \
+                "Unexpected default table sort order (%s != %s)" % \
+                (ui_organizations_pg.organizations.sort_order, sort_order)
+
+    def test_no_pagination(self, authtoken, api_organizations_pg, api_default_page_size, ui_organizations_pg):
+        '''Verify organiation table pagination is not present'''
+
+        if api_organizations_pg.get().count > api_default_page_size:
+            pytest.skip("Unable to test as too many organizations exist")
+
+        assert not ui_organizations_pg.pagination.is_displayed(), \
+            "Pagination present, but fewer than %d organizations are visible" % \
+            api_default_page_size
+
+    def test_pagination(self, many_organizations, ui_organizations_pg):
+        '''Verify organiation table pagination'''
+
+        assert ui_organizations_pg.pagination.is_displayed(), "Unable to find pagination"
+
+        # Assert expected pagination links
+        assert ui_organizations_pg.pagination.current_page == 1, \
+            "Unexpected current page number (%d != %d)" % \
+            (ui_organizations_pg.pagination.current_page, 1)
+        assert not ui_organizations_pg.pagination.first_page.is_displayed()
+        assert not ui_organizations_pg.pagination.prev_page.is_displayed()
+        assert ui_organizations_pg.pagination.next_page.is_displayed()
+        assert not ui_organizations_pg.pagination.last_page.is_displayed()
+        assert ui_organizations_pg.pagination.count == 3, \
+            "Unexpected number of pagination links (%d != %d)" % \
+            (ui_organizations_pg.pagination.count, 3)
+
+        # Click next_page
+        next_pg = ui_organizations_pg.pagination.next_page.click()
+
+        # Assert expected pagination links
+        assert next_pg.pagination.current_page == 2, \
+            "Unexpected current page number (%d != %d)" % \
+            (next_pg.pagination.current_page, 2)
+        assert not next_pg.pagination.first_page.is_displayed()
+        assert next_pg.pagination.prev_page.is_displayed()
+        assert next_pg.pagination.next_page.is_displayed()
+        assert not next_pg.pagination.last_page.is_displayed()
+        assert next_pg.pagination.count == 3, \
+            "Unexpected number of pagination links (%d != %d)" % \
+            (next_pg.pagination.count, 3)
+
+        # Click next_page
+        last_pg = next_pg.pagination.next_page.click()
+
+        # Assert expected pagination links
+        assert last_pg.pagination.current_page == 3, \
+            "Unexpected current page number (%d != %d)" % \
+            (last_pg.pagination.current_page, 3)
+        assert not last_pg.pagination.first_page.is_displayed()
+        assert last_pg.pagination.prev_page.is_displayed()
+        assert not last_pg.pagination.next_page.is_displayed()
+        assert not last_pg.pagination.last_page.is_displayed()
+        assert last_pg.pagination.count == 3, \
+            "Unexpected number of pagination links (%d != %d)" % \
+            (last_pg.pagination.count, 3)
+
+    def test_filter(self, many_organizations, ui_organizations_pg):
+        '''Verify organiation table filtering'''
+        assert ui_organizations_pg.is_the_active_tab
+        raise NotImplementedError
 
     def test_add(self, ui_organizations_pg):
         '''Verify basic organiation form fields'''
@@ -92,8 +207,12 @@ class Test_Organization(Base_UI_Test):
         # Reset Edit form
         edit_region.reset_btn.click()
         assert edit_pg.is_the_active_breadcrumb
-        assert edit_region.name == organization.name, "The reset button did not restore the 'name' (%s != %s)" % (edit_region.name, organization.name)
-        assert edit_region.description == organization.description, "The reset button did not restore the 'description' (%s != %s)" % (edit_region.description, organization.description)
+        assert edit_region.name == organization.name, \
+            "The reset button did not restore the 'name' (%s != %s)" % \
+            (edit_region.name, organization.name)
+        assert edit_region.description == organization.description, \
+            "The reset button did not restore the 'description' (%s != %s)" % \
+            (edit_region.description, organization.description)
 
     def test_edit_users(self, ui_organizations_pg, organization):
         '''Verify basic operation of organizations users accordion'''
@@ -115,3 +234,8 @@ class Test_Organization(Base_UI_Test):
         org_users_pg = users_region.add_btn.click()
         assert org_users_pg.is_the_active_tab
         assert org_users_pg.is_the_active_breadcrumb
+
+
+# @pytest.mark.selenium
+# @pytest.mark.nondestructive
+# class Test_Organization_LowRes(Base_UI_Test):

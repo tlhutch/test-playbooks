@@ -5,7 +5,7 @@ from common.ui.pages.forms import input_getter, input_setter, Form_Page
 from common.ui.pages.regions.stream_container import Activity_Stream_Region
 from common.ui.pages.regions.accordion import Accordion_Region
 from common.ui.pages.regions.buttons import Activity_Stream_Button, Base_Button, Add_Button, Help_Button
-from common.ui.pages.regions.lists import SortTable_Region
+from common.ui.pages.regions.lists import SortTable_Region, Pagination_Region
 from common.ui.pages.regions.dialogs import Prompt_Dialog
 
 
@@ -42,6 +42,10 @@ class Organizations_Page(Base):
             '#delete-action': Prompt_Dialog,
         }
         return SortTable_Region(self.testsetup, _root_locator=self._table_locator, _region_map=_region_map)
+
+    @property
+    def pagination(self):
+        return Pagination_Region(self.testsetup, _item_class=Organizations_Page)
 
 
 class Organizations_Activity_Page(Activity_Stream_Region):

@@ -22,6 +22,14 @@ def navigate(api, url, field):
 
 
 @pytest.fixture(scope="module")
+def api_default_page_size(testsetup):
+    '''
+    The tower default pagination size
+    '''
+    return 25
+
+
+@pytest.fixture(scope="module")
 def api(testsetup):
     '''
     Convenience fixture that returns api object

@@ -2,14 +2,60 @@ import re
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from common.ui.pages import PageRegion
+from common.ui.pages.regions.buttons import Base_Button
+
+
+class Pagination_Region(PageRegion):
+    '''Represents the pagination links at the bottom of a table'''
+    _root_locator = (By.CSS_SELECTOR, "ul.pagination")
+    _item_locator = (By.CSS_SELECTOR, "li.ng-scope > a")
+    _item_class = None
+
+    _current_page_locator = (By.CSS_SELECTOR, 'li.active > a')
+
+    _first_page_locator = (By.CSS_SELECTOR, ".fa-angle-double-left")
+    _prev_page_locator = (By.CSS_SELECTOR, ".fa-angle-left")
+    _next_page_locator = (By.CSS_SELECTOR, ".fa-angle-right")
+    _last_page_locator = (By.CSS_SELECTOR, ".fa-angle-double-right")
+
+    @property
+    def first_page(self):
+        return Base_Button(self.testsetup, _root_element=self.find_element(*self._first_page_locator), _on_click=self.wait_for_spinny, _item_class=self._item_class)
+
+    @property
+    def prev_page(self):
+        return Base_Button(self.testsetup, _root_element=self.find_element(*self._prev_page_locator), _on_click=self.wait_for_spinny, _item_class=self._item_class)
+
+    @property
+    def next_page(self):
+        return Base_Button(self.testsetup, _root_element=self.find_element(*self._next_page_locator), _on_click=self.wait_for_spinny, _item_class=self._item_class)
+
+    @property
+    def last_page(self):
+        return Base_Button(self.testsetup, _root_element=self.find_element(*self._last_page_locator), _on_click=self.wait_for_spinny, _item_class=self._item_class)
+
+    def items(self):
+        return self.find_elements(*self._item_locator)
+
+    @property
+    def count(self):
+        '''
+        Returns the number of page links found.
+        '''
+        return len(self.items())
+
+    @property
+    def current_page(self):
+        '''
+        Returns the current page as an integer.
+        '''
+        return int(self.find_element(*self._current_page_locator).text)
 
 
 class Table_Region(PageRegion):
     '''Represents a table list region'''
 
-    # FIXME ... define 'find_*' methods
     # FIXME ... define action methods that return appropriate class
-    # FIXME ... add sort capabilities: sorted_by, sort_order
 
     _hdr_locator = (By.CSS_SELECTOR, "thead th")
     _row_locator = (By.CSS_SELECTOR, "tbody tr")
@@ -35,18 +81,19 @@ class Table_Region(PageRegion):
         return self._header
 
     def find_header(self, value, contains=False):
+        # Sanitize the provided value
+        value = self._convert_header(value)
+
         if contains:
             matching_cell_filter = lambda cell_text, value: value in cell_text
         else:
             matching_cell_filter = lambda cell_text, value: cell_text == value
 
-        # Sanitize the provided value
-        value = self._convert_header(value)
-
         for cell in self.header:
             if matching_cell_filter(self._convert_header(cell.text), value):
                 return cell
 
+        assert False, "No header found matching '%s'" % value
         return None
 
     @property
@@ -157,6 +204,9 @@ class SortTable_Region(Table_Region):
 
     @property
     def _sort_by_cell(self):
+        """
+        Return the element matching the _sort_column_locator.
+        """
         try:
             return self.find_element(*self._sort_column_locator)
         except NoSuchElementException:
@@ -164,7 +214,8 @@ class SortTable_Region(Table_Region):
 
     @property
     def sorted_by(self):
-        """Return column name what is used for sorting now.
+        """
+        Return column name what is used for sorting now.
         """
         cell = self._sort_by_cell
         if cell is None:
@@ -173,7 +224,8 @@ class SortTable_Region(Table_Region):
 
     @property
     def sort_order(self):
-        """Return order.
+        """
+        Return current sort order (ascending, descending, None).
         """
         cell = self._sort_by_cell
         if cell is None:
@@ -188,17 +240,20 @@ class SortTable_Region(Table_Region):
             return None
 
     def sort_by(self, header, order):
-        """Sorts the table by given conditions
+        """
+        Sort the table by given conditions.
         """
         order = order.lower().strip()
         if header != self.sorted_by:
             # Change column to order by
             self.find_header(header).click()
-            assert self.sorted_by == header, "Detected malfunction in table ordering"
+            self.wait_for_spinny()
+            assert self.sorted_by == header, "Detected malfunction in table ordering (%s != %s)" % (self.sorted_by, header)
         if order != self.sort_order:
             # Change direction
             self.find_header(header).click()
-            assert self.sort_order == order, "Detected malfunction in table ordering"
+            self.wait_for_spinny()
+            assert self.sort_order == order, "Detected malfunction in table ordering (%s != %s)" % (self.sort_order, order)
 
 
 class ListRegion(PageRegion):
