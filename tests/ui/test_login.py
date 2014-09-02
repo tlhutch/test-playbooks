@@ -52,5 +52,5 @@ class Test_Login(Base_UI_Test):
         assert login_pg.has_alert_dialog, "Expecting login failure dialog"
         assert login_pg.alert_dialog.body == 'Please provide a username and password before attempting to login.'
         # Dismiss the alert dialog
-        login_pg.alert_dialog.click_ok_btn()
+        login_pg.alert_dialog.ok_btn.click()
         # assert not login_pg.has_alert_dialog, "Login error dialog should have been dismissed"
