@@ -5,7 +5,8 @@ from common.ui.pages.forms import input_getter, input_setter, Form_Page
 from common.ui.pages.regions.stream_container import Activity_Stream_Region
 from common.ui.pages.regions.accordion import Accordion_Region
 from common.ui.pages.regions.buttons import Activity_Stream_Button, Base_Button, Add_Button, Help_Button
-from common.ui.pages.regions.lists import Table_Region
+from common.ui.pages.regions.lists import SortTable_Region
+from common.ui.pages.regions.dialogs import Prompt_Dialog
 
 
 class Organizations_Page(Base):
@@ -34,7 +35,13 @@ class Organizations_Page(Base):
 
     @property
     def organizations(self):
-        return Table_Region(self.testsetup, _root_locator=self._table_locator)
+        # FIXME - doesn't work yet
+        _region_map = {
+            '.name-column': Organization_Edit_Page,
+            '#edit-action': Organization_Edit_Page,
+            '#delete-action': Prompt_Dialog,
+        }
+        return SortTable_Region(self.testsetup, _root_locator=self._table_locator, _region_map=_region_map)
 
 
 class Organizations_Activity_Page(Activity_Stream_Region):
@@ -91,7 +98,7 @@ class Organization_Users_Page(Base):
 
     @property
     def users(self):
-        return Table_Region(self.testsetup, _root_locator=self._table_locator)
+        return SortTable_Region(self.testsetup, _root_locator=self._table_locator)
 
 class Organization_Admins_Page(Base):
     '''Describes the organization admin page'''
@@ -120,7 +127,7 @@ class Organization_Edit_Users_Region(BaseRegion):
 
     @property
     def users(self):
-        return Table_Region(self.testsetup, _root_locator=_self.table_locator)
+        return SortTable_Region(self.testsetup, _root_locator=_self.table_locator)
 
 
 class Organization_Edit_Admins_Region(Organization_Edit_Users_Region):

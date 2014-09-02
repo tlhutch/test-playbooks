@@ -35,7 +35,7 @@ class Base(Page):
 
     @property
     def alert_dialog(self):
-        from common.ui.pages.regions.alert_dialog import Alert_Dialog
+        from common.ui.pages.regions.dialogs import Alert_Dialog
         return Alert_Dialog(self.testsetup)
 
     @property
