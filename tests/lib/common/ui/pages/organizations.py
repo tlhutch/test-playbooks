@@ -35,7 +35,7 @@ class Organizations_Page(Base):
         return Organization_Edit_Page(self.testsetup)
 
     @property
-    def organizations(self):
+    def table(self):
         # FIXME - doesn't work yet
         _region_map = {
             '.name-column': Organization_Edit_Page,
