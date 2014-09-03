@@ -15,13 +15,14 @@ def table_sort(request, admin_user, org_admin):
 def many_organizations_count(request):
     return 55
 
+
 @pytest.fixture(scope="function")
 def many_organizations(request, authtoken, api_organizations_pg, many_organizations_count):
 
     obj_list = list()
     for i in range(many_organizations_count):
         payload = dict(name="org %s %s" % (common.utils.random_unicode(), i),
-            description="Random organization %s %s" % (common.utils.random_unicode(), i))
+                       description="Random organization %s %s" % (common.utils.random_unicode(), i))
         obj = api_organizations_pg.post(payload)
         request.addfinalizer(obj.delete)
         obj_list.append(obj)
@@ -60,28 +61,28 @@ class Test_Organization(Base_UI_Test):
         assert ui_organizations_pg.is_the_active_tab
 
         # Verify default table sort column
-        assert ui_organizations_pg.organizations.sorted_by == 'name', \
+        assert ui_organizations_pg.table.sorted_by == 'name', \
             "Unexpected default table sort column (%s != %s)" % \
-            (ui_organizations_pg.organizations.sorted_by, 'name')
+            (ui_organizations_pg.table.sorted_by, 'name')
 
         # Verify default table sort order
-        assert ui_organizations_pg.organizations.sort_order == 'ascending', \
+        assert ui_organizations_pg.table.sort_order == 'ascending', \
             "Unexpected default table sort order (%s != %s)" % \
-            (ui_organizations_pg.organizations.sort_order, 'ascending')
+            (ui_organizations_pg.table.sort_order, 'ascending')
 
         for sorted_by, sort_order in table_sort:
             # Change table sort
-            ui_organizations_pg.organizations.sort_by(sorted_by, sort_order)
+            ui_organizations_pg.table.sort_by(sorted_by, sort_order)
 
             # Verify new table sort column
-            assert ui_organizations_pg.organizations.sorted_by == sorted_by, \
+            assert ui_organizations_pg.table.sorted_by == sorted_by, \
                 "Unexpected default table sort column (%s != %s)" % \
-                (ui_organizations_pg.organizations.sorted_by, sorted_by)
+                (ui_organizations_pg.table.sorted_by, sorted_by)
 
             # Verify new table sort order
-            assert ui_organizations_pg.organizations.sort_order == sort_order, \
+            assert ui_organizations_pg.table.sort_order == sort_order, \
                 "Unexpected default table sort order (%s != %s)" % \
-                (ui_organizations_pg.organizations.sort_order, sort_order)
+                (ui_organizations_pg.table.sort_order, sort_order)
 
     def test_no_pagination(self, authtoken, api_organizations_pg, api_default_page_size, ui_organizations_pg):
         '''Verify organiation table pagination is not present'''
@@ -97,6 +98,8 @@ class Test_Organization(Base_UI_Test):
         '''Verify organiation table pagination'''
 
         assert ui_organizations_pg.pagination.is_displayed(), "Unable to find pagination"
+
+        # TODO: Verify expected number of items in pagination
 
         # Assert expected pagination links
         assert ui_organizations_pg.pagination.current_page == 1, \
@@ -140,10 +143,39 @@ class Test_Organization(Base_UI_Test):
             "Unexpected number of pagination links (%d != %d)" % \
             (last_pg.pagination.count, 3)
 
-    def test_filter(self, many_organizations, ui_organizations_pg):
+    def test_filter(self, organization, ui_organizations_pg):
         '''Verify organiation table filtering'''
         assert ui_organizations_pg.is_the_active_tab
-        raise NotImplementedError
+
+        # search by name
+        ui_organizations_pg.search.search_type_btn.click()
+        ui_organizations_pg.search.search_type_options.get("Name").click()
+        # FIXME - assert the selected search_type == "Name"
+        ui_organizations_pg.search.search_value = organization.name
+        ui_organizations_pg = ui_organizations_pg.search.search_btn.click()
+
+        # TODO: verify expected number of items found
+        # assert ui_organizations_pg.pagination.total_items == 1
+        num_rows = len(list(ui_organizations_pg.table.rows))
+        assert num_rows == 1, "Unexpected number of results found (%d != %d)" % (num_rows, 1)
+
+        # search by description
+        ui_organizations_pg.search.search_type_btn.click()
+        ui_organizations_pg.search.search_type_options.get("Description").click()
+        # FIXME - assert the selected search_type == "Description"
+        ui_organizations_pg.search.search_value = organization.description
+        ui_organizations_pg = ui_organizations_pg.search.search_btn.click()
+
+        # TODO: verify expected number of items found
+        # assert ui_organizations_pg.pagination.total_items == 1
+        num_rows = len(list(ui_organizations_pg.table.rows))
+        assert num_rows == 1, "Unexpected number of results found (%d != %d)" % (num_rows, 1)
+
+        # reset search filter
+        ui_organizations_pg = ui_organizations_pg.search.reset_btn.click()
+        assert ui_organizations_pg.search.search_value == '', \
+            "search_value did not reset (%s)" % \
+            ui_organizations_pg.search.search_value
 
     def test_add(self, ui_organizations_pg):
         '''Verify basic organiation form fields'''
