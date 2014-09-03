@@ -65,3 +65,16 @@ class Page_Button(Base_Button):
     def __init__(self, testsetup, **kwargs):
         super(Page_Button, self).__init__(testsetup, **kwargs)
         self._click_post = self.wait_for_spinny
+
+
+class Search_Button(Page_Button):
+    '''Region describing a search [1] magnifying glass button'''
+    _root_locator = None
+
+    def __init__(self, testsetup, **kwargs):
+        super(Search_Button, self).__init__(testsetup, **kwargs)
+        self._click_post = self.wait_for_spinny
+
+
+class Reset_Button(Search_Button):
+    '''Region describing a search [1] reset button'''
