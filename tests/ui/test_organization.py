@@ -143,8 +143,8 @@ class Test_Organization(Base_UI_Test):
             "Unexpected number of pagination links (%d != %d)" % \
             (last_pg.pagination.count, 3)
 
-    def test_filter(self, organization, ui_organizations_pg):
-        '''Verify organiation table filtering'''
+    def test_filter_name(self, organization, ui_organizations_pg):
+        '''Verify organiation table filtering using a name'''
         assert ui_organizations_pg.is_the_active_tab
 
         # search by name
@@ -158,6 +158,17 @@ class Test_Organization(Base_UI_Test):
         # assert ui_organizations_pg.pagination.total_items == 1
         num_rows = len(list(ui_organizations_pg.table.rows))
         assert num_rows == 1, "Unexpected number of results found (%d != %d)" % (num_rows, 1)
+        assert ui_organizations_pg.table.find_row("name", organization.name)
+
+        # reset search filter
+        ui_organizations_pg = ui_organizations_pg.search.reset_btn.click()
+        assert ui_organizations_pg.search.search_value == '', \
+            "search_value did not reset (%s)" % \
+            ui_organizations_pg.search.search_value
+
+    def test_filter_description(self, organization, ui_organizations_pg):
+        '''Verify organiation table filtering using a description'''
+        assert ui_organizations_pg.is_the_active_tab
 
         # search by description
         ui_organizations_pg.search.search_type_btn.click()
@@ -170,6 +181,7 @@ class Test_Organization(Base_UI_Test):
         # assert ui_organizations_pg.pagination.total_items == 1
         num_rows = len(list(ui_organizations_pg.table.rows))
         assert num_rows == 1, "Unexpected number of results found (%d != %d)" % (num_rows, 1)
+        assert ui_organizations_pg.table.find_row("description", organization.description)
 
         # reset search filter
         ui_organizations_pg = ui_organizations_pg.search.reset_btn.click()
@@ -177,14 +189,18 @@ class Test_Organization(Base_UI_Test):
             "search_value did not reset (%s)" % \
             ui_organizations_pg.search.search_value
 
+    def test_filter_notfound(self, organization, ui_organizations_pg):
+        '''Verify organiation table filtering using a bogus value'''
+        assert ui_organizations_pg.is_the_active_tab
+
         # Search for an org that doesn't exist
         ui_organizations_pg.search.search_value = common.utils.random_unicode()
         ui_organizations_pg = ui_organizations_pg.search.search_btn.click()
         # TODO: verify expected number of items found
         # assert ui_organizations_pg.pagination.total_items == 1
         num_rows = len(list(ui_organizations_pg.table.rows))
-        assert num_rows == 0, "Unexpected number of results found (%d != %d)" % (num_rows, 0)
-
+        assert num_rows == 1, "Unexpected number of results found (%d != %d)" % (num_rows, 1)
+        assert ui_organizations_pg.table.find_row("name", "No records matched your search.")
 
     def test_add(self, ui_organizations_pg):
         '''Verify basic organiation form fields'''

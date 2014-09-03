@@ -58,7 +58,7 @@ class Table_Region(PageRegion):
     # FIXME ... define action methods that return appropriate class
 
     _hdr_locator = (By.CSS_SELECTOR, "thead th")
-    _row_locator = (By.CSS_SELECTOR, "tbody tr.ng-scope")
+    _row_locator = (By.CSS_SELECTOR, "tbody tr")
     _header = None
     _header_index = None
 
