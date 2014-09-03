@@ -42,6 +42,7 @@ py.test -v \
   --ansible-inventory="${ANSIBLE_INVENTORY}" \
   -m "${MARKEXPR}" \
   --destructive \
+  --instafail \
   tests/
 
 exit $?
