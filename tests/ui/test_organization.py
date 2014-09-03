@@ -177,6 +177,15 @@ class Test_Organization(Base_UI_Test):
             "search_value did not reset (%s)" % \
             ui_organizations_pg.search.search_value
 
+        # Search for an org that doesn't exist
+        ui_organizations_pg.search.search_value = common.utils.random_unicode()
+        ui_organizations_pg = ui_organizations_pg.search.search_btn.click()
+        # TODO: verify expected number of items found
+        # assert ui_organizations_pg.pagination.total_items == 1
+        num_rows = len(list(ui_organizations_pg.table.rows))
+        assert num_rows == 0, "Unexpected number of results found (%d != %d)" % (num_rows, 0)
+
+
     def test_add(self, ui_organizations_pg):
         '''Verify basic organiation form fields'''
         assert ui_organizations_pg.add_btn, "Unable to locate add button"
