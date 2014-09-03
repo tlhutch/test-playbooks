@@ -2,7 +2,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from common.ui.pages import PageRegion
 from common.ui.pages.forms import input_getter, input_setter, Form_Page
-from common.ui.pages.regions.buttons import Base_Button
+from common.ui.pages.regions.buttons import Base_Button, Search_Button, Reset_Button
 
 
 class Search_Region(PageRegion):
@@ -31,11 +31,11 @@ class Search_Region(PageRegion):
 
     @property
     def search_btn(self):
-        return Base_Button(self.testsetup, _root_element=self.find_element(*self._search_btn_locator), _item_class=self._item_class)
+        return Search_Button(self.testsetup, _root_element=self.find_element(*self._search_btn_locator), _item_class=self._item_class)
 
     @property
     def reset_btn(self):
-        return Base_Button(self.testsetup, _root_element=self.find_element(*self._reset_btn_locator), _item_class=self._item_class)
+        return Reset_Button(self.testsetup, _root_element=self.find_element(*self._reset_btn_locator), _item_class=self._item_class)
 
 
 class Search_Type_Options(PageRegion):
