@@ -13,7 +13,7 @@
 
 # Mirrors don't always do the right thing ... retry until the package installs
 - name: install epel-release-7
-  shell: rpm -q epel-release || rpm -Uvh http://dl.fedoraproject.org/pub/epel/7/x86_64/epel-release-7-1.noarch.rpm
+  shell: rpm -q epel-release || rpm -Uvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-1.noarch.rpm
   register: epel_task
   until: epel_task.rc == 0
   when: ansible_distribution in ['RedHat', 'CentOS'] and ansible_distribution_major_version == '7'
