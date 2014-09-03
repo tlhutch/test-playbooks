@@ -220,6 +220,28 @@ class Test_Organization(Base_UI_Test):
         assert add_pg.name == "", "Reset button did not reset the field: name"
         assert add_pg.description == "", "Reset button did not reset the field: description"
 
+    def test_org_activity_stream(self, organization, ui_organizations_pg):
+        '''Verify that the organization activity stream can be open and closed'''
+
+        # Open edit page
+        edit_pg = ui_organizations_pg.open(organization.id)
+        assert edit_pg.accordion.get('Properties')[0].is_expanded(), "The properties accordion was not expanded as expected"
+        assert edit_pg.is_the_active_tab
+        assert edit_pg.is_the_active_breadcrumb
+        edit_region = edit_pg.accordion.get('Properties')[1]
+
+        # Open activity_stream
+        org_activity_pg = edit_region.activity_stream_btn.click()
+        assert org_activity_pg.is_the_active_tab
+        assert org_activity_pg.is_the_active_breadcrumb
+
+        # Refresh activity_stream
+        org_activity_pg.refresh_btn.click()
+
+        # Close activity_stream
+        ui_organizations_pg = org_activity_pg.close_btn.click()
+        assert ui_organizations_pg.is_the_active_tab
+
     def test_accordions(self, ui_organizations_pg, organization):
         '''Verify the organiation accordions behave properly'''
         # Open edit page
