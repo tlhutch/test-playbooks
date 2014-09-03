@@ -58,7 +58,7 @@ class Table_Region(PageRegion):
     # FIXME ... define action methods that return appropriate class
 
     _hdr_locator = (By.CSS_SELECTOR, "thead th")
-    _row_locator = (By.CSS_SELECTOR, "tbody tr")
+    _row_locator = (By.CSS_SELECTOR, "tbody tr.ng-scope")
     _header = None
     _header_index = None
 
@@ -99,22 +99,22 @@ class Table_Region(PageRegion):
     @property
     def rows(self):
         # return [el for el in self.find_elements(*self._row_locator)]
-        for el in self.find_elements(*self._row_locator):
+        for el in self.find_visible_elements(*self._row_locator):
             yield Table_Region.Row(self.testsetup, _root_element=el, _table=self)
 
-    def find_row(self, header, value):
+    def find_row(self, header, value, contains=False):
         """
         Finds a row in the Table by iterating through each visible item.
         """
-        return self.find_row_by_cells({header: value})
+        return self.find_row_by_cells({header: value}, contains)
 
-    def find_cell(self, header, value):
+    def find_cell(self, header, value, contains=False):
         """
         Finds an item in the Table by iterating through each visible item,
         this work used to be done by the :py:meth::`click_cell` method but
         has not been abstracted out to be called separately.
         """
-        matching_cell_rows = self.find_rows_by_cells({header: value})
+        matching_cell_rows = self.find_rows_by_cells({header: value}, contains)
         try:
             if isinstance(header, basestring):
                 return getattr(matching_cell_rows[0], header)
