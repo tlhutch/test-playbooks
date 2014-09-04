@@ -185,6 +185,7 @@ class Test_Job_Callback(Base_Api_Test):
 
         # issue callback
         args = dict(method="POST",
+                    timeout=60,
                     status_code=httplib.ACCEPTED,
                     url="http://%s/%s" % (ansible_default_ipv4, job_template_with_limit.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
@@ -218,6 +219,7 @@ class Test_Job_Callback(Base_Api_Test):
 
         # issue callback
         args = dict(method="POST",
+                    timeout=60,
                     status_code=httplib.ACCEPTED,
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
@@ -272,6 +274,7 @@ class Test_Job_Callback(Base_Api_Test):
 
         # issue callback (expected to return 400)
         args = dict(method="POST",
+                    timeout=60,
                     status_code=[httplib.ACCEPTED, httplib.BAD_REQUEST],
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
@@ -319,6 +322,7 @@ class Test_Job_Callback(Base_Api_Test):
 
         # issue callback (expected to return 400)
         args = dict(method="POST",
+                    timeout=60,
                     status_code=[httplib.ACCEPTED, httplib.BAD_REQUEST],
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
