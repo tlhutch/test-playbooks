@@ -1,5 +1,4 @@
 ---
 version_string:
     type: string
-    pattern: '^(\d+\.)?(\d+)?\.?(\d+)?(-\w+)?$'
-
+    pattern: '^(\d+)?\.?(\d+)?\.?(\d+)?-?([^ ]+)?$'
