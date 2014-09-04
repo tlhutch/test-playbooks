@@ -256,26 +256,15 @@ class SortTable_Region(Table_Region):
             assert self.sort_order == order, "Detected malfunction in table ordering (%s != %s)" % (self.sort_order, order)
 
 
-class ListRegion(PageRegion):
-    '''Represents a table list region'''
-    _items_locator = (By.CSS_SELECTOR, "tr")
+class List_Region(PageRegion):
+    '''Describes the search type options region'''
+    _item_locator = (By.CSS_SELECTOR, "a")
+
+    def get(self, name):
+        for el in self.items():
+            if el.get_attribute('text') == name:
+                return el
+        raise Exception("Item named '%s' not found" % name)
 
     def items(self):
-        '''Returns a list of items represented by _item_cls'''
-        return [self._item_cls(self.testsetup, web_element)
-                for web_element in self._root_element.find_elements(*self._items_locator)]
-
-
-class ListItem(PageRegion):
-    '''Represents an item in the list'''
-    _item_data_locator = (By.CSS_SELECTOR, "td")
-
-    def click(self):
-        '''Click on the item, which will select it in the list'''
-        self._item_data[0].click()
-        self.wait_for_spinny()
-
-    @property
-    def _item_data(self):  # IGNORE:C0111
-        return [web_element
-                for web_element in self._root_element.find_elements(*self._item_data_locator)]
+        return self.find_elements(*self._item_locator)

@@ -148,9 +148,7 @@ class Test_Organization(Base_UI_Test):
         assert ui_organizations_pg.is_the_active_tab
 
         # search by name
-        ui_organizations_pg.search.search_type_btn.click()
-        ui_organizations_pg.search.search_type_options.get("Name").click()
-        # FIXME - assert the selected search_type == "Name"
+        ui_organizations_pg.search.search_type.select("Name")
         ui_organizations_pg.search.search_value = organization.name
         ui_organizations_pg = ui_organizations_pg.search.search_btn.click()
 
@@ -171,9 +169,7 @@ class Test_Organization(Base_UI_Test):
         assert ui_organizations_pg.is_the_active_tab
 
         # search by description
-        ui_organizations_pg.search.search_type_btn.click()
-        ui_organizations_pg.search.search_type_options.get("Description").click()
-        # FIXME - assert the selected search_type == "Description"
+        ui_organizations_pg.search.search_type.select("Description")
         ui_organizations_pg.search.search_value = organization.description
         ui_organizations_pg = ui_organizations_pg.search.search_btn.click()
 
@@ -194,8 +190,10 @@ class Test_Organization(Base_UI_Test):
         assert ui_organizations_pg.is_the_active_tab
 
         # Search for an org that doesn't exist
+        ui_organizations_pg.search.search_type.select("Name")
         ui_organizations_pg.search.search_value = common.utils.random_unicode()
         ui_organizations_pg = ui_organizations_pg.search.search_btn.click()
+
         # TODO: verify expected number of items found
         # assert ui_organizations_pg.pagination.total_items == 1
         num_rows = len(list(ui_organizations_pg.table.rows))
