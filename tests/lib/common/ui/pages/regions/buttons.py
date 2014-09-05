@@ -6,7 +6,7 @@ from common.ui.pages import BaseRegion
 class Base_Button(BaseRegion):
     _root_locator = None  # provided by caller
     _item_class = None  # provided by caller
-    _click_post = None  # provided by caller
+    _on_click = None  # provided by caller
 
     def is_displayed(self):
         return self._root_element.is_displayed()
@@ -17,8 +17,8 @@ class Base_Button(BaseRegion):
         # FIXME - assert it's a class
         if self._item_class is not None:
             obj = self._item_class(self.testsetup)
-        if hasattr(self, '_click_post') and isinstance(self._click_post, (types.MethodType, types.InstanceType)):
-            self._click_post()
+        if hasattr(self, '_on_click') and isinstance(self._on_click, (types.MethodType, types.InstanceType)):
+            self._on_click()
         return obj
 
 
@@ -48,7 +48,7 @@ class Activity_Stream_Button(Base_Button):
 
     def __init__(self, testsetup, **kwargs):
         super(Activity_Stream_Button, self).__init__(testsetup, **kwargs)
-        self._click_post = self.wait_for_spinny
+        self._on_click = self.wait_for_spinny
 
 
 class Activity_Stream_Refresh_Button(Base_Button):
@@ -64,7 +64,7 @@ class Page_Button(Base_Button):
 
     def __init__(self, testsetup, **kwargs):
         super(Page_Button, self).__init__(testsetup, **kwargs)
-        self._click_post = self.wait_for_spinny
+        self._on_click = self.wait_for_spinny
 
 
 class Search_Button(Page_Button):
@@ -73,7 +73,7 @@ class Search_Button(Page_Button):
 
     def __init__(self, testsetup, **kwargs):
         super(Search_Button, self).__init__(testsetup, **kwargs)
-        self._click_post = self.wait_for_spinny
+        self._on_click = self.wait_for_spinny
 
 
 class Reset_Button(Search_Button):

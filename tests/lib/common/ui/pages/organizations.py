@@ -94,7 +94,7 @@ class Organization_Edit_Properties_Region(BaseRegion, Organization_Create_Page):
 class Organization_Users_Page(Base):
     '''Describes the organization users page'''
     _tab_title = "Organizations"
-    _breadcrumb_title = 'Add Users'
+    _breadcrumb_title = "Add Users"
     _table_locator = (By.CSS_SELECTOR, '#users_table')
 
     @property
@@ -109,10 +109,12 @@ class Organization_Users_Page(Base):
     def users(self):
         return SortTable_Region(self.testsetup, _root_locator=self._table_locator)
 
+
 class Organization_Admins_Page(Base):
     '''Describes the organization admin page'''
     _tab_title = "Organizations"
-    _breadcrumb_title = 'Add Administrators'
+    _breadcrumb_title = "Add Administrators"
+    _table_locator = (By.CSS_SELECTOR, '#admins_table')
 
     @property
     def help_btn(self):
@@ -132,7 +134,7 @@ class Organization_Edit_Users_Region(BaseRegion):
 
     @property
     def add_btn(self):
-        return Add_Button(self.testsetup, _item_class=Organization_Users_Page)
+        return Add_Button(self.testsetup, _item_class=Organization_Users_Page, _root_element=self._root_element)
 
     @property
     def users(self):
@@ -142,7 +144,17 @@ class Organization_Edit_Users_Region(BaseRegion):
 class Organization_Edit_Admins_Region(Organization_Edit_Users_Region):
     '''Describes the organization administrators region'''
     _tab_title = "Organizations"
-    _breadcrumb_title = 'Add Administrators'
+    _search_widget_locator = (By.CSS_SELECTOR, '#search-widget-container')
+    _table_locator = (By.CSS_SELECTOR, '#admins_table')
+
+    @property
+    def _breadcrumb_title(self):
+        '''The breadcrumb title should always match organization name'''
+        return self.name
+
+    @property
+    def add_btn(self):
+        return Add_Button(self.testsetup, _item_class=Organization_Admins_Page, _root_element=self._root_element)
 
 
 # class Organization_Edit_Page(Base):

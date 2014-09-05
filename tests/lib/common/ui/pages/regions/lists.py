@@ -261,10 +261,30 @@ class List_Region(PageRegion):
     _item_locator = (By.CSS_SELECTOR, "a")
 
     def get(self, name):
+        '''
+        Return item with text matching the provided name
+        '''
         for el in self.items():
             if el.get_attribute('text') == name:
                 return el
         raise Exception("Item named '%s' not found" % name)
 
     def items(self):
-        return self.find_elements(*self._item_locator)
+        '''
+        Return a list of items identified by _item_locator
+        '''
+        return self.find_visible_elements(*self._item_locator)
+
+    def count(self):
+        '''
+        Return total number of items
+        '''
+        return len(self.items())
+
+    def keys(self):
+        '''
+        Return a list of dictionaries mapping the region name to the selenium
+        element.  For example:
+            [ {name: element}, ... ]
+        '''
+        return [el.get_attribute('text') for el in self.items()]

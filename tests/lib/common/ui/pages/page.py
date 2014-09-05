@@ -62,6 +62,9 @@ class Page(object):
             Assert.equal(self.page_title, self._page_title,  # IGNORE:E1101
                          "Actual page title: %s. Expected page title: %s" %
                          (self.page_title, self._page_title))  # IGNORE:E1101
+        else:
+            log.warn("No _page_title set, unable to verify the current page")
+
         return True
 
     def get_current_page_url(self):

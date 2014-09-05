@@ -1,43 +1,50 @@
 from selenium.webdriver.common.by import By
-from common.ui.pages import *
+from common.ui.pages import Dashboard_Page, Organizations_Page, Users, Teams, Credentials, Projects, Inventories, Job_Templates, Jobs
+from common.ui.pages.regions.lists import List_Region
 
 
-class Main_Menu(PageRegion):
+class Main_Menu(List_Region):
     '''
     '''
     _root_locator = (By.CSS_SELECTOR, '#ansible-main-menu')
-    _item_locator = (By.CSS_SELECTOR, 'a')
     _logo_locator = (By.CSS_SELECTOR, '#ansible-brand-logo')
-    _item_to_page = {"Home": Dashboard_Page,
-                     "Organizations": Organizations_Page,
-                     "Users": Users,
-                     "Teams": Teams,
-                     "Credentials": Credentials,
-                     "Projects": Projects,
-                     "Inventories": Inventories,
-                     "Job Templates": Job_Templates,
-                     "Jobs": Jobs}
-    _active_item_locator = (By.CSS_SELECTOR, "#ansible-main-menu > li.active > a")
+    _active_item_locator = (By.CSS_SELECTOR, "li.active > a")
+    _region_map = {"Home": Dashboard_Page,
+                   "Organizations": Organizations_Page,
+                   "Users": Users,
+                   "Teams": Teams,
+                   "Credentials": Credentials,
+                   "Projects": Projects,
+                   "Inventories": Inventories,
+                   "Job Templates": Job_Templates,
+                   "Jobs": Jobs}
 
     @property
     def active_item(self):
+        '''
+        Return the text of the active tab
+        Raises NoSuchElementException if no active tab found.
+        '''
         return self.find_element(*self._active_item_locator).get_attribute('text')
 
     @property
     def logo(self):
         return self.selenium.find_element(*self._logo_locator)
 
-    @property
-    def items(self):
-        return dict((el.get_attribute('text'), el) for el in self.find_elements(*self._item_locator))
+    def keys(self):
+        '''
+        Return a list of dictionaries mapping the region name to the selenium
+        element.  For example:
+            [ {name: element}, ... ]
+        '''
+        return [el.get_attribute('text')for el in self.find_elements(*self._item_locator)]
 
     def click(self, name):
         if name == "Home":
             self.logo.click()
-        elif name in self.items:
-            self.items[name].click()
         else:
-            raise Exception("Main menu item not found: %s" % name)
+            self.get(name).click()
         # Wait for 'Working...' spinner to appear, and go away
         self.wait_for_spinny()
-        return self._item_to_page[name](self.testsetup)
+        assert name in self._region_map, "No main menu region defined for '%s'" % name
+        return self._region_map[name](self.testsetup)

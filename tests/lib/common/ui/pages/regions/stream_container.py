@@ -11,11 +11,11 @@ class Activity_Stream_Region(BaseRegion):
 
     @property
     def refresh_btn(self):
-        return Activity_Stream_Refresh_Button(self.testsetup, _click_post=self.wait_for_spinny)
+        return Activity_Stream_Refresh_Button(self.testsetup, _on_click=self.wait_for_spinny)
 
     @property
     def close_btn(self):
-        return Close_Button(self.testsetup, _item_class=self._item_class, _click_post=self.wait_for_slideout)
+        return Close_Button(self.testsetup, _item_class=self._item_class, _on_click=self.wait_for_slideout)
 
     def wait_for_slidein(self):
         '''wait for activity stream to appear'''

@@ -295,22 +295,19 @@ class Test_Organization(Base_UI_Test):
         '''Verify basic operation of organizations users accordion'''
         edit_pg = ui_organizations_pg.open(organization.id)
         # Access the users region
-        (users_header, users_region) = edit_pg.accordion.get('Users')
-        users_header.expand()
+        users_region = edit_pg.accordion.click('Users')
         org_users_pg = users_region.add_btn.click()
         assert org_users_pg.is_the_active_tab
         assert org_users_pg.is_the_active_breadcrumb
 
     def test_edit_admins(self, ui_organizations_pg, organization):
         '''Verify basic operation of organizations admins accordion'''
-
         edit_pg = ui_organizations_pg.open(organization.id)
         # Access the users region
-        (users_header, users_region) = edit_pg.accordion.get('Administrators')
-        users_header.expand()
-        org_users_pg = users_region.add_btn.click()
-        assert org_users_pg.is_the_active_tab
-        assert org_users_pg.is_the_active_breadcrumb
+        admins_region = edit_pg.accordion.click('Administrators')
+        org_admins_pg = admins_region.add_btn.click()
+        assert org_admins_pg.is_the_active_tab
+        assert org_admins_pg.is_the_active_breadcrumb
 
 
 # @pytest.mark.selenium

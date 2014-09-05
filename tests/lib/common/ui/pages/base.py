@@ -31,7 +31,7 @@ class Base(Page):
 
     def logout(self):
         self.account_menu.show()
-        return self.account_menu.click_logout()
+        return self.account_menu.click("Logout")
 
     @property
     def alert_dialog(self):
@@ -95,7 +95,7 @@ class Base(Page):
     def is_the_active_tab(self):
         '''Return whether the current page is the active/highlighted tab'''
         if not hasattr(self, '_tab_title'):
-            log.warning("_tab_title is not set for class '%s'" % self.__class__.__name__)
+            log.warning("No _tab_title set, unable to verify active tab")
             return True
 
         # determine selected tab

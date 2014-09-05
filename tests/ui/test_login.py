@@ -9,9 +9,9 @@ class Test_Login(Base_UI_Test):
 
     pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
 
-    def test_login(self, home_page_logged_in):
+    def test_login(self, home_page_logged_in, admin_user):
         '''Verify a successful login'''
-        assert True
+        assert home_page_logged_in.account_menu.current_user == admin_user.username
 
     def test_login_without_user(self, ui_login_pg):
         '''Verify that after a successful login and logout, valid credentials are still required'''

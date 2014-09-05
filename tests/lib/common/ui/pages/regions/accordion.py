@@ -1,4 +1,5 @@
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 from common.ui.pages import BaseRegion
 
 
@@ -17,6 +18,8 @@ class Accordion_Region(BaseRegion):
         '''Expand an according and return the related content object'''
         (hdr, content) = self.get(name)
         hdr.expand()
+        # Wait until expanded
+        # WebDriverWait(self.selenium, self.timeout).until(lambda s: content._root_element.is_displayed())
         return content
 
     def _find_header_by_name(self, name):
