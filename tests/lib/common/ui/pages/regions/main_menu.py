@@ -1,5 +1,5 @@
 from selenium.webdriver.common.by import By
-from common.ui.pages import Dashboard_Page, Organizations_Page, Users, Teams, Credentials, Projects, Inventories, Job_Templates, Jobs
+from common.ui.pages import Dashboard_Page, Organizations_Page, Users_Page, Teams, Credentials, Projects, Inventories, Job_Templates, Jobs
 from common.ui.pages.regions.lists import List_Region
 
 
@@ -11,7 +11,7 @@ class Main_Menu(List_Region):
     _active_item_locator = (By.CSS_SELECTOR, "li.active > a")
     _region_map = {"Home": Dashboard_Page,
                    "Organizations": Organizations_Page,
-                   "Users": Users,
+                   "Users": Users_Page,
                    "Teams": Teams,
                    "Credentials": Credentials,
                    "Projects": Projects,
