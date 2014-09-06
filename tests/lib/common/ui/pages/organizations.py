@@ -126,6 +126,7 @@ class Organization_Edit_Users_Region(BaseRegion):
     _tab_title = "Organizations"
     _search_widget_locator = (By.CSS_SELECTOR, '#search-widget-container')
     _table_locator = (By.CSS_SELECTOR, '#users_table')
+    _add_btn_locator = (By.CSS_SELECTOR, '#add_btn')
 
     @property
     def _breadcrumb_title(self):
@@ -134,7 +135,7 @@ class Organization_Edit_Users_Region(BaseRegion):
 
     @property
     def add_btn(self):
-        return Add_Button(self.testsetup, _item_class=Organization_Users_Page, _root_element=self._root_element)
+        return Add_Button(self.testsetup, _item_class=Organization_Users_Page, _root_element=self.find_element(*self._add_btn_locator))
 
     @property
     def users(self):
@@ -154,7 +155,7 @@ class Organization_Edit_Admins_Region(Organization_Edit_Users_Region):
 
     @property
     def add_btn(self):
-        return Add_Button(self.testsetup, _item_class=Organization_Admins_Page, _root_element=self._root_element)
+        return Add_Button(self.testsetup, _item_class=Organization_Admins_Page, _root_element=self.find_element(*self._add_btn_locator))
 
 
 # class Organization_Edit_Page(Base):
