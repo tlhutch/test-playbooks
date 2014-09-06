@@ -15,7 +15,7 @@ def user_password(request):
 @pytest.fixture(scope="function")
 def org_admin(request, authtoken, organization, user_password):
     payload = dict(username="org_admin_%s" % common.utils.random_ascii(),
-                   first_name="Organization",
+                   first_name="Joe (%s)" % common.utils.random_unicode(),
                    last_name="Admin (%s)" % common.utils.random_unicode(),
                    email="org_admin_%s@example.com" % common.utils.random_ascii(),
                    password=user_password,
@@ -29,7 +29,7 @@ def org_admin(request, authtoken, organization, user_password):
 @pytest.fixture(scope="function")
 def org_user(request, authtoken, organization, user_password):
     payload = dict(username="org_user_%s" % common.utils.random_ascii(),
-                   first_name="Organization",
+                   first_name="Joe (%s)" % common.utils.random_unicode(),
                    last_name="User (%s)" % common.utils.random_unicode(),
                    email="org_user_%s@example.com" % common.utils.random_ascii(),
                    password=user_password,
@@ -42,7 +42,7 @@ def org_user(request, authtoken, organization, user_password):
 @pytest.fixture(scope="function")
 def anonymous_user(request, authtoken, api_users_pg, user_password):
     payload = dict(username="anonymous__%s" % common.utils.random_ascii(),
-                   first_name="Anonymous",
+                   first_name="Joe (%s)" % common.utils.random_unicode(),
                    last_name="User (%s)" % common.utils.random_unicode(),
                    email="anonymous_user_%s@example.com" % common.utils.random_ascii(),
                    password=user_password,)
