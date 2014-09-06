@@ -8,7 +8,12 @@ def input_getter(locator):
     Generic property fget method
     '''
     def get_field(self):
-        return self.find_element(*locator).get_attribute('value')
+        el = self.find_element(*locator)
+        el_type = el.get_attribute('type')
+        if el_type in (u'text', u'password'):
+            return self.find_element(*locator).get_attribute('value')
+        elif el_type == u'checkbox':
+            return self.find_element(*locator).is_selected()
     return get_field
 
 
@@ -18,8 +23,12 @@ def input_setter(locator):
     '''
     def set_field(self, value):
         el = self.find_element(*locator)
-        el.clear()
-        el.send_keys(value)
+        el_type = el.get_attribute('type')
+        if el_type in (u'text', u'password'):
+            el.clear()
+            el.send_keys(value)
+        elif el_type == u'checkbox':
+            el.click()
     return set_field
 
 
