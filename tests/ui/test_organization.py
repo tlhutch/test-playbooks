@@ -1,5 +1,6 @@
 import pytest
 import common.utils
+from math import ceil
 from tests.ui import Base_UI_Test
 
 
@@ -94,12 +95,14 @@ class Test_Organization(Base_UI_Test):
             "Pagination present, but fewer than %d organizations are visible" % \
             api_default_page_size
 
-    def test_pagination(self, many_organizations, ui_organizations_pg):
+    def test_pagination(self, many_organizations, api_organizations_pg, ui_default_page_size, ui_organizations_pg):
         '''Verify organiation table pagination'''
 
         assert ui_organizations_pg.pagination.is_displayed(), "Unable to find pagination"
 
         # TODO: Verify expected number of items in pagination
+        total_count = api_organizations_pg.get().count
+        total_pages = int(ceil(total_count / float(ui_default_page_size)))
 
         # Assert expected pagination links
         assert ui_organizations_pg.pagination.current_page == 1, \
@@ -109,9 +112,9 @@ class Test_Organization(Base_UI_Test):
         assert not ui_organizations_pg.pagination.prev_page.is_displayed()
         assert ui_organizations_pg.pagination.next_page.is_displayed()
         assert not ui_organizations_pg.pagination.last_page.is_displayed()
-        assert ui_organizations_pg.pagination.count == 3, \
+        assert ui_organizations_pg.pagination.count == total_pages, \
             "Unexpected number of pagination links (%d != %d)" % \
-            (ui_organizations_pg.pagination.count, 3)
+            (ui_organizations_pg.pagination.count, total_pages)
 
         # Click next_page
         next_pg = ui_organizations_pg.pagination.next_page.click()
@@ -124,24 +127,26 @@ class Test_Organization(Base_UI_Test):
         assert next_pg.pagination.prev_page.is_displayed()
         assert next_pg.pagination.next_page.is_displayed()
         assert not next_pg.pagination.last_page.is_displayed()
-        assert next_pg.pagination.count == 3, \
+        assert next_pg.pagination.count == total_pages, \
             "Unexpected number of pagination links (%d != %d)" % \
-            (next_pg.pagination.count, 3)
+            (next_pg.pagination.count, total_pages)
 
-        # Click next_page
-        last_pg = next_pg.pagination.next_page.click()
+        # Click prev_page
+        prev_pg = next_pg.pagination.prev_page.click()
 
         # Assert expected pagination links
-        assert last_pg.pagination.current_page == 3, \
+        assert prev_pg.pagination.current_page == total_pages, \
             "Unexpected current page number (%d != %d)" % \
-            (last_pg.pagination.current_page, 3)
-        assert not last_pg.pagination.first_page.is_displayed()
-        assert last_pg.pagination.prev_page.is_displayed()
-        assert not last_pg.pagination.next_page.is_displayed()
-        assert not last_pg.pagination.last_page.is_displayed()
-        assert last_pg.pagination.count == 3, \
+            (prev_pg.pagination.current_page, total_pages)
+        assert not prev_pg.pagination.first_page.is_displayed()
+        assert prev_pg.pagination.prev_page.is_displayed()
+        assert not prev_pg.pagination.next_page.is_displayed()
+        assert not prev_pg.pagination.last_page.is_displayed()
+        assert prev_pg.pagination.count == total_pages, \
             "Unexpected number of pagination links (%d != %d)" % \
-            (last_pg.pagination.count, 3)
+            (prev_pg.pagination.count, total_pages)
+
+        # TODO: click page#2
 
     def test_filter_name(self, organization, ui_organizations_pg):
         '''Verify organiation table filtering using a name'''
