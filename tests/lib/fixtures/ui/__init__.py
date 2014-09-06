@@ -63,3 +63,9 @@ def ui_job_Templates_pg(home_page_logged_in):
 def ui_jobs_pg(home_page_logged_in):
     '''Navigate to the Jobs tab and return it'''
     return home_page_logged_in.main_menu.click('Jobs')
+
+
+@pytest.fixture(scope="module")
+def ui_default_page_size(testsetup):
+    '''The default tower ui pagination size'''
+    return 20
