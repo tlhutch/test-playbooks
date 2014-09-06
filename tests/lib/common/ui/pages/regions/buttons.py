@@ -54,8 +54,7 @@ class Activity_Stream_Button(Base_Button):
 class Activity_Stream_Refresh_Button(Base_Button):
     '''Region describing an activity_stream [refresh] button'''
     # The following works for post-2.0.0
-    # _root_locator = (By.CSS_SELECTOR, '#activity_stream_refresh_btn')
-    _root_locator = (By.CSS_SELECTOR, '#stream-container #refresh_btn')
+    _root_locator = (By.CSS_SELECTOR, '#activity-stream-refresh-btn')
 
 
 class Page_Button(Base_Button):
