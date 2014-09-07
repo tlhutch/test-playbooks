@@ -38,9 +38,8 @@ class Organizations_Page(Base):
     def table(self):
         # FIXME - doesn't work yet
         _region_map = {
-            '.name-column': Organization_Edit_Page,
-            '#edit-action': Organization_Edit_Page,
-            '#delete-action': Prompt_Dialog,
+            'edit-action': Organization_Edit_Page,
+            'delete-action': Prompt_Dialog,
         }
         return SortTable_Region(self.testsetup, _root_locator=self._table_locator, _region_map=_region_map)
 

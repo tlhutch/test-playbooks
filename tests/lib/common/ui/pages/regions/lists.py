@@ -55,12 +55,12 @@ class Pagination_Region(PageRegion):
 class Table_Region(PageRegion):
     '''Represents a table list region'''
 
-    # FIXME ... define action methods that return appropriate class
-
     _hdr_locator = (By.CSS_SELECTOR, "thead th")
     _row_locator = (By.CSS_SELECTOR, "tbody tr")
     _header = None
     _header_index = None
+    # FIXME ... define action methods that return appropriate class
+    _region_map = {}
 
     @staticmethod
     def _convert_header(header):
@@ -182,7 +182,16 @@ class Table_Region(PageRegion):
         @property
         def columns(self):
             '''Returns a list of column elements'''
-            return self.find_elements(*self._column_locator)
+            # return self.find_elements(*self._column_locator)
+            cols = list()
+            for el in self.find_elements(*self._column_locator):
+                # FIXME - should probably use a locator?
+                # FIXME - needs to pass in a _region_map so we know what class instance to return
+                if 'actions' in el.get_attribute('class'):
+                    cols.append(ActionList_Region(self.testsetup, _root_element=el, _region_map=self._table._region_map))
+                else:
+                    cols.append(el)
+            return cols
 
         def __getattr__(self, name):
             '''Returns Cell element by header name'''
@@ -259,13 +268,14 @@ class SortTable_Region(Table_Region):
 class List_Region(PageRegion):
     '''Describes the search type options region'''
     _item_locator = (By.CSS_SELECTOR, "a")
+    _unique_attribute = 'text'
 
     def get(self, name):
         '''
         Return item with text matching the provided name
         '''
         for el in self.items():
-            if el.get_attribute('text') == name:
+            if el.get_attribute(self._unique_attribute) == name:
                 return el
         raise Exception("Item named '%s' not found" % name)
 
@@ -287,4 +297,23 @@ class List_Region(PageRegion):
         element.  For example:
             [ {name: element}, ... ]
         '''
-        return [el.get_attribute('text') for el in self.items()]
+        return [el.get_attribute(self._unique_attribute) for el in self.items()]
+
+
+class ActionList_Region(List_Region):
+    '''Describes the list of actions in a table cell'''
+    _item_locator = (By.CSS_SELECTOR, "a")
+    _unique_attribute = 'id'
+    _region_map = {}
+
+    def click(self, name):
+        '''
+        Clicks on the desired element, and returns an instance specified in _region_map
+        '''
+        el = self.get(name)
+        el.click()
+        if name in self._region_map:
+            # FIXME - what else gets passed along here?
+            return self._region_map[name](self.testsetup)
+        else:
+            return None

@@ -227,6 +227,10 @@ class Test_Organization(Base_UI_Test):
         '''Verify that the organization activity stream can be open and closed'''
 
         # Open edit page
+        # ui_organizations_pg.search.search_value(organization.name)
+        # ui_organizations_pg.search.search_btn.click()
+        # edit_pg = ui_organizations_pg.table.find_row('name', organization.name).actions.click("edit-action")
+
         edit_pg = ui_organizations_pg.open(organization.id)
         assert edit_pg.accordion.get('Properties')[0].is_expanded(), "The properties accordion was not expanded as expected"
         assert edit_pg.is_the_active_tab
@@ -299,6 +303,9 @@ class Test_Organization(Base_UI_Test):
     def test_edit_users(self, ui_organizations_pg, organization):
         '''Verify basic operation of organizations users accordion'''
         edit_pg = ui_organizations_pg.open(organization.id)
+        assert edit_pg.is_the_active_tab
+        assert edit_pg.is_the_active_breadcrumb
+
         # Access the users region
         users_region = edit_pg.accordion.click('Users')
         org_users_pg = users_region.add_btn.click()
@@ -308,6 +315,9 @@ class Test_Organization(Base_UI_Test):
     def test_edit_admins(self, ui_organizations_pg, organization):
         '''Verify basic operation of organizations admins accordion'''
         edit_pg = ui_organizations_pg.open(organization.id)
+        assert edit_pg.is_the_active_tab
+        assert edit_pg.is_the_active_breadcrumb
+
         # Access the users region
         admins_region = edit_pg.accordion.click('Administrators')
         org_admins_pg = admins_region.add_btn.click()
