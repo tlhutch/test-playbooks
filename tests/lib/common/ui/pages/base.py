@@ -1,3 +1,4 @@
+import sys
 import logging
 from selenium.common.exceptions import NoSuchElementException
 from common.ui.pages import Page, PageRegion
@@ -10,9 +11,23 @@ class Base(Page):
     '''
     Base class for Tower UI pages
     '''
-
     _page_title = 'Ansible Tower'
     _breadcrumb_title = 'UNDEFINED'
+    _related = {}
+
+    def get_related(self, name):
+        '''
+        Return a class corresponding to the provided string. For example,
+        'Organization_Create_Page' -> Organization_Create_Page
+        '''
+        cls_name = self._related.get(name, None)
+        assert cls_name is not None, \
+            "No such related resource defined '%s'" % name
+
+        assert hasattr(sys.modules[self.__module__], cls_name), \
+            "No such class defined '%s' in module '%s'" % (cls_name, self.__module__)
+
+        return getattr(sys.modules[self.__module__], cls_name)
 
     def go_to_login_page(self):
         self.selenium.get(self.base_url)

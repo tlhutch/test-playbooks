@@ -7,7 +7,9 @@ class Activity_Stream_Region(BaseRegion):
     '''Base activity stream page'''
     _breadcrumb_title = 'Activity Stream'
     _root_locator = (By.CSS_SELECTOR, '#stream-container')
-    _item_class = None
+    _related = {
+        'close': None,
+    }
 
     @property
     def refresh_btn(self):
@@ -15,7 +17,7 @@ class Activity_Stream_Region(BaseRegion):
 
     @property
     def close_btn(self):
-        return Close_Button(self.testsetup, _item_class=self._item_class, _on_click=self.wait_for_slideout)
+        return Close_Button(self.testsetup, _item_class=self.get_related('close'), _on_click=self.wait_for_slideout)
 
     def wait_for_slidein(self):
         '''wait for activity stream to appear'''
