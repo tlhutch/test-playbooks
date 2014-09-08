@@ -9,7 +9,7 @@
   shell: tar -xvf {{tarball.dest}} --transform "s|^[^/]*|setup|" chdir=/tmp
 
 - name: is awx already installed?
-  stat: path=/etc/awx/awx.cert
+  stat: path=/etc/tower/awx.cert
   register: is_awx_installed
   ignore_errors: yes
 
@@ -26,5 +26,5 @@
 - name: setup.sh
   command: ./setup.sh -e @awx_vars.yaml
      chdir=/tmp/setup
-     # creates=/etc/awx/awx.cert
+     # creates=/etc/tower/awx.cert
   when: not is_awx_installed.stat.exists or awx_upgrade

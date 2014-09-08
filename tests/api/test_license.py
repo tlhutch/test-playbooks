@@ -39,7 +39,7 @@ def install_trial_license(request, ansible_runner, license_instance_count):
     log.debug("calling fixture install_trial_license")
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=31, trial=True)
     # Using ansible, copy the license to the target system
-    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+    ansible_runner.copy(src=fname, dest='/etc/tower/license', owner='awx', group='awx', mode='0600')
 
 
 @pytest.fixture(scope='function')
@@ -57,28 +57,28 @@ def install_license(request, ansible_runner, license_instance_count):
     log.debug("calling fixture install_license")
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=31)
     # Using ansible, copy the license to the target system
-    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+    ansible_runner.copy(src=fname, dest='/etc/tower/license', owner='awx', group='awx', mode='0600')
 
 
 @pytest.fixture(scope='class')
 def install_license_warning(request, ansible_runner, license_instance_count):
     log.debug("calling fixture install_license_warning")
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=1)
-    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+    ansible_runner.copy(src=fname, dest='/etc/tower/license', owner='awx', group='awx', mode='0600')
 
 
 @pytest.fixture(scope='class')
 def install_license_expired(request, ansible_runner, license_instance_count):
     log.debug("calling fixture install_license_expired")
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=-61)
-    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+    ansible_runner.copy(src=fname, dest='/etc/tower/license', owner='awx', group='awx', mode='0600')
 
 
 @pytest.fixture(scope='class')
 def install_license_grace_period(request, ansible_runner, license_instance_count):
     log.debug("calling fixture install_license_grace_period")
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=-1)
-    ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+    ansible_runner.copy(src=fname, dest='/etc/tower/license', owner='awx', group='awx', mode='0600')
 
 
 @pytest.fixture(scope='class')
@@ -101,7 +101,7 @@ def instance_id(ansible_ec2_facts):
 def install_license_aws(request, ansible_runner, license_instance_count, ami_id, instance_id):
     log.debug("calling fixture install_license_aws")
     fname = common.tower.license.generate_aws_file(instance_count=license_instance_count, ami_id=ami_id, instance_id=instance_id)
-    ansible_runner.copy(src=fname, dest='/etc/awx/aws', owner='awx', group='awx', mode='0600')
+    ansible_runner.copy(src=fname, dest='/etc/tower/aws', owner='awx', group='awx', mode='0600')
 
 
 @pytest.fixture(scope="function", params=['org_admin', 'org_user', 'anonymous'])
@@ -215,22 +215,22 @@ class Test_No_License(Base_Api_Test):
             with pytest.raises(common.exceptions.BadRequest_Exception):
                 api_config_pg.post(invalid)
 
-        # Assert that /etc/awx/license does not exist
-        result = ansible_runner.stat(path='/etc/awx/license')
+        # Assert that /etc/tower/license does not exist
+        result = ansible_runner.stat(path='/etc/tower/license')
         assert not result['stat']['exists'], "No license was expected, but one was found"
 
     def test_install_license(self, api_config_pg, license_json, ansible_runner):
         '''Verify that a license can be installed by issuing a POST to the /config endpoint'''
-        # Assert that /etc/awx/license does not exist
-        result = ansible_runner.stat(path='/etc/awx/license')
+        # Assert that /etc/tower/license does not exist
+        result = ansible_runner.stat(path='/etc/tower/license')
         assert not result['stat']['exists'], "No license was expected, but one was found"
 
         # Install the license
         api_config_pg.post(license_json)
 
-        # Assert that /etc/awx/license was created
-        result = ansible_runner.stat(path='/etc/awx/license')
-        assert result['stat']['exists'], "A license was not succesfully installed to /etc/awx/license. %s"
+        # Assert that /etc/tower/license was created
+        result = ansible_runner.stat(path='/etc/tower/license')
+        assert result['stat']['exists'], "A license was not succesfully installed to /etc/tower/license. %s"
 
 
 @pytest.mark.api
@@ -282,23 +282,23 @@ class Test_AWS_License(Base_Api_Test):
         the /config endpoint.  The regular license should win out over the AWS
         license.
         '''
-        # Assert that /etc/awx/aws exists
-        result = ansible_runner.stat(path='/etc/awx/aws')
+        # Assert that /etc/tower/aws exists
+        result = ansible_runner.stat(path='/etc/tower/aws')
         assert result['stat']['exists'], "A AWS license was expected, but none were found. %s" % result
 
-        # Assert that /etc/awx/license does not exist
-        result = ansible_runner.stat(path='/etc/awx/license')
+        # Assert that /etc/tower/license does not exist
+        result = ansible_runner.stat(path='/etc/tower/license')
         assert not result['stat']['exists'], "No license was expected, but one was found. %s" % result
 
         # Record the license md5
-        result = ansible_runner.stat(path='/etc/awx/aws')
+        result = ansible_runner.stat(path='/etc/tower/aws')
         result['stat']['md5']
 
         # Update the license
         api_config_pg.post(license_json)
 
-        # Assert that /etc/awx/license was created
-        result = ansible_runner.stat(path='/etc/awx/license')
+        # Assert that /etc/tower/license was created
+        result = ansible_runner.stat(path='/etc/tower/license')
         assert result['stat']['exists'], "A license was expected, but none were found. %s" % result
 
         # Assert the current license is NOT an aws license
@@ -380,14 +380,14 @@ class Test_License_Warning(Base_Api_Test):
     def test_update_license(self, api_config_pg, license_json, ansible_runner):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
         # Record the license md5
-        result = ansible_runner.stat(path='/etc/awx/license')
+        result = ansible_runner.stat(path='/etc/tower/license')
         before_md5 = result['stat']['md5']
 
         # Update the license
         api_config_pg.post(license_json)
 
-        # Assert that /etc/awx/license was modified
-        result = ansible_runner.stat(path='/etc/awx/license')
+        # Assert that /etc/tower/license was modified
+        result = ansible_runner.stat(path='/etc/tower/license')
         after_md5 = result['stat']['md5']
         assert before_md5 != after_md5, "The license file was not modified as expected"
 
@@ -482,14 +482,14 @@ class Test_License_Expired(Base_Api_Test):
     def test_update_license(self, api_config_pg, license_json, ansible_runner):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
         # Record the license md5
-        result = ansible_runner.stat(path='/etc/awx/license')
+        result = ansible_runner.stat(path='/etc/tower/license')
         before_md5 = result['stat']['md5']
 
         # Update the license
         api_config_pg.post(license_json)
 
-        # Assert that /etc/awx/license was modified
-        result = ansible_runner.stat(path='/etc/awx/license')
+        # Assert that /etc/tower/license was modified
+        result = ansible_runner.stat(path='/etc/tower/license')
         after_md5 = result['stat']['md5']
         assert before_md5 != after_md5, "The license file was not modified as expected"
 
@@ -539,13 +539,13 @@ class Test_Trial_License(Base_Api_Test):
     def test_update_license(self, api_config_pg, trial_license_json, ansible_runner):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
         # Record the license md5
-        result = ansible_runner.stat(path='/etc/awx/license')
+        result = ansible_runner.stat(path='/etc/tower/license')
         before_md5 = result['stat']['md5']
 
         # Update the license
         api_config_pg.post(trial_license_json)
 
-        # Assert that /etc/awx/license was modified
-        result = ansible_runner.stat(path='/etc/awx/license')
+        # Assert that /etc/tower/license was modified
+        result = ansible_runner.stat(path='/etc/tower/license')
         after_md5 = result['stat']['md5']
         assert before_md5 != after_md5, "The license file was not modified as expected"

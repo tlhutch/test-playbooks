@@ -64,12 +64,12 @@ def install_integration_license(request, authtoken, ansible_runner, awx_config):
 
         logging.debug("backing up existing license")
         # Backup any aws license
-        ansible_runner.shell('test -f /etc/awx/aws && mv /etc/awx/aws /etc/awx/.aws', creates='/etc/awx/.aws', removes='/etc/awx/aws')
+        ansible_runner.shell('test -f /etc/tower/aws && mv /etc/tower/aws /etc/tower/.aws', creates='/etc/tower/.aws', removes='/etc/tower/aws')
 
         # Install/replace license
-        logging.debug("installing license /etc/awx/license")
+        logging.debug("installing license /etc/tower/license")
         fname = common.tower.license.generate_license_file(instance_count=10000, days=60)
-        ansible_runner.copy(src=fname, dest='/etc/awx/license', owner='awx', group='awx', mode='0600')
+        ansible_runner.copy(src=fname, dest='/etc/tower/license', owner='awx', group='awx', mode='0600')
 
 
 @pytest.fixture(scope='class')
