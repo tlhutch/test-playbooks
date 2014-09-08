@@ -51,6 +51,7 @@ job:
         start: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
         stdout: {format: uri, type: string}
+        relaunch: {format: uri, type: string}
       required: [job_host_summaries, job_events, start, cancel, activity_stream]
       # FIXME > 2.0.0 - required: [job_host_summaries, job_events, job_plays, job_tasks, start, cancel, activity_stream]
       type: object

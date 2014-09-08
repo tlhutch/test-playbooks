@@ -52,6 +52,7 @@ job_template:
         current_job: {format: uri, type: string}
         next_schedule: {format: uri, type: string}
         callback: {format: uri, type: string}
+        launch: {format: uri, type: string}
       required: [created_by, jobs, activity_stream]
       type: object
     summary_fields:
