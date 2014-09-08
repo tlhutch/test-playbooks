@@ -101,58 +101,49 @@ class Test_Users(Base_UI_Test):
             "Pagination present, but fewer than %d users are visible" % \
             api_default_page_size
 
-    def test_pagination(self, many_users, ui_users_pg, api_users_pg, ui_default_page_size):
+    def test_pagination(self, many_users, ui_users_pg, api_users_pg):
         '''Verify organiation table pagination'''
 
         assert ui_users_pg.pagination.is_displayed(), "Unable to find pagination"
 
         # TODO: Verify expected number of items in pagination
         total_count = api_users_pg.get().count
-        total_pages = int(ceil(total_count / float(ui_default_page_size)))
+        total_pages = int(ceil(total_count / float(ui_users_pg.pagination.page_size)))
 
-        # Assert expected pagination links
-        assert ui_users_pg.pagination.current_page == 1, \
-            "Unexpected current page number (%d != %d)" % \
-            (ui_users_pg.pagination.current_page, 1)
-        assert not ui_users_pg.pagination.first_page.is_displayed()
-        assert not ui_users_pg.pagination.prev_page.is_displayed()
-        assert ui_users_pg.pagination.next_page.is_displayed()
-        assert not ui_users_pg.pagination.last_page.is_displayed()
-        assert ui_users_pg.pagination.count == total_pages, \
-            "Unexpected number of pagination links (%d != %d)" % \
-            (ui_users_pg.pagination.count, total_pages)
+        # Click next_pg until reaching the end
+        curr_pg = ui_users_pg
+        pages_seen = 1
+        while curr_pg.pagination.next_page.is_displayed():
+            # assert expected pagination links
+            self.assert_page_links(curr_pg, pages_seen, total_pages)
+            # click next_page
+            curr_pg = curr_pg.pagination.next_page.click()
+            pages_seen += 1
 
-        # Click next_page
-        next_pg = ui_users_pg.pagination.next_page.click()
+        # assert last page
+        self.assert_page_links(curr_pg, pages_seen, total_pages)
 
-        # Assert expected pagination links
-        assert next_pg.pagination.current_page == 2, \
-            "Unexpected current page number (%d != %d)" % \
-            (next_pg.pagination.current_page, 2)
-        assert not next_pg.pagination.first_page.is_displayed()
-        assert next_pg.pagination.prev_page.is_displayed()
-        assert next_pg.pagination.next_page.is_displayed()
-        assert not next_pg.pagination.last_page.is_displayed()
-        assert next_pg.pagination.count == total_pages, \
-            "Unexpected number of pagination links (%d != %d)" % \
-            (next_pg.pagination.count, total_pages)
+        assert pages_seen == total_pages, \
+            "Unexpected number of pages seen (%s != %s)" % \
+            (pages_seen, total_pages)
 
-        # Click prev_page
-        prev_pg = next_pg.pagination.prev_page.click()
+        # Click prev_pg until reaching the beginning
+        while curr_pg.pagination.prev_page.is_displayed():
+            # assert expected pagination links
+            self.assert_page_links(curr_pg, pages_seen, total_pages)
+            # click prev_page
+            curr_pg = curr_pg.pagination.prev_page.click()
+            pages_seen -= 1
 
-        # Assert expected pagination links
-        assert prev_pg.pagination.current_page == 1, \
-            "Unexpected current page number (%d != %d)" % \
-            (prev_pg.pagination.current_page, 1)
-        assert not prev_pg.pagination.first_page.is_displayed()
-        assert prev_pg.pagination.prev_page.is_displayed()
-        assert not prev_pg.pagination.next_page.is_displayed()
-        assert not prev_pg.pagination.last_page.is_displayed()
-        assert prev_pg.pagination.count == total_pages, \
-            "Unexpected number of pagination links (%d != %d)" % \
-            (prev_pg.pagination.count, total_pages)
+        # assert first page
+        self.assert_page_links(curr_pg, pages_seen, total_pages)
 
-        # TODO: Click page#2
+        assert pages_seen == 1, \
+            "Unexpected number of pages seen (%s != %s)" % \
+            (pages_seen, 1)
+
+        # TODO: click page#2
+        # next_pg = curr_pg.pagination.get(2).click()
 
     def test_filter_name(self, user, ui_users_pg):
         '''Verify organiation table filtering using a name'''

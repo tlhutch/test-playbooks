@@ -5,53 +5,6 @@ from common.ui.pages import PageRegion
 from common.ui.pages.regions.buttons import Base_Button
 
 
-class Pagination_Region(PageRegion):
-    '''Represents the pagination links at the bottom of a table'''
-    _root_locator = (By.CSS_SELECTOR, "ul.pagination")
-    _item_locator = (By.CSS_SELECTOR, "li.ng-scope > a")
-    _item_class = None
-
-    _current_page_locator = (By.CSS_SELECTOR, 'li.active > a')
-
-    _first_page_locator = (By.CSS_SELECTOR, ".fa-angle-double-left")
-    _prev_page_locator = (By.CSS_SELECTOR, ".fa-angle-left")
-    _next_page_locator = (By.CSS_SELECTOR, ".fa-angle-right")
-    _last_page_locator = (By.CSS_SELECTOR, ".fa-angle-double-right")
-
-    @property
-    def first_page(self):
-        return Base_Button(self.testsetup, _root_element=self.find_element(*self._first_page_locator), _on_click=self.wait_for_spinny, _item_class=self._item_class)
-
-    @property
-    def prev_page(self):
-        return Base_Button(self.testsetup, _root_element=self.find_element(*self._prev_page_locator), _on_click=self.wait_for_spinny, _item_class=self._item_class)
-
-    @property
-    def next_page(self):
-        return Base_Button(self.testsetup, _root_element=self.find_element(*self._next_page_locator), _on_click=self.wait_for_spinny, _item_class=self._item_class)
-
-    @property
-    def last_page(self):
-        return Base_Button(self.testsetup, _root_element=self.find_element(*self._last_page_locator), _on_click=self.wait_for_spinny, _item_class=self._item_class)
-
-    def items(self):
-        return self.find_elements(*self._item_locator)
-
-    @property
-    def count(self):
-        '''
-        Returns the number of page links found.
-        '''
-        return len(self.items())
-
-    @property
-    def current_page(self):
-        '''
-        Returns the current page as an integer.
-        '''
-        return int(self.find_element(*self._current_page_locator).text)
-
-
 class Table_Region(PageRegion):
     '''Represents a table list region'''
 
@@ -317,3 +270,43 @@ class ActionList_Region(List_Region):
             return self._region_map[name](self.testsetup)
         else:
             return None
+
+
+class Pagination_Region(List_Region):
+    '''Represents the pagination links at the bottom of a table'''
+    _root_locator = (By.CSS_SELECTOR, '#pagination-widget')
+    _item_locator = (By.CSS_SELECTOR, 'li.ng-scope > a')
+    _item_class = None
+    _locators = {
+        'current': (By.CSS_SELECTOR, 'li.active > a'),
+        'first': (By.CSS_SELECTOR, '#first-page-set > a'),
+        'previous': (By.CSS_SELECTOR, '#previous-page > a'),
+        'next': (By.CSS_SELECTOR, '#next-page > a'),
+        'last': (By.CSS_SELECTOR, '#last-page-set > a'),
+    }
+    page_size = 20
+
+    @property
+    def first_page(self):
+        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['first']), _on_click=self.wait_for_spinny, _item_class=self._item_class)
+
+    @property
+    def prev_page(self):
+        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['previous']), _on_click=self.wait_for_spinny, _item_class=self._item_class)
+
+    @property
+    def next_page(self):
+        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['next']), _on_click=self.wait_for_spinny, _item_class=self._item_class)
+
+    @property
+    def last_page(self):
+        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['last']), _on_click=self.wait_for_spinny, _item_class=self._item_class)
+
+    @property
+    def current_page(self):
+        '''
+        Returns the current page as an integer.
+        '''
+        page_num = self.find_element(*self._locators['current']).text
+        assert page_num.isdigit()
+        return int(page_num)
