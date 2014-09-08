@@ -1,4 +1,4 @@
-# ansibleworks-qa
+# ansible-qa
 
 The build, test and deployment process for Ansible Tower is managed by [Jenkins](http://50.116.42.103).  This document describes the relevant triggers, jobs and workflow.
 
