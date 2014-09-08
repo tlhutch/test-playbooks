@@ -100,3 +100,31 @@ class Base_UI_Test(object):
             # $cookieStore.put('token_expires', expires);
             # $cookieStore.put('userLoggedIn', true);
             # $cookieStore.put('sessionExpired', false);
+
+    @staticmethod
+    def assert_page_links(page, current_page, total_pages):
+        '''
+        Convenience method to assert expected pagination links
+        '''
+        # Assert expected pagination links
+        assert page.pagination.current_page == current_page, \
+            "Unexpected current page number (%d != %d)" % \
+            (page.pagination.current_page, current_page)
+        # assert first_page link?
+        assert not page.pagination.first_page.is_displayed()
+        # assert prev_page link?
+        if page.pagination.current_page == 1:
+            assert not page.pagination.prev_page.is_displayed()
+        else:
+            assert page.pagination.prev_page.is_displayed()
+        # assert next_page link?
+        if page.pagination.current_page == total_pages:
+            assert not page.pagination.next_page.is_displayed()
+        else:
+            assert page.pagination.next_page.is_displayed()
+        # assert last_page link?
+        assert not page.pagination.last_page.is_displayed()
+        # assert page count
+        assert page.pagination.count() == total_pages, \
+            "Unexpected number of pagination links (%d != %d)" % \
+            (page.pagination.count(), total_pages)
