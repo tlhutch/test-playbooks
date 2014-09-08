@@ -5,7 +5,7 @@
 #  * Helper script to contruct a vars.yaml and run the site.yml play
 #
 # Author:
-#  * James Laska <jlaska@ansibleworks.com>
+#  * James Laska <jlaska@ansible.com>
 #
 ###############################################################################
 
