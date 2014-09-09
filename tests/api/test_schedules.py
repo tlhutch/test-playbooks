@@ -11,8 +11,9 @@ from tests.api import Base_Api_Test
 
 
 # Create fixture for testing unsupported RRULES
-@pytest.fixture(
-    params=[
+@pytest.fixture(scope="function")
+def unsupported_rrules(request):
+    return [
         # empty string
         "",
         # missing RRULE
@@ -43,9 +44,6 @@ from tests.api import Base_Api_Test
         "DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYYEARDAY=120;INTERVAL=1",
         "DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYWEEKNO=10;INTERVAL=1",
     ]
-)
-def unsupported_rrule(request):
-    return request.param
 
 
 @pytest.fixture(scope="function", params=["MINUTELY", "HOURLY", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"])
@@ -149,16 +147,17 @@ class Test_Project_Schedules(Base_Api_Test):
         schedules_pg = project.get_related('schedules')
         assert schedules_pg.count == 0
 
-    def test_post_invalid(self, project, unsupported_rrule):
+    def test_post_invalid(self, project, unsupported_rrules):
         '''assert unsupported rrules are rejected'''
         schedules_pg = project.get_related('schedules')
 
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="%s" % common.utils.random_unicode(),
-                       enabled=True,
-                       rrule=str(unsupported_rrule))
-        with pytest.raises(common.exceptions.BadRequest_Exception):
-            schedules_pg.post(payload)
+        for unsupported_rrule in unsupported_rrules:
+            payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+                           description="%s" % common.utils.random_unicode(),
+                           enabled=True,
+                           rrule=str(unsupported_rrule))
+            with pytest.raises(common.exceptions.BadRequest_Exception):
+                schedules_pg.post(payload)
 
     def test_post_duplicate(self, project, disabled_project_schedule):
         '''assert duplicate schedules are rejected'''
@@ -463,16 +462,17 @@ class Test_Inventory_Schedules(Base_Api_Test):
         with pytest.raises(common.exceptions.BadRequest_Exception):
             schedules_pg.post(payload)
 
-    def test_post_invalid(self, aws_inventory_source, unsupported_rrule):
+    def test_post_invalid(self, aws_inventory_source, unsupported_rrules):
         '''assert unsupported rrules are rejected'''
         schedules_pg = aws_inventory_source.get_related('schedules')
 
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="%s" % common.utils.random_unicode(),
-                       enabled=True,
-                       rrule=str(unsupported_rrule))
-        with pytest.raises(common.exceptions.BadRequest_Exception):
-            schedules_pg.post(payload)
+        for unsupported_rrule in unsupported_rrules:
+            payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+                           description="%s" % common.utils.random_unicode(),
+                           enabled=True,
+                           rrule=str(unsupported_rrule))
+            with pytest.raises(common.exceptions.BadRequest_Exception):
+                schedules_pg.post(payload)
 
     def test_post_duplicate(self, aws_inventory_source, disabled_inventory_schedule):
         '''assert duplicate schedules are rejected'''
