@@ -18,4 +18,7 @@ jsonschema
 inflect
 ansible
 python-dateutil
-azure
+azure==0.8.1
+boto==2.13.3
+pyrax==1.6.3
+pysphere==0.1.8
