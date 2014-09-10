@@ -3,6 +3,38 @@ from selenium.webdriver.support.ui import Select
 from common.ui.pages.page import Page
 
 
+def input_getter_by_name(locator):
+    '''
+    Generic property fget method
+    '''
+    def get_field(self):
+        assert hasattr(self, '_locators'), "No self._locators dictionary defined"
+        assert locator in self._locators, "No such locator found '%s'" % locator
+        el = self.find_element(*self._locators.get(locator))
+        el_type = el.get_attribute('type')
+        if el_type in (u'text', u'password'):
+            return el.get_attribute('value')
+        elif el_type == u'checkbox':
+            return el.is_selected()
+    return get_field
+
+
+def input_setter_by_name(locator):
+    '''
+    Generic property fset method
+    '''
+    def set_field(self, value):
+        assert hasattr(self, '_locators'), "No self._locators dictionary defined"
+        assert locator in self._locators, "No such locator found '%s'" % locator
+        el = self.find_element(*self._locators.get(locator))
+        el_type = el.get_attribute('type')
+        if el_type in (u'text', u'password'):
+            el.clear()
+            el.send_keys(value)
+        elif el_type == u'checkbox':
+            el.click()
+    return set_field
+
 def input_getter(locator):
     '''
     Generic property fget method

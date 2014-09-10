@@ -8,3 +8,16 @@ def organization(request, authtoken, api_organizations_pg):
     obj = api_organizations_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
+
+@pytest.fixture(scope="function")
+def many_organizations(request, authtoken, api_organizations_pg):
+
+    obj_list = list()
+    for i in range(55):
+        payload = dict(name="%s random %s organization" % (i, common.utils.random_unicode()),
+                       description="Random organization %s %s" % (i, common.utils.random_unicode()))
+        obj = api_organizations_pg.post(payload)
+        request.addfinalizer(obj.delete)
+        obj_list.append(obj)
+    return obj_list

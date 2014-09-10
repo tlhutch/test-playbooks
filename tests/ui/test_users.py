@@ -104,7 +104,7 @@ class Test_Users(Base_UI_Test):
         # Pagination links shouldn't display
         assert not ui_users_pg.pagination.links.is_displayed(), \
             "Pagination present, but fewer than %d users are visible" % \
-            ui_users.pagination.page_size
+            ui_users_pg.pagination.page_size
 
     def test_pagination(self, many_users, ui_users_pg, api_users_pg):
         '''Verify organiation table pagination'''

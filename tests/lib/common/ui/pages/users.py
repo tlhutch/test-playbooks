@@ -5,9 +5,10 @@ from common.ui.pages.forms import input_getter, input_setter
 from common.ui.pages.regions.stream_container import Activity_Stream_Region
 from common.ui.pages.regions.accordion import Accordion_Region
 from common.ui.pages.regions.buttons import Activity_Stream_Button, Base_Button, Add_Button, Help_Button
-from common.ui.pages.regions.lists import SortTable_Region, Pagination_Region
+from common.ui.pages.regions.lists import SortTable_Region
 from common.ui.pages.regions.dialogs import Prompt_Dialog
 from common.ui.pages.regions.search import Search_Region
+from common.ui.pages.regions.pagination import Pagination_Region
 
 
 class Users_Page(Base):

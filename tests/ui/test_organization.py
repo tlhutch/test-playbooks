@@ -98,7 +98,7 @@ class Test_Organization(Base_UI_Test):
         # Pagination links shouldn't display
         assert not ui_organizations_pg.pagination.links.is_displayed(), \
             "Pagination present, but fewer than %d organizations are visible" % \
-            ui_organizations.pagination.page_size
+            ui_organizations_pg.pagination.page_size
 
     def test_pagination(self, many_organizations, api_organizations_pg, ui_organizations_pg):
         '''Verify organiation table pagination'''
