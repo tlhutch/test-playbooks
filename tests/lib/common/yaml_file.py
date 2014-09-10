@@ -1,8 +1,13 @@
 import os
 import yaml
 import glob
+import logging
 from py.path import local
 from common.randomness import RandomizeValues
+
+
+log = logging.getLogger(__name__)
+
 
 class Loader(yaml.CLoader):
     def __init__(self, stream):
@@ -28,7 +33,7 @@ class Loader(yaml.CLoader):
             return result
 
         else:
-            logging.error("unrecognised node type in !include statement")
+            log.error("unrecognised node type in !include statement")
             raise yaml.constructor.ConstructorError
 
     def extractFile(self, filename):
