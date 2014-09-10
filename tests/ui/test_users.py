@@ -91,15 +91,20 @@ class Test_Users(Base_UI_Test):
                 "Unexpected default table sort order (%s != %s)" % \
                 (ui_users_pg.table.sort_order, sort_order)
 
-    def test_no_pagination(self, authtoken, api_users_pg, api_default_page_size, ui_users_pg):
+    def test_no_pagination(self, authtoken, api_users_pg, ui_users_pg):
         '''Verify organiation table pagination is not present'''
 
-        if api_users_pg.get().count > api_default_page_size:
+        if api_users_pg.get().count > ui_users_pg.pagination.page_size:
             pytest.skip("Unable to test as too many users exist")
 
-        assert not ui_users_pg.pagination.is_displayed(), \
+        # Pagination present
+        assert ui_users_pg.pagination.is_displayed()
+        # Pagination labels present
+        assert ui_users_pg.pagination.labels.is_displayed()
+        # Pagination links shouldn't display
+        assert not ui_users_pg.pagination.links.is_displayed(), \
             "Pagination present, but fewer than %d users are visible" % \
-            api_default_page_size
+            ui_users.pagination.page_size
 
     def test_pagination(self, many_users, ui_users_pg, api_users_pg):
         '''Verify organiation table pagination'''
@@ -220,7 +225,7 @@ class Test_Users(Base_UI_Test):
         assert add_pg.name == "", "Reset button did not reset the field: name"
         assert add_pg.description == "", "Reset button did not reset the field: description"
 
-    def test_org_activity_stream(self, user, ui_users_pg):
+    def test_user_activity_stream(self, user, ui_users_pg):
         '''Verify that the user activity stream can be open and closed'''
 
         # Open edit page

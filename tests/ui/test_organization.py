@@ -85,15 +85,20 @@ class Test_Organization(Base_UI_Test):
                 "Unexpected default table sort order (%s != %s)" % \
                 (ui_organizations_pg.table.sort_order, sort_order)
 
-    def test_no_pagination(self, authtoken, api_organizations_pg, api_default_page_size, ui_organizations_pg):
+    def test_no_pagination(self, authtoken, api_organizations_pg, ui_organizations_pg):
         '''Verify organiation table pagination is not present'''
 
-        if api_organizations_pg.get().count > api_default_page_size:
+        if api_organizations_pg.get().count > ui_organizations_pg.pagination.page_size:
             pytest.skip("Unable to test as too many organizations exist")
 
-        assert not ui_organizations_pg.pagination.is_displayed(), \
+        # Pagination present
+        assert ui_organizations_pg.pagination.is_displayed()
+        # Pagination labels present
+        assert ui_organizations_pg.pagination.labels.is_displayed()
+        # Pagination links shouldn't display
+        assert not ui_organizations_pg.pagination.links.is_displayed(), \
             "Pagination present, but fewer than %d organizations are visible" % \
-            api_default_page_size
+            ui_organizations.pagination.page_size
 
     def test_pagination(self, many_organizations, api_organizations_pg, ui_organizations_pg):
         '''Verify organiation table pagination'''
