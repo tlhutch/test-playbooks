@@ -7,7 +7,7 @@ class Accordion_Region(BaseRegion):
     _root_locator = (By.CLASS_NAME, 'ui-accordion')
     _header_locator = (By.CLASS_NAME, 'ui-accordion-header')
     _content_locator = (By.CLASS_NAME, 'ui-accordion-content')
-    _region_map = dict()  # Provided by caller
+    _related = dict()  # Provided by caller
 
     def get(self, name):
         '''Return a (header, content) tuple for the accordion matching the provided name'''
@@ -44,8 +44,8 @@ class Accordion_Region(BaseRegion):
         result = list()
         for i, el in enumerate(self.find_elements(*self._content_locator)):
             # Choose an appropriate region class (default: Accordion_Content)
-            region_class = self._region_map.get(self.headers[i].title, Accordion_Content)
-            result.append(region_class(self.testsetup, _root_element=el))
+            related_cls = self.get_related(self.headers[i].title, Accordion_Content)
+            result.append(related_cls(self.testsetup, _root_element=el))
         return result
 
 
