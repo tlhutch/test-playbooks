@@ -15,19 +15,28 @@ class Base(Page):
     _breadcrumb_title = 'UNDEFINED'
     _related = {}
 
-    def get_related(self, name):
+    def get_related(self, name, default=None):
         '''
         Return a class corresponding to the provided string. For example,
         'Organization_Create_Page' -> Organization_Create_Page
         '''
-        cls_name = self._related.get(name, None)
-        assert cls_name is not None, \
+
+        assert name in self._related, \
             "No such related resource defined '%s'" % name
+        name = self._related.get(name)
 
-        assert hasattr(sys.modules[self.__module__], cls_name), \
-            "No such class defined '%s' in module '%s'" % (cls_name, self.__module__)
+        if '.' in name:
+            modname = name[:name.rfind('.')]
+            name = name[name.rfind('.') + 1:]
+        else:
+            modname = self.__module__
 
-        return getattr(sys.modules[self.__module__], cls_name)
+        mod = __import__(modname, fromlist=[name])
+        if hasattr(mod, name):
+            return getattr(mod, name)
+
+        log.warning("Module '%s' has no class '%s'" % (mod, name))
+        return default
 
     def go_to_login_page(self):
         self.selenium.get(self.base_url)
@@ -60,7 +69,7 @@ class Base(Page):
     @property
     def breadcrumb(self):
         from common.ui.pages.regions.breadcrumb import Breadcrumb_Region
-        return Breadcrumb_Region(self.testsetup)
+        return Breadcrumb_Region(self.testsetup, _root_element=self.find_element(*Breadcrumb_Region._root_locator))
 
     @property
     def has_breadcrumb(self):
