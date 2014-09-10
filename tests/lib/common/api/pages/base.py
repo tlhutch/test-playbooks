@@ -2,9 +2,11 @@ import time
 import inspect
 import httplib
 import common.utils
-from page import Page, PageRegion
+from common.api.pages import Page
+# from page import Page
 from common.api.schema import validate
-from common.exceptions import *
+import common.exceptions
+
 
 def json_getter(var):
     '''
@@ -13,6 +15,7 @@ def json_getter(var):
     def get_json(self):
         return getattr(self.json, var)
     return get_json
+
 
 def json_setter(var):
     '''
@@ -58,7 +61,7 @@ class Base(Page):
     def handle_request(self, r):
         try:
             data = r.json()
-        except ValueError, e:
+        except ValueError:
             '''If there was no json to parse'''
             data = dict()
 
@@ -95,16 +98,16 @@ class Base(Page):
             else:
                 return self.__item_class__(self.testsetup, base_url=base_url, json=self.json)
         elif r.status_code == httplib.NO_CONTENT:
-            raise NoContent_Exception(exc_str)
+            raise common.exceptions.NoContent_Exception(exc_str)
         elif r.status_code == httplib.NOT_FOUND:
-            raise NotFound_Exception(exc_str)
+            raise common.exceptions.NotFound_Exception(exc_str)
         elif r.status_code == httplib.FORBIDDEN:
             try:
                 self.validate_json(json=data, request='license_exceeded')
             except:
-                raise Forbidden_Exception(exc_str)
+                raise common.exceptions.Forbidden_Exception(exc_str)
             else:
-                raise LicenseExceeded_Exception(exc_str)
+                raise common.exceptions.LicenseExceeded_Exception(exc_str)
         elif r.status_code == httplib.BAD_REQUEST:
             # Attempt to validate the json response.  If it validates against a
             # 'duplicate' method, then we return a Duplicate_Exception.  If
@@ -112,13 +115,13 @@ class Base(Page):
             try:
                 self.validate_json(json=data, request='duplicate')
             except:
-                raise BadRequest_Exception(exc_str + ": %s" % data)
+                raise common.exceptions.BadRequest_Exception(exc_str + ": %s" % data)
             else:
-                raise Duplicate_Exception(exc_str + ". However, JSON validation determined the cause was a duplicate object already exists: %s" % data)
+                raise common.exceptions.Duplicate_Exception(exc_str + ". However, JSON validation determined the cause was a duplicate object already exists: %s" % data)
         elif r.status_code == httplib.INTERNAL_SERVER_ERROR:
-            raise InternalServerError_Exception(exc_str + ": %s" % data)
+            raise common.exceptions.InternalServerError_Exception(exc_str + ": %s" % data)
         else:
-            raise Unknown_Exception(exc_str + ": %s" % data)
+            raise common.exceptions.Unknown_Exception(exc_str + ": %s" % data)
 
     def get(self, **params):
         r = self.api.get(self.base_url.format(**self.json), params=params)
@@ -141,7 +144,7 @@ class Base(Page):
         r = self.api.delete(self.base_url.format(**self.json))
         try:
             return self.handle_request(r)
-        except NoContent_Exception:
+        except common.exceptions.NoContent_Exception:
             pass
 
     def quiet_delete(self):
@@ -151,12 +154,13 @@ class Base(Page):
         r = self.api.delete(self.base_url.format(**self.json))
         try:
             return self.handle_request(r)
-        except (NoContent_Exception, NotFound_Exception):
+        except (common.exceptions.NoContent_Exception, common.exceptions.otFound_Exception):
             pass
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
         return Base(self.testsetup, base_url=self.json['related'][name]).get(**kwargs)
+
 
 class Base_List(Base):
     '''
@@ -205,6 +209,7 @@ class Base_List(Base):
         if self.previous:
             prev_page = self.__class__(self.testsetup, base_url=self.previous)
             return prev_page.get()
+
 
 class Task_Page(Base):
     """
