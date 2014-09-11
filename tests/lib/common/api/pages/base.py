@@ -154,7 +154,7 @@ class Base(Page):
         r = self.api.delete(self.base_url.format(**self.json))
         try:
             return self.handle_request(r)
-        except (common.exceptions.NoContent_Exception, common.exceptions.otFound_Exception):
+        except (common.exceptions.NoContent_Exception, common.exceptions.NotFound_Exception):
             pass
 
     def get_related(self, name, **kwargs):
