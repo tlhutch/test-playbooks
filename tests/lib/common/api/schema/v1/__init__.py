@@ -69,6 +69,15 @@ class Awx_Schema_Organizations(Awx_Schema):
     def post(self):
         return self.load_file('organizations/item.yml')
 
+
+class Awx_Schema_Organization(Awx_Schema_Organizations):
+    resource = '/api/v1/organizations/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('organizations/item.yml')
+
+
 class Awx_Schema_Users(Awx_Schema):
     resource = '/api/v1/users/'
 

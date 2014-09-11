@@ -1,6 +1,6 @@
 import base
 from users import Users_Page
-from common.exceptions import *
+
 
 class Team_Page(base.Base):
     # FIXME - it would be nice for base_url to always return self.json.url.
@@ -11,17 +11,23 @@ class Team_Page(base.Base):
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
+        related_cls = None
         if name == 'users':
-            related = Users_Page(self.testsetup, base_url=self.json['related'][name])
+            related_cls = Users_Page
+        elif name == 'organization':
+            from organizations import Organization_Page
+            related_cls = Organization_Page
         elif name == 'credentials':
             from credentials import Credentials_Page
-            related = Credentials_Page(self.testsetup, base_url=self.json['related'][name])
+            related_cls = Credentials_Page
         elif name == 'permissions':
             from permissions import Permissions_Page
-            related = Permissions_Page(self.testsetup, base_url=self.json['related'][name])
+            related_cls = Permissions_Page
         else:
             raise NotImplementedError
+        related = related_cls(self.testsetup, base_url=self.json['related'][name])
         return related.get(**kwargs)
+
 
 class Teams_Page(Team_Page, base.Base_List):
     base_url = '/api/v1/teams/'
