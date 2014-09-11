@@ -377,21 +377,21 @@ class Test_Teams(Base_UI_Test):
         region = edit_pg.accordion.click('Users')
 
         # Assert disassociation
-        assert region.table.find_row('username', anonymous_user.name) is None, \
-            "User (%s) unexpectedly associated with team (%s)" % (anonymous_user.name, team.name)
+        assert region.table.find_row('username', anonymous_user.username) is None, \
+            "User (%s) unexpectedly associated with team (%s)" % (anonymous_user.username, team.name)
 
         # Associate
         add_pg = region.add_btn.click()
         assert add_pg.is_the_active_tab
         assert add_pg.is_the_active_breadcrumb
-        add_pg.table.click_row_by_cells(dict(name=anonymous_user.name), 'username')
+        add_pg.table.click_row_by_cells(dict(username=anonymous_user.username), 'username')
         edit_pg = add_pg.select_btn.click()
         assert edit_pg.accordion.get('Users')[0].is_expanded(), "The credentials accordion was not expanded as expected"
         region = edit_pg.accordion.click('Users')
 
         # Assert association
-        assert region.table.find_row('username', anonymous_user.name) is not None, \
-            "User (%s) was not properly associated with team (%s)" % (anonymous_user.name, team.name)
+        assert region.table.find_row('username', anonymous_user.username) is not None, \
+            "User (%s) was not properly associated with team (%s)" % (anonymous_user.username, team.name)
 
 
 # @pytest.mark.selenium
