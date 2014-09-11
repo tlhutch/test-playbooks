@@ -105,7 +105,7 @@ class Organization_Create_Page(Base):
 
     @property
     def reset_btn(self):
-        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['reset_btn']), _item_class=self.__class__)
+        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['reset_btn']))
 
 
 class Organization_Users_Page(Base):
@@ -149,9 +149,9 @@ class Organization_Admins_Page(Organization_Users_Page):
 class Organization_Edit_Page(Organization_Create_Page):
     _tab_title = "Organizations"
     _related = {
-        'Properties': 'common.ui.pages.organizations.Organization_Properties_Region',
-        'Users': 'common.ui.pages.organizations.Organization_Users_Region',
-        'Administrators': 'common.ui.pages.organizations.Organization_Admins_Region',
+        'Properties': Organizations_Page.__module__ + '.Organization_Properties_Region',
+        'Users': Organizations_Page.__module__ + '.Organization_Users_Region',
+        'Administrators': Organizations_Page.__module__ + '.Organization_Admins_Region',
     }
 
     @property

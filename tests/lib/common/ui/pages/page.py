@@ -39,6 +39,7 @@ class Page(object):
     def open(self, url_fragment=""):
         '''Open the specified url_fragment, which is relative to the base_url, in the current window.'''
         self.selenium.get(self.base_url + url_fragment)
+        self.wait_for_spinny()
         self.is_the_current_page
 
     def back(self):
