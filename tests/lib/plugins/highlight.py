@@ -6,6 +6,7 @@ def pytest_addoption(parser):
                      default=False,
                      help='whether to turn on highlighting of elements')
 
+
 def highlight(element):
     """Highlights (blinks) a Webdriver element.
         In pure javascript, as suggested by https://github.com/alp82.
@@ -28,8 +29,10 @@ def highlight(element):
         }, 10);
         """, element, "#FFFFCC", "#8f8 solid 1px")
 
+
 def pytest_configure(config):
     from selenium.webdriver.remote.webelement import WebElement
+
     def _execute(self, command, params=None):
         highlight(self)
         return self._old_execute(command, params)
