@@ -1,6 +1,7 @@
-from selenium.webdriver.common.by import By
+import time
 from selenium.webdriver.support.ui import Select
-from common.ui.pages.page import Page
+from common.ui.pages import Base
+from common.ui.pages.regions.buttons import Base_Button
 
 
 def input_getter_by_name(locator):
@@ -35,6 +36,7 @@ def input_setter_by_name(locator):
             el.click()
     return set_field
 
+
 def input_getter(locator):
     '''
     Generic property fget method
@@ -64,8 +66,15 @@ def input_setter(locator):
     return set_field
 
 
-class Form_Page(Page):
+class Form_Page(Base):
     '''Object that defines various helpers for interacting with browser <form>s'''
+
+    # Sub-classes should define the following title attributes
+    _tab_title = "FIXME"
+    _breadcrumb_title = "FIXME"
+
+    # Sub-classes should define related objects in the following dictionary
+    _related = {}
 
     # Sub-classes should define locators in the following dictionary
     _locators = {}
@@ -114,3 +123,11 @@ class Form_Page(Page):
     def select_dropdown_by_value(self, value, *element):
         select = Select(self._selenium_root.find_element(*element))
         select.select_by_value(value)
+
+    @property
+    def save_btn(self):
+        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['save_btn']), _item_class=self.get_related('save'))
+
+    @property
+    def reset_btn(self):
+        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['reset_btn']))

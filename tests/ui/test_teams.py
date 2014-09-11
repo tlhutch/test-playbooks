@@ -220,9 +220,9 @@ class Test_Teams(Base_UI_Test):
 
         # Click Reset
         add_pg.reset_btn.click()
-        assert add_pg.name == "", "Reset button did not reset the field: name"
-        assert add_pg.description == "", "Reset button did not reset the field: description"
-        assert add_pg.organization_name == "", "Reset button did not reset the field: organization_name"
+        assert add_pg.name == "", "Reset button did not reset the name field (value=%s)" % add_pg.name
+        assert add_pg.description == "", "Reset button did not reset the description field (value=%s)" % add_pg.name
+        assert add_pg.organization_name == "", "Reset button did not reset the organization_name field (value=%s)" % add_pg.name
 
     def test_team_activity_stream(self, team, ui_teams_pg):
         '''Verify that the team activity stream can be open and closed'''
@@ -304,7 +304,7 @@ class Test_Teams(Base_UI_Test):
             "The reset button did not restore the 'description' (%s != %s)" % \
             (edit_region.description, organization_name)
 
-    def test_add_credential(self, team, ssh_credential, ui_teams_pg):
+    def test_edit_add_credential(self, team, ssh_credential, ui_teams_pg):
         '''Verify basic operation of adding credentials'''
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Credentials')
@@ -327,7 +327,7 @@ class Test_Teams(Base_UI_Test):
             "Credential (%s) was not properly associated with team (%s)" % (ssh_credential.name, team.name)
 
     @pytest.mark.skipif(True, reason="TODO - define a permission API fixture")
-    def test_add_permission(self, team, ui_teams_pg):
+    def test_edit_add_permission(self, team, ui_teams_pg):
         '''Verify basic operation of adding permissions'''
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Permissions')
@@ -349,7 +349,7 @@ class Test_Teams(Base_UI_Test):
         assert region.table.find_row('name', permission.name) is not None, \
             "Permission (%s) was not properly associated with team (%s)" % (permission.name, team.name)
 
-    def test_add_project(self, team, project, ui_teams_pg):
+    def test_edit_add_project(self, team, project, ui_teams_pg):
         '''Verify basic operation of adding projects'''
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Projects')
@@ -371,7 +371,7 @@ class Test_Teams(Base_UI_Test):
         assert region.table.find_row('name', project.name) is not None, \
             "Project (%s) was not properly associated with team (%s)" % (project.name, team.name)
 
-    def test_add_user(self, team, anonymous_user, ui_teams_pg):
+    def test_edit_add_user(self, team, anonymous_user, ui_teams_pg):
         '''Verify basic operation of adding users'''
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Users')

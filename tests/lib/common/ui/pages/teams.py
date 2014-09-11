@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
-from common.ui.pages import Base, BaseRegion, Organizations_Page, Organization_Create_Page
-from common.ui.pages.forms import input_getter, input_setter, input_getter_by_name, input_setter_by_name
+from common.ui.pages import Base, BaseRegion, MainTab_Page
+from common.ui.pages.forms import Form_Page, input_getter, input_setter, input_getter_by_name, input_setter_by_name
 from common.ui.pages.regions.stream_container import Activity_Stream_Region
 from common.ui.pages.regions.accordion import Accordion_Region, Accordion_Content
 from common.ui.pages.regions.buttons import Activity_Stream_Button, Base_Button, Add_Button, Help_Button, Select_Button
@@ -11,7 +11,7 @@ from common.ui.pages.regions.search import Search_Region
 from common.ui.pages.regions.pagination import Pagination_Region
 
 
-class Teams_Page(Organizations_Page):
+class Teams_Page(MainTab_Page):
     '''Describes teams page'''
     _base_url = "/#/teams/"
     _tab_title = "Teams"
@@ -35,7 +35,7 @@ class Teams_Activity_Page(Activity_Stream_Region):
     }
 
 
-class Team_Create_Page(Organization_Create_Page):
+class Team_Create_Page(Form_Page):
     '''Describes the teams create page'''
     _tab_title = "Teams"
     _breadcrumb_title = 'Create Team'
@@ -51,6 +51,8 @@ class Team_Create_Page(Organization_Create_Page):
         'reset_btn': (By.CSS_SELECTOR, '#team_reset_btn'),
     }
 
+    name = property(input_getter_by_name('name'), input_setter_by_name('name'))
+    description = property(input_getter_by_name('description'), input_setter_by_name('description'))
     organization_name = property(input_getter_by_name('organization_name'), input_setter_by_name('organization_name'))
 
 
