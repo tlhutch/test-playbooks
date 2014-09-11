@@ -14,6 +14,7 @@ class Search_Region(PageRegion):
         'search_value': (By.CSS_SELECTOR, '#search_value_input'),
         'search_btn': (By.CSS_SELECTOR, '#search-submit-button'),
         'reset_btn': (By.CSS_SELECTOR, '#search-reset-button'),
+#search-reset-button
     }
 
     # Textbox
@@ -28,11 +29,11 @@ class Search_Region(PageRegion):
 
     @property
     def search_btn(self):
-        return Search_Button(self.testsetup, _root_element=self.find_element(*self._locators['search_btn']), _item_class=self._item_class)
+        return Search_Button(self.testsetup, _root_element=self.find_visible_element(*self._locators['search_btn']), _item_class=self._item_class)
 
     @property
     def reset_btn(self):
-        return Reset_Button(self.testsetup, _root_element=self.find_element(*self._locators['reset_btn']), _item_class=self._item_class)
+        return Reset_Button(self.testsetup, _root_element=self.find_visible_element(*self._locators['reset_btn']), _item_class=self._item_class)
 
 
 class Search_DropDown(PageRegion):

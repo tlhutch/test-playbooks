@@ -3,8 +3,8 @@ from selenium.common.exceptions import NoSuchElementException
 from common.ui.pages import Base, BaseRegion, Organizations_Page, Organization_Create_Page
 from common.ui.pages.forms import input_getter, input_setter, input_getter_by_name, input_setter_by_name
 from common.ui.pages.regions.stream_container import Activity_Stream_Region
-from common.ui.pages.regions.accordion import Accordion_Region
-from common.ui.pages.regions.buttons import Activity_Stream_Button, Base_Button, Add_Button, Help_Button
+from common.ui.pages.regions.accordion import Accordion_Region, Accordion_Content
+from common.ui.pages.regions.buttons import Activity_Stream_Button, Base_Button, Add_Button, Help_Button, Select_Button
 from common.ui.pages.regions.lists import SortTable_Region
 from common.ui.pages.regions.dialogs import Prompt_Dialog
 from common.ui.pages.regions.search import Search_Region
@@ -95,3 +95,93 @@ class Team_Activity_Page(Activity_Stream_Region):
     }
 
 
+class Team_Users_Region(Accordion_Content):
+    '''Describes the properties accordion region'''
+    _tab_title = "Teams"
+    _related = {
+        'add': 'Team_Add_Users_Page',
+    }
+
+
+class Team_Add_Users_Page(Base):
+    '''Describes the page for adding users to a team'''
+    _tab_title = "Teams"
+    _breadcrumb_title = 'Add Users'
+    _related = {
+        'select': 'Team_Edit_Page',
+    }
+    _locators = {
+        'table': (By.CSS_SELECTOR, '#users_table'),
+        'pagination': (By.CSS_SELECTOR, '#user-pagination'),
+    }
+
+    @property
+    def help_btn(self):
+        return Help_Button(self.testsetup)
+
+    @property
+    def select_btn(self):
+        return Select_Button(self.testsetup, _item_class=self.get_related('select'))
+
+    @property
+    def table(self):
+        return SortTable_Region(self.testsetup, _root_locator=self._locators['table'])
+
+    @property
+    def pagination(self):
+        return Pagination_Region(self.testsetup, _root_locator=self._locators['pagination'], _item_class=self.__class__)
+
+    @property
+    def search(self):
+        return Search_Region(self.testsetup, _item_class=self.__class__)
+
+
+class Team_Permissions_Region(Accordion_Content):
+    '''Describes the permissions accordion region'''
+    _tab_title = "Teams"
+    _related = {
+        'add': 'Team_Add_Permissions_Page',
+    }
+
+
+class Team_Add_Permissions_Page(Team_Add_Users_Page):
+    '''Describes the page for adding permissions to a team'''
+    _breadcrumb_title = 'Add Permissions'
+    _locators = {
+        'table': (By.CSS_SELECTOR, '#permissions_table'),
+        'pagination': (By.CSS_SELECTOR, '#permission-pagination'),
+    }
+
+
+class Team_Projects_Region(Accordion_Content):
+    '''Describes the projects accordion region'''
+    _tab_title = "Teams"
+    _related = {
+        'add': 'Team_Add_Projects_Page',
+    }
+
+
+class Team_Add_Projects_Page(Team_Add_Users_Page):
+    '''Describes the page for adding projects to a team'''
+    _breadcrumb_title = 'Add Project'
+    _locators = {
+        'table': (By.CSS_SELECTOR, '#projects_table'),
+        'pagination': (By.CSS_SELECTOR, '#project-pagination'),
+    }
+
+
+class Team_Credentials_Region(Accordion_Content):
+    '''Describes the credentials accordion region'''
+    _tab_title = "Teams"
+    _related = {
+        'add': 'Team_Add_Credentials_Page',
+    }
+
+
+class Team_Add_Credentials_Page(Team_Add_Users_Page):
+    '''Describes the page for adding credentials to a team'''
+    _breadcrumb_title = 'Add Credentials'
+    _locators = {
+        'table': (By.CSS_SELECTOR, '#credentials_table'),
+        'pagination': (By.CSS_SELECTOR, '#credential-pagination'),
+    }

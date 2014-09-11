@@ -1,6 +1,10 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from common.ui.pages import BaseRegion
+from common.ui.pages.regions.buttons import Add_Button
+from common.ui.pages.regions.lists import SortTable_Region
+from common.ui.pages.regions.pagination import Pagination_Region
+from common.ui.pages.regions.search import Search_Region
 
 
 class Accordion_Region(BaseRegion):
@@ -51,6 +55,34 @@ class Accordion_Region(BaseRegion):
 
 class Accordion_Content(BaseRegion):
     _root_locator = None  # Set by caller
+    _related = {
+        'add': 'FIXME',  # Set by caller
+    }
+    _locators = {
+        'add': (By.CSS_SELECTOR, '#add_btn'),
+        'table': (By.CSS_SELECTOR, 'table.table'),
+        'pagination': (By.CSS_SELECTOR, 'div.page-row'),
+    }
+
+    @property
+    def add_btn(self):
+        return Add_Button(self.testsetup, _root_element=self.find_element(*self._locators['add']), _item_class=self.get_related('add'))
+
+    @property
+    def table(self):
+        _region_map = {
+            'edit-action': NotImplementedError,
+            'delete-action': NotImplementedError,
+        }
+        return SortTable_Region(self.testsetup, _root_element=self.find_element(*self._locators['table']), _region_map=_region_map)
+
+    @property
+    def pagination(self):
+        return Pagination_Region(self.testsetup, _root_element=self.find_element(*self._locators['pagination']), _item_class=self.__class__)
+
+    @property
+    def search(self):
+        return Search_Region(self.testsetup, _item_class=self.__class__)
 
 
 class Accordion_Header(BaseRegion):

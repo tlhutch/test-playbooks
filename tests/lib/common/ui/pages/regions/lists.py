@@ -2,7 +2,7 @@ import re
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from common.ui.pages import PageRegion
-from common.ui.pages.regions.buttons import Base_Button
+# from common.ui.pages.regions.buttons import Base_Button
 
 
 class Table_Region(PageRegion):
@@ -93,8 +93,7 @@ class Table_Region(PageRegion):
         # Why not use set intersection here? Good question!
         # https://code.google.com/p/selenium/issues/detail?id=7011
         if False:
-            rows_elements = reduce(lambda l1, l2: [item for item in l1 if item in l2],
-                matching_rows_list)
+            rows_elements = reduce(lambda l1, l2: [item for item in l1 if item in l2], matching_rows_list)
         else:
             rows_elements = matching_rows_list
 
@@ -125,6 +124,71 @@ class Table_Region(PageRegion):
             return rows[0]
         except IndexError:
             return None
+
+    def click_row_by_cells(self, cells, click_column=None, contains=False):
+        """Click the cell at ``click_column`` in the first row matched by ``cells``
+
+        Args:
+            cells: See :py:meth:`Table.find_rows_by_cells`
+            click_column: See :py:meth:`Table.click_rows_by_cells`
+
+        """
+        row = self.find_row_by_cells(cells, contains=contains)
+        if click_column is None:
+            row.click()
+        else:
+            row[click_column].click()
+
+    def click_cells(self, cell_map):
+        """Submits multiple cells to be clicked on
+
+        Args:
+            cell_map: A mapping of header names and values, representing cells to click.
+                As an example, ``{'name': ['wing', 'nut']}, {'age': ['12']}`` would click on
+                the cells which had ``wing`` and ``nut`` in the name column and ``12`` in
+                the age column. The yaml example for this would be as follows::
+
+                    list_items:
+                        name:
+                            - wing
+                            - nut
+                        age:
+                            - 12
+
+        Raises:
+            NotAllItemsClicked: If some cells were unable to be found.
+
+        """
+        failed_clicks = []
+        for header, values in cell_map.items():
+            if isinstance(values, basestring):
+                values = [values]
+            for value in values:
+                res = self.click_cell(header, value)
+                if not res:
+                    failed_clicks.append("%s:%s" % (header, value))
+        if failed_clicks:
+            raise Exception("Not all items clicked. %s" % failed_clicks)
+
+    def click_cell(self, header, value):
+        """Clicks on a cell defined in the row.
+
+        Uses the header identifier and a value to determine which cell to click on.
+
+        Args:
+            header: A string or int, describing which column to inspect.
+            value: The value to be compared when trying to identify the correct cell
+                to click the cell in.
+
+        Returns: ``True`` if item was found and clicked, else ``False``.
+
+        """
+        cell = self.find_cell(header, value)
+        if cell:
+            cell.click()
+            return True
+        else:
+            return False
 
     class Row(PageRegion):
         '''An object representing a row in a table.'''

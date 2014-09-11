@@ -22,6 +22,13 @@ class Base_Button(BaseRegion):
         return obj
 
 
+class Spinny_Button(Base_Button):
+    '''Descibes a button that has a _on_click wait_for_spinny event'''
+    def __init__(self, testsetup, **kwargs):
+        super(Spinny_Button, self).__init__(testsetup, **kwargs)
+        self._on_click = self.wait_for_spinny
+
+
 class Add_Button(Base_Button):
     '''Region describing a add [+] button'''
     _root_locator = (By.CSS_SELECTOR, '#add_btn')
@@ -42,13 +49,14 @@ class Help_Button(Base_Button):
     _root_locator = (By.CSS_SELECTOR, '#help_btn')
 
 
-class Activity_Stream_Button(Base_Button):
+class Select_Button(Spinny_Button):
+    '''Region describing a select button'''
+    _root_locator = (By.CSS_SELECTOR, '#select_btn')
+
+
+class Activity_Stream_Button(Spinny_Button):
     '''Region describing the activity stream [clock] button'''
     _root_locator = (By.CSS_SELECTOR, '#stream_btn')
-
-    def __init__(self, testsetup, **kwargs):
-        super(Activity_Stream_Button, self).__init__(testsetup, **kwargs)
-        self._on_click = self.wait_for_spinny
 
 
 class Activity_Stream_Refresh_Button(Base_Button):
@@ -57,23 +65,9 @@ class Activity_Stream_Refresh_Button(Base_Button):
     _root_locator = (By.CSS_SELECTOR, '#activity-stream-refresh-btn')
 
 
-class Page_Button(Base_Button):
-    '''Region describing a pagination [1] button'''
-    _root_locator = None
-
-    def __init__(self, testsetup, **kwargs):
-        super(Page_Button, self).__init__(testsetup, **kwargs)
-        self._on_click = self.wait_for_spinny
-
-
-class Search_Button(Page_Button):
+class Search_Button(Spinny_Button):
     '''Region describing a search [1] magnifying glass button'''
-    _root_locator = None
-
-    def __init__(self, testsetup, **kwargs):
-        super(Search_Button, self).__init__(testsetup, **kwargs)
-        self._on_click = self.wait_for_spinny
 
 
-class Reset_Button(Search_Button):
+class Reset_Button(Spinny_Button):
     '''Region describing a search [1] reset button'''

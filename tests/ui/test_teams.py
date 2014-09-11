@@ -274,7 +274,7 @@ class Test_Teams(Base_UI_Test):
             assert edit_pg.accordion.get(title)[0].is_collapsed(), "The %s accordion was not collapsed as expected" % title
         assert edit_pg.accordion.get(accordions[-1])[0].is_expanded(), "The %s accordion was not expanded as expected" % accordions[-1]
 
-    def test_edit_properties(self, team, ui_teams_pg):
+    def test_edit(self, team, ui_teams_pg):
         '''Verify basic form fields when editing an team'''
         edit_pg = ui_teams_pg.open(team.id)
         assert edit_pg.is_the_active_tab
@@ -304,14 +304,94 @@ class Test_Teams(Base_UI_Test):
             "The reset button did not restore the 'description' (%s != %s)" % \
             (edit_region.description, organization_name)
 
-    def test_edit_users(self, team, ui_teams_pg):
-        '''Verify basic operation of teams teams accordion'''
+    def test_add_credential(self, team, ssh_credential, ui_teams_pg):
+        '''Verify basic operation of adding credentials'''
         edit_pg = ui_teams_pg.open(team.id)
-        # Access the teams region
-        teams_region = edit_pg.accordion.click('Users')
-        org_teams_pg = teams_region.add_btn.click()
-        assert org_teams_pg.is_the_active_tab
-        assert org_teams_pg.is_the_active_breadcrumb
+        region = edit_pg.accordion.click('Credentials')
+
+        # Assert disassociation
+        assert region.table.find_row('name', ssh_credential.name) is None, \
+            "Credential (%s) unexpectedly associated with team (%s)" % (ssh_credential.name, team.name)
+
+        # Associate
+        add_pg = region.add_btn.click()
+        assert add_pg.is_the_active_tab
+        assert add_pg.is_the_active_breadcrumb
+        add_pg.table.click_row_by_cells(dict(name=ssh_credential.name), 'name')
+        edit_pg = add_pg.select_btn.click()
+        assert edit_pg.accordion.get('Credentials')[0].is_expanded(), "The credentials accordion was not expanded as expected"
+        region = edit_pg.accordion.click('Credentials')
+
+        # Assert association
+        assert region.table.find_row('name', ssh_credential.name) is not None, \
+            "Credential (%s) was not properly associated with team (%s)" % (ssh_credential.name, team.name)
+
+    @pytest.mark.skipif(True, reason="TODO - define a permission API fixture")
+    def test_add_permission(self, team, ui_teams_pg):
+        '''Verify basic operation of adding permissions'''
+        edit_pg = ui_teams_pg.open(team.id)
+        region = edit_pg.accordion.click('Permissions')
+
+        # Assert disassociation
+        assert region.table.find_row('name', permission.name) is None, \
+            "Permission (%s) unexpectedly associated with team (%s)" % (permission.name, team.name)
+
+        # Associate
+        add_pg = region.add_btn.click()
+        assert add_pg.is_the_active_tab
+        assert add_pg.is_the_active_breadcrumb
+        add_pg.table.click_row_by_cells(dict(name=permission.name), 'name')
+        edit_pg = add_pg.select_btn.click()
+        assert edit_pg.accordion.get('Permissions')[0].is_expanded(), "The credentials accordion was not expanded as expected"
+        region = edit_pg.accordion.click('Permissions')
+
+        # Assert association
+        assert region.table.find_row('name', permission.name) is not None, \
+            "Permission (%s) was not properly associated with team (%s)" % (permission.name, team.name)
+
+    def test_add_project(self, team, project, ui_teams_pg):
+        '''Verify basic operation of adding projects'''
+        edit_pg = ui_teams_pg.open(team.id)
+        region = edit_pg.accordion.click('Projects')
+
+        # Assert disassociation
+        assert region.table.find_row('name', project.name) is None, \
+            "Project (%s) unexpectedly associated with team (%s)" % (project.name, team.name)
+
+        # Associate
+        add_pg = region.add_btn.click()
+        assert add_pg.is_the_active_tab
+        assert add_pg.is_the_active_breadcrumb
+        add_pg.table.click_row_by_cells(dict(name=project.name), 'name')
+        edit_pg = add_pg.select_btn.click()
+        assert edit_pg.accordion.get('Projects')[0].is_expanded(), "The credentials accordion was not expanded as expected"
+        region = edit_pg.accordion.click('Projects')
+
+        # Assert association
+        assert region.table.find_row('name', project.name) is not None, \
+            "Project (%s) was not properly associated with team (%s)" % (project.name, team.name)
+
+    def test_add_user(self, team, anonymous_user, ui_teams_pg):
+        '''Verify basic operation of adding users'''
+        edit_pg = ui_teams_pg.open(team.id)
+        region = edit_pg.accordion.click('Users')
+
+        # Assert disassociation
+        assert region.table.find_row('name', anonymous_user.name) is None, \
+            "User (%s) unexpectedly associated with team (%s)" % (anonymous_user.name, team.name)
+
+        # Associate
+        add_pg = region.add_btn.click()
+        assert add_pg.is_the_active_tab
+        assert add_pg.is_the_active_breadcrumb
+        add_pg.table.click_row_by_cells(dict(name=anonymous_user.name), 'name')
+        edit_pg = add_pg.select_btn.click()
+        assert edit_pg.accordion.get('Users')[0].is_expanded(), "The credentials accordion was not expanded as expected"
+        region = edit_pg.accordion.click('Users')
+
+        # Assert association
+        assert region.table.find_row('name', anonymous_user.name) is not None, \
+            "User (%s) was not properly associated with team (%s)" % (anonymous_user.name, team.name)
 
 
 # @pytest.mark.selenium
