@@ -14,7 +14,6 @@ class Search_Region(PageRegion):
         'search_value': (By.CSS_SELECTOR, '#search_value_input'),
         'search_btn': (By.CSS_SELECTOR, '#search-submit-button'),
         'reset_btn': (By.CSS_SELECTOR, '#search-reset-button'),
-#search-reset-button
     }
 
     # Textbox
