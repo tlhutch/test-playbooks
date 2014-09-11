@@ -80,13 +80,17 @@ class Table_Region(PageRegion):
         """
         A fast row finder, based on cell content.
         """
+        def toXPathStringLiteral(s):
+            if "'" not in s: return "'%s'" % s
+            if '"' not in s: return '"%s"' % s
+            return "concat('%s')" % s.replace("'", "',\"'\",'")
         # coerce 'cells' to a dict -- accept dicts or supertuples
         cells = dict(cells)
-        cell_text_loc = './/td/descendant-or-self::*[contains(text(), "%s")]/ancestor::tr[1]'
+        cell_text_loc = './/td/descendant-or-self::*[contains(text(), %s)]/ancestor::tr[1]'
         matching_rows_list = list()
         for value in cells.values():
             # Get all td elements that contain the value text
-            matching_rows_list.extend(self.find_elements(*(By.XPATH, cell_text_loc % value)))
+            matching_rows_list.extend(self.find_elements(*(By.XPATH, cell_text_loc % toXPathStringLiteral(value))))
 
         # Now, find the common row elements that matched all the input cells
         # (though not yet matching values to headers)
