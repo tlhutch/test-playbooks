@@ -19,20 +19,6 @@ def table_sort(request):
             ('organization', 'descending')]
 
 
-@pytest.fixture(scope="function")
-def FIXME_many_teams(request, authtoken, organization):
-
-    obj_list = list()
-    for i in range(55):
-        payload = dict(name="%s many teams" % common.utils.random_unicode(),
-                       description="Some Random Team (%s)" % common.utils.random_unicode(),
-                       organization=organization.id,)
-        obj = organization.get_related('teams').post(payload)
-        request.addfinalizer(obj.delete)
-        obj_list.append(obj)
-    return obj_list
-
-
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Teams(Base_UI_Test):
@@ -158,8 +144,10 @@ class Test_Teams(Base_UI_Test):
 
         # TODO: verify expected number of items found
         # assert ui_teams_pg.pagination.total_items == 1
-        num_rows = len(list(ui_teams_pg.table.rows))
-        assert num_rows == 1, "Unexpected number of results found (%d != %d)" % (num_rows, 1)
+        # assert expected number of items found
+        assert ui_teams_pg.pagination.total_items == 1, \
+            "Unexpected number of results (%d != %d)" % \
+            (ui_teams_pg.pagination.total_items, 1)
         assert ui_teams_pg.table.find_row("name", team.name)
 
         # reset search filter
@@ -177,10 +165,10 @@ class Test_Teams(Base_UI_Test):
         ui_teams_pg.search.search_value = team.description
         ui_teams_pg = ui_teams_pg.search.search_btn.click()
 
-        # TODO: verify expected number of items found
-        # assert ui_teams_pg.pagination.total_items == 1
-        num_rows = len(list(ui_teams_pg.table.rows))
-        assert num_rows == 1, "Unexpected number of results found (%d != %d)" % (num_rows, 1)
+        # assert expected number of items found
+        assert ui_teams_pg.pagination.total_items == 1, \
+            "Unexpected number of results (%d != %d)" % \
+            (ui_teams_pg.pagination.total_items, 1)
         assert ui_teams_pg.table.find_row("description", team.description)
 
         # reset search filter
@@ -193,15 +181,15 @@ class Test_Teams(Base_UI_Test):
         '''Verify table filtering using a bogus value'''
         assert ui_teams_pg.is_the_active_tab
 
-        # Search for an org that doesn't exist
+        # search for an org that doesn't exist
         ui_teams_pg.search.search_type.select("Name")
         ui_teams_pg.search.search_value = common.utils.random_unicode()
         ui_teams_pg = ui_teams_pg.search.search_btn.click()
 
-        # TODO: verify expected number of items found
-        # assert ui_teams_pg.pagination.total_items == 1
-        num_rows = len(list(ui_teams_pg.table.rows))
-        assert num_rows == 1, "Unexpected number of results found (%d != %d)" % (num_rows, 1)
+        # assert expected number of items found
+        assert ui_teams_pg.pagination.total_items == 1, \
+            "Unexpected number of results (%d != %d)" % \
+            (ui_teams_pg.pagination.total_items, 1)
         assert ui_teams_pg.table.find_row("name", "No records matched your search.")
 
     def test_add(self, organization, ui_teams_pg):
@@ -309,20 +297,23 @@ class Test_Teams(Base_UI_Test):
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Credentials')
 
-        # Assert disassociation
+        # assert disassociation
         assert region.table.find_row('name', ssh_credential.name) is None, \
             "Credential (%s) unexpectedly associated with team (%s)" % (ssh_credential.name, team.name)
 
-        # Associate
+        # associate
         add_pg = region.add_btn.click()
         assert add_pg.is_the_active_tab
         assert add_pg.is_the_active_breadcrumb
+        # filter for item
+        add_pg.search.search_value = ssh_credential.name
+        add_pg = add_pg.search.search_btn.click()
         add_pg.table.click_row_by_cells(dict(name=ssh_credential.name), 'name')
         edit_pg = add_pg.select_btn.click()
         assert edit_pg.accordion.get('Credentials')[0].is_expanded(), "The credentials accordion was not expanded as expected"
         region = edit_pg.accordion.click('Credentials')
 
-        # Assert association
+        # assert association
         assert region.table.find_row('name', ssh_credential.name) is not None, \
             "Credential (%s) was not properly associated with team (%s)" % (ssh_credential.name, team.name)
 
@@ -332,20 +323,23 @@ class Test_Teams(Base_UI_Test):
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Permissions')
 
-        # Assert disassociation
+        # assert disassociation
         assert region.table.find_row('name', permission.name) is None, \
             "Permission (%s) unexpectedly associated with team (%s)" % (permission.name, team.name)
 
-        # Associate
+        # associate
         add_pg = region.add_btn.click()
         assert add_pg.is_the_active_tab
         assert add_pg.is_the_active_breadcrumb
+        # filter for item
+        add_pg.search.search_value = permission.name
+        add_pg = add_pg.search.search_btn.click()
         add_pg.table.click_row_by_cells(dict(name=permission.name), 'name')
         edit_pg = add_pg.select_btn.click()
         assert edit_pg.accordion.get('Permissions')[0].is_expanded(), "The credentials accordion was not expanded as expected"
         region = edit_pg.accordion.click('Permissions')
 
-        # Assert association
+        # assert association
         assert region.table.find_row('name', permission.name) is not None, \
             "Permission (%s) was not properly associated with team (%s)" % (permission.name, team.name)
 
@@ -354,20 +348,23 @@ class Test_Teams(Base_UI_Test):
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Projects')
 
-        # Assert disassociation
+        # assert disassociation
         assert region.table.find_row('name', project.name) is None, \
             "Project (%s) unexpectedly associated with team (%s)" % (project.name, team.name)
 
-        # Associate
+        # associate
         add_pg = region.add_btn.click()
         assert add_pg.is_the_active_tab
         assert add_pg.is_the_active_breadcrumb
+        # filter for item
+        add_pg.search.search_value = project.name
+        add_pg = add_pg.search.search_btn.click()
         add_pg.table.click_row_by_cells(dict(name=project.name), 'name')
         edit_pg = add_pg.select_btn.click()
         assert edit_pg.accordion.get('Projects')[0].is_expanded(), "The credentials accordion was not expanded as expected"
         region = edit_pg.accordion.click('Projects')
 
-        # Assert association
+        # assert association
         assert region.table.find_row('name', project.name) is not None, \
             "Project (%s) was not properly associated with team (%s)" % (project.name, team.name)
 
@@ -376,20 +373,23 @@ class Test_Teams(Base_UI_Test):
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Users')
 
-        # Assert disassociation
+        # assert disassociation
         assert region.table.find_row('username', anonymous_user.username) is None, \
             "User (%s) unexpectedly associated with team (%s)" % (anonymous_user.username, team.name)
 
-        # Associate
+        # associate
         add_pg = region.add_btn.click()
         assert add_pg.is_the_active_tab
         assert add_pg.is_the_active_breadcrumb
+        # filter for item
+        add_pg.search.search_value = anonymous_user.username
+        add_pg = add_pg.search.search_btn.click()
         add_pg.table.click_row_by_cells(dict(username=anonymous_user.username), 'username')
         edit_pg = add_pg.select_btn.click()
         assert edit_pg.accordion.get('Users')[0].is_expanded(), "The credentials accordion was not expanded as expected"
         region = edit_pg.accordion.click('Users')
 
-        # Assert association
+        # assert association
         assert region.table.find_row('username', anonymous_user.username) is not None, \
             "User (%s) was not properly associated with team (%s)" % (anonymous_user.username, team.name)
 
