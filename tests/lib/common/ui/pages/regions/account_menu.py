@@ -1,20 +1,24 @@
 from selenium.webdriver.common.by import By
-from common.ui.pages import PageRegion
+from common.ui.pages import BaseRegion, Login_Page, User_Edit_Page
 from common.ui.pages.regions.lists import List_Region
 
 
-class Account_Menu(PageRegion):
+class Account_Menu(BaseRegion):
     """
     Describes the account menu
     """
-
     _root_locator = (By.CSS_SELECTOR, '#account-menu')
     _menu_link_locator = (By.CSS_SELECTOR, '#account-menu-link')
     _current_user_locator = (By.CSS_SELECTOR, '#account-menu-link > span')
     _submenu_locator = (By.CSS_SELECTOR, '#account-submenu')
-
-    # TODO - need to define a _region_map
-    _region_map = dict()
+    _related = {
+        'About Tower': 'FIXME',
+        'Account Settings': 'User_Edit_Page',
+        'View License': 'FIXME',
+        'Contact Support': 'FIXME',
+        'Monitor Tower': 'FIXME',
+        'Logout': 'Login_Page',
+    }
 
     @property
     def submenu(self):
@@ -54,4 +58,5 @@ class Account_Menu(PageRegion):
         '''
         self.show()
         self.submenu.get(name).click()
-        # TODO - return the appropriate _region_map
+        self.wait_for_spinny()
+        return self.get_related(name)(self.testsetup)
