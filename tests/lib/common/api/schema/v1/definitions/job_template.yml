@@ -8,6 +8,7 @@ job_template:
     credential: {$ref: '#/definitions/id_or_null'}
     description: {type: string}
     extra_vars: {type: string}
+    force_handlers: {type: boolean}
     forks: {minimum: 0, type: number}
     has_schedules: {type: boolean}
     host_config_key: {type: string}
@@ -47,6 +48,8 @@ job_template:
         schedules: {format: uri, type: string}
       required: [created_by, jobs, activity_stream]
       type: object
+    skip_tags: {type: string}
+    start_at_task: {type: string}
     status: {$ref: '#/definitions/enum_job_template_status'}
     summary_fields:
       additionalProperties: false
@@ -65,8 +68,8 @@ job_template:
     type: {pattern: ^job_template$, type: string}
     url: {format: uri, type: string}
     verbosity: {minimum: 0, type: number}
-  required: [id, cloud_credential, created, credential, description, extra_vars, forks,
+  required: [id, cloud_credential, created, credential, description, extra_vars, force_handlers, forks,
     has_schedules, ask_variables_on_launch, host_config_key, inventory, job_tags,
     job_type, last_job_failed, last_job_run, limit, modified, name, next_job_run,
-    playbook, project, related, status, summary_fields, type, url, verbosity]
+    playbook, project, related, skip_tags, start_at_task, status, summary_fields, type, url, verbosity]
   type: object
