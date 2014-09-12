@@ -5,35 +5,23 @@ from tests.ui import Base_UI_Test
 
 
 @pytest.fixture(scope="function")
-def table_sort(request, admin_user, org_admin):
+def accordions(request):
+    return ('Properties', 'Credentials', 'Permissions', 'Admin of Organizations', 'Organizations', 'Teams')
+
+
+@pytest.fixture(scope="function", params=["Username", "First Name", "Last Name"])
+def search_filter(request):
+    return request.param
+
+
+@pytest.fixture(scope="function")
+def table_sort(request):
     return [('username', 'ascending'),
             ('username', 'descending'),
             ('first_name', 'ascending'),
             ('first_name', 'descending'),
             ('last_name', 'ascending'),
             ('last_name', 'descending')]
-
-
-@pytest.fixture(scope="function")
-def many_users_count(request):
-    return 55
-
-
-@pytest.fixture(scope="function")
-def many_users(request, many_users_count, authtoken, organization, user_password):
-
-    obj_list = list()
-    for i in range(many_users_count):
-        payload = dict(username="org_user_%s" % common.utils.random_ascii(),
-                       first_name="Joe (%s)" % common.utils.random_unicode(),
-                       last_name="User (%s)" % common.utils.random_unicode(),
-                       email="org_user_%s@example.com" % common.utils.random_ascii(),
-                       password=user_password,
-                       organization=organization.id,)
-        obj = organization.get_related('users').post(payload)
-        request.addfinalizer(obj.delete)
-        obj_list.append(obj)
-    return obj_list
 
 
 @pytest.mark.selenium
@@ -64,35 +52,19 @@ class Test_Users(Base_UI_Test):
         assert ui_users_pg.is_the_active_tab
 
     def test_sort(self, many_users, table_sort, ui_users_pg):
-        '''Verify organiation table sorting'''
+        '''Verify table sorting'''
         assert ui_users_pg.is_the_active_tab
 
-        # Verify default table sort column
-        assert ui_users_pg.table.sorted_by == 'username', \
-            "Unexpected default table sort column (%s != %s)" % \
-            (ui_users_pg.table.sorted_by, 'username')
-
-        # Verify default table sort order
-        assert ui_users_pg.table.sort_order == 'ascending', \
-            "Unexpected default table sort order (%s != %s)" % \
-            (ui_users_pg.table.sort_order, 'ascending')
+        # Verify default table sort column and order
+        self.assert_table_sort(ui_users_pg.table, *table_sort[0])
 
         for sorted_by, sort_order in table_sort:
             # Change table sort
             ui_users_pg.table.sort_by(sorted_by, sort_order)
-
-            # Verify new table sort column
-            assert ui_users_pg.table.sorted_by == sorted_by, \
-                "Unexpected default table sort column (%s != %s)" % \
-                (ui_users_pg.table.sorted_by, sorted_by)
-
-            # Verify new table sort order
-            assert ui_users_pg.table.sort_order == sort_order, \
-                "Unexpected default table sort order (%s != %s)" % \
-                (ui_users_pg.table.sort_order, sort_order)
+            self.assert_table_sort(ui_users_pg.table, sorted_by, sort_order)
 
     def test_no_pagination(self, authtoken, api_users_pg, ui_users_pg):
-        '''Verify organiation table pagination is not present'''
+        '''Verify table pagination is not present'''
 
         if api_users_pg.get().count > ui_users_pg.pagination.page_size:
             pytest.skip("Unable to test as too many users exist")
@@ -107,15 +79,23 @@ class Test_Users(Base_UI_Test):
             ui_users_pg.pagination.page_size
 
     def test_pagination(self, many_users, ui_users_pg, api_users_pg):
-        '''Verify organiation table pagination'''
+        '''Verify table pagination'''
 
         assert ui_users_pg.pagination.is_displayed(), "Unable to find pagination"
 
-        # TODO: Verify expected number of items in pagination
-        total_count = api_users_pg.get().count
-        total_pages = int(ceil(total_count / float(ui_users_pg.pagination.page_size)))
+        # assert total_items
+        total_items = api_users_pg.get().count
+        assert total_items == ui_users_pg.pagination.total_items, \
+            "The API and the UI differ on the total paginated items (%s != %s)" % \
+            (total_items, ui_users_pg.pagination.total_items)
 
-        # Click next_pg until reaching the end
+        # assert total_pages
+        total_pages = int(ceil(total_items / float(ui_users_pg.pagination.page_size)))
+        assert total_pages == ui_users_pg.pagination.total_pages, \
+            "The API and the UI differ on the total number of pages (%s != %s)" % \
+            (total_pages, ui_users_pg.pagination.total_pages)
+
+        # click next_pg until reaching the end
         curr_pg = ui_users_pg
         pages_seen = 1
         while curr_pg.pagination.next_page.is_displayed():
@@ -127,12 +107,11 @@ class Test_Users(Base_UI_Test):
 
         # assert last page
         self.assert_page_links(curr_pg, pages_seen, total_pages)
-
         assert pages_seen == total_pages, \
             "Unexpected number of pages seen (%s != %s)" % \
             (pages_seen, total_pages)
 
-        # Click prev_pg until reaching the beginning
+        # click prev_pg until reaching the beginning
         while curr_pg.pagination.prev_page.is_displayed():
             # assert expected pagination links
             self.assert_page_links(curr_pg, pages_seen, total_pages)
@@ -142,7 +121,6 @@ class Test_Users(Base_UI_Test):
 
         # assert first page
         self.assert_page_links(curr_pg, pages_seen, total_pages)
-
         assert pages_seen == 1, \
             "Unexpected number of pages seen (%s != %s)" % \
             (pages_seen, 1)
@@ -150,20 +128,22 @@ class Test_Users(Base_UI_Test):
         # TODO: click page#2
         # next_pg = curr_pg.pagination.get(2).click()
 
-    def test_filter_name(self, user, ui_users_pg):
-        '''Verify organiation table filtering using a name'''
+    def test_filter(self, anonymous_user, search_filter, ui_users_pg):
+        '''Verify table filtering using a name'''
         assert ui_users_pg.is_the_active_tab
+        search_value = getattr(anonymous_user, search_filter.replace(' ', '_').lower())
 
-        # search by name
-        ui_users_pg.search.search_type.select("Name")
-        ui_users_pg.search.search_value = user.name
+        # search by username
+        ui_users_pg.search.search_type.select(search_filter)
+        ui_users_pg.search.search_value = search_value
         ui_users_pg = ui_users_pg.search.search_btn.click()
 
-        # TODO: verify expected number of items found
-        # assert ui_users_pg.pagination.total_items == 1
-        num_rows = len(list(ui_users_pg.table.rows))
-        assert num_rows == 1, "Unexpected number of results found (%d != %d)" % (num_rows, 1)
-        assert ui_users_pg.table.find_row("name", user.name)
+        # assert expected number of items found
+        assert ui_users_pg.pagination.total_items == 1, \
+            "Unexpected number of results (%d != %d)" % \
+            (ui_users_pg.pagination.total_items, 1)
+        # assert desired item
+        assert ui_users_pg.table.find_row(search_filter, search_value)
 
         # reset search filter
         ui_users_pg = ui_users_pg.search.reset_btn.click()
@@ -171,44 +151,23 @@ class Test_Users(Base_UI_Test):
             "search_value did not reset (%s)" % \
             ui_users_pg.search.search_value
 
-    def test_filter_description(self, user, ui_users_pg):
-        '''Verify organiation table filtering using a description'''
+    def test_filter_notfound(self, anonymous_user, ui_users_pg):
+        '''Verify table filtering using a bogus value'''
         assert ui_users_pg.is_the_active_tab
 
-        # search by description
-        ui_users_pg.search.search_type.select("Description")
-        ui_users_pg.search.search_value = user.description
-        ui_users_pg = ui_users_pg.search.search_btn.click()
-
-        # TODO: verify expected number of items found
-        # assert ui_users_pg.pagination.total_items == 1
-        num_rows = len(list(ui_users_pg.table.rows))
-        assert num_rows == 1, "Unexpected number of results found (%d != %d)" % (num_rows, 1)
-        assert ui_users_pg.table.find_row("description", user.description)
-
-        # reset search filter
-        ui_users_pg = ui_users_pg.search.reset_btn.click()
-        assert ui_users_pg.search.search_value == '', \
-            "search_value did not reset (%s)" % \
-            ui_users_pg.search.search_value
-
-    def test_filter_notfound(self, user, ui_users_pg):
-        '''Verify organiation table filtering using a bogus value'''
-        assert ui_users_pg.is_the_active_tab
-
-        # Search for an org that doesn't exist
-        ui_users_pg.search.search_type.select("Name")
+        # search for an org that doesn't exist
         ui_users_pg.search.search_value = common.utils.random_unicode()
         ui_users_pg = ui_users_pg.search.search_btn.click()
 
-        # TODO: verify expected number of items found
-        # assert ui_users_pg.pagination.total_items == 1
-        num_rows = len(list(ui_users_pg.table.rows))
-        assert num_rows == 1, "Unexpected number of results found (%d != %d)" % (num_rows, 1)
-        assert ui_users_pg.table.find_row("name", "No records matched your search.")
+        # assert expected number of items found
+        assert ui_users_pg.pagination.total_items == 0, \
+            "Unexpected number of results (%d != %d)" % \
+            (ui_users_pg.pagination.total_items, 0)
+        # assert failed match string
+        assert ui_users_pg.table.find_row("username", "No records matched your search.")
 
-    def test_add(self, ui_users_pg):
-        '''Verify basic organiation form fields'''
+    def test_add(self, organization, ui_users_pg):
+        '''Verify basic form fields'''
         assert ui_users_pg.add_btn, "Unable to locate add button"
 
         # Click Add button
@@ -219,17 +178,19 @@ class Test_Users(Base_UI_Test):
         # Input Fields
         add_pg.name = "Random User - %s" % common.utils.random_unicode()
         add_pg.description = "Random description - %s" % common.utils.random_unicode()
+        add_pg.organization_name = organization.name
 
         # Click Reset
         add_pg.reset_btn.click()
-        assert add_pg.name == "", "Reset button did not reset the field: name"
-        assert add_pg.description == "", "Reset button did not reset the field: description"
+        assert add_pg.name == "", "Reset button did not reset the name field (value=%s)" % add_pg.name
+        assert add_pg.description == "", "Reset button did not reset the description field (value=%s)" % add_pg.name
+        assert add_pg.organization_name == "", "Reset button did not reset the organization_name field (value=%s)" % add_pg.name
 
-    def test_user_activity_stream(self, user, ui_users_pg):
+    def test_user_activity_stream(self, anonymous_user, ui_users_pg):
         '''Verify that the user activity stream can be open and closed'''
 
         # Open edit page
-        edit_pg = ui_users_pg.open(user.id)
+        edit_pg = ui_users_pg.open(anonymous_user.id)
         assert edit_pg.accordion.get('Properties')[0].is_expanded(), "The properties accordion was not expanded as expected"
         assert edit_pg.is_the_active_tab
         assert edit_pg.is_the_active_breadcrumb
@@ -247,34 +208,37 @@ class Test_Users(Base_UI_Test):
         ui_users_pg = org_activity_pg.close_btn.click()
         assert ui_users_pg.is_the_active_tab
 
-    def test_accordions(self, ui_users_pg, user):
-        '''Verify the organiation accordions behave properly'''
+    def test_accordions(self, anonymous_user, ui_users_pg, accordions):
+        '''Verify the accordions behave properly'''
         # Open edit page
-        edit_pg = ui_users_pg.open(user.id)
+        edit_pg = ui_users_pg.open(anonymous_user.id)
         assert edit_pg.is_the_active_tab
         assert edit_pg.is_the_active_breadcrumb
 
-        # Assert default collapsed accordions
+        # Assert default accordions configuration
         assert edit_pg.accordion.get('Properties')[0].is_expanded(), "The properties accordion was not expanded as expected"
-        assert edit_pg.accordion.get('Users')[0].is_collapsed(), "The users accordion was not collapsed as expected"
-        assert edit_pg.accordion.get('Administrators')[0].is_collapsed(), "The administrators accordion was not collapsed as expected"
+        for title in accordions[1:]:
+            assert edit_pg.accordion.get(title)[0].is_collapsed(), "The %s accordion was not collapsed as expected" % title
 
-        # Expand the Users accordion
-        edit_pg.accordion.get('Users')[0].expand()
-        assert edit_pg.accordion.get('Properties')[0].is_collapsed(), "The properties accordion was not collapse as expected"
-        assert edit_pg.accordion.get('Users')[0].is_expanded(), "The users accordion was not expand as expected"
-        assert edit_pg.accordion.get('Administrators')[0].is_collapsed(), "The administrators accordion was not collapse as expected"
+        # Expand and collapse each accordion
+        for title_expand in accordions[1:]:
+            edit_pg.accordion.get(title_expand)[0].expand()
+            # Assert correct expand/collapse state for all accordions
+            for title in accordions:
+                if title == title_expand:
+                    assert edit_pg.accordion.get(title)[0].is_expanded(), "The %s accordion was not expand as expected" % title
+                else:
+                    assert edit_pg.accordion.get(title)[0].is_collapsed(), "The %s accordion was not collapsed as expected" % title
 
-        # Re-open edit page and verify accordion memory
-        edit_pg = ui_users_pg.open(user.id)
-        assert edit_pg.is_the_active_tab
-        assert edit_pg.accordion.get('Properties')[0].is_collapsed(), "The properties accordion was not collapse as expected"
-        assert edit_pg.accordion.get('Users')[0].is_expanded(), "The users accordion was not expand as expected"
-        assert edit_pg.accordion.get('Administrators')[0].is_collapsed(), "The administrators accordion was not collapse as expected"
+        # Re-open edit page and verify last accordion is expanded
+        edit_pg = ui_users_pg.open(anonymous_user.id)
+        for title in accordions[:-1]:
+            assert edit_pg.accordion.get(title)[0].is_collapsed(), "The %s accordion was not collapsed as expected" % title
+        assert edit_pg.accordion.get(accordions[-1])[0].is_expanded(), "The %s accordion was not expanded as expected" % accordions[-1]
 
-    def test_edit_properties(self, ui_users_pg, user):
-        '''Verify basic organiation form fields when editing an user'''
-        edit_pg = ui_users_pg.open(user.id)
+    def test_edit(self, anonymous_user, ui_users_pg):
+        '''Verify basic form fields when editing an user'''
+        edit_pg = ui_users_pg.open(anonymous_user.id)
         assert edit_pg.is_the_active_tab
         assert edit_pg.is_the_active_breadcrumb
 
@@ -284,37 +248,99 @@ class Test_Users(Base_UI_Test):
         # Modify user form fields
         edit_region.name = common.utils.random_unicode()
         edit_region.description = common.utils.random_unicode()
+        edit_region.organization_name = common.utils.random_unicode()
 
         # Verify breadcrumb title updated
         assert edit_pg.is_the_active_breadcrumb
 
         # Reset Edit form
         edit_region.reset_btn.click()
-        assert edit_pg.is_the_active_breadcrumb
-        assert edit_region.name == user.name, \
+        assert edit_region.name == anonymous_user.name, \
             "The reset button did not restore the 'name' (%s != %s)" % \
-            (edit_region.name, user.name)
-        assert edit_region.description == user.description, \
+            (edit_region.name, anonymous_user.name)
+        assert edit_region.description == anonymous_user.description, \
             "The reset button did not restore the 'description' (%s != %s)" % \
-            (edit_region.description, user.description)
+            (edit_region.description, anonymous_user.description)
+        organization_name = anonymous_user.get_related('organization').name
+        assert edit_region.organization_name == organization_name, \
+            "The reset button did not restore the 'description' (%s != %s)" % \
+            (edit_region.description, organization_name)
 
-    def test_edit_users(self, ui_users_pg, user):
-        '''Verify basic operation of users users accordion'''
-        edit_pg = ui_users_pg.open(user.id)
-        # Access the users region
-        users_region = edit_pg.accordion.click('Users')
-        org_users_pg = users_region.add_btn.click()
-        assert org_users_pg.is_the_active_tab
-        assert org_users_pg.is_the_active_breadcrumb
+    def test_associate_credential(self, anonymous_user, ssh_credential, ui_users_pg):
+        '''Verify basic operation of adding credentials'''
+        edit_pg = ui_users_pg.open(anonymous_user.id)
+        region = edit_pg.accordion.click('Credentials')
 
-    def test_edit_admins(self, ui_users_pg, user):
-        '''Verify basic operation of users admins accordion'''
-        edit_pg = ui_users_pg.open(user.id)
-        # Access the users region
-        admins_region = edit_pg.accordion.click('Administrators')
-        org_admins_pg = admins_region.add_btn.click()
-        assert org_admins_pg.is_the_active_tab
-        assert org_admins_pg.is_the_active_breadcrumb
+        # assert disassociation
+        assert region.table.find_row('name', ssh_credential.name) is None, \
+            "Credential (%s) unexpectedly associated with user (%s)" % (ssh_credential.name, anonymous_user.name)
+
+        # associate
+        add_pg = region.add_btn.click()
+        assert add_pg.is_the_active_tab
+        assert add_pg.is_the_active_breadcrumb
+        # filter for item
+        add_pg.search.search_value = ssh_credential.name
+        add_pg = add_pg.search.search_btn.click()
+        add_pg.table.click_row_by_cells(dict(name=ssh_credential.name), 'name')
+        edit_pg = add_pg.select_btn.click()
+        assert edit_pg.accordion.get('Credentials')[0].is_expanded(), "The credentials accordion was not expanded as expected"
+        region = edit_pg.accordion.click('Credentials')
+
+        # assert association
+        assert region.table.find_row('name', ssh_credential.name) is not None, \
+            "Credential (%s) was not properly associated with user (%s)" % (ssh_credential.name, anonymous_user.name)
+
+    @pytest.mark.skipif(True, reason="TODO - define a permission API fixture")
+    def test_associate_permission(self, anonymous_user, ui_users_pg):
+        '''Verify basic operation of adding permissions'''
+        edit_pg = ui_users_pg.open(anonymous_user.id)
+        region = edit_pg.accordion.click('Permissions')
+
+        # assert disassociation
+        assert region.table.find_row('name', permission.name) is None, \
+            "Permission (%s) unexpectedly associated with user (%s)" % (permission.name, anonymous_user.name)
+
+        # associate
+        add_pg = region.add_btn.click()
+        assert add_pg.is_the_active_tab
+        assert add_pg.is_the_active_breadcrumb
+        # filter for item
+        add_pg.search.search_value = permission.name
+        add_pg = add_pg.search.search_btn.click()
+        add_pg.table.click_row_by_cells(dict(name=permission.name), 'name')
+        edit_pg = add_pg.select_btn.click()
+        assert edit_pg.accordion.get('Permissions')[0].is_expanded(), "The credentials accordion was not expanded as expected"
+        region = edit_pg.accordion.click('Permissions')
+
+        # assert association
+        assert region.table.find_row('name', permission.name) is not None, \
+            "Permission (%s) was not properly associated with user (%s)" % (permission.name, anonymous_user.name)
+
+    def test_associate_project(self, anonymous_user, project, ui_users_pg):
+        '''Verify basic operation of adding projects'''
+        edit_pg = ui_users_pg.open(anonymous_user.id)
+        region = edit_pg.accordion.click('Projects')
+
+        # assert disassociation
+        assert region.table.find_row('name', project.name) is None, \
+            "Project (%s) unexpectedly associated with user (%s)" % (project.name, anonymous_user.name)
+
+        # associate
+        add_pg = region.add_btn.click()
+        assert add_pg.is_the_active_tab
+        assert add_pg.is_the_active_breadcrumb
+        # filter for item
+        add_pg.search.search_value = project.name
+        add_pg = add_pg.search.search_btn.click()
+        add_pg.table.click_row_by_cells(dict(name=project.name), 'name')
+        edit_pg = add_pg.select_btn.click()
+        assert edit_pg.accordion.get('Projects')[0].is_expanded(), "The credentials accordion was not expanded as expected"
+        region = edit_pg.accordion.click('Projects')
+
+        # assert association
+        assert region.table.find_row('name', project.name) is not None, \
+            "Project (%s) was not properly associated with user (%s)" % (project.name, anonymous_user.name)
 
 
 # @pytest.mark.selenium
