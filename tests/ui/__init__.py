@@ -128,3 +128,18 @@ class Base_UI_Test(object):
         assert page.pagination.count() == total_pages, \
             "Unexpected number of pagination links (%d != %d)" % \
             (page.pagination.count(), total_pages)
+
+    @staticmethod
+    def assert_table_sort(table, sorted_by, sort_order):
+        '''
+        Convenience method to assert the desired table sort and order
+        '''
+        # Verify new table sort column
+        assert table.sorted_by == sorted_by, \
+            "Unexpected default table sort column (%s != %s)" % \
+            (table.sorted_by, sorted_by)
+
+        # Verify new table sort order
+        assert table.sort_order == sort_order, \
+            "Unexpected default table sort order (%s != %s)" % \
+            (table.sort_order, sort_order)
