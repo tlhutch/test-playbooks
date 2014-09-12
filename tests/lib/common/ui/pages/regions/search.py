@@ -61,6 +61,8 @@ class Search_DropDown(PageRegion):
             self.option_btn.click()
         # Click the desired option
         self.options.get(name).click()
+        # Wait for spinny to disappear
+        self.wait_for_spinny()
         # Assert the right thing happened
         assert name == self.selected_option, \
             "Expected selected option: %s. Actual selected option: %s" % \
