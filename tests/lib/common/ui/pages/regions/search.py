@@ -1,6 +1,6 @@
 from selenium.webdriver.common.by import By
 from common.ui.pages import PageRegion
-from common.ui.pages.forms import input_getter, input_setter
+from common.ui.pages.forms import input_getter_by_name, input_setter_by_name
 from common.ui.pages.regions.buttons import Base_Button, Search_Button, Reset_Button
 from common.ui.pages.regions.lists import List_Region
 
@@ -17,7 +17,7 @@ class Search_Region(PageRegion):
     }
 
     # Textbox
-    search_value = property(input_getter(_locators['search_value']), input_setter(_locators['search_value']))
+    search_value = property(input_getter_by_name('search_value'), input_setter_by_name('search_value'))
 
     @property
     def search_type(self):

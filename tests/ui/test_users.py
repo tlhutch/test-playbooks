@@ -166,7 +166,7 @@ class Test_Users(Base_UI_Test):
         # assert failed match string
         assert ui_users_pg.table.find_row("username", "No records matched your search.")
 
-    def test_add(self, organization, ui_users_pg):
+    def test_add(self, ui_users_pg):
         '''Verify basic form fields'''
         assert ui_users_pg.add_btn, "Unable to locate add button"
 
@@ -176,15 +176,25 @@ class Test_Users(Base_UI_Test):
         assert add_pg.is_the_active_breadcrumb
 
         # Input Fields
-        add_pg.name = "Random User - %s" % common.utils.random_unicode()
-        add_pg.description = "Random description - %s" % common.utils.random_unicode()
-        add_pg.organization_name = organization.name
+        fields = ('first_name', 'last_name', 'username', 'email', 'password',
+                  'password_confirm', 'is_superuser', 'organization_name')
+        for field in fields:
+            if field in ('is_superuser'):
+                setattr(add_pg, field, True)
+            else:
+                setattr(add_pg, field, common.utils.random_unicode())
 
         # Click Reset
         add_pg.reset_btn.click()
-        assert add_pg.name == "", "Reset button did not reset the name field (value=%s)" % add_pg.name
-        assert add_pg.description == "", "Reset button did not reset the description field (value=%s)" % add_pg.name
-        assert add_pg.organization_name == "", "Reset button did not reset the organization_name field (value=%s)" % add_pg.name
+
+        # assert reset
+        for field in fields:
+            if field in ('is_superuser'):
+                field_value = False
+            else:
+                field_value = ""
+            assert getattr(add_pg, field) == field_value, "Reset button did not reset the field %s='%s'" % \
+                (field, getattr(add_pg, field))
 
     def test_user_activity_stream(self, anonymous_user, ui_users_pg):
         '''Verify that the user activity stream can be open and closed'''

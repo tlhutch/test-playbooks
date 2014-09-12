@@ -52,19 +52,17 @@ class User_Create_Page(Form_Page):
         'is_superuser': (By.CSS_SELECTOR, '#user_is_superuser_chbox'),
         'organization_btn': (By.CSS_SELECTOR, '#organization-lookup-btn'),
         'organization_name': (By.CSS_SELECTOR, "input[name='organization_name']"),
-        'save_btn': (By.CSS_SELECTOR, '#team_save_btn'),
-        'reset_btn': (By.CSS_SELECTOR, '#team_reset_btn'),
+        'save_btn': (By.CSS_SELECTOR, '#user_save_btn'),
+        'reset_btn': (By.CSS_SELECTOR, '#user_reset_btn'),
     }
-    _save_btn_locator = (By.CSS_SELECTOR, '#user_save_btn')
-    _reset_btn_locator = (By.CSS_SELECTOR, '#user_reset_btn')
 
-    first_name = property(input_getter_by_name(_locators['first_name']), input_setter_by_name(_locators['first_name']))
-    last_name = property(input_getter_by_name(_locators['last_name']), input_setter_by_name(_locators['last_name']))
-    username = property(input_getter_by_name(_locators['username']), input_setter_by_name(_locators['username']))
-    email = property(input_getter_by_name(_locators['email']), input_setter_by_name(_locators['email']))
-    password = property(input_getter_by_name(_locators['password']), input_setter_by_name(_locators['password']))
-    password_confirm = property(input_getter_by_name(_locators['password_confirm']), input_setter_by_name(_locators['password_confirm']))
-    is_superuser = property(input_getter_by_name(_locators['is_superuser']), input_setter_by_name(_locators['is_superuser']))
+    first_name = property(input_getter_by_name('first_name'), input_setter_by_name('first_name'))
+    last_name = property(input_getter_by_name('last_name'), input_setter_by_name('last_name'))
+    username = property(input_getter_by_name('username'), input_setter_by_name('username'))
+    email = property(input_getter_by_name('email'), input_setter_by_name('email'))
+    password = property(input_getter_by_name('password'), input_setter_by_name('password'))
+    password_confirm = property(input_getter_by_name('password_confirm'), input_setter_by_name('password_confirm'))
+    is_superuser = property(input_getter_by_name('is_superuser'), input_setter_by_name('is_superuser'))
     organization_name = property(input_getter_by_name('organization_name'), input_setter_by_name('organization_name'))
 
     @property

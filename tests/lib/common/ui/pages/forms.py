@@ -10,10 +10,10 @@ def input_getter_by_name(locator):
     '''
     def get_field(self):
         assert hasattr(self, '_locators'), "No self._locators dictionary defined"
-        assert locator in self._locators, "No such locator found '%s'" % locator
+        assert locator in self._locators, "No such locator found '{}".format(locator)
         el = self.find_element(*self._locators.get(locator))
         el_type = el.get_attribute('type')
-        if el_type in (u'text', u'password'):
+        if el_type in (u'text', u'password', u'email'):
             return el.get_attribute('value')
         elif el_type == u'checkbox':
             return el.is_selected()
@@ -26,14 +26,18 @@ def input_setter_by_name(locator):
     '''
     def set_field(self, value):
         assert hasattr(self, '_locators'), "No self._locators dictionary defined"
-        assert locator in self._locators, "No such locator found '%s'" % locator
+        assert locator in self._locators, "No such locator found '{}".format(locator)
         el = self.find_element(*self._locators.get(locator))
         el_type = el.get_attribute('type')
-        if el_type in (u'text', u'password'):
+        if el_type in (u'text', u'password', u'email'):
             el.clear()
             el.send_keys(value)
         elif el_type == u'checkbox':
-            el.click()
+            assert isinstance(value, (int, bool)), "Checkboxes only accept boolean values"
+            if el.is_selected() and not value:
+                el.click()
+            elif value and not el.is_selected():
+                el.click()
     return set_field
 
 
