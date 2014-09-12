@@ -29,7 +29,7 @@ class Spinny_Button(Base_Button):
         self._on_click = self.wait_for_spinny
 
 
-class Add_Button(Base_Button):
+class Add_Button(Spinny_Button):
     '''Region describing a add [+] button'''
     _root_locator = (By.CSS_SELECTOR, '#add_btn')
 
