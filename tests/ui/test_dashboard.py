@@ -42,7 +42,7 @@ class Test_Dashboard(Base_UI_Test):
 
         ui_dashboard_pg.account_menu.show()
         actual_items = ui_dashboard_pg.account_menu.keys()
-        expected_items = [u' About Tower', u'Account Settings', u'View License', u'Contact Support', u'Monitor Tower', u'Logout']
+        expected_items = [u'About Tower', u'Account Settings', u'View License', u'Contact Support', u'Monitor Tower', u'Logout']
         assert actual_items == expected_items, "Missing expected menu items (%s != %s)" % (actual_items, expected_items)
 
     def test_account_menu_non_superuser(self, ui_dashboard_pg, anonymous_user, admin_user, user_password):
@@ -54,7 +54,7 @@ class Test_Dashboard(Base_UI_Test):
 
             ui_dashboard_pg.account_menu.show()
             actual_items = ui_dashboard_pg.account_menu.keys()
-            expected_items = [u' About Tower', u'Account Settings', u'View License', u'Contact Support', u'Logout']
+            expected_items = [u'About Tower', u'Account Settings', u'View License', u'Contact Support', u'Logout']
             assert actual_items == expected_items, "Missing expected menu items (%s != %s)" % (actual_items, expected_items)
 
     def test_activity_stream(self, ui_dashboard_pg):
