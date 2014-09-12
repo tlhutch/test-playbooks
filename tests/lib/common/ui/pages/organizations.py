@@ -2,8 +2,8 @@ from selenium.webdriver.common.by import By
 from common.ui.pages import Base, BaseRegion
 from common.ui.pages.forms import Form_Page, input_getter_by_name, input_setter_by_name
 from common.ui.pages.regions.stream_container import Activity_Stream_Region
-from common.ui.pages.regions.accordion import Accordion_Region
-from common.ui.pages.regions.buttons import Activity_Stream_Button, Add_Button, Help_Button
+from common.ui.pages.regions.accordion import Accordion_Region, Accordion_Content
+from common.ui.pages.regions.buttons import Activity_Stream_Button, Add_Button, Help_Button, Select_Button
 from common.ui.pages.regions.lists import SortTable_Region
 from common.ui.pages.regions.dialogs import Prompt_Dialog
 from common.ui.pages.regions.search import Search_Region
@@ -140,7 +140,7 @@ class Organization_Edit_Page(Organization_Create_Page):
     _related = {
         'Properties': Organizations_Page.__module__ + '.Organization_Properties_Region',
         'Users': Organizations_Page.__module__ + '.Organization_Users_Region',
-        'Administrators': Organizations_Page.__module__ + '.Organization_Admins_Region',
+        'Administrators': Organizations_Page.__module__ + '.Organization_Administrators_Region',
     }
 
     @property
@@ -156,56 +156,14 @@ class Organization_Edit_Page(Organization_Create_Page):
 
 class Organization_Properties_Region(BaseRegion, Organization_Create_Page):
     '''Describes the organization edit accordion region'''
-    _related = {
+    _related = Organization_Create_Page._related
+    _related.update({
         'activity_stream': 'Organization_Activity_Page',
-    }
+    })
 
     @property
     def activity_stream_btn(self):
         return Activity_Stream_Button(self.testsetup, _item_class=self.get_related('activity_stream'))
-
-
-class Organization_Users_Region(BaseRegion):
-    '''Describes the organization users region'''
-    _tab_title = "Organizations"
-    _related = {
-        'add': 'Organization_Users_Page',
-    }
-    _locators = {
-        'table': (By.CSS_SELECTOR, '#users_table'),
-        'add': (By.CSS_SELECTOR, '#add_btn'),
-    }
-
-    @property
-    def _breadcrumb_title(self):
-        '''The breadcrumb title should always match organization name'''
-        return self.name
-
-    @property
-    def add_btn(self):
-        return Add_Button(self.testsetup, _item_class=self.get_related('add'), _root_element=self.find_element(*self._locators['add']))
-
-    @property
-    def users(self):
-        return SortTable_Region(self.testsetup, _root_locator=self._locators['table'])
-
-
-class Organization_Admins_Region(Organization_Users_Region):
-    '''Describes the organization administrators region'''
-    _tab_title = "Organizations"
-    _locators = {
-        'table': (By.CSS_SELECTOR, '#admins_table'),
-        'add': (By.CSS_SELECTOR, '#add_btn'),
-    }
-
-    @property
-    def _breadcrumb_title(self):
-        '''The breadcrumb title should always match organization name'''
-        return self.name
-
-    @property
-    def add_btn(self):
-        return Add_Button(self.testsetup, _item_class=Organization_Admins_Page, _root_element=self.find_element(*self._locators['add']))
 
 
 class Organization_Activity_Page(Activity_Stream_Region):
@@ -213,4 +171,62 @@ class Organization_Activity_Page(Activity_Stream_Region):
     _tab_title = "Organizations"
     _related = {
         'close': 'Organization_Edit_Page',
+    }
+
+
+class Organization_Users_Region(Accordion_Content):
+    '''Describes the properties accordion region'''
+    _tab_title = "Organizations"
+    _related = {
+        'add': 'Organization_Add_Users_Page',
+    }
+
+
+class Organization_Add_Users_Page(Base):
+    '''Describes the page for adding users to an organization'''
+    _tab_title = "Organizations"
+    _breadcrumb_title = 'Add Users'
+    _related = {
+        'select': 'Organization_Edit_Page',
+    }
+    _locators = {
+        'table': (By.CSS_SELECTOR, '#users_table'),
+        'pagination': (By.CSS_SELECTOR, '#user-pagination'),
+    }
+
+    @property
+    def help_btn(self):
+        return Help_Button(self.testsetup)
+
+    @property
+    def select_btn(self):
+        return Select_Button(self.testsetup, _item_class=self.get_related('select'))
+
+    @property
+    def table(self):
+        return SortTable_Region(self.testsetup, _root_locator=self._locators['table'])
+
+    @property
+    def pagination(self):
+        return Pagination_Region(self.testsetup, _root_locator=self._locators['pagination'], _item_class=self.__class__)
+
+    @property
+    def search(self):
+        return Search_Region(self.testsetup, _item_class=self.__class__)
+
+
+class Organization_Administrators_Region(Accordion_Content):
+    '''Describes the admins accordion region'''
+    _tab_title = "Organizations"
+    _related = {
+        'add': 'Organization_Add_Administrators_Page',
+    }
+
+
+class Organization_Add_Administrators_Page(Organization_Add_Users_Page):
+    '''Describes the page for adding admins to an organization'''
+    _breadcrumb_title = 'Add Administrators'
+    _locators = {
+        'table': (By.CSS_SELECTOR, '#admins_table'),
+        'pagination': (By.CSS_SELECTOR, '#admin-pagination'),
     }
