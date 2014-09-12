@@ -58,6 +58,9 @@ class TestSetup(object):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Manually test selenium selectors.')
+    parser.add_argument('--nologin', action='store_true',
+                        default=False,
+                        help="Don't login on startup")
     parser.add_argument('--url', dest='base_url', action='store',
                         default=None, required=True,
                         help='Specify URL')
@@ -78,9 +81,9 @@ if __name__ == '__main__':
     mozwebqa.start()
 
     # login
-    login_pg = Login_Page(mozwebqa)
-    login_pg.go_to_login_page()
-    home_pg = login_pg.login()
+    login_pg = Login_Page(mozwebqa).go_to_login_page()
+    if not args.nologin:
+        home_pg = login_pg.login()
 
     # Start interactive ipython shell
     shell = InteractiveShellEmbed(banner2='*** Selenium Shell ***')
