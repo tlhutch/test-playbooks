@@ -8,18 +8,23 @@ from common.ui.pages.regions.buttons import Activity_Stream_Button
 class Dashboard_Page(Base):
     '''Describe the Home dashboard page'''
     _tab_title = "Home"
-    _job_status_graph_locator = (By.CSS_SELECTOR, '#dash-job-status-graph')
-    _host_status_graph_locator = (By.CSS_SELECTOR, '#dash-host-status-graph')
-    _jobs_list_locator = (By.CSS_SELECTOR, '#dash-jobs-list')
-    _host_count_graph_locator = (By.CSS_SELECTOR, '#dash-host-count-graph')
+    _related = {
+        'activity_stream': 'Dashboard_Activity_Page',
+    }
+    _locators = {
+        'job_status_graph': (By.CSS_SELECTOR, '#dash-job-status-graph'),
+        'host_status_graph': (By.CSS_SELECTOR, '#dash-host-status-graph'),
+        'jobs_list': (By.CSS_SELECTOR, '#dash-jobs-list'),
+        'host_count_graph': (By.CSS_SELECTOR, '#dash-host-count-graph'),
+    }
 
     @property
     def activity_stream_btn(self):
-        return Activity_Stream_Button(self.testsetup, _item_class=Dashboard_Activity_Page)
+        return Activity_Stream_Button(self.testsetup, _item_class=self.get_related('activity_stream'))
 
     @property
     def job_status_graph(self):
-        return self.find_visible_element(*self._job_status_graph_locator)
+        return self.find_visible_element(*self._locators['job_status_graph'])
 
     @property
     def has_job_status_graph(self):
@@ -30,7 +35,7 @@ class Dashboard_Page(Base):
 
     @property
     def host_status_graph(self):
-        return self.find_visible_element(*self._host_status_graph_locator)
+        return self.find_visible_element(*self._locators['host_status_graph'])
 
     @property
     def has_host_status_graph(self):
@@ -41,7 +46,7 @@ class Dashboard_Page(Base):
 
     @property
     def jobs_list(self):
-        return self.find_visible_element(*self._jobs_list_locator)
+        return self.find_visible_element(*self._locators['jobs_list'])
 
     @property
     def has_jobs_list(self):
@@ -52,7 +57,7 @@ class Dashboard_Page(Base):
 
     @property
     def host_count_graph(self):
-        return self.find_visible_element(*self._host_count_graph_locator)
+        return self.find_visible_element(*self._locators['host_count_graph'])
 
     @property
     def has_host_count_graph(self):
@@ -63,6 +68,8 @@ class Dashboard_Page(Base):
 
 
 class Dashboard_Activity_Page(Activity_Stream_Region):
-    '''Dashboard Activity Stream page'''
+    '''Activity stream page for all organizations'''
     _tab_title = "Home"
-    _item_class = Dashboard_Page
+    _related = {
+        'close': 'Dashboard_Page',
+    }
