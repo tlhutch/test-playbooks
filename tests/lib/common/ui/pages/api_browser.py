@@ -12,6 +12,11 @@ class Api_Browser_Page(Page):
         super(Api_Browser_Page, self).__init__(*args, **kwargs)
         self.base_url = self.base_url + '/api'
 
+    def open(self, url_fragment=""):
+        '''Open the specified url_fragment, which is relative to the base_url, in the current window.'''
+        self.selenium.get(self.base_url + url_fragment)
+        self.is_the_current_page
+
     @property
     def is_the_current_page(self):
         '''Override the base implementation to make sure that we are actually on a API Browser page
