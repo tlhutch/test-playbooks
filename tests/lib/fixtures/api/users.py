@@ -12,6 +12,7 @@ def user_password(request):
     return "password"
     return common.utils.random_unicode()
 
+
 @pytest.fixture(scope="function")
 def org_admin(request, authtoken, organization, user_password):
     payload = dict(username="org_admin_%s" % common.utils.random_ascii(),
@@ -41,7 +42,7 @@ def org_user(request, authtoken, organization, user_password):
 
 @pytest.fixture(scope="function")
 def anonymous_user(request, authtoken, api_users_pg, user_password):
-    payload = dict(username="anonymous__%s" % common.utils.random_ascii(),
+    payload = dict(username="anonymous_%s" % common.utils.random_ascii(),
                    first_name="Joe (%s)" % common.utils.random_unicode(),
                    last_name="User (%s)" % common.utils.random_unicode(),
                    email="anonymous_user_%s@example.com" % common.utils.random_ascii(),
@@ -49,3 +50,18 @@ def anonymous_user(request, authtoken, api_users_pg, user_password):
     obj = api_users_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
+
+@pytest.fixture(scope="function")
+def many_users(request, authtoken, api_users_pg, user_password):
+    obj_list = list()
+    for i in range(55):
+        payload = dict(username="anonymous_%d_%s" % (i, common.utils.random_ascii()),
+                       first_name="Joe (%s)" % common.utils.random_unicode(),
+                       last_name="User (%s)" % common.utils.random_unicode(),
+                       email="anonymous_%d_%s@example.com" % (i, common.utils.random_ascii()),
+                       password=user_password,)
+        obj = api_users_pg.post(payload)
+        request.addfinalizer(obj.delete)
+        obj_list.append(obj)
+    return obj_list
