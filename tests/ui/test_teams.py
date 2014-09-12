@@ -9,6 +9,11 @@ def accordions(request):
     return ('Properties', 'Credentials', 'Permissions', 'Projects', 'Users')
 
 
+@pytest.fixture(scope="function", params=["Name", "Description", "Organization"])
+def search_filter(request):
+        return request.param
+
+
 @pytest.fixture(scope="function")
 def table_sort(request):
     return [('name', 'ascending'),
@@ -50,29 +55,15 @@ class Test_Teams(Base_UI_Test):
         '''Verify table sorting'''
         assert ui_teams_pg.is_the_active_tab
 
-        # Verify default table sort column
-        assert ui_teams_pg.table.sorted_by == 'name', \
-            "Unexpected default table sort column (%s != %s)" % \
-            (ui_teams_pg.table.sorted_by, 'name')
-
-        # Verify default table sort order
-        assert ui_teams_pg.table.sort_order == 'ascending', \
-            "Unexpected default table sort order (%s != %s)" % \
-            (ui_teams_pg.table.sort_order, 'ascending')
+        # Verify default table sort column and order
+        self.assert_table_sort(ui_teams_pg.table, *table_sort[0])
 
         for sorted_by, sort_order in table_sort:
             # Change table sort
             ui_teams_pg.table.sort_by(sorted_by, sort_order)
 
-            # Verify new table sort column
-            assert ui_teams_pg.table.sorted_by == sorted_by, \
-                "Unexpected default table sort column (%s != %s)" % \
-                (ui_teams_pg.table.sorted_by, sorted_by)
-
-            # Verify new table sort order
-            assert ui_teams_pg.table.sort_order == sort_order, \
-                "Unexpected default table sort order (%s != %s)" % \
-                (ui_teams_pg.table.sort_order, sort_order)
+            # Verify table sort column and order
+            self.assert_table_sort(ui_teams_pg.table, sorted_by, sort_order)
 
     def test_no_pagination(self, authtoken, api_teams_pg, ui_teams_pg):
         '''Verify table pagination is not present'''
@@ -133,43 +124,22 @@ class Test_Teams(Base_UI_Test):
         # TODO: click page#2
         # next_pg = curr_pg.pagination.get(2).click()
 
-    def test_filter_name(self, team, ui_teams_pg):
+    def test_filter(self, team, search_filter, ui_teams_pg):
         '''Verify table filtering using a name'''
         assert ui_teams_pg.is_the_active_tab
+        search_value = getattr(team, search_filter.replace(' ', '_').lower())
 
         # search by name
-        ui_teams_pg.search.search_type.select("Name")
-        ui_teams_pg.search.search_value = team.name
+        ui_teams_pg.search.search_type.select(search_filter)
+        ui_teams_pg.search.search_value = search_value
         ui_teams_pg = ui_teams_pg.search.search_btn.click()
 
-        # TODO: verify expected number of items found
-        # assert ui_teams_pg.pagination.total_items == 1
-        # assert expected number of items found
+        # verify expected number of items found
         assert ui_teams_pg.pagination.total_items == 1, \
             "Unexpected number of results (%d != %d)" % \
             (ui_teams_pg.pagination.total_items, 1)
-        assert ui_teams_pg.table.find_row("name", team.name)
-
-        # reset search filter
-        ui_teams_pg = ui_teams_pg.search.reset_btn.click()
-        assert ui_teams_pg.search.search_value == '', \
-            "search_value did not reset (%s)" % \
-            ui_teams_pg.search.search_value
-
-    def test_filter_description(self, team, ui_teams_pg):
-        '''Verify table filtering using a description'''
-        assert ui_teams_pg.is_the_active_tab
-
-        # search by description
-        ui_teams_pg.search.search_type.select("Description")
-        ui_teams_pg.search.search_value = team.description
-        ui_teams_pg = ui_teams_pg.search.search_btn.click()
-
-        # assert expected number of items found
-        assert ui_teams_pg.pagination.total_items == 1, \
-            "Unexpected number of results (%d != %d)" % \
-            (ui_teams_pg.pagination.total_items, 1)
-        assert ui_teams_pg.table.find_row("description", team.description)
+        # verify expected matching row
+        assert ui_teams_pg.table.find_row(search_filter, search_value)
 
         # reset search filter
         ui_teams_pg = ui_teams_pg.search.reset_btn.click()
@@ -182,14 +152,13 @@ class Test_Teams(Base_UI_Test):
         assert ui_teams_pg.is_the_active_tab
 
         # search for an org that doesn't exist
-        ui_teams_pg.search.search_type.select("Name")
         ui_teams_pg.search.search_value = common.utils.random_unicode()
         ui_teams_pg = ui_teams_pg.search.search_btn.click()
 
         # assert expected number of items found
-        assert ui_teams_pg.pagination.total_items == 1, \
+        assert ui_teams_pg.pagination.total_items == 0, \
             "Unexpected number of results (%d != %d)" % \
-            (ui_teams_pg.pagination.total_items, 1)
+            (ui_teams_pg.pagination.total_items, 0)
         assert ui_teams_pg.table.find_row("name", "No records matched your search.")
 
     def test_add(self, organization, ui_teams_pg):
@@ -292,7 +261,7 @@ class Test_Teams(Base_UI_Test):
             "The reset button did not restore the 'description' (%s != %s)" % \
             (edit_region.description, organization_name)
 
-    def test_edit_add_credential(self, team, ssh_credential, ui_teams_pg):
+    def test_associate_credential(self, team, ssh_credential, ui_teams_pg):
         '''Verify basic operation of adding credentials'''
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Credentials')
@@ -318,7 +287,7 @@ class Test_Teams(Base_UI_Test):
             "Credential (%s) was not properly associated with team (%s)" % (ssh_credential.name, team.name)
 
     @pytest.mark.skipif(True, reason="TODO - define a permission API fixture")
-    def test_edit_add_permission(self, team, ui_teams_pg):
+    def test_associate_permission(self, team, ui_teams_pg):
         '''Verify basic operation of adding permissions'''
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Permissions')
@@ -343,7 +312,7 @@ class Test_Teams(Base_UI_Test):
         assert region.table.find_row('name', permission.name) is not None, \
             "Permission (%s) was not properly associated with team (%s)" % (permission.name, team.name)
 
-    def test_edit_add_project(self, team, project, ui_teams_pg):
+    def test_associate_project(self, team, project, ui_teams_pg):
         '''Verify basic operation of adding projects'''
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Projects')
@@ -368,7 +337,7 @@ class Test_Teams(Base_UI_Test):
         assert region.table.find_row('name', project.name) is not None, \
             "Project (%s) was not properly associated with team (%s)" % (project.name, team.name)
 
-    def test_edit_add_user(self, team, anonymous_user, ui_teams_pg):
+    def test_associate_user(self, team, anonymous_user, ui_teams_pg):
         '''Verify basic operation of adding users'''
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Users')

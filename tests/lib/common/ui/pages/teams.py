@@ -13,7 +13,6 @@ from common.ui.pages.regions.pagination import Pagination_Region
 
 class Teams_Page(MainTab_Page):
     '''Describes teams page'''
-    _base_url = "/#/teams/"
     _tab_title = "Teams"
     _related = {
         'add': 'Team_Create_Page',
