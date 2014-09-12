@@ -127,7 +127,10 @@ class Test_Teams(Base_UI_Test):
     def test_filter(self, team, search_filter, ui_teams_pg):
         '''Verify table filtering using a name'''
         assert ui_teams_pg.is_the_active_tab
-        search_value = getattr(team, search_filter.replace(' ', '_').lower())
+        if search_filter.lower() == "organization":
+            search_value = team.get_related(search_filter.replace(' ', '_').lower()).name
+        else:
+            search_value = getattr(team, search_filter.replace(' ', '_').lower())
 
         # search by name
         ui_teams_pg.search.search_type.select(search_filter)
