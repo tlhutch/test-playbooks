@@ -1,6 +1,6 @@
 import time
-from selenium.webdriver.support.ui import Select
-from common.ui.pages import Base
+from selenium.webdriver.support.select import Select
+from common.ui.pages import Base, BaseRegion
 from common.ui.pages.regions.buttons import Base_Button
 
 
@@ -17,6 +17,11 @@ def input_getter_by_name(locator):
             return el.get_attribute('value')
         elif el_type == u'checkbox':
             return el.is_selected()
+        elif el_type == u'select-one':
+            select = Select(el)
+            return select.all_selected_options
+        else:
+            raise NotImplementedError("Unhandled input type: %s" % el_type)
     return get_field
 
 
@@ -38,6 +43,12 @@ def input_setter_by_name(locator):
                 el.click()
             elif value and not el.is_selected():
                 el.click()
+        elif el_type == u'select-one':
+            select = Select(el)
+            # select.select_by_value(value)
+            select.select_by_visible_text(value)
+        else:
+            raise NotImplementedError("Unhandled input type: %s" % el_type)
     return set_field
 
 

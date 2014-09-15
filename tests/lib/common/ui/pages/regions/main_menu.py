@@ -1,5 +1,5 @@
 from selenium.webdriver.common.by import By
-from common.ui.pages import Dashboard_Page, Organizations_Page, Users_Page, Teams_Page, Credentials, Projects, Inventories, Job_Templates, Jobs
+from common.ui.pages import Dashboard_Page, Organizations_Page, Users_Page, Teams_Page, Credentials_Page, Projects, Inventories, Job_Templates, Jobs
 from common.ui.pages.regions.lists import List_Region
 
 
@@ -13,7 +13,7 @@ class Main_Menu(List_Region):
                    "Organizations": Organizations_Page,
                    "Users": Users_Page,
                    "Teams": Teams_Page,
-                   "Credentials": Credentials,
+                   "Credentials": Credentials_Page,
                    "Projects": Projects,
                    "Inventories": Inventories,
                    "Job Templates": Job_Templates,
