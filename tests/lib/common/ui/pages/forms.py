@@ -1,7 +1,9 @@
 import time
 from selenium.webdriver.support.select import Select
+from selenium.webdriver.common.by import By
 from common.ui.pages import Base, BaseRegion
 from common.ui.pages.regions.buttons import Base_Button
+from common.ui.pages.regions.lists import List_Region
 
 
 def input_getter_by_name(locator):
@@ -19,7 +21,14 @@ def input_getter_by_name(locator):
             return el.is_selected()
         elif el_type == u'select-one':
             select = Select(el)
-            return select.all_selected_options
+            if select.all_selected_options:
+                return select.all_selected_options[0].get_attribute('value')
+            else:
+                return None
+        elif el_type == u'radio':
+            parent_root = el.find_element(*(By.XPATH, '../../..'))
+            radio = Radio(self.testsetup, _root_element=parent_root, _item_locator=self._locators.get(locator))
+            return radio.value
         else:
             raise NotImplementedError("Unhandled input type: %s" % el_type)
     return get_field
@@ -45,8 +54,16 @@ def input_setter_by_name(locator):
                 el.click()
         elif el_type == u'select-one':
             select = Select(el)
-            # select.select_by_value(value)
-            select.select_by_visible_text(value)
+            select.select_by_value(value)
+            self.wait_for_spinny()
+        elif el_type == u'radio':
+            # The following XPATH is ugly, but chooses the
+            # great-great-grandfather of the current locator.  The hope is that
+            # other radio options will be a descendant of the
+            # great-great-grandfather element.
+            parent_root = el.find_element(*(By.XPATH, '../../../..'))
+            radio = Radio(self.testsetup, _root_element=parent_root, _item_locator=self._locators.get(locator))
+            radio.get(value).click()
         else:
             raise NotImplementedError("Unhandled input type: %s" % el_type)
     return set_field
@@ -146,3 +163,25 @@ class Form_Page(Base):
     @property
     def reset_btn(self):
         return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['reset_btn']))
+
+
+class Radio(List_Region):
+    '''Describes a radio button group'''
+    _item_locator = (By.CSS_SELECTOR, "input[type='radio' and name='{}']")
+    _unique_attribute = 'value'
+
+    def selected(self):
+        '''Return the selenium element of the currently selected radio option'''
+        for el in self.items():
+            if el.is_selected():
+                return el
+        return None
+
+    @property
+    def value(self):
+        '''Return the value of the currently selected item'''
+        selected = self.selected()
+        if selected is None:
+            return None
+        else:
+            return selected.get_attribute(self._unique_attribute)

@@ -298,7 +298,7 @@ class List_Region(PageRegion):
         for el in self.items():
             if el.get_attribute(self._unique_attribute) == name:
                 return el
-        raise Exception("Item named '%s' not found" % name)
+        raise Exception("No item with %s = '%s' found" % (self._unique_attribute, name))
 
     def items(self):
         '''
