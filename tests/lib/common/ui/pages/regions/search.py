@@ -12,12 +12,15 @@ class Search_Region(PageRegion):
         'search_type': (By.CSS_SELECTOR, '#search_field_ddown'),
         'search_type_dropdown': (By.CSS_SELECTOR, 'ul.dropdown-menu'),
         'search_value': (By.CSS_SELECTOR, '#search_value_input'),
+        'search_value_select': (By.CSS_SELECTOR, '#search_value_select'),
         'search_btn': (By.CSS_SELECTOR, '#search-submit-button'),
         'reset_btn': (By.CSS_SELECTOR, '#search-reset-button'),
     }
 
     # Textbox
     search_value = property(input_getter_by_name('search_value'), input_setter_by_name('search_value'))
+    # Select
+    search_value_select = property(input_getter_by_name('search_value_select'), input_setter_by_name('search_value_select'))
 
     @property
     def search_type(self):
