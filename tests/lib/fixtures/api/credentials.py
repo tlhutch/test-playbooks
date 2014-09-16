@@ -4,6 +4,12 @@ import common.utils
 
 
 @pytest.fixture(scope="function")
+def credential_kind_choices(request, authtoken, api_credentials_pg):
+    '''Return ssh credential'''
+    return dict(api_credentials_pg.options().json['actions']['POST']['kind']['choices'])
+
+
+@pytest.fixture(scope="function")
 def ssh_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create ssh credential'''
     payload = dict(name="credentials-%s" % common.utils.random_unicode(),
@@ -132,3 +138,19 @@ def scm_credential_key_unlock_ASK(request, authtoken, api_credentials_pg, admin_
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
+
+@pytest.fixture(scope="function")
+def many_ssh_credentials(request, authtoken, testsetup, api_credentials_pg, admin_user):
+    obj_list = list()
+    for i in range(55):
+        payload = dict(name="credential_%d_%s" % (i, common.utils.random_unicode()),
+                       description="machine credential - %d - %s" % (i, common.utils.random_unicode()),
+                       kind='ssh',
+                       user=admin_user.id,
+                       username=testsetup.credentials['ssh']['username'],
+                       password=testsetup.credentials['ssh']['password'],)
+        obj = api_credentials_pg.post(payload)
+        request.addfinalizer(obj.delete)
+        obj_list.append(obj)
+    return obj_list
