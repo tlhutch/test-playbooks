@@ -11,6 +11,9 @@ class Base_Button(BaseRegion):
     def is_displayed(self):
         return self._root_element.is_displayed()
 
+    def is_enabled(self):
+        return self._root_element.is_enabled()
+
     def click(self):
         self._root_element.click()
         obj = None
