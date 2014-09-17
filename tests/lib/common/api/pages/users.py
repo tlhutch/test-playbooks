@@ -9,6 +9,8 @@ class User_Page(base.Base):
     username = property(base.json_getter('username'), base.json_setter('username'))
     first_name = property(base.json_getter('first_name'), base.json_setter('first_name'))
     last_name = property(base.json_getter('last_name'), base.json_setter('last_name'))
+    is_superuser = property(base.json_getter('is_superuser'), base.json_setter('is_superuser'))
+    email = property(base.json_getter('email'), base.json_setter('email'))
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
