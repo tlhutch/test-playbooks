@@ -255,26 +255,27 @@ class Test_Users(Base_UI_Test):
         # Access the edit region
         edit_region = edit_pg.accordion.get('Properties')[1]
 
-        # Modify user form fields
-        edit_region.name = common.utils.random_unicode()
-        edit_region.description = common.utils.random_unicode()
-        edit_region.organization_name = common.utils.random_unicode()
+        # Modify Fields
+        fields = ('first_name', 'last_name', 'username', 'email', 'password',
+                  'password_confirm', 'is_superuser')
+        for field in fields:
+            if field in ('is_superuser'):
+                setattr(edit_region, field, not anonymous_user.is_superuser)
+            else:
+                setattr(edit_region, field, common.utils.random_unicode())
 
-        # Verify breadcrumb title updated
-        assert edit_pg.is_the_active_breadcrumb
-
-        # Reset Edit form
+        # Click Reset
         edit_region.reset_btn.click()
-        assert edit_region.name == anonymous_user.name, \
-            "The reset button did not restore the 'name' (%s != %s)" % \
-            (edit_region.name, anonymous_user.name)
-        assert edit_region.description == anonymous_user.description, \
-            "The reset button did not restore the 'description' (%s != %s)" % \
-            (edit_region.description, anonymous_user.description)
-        organization_name = anonymous_user.get_related('organization').name
-        assert edit_region.organization_name == organization_name, \
-            "The reset button did not restore the 'description' (%s != %s)" % \
-            (edit_region.description, organization_name)
+
+        # assert reset
+        for field in fields:
+            if field in ('password', 'password_confirm'):
+                field_value = ''
+            else:
+                field_value = getattr(anonymous_user, field)
+            assert getattr(edit_region, field) == field_value, \
+                "Reset button did not reset the field %s (actual:'%s', expected:'%s')" % \
+                (field, getattr(edit_region, field), field_value)
 
     def test_associate_credential(self, anonymous_user, ssh_credential, ui_users_pg):
         '''Verify basic operation of adding credentials'''
