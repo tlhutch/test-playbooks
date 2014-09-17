@@ -85,7 +85,7 @@ class User_Edit_Page(User_Create_Page):
     @property
     def _breadcrumb_title(self):
         '''The breadcrumb title should always match object name'''
-        return self.name
+        return self.username
 
     @property
     def accordion(self):
