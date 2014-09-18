@@ -38,7 +38,10 @@ if [ -n "${SAUCE_USER_NAME}" -a -n "${SAUCE_API_KEY}" ]; then
 username: ${SAUCE_USER_NAME}
 api-key: ${SAUCE_API_KEY}
 EOF
-    SAUCE_ARGS="--saucelabs=${SAUCE_CREDS} --platform=${SELENIUM_PLATFORM} --browsername=${SELENIUM_BROWSER} --browserver=${SELENIUM_VERSION}"
+    SAUCE_ARGS=(--saucelabs "${SAUCE_CREDS}")
+    SAUCE_ARGS+=(--platform "${SELENIUM_PLATFORM}")
+    SAUCE_ARGS+=(--browsername "${SELENIUM_BROWSER}")
+    SAUCE_ARGS+=(--browserver "${SELENIUM_VERSION}")
 fi
 
 export ANSIBLE_NOCOLOR=True
@@ -52,7 +55,8 @@ py.test -v \
   --baseurl "${BASEURL}" \
   --ansible-inventory="${ANSIBLE_INVENTORY}" \
   --destructive \
-  --instafail ${SAUCE_ARGS-} \
+  --instafail \
+  "${SAUCE_ARGS[@]}" \
   -m "${MARKEXPR}" \
   tests/
 
