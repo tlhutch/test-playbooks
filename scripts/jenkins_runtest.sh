@@ -30,6 +30,20 @@ for SCRIPT_DIR in "scripts" "." ; do
 done
 python ${SCRIPT_DIR}/${SCRIPT_NAME} tests/credentials.template tests/credentials.yaml
 
+# Create saucelabs config file
+if [ -n "${SAUCE_USER_NAME}" -a -n "${SAUCE_API_KEY}" ]; then
+    SAUCE_CREDS="tests/saucelabs.yml"
+    cat << EOF > ${SAUCE_CREDS}
+username: ${SAUCE_USER_NAME}
+api-key: ${SAUCE_API_KEY}
+EOF
+    SAUCE_ARGS="--saucelabs=\"${SAUCE_CREDS}\" \
+                --driver=\"${SELENIUM_DRIVER}\" \
+                --platform=\"${SELENIUM_PLATFORM}\" \
+                --browsername=\"${SELENIUM_BROWSER}\" \
+                --browserver=\"${SELENIUM_VERSION}\""
+fi
+
 export ANSIBLE_NOCOLOR=True
 export ANSIBLE_HOST_KEY_CHECKING=False
 
@@ -40,9 +54,9 @@ py.test -v \
   --webqareport "${WEBQA_REPORT}" \
   --baseurl "${BASEURL}" \
   --ansible-inventory="${ANSIBLE_INVENTORY}" \
-  -m "${MARKEXPR}" \
   --destructive \
-  --instafail \
+  --instafail ${SAUCE_ARGS:-} \
+  -m "${MARKEXPR}" \
   tests/
 
 exit $?
