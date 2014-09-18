@@ -39,7 +39,6 @@ username: ${SAUCE_USER_NAME}
 api-key: ${SAUCE_API_KEY}
 EOF
     SAUCE_ARGS="--saucelabs=\"${SAUCE_CREDS}\" \
-                --driver=\"${SELENIUM_DRIVER}\" \
                 --platform=\"${SELENIUM_PLATFORM}\" \
                 --browsername=\"${SELENIUM_BROWSER}\" \
                 --browserver=\"${SELENIUM_VERSION}\""
