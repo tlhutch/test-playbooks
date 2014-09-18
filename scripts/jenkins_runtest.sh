@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -xe
 
 # Establish the MARKEXPR py.test parameter
 MARKEXPR=${@:-not (performance or selenium)}
