@@ -11,7 +11,7 @@ WEBQA_REPORT=${WEBQA_REPORT:-tests/results/index.html}
 
 # Determine BASEURL using 'ansible --list-hosts'
 INVENTORY_HOST=$(ansible "${PLATFORM}:&${CLOUD_PROVIDER}" -i ${ANSIBLE_INVENTORY} --list-hosts)
-if [ $? -ne 0 -o ${INVENTORY_HOST} = "No hosts matched" ]; then
+if [ $? -ne 0 -o "${INVENTORY_HOST}" = "No hosts matched" ]; then
     echo "Unable to find a matching host: ${PLATFORM}:&${CLOUD_PROVIDER}"
     exit 1
 fi
