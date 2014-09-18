@@ -3,11 +3,12 @@
 # Establish the MARKEXPR py.test parameter
 MARKEXPR=${@:-not (performance or selenium)}
 
-# Use inventory.log artifact (requires copy artifact plugin)
-ANSIBLE_INVENTORY="playbooks/inventory.log"
-
+# Other py.test variables
 JUNIT_XML=${JUNIT_XML:-tests/results.xml}
 WEBQA_REPORT=${WEBQA_REPORT:-tests/results/index.html}
+
+# Default ansible inventory file
+ANSIBLE_INVENTORY="playbooks/inventory.log"
 
 # Determine BASEURL using 'ansible --list-hosts'
 INVENTORY_HOST=$(ansible "${PLATFORM}:&${CLOUD_PROVIDER}" -i ${ANSIBLE_INVENTORY} --list-hosts)
