@@ -22,7 +22,7 @@
 # Variable defaults
 MARKEXPR=${@:-not (performance or selenium)}
 TESTEXPR=${TESTEXPR:-}
-ANSIBLE_INVENTORY=$(ANSIBLE_INVENTORY:-playbooks/inventory.log)
+ANSIBLE_INVENTORY=${ANSIBLE_INVENTORY:-playbooks/inventory.log}
 JUNIT_XML=${JUNIT_XML:-tests/results.xml}
 WEBQA_REPORT=${WEBQA_REPORT:-tests/results/index.html}
 SAUCE_CREDS=${SAUCE_CREDS:-tests/saucelabs.yml}
