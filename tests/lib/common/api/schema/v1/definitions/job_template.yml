@@ -62,6 +62,7 @@ job_template:
         last_job: {$ref: '#/definitions/summary_fields_job'}
         last_update: {$ref: '#/definitions/summary_fields_job'}
         project: {$ref: '#/definitions/summary_fields_project'}
+        survey: {$ref: '#/definitions/summary_fields_survey'}
       required: [inventory, project]
       type: object
     survey_enabled: {type: boolean}

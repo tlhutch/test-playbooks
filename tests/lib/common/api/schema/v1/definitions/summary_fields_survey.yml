@@ -1,0 +1,8 @@
+---
+summary_fields_survey:
+    type: object
+    required: [name, description]
+    additionalProperties: false
+    properties:
+      description: {type: string}
+      name: {type: string}
