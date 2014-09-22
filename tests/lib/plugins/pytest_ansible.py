@@ -185,6 +185,14 @@ class AnsibleWrapper(object):
         if result['dark']:
             raise Exception("Host unreachable: %s" % self.module_name, result['dark'])
 
+        # No hosts contacted
+        if not result['contacted']:
+            raise Exception("Provided hosts list is empty")
+
+        # No matching host contacted
+        if self.pattern not in result['contacted']:
+            raise Exception("No hosts matched: '%s'" % self.pattern)
+
         # Success!
         return result['contacted'][self.pattern]
 
