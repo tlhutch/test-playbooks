@@ -26,7 +26,6 @@ import fixtures.ui
 
 # Load any plugins, fixtures and markers
 def _pytest_plugins_generator(*extension_pkgs):
-    print(extension_pkgs)
     # Finds all submodules in pytest extension packages and loads them
     for extension_pkg in extension_pkgs:
         path = extension_pkg.__path__
