@@ -87,3 +87,22 @@ def project_with_credential_prompt(request, authtoken, api_projects_pg, organiza
     obj = api_projects_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
+
+@pytest.fixture(scope="function")
+def many_git_projects(request, authtoken, testsetup, api_projects_pg, organization):
+    obj_list = list()
+    for i in range(55):
+        payload = dict(name="project-%d-%s" % (i, common.utils.random_unicode()),
+                       description="random project %d - %s" % (i, common.utils.random_unicode()),
+                       organization=organization.id,
+                       scm_type='git',
+                       scm_url='https://github.com/jlaska/ansible-playbooks.git',
+                       scm_clean=False,
+                       scm_delete_on_update=False,
+                       scm_update_on_launch=False,)
+        obj = api_projects_pg.post(payload)
+        request.addfinalizer(obj.delete)
+        obj_list.append(obj)
+    return obj_list
+
