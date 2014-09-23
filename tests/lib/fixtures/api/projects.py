@@ -8,7 +8,13 @@ import common.utils
 @pytest.fixture(scope="function")
 def project_scm_type_choices(request, authtoken, api_projects_pg):
     '''Return project scm_types from OPTIONS'''
-    return dict(api_projects_pg.options().json['actions']['POST']['scm_type']['choices'])
+    return dict(api_projects_pg.options().json['actions']['GET']['scm_type']['choices'])
+
+
+@pytest.fixture(scope="function")
+def project_status_choices(request, authtoken, api_projects_pg):
+    '''Return project statuses from OPTIONS'''
+    return dict(api_projects_pg.options().json['actions']['GET']['status']['choices'])
 
 
 @pytest.fixture(scope="function")
