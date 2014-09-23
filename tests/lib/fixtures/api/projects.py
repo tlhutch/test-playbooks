@@ -4,6 +4,13 @@ import common.utils
 # from organizations import organization
 # from credentials import scm_credential_key_unlock_ASK
 
+
+@pytest.fixture(scope="function")
+def project_scm_type_choices(request, authtoken, api_projects_pg):
+    '''Return project scm_types from OPTIONS'''
+    return dict(api_projects_pg.options().json['actions']['POST']['scm_type']['choices'])
+
+
 @pytest.fixture(scope="function")
 def project_ansible_helloworld_hg(request, authtoken, api_projects_pg, organization):
     # Create project
