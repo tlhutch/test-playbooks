@@ -117,45 +117,55 @@ class Test_Projects(Base_UI_Test):
         # TODO: click page#2
         # next_pg = curr_pg.pagination.get(2).click()
 
-    def test_filter(self, ssh_project, search_filter, api_projects_pg, project_kind_choices, ui_projects_pg):
+    def test_filter(self, project, search_filter, api_projects_pg, project_scm_type_choices, project_status_choices, ui_projects_pg):
         '''Verify table filtering'''
         assert ui_projects_pg.is_the_active_tab
+
+        # determine expected search results
         if search_filter.lower() == "type":
-            search_value = getattr(ssh_project, 'kind')
-            total_items = api_projects_pg.get(kind=ssh_project.kind).count
+            search_value = getattr(project, 'scm_type')
+            total_items = api_projects_pg.get(scm_type=project.scm_type).count
+        elif search_filter.lower() == "status":
+            search_value = getattr(project, 'status')
+            total_items = api_projects_pg.get(status=project.status).count
         else:
-            search_value = getattr(ssh_project, search_filter.replace(' ', '_').lower())
+            search_value = getattr(project, search_filter.replace(' ', '_').lower())
             total_items = 1
 
-        # search by name
+        # perform search
         ui_projects_pg.search.search_type.select(search_filter)
-        if search_filter.lower() == "type":
+        if search_filter.lower() in ('type', 'status'):
             ui_projects_pg.search.search_value_select = search_value
-            api_projects_pg.get(kind=ssh_project.kind).count
+            # api_projects_pg.get(scm_type=project.scm_type).count
         else:
             ui_projects_pg.search.search_value = search_value
             ui_projects_pg = ui_projects_pg.search.search_btn.click()
 
-        # verify expected number of items found
+        # assert expected number of items
         assert ui_projects_pg.pagination.total_items == total_items, \
             "Unexpected number of results (%d != %d)" % \
             (ui_projects_pg.pagination.total_items, total_items)
 
-        # verify expected matching row
+        # assert expected matching row
         if search_filter.lower() == "type":
-            assert ui_projects_pg.table.find_row(search_filter, project_kind_choices[search_value]), \
-                "Unable to find table row matching (%s=%s)" % (search_filter, project_kind_choices[search_value])
+            assert ui_projects_pg.table.find_row(search_filter, project_scm_type_choices[search_value]), \
+                "Unable to find table row matching (%s=%s)" % (search_filter, project_scm_type_choices[search_value])
+        elif search_filter.lower() == "status":
+            assert ui_projects_pg.table.find_row(search_filter, project_status_choices[search_value]), \
+                "Unable to find table row matching (%s=%s)" % (search_filter, project_status_choices[search_value])
         else:
             assert ui_projects_pg.table.find_row(search_filter, search_value), \
                 "Unable to find table row matching (%s=%s)" % (search_filter, search_value)
 
         # reset search filter
         ui_projects_pg = ui_projects_pg.search.reset_btn.click()
+
+        # assert empty search_value
         assert ui_projects_pg.search.search_value == '', \
             "search_value did not reset (%s)" % \
             ui_projects_pg.search.search_value
 
-    def test_filter_notfound(self, ssh_project, ui_projects_pg):
+    def test_filter_notfound(self, project, ui_projects_pg):
         '''Verify table filtering using a bogus value'''
         assert ui_projects_pg.is_the_active_tab
 
@@ -169,43 +179,47 @@ class Test_Projects(Base_UI_Test):
             (ui_projects_pg.pagination.total_items, 0)
         assert ui_projects_pg.table.find_row("name", "No records matched your search.")
 
-    def test_add(self, anonymous_user, team, ui_projects_pg):
+    def test_add(self, organization, ui_projects_pg):
         '''Verify basic form fields'''
         assert ui_projects_pg.add_btn, "Unable to locate add button"
 
-        # Click Add button
+        # click add
         add_pg = ui_projects_pg.add_btn.click()
         assert add_pg.is_the_active_tab
         assert add_pg.is_the_active_breadcrumb
         assert not add_pg.save_btn.is_enabled(), "Incomplete form unexpectedly capable of submission"
+        assert add_pg.scm_type == '', "Unexpected default value for scm_type ('%s' != '%s')" % ('', add_pg.scm_type)
 
-        # Input Fields
+        # update form fields
         add_pg.name = common.utils.random_unicode()
         add_pg.description = common.utils.random_unicode()
-        add_pg.owner = 'user'
-        add_pg.user_username = anonymous_user.username
-        add_pg.owner = 'team'
-        add_pg.team_name = team.name
-        add_pg.project_kind = 'ssh'
+        add_pg.organization_name = organization.name
+        add_pg.scm_type = 'git'
+        add_pg.scm_clean = True
+        add_pg.scm_delete_on_update = True
+        add_pg.scm_update_on_launch = True
 
         # TODO ... play with more fields
 
-        # Click Reset
+        # click reset
         add_pg.reset_btn.click()
-        fields = ('name', 'description', 'owner', 'project_kind', 'team_name')
+
+        # assert form values reset
+        checkboxes = ('scm_clean', 'scm_delete_on_update', 'scm_update_on_launch')
+        fields = ('name', 'description', 'organization_name', 'scm_type') + checkboxes
         for field in fields:
-            if field in ('owner'):
-                field_value = None
+            if field in checkboxes:
+                field_value = False
             else:
                 field_value = ""
             assert getattr(add_pg, field) == field_value, "Reset button did not reset the field %s='%s'" % \
                 (field, getattr(add_pg, field))
 
-    def test_project_activity_stream(self, ssh_project, ui_projects_pg):
-        '''Verify that the ssh_project activity stream can be open and closed'''
+    def test_project_activity_stream(self, project, ui_projects_pg):
+        '''Verify that the project activity stream can be open and closed'''
 
         # Open edit page
-        edit_pg = ui_projects_pg.open(ssh_project.id)
+        edit_pg = ui_projects_pg.open(project.id)
         assert edit_pg.is_the_active_tab
         assert edit_pg.is_the_active_breadcrumb
 
@@ -221,20 +235,28 @@ class Test_Projects(Base_UI_Test):
         ui_projects_pg = org_activity_pg.close_btn.click()
         assert ui_projects_pg.is_the_active_tab
 
-    def test_edit(self, ssh_project, ui_projects_pg):
-        '''Verify basic form fields when editing an ssh_project'''
-        edit_pg = ui_projects_pg.open(ssh_project.id)
+    def test_project_update_btn(self, project, ui_projects_pg):
+        '''Verify that the project activity stream can be open and closed'''
+
+        # Open edit page
+        edit_pg = ui_projects_pg.open(project.id)
+        assert edit_pg.is_the_active_tab
+        assert edit_pg.is_the_active_breadcrumb
+
+        # Click the update button and verify successful update
+        raise Exception("FIXME")
+
+    def test_edit(self, project, ui_projects_pg):
+        '''Verify basic form fields when editing an project'''
+        edit_pg = ui_projects_pg.open(project.id)
         assert edit_pg.is_the_active_tab
         assert edit_pg.is_the_active_breadcrumb
         assert edit_pg.save_btn.is_enabled(), "Completed form unexpectedly incapable of submission"
 
-        # Modify ssh_project form fields
+        # Modify project form fields
         edit_pg.name = common.utils.random_unicode()
         edit_pg.description = common.utils.random_unicode()
-        if ssh_project.user is None:
-            edit_pg.owner = 'team'
-        else:
-            edit_pg.owner = 'user'
+        add_pg.scm_type = ''
 
         # TODO ... play with more fields
 
@@ -243,17 +265,13 @@ class Test_Projects(Base_UI_Test):
 
         # Reset Edit form
         edit_pg.reset_btn.click()
-        fields = ('name', 'description', 'project_kind', 'owner')
+        checkboxes = ('scm_clean', 'scm_delete_on_update', 'scm_update_on_launch')
+        fields = ('name', 'description', 'organization_name', 'scm_type') + checkboxes
         for field in fields:
-            if field in ('project_kind'):
-                field_value = getattr(ssh_project, 'kind')
-            elif field in ('owner'):
-                if ssh_project.user is None:
-                    field_value = 'team'
-                else:
-                    field_value = 'user'
+            if field in checkboxes:
+                field_value = getattr(project, field)
             else:
-                field_value = getattr(ssh_project, field)
+                field_value = getattr(project, field)
             assert getattr(edit_pg, field) == field_value, "Reset button did not reset the field %s='%s'" % \
                 (field, getattr(edit_pg, field))
 
