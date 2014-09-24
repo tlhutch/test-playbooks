@@ -533,8 +533,8 @@ inventory_sources:
       credential: AWS (team:IT)
       source_vars: ''
       source_regions: ''
-      overwrite: true
-      overwrite_vars: true
+      overwrite: false
+      overwrite_vars: false
       update_on_launch: false
       update_interval: 0
 
@@ -548,8 +548,8 @@ inventory_sources:
       source_vars: ''
       source_regions: 'ORD'
       source_tags: ''
-      overwrite: true
-      overwrite_vars: true
+      overwrite: false
+      overwrite_vars: false
       update_on_launch: false
       update_interval: 0
 
