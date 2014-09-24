@@ -42,19 +42,14 @@ class Close_Button(Base_Button):
     _root_locator = (By.CSS_SELECTOR, '#close_btn')
 
 
-class Refresh_Button(Base_Button):
-    '''Region describing a [refresh] button'''
-    _root_locator = (By.CSS_SELECTOR, '#refresh_btn')
-
-
 class Help_Button(Base_Button):
     '''Region describing a help [?] button'''
     _root_locator = (By.CSS_SELECTOR, '#help_btn')
 
 
-class Select_Button(Spinny_Button):
-    '''Region describing a select button'''
-    _root_locator = (By.CSS_SELECTOR, '#select_btn')
+class Refresh_Button(Spinny_Button):
+    '''Region describing a [refresh] button'''
+    _root_locator = (By.CSS_SELECTOR, '#refresh_btn')
 
 
 class Activity_Stream_Button(Spinny_Button):
@@ -62,7 +57,12 @@ class Activity_Stream_Button(Spinny_Button):
     _root_locator = (By.CSS_SELECTOR, '#stream_btn')
 
 
-class Activity_Stream_Refresh_Button(Base_Button):
+class Select_Button(Spinny_Button):
+    '''Region describing a select button'''
+    _root_locator = (By.CSS_SELECTOR, '#select_btn')
+
+
+class Activity_Stream_Refresh_Button(Spinny_Button):
     '''Region describing an activity_stream [refresh] button'''
     # The following works for post-2.0.0
     _root_locator = (By.CSS_SELECTOR, '#activity-stream-refresh-btn')
