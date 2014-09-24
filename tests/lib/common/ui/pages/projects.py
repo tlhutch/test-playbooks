@@ -1,6 +1,7 @@
 from selenium.webdriver.common.by import By
-from common.ui.pages import MainTab_Page
+from common.ui.pages import MainTab_Page, BaseRegion, Base
 from common.ui.pages.forms import Form_Page, input_getter_by_name, input_setter_by_name
+from common.ui.pages.regions.accordion import Accordion_Region, Accordion_Content
 from common.ui.pages.regions.stream_container import Activity_Stream_Region
 from common.ui.pages.regions.buttons import Activity_Stream_Button, Base_Button, Add_Button, Help_Button, Select_Button  # NOQA
 from common.ui.pages.regions.dialogs import Prompt_Dialog  # NOQA
@@ -90,6 +91,26 @@ class Project_Create_Page(Form_Page):
 
 class Project_Edit_Page(Project_Create_Page):
     _tab_title = "Projects"
+
+    _related = {
+        'Properties': Projects_Page.__module__ + '.Project_Properties_Region',
+        'Organizations': Projects_Page.__module__ + '.Project_Organizations_Region',
+        'Schedules': Projects_Page.__module__ + '.Project_Schedules_Region',
+    }
+
+    @property
+    def _breadcrumb_title(self):
+        '''The breadcrumb title should always match object name'''
+        return self.name
+
+    @property
+    def accordion(self):
+        '''Returns an Accordion_Region object describing the accordion'''
+        return Accordion_Region(self.testsetup, _related=self._related)
+
+
+class Project_Properties_Region(BaseRegion, Project_Create_Page):
+    '''Describes the properties accordion region'''
     _related = Project_Create_Page._related
     _related.update({
         'activity_stream': 'Project_Activity_Page',
@@ -101,17 +122,12 @@ class Project_Edit_Page(Project_Create_Page):
     })
 
     @property
-    def _breadcrumb_title(self):
-        '''The breadcrumb title should always match object name'''
-        return self.name
+    def activity_stream_btn(self):
+        return Activity_Stream_Button(self.testsetup, _item_class=self.get_related('activity_stream'))
 
     @property
     def scm_update_btn(self):
-        return Activity_Stream_Button(self.testsetup, _item_class=self.get_related('scm_update'))
-
-    @property
-    def activity_stream_btn(self):
-        return Activity_Stream_Button(self.testsetup, _item_class=self.get_related('activity_stream'))
+        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['scm_update_btn']), _item_class=self.get_related('scm_update'))
 
 
 class Project_Activity_Page(Activity_Stream_Region):
@@ -120,3 +136,61 @@ class Project_Activity_Page(Activity_Stream_Region):
     _related = {
         'close': 'Project_Edit_Page',
     }
+
+
+class Project_Organizations_Region(Accordion_Content):
+    '''Describes the organizations accordion region'''
+    _tab_title = "Projects"
+    _related = {
+        'add': 'Project_Add_Organizations_Page',
+    }
+
+
+class Project_Add_Organizations_Page(Base):
+    '''Describes the page for adding users to a user'''
+    _tab_title = "Projects"
+    _breadcrumb_title = 'Add Organizations'
+    _related = {
+        'select': 'Project_Edit_Page',
+    }
+    _locators = {
+        'table': (By.CSS_SELECTOR, '#organizations_table'),
+        'pagination': (By.CSS_SELECTOR, '#organization-pagination'),
+    }
+
+    @property
+    def help_btn(self):
+        return Help_Button(self.testsetup)
+
+    @property
+    def select_btn(self):
+        return Select_Button(self.testsetup, _item_class=self.get_related('select'))
+
+    @property
+    def table(self):
+        return SortTable_Region(self.testsetup, _root_locator=self._locators['table'])
+
+    @property
+    def pagination(self):
+        return Pagination_Region(self.testsetup, _root_locator=self._locators['pagination'], _item_class=self.__class__)
+
+    @property
+    def search(self):
+        return Search_Region(self.testsetup, _item_class=self.__class__)
+
+
+class Project_Schedules_Region(Accordion_Content):
+    '''Describes the schedules accordion region'''
+    _tab_title = "Projects"
+    _related = {
+        'add': 'FIXME',
+        'activity_stream': 'User_Activity_Page',
+    }
+
+    @property
+    def activity_stream_btn(self):
+        return Activity_Stream_Button(self.testsetup, _item_class=self.get_related('activity_stream'))
+
+    @property
+    def refresh_btn(self):
+        return Refresh_Button(self.testsetup, _item_class=self.__class__)
