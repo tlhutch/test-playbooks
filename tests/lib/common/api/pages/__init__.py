@@ -1,5 +1,6 @@
 # Order matters
 from page import *
+from base import *
 from organizations import *
 from users import *
 from teams import *

@@ -1,23 +1,25 @@
-import base
-from common.exceptions import *
+import time
+import common.utils
+from common.api.pages import Base, Base_List, Task_Page, json_getter, json_setter
 
-class Project_Page(base.Base):
+
+class Project_Page(Base):
     base_url = '/api/v1/projects/{id}/'
-    name = property(base.json_getter('name'), base.json_setter('name'))
-    description = property(base.json_getter('description'), base.json_setter('description'))
-    status = property(base.json_getter('status'), base.json_setter('status'))
-    local_path = property(base.json_getter('local_path'), base.json_setter('local_path'))
-    last_updated = property(base.json_getter('last_updated'), base.json_setter('last_updated'))
-    last_update_failed = property(base.json_getter('last_update_failed'), base.json_setter('last_update_failed'))
-    last_job_run = property(base.json_getter('last_job_run'), base.json_setter('last_job_run'))
-    last_job_failed = property(base.json_getter('last_job_failed'), base.json_setter('last_job_failed'))
-    scm_type = property(base.json_getter('scm_type'), base.json_setter('scm_type'))
-    scm_url = property(base.json_getter('scm_url'), base.json_setter('scm_url'))
-    scm_branch = property(base.json_getter('scm_branch'), base.json_setter('scm_branch'))
-    scm_clean = property(base.json_getter('scm_clean'), base.json_setter('scm_clean'))
-    scm_delete_on_next_update = property(base.json_getter('scm_delete_on_next_update'), base.json_setter('scm_delete_on_next_update'))
-    scm_update_on_launch = property(base.json_getter('scm_update_on_launch'), base.json_setter('scm_update_on_launch'))
-    scm_update_cache_timeout = property(base.json_getter('scm_update_cache_timeout'), base.json_setter('scm_update_cache_timeout'))
+    name = property(json_getter('name'), json_setter('name'))
+    description = property(json_getter('description'), json_setter('description'))
+    status = property(json_getter('status'), json_setter('status'))
+    local_path = property(json_getter('local_path'), json_setter('local_path'))
+    last_updated = property(json_getter('last_updated'), json_setter('last_updated'))
+    last_update_failed = property(json_getter('last_update_failed'), json_setter('last_update_failed'))
+    last_job_run = property(json_getter('last_job_run'), json_setter('last_job_run'))
+    last_job_failed = property(json_getter('last_job_failed'), json_setter('last_job_failed'))
+    scm_type = property(json_getter('scm_type'), json_setter('scm_type'))
+    scm_url = property(json_getter('scm_url'), json_setter('scm_url'))
+    scm_branch = property(json_getter('scm_branch'), json_setter('scm_branch'))
+    scm_clean = property(json_getter('scm_clean'), json_setter('scm_clean'))
+    scm_delete_on_next_update = property(json_getter('scm_delete_on_next_update'), json_setter('scm_delete_on_next_update'))
+    scm_update_on_launch = property(json_getter('scm_update_on_launch'), json_setter('scm_update_on_launch'))
+    scm_update_cache_timeout = property(json_getter('scm_update_cache_timeout'), json_setter('scm_update_cache_timeout'))
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
@@ -28,7 +30,7 @@ class Project_Page(base.Base):
         elif name == 'project_updates':
             related = Project_Updates_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'update':
-            related = base.Base(self.testsetup, base_url=self.json['related'][name])
+            related = Base(self.testsetup, base_url=self.json['related'][name])
         elif name == 'playbooks':
             related = Playbooks_Page(self.testsetup, base_url=self.json['related'][name], objectify=False)
         elif name == 'organizations':
@@ -44,14 +46,30 @@ class Project_Page(base.Base):
             raise NotImplementedError
         return related.get(**kwargs)
 
-class Projects_Page(Project_Page, base.Base_List):
+    def wait_until_started(self, interval=1, verbose=0, timeout=60):
+        '''Wait until a project_update has started'''
+        return common.utils.wait_until(
+            self, 'status',
+            ('new', 'pending', 'waiting', 'running',),
+            interval=interval, verbose=verbose, timeout=timeout)
+
+    def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 8):
+        return common.utils.wait_until(
+            self, 'status',
+            ('successful', 'failed', 'error', 'canceled',),
+            interval=interval, verbose=verbose, timeout=timeout)
+
+class Projects_Page(Project_Page, Base_List):
     base_url = '/api/v1/projects/'
 
-class Project_Update_Page(base.Task_Page):
+
+class Project_Update_Page(Task_Page):
     base_url = '/api/v1/project/{id}/update/'
 
-class Project_Updates_Page(Project_Update_Page, base.Base_List):
+
+class Project_Updates_Page(Project_Update_Page, Base_List):
     base_url = '/api/v1/projects/{id}/project_updates/'
 
-class Playbooks_Page(base.Base):
+
+class Playbooks_Page(Base):
     base_url = '/api/v1/projects/{id}/playbooks/'
