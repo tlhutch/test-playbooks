@@ -219,9 +219,9 @@ class Table_Region(PageRegion):
             css_class = el.get_attribute('class')
 
             success_candidates = ('success',)
-            never_candidates = ('new', 'pending', 'waiting', 'never updated', 'ok')
+            never_candidates = ('new', 'pending', 'waiting', 'none', 'never updated', 'ok')
             running_candidates = ('updating', 'running')
-            failed_candidates = ('failed', 'missing')
+            failed_candidates = ('failed', 'error', 'canceled', 'missing')
             if any([candidate in css_class for candidate in success_candidates]):
                 return 'Successful'
             elif any([candidate in css_class for candidate in never_candidates]):

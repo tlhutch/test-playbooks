@@ -178,7 +178,7 @@ class Test_Projects(Base_UI_Test):
         '''Verify table filtering using a bogus value'''
         assert ui_projects_pg.is_the_active_tab
 
-        # search for an org that doesn't exist
+        # search for an object that doesn't exist
         ui_projects_pg.search.search_value = common.utils.random_unicode()
         ui_projects_pg = ui_projects_pg.search.search_btn.click()
 
@@ -186,7 +186,7 @@ class Test_Projects(Base_UI_Test):
         assert ui_projects_pg.pagination.total_items == 0, \
             "Unexpected number of results (%d != %d)" % \
             (ui_projects_pg.pagination.total_items, 0)
-        assert ui_projects_pg.table.find_row("name", "No records matched your search.")
+        assert ui_projects_pg.table.find_row("status", "No records matched your search.")
 
     def test_add(self, organization, ui_projects_pg):
         '''Verify basic form fields'''
