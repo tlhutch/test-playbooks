@@ -231,6 +231,8 @@ class Table_Region(PageRegion):
             elif any([candidate in css_class for candidate in failed_candidates]):
                 return 'failed'
 
+            raise Exception("Unhandled status class: '%s'" % css_class)
+
     class Row(PageRegion):
         '''An object representing a row in a table.'''
 
