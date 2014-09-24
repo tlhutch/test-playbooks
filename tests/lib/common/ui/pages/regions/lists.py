@@ -217,6 +217,7 @@ class Table_Region(PageRegion):
             '''return a status value based on the element class used.  The status should be valid API choices.'''
             el = self.find_element(*self._locators['status'])
             css_class = el.get_attribute('class')
+            print "STATUS CLASS: %s" % css_class
 
             success_candidates = ('success',)
             never_candidates = ('new', 'pending', 'waiting', 'none', 'never updated', 'ok')

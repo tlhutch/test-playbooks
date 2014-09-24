@@ -246,7 +246,7 @@ class Test_Projects(Base_UI_Test):
         ui_projects_pg = org_activity_pg.close_btn.click()
         assert ui_projects_pg.is_the_active_tab
 
-    def test_project_update_btn(self, project, ui_projects_pg):
+    def test_project_update_btn(self, project, project_status_choices, ui_projects_pg):
         '''Verify that the project activity stream can be open and closed'''
 
         # open edit page
@@ -273,18 +273,28 @@ class Test_Projects(Base_UI_Test):
                 "Unexpected number of results (%d != %d)" % \
                 (projects_pg.pagination.total_items, 1)
 
-        # FIXME - monitor project status icon
-        # projects_pg.table.find_row('name', project.name).status
-
         # wait for project update to start
         project = project.wait_until_started()
+        # assert correct project status icon
+        # FIXME - sometimes the API says running, but the UI shows 'icon-job-none'
+        project_status = projects_pg.table.find_row('name', project.name).status.value
+        assert project_status == project_status_choices['running'], \
+            "Unexpected project status (%s != %s)" % \
+            (project_status, project_status_choices['running'])
+
         # wait for project update to complete
         project.get_related('current_update').wait_until_completed()
+        # assert correct project status icon
+        project_status = projects_pg.table.find_row('name', project.name).status.value
+        assert project_status == project_status_choices['successful'], \
+            "Unexpected project status (%s != %s)" % \
+            (project_status, project_status_choices['successful'])
+
         # assert last_updated changed
         project.get()
         assert last_updated != project.last_updated, "Project update not triggered, last_update did not change ('%s')" % project.last_updated
 
-        # FIXME - watch the project status icon instead
+        # FIXME - assert last_updated column == project.last_updated
 
     def test_edit(self, project, ui_projects_pg):
         '''Verify basic form fields when editing an project'''
