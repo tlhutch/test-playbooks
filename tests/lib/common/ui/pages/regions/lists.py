@@ -194,6 +194,43 @@ class Table_Region(PageRegion):
         else:
             return False
 
+    class Status_Column(PageRegion):
+        '''An object representing a status column in a table.'''
+        _locators = {
+            'status': (By.CSS_SELECTOR, "i[class*='icon-job-']"),
+        }
+
+        def is_running(self):
+            '''return whether the icon represents a running status'''
+            return self.value == 'running'
+
+        def is_failed(self):
+            '''return whether the icon represents a failed status'''
+            return self.value == 'failed'
+
+        def is_successful(self):
+            '''return whether the icon represents a successful status'''
+            return self.value == 'successful'
+
+        @property
+        def value(self):
+            '''return a valid API status based on the element class used.'''
+            el = self.find_element(*self._locators['status'])
+            css_class = el.get_attribute('class')
+
+            success_candidates = ('success',)
+            never_candidates = ('new', 'pending', 'waiting', 'never updated', 'ok')
+            running_candidates = ('updating', 'running')
+            failed_candidates = ('failed', 'missing')
+            if any([candidate in css_class for candidate in success_candidates]):
+                return 'successful'
+            elif any([candidate in css_class for candidate in never_candidates]):
+                return 'never updated'
+            elif any([candidate in css_class for candidate in running_candidates]):
+                return 'running'
+            elif any([candidate in css_class for candidate in failed_candidates]):
+                return 'failed'
+
     class Row(PageRegion):
         '''An object representing a row in a table.'''
 
@@ -210,6 +247,8 @@ class Table_Region(PageRegion):
                 # FIXME - needs to pass in a _region_map so we know what class instance to return
                 if 'actions' in el.get_attribute('class'):
                     cols.append(ActionList_Region(self.testsetup, _root_element=el, _region_map=self._table._region_map))
+                elif 'status-column' in el.get_attribute('class'):
+                    cols.append(Table_Region.Status_Column(self.testsetup, _root_element=el))
                 else:
                     cols.append(el)
             return cols
