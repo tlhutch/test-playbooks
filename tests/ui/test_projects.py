@@ -1,12 +1,18 @@
+import json
 import pytest
 import common.utils
 from math import ceil
 from tests.ui import Base_UI_Test
 
 
+@pytest.fixture(scope="function")
+def accordions(request):
+    return ('Properties', 'Organizations', 'Schedules')
+
+
 @pytest.fixture(scope="function", params=["Name", "Type", "Status"])
 def search_filter(request):
-        return request.param
+    return request.param
 
 
 @pytest.fixture(scope="function")
@@ -223,8 +229,10 @@ class Test_Projects(Base_UI_Test):
         assert edit_pg.is_the_active_tab
         assert edit_pg.is_the_active_breadcrumb
 
+        # Access properties accordion
+        properties_rg = edit_pg.accordion.click('Properties')
         # Open activity_stream
-        org_activity_pg = edit_pg.activity_stream_btn.click()
+        org_activity_pg = properties_rg.activity_stream_btn.click()
         assert org_activity_pg.is_the_active_tab
         assert org_activity_pg.is_the_active_breadcrumb
 
@@ -238,13 +246,42 @@ class Test_Projects(Base_UI_Test):
     def test_project_update_btn(self, project, ui_projects_pg):
         '''Verify that the project activity stream can be open and closed'''
 
-        # Open edit page
+        # open edit page
         edit_pg = ui_projects_pg.open(project.id)
         assert edit_pg.is_the_active_tab
         assert edit_pg.is_the_active_breadcrumb
 
-        # Click the update button and verify successful update
-        raise Exception("FIXME")
+        # access properties accordion
+        properties_rg = edit_pg.accordion.click('Properties')
+        # record project last_updated date
+        last_updated = project.last_updated
+        # initiate SCM update
+        projects_pg = properties_rg.scm_update_btn.click()
+        assert projects_pg.is_the_active_tab
+
+        # FIXME - filter for the desired project
+        if False:
+            # filter for desired project
+            projects_pg.search.search_value = project.name
+            projects_pg = projects_pg.search.search_btn.click()
+
+            # assert expected number of items found
+            assert projects_pg.pagination.total_items == 1, \
+                "Unexpected number of results (%d != %d)" % \
+                (projects_pg.pagination.total_items, 1)
+
+        # FIXME - monitor project status icon
+        # projects_pg.table.find_row('name', project.name).status
+
+        # wait for project update to start
+        project = project.wait_until_started()
+        # wait for project update to complete
+        project.get_related('current_update').wait_until_completed()
+        # assert last_updated changed
+        project.get()
+        assert last_updated != project.last_updated, "Project update not triggered, last_update did not change ('%s')" % project.last_updated
+
+        # FIXME - watch the project status icon instead
 
     def test_edit(self, project, ui_projects_pg):
         '''Verify basic form fields when editing an project'''
@@ -275,6 +312,33 @@ class Test_Projects(Base_UI_Test):
             assert getattr(edit_pg, field) == field_value, "Reset button did not reset the field %s='%s'" % \
                 (field, getattr(edit_pg, field))
 
+    def test_accordions(self, project, ui_projects_pg, accordions):
+        '''Verify the accordions behave properly'''
+        # Open edit page
+        edit_pg = ui_projects_pg.open(project.id)
+        assert edit_pg.is_the_active_tab
+        assert edit_pg.is_the_active_breadcrumb
+
+        # Assert default accordions configuration
+        assert edit_pg.accordion.get('Properties')[0].is_expanded(), "The properties accordion was not expanded as expected"
+        for title in accordions[1:]:
+            assert edit_pg.accordion.get(title)[0].is_collapsed(), "The %s accordion was not collapsed as expected" % title
+
+        # Expand and collapse each accordion
+        for title_expand in accordions[1:]:
+            edit_pg.accordion.get(title_expand)[0].expand()
+            # Assert correct expand/collapse state for all accordions
+            for title in accordions:
+                if title == title_expand:
+                    assert edit_pg.accordion.get(title)[0].is_expanded(), "The %s accordion was not expand as expected" % title
+                else:
+                    assert edit_pg.accordion.get(title)[0].is_collapsed(), "The %s accordion was not collapsed as expected" % title
+
+        # Re-open edit page and verify last accordion is expanded
+        edit_pg = ui_projects_pg.open(project.id)
+        for title in accordions[:-1]:
+            assert edit_pg.accordion.get(title)[0].is_collapsed(), "The %s accordion was not collapsed as expected" % title
+        assert edit_pg.accordion.get(accordions[-1])[0].is_expanded(), "The %s accordion was not expanded as expected" % accordions[-1]
 
 # @pytest.mark.selenium
 # @pytest.mark.nondestructive
