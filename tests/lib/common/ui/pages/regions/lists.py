@@ -202,19 +202,19 @@ class Table_Region(PageRegion):
 
         def is_running(self):
             '''return whether the icon represents a running status'''
-            return self.value == 'running'
+            return self.value == 'Running'
 
         def is_failed(self):
             '''return whether the icon represents a failed status'''
-            return self.value == 'failed'
+            return self.value == 'Failed'
 
         def is_successful(self):
             '''return whether the icon represents a successful status'''
-            return self.value == 'successful'
+            return self.value == 'Successful'
 
         @property
         def value(self):
-            '''return a valid API status based on the element class used.'''
+            '''return a status value based on the element class used.  The status should be valid API choices.'''
             el = self.find_element(*self._locators['status'])
             css_class = el.get_attribute('class')
 
@@ -223,11 +223,11 @@ class Table_Region(PageRegion):
             running_candidates = ('updating', 'running')
             failed_candidates = ('failed', 'missing')
             if any([candidate in css_class for candidate in success_candidates]):
-                return 'successful'
+                return 'Successful'
             elif any([candidate in css_class for candidate in never_candidates]):
-                return 'never updated'
+                return 'Never Updated'
             elif any([candidate in css_class for candidate in running_candidates]):
-                return 'running'
+                return 'Running'
             elif any([candidate in css_class for candidate in failed_candidates]):
                 return 'failed'
 

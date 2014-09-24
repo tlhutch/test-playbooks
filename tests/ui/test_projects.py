@@ -157,8 +157,11 @@ class Test_Projects(Base_UI_Test):
             assert ui_projects_pg.table.find_row(search_filter, project_scm_type_choices[search_value]), \
                 "Unable to find table row matching (%s=%s)" % (search_filter, project_scm_type_choices[search_value])
         elif search_filter.lower() == "status":
-            assert ui_projects_pg.table.find_row(search_filter, project_status_choices[search_value]), \
-                "Unable to find table row matching (%s=%s)" % (search_filter, project_status_choices[search_value])
+            myrow = ui_projects_pg.table.find_row('name', project.name)
+            assert myrow, "Unable to find table row matching (%s=%s)" % ('name', project.name)
+            assert myrow.status.value == project_status_choices[search_value], \
+                "Unexpected status column (%s != %s)" % \
+                (myrow.status.value, project_status_choices[search_value])
         else:
             assert ui_projects_pg.table.find_row(search_filter, search_value), \
                 "Unable to find table row matching (%s=%s)" % (search_filter, search_value)
