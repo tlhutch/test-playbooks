@@ -91,12 +91,12 @@ class Project_Create_Page(Form_Page):
 
 class Project_Edit_Page(Project_Create_Page):
     _tab_title = "Projects"
-
-    _related = {
+    _related = Project_Create_Page._related
+    _related.update({
         'Properties': Projects_Page.__module__ + '.Project_Properties_Region',
         'Organizations': Projects_Page.__module__ + '.Project_Organizations_Region',
         'Schedules': Projects_Page.__module__ + '.Project_Schedules_Region',
-    }
+    })
 
     @property
     def _breadcrumb_title(self):

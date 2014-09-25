@@ -306,17 +306,23 @@ class Test_Projects(Base_UI_Test):
         # Modify project form fields
         edit_pg.name = common.utils.random_unicode()
         edit_pg.description = common.utils.random_unicode()
-        add_pg.scm_type = ''
 
         # TODO ... play with more fields
 
-        # Verify breadcrumb title updated
+        # assert breadcrumb title updated
         assert edit_pg.is_the_active_breadcrumb
+
+        # assert form cannot be saved
+        edit_pg.scm_type = ''
+        assert not edit_pg.save_btn.is_enabled(), "Incomplete form unexpectedly capable of submission"
+        edit_pg.scm_type = project.scm_type
+        assert edit_pg.save_btn.is_enabled(), "Completed form unexpectedly incapable of submission"
 
         # Reset Edit form
         edit_pg.reset_btn.click()
         checkboxes = ('scm_clean', 'scm_delete_on_update', 'scm_update_on_launch')
-        fields = ('name', 'description', 'organization_name', 'scm_type') + checkboxes
+        fields = ('name', 'description', 'scm_type', 'scm_url', 'scm_branch') + checkboxes
+
         for field in fields:
             if field in checkboxes:
                 field_value = getattr(project, field)
