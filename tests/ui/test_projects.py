@@ -1,4 +1,3 @@
-import json
 import pytest
 import common.utils
 from math import ceil
@@ -50,7 +49,7 @@ class Test_Projects(Base_UI_Test):
         ui_projects_pg = orgs_activity_pg.close_btn.click()
         assert ui_projects_pg.is_the_active_tab
 
-    def test_sort(self, many_git_projects, table_sort, ui_projects_pg):
+    def test_sort(self, many_manual_projects, table_sort, ui_projects_pg):
         '''Verify table sorting'''
         assert ui_projects_pg.is_the_active_tab
 
@@ -79,7 +78,7 @@ class Test_Projects(Base_UI_Test):
             "Pagination present, but fewer than %d projects are visible" % \
             ui_projects_pg.pagination.page_size
 
-    def test_pagination(self, many_git_projects, ui_projects_pg, api_projects_pg):
+    def test_pagination(self, many_manual_projects, ui_projects_pg, api_projects_pg):
         '''Verify table pagination'''
 
         assert ui_projects_pg.pagination.is_displayed(), "Unable to find pagination"

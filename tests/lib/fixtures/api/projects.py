@@ -1,8 +1,7 @@
+import json
+import os.path
 import pytest
 import common.utils
-
-# from organizations import organization
-# from credentials import scm_credential_key_unlock_ASK
 
 
 @pytest.fixture(scope="function")
@@ -39,6 +38,38 @@ def project_ansible_helloworld_hg(request, authtoken, api_projects_pg, organizat
 
 
 @pytest.fixture(scope="function")
+def project(request, project_ansible_helloworld_hg):
+    return project_ansible_helloworld_hg
+
+
+@pytest.fixture(scope="function")
+def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_config, api_projects_pg, organization):
+    '''
+    Create a manual project associated with ansible-playbooks.git
+    '''
+    local_path = common.utils.random_ascii()
+
+    # Clone the repo
+    results = ansible_runner.git(repo='https://github.com/jlaska/ansible-playbooks.git',
+                                 dest=os.path.join(awx_config['project_base_dir'], local_path))
+    assert 'failed' not in results, "Clone failed\n%s" % json.dumps(results, indent=4)
+
+    # Create project
+    payload = dict(name="ansible-playbooks.git - %s" % local_path,
+                   organization=organization.id,
+                   local_path=local_path,
+                   scm_type=None)
+    obj = api_projects_pg.post(payload)
+    request.addfinalizer(obj.quiet_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def project_manual(request, project_ansible_playbooks_manual):
+    return project_ansible_playbooks_manual
+
+
+@pytest.fixture(scope="function")
 def project_ansible_playbooks_git_nowait(request, authtoken, api_projects_pg, organization):
     # Create project
     payload = dict(name="ansible-playbooks.git - %s" % common.utils.random_unicode(),
@@ -65,11 +96,6 @@ def project_ansible_playbooks_git(request, project_ansible_playbooks_git_nowait)
 
 
 @pytest.fixture(scope="function")
-def project(request, project_ansible_helloworld_hg):
-    return project_ansible_helloworld_hg
-
-
-@pytest.fixture(scope="function")
 def project_with_credential_prompt(request, authtoken, api_projects_pg, organization, scm_credential_key_unlock_ASK):
     # Create project
     payload = dict(name="project-%s" % common.utils.random_unicode(),
@@ -84,7 +110,7 @@ def project_with_credential_prompt(request, authtoken, api_projects_pg, organiza
 
 
 @pytest.fixture(scope="function")
-def many_git_projects(request, authtoken, testsetup, api_projects_pg, organization):
+def many_git_projects(request, authtoken, api_projects_pg, organization):
     obj_list = list()
     for i in range(55):
         payload = dict(name="project-%d-%s" % (i, common.utils.random_unicode()),
@@ -100,3 +126,19 @@ def many_git_projects(request, authtoken, testsetup, api_projects_pg, organizati
         obj_list.append(obj)
     return obj_list
 
+
+@pytest.fixture(scope="function")
+def many_manual_projects(request, authtoken, ansible_runner, awx_config, api_projects_pg, organization):
+    obj_list = list()
+    for i in range(55):
+        local_path = common.utils.random_ascii()
+        ansible_runner.file(path=local_path, state='directory', owner='awx', group='awx', mode=0755)
+        payload = dict(name="project-%d-%s" % (i, local_path),
+                       description="random project %d - %s" % (i, common.utils.random_unicode()),
+                       organization=organization.id,
+                       scm_type=None,
+                       local_path=local_path)
+        obj = api_projects_pg.post(payload)
+        request.addfinalizer(obj.quiet_delete)
+        obj_list.append(obj)
+    return obj_list
