@@ -59,6 +59,19 @@ class Project_Page(Base):
             ('successful', 'failed', 'error', 'canceled',),
             interval=interval, verbose=verbose, timeout=timeout)
 
+    @property
+    def is_successful(self):
+        '''An project is considered successful when:
+            0) scm_type != ""
+            1) status == 'successful'
+            2) not last_update_failed
+            3) last_updated
+        '''
+        return self.scm_type != "" and \
+            self.status == 'successful' and \
+            not self.last_update_failed and \
+            self.last_updated is not None
+
 class Projects_Page(Project_Page, Base_List):
     base_url = '/api/v1/projects/'
 
