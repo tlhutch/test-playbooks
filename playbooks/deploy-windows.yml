@@ -1,0 +1,9 @@
+---
+# This playbook launches windows systems in the cloud...
+
+- name: 'deploy windows cloud instances'
+  hosts: local
+  vars_files:
+    - 'images-win-ec2.yml'
+  roles:
+    - { role: win_deploy_cloud }
