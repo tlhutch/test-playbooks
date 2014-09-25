@@ -136,7 +136,7 @@ def random_unicode(length=10):
     chars = u"".join([get_char() for ii in xrange(length)])
     return _join_chars(chars, length)
 
-def random_ascii(length=10, ascii_only=False):
+def random_ascii(length=10):
     """
     Generates a random name; useful for testing.
 
