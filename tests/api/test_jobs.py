@@ -146,10 +146,13 @@ class Test_Update_On_Launch(Base_Api_Test):
 
         # 4) Ensure inventory_update was triggered
         inv_src_pg.get()
-        assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s" % json.dumps(inv_src_pg.json, indent=4)
 
+        # 5) Ensure inventory_update was successful
         last_update = inv_src_pg.get_related('last_update')
         assert last_update.is_successful, "last_update unsuccessful - %s" % json.dumps(last_update.json, indent=4)
+        assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
 
     def test_inventory_multiple(self, job_template, aws_inventory_source, rax_inventory_source):
         '''Verify that multiple inventory_update are triggered by job launch'''
@@ -175,11 +178,26 @@ class Test_Update_On_Launch(Base_Api_Test):
 
         # 4) Ensure inventory_update was triggered
         aws_inventory_source.get()
-        assert aws_inventory_source.is_successful, "aws inventory update did not happen as expected - %s" % \
+        assert aws_inventory_source.last_updated is not None, "Expecting value for aws_inventory_source last_updated - %s" % \
             json.dumps(aws_inventory_source.json, indent=4)
+        assert aws_inventory_source.last_job_run is not None, "Expecting value for aws_inventory_source last_job_run - %s" % \
+            json.dumps(aws_inventory_source.json, indent=4)
+
         rax_inventory_source.get()
-        assert rax_inventory_source.is_successful, "rax inventory update did not happen as expected - %s" % \
+        assert rax_inventory_source.last_updated is not None, "Expecting value for rax_inventory_source last_updated - %s" % \
             json.dumps(rax_inventory_source.json, indent=4)
+        assert rax_inventory_source.last_job_run is not None, "Expecting value for rax_inventory_source last_job_run - %s" % \
+            json.dumps(rax_inventory_source.json, indent=4)
+
+        # 5) Ensure inventory_update was successful
+        last_update = aws_inventory_source.get_related('last_update')
+        assert last_update.is_successful, "aws_inventory_source -> last_update unsuccessful - %s" % json.dumps(last_update.json, indent=4)
+        assert aws_inventory_source.is_successful, "inventory_source unsuccessful - %s" % json.dumps(aws_inventory_source.json, indent=4)
+
+        # assert last_update successful
+        last_update = rax_inventory_source.get_related('last_update')
+        assert last_update.is_successful, "rax_inventory_source -> last_update unsuccessful - %s" % json.dumps(last_update.json, indent=4)
+        assert rax_inventory_source.is_successful, "inventory_source unsuccessful - %s" % json.dumps(rax_inventory_source.json, indent=4)
 
     def test_inventory_cache_timeout(self, cloud_inventory_job_template, cloud_group):
         '''Verify that an inventory_update is not triggered by job launch if the cache is still valid'''
@@ -199,7 +217,8 @@ class Test_Update_On_Launch(Base_Api_Test):
 
         # 4) Ensure inventory_update was triggered
         inv_src_pg.get()
-        assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s" % json.dumps(inv_src_pg.json, indent=4)
         last_updated = inv_src_pg.last_updated
         last_job_run = inv_src_pg.last_job_run
 
@@ -225,9 +244,12 @@ class Test_Update_On_Launch(Base_Api_Test):
         # 2) Launch job_template and wait for completion
         job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
 
-        # 3) Ensure project_update was triggered
+        # 3) Ensure project_update was triggered and successful
         project_ansible_playbooks_git.get()
-        assert project_ansible_playbooks_git.last_updated != last_updated
+        assert project_ansible_playbooks_git.last_updated != last_updated, \
+            "A project_update was not triggered, last_updated (%s) remains unchanged" % last_updated
+        assert project_ansible_playbooks_git.is_successful, "project unsuccessful - %s" % \
+            json.dumps(project_ansible_playbooks_git.json, indent=4)
 
     def test_project_cache_timeout(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
         '''Verify that a project_update is not triggered when the cache_timeout has not exceeded'''
@@ -245,7 +267,7 @@ class Test_Update_On_Launch(Base_Api_Test):
 
         # 3) Ensure project_update was *NOT* triggered
         project_ansible_playbooks_git.get()
-        assert project_ansible_playbooks_git.last_updated == last_updated, "A project_update happened, but none were expected"
+        assert project_ansible_playbooks_git.last_updated == last_updated, "A project_update happened, but was not expected"
 
     def test_inventory_and_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git, cloud_group):
         '''Verify that a project_update and inventory_update are triggered by job launch'''
@@ -266,11 +288,15 @@ class Test_Update_On_Launch(Base_Api_Test):
         # 4) Launch job_template and wait for completion
         job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
 
-        # 5) Ensure inventory_update was triggered
+        # 5) Ensure inventory_update was triggered and successful
         inv_src_pg.get()
+        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s" % json.dumps(inv_src_pg.json, indent=4)
         assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
 
         # 6) Ensure project_update was triggered
         project_ansible_playbooks_git.get()
         assert project_ansible_playbooks_git.last_updated != last_updated, \
             "project_update was not triggered - %s" % json.dumps(project_ansible_playbooks_git.json, indent=4)
+        assert project_ansible_playbooks_git.is_successful, "project unsuccessful - %s" % \
+            json.dumps(project_ansible_playbooks_git.json, indent=4)
