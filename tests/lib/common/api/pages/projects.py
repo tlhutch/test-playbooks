@@ -23,9 +23,7 @@ class Project_Page(Base):
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
-        if name == 'last_update':
-            related = Project_Update_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'current_update':
+        if name in ('last_update', 'last_job', 'current_update'):
             related = Project_Update_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'project_updates':
             related = Project_Updates_Page(self.testsetup, base_url=self.json['related'][name])
@@ -42,6 +40,12 @@ class Project_Page(Base):
         elif name == 'schedules':
             from schedules import Schedules_Page
             related = Schedules_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'next_schedule':
+            from schedules import Schedule_Page
+            related = Schedule_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'activity_stream':
+            from activity_stream import Activity_Stream_Page
+            related = Activity_Stream_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
