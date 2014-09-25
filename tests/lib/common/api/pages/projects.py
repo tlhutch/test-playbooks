@@ -17,7 +17,7 @@ class Project_Page(Base):
     scm_url = property(json_getter('scm_url'), json_setter('scm_url'))
     scm_branch = property(json_getter('scm_branch'), json_setter('scm_branch'))
     scm_clean = property(json_getter('scm_clean'), json_setter('scm_clean'))
-    scm_delete_on_next_update = property(json_getter('scm_delete_on_next_update'), json_setter('scm_delete_on_next_update'))
+    scm_delete_on_update = property(json_getter('scm_delete_on_update'), json_setter('scm_delete_on_update'))
     scm_update_on_launch = property(json_getter('scm_update_on_launch'), json_setter('scm_update_on_launch'))
     scm_update_cache_timeout = property(json_getter('scm_update_cache_timeout'), json_setter('scm_update_cache_timeout'))
 
