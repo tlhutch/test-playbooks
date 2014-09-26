@@ -41,6 +41,13 @@ class Test_Job(Base_Api_Test):
 
     # def test_no_such_playbook(self, utf8_template):
 
+    @pytest.mark.skipif(True)
+    def test_relaunch(self, utf8_template):
+        '''
+        Verify the job->relaunch endpoint behaves as expected
+        '''
+        assert False
+
 
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
 def cloud_credential(request, aws_credential, rax_credential, azure_credential, gce_credential, vmware_credential):
