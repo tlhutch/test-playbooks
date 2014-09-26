@@ -42,7 +42,19 @@ class Test_Job(Base_Api_Test):
     # def test_no_such_playbook(self, utf8_template):
 
     @pytest.mark.skipif(True)
-    def test_relaunch(self, utf8_template):
+    def test_post(self):
+        '''
+        Verify the ability to create a job by posting the contents of a job_template
+        '''
+
+    @pytest.mark.skipif(True)
+    def test_post_non_admin(self, org_admin):
+        '''
+        Verify the ability to create a job by posting the contents of a job_template
+        '''
+
+    @pytest.mark.skipif(True)
+    def test_relaunch(self):
         '''
         Verify the job->relaunch endpoint behaves as expected
         '''
