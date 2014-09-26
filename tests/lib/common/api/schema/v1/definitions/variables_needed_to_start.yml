@@ -1,0 +1,5 @@
+---
+variables_needed_to_start:
+    minItems: 0
+    type: array
+    uniqueItems: true

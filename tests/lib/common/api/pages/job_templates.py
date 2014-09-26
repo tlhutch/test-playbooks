@@ -29,6 +29,8 @@ class Job_Template_Page(base.Base):
             related = Schedules_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'callback':
             related = Job_Template_Callback_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'launch':
+            related = Job_Template_Launch_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'jobs':
             from jobs import Jobs_Page
             related = Jobs_Page(self.testsetup, base_url=self.json['related'][name])
@@ -61,5 +63,15 @@ class Job_Template_Page(base.Base):
 
         return job_pg
 
+
 class Job_Templates_Page(Job_Template_Page, base.Base_List):
     base_url = '/api/v1/job_templates/'
+
+
+class Job_Template_Launch_Page(base.Base):
+    base_url = '/api/v1/job_templates/\d+/launch'
+
+    ask_variables_on_launch = property(base.json_getter('ask_variables_on_launch'), base.json_setter('ask_variables_on_launch'))
+    passwords_needed_to_start = property(base.json_getter('passwords_needed_to_start'), base.json_setter('passwords_needed_to_start'))
+    variables_needed_to_start = property(base.json_getter('variables_needed_to_start'), base.json_setter('variables_needed_to_start'))
+    can_start_without_user_input = property(base.json_getter('can_start_without_user_input'), base.json_setter('can_start_without_user_input'))

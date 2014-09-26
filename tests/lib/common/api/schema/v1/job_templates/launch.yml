@@ -1,0 +1,17 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/job_templates/\d+/launch/'
+type: object
+additionalProperties: false
+required: [ask_variables_on_launch, can_start_without_user_input, passwords_needed_to_start, variables_needed_to_start]
+properties:
+  ask_variables_on_launch:
+    type: boolean
+  can_start_without_user_input:
+    type: boolean
+  passwords_needed_to_start:
+    $ref: '#/definitions/passwords_needed_to_start'
+  variables_needed_to_start:
+    $ref: '#/definitions/variables_needed_to_start'
+definitions:
+    !include '../definitions/*_needed_to_start.yml'

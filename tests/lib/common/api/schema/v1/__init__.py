@@ -367,6 +367,16 @@ class Awx_Schema_Job_Template(Awx_Schema_Job_Templates):
     def put(self):
         return self.get
 
+class Awx_Schema_Job_Template_Launch(Awx_Schema):
+    resource = '/api/v1/job_templates/\d+/launch/'
+
+    @property
+    def get(self):
+        return self.load_file('job_templates/launch.yml')
+    @property
+    def post(self):
+        return self.load_file('job_templates/launched.yml')
+
 #
 # /job_template/N/callback/
 #

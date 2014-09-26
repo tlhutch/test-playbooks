@@ -1,0 +1,10 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/job_templates/\d+/launch/'
+type: object
+additionalProperties: false
+required: [job]
+properties:
+  job:
+    type: integer
+    minimum: 0
