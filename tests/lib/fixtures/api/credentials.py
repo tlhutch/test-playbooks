@@ -39,13 +39,14 @@ def ssh_credential_ask(request, authtoken, api_credentials_pg, admin_user, tests
 
 @pytest.fixture(scope="function")
 def ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create ssh credential with 'ASK' password'''
+    '''Create ssh credential with multiple 'ASK' passwords'''
     payload = dict(name="credentials-%s" % common.utils.random_unicode(),
                    description="machine credential with mulit-ASK password - %s" % common.utils.random_unicode(),
                    kind='ssh',
                    user=admin_user.id,
                    username=testsetup.credentials['ssh']['username'],
                    password='ASK',
+                   ssh_key_data=testsetup.credentials['ssh']['encrypted']['ssh_key_data'],
                    ssh_key_unlock='ASK',
                    sudo_username=testsetup.credentials['ssh']['sudo_username'],
                    sudo_password='ASK',)
