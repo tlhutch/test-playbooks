@@ -1,0 +1,156 @@
+import json
+import pytest
+import common.tower.inventory
+import common.utils
+from tests.api import Base_Api_Test
+
+
+@pytest.fixture(scope="function")
+def job_template_ping(request, job_template_ansible_playbooks_git, host_local):
+    return job_template_ansible_playbooks_git.patch(playbook= 'ping.yml')
+
+
+@pytest.fixture(scope="function")
+def job_template_no_credential(request, job_template_ping):
+    return job_template_ping.patch(credential=None)
+
+
+@pytest.fixture(scope="function")
+def job_template_ask_variables_on_launch(request, job_template_ping):
+    return job_template_ping.patch(ask_variables_on_launch=True)
+
+
+@pytest.fixture(scope="function")
+def job_template_variables_needed_to_start(request, job_template_ping):
+    return job_template_ping.patch(survey_enabled=True)
+
+
+@pytest.fixture(scope="function")
+def job_template_passwords_needed_to_start(request, job_template_ping, ssh_credential_multi_ask):
+    return job_template_ping.patch(credential=ssh_credential_multi_ask.id)
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+class Test_Job_Template(Base_Api_Test):
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
+
+    def test_launch(self, job_template_ping):
+        '''
+        Verify the job->launch endpoint behaves as expected
+        '''
+        launch_pg = job_template_ping.get_related('launch')
+
+        # assert values on launch resource
+        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+
+        # launch the job_template
+        result = launch_pg.post()
+
+        # assert successful launch
+        jobs_pg = job_template_ping.get_related('jobs', id=result.json['job'])
+        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
+
+        # wait for completion and assert success
+        job_pg = jobs_pg.results[0].wait_until_completed()
+        assert job_pg.is_successful, job_pg
+
+    def test_launch_no_credential(self, job_template_no_credential):
+        '''
+        Verify the job->launch endpoint behaves as expected
+        '''
+        launch_pg = job_template_no_credential.get_related('launch')
+
+        # assert values on launch resource
+        assert not launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+
+    def test_launch_ask_variables_on_launch(self, job_template_ask_variables_on_launch):
+        '''
+        Verify the job->launch endpoint behaves as expected when ask_variables_on_launch is enabled
+        '''
+        launch_pg = job_template_ask_variables_on_launch.get_related('launch')
+
+        # assert values on launch resource
+        assert launch_pg.can_start_without_user_input
+        assert launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+
+    def test_launch_variables_needed_to_start(self, job_template_variables_needed_to_start):
+        '''
+        Verify the job->launch endpoint behaves as expected when a survey is enabled
+        '''
+        launch_pg = job_template_variables_needed_to_start.get_related('launch')
+
+        # assert values on launch resource
+        assert not launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert launch_pg.variables_needed_to_start
+
+    def test_launch_without_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
+        '''
+        Verify the job->launch endpoint behaves as expected when passwords are needed to start
+        '''
+        launch_pg = job_template_passwords_needed_to_start.get_related('launch')
+
+        # assert values on launch resource
+        assert not launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+
+        # assert 'ssh_password' in launch_pg.passwords_needed_to_start
+        # assert 'ssh_key_unlock' in launch_pg.passwords_needed_to_start
+        # assert 'sudo_password' in launch_pg.passwords_needed_to_start
+        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock'] == launch_pg.passwords_needed_to_start
+
+        # launch the job_template without passwords
+        with pytest.raises(common.exceptions.BadRequest_Exception):
+            result = launch_pg.post()
+
+        # launch the job_template with empty passwords
+        passwords = dict(ssh_password="",
+                         sudo_password="",
+                         ssh_key_unlock="")
+        with pytest.raises(common.exceptions.BadRequest_Exception):
+            result = launch_pg.post(passwords)
+
+    def test_launch_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
+        '''
+        Verify the job->launch endpoint behaves as expected when passwords are needed to start
+        '''
+        launch_pg = job_template_passwords_needed_to_start.get_related('launch')
+
+        # assert values on launch resource
+        assert not launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+
+        # assert 'ssh_password' in launch_pg.passwords_needed_to_start
+        # assert 'ssh_key_unlock' in launch_pg.passwords_needed_to_start
+        # assert 'sudo_password' in launch_pg.passwords_needed_to_start
+        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock'] == launch_pg.passwords_needed_to_start
+
+        # launch the job_template with passwords
+        passwords = dict(ssh_password=self.credentials['ssh']['password'],
+                         sudo_password=self.credentials['ssh']['sudo_password'],
+                         ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'])
+        result = launch_pg.post(passwords)
+
+        # assert successful launch
+        jobs_pg = job_template_passwords_needed_to_start.get_related('jobs', id=result.json['job'])
+        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
+
+        # wait for completion and assert success
+        job_pg = jobs_pg.results[0].wait_until_completed()
+        assert job_pg.is_successful, job_pg
