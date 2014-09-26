@@ -46,6 +46,7 @@ job_template:
         project: {format: uri, type: string}
         schedule: {format: uri, type: string}
         schedules: {format: uri, type: string}
+        survey_spec: {format: uri, type: string}
       required: [created_by, jobs, activity_stream]
       type: object
     skip_tags: {type: string}
