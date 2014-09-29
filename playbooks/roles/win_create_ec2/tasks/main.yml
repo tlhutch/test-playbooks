@@ -62,6 +62,7 @@
     group: '{{ win_ec2_security_group }}'
     key_name: '{{ win_ec2_key_name }}'
     image: '{{ item.id }}'
+    user_data: "{{ lookup('file', 'win_ec2_user_data') }}"
     exact_count: 1
     count_tag:
         Name: '{{win_ec2_name_prefix}}-{{item.name}}'
@@ -69,14 +70,14 @@
   with_items: win_ec2_images
   register: win_ec2
 
-# Despite using `wait` on the ec2 module, instances aren't accepting ssh
+# Despite using `wait` on the ec2 module, instances aren't accepting
 # connections immediately.  The following will ensure systems are ready for use
 # before proceeding.
-- name: wait for instances to listen on port 5985 (winrm http)
+- name: wait for instances to listen on port 5986 (winrm https)
   wait_for:
     state=started
-    host={{ item.tagged_instances[0].public_dns_name }}
-    port=3389
+    host={{ item.tagged_instances[0].public_ip }}
+    port=5986
   with_items: win_ec2.results
   when: win_ec2_images and win_ec2 is defined
 
@@ -91,20 +92,14 @@
   register: win_ec2_passwords
   when: win_ec2_images and win_ec2 is defined
 
-- debug: var=win_ec2_passwords
-
 - name: add_host
-  add_host: name={{ item.item.tagged_instances[0].public_dns_name }}
-     groups=cloud,ec2,windows,win_ec2_{{ item.item.item.name }}
-     ansible_ssh_host={{ item.item.tagged_instances[0].public_dns_name }}
-     ansible_ssh_user={{ item.item.item.user }}
-     ansible_ssh_password="{{ item.password }}"
-     ansible_connection=winrm
+  add_host:
+    name: '{{ item.item.tagged_instances[0].public_dns_name }}'
+    groups: 'cloud,ec2,windows,{{win_ec2_name_prefix}}-{{ item.item.item.name }}'
+    ansible_ssh_host: '{{ item.item.tagged_instances[0].public_ip }}'
+    ansible_ssh_port: 5986
+    ansible_ssh_user: '{{ item.item.item.user }}'
+    ansible_ssh_pass: '{{ item.password }}'
+    ansible_connection: 'winrm'
   with_items: win_ec2_passwords.results
   when: win_ec2_images and win_ec2_passwords is defined
-
-# HACK: While sshd may be listening, it may not fully accept connections
-# immediately
-- name: sleep 30s
-  command: sleep 30s
-  when: win_ec2_images and win_ec2 is defined and win_ec2.changed
