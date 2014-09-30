@@ -40,7 +40,6 @@ import base64
 import string
 import sys
 import tempfile
-import time
 
 try:
     import boto.ec2
@@ -62,6 +61,9 @@ def main():
 
     ec2 = ec2_connect(module)
     password_data = ec2.get_password_data(instance_id)
+    if not password_data:
+        module.fail_json(msg='No encrypted password data found',
+                         instance_id=instance_id)
 
     handle, pk_file  = tempfile.mkstemp()
     f = os.fdopen(handle, 'w')
@@ -75,19 +77,20 @@ def main():
     f.close()
     module.add_cleanup_file(pw_file)
 
-    time.sleep(1)
-
     args = ['openssl', 'rsautl', '-in', pw_file, '-inkey', pk_file, '-decrypt']
     rc, stdout, stderr = module.run_command(args)
     if rc != 0:
-        module.fail_json(msg='Error running openssl: %s' % stderr)
+        module.fail_json(msg='Error running openssl: %s' % stderr,
+                         instance_id=instance_id)
 
     password = stdout.strip()
     valid_chars = set(string.digits + string.letters + string.punctuation)
     if not set(password) <= valid_chars:
-        module.fail_json(msg='Unable to decrypt password data')
+        module.fail_json(msg='Unable to decrypt password data',
+                         instance_id=instance_id)
 
-    module.exit_json(changed=False, password=password)
+    module.exit_json(changed=False, password=password,
+                     instance_id=instance_id)
     sys.exit(0)
 
 
