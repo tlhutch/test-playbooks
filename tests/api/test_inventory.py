@@ -1,8 +1,85 @@
+import json
 import pytest
 import logging
 import common.tower.inventory
+import common.utils
 import common.exceptions
 from tests.api import Base_Api_Test
+
+
+def inventory_dict():
+    '''
+    Return inventory json to simulate an ec2 inventory import.  The ec2_id used
+    is randomly generated.
+    '''
+    return {
+      "_meta": {
+        "hostvars": {
+          "ec2.amazonaws.com": {
+            "ec2__in_monitoring_element": False,
+            "ec2_ami_launch_index": "0",
+            "ec2_architecture": "x86_64",
+            "ec2_client_token": "",
+            "ec2_dns_name": "ec2.amazonaws.com",
+            "ec2_ebs_optimized": False,
+            "ec2_eventsSet": "",
+            "ec2_group_name": "",
+            "ec2_hypervisor": "xen",
+            "ec2_id": common.utils.random_ascii(),
+            "ec2_image_id": "ami-eb6b0182",
+            "ec2_instance_profile": "",
+            "ec2_instance_type": "m1.small",
+            "ec2_ip_address": "107.20.56.8",
+            "ec2_item": "",
+            "ec2_kernel": "aki-88aa75e1",
+            "ec2_key_name": "djohnson",
+            "ec2_launch_time": "2014-09-30T11:57:56.000Z",
+            "ec2_monitored": False,
+            "ec2_monitoring": "",
+            "ec2_monitoring_state": "disabled",
+            "ec2_persistent": False,
+            "ec2_placement": "us-east-1c",
+            "ec2_platform": "",
+            "ec2_previous_state": "",
+            "ec2_previous_state_code": 0,
+            "ec2_private_dns_name": "ip-10-190-219-123.ec2.internal",
+            "ec2_private_ip_address": "10.190.219.123",
+            "ec2_public_dns_name": "ec2.amazonaws.com",
+            "ec2_ramdisk": "",
+            "ec2_reason": "",
+            "ec2_region": "us-east-1",
+            "ec2_requester_id": "",
+            "ec2_root_device_name": "/dev/sda1",
+            "ec2_root_device_type": "ebs",
+            "ec2_security_group_ids": "sg-b05be0db",
+            "ec2_security_group_names": "default",
+            "ec2_spot_instance_request_id": "",
+            "ec2_state": "running",
+            "ec2_state_code": 16,
+            "ec2_state_reason": "",
+            "ec2_subnet_id": "",
+            "ec2_tag_ansible_group": "dbservers",
+            "ec2_tag_group": "default",
+            "ec2_tag_type": "m1.small",
+            "ec2_virtualization_type": "paravirtual",
+            "ec2_vpc_id": ""
+          }
+        }
+      },
+      "ec2": [
+        "ec2.amazonaws.com"
+      ],
+    }
+
+
+@pytest.fixture(scope="function")
+def json_inventory_before(request):
+    return inventory_dict()
+
+
+@pytest.fixture(scope="function")
+def json_inventory_after(request):
+    return inventory_dict()
 
 
 @pytest.fixture(scope="function")
@@ -216,10 +293,13 @@ class Test_Inventory(Base_Api_Test):
 
     def test_host_without_group(self, ansible_runner, host_without_group, tower_version_cmp):
         '''
-        Verify https://trello.com/c/kDdqEaOW
+        Verify that /inventory/N/script includes hosts that are not a member of
+        any group.
             1) Create inventory with hosts, but no groups
             2) Verify the hosts appear in related->hosts
             2) Verify the hosts appear in related->script
+
+        Trello: https://trello.com/c/kDdqEaOW
         '''
 
         if tower_version_cmp('2.0.0') < 0:
@@ -243,3 +323,39 @@ class Test_Inventory(Base_Api_Test):
         assert all_hosts.count == script_all_hosts, \
             "The number of inventory hosts differs between endpoints " \
             "/hosts (%s) and /script (%s)" % (all_hosts.count, script_all_hosts)
+
+    def test_import_instance_id_constraint(self, ansible_runner, import_inventory, json_inventory_before, json_inventory_after, tower_version_cmp):
+        '''
+        Verify that tower can handle inventory_import where the host name
+        remains the same, but the instance_id changes.
+
+        Verify https://trello.com/c/QWnujT3v
+        '''
+
+        if tower_version_cmp('2.0.2') < 0:
+            pytest.xfail("Only supported on tower-2.0.2 (or newer)")
+
+        # Copy inventory_before to test system
+        result = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
+cat <<EOF
+%s
+EOF''' % (json.dumps(json_inventory_before, indent=4),))
+        assert 'failed' not in result, "Failed to create inventory file: %s" % result
+
+        # Import inventory_before
+        result = ansible_runner.command('awx-manage inventory_import --inventory-id %s --instance-id-var ec2_id --source /tmp/inventory.sh' % import_inventory.id)
+        assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
+        print result
+
+        # Copy inventory_after to test system
+        result = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
+cat <<EOF
+%s
+EOF''' % (json.dumps(json_inventory_after, indent=4),))
+        assert 'failed' not in result, "Failed to create inventory file: %s" % result
+
+        # Import inventory_after
+        result = ansible_runner.command('awx-manage inventory_import --inventory-id %s --instance-id-var ec2_id --source /tmp/inventory.sh' % import_inventory.id)
+        assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
+        print result
+
