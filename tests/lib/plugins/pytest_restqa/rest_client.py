@@ -106,9 +106,9 @@ class Connection(object):
     # the only thing missing will be the response.body which is not logged.
 
     def setup_logging(self, hdlr=None):
-        # FIXME - Figure out how to pipe this to a file (not stdout)
-        root_log = logging.getLogger()
-        if root_log.level <= logging.DEBUG:
+        # FIXME - Figure out how to pipe httplib logs to a file (not just stdout)
+        logger = logging.getLogger()
+        if logger.level <= logging.DEBUG:
             import httplib
             httplib.HTTPConnection.debuglevel = 1
 
