@@ -10,34 +10,29 @@ delete_on_start: false
 instance_name_prefix: 'testing'
 
 # Available ec2_images
+# Use `nova image-list` to determine active images
 ec2_images:
-    - {'name': 'centos-6.4-x86_64',   'user': 'root',        'id': 'ami-bf5021d6', 'type': 'm3.medium' }
     - {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-8997afe0', 'type': 'm3.medium' }
     # - {'name': 'centos-7.0-x86_64',   'user': 'root',        'id': 'ami-FIXME', 'type': 'm3.medium' }
-    - {'name': 'rhel-6.4-x86_64',     'user': 'ec2-user',    'id': 'ami-a25415cb', 'type': 'm3.medium' }
     - {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-8d756fe4', 'type': 'm3.medium' }
     - {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-785bae10', 'type': 'm3.medium' }
-    - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-4287562a', 'type': 'm3.medium' }
+    - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-2ccc7a44', 'type': 'm3.medium' }
     - {'name': 'ubuntu-12.10-x86_64', 'user': 'ubuntu',      'id': 'ami-fd4e4394', 'type': 'm3.medium' }
-    - {'name': 'ubuntu-13.10-x86_64', 'user': 'ubuntu',      'id': 'ami-2f252646', 'type': 'm3.medium' }
-    - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-018c9568', 'type': 'm3.medium' }
+    - {'name': 'ubuntu-13.10-x86_64', 'user': 'ubuntu',      'id': 'ami-7461a11c', 'type': 'm3.medium' }
+    - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-8caa1ce4', 'type': 'm3.medium' }
     - {'name': 'fedora-19-x86_64',    'user': 'fedora',      'id': 'ami-b22e5cdb', 'type': 'm3.medium' }
     - {'name': 'fedora-20-x86_64',    'user': 'fedora',      'id': 'ami-1337187a', 'type': 'm3.medium' }
 
 # Use `nova image-list` to determine active images
 rax_images:
-    - {'name': 'centos-6.4-x86_64',   'uuid': 'f70ed7c7-b42e-4d77-83d8-40fa29825b85', 'flavor': '5' }
-    - {'name': 'centos-6.5-x86_64',   'uuid': 'a84b1592-6817-42da-a57c-3c13f3cfc1da', 'flavor': '5' }
-    - {'name': 'centos-7.0-x86_64',   'uuid': 'f0d3b38b-61e3-47c4-83c7-98c4e7038809', 'flavor': '5' }
-    - {'name': 'rhel-6.4-x86_64',     'uuid': 'c6e2fed0-75bf-420d-a744-7cfc75a1889e', 'flavor': '5' }
-    - {'name': 'rhel-6.5-x86_64',     'uuid': '3a6e29eb-3e17-40ed-9f1e-c6c0fb8fcb76', 'flavor': '5' }
+    - {'name': 'centos-6.5-x86_64',   'uuid': '358b80b7-cdb2-4bde-b3fc-92d2c1ff43bd', 'flavor': '5' }
+    - {'name': 'centos-7.0-x86_64',   'uuid': '08d36361-5f64-4bc8-85ee-1a64a8ec8fd5', 'flavor': '5' }
+    - {'name': 'rhel-6.5-x86_64',     'uuid': 'a64feb9f-7401-4d0c-a79f-3d78ff65bed7', 'flavor': '5' }
     # {'name': 'rhel-7.0-x86_64',     'uuid': 'FIXME', 'flavor': '5' }
-    - {'name': 'ubuntu-12.04-x86_64', 'uuid': '928e709d-35f0-47eb-b296-d18e1b0a76b7', 'flavor': '5' }
-    - {'name': 'ubuntu-12.10-x86_64', 'uuid': 'ffa476b1-9b14-46bd-99a8-862d1d94eb7a', 'flavor': '5' }
-    - {'name': 'ubuntu-13.10-x86_64', 'uuid': '7b8abc3f-5fd2-4d02-9e9a-16d43fc7128e', 'flavor': '5' }
-    - {'name': 'ubuntu-14.04-x86_64', 'uuid': '255df5fb-e3d4-45a3-9a07-c976debf7c14', 'flavor': '5' }
-    - {'name': 'fedora-19-x86_64',    'uuid': 'fcccaa27-198f-4e32-ac1b-91ba88e48449', 'flavor': '5' }
-    - {'name': 'fedora-20-x86_64',    'uuid': '5f60953e-92cc-4761-9a39-d2a35c55b1ce', 'flavor': '5' }
+    - {'name': 'ubuntu-12.04-x86_64', 'uuid': '2f85a777-9ffd-4b49-a60e-1155ceb93a5e', 'flavor': '5' }
+    - {'name': 'ubuntu-14.04-x86_64', 'uuid': 'cc6e0096-84f9-4beb-a21e-d80a11a769d8', 'flavor': '5' }
+    - {'name': 'fedora-19-x86_64',    'uuid': '8bc2bfd6-d2a3-430d-8830-4b8c4c81d5dd', 'flavor': '5' }
+    - {'name': 'fedora-20-x86_64',    'uuid': '013cb59b-e24a-494c-83ab-55e4c4864a1e', 'flavor': '5' }
 
 # Use `gcutil listimages --project=<project_id>` to list available images
 gce_images:
