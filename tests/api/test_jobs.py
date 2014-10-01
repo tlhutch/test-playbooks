@@ -5,6 +5,11 @@ import common.utils
 from tests.api import Base_Api_Test
 
 
+@pytest.fixture(scope="function")
+def job_template_sleep(request, job_template_ansible_playbooks_git, host_local):
+        return job_template_ansible_playbooks_git.patch(playbook= 'sleep.yml')
+
+
 @pytest.fixture()
 def utf8_template(request, authtoken, api_job_templates_pg, project_ansible_playbooks_git, host_local, ssh_credential):
     payload = dict(name="playbook:utf-8.yml.yml, random:%s" % (common.utils.random_unicode()),
@@ -41,23 +46,37 @@ class Test_Job(Base_Api_Test):
 
     # def test_no_such_playbook(self, utf8_template):
 
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_post(self):
+    def test_post_as_superuser(self, job_template, api_jobs_pg):
         '''
-        Verify the ability to create a job by posting the contents of a job_template
+        Verify a superuser is able to create a job by POSTing to the /api/v1/jobs endpoint.
         '''
 
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_post_non_admin(self, org_admin):
+        # POST a job
+        job_pg = api_jobs_pg.post(job_template.json)
+        assert job_pg.status == 'new'
+
+    def test_post_as_user(self, org_admin, user_password, api_jobs_pg, job_template):
         '''
-        Verify the ability to create a job by posting the contents of a job_template
+        Verify a non-superuser is unable to create a job by POSTing to the /api/v1/jobs endpoint.
         '''
+
+        with self.current_user(org_admin.username, user_password):
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                job_pg = api_jobs_pg.post(job_template.json)
 
     @pytest.mark.skipif(True, reason="not yet implemented")
     def test_relaunch(self):
         '''
         Verify the job->relaunch endpoint behaves as expected
         '''
+        assert False
+
+    @pytest.mark.skipif(True, reason="not yet implemented")
+    def test_cancel(self, job_template_sleep):
+        '''
+        Verify the job->canel endpoint behaves as expected
+        '''
+        launch_pg = job_template_sleep.get_related('launch')
         assert False
 
 
