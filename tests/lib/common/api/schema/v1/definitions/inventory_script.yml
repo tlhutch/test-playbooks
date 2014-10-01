@@ -1,0 +1,22 @@
+inventory_script:
+  additionalProperties: false
+  properties:
+    created: {format: date-time, type: string}
+    description: {type: string}
+    id: {$ref: '#/definitions/id'}
+    modified: {format: date-time, type: string}
+    name: {type: string}
+    related:
+      additionalProperties: false
+      properties:
+        created_by: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
+      required: [created_by, modified_by]
+      type: object
+    script: {type: string}
+    summary_fields: {additionalProperties: true, type: object}
+    type: {pattern: ^custom_inventory_script$, type: string}
+    url: {format: uri, type: string}
+  required: [ created, description, id, modified, name, related, script,
+  summary_fields ]
+  type: object

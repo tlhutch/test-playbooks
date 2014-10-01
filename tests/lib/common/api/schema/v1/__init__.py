@@ -130,7 +130,7 @@ class Awx_Schema_Inventories(Awx_Schema):
     def duplicate(self):
         return self.load_file('inventories/duplicate.yml')
 
-class Awx_Schema_Inventories_N(Awx_Schema_Inventories):
+class Awx_Schema_Inventory(Awx_Schema_Inventories):
     resource = '/api/v1/inventories/\d+/'
 
     @property
@@ -501,7 +501,7 @@ class Awx_Schema_Inventory_Sources(Awx_Schema):
     def put(self):
         return self.post
 
-class Awx_Schema_Inventory_Sources_N(Awx_Schema_Inventory_Sources):
+class Awx_Schema_Inventory_Source(Awx_Schema_Inventory_Sources):
     resource = '/api/v1/inventory_sources/\d+/'
 
     @property
@@ -531,6 +531,35 @@ class Awx_Schema_Inventory_Source_Update(Awx_Schema_Inventory_Source_Updates):
     @property
     def get(self):
         return self.load_file('inventory_updates/item.yml')
+
+#
+# /inventory_scripts
+#
+class Awx_Schema_Inventory_Scripts(Awx_Schema):
+    resource = '/api/v1/inventory_scripts/'
+
+    @property
+    def get(self):
+        return self.load_file('inventory_scripts/list.yml')
+    @property
+    def post(self):
+        return self.load_file('inventory_scripts/item.yml')
+    @property
+    def duplicate(self):
+        return self.load_file('inventory_scripts/duplicate.yml')
+    @property
+    def patch(self):
+        return self.post
+    @property
+    def put(self):
+        return self.post
+
+class Awx_Schema_Inventory_Script(Awx_Schema_Inventory_Scripts):
+    resource = '/api/v1/inventory_scripts/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('inventory_scripts/item.yml')
 
 #
 # /teams
@@ -631,7 +660,7 @@ class Awx_Schema_Activity_Stream(Awx_Schema):
     def get(self):
         return self.load_file('activity_stream/list.yml')
 
-class Awx_Schema_Activity_Stream_N(Awx_Schema_Activity_Stream):
+class Awx_Schema_Activity(Awx_Schema_Activity_Stream):
     resource = '/api/v1/activity_stream/\d+/'
 
     @property

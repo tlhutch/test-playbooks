@@ -199,3 +199,20 @@ class Inventory_Update_Page(Task_Page):
 
 class Inventory_Updates_Page(Inventory_Update_Page, Base_List):
     base_url = '/api/v1/inventory_sources/{inventory_source}/inventory_updates/'
+
+
+class Inventory_Script_Page(Base):
+    base_url = '/api/v1/inventory_scripts/{id}/'
+    name = property(json_getter('name'), json_setter('name'))
+    description = property(json_getter('description'), json_setter('description'))
+    script = property(json_getter('script'), json_setter('script'))
+
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related']
+        raise NotImplementedError
+        return related.get(**kwargs)
+
+
+class Inventory_Scripts_Page(Inventory_Script_Page, Base_List):
+    base_url = '/api/v1/inventory_scripts/'
+
