@@ -27,6 +27,7 @@ inventory_source:
     description: {type: string}
     source: {type: string}
     source_path: {type: string}
+    source_script: {$ref: '#/definitions/id_or_null'}
     source_regions: {type: string}
     source_vars: {type: string}
     status: {$ref: '#/definitions/enum_inventory_status'}
@@ -63,7 +64,7 @@ inventory_source:
       type: object
   required: [id, url, created, modified, inventory, group, overwrite,
   overwrite_vars, update_on_launch, last_job_run, last_job_failed, status,
-  source, source_path, source_vars, credential, source_regions, related,
-  summary_fields, type, next_job_run, has_schedules, description, name,
-  update_cache_timeout]
+  source, source_path, source_script, source_vars, credential, source_regions,
+  related, summary_fields, type, next_job_run, has_schedules, description,
+  name, update_cache_timeout]
   type: object
