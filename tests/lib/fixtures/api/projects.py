@@ -38,8 +38,8 @@ def project_ansible_helloworld_hg(request, authtoken, api_projects_pg, organizat
 
 
 @pytest.fixture(scope="function")
-def project(request, project_ansible_helloworld_hg):
-    return project_ansible_helloworld_hg
+def project(request, project_ansible_playbooks_git):
+    return project_ansible_playbooks_git
 
 
 @pytest.fixture(scope="function")
