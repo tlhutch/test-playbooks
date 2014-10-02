@@ -235,6 +235,7 @@ class Test_No_License(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.skipif(True, reason="AWS licenses are no longer supported as of tower-2.0.2")
 class Test_AWS_License(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_aws')
 
