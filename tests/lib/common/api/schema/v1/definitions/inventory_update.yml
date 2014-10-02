@@ -1,60 +1,64 @@
----
 inventory_update:
   additionalProperties: false
   properties:
-    type: {type: string, pattern: ^inventory_update$}
     created: {format: date-time, type: string}
+    credential: {$ref: '#/definitions/id_or_null'}
+    description: {type: string}
+    elapsed: {type: number}
     failed: {type: boolean}
+    finished:
+      format: date-time
+      type: [string, 'null']
     id: {$ref: '#/definitions/id'}
     inventory_source: {$ref: '#/definitions/id'}
     job_args: {type: string}
     job_cwd: {type: string}
     job_env: {$ref: '#/definitions/job_env'}
     job_explanation: {type: string}
+    launch_type: {$ref: '#/definitions/enum_launch_type'}
     license_error: {type: boolean}
     modified: {format: date-time, type: string}
-    result_stdout: {type: string}
-    result_traceback: {type: string}
-    status: {$ref: '#/definitions/enum_task_status'}
-    credential: {$ref: '#/definitions/id_or_null'}
     name: {type: string}
-    description: {type: string}
-    source: {type: string}
-    source_path: {type: string}
-    source_regions: {type: string}
-    source_vars: {type: string}
     overwrite: {type: boolean}
     overwrite_vars: {type: boolean}
-    started: {format: date-time, type: [string, 'null']}
-    finished: {format: date-time, type: [string, 'null']}
-    elapsed: {type: number}
-    launch_type: {$ref: '#/definitions/enum_launch_type'}
-    unified_job_template: {$ref: '#/definitions/id_or_null'}
-    url: {format: uri, type: string}
     related:
       additionalProperties: false
       properties:
         cancel: {format: uri, type: string}
+        created_by: {format: uri, type: string}
         credential: {format: uri, type: string}
         inventory_source: {format: uri, type: string}
-        unified_job_template: {format: uri, type: string}
-        stdout: {format: uri, type: string}
-        created_by: {format: uri, type: string}
         modified_by: {format: uri, type: string}
         schedule: {format: uri, type: string}
+        stdout: {format: uri, type: string}
+        unified_job_template: {format: uri, type: string}
       required: [cancel, inventory_source, credential]
       type: object
+    result_stdout: {type: string}
+    result_traceback: {type: string}
+    source: {type: string}
+    source_path: {type: string}
+    source_regions: {type: string}
+    source_script: {$ref: '#/definitions/id_or_null'}
+    source_vars: {type: string}
+    started:
+      format: date-time
+      type: [string, 'null']
+    status: {$ref: '#/definitions/enum_task_status'}
     summary_fields:
       additionalProperties: false
       properties:
-        inventory_source: {$ref: '#/definitions/summary_fields_inventory_source'}
         credential: {$ref: '#/definitions/summary_fields_credential'}
-        unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
+        inventory_source: {$ref: '#/definitions/summary_fields_inventory_source'}
         schedule: {$ref: '#/definitions/summary_fields_schedule'}
+        unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
       required: [inventory_source]
       type: object
-  required: [id, url, created, modified, inventory_source, status, failed,
-  related, summary_fields, license_error, type, credential, name, description,
-  source, source_path, source_regions, source_vars, overwrite, overwrite_vars,
-  started, finished, elapsed, job_explanation ]
+    type: {pattern: ^inventory_update$, type: string}
+    unified_job_template: {$ref: '#/definitions/id_or_null'}
+    url: {format: uri, type: string}
+  required: [id, url, created, modified, inventory_source, status, failed, related,
+    summary_fields, license_error, type, credential, name, description, source, source_path,
+    source_regions, source_script, source_vars, overwrite, overwrite_vars, started,
+    finished, elapsed, job_explanation]
   type: object
