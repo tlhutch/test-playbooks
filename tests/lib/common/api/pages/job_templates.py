@@ -31,6 +31,8 @@ class Job_Template_Page(base.Base):
             related = Job_Template_Callback_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'launch':
             related = Job_Template_Launch_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'survey_spec':
+            related = base.Base(self.testsetup, base_url=self.json['related'][name])
         elif name == 'jobs':
             from jobs import Jobs_Page
             related = Jobs_Page(self.testsetup, base_url=self.json['related'][name])
