@@ -178,7 +178,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         assert not start_pg.json['ask_variables_on_launch']
 
         # POST to start
-        passwords = dict(ssh_password="Doesn't matter")
+        passwords = dict(ssh_password=self.credentials['ssh']['password'])
         start_pg.post(passwords)
 
         # Wait 10mins for job to complete
@@ -204,7 +204,9 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         assert not start_pg.json['ask_variables_on_launch']
 
         # POST to start
-        passwords = dict(ssh_password="Doesn't matter", sudo_password="Still doesn't matter", ssh_key_unlock="makes no difference")
+        passwords = dict(ssh_password=self.credentials['ssh']['password'],
+                         sudo_password=self.credentials['ssh']['sudo_password'],
+                         ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'])
         start_pg.post(passwords)
 
         # Wait 10mins for job to complete
@@ -234,7 +236,9 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         assert prompt_extra_vars == job_pg.extra_vars
 
         # POST to start
-        passwords = dict(ssh_password="Doesn't matter", sudo_password="Still doesn't matter", ssh_key_unlock="makes no difference")
+        passwords = dict(ssh_password=self.credentials['ssh']['password'],
+                         sudo_password=self.credentials['ssh']['sudo_password'],
+                         ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'])
         start_pg.post(passwords)
 
         # Wait 10mins for job to complete
