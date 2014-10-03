@@ -18,7 +18,7 @@ def some_user(request, testsetup, authtoken, api_users_pg):
                    email="org_user_%s@example.com" % common.utils.random_ascii(),
                    password=testsetup.credentials['default']['password'],)
     obj = api_users_pg.post(payload)
-    request.addfinalizer(obj.quiet_delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
@@ -32,7 +32,7 @@ def some_ssh_credential(request, testsetup, authtoken, some_user):
                    username=testsetup.credentials['ssh']['username'],
                    password=testsetup.credentials['ssh']['password'],)
     obj = some_user.get_related('credentials').post(payload)
-    request.addfinalizer(obj.quiet_delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 

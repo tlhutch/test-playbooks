@@ -147,7 +147,7 @@ class Base(Page):
         except common.exceptions.NoContent_Exception:
             pass
 
-    def quiet_delete(self):
+    def silent_delete(self):
         '''
         Delete the object.  If it's already deleted, ignore the error
         '''

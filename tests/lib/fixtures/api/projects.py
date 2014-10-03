@@ -60,7 +60,7 @@ def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_con
                    local_path=local_path,
                    scm_type=None)
     obj = api_projects_pg.post(payload)
-    request.addfinalizer(obj.quiet_delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
@@ -80,7 +80,7 @@ def project_ansible_playbooks_git_nowait(request, authtoken, api_projects_pg, or
                    scm_delete_on_update=False,
                    scm_update_on_launch=False,)
     obj = api_projects_pg.post(payload)
-    request.addfinalizer(obj.quiet_delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
@@ -122,7 +122,7 @@ def many_git_projects(request, authtoken, api_projects_pg, organization):
                        scm_delete_on_update=False,
                        scm_update_on_launch=False,)
         obj = api_projects_pg.post(payload)
-        request.addfinalizer(obj.quiet_delete)
+        request.addfinalizer(obj.silent_delete)
         obj_list.append(obj)
     return obj_list
 
@@ -139,6 +139,6 @@ def many_manual_projects(request, authtoken, ansible_runner, awx_config, api_pro
                        scm_type=None,
                        local_path=local_path)
         obj = api_projects_pg.post(payload)
-        request.addfinalizer(obj.quiet_delete)
+        request.addfinalizer(obj.silent_delete)
         obj_list.append(obj)
     return obj_list

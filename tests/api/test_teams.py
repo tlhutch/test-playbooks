@@ -14,7 +14,7 @@ def some_team(request, testsetup, authtoken, organization):
     payload = dict(name="some_team: %s" % common.utils.random_unicode(),
                    organization=organization.id)
     obj = organization.get_related('teams').post(payload)
-    request.addfinalizer(obj.quiet_delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
@@ -28,7 +28,7 @@ def some_team_credential(request, testsetup, authtoken, some_team):
                    username=testsetup.credentials['ssh']['username'],
                    password=testsetup.credentials['ssh']['password'],)
     obj = some_team.get_related('credentials').post(payload)
-    request.addfinalizer(obj.quiet_delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 

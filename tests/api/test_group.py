@@ -167,7 +167,7 @@ def some_group(request, authtoken, inventory):
     payload = dict(name="group-%s" % common.utils.random_unicode(),
                    inventory=inventory.id,)
     obj = inventory.get_related('groups').post(payload)
-    request.addfinalizer(obj.quiet_delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
