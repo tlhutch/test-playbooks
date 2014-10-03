@@ -12,7 +12,7 @@ def inventory_dict():
     Return inventory json to simulate an ec2 inventory import.  The ec2_id used
     is randomly generated.
     '''
-    return {
+    return {  # NOQA
       "_meta": {
         "hostvars": {
           "ec2.amazonaws.com": {
@@ -256,6 +256,45 @@ class Test_Inventory(Base_Api_Test):
         assert import_inventory.get_related('groups').count == 0
         assert import_inventory.get_related('hosts').count == 0
 
+    def test_import_instance_id_constraint(self, ansible_runner, import_inventory, json_inventory_before, json_inventory_after, tower_version_cmp):
+        '''
+        Verify that tower can handle inventory_import where the host name
+        remains the same, but the instance_id changes.
+
+        Verify https://trello.com/c/QWnujT3v
+        '''
+
+        if tower_version_cmp('2.0.2') < 0:
+            pytest.xfail("Only supported on tower-2.0.2 (or newer)")
+
+        # Copy inventory_before to test system
+        result = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
+cat <<EOF
+%s
+EOF''' % (json.dumps(json_inventory_before, indent=4),))
+        assert 'failed' not in result, "Failed to create inventory file: %s" % result
+
+        # Import inventory_before
+        cmd = "awx-manage inventory_import --inventory-id %s --instance-id-var ec2_id " \
+            "--source /tmp/inventory.sh" % import_inventory.id
+        result = ansible_runner.command(cmd)
+        assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
+        print result
+
+        # Copy inventory_after to test system
+        result = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
+cat <<EOF
+%s
+EOF''' % (json.dumps(json_inventory_after, indent=4),))
+        assert 'failed' not in result, "Failed to create inventory file: %s" % result
+
+        # Import inventory_after
+        cmd = "awx-manage inventory_import --inventory-id %s --instance-id-var ec2_id " \
+            "--source /tmp/inventory.sh" % import_inventory.id
+        result = ansible_runner.command(cmd)
+        assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
+        print result
+
     def test_cascade_delete(self, ansible_runner, delete_inventory, api_groups_pg, api_hosts_pg):
         '''Verify DELETE removes associated groups and hosts'''
 
@@ -323,39 +362,3 @@ class Test_Inventory(Base_Api_Test):
         assert all_hosts.count == script_all_hosts, \
             "The number of inventory hosts differs between endpoints " \
             "/hosts (%s) and /script (%s)" % (all_hosts.count, script_all_hosts)
-
-    def test_import_instance_id_constraint(self, ansible_runner, import_inventory, json_inventory_before, json_inventory_after, tower_version_cmp):
-        '''
-        Verify that tower can handle inventory_import where the host name
-        remains the same, but the instance_id changes.
-
-        Verify https://trello.com/c/QWnujT3v
-        '''
-
-        if tower_version_cmp('2.0.2') < 0:
-            pytest.xfail("Only supported on tower-2.0.2 (or newer)")
-
-        # Copy inventory_before to test system
-        result = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
-cat <<EOF
-%s
-EOF''' % (json.dumps(json_inventory_before, indent=4),))
-        assert 'failed' not in result, "Failed to create inventory file: %s" % result
-
-        # Import inventory_before
-        result = ansible_runner.command('awx-manage inventory_import --inventory-id %s --instance-id-var ec2_id --source /tmp/inventory.sh' % import_inventory.id)
-        assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
-        print result
-
-        # Copy inventory_after to test system
-        result = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
-cat <<EOF
-%s
-EOF''' % (json.dumps(json_inventory_after, indent=4),))
-        assert 'failed' not in result, "Failed to create inventory file: %s" % result
-
-        # Import inventory_after
-        result = ansible_runner.command('awx-manage inventory_import --inventory-id %s --instance-id-var ec2_id --source /tmp/inventory.sh' % import_inventory.id)
-        assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
-        print result
-
