@@ -90,6 +90,8 @@ class Test_Job_Template(Base_Api_Test):
         '''
         launch_pg = job_template_variables_needed_to_start.get_related('launch')
 
+        print json.dumps(launch_pg.json, indent=2)
+
         # assert values on launch resource
         assert not launch_pg.can_start_without_user_input
         assert not launch_pg.ask_variables_on_launch
@@ -129,6 +131,8 @@ class Test_Job_Template(Base_Api_Test):
         Verify the job->launch endpoint behaves as expected when passwords are needed to start
         '''
         launch_pg = job_template_passwords_needed_to_start.get_related('launch')
+
+        print json.dumps(launch_pg.json, indent=2)
 
         # assert values on launch resource
         assert not launch_pg.can_start_without_user_input
