@@ -1,14 +1,10 @@
----
 $schema: http://json-schema.org/draft-04/schema#
-type: object
-required: [name, ]
 additionalProperties: false
 properties:
-    name:
-        type: array
-        minItems: 0
-        uniqueItems: true
-        items:
-            type: string
-            pattern: '^Custom inventory script with this Name already exists.$"
-
+  name:
+    items: {pattern: '^Custom inventory script with this Name already exists.$', type: string}
+    minItems: 0
+    type: array
+    uniqueItems: true
+required: [name]
+type: object
