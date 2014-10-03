@@ -7,7 +7,7 @@ from tests.api import Base_Api_Test
 
 @pytest.fixture(scope="function")
 def job_template_ping(request, job_template_ansible_playbooks_git, host_local):
-    return job_template_ansible_playbooks_git.patch(playbook= 'ping.yml')
+    return job_template_ansible_playbooks_git.patch(playbook='ping.yml')
 
 
 @pytest.fixture(scope="function")
@@ -21,8 +21,49 @@ def job_template_ask_variables_on_launch(request, job_template_ping):
 
 
 @pytest.fixture(scope="function")
-def job_template_variables_needed_to_start(request, job_template_ping):
-    return job_template_ping.patch(survey_enabled=True)
+def optional_survey_spec(request):
+    payload = dict(name=common.utils.random_unicode(),
+                   description=common.utils.random_unicode(),
+                   spec=[dict(required=False,
+                              question_name="Enter your email &mdash; &euro;",
+                              variable="submitter_email",
+                              type="text",),
+                         dict(required=False,
+                              question_name="Enter your employee number email &mdash; &euro;",
+                              variable="submitter_email",
+                              type="integer",)])
+    return payload
+
+
+@pytest.fixture(scope="function")
+def required_survey_spec(request):
+    payload = dict(name=common.utils.random_unicode(),
+                   description=common.utils.random_unicode(),
+                   spec=[dict(required=True,
+                              question_name="Do you like chicken?",
+                              question_description="Please indicate your chicken preference:",
+                              variable="likes_chicken",
+                              type="multiselect",
+                              choices="yes"),
+                         dict(required=True,
+                              question_name="Favorite color?",
+                              question_description="Pick a color darnit!",
+                              variable="favorite_color",
+                              type="multiplechoice",
+                              choices="red\ngreen\nblue",
+                              default="green"),
+                         dict(required=False,
+                              question_name="Enter your email &mdash; &euro;",
+                              qvariable="submitter_email",
+                              type="text")])
+    return payload
+
+
+@pytest.fixture(scope="function")
+def job_template_variables_needed_to_start(request, job_template_ping, required_survey_spec):
+    obj = job_template_ping.patch(survey_enabled=True)
+    obj.get_related('survey_spec').post(required_survey_spec)
+    return obj
 
 
 @pytest.fixture(scope="function")
@@ -84,7 +125,7 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
 
-    def test_launch_variables_needed_to_start(self, job_template_variables_needed_to_start):
+    def test_launch_variables_needed_to_start(self, job_template_variables_needed_to_start, required_survey_spec_payload):
         '''
         Verify the job->launch endpoint behaves as expected when a survey is enabled
         '''
@@ -97,6 +138,19 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert launch_pg.variables_needed_to_start
+
+        # assert number of required variables
+        required_variables = [question['variable']
+                              for question in required_survey_spec_payload['spec']
+                              if question.get('required', False)]
+        assert len(launch_pg.variables_needed_to_start) == len(required_variables), \
+            "Unexpected number of required variables (%s != %s)" % \
+            (len(launch_pg.variables_needed_to_start), len(required_variables))
+
+        # assert names of required variables
+        for variable in required_variables:
+            assert variable in launch_pg.variables_needed_to_start, \
+                "Missing required variable: %s" % variable
 
     def test_launch_without_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         '''
@@ -117,14 +171,14 @@ class Test_Job_Template(Base_Api_Test):
 
         # launch the job_template without passwords
         with pytest.raises(common.exceptions.BadRequest_Exception):
-            result = launch_pg.post()
+            launch_pg.post()
 
         # launch the job_template with empty passwords
         passwords = dict(ssh_password="",
                          sudo_password="",
                          ssh_key_unlock="")
         with pytest.raises(common.exceptions.BadRequest_Exception):
-            result = launch_pg.post(passwords)
+            launch_pg.post(passwords)
 
     def test_launch_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         '''
