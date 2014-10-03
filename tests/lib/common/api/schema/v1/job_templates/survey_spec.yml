@@ -1,0 +1,27 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/job_templates/\d+/survey_spec/'
+type: object
+additionalProperties: false
+properties:
+  name:
+    type: string
+  description:
+    type: string
+  spec:
+    type: array
+    minItems: 0
+    uniqueItems: false
+    items:
+        type: object
+        required: [question_name, type, variable, required]
+        additionalProperties: false
+        properties:
+            required: {type: boolean}
+            question_name: {type: string}
+            question_description: {type: string}
+            variable: {type: string}
+            type: {type: string}
+            choices: {type: string}
+            min: {type: string}
+            max: {type: string}

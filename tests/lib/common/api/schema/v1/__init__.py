@@ -458,6 +458,18 @@ class Awx_Schema_Job_Template_Launch(Awx_Schema):
         return self.load_file('job_templates/launched.yml')
 
 
+class Awx_Schema_Job_Template_Survey_Spec(Awx_Schema):
+    resource = '/api/v1/job_templates/\d+/survey_spec/'
+
+    @property
+    def get(self):
+        return self.load_file('job_templates/survey_spec.yml')
+
+    @property
+    def post(self):
+        return self.load_file('empty.yml')
+
+
 #
 # /job_template/N/callback/
 #
