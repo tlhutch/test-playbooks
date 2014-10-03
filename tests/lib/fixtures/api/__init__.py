@@ -241,6 +241,19 @@ def api_inventory_sources_pg(testsetup, api_inventory_sources_url):
 
 
 #
+# /api/v1/inventory_scripts
+#
+@pytest.fixture(scope="module")
+def api_inventory_scripts_url(api, api_home):
+    return navigate(api, api_home, 'inventory_scripts')
+
+
+@pytest.fixture(scope="module")
+def api_inventory_scripts_pg(testsetup, api_inventory_scripts_url):
+    return Inventory_Scripts_Page(testsetup, base_url=api_inventory_scripts_url)
+
+
+#
 # /api/v1/groups
 #
 @pytest.fixture(scope="module")
