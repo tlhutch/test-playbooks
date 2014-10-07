@@ -59,6 +59,6 @@ inventory_update:
     url: {format: uri, type: string}
   required: [id, url, created, modified, inventory_source, status, failed, related,
     summary_fields, license_error, type, credential, name, description, source, source_path,
-    source_regions, source_script, source_vars, overwrite, overwrite_vars, started,
+    source_regions, source_vars, overwrite, overwrite_vars, started,
     finished, elapsed, job_explanation]
   type: object
