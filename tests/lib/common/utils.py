@@ -68,6 +68,8 @@ def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_
     Loops until either the desired value of the attribute is reached, or the
     number of attempts is exceeded.
     '''
+    assert hasattr(obj, 'get'), "The provided object (%s) does not support a 'get' method" % obj.__class__
+
     if not isinstance(desired, (list, tuple)):
         desired = [desired]
     if verbose_atts is None:
@@ -84,10 +86,7 @@ def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_
         start_time = time.mktime(start_time) - time.altzone
 
     while infinite or (attempt < attempts):
-        try:
-            obj.get()
-        except AttributeError:
-            raise NoReloadError("The 'wait_until' method is not supported for '%s' objects." % obj.__class__)
+        obj.get()
         attval = getattr(obj, att)
         elapsed = time.time() - start_time
         if verbose:
