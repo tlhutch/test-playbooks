@@ -4,6 +4,11 @@ import urllib2
 import requests
 import warnings
 import types
+import httplib
+
+
+log = logging.getLogger(__name__)
+
 
 # Adapted from
 # http://code.activestate.com/recipes/389916-example-setattr-getattr-overloading/
@@ -152,19 +157,24 @@ class Connection(object):
             if self.requests_log:
                 self.requests_log.debug("\"%s %s\" elapsed: %s" % (r.request.method, r.url, r.elapsed))
 
-        try:
-            response = request_handler(
-                url,
-                verify=self.verify,
-                params=params,
-                data=payload,
-                hooks=dict(response=log_elapsed))
-        except Exception, e:
-            err_str = "%s, url: %s" % (str(e), url,)
-
-            if hasattr(e, 'read'):
-                err_str += ", %s" % (e.read())
-            raise BaseException(err_str)
+        attempts = 0
+        while attempts < 5:
+            try:
+                response = request_handler(
+                    url,
+                    verify=self.verify,
+                    params=params,
+                    data=payload,
+                    hooks=dict(response=log_elapsed))
+            except requests.exceptions.ConnectionError, e:
+                err_str = "%s, url: %s" % (str(e), url,)
+                if hasattr(e, 'read'):
+                    err_str += ", %s" % (e.read())
+                log.warn("%s, retrying" % err_str)
+                attempts +1
+                continue
+            else:
+                break
 
         # Save the full URL for later inspection
         self.url = response.url
