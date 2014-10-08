@@ -98,10 +98,10 @@ def instance_id(ansible_ec2_facts):
 
 
 @pytest.fixture(scope='class')
-def install_license_aws(request, ansible_runner, license_instance_count, ami_id, instance_id):
+def install_license_aws(request, ansible_runner, license_instance_count, ami_id, instance_id, tower_aws_path):
     log.debug("calling fixture install_license_aws")
     fname = common.tower.license.generate_aws_file(instance_count=license_instance_count, ami_id=ami_id, instance_id=instance_id)
-    ansible_runner.copy(src=fname, dest='/etc/tower/aws', owner='awx', group='awx', mode='0600')
+    ansible_runner.copy(src=fname, dest=tower_aws_path, owner='awx', group='awx', mode='0600')
 
 
 @pytest.fixture(scope="function", params=['org_admin', 'org_user', 'anonymous'])
@@ -247,7 +247,7 @@ class Test_AWS_License(Base_Api_Test):
         assert not conf.is_demo_license
 
         # Assert AWS info
-        assert conf.license_info.is_aws
+        assert conf.is_aws_license
 
         # Assert the license is valid
         assert conf.is_valid_license
