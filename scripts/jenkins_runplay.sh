@@ -72,7 +72,9 @@ done
 
 # Enable nightly ansible repository?
 if [[ "${ENABLE_ANSIBLE_NIGHTLY_REPO}" == true ]]; then
-    echo "ansible_nightly_repo: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi" >> ${PLAYBOOK_DIR}/vars.yaml
+    echo "ansible_install_method: 'nightly'" >> ${PLAYBOOK_DIR}/vars.yaml
+else
+    echo "ansible_install_method: 'stable'" >> ${PLAYBOOK_DIR}/vars.yaml
 fi
 
 # Establish the aw_repo_url.  This is the baseurl used by the install playbook.
