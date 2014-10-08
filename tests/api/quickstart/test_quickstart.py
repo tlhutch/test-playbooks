@@ -55,7 +55,7 @@ def pytest_generate_tests(metafunc):
 
 
 @pytest.fixture(scope='class')
-def install_integration_license(request, authtoken, ansible_runner, awx_config):
+def install_integration_license(request, authtoken, ansible_runner, awx_config, tower_license_path, tower_aws_path):
     '''If a suitable license is not already installed, install a new license'''
     logging.debug("calling fixture install_integration_license")
     if not (awx_config['license_info'].get('valid_key', False) and
@@ -64,12 +64,12 @@ def install_integration_license(request, authtoken, ansible_runner, awx_config):
 
         logging.debug("backing up existing license")
         # Backup any aws license
-        ansible_runner.shell('test -f /etc/tower/aws && mv /etc/tower/aws /etc/tower/.aws', creates='/etc/tower/.aws', removes='/etc/tower/aws')
+        ansible_runner.shell('test -f {0} && mv {0} {0}.bak'.format(tower_aws_path), creates=tower_aws_path+'.bak', removes=tower_aws_path)
 
         # Install/replace license
-        logging.debug("installing license /etc/tower/license")
+        logging.debug("installing license {0}".format(tower_license_path))
         fname = common.tower.license.generate_license_file(instance_count=10000, days=60)
-        ansible_runner.copy(src=fname, dest='/etc/tower/license', owner='awx', group='awx', mode='0600')
+        ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
 
 
 @pytest.fixture(scope='class')
