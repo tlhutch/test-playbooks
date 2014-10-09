@@ -334,7 +334,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     def test_groups_get(self, api_groups_pg, _groups):
         groups = _groups
         # Get list of created groups
-        api_groups_pg.get(name__in=','.join([o['name'] for o in groups]))
+        # NOTE: not__description="imported" will exclude groups created as part of an inventory_sync
+        api_groups_pg.get(name__in=','.join([o['name'] for o in groups]), not__description="imported")
 
         # Validate number of inventories found
         assert len(groups) == len(api_groups_pg.results)
