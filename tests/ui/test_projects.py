@@ -245,8 +245,28 @@ class Test_Projects(Base_UI_Test):
         ui_projects_pg = org_activity_pg.close_btn.click()
         assert ui_projects_pg.is_the_active_tab
 
+    def test_project_update_btn_inactive(self, project_manual, project_status_choices, ui_projects_pg):
+        '''Verify that the project update button is inactive for a manual project'''
+
+        # open edit page
+        edit_pg = ui_projects_pg.open(project_manual.id)
+        assert edit_pg.is_the_active_tab
+        assert edit_pg.is_the_active_breadcrumb
+
+        # access properties accordion
+        properties_rg = edit_pg.accordion.click('Properties')
+        # record project last_updated date
+
+        # assert the scm_update_btn is not clickable
+        # The following will not work since angular isn't using HTML
+        # 'disabled', but rather using a class 'btn-disabled'
+        # assert not properties_rg.scm_update_btn.is_enabled()
+        assert properties_rg.scm_update_btn.click()
+        assert edit_pg.is_the_active_tab
+        assert edit_pg.is_the_active_breadcrumb
+
     def test_project_update_btn(self, project, project_status_choices, ui_projects_pg):
-        '''Verify that the project activity stream can be open and closed'''
+        '''Verify that the project update button is active for a scm project'''
 
         # open edit page
         edit_pg = ui_projects_pg.open(project.id)
