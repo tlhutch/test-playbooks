@@ -10,7 +10,6 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-@pytest.mark.skipif(True, reason="Not supported on tower < 2.1.0")
 class Test_Inventory_Scripts(Base_Api_Test):
     '''
     Verifies basic CRUD operations against the /inventory_scripts endpoint

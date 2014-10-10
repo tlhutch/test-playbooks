@@ -74,7 +74,6 @@ def job_template_passwords_needed_to_start(request, job_template_ping, ssh_crede
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-@pytest.mark.skipif(True, reason="Not supported on tower < 2.1.0")
 class Test_Job_Template(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
