@@ -32,7 +32,7 @@ class Job_Template_Page(base.Base):
         elif name == 'launch':
             related = Job_Template_Launch_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'survey_spec':
-            related = base.Base(self.testsetup, base_url=self.json['related'][name])
+            related = Job_Template_Survey_Spec(self.testsetup, base_url=self.json['related'][name])
         elif name == 'jobs':
             from jobs import Jobs_Page
             related = Jobs_Page(self.testsetup, base_url=self.json['related'][name])
@@ -71,9 +71,17 @@ class Job_Templates_Page(Job_Template_Page, base.Base_List):
 
 
 class Job_Template_Launch_Page(base.Base):
-    base_url = '/api/v1/job_templates/\d+/launch'
+    base_url = '/api/v1/job_templates/{id}/launch'
 
+    can_start_without_user_input = property(base.json_getter('can_start_without_user_input'), base.json_setter('can_start_without_user_input'))
     ask_variables_on_launch = property(base.json_getter('ask_variables_on_launch'), base.json_setter('ask_variables_on_launch'))
     passwords_needed_to_start = property(base.json_getter('passwords_needed_to_start'), base.json_setter('passwords_needed_to_start'))
     variables_needed_to_start = property(base.json_getter('variables_needed_to_start'), base.json_setter('variables_needed_to_start'))
-    can_start_without_user_input = property(base.json_getter('can_start_without_user_input'), base.json_setter('can_start_without_user_input'))
+
+
+class Job_Template_Survey_Spec(base.Base):
+    base_url = '/api/v1/job_templates/{id}/survey_spec/'
+
+    name = property(base.json_getter('name'), base.json_setter('name'))
+    description = property(base.json_getter('description'), base.json_setter('description'))
+    spec = property(base.json_getter('spec'), base.json_setter('spec'))

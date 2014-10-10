@@ -21,6 +21,7 @@ properties:
             question_name: {type: string}
             question_description: {type: string}
             variable: {type: string}
+            default: {type: string}
             type: {type: string}
             choices: {type: string}
             min: {type: string}

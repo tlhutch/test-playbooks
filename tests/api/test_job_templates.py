@@ -54,7 +54,7 @@ def required_survey_spec(request):
                               default="green"),
                          dict(required=False,
                               question_name="Enter your email &mdash; &euro;",
-                              qvariable="submitter_email",
+                              variable="submitter_email",
                               type="text")])
     return payload
 
@@ -125,11 +125,12 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
 
-    def test_launch_variables_needed_to_start(self, job_template_variables_needed_to_start, required_survey_spec_payload):
+    def test_launch_variables_needed_to_start(self, job_template_variables_needed_to_start):
         '''
         Verify the job->launch endpoint behaves as expected when a survey is enabled
         '''
         launch_pg = job_template_variables_needed_to_start.get_related('launch')
+        survey_spec = job_template_variables_needed_to_start.get_related('survey_spec')
 
         print json.dumps(launch_pg.json, indent=2)
 
@@ -141,7 +142,7 @@ class Test_Job_Template(Base_Api_Test):
 
         # assert number of required variables
         required_variables = [question['variable']
-                              for question in required_survey_spec_payload['spec']
+                              for question in survey_spec.spec
                               if question.get('required', False)]
         assert len(launch_pg.variables_needed_to_start) == len(required_variables), \
             "Unexpected number of required variables (%s != %s)" % \
