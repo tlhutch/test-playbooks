@@ -141,7 +141,7 @@ credentials:
       cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
-      ssh_key_data: '{ssh_key_data}'
+      ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: 'ASK'
       sudo_username: ''
       sudo_password: ''
@@ -154,8 +154,8 @@ credentials:
       cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
-      ssh_key_data: '{ssh_key_data}'
-      ssh_key_unlock: '{ssh_key_unlock}'
+      ssh_key_data: '{encrypted[ssh_key_data]}'
+      ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
       sudo_username: ''
       sudo_password: ''
 
@@ -167,8 +167,8 @@ credentials:
       cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
-      ssh_key_data: '{ssh_key_data}'
-      ssh_key_unlock: '{ssh_key_unlock}'
+      ssh_key_data: '{encrypted[ssh_key_data]}'
+      ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
       sudo_username: ''
       sudo_password: ''
       vault_password: '{vault_password}'
@@ -181,8 +181,8 @@ credentials:
       cloud: false
       username: '{username}' # merged from credentials.yaml
       password: '{password}'
-      ssh_key_data: '{ssh_key_data}'
-      ssh_key_unlock: '{ssh_key_unlock}'
+      ssh_key_data: '{encrypted[ssh_key_data]}'
+      ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
       sudo_username: '{sudo_username}'
       sudo_password: 'ASK'
 
@@ -194,8 +194,8 @@ credentials:
       cloud: false
       username: '{username}' # merged from credentials.yaml
       password: '{password}'
-      ssh_key_data: '{ssh_key_data}'
-      ssh_key_unlock: '{ssh_key_unlock}'
+      ssh_key_data: '{encrypted[ssh_key_data]}'
+      ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
       sudo_username: '{sudo_username}'
       sudo_password: '{sudo_password}'
 
