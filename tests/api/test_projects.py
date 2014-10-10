@@ -42,7 +42,6 @@ class Test_Projects(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 assert project_ansible_playbooks_git.get_related(related)
 
-    @pytest.mark.xfail(True, reason="Expected failure on tower < 2.1.0")
     def test_cancel_on_delete(self, project_ansible_playbooks_git_nowait, api_unified_jobs_pg, ansible_runner):
         '''Verify that queued project_updates are canceled when a project is deleted.
 
