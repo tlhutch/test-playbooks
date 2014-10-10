@@ -142,3 +142,13 @@ def random_ascii(length=10):
     Returns a string of the specified length containing only ASCII characters.
     """
     return _join_chars(string.ascii_letters, length)
+
+
+def random_ipv6():
+    """
+    Generates a random ipv6 address;; useful for testing.
+
+    Returns an encoded string of the specified length containing unicode values
+    up to code point 1000.
+    """
+    return ':'.join('{:x}'.format(random.randint(0, 2**16 - 1)) for i in range(8))

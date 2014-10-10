@@ -83,6 +83,21 @@ def json_inventory_after(request):
 
 
 @pytest.fixture(scope="function")
+def json_inventory_ipv6(request):
+    my_inventory = {  # NOQA
+      "_meta": {
+        "hostvars": {}
+      },
+      "ipv6 hosts": [],
+    }
+
+    # Add 10 random ipv6 hosts
+    for i in range(10):
+        my_inventory['ipv6 hosts'].append(common.utils.random_ipv6())
+    return my_inventory
+
+
+@pytest.fixture(scope="function")
 def import_inventory(request, authtoken, api_inventories_pg, organization):
     payload = dict(name="inventory-%s" % common.utils.random_ascii(),
                    description="Random inventory - %s" % common.utils.random_unicode(),
@@ -291,6 +306,29 @@ EOF''' % (json.dumps(json_inventory_after, indent=4),))
         # Import inventory_after
         cmd = "awx-manage inventory_import --inventory-id %s --instance-id-var ec2_id " \
             "--source /tmp/inventory.sh" % import_inventory.id
+        result = ansible_runner.command(cmd)
+        assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
+        print result
+
+    def test_import_ipv6_hosts(self, ansible_runner, import_inventory, json_inventory_ipv6, tower_version_cmp):
+        '''
+        Verify that tower can handle inventory_import with ipv6 hosts.
+
+        Trello: https://trello.com/c/ZBHrkuLb
+        '''
+
+        if tower_version_cmp('2.0.2') < 0:
+            pytest.xfail("Only supported on tower-2.0.2 (or newer)")
+
+        # Copy inventory_before to test system
+        result = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
+cat <<EOF
+%s
+EOF''' % (json.dumps(json_inventory_ipv6, indent=4),))
+        assert 'failed' not in result, "Failed to create inventory file: %s" % result
+
+        # Import inventory_before
+        cmd = "awx-manage inventory_import --inventory-id %s --source /tmp/inventory.sh" % import_inventory.id
         result = ansible_runner.command(cmd)
         assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
         print result
