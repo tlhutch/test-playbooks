@@ -117,7 +117,8 @@ class Base(Page):
             except:
                 raise common.exceptions.BadRequest_Exception(exc_str + ": %s" % data)
             else:
-                raise common.exceptions.Duplicate_Exception(exc_str + ". However, JSON validation determined the cause was a duplicate object already exists: %s" % data)
+                raise common.exceptions.Duplicate_Exception(exc_str + ". However, JSON validation determined the cause "
+                                                                      "was a duplicate object already exists: %s" % data)
         elif r.status_code == httplib.INTERNAL_SERVER_ERROR:
             raise common.exceptions.InternalServerError_Exception(exc_str + ": %s" % data)
         else:
@@ -260,16 +261,21 @@ class Task_Page(Base):
         return 'Traceback' in self.result_traceback or \
                'Traceback' in self.result_stdout
 
-    def wait_until_started(self, interval=1, verbose=0, timeout=60):
+    def wait_until_status(self, status, interval=1, verbose=0, timeout=60):
+        if not isinstance(status, (list, tuple)):
+            '''coerce 'status' parameter to a list'''
+            status = [status]
         return common.utils.wait_until(
-            self, 'status',
-            ('pending', 'running', 'successful', 'failed', 'error', 'canceled',),
+            self, 'status', status,
             interval=interval, verbose=verbose, timeout=timeout,
             start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
 
+    def wait_until_started(self, interval=1, verbose=0, timeout=60):
+        return self.wait_until_status(
+            ('pending', 'running', 'successful', 'failed', 'error', 'canceled',),
+            interval=interval, verbose=verbose, timeout=timeout)
+
     def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 8):
-        return common.utils.wait_until(
-            self, 'status',
+        return self.wait_until_status(
             ('successful', 'failed', 'error', 'canceled',),
-            interval=interval, verbose=verbose, timeout=timeout,
-            start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
+            interval=interval, verbose=verbose, timeout=timeout)

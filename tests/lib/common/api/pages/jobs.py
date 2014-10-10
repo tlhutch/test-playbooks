@@ -17,6 +17,8 @@ class Job_Page(base.Task_Page, Job_Template_Page):
             related = Job_Host_Summaries_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'start':
             related = base.Base(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'cancel':
+            related = Job_Cancel_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'credential':
             from credentials import Credential_Page
             related = Credential_Page(self.testsetup, base_url=self.json['related'][name])
@@ -29,6 +31,10 @@ class Job_Page(base.Task_Page, Job_Template_Page):
 
 class Jobs_Page(Job_Page, base.Base_List):
     base_url = '/api/v1/jobs/'
+
+class Job_Cancel_Page(base.Task_Page, Job_Template_Page):
+    base_url = '/api/v1/jobs/{id}/cancel'
+    can_cancel = property(base.json_getter('can_cancel'), base.json_setter('can_cancel'))
 
 class Job_Event_Page(base.Base):
     base_url = '/api/v1/jobs/{id}/job_events/{id}/'

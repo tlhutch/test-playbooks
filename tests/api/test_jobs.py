@@ -7,7 +7,28 @@ from tests.api import Base_Api_Test
 
 @pytest.fixture(scope="function")
 def job_template_sleep(request, job_template_ansible_playbooks_git, host_local):
-        return job_template_ansible_playbooks_git.patch(playbook= 'sleep.yml')
+    return job_template_ansible_playbooks_git.patch(playbook='sleep.yml')
+
+
+@pytest.fixture(scope="function")
+def job_sleep(request, job_template_sleep):
+    # launch job
+    launch_pg = job_template_sleep.get_related('launch')
+    result = launch_pg.post()
+    job_id = result.json['job']
+    jobs_pg = job_template_sleep.get_related('jobs', id=job_id)
+    assert jobs_pg.count == 1, "Unexpeted number of jobs found for job_template id:%s (1 != %d)" % (job_template_sleep.id, jobs_pg.count)
+    return jobs_pg.results[0]
+
+
+@pytest.fixture(scope="function")
+def job_with_status_pending(request, job_sleep):
+    return job_sleep.wait_until_started()
+
+
+@pytest.fixture(scope="function")
+def job_with_status_running(request, job_sleep):
+    return job_sleep.wait_until_status('running')
 
 
 @pytest.fixture()
@@ -71,13 +92,39 @@ class Test_Job(Base_Api_Test):
         '''
         assert False
 
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_cancel(self, job_template_sleep):
+    def test_cancel_pending_job(self, job_with_status_pending):
         '''
-        Verify the job->canel endpoint behaves as expected
+        Verify the job->cancel endpoint behaves as expected when canceling a
+        pending/queued job
         '''
-        launch_pg = job_template_sleep.get_related('launch')
-        assert False
+        cancel_pg = job_with_status_pending.get_related('cancel')
+        assert cancel_pg.can_cancel, "Unable to cancel job (can_cancel:%s)" % cancel_pg.can_cancel
+
+        # cancel job
+        cancel_pg.post()
+
+        # refresh the job
+        job_with_status_pending.get()
+        assert job_with_status_pending.status == 'canceled', \
+            "Unexpected job status after cancelling job (status:%s)" % \
+            job_with_status_pending.status
+
+    def test_cancel_running_job(self, job_with_status_running):
+        '''
+        Verify the job->cancel endpoint behaves as expected when canceling a
+        running job
+        '''
+        cancel_pg = job_with_status_running.get_related('cancel')
+        assert cancel_pg.can_cancel, "Unable to cancel job (can_cancel:%s)" % cancel_pg.can_cancel
+
+        # cancel job
+        cancel_pg.post()
+
+        # refresh the job
+        job_with_status_running.get()
+        assert job_with_status_running.status == 'canceled', \
+            "Unexpected job status after cancelling job (status:%s)" % \
+            job_with_status_running.status
 
 
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])

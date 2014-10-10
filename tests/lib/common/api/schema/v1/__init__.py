@@ -512,6 +512,18 @@ class Awx_Schema_Job(Awx_Schema_Jobs):
         return self.post
 
 
+class Awx_Schema_Job_Cancel(Awx_Schema):
+    resource = '/api/v1/jobs/\d+/cancel/'
+
+    @property
+    def get(self):
+        return self.load_file('jobs/cancel.yml')
+
+    @property
+    def post(self):
+        return self.load_file('empty.yml')
+
+
 class Awx_Schema_Job_Start(Awx_Schema):
     resource = '/api/v1/jobs/\d+/start/'
 
