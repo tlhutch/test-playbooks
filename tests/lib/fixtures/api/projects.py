@@ -96,6 +96,32 @@ def project_ansible_playbooks_git(request, project_ansible_playbooks_git_nowait)
 
 
 @pytest.fixture(scope="function")
+def project_ansible_git_nowait(request, authtoken, api_projects_pg, organization):
+    # Create project
+    payload = dict(name="ansible-playbooks.git - %s" % common.utils.random_unicode(),
+                   organization=organization.id,
+                   scm_type='git',
+                   scm_url='https://github.com/ansible/ansible.git',
+                   scm_clean=False,
+                   scm_delete_on_update=False,
+                   scm_update_on_launch=False,)
+    obj = api_projects_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def project_ansible_git(request, project_ansible_git_nowait):
+    # Wait for project update to complete
+    updates_pg = project_ansible_git_nowait.get_related('project_updates', order_by="-id")
+    assert updates_pg.count > 0, 'No project updates found'
+    latest_update_pg = updates_pg.results.pop().wait_until_completed()
+    # Assert project_update completed successfully
+    assert latest_update_pg.is_successful, "Job unsuccessful - %s" % latest_update_pg
+    return project_ansible_git_nowait.get()
+
+
+@pytest.fixture(scope="function")
 def project_with_credential_prompt(request, authtoken, api_projects_pg, organization, scm_credential_key_unlock_ASK):
     # Create project
     payload = dict(name="project-%s" % common.utils.random_unicode(),
