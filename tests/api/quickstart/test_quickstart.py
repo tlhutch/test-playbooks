@@ -708,16 +708,18 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         start_pg = job_pg.get_related('start')
         assert start_pg.json['can_start']
 
-        # If the credential used requires a password, provide a password.
-        # Note, the password here is bogus and would fail if used.  In the
-        # current scenario, the test systems do not require sudo passwords, so
-        # the bogus value provided isn't used by the playbooks/hosts.
-        payload = dict()
-        for pass_field in start_pg.json.get('passwords_needed_to_start', []):
-            payload[pass_field] = 'thisWillFail'
+        # Provide requested credentials
+        passwords = dict()
+        for field in start_pg.json.get('passwords_needed_to_start', []):
+            if field in self.credentials['ssh']:
+                passwords[field] = self.credentials['ssh'][field]
+            if field == 'ssh_password':
+                passwords[field] = self.credentials['ssh']['password']
+            if field == 'ssh_key_unlock':
+                passwords[field] = self.credentials['ssh']['encrypted'][field]
 
         # Launch job
-        start_pg.post(payload)
+        start_pg.post(passwords)
 
     @pytest.mark.nondestructive
     def test_jobs_launch_status(self, api_job_templates_pg, api_jobs_pg, _job_template):
