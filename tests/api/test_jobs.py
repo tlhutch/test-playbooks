@@ -83,7 +83,7 @@ class Test_Job(Base_Api_Test):
 
         with self.current_user(org_admin.username, user_password):
             with pytest.raises(common.exceptions.Forbidden_Exception):
-                job_pg = api_jobs_pg.post(job_template.json)
+                api_jobs_pg.post(job_template.json)
 
     @pytest.mark.skipif(True, reason="not yet implemented")
     def test_relaunch(self):
@@ -387,3 +387,44 @@ class Test_Update_On_Launch(Base_Api_Test):
             "project_update was not triggered - %s" % json.dumps(project_ansible_playbooks_git.json, indent=4)
         assert project_ansible_playbooks_git.is_successful, "project unsuccessful - %s" % \
             json.dumps(project_ansible_playbooks_git.json, indent=4)
+
+
+@pytest.fixture(scope="class")
+def AWX_PROOT_ENABLED(request, ansible_runner):
+    # update settings.py
+    result = ansible_runner.lineinfile(state='present', dest='/etc/tower/settings.py', regexp='^\s*AWX_PROOT_ENABLED\s*=', line='AWX_PROOT_ENABLED = True')
+    assert 'failed' not in result, "Failure while setting AWX_PROOT_ENABLED\n%s" % json.dumps(result, indent=2)
+
+    # restart ansible-tower
+    result = ansible_runner.service(name='ansible-tower', state='restarted')
+    assert 'failed' not in result, "Failure restarting ansible-tower\n%s" % json.dumps(result, indent=2)
+
+    def fin():
+        # restore settings.py
+        result = ansible_runner.lineinfile(state='absent', dest='/etc/tower/settings.py', regexp='^\s*AWX_PROOT_ENABLED\s*=')
+        assert 'failed' not in result, "Failure while removing AWX_PROOT_ENABLED\n%s" % json.dumps(result, indent=2)
+
+        # restart ansible-tower
+        result = ansible_runner.service(name='ansible-tower', state='restarted')
+        assert 'failed' not in result, "Failure restarting ansible-tower\n%s" % json.dumps(result, indent=2)
+    request.addfinalizer(fin)
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+@pytest.mark.skipif(True, reason="proot tests coming soon!")
+class Test_Job_Proot(Base_Api_Test):
+    '''
+     Launch two jobs and assert that each job:
+         - can't see /var/lib/awx/projects (except for self)
+         - can't see /var/lib/awx/stdout
+         - can't see /tmp/ (except for self)
+         - can't see /etc/awx/settings.py
+         - can't see /var/log/
+    '''
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited', 'AWX_PROOT_ENABLED')
+
+    def test_job_isolation(self):
+        assert True
