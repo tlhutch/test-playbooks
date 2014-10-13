@@ -11,6 +11,15 @@ import common.exceptions
 from tests.api import Base_Api_Test
 
 
+@pytest.fixture(scope="function")
+def project_with_queued_updates(project_ansible_playbooks_git_nowait):
+    # Initiate several project updates
+    update_pg = project_ansible_playbooks_git_nowait.get_related('update')
+    for i in range(4):
+        update_pg.post({})
+    return project_ansible_playbooks_git_nowait
+
+
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
@@ -42,22 +51,23 @@ class Test_Projects(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 assert project_ansible_playbooks_git.get_related(related)
 
-    def test_cancel_on_delete(self, project_ansible_playbooks_git_nowait, api_unified_jobs_pg, ansible_runner):
+    def test_cancel_on_delete(self, project_with_queued_updates, api_unified_jobs_pg, ansible_runner):
         '''Verify that queued project_updates are canceled when a project is deleted.
 
         This test is kind of ugly since we call out to 'tower-manage shell' to
-        determine whether queued jobs persist.  We do this the project is
-        marked as active=False, and therefore not visible through the API.
+        determine whether queued jobs persist.  We do this because the project
+        is marked as active=False, and therefore not visible through the API.
         '''
 
         # delete all the projects
-        project_ansible_playbooks_git_nowait.delete()
+        project_with_queued_updates.delete()
 
         # assert no unified_jobs remain running
         result = ansible_runner.shell(
             "echo \"from awx.main.models import *; "
-            "print UnifiedJob.objects.filter(status__in=['running','waiting','pending'], unified_job_template=%d).count();\" "
-            "| tower-manage shell" % project_ansible_playbooks_git_nowait.id
+            "print UnifiedJob.objects.filter(status__in=['running','waiting','pending'], unified_job_template={id}).count(); "
+            "print ['id:%s, status:%s' % (uj.id, uj.status) for uj in UnifiedJob.objects.filter(unified_job_template={id})]; \" "
+            "| tower-manage shell".format(id=project_with_queued_updates.id)
         )
         assert 'stdout' in result, "Unexpected response from ansible_runner.shell"
         match = re.search(r'>>> (\d)\n', result['stdout'], re.MULTILINE)
@@ -66,4 +76,4 @@ class Test_Projects(Base_Api_Test):
         num_pending = match.group(1)
         assert int(num_pending) == 0, \
             "A project (id:%d) was deleted, but a project_update (%s) remains queued/waiting/running" % \
-            (project_ansible_playbooks_git_nowait.id, num_pending)
+            (project_with_queued_updates.id, num_pending)
