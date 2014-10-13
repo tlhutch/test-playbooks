@@ -83,6 +83,19 @@ class Projects_Page(Project_Page, Base_List):
 class Project_Update_Page(Task_Page):
     base_url = '/api/v1/project/{id}/update/'
 
+    def get_related(self, name, **kwargs):
+        assert name in self.json['related']
+        if name == 'cancel':
+            related = Project_Update_Cancel_Page(self.testsetup, base_url=self.json['related'][name])
+        else:
+            raise NotImplementedError
+        return related.get(**kwargs)
+
+
+class Project_Update_Cancel_Page(Base):
+    base_url = '/api/v1/project_updates/{id}/cancel'
+    can_cancel = property(json_getter('can_cancel'), json_setter('can_cancel'))
+
 
 class Project_Updates_Page(Project_Update_Page, Base_List):
     base_url = '/api/v1/projects/{id}/project_updates/'

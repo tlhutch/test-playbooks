@@ -369,6 +369,17 @@ class Awx_Schema_Project_Updates(Awx_Schema_Projects_Project_Updates):
         return self.load_file('project_updates/item.yml')
 
 
+class Awx_Schema_Project_Update_Cancel(Awx_Schema):
+    resource = '/api/v1/project_updates/\d+/cancel/'
+
+    @property
+    def get(self):
+        return self.load_file('project_updates/cancel.yml')
+
+    @property
+    def post(self):
+        return self.load_file('empty.yml')
+
 #
 # /unified_job_templates
 #
