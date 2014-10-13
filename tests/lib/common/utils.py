@@ -151,4 +151,4 @@ def random_ipv6():
     Returns an encoded string of the specified length containing unicode values
     up to code point 1000.
     """
-    return ':'.join('{:x}'.format(random.randint(0, 2**16 - 1)) for i in range(8))
+    return ':'.join('{0:x}'.format(random.randint(0, 2**16 - 1)) for i in range(8))
