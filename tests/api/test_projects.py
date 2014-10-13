@@ -29,6 +29,70 @@ class Test_Projects(Base_Api_Test):
     '''
     pytestmark = pytest.mark.usefixtures('authtoken')
 
+    def test_cancel_queued_update(self, project_ansible_git_nowait, ansible_runner):
+        '''
+        Verify the project->current_update->cancel endpoint behaves as expected when canceling a
+        queued project_update.  Note, the project_ansible_git repo is used
+        because the repo is large enough that the git-clone should take enough
+        time to trigger a project_update cancel.
+        '''
+        update_pg = project_ansible_git_nowait.get_related('current_update')
+        cancel_pg = update_pg.get_related('cancel')
+        assert cancel_pg.can_cancel, "Unable to cancel project_update (can_cancel:%s)" % cancel_pg.can_cancel
+
+        # cancel job
+        cancel_pg.post()
+
+        # wait for project_update to cancel
+        update_pg = update_pg.wait_until_status('canceled')
+
+        # assert project_update status is canceled
+        assert update_pg.status == 'canceled', \
+            "Unexpected project_update status after cancelling project update (status:%s)" % \
+            update_pg.status
+
+        # update project resource
+        project_ansible_git_nowait = project_ansible_git_nowait.wait_until_completed()
+
+        # assert project status is failed
+        assert project_ansible_git_nowait.status == 'failed', \
+            "Unexpected project status after cancelling project update (status:%s)" % \
+            project_ansible_git_nowait.status
+
+    def test_cancel_running_update(self, project_ansible_git_nowait, ansible_runner):
+        '''
+        Verify the project->current_update->cancel endpoint behaves as expected
+        when canceling a running project_update.  Note, the project_ansible_git
+        repo is used because the repo is large enough that the git-clone should
+        take enough time to trigger a project_update cancel.
+        '''
+
+        update_pg = project_ansible_git_nowait.get_related('current_update')
+        cancel_pg = update_pg.get_related('cancel')
+        assert cancel_pg.can_cancel, "Unable to cancel project_update (can_cancel:%s)" % cancel_pg.can_cancel
+
+        # wait for project_update to be running
+        update_pg = update_pg.wait_until_status('running')
+
+        # cancel job
+        cancel_pg.post()
+
+        # wait for project_update to cancel
+        update_pg = update_pg.wait_until_status('canceled')
+
+        # assert project_update status is canceled
+        assert update_pg.status == 'canceled', \
+            "Unexpected project_update status after cancelling project update (status:%s)" % \
+            update_pg.status
+
+        # update project resource
+        project_ansible_git_nowait = project_ansible_git_nowait.wait_until_completed()
+
+        # assert project status is failed
+        assert project_ansible_git_nowait.status == 'failed', \
+            "Unexpected project status after cancelling project update (status:%s)" % \
+            project_ansible_git_nowait.status
+
     def test_delete_related_fields(self, project_ansible_playbooks_git):
         '''Verify that related fields on a deleted resource respond as expected'''
 
@@ -51,7 +115,7 @@ class Test_Projects(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 assert project_ansible_playbooks_git.get_related(related)
 
-    def test_cancel_on_delete(self, project_with_queued_updates, api_unified_jobs_pg, ansible_runner):
+    def test_cancel_on_delete(self, project_with_queued_updates, ansible_runner):
         '''Verify that queued project_updates are canceled when a project is deleted.
 
         This test is kind of ugly since we call out to 'tower-manage shell' to
