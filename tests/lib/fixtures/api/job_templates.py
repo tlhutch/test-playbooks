@@ -64,7 +64,7 @@ def job_template_ansible_playbooks_git(request, authtoken, api_job_templates_pg,
                    credential=ssh_credential.id,
                    playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
@@ -82,3 +82,8 @@ def job_template(request, authtoken, api_job_templates_pg, project, inventory, s
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
+
+@pytest.fixture(scope="function")
+def job_template_sleep(request, job_template_ansible_playbooks_git, host_local):
+    return job_template_ansible_playbooks_git.patch(playbook='sleep.yml')

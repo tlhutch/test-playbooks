@@ -213,3 +213,25 @@ class Test_Job_Template(Base_Api_Test):
         # wait for completion and assert success
         job_pg = jobs_pg.results[0].wait_until_completed()
         assert job_pg.is_successful, job_pg
+
+    def test_delete_with_running_job(self, job_template_sleep, api_jobs_pg):
+        '''
+        Verify that tower properly cancels active jobs when deleting the
+        corresponding job_template.
+        '''
+        launch_pg = job_template_sleep.get_related('launch')
+
+        # launch the job_template
+        result = launch_pg.post()
+
+        # delete the job_template
+        job_template_sleep.delete()
+
+        # locate the launched job
+        jobs_pg = api_jobs_pg.get(id=result.json['job'])
+        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
+
+        # wait for completion and assert success
+        job_pg = jobs_pg.results[0].wait_until_completed()
+        assert job_pg.status == 'canceled', \
+            "Unexpected Job status (%s != 'canceled') after deleting job_template" % (job_pg.status)

@@ -6,11 +6,6 @@ from tests.api import Base_Api_Test
 
 
 @pytest.fixture(scope="function")
-def job_template_sleep(request, job_template_ansible_playbooks_git, host_local):
-    return job_template_ansible_playbooks_git.patch(playbook='sleep.yml')
-
-
-@pytest.fixture(scope="function")
 def job_sleep(request, job_template_sleep):
     # launch job
     launch_pg = job_template_sleep.get_related('launch')
