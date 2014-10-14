@@ -6,6 +6,7 @@ import random
 import common.utils
 import common.exceptions
 
+
 @pytest.fixture(scope="function")
 def host_config_key():
     '''Returns a uuid4 string for use as a host_config_key.'''
@@ -97,6 +98,7 @@ def host_local(request, authtoken, api_hosts_pg, inventory, group):
         obj.get_related('groups').post(dict(id=group.id))
     return obj
 
+
 @pytest.fixture(scope="function")
 def host_without_group(request, authtoken, inventory):
     payload = dict(name="random.host.%s" % common.utils.random_ascii(),
@@ -106,6 +108,7 @@ def host_without_group(request, authtoken, inventory):
     obj = inventory.get_related('hosts').post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
 
 @pytest.fixture(scope="function")
 def host(request, authtoken, api_hosts_pg, inventory, group):
@@ -118,6 +121,65 @@ def host(request, authtoken, api_hosts_pg, inventory, group):
     # Add host to group
     with pytest.raises(common.exceptions.NoContent_Exception):
         obj.get_related('groups').post(dict(id=group.id))
+    return obj
+
+
+#
+# Inventory Scripts
+#
+@pytest.fixture(scope="function")
+def script_source(request):
+    # create script to generate inventory
+    group_name = u"group-%s" % common.utils.random_unicode()
+    script='''#!env python
+import json
+inventory = dict()
+inventory['{0}'] = list()
+'''.format(group_name)
+    for i in range(5):
+        script += "inventory['{0}'].append('host-{1}')\n".format(group_name, common.utils.random_unicode())
+    script += "print json.dumps(inventory)\n"
+    return script
+
+
+@pytest.fixture(scope="function")
+def inventory_script(request, authtoken, api_inventory_scripts_pg, script_source):
+    # build payload
+    payload = dict(name="random_inventory_script-%s" % common.utils.random_unicode(),
+                   description="Random Inventory Script - %s" % common.utils.random_unicode(),
+                   script=script_source)
+    obj = api_inventory_scripts_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def inventory_script_non_zero_exit(request, authtoken, api_inventory_scripts_pg, script_source):
+    script_source += '''
+import sys
+sys.exit(1)
+'''
+    # build payload
+    payload = dict(name="random_inventory_script-%s" % common.utils.random_unicode(),
+                   description="Random Inventory Script - %s" % common.utils.random_unicode(),
+                   script=script_source)
+    obj = api_inventory_scripts_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def inventory_script_no_json(request, authtoken, api_inventory_scripts_pg):
+    script_source = '''#!env bash
+echo "asdf"
+exit 0
+'''
+    # build payload
+    payload = dict(name="random_inventory_script-%s" % common.utils.random_unicode(),
+                   description="Random Inventory Script - %s" % common.utils.random_unicode(),
+                   script=script_source)
+    obj = api_inventory_scripts_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
@@ -237,6 +299,35 @@ def vmware_inventory_source(request, authtoken, vmware_group):
 
 
 #
+# Custom group
+#
+@pytest.fixture(scope="function")
+def custom_group(request, authtoken, api_groups_pg, inventory, inventory_script):
+    payload = dict(name="custom-group-%s" % common.utils.random_ascii(),
+                   description="Custom Group %s" % common.utils.random_unicode(),
+                   inventory=inventory.id,
+                   variables=json.dumps(dict(my_group_variable=True)))
+    obj = api_groups_pg.post(payload)
+    request.addfinalizer(obj.delete)
+
+    # Set the inventory_source
+    source_vars = dict(my_inventory_source_variable=True,
+                       HOME='BOGUS',
+                       PATH='BOGUS',
+                       _='BOGUS')
+    inv_source = obj.get_related('inventory_source')
+    inv_source.patch(source='custom',
+                     source_script=inventory_script.id,
+                     source_vars=json.dumps(source_vars))
+    return obj
+
+
+@pytest.fixture(scope="function")
+def custom_inventory_source(request, authtoken, custom_group):
+    return custom_group.get_related('inventory_source')
+
+
+#
 # Convenience fixture that iterates through supported cloud_groups
 #
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
@@ -253,12 +344,3 @@ def cloud_group(request, aws_group, rax_group, azure_group, gce_group, vmware_gr
         return vmware_group
     else:
         raise Exception("Unhandled cloud type: %s" % request.param)
-
-
-@pytest.fixture(scope="function")
-def inventory_script(request, authtoken, api_inventory_scripts_pg):
-    payload = dict(name="random_inventory_script-%s" % common.utils.random_unicode(),
-                   description="Random Inventory Script - %s" % common.utils.random_unicode())
-    obj = api_inventory_scripts_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
-    return obj

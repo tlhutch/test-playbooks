@@ -148,6 +148,7 @@ class Inventory_Source_Page(Base):
     base_url = '/api/v1/inventory_sources/{id}/'
     name = property(json_getter('name'), json_setter('name'))
     source = property(json_getter('source'), json_setter('source'))
+    source_vars = property(json_getter('source_vars'), json_setter('source_vars'))
     status = property(json_getter('status'), json_setter('status'))
     description = property(json_getter('description'), json_setter('description'))
     last_updated = property(json_getter('last_updated'), json_setter('last_updated'))
@@ -165,6 +166,8 @@ class Inventory_Source_Page(Base):
             related = Inventory_Update_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'inventory_updates':
             related = Inventory_Updates_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'inventory':
+            related = Inventory_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'update':
             # FIXME - this should have it's own object
             related = Base(self.testsetup, base_url=self.json['related'][attr])

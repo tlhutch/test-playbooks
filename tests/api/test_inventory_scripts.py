@@ -1,6 +1,6 @@
+import re
 import json
 import pytest
-import logging
 import common.tower.inventory
 import common.utils
 import common.exceptions
@@ -16,27 +16,27 @@ class Test_Inventory_Scripts(Base_Api_Test):
     '''
     def test_post(self, api_inventory_scripts_pg, inventory_script):
         '''
-        Verify POST
+        Verify succesful POST to /inventory_scripts
         '''
         # if we make it through the fixures, post worked
         assert True
 
     def test_get(self, api_inventory_scripts_pg, inventory_script):
         '''
-        Verify GET
+        Verify succesful GET to /inventory_scripts
         '''
         inventory_script.get()
 
     def test_duplicate(self, api_inventory_scripts_pg, inventory_script):
         '''
-        Verify POST duplicate
+        Verify response when POSTing a duplicate to /inventory_scripts
         '''
         with pytest.raises(common.exceptions.Duplicate_Exception):
             api_inventory_scripts_pg.post(inventory_script.json)
 
     def test_filter(self, api_inventory_scripts_pg, inventory_script):
         '''
-        Verify GET
+        Verify filters with the GET resource
         '''
         # Issue GET against /inventory_scripts/ endpoint
         for attr in ('id', 'name', 'description'):
@@ -47,6 +47,9 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 (attr, filter_results.count, 1)
 
     def test_put(self, api_inventory_scripts_pg, inventory_script):
+        '''
+        Verify successful PUT to /inventory_scripts/n
+        '''
         payload = dict(name=common.utils.random_unicode(),
                        description="Random inventory script - %s" % common.utils.random_unicode(),
                        script='#!/bin/bash\necho "%s"\n' % common.utils.random_unicode())
@@ -60,6 +63,9 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 (key, getattr(inventory_script, key), val)
 
     def test_patch(self, api_inventory_scripts_pg, inventory_script):
+        '''
+        Verify successful PATCH to /inventory_scripts/n
+        '''
         payload = dict(name=common.utils.random_unicode(),
                        description="Random inventory script - %s" % common.utils.random_unicode(),
                        script='#!/bin/bash\necho "%s"\n' % common.utils.random_unicode())
@@ -72,7 +78,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
 
     def test_delete(self, api_inventory_scripts_pg, inventory_script):
         '''
-        Verify POSTing an inventory script
+        Verify succesful DELETE to /inventory_scripts/n
         '''
 
         # delete script
@@ -84,3 +90,95 @@ class Test_Inventory_Scripts(Base_Api_Test):
 
         # query /inventory_sources endpoint for matching id
         assert api_inventory_scripts_pg.get(id=inventory_script.id).count == 0
+
+    def test_import(self, custom_inventory_source, api_unified_jobs_pg, inventory_script):
+        '''
+        Verify succesful inventory_update using a custom /inventory_script
+        '''
+
+        # POST inventory_update
+        update_pg = custom_inventory_source.get_related('update')
+        result = update_pg.post()
+
+        # assert JSON response
+        assert 'inventory_update' in result.json, "Unexpected JSON response when starting an inventory_update.\n%s" % \
+            json.dumps(result.json, indent=2)
+
+        # wait for inventory_update to complete
+        jobs_pg = api_unified_jobs_pg.get(id=result.json['inventory_update'])
+        assert jobs_pg.count == 1, "Unexpected number of inventory_updates found (%s != 1)" % jobs_pg.count
+        job_pg = jobs_pg.results[0].wait_until_completed()
+
+        # assert successful inventory_update
+        assert job_pg.is_successful, "Inventory update unsuccessful - %s " % job_pg
+
+        # assert imported groups
+        inv_pg = custom_inventory_source.get_related('inventory')
+        num_groups = inv_pg.get_related('groups', description='imported').count
+        assert num_groups > 0, "Unexpected number of groups (%s) created as a result of an inventory_update" % num_groups
+
+        # assert imported hosts
+        num_hosts = inv_pg.get_related('hosts', description='imported').count
+        assert num_hosts > 0, "Unexpected number of hosts were imported as a result of an inventory_update" % num_hosts
+
+        # assert expected environment variables
+        print json.dumps(job_pg.job_env, indent=2)
+        source_vars = json.loads(custom_inventory_source.source_vars)
+        for key, val in source_vars.items():
+            assert key in job_pg.job_env, "inventory_update.job_env missing expected environment variable '%s'" % key
+            if re.match(r'^[A-Z_]', key):
+                # assert existing shell environment variables are *not* replaced
+                assert job_pg.job_env[key] != val, "The reserved environment variable '%s' was incorrectly set ('%s' != '%s')" % \
+                    (key, job_pg.job_env[key], val)
+            else:
+                # assert new variables are set
+                assert job_pg.job_env[key] == val, "The environment variable '%s' was incorrectly set ('%s' != '%s')" % \
+                    (key, job_pg.job_env[key], val)
+
+    def test_import_failed(self, custom_inventory_source, api_unified_jobs_pg, inventory_script_no_json):
+        '''
+        Verify an inventory_update fails when using an inventory_script that does not emit json
+        '''
+
+        # PATCH inventory_source
+        custom_inventory_source.patch(source_script=inventory_script_no_json.id)
+
+        # POST inventory_update
+        update_pg = custom_inventory_source.get_related('update')
+        result = update_pg.post()
+
+        # assert JSON response
+        assert 'inventory_update' in result.json, "Unexpected JSON response when starting an inventory_update.\n%s" % \
+            json.dumps(result.json, indent=2)
+
+        # wait for inventory_update to complete
+        jobs_pg = api_unified_jobs_pg.get(id=result.json['inventory_update'])
+        assert jobs_pg.count == 1, "Unexpected number of inventory_updates found (%s != 1)" % jobs_pg.count
+        job_pg = jobs_pg.results[0].wait_until_completed()
+
+        # assert failed inventory_update
+        assert job_pg.status == 'failed', "Unexpected status on completed inventory_update (status:%s)" % job_pg.status
+
+    def test_import_error(self, custom_inventory_source, api_unified_jobs_pg, inventory_script_non_zero_exit):
+        '''
+        Verify an inventory_update fails when using an inventory_script that exits with a non-zero exit code
+        '''
+
+        # PATCH inventory_source
+        custom_inventory_source.patch(source_script=inventory_script_non_zero_exit.id)
+
+        # POST inventory_update
+        update_pg = custom_inventory_source.get_related('update')
+        result = update_pg.post()
+
+        # assert JSON response
+        assert 'inventory_update' in result.json, "Unexpected JSON response when starting an inventory_update.\n%s" % \
+            json.dumps(result.json, indent=2)
+
+        # wait for inventory_update to complete
+        jobs_pg = api_unified_jobs_pg.get(id=result.json['inventory_update'])
+        assert jobs_pg.count == 1, "Unexpected number of inventory_updates found (%s != 1)" % jobs_pg.count
+        job_pg = jobs_pg.results[0].wait_until_completed()
+
+        # assert failed inventory_update
+        assert job_pg.status == 'error', "Unexpected status on completed inventory_update (status:%s)" % job_pg.status
