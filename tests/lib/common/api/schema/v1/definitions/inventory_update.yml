@@ -32,7 +32,7 @@ inventory_update:
         schedule: {format: uri, type: string}
         stdout: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
-      required: [cancel, inventory_source, credential]
+      required: [cancel, inventory_source]
       type: object
     result_stdout: {type: string}
     result_traceback: {type: string}
