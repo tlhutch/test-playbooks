@@ -5,6 +5,7 @@
 '''
 
 import re
+import time
 import pytest
 import common.utils
 import common.exceptions
@@ -126,18 +127,25 @@ class Test_Projects(Base_Api_Test):
         # delete all the projects
         project_with_queued_updates.delete()
 
-        # assert no unified_jobs remain running
-        result = ansible_runner.shell(
-            "echo \"from awx.main.models import *; "
-            "print UnifiedJob.objects.filter(status__in=['running','waiting','pending'], unified_job_template={id}).count(); "
-            "print ['id:%s, status:%s' % (uj.id, uj.status) for uj in UnifiedJob.objects.filter(unified_job_template={id})]; \" "
-            "| tower-manage shell".format(id=project_with_queued_updates.id)
-        )
-        assert 'stdout' in result, "Unexpected response from ansible_runner.shell"
-        match = re.search(r'>>> (\d)\n', result['stdout'], re.MULTILINE)
-        if match is None or not match.group(1).isdigit():
-            raise Exception("Unhandled response from tower-manage: %s" % result['stdout'])
-        num_pending = match.group(1)
+        # assert no unified_jobs remain running.  Poll using tower-manage until
+        # queued project_updates have been removed.
+        attempts = 0
+        num_pending = -1
+        while attempts < 5 and num_pending != 0:
+            attempts += 1
+            time.sleep(2)
+            result = ansible_runner.shell(
+                "echo \"from awx.main.models import *; "
+                "print UnifiedJob.objects.filter(status__in=['running','waiting','pending'], unified_job_template={id}).count(); "
+                "print ['id:%s, status:%s' % (uj.id, uj.status) for uj in UnifiedJob.objects.filter(unified_job_template={id})]; \" "
+                "| tower-manage shell".format(id=project_with_queued_updates.id)
+            )
+            assert 'stdout' in result, "Unexpected response from ansible_runner.shell"
+            match = re.search(r'>>> (\d)\n', result['stdout'], re.MULTILINE)
+            if match is None or not match.group(1).isdigit():
+                raise Exception("Unhandled response from tower-manage: %s" % result['stdout'])
+            num_pending = match.group(1)
+
         assert int(num_pending) == 0, \
-            "A project (id:%d) was deleted, but a project_update (%s) remains queued/waiting/running" % \
-            (project_with_queued_updates.id, num_pending)
+            "A project (id:%d) was deleted, but %d project_update(s) remains queued/waiting/running (attempts:%d)" % \
+            (project_with_queued_updates.id, num_pending, attempts)
