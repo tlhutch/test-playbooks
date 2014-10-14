@@ -14,27 +14,27 @@ class Test_Inventory_Scripts(Base_Api_Test):
     '''
     Verifies basic CRUD operations against the /inventory_scripts endpoint
     '''
-    def test_post(self, ansible_runner, api_inventory_scripts_pg, inventory_script):
+    def test_post(self, api_inventory_scripts_pg, inventory_script):
         '''
         Verify POST
         '''
         # if we make it through the fixures, post worked
         assert True
 
-    def test_get(self, ansible_runner, api_inventory_scripts_pg, inventory_script):
+    def test_get(self, api_inventory_scripts_pg, inventory_script):
         '''
         Verify GET
         '''
         inventory_script.get()
 
-    def test_duplicate(self, ansible_runner, api_inventory_scripts_pg, inventory_script):
+    def test_duplicate(self, api_inventory_scripts_pg, inventory_script):
         '''
         Verify POST duplicate
         '''
         with pytest.raises(common.exceptions.Duplicate_Exception):
             api_inventory_scripts_pg.post(inventory_script.json)
 
-    def test_filter(self, ansible_runner, api_inventory_scripts_pg, inventory_script):
+    def test_filter(self, api_inventory_scripts_pg, inventory_script):
         '''
         Verify GET
         '''
@@ -46,7 +46,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "Filtering by %s returned unexpected number of results (%s != %s)" % \
                 (attr, filter_results.count, 1)
 
-    def test_put(self, ansible_runner, api_inventory_scripts_pg, inventory_script):
+    def test_put(self, api_inventory_scripts_pg, inventory_script):
         payload = dict(name=common.utils.random_unicode(),
                        description="Random inventory script - %s" % common.utils.random_unicode(),
                        script='#!/bin/bash\necho "%s"\n' % common.utils.random_unicode())
@@ -59,7 +59,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "Unexpected value for %s field ('%s' != '%s')" % \
                 (key, getattr(inventory_script, key), val)
 
-    def test_patch(self, ansible_runner, api_inventory_scripts_pg, inventory_script):
+    def test_patch(self, api_inventory_scripts_pg, inventory_script):
         payload = dict(name=common.utils.random_unicode(),
                        description="Random inventory script - %s" % common.utils.random_unicode(),
                        script='#!/bin/bash\necho "%s"\n' % common.utils.random_unicode())
@@ -70,7 +70,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "Unexpected value for %s field ('%s' != '%s')" % \
                 (key, getattr(inventory_script, key), val)
 
-    def test_delete(self, ansible_runner, tower_version_cmp, api_inventory_scripts_pg, inventory_script):
+    def test_delete(self, api_inventory_scripts_pg, inventory_script):
         '''
         Verify POSTing an inventory script
         '''
