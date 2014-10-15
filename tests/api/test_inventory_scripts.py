@@ -7,6 +7,29 @@ import common.exceptions
 from tests.api import Base_Api_Test
 
 
+bad_scripts = [
+    '''#!env python
+raise Exception("Fail!")
+''',
+    '''#!env python
+import sys
+sys.exit(1)
+''',
+    '''#!env python
+import json
+print json.dumps({})
+''']
+
+
+# @pytest.mark.script_source('#!env python\nraise Exception("fail!")\n') # traceback
+# @pytest.mark.script_source('#!env python\nimport sys\nsys.exit(1)\n')
+@pytest.fixture(scope="function", params=enumerate(bad_scripts))
+def bad_inventory_script(request, inventory_script):
+    inventory_script.script = request.param[1]
+    inventory_script.put()
+    return inventory_script
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -135,13 +158,15 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 assert job_pg.job_env[key] == val, "The environment variable '%s' was incorrectly set ('%s' != '%s')" % \
                     (key, job_pg.job_env[key], val)
 
-    def test_import_failed(self, custom_inventory_source, api_unified_jobs_pg, inventory_script_no_json):
+    # @pytest.mark.script_source('#!env python\nraise Exception("fail!")\n') # traceback
+    # @pytest.mark.script_source('#!env python\nimport sys\nsys.exit(1)\n')
+    def test_import_failure(self, custom_inventory_source, api_unified_jobs_pg, bad_inventory_script):
         '''
-        Verify an inventory_update fails when using an inventory_script that does not emit json
+        Verify an inventory_update fails when using various bad inventory_scripts
         '''
 
         # PATCH inventory_source
-        custom_inventory_source.patch(source_script=inventory_script_no_json.id)
+        custom_inventory_source.patch(source_script=bad_inventory_script.id)
 
         # POST inventory_update
         update_pg = custom_inventory_source.get_related('update')
@@ -157,28 +182,4 @@ class Test_Inventory_Scripts(Base_Api_Test):
         job_pg = jobs_pg.results[0].wait_until_completed()
 
         # assert failed inventory_update
-        assert job_pg.status == 'failed', "Unexpected status on completed inventory_update (status:%s)" % job_pg.status
-
-    def test_import_error(self, custom_inventory_source, api_unified_jobs_pg, inventory_script_non_zero_exit):
-        '''
-        Verify an inventory_update fails when using an inventory_script that exits with a non-zero exit code
-        '''
-
-        # PATCH inventory_source
-        custom_inventory_source.patch(source_script=inventory_script_non_zero_exit.id)
-
-        # POST inventory_update
-        update_pg = custom_inventory_source.get_related('update')
-        result = update_pg.post()
-
-        # assert JSON response
-        assert 'inventory_update' in result.json, "Unexpected JSON response when starting an inventory_update.\n%s" % \
-            json.dumps(result.json, indent=2)
-
-        # wait for inventory_update to complete
-        jobs_pg = api_unified_jobs_pg.get(id=result.json['inventory_update'])
-        assert jobs_pg.count == 1, "Unexpected number of inventory_updates found (%s != 1)" % jobs_pg.count
-        job_pg = jobs_pg.results[0].wait_until_completed()
-
-        # assert failed inventory_update
-        assert job_pg.status == 'error', "Unexpected status on completed inventory_update (status:%s)" % job_pg.status
+        assert not job_pg.is_successful, "Inventory update completed successfully, but was expected to fail  - %s " % job_pg
