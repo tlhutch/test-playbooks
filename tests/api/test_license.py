@@ -104,16 +104,9 @@ def install_license_aws(request, ansible_runner, license_instance_count, ami_id,
     ansible_runner.copy(src=fname, dest=tower_aws_path, owner='awx', group='awx', mode='0600')
 
 
-@pytest.fixture(scope="function", params=['org_admin', 'org_user', 'anonymous'])
-def non_admin_user(request, org_admin, org_user, anonymous_user):
-    if request.param == 'org_admin':
-        return org_admin
-    elif request.param == 'org_user':
-        return org_user
-    elif request.param == 'anonymous':
-        return anonymous_user
-    else:
-        raise Exception("Unhandled fixture parameter: %s" % request.param)
+@pytest.fixture(scope="function", params=['org_admin', 'org_user', 'anonymous_user'])
+def non_admin_user(request):
+    return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture(scope="function")

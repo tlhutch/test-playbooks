@@ -125,23 +125,9 @@ class Test_Job(Base_Api_Test):
 
 
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
-def cloud_credential(request, aws_credential, rax_credential, azure_credential, gce_credential, vmware_credential):
-    if request.param == 'aws':
-        return aws_credential
-    elif request.param == 'rax':
-        return rax_credential
-    elif request.param == 'azure':
-        return azure_credential
-    elif request.param == 'gce':
-        return gce_credential
-    elif request.param == 'vmware':
-        return vmware_credential
-    else:
-        raise Exception("Unhandled cloud credential type: %s" % request.param)
+def job_template_with_cloud_credential(request, job_template, host):
+    cloud_credential = request.getfuncargvalue(request.param + '_credential')
 
-
-@pytest.fixture(scope="function")
-def job_template_with_cloud_credential(request, job_template, host, cloud_credential):
     # PATCH the job_template with the correct inventory and cloud_credential
     job_template.patch(inventory=host.inventory,
                        cloud_credential=cloud_credential.id)
@@ -237,7 +223,7 @@ class Test_Update_On_Launch(Base_Api_Test):
         assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
 
     def test_inventory_multiple(self, job_template, aws_inventory_source, rax_inventory_source):
-        '''Verify that multiple inventory_update are triggered by job launch'''
+        '''Verify that multiple inventory_update's are triggered by job launch'''
 
         # 1) Set update_on_launch
         aws_inventory_source.patch(update_on_launch=True)

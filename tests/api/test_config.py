@@ -5,24 +5,14 @@ import common.exceptions
 from tests.api import Base_Api_Test
 
 
-@pytest.fixture(scope="function", params=['admin', 'org_admin'])
-def privileged_user(request, admin_user, org_admin):
-    if request.param == 'admin':
-        return admin_user
-    elif request.param == 'org_admin':
-        return org_admin
-    else:
-        raise Exception("Unhandled fixture parameter: %s" % request.param)
+@pytest.fixture(scope="function", params=['admin_user', 'org_admin'])
+def privileged_user(request):
+    return request.getfuncargvalue(request.param)
 
 
-@pytest.fixture(scope="function", params=['org_user', 'anonymous'])
-def unprivileged_user(request, org_user, anonymous_user):
-    if request.param == 'org_user':
-        return org_user
-    elif request.param == 'anonymous':
-        return anonymous_user
-    else:
-        raise Exception("Unhandled fixture parameter: %s" % request.param)
+@pytest.fixture(scope="function", params=['org_user', 'anonymous_user'])
+def unprivileged_user(request):
+    return request.getfuncargvalue(request.param)
 
 
 @pytest.mark.api

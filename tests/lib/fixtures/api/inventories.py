@@ -331,16 +331,5 @@ def custom_inventory_source(request, authtoken, custom_group):
 # Convenience fixture that iterates through supported cloud_groups
 #
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
-def cloud_group(request, aws_group, rax_group, azure_group, gce_group, vmware_group):
-    if request.param == 'aws':
-        return aws_group
-    elif request.param == 'rax':
-        return rax_group
-    elif request.param == 'azure':
-        return azure_group
-    elif request.param == 'gce':
-        return gce_group
-    elif request.param == 'vmware':
-        return vmware_group
-    else:
-        raise Exception("Unhandled cloud type: %s" % request.param)
+def cloud_group(request):
+    return request.getfuncargvalue(request.param + '_group')
