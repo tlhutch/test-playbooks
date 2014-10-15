@@ -3,8 +3,10 @@ import time
 import random
 import string
 
+
 class NoReloadError(Exception):
     pass
+
 
 def wait_until(obj, att, desired, callback=None, interval=5, attempts=0, timeout=0, start_time=None, verbose=False, verbose_atts=None):
     '''
@@ -63,6 +65,7 @@ def wait_until(obj, att, desired, callback=None, interval=5, attempts=0, timeout
                            interval=interval, attempts=attempts, timeout=timeout,
                            start_time=start_time, verbose=verbose, verbose_atts=verbose_atts)
 
+
 def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_time, verbose, verbose_atts):
     '''
     Loops until either the desired value of the attribute is reached, or the
@@ -103,6 +106,7 @@ def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_
         attempt += 1
     return obj
 
+
 def _print_state(obj, att, attval, elapsed, verbose_atts):
     msgs = ["Current value of %s: %s (elapsed: %4.1f seconds)" % (
             att, attval, elapsed)]
@@ -111,9 +115,11 @@ def _print_state(obj, att, attval, elapsed, verbose_atts):
         msgs.append("%s=%s" % (vatt, vattval))
     print " ".join(msgs)
 
+
 def random_int(maxint=sys.maxint):
     max = int(maxint)
     return random.randint(0, max)
+
 
 def _join_chars(chars, length):
     """
@@ -122,6 +128,7 @@ def _join_chars(chars, length):
     mult = (length / len(chars)) + 1
     mult_chars = chars * mult
     return "".join(random.sample(mult_chars, length))
+
 
 def random_unicode(length=10):
     """
@@ -135,6 +142,7 @@ def random_unicode(length=10):
     chars = u"".join([get_char() for ii in xrange(length)])
     return _join_chars(chars, length)
 
+
 def random_ascii(length=10):
     """
     Generates a random name; useful for testing.
@@ -144,11 +152,15 @@ def random_ascii(length=10):
     return _join_chars(string.ascii_letters, length)
 
 
+def random_ipv4():
+    """
+    Generates a random ipv4 address;; useful for testing.
+    """
+    return ".".join(str(random.randint(1, 255)) for i in range(4))
+
+
 def random_ipv6():
     """
     Generates a random ipv6 address;; useful for testing.
-
-    Returns an encoded string of the specified length containing unicode values
-    up to code point 1000.
     """
-    return ':'.join('{0:x}'.format(random.randint(0, 2**16 - 1)) for i in range(8))
+    return ':'.join('{0:x}'.format(random.randint(0, 2 ** 16 - 1)) for i in range(8))
