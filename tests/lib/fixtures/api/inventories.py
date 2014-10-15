@@ -13,12 +13,6 @@ def host_config_key():
     return str(uuid.uuid4())
 
 
-@pytest.fixture(scope="function")
-def random_ipv4(request):
-    '''Return a randomly generated ipv4 address.'''
-    return ".".join(str(random.randint(1, 255)) for i in range(4))
-
-
 @pytest.fixture(scope="class")
 def ansible_default_ipv4(request, ansible_facts):
     '''Return the ansible_default_ipv4 from ansible_facts of the system under test.'''
