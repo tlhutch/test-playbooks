@@ -12,6 +12,7 @@ schedule:
     modified: {format: date-time, type: string}
     name: {type: string}
     enabled: {type: boolean}
+    extra_data: {type: object}
     description: {type: string}
     dtstart: {format: date-time, type: ['null', string]}
     dtend: {format: date-time, type: ['null', string]}
