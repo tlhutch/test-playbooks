@@ -131,6 +131,7 @@ def script_source(request):
     # create script to generate inventory
     group_name = u"group-%s" % common.utils.random_unicode()
     script='''#!env python
+# -*- coding: utf-8 -*-
 import json
 inventory = dict()
 inventory['{0}'] = list()
