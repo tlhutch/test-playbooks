@@ -2,7 +2,8 @@
 job_env:
     additionalProperties: true
     properties:
-      HOME: {minLength: 1, pattern: ^/var/lib/awx$, type: string}
+      # HOME: {minLength: 1, pattern: ^/var/lib/awx$, type: string}
+      HOME: {minLength: 1, type: string}
       LANG: {minLength: 1, type: string}
       PATH: {minLength: 1, type: string}
       PWD: {minLength: 1, type: string}
