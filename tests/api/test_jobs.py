@@ -2,27 +2,75 @@ import pytest
 import json
 import common.tower.inventory
 import common.utils
+from dateutil.parser import parse as du_parse
 from tests.api import Base_Api_Test
 
 
 @pytest.fixture(scope="function")
+def job_template_proot_1(request, job_template_ansible_playbooks_git, host_local):
+    '''
+    Return a job_template for running the test_proot.yml playbook.
+    '''
+    payload = dict(name="playbook:test_proot.yml, random:%s" % (common.utils.random_unicode()),
+                   description="test_proot.yml - %s" % (common.utils.random_unicode()),
+                   playbook='test_proot.yml')
+    return job_template_ansible_playbooks_git.patch(**payload)
+
+
+@pytest.fixture(scope="function")
+def job_template_proot_2(request, organization, api_inventories_pg, api_job_templates_pg, job_template_proot_1):
+    '''
+    Create a job_template that uses the same playbook as job_template_proot_1,
+    but runs against a different inventory. By using a different inventory,
+    Tower will run job_template_proot_1 and job_template_proot_2 to run at the
+    same time.
+    '''
+    # create inventory
+    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
+                   description="Random inventory - %s" % common.utils.random_unicode(),
+                   organization=organization.id,)
+    inventory = api_inventories_pg.post(payload)
+    request.addfinalizer(inventory.delete)
+
+    # create host
+    payload = dict(name="local",
+                   description="a non-random local host",
+                   variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
+                   inventory=inventory.id,)
+    host_local = inventory.get_related('hosts').post(payload)
+    request.addfinalizer(host_local.delete)
+
+    # create duplicate job_template
+    payload = job_template_proot_1.json
+    payload.update(dict(name="playbook:test_proot.yml, random:%s" % (common.utils.random_unicode()),
+                        description="test_proot.yml - %s" % (common.utils.random_unicode()),
+                        inventory=inventory.id))
+    job_template_proot_2 = api_job_templates_pg.post(payload)
+    request.addfinalizer(job_template_proot_2.delete)
+    return job_template_proot_2
+
+
+@pytest.fixture(scope="function")
 def job_sleep(request, job_template_sleep):
-    # launch job
-    launch_pg = job_template_sleep.get_related('launch')
-    result = launch_pg.post()
-    job_id = result.json['job']
-    jobs_pg = job_template_sleep.get_related('jobs', id=job_id)
-    assert jobs_pg.count == 1, "Unexpeted number of jobs found for job_template id:%s (1 != %d)" % (job_template_sleep.id, jobs_pg.count)
-    return jobs_pg.results[0]
+    '''
+    Launch the job_template_sleep and return a job resource.
+    '''
+    return job_template_sleep.launch()
 
 
 @pytest.fixture(scope="function")
 def job_with_status_pending(request, job_sleep):
+    '''
+    Wait for job_sleep to move from new to queued, and return the job.
+    '''
     return job_sleep.wait_until_started()
 
 
 @pytest.fixture(scope="function")
 def job_with_status_running(request, job_sleep):
+    '''
+    Wait for job_sleep to move from queued to running, and return the job.
+    '''
     return job_sleep.wait_until_status('running')
 
 
@@ -60,15 +108,15 @@ class Test_Job(Base_Api_Test):
         # assert successful completion of job
         assert job_pg.is_successful, "Job unsuccessful - %s " % job_pg
 
-    # def test_no_such_playbook(self, utf8_template):
-
     def test_post_as_superuser(self, job_template, api_jobs_pg):
         '''
         Verify a superuser is able to create a job by POSTing to the /api/v1/jobs endpoint.
         '''
 
-        # POST a job
+        # post a job
         job_pg = api_jobs_pg.post(job_template.json)
+
+        # assert successful post
         assert job_pg.status == 'new'
 
     def test_post_as_user(self, org_admin, user_password, api_jobs_pg, job_template):
@@ -394,18 +442,52 @@ def AWX_PROOT_ENABLED(request, ansible_runner):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-@pytest.mark.skipif(True, reason="proot tests coming soon!")
+# @pytest.mark.skipif(True, reason="proot tests coming soon!")
 class Test_Job_Proot(Base_Api_Test):
     '''
-     Launch two jobs and assert that each job:
-         - can't see /var/lib/awx/projects (except for self)
-         - can't see /var/lib/awx/stdout
-         - can't see /tmp/ (except for self)
-         - can't see /etc/awx/settings.py
-         - can't see /var/log/
+    Tests to assert correctness while running with AWX_PROOT_ENABLED=True
     '''
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited', 'AWX_PROOT_ENABLED')
 
-    def test_job_isolation(self):
-        assert True
+    def test_job_isolation(self, job_template_proot_1, job_template_proot_2):
+        '''
+        Launch 2 jobs and verify that they each:
+         - complete successfully
+         - ran at the same time
+
+        The playbook used is test_proot.yml which attempts to examine
+        filesystem resources it should *NOT* have access to when
+        AWX_PROOT_ENABLED=True.  For example, it verifies:
+         - /var/lib/awx/projects/ - only a single directory exists for the current job
+         - /var/lib/awx/job_status/ - no files are present (job status isn't created until after a job completes)
+         - /tmp/ansible_tower_* - only a single matching directory exists
+         - /etc/awx/settings.py - No such file or directory
+         - /var/log/supervisor/* - Permission Denied
+        '''
+        # launch jobs
+        job_proot_1 = job_template_proot_1.launch()
+        job_proot_2 = job_template_proot_2.launch()
+
+        # wait for completion
+        job_proot_1 = job_proot_1.wait_until_completed(timeout=60 * 10)
+
+        # wait for completion
+        job_proot_2 = job_proot_2.wait_until_completed(timeout=60 * 10)
+
+        # assert successful completion of job
+        assert job_proot_1.is_successful, "Job unsuccessful - %s " % job_proot_1
+
+        # assert successful completion of job
+        assert job_proot_2.is_successful, "Job unsuccessful - %s " % job_proot_2
+
+        # assert that the two jobs ran at the same time
+        # assert that job#1 started before job#2 finished
+        assert du_parse(job_proot_1.started) < du_parse(job_proot_2.finished), \
+            "Job#1 (id:%s) started (%s) after job#2 (id:%s) finished (%s)" % \
+            (job_proot_1.id, job_proot_1.started, job_proot_2.id, job_proot_2.finished)
+
+        # assert that job#1 finished after job#2 started
+        assert du_parse(job_proot_1.finished) > du_parse(job_proot_2.started), \
+            "Job#1 (id:%s) started (%s) after job#2 (id:%s) finished (%s)" % \
+            (job_proot_1.id, job_proot_1.finished, job_proot_2.id, job_proot_2.started)
