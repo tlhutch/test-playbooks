@@ -442,7 +442,6 @@ def AWX_PROOT_ENABLED(request, ansible_runner):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-# @pytest.mark.skipif(True, reason="proot tests coming soon!")
 class Test_Job_Proot(Base_Api_Test):
     '''
     Tests to assert correctness while running with AWX_PROOT_ENABLED=True
