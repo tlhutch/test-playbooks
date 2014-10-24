@@ -226,6 +226,8 @@ class Task_Page(Base):
     job_explanation = property(json_getter('job_explanation'), json_setter('job_explanation'))
     created = property(json_getter('created'), json_setter('created'))
     modified = property(json_getter('modified'), json_setter('modified'))
+    started = property(json_getter('started'), json_setter('started'))
+    finished = property(json_getter('finished'), json_setter('finished'))
     launch_type = property(json_getter('launch_type'), json_setter('launch_type'))
     job_env = property(json_getter('job_env'), json_setter('job_env'))
 
