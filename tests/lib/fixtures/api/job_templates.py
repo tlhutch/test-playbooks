@@ -87,3 +87,8 @@ def job_template(request, authtoken, api_job_templates_pg, project, inventory, s
 @pytest.fixture(scope="function")
 def job_template_sleep(request, job_template_ansible_playbooks_git, host_local):
     return job_template_ansible_playbooks_git.patch(playbook='sleep.yml')
+
+
+@pytest.fixture(scope="function")
+def job_template_ping(request, job_template_ansible_playbooks_git, host_local):
+    return job_template_ansible_playbooks_git.patch(playbook='ping.yml')

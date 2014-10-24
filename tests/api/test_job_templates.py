@@ -6,11 +6,6 @@ from tests.api import Base_Api_Test
 
 
 @pytest.fixture(scope="function")
-def job_template_ping(request, job_template_ansible_playbooks_git, host_local):
-    return job_template_ansible_playbooks_git.patch(playbook='ping.yml')
-
-
-@pytest.fixture(scope="function")
 def job_template_no_credential(request, job_template_ping):
     return job_template_ping.patch(credential=None)
 
