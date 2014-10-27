@@ -16,6 +16,29 @@ def job_template_ask_variables_on_launch(request, job_template_ping):
 
 
 @pytest.fixture(scope="function")
+def missing_field_survey_specs(request):
+    '''
+    Returns a list of survey_spec's which should fail to post.
+    '''
+    return [dict(),
+            dict(description=common.utils.random_unicode(),
+                 spec=[dict(required=False,
+                            question_name="Enter your email &mdash; &euro;",
+                            variable="submitter_email",
+                            type="text",)]),
+            dict(name=common.utils.random_unicode(),
+                 spec=[dict(required=False,
+                            question_name="Enter your email &mdash; &euro;",
+                            variable="submitter_email",
+                            type="text",)]),
+            dict(name=common.utils.random_unicode(),
+                 description=common.utils.random_unicode()),
+            dict(name=common.utils.random_unicode(),
+                 description=common.utils.random_unicode(),
+                 spec=[])]
+
+
+@pytest.fixture(scope="function")
 def optional_survey_spec(request):
     payload = dict(name=common.utils.random_unicode(),
                    description=common.utils.random_unicode(),
@@ -230,3 +253,61 @@ class Test_Job_Template(Base_Api_Test):
         job_pg = jobs_pg.results[0].wait_until_completed()
         assert job_pg.status == 'canceled', \
             "Unexpected Job status (%s != 'canceled') after deleting job_template" % (job_pg.status)
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+class Test_Job_Template_Survey_Spec(Base_Api_Test):
+    '''
+    Test survey_creation
+    '''
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
+
+    def test_post_with_missing_fields(self, job_template_ping, missing_field_survey_specs):
+        '''
+        Verify the API does not allow survey creation when missing any or all
+        of the spec, name, or description fields.
+        '''
+        job_template_ping.patch(survey_enabled=True)
+
+        # assert failure on post
+        for payload in missing_field_survey_specs:
+            with pytest.raises(common.exceptions.BadRequest_Exception):
+                job_template_ping.get_related('survey_spec').post(payload)
+
+    def test_post_with_empty_name(self, job_template_ping):
+        '''
+        Verify the API allows a survey_spec with an empty name and description
+        '''
+        job_template_ping.patch(survey_enabled=True)
+        payload = dict(name='',
+                       description='',
+                       spec=[dict(required=False,
+                                  question_name=common.utils.random_unicode(),
+                                  question_description=common.utils.random_unicode(),
+                                  variable="submitter_email",
+                                  type="text",)])
+
+        # assert successful post
+        job_template_ping.get_related('survey_spec').post(payload)
+
+    def test_post_multiple(self, job_template_ping, optional_survey_spec, required_survey_spec):
+        '''
+        Verify the API allows posting survey_spec multiple times.
+        '''
+        job_template_ping.patch(survey_enabled=True)
+        # post a survey
+        survey_spec = job_template_ping.get_related('survey_spec')
+        survey_spec.post(optional_survey_spec)
+        # update resource
+        survey_spec.get()
+        assert survey_spec.name == optional_survey_spec['name']
+
+        # post another survey
+        job_template_ping.get_related('survey_spec').post(required_survey_spec)
+        survey_spec.post(required_survey_spec)
+        # update resource
+        survey_spec.get()
+        assert survey_spec.name == required_survey_spec['name']
