@@ -1,10 +1,20 @@
 import pytest
 import common.utils
 
+
 @pytest.fixture(scope="class")
 def organization(request, authtoken, api_organizations_pg):
     payload = dict(name="org-%s" % common.utils.random_unicode(),
                    description="Random organization - %s" % common.utils.random_unicode())
+    obj = api_organizations_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="class")
+def another_organization(request, authtoken, api_organizations_pg):
+    payload = dict(name="org-%s" % common.utils.random_unicode(),
+                   description="Another random organization - %s" % common.utils.random_unicode())
     obj = api_organizations_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj

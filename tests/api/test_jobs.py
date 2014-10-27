@@ -418,27 +418,6 @@ class Test_Update_On_Launch(Base_Api_Test):
             json.dumps(project_ansible_playbooks_git.json, indent=4)
 
 
-@pytest.fixture(scope="class")
-def AWX_PROOT_ENABLED(request, ansible_runner):
-    # update settings.py
-    result = ansible_runner.lineinfile(state='present', dest='/etc/tower/settings.py', regexp='^\s*AWX_PROOT_ENABLED\s*=', line='AWX_PROOT_ENABLED = True')
-    assert 'failed' not in result, "Failure while setting AWX_PROOT_ENABLED\n%s" % json.dumps(result, indent=2)
-
-    # restart ansible-tower
-    result = ansible_runner.service(name='ansible-tower', state='restarted')
-    assert 'failed' not in result, "Failure restarting ansible-tower\n%s" % json.dumps(result, indent=2)
-
-    def fin():
-        # restore settings.py
-        result = ansible_runner.lineinfile(state='absent', dest='/etc/tower/settings.py', regexp='^\s*AWX_PROOT_ENABLED\s*=')
-        assert 'failed' not in result, "Failure while removing AWX_PROOT_ENABLED\n%s" % json.dumps(result, indent=2)
-
-        # restart ansible-tower
-        result = ansible_runner.service(name='ansible-tower', state='restarted')
-        assert 'failed' not in result, "Failure restarting ansible-tower\n%s" % json.dumps(result, indent=2)
-    request.addfinalizer(fin)
-
-
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
