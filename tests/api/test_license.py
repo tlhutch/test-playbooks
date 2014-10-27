@@ -44,12 +44,21 @@ def install_trial_license(request, ansible_runner, license_instance_count, tower
 
 @pytest.fixture(scope='function')
 def license_json(request, license_instance_count):
-    return common.tower.license.generate_license(instance_count=license_instance_count, days=31)
+    return common.tower.license.generate_license(instance_count=license_instance_count,
+                                                 days=31,
+                                                 company_name=common.utils.random_unicode(),
+                                                 contact_name=common.utils.random_unicode(),
+                                                 contact_email="%s@example.com" % common.utils.random_unicode())
 
 
 @pytest.fixture(scope='function')
 def trial_license_json(request, license_instance_count):
-    return common.tower.license.generate_license(instance_count=license_instance_count, days=31, trial=True)
+    return common.tower.license.generate_license(instance_count=license_instance_count,
+                                                 days=31,
+                                                 trial=True,
+                                                 company_name=common.utils.random_unicode(),
+                                                 contact_name=common.utils.random_unicode(),
+                                                 contact_email="%s@example.com" % common.utils.random_unicode())
 
 
 @pytest.fixture(scope='class')
@@ -125,7 +134,12 @@ def inventory_no_free_instances(request, authtoken, api_config_pg, api_inventori
         hosts_pg.post(payload)
 
     # Install a license with instance_count=3
-    json = common.tower.license.generate_license(instance_count=3, trial=False, days=-1)
+    json = common.tower.license.generate_license(instance_count=3,
+                                                 days=-1,
+                                                 trial=False,
+                                                 company_name=common.utils.random_unicode(),
+                                                 contact_name=common.utils.random_unicode(),
+                                                 contact_email="%s@example.com" % common.utils.random_unicode())
     api_config_pg.post(json)
 
     return obj

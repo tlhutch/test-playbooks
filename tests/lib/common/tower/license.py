@@ -33,6 +33,8 @@ def generate_license(instance_count=20, contact_email="art@vandelay.com", compan
         '''
         return int(float(time.mktime(itime.timetuple())))
 
+    # TODO: default to random UTF-8 fields for company_name, company_email and
+    # contact_email
     # Generate license key (see ansible-commander/private/license_writer.py)
     meta = dict(instance_count=instance_count,
                 contact_email=contact_email,
@@ -51,7 +53,7 @@ def generate_license(instance_count=20, contact_email="art@vandelay.com", compan
 
     sha = hashlib.sha256()
     sha.update("ansibleworks.license.000")
-    sha.update(meta['company_name'])
+    sha.update(meta['company_name'].encode('utf-8'))
     sha.update(str(meta['instance_count']))
     sha.update(str(meta['license_date']))
 
