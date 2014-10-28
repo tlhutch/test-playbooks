@@ -1047,6 +1047,34 @@ job_templates:
       extra_vars:
         num_hosts: 100
 
+    - name: ansible-playbooks.git/fail_unless.yml
+      _launch: false
+      job_type: run
+      project: ansible-playbooks.git (github, ssh_key_data)
+      playbook: fail_unless.yml
+      inventory: local,
+      credential: SSH (user:bender_eng_user, ssh_key_data)
+      extra_vars:
+        fail: false
+
+    - name: ansible-playbooks.git/pass_unless.yml
+      _launch: false
+      job_type: run
+      project: ansible-playbooks.git (github, ssh_key_data)
+      playbook: pass_unless.yml
+      inventory: local,
+      credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)
+      extra_vars:
+        pass: true
+
+    - name: ansible-playbooks.git/sleep.yml
+      _launch: false
+      job_type: run
+      project: ansible-playbooks.git (github, ssh_key_data)
+      playbook: sleep.yml
+      inventory: local,
+      credential: SSH (user:bender_eng_user, sudo_password:***)
+
 schedules:
     - name: Update ansible-playbooks.git every 30 minutes
       _type: project
