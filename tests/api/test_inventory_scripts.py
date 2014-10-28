@@ -30,6 +30,26 @@ def bad_inventory_script(request, inventory_script):
     return inventory_script
 
 
+@pytest.fixture(scope="function")
+def custom_inventory_source_vars_good(request):
+    return dict(my_custom_boolean=True,
+                my_custom_integer=1,
+                my_custom_string="STRING")
+
+
+@pytest.fixture(scope="function")
+def custom_inventory_source_vars_bad(request):
+    return dict(HOME='BOGUS',
+                PATH='BOGUS',
+                _='BOGUS')
+
+
+@pytest.fixture(scope="function")
+def custom_inventory_source_with_vars(request, custom_inventory_source, custom_inventory_source_vars_good, custom_inventory_source_vars_bad):
+    custom_inventory_source.patch(source_vars=json.dumps(dict(custom_inventory_source_vars_good.items() + custom_inventory_source_vars_bad.items())))
+    return custom_inventory_source
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -114,13 +134,13 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # query /inventory_sources endpoint for matching id
         assert api_inventory_scripts_pg.get(id=inventory_script.id).count == 0
 
-    def test_import(self, custom_inventory_source, api_unified_jobs_pg, inventory_script):
+    def test_import(self, custom_inventory_source_with_vars, api_unified_jobs_pg, inventory_script, custom_inventory_source_vars_good, custom_inventory_source_vars_bad):
         '''
         Verify succesful inventory_update using a custom /inventory_script
         '''
 
         # POST inventory_update
-        update_pg = custom_inventory_source.get_related('update')
+        update_pg = custom_inventory_source_with_vars.get_related('update')
         result = update_pg.post()
 
         # assert JSON response
@@ -136,7 +156,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         assert job_pg.is_successful, "Inventory update unsuccessful - %s\n== script ==\n%s" % (job_pg, inventory_script.script)
 
         # assert imported groups
-        inv_pg = custom_inventory_source.get_related('inventory')
+        inv_pg = custom_inventory_source_with_vars.get_related('inventory')
         num_groups = inv_pg.get_related('groups', description='imported').count
         assert num_groups > 0, "Unexpected number of groups (%s) created as a result of an inventory_update" % num_groups
 
@@ -146,17 +166,25 @@ class Test_Inventory_Scripts(Base_Api_Test):
 
         # assert expected environment variables
         print json.dumps(job_pg.job_env, indent=2)
-        source_vars = json.loads(custom_inventory_source.source_vars)
-        for key, val in source_vars.items():
-            assert key in job_pg.job_env, "inventory_update.job_env missing expected environment variable '%s'" % key
-            if re.match(r'^[A-Z_]', key):
-                # assert existing shell environment variables are *not* replaced
-                assert job_pg.job_env[key] != val, "The reserved environment variable '%s' was incorrectly set ('%s' != '%s')" % \
-                    (key, job_pg.job_env[key], val)
-            else:
-                # assert new variables are set
-                assert job_pg.job_env[key] == val, "The environment variable '%s' was incorrectly set ('%s' != '%s')" % \
-                    (key, job_pg.job_env[key], val)
+
+        # assert existing shell environment variables are *not* replaced
+        for key, val in custom_inventory_source_vars_bad.items():
+            assert key in job_pg.job_env, "inventory_update.job_env missing" \
+                "expected environment variable '%s'" % key
+            # assert existing shell environment variables are *not* replaced
+            assert job_pg.job_env[key] != val, "The reserved environment " \
+                "variable '%s' was incorrectly set ('%s')" % \
+                (key, job_pg.job_env[key])
+
+        # assert environment variables are replaced
+        for key, val in custom_inventory_source_vars_good.items():
+            # assert the variable has been set
+            assert key in job_pg.job_env, "inventory_update.job_env missing" \
+                "expected environment variable '%s'" % key
+            # assert correct variable value
+            assert job_pg.job_env[key] == str(val), "The environment " \
+                "variable '%s' was incorrectly set ('%s' != '%s')" % \
+                (key, job_pg.job_env[key], val)
 
     # @pytest.mark.script_source('#!env python\nraise Exception("fail!")\n') # traceback
     # @pytest.mark.script_source('#!env python\nimport sys\nsys.exit(1)\n')

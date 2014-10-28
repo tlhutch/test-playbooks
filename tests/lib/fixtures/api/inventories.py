@@ -130,7 +130,7 @@ def script_source(request):
 
     # create script to generate inventory
     group_name = u"group-%s" % common.utils.random_unicode()
-    script='''#!env python
+    script='''#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
 inventory = dict()
@@ -281,14 +281,9 @@ def custom_group(request, authtoken, api_groups_pg, inventory, inventory_script)
     request.addfinalizer(obj.delete)
 
     # Set the inventory_source
-    source_vars = dict(my_inventory_source_variable=True,
-                       HOME='BOGUS',
-                       PATH='BOGUS',
-                       _='BOGUS')
     inv_source = obj.get_related('inventory_source')
     inv_source.patch(source='custom',
-                     source_script=inventory_script.id,
-                     source_vars=json.dumps(source_vars))
+                     source_script=inventory_script.id)
     return obj
 
 
