@@ -431,6 +431,44 @@ class Awx_Schema_Schedules_Jobs(Awx_Schema_Unified_Jobs):
 
 
 #
+# /system_job_templates
+#
+class Awx_Schema_System_Job_Templates(Awx_Schema):
+    resource = '/api/v1/system_job_templates/'
+
+    @property
+    def get(self):
+        return self.load_file('system_job_templates/list.yml')
+
+
+class Awx_Schema_System_Job_Template(Awx_Schema_System_Job_Templates):
+    resource = '/api/v1/system_job_templates/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('system_job_templates/item.yml')
+
+    @property
+    def patch(self):
+        return self.get
+
+    @property
+    def put(self):
+        return self.get
+
+
+#
+# /system_jobs
+#
+class Awx_Schema_System_Jobs(Awx_Schema):
+    resource = '/api/v1/system_jobs/'
+
+    @property
+    def get(self):
+        return self.load_file('tem_jobs/list.yml')
+
+
+#
 # /job_templates
 #
 class Awx_Schema_Job_Templates(Awx_Schema):

@@ -1,0 +1,2 @@
+enum_system_job_type:
+  enum: [cleanup_jobs, cleanup_deleted, cleanup_activitystream]

@@ -1,0 +1,8 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/system_job_templates/\d/'
+type: object
+additionalProperties: false
+$ref: '#/definitions/system_job_template'
+definitions:
+  !include '../definitions/*.yml'
