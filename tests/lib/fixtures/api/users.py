@@ -10,7 +10,6 @@ def admin_user(request, authtoken, api_users_pg):
 @pytest.fixture(scope="function")
 def user_password(request):
     return "password"
-    return common.utils.random_unicode()
 
 
 @pytest.fixture(scope="function")
@@ -81,6 +80,22 @@ def anonymous_user(request, authtoken, api_users_pg, user_password):
     obj = api_users_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
+
+@pytest.fixture(scope="function")
+def non_superusers(request, org_admin, org_user, anonymous_user):
+    '''
+    Return a list of non-superusers
+    '''
+    return (org_admin, org_user, anonymous_user)
+
+
+@pytest.fixture(scope="function", params=('org_admin', 'org_user', 'anonymous_user'))
+def non_superuser(request):
+    '''
+    Return the fixture for the specified request.param
+    '''
+    return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture(scope="function")
