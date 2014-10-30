@@ -2,7 +2,7 @@ import httplib
 import pytest
 import common.api
 import common.tower
-from common.api.pages import *
+from common.api.pages import *  # NOQA
 
 
 def navigate(api, url, field):
@@ -38,7 +38,7 @@ def api(testsetup):
 
 
 @pytest.fixture(scope="module")
-def api_home(request, api):
+def api_v1_url(request, api):
     '''
     Navigate the API and return a link to the base api for the requested version.
     For example, if --api-version=v1, returns string '/api/v1/'
@@ -60,12 +60,17 @@ def api_home(request, api):
         return available_versions.get(api_version)
 
 
+@pytest.fixture(scope="module")
+def api_v1_pg(testsetup, api_v1_url):
+    return Base(testsetup, base_url=api_v1_url).get()
+
+
 #
 # /api/v1/authtoken
 #
 @pytest.fixture(scope="module")
-def api_authtoken_url(api, api_home):
-    return navigate(api, api_home, 'authtoken')
+def api_authtoken_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'authtoken')
 
 
 @pytest.fixture(scope="module")
@@ -95,8 +100,8 @@ def authtoken(api, testsetup, api_authtoken_url):
 # /api/v1/dashboard
 #
 @pytest.fixture(scope="module")
-def api_dashboard_url(api, api_home):
-    return navigate(api, api_home, 'dashboard')
+def api_dashboard_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'dashboard')
 
 
 @pytest.fixture(scope="module")
@@ -108,8 +113,8 @@ def api_dashboard_pg(testsetup, api_dashboard_url):
 # /api/v1/config
 #
 @pytest.fixture(scope="module")
-def api_config_url(api, api_home):
-    return navigate(api, api_home, 'config')
+def api_config_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'config')
 
 
 @pytest.fixture(scope="module")
@@ -129,8 +134,8 @@ def tower_version_cmp(request, tower_version):
 
 
 @pytest.fixture(scope="module")
-def awx_config(api, api_home):
-    url = navigate(api, api_home, 'config')
+def awx_config(api, api_v1_url):
+    url = navigate(api, api_v1_url, 'config')
     r = api.get(url)
     assert r.status_code == httplib.OK
     return r.json()
@@ -140,8 +145,8 @@ def awx_config(api, api_home):
 # /api/v1/me
 #
 @pytest.fixture(scope="module")
-def api_me_url(api, api_home):
-    return navigate(api, api_home, 'me')
+def api_me_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'me')
 
 
 @pytest.fixture(scope="module")
@@ -153,8 +158,8 @@ def api_me_pg(testsetup, api_me_url):
 # /api/v1/organizations
 #
 @pytest.fixture(scope="module")
-def api_organizations_url(api, api_home):
-    return navigate(api, api_home, 'organizations')
+def api_organizations_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'organizations')
 
 
 @pytest.fixture(scope="module")
@@ -166,8 +171,8 @@ def api_organizations_pg(testsetup, api_organizations_url):
 # /api/v1/users
 #
 @pytest.fixture(scope="module")
-def api_users_url(api, api_home):
-    return navigate(api, api_home, 'users')
+def api_users_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'users')
 
 
 @pytest.fixture(scope="module")
@@ -179,8 +184,8 @@ def api_users_pg(testsetup, api_users_url):
 # /api/v1/teams
 #
 @pytest.fixture(scope="module")
-def api_teams_url(api, api_home):
-    return navigate(api, api_home, 'teams')
+def api_teams_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'teams')
 
 
 @pytest.fixture(scope="module")
@@ -192,8 +197,8 @@ def api_teams_pg(testsetup, api_teams_url):
 # /api/v1/projects
 #
 @pytest.fixture(scope="module")
-def api_projects_url(api, api_home):
-    return navigate(api, api_home, 'projects')
+def api_projects_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'projects')
 
 
 @pytest.fixture(scope="module")
@@ -205,8 +210,8 @@ def api_projects_pg(testsetup, api_projects_url):
 # /api/v1/credentials
 #
 @pytest.fixture(scope="module")
-def api_credentials_url(api, api_home):
-    return navigate(api, api_home, 'credentials')
+def api_credentials_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'credentials')
 
 
 @pytest.fixture(scope="module")
@@ -218,8 +223,8 @@ def api_credentials_pg(testsetup, api_credentials_url):
 # /api/v1/inventory
 #
 @pytest.fixture(scope="module")
-def api_inventories_url(api, api_home):
-    return navigate(api, api_home, 'inventory')
+def api_inventories_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'inventory')
 
 
 @pytest.fixture(scope="module")
@@ -231,8 +236,8 @@ def api_inventories_pg(testsetup, api_inventories_url):
 # /api/v1/inventory_sources
 #
 @pytest.fixture(scope="module")
-def api_inventory_sources_url(api, api_home):
-    return navigate(api, api_home, 'inventory_sources')
+def api_inventory_sources_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'inventory_sources')
 
 
 @pytest.fixture(scope="module")
@@ -244,8 +249,8 @@ def api_inventory_sources_pg(testsetup, api_inventory_sources_url):
 # /api/v1/inventory_scripts
 #
 @pytest.fixture(scope="module")
-def api_inventory_scripts_url(api, api_home):
-    return navigate(api, api_home, 'inventory_scripts')
+def api_inventory_scripts_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'inventory_scripts')
 
 
 @pytest.fixture(scope="module")
@@ -257,8 +262,8 @@ def api_inventory_scripts_pg(testsetup, api_inventory_scripts_url):
 # /api/v1/groups
 #
 @pytest.fixture(scope="module")
-def api_groups_url(api, api_home):
-    return navigate(api, api_home, 'groups')
+def api_groups_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'groups')
 
 
 @pytest.fixture(scope="module")
@@ -270,8 +275,8 @@ def api_groups_pg(testsetup, api_groups_url):
 # /api/v1/hosts
 #
 @pytest.fixture(scope="module")
-def api_hosts_url(api, api_home):
-    return navigate(api, api_home, 'hosts')
+def api_hosts_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'hosts')
 
 
 @pytest.fixture(scope="module")
@@ -283,8 +288,8 @@ def api_hosts_pg(testsetup, api_hosts_url):
 # /api/v1/job_templates
 #
 @pytest.fixture(scope="module")
-def api_job_templates_url(api, api_home):
-    return navigate(api, api_home, 'job_templates')
+def api_job_templates_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'job_templates')
 
 
 @pytest.fixture(scope="module")
@@ -296,8 +301,8 @@ def api_job_templates_pg(testsetup, api_job_templates_url):
 # /api/v1/schedules
 #
 @pytest.fixture(scope="module")
-def api_schedules_url(api, api_home):
-    return navigate(api, api_home, 'schedules')
+def api_schedules_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'schedules')
 
 
 @pytest.fixture(scope="module")
@@ -309,8 +314,8 @@ def api_schedules_pg(testsetup, api_schedules_url):
 # /api/v1/jobs
 #
 @pytest.fixture(scope="module")
-def api_jobs_url(api, api_home):
-    return navigate(api, api_home, 'jobs')
+def api_jobs_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'jobs')
 
 
 @pytest.fixture(scope="module")
@@ -322,8 +327,8 @@ def api_jobs_pg(testsetup, api_jobs_url):
 # /api/v1/unified_jobs
 #
 @pytest.fixture(scope="module")
-def api_unified_jobs_url(api, api_home):
-    return navigate(api, api_home, 'unified_jobs')
+def api_unified_jobs_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'unified_jobs')
 
 
 @pytest.fixture(scope="module")
@@ -335,13 +340,39 @@ def api_unified_jobs_pg(testsetup, api_unified_jobs_url):
 # /api/v1/unified_job_templates
 #
 @pytest.fixture(scope="module")
-def api_unified_job_templates_url(api, api_home):
-    return navigate(api, api_home, 'unified_job_templates')
+def api_unified_job_templates_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'unified_job_templates')
 
 
 @pytest.fixture(scope="module")
 def api_unified_job_templates_pg(testsetup, api_unified_job_templates_url):
     return Unified_Job_Templates_Page(testsetup, base_url=api_unified_job_templates_url)
+
+
+#
+# /api/v1/system_jobs
+#
+@pytest.fixture(scope="module")
+def api_system_jobs_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'system_jobs')
+
+
+@pytest.fixture(scope="module")
+def api_system_jobs_pg(testsetup, api_system_jobs_url):
+    return System_Jobs_Page(testsetup, base_url=api_system_jobs_url)
+
+
+#
+# /api/v1/system_job_templates
+#
+@pytest.fixture(scope="module")
+def api_system_job_templates_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'system_job_templates')
+
+
+@pytest.fixture(scope="module")
+def api_system_job_templates_pg(testsetup, api_system_job_templates_url):
+    return System_Job_Templates_Page(testsetup, base_url=api_system_job_templates_url)
 
 
 @pytest.fixture(scope="module")
