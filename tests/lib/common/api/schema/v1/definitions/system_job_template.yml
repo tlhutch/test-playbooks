@@ -2,7 +2,7 @@ system_job_template:
   additionalProperties: false
   properties:
     created: {format: date-time, type: string}
-    description: {type: string}
+    description: {$ref: '#/definitions/enum_system_job_template_description'}
     has_schedules: {type: boolean}
     id: {$ref: '#/definitions/id'}
     job_type: {$ref: '#/definitions/enum_system_job_type'}
@@ -11,7 +11,7 @@ system_job_template:
       format: date-time
       type: [string, 'null']
     modified: {format: date-time, type: string}
-    name: {type: string}
+    name: {$ref: '#/definitions/enum_system_job_template_name'}
     next_job_run:
       format: date-time
       type: [string, 'null']

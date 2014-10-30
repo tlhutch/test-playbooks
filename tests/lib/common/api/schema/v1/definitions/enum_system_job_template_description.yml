@@ -1,0 +1,6 @@
+---
+enum_system_job_template_description:
+  enum:
+    - "Run a job to delete jobs that are older than a given number of days"
+    - "Run a job to cleanup any deleted objects that are older than a given number of days"
+    - "Run a job to purge activity stream data that's older than a given number of days"

@@ -1,0 +1,6 @@
+---
+enum_system_job_template_name:
+  enum:
+    - "Delete Old Jobs"
+    - "Cleanup Deleted Data"
+    - "Cleanup Activity Stream"
