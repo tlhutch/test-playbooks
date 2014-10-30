@@ -121,6 +121,8 @@ class Base(Page):
                                                                       "was a duplicate object already exists: %s" % data)
         elif r.status_code == httplib.INTERNAL_SERVER_ERROR:
             raise common.exceptions.InternalServerError_Exception(exc_str + ": %s" % data)
+        elif r.status_code == httplib.METHOD_NOT_ALLOWED:
+            raise common.exceptions.Method_Not_Allowed_Exception(exc_str + ": %s" % data)
         else:
             raise common.exceptions.Unknown_Exception(exc_str + ": %s" % data)
 
