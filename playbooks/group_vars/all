@@ -8,4 +8,7 @@ delete_on_start: false
 # Instance name prefix.  Any deployed cloud instances will be prefixed with the
 # following string
 instance_name_prefix: 'testing'
+
+# Windows instance name prefix.  Any deployed cloud instances will be prefixed
+# with the following string:
 win_instance_name_prefix: 'testing'
