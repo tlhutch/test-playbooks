@@ -1,0 +1,6 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/system_job_templates/\d+/launch/'
+type: object
+additionalProperties: false
+properties: {}

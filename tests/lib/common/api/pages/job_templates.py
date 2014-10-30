@@ -9,7 +9,32 @@ class Job_Template_Callback_Page(base.Base):
     matching_hosts = property(base.json_getter('matching_hosts'), base.json_setter('matching_hosts'))
 
 
-class Job_Template_Page(base.Base):
+class Job_Template_Base_Page(base.Base):
+
+    def launch(self, **kwargs):
+        '''
+        Launch the job_template using related->launch endpoint
+        '''
+        # get related->launch
+        launch_pg = self.get_related('launch')
+
+        # assert can_start_without_user_input
+        assert launch_pg.can_start_without_user_input, \
+            "The specified job_template (id:%s) is not able to launch without user input.\n%s" % \
+            (launch_pg.id, json.dumps(launch_pg.json, indent=2))
+
+        # launch the job_template
+        result = launch_pg.post(**kwargs)
+
+        # return job
+        jobs_pg = self.get_related('jobs', id=result.json['job'])
+        assert jobs_pg.count == 1, \
+            "job_template launched (id:%s) but job not found in response at %s/jobs/" % \
+            (result.json['job'], self.url)
+        return jobs_pg.results[0]
+
+
+class Job_Template_Page(Job_Template_Base_Page):
     base_url = '/api/v1/job_templates/{id}/'
 
     url = property(base.json_getter('url'), base.json_setter('url'))
@@ -69,28 +94,6 @@ class Job_Template_Page(base.Base):
         start_pg.post(**kwargs)
 
         return job_pg
-
-    def launch(self, **kwargs):
-        '''
-        Launch the job_template using related->launch endpoint
-        '''
-        # get related->launch
-        launch_pg = self.get_related('launch')
-
-        # assert can_start_without_user_input
-        assert launch_pg.can_start_without_user_input, \
-            "The specified job_template (id:%s) is not able to launch without user input.\n%s" % \
-            (launch_pg.id, json.dumps(launch_pg.json, indent=2))
-
-        # launch the job_template
-        result = launch_pg.post(**kwargs)
-
-        # return job
-        jobs_pg = self.get_related('jobs', id=result.json['job'])
-        assert jobs_pg.count == 1, \
-            "job_template launched (id:%s) but job not found in response at %s/jobs/" % \
-            (result.json['job'], self.url)
-        return jobs_pg.results[0]
 
 
 class Job_Templates_Page(Job_Template_Page, base.Base_List):

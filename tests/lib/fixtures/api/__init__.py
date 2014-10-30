@@ -359,7 +359,8 @@ def api_system_jobs_url(api, api_v1_url):
 
 @pytest.fixture(scope="module")
 def api_system_jobs_pg(testsetup, api_system_jobs_url):
-    return System_Jobs_Page(testsetup, base_url=api_system_jobs_url)
+    # FIXME - this should be System_Jobs_Page
+    return Jobs_Page(testsetup, base_url=api_system_jobs_url)
 
 
 #

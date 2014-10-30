@@ -1,0 +1,52 @@
+system_job:
+  additionalProperties: false
+  properties:
+    created: {format: date-time, type: string}
+    description: {type: string}
+    elapsed: {type: number}
+    extra_vars: {type: string}
+    failed: {type: boolean}
+    finished:
+      format: date-time
+      type: [string, 'null']
+    id: {$ref: '#/definitions/id'}
+    job_args: {type: string}
+    job_cwd: {type: string}
+    job_env: {$ref: '#/definitions/job_env'}
+    job_explanation: {type: string}
+    job_type: {$ref: '#/definitions/enum_system_job_type'}
+    launch_type: {$ref: '#/definitions/enum_launch_type'}
+    modified: {format: date-time, type: string}
+    name: {type: string}
+    related:
+      additionalProperties: false
+      properties:
+        cancel: {format: uri, type: string}
+        created_by: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
+        schedule: {format: uri, type: string}
+        stdout: {format: uri, type: string}
+        system_job_template: {format: uri, type: string}
+        unified_job_template: {format: uri, type: string}
+      type: object
+    result_stdout: {type: string}
+    result_traceback: {type: string}
+    skip_tags: {type: string}
+    start_at_task: {type: string}
+    started:
+      format: date-time
+      type: [string, 'null']
+    status: {$ref: '#/definitions/enum_task_status'}
+    summary_fields:
+      additionalProperties: false
+      properties:
+        unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
+      type: object
+    system_job_template: {$ref: '#/definitions/id_or_null'}
+    type: {pattern: ^system_job$, type: string}
+    unified_job_template: {$ref: '#/definitions/id_or_null'}
+    url: {format: uri, type: string}
+  required: [id, url, created, modified, job_type, extra_vars, launch_type, started,
+    elapsed, finished, status, failed, related, summary_fields,
+    system_job_template, type, name, description, job_explanation]
+  type: object

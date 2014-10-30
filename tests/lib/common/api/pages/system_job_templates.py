@@ -1,7 +1,8 @@
 import base
+import job_templates
 
 
-class System_Job_Template_Page(base.Base):
+class System_Job_Template_Page(job_templates.Job_Template_Base_Page):
     base_url = '/api/v1/system_job_templates/{id}/'
 
     name = property(base.json_getter('name'), base.json_setter('name'))
@@ -16,6 +17,9 @@ class System_Job_Template_Page(base.Base):
             related = Schedules_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'launch':
             related = base.Base(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'jobs':
+            from jobs import Jobs_Page
+            related = Jobs_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get(**kwargs)

@@ -457,6 +457,22 @@ class Awx_Schema_System_Job_Template(Awx_Schema_System_Job_Templates):
         return self.get
 
 
+class Awx_Schema_System_Job_Template_Launch(Awx_Schema):
+    resource = '/api/v1/system_job_templates/\d+/launch/'
+
+    @property
+    def get(self):
+        return self.load_file('system_job_templates/launch.yml')
+
+    @property
+    def post(self):
+        return self.load_file('system_job_templates/launched.yml')
+
+
+class Awx_Schema_System_Job_Template_Jobs(Awx_Schema_Unified_Jobs):
+    resource = '/api/v1/system_job_templates/\d+/jobs/'
+
+
 #
 # /system_jobs
 #
@@ -466,6 +482,22 @@ class Awx_Schema_System_Jobs(Awx_Schema):
     @property
     def get(self):
         return self.load_file('system_jobs/list.yml')
+
+
+class Awx_Schema_System_Job(Awx_Schema_System_Jobs):
+    resource = '/api/v1/system_jobs/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('system_jobs/item.yml')
+
+    @property
+    def patch(self):
+        return self.post
+
+    @property
+    def put(self):
+        return self.post
 
 
 #
