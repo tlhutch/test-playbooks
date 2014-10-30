@@ -465,7 +465,7 @@ class Awx_Schema_System_Jobs(Awx_Schema):
 
     @property
     def get(self):
-        return self.load_file('tem_jobs/list.yml')
+        return self.load_file('system_jobs/list.yml')
 
 
 #
