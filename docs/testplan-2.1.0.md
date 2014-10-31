@@ -64,11 +64,28 @@
     4. [ ] Verify correct behavior when promoting a secondary
     5. [ ] Verify correct behavior when promoting a secondary while jobs are running
 
+### Feature: Multi-tenancy
+1. [x] Verify, when PROOT, a job is unable to view details from other jobs on disk.  Includes the following:
+     - /var/lib/awx/projects/ - only a single directory exists for the current job
+     - /var/lib/awx/job_status/ - no files are present (job status isn't created until after a job completes)
+     - /tmp/ansible_tower_* - only a single matching directory exists
+     - /etc/awx/settings.py - No such file or directory
+     - /var/log/supervisor/* - Permission Denied
+
 ### Feature: Portal Mode UI
+1. [ ] Add a survey showing all the question types
+1. [ ] Validate the survey can set variables
+1. [ ] Test all question types and constraints
+1. [ ] Ensure navigation from portal -> main -> portal works
+1. [ ] Makes sure there the “can_launch” behavior of the job API indicates when a survey is enabled
+1. [ ] Make sure disabling the survey doesn’t delete the survey
+1. [ ] Make sure survey has precedence over “prompt for variables”
+1. [ ] Make sure both prompt for variables and survey can be used seperately
+1. [ ] Make sure the API validates survey responses if submitted directly and not via API
 1. [ ] Verify portal URLs redirect after login
-2. [ ] Verify login after timeout redirects to portal
-3. [ ] Verify web-socket updates job status and job rows
-3. [ ] Verify web-socket updates job status and
+1. [ ] Verify login after timeout redirects to portal
+1. [ ] Verify web-socket updates job status and job rows
+1. [ ] Verify web-socket updates job status and
 
 ### Feature: Survey
 1. API
