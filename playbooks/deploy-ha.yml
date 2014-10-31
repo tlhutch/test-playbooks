@@ -1,0 +1,11 @@
+---
+#
+# Create remote hosts
+#
+- name: create instance(s)
+  hosts: local
+  roles:
+    - { role: create_ec2, ec2_images: [] }
+    - { role: create_rds }
+    - { role: save_inventory, inventory_file: 'inventory.ha' }
+

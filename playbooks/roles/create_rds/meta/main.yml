@@ -1,0 +1,3 @@
+dependencies:
+ - { role: setup_rds }
+ - { role: terminate_rds, skip_delete: 'not {{delete_on_start}}' }
