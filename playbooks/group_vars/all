@@ -10,7 +10,6 @@ delete_on_start: false
 instance_name_prefix: 'testing'
 
 # Available ec2_images
-# Use `nova image-list` to determine active images
 ec2_images:
     - {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-8997afe0', 'type': 'm3.medium' }
     # - {'name': 'centos-7.0-x86_64',   'user': 'root',        'id': 'ami-FIXME', 'type': 'm3.medium' }
