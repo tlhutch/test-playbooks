@@ -23,6 +23,10 @@
   template: src=tower_setup_conf.yml.j2 dest=/tmp/setup/tower_setup_conf.yml
   when: not is_awx_installed.stat.exists or awx_upgrade
 
+- name: create inventory
+  template: src=inventory.j2 dest=/tmp/setup/inventory
+  when: not is_awx_installed.stat.exists or awx_upgrade
+
 - name: create awx_vars.yaml
   template: src=awx_vars.yml.j2 dest=/tmp/setup/awx_vars.yaml
   when: not is_awx_installed.stat.exists or awx_upgrade
