@@ -7,5 +7,5 @@
   roles:
     - { role: create_ec2, ec2_images: [] }
     - { role: create_rds }
-    - { role: save_inventory, inventory_file: 'inventory.ha' }
+    - { role: save_inventory, my_inventory_file: '{{inventory_dir}}/inventory.ha' }
 
