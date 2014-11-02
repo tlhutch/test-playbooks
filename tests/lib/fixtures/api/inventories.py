@@ -129,7 +129,7 @@ def script_source(request):
         return script.args[0]
 
     # create script to generate inventory
-    group_name = u"group-%s" % common.utils.random_unicode()
+    group_name = u"group-%s" % common.utils.random_unicode().replace("'", "")
     script='''#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
@@ -137,7 +137,7 @@ inventory = dict()
 inventory['{0}'] = list()
 '''.format(group_name)
     for i in range(5):
-        script += "inventory['{0}'].append('host-{1}')\n".format(group_name, common.utils.random_unicode())
+        script += "inventory['{0}'].append('host-{1}')\n".format(group_name, common.utils.random_unicode().replace("'", ""))
     script += "print json.dumps(inventory)\n"
     return script
 
