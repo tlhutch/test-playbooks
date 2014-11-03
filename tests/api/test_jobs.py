@@ -119,14 +119,15 @@ class Test_Job(Base_Api_Test):
         # assert successful post
         assert job_pg.status == 'new'
 
-    def test_post_as_user(self, org_admin, user_password, api_jobs_pg, job_template):
+    def test_post_as_non_superuser(self, non_superusers, user_password, api_jobs_pg, job_template):
         '''
         Verify a non-superuser is unable to create a job by POSTing to the /api/v1/jobs endpoint.
         '''
 
-        with self.current_user(org_admin.username, user_password):
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                api_jobs_pg.post(job_template.json)
+        for non_superuser in non_superusers:
+            with self.current_user(non_superuser.username, user_password):
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    api_jobs_pg.post(job_template.json)
 
     @pytest.mark.skipif(True, reason="not yet implemented")
     def test_relaunch(self):
