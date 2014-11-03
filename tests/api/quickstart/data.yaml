@@ -71,7 +71,7 @@ users:
       email: ansible_user@ansible.com
       password: password
       first_name: Bender
-      last_name: User1
+      last_name: User
       is_superuser: False
 
     - username: ansible_admin
