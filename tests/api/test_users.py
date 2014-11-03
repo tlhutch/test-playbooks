@@ -3,6 +3,7 @@
 # 2) Verify credentials, owned by the user, are removed upon DELETE
 '''
 
+import json
 import pytest
 import common.utils
 import common.exceptions
@@ -108,6 +109,48 @@ class Test_Users(Base_Api_Test):
                 "organization, despite the default setting " \
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:True" % \
                 (matching_non_org_users.count,)
+
+    def test_superuser_can_create_superuser(self, superuser):
+        '''
+        Verify that a superuser can create other superusers.
+        '''
+        assert superuser.is_superuser, "Failed to create a superuser"
+
+    def test_non_superuser_cannot_create_a_superuser(self, user_password, api_users_pg, non_superuser):
+        '''
+        Verify that only a superuser can create superusers by issuing a POST to
+        the /api/v1/users endpoint.
+        '''
+
+        def payload():
+            return dict(username="super_user_%s" % common.utils.random_ascii(),
+                        first_name="Joe (%s)" % common.utils.random_unicode(),
+                        last_name="Superuser (%s)" % common.utils.random_unicode(),
+                        email="super_user_%s@example.com" % common.utils.random_ascii(),
+                        password=user_password,
+                        is_superuser=True)
+
+        with self.current_user(non_superuser.username, user_password):
+            # assert a non-superuser cannot create a superuser
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                api_users_pg.post(payload())
+
+    def test_non_superuser_cannot_elevate_to_a_superuser(self, user_password, api_users_pg, non_superuser):
+        '''
+        Verify that non-superusers cannot elevate their privileges by issuing a
+        PATCH or PUT request with is_superuser=True.
+        '''
+
+        with self.current_user(non_superuser.username, user_password):
+
+            # assert a non-superuser cannot elevate to a superuser
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                non_superuser.patch(is_superuser=True)
+
+            # assert a non-superuser cannot elevate to a superuser
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                non_superuser.is_superuser = True
+                non_superuser.put()
 
 
 @pytest.mark.api

@@ -116,6 +116,14 @@ class Awx_Schema_User(Awx_Schema_Users):
     def get(self):
         return self.load_file('users/item.yml')
 
+    @property
+    def patch(self):
+        return self.get
+
+    @property
+    def put(self):
+        return self.get
+
 
 class Awx_Schema_Team_Users(Awx_Schema_Users):
     resource = '/api/v1/teams/\d+/users/'

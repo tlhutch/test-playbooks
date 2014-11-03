@@ -83,6 +83,19 @@ def anonymous_user(request, authtoken, api_users_pg, user_password):
 
 
 @pytest.fixture(scope="function")
+def superuser(request, authtoken, api_users_pg, user_password):
+    payload = dict(username="superuser_%s" % common.utils.random_ascii(),
+                   first_name="Joe (%s)" % common.utils.random_unicode(),
+                   last_name="Superuser (%s)" % common.utils.random_unicode(),
+                   email="super_user_%s@example.com" % common.utils.random_ascii(),
+                   password=user_password,
+                   is_superuser=True)
+    obj = api_users_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
 def non_superusers(request, org_admin, org_user, anonymous_user):
     '''
     Return a list of non-superusers
