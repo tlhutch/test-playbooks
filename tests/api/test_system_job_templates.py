@@ -31,7 +31,6 @@ class Test_System_Job_Template(Base_Api_Test):
     '''
     Verify actions with system_job_templates
 
-    TODO - launch as non-superuser
     TODO - verify schedules
     '''
 
@@ -72,7 +71,7 @@ class Test_System_Job_Template(Base_Api_Test):
         with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
             system_job_template.patch()
 
-    def test_launch(self, system_job_template):
+    def test_launch_as_superuser(self, system_job_template):
         '''
         Verify successful launch of a system_job_template
         '''
@@ -83,3 +82,14 @@ class Test_System_Job_Template(Base_Api_Test):
 
         job_pg = system_job_template.get_related('jobs', id=result.json['system_job']).results[0].wait_until_completed()
         assert job_pg.is_successful, job_pg
+
+    def test_launch_as_non_superuser(self, system_job_template, non_superusers, user_password):
+        '''
+        Verify launch fails when attempted by a non-superuser
+        '''
+
+        launch_pg = system_job_template.get_related('launch')
+        for non_superuser in non_superusers:
+            with self.current_user(non_superuser.username, user_password):
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    launch_pg.post()
