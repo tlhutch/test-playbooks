@@ -133,7 +133,7 @@ class Test_Projects(Base_Api_Test):
         num_pending = -1
         while attempts < 5 and num_pending != 0:
             attempts += 1
-            time.sleep(2)
+            time.sleep(5)
             result = ansible_runner.shell(
                 "echo \"from awx.main.models import *; "
                 "print UnifiedJob.objects.filter(status__in=['running','waiting','pending'], unified_job_template={id}).count(); "
@@ -147,5 +147,5 @@ class Test_Projects(Base_Api_Test):
             num_pending = match.group(1)
 
         assert int(num_pending) == 0, \
-            "A project (id:%d) was deleted, but %d project_update(s) remains queued/waiting/running (attempts:%d)" % \
+            "A project (id:%d) was deleted, but %s project_update(s) remains queued/waiting/running (attempts:%s)" % \
             (project_with_queued_updates.id, num_pending, attempts)
