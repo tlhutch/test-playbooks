@@ -1065,7 +1065,7 @@ job_templates:
       inventory: local,
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)
       extra_vars:
-        pass: true
+        fail: false
 
     - name: ansible-playbooks.git/sleep.yml
       _launch: false
