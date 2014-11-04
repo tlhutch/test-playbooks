@@ -1,0 +1,6 @@
+---
+# Use `azure vm image list` to list available images
+azure_images:
+    - {'name': 'centos-6.5-x86_64',   'role_size': 'Basic_A2',  'image': '0b11de9248dd4d87b18621318e037d37__RightImage-CentOS-6.5-x64-v13.5.3' }
+    - {'name': 'ubuntu-12.04-x86_64', 'role_size': 'Basic_A2',  'image': 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-12_04_4-LTS-amd64-server-20140717-en-us-30GB' }
+    - {'name': 'ubuntu-14.04-x86_64', 'role_size': 'Basic_A2',  'image': 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04-LTS-amd64-server-20140724-en-us-30GB' }

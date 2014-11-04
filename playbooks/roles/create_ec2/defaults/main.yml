@@ -9,5 +9,7 @@ ec2_security_group: 'AWX' # sg-b05be0db
 ec2_key_name: 'jenkins'
 ec2_public_key: '~/.ssh/id_rsa.pub'
 ec2_name_prefix: '{{ instance_name_prefix }}'
-# ec2_images are defined in group_vars/all since they are needed by multiple roles
-# ec2_images: []
+
+# default list of images
+ec2_images: []
+

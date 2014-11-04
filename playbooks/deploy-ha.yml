@@ -5,7 +5,11 @@
 - name: create instance(s)
   hosts: local
   roles:
-    - { role: create_ec2, ec2_images: [] }
-    - { role: create_rds }
-    - { role: save_inventory, my_inventory_file: '{{inventory_dir}}/inventory.ha' }
-
+    - role: create_ec2
+      ec2_images:
+        - {'name': 'primary-centos-6.5-x86_64',     'user': 'root',     'id': 'ami-8997afe0', 'type': 'm3.medium' }
+        - {'name': 'secondary-ubuntu-12.04-x86_64', 'user': 'root',     'id': 'ami-2ccc7a44', 'type': 'm3.medium' }
+        - {'name': 'secondary-ubuntu-14.04-x86_64', 'user': 'ubuntu',   'id': 'ami-8caa1ce4', 'type': 'm3.medium' }
+    - role: create_rds
+    - role: save_inventory
+      my_inventory_file: '{{inventory_dir}}/inventory.ha'

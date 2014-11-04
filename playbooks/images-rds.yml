@@ -1,0 +1,3 @@
+---
+rds_images:
+    - {'name': 'postgres', 'db_engine': 'postgres', 'db_name': 'awx', 'instance_type': '{{rds_instance_type}}', 'size': '{{rds_size}}'}

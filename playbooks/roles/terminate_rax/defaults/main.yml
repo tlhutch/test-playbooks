@@ -14,6 +14,6 @@ rax_public_key: ~/.ssh/id_rsa.pub
 rax_meta:
     group: 'jenkins-nightly'
 
+# default list of images
 # Use `nova image-list` to determine active images
-# rax_images are defined in group_vars/all since they are needed by multiple roles
-# rax_images: []
+rax_images: []

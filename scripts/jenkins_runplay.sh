@@ -22,7 +22,7 @@ gen_passwd() {
 filter_images() {
     # $1 = [ec2,rax,gce,azure]
     # $2 = [all,rhel,ubuntu,centos]
-    python -c "import yaml; data = yaml.load(open('playbooks/group_vars/all','r')); print [i for i in data['${1}_images'] if '${2}' in i['name']]"
+    python -c "import yaml; data = yaml.load(open('playbooks/images-${1}.yml','r')); print [i for i in data['${1}_images'] if '${2}' in i['name']]"
 }
 
 # Determine which playbook was requested

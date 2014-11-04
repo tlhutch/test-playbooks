@@ -1,0 +1,14 @@
+---
+ec2_public_key: '~/.ssh/id_rsa.jenkins.pub'
+
+ec2_images:
+    - {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-8997afe0', 'type': 'm3.medium' }
+    # - {'name': 'centos-7.0-x86_64',   'user': 'root',        'id': 'ami-FIXME', 'type': 'm3.medium' }
+    - {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-8d756fe4', 'type': 'm3.medium' }
+    - {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-785bae10', 'type': 'm3.medium' }
+    - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-2ccc7a44', 'type': 'm3.medium' }
+    - {'name': 'ubuntu-12.10-x86_64', 'user': 'ubuntu',      'id': 'ami-fd4e4394', 'type': 'm3.medium' }
+    - {'name': 'ubuntu-13.10-x86_64', 'user': 'ubuntu',      'id': 'ami-7461a11c', 'type': 'm3.medium' }
+    - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-8caa1ce4', 'type': 'm3.medium' }
+    - {'name': 'fedora-19-x86_64',    'user': 'fedora',      'id': 'ami-b22e5cdb', 'type': 'm3.medium' }
+    - {'name': 'fedora-20-x86_64',    'user': 'fedora',      'id': 'ami-1337187a', 'type': 'm3.medium' }

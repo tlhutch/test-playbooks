@@ -10,3 +10,6 @@ gce_machine_type: n1-standard-1
 gce_service_account_email: ''
 gce_pem_file: ''
 gce_project_id: ''
+
+# default list of images
+gce_images: []
