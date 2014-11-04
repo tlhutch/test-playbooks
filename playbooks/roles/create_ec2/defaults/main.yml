@@ -1,8 +1,4 @@
 ---
-# If the desired image exists, the value of `skip` determines
-# whether to delete the existing image
-skip: true
-
 # AWS variables
 aws_url: 'https://ec2.amazonaws.com'
 aws_access_key: ''
