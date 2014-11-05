@@ -1,1 +1,10 @@
+{% if tower_db is defined %}
+database: external
+pg_database: {{tower_db.pg_database}}
+pg_host: {{tower_db.pg_host}}
+pg_username: {{tower_db.pg_username}}
+pg_password: {{tower_db.pg_password}}
+pg_port: {{tower_db.pg_port|default('5432')}}
+{% else %}
 database: internal
+{% endif %}
