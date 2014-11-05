@@ -9,7 +9,7 @@
 #
 # Dynamically create host groups based on 'distribution-version'
 #
-- hosts: '!local'
+- hosts: 'primary'
   tasks:
    - name: group hosts by distribution_major_version
      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
@@ -17,7 +17,7 @@
 #
 # Install AWX
 #
-- hosts: '!local'
+- hosts: 'primary'
   gather_facts: no
   sudo: yes
   roles:
