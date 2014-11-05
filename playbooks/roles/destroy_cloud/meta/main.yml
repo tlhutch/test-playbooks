@@ -3,3 +3,4 @@ dependencies:
 - { role: terminate_rax }
 - { role: terminate_gce }
 - { role: terminate_azure }
+- { role: terminate_rds }
