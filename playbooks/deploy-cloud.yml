@@ -28,15 +28,6 @@
       sudo_user: awx
       when: is_awx_installed|success
 
-    - name: restart awx-celeryd
-      supervisorctl: name=awx-celeryd state=restarted
+    - name: restart ansible-tower
+      service: name=ansible-tower state=restarted
       when: is_awx_installed|success
-
-    - name: restart awx-callback-receiver
-      supervisorctl: name=awx-callback-receiver state=restarted
-      when: is_awx_installed|success
-
-    - name: restart apache2
-      service: name=apache2 state=restarted
-      when: is_awx_installed|success
-
