@@ -69,9 +69,9 @@
   when: ec2_images and ec2 is defined
 
 - name: add_host
-  # add_host: name={{ ec2_name_prefix }}-{{ item.item.name }}
-  add_host: name={{ item.tagged_instances[0].public_dns_name }}
-     groups=cloud,ec2,{{ item.item.name }}
+  # add_host: name={{ item.tagged_instances[0].public_dns_name }}
+  add_host: name={{ ec2_name_prefix }}-{{ item.item.name }}
+     groups=cloud,ec2,{{ item.item.name }},{{item.item.groups|default('')}}
      ansible_ssh_user={{ item.item.user }}
      ansible_ssh_host={{ item.tagged_instances[0].public_dns_name }}
      # ansible_ssh_private_key_file={{ ec2_keypair_private }}
