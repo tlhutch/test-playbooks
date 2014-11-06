@@ -35,4 +35,6 @@
   command: ./setup.sh -e @awx_vars.yaml
      chdir=/tmp/setup
      # creates=/etc/tower/awx.cert
+  environment:
+    ANSIBLE_HOST_KEY_CHECKING: False
   when: not is_awx_installed.stat.exists or awx_upgrade
