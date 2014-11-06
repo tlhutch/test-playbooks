@@ -1,10 +1,13 @@
-{% for grp in groups %}
-[{{ grp }}]
-{% for host in groups[grp] %}
+[primary]
+localhost
+{% if 'secondary' in groups %}
+
+[secondary]
+{% for host in groups['secondary'] %}
 {% if host == '127.0.0.1' %}
 {{ host }} ansible_python_interpreter=${VIRTUAL_ENV-/usr}/bin/python
 {% else %}
 {{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
 {% endif %}
 {% endfor %}
-{% endfor %}
+{% endif %}
