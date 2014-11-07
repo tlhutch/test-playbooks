@@ -19,7 +19,10 @@
   when: ansible_distribution in ['RedHat', 'CentOS'] and ansible_distribution_major_version == '7'
 
 - name: determine if running in amazonaws
-  uri: url=http://169.254.169.254/latest/meta-data/ timeout=5
+  # NOTE: Using the the 'uri' module requires installing python-httplib2
+  # uri: url=http://169.254.169.254/latest/meta-data/ timeout=5
+  command: curl -m4 --fail -L http://169.254.169.254/latest/meta-data
+  changed_when: false
   ignore_errors: true
   register: is_amazonaws
 

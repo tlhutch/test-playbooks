@@ -3,7 +3,7 @@ ec2_public_key: '~/.ssh/id_rsa.jenkins.pub'
 
 ec2_images:
     - {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-8997afe0', 'type': 'm3.medium', 'groups': 'primary' }
-    - {'name': 'centos-7.0-x86_64',   'user': 'root',        'id': 'ami-96a818fe', 'type': 'm3.medium', 'groups': 'primary' }
+    - {'name': 'centos-7.0-x86_64',   'user': 'centos',      'id': 'ami-96a818fe', 'type': 'm3.medium', 'groups': 'primary' }
     - {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-8d756fe4', 'type': 'm3.medium', 'groups': 'primary' }
     - {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-785bae10', 'type': 'm3.medium', 'groups': 'primary' }
     - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-2ccc7a44', 'type': 'm3.medium', 'groups': 'primary' }
