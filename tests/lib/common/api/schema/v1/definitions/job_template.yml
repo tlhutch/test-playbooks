@@ -55,6 +55,7 @@ job_template:
     summary_fields:
       additionalProperties: false
       properties:
+        can_edit: {type: boolean}
         can_copy: {type: boolean}
         cloud_credential: {$ref: '#/definitions/summary_fields_credential'}
         credential: {$ref: '#/definitions/summary_fields_credential'}
