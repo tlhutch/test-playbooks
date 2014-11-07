@@ -1,5 +1,5 @@
 from selenium.webdriver.common.by import By
-from common.ui.pages import BaseRegion, Login_Page, User_Edit_Page
+from common.ui.pages import BaseRegion, Login_Page, User_Edit_Page, Portal_Page, Dashboard_Page
 from common.ui.pages.regions.lists import List_Region
 
 
@@ -14,6 +14,8 @@ class Account_Menu(BaseRegion):
     _related = {
         'About Tower': 'FIXME',
         'Account Settings': 'User_Edit_Page',
+        'Portal Mode': 'Portal_Page',
+        'Exit Portal': 'Dashboard_Page',
         'View License': 'FIXME',
         'Contact Support': 'FIXME',
         'Monitor Tower': 'FIXME',

@@ -11,3 +11,4 @@ from projects import *
 from inventories import *
 from job_templates import *
 from jobs import *
+from portal import *

@@ -74,7 +74,8 @@ class Login_Page(Base):
         # Wait for "busy" throbber to go away
         # self.wait_for_spinny()
 
-        # FIXME - This should return the correct redirected page
+        # FIXME - This should return the correct redirected page object
+        # self.get_current_page_path()
         from dashboard import Dashboard_Page
         return Dashboard_Page(self.testsetup)
 

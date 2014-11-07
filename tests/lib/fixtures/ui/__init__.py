@@ -29,6 +29,12 @@ def ui_dashboard_pg(home_page_logged_in):
 
 
 @pytest.fixture
+def ui_portal_pg(home_page_logged_in):
+    '''Navigate to Portal Mode and return it'''
+    return home_page_logged_in.account_menu.click('Portal Mode')
+
+
+@pytest.fixture
 def ui_organizations_pg(home_page_logged_in):
     '''Navigate to the Organizations tab and return it'''
     return home_page_logged_in.main_menu.click('Organizations')
