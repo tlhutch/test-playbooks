@@ -49,6 +49,8 @@ project_update:
         credential: {$ref: '#/definitions/summary_fields_credential'}
         unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
         schedule: {$ref: '#/definitions/summary_fields_schedule'}
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
       type: object
     url: {format: uri, type: string}
   required: [id, url, created, modified, project, status, failed, related,

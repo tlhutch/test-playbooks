@@ -42,6 +42,8 @@ host:
         total_groups: {minimum: 0, type: number}
         total_hosts: {minimum: 0, type: number}
         total_inventory_sources: {minimum: 0, type: number}
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
       required: [inventory]
       type: object
     url: {format: uri, type: string}

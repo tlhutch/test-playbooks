@@ -1,0 +1,7 @@
+---
+summary_fields_team:
+    additionalProperties: false
+    properties:
+      name: {type: string}
+      description: {type: string}
+    type: object

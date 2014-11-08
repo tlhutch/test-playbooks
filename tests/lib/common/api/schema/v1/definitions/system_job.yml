@@ -41,6 +41,7 @@ system_job:
       additionalProperties: false
       properties:
         unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
+        created_by: {$ref: '#/definitions/summary_fields_user'}
       type: object
     system_job_template: {$ref: '#/definitions/id_or_null'}
     type: {pattern: ^system_job$, type: string}

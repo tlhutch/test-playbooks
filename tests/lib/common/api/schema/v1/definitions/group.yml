@@ -38,6 +38,8 @@ group:
       properties:
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         inventory_source: {$ref: '#/definitions/summary_fields_source'}
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
       required: [inventory, inventory_source]
       type: object
     total_groups: {minimum: 0, type: number}
