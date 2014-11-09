@@ -3,11 +3,13 @@ $schema: http://json-schema.org/draft-04/schema#
 id: '/api/v1/job_templates/\d+/launch/'
 type: object
 additionalProperties: false
-required: [ask_variables_on_launch, survey_enabled, can_start_without_user_input, passwords_needed_to_start, variables_needed_to_start]
+required: [ask_variables_on_launch, credential_required, survey_enabled, can_start_without_user_input, passwords_needed_to_start, variables_needed_to_start]
 properties:
   ask_variables_on_launch:
     type: boolean
   can_start_without_user_input:
+    type: boolean
+  credential_required:
     type: boolean
   survey_enabled:
     type: boolean
