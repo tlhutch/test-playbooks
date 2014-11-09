@@ -13,7 +13,7 @@ job_template:
     has_schedules: {type: boolean}
     host_config_key: {type: string}
     id: {$ref: '#/definitions/id'}
-    inventory: {$ref: '#/definitions/id'}
+    inventory: {$ref: '#/definitions/id_or_null'}
     job_tags: {type: string}
     job_type: {$ref: '#/definitions/enum_job_job_type'}
     last_job_failed: {type: boolean}
@@ -26,8 +26,8 @@ job_template:
     next_job_run:
       format: date-time
       type: [string, 'null']
-    playbook: {pattern: .*\.(yaml|yml), type: string}
-    project: {$ref: '#/definitions/id'}
+    playbook: {pattern: '(^$|^.*\.(yaml|yml))', type: string}
+    project: {$ref: '#/definitions/id_or_null'}
     related:
       additionalProperties: false
       properties:
@@ -66,7 +66,8 @@ job_template:
         last_update: {$ref: '#/definitions/summary_fields_job'}
         project: {$ref: '#/definitions/summary_fields_project'}
         survey: {$ref: '#/definitions/summary_fields_survey'}
-      required: [inventory, project]
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
       type: object
     survey_enabled: {type: boolean}
     type: {pattern: ^job_template$, type: string}

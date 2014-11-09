@@ -51,6 +51,8 @@ inventory_update:
         credential: {$ref: '#/definitions/summary_fields_credential'}
         inventory_source: {$ref: '#/definitions/summary_fields_inventory_source'}
         schedule: {$ref: '#/definitions/summary_fields_schedule'}
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
         unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
       required: [inventory_source]
       type: object

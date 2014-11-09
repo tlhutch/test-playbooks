@@ -70,6 +70,8 @@ job:
         job_template: {$ref: '#/definitions/summary_fields_job_template'}
         project: {$ref: '#/definitions/summary_fields_project'}
         schedule: {$ref: '#/definitions/summary_fields_schedule'}
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
         unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
       type: object
     type: {$ref: '#/definitions/enum_job_type'}
