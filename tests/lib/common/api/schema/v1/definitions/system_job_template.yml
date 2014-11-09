@@ -27,6 +27,7 @@ system_job_template:
         schedule: {format: uri, type: string}
         schedules: {format: uri, type: string}
         survey_spec: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
       required: [jobs]
       type: object
     status: {$ref: '#/definitions/enum_job_template_status'}
@@ -38,6 +39,7 @@ system_job_template:
         last_job: {$ref: '#/definitions/summary_fields_job'}
         last_update: {$ref: '#/definitions/summary_fields_job'}
         survey: {$ref: '#/definitions/summary_fields_survey'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
       type: object
     survey_enabled: {type: boolean}
     type: {pattern: ^system_job_template$, type: string}
