@@ -443,6 +443,9 @@ class Test_Inventory_Schedules(Base_Api_Test):
       - org_admin can view/create/update/delete schedules
       - user can *only* view schedules
       - user w/ update perm can *only* view/create/update schedules
+
+    FIXME
+      - Verify interaction between schedule and cache_timeout
     '''
 
     def test_empty(self, inventory_source):
@@ -751,3 +754,34 @@ class Test_Inventory_Schedules(Base_Api_Test):
             api_schedules_pg.get(id__in=','.join([str(sid) for sid in schedule_ids])),
             'count', 0, interval=5, verbose=True, timeout=60 * 2)
         assert remaining_schedules.count == 0
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken')
+class Test_Job_Template_Schedules(Base_Api_Test):
+    '''
+    Test basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
+
+    Test schedule rrule support ...
+      1. valid should be accepted
+      2. invalid should return BadRequest
+
+    Test related->job_template is correct?
+
+    Create single schedule (rrule), verify ...
+      1. job_template.next_update is expected
+      2. job_template is launched at desired time
+
+    Create multiple schedules (rrules), verify ...
+      1. job_template.next_update is expected
+      2. job_template is launched at desired time
+
+    RBAC
+      - admin can view/create/update/delete schedules
+      - org_admin can view/create/update/delete schedules
+      - user can *only* view schedules
+      - user w/ update perm can *only* view/create/update schedules
+    '''
+
