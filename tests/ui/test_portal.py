@@ -1,6 +1,9 @@
 import pytest
+import urllib
 import common.utils
 from tests.ui import Base_UI_Test
+from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
 
 
 @pytest.mark.selenium
@@ -10,7 +13,7 @@ class Test_Portal(Base_UI_Test):
     pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
 
     def test_account_menu(self, ui_portal_pg):
-        '''Verify a navigating to /#/portal, and logging in, correctly returns the portal page'''
+        '''Verify a navigating to /#/portal, and logging in, correctly redirects the to the portal page'''
 
         # assert portal mode is the active tab
         assert ui_portal_pg.is_the_active_tab
@@ -21,7 +24,6 @@ class Test_Portal(Base_UI_Test):
         # assert the dashboard is the active tab
         assert dashboard_pg.is_the_active_tab
 
-    @pytest.mark.skipif(True, reason="FIXME - UI portal tests coming soon!")
     def test_redirect_after_timeout(self, ui_portal_pg):
         '''Verify a that login after an auth-token timeout, while viewing /#/portal page, returns the user to the portal page'''
 
@@ -29,11 +31,30 @@ class Test_Portal(Base_UI_Test):
         assert ui_portal_pg.is_the_active_tab
 
         # simulate a auth-cookie timeout
-        ui_portal_pg.selenium.delete_cookie('token')
-        # simulate a auth-cookie timeout
-        ui_portal_pg.selenium.refresh()
+        # get token_expires cookie
+        if True:
+            ui_portal_pg.selenium.delete_cookie('token')
+        else:
+            # set token_expires cookie
+            token_expires = ui_portal_pg.selenium.get_cookie('token_expires')
+            token_expires['value'] = urllib.unquote(token_expires['value'])
 
-        # FIXME - login
+            # delete token_expires cookie
+            ui_portal_pg.selenium.delete_cookie('token_expires')
+
+            # add modified token_expires
+            token_expires['value'] = parse(token_expires['value'], fuzzy=True) - relativedelta(hours=6)
+            token_expires['value'] = token_expires['value'].strftime('"%Y-%m-%dT%H:%M:%S.%fZ"')
+            ui_portal_pg.selenium.add_cookie(token_expires)
+
+        # refresh the page
+        ui_portal_pg.refresh()
+
+        # assert login prompt visible
+        assert ui_portal_pg.has_login_dialog, "Unable to find the login dialog as expected"
+
+        # login
+        ui_portal_pg.login_dialog.login()
 
         # assert portal mode is the active tab
         assert ui_portal_pg.is_the_active_tab
