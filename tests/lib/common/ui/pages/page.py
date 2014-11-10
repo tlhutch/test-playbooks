@@ -42,8 +42,13 @@ class Page(object):
         self.wait_for_spinny()
         self.is_the_current_page
 
+    def refresh(self):
+        '''Refresh the current page and return after spinny disappears.'''
+        self.selenium.refresh()
+        self.wait_for_spinny()
+
     def back(self):
-        '''Simulate clicking the browser 'Back' button'''
+        '''Simulate clicking the browser 'Back' button.'''
         self.selenium.back()
 
     @property
@@ -76,8 +81,6 @@ class Page(object):
         '''Return the path from the current selenium URL'''
         url = self.get_current_page_url()
         path = urlparse.urlparse(url, allow_fragments=False).path
-        if path.startswith('/#/'):
-            path = path[2:]
         return path
 
     def is_element_present(self, *locator):

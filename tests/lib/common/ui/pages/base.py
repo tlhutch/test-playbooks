@@ -21,10 +21,12 @@ class Base(Page):
         'Organization_Create_Page' -> Organization_Create_Page
         '''
 
-        assert name in self._related, \
-            "No such related resource defined '%s'" % name
-        name = self._related.get(name)
+        if name not in self._related:
+            log.warning("No related resource defined, using default '%s'" % default)
 
+        name = self._related.get(name, default)
+
+        # import desired module
         if '.' in name:
             modname = name[:name.rfind('.')]
             name = name[name.rfind('.') + 1:]
@@ -36,7 +38,6 @@ class Base(Page):
             return getattr(mod, name)
 
         log.warning("Module '%s' has no class '%s'" % (mod, name))
-        return default
 
     def go_to_login_page(self):
         self.selenium.get(self.base_url)
@@ -58,13 +59,22 @@ class Base(Page):
         return self.account_menu.click("Logout")
 
     @property
+    def has_alert_dialog(self):
+        return self.alert_dialog.is_displayed()
+
+    @property
     def alert_dialog(self):
         from common.ui.pages.regions.dialogs import Alert_Dialog
         return Alert_Dialog(self.testsetup)
 
     @property
-    def has_alert_dialog(self):
-        return self.alert_dialog.is_displayed()
+    def has_login_dialog(self):
+        return self.login_dialog.is_displayed()
+
+    @property
+    def login_dialog(self):
+        from common.ui.pages.login import Login_Page
+        return Login_Page(self.testsetup)
 
     @property
     def breadcrumb(self):
@@ -108,7 +118,7 @@ class Base(Page):
     @property
     def is_the_dashboard_page(self):
         '''Return whether the currently loaded page is the dashboard page'''
-        return self.get_current_page_path().startswith('/home')
+        return self.get_current_page_path().startswith('/#/home')
 
     @property
     def main_menu(self):

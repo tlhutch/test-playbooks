@@ -14,11 +14,18 @@ class Login_Page(Base):
         'login_btn': (By.CSS_SELECTOR, '#login-button'),
     }
 
-    _save_btn_locator = (By.CSS_SELECTOR, '#organization_save_btn')
-    _reset_btn_locator = (By.CSS_SELECTOR, '#organization_reset_btn')
+    _region_map = {
+        '/#/portal': 'Portal_Page',
+    }
 
     username = property(input_getter(_locators['username']), input_setter(_locators['username']))
     password = property(input_getter(_locators['password']), input_setter(_locators['password']))
+
+    def is_displayed(self):
+        '''
+        Return whether the login modal dialog is displayed.
+        '''
+        return self.login_btn.is_displayed()
 
     @property
     def is_the_current_page(self):
@@ -74,10 +81,9 @@ class Login_Page(Base):
         # Wait for "busy" throbber to go away
         # self.wait_for_spinny()
 
-        # FIXME - This should return the correct redirected page object
-        # self.get_current_page_path()
-        from dashboard import Dashboard_Page
-        return Dashboard_Page(self.testsetup)
+        # Return appropriate page object based on the current_page_path()
+        return self.get_related(self.get_current_page_path(),
+                                default='common.ui.pages.Dashboard_Page')(self.testsetup)
 
     def __set_login_fields(self, user='default'):
         credentials = self.testsetup.credentials['users'][user]
