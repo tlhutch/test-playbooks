@@ -135,7 +135,7 @@ class Test_Users(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 api_users_pg.post(payload())
 
-    def test_non_superuser_cannot_elevate_to_a_superuser(self, user_password, api_users_pg, non_superuser):
+    def test_non_superuser_cannot_elevate_privileges(self, user_password, api_users_pg, non_superuser):
         '''
         Verify that non-superusers cannot elevate their privileges by issuing a
         PATCH or PUT request with is_superuser=True.
