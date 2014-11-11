@@ -58,6 +58,9 @@ class Base_Api_Test(object):
 
     @contextlib.contextmanager
     def current_user(self, username, password):
+        '''
+        Context manager to allow running tests as an alternative login user.
+        '''
         try:
             previous_auth = self.api.session.auth
             self.api.login(username, password)
