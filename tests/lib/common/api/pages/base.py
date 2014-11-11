@@ -123,6 +123,8 @@ class Base(Page):
             raise common.exceptions.InternalServerError_Exception(exc_str + ": %s" % data)
         elif r.status_code == httplib.METHOD_NOT_ALLOWED:
             raise common.exceptions.Method_Not_Allowed_Exception(exc_str + ": %s" % data)
+        elif r.status_code == httplib.UNAUTHORIZED:
+            raise common.exceptions.Unauthorized_Exception(exc_str + ": %s" % data)
         else:
             raise common.exceptions.Unknown_Exception(exc_str + ": %s" % data)
 
