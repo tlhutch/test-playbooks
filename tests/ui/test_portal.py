@@ -24,7 +24,28 @@ class Test_Portal(Base_UI_Test):
         # assert the dashboard is the active tab
         assert dashboard_pg.is_the_active_tab
 
-    def test_redirect_after_timeout(self, ui_portal_pg):
+    # @pytest.mark.fixture_args(login=False)
+    def test_redirect_after_first_login(self, mozwebqa):
+        '''
+        Verify a that accessing Tower for the first time, using the
+        /#/portal URL, redirects to the portal page after successful login.
+        '''
+
+        # TODO: it'd be nice to have a fixture that returns the page object, but does *not* login
+        from common.ui.pages import Portal_Page
+        ui_portal_pg = Portal_Page(mozwebqa)
+        ui_portal_pg.open('/#/portal')
+
+        # assert login prompt visible
+        assert ui_portal_pg.has_login_dialog, "Unable to find the login dialog as expected"
+
+        # login
+        ui_portal_pg.login_dialog.login()
+
+        # assert portal mode is the active tab
+        assert ui_portal_pg.is_the_active_tab
+
+    def test_redirect_after_login_timeout(self, ui_portal_pg):
         '''Verify a that login after an auth-token timeout, while viewing /#/portal page, returns the user to the portal page'''
 
         # assert portal mode is the active tab
@@ -61,7 +82,7 @@ class Test_Portal(Base_UI_Test):
 
     @pytest.mark.skipif(True, reason="FIXME - UI portal tests coming soon!")
     def test_job_template_region(self):
-        '''Verify a that ob_templates region includes expected actions and links'''
+        '''Verify a that jobs region includes expected actions and links'''
 
     @pytest.mark.skipif(True, reason="FIXME - UI portal tests coming soon!")
     def test_jobs_region(self):
@@ -70,3 +91,11 @@ class Test_Portal(Base_UI_Test):
     @pytest.mark.skipif(True, reason="FIXME - UI portal tests coming soon!")
     def test_jobs_only_includes_playbook_runs(self):
         '''Verify a that jobs region only shows jobs of type=playbook_run'''
+
+    @pytest.mark.skipif(True, reason="FIXME - UI portal tests coming soon!")
+    def test_job_template_launch(self):
+        '''Verify expected behavior when launching a job_template within portal mode.'''
+
+    @pytest.mark.skipif(True, reason="FIXME - UI portal tests coming soon!")
+    def test_job_details(self):
+        '''Verify expected behavior when launching a job_template within portal mode.'''

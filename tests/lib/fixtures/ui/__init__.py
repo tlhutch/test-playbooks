@@ -1,5 +1,5 @@
 import pytest
-from common.ui.pages import Login_Page
+from common.ui.pages import Login_Page, Portal_Page
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def home_page_logged_in(ui_login_pg):
 
 @pytest.fixture
 def ui_dashboard_pg(home_page_logged_in):
-    '''Navigate to the Organizations tab and return it'''
+    '''Navigate to the Home tab and return it'''
     if home_page_logged_in.is_the_dashboard_page:
         return home_page_logged_in
     else:
@@ -29,9 +29,19 @@ def ui_dashboard_pg(home_page_logged_in):
 
 
 @pytest.fixture
-def ui_portal_pg(home_page_logged_in):
-    '''Navigate to Portal Mode and return it'''
-    return home_page_logged_in.account_menu.click('Portal Mode')
+def ui_portal_pg(request, mozwebqa):
+    '''Navigate to Portal Mode and return the corresponding page object.'''
+    # TODO - support overriding the login via a pytest marker
+    # This isn't well used or tested at the moment, but it would be nice to
+    # have a generic mechanism for returning a page object, without logging in.
+    fixture_args = getattr(request.function, 'fixture_args', None)
+    if fixture_args is None or fixture_args.kwargs.get('login', True):
+        home_page_logged_in = request.getfuncargvalue('home_page_logged_in')
+        return home_page_logged_in.account_menu.click('Portal Mode')
+    else:
+        obj = Portal_Page(mozwebqa)
+        obj.open("/#/portal")
+        return obj
 
 
 @pytest.fixture
