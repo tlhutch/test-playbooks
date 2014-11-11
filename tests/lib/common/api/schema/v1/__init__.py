@@ -865,7 +865,7 @@ class Awx_Schema_Me(Awx_Schema):
 
     @property
     def get(self):
-        return self.load_file('users/list.yml')
+        return self.load_file('me/list.yml')
 
 
 #

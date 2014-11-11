@@ -19,7 +19,8 @@ def org_admin(request, authtoken, organization, user_password):
                    last_name="Admin (%s)" % common.utils.random_unicode(),
                    email="org_admin_%s@example.com" % common.utils.random_ascii(),
                    password=user_password,
-                   organization=organization.id,)
+                   organization=organization.id,
+                   is_superuser=False)
     obj = organization.get_related('admins').post(payload)
     request.addfinalizer(obj.delete)
     # Add as organization user
@@ -93,6 +94,22 @@ def superuser(request, authtoken, api_users_pg, user_password):
     obj = api_users_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
+
+@pytest.fixture(scope="function")
+def all_users(request, superuser, org_admin, org_user, anonymous_user):
+    '''
+    Return a list of user types
+    '''
+    return (superuser, org_admin, org_user, anonymous_user)
+
+
+@pytest.fixture(scope="function", params=('superuser', 'org_admin', 'org_user', 'anonymous_user'))
+def all_user(request):
+    '''
+    Return the fixture for the specified request.param
+    '''
+    return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture(scope="function")
