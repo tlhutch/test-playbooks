@@ -14,7 +14,7 @@ class Test_Portal(Base_UI_Test):
     pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
 
     def test_account_menu(self, ui_portal_pg):
-        '''Verify a navigating to /#/portal, and logging in, correctly redirects the to the portal page'''
+        '''Verify the Portal page account_menu links behave as expected.'''
 
         # assert portal mode is the active tab
         assert ui_portal_pg.is_the_active_tab
