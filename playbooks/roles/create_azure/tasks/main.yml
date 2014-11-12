@@ -42,6 +42,5 @@
 
 # HACK: While sshd may be listening, it may not fully accept connections
 # immediately
-- name: sleep 30s
-  command: sleep 30s
+- pause: seconds=30
   when: azure_images and azure is defined and azure.changed
