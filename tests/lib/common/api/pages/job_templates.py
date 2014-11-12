@@ -1,5 +1,6 @@
 import json
 import base
+import common.utils
 
 
 class Job_Template_Callback_Page(base.Base):
@@ -32,6 +33,20 @@ class Job_Template_Base_Page(base.Base):
             "job_template launched (id:%s) but job not found in response at %s/jobs/" % \
             (result.json['job'], self.url)
         return jobs_pg.results[0]
+
+    def wait_until_started(self, interval=1, verbose=0, timeout=60):
+        '''Wait until a job has started'''
+        return common.utils.wait_until(
+            self, 'status',
+            ('new', 'pending', 'waiting', 'running',),
+            interval=interval, verbose=verbose, timeout=timeout)
+
+    def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 8):
+        '''Wait until a current job has completed'''
+        return common.utils.wait_until(
+            self, 'status',
+            ('successful', 'failed', 'error', 'canceled',),
+            interval=interval, verbose=verbose, timeout=timeout)
 
 
 class Job_Template_Page(Job_Template_Base_Page):
