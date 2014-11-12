@@ -92,3 +92,15 @@ def job_template_sleep(request, job_template_ansible_playbooks_git, host_local):
 @pytest.fixture(scope="function")
 def job_template_ping(request, job_template_ansible_playbooks_git, host_local):
     return job_template_ansible_playbooks_git.patch(playbook='ping.yml')
+
+
+@pytest.fixture(scope="function")
+def api_job_templates_options_json(request, authtoken, api_job_templates_pg):
+    '''Return job_template OPTIONS json'''
+    return api_job_templates_pg.options().json
+
+
+@pytest.fixture(scope="function")
+def job_template_status_choices(request, api_job_templates_options_json):
+    '''Return job_template statuses from OPTIONS'''
+    return dict(api_job_templates_options_json['actions']['GET']['status']['choices'])

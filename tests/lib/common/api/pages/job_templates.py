@@ -54,6 +54,7 @@ class Job_Template_Page(Job_Template_Base_Page):
 
     url = property(base.json_getter('url'), base.json_setter('url'))
     name = property(base.json_getter('name'), base.json_setter('name'))
+    status = property(base.json_getter('status'), base.json_setter('status'))
     description = property(base.json_getter('description'), base.json_setter('description'))
     inventory = property(base.json_getter('inventory'), base.json_setter('inventory'))
     project = property(base.json_getter('project'), base.json_setter('project'))

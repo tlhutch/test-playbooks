@@ -251,7 +251,7 @@ class Test_Portal_Job_Templates(Base_UI_Test):
             (ui_portal_pg.job_templates.pagination.total_items, 0)
         assert ui_portal_pg.job_templates.table.find_row("name", "No records matched your search.")
 
-    def test_job_template_launch(self, job_template, job_status_choices, ui_portal_pg):
+    def test_job_template_launch(self, job_template, job_template_status_choices, ui_portal_pg):
         '''Verify expected behavior when launching a job_template within portal mode.'''
         assert ui_portal_pg.is_the_active_tab
 
@@ -267,26 +267,31 @@ class Test_Portal_Job_Templates(Base_UI_Test):
         # launch job_template
         ui_portal_pg = match_row.launch.click('submit-action')
 
+        # assert the portal page is still active
+        assert ui_portal_pg.is_the_active_tab
+
         # FIXME - filter the jobs region for the desired job
 
-        # wait for project update to start
+        # wait for job to start
         job_template = job_template.wait_until_started()
 
-        # assert correct project status icon
+        # assert correct job status icon
         # FIXME - sometimes the API says running, but the UI shows 'icon-job-none'
+        # FIXME - job_template_status_choices isn't the right OPTIONS here.  I
+        # should be checking the job status, not job_template status
         job_status = ui_portal_pg.jobs.table.find_row('name', job_template.name).status.value
-        assert job_status == job_status_choices['running'], \
-            "Unexpected project status (%s != %s)" % \
-            (job_status, job_status_choices['running'])
+        assert job_status == job_template_status_choices['never updated'], \
+            "Unexpected job status (%s != %s)" % \
+            (job_status, job_template_status_choices['never updated'])
 
         # wait for job to complete
         job_template = job_template.wait_until_completed()
 
         # assert correct job status icon
-        job_status = projects_pg.table.find_row('name', job_template.name).status.value
-        assert job_status == job_status_choices['successful'], \
-            "Unexpected project status (%s != %s)" % \
-            (job_status, job_status_choices['successful'])
+        job_status = ui_portal_pg.jobs.table.find_row('name', job_template.name).status.value
+        assert job_status == job_template_status_choices['successful'], \
+            "Unexpected job status (%s != %s)" % \
+            (job_status, job_template_status_choices['successful'])
 
 
 @pytest.mark.selenium
