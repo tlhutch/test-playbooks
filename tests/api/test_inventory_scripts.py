@@ -169,7 +169,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
 
         # assert existing shell environment variables are *not* replaced
         for key, val in custom_inventory_source_vars_bad.items():
-            assert key in job_pg.job_env, "inventory_update.job_env missing" \
+            assert key in job_pg.job_env, "inventory_update.job_env missing " \
                 "expected environment variable '%s'" % key
             # assert existing shell environment variables are *not* replaced
             assert job_pg.job_env[key] != val, "The reserved environment " \
@@ -179,7 +179,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # assert environment variables are replaced
         for key, val in custom_inventory_source_vars_good.items():
             # assert the variable has been set
-            assert key in job_pg.job_env, "inventory_update.job_env missing" \
+            assert key in job_pg.job_env, "inventory_update.job_env missing " \
                 "expected environment variable '%s'" % key
             # assert correct variable value
             assert job_pg.job_env[key] == str(val), "The environment " \
