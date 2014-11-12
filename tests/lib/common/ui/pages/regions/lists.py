@@ -217,7 +217,6 @@ class Table_Region(PageRegion):
             '''return a status value based on the element class used.  The status should be valid API choices.'''
             el = self.find_element(*self._locators['status'])
             css_class = el.get_attribute('class')
-            print "STATUS CLASS: %s" % css_class
 
             success_candidates = ('success',)
             never_candidates = ('new', 'pending', 'waiting', 'none', 'never updated', 'ok')
@@ -375,6 +374,7 @@ class ActionList_Region(List_Region):
         '''
         el = self.get(name)
         el.click()
+        self.wait_for_spinny()
         if name in self._region_map:
             # FIXME - what else gets passed along here?
             return self._region_map[name](self.testsetup)
