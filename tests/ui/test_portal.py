@@ -251,18 +251,18 @@ class Test_Portal_Job_Templates(Base_UI_Test):
             (ui_portal_pg.job_templates.pagination.total_items, 0)
         assert ui_portal_pg.job_templates.table.find_row("name", "No records matched your search.")
 
-    def test_job_template_launch(self, job_template, job_template_status_choices, ui_portal_pg):
+    def test_job_template_launch(self, job_template_ping, job_status_choices, ui_portal_pg):
         '''Verify expected behavior when launching a job_template within portal mode.'''
         assert ui_portal_pg.is_the_active_tab
 
         # search for the desired job_template
-        ui_portal_pg.job_templates.search.search_value = job_template.name
+        ui_portal_pg.job_templates.search.search_value = job_template_ping.name
         ui_portal_pg = ui_portal_pg.job_templates.search.search_btn.click()
 
         # assert expected matching row
-        match_row = ui_portal_pg.job_templates.table.find_row('name', job_template.name)
+        match_row = ui_portal_pg.job_templates.table.find_row('name', job_template_ping.name)
         assert match_row, "Unable to find table row matching (%s=%s)" % \
-            ('name', job_template.name)
+            ('name', job_template_ping.name)
 
         # launch job_template
         ui_portal_pg = match_row.launch.click('submit-action')
@@ -273,25 +273,22 @@ class Test_Portal_Job_Templates(Base_UI_Test):
         # FIXME - filter the jobs region for the desired job
 
         # wait for job to start
-        job_template = job_template.wait_until_started()
+        job_template_ping = job_template_ping.wait_until_started()
 
         # assert correct job status icon
-        # FIXME - sometimes the API says running, but the UI shows 'icon-job-none'
-        # FIXME - job_template_status_choices isn't the right OPTIONS here.  I
-        # should be checking the job status, not job_template status
-        job_status = ui_portal_pg.jobs.table.find_row('name', job_template.name).status.value
-        assert job_status == job_template_status_choices['never updated'], \
+        match_row = ui_portal_pg.jobs.table.find_row('name', job_template_ping.name)
+        assert match_row.status.value == job_status_choices['pending'], \
             "Unexpected job status (%s != %s)" % \
-            (job_status, job_template_status_choices['never updated'])
+            (match_row.status.value, job_status_choices['pending'])
 
         # wait for job to complete
-        job_template = job_template.wait_until_completed()
+        job_template_ping = job_template_ping.wait_until_completed()
 
         # assert correct job status icon
-        job_status = ui_portal_pg.jobs.table.find_row('name', job_template.name).status.value
-        assert job_status == job_template_status_choices['successful'], \
+        match_row = ui_portal_pg.jobs.table.find_row('name', job_template_ping.name)
+        assert match_row.status.value == job_status_choices['successful'], \
             "Unexpected job status (%s != %s)" % \
-            (job_status, job_template_status_choices['successful'])
+            (match_row.status.value, job_status_choices['successful'])
 
 
 @pytest.mark.selenium
