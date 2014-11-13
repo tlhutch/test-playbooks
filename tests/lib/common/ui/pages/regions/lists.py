@@ -218,18 +218,16 @@ class Table_Region(PageRegion):
             el = self.find_element(*self._locators['status'])
             css_class = el.get_attribute('class')
 
-            success_candidates = ('success',)
-            never_candidates = ('new', 'pending', 'waiting', 'none', 'never updated', 'ok')
-            running_candidates = ('updating', 'running')
-            failed_candidates = ('failed', 'error', 'canceled', 'missing')
-            if any([candidate in css_class for candidate in success_candidates]):
-                return 'Successful'
-            elif any([candidate in css_class for candidate in never_candidates]):
+            if filter(lambda x: x in css_class, ('none', 'never updated', 'ok')):
                 return 'Never Updated'
-            elif any([candidate in css_class for candidate in running_candidates]):
+            elif filter(lambda x: x in css_class, ('new', 'pending', 'waiting')):
+                return 'Pending'
+            elif filter(lambda x: x in css_class, ('updating', 'running')):
                 return 'Running'
-            elif any([candidate in css_class for candidate in failed_candidates]):
-                return 'failed'
+            elif filter(lambda x: x in css_class, ('success',)):
+                return 'Successful'
+            elif filter(lambda x: x in css_class, ('failed', 'error', 'canceled', 'missing')):
+                return 'Failed'
 
             raise Exception("Unhandled status class: '%s'" % css_class)
 
