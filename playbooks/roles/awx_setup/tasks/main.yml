@@ -18,14 +18,19 @@
      regexp='^Defaults:root'
      line='Defaults:root !requiretty'
 
+# Newer tower setup playbooks (>= 2.1.0) require running ./configure first
+- name: determine if a configure script exists
+  stat: path=/tmp/setup/configure
+  register: has_configure
+
 - name: create tower_setup_conf.yml file
   template: src=tower_setup_conf.yml.j2 dest=/tmp/setup/tower_setup_conf.yml
-  when: not is_awx_installed.stat.exists or awx_upgrade
+  when: not is_awx_installed.stat.exists or awx_upgrade and has_configure.stat.exists
 
 - name: run configure script
   command: ./configure -o tower_setup_conf.yml
      chdir=/tmp/setup
-  when: not is_awx_installed.stat.exists or awx_upgrade
+  when: not is_awx_installed.stat.exists or awx_upgrade and has_configure.stat.exists
 
 - name: create vars.yml file
   template: src=vars.yml.j2 dest=/tmp/setup/vars.yml
