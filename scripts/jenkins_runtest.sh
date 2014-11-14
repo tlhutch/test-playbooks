@@ -40,7 +40,7 @@ else
     exit 1
 fi
 
-# Create and modify credentials.yaml
+# Create and modify credentials.yml
 SCRIPT_NAME="create_credentials.py"
 # Look for script in multple locations (this allows for backwards compat with
 # jenkins)
@@ -49,7 +49,7 @@ for SCRIPT_DIR in "scripts" "." ; do
         break
     fi
 done
-python ${SCRIPT_DIR}/${SCRIPT_NAME} tests/credentials.template tests/credentials.yaml
+python ${SCRIPT_DIR}/${SCRIPT_NAME} tests/credentials.template tests/credentials.yml
 
 # Create saucelabs credentials file
 if [ -n "${SAUCE_USER_NAME}" -a -n "${SAUCE_API_KEY}" ]; then

@@ -11,7 +11,6 @@
 - name: is awx already installed?
   stat: path=/etc/tower/awx.cert
   register: is_awx_installed
-  ignore_errors: yes
 
 - name: disable sudo requiretty for root
   lineinfile: dest=/etc/sudoers
@@ -23,16 +22,17 @@
   template: src=tower_setup_conf.yml.j2 dest=/tmp/setup/tower_setup_conf.yml
   when: not is_awx_installed.stat.exists or awx_upgrade
 
-- name: create inventory file
-  template: src=inventory.j2 dest=/tmp/setup/inventory
+- name: run configure script
+  command: ./configure -o tower_setup_conf.yml
+     chdir=/tmp/setup
   when: not is_awx_installed.stat.exists or awx_upgrade
 
-- name: create awx_vars.yaml file
-  template: src=awx_vars.yml.j2 dest=/tmp/setup/awx_vars.yaml
+- name: create vars.yml file
+  template: src=vars.yml.j2 dest=/tmp/setup/vars.yml
   when: not is_awx_installed.stat.exists or awx_upgrade
 
 - name: setup.sh
-  command: ./setup.sh -e @awx_vars.yaml
+  command: ./setup.sh -e @vars.yml
      chdir=/tmp/setup
      # creates=/etc/tower/awx.cert
   environment:

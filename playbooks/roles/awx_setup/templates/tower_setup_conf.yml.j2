@@ -1,3 +1,13 @@
+{% if admin_password is defined %}
+admin_password: {{admin_password}}
+{% endif %}
+{% if rabbitmq_password is defined %}
+rabbitmq_password: {{rabbitmq_password}}
+{% endif %}
+{% if munin_password is defined %}
+munin_password: {{munin_password}}
+{% endif %}
+
 {% if 'tower_db' in hostvars['127.0.0.1'] %}
 database: external
 pg_database: {{hostvars['127.0.0.1']['tower_db']['pg_database']}}
@@ -7,4 +17,7 @@ pg_username: {{hostvars['127.0.0.1']['tower_db']['pg_username']}}
 pg_password: {{hostvars['127.0.0.1']['tower_db']['pg_password']}}
 {% else %}
 database: internal
+{% if pg_password is defined %}
+pg_password: {{pg_password}}
+{% endif %}
 {% endif %}

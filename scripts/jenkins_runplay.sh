@@ -2,7 +2,7 @@
 ###############################################################################
 #
 # Description:
-#  * Helper script to contruct a vars.yaml and run the site.yml play
+#  * Helper script to contruct a vars.yml and run the site.yml play
 #
 # Author:
 #  * James Laska <jlaska@ansible.com>
@@ -45,7 +45,7 @@ do
 done
 
 # Create json argument file
-cat << EOF >${PLAYBOOK_DIR}/vars.yaml
+cat << EOF >${PLAYBOOK_DIR}/vars.yml
 ---
 EOF
 
@@ -59,10 +59,10 @@ for LINE in $(env) ; do
     VARNAME="$1"
     case $VARNAME in
         DELETE_ON_START|AWX_UPGRADE)
-            echo "${VARNAME,,}: ${!VARNAME}" >> ${PLAYBOOK_DIR}/vars.yaml
+            echo "${VARNAME,,}: ${!VARNAME}" >> ${PLAYBOOK_DIR}/vars.yml
             ;;
         AWX*|GALAXY*|AWS*|EC2*|RAX*|GCE*|AZURE*|INSTANCE*)
-            echo "${VARNAME,,}: '${!VARNAME}'" >> ${PLAYBOOK_DIR}/vars.yaml
+            echo "${VARNAME,,}: '${!VARNAME}'" >> ${PLAYBOOK_DIR}/vars.yml
             ;;
         *)
             echo "Ignoring environment variable: $VARNAME"
@@ -72,9 +72,9 @@ done
 
 # Enable nightly ansible repository?
 if [[ "${ENABLE_ANSIBLE_NIGHTLY_REPO}" == true ]]; then
-    echo "ansible_install_method: 'nightly'" >> ${PLAYBOOK_DIR}/vars.yaml
+    echo "ansible_install_method: 'nightly'" >> ${PLAYBOOK_DIR}/vars.yml
 else
-    echo "ansible_install_method: 'stable'" >> ${PLAYBOOK_DIR}/vars.yaml
+    echo "ansible_install_method: 'stable'" >> ${PLAYBOOK_DIR}/vars.yml
 fi
 
 # Establish the aw_repo_url.  This is the baseurl used by the install playbook.
@@ -82,10 +82,10 @@ fi
 # repository.
 case "${OFFICIAL}" in
     [Yy]es|[Tt]rue)
-        echo "aw_repo_url: http://releases.ansible.com/ansible-tower" >> ${PLAYBOOK_DIR}/vars.yaml
+        echo "aw_repo_url: http://releases.ansible.com/ansible-tower" >> ${PLAYBOOK_DIR}/vars.yml
         ;;
     *)
-        echo "aw_repo_url: http://50.116.42.103/ansible-tower_nightlies_RTYUIOPOIUYTYU" >> ${PLAYBOOK_DIR}/vars.yaml
+        echo "aw_repo_url: http://50.116.42.103/ansible-tower_nightlies_RTYUIOPOIUYTYU" >> ${PLAYBOOK_DIR}/vars.yml
         ;;
 esac
 
@@ -161,18 +161,18 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
         ;;
 esac
 
-# If custom distros are needed, save them in ${PLAYBOOK_DIR}/vars.yaml
+# If custom distros are needed, save them in ${PLAYBOOK_DIR}/vars.yml
 if [ -n "${EC2_IMAGES}" ]; then
-    echo "ec2_images: ${EC2_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yaml
+    echo "ec2_images: ${EC2_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yml
 fi
 if [ -n "${RAX_IMAGES}" ]; then
-    echo "rax_images: ${RAX_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yaml
+    echo "rax_images: ${RAX_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yml
 fi
 if [ -n "${GCE_IMAGES}" ]; then
-    echo "gce_images: ${GCE_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yaml
+    echo "gce_images: ${GCE_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yml
 fi
 if [ -n "${AZURE_IMAGES}" ]; then
-    echo "azure_images: ${AZURE_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yaml
+    echo "azure_images: ${AZURE_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yml
 fi
 
 #
@@ -182,31 +182,31 @@ fi
 
 AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD-$(gen_passwd)}
 if [ -n "${AWX_ADMIN_PASSWORD}" ]; then
-    echo "admin_password: ${AWX_ADMIN_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yaml
+    echo "admin_password: ${AWX_ADMIN_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yml
 fi
 
 AWX_PG_PASSWORD=${AWX_PG_PASSWORD-$(gen_passwd)}
 if [ -n "${AWX_PG_PASSWORD}" ]; then
-    echo "pg_password: ${AWX_PG_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yaml
+    echo "pg_password: ${AWX_PG_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yml
 fi
 
 AWX_RABBITMQ_PASSWORD=${AWX_RABBITMQ_PASSWORD-$(gen_passwd)}
 if [ -n "${AWX_RABBITMQ_PASSWORD}" ]; then
-    echo "rabbitmq_password: ${AWX_RABBITMQ_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yaml
+    echo "rabbitmq_password: ${AWX_RABBITMQ_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yml
 fi
 
 AWX_MUNIN_PASSWORD=${AWX_MUNIN_PASSWORD-$(gen_passwd)}
 if [ -n "${AWX_MUNIN_PASSWORD}" ]; then
-    echo "munin_password: ${AWX_MUNIN_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yaml
+    echo "munin_password: ${AWX_MUNIN_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yml
 fi
 
 # Add custom ssh pubkeys
 if [ -n "${AUTHORIZED_KEYS}" ]; then
-    echo "authorized_keys: " >> ${PLAYBOOK_DIR}/vars.yaml
+    echo "authorized_keys: " >> ${PLAYBOOK_DIR}/vars.yml
     echo "${AUTHORIZED_KEYS}" | while read LINE;
     do
         test -z "${LINE}" && continue
-        echo  "  - '${LINE}'" >> ${PLAYBOOK_DIR}/vars.yaml
+        echo  "  - '${LINE}'" >> ${PLAYBOOK_DIR}/vars.yml
     done
 fi
 
@@ -220,6 +220,6 @@ else
   ARGS="-v"
 fi
 
-ansible-playbook ${ARGS} -i ${PLAYBOOK_DIR}/inventory -e @${PLAYBOOK_DIR}/vars.yaml "${PLAYBOOK_PATH}"
+ansible-playbook ${ARGS} -i ${PLAYBOOK_DIR}/inventory -e @${PLAYBOOK_DIR}/vars.yml "${PLAYBOOK_PATH}"
 
 exit $?

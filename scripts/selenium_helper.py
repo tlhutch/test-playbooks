@@ -13,7 +13,7 @@ class TestSetup(object):
     '''Mock mozwebqa class'''
     def __init__(self, args):
         self.base_url = args.base_url
-        self.credentials = pytest_mozwebqa.credentials.read('tests/credentials.yaml')
+        self.credentials = pytest_mozwebqa.credentials.read('tests/credentials.yml')
 
         args.sauce_labs_credentials_file = None
         args.host = 'localhost'
