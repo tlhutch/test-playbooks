@@ -16,3 +16,4 @@ awx_setup_path: /setup/ansible-tower-setup-latest.tar.gz
 # pg_password: 9CJCSUtePvE
 # rabbitmq_password: 9CJCSUtePvE
 # munin_password: 9CJCSUtePvE
+# redis_password: 9CJCSUtePvE
