@@ -50,7 +50,7 @@
 
 ### Feature: HA
 1. Installer
-    1. [ ] Verify ./configure completes successfully for localhost tower with internal db
+    1. [X] Verify ./configure completes successfully for localhost tower with internal db
     2. [ ] Verify ./configure completes successfully for remote tower with internal db
     3. [ ] Verify ./configure completes successfully for localhost tower with external db
     4. [ ] Verify ./configure completes successfully for remote tower with external db
@@ -65,7 +65,7 @@
     5. [ ] Verify correct behavior when promoting a secondary while jobs are running
 
 ### Feature: Multi-tenancy
-1. [x] Verify, when PROOT, a job is unable to view details from other jobs on disk.  Includes the following:
+1. [X] Verify, when PROOT, a job is unable to view details from other jobs on disk.  Includes the following:
      - /var/lib/awx/projects/ - only a single directory exists for the current job
      - /var/lib/awx/job_status/ - no files are present (job status isn't created until after a job completes)
      - /tmp/ansible_tower_* - only a single matching directory exists
@@ -82,10 +82,9 @@
 1. [ ] Make sure survey has precedence over “prompt for variables”
 1. [ ] Make sure both prompt for variables and survey can be used seperately
 1. [ ] Make sure the API validates survey responses if submitted directly and not via API
-1. [ ] Verify portal URLs redirect after login
-1. [ ] Verify login after timeout redirects to portal
-1. [ ] Verify web-socket updates job status and job rows
-1. [ ] Verify web-socket updates job status and
+1. [X] Verify portal URLs redirect after login
+1. [X] Verify login after timeout redirects to portal
+1. [X] Verify web-socket updates job status and job rows
 
 ### Feature: Survey
 1. API
@@ -105,10 +104,10 @@
   6. [ ] Verify survey modal correctly submits variables to job
 
 ### Feature: Only superuser can create job without job_template
-1. [ ] Verify that *only* superusers can POST to /api/v1/jobs
+1. [X] Verify that *only* superusers can POST to /api/v1/jobs
 
 ### Feature: VMware inventory_import updates
-1. [ ] Verify VMware inventory_imports continue to import successfully and include more detailed information to access/filter VMware hosts
+1. [X] Verify VMware inventory_imports continue to import successfully and include more detailed information to access/filter VMware hosts
 
 ### Regresion
 1. [ ] UI regression completed
