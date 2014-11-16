@@ -28,7 +28,7 @@
   when: configure_script.stat.exists == True and (not is_awx_installed.stat.exists or awx_upgrade)
 
 - name: create inventory file
-  template: src=inventory.yml.j2 dest=/tmp/setup/inventory
+  template: src=inventory.j2 dest=/tmp/setup/inventory
   when: configure_script.stat.exists == True and (not is_awx_installed.stat.exists or awx_upgrade)
 
 - name: run configure script
