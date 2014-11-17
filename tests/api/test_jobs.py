@@ -268,7 +268,7 @@ class Test_Update_On_Launch(Base_Api_Test):
 
         # 5) Ensure inventory_update was successful
         last_update = inv_src_pg.get_related('last_update')
-        assert last_update.is_successful, "last_update unsuccessful - %s" % json.dumps(last_update.json, indent=4)
+        assert last_update.is_successful, "last_update unsuccessful - %s" % last_update
         assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
 
     def test_inventory_multiple(self, job_template, aws_inventory_source, rax_inventory_source):
@@ -308,12 +308,12 @@ class Test_Update_On_Launch(Base_Api_Test):
 
         # 5) Ensure inventory_update was successful
         last_update = aws_inventory_source.get_related('last_update')
-        assert last_update.is_successful, "aws_inventory_source -> last_update unsuccessful - %s" % json.dumps(last_update.json, indent=4)
+        assert last_update.is_successful, "aws_inventory_source -> last_update unsuccessful - %s" % last_update
         assert aws_inventory_source.is_successful, "inventory_source unsuccessful - %s" % json.dumps(aws_inventory_source.json, indent=4)
 
         # assert last_update successful
         last_update = rax_inventory_source.get_related('last_update')
-        assert last_update.is_successful, "rax_inventory_source -> last_update unsuccessful - %s" % json.dumps(last_update.json, indent=4)
+        assert last_update.is_successful, "rax_inventory_source -> last_update unsuccessful - %s" % last_update
         assert rax_inventory_source.is_successful, "inventory_source unsuccessful - %s" % json.dumps(rax_inventory_source.json, indent=4)
 
     def test_inventory_cache_timeout(self, cloud_inventory_job_template, cloud_group):

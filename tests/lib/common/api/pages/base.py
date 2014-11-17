@@ -237,8 +237,15 @@ class Task_Page(Base):
     job_env = property(json_getter('job_env'), json_setter('job_env'))
 
     def __str__(self):
-        return "Job id:%s, status:%s, failed:%s\nJob name:%s\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
-            (self.id, self.status, self.failed, self.name, self.result_stdout, self.result_traceback, self.job_explanation)
+        # NOTE: I use .replace('%', '%%') to workaround an odd string
+        # formatting issue where result_stdout contained '%s'.  This later caused
+        # a python traceback when attempting to display output from this method.
+        output = "<%s id:%s, name:%s, status:%s, failed:%s, result_stdout:%s, " \
+            "result_traceback:%s, job_explanation:%s>" % \
+            (self.__class__.__name__, self.id, self.name, self.status, self.failed,
+             self.result_stdout, self.result_traceback,
+             self.job_explanation)
+        return output.replace('%', '%%')
 
     @property
     def is_completed(self):
