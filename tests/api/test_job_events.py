@@ -75,6 +75,7 @@ def setfact_50(request, authtoken, api_job_templates_pg, project_ansible_playboo
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.skipif(True, reason="temporarily disabled to debug trello card")
 class Test_Job_Events(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
