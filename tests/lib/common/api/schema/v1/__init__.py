@@ -846,6 +846,28 @@ class Awx_Schema_Config(Awx_Schema):
 
 
 #
+# /ping
+#
+class Awx_Schema_Ping(Awx_Schema):
+    resource = '/api/v1/ping/'
+
+    @property
+    def get(self):
+        return self.load_file('ping.yml')
+
+    @property
+    def post(self):
+        return self.method_not_allowed
+
+    @property
+    def put(self):
+        return self.method_not_allowed
+
+    @property
+    def patch(self):
+        return self.method_not_allowed
+
+#
 # /me
 #
 class Awx_Schema_Me(Awx_Schema):

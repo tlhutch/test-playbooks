@@ -85,6 +85,14 @@ def test_unauthenticated(api, resource, method):
     }
 
     exception_matrix = {
+        '/api/v1/ping/': {
+            'HEAD': (httplib.OK, 'head'),
+            'GET': (httplib.OK, 'get'),
+            'PUT': (httplib.METHOD_NOT_ALLOWED, 'put'),
+            'PATCH': (httplib.METHOD_NOT_ALLOWED, 'patch'),
+            'OPTIONS': (httplib.OK, 'options'),
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'post'),
+        },
         '/api/v1/authtoken/': {
             'HEAD': (httplib.METHOD_NOT_ALLOWED, 'head'),
             'GET': (httplib.METHOD_NOT_ALLOWED, 'get'),
@@ -155,6 +163,9 @@ def test_authenticated(api, resource, method):
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },
         '/api/v1/schedules/': {  # Doesn't yet support POST
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
+        '/api/v1/ping/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },
     }
