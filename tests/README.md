@@ -2,28 +2,28 @@
 
 ## Instructions
 
-1. Create, and modify, `credentials.yaml`
+1. Install test requirements
+
+        pip install -r requirements.txt
+
+2. Create, and modify, `credentials.yaml`
 
         cp credentials.template credentials.yaml
         vim credentials.yaml # update as needed
 
-2. Determine URL for running AWX instance (needed by `--baseurl` parameter)
-3. Disable ansible host key checking
+3. Determine URL for running AWX instance (needed by `--baseurl` parameter)
+4. Disable ansible host key checking
 
         export ANSIBLE_HOST_KEY_CHECKING=False
 
-4. Run the tests:
+5. Run the tests:
 
         py.test --baseurl https://example.com --destructive tests
 
 ## TODO
 
-1. Research storing schema as json files (not .py)
-2. Testing cloud inventory
-   * jobs should wait until inventory sync is complete
-3. Test RBAC authentication+permissions
-4. Build basic UI navigation test (capable of offloading to SauceLabs for browser compatability testing)
-5. Add license verification (adding hosts when expired, decrementing #hosts)
+1. Model comprehensive RBAC test scenario
+1. Comprehensive performance scenarios
 
 ## Unittest gaps
 
@@ -40,10 +40,3 @@ The following list was produced with help from the API development team to ident
 4. Upgrades
 5. Inventory_source with update_on_launch and a project with update_on_launch
    - Should see job.status == 'waiting'
-
-## Open Questions
-1. Delete credentials, but they remain attached to jobs ... and available for use
-2. Credentials filtering and __in (comma or list)?
-   - Searching for names with a ',' in them
-3. The API doesn't always handle converting null values into empty string ''
-   - Example, creating a project with scm_type=null ... should produce a project with scm_type=''
