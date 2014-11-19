@@ -6,10 +6,10 @@
 
         pip install -r requirements.txt
 
-2. Create, and modify, `credentials.yaml`
+2. Create, and modify, `credentials.yml`
 
-        cp credentials.template credentials.yaml
-        vim credentials.yaml # update as needed
+        cp credentials.template credentials.yml
+        vim credentials.yml  # update as needed
 
 3. Determine URL for running AWX instance (needed by `--baseurl` parameter)
 4. Disable ansible host key checking
