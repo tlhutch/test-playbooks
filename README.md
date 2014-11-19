@@ -8,11 +8,11 @@ The following test events are used to trigger [Tower jenkins jobs](http://50.116
 
 ### git-push
 
-Any time code changes are pushed into the [ansible-commander.git repository](https://github.com/ansible/ansible-commander), jenkins will trigger the [Test_Tower_Unittest](http://50.116.42.103/view/Tower/job/Test_Tower_Unittest/) job.
+Any time code changes are pushed into the [ansible-tower.git repository](https://github.com/ansible/ansible-tower), jenkins will trigger the [Test_Tower_Unittest](http://50.116.42.103/view/Tower/job/Test_Tower_Unittest/) job.
 
 ### git-tag
 
-Jenkins regularly monitors the [ansible-commander.git repository](https://github.com/ansible/ansible-commander) for the presence of [new tags](https://github.com/ansible/ansible-commander/releases).  If a new git-tag is deteced, the production build process is triggered.  The job used to detect the presence of new git-tags is [Release_Tower](http://50.116.42.103/view/Tower/job/Release_Tower/).
+Jenkins regularly monitors the [ansible-tower.git repository](https://github.com/ansible/ansible-tower) for the presence of [new tags](https://github.com/ansible/ansible-tower/releases).  If a new git-tag is deteced, the production build process is triggered.  The job used to detect the presence of new git-tags is [Release_Tower](http://50.116.42.103/view/Tower/job/Release_Tower/).
 
 ### cron
 
