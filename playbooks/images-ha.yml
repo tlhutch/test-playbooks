@@ -1,4 +1,6 @@
 ---
+instance_name_prefix: 'jenkins-tower-ha'
+
 #
 # Images used for HA testing
 #
