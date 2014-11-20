@@ -41,7 +41,11 @@ def custom_inventory_source_vars_good(request):
 def custom_inventory_source_vars_bad(request):
     return dict(HOME='BOGUS',
                 PATH='BOGUS',
-                USER='BOGUS')
+                USER='BOGUS',
+                LANG='BOGUS',
+                TERM='BOGUS',
+                PWD='BOGUS',
+                TZ='BOGUS',)
 
 
 @pytest.fixture(scope="function")

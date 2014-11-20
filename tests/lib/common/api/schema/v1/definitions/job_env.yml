@@ -10,6 +10,7 @@ job_env:
       # TERM: {minLength: 1, type: string}
       TERM: {type: string}
       TZ: {minLength: 1, type: string}
-      USER: {minLength: 1, pattern: ^awx$, type: string}
+      # USER: {minLength: 1, pattern: ^awx$, type: string}
+      USER: {minLength: 1, type: string}
       # _: {minLength: 1, pattern: ^/usr/bin/supervisord, type: string}
     type: object
