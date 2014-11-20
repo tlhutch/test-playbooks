@@ -46,6 +46,21 @@ def non_org_users(request, anonymous_user, another_org_admin, another_org_user):
     return (anonymous_user, another_org_admin, another_org_user)
 
 
+def user_payload(is_superuser=None, password="password"):
+    '''
+    Convenience function to return a API payload for use with posting to
+    /api/v1/users.
+    '''
+    payload = dict(username="normal_user_%s" % common.utils.random_ascii(),
+                first_name="Joe (%s)" % common.utils.random_unicode(),
+                last_name="User (%s)" % common.utils.random_unicode(),
+                email="normal_user_%s@example.com" % common.utils.random_ascii(),
+                password=password)
+    if is_superuser is not None:
+        payload['is_superuser'] = is_superuser
+    return payload
+
+
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
@@ -122,18 +137,10 @@ class Test_Users(Base_Api_Test):
         the /api/v1/users endpoint.
         '''
 
-        def payload():
-            return dict(username="super_user_%s" % common.utils.random_ascii(),
-                        first_name="Joe (%s)" % common.utils.random_unicode(),
-                        last_name="Superuser (%s)" % common.utils.random_unicode(),
-                        email="super_user_%s@example.com" % common.utils.random_ascii(),
-                        password=user_password,
-                        is_superuser=True)
-
         with self.current_user(non_superuser.username, user_password):
             # assert a non-superuser cannot create a superuser
             with pytest.raises(common.exceptions.Forbidden_Exception):
-                api_users_pg.post(payload())
+                api_users_pg.post(user_payload(is_superuser=True, password=user_password))
 
     def test_non_superuser_cannot_elevate_privileges(self, user_password, api_users_pg, non_superuser):
         '''
@@ -151,6 +158,28 @@ class Test_Users(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 non_superuser.is_superuser = True
                 non_superuser.put()
+
+    def test_unprivileged_user_cannot_create_user(self, api_users_pg, unprivileged_user, user_password):
+        '''
+        Verify that a normal unprivileged user cannot create users.
+        '''
+        with self.current_user(unprivileged_user.username, user_password):
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                api_users_pg.post(user_payload())
+
+    def test_is_superuser_false(self, request, user_password, api_users_pg, org_admin):
+        '''
+        Verify that various ways of specifying is_superuser all evaluate to False.
+
+        Trello: https://trello.com/c/HlZv6u6O
+        '''
+
+        # Test various ways of passing is_superuser
+        with self.current_user(org_admin.username, user_password):
+            for is_superuser in (None, False, 'false', 'False', 'f', 0, '0'):
+                obj = api_users_pg.post(user_payload(is_superuser=is_superuser, password=user_password))
+                request.addfinalizer(obj.delete)
+                assert not obj.is_superuser, "Unexpectedly created a superuser with the following payload\n%s" % json.dumps(obj.json, indent=2)
 
 
 @pytest.mark.api

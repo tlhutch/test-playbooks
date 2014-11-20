@@ -5,16 +5,6 @@ import common.exceptions
 from tests.api import Base_Api_Test
 
 
-@pytest.fixture(scope="function", params=['admin_user', 'org_admin'])
-def privileged_user(request):
-    return request.getfuncargvalue(request.param)
-
-
-@pytest.fixture(scope="function", params=['org_user', 'anonymous_user'])
-def unprivileged_user(request):
-    return request.getfuncargvalue(request.param)
-
-
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_Config(Base_Api_Test):

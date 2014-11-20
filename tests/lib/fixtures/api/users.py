@@ -129,6 +129,38 @@ def non_superuser(request):
 
 
 @pytest.fixture(scope="function")
+def privileged_users(request, admin_user, org_admin):
+    '''
+    Return a list of privileged_users
+    '''
+    return (admin_user, org_admin)
+
+
+@pytest.fixture(scope="function", params=('admin_user', 'org_admin'))
+def privileged_user(request):
+    '''
+    Return the fixture for the specified request.param
+    '''
+    return request.getfuncargvalue(request.param)
+
+
+@pytest.fixture(scope="function")
+def unprivileged_users(request, org_user, anonymous_user):
+    '''
+    Return a list of unprivileged_users
+    '''
+    return (org_user, anonymous_user)
+
+
+@pytest.fixture(scope="function", params=('org_user', 'anonymous_user'))
+def unprivileged_user(request):
+    '''
+    Return the fixture for the specified request.param
+    '''
+    return request.getfuncargvalue(request.param)
+
+
+@pytest.fixture(scope="function")
 def many_users(request, authtoken, api_users_pg, user_password):
     obj_list = list()
     for i in range(55):
