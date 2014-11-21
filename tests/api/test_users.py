@@ -46,18 +46,18 @@ def non_org_users(request, anonymous_user, another_org_admin, another_org_user):
     return (anonymous_user, another_org_admin, another_org_user)
 
 
-def user_payload(is_superuser=None, password="password"):
+def user_payload(**kwargs):
     '''
     Convenience function to return a API payload for use with posting to
     /api/v1/users.
     '''
-    payload = dict(username="normal_user_%s" % common.utils.random_ascii(),
+    payload = dict(username="joe_user_%s" % common.utils.random_ascii(),
                 first_name="Joe (%s)" % common.utils.random_unicode(),
                 last_name="User (%s)" % common.utils.random_unicode(),
-                email="normal_user_%s@example.com" % common.utils.random_ascii(),
-                password=password)
-    if is_superuser is not None:
-        payload['is_superuser'] = is_superuser
+                email="joe_user_%s@example.com" % common.utils.random_ascii(),
+                password=kwargs.get('password', 'password'))
+    if 'is_superuser' in kwargs:
+        payload['is_superuser'] = kwargs.get('is_superuser')
     return payload
 
 
@@ -158,6 +158,14 @@ class Test_Users(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 non_superuser.is_superuser = True
                 non_superuser.put()
+
+    def test_privileged_user_can_create_user(self, request, api_users_pg, privileged_user, user_password):
+        '''
+        Verify that a privileged user can create unprivileged users.
+        '''
+        with self.current_user(privileged_user.username, user_password):
+            obj = api_users_pg.post(user_payload())
+            request.addfinalizer(obj.delete)
 
     def test_unprivileged_user_cannot_create_user(self, api_users_pg, unprivileged_user, user_password):
         '''
