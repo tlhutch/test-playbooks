@@ -32,13 +32,23 @@ def some_team_credential(request, testsetup, authtoken, some_team):
     return obj
 
 
+def team_payload(**kwargs):
+    payload = kwargs
+    if 'name' not in kwargs:
+        payload['name'] = common.utils.random_unicode()
+    if 'description' not in kwargs:
+        payload['description'] = common.utils.random_unicode()
+    return payload
+
+
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Teams(Base_Api_Test):
     '''
-    Verify the /teams endpoint displays the expected information based on the current team
+    Tests related to the /api/v1/teams endpoint.
     '''
+
     pytestmark = pytest.mark.usefixtures('authtoken')
 
     def test_duplicate(self, api_teams_pg, some_team):
@@ -49,7 +59,9 @@ class Test_Teams(Base_Api_Test):
             api_teams_pg.post(payload)
 
     def test_cascade_delete(self, api_credentials_pg, some_team, some_team_credential):
-        '''Verify that a credentials, owned by a team, are deleted when the team is deleted'''
+        '''
+        Verify that a team credentials are deleted when a team is deleted.
+        '''
 
         # Delete the team
         some_team.delete()
@@ -65,3 +77,27 @@ class Test_Teams(Base_Api_Test):
         # The credential should have been deleted
         with pytest.raises(common.exceptions.NotFound_Exception):
             some_team_credential.get()
+
+    def test_privileged_user_can_create_team(self, request, api_teams_pg, privileged_user, user_password, organization):
+        '''
+        Verify that a privileged user can create teams.
+        '''
+        with self.current_user(privileged_user.username, user_password):
+            obj = api_teams_pg.post(team_payload(organization=organization.id))
+            request.addfinalizer(obj.delete)
+
+    def test_unprivileged_user_cannot_create_team(self, api_teams_pg, unprivileged_user, user_password, organization):
+        '''
+        Verify that a normal unprivileged user cannot create teams.
+        '''
+        with self.current_user(unprivileged_user.username, user_password):
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                api_teams_pg.post(team_payload(organization=organization.id))
+
+    def test_non_superuser_cannot_create_team_in_another_organization(self, api_teams_pg, non_superuser, user_password, organization, another_organization):
+        '''
+        Verify that an organization admin can only create teams within their organization.
+        '''
+        with self.current_user(non_superuser.username, user_password):
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                api_teams_pg.post(team_payload(organization=another_organization.id))
