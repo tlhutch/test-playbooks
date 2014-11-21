@@ -64,7 +64,7 @@ def install_integration_license(request, authtoken, ansible_runner, awx_config, 
 
         logging.debug("backing up existing license")
         # Backup any aws license
-        ansible_runner.shell('test -f {0} && mv {0} {0}.bak'.format(tower_aws_path), creates=tower_aws_path+'.bak', removes=tower_aws_path)
+        ansible_runner.shell('test -f {0} && mv {0} {0}.bak'.format(tower_aws_path), creates=tower_aws_path + '.bak', removes=tower_aws_path)
 
         # Install/replace license
         logging.debug("installing license {0}".format(tower_license_path))

@@ -15,7 +15,7 @@ def ssh_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
     payload = dict(name="credentials-%s" % common.utils.random_unicode(),
                    description="machine credential - %s" % common.utils.random_unicode(),
                    kind='ssh',
-                   user = admin_user.id,
+                   user=admin_user.id,
                    username=testsetup.credentials['ssh']['username'],
                    password=testsetup.credentials['ssh']['password'],)
 

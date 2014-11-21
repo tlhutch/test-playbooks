@@ -24,4 +24,3 @@ class HeaderRegion(PageRegion):
         self.account_menu.click('main_logout')
         from common.ui.pages.login import Login_Page
         return Login_Page(self.testsetup)
-

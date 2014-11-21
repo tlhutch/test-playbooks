@@ -52,10 +52,10 @@ def user_payload(**kwargs):
     /api/v1/users.
     '''
     payload = dict(username="joe_user_%s" % common.utils.random_ascii(),
-                first_name="Joe (%s)" % common.utils.random_unicode(),
-                last_name="User (%s)" % common.utils.random_unicode(),
-                email="joe_user_%s@example.com" % common.utils.random_ascii(),
-                password=kwargs.get('password', 'password'))
+                   first_name="Joe (%s)" % common.utils.random_unicode(),
+                   last_name="User (%s)" % common.utils.random_unicode(),
+                   email="joe_user_%s@example.com" % common.utils.random_ascii(),
+                   password=kwargs.get('password', 'password'))
     if 'is_superuser' in kwargs:
         payload['is_superuser'] = kwargs.get('is_superuser')
     return payload

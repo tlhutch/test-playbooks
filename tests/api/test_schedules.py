@@ -784,4 +784,3 @@ class Test_Job_Template_Schedules(Base_Api_Test):
       - user can *only* view schedules
       - user w/ update perm can *only* view/create/update schedules
     '''
-

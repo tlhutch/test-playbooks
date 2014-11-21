@@ -171,7 +171,7 @@ class Connection(object):
                 if hasattr(e, 'read'):
                     err_str += ", %s" % (e.read())
                 log.warn("%s, retrying" % err_str)
-                attempts +1
+                attempts + 1
                 continue
             else:
                 break

@@ -81,8 +81,10 @@ class Table_Region(PageRegion):
         A fast row finder, based on cell content.
         """
         def toXPathStringLiteral(s):
-            if "'" not in s: return "'%s'" % s
-            if '"' not in s: return '"%s"' % s
+            if "'" not in s:
+                return "'%s'" % s
+            if '"' not in s:
+                return '"%s"' % s
             return "concat('%s')" % s.replace("'", "',\"'\",'")
         # coerce 'cells' to a dict -- accept dicts or supertuples
         cells = dict(cells)

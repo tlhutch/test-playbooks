@@ -44,4 +44,3 @@ pytest_plugins = tuple(_pytest_plugins_generator(fixtures, markers, plugins, fix
 pytest_plugins += (plugins.pytest_restqa.pytest_restqa.__name__,)
 pytest_plugins += (fixtures.api.__name__,)
 pytest_plugins += (fixtures.ui.__name__,)
-

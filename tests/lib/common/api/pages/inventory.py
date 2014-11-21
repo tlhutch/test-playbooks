@@ -213,9 +213,8 @@ class Inventory_Script_Page(Base):
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related']
         raise NotImplementedError
-        return related.get(**kwargs)
+        # return related.get(**kwargs)
 
 
 class Inventory_Scripts_Page(Inventory_Script_Page, Base_List):
     base_url = '/api/v1/inventory_scripts/'
-
