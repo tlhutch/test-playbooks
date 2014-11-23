@@ -35,8 +35,8 @@ def window_laptop(mozwebqa):
 @pytest.fixture
 def window_mobile(mozwebqa):
     '''
-    Set window size and position to a typical mobile resolution (1136x640)
+    Set window size and position to a typical mobile resolution (1024x768)
     '''
     mozwebqa.selenium.set_window_position(0, 0)
-    mozwebqa.selenium.set_window_size(1136, 640)
+    mozwebqa.selenium.set_window_size(1024, 768)
     return True
