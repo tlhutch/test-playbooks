@@ -41,10 +41,10 @@ class Portal_Job_Templates_Region(BaseRegion):
 
     @property
     def table(self):
-        _region_map = {
+        _related = {
             'submit-action': Portal_Page,
         }
-        return SortTable_Region(self.testsetup, _root_element=self.find_element(*self._locators['table']), _region_map=_region_map)
+        return SortTable_Region(self.testsetup, _root_element=self.find_element(*self._locators['table']), _related=_related)
 
     @property
     def pagination(self):

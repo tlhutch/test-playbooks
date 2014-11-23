@@ -13,7 +13,7 @@ class Table_Region(PageRegion):
     _header = None
     _header_index = None
     # FIXME ... define action methods that return appropriate class
-    _region_map = {}
+    _related = {}
 
     @staticmethod
     def _convert_header(header):
@@ -246,9 +246,9 @@ class Table_Region(PageRegion):
             cols = list()
             for el in self.find_elements(*self._column_locator):
                 # FIXME - should probably use a locator?
-                # FIXME - needs to pass in a _region_map so we know what class instance to return
+                # FIXME - needs to pass in a _related so we know what class instance to return
                 if 'actions' in el.get_attribute('class'):
-                    cols.append(ActionList_Region(self.testsetup, _root_element=el, _region_map=self._table._region_map))
+                    cols.append(ActionList_Region(self.testsetup, _root_element=el, _related=self._table._related))
                 elif 'status-column' in el.get_attribute('class'):
                     cols.append(Table_Region.Status_Column(self.testsetup, _root_element=el))
                 else:
@@ -331,6 +331,7 @@ class List_Region(PageRegion):
     '''Describes the search type options region'''
     _item_locator = (By.CSS_SELECTOR, "a")
     _unique_attribute = 'text'
+    _related = {}
 
     def get(self, name):
         '''
@@ -361,22 +362,18 @@ class List_Region(PageRegion):
         '''
         return [el.get_attribute(self._unique_attribute) for el in self.items()]
 
+    def click(self, name):
+        '''
+        Clicks on the desired element, and returns an instance specified in _related
+        '''
+        el = self.get(name)
+        el.click()
+        self.wait_for_spinny()
+        return self.get_related(name)(self.testsetup)
+
 
 class ActionList_Region(List_Region):
     '''Describes the list of actions in a table cell'''
     _item_locator = (By.CSS_SELECTOR, "a")
     _unique_attribute = 'id'
-    _region_map = {}
-
-    def click(self, name):
-        '''
-        Clicks on the desired element, and returns an instance specified in _region_map
-        '''
-        el = self.get(name)
-        el.click()
-        self.wait_for_spinny()
-        if name in self._region_map:
-            # FIXME - what else gets passed along here?
-            return self._region_map[name](self.testsetup)
-        else:
-            return None
+    _related = {}

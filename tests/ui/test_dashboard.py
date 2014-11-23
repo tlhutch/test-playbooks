@@ -35,30 +35,6 @@ class Test_Dashboard(Base_UI_Test):
         assert ui_dashboard_pg.account_menu.current_user == admin_user.username
         assert ui_dashboard_pg.has_host_count_graph, "The host-count-graph is not visible to a superuser"
 
-    def test_account_menu_superuser(self, ui_dashboard_pg, anonymous_user, admin_user, user_password):
-        '''Verify the main_menu contents for a superuser'''
-
-        assert ui_dashboard_pg.is_the_active_tab
-
-        ui_dashboard_pg.account_menu.show()
-        actual_items = ui_dashboard_pg.account_menu.keys()
-        expected_items = [u'About Tower', u'Account Settings', u'Contact Support', u'Monitor Tower', u'Portal Mode', u'View License', u'Logout']
-
-        assert actual_items == expected_items, "Missing expected menu items (%s != %s)" % (actual_items, expected_items)
-
-    def test_account_menu_non_superuser(self, ui_dashboard_pg, anonymous_user, admin_user, user_password):
-        '''Verify the main_menu contents for a non-superuser'''
-
-        with self.current_user(anonymous_user.username, user_password):
-            assert ui_dashboard_pg.account_menu.current_user == anonymous_user.username
-            assert ui_dashboard_pg.is_the_active_tab
-
-            ui_dashboard_pg.account_menu.show()
-            actual_items = ui_dashboard_pg.account_menu.keys()
-            expected_items = [u'About Tower', u'Account Settings', u'Contact Support', u'Portal Mode', u'View License', u'Logout']
-
-            assert actual_items == expected_items, "Missing expected menu items (%s != %s)" % (actual_items, expected_items)
-
     def test_activity_stream(self, ui_dashboard_pg):
         '''Verify that the activity stream can be open and closed'''
         assert ui_dashboard_pg.activity_stream_btn, "Unable to locate activity stream button"

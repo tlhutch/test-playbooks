@@ -70,11 +70,11 @@ class Accordion_Content(BaseRegion):
 
     @property
     def table(self):
-        _region_map = {
+        _related = {
             'edit-action': NotImplementedError,
             'delete-action': NotImplementedError,
         }
-        return SortTable_Region(self.testsetup, _root_element=self.find_element(*self._locators['table']), _region_map=_region_map)
+        return SortTable_Region(self.testsetup, _root_element=self.find_element(*self._locators['table']), _related=_related)
 
     @property
     def pagination(self):

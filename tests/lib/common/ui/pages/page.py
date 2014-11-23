@@ -200,6 +200,30 @@ class Page(object):
         print popup.text + " ...clicking " + answer
         popup.dismiss() if cancel else popup.accept()
 
+    def get_related(self, name, default=None):
+        '''
+        Return a class corresponding to the provided string. For example,
+        'Organization_Create_Page' -> Organization_Create_Page
+        '''
+
+        if name not in self._related:
+            log.warning("No related resource defined, using default '%s'" % default)
+
+        name = self._related.get(name, default)
+
+        # import desired module
+        if '.' in name:
+            modname = name[:name.rfind('.')]
+            name = name[name.rfind('.') + 1:]
+        else:
+            modname = self.__module__
+
+        mod = __import__(modname, fromlist=[name])
+        if hasattr(mod, name):
+            return getattr(mod, name)
+
+        log.warning("Module '%s' has no class '%s'" % (mod, name))
+
 
 class PageRegion(Page):
     """Base class for a page region (generally an element in a list of elements)."""

@@ -14,7 +14,7 @@ class Login_Page(Base):
         'login_btn': (By.CSS_SELECTOR, '#login-button'),
     }
 
-    _region_map = {
+    _related = {
         '/#/portal': 'Portal_Page',
     }
 

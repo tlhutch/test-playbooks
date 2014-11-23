@@ -9,15 +9,16 @@ class Main_Menu(List_Region):
     _root_locator = (By.CSS_SELECTOR, '#ansible-main-menu')
     _logo_locator = (By.CSS_SELECTOR, '#ansible-brand-logo')
     _active_item_locator = (By.CSS_SELECTOR, "li.active > a")
-    _region_map = {"Home": Dashboard_Page,
-                   "Organizations": Organizations_Page,
-                   "Users": Users_Page,
-                   "Teams": Teams_Page,
-                   "Credentials": Credentials_Page,
-                   "Projects": Projects_Page,
-                   "Inventories": Inventories,
-                   "Job Templates": Job_Templates,
-                   "Jobs": Jobs}
+    _item_locator = (By.CSS_SELECTOR, "li > a")
+    _related = {"Home": 'Dashboard_Page',
+                "Organizations": 'Organizations_Page',
+                "Users": 'Users_Page',
+                "Teams": 'Teams_Page',
+                "Credentials": 'Credentials_Page',
+                "Projects": 'Projects_Page',
+                "Inventories": 'Inventories',
+                "Job Templates": 'Job_Templates',
+                "Jobs": 'Jobs'}
 
     @property
     def active_item(self):
@@ -44,7 +45,5 @@ class Main_Menu(List_Region):
             self.logo.click()
         else:
             self.get(name).click()
-        # Wait for 'Working...' spinner to appear, and go away
         self.wait_for_spinny()
-        assert name in self._region_map, "No main menu region defined for '%s'" % name
-        return self._region_map[name](self.testsetup)
+        return self.get_related(name)(self.testsetup)
