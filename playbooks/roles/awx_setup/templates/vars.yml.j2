@@ -6,7 +6,7 @@ aw_repo_url: {{aw_repo_url}}
 awx_package_name: {{awx_package_name}}
 {% endif %}
 
-{% if not (has_configure is defined and has_configure.stat.exists) %}
+{% if configure_script.stat.exists %}
 # Passwords included for tower < 2.1.0
 {% if admin_password is defined %}
 admin_password: {{admin_password}}
