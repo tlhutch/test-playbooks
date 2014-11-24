@@ -1,6 +1,8 @@
 ---
 instance_name_prefix: 'jenkins-tower-ha'
 
+my_inventory_file: '{{inventory_dir}}/inventory.ha'
+
 #
 # Images used for HA testing
 #
