@@ -1,24 +1,16 @@
 from operator import sub
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
-from common.ui.pages import PageRegion, Login_Page, User_Edit_Page, Portal_Page, Dashboard_Page
+from common.ui.pages import PageRegion
 from common.ui.pages.regions.lists import List_Region
 from common.ui.pages.regions.buttons import Base_Button
 from common.ui.pages.regions.main_menu import Main_Menu
 from common.ui.pages.regions.account_menu import Account_Submenu
 
 
-class Mobile_Submenu(List_Region):
-    """
-    Describes the mobile menu region
-    """
-    _root_locator = (By.CSS_SELECTOR, '#ansible-mobile-menu')
-    _related = dict(Main_Menu._related, **Account_Submenu._related)
-
-
 class Mobile_Menu(PageRegion):
     """
-    Describes the mobile menu region
+    Describes the mobile menu button and provides access to the mobile sub menu.
     """
     _root_locator = (By.CSS_SELECTOR, '#main-menu-toggle-button')
     _menu_btn_locator = (By.CSS_SELECTOR, '#main-menu-toggle-button')
@@ -29,6 +21,13 @@ class Mobile_Menu(PageRegion):
         Return true if the current page is logged in.
         '''
         return self.menu_btn.is_displayed()
+
+    @property
+    def current_user(self):
+        '''
+        Return the currently logged in username.
+        '''
+        return self.submenu.current_user
 
     @property
     def menu_btn(self):
@@ -72,3 +71,24 @@ class Mobile_Menu(PageRegion):
         '''
         self.show()
         return self.submenu.click(name)
+
+
+class Mobile_Submenu(List_Region):
+    """
+    Describes the mobile menu region
+    """
+    _root_locator = (By.CSS_SELECTOR, '#ansible-mobile-menu')
+    _related = dict(Main_Menu._related, **Account_Submenu._related)
+    _current_user_locator = (By.CSS_SELECTOR, '#ansible-mobile-menu span')
+
+    @property
+    def current_user(self):
+        '''
+        Return the username of the current user, regardless of whether the
+        menu is visible.
+        '''
+        # Normally, we would return the 'text' attribute of the element.
+        # However, selenium doesn't include text when the element is hidden.  The
+        # following relies on javascript to return the 'text' of the element.
+        el = self.find_element(*self._current_user_locator)
+        return self.selenium.execute_script("return arguments[0].innerHTML", el)
