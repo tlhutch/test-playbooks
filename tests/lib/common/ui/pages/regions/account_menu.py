@@ -1,5 +1,5 @@
 from selenium.webdriver.common.by import By
-from common.ui.pages import PageRegion, Login_Page, User_Edit_Page, Portal_Page, Dashboard_Page
+from common.ui.pages import PageRegion, Login_Page, Portal_Page, Dashboard_Page, User_Edit_Page
 from common.ui.pages.regions.lists import List_Region
 
 
@@ -56,16 +56,14 @@ class Account_Menu(PageRegion):
 class Account_Submenu(List_Region):
     _root_locator = (By.CSS_SELECTOR, '#account-submenu.dropdown-menu')
     _related = {
-        'About Tower': 'FIXME',
-        'Account Settings': 'User_Edit_Page',
-        'Contact Support': 'FIXME',
-        'Inventory Script': 'FIXME',
-        'Management Jobs': 'FIXME',
-        'Monitor Tower': 'FIXME',
-        'Portal Mode': 'Portal_Page',
-        'Exit Portal': 'Dashboard_Page',
-        'View License': 'FIXME',
-        'Logout': 'Login_Page',
+        'About Tower': None, #  FIXME
+        'Account Settings': User_Edit_Page,
+        'Contact Support': None, #  FIXME
+        'Inventory Script': None, #  FIXME
+        'Management Jobs': None, #  FIXME
+        'Monitor Tower': None, #  FIXME
+        'Portal Mode': Portal_Page,
+        'Exit Portal': Dashboard_Page,
+        'View License': None, #  FIXME
+        'Logout': Login_Page,
     }
-
-

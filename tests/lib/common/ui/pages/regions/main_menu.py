@@ -10,15 +10,15 @@ class Main_Menu(List_Region):
     _logo_locator = (By.CSS_SELECTOR, '#ansible-brand-logo')
     _active_item_locator = (By.CSS_SELECTOR, "li.active > a")
     _item_locator = (By.CSS_SELECTOR, "li > a")
-    _related = {"Home": 'Dashboard_Page',
-                "Organizations": 'Organizations_Page',
-                "Users": 'Users_Page',
-                "Teams": 'Teams_Page',
-                "Credentials": 'Credentials_Page',
-                "Projects": 'Projects_Page',
-                "Inventories": 'Inventories',
-                "Job Templates": 'Job_Templates',
-                "Jobs": 'Jobs'}
+    _related = {"Home": Dashboard_Page,
+                "Organizations": Organizations_Page,
+                "Users": Users_Page,
+                "Teams": Teams_Page,
+                "Credentials": Credentials_Page,
+                "Projects": Projects_Page,
+                "Inventories": Inventories,
+                "Job Templates": Job_Templates,
+                "Jobs": Jobs}
 
     @property
     def active_item(self):
