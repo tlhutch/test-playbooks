@@ -21,18 +21,30 @@ class Header_Region(PageRegion):
         return Main_Menu(self.testsetup)
 
     @property
-    def is_logged_in(self):
+    def current_menu(self):
         if self.account_menu.is_displayed():
-            return self.account_menu.is_logged_in
+            return self.account_menu
         elif self.mobile_menu.is_displayed():
-            return self.mobile_menu.is_logged_in
+            return self.mobile_menu
         else:
             raise Exception("Unable to determine if logged in")
 
+    @property
+    def is_logged_in(self):
+        '''
+        Determine which menu is visible, and route to the appropriate property.
+        '''
+        return self.current_menu.is_logged_in
+
+    @property
+    def current_user(self):
+        '''
+        Determine which menu is visible, and route to the appropriate property.
+        '''
+        return self.current_menu.current_user
+
     def logout(self):
-        if self.account_menu.is_displayed():
-            return self.account_menu.click("Logout")
-        elif self.mobile_menu.is_displayed():
-            return self.mobile_menu.click("Logout")
-        else:
-            raise Exception("Unable to locate account menu, or mobile menu.")
+        '''
+        Logout by clicking 'Logout' in the appropriate menu.
+        '''
+        return self.current_menu.click("Logout")
