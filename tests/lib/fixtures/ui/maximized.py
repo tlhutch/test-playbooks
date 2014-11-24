@@ -1,8 +1,13 @@
+import logging
 import pytest
+
+
+log = logging.getLogger(__name__)
 
 
 @pytest.fixture
 def maximized(mozwebqa):
+    log.debug("Calling fixture maximized")
     if mozwebqa.selenium.name == 'chrome':
         '''Chrome doesn't seem to handle maximize properly'''
         (width, height) = mozwebqa.selenium.execute_script("return [screen.width, screen.height];")
@@ -27,6 +32,7 @@ def window_laptop(mozwebqa):
     '''
     Set window size and position to a typical laptop resolution (1280x720)
     '''
+    log.debug("Calling fixture window_laptop")
     mozwebqa.selenium.set_window_position(0, 0)
     mozwebqa.selenium.set_window_size(1280, 720)
     return True
@@ -37,6 +43,7 @@ def window_mobile(mozwebqa):
     '''
     Set window size and position to a typical mobile resolution (1024x768)
     '''
+    log.debug("Calling fixture window_mobile")
     mozwebqa.selenium.set_window_position(0, 0)
     mozwebqa.selenium.set_window_size(1024, 768)
     return True
