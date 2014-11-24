@@ -1,6 +1,7 @@
 import time
 import logging
 import urlparse
+import inspect
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException, ElementNotVisibleException, TimeoutException
 from selenium.webdriver.common.by import By
@@ -211,18 +212,25 @@ class Page(object):
 
         name = self._related.get(name, default)
 
-        # import desired module
-        if '.' in name:
-            modname = name[:name.rfind('.')]
-            name = name[name.rfind('.') + 1:]
+        # if the provided name is a class, return it
+        if inspect.isclass(name):
+            return name
+
+        # otherwise, attempt to import the desired module
         else:
-            modname = self.__module__
+            if '.' in name:
+                modname = name[:name.rfind('.')]
+                name = name[name.rfind('.') + 1:]
+            else:
+                modname = self.__module__
 
-        mod = __import__(modname, fromlist=[name])
-        if hasattr(mod, name):
-            return getattr(mod, name)
+            mod = __import__(modname, fromlist=[name])
+            if hasattr(mod, name):
+                return getattr(mod, name)
 
-        log.warning("Module '%s' has no class '%s'" % (mod, name))
+            log.warning("Module '%s' has no class '%s'" % (mod, name))
+
+        raise Exception("Unable to import desired class '%s'" % name)
 
 
 class PageRegion(Page):
