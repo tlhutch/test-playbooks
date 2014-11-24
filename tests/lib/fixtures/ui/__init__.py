@@ -37,7 +37,7 @@ def ui_portal_pg(request, mozwebqa):
     fixture_args = getattr(request.function, 'fixture_args', None)
     if fixture_args is None or fixture_args.kwargs.get('login', True):
         home_page_logged_in = request.getfuncargvalue('home_page_logged_in')
-        return home_page_logged_in.account_menu.click('Portal Mode')
+        return home_page_logged_in.header.current_menu.click('Portal Mode')
     else:
         obj = Portal_Page(mozwebqa)
         obj.open("/#/portal")
