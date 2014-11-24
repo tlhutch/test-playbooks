@@ -24,6 +24,7 @@ def window_maximized(mozwebqa, maximized):
     '''
     Set window size and position to the minimum
     '''
+    log.debug("Calling fixture window_maximized")
     return maximized
 
 
