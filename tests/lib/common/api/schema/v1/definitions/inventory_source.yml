@@ -53,6 +53,7 @@ inventory_source:
         next_job: {format: uri, type: string}
         next_schedule: {format: uri, type: string}
         schedules: {format: uri, type: string}
+        source_script: {format: uri, type: string}
         update: {format: uri, type: string}
       required: [inventory_updates, update, inventory]
       type: object
@@ -61,6 +62,7 @@ inventory_source:
       properties:
         group: {$ref: '#/definitions/summary_fields_group'}
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
+        source_script: {$ref: '#/definitions/summary_fields_source_script'}
       type: object
   required: [id, url, created, modified, inventory, group, overwrite,
   overwrite_vars, update_on_launch, last_job_run, last_job_failed, status,
