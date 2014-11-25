@@ -130,9 +130,30 @@ class Test_Job(Base_Api_Test):
                     api_jobs_pg.post(job_template.json)
 
     @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_relaunch(self):
+    def test_relaunch_with_credential(self, job_template):
         '''
-        Verify the job->relaunch endpoint behaves as expected
+        Verify relaunching a job with a valid credential no-ask credential.
+        '''
+        assert False
+
+    @pytest.mark.skipif(True, reason="not yet implemented")
+    def test_relaunch_without_credential(self, job_template):
+        '''
+        Verify relaunching a job whose credential has been deleted.
+        '''
+        assert False
+
+    @pytest.mark.skipif(True, reason="not yet implemented")
+    def test_relaunch_with_ask_credential(self, job_template_multi_ask):
+        '''
+        Verify relaunching a job where the credential has ASK passwords.
+        '''
+        assert False
+
+    @pytest.mark.skipif(True, reason="not yet implemented")
+    def test_relaunch_with_extra_vars(self):
+        '''
+        Verify relaunching a job with extra_vars.
         '''
         assert False
 
