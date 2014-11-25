@@ -69,10 +69,9 @@
   yum: name=ansible state=latest
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'stable'
 
-# epel-7 does not support 'epel-testing' repository during beta
 - name: install ansible rpm (testing)
   yum: name=ansible enablerepo='*-testing' state=latest
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'testing' and ansible_distribution_major_version != '7'
+  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'testing'
 
 - name: install ansible rpm (nightly)
   yum: name=ansible enablerepo=ansible-nightly state=latest
