@@ -1,0 +1,20 @@
+---
+
+- name: determine if rhui repository exists
+  stat:
+    path: '{{ redhat_rhui_repo_path }}'
+  changed_when: false
+  register: rhui_repo
+
+- name: update rh-amazon-rhui-client (RHEL EC2 only)
+  yum: name=rh-amazon-rhui-client state=latest
+  when: ansible_distribution == 'RedHat' and rhui_repo.stat.exists
+
+- name: enable rhui repositories
+  ini_file:
+    dest: '{{ redhat_rhui_repo_path }}'
+    section: '{{ item }}'
+    option: enabled
+    value: 1
+  when: ansible_distribution == 'RedHat' and rhui_repo.stat.exists
+  with_items: redhat_rhui_repos

@@ -12,3 +12,17 @@ ansible_pip: 'ansible'
 
 # Specify the PPA that provides 'ansible' stable releases
 ansible_ppa: 'ppa:ansible/ansible'
+
+# Indicate the path to the RHUI repository file
+redhat_rhui_repo_path: '/etc/yum.repos.d/redhat-rhui.repo'
+
+# Specify RHEL RHUI repositories to enable (used in vars/*.yml).
+redhat_rhui_repos: []
+
+# Indicate the path to the subscription-manager repository file
+redhat_rhsm_repo_path: '/etc/yum.repos.d/redhat.repo'
+redhat_rhsm_cert_path: '/etc/pki/consumer/cert.pem'
+redhat_rhsm_conf_path: '/etc/rhsm/rhsm.conf'
+
+# Specify RHEL subscription-manager repositories to enable (used in vars/*.yml).
+redhat_rhsm_repos: []
