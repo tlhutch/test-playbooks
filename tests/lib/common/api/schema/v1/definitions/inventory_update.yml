@@ -30,6 +30,7 @@ inventory_update:
         inventory_source: {format: uri, type: string}
         modified_by: {format: uri, type: string}
         schedule: {format: uri, type: string}
+        source_script: {format: uri, type: string}
         stdout: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
       required: [cancel, inventory_source]
@@ -54,6 +55,7 @@ inventory_update:
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
+        source_script: {$ref: '#/definitions/summary_fields_source_script'}
       required: [inventory_source]
       type: object
     type: {pattern: ^inventory_update$, type: string}
