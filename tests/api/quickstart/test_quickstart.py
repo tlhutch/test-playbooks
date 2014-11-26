@@ -291,8 +291,9 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Create a new inventory
         payload = dict(name=_inventory['name'],
                        description=_inventory.get('description', ''),
-                       organization=org.id,
-                       variables=json.dumps(_inventory.get('variables', None)))
+                       organization=org.id)
+        if 'variables' in _inventory:
+            payload['variables'] = json.dumps(_inventory.get('variables'))
 
         try:
             api_inventories_pg.post(payload)
@@ -315,8 +316,9 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Create a new inventory
         payload = dict(name=_group['name'],
                        description=_group.get('description', ''),
-                       inventory=inventory_id,
-                       variables=json.dumps(_group.get('variables', None)))
+                       inventory=inventory_id)
+        if 'variables' in _group:
+            payload['variables'] = json.dumps(_group.get('variables'))
 
         # different behavior depending on if we're creating child or parent
         if 'parent' in _group:
@@ -349,8 +351,9 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Create a new host
         payload = dict(name=host['name'],
                        description=host.get('description', None),
-                       inventory=inventory_id,
-                       variables=json.dumps(host.get('variables', None)))
+                       inventory=inventory_id)
+        if 'variables' in host:
+            payload['variables'] = json.dumps(host.get('variables'))
 
         try:
             api_hosts_pg.post(payload)
@@ -668,8 +671,10 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                        project=project_id,
                        allow_callbacks=_job_template.get('allow_callbacks', False),
                        verbosity=_job_template.get('verbosity', 0),
-                       forks=_job_template.get('forks', 0),
-                       extra_vars=json.dumps(_job_template.get('extra_vars', None)),)
+                       forks=_job_template.get('forks', 0))
+
+        if 'extra_vars' in _job_template:
+            payload['extra_vars'] = json.dumps(_job_template.get('extra_vars'))
 
         # Add credential identifiers
         for cred in ('credential', 'cloud_credential'):
