@@ -123,6 +123,7 @@ class Job_Template_Launch_Page(base.Base):
     can_start_without_user_input = property(base.json_getter('can_start_without_user_input'), base.json_setter('can_start_without_user_input'))
     ask_variables_on_launch = property(base.json_getter('ask_variables_on_launch'), base.json_setter('ask_variables_on_launch'))
     passwords_needed_to_start = property(base.json_getter('passwords_needed_to_start'), base.json_setter('passwords_needed_to_start'))
+    credential_needed_to_start = property(base.json_getter('credential_needed_to_start'), base.json_setter('credential_needed_to_start'))
     variables_needed_to_start = property(base.json_getter('variables_needed_to_start'), base.json_setter('variables_needed_to_start'))
 
 
