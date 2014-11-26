@@ -107,6 +107,7 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
 
         # launch the job_template
         result = launch_pg.post()
@@ -119,7 +120,7 @@ class Test_Job_Template(Base_Api_Test):
         job_pg = jobs_pg.results[0].wait_until_completed()
         assert job_pg.is_successful, job_pg
 
-    def test_launch_no_credential(self, job_template_no_credential):
+    def test_launch_without_credential(self, job_template_no_credential):
         '''
         Verify the job->launch endpoint behaves as expected
         '''
@@ -130,8 +131,43 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
+        assert launch_pg.credential_needed_to_start
 
-    def test_launch_ask_variables_on_launch(self, job_template_ask_variables_on_launch):
+        # launch the job_template without providing a password
+        with pytest.raises(common.exceptions.BadRequest_Exception):
+            launch_pg.post()
+
+    def test_launch_with_credential_in_payload(self, job_template_no_credential, ssh_credential):
+        '''
+        Verify the job->launch endpoint behaves as expected
+        '''
+        launch_pg = job_template_no_credential.get_related('launch')
+
+        # assert values on launch resource
+        assert not launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+        assert launch_pg.credential_needed_to_start
+
+        # launch the job_template without providing a password
+        payload = dict(credential=ssh_credential.id)
+        result = launch_pg.post(payload)
+
+        # assert successful launch
+        jobs_pg = job_template_no_credential.get_related('jobs', id=result.json['job'])
+        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
+
+        # wait for completion and assert success
+        job_pg = jobs_pg.results[0].wait_until_completed()
+        assert job_pg.is_successful, job_pg
+
+        # assert job is associated with the expected credential
+        assert job_pg.credential == ssh_credential.id, \
+            "Job is not associated with the credential provided at launch time" \
+            " (%s != %s)" % (job_pg.credential, ssh_credential.id)
+
+    def test_launch_without_ask_variables_on_launch(self, job_template_ask_variables_on_launch):
         '''
         Verify the job->launch endpoint behaves as expected when ask_variables_on_launch is enabled
         '''
@@ -142,8 +178,52 @@ class Test_Job_Template(Base_Api_Test):
         assert launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
 
-    def test_launch_variables_needed_to_start(self, job_template_variables_needed_to_start):
+        # launch the job_template
+        result = launch_pg.post()
+
+        # assert successful launch
+        jobs_pg = job_template_ask_variables_on_launch.get_related('jobs', id=result.json['job'])
+        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
+        job_pg = jobs_pg.results[0]
+
+        # assert job has no extra_vars
+        assert job_pg.extra_vars == "", "No extra_vars were provided at launch, " \
+            "but the job contains extra_vars (%s)" % (job_pg.extra_vars)
+
+    def test_launch_with_ask_variables_on_launch(self, job_template_ask_variables_on_launch):
+        '''
+        Verify the job->launch endpoint behaves as expected when ask_variables_on_launch is enabled
+        '''
+        launch_pg = job_template_ask_variables_on_launch.get_related('launch')
+
+        # assert values on launch resource
+        assert launch_pg.can_start_without_user_input
+        assert launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
+
+        # launch the job_template
+        payload = dict(one=1, two=2, three=3)
+        result = launch_pg.post(payload)
+
+        # assert successful launch
+        jobs_pg = job_template_ask_variables_on_launch.get_related('jobs', id=result.json['job'])
+        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
+        job_pg = jobs_pg.results[0]
+
+        # assert extra_vars contains provided data
+        extra_vars = json.loads(job_pg.extra_vars)
+        assert extra_vars == payload, \
+            "The job extra_vars do not match the values provided at launch (%s != %s)" % \
+            (extra_vars, payload)
+
+    # FiXME - implement the following
+    # def test_launch_without_variables_needed_to_start(self, job_template_variables_needed_to_start):
+
+    def test_launch_with_variables_needed_to_start(self, job_template_variables_needed_to_start):
         '''
         Verify the job->launch endpoint behaves as expected when a survey is enabled
         '''
@@ -157,6 +237,7 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
 
         # assert number of required variables
         required_variables = [question['variable']
@@ -182,6 +263,7 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.ask_variables_on_launch
         assert launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
 
         # assert 'ssh_password' in launch_pg.passwords_needed_to_start
         # assert 'ssh_key_unlock' in launch_pg.passwords_needed_to_start
@@ -199,7 +281,7 @@ class Test_Job_Template(Base_Api_Test):
         with pytest.raises(common.exceptions.BadRequest_Exception):
             launch_pg.post(passwords)
 
-    def test_launch_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
+    def test_launch_with_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         '''
         Verify the job->launch endpoint behaves as expected when passwords are needed to start
         '''
@@ -212,6 +294,7 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.ask_variables_on_launch
         assert launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
 
         # assert 'ssh_password' in launch_pg.passwords_needed_to_start
         # assert 'ssh_key_unlock' in launch_pg.passwords_needed_to_start
