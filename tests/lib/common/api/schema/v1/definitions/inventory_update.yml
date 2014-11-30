@@ -9,7 +9,9 @@ inventory_update:
     finished:
       format: date-time
       type: [string, 'null']
+    group_by: {type: string}
     id: {$ref: '#/definitions/id'}
+    instance_filters: {type: string}
     inventory_source: {$ref: '#/definitions/id'}
     job_args: {type: string}
     job_cwd: {type: string}
@@ -64,5 +66,5 @@ inventory_update:
   required: [id, url, created, modified, inventory_source, status, failed, related,
     summary_fields, license_error, type, credential, name, description, source, source_path,
     source_regions, source_script, source_vars, overwrite, overwrite_vars, started,
-    finished, elapsed, job_explanation]
+    finished, elapsed, instance_filters, group_by, job_explanation]
   type: object

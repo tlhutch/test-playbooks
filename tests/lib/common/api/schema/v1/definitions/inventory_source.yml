@@ -1,18 +1,16 @@
----
 inventory_source:
   additionalProperties: false
   properties:
-    type: {type: string, pattern: ^inventory_source$}
     created: {format: date-time, type: string}
     credential: {$ref: '#/definitions/id_or_null'}
+    description: {type: string}
     group: {$ref: '#/definitions/id_or_null'}
-    id: {$ref: '#/definitions/id'}
-    inventory: {$ref: '#/definitions/id_or_null'}
+    group_by: {type: string}
     has_schedules: {type: boolean}
+    id: {$ref: '#/definitions/id'}
+    instance_filters: {type: string}
+    inventory: {$ref: '#/definitions/id_or_null'}
     last_job_failed: {type: boolean}
-    next_job_run:
-      format: date-time
-      type: [string, 'null']
     last_job_run:
       format: date-time
       type: [string, 'null']
@@ -21,19 +19,12 @@ inventory_source:
       format: date-time
       type: [string, 'null']
     modified: {format: date-time, type: string}
+    name: {type: string}
+    next_job_run:
+      format: date-time
+      type: [string, 'null']
     overwrite: {type: boolean}
     overwrite_vars: {type: boolean}
-    name: {type: string}
-    description: {type: string}
-    source: {type: string}
-    source_path: {type: string}
-    source_script: {$ref: '#/definitions/id_or_null'}
-    source_regions: {type: string}
-    source_vars: {type: string}
-    status: {$ref: '#/definitions/enum_inventory_status'}
-    update_cache_timeout: {minimum: 0, type: number}
-    update_on_launch: {type: boolean}
-    url: {format: uri, type: string}
     related:
       additionalProperties: false
       properties:
@@ -57,6 +48,12 @@ inventory_source:
         update: {format: uri, type: string}
       required: [inventory_updates, update, inventory]
       type: object
+    source: {type: string}
+    source_path: {type: string}
+    source_regions: {type: string}
+    source_script: {$ref: '#/definitions/id_or_null'}
+    source_vars: {type: string}
+    status: {$ref: '#/definitions/enum_inventory_status'}
     summary_fields:
       additionalProperties: true
       properties:
@@ -64,9 +61,13 @@ inventory_source:
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         source_script: {$ref: '#/definitions/summary_fields_source_script'}
       type: object
-  required: [id, url, created, modified, inventory, group, overwrite,
-  overwrite_vars, update_on_launch, last_job_run, last_job_failed, status,
-  source, source_path, source_script, source_vars, credential, source_regions,
-  related, summary_fields, type, next_job_run, has_schedules, description,
-  name, update_cache_timeout]
+    type: {pattern: ^inventory_source$, type: string}
+    update_cache_timeout: {minimum: 0, type: number}
+    update_on_launch: {type: boolean}
+    url: {format: uri, type: string}
+  required: [id, url, created, modified, inventory, group, overwrite, overwrite_vars,
+    update_on_launch, last_job_run, last_job_failed, status, source, source_path,
+    source_script, source_vars, credential, source_regions, related, summary_fields,
+    type, next_job_run, has_schedules, description, name, update_cache_timeout, group_by,
+    instance_filters]
   type: object
