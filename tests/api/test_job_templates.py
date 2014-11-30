@@ -215,7 +215,10 @@ class Test_Job_Template(Base_Api_Test):
         job_pg = jobs_pg.results[0]
 
         # assert extra_vars contains provided data
-        extra_vars = json.loads(job_pg.extra_vars)
+        try:
+            extra_vars = json.loads(job_pg.extra_vars)
+        except ValueError:
+            extra_vars = {}
         assert extra_vars == payload, \
             "The job extra_vars do not match the values provided at launch (%s != %s)" % \
             (extra_vars, payload)
