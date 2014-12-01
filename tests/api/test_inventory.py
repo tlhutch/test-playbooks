@@ -333,6 +333,13 @@ EOF''' % (json.dumps(json_inventory_ipv6, indent=4),))
         assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
         print result
 
+    @pytest.mark.skipif(True, reason="TODO - https://trello.com/c/JF0hVue0")
+    def test_import_directory(self, ansible_runner, import_inventory):
+        '''
+        Verify that tower can handle inventory_import when --source refers a
+        directory.
+        '''
+
     def test_cascade_delete(self, ansible_runner, delete_inventory, api_groups_pg, api_hosts_pg):
         '''Verify DELETE removes associated groups and hosts'''
 
