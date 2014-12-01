@@ -2,9 +2,47 @@ import pytest
 import json
 import uuid
 import urllib2
-import random
 import common.utils
 import common.exceptions
+
+
+@pytest.fixture(scope="function")
+def api_inventory_sources_options_json(request, authtoken, api_inventory_sources_pg):
+    '''Return inventory_sources OPTIONS json.'''
+    return api_inventory_sources_pg.options().json
+
+
+#
+# Various choices values from the OPTIONS request
+#
+@pytest.fixture(scope="function")
+def azure_region_choices(request, api_inventory_sources_options_json):
+    '''Return field 'azure_ret_choices' from the inventory_sources OPTIONS json.'''
+    return dict(api_inventory_sources_options_json['actions']['GET']['source_regions']['azure_region_choices'])
+
+
+@pytest.fixture(scope="function")
+def gce_region_choices(request, api_inventory_sources_options_json):
+    '''Return field 'gce_ret_choices' from the inventory_sources OPTIONS json.'''
+    return dict(api_inventory_sources_options_json['actions']['GET']['source_regions']['gce_region_choices'])
+
+
+@pytest.fixture(scope="function")
+def ec2_region_choices(request, api_inventory_sources_options_json):
+    '''Return field 'ec2_ret_choices' from the inventory_sources OPTIONS json.'''
+    return dict(api_inventory_sources_options_json['actions']['GET']['source_regions']['ec2_region_choices'])
+
+
+@pytest.fixture(scope="function")
+def rax_region_choices(request, api_inventory_sources_options_json):
+    '''Return field 'rax_ret_choices' from the inventory_sources OPTIONS json.'''
+    return dict(api_inventory_sources_options_json['actions']['GET']['source_regions']['rax_region_choices'])
+
+
+@pytest.fixture(scope="function")
+def ec2_group_by_choices(request, api_inventory_sources_options_json):
+    '''Return field 'ec2_group_by_choices' from the inventory_sources OPTIONS json.'''
+    return dict(api_inventory_sources_options_json['actions']['GET']['group_by']['ec2_group_by_choices'])
 
 
 @pytest.fixture(scope="function")
