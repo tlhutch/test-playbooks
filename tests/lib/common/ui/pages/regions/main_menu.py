@@ -32,14 +32,6 @@ class Main_Menu(List_Region):
     def logo(self):
         return self.selenium.find_element(*self._logo_locator)
 
-    def keys(self):
-        '''
-        Return a list of dictionaries mapping the region name to the selenium
-        element.  For example:
-            [ {name: element}, ... ]
-        '''
-        return [el.get_attribute('text')for el in self.find_elements(*self._item_locator)]
-
     def click(self, name):
         if name == "Home":
             self.logo.click()
