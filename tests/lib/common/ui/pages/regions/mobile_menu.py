@@ -47,6 +47,7 @@ class Mobile_Menu(PageRegion):
         '''Show the mobile menu'''
         if not self.submenu.is_displayed():
             self._root_element.click()
+            # TODO - this might need a wait_for to pause until the submenu is visible
 
     def hide(self):
         '''
@@ -56,6 +57,7 @@ class Mobile_Menu(PageRegion):
             current_location = (self._root_element.location['x'], self._root_element.location['y'])
             new_location = map(sub, current_location, (200, 0))
             ActionChains(self.selenium).move_by_offset(*new_location).click().perform()
+            # TODO - this might need a wait_for to pause until the submenu is visible
 
     def keys(self):
         '''Return submenu keys'''
