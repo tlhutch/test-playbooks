@@ -39,11 +39,13 @@ class Account_Menu(PageRegion):
         '''Show the account submenu'''
         if not self.submenu.is_displayed():
             self.find_element(*self._menu_link_locator).click()
+            self.wait_for_visible()
 
     def hide(self):
         '''Hide the account submenu'''
         if self.submenu.is_displayed():
             self.find_element(*self._menu_link_locator).click()
+            self.wait_for_not_visible()
 
     def click(self, name):
         '''

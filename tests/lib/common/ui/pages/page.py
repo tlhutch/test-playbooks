@@ -30,6 +30,9 @@ class Page(object):
 
     def wait_for_spinny(self):
         '''Wait for the 'Working...' spinner to disappear'''
+        # FIXME - why doesn't this use self.wait_for_element_visible and
+        # self.wait_for_element_not_visible?
+
         # Wait for spinner to appear
         time.sleep(0.5)
         # WebDriverWait(self.selenium, 1).until(lambda s: s.find_element(*self._spinny_locator).is_displayed())
@@ -130,7 +133,7 @@ class Page(object):
             time.sleep(1)
             count += 1
             if count == self.timeout:
-                raise Exception(locator[1] + ' has not loaded')
+                raise TimeoutException(locator[1] + ' has not loaded')
 
     def wait_for_element_visible(self, *locator):
         """Wait for the element at the specified locator to be visible in the browser."""
@@ -139,7 +142,7 @@ class Page(object):
             time.sleep(1)
             count += 1
             if count == self.timeout:
-                raise Exception(locator[1] + " is not visible")
+                raise TimeoutException(locator[1] + " is not visible")
 
     def wait_for_element_not_present(self, *locator):
         """Wait for the element at the specified locator to be not present in the DOM."""
@@ -254,6 +257,34 @@ class PageRegion(Page):
 
         super(PageRegion, self).__init__(testsetup)
 
+    def wait_for_visible(self):
+        """
+        Wait for the region, identified by _root_element, to be visible in the
+        browser.
+        """
+        count = 0
+        while not self.is_displayed():
+            time.sleep(1)
+            count += 1
+            if count >= self.timeout:
+                raise TimeoutException("Timeout waiting for region to become visible")
+
+    def wait_for_not_visible(self):
+        """
+        Wait for the region, identified by _root_element, to be not visible in
+        the browser.
+        """
+        self.selenium.implicitly_wait(0)
+        try:
+            WebDriverWait(self.selenium, self.timeout).until(lambda s: not self.is_displayed())
+            return True
+        except TimeoutException:
+            Assert.fail(TimeoutException)
+        finally:
+            self.selenium.implicitly_wait(self.testsetup.default_implicit_wait)
+
     def is_displayed(self):
-        '''Return true if the _root_element is currently visible'''
+        """
+        Return true if the _root_element is currently visible.
+        """
         return self._root_element.is_displayed()
