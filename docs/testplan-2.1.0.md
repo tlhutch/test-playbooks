@@ -103,6 +103,12 @@
   5. [ ] Verify survey modal on job launch accurately reflects survey questions
   6. [ ] Verify survey modal correctly submits variables to job
 
+### Feature: EC2 instance_filters and group_by
+1. [X] Verify valid and invalid inputs to group_by
+2. [F] Verify valid and invalid inputs to instance_filters
+3. [X] Verify group_by limits group creation to provided list
+4. [X] Verify instance_filters honored on host import
+
 ### Feature: Only superuser can create job without job_template
 1. [X] Verify that *only* superusers can POST to /api/v1/jobs
 
