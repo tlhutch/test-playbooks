@@ -6,7 +6,9 @@ rax_images:
     - {'name': 'centos-6.5-x86_64',   'uuid': '7e746552-2212-41d7-b216-a1024b83b0c4', 'flavor': '5', 'groups': 'primary' }
     - {'name': 'centos-7.0-x86_64',   'uuid': 'bfa5783c-e40e-4668-adc1-feb0ae3d7a46', 'flavor': '5', 'groups': 'primary' }
     - {'name': 'rhel-6.5-x86_64',     'uuid': 'ceb5d3d9-5879-4b30-a3d6-9175127d94ac', 'flavor': '5', 'groups': 'primary' }
-    - {'name': 'rhel-7.0-x86_64',     'uuid': '7353e7ff-66c0-4f7f-9b5d-6aa757ca8f11', 'flavor': '5', 'groups': 'primary' }
+    # remove the '.' character for now, works around rackspace support ticket
+    # https://mycloud.rackspace.com/cloud/849941/tickets#141112-ord-0001188
+    - {'name': 'rhel-70-x86_64',     'uuid': '7353e7ff-66c0-4f7f-9b5d-6aa757ca8f11', 'flavor': '5', 'groups': 'primary' }
     - {'name': 'ubuntu-12.04-x86_64', 'uuid': 'a3da5530-71c6-4405-b64f-fd2da99d303c', 'flavor': '5', 'groups': 'primary' }
     - {'name': 'ubuntu-14.04-x86_64', 'uuid': '598a4282-f14b-4e50-af4c-b3e52749d9f9', 'flavor': '5', 'groups': 'primary' }
     - {'name': 'fedora-19-x86_64',    'uuid': 'beb060e2-63f4-4cbc-b2a6-4b0b7d0edc9d', 'flavor': '5', 'groups': 'primary' }
