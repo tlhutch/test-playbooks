@@ -8,7 +8,6 @@
     - name: open rdesktop
       local_action: command rdesktop
         -u {{ hostvars[inventory_hostname]['ansible_ssh_user']|quote }}
-        #-d ANSIBLE
         -p {{ hostvars[inventory_hostname]['ansible_ssh_pass']|quote }}
         -T {{ inventory_hostname|quote }} -0 -g 1280x800
         '{{ ansible_ssh_host|default(inventory_hostname) }}'
