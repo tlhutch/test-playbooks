@@ -115,6 +115,13 @@
 ### Feature: VMware inventory_import updates
 1. [X] Verify VMware inventory_imports continue to import successfully and include more detailed information to access/filter VMware hosts
 
+### Feature: Custom Inventory Scripts
+1. UI
+   1. [X] Verify account menu option only available for superuser
+   1. [X] Verify basic inventory_script modal functionality
+   1. [X] Verify basic inventory_script table functionality (searching, sorting, pagination)
+2. API
+
 ### Regresion
 1. [ ] UI regression completed
 2. [ ] API regression completed

@@ -1,42 +1,60 @@
-# ansibleworks-qa tests
+# tower-qa tests
+
+This document describes the process for setting up a system for running the
+Ansible Tower integration test suite.
+
+## Pre-requisites
+
+The installation instructions assume the following software is installed.
+
+1. [python-virtualenv](http://virtualenv.readthedocs.org)
+2. [virtualenvwrapper](http://virtualenvwrapper.readthedocs.org)
 
 ## Instructions
 
-1. Install test requirements
+Use the following procedure to prepare your system for running the Ansible
+Tower integration test suite.  The procedure must be run from the root
+directory of the repository.
 
-        pip install -r requirements.txt
+1. Create, and activate, a python virtual environment.
 
-2. Create, and modify, `credentials.yml`
+        virtualenv tower-qa
+        workon tower-qa
 
-        cp credentials.template credentials.yml
-        vim credentials.yml  # update as needed
+2. Install test requirements using `pip`.
 
-3. Determine URL for running AWX instance (needed by `--baseurl` parameter)
-4. Disable ansible host key checking
+        pip install -r tests/requirements.txt
+
+3. Create, and modify, the file `tests/credentials.yml`.
+
+        cp tests/credentials.template tests/credentials.yml
+        vim tests/credentials.yml  # update as needed
+
+4. Determine URL for an existing Ansible Tower instance (e.g. `http://tower.example.com`).
+
+5. Create an [ansible inventory file](http://docs.ansible.com/intro_inventory.html) `playbooks/inventory.auto` that describes your Ansible Tower instance.
+
+        cat <<EOF>playbooks/inventory.tower
+        [ansible-tower]
+        tower.example.com ansible_ssh_user=root
+        EOF
+
+6. Disable ansible host key checking
 
         export ANSIBLE_HOST_KEY_CHECKING=False
 
-5. Run the tests:
+7. From the root directory of the repository, run the tests
 
-        py.test --baseurl https://example.com --destructive tests
+        py.test --ansible-inventory=playbooks/inventory.tower --baseurl https://tower.example.com --destructive tests/
+
+## Recommended Reading
+
+* [HomeBrew](http://brew.sh/) - Additional package manager for OSX.
+* [Automated Test Hell](http://www.slideshare.net/wseliga/escaping-testhellxpdaysukraine2013) - presentation on automation best practices and learning experiences.
+* [pytest](http://pytest.org/latest/) - The python test framework used by tower-qa.
+* [pytest MozwebQA plugin](https://github.com/mozilla/pytest-mozwebqa) -  The pytest selenium plugin used by browser UI auotmation.
 
 ## TODO
 
 1. Model comprehensive RBAC test scenario
 1. Comprehensive performance scenarios
-
-## Unittest gaps
-
-The following list was produced with help from the API development team to identify areas where API unittest coverage needs to be supplimented with integrated tests.
-
-1. Anything that drives celery jobs should be covered on installed system
-2. RBAC coverage and permissions
-3. job_template callbacks
-   - test for matching inventory <IP>
-   - test for matching inventory ansible_ssh_host=<IP>
-   - test for matching inventory by reverse lookup of <IP>
-   - test for matching inventory by forward lookup for each host in the inventory, looking for a matching <IP>
-   - test callback from a server not in inventory
-4. Upgrades
-5. Inventory_source with update_on_launch and a project with update_on_launch
-   - Should see job.status == 'waiting'
