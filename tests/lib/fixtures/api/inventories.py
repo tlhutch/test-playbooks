@@ -181,10 +181,11 @@ inventory['{0}'] = list()
 
 
 @pytest.fixture(scope="function")
-def inventory_script(request, authtoken, api_inventory_scripts_pg, script_source):
+def inventory_script(request, authtoken, api_inventory_scripts_pg, script_source, organization):
     # build payload
     payload = dict(name="random_inventory_script-%s" % common.utils.random_unicode(),
                    description="Random Inventory Script - %s" % common.utils.random_unicode(),
+                   organization=organization.id,
                    script=script_source)
     obj = api_inventory_scripts_pg.post(payload)
     request.addfinalizer(obj.silent_delete)

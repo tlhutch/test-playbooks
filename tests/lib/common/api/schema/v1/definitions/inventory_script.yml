@@ -6,17 +6,25 @@ inventory_script:
     id: {$ref: '#/definitions/id'}
     modified: {format: date-time, type: string}
     name: {type: string}
+    organization: {$ref: '#/definitions/id_or_null'}
     related:
       additionalProperties: false
       properties:
         created_by: {format: uri, type: string}
         modified_by: {format: uri, type: string}
+        organization: {format: uri, type: string}
       required: [created_by, modified_by]
       type: object
     script: {type: string}
-    summary_fields: {additionalProperties: true, type: object}
+    summary_fields:
+      additionalProperties: false
+      properties:
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
+        organization: {$ref: '#/definitions/summary_fields_organization'}
+      type: object
     type: {pattern: ^custom_inventory_script$, type: string}
     url: {format: uri, type: string}
   required: [ created, description, id, modified, name, related, script,
-  summary_fields ]
+  organization, summary_fields ]
   type: object
