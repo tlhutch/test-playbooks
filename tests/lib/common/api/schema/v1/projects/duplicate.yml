@@ -3,13 +3,14 @@ $schema: http://json-schema.org/draft-04/schema#
 type: object
 additionalProperties: false
 properties:
-    local_path:
-        type: array
-        minItems: 0
-        uniqueItems: true
-        items:
-            type: string
-            pattern: '^Invalid path choice$'
+# Commenting out for now, I don't know why 'local_path' would be considered a "duplicate"
+#    local_path:
+#        type: array
+#        minItems: 0
+#        uniqueItems: true
+#        items:
+#            type: string
+#            pattern: '^Invalid path choice$'
     name:
         type: array
         minItems: 0

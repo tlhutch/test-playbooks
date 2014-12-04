@@ -30,7 +30,48 @@ class Test_Projects(Base_Api_Test):
     '''
     pytestmark = pytest.mark.usefixtures('authtoken')
 
-    def test_cancel_queued_update(self, project_ansible_git_nowait, ansible_runner):
+    def test_manual_project(self, project_ansible_playbooks_manual):
+        '''
+        Verify tower can successfully creates a manual project (scm_type='').
+        This includes verifying UTF-8 local-path.
+        '''
+
+        # if we make it through the fixure, post worked
+        # assert various project attributes are empty ('')
+        for attr in ('scm_type', 'scm_url', 'scm_branch'):
+            assert hasattr(project_ansible_playbooks_manual, attr), \
+                "Unhandled project attribute: %s" % attr
+            attr_value = getattr(project_ansible_playbooks_manual, attr)
+            assert attr_value == '', \
+                "Unexpected project.%s (%s != %s)" % \
+                (attr, attr_value, '')
+
+        # assert various project attributes are false
+        for attr in ('scm_clean', 'scm_delete_on_update', 'last_job_failed',
+            'has_schedules', 'scm_delete_on_next_update',
+            'scm_update_on_launch', 'last_update_failed',):
+
+            assert hasattr(project_ansible_playbooks_manual, attr), \
+                "Unhandled project attribute: %s" % attr
+            attr_value = getattr(project_ansible_playbooks_manual, attr)
+            assert attr_value == False, \
+                "Unexpected project.%s (%s != %s)" % \
+                (attr, attr_value, False)
+
+        # assert related.update.can_update == false
+        update_pg = project_ansible_playbooks_manual.get_related('update')
+        assert not update_pg.json['can_update'], \
+            "Manual project incorrectly has can_update:%s" % \
+            (update_pg.json['can_update'],)
+
+        # assert related.project_updates.count == 0
+        for related_attr in ('project_updates', 'schedules'):
+            related_pg = project_ansible_playbooks_manual.get_related(related_attr)
+            assert related_pg.count == 0, \
+                "A manual project has %d %s, but should have %d %s" % \
+                (related_pg.count, related_attr, 0, related_attr)
+
+    def test_cancel_queued_update(self, project_ansible_git_nowait):
         '''
         Verify the project->current_update->cancel endpoint behaves as expected when canceling a
         queued project_update.  Note, the project_ansible_git repo is used
@@ -60,7 +101,7 @@ class Test_Projects(Base_Api_Test):
             "Unexpected project status after cancelling project update (status:%s)" % \
             project_ansible_git_nowait.status
 
-    def test_cancel_running_update(self, project_ansible_git_nowait, ansible_runner):
+    def test_cancel_running_update(self, project_ansible_git_nowait):
         '''
         Verify the project->current_update->cancel endpoint behaves as expected
         when canceling a running project_update.  Note, the project_ansible_git

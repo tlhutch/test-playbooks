@@ -47,7 +47,7 @@ def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_con
     '''
     Create a manual project associated with ansible-playbooks.git
     '''
-    local_path = common.utils.random_ascii()
+    local_path = "project_dir_%s" % common.utils.random_unicode()
 
     # Clone the repo
     results = ansible_runner.git(repo='https://github.com/jlaska/ansible-playbooks.git',
@@ -55,12 +55,19 @@ def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_con
     assert 'failed' not in results, "Clone failed\n%s" % json.dumps(results, indent=4)
 
     # Create project
-    payload = dict(name="ansible-playbooks.git - %s" % local_path,
+    payload = dict(name="ansible-playbooks.manual - %s" % local_path,
+                   description="manual project - %s" % common.utils.random_unicode(),
                    organization=organization.id,
                    local_path=local_path,
-                   scm_type=None)
+                   scm_type='')
     obj = api_projects_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
+
+    # manually delete the local_path
+    def delete_project():
+        ansible_runner.file(state="absent",
+                            path=os.path.join(awx_config['project_base_dir'], local_path))
+    request.addfinalizer(delete_project)
     return obj
 
 
