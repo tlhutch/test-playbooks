@@ -78,8 +78,20 @@ class Test_Inventory_Scripts(Base_Api_Test):
         '''
         Verify response when POSTing a duplicate to /inventory_scripts
         '''
+        # assert duplicate error
         with pytest.raises(common.exceptions.Duplicate_Exception):
             api_inventory_scripts_pg.post(inventory_script.json)
+
+    def test_unique(self, request, api_inventory_scripts_pg, inventory_script, another_organization):
+        '''
+        Verify response when POSTing a duplicate to /inventory_scripts
+        '''
+        payload = inventory_script.json
+        payload['organization'] = another_organization.id
+
+        # assert successful POST
+        obj = api_inventory_scripts_pg.post(payload)
+        request.addfinalizer(obj.silent_delete)
 
     def test_filter(self, api_inventory_scripts_pg, inventory_script):
         '''
