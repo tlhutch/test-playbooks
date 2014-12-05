@@ -48,13 +48,13 @@ class Test_Projects(Base_Api_Test):
 
         # assert various project attributes are false
         for attr in ('scm_clean', 'scm_delete_on_update', 'last_job_failed',
-            'has_schedules', 'scm_delete_on_next_update',
-            'scm_update_on_launch', 'last_update_failed',):
+                     'has_schedules', 'scm_delete_on_next_update',
+                     'scm_update_on_launch', 'last_update_failed',):
 
             assert hasattr(project_ansible_playbooks_manual, attr), \
                 "Unhandled project attribute: %s" % attr
             attr_value = getattr(project_ansible_playbooks_manual, attr)
-            assert attr_value == False, \
+            assert attr_value is False, \
                 "Unexpected project.%s (%s != %s)" % \
                 (attr, attr_value, False)
 
@@ -70,6 +70,60 @@ class Test_Projects(Base_Api_Test):
             assert related_pg.count == 0, \
                 "A manual project has %d %s, but should have %d %s" % \
                 (related_pg.count, related_attr, 0, related_attr)
+
+    @pytest.mark.parametrize(
+        "attr,value",
+        [
+            ("scm_type", 'hg'),
+            ("scm_url", 'https://bitbucket.org/jlaska/ansible-helloworld'),
+        ]
+    )
+    def test_scm_delete_on_next_update(self, project_ansible_playbooks_git, attr, value):
+        '''
+        Verify changing the scm_type or the scm_url causes tower to enable
+        scm_delete_on_next_update.
+
+        Also assert that after subsequently updating the project, the field
+        scm_delete_on_next_update is disabled.
+        '''
+
+        # assert scm_delete_on_update == False
+        assert not project_ansible_playbooks_git.scm_delete_on_update, \
+            "Unable to test scm_delete_on_next_update when scm_delete_on_update==True"
+
+        # assert scm_delete_on_next_update == False
+        assert not project_ansible_playbooks_git.scm_delete_on_next_update, \
+            "Before changing '%s', the value of 'scm_delete_on_next_update' is unexpected (%s != False)" % \
+            (attr, project_ansible_playbooks_git.scm_delete_on_next_update)
+
+        # change+restore the attribute value
+        orig_value = getattr(project_ansible_playbooks_git, attr)
+        project_ansible_playbooks_git.patch(**{attr: value})
+        project_ansible_playbooks_git = project_ansible_playbooks_git.patch(**{attr: orig_value})
+
+        # assert scm_delete_on_next_update == True
+        assert project_ansible_playbooks_git.scm_delete_on_next_update, \
+            "After changing '%s', the value of 'scm_delete_on_next_update' is unexpected (%s != Trues)" % \
+            (attr, project_ansible_playbooks_git.scm_delete_on_next_update)
+
+        # update the project
+        update_pg = project_ansible_playbooks_git.get_related('update')
+        result = update_pg.post()
+        updates_pg = project_ansible_playbooks_git.get_related('project_updates', id=result.json['project_update'])
+        assert updates_pg.count == 1, 'No project update matching id:%s found' % result.json['project_update']
+
+        # wait for update to complete
+        project_ansible_playbooks_git = project_ansible_playbooks_git.wait_until_completed()
+        # updates_pg.results.pop().wait_until_completed()
+
+        # FIXME - verify that the project *was* deleted before updating
+        # TASK: [delete project directory before update] ********************************
+        # changed: [localhost] => {"changed": true, "path": "/var/lib/awx/projects/_3811__ansible_examplesgit_git", "state": "absent"}
+
+        # assert scm_delete_on_next_update == False
+        assert not project_ansible_playbooks_git.scm_delete_on_next_update, \
+            "After completing a project_update, the value of 'scm_delete_on_next_update' is unexpected (%s != False)" % \
+            (attr, project_ansible_playbooks_git.scm_delete_on_next_update)
 
     def test_cancel_queued_update(self, project_ansible_git_nowait):
         '''
