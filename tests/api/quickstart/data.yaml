@@ -159,6 +159,20 @@ credentials:
       sudo_username: ''
       sudo_password: ''
 
+    - name: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***, vault_password:ASK
+      description: user:bender_eng_user, ssh_user:root, ssh_key_data, ssh_key_unlock:***, vault_password:ASK
+      kind: ssh
+      user: bender_eng_user
+      team: null
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: ''
+      ssh_key_data: '{encrypted[ssh_key_data]}'
+      ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
+      sudo_username: ''
+      sudo_password: ''
+      vault_password: 'ASK'
+
     - name: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***, vault_password:***)
       description: user:bender_eng_user, ssh_user:root, ssh_key_data, ssh_key_unlock:***, vault_password:***
       kind: ssh
@@ -198,6 +212,20 @@ credentials:
       ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
       sudo_username: '{sudo_username}'
       sudo_password: '{sudo_password}'
+
+    - name: SSH (team:Engineering, password:ASK, ssh_key_unlock:ASK, sudo_password:ASK, vault_password:ASK)
+      description: team:Engineering, ssh_user:root, password:ASK, ssh_key_unlock:ASK, sudo_password:ASK, vault_password:ASK
+      kind: ssh
+      user: null
+      team: Engineering
+      cloud: false
+      username: '{username}' # merged from credentials.yaml
+      password: 'ASK'
+      ssh_key_data: '{encrypted[ssh_key_data]}'
+      ssh_key_unlock: 'ASK'
+      sudo_username: '{sudo_username}'
+      sudo_password: 'ASK'
+      vault_password: 'ASK'
 
     #
     # github credentials
