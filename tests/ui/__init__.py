@@ -1,6 +1,7 @@
 import pytest
 import contextlib
 
+@pytest.mark.ui
 @pytest.mark.selenium
 class Base_UI_Test(object):
     '''
