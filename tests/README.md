@@ -18,7 +18,7 @@ directory of the repository.
 
 1. Create, and activate, a python virtual environment.
 
-        virtualenv tower-qa
+        mkvirtualenv tower-qa
         workon tower-qa
 
 2. Install test requirements using `pip`.
