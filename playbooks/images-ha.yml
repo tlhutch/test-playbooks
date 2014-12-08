@@ -9,10 +9,10 @@ my_inventory_file: '{{inventory_dir}}/inventory.ha'
 
 ec2_images:
     - {'name': 'ha-primary-centos-6.5-x86_64',     'user': 'root',     'id': 'ami-8997afe0', 'type': 'm3.medium', 'groups': 'primary'}
-    - {'name': 'ha-secondary-rhel-6.5-x86_64',     'user': 'ec2-user', 'id': 'ami-8d756fe4', 'type': 'm3.medium', 'groups': 'primary'}
-    - {'name': 'ha-secondary-rhel-7.0-x86_64',     'user': 'ec2-user', 'id': 'ami-785bae10', 'type': 'm3.medium', 'groups': 'secondary' }
-    - {'name': 'ha-secondary-ubuntu-12.04-x86_64', 'user': 'ubuntu',   'id': 'ami-2ccc7a44', 'type': 'm3.medium', 'groups': 'secondary' }
-    - {'name': 'ha-secondary-ubuntu-14.04-x86_64', 'user': 'ubuntu',   'id': 'ami-8caa1ce4', 'type': 'm3.medium', 'groups': 'secondary' }
+    - {'name': 'ha-secondary-rhel-6.5-x86_64',     'user': 'ec2-user', 'id': 'ami-8d756fe4', 'type': 'm3.medium', 'groups': 'secondary'}
+    - {'name': 'ha-secondary-rhel-7.0-x86_64',     'user': 'ec2-user', 'id': 'ami-785bae10', 'type': 'm3.medium', 'groups': 'secondary'}
+    - {'name': 'ha-secondary-ubuntu-12.04-x86_64', 'user': 'ubuntu',   'id': 'ami-2ccc7a44', 'type': 'm3.medium', 'groups': 'secondary'}
+    - {'name': 'ha-secondary-ubuntu-14.04-x86_64', 'user': 'ubuntu',   'id': 'ami-8caa1ce4', 'type': 'm3.medium', 'groups': 'secondary'}
 
 rds_images:
     - {'name': 'postgres', 'db_engine': 'postgres', 'db_name': 'awx', 'instance_type': '{{rds_instance_type}}', 'size': '{{rds_size}}', 'groups': 'postgres' }
