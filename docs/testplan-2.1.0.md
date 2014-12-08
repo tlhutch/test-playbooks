@@ -51,18 +51,22 @@
 ### Feature: HA
 1. Installer
     1. [X] Verify ./configure completes successfully for localhost tower with internal db
-    2. [ ] Verify ./configure completes successfully for remote tower with internal db
-    3. [ ] Verify ./configure completes successfully for localhost tower with external db
-    4. [ ] Verify ./configure completes successfully for remote tower with external db
-    5. [ ] Verify ./configure completes successfully for localhost tower with external db and secondaries
-    6. [ ] Verify ./configure completes successfully for remote tower with external db and secondaries
-    7. [ ] Verify ./configure completes successfully when adding a secondary after initial install
+    2. [X] Verify ./configure completes successfully for remote tower with internal db
+    3. [X] Verify ./configure completes successfully for localhost tower with external db
+    4. [X] Verify ./configure completes successfully for remote tower with external db
+    5. [X] Verify ./configure completes successfully for localhost tower with external db and secondaries
+    6. [X] Verify ./configure completes successfully for remote tower with external db and secondaries
+    7. [X] Verify ./configure completes successfully when adding a secondary after initial install
 2. Runtime
     1. [ ] Verify accessing secondary via http (application and /api) redirects to primary
     2. [ ] Verify no issues introduced wrt saving/reading job_stdout
     3. [ ] Verify incorrect usage of `tower-manage ha`
-    4. [ ] Verify correct behavior when promoting a secondary
+    4. [X] Verify correct behavior when promoting a secondary
     5. [ ] Verify correct behavior when promoting a secondary while jobs are running
+    5. [X] Verify removing a secondary with --hostname=<valid>
+    5. [X] Verify removing a secondary with --uuid=<valid>
+    5. [X] Verify changing primary hostname with with --hostname=<valid> --primary
+    5. [X] Verify changing secondary hostname with with --hostname=<valid> --secondary
 
 ### Feature: Multi-tenancy
 1. [X] Verify, when PROOT, a job is unable to view details from other jobs on disk.  Includes the following:
