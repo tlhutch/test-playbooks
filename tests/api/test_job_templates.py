@@ -167,6 +167,23 @@ class Test_Job_Template(Base_Api_Test):
             "Job is not associated with the credential provided at launch time" \
             " (%s != %s)" % (job_pg.credential, ssh_credential.id)
 
+    # FIXME - add the following test
+    # def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_ask_credential):
+        '''
+        Verify that launching a job_template, while providing the credential in
+        the payload, behaves as expected.
+            * POST with ask credential, but no passwords fails
+            * POST with ask credential, and passwords succeeds
+        '''
+
+    # FIXME - add the following test
+    # def test_launch_with_ask_credential_and_with_passwords_in_payload(self, job_template_ask_credential):
+        '''
+        Verify that launching a job_template, while providing the credential in
+        the payload, behaves as expected.
+            * POST with ask credential, and passwords succeeds
+        '''
+
     def test_launch_without_ask_variables_on_launch(self, job_template_ask_variables_on_launch):
         '''
         Verify the job->launch endpoint behaves as expected when ask_variables_on_launch is enabled
@@ -189,7 +206,8 @@ class Test_Job_Template(Base_Api_Test):
         job_pg = jobs_pg.results[0]
 
         # assert job has no extra_vars
-        assert job_pg.extra_vars == "", "No extra_vars were provided at launch, " \
+        assert job_pg.extra_vars == json.dumps({}), \
+            "No extra_vars were provided at launch, " \
             "but the job contains extra_vars (%s)" % (job_pg.extra_vars)
 
     def test_launch_with_ask_variables_on_launch(self, job_template_ask_variables_on_launch):
