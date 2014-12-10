@@ -1,8 +1,9 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from common.ui.pages import *
+from selenium.webdriver.support.ui import WebDriverWait  # NOQA
+from common.ui.pages import Base
 from common.ui.pages.forms import input_getter, input_setter
+
 
 class Login_Page(Base):
     # The following should move to using alert_dialog
@@ -15,7 +16,7 @@ class Login_Page(Base):
     }
 
     _related = {
-        '/#/portal': 'Portal_Page',
+        '/#/portal': 'common.ui.pages.portal.Portal_Page',
     }
 
     username = property(input_getter(_locators['username']), input_setter(_locators['username']))
