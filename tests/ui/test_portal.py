@@ -128,8 +128,7 @@ class Test_Portal_Job_Templates(Base_UI_Test):
         assert ui_portal_pg.is_the_active_tab
 
         # Verify default table sort column and order
-        # self.assert_table_sort(ui_portal_pg.job_templates.table, *table_sort[0])
-        self.assert_table_sort(ui_portal_pg.job_templates.table, None, None)
+        self.assert_table_sort(ui_portal_pg.job_templates.table, *table_sort[0])
 
         for sorted_by, sort_order in table_sort:
             # Change table sort
