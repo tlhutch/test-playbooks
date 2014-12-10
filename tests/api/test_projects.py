@@ -71,6 +71,39 @@ class Test_Projects(Base_Api_Test):
                 "A manual project has %d %s, but should have %d %s" % \
                 (related_pg.count, related_attr, 0, related_attr)
 
+    # Override the project local_path to workaround and unicode issues
+    @pytest.mark.fixture_args(local_path="project_dir_%s" % common.utils.random_ascii())
+    def test_change_from_manual_to_scm_project(self, project_ansible_playbooks_manual):
+        '''
+        Verify tower can successfully convert a manual project, into a scm
+        managed project.
+
+        Trello: https://trello.com/c/YFlvkd4Y
+        '''
+
+        # change the scm_type to 'git'
+        project_pg = project_ansible_playbooks_manual.patch(
+            scm_type='git',
+            scm_url='https://github.com/jlaska/ansible-playbooks.git',
+        )
+
+        # update the project
+        update_pg = project_pg.get_related('update')
+        result = update_pg.post()
+        updates_pg = project_pg.get_related('project_updates', id=result.json['project_update'])
+        assert updates_pg.count == 1, 'No project update matching id:%s found' % result.json['project_update']
+
+        # wait for update to complete
+        latest_update_pg = updates_pg.results.pop().wait_until_completed()
+        project_pg = project_pg.wait_until_completed()
+
+        # assert project_update was successful
+        assert latest_update_pg.is_successful, "Project update unsuccessful - %s" % latest_update_pg
+
+        # assert project is marked as successful
+        assert project_pg.is_successful, "After a successful project update, " \
+            "the project is not marked as successful - id:%s" % project_pg.id
+
     @pytest.mark.parametrize(
         "attr,value",
         [

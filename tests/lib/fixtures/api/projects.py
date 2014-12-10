@@ -47,19 +47,31 @@ def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_con
     '''
     Create a manual project associated with ansible-playbooks.git
     '''
-    local_path = "project_dir_%s" % common.utils.random_unicode()
+
+    # Override the local_path
+
+    fixture_args = getattr(request.function, 'fixture_args', None)
+    if fixture_args and fixture_args.kwargs.get('local_path', False):
+        local_path = fixture_args.kwargs['local_path']
+    else:
+        local_path = "project_dir_%s" % common.utils.random_unicode()
 
     # Clone the repo
     results = ansible_runner.git(repo='https://github.com/jlaska/ansible-playbooks.git',
                                  dest=os.path.join(awx_config['project_base_dir'], local_path))
     assert 'failed' not in results, "Clone failed\n%s" % json.dumps(results, indent=4)
 
-    # Create project
+    # Initialize the project payload
     payload = dict(name="ansible-playbooks.manual - %s" % local_path,
                    description="manual project - %s" % common.utils.random_unicode(),
                    organization=organization.id,
                    local_path=local_path,
                    scm_type='')
+
+    # customize the payload using fixture_args (optional)
+    if fixture_args:
+        payload.update(fixture_args.kwargs)
+
     obj = api_projects_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
 
