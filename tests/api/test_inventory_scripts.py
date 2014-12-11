@@ -68,11 +68,32 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # if we make it through the fixures, post worked
         assert True
 
-    def test_get(self, api_inventory_scripts_pg, inventory_script):
+    def test_get_as_superuser(self, api_inventory_scripts_pg, inventory_script):
         '''
         Verify succesful GET to /inventory_scripts
         '''
         inventory_script.get()
+
+    def test_get_as_org_users(self, org_users, user_password, inventory_script):
+        '''
+        Verify that organization user accounts are able to access the
+        the inventory_script, but unable to read the contents.
+        '''
+        for org_user in org_users:
+            with self.current_user(org_user.username, user_password):
+                inventory_script = inventory_script.get()
+                assert inventory_script.script is None, "An organization user is " \
+                    "able to read the 'script' attribute of an inventory_script " \
+                    "(%s)" % inventory_script.script
+
+    def test_get_as_anonymous_user(self, anonymous_user, user_password, inventory_script):
+        '''
+        Verify that an anonymous user is forbidden from seeing
+        inventory_scripts associated with an organization.
+        '''
+        with self.current_user(anonymous_user.username, user_password):
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                inventory_script = inventory_script.get()
 
     def test_duplicate(self, api_inventory_scripts_pg, inventory_script):
         '''
@@ -86,8 +107,14 @@ class Test_Inventory_Scripts(Base_Api_Test):
         '''
         Verify response when POSTing a duplicate to /inventory_scripts
         '''
+        print json.dumps(inventory_script.json, indent=2)
+        payload = dict(name=inventory_script.name,
+                       description=inventory_script.description,
+                       organization=another_organization.id)
+
         payload = inventory_script.json
         payload['organization'] = another_organization.id
+        print json.dumps(payload, indent=2)
 
         # assert successful POST
         obj = api_inventory_scripts_pg.post(payload)

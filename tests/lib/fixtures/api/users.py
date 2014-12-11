@@ -143,6 +143,14 @@ def non_superuser(request):
 
 
 @pytest.fixture(scope="function")
+def org_users(request, org_admin, org_user):
+    '''
+    Return a list of organization users.
+    '''
+    return (org_admin, org_user)
+
+
+@pytest.fixture(scope="function")
 def privileged_users(request, superuser, org_admin):
     '''
     Return a list of privileged_users

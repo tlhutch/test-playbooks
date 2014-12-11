@@ -15,7 +15,7 @@ inventory_script:
         organization: {format: uri, type: string}
       required: [created_by, modified_by]
       type: object
-    script: {type: string}
+    script: {type: [string, 'null']}
     summary_fields:
       additionalProperties: false
       properties:
