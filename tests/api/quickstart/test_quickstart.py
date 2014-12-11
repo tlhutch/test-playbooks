@@ -519,7 +519,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             results = clone_func(
                 force='no',
                 repo=_project['scm_url'],
-                dest="%s/%s" % (awx_config['project_base_dir'], _project['local_path']))
+                dest=os.path.join(awx_config['project_base_dir'], _project['local_path']))
             assert 'failed' not in results, "Clone failed\n%s" % json.dumps(results, indent=4)
 
         # Find desired object identifiers

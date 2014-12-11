@@ -18,6 +18,7 @@ organizations:
         - ansible-examples.git (manual)
         - ansible-examples.svn (manual)
         - ansible-helloworld.hg (manual)
+        - ansible-playbooks.git (manual)
         - ansible-examples.git (git)
         - ansible-examples.svn (svn)
         - ansible-helloworld (hg)
@@ -875,6 +876,14 @@ projects:
       scm_type: null # manual
       scm_url: https://bitbucket.org/jlaska/ansible-helloworld
       local_path: ansible-helloworld.hg.manual
+
+    - name: ansible-playbooks.git (manual)
+      description: scm_type:manual
+      organization: Bender Products
+      _ansible_module: git
+      scm_type: null # manual
+      scm_url: https://github.com/jlaska/ansible-playbooks.git
+      local_path: ansible-playbooks.git.manual
 
     - name: ansible-examples.git (git)
       description: scm_type:git
