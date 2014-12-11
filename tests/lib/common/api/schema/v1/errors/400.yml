@@ -11,6 +11,7 @@ properties:
     inventory: { $ref: '#/definitions/error_required_field' }
     job_type: { $ref: '#/definitions/error_required_field' }
     playbook: { $ref: '#/definitions/error_required_field' }
+    script: { $ref: '#/definitions/error_required_field_script' }
     non_field_errors: { $ref: '#/definitions/error_login_failure' }
 definitions:
   !include '../definitions/error*.yml'
