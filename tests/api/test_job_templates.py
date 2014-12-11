@@ -133,7 +133,7 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.variables_needed_to_start
         assert launch_pg.credential_needed_to_start
 
-        # launch the job_template without providing a password
+        # launch the job_template without providing a credential
         with pytest.raises(common.exceptions.BadRequest_Exception):
             launch_pg.post()
 
@@ -150,7 +150,7 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.variables_needed_to_start
         assert launch_pg.credential_needed_to_start
 
-        # launch the job_template without providing a password
+        # launch the job_template providing the credential in the payload
         payload = dict(credential=ssh_credential.id)
         result = launch_pg.post(payload)
 
