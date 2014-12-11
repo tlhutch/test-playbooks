@@ -8,12 +8,5 @@ properties:
     minItems: 0
     type: array
     uniqueItems: true
-  name:
-    items:
-        pattern: '^Custom inventory script with this Name already exists.$']
-        type: string
-    minItems: 0
-    type: array
-    uniqueItems: true
 required: [__all__]
 type: object
