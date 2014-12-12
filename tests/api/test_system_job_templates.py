@@ -83,6 +83,33 @@ class Test_System_Job_Template(Base_Api_Test):
         job_pg = system_job_template.get_related('jobs', id=result.json['system_job']).results[0].wait_until_completed()
         assert job_pg.is_successful, job_pg
 
+    def test_launch_with_days(self, system_job_template):
+        '''
+        Verify successful launch of a system_job_template with extra_vars.
+        '''
+
+        launch_pg = system_job_template.get_related('launch')
+        launch_payload = dict(days=300)
+        result = launch_pg.post(launch_payload)
+
+        # assert json response
+        assert 'system_job' in result.json, "Unexpected JSON response when " \
+            "launching system_job_template\n%s" % json.dumps(result.json, indent=2)
+
+        job_pg = system_job_template.get_related('jobs', id=result.json['system_job']).results[0].wait_until_completed()
+
+        # assert system_job ran successfully
+        assert job_pg.is_successful, "System job unsuccessful - %s" % job_pg
+
+        # assert extra_vars properly passed to system_job
+        try:
+            extra_vars = json.loads(job_pg.extra_vars)
+        except ValueError:
+            extra_vars = {}
+        assert extra_vars == launch_payload, \
+            "The system_job extra_vars do not match the values provided at launch (%s != %s)" % \
+            (extra_vars, launch_payload)
+
     def test_launch_as_non_superuser(self, system_job_template, non_superusers, user_password):
         '''
         Verify launch fails when attempted by a non-superuser
