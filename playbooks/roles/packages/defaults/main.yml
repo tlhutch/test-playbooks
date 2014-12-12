@@ -30,7 +30,6 @@ redhat_rhsm_repos: []
 # RPM dependencies needed for the role
 rpm_role_dependencies:
     - libselinux-python
-    - python-pip
     - python-devel
     - autoconf
     - make
@@ -39,7 +38,6 @@ rpm_role_dependencies:
 # DEB dependencies needed for the role
 deb_role_dependencies:
     - python-pycurl
-    - python-pip
     - python-dev
     - autoconf
     - make

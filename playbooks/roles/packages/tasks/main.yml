@@ -69,6 +69,14 @@
   apt: pkg=ansible state=latest update_cache=yes force=yes
   when: ansible_pkg_mgr == 'apt' and ansible_install_method in ['stable', 'testing', 'nightly']
 
+- name: install pip rpm
+  yum: name=python-pip state=installed
+  when: ansible_install_method == 'pip' and ansible_pkg_mgr == 'yum'
+
+- name: install pip deb
+  apt: name=python-pip state=installed
+  when: ansible_install_method == 'pip' and ansible_pkg_mgr == 'apt'
+
 - name: install ansible pip
   pip: name={{ansible_pip}} state=latest
   when: ansible_install_method == 'pip'
