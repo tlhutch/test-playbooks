@@ -9,6 +9,16 @@
         - 'default.yml'
       paths: '../vars'
 
+- name: install playbook dependency rpms
+  yum: name={{item}} state=installed
+  with_items: rpm_role_dependencies
+  when: ansible_pkg_mgr == 'yum'
+
+- name: install playbook dependency debs
+  apt: pkg={{item}} state=latest update_cache=yes
+  with_items: deb_role_dependencies
+  when: ansible_pkg_mgr == 'apt'
+
 - name: include rhui tasks
   include: rhui.yml
 
@@ -17,28 +27,6 @@
 
 - name: include epel tasks
   include: epel.yml
-
-- name: install playbook dependency rpms
-  yum: name={{item}} state=installed
-  with_items:
-    - libselinux-python
-    - python-pip
-    - python-devel
-    - autoconf
-    - make
-    - gcc
-  when: ansible_pkg_mgr == 'yum'
-
-- name: install playbook dependency debs
-  apt: pkg={{item}} state=latest update_cache=yes
-  with_items:
-    - python-pycurl
-    - python-pip
-    - python-dev
-    - autoconf
-    - make
-    - gcc
-  when: ansible_pkg_mgr == 'apt'
 
 # install ansible nightly rpm repo (optional)
 

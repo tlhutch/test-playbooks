@@ -26,3 +26,21 @@ redhat_rhsm_conf_path: '/etc/rhsm/rhsm.conf'
 
 # Specify RHEL subscription-manager repositories to enable (used in vars/*.yml).
 redhat_rhsm_repos: []
+
+# RPM dependencies needed for the role
+rpm_role_dependencies:
+    - libselinux-python
+    - python-pip
+    - python-devel
+    - autoconf
+    - make
+    - gcc
+
+# DEB dependencies needed for the role
+deb_role_dependencies:
+    - python-pycurl
+    - python-pip
+    - python-dev
+    - autoconf
+    - make
+    - gcc
