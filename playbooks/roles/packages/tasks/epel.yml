@@ -2,12 +2,12 @@
 
 - name: install epel bootstrap yum repository
   template: src=epel-bootstrap.repo.j2 dest=/etc/yum.repos.d/epel-bootstrap.repo
-  when: ansible_pkg_mgr == 'yum'
+  when: ansible_distribution in ['RedHat', 'CentOS']
 
 - name: install epel-release rpm
   yum: name=epel-release state=latest enablerepo=epel-bootstrap
-  when: ansible_pkg_mgr == 'yum'
+  when: ansible_distribution in ['RedHat', 'CentOS']
 
 - name: remove epel bootstrap yum repository
   file: path=/etc/yum.repos.d/epel-bootstrap.repo state=absent
-  when: ansible_pkg_mgr == 'yum'
+  when: ansible_distribution in ['RedHat', 'CentOS']
