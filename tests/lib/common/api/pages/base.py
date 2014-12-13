@@ -115,18 +115,18 @@ class Base(Page):
             try:
                 self.validate_json(json=data, request='duplicate')
             except:
-                raise common.exceptions.BadRequest_Exception(exc_str + ": %s" % data)
+                raise common.exceptions.BadRequest_Exception(exc_str + ": %s" % data, data)
             else:
                 raise common.exceptions.Duplicate_Exception(exc_str + ". However, JSON validation determined the cause "
-                                                                      "was a duplicate object already exists: %s" % data)
+                                                            "was a duplicate object already exists: %s" % data, data)
         elif r.status_code == httplib.INTERNAL_SERVER_ERROR:
-            raise common.exceptions.InternalServerError_Exception(exc_str + ": %s" % data)
+            raise common.exceptions.InternalServerError_Exception(exc_str + ": %s" % data, data)
         elif r.status_code == httplib.METHOD_NOT_ALLOWED:
-            raise common.exceptions.Method_Not_Allowed_Exception(exc_str + ": %s" % data)
+            raise common.exceptions.Method_Not_Allowed_Exception(exc_str + ": %s" % data, data)
         elif r.status_code == httplib.UNAUTHORIZED:
-            raise common.exceptions.Unauthorized_Exception(exc_str + ": %s" % data)
+            raise common.exceptions.Unauthorized_Exception(exc_str + ": %s" % data, data)
         else:
-            raise common.exceptions.Unknown_Exception(exc_str + ": %s" % data)
+            raise common.exceptions.Unknown_Exception(exc_str + ": %s" % data, data)
 
     def get(self, **params):
         r = self.api.get(self.base_url.format(**self.json), params=params)
