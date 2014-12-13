@@ -55,7 +55,8 @@ def ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user,
                    ssh_key_data=testsetup.credentials['ssh']['encrypted']['ssh_key_data'],
                    ssh_key_unlock='ASK',
                    sudo_username=testsetup.credentials['ssh']['sudo_username'],
-                   sudo_password='ASK',)
+                   sudo_password='ASK',
+                   vault_password='ASK',)
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
