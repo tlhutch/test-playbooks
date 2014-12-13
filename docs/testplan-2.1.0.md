@@ -20,7 +20,12 @@
     [ ] centos-6.5
     [ ] centos-7.0
 
-2. Verify AWS AMI boot successfully, and includes the expected license information
+2. Installation completes successfully using supported ansible releases
+    [X] ansible-1.9.x (devel)
+    [X] ansible-1.8.x
+p   [ ] ansible-1.7.x
+
+3. Verify AWS AMI boot successfully, and includes the expected license information
     [ ] license: unlicensed
     [ ] license: 100
 
@@ -40,9 +45,9 @@
 1. [ ] End-to-end integration completed on all supported platforms
 
 ### Feature: Bind installer with package version
-1. [ ] Verify setup playbook correctly installs a package within the desired version yum-based distros
-2. [ ] Verify setup playbook correctly installs a package within the desired version apt-based distros
-3. [ ] Verify using older setup playbook (with appropriate modifications) correctly installs older ansible-tower
+1. [X] Verify setup playbook correctly installs a package within the desired version yum-based distros
+2. [X] Verify setup playbook correctly installs a package within the desired version apt-based distros
+3. [X] Verify using older setup playbook (with appropriate modifications) correctly installs older ansible-tower
 
 ### Feature: System Jobs
 1. API - FIXME
@@ -129,3 +134,4 @@
 ### Regresion
 1. [ ] UI regression completed
 2. [ ] API regression completed
+3. [ ] Munin monitors work on all supported platforms
