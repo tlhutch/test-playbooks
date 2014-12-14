@@ -149,6 +149,7 @@ class Inventory_Source_Page(Base):
     name = property(json_getter('name'), json_setter('name'))
     source = property(json_getter('source'), json_setter('source'))
     source_vars = property(json_getter('source_vars'), json_setter('source_vars'))
+    source_script = property(json_getter('source_script'), json_setter('source_script'))
     status = property(json_getter('status'), json_setter('status'))
     description = property(json_getter('description'), json_setter('description'))
     last_updated = property(json_getter('last_updated'), json_setter('last_updated'))
@@ -159,24 +160,25 @@ class Inventory_Source_Page(Base):
     inventory = property(json_getter('inventory'), json_setter('inventory'))
 
     def get_related(self, attr, **kwargs):
-        assert attr in self.json['related']
-        if attr == 'last_update':
-            related = Inventory_Update_Page(self.testsetup, base_url=self.json['related'][attr])
-        elif attr == 'current_update':
-            related = Inventory_Update_Page(self.testsetup, base_url=self.json['related'][attr])
+        assert attr in self.json['related'], \
+            "No such related attribute '%s'" % attr
+        cls = None
+        if attr in ('last_update', 'current_update'):
+            cls = Inventory_Update_Page
         elif attr == 'inventory_updates':
-            related = Inventory_Updates_Page(self.testsetup, base_url=self.json['related'][attr])
+            cls = Inventory_Updates_Page
         elif attr == 'inventory':
-            related = Inventory_Page(self.testsetup, base_url=self.json['related'][attr])
+            cls = Inventory_Page
         elif attr == 'update':
-            # FIXME - this should have it's own object
-            related = Base(self.testsetup, base_url=self.json['related'][attr])
+            cls = Inventory_Source_Update_Page
         elif attr == 'schedules':
             from schedules import Schedules_Page
-            related = Schedules_Page(self.testsetup, base_url=self.json['related'][attr])
-        else:
-            raise NotImplementedError
-        return related.get(**kwargs)
+            cls = Schedules_Page
+
+        if cls is None:
+            raise NotImplementedError("No related class found for '%s'" % attr)
+
+        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
     @property
     def is_successful(self):
@@ -194,6 +196,11 @@ class Inventory_Source_Page(Base):
 
 class Inventory_Sources_Page(Inventory_Source_Page, Base_List):
     base_url = '/api/v1/inventory_sources/'
+
+
+class Inventory_Source_Update_Page(Base):
+    base_url = '/api/v1/inventory_sources/{id}/launch'
+    can_update = property(json_getter('can_update'), json_setter('can_update'))
 
 
 class Inventory_Update_Page(Task_Page):
