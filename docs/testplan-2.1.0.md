@@ -13,12 +13,12 @@
 
 ### Installation
 1. Installation completes successfully on all supported platforms
-    [ ] ubuntu-12.04
-    [ ] ubuntu-14.04
-    [ ] rhel-6.5
-    [ ] rhel-7.0
-    [ ] centos-6.5
-    [ ] centos-7.0
+    [X] ubuntu-12.04
+    [X] ubuntu-14.04
+    [X] rhel-6.5
+    [X] rhel-7.0
+    [X] centos-6.5
+    [X] centos-7.0
 
 2. Installation completes successfully using supported ansible releases
     [X] ansible-1.9.x (devel)
@@ -38,7 +38,7 @@ p   [ ] ansible-1.7.x
     [ ] centos-6.5
     [ ] centos-7.0
 
-2. [ ] Test upgrades using correct and incorrect values for the following fields: [admin_password, pg_password, rabbitmq_password]
+2. [ ] Test upgrades using correct and incorrect values for the following fields: [admin_password, pg_password, redis_password, munin_password]
 3. [ ] Test upgrades with data, and ensure projects/inventory/jobs run post-upgrade
 
 ### Integration
@@ -52,6 +52,7 @@ p   [ ] ansible-1.7.x
 ### Feature: System Jobs
 1. API - FIXME
 2. UI - FIXME
+  1. [ ] Verify system job modal dialogs hold up to monkey clicking
 
 ### Feature: HA
 1. Installer
@@ -74,47 +75,48 @@ p   [ ] ansible-1.7.x
     5. [X] Verify changing secondary hostname with with --hostname=<valid> --secondary
 
 ### Feature: Multi-tenancy
-1. [X] Verify, when PROOT, a job is unable to view details from other jobs on disk.  Includes the following:
+1. [X] Verify when AWX_PROOT_ENABLED, a job is unable to view details from other jobs on disk.  Includes the following:
      - /var/lib/awx/projects/ - only a single directory exists for the current job
      - /var/lib/awx/job_status/ - no files are present (job status isn't created until after a job completes)
      - /tmp/ansible_tower_* - only a single matching directory exists
      - /etc/awx/settings.py - No such file or directory
      - /var/log/supervisor/* - Permission Denied
+2. [X] Verify when AWX_PROOT_ENABLED, a custom_inventory_script is unable to view details from other jobs on disk.  Includes the above expectations.
 
 ### Feature: Portal Mode UI
 1. [ ] Add a survey showing all the question types
-1. [ ] Validate the survey can set variables
-1. [ ] Test all question types and constraints
-1. [ ] Ensure navigation from portal -> main -> portal works
+1. [X] Validate the survey can set variables
+1. [X] Test all question types and constraints
+1. [X] Ensure navigation from portal -> main -> portal works
 1. [ ] Makes sure there the “can_launch” behavior of the job API indicates when a survey is enabled
-1. [ ] Make sure disabling the survey doesn’t delete the survey
-1. [ ] Make sure survey has precedence over “prompt for variables”
-1. [ ] Make sure both prompt for variables and survey can be used seperately
-1. [ ] Make sure the API validates survey responses if submitted directly and not via API
+1. [X] Make sure disabling the survey doesn’t delete the survey
+1. [X] Make sure survey has precedence over “prompt for variables”
+1. [X] Make sure both prompt for variables and survey can be used seperately
+1. [X] Make sure the API validates survey responses if submitted directly and not via API
 1. [X] Verify portal URLs redirect after login
 1. [X] Verify login after timeout redirects to portal
 1. [X] Verify web-socket updates job status and job rows
 
 ### Feature: Survey
 1. API
-  1. [ ] Verify posting various surveys to endpoint
-  2. [ ] Verify /launch endpoint reflects state of enabled survey
-  3. [ ] Verify variables supplied at /launch resource correctly passed to job
+  1. [X] Verify posting various surveys to endpoint
+  2. [X] Verify /launch endpoint reflects state of enabled survey
+  3. [X] Verify variables supplied at /launch resource correctly passed to job
   4. [ ] Verify survey variables cannot overwrite job environment variables (HOME, PATH, _ etc...)
   5. [ ] Verify behavior when POSTing to /api/v1/jobs/N/relaunch -- (FIXME: what is the behavior?)
 
 2. UI
   1. [ ] Verify survey modal dialogs hold up to monkey clicking
-  2. [ ] Verify job_template creation and edit behaves as expected without a survey
-  2. [ ] Verify enabling and creating a survey on job_template create+update
+  2. [X] Verify job_template creation and edit behaves as expected without a survey
+  2. [X] Verify enabling and creating a survey on job_template create+update
   3. [ ] Verify enabling and but *not* creating a survey on job_template create+update
-  4. [ ] Verify disabling a survey on job_template create+update
-  5. [ ] Verify survey modal on job launch accurately reflects survey questions
-  6. [ ] Verify survey modal correctly submits variables to job
+  4. [X] Verify disabling a survey on job_template create+update
+  5. [X] Verify survey modal on job launch accurately reflects survey questions
+  6. [X] Verify survey modal correctly submits variables to job
 
 ### Feature: EC2 instance_filters and group_by
 1. [X] Verify valid and invalid inputs to group_by
-2. [F] Verify valid and invalid inputs to instance_filters
+2. [ ] Verify valid and invalid inputs to instance_filters
 3. [X] Verify group_by limits group creation to provided list
 4. [X] Verify instance_filters honored on host import
 
@@ -127,9 +129,13 @@ p   [ ] ansible-1.7.x
 ### Feature: Custom Inventory Scripts
 1. UI
    1. [X] Verify account menu option only available for superuser
-   1. [X] Verify basic inventory_script modal functionality
-   1. [X] Verify basic inventory_script table functionality (searching, sorting, pagination)
+   2. [X] Verify basic inventory_script modal functionality
+   3. [X] Verify basic inventory_script table functionality (searching, sorting, pagination)
 2. API
+   1. [X] Verify non-superusers cannot create/edit/delete inventory_scripts
+   2. [X] Verify anonymous users cannot see inventory_scripts
+   3. [X] Verify org_users can see inventory_scripts, but cannot read 'script' contents
+   4. [X] Verify superusers have full access
 
 ### Regresion
 1. [ ] UI regression completed
