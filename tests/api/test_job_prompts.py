@@ -206,6 +206,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         # POST to start
         passwords = dict(ssh_password=self.credentials['ssh']['password'],
                          sudo_password=self.credentials['ssh']['sudo_password'],
+                         vault_password=self.credentials['ssh']['vault_password'],
                          ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'])
         start_pg.post(passwords)
 
@@ -238,6 +239,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         # POST to start
         passwords = dict(ssh_password=self.credentials['ssh']['password'],
                          sudo_password=self.credentials['ssh']['sudo_password'],
+                         vault_password=self.credentials['ssh']['vault_password'],
                          ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'])
         start_pg.post(passwords)
 

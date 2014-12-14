@@ -368,10 +368,9 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.variables_needed_to_start
         assert not launch_pg.credential_needed_to_start
 
-        # assert 'ssh_password' in launch_pg.passwords_needed_to_start
-        # assert 'ssh_key_unlock' in launch_pg.passwords_needed_to_start
-        # assert 'sudo_password' in launch_pg.passwords_needed_to_start
-        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock'] == launch_pg.passwords_needed_to_start
+        # assert expected passwords_needed_to_start
+        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock',
+                'vault_password'] == launch_pg.passwords_needed_to_start
 
         # launch the job_template with passwords
         passwords = dict(ssh_password=self.credentials['ssh']['password'],
