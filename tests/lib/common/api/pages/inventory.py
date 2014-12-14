@@ -180,6 +180,47 @@ class Inventory_Source_Page(Base):
 
         return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
+    def update(self, **kwargs):
+        '''
+        Update the inventory_source using related->update endpoint
+        '''
+        # get related->launch
+        update_pg = self.get_related('update')
+
+        # assert can_update == True
+        assert update_pg.can_update, \
+            "The specified inventory_source (id:%s) is not able to update (can_update:%s)" % \
+            (self.id, update_pg.can_update)
+
+        # start the inventory_update
+        result = update_pg.post(**kwargs)
+
+        # assert JSON response
+        assert 'inventory_update' in result.json, \
+            "Unexpected JSON response when starting an inventory_update.\n%s" % \
+            json.dumps(result.json, indent=2)
+
+        # locate and return the inventory_update
+        jobs_pg = self.get_related('inventory_updates', id=result.json['inventory_update'])
+        assert jobs_pg.count == 1, \
+            "An inventory_update started (id:%s) but job not found in response at %s/inventory_updates/" % \
+            (result.json['inventory_update'], self.url)
+        return jobs_pg.results[0]
+
+    def wait_until_started(self, interval=1, verbose=0, timeout=60):
+        '''Wait until a job has started'''
+        return common.utils.wait_until(
+            self, 'status',
+            ('new', 'pending', 'waiting', 'running',),
+            interval=interval, verbose=verbose, timeout=timeout)
+
+    def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 8):
+        '''Wait until a current job has completed'''
+        return common.utils.wait_until(
+            self, 'status',
+            ('successful', 'failed', 'error', 'canceled',),
+            interval=interval, verbose=verbose, timeout=timeout)
+
     @property
     def is_successful(self):
         '''An inventory_source is considered successful when:
