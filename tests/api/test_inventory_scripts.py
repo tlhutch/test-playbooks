@@ -1,4 +1,3 @@
-import re
 import json
 import pytest
 import common.tower.inventory
@@ -177,7 +176,8 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # query /inventory_sources endpoint for matching id
         assert api_inventory_scripts_pg.get(id=inventory_script.id).count == 0
 
-    def test_import(self, custom_inventory_source_with_vars, api_unified_jobs_pg, inventory_script, custom_inventory_source_vars_good, custom_inventory_source_vars_bad):
+    def test_import(self, custom_inventory_source_with_vars, api_unified_jobs_pg, inventory_script,
+                    custom_inventory_source_vars_good, custom_inventory_source_vars_bad):
         '''
         Verify succesful inventory_update using a custom /inventory_script
         '''
