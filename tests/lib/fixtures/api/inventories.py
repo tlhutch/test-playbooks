@@ -161,10 +161,11 @@ def host(request, authtoken, api_hosts_pg, inventory, group):
 #
 @pytest.fixture(scope="function")
 def script_source(request):
-    # support overriding the script_source via a pytest marker
-    script = getattr(request.function, 'script_source', None)
-    if script is not None:
-        return script.args[0]
+
+    # custom source_script supplied via pytest.mark.fixture_args(source_script=)
+    fixture_args = getattr(request.function, 'fixture_args', None)
+    if fixture_args and 'source_script' in fixture_args.kwargs:
+        return fixture_args.kwargs['source_script']
 
     # create script to generate inventory
     group_name = u"group-%s" % common.utils.random_unicode().replace("'", "")

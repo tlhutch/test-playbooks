@@ -20,8 +20,8 @@ print json.dumps({})
 ''']
 
 
-# @pytest.mark.script_source('#!env python\nraise Exception("fail!")\n') # traceback
-# @pytest.mark.script_source('#!env python\nimport sys\nsys.exit(1)\n')
+# @pytest.mark.fixture_args(script_source='#!env python\nraise Exception("fail!")\n') # traceback
+# @pytest.mark.fixture_args(script_source='#!env python\nimport sys\nsys.exit(1)\n')
 @pytest.fixture(scope="function", params=enumerate(bad_scripts))
 def bad_inventory_script(request, inventory_script):
     inventory_script.script = request.param[1]
@@ -257,8 +257,8 @@ class Test_Inventory_Scripts(Base_Api_Test):
             "attribute still has a value (%s != None)" % \
             custom_inventory_source_with_vars.source_script
 
-    # @pytest.mark.script_source('#!env python\nraise Exception("fail!")\n') # traceback
-    # @pytest.mark.script_source('#!env python\nimport sys\nsys.exit(1)\n')
+    # @pytest.mark.fixture_args(script_source='#!env python\nraise Exception("fail!")\n') # traceback
+    # @pytest.mark.fixture_args(script_source='#!env python\nimport sys\nsys.exit(1)\n')
     def test_import_failure(self, custom_inventory_source, api_unified_jobs_pg, bad_inventory_script):
         '''
         Verify an inventory_update fails when using various bad inventory_scripts
