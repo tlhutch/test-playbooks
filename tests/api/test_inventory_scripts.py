@@ -229,6 +229,34 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "variable '%s' was incorrectly set ('%s' != '%s')" % \
                 (key, job_pg.job_env[key], val)
 
+    def test_inventory_update_after_delete(self, custom_inventory_source_with_vars, inventory_script):
+        '''
+        Verify attempting to run an inventory_update, after deleting the
+        associated custom_inventory_script, fails.
+        '''
+
+        # grab update_pg page before deleting inventory_script
+        update_pg = custom_inventory_source_with_vars.get_related('update')
+        assert update_pg.can_update
+
+        # delete the inventory_script
+        inventory_script.delete()
+
+        # POST inventory_update
+        with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
+            update_pg.post()
+
+        # reload the update_pg
+        update_pg.get()
+        assert not update_pg.can_update
+
+        # reload the inventory_source
+        custom_inventory_source_with_vars.get()
+        assert custom_inventory_source_with_vars.source_script is None, \
+            "After deleting the inventory_script, the source_script " \
+            "attribute still has a value (%s != None)" % \
+            custom_inventory_source_with_vars.source_script
+
     # @pytest.mark.script_source('#!env python\nraise Exception("fail!")\n') # traceback
     # @pytest.mark.script_source('#!env python\nimport sys\nsys.exit(1)\n')
     def test_import_failure(self, custom_inventory_source, api_unified_jobs_pg, bad_inventory_script):
