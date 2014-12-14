@@ -67,6 +67,49 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # if we make it through the fixures, post worked
         assert True
 
+    def test_post_without_required_fields(self, api_inventory_scripts_pg, organization, script_source):
+        '''
+        Verify succesful POST to /inventory_scripts
+        '''
+        # without name
+        payload = dict(script=script_source,
+                       organization=organization.id)
+        with pytest.raises(common.exceptions.BadRequest_Exception):
+            api_inventory_scripts_pg.post(payload)
+
+        # without script
+        payload = dict(name=common.utils.random_unicode(),
+                       organization=organization.id)
+        with pytest.raises(common.exceptions.BadRequest_Exception):
+            api_inventory_scripts_pg.post(payload)
+
+        # without script that includes hashbang
+        payload = dict(name=common.utils.random_unicode(),
+                       organization=organization.id,
+                       script='import json\nprint json.dumps({})')
+        with pytest.raises(common.exceptions.BadRequest_Exception):
+            api_inventory_scripts_pg.post(payload)
+
+        # without organization
+        payload = dict(name=common.utils.random_unicode(),
+                       script=script_source)
+        with pytest.raises(common.exceptions.BadRequest_Exception):
+            api_inventory_scripts_pg.post(payload)
+
+    def test_post_as_non_superusers(self, non_superusers, user_password, api_inventory_scripts_pg, organization, script_source):
+        '''
+        Verify POST as an organization user is forbidden.
+        '''
+        payload = dict(name=common.utils.random_unicode(),
+                       description="Random inventory script - %s" % common.utils.random_unicode(),
+                       organization=organization.id,
+                       script=script_source)
+
+        for org_user in non_superusers:
+            with self.current_user(org_user.username, user_password):
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    api_inventory_scripts_pg.post(payload)
+
     def test_get_as_superuser(self, api_inventory_scripts_pg, inventory_script):
         '''
         Verify succesful GET to /inventory_scripts
@@ -161,9 +204,9 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "Unexpected value for %s field ('%s' != '%s')" % \
                 (key, getattr(inventory_script, key), val)
 
-    def test_delete(self, api_inventory_scripts_pg, inventory_script):
+    def test_delete_as_superuser(self, api_inventory_scripts_pg, inventory_script):
         '''
-        Verify succesful DELETE to /inventory_scripts/n
+        Verify succesful DELETE to /inventory_scripts/n as a superuser.
         '''
 
         # delete script
@@ -175,6 +218,16 @@ class Test_Inventory_Scripts(Base_Api_Test):
 
         # query /inventory_sources endpoint for matching id
         assert api_inventory_scripts_pg.get(id=inventory_script.id).count == 0
+
+    def test_delete_as_non_superuser(self, non_superusers, user_password, inventory_script):
+        '''
+        Verify unsuccesful DELETE to /inventory_scripts/n as an organizational user.
+        '''
+
+        for org_user in non_superusers:
+            with self.current_user(org_user.username, user_password):
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    inventory_script.delete()
 
     def test_import(self, custom_inventory_source_with_vars, api_unified_jobs_pg, inventory_script,
                     custom_inventory_source_vars_good, custom_inventory_source_vars_bad):
