@@ -1,3 +1,4 @@
+import re
 import pytest
 import json
 import uuid
@@ -176,7 +177,8 @@ inventory = dict()
 inventory['{0}'] = list()
 '''.format(group_name)
     for i in range(5):
-        script += "inventory['{0}'].append('host-{1}')\n".format(group_name, common.utils.random_unicode().replace("'", ""))
+        host_name = re.sub(r"[':]", '', common.utils.random_unicode())
+        script += "inventory['{0}'].append('host-{1}')\n".format(group_name, host_name)
     script += "print json.dumps(inventory)\n"
     return script
 
