@@ -1,6 +1,8 @@
-[primary]
-localhost
 {% if 'secondary' in groups %}
+[primary]
+{% for host in groups['primary'] %}
+{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
+{% endfor %}
 
 [secondary]
 {% for host in groups['secondary'] %}
@@ -10,4 +12,7 @@ localhost
 {{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
 {% endif %}
 {% endfor %}
+{% else %}
+[primary]
+localhost
 {% endif %}
