@@ -235,16 +235,17 @@ class Task_Page(Base):
     finished = property(json_getter('finished'), json_setter('finished'))
     launch_type = property(json_getter('launch_type'), json_setter('launch_type'))
     job_env = property(json_getter('job_env'), json_setter('job_env'))
+    job_args = property(json_getter('job_args'), json_setter('job_args'))
 
     def __str__(self):
         # NOTE: I use .replace('%', '%%') to workaround an odd string
         # formatting issue where result_stdout contained '%s'.  This later caused
         # a python traceback when attempting to display output from this method.
         output = "<%s id:%s, name:%s, status:%s, failed:%s, result_stdout:%s, " \
-            "result_traceback:%s, job_explanation:%s>" % \
+            "result_traceback:%s, job_explanation:%s, job_args:%s>" % \
             (self.__class__.__name__, self.id, self.name, self.status, self.failed,
              self.result_stdout, self.result_traceback,
-             self.job_explanation)
+             self.job_explanation, self.job_args)
         return output.replace('%', '%%')
 
     @property
