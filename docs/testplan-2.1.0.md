@@ -84,7 +84,7 @@ p   [ ] ansible-1.7.x
 2. [X] Verify when AWX_PROOT_ENABLED, a custom_inventory_script is unable to view details from other jobs on disk.  Includes the above expectations.
 
 ### Feature: Portal Mode UI
-1. [ ] Add a survey showing all the question types
+1. [X] Add a survey showing all the question types
 1. [X] Validate the survey can set variables
 1. [X] Test all question types and constraints
 1. [X] Ensure navigation from portal -> main -> portal works
@@ -106,10 +106,10 @@ p   [ ] ansible-1.7.x
   5. [ ] Verify behavior when POSTing to /api/v1/jobs/N/relaunch -- (FIXME: what is the behavior?)
 
 2. UI
-  1. [ ] Verify survey modal dialogs hold up to monkey clicking
+  1. [X] Verify survey modal dialogs hold up to monkey clicking
   2. [X] Verify job_template creation and edit behaves as expected without a survey
   2. [X] Verify enabling and creating a survey on job_template create+update
-  3. [ ] Verify enabling and but *not* creating a survey on job_template create+update
+  3. [X] Verify enabling and but *not* creating a survey on job_template create+update
   4. [X] Verify disabling a survey on job_template create+update
   5. [X] Verify survey modal on job launch accurately reflects survey questions
   6. [X] Verify survey modal correctly submits variables to job
