@@ -22,6 +22,7 @@ def table_sort(request):
             ('type', 'descending')]
 
 
+@pytest.mark.ui
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Projects(Base_UI_Test):
@@ -378,6 +379,5 @@ class Test_Projects(Base_UI_Test):
             assert edit_pg.accordion.get(title)[0].is_collapsed(), "The %s accordion was not collapsed as expected" % title
         assert edit_pg.accordion.get(accordions[-1])[0].is_expanded(), "The %s accordion was not expanded as expected" % accordions[-1]
 
-# @pytest.mark.selenium
 # @pytest.mark.nondestructive
 # class Test_Projects_LowRes(Base_UI_Test):

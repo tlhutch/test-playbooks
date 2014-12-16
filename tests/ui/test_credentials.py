@@ -17,6 +17,7 @@ def table_sort(request):
             ('description', 'descending')]
 
 
+@pytest.mark.ui
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Credentials(Base_UI_Test):
@@ -258,6 +259,7 @@ class Test_Credentials(Base_UI_Test):
                 (field, getattr(edit_pg, field))
 
 
+# @pytest.mark.ui
 # @pytest.mark.selenium
 # @pytest.mark.nondestructive
 # class Test_Credentials_LowRes(Base_UI_Test):

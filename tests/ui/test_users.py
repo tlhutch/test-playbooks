@@ -24,6 +24,7 @@ def table_sort(request):
             ('last_name', 'descending')]
 
 
+@pytest.mark.ui
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Users(Base_UI_Test):
@@ -354,6 +355,5 @@ class Test_Users(Base_UI_Test):
             "Project (%s) was not properly associated with user (%s)" % (project.name, anonymous_user.name)
 
 
-# @pytest.mark.selenium
 # @pytest.mark.nondestructive
 # class Test_Users_LowRes(Base_UI_Test):

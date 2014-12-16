@@ -7,6 +7,7 @@ from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 
 
+@pytest.mark.ui
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Portal(Base_UI_Test):
@@ -112,6 +113,7 @@ def many_job_templates(request, api_job_templates_pg, job_template):
     return obj_list
 
 
+@pytest.mark.ui
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Portal_Job_Templates(Base_UI_Test):
@@ -290,6 +292,7 @@ class Test_Portal_Job_Templates(Base_UI_Test):
             (match_row.status.value, job_status_choices['successful'])
 
 
+@pytest.mark.ui
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 @pytest.mark.skipif(True, reason="FIXME - UI portal tests coming soon!")

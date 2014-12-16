@@ -2,6 +2,7 @@ import pytest
 from tests.ui import Base_UI_Test
 
 
+@pytest.mark.ui
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Dashboard(Base_UI_Test):

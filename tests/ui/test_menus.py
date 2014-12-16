@@ -2,6 +2,7 @@ import pytest
 from tests.ui import Base_UI_Test
 
 
+@pytest.mark.ui
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Main_Menu(Base_UI_Test):
@@ -23,6 +24,7 @@ class Test_Main_Menu(Base_UI_Test):
         assert actual_items == expected_items, "Missing expected menu items (%s != %s)" % (actual_items, expected_items)
 
 
+@pytest.mark.ui
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Account_Menu(Base_UI_Test):
@@ -61,6 +63,7 @@ class Test_Account_Menu(Base_UI_Test):
             assert actual_items == expected_items, "Missing expected menu items (%s != %s)" % (actual_items, expected_items)
 
 
+@pytest.mark.ui
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Portal_Menu(Base_UI_Test):
@@ -82,6 +85,7 @@ class Test_Portal_Menu(Base_UI_Test):
         assert actual_items == expected_items, "Missing expected menu items (%s != %s)" % (actual_items, expected_items)
 
 
+@pytest.mark.ui
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Mobile_Menu(Base_UI_Test):

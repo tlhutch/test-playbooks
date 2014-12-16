@@ -22,6 +22,7 @@ def table_sort(request, admin_user, org_admin):
             ('description', 'descending')]
 
 
+@pytest.mark.ui
 @pytest.mark.selenium
 @pytest.mark.nondestructive
 class Test_Organization(Base_UI_Test):
@@ -330,6 +331,5 @@ class Test_Organization(Base_UI_Test):
             "Administrator (%s) was not properly associated with organization (%s)" % (org_user.username, organization.name)
 
 
-# @pytest.mark.selenium
 # @pytest.mark.nondestructive
 # class Test_Organization_LowRes(Base_UI_Test):
