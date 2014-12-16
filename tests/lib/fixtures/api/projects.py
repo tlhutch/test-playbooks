@@ -176,14 +176,22 @@ def many_git_projects(request, authtoken, api_projects_pg, organization):
 def many_manual_projects(request, authtoken, ansible_runner, awx_config, api_projects_pg, organization):
     obj_list = list()
     for i in range(55):
-        local_path = common.utils.random_ascii()
-        ansible_runner.file(path=local_path, state='directory', owner='awx', group='awx', mode=0755)
+        # create project path
+        local_path = "project_dir_%s" % common.utils.random_unicode()
+        ansible_runner.file(path=os.path.join(awx_config['project_base_dir'], local_path),
+                            state='directory', owner='awx', group='awx', mode=0755)
+        # create manual project
         payload = dict(name="project-%d-%s" % (i, local_path),
                        description="random project %d - %s" % (i, common.utils.random_unicode()),
                        organization=organization.id,
                        scm_type=None,
                        local_path=local_path)
         obj = api_projects_pg.post(payload)
-        request.addfinalizer(obj.silent_delete)
         obj_list.append(obj)
+        request.addfinalizer(obj.silent_delete)
+
+        # delete project directory when finished
+        def delete_project_dir():
+            return ansible_runner.file(state='absent', path=os.path.join(awx_config['project_base_dir'], local_path))
+        request.addfinalizer(delete_project_dir)
     return obj_list
