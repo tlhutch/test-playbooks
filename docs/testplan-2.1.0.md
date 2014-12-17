@@ -64,9 +64,9 @@ p   [ ] ansible-1.7.x
     6. [X] Verify ./configure completes successfully for remote tower with external db and secondaries
     7. [X] Verify ./configure completes successfully when adding a secondary after initial install
 2. Runtime
-    1. [ ] Verify accessing secondary via http (application and /api) redirects to primary
+    1. [X] Verify accessing secondary via http (application and /api) redirects to primary
     2. [ ] Verify no issues introduced wrt saving/reading job_stdout
-    3. [ ] Verify incorrect usage of `tower-manage ha`
+    3. [X] Verify incorrect usage of `tower-manage register_instance` (several low priority issues filed)
     4. [X] Verify correct behavior when promoting a secondary
     5. [ ] Verify correct behavior when promoting a secondary while jobs are running
     5. [X] Verify removing a secondary with --hostname=<valid>
