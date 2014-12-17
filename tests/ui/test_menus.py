@@ -62,6 +62,41 @@ class Test_Account_Menu(Base_UI_Test):
 
             assert actual_items == expected_items, "Missing expected menu items (%s != %s)" % (actual_items, expected_items)
 
+    def test_non_superuser_menu_items_after_exiting_portal(self, ui_dashboard_pg, non_superuser, user_password):
+        '''
+        Verify the account menu items are correct upon returning from portal mode.
+
+        Trello: https://trello.com/c/AuT9wUmw
+        '''
+
+        with self.current_user(non_superuser.username, user_password):
+
+            # assert dashboard page
+            assert ui_dashboard_pg.is_the_active_tab
+            # assert expected user
+            assert ui_dashboard_pg.header.current_user == non_superuser.username
+
+            # enter portal mode
+            ui_portal_pg = ui_dashboard_pg.header.account_menu.click("Portal Mode")
+
+            # assert portal mode page
+            assert ui_portal_pg.is_the_active_tab
+
+            # assert expected user
+            assert ui_portal_pg.header.current_user == non_superuser.username
+
+            # exit portal mode
+            ui_dashboard_pg = ui_portal_pg.header.account_menu.click("Exit Portal")
+
+            # show the account menu
+            ui_dashboard_pg.header.account_menu.show()
+
+            # assert expected menu items
+            actual_items = ui_dashboard_pg.header.account_menu.keys()
+            expected_items = [u'About Tower', u'Account Settings', u'Contact Support',
+                              u'Portal Mode', u'View License', u'Logout']
+            assert actual_items == expected_items, "Missing expected menu items (%s != %s)" % (actual_items, expected_items)
+
 
 @pytest.mark.ui
 @pytest.mark.selenium
@@ -78,10 +113,12 @@ class Test_Portal_Menu(Base_UI_Test):
         # assert portal mode is the active tab
         assert ui_portal_pg.is_the_active_tab
 
+        # show the account menu
         ui_portal_pg.header.account_menu.show()
+
+        # assert expected menu items
         actual_items = ui_portal_pg.header.account_menu.keys()
         expected_items = [u'Exit Portal', u'Logout']
-
         assert actual_items == expected_items, "Missing expected menu items (%s != %s)" % (actual_items, expected_items)
 
 
