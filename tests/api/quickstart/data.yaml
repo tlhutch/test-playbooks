@@ -358,27 +358,61 @@ credentials:
       password: '{password}' # Gathered from credentials.yaml
       host: '{host}'         # Gathered from credentials.yaml
 
+inventory_scripts:
+    - name: script_generate_hosts
+      description: Imports a specified number of hosts
+      organization: Ansible, Inc
+      script: |
+        #!/usr/bin/env python
+
+        import os
+        import json
+
+        inv = dict(_meta=dict(hostvars={}), hosts=[])
+
+        NUM_HOSTS = os.getenv('NUM_HOSTS', '1')
+
+        if NUM_HOSTS and isinstance(NUM_HOSTS, str) and NUM_HOSTS.isdigit():
+            NUM_HOSTS = int(NUM_HOSTS)
+
+        for num in range(0, NUM_HOSTS):
+            host = u"host-%0.2d" % num
+            inv['hosts'].append(host)
+            inv['_meta']['hostvars'][host] = dict(ansible_ssh_host='127.0.0.1', ansible_connection='local')
+
+        print json.dumps(inv, indent=2)
+
 inventories:
     - name: inventory-all
       description: Inventory tracking all systems
       organization: Bender Products
 
     - name: inventory-aws
+      description: Includes only Amazon EC2 hosts
       organization: Ansible, Inc
 
     - name: inventory-rax
+      description: Includes only Rackspace cloud servers
       organization: Ansible, Inc
 
     - name: inventory-gce
+      description: Includes only Google Compute Engine hosts
       organization: Ansible, Inc
 
     - name: inventory-azure
+      description: Includes only Microsoft Azure hosts
       organization: Ansible, Inc
 
     - name: inventory-vmware
+      description: Includes only VMware hosts
+      organization: Ansible, Inc
+
+    - name: inventory-custom
+      description: Includes only Custom inventory_script hosts
       organization: Ansible, Inc
 
     - name: local,
+      description: Host(s) with ansible_connection:local
       organization: Ansible, Inc
       variables:
         ansible_connection: local
@@ -478,6 +512,9 @@ groups:
 
     - name: VMware vCenter
       inventory: inventory-vmware
+
+    - name: Custom Inventory
+      inventory: inventory-custom
 
 inventory_sources:
     - name: inventory-all/aws # name is used for internal purposes
@@ -620,6 +657,20 @@ inventory_sources:
       source_regions: ''
       source_tags: ''
       overwrite: false
+      overwrite_vars: false
+      update_on_launch: false
+      update_interval: 0
+
+    - name: inventory-custom # name is used for internal purposes
+      group: Custom Inventory
+      inventory: inventory-custom
+      source: custom
+      source_script: script_generate_hosts
+      # source_username: # stored in credentials.yaml
+      # source_password: # stored in credentials.yaml
+      source_vars:
+        NUM_HOSTS: '5'
+      overwrite: true
       overwrite_vars: false
       update_on_launch: false
       update_interval: 0

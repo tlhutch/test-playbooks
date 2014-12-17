@@ -282,6 +282,32 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         assert len(_credentials) == len(credential_page.results)
 
     @pytest.mark.destructive
+    def test_inventory_scripts_post(self, api_inventory_scripts_pg, api_organizations_pg, _inventory_script):
+        # Find desired org
+        matches = api_organizations_pg.get(name__exact=_inventory_script['organization']).results
+        assert len(matches) == 1
+        org = matches.pop()
+
+        # Create a new inventory
+        payload = dict(name=_inventory_script['name'],
+                       description=_inventory_script.get('description', ''),
+                       organization=org.id,
+                       script=_inventory_script.get('script', ''))
+
+        try:
+            api_inventory_scripts_pg.post(payload)
+        except Duplicate_Exception, e:
+            pytest.xfail(str(e))
+
+    @pytest.mark.nondestructive
+    def test_inventory_scripts_get(self, api_inventory_scripts_pg, _inventory_scripts):
+        # Get list of created inventories
+        api_inventory_scripts_pg.get(or__name=[o['name'] for o in _inventory_scripts])
+
+        # Validate number of inventories found
+        assert len(_inventory_scripts) == len(api_inventory_scripts_pg.results)
+
+    @pytest.mark.destructive
     def test_inventories_post(self, api_inventories_pg, api_organizations_pg, _inventory):
         # Find desired org
         matches = api_organizations_pg.get(name__exact=_inventory['organization']).results
@@ -391,25 +417,34 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 groups_host_pg.post(payload)
 
     @pytest.mark.destructive
-    def test_inventory_sources_patch(self, api_groups_pg, api_credentials_pg, _inventory_source):
+    def test_inventory_sources_patch(self, api_groups_pg, api_credentials_pg, api_inventory_scripts_pg, _inventory_source):
         # Find desired group
         group_pg = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0]
 
-        # Find desired credential
-        credential_pg = api_credentials_pg.get(name__iexact=_inventory_source['credential']).results[0]
-
-        # Get Page groups->related->inventory_source
-        inventory_source_pg = group_pg.get_related('inventory_source')
-
+        # Build payload
         payload = dict(source=_inventory_source['source'],
                        source_regions=_inventory_source.get('source_regions', ''),
-                       source_vars=_inventory_source.get('source_vars', ''),
+                       source_vars=json.dumps(_inventory_source.get('source_vars', '')),
                        source_tags=_inventory_source.get('source_tags', ''),
-                       credential=credential_pg.id,
                        overwrite=_inventory_source.get('overwrite', False),
                        overwrite_vars=_inventory_source.get('overwrite_vars', False),
                        update_on_launch=_inventory_source.get('update_on_launch', False),
                        update_interval=_inventory_source.get('update_interval', 0),)
+
+        # Add the desired credential
+        if 'credential' in _inventory_source:
+            credential_pg = api_credentials_pg.get(name__iexact=_inventory_source['credential']).results[0]
+            payload['credential'] = credential_pg.id
+
+        # Add the desired source_script
+        if 'source_script' in _inventory_source:
+            script_pg = api_inventory_scripts_pg.get(name__iexact=_inventory_source['source_script']).results[0]
+            payload['source_script'] = script_pg.id
+
+        # Get Page groups->related->inventory_source
+        inventory_source_pg = group_pg.get_related('inventory_source')
+
+        # submit PATCH request
         inventory_source_pg.patch(**payload)
 
     @pytest.mark.destructive
