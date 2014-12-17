@@ -56,23 +56,26 @@ p   [ ] ansible-1.7.x
 
 ### Feature: HA
 1. Installer
-    1. [X] Verify ./configure completes successfully for localhost tower with internal db
-    2. [X] Verify ./configure completes successfully for remote tower with internal db
-    3. [X] Verify ./configure completes successfully for localhost tower with external db
-    4. [X] Verify ./configure completes successfully for remote tower with external db
-    5. [X] Verify ./configure completes successfully for localhost tower with external db and secondaries
-    6. [X] Verify ./configure completes successfully for remote tower with external db and secondaries
-    7. [X] Verify ./configure completes successfully when adding a secondary after initial install
+    1. [X] Verify `configure` completes successfully for localhost tower with internal db
+    2. [X] Verify `configure` completes successfully for remote tower with internal db
+    3. [X] Verify `configure` completes successfully for localhost tower with external db
+    4. [X] Verify `configure` completes successfully for remote tower with external db
+    5. [X] Verify `configure` completes successfully for localhost tower with external db and secondaries
+    6. [X] Verify `configure` completes successfully for remote tower with external db and secondaries
+    7. [X] Verify `setup.sh` completes successfully when adding a secondary after initial install
+    8. [X] Verify adding secondaries to `inventory` and rerunning./setup.sh works
+    9. [ ] Verify running `configure` and `setup.sh` on a secondary successfully installs and adds to HA deployment
 2. Runtime
-    1. [X] Verify accessing secondary via http (application and /api) redirects to primary
-    2. [ ] Verify no issues introduced wrt saving/reading job_stdout
+    1. [ ] Verify accessing secondary via http (application and /api) redirects to primary
+    2. [X] Verify no issues introduced wrt saving/reading job_stdout
     3. [X] Verify incorrect usage of `tower-manage register_instance` (several low priority issues filed)
-    4. [X] Verify correct behavior when promoting a secondary
-    5. [ ] Verify correct behavior when promoting a secondary while jobs are running
-    5. [X] Verify removing a secondary with --hostname=<valid>
-    5. [X] Verify removing a secondary with --uuid=<valid>
-    5. [X] Verify changing primary hostname with with --hostname=<valid> --primary
-    5. [X] Verify changing secondary hostname with with --hostname=<valid> --secondary
+    4. [X] Verify promoting a secondary
+    5. [ ] Verify promoting a secondary when jobs are running
+    6. [ ] Verify promoting a secondary when the primary is unreachable
+    9. [X] Verify removing a secondary with --hostname=<valid>
+    10. [X] Verify removing a secondary with --uuid=<valid>
+    11. [X] Verify changing primary hostname with with --hostname=<valid> --primary
+    12. [X] Verify changing secondary hostname with with --hostname=<valid> --secondary
 
 ### Feature: Multi-tenancy
 1. [X] Verify when AWX_PROOT_ENABLED, a job is unable to view details from other jobs on disk.  Includes the following:
