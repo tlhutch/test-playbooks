@@ -164,8 +164,9 @@ class Test_Job_Template(Base_Api_Test):
 
         # assert job is associated with the expected credential
         assert job_pg.credential == ssh_credential.id, \
-            "Job is not associated with the credential provided at launch time" \
-            " (%s != %s)" % (job_pg.credential, ssh_credential.id)
+            "A job_template was launched with a credential in the payload, but" \
+            "the launched job does not have the same credential " \
+            "(%s != %s)" % (job_pg.credential, ssh_credential.id)
 
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_no_credential, ssh_credential_multi_ask):
         '''
