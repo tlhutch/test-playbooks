@@ -107,7 +107,7 @@ p   [ ] ansible-1.7.x
   1. [X] Verify posting various surveys to endpoint
   2. [X] Verify /launch endpoint reflects state of enabled survey
   3. [X] Verify variables supplied at /launch resource correctly passed to job
-  4. [ ] Verify survey variables cannot overwrite job environment variables (HOME, PATH, _ etc...)
+  4. [X] Verify survey variables cannot overwrite job environment variables (HOME, PATH, _ etc...)
   5. [ ] Verify behavior when POSTing to /api/v1/jobs/N/relaunch -- (FIXME: what is the behavior?)
 
 2. UI
@@ -144,7 +144,7 @@ p   [ ] ansible-1.7.x
 
 ### Regresion
 1. [ ] UI regression completed
-2. [ ] API regression completed
+2. [X] API regression completed
 3. [ ] Munin monitors work on all supported platforms
 
 ## Retrospective
@@ -157,6 +157,7 @@ Any thoughts, big or small, are valuable.
 ### Feedback/issues/concerns
 
 * QA UI automation exists, but isn't run on a regular automatic basis through jenkins.  Several UI changes to improve UI test-ability introduced regressions elsewhere in the UI.  These would have been caught with existing UI automation.
+* We didn't specify the HA tower-manage interfaces in a detailed fashion in the spec (or update it), and eng didn't publish a "this is what we're doing" guide, so we end up reverse-engineering what got done, and QA isn't sure what to test, or what is supported.
 
 ### Recommendations
 
