@@ -217,9 +217,6 @@ class Test_Job_Template_Callback(Base_Api_Test):
         assert not result['changed']
         assert 'failed' not in result, "Callback failed\n%s" % result
         assert result['content_length'].isdigit() and int(result['content_length']) == 0
-        assert 'location' in result, "Missing expected 'location' in callback response."
-        assert re.search(r'%s[0-9]+/$' % api_jobs_url, result['location']), \
-            "Unexpected format for 'location' header (%s)" % result['location']
 
         # FIXME - assert 'Location' header points to launched job
         # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
@@ -365,9 +362,6 @@ class Test_Job_Template_Callback(Base_Api_Test):
         assert 'status' in result, "Unexpected callback response"
         assert result['status'] in [httplib.ACCEPTED, httplib.BAD_REQUEST]
         assert not result['changed']
-        assert 'location' in result, "Missing expected 'location' in callback response."
-        assert re.search(r'%s[0-9]+/$' % api_jobs_url, result['location']), \
-            "Unexpected format for 'location' header (%s)" % result['location']
 
         # NOTE: We don't enforce that a matching system exists in the provided
         # cloud, so it's possible the callback fails to find a matching system.
