@@ -276,7 +276,7 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.credential_needed_to_start
 
         # launch the job_template
-        payload = dict(one=1, two=2, three=3)
+        payload = dict(extra_vars=dict(one=1, two=2, three=3))
         result = launch_pg.post(payload)
 
         # assert successful launch
@@ -289,12 +289,59 @@ class Test_Job_Template(Base_Api_Test):
             extra_vars = json.loads(job_pg.extra_vars)
         except ValueError:
             extra_vars = {}
-        assert extra_vars == payload, \
+        assert extra_vars == payload['extra_vars'], \
             "The job extra_vars do not match the values provided at launch (%s != %s)" % \
-            (extra_vars, payload)
+            (extra_vars, payload['extra_vars'])
 
-    # FiXME - implement the following
-    # def test_launch_without_variables_needed_to_start(self, job_template_variables_needed_to_start):
+    def test_launch_without_variables_needed_to_start(self, job_template_variables_needed_to_start):
+        '''
+        Verify the job->launch endpoint behaves as expected when launching a
+        survey without required variables.
+        '''
+        launch_pg = job_template_variables_needed_to_start.get_related('launch')
+        survey_spec = job_template_variables_needed_to_start.get_related('survey_spec')
+
+        print json.dumps(launch_pg.json, indent=2)
+
+        # assert values on launch resource
+        assert not launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
+
+        # assert number of required variables
+        required_variables = [question['variable']
+                              for question in survey_spec.spec
+                              if question.get('required', False)]
+        assert len(launch_pg.variables_needed_to_start) == len(required_variables), \
+            "Unexpected number of required variables (%s != %s)" % \
+            (len(launch_pg.variables_needed_to_start), len(required_variables))
+
+        # assert names of required variables
+        for variable in required_variables:
+            assert variable in launch_pg.variables_needed_to_start, \
+                "Missing required variable: %s" % variable
+
+        # launch the job without provided required variables
+        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, launch_pg.post)
+        result = exc_info.value[1]
+
+        # assert response includes field: passwords_needed_to_start
+        assert 'variables_needed_to_start' in result, \
+            "Expecting 'variables_needed_to_start' in API response when " \
+            "launching a job_template, without required variables. %s " % \
+            json.dumps(result)
+
+        # assert number of required variables
+        assert len(result['variables_needed_to_start']) == len(required_variables), \
+            "Unexpected number of required variables returned when issuing a POST to the /launch endpoint(%s != %s)" % \
+            (len(result['variables_needed_to_start']), len(required_variables))
+
+        # assert names of required variables
+        for variable in required_variables:
+            assert variable in result['variables_needed_to_start'], \
+                "Missing required variable: %s" % variable
 
     def test_launch_with_variables_needed_to_start(self, job_template_variables_needed_to_start):
         '''
@@ -324,6 +371,12 @@ class Test_Job_Template(Base_Api_Test):
         for variable in required_variables:
             assert variable in launch_pg.variables_needed_to_start, \
                 "Missing required variable: %s" % variable
+
+        # TODO - launch the job_template
+
+        # TODO - assert successful launch
+
+        # TODO - assert extra_vars contains provided data
 
     def test_launch_without_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         '''

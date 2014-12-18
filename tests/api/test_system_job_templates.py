@@ -83,14 +83,25 @@ class Test_System_Job_Template(Base_Api_Test):
         job_pg = system_job_template.get_related('jobs', id=result.json['system_job']).results[0].wait_until_completed()
         assert job_pg.is_successful, job_pg
 
-    def test_launch_with_days(self, system_job_template):
+    def test_launch_as_non_superuser(self, system_job_template, non_superusers, user_password):
+        '''
+        Verify launch fails when attempted by a non-superuser
+        '''
+
+        launch_pg = system_job_template.get_related('launch')
+        for non_superuser in non_superusers:
+            with self.current_user(non_superuser.username, user_password):
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    launch_pg.post()
+
+    def test_launch_with_extra_vars(self, system_job_template):
         '''
         Verify successful launch of a system_job_template with extra_vars.
         '''
 
         launch_pg = system_job_template.get_related('launch')
-        launch_payload = dict(days=300)
-        result = launch_pg.post(launch_payload)
+        payload = dict(extra_vars=dict(days=300))
+        result = launch_pg.post(payload)
 
         # assert json response
         assert 'system_job' in result.json, "Unexpected JSON response when " \
@@ -106,17 +117,6 @@ class Test_System_Job_Template(Base_Api_Test):
             extra_vars = json.loads(job_pg.extra_vars)
         except ValueError:
             extra_vars = {}
-        assert extra_vars == launch_payload, \
+        assert extra_vars == payload['extra_vars'], \
             "The system_job extra_vars do not match the values provided at launch (%s != %s)" % \
-            (extra_vars, launch_payload)
-
-    def test_launch_as_non_superuser(self, system_job_template, non_superusers, user_password):
-        '''
-        Verify launch fails when attempted by a non-superuser
-        '''
-
-        launch_pg = system_job_template.get_related('launch')
-        for non_superuser in non_superusers:
-            with self.current_user(non_superuser.username, user_password):
-                with pytest.raises(common.exceptions.Forbidden_Exception):
-                    launch_pg.post()
+            (extra_vars, payload['extra_vars'])
