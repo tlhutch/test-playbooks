@@ -99,7 +99,7 @@ class Test_Job_Template(Base_Api_Test):
 
         # wait for completion and assert success
         job_pg = jobs_pg.results[0].wait_until_completed()
-        assert job_pg.is_successful, job_pg
+        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
         # assert job is associated with the expected credential
         assert job_pg.credential == ssh_credential.id, \
@@ -171,7 +171,7 @@ class Test_Job_Template(Base_Api_Test):
 
         # wait for completion and assert success
         job_pg = jobs_pg.results[0].wait_until_completed()
-        assert job_pg.is_successful, job_pg
+        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     def test_launch_without_ask_variables_on_launch(self, job_template_ask_variables_on_launch):
         '''
@@ -281,7 +281,8 @@ class Test_Job_Template(Base_Api_Test):
                                               if question.get('required', False) and
                                               question.get('default') in (None, '')]
         for variable in required_variables_without_default:
-            assert variable in result['variables_needed_to_start'], \
+            errmsg = "'%s' value missing" % variable
+            assert errmsg in launch_pg.variables_needed_to_start, \
                 "Missing required variable: %s" % variable
 
     def test_launch_with_variables_needed_to_start(self, job_template_variables_needed_to_start):
