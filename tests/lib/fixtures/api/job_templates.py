@@ -100,22 +100,83 @@ def job_template(request, authtoken, api_job_templates_pg, project, inventory, s
 
 
 @pytest.fixture(scope="function")
-def job_template_sleep(request, job_template_ansible_playbooks_git, host_local):
+def job_template_sleep(job_template_ansible_playbooks_git, host_local):
     return job_template_ansible_playbooks_git.patch(playbook='sleep.yml')
 
 
 @pytest.fixture(scope="function")
-def job_template_ping(request, job_template_ansible_playbooks_git, host_local):
+def job_template_ping(job_template_ansible_playbooks_git, host_local):
     return job_template_ansible_playbooks_git.patch(playbook='ping.yml')
 
 
 @pytest.fixture(scope="function")
-def api_job_templates_options_json(request, authtoken, api_job_templates_pg):
+def api_job_templates_options_json(authtoken, api_job_templates_pg):
     '''Return job_template OPTIONS json'''
     return api_job_templates_pg.options().json
 
 
 @pytest.fixture(scope="function")
-def job_template_status_choices(request, api_job_templates_options_json):
+def job_template_status_choices(api_job_templates_options_json):
     '''Return job_template statuses from OPTIONS'''
     return dict(api_job_templates_options_json['actions']['GET']['status']['choices'])
+
+
+# @pytest.fixture(scope="function")
+# def job_template_no_credential(job_template_ping):
+#     return job_template_ping.patch(credential=None)
+
+
+@pytest.fixture(scope="function")
+def job_template_ask_variables_on_launch(job_template_ping):
+    return job_template_ping.patch(ask_variables_on_launch=True)
+
+
+@pytest.fixture(scope="function")
+def optional_survey_spec():
+    payload = dict(name=common.utils.random_unicode(),
+                   description=common.utils.random_unicode(),
+                   spec=[dict(required=False,
+                              question_name="Enter your email &mdash; &euro;",
+                              variable="submitter_email",
+                              type="text",),
+                         dict(required=False,
+                              question_name="Enter your employee number email &mdash; &euro;",
+                              variable="submitter_email",
+                              type="integer",)])
+    return payload
+
+
+@pytest.fixture(scope="function")
+def required_survey_spec():
+    payload = dict(name=common.utils.random_unicode(),
+                   description=common.utils.random_unicode(),
+                   spec=[dict(required=True,
+                              question_name="Do you like chicken?",
+                              question_description="Please indicate your chicken preference:",
+                              variable="likes_chicken",
+                              type="multiselect",
+                              choices="yes"),
+                         dict(required=True,
+                              question_name="Favorite color?",
+                              question_description="Pick a color darnit!",
+                              variable="favorite_color",
+                              type="multiplechoice",
+                              choices="red\ngreen\nblue",
+                              default="green"),
+                         dict(required=False,
+                              question_name="Enter your email &mdash; &euro;",
+                              variable="submitter_email",
+                              type="text")])
+    return payload
+
+
+@pytest.fixture(scope="function")
+def job_template_variables_needed_to_start(job_template_ping, required_survey_spec):
+    obj = job_template_ping.patch(survey_enabled=True)
+    obj.get_related('survey_spec').post(required_survey_spec)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def job_template_passwords_needed_to_start(job_template_ping, ssh_credential_multi_ask):
+    return job_template_ping.patch(credential=ssh_credential_multi_ask.id)

@@ -6,16 +6,6 @@ from tests.api import Base_Api_Test
 
 
 @pytest.fixture(scope="function")
-def job_template_no_credential(request, job_template_ping):
-    return job_template_ping.patch(credential=None)
-
-
-@pytest.fixture(scope="function")
-def job_template_ask_variables_on_launch(request, job_template_ping):
-    return job_template_ping.patch(ask_variables_on_launch=True)
-
-
-@pytest.fixture(scope="function")
 def missing_field_survey_specs(request):
     '''
     Returns a list of survey_spec's which should fail to post.
@@ -36,57 +26,6 @@ def missing_field_survey_specs(request):
             dict(name=common.utils.random_unicode(),
                  description=common.utils.random_unicode(),
                  spec=[])]
-
-
-@pytest.fixture(scope="function")
-def optional_survey_spec(request):
-    payload = dict(name=common.utils.random_unicode(),
-                   description=common.utils.random_unicode(),
-                   spec=[dict(required=False,
-                              question_name="Enter your email &mdash; &euro;",
-                              variable="submitter_email",
-                              type="text",),
-                         dict(required=False,
-                              question_name="Enter your employee number email &mdash; &euro;",
-                              variable="submitter_email",
-                              type="integer",)])
-    return payload
-
-
-@pytest.fixture(scope="function")
-def required_survey_spec(request):
-    payload = dict(name=common.utils.random_unicode(),
-                   description=common.utils.random_unicode(),
-                   spec=[dict(required=True,
-                              question_name="Do you like chicken?",
-                              question_description="Please indicate your chicken preference:",
-                              variable="likes_chicken",
-                              type="multiselect",
-                              choices="yes"),
-                         dict(required=True,
-                              question_name="Favorite color?",
-                              question_description="Pick a color darnit!",
-                              variable="favorite_color",
-                              type="multiplechoice",
-                              choices="red\ngreen\nblue",
-                              default="green"),
-                         dict(required=False,
-                              question_name="Enter your email &mdash; &euro;",
-                              variable="submitter_email",
-                              type="text")])
-    return payload
-
-
-@pytest.fixture(scope="function")
-def job_template_variables_needed_to_start(request, job_template_ping, required_survey_spec):
-    obj = job_template_ping.patch(survey_enabled=True)
-    obj.get_related('survey_spec').post(required_survey_spec)
-    return obj
-
-
-@pytest.fixture(scope="function")
-def job_template_passwords_needed_to_start(request, job_template_ping, ssh_credential_multi_ask):
-    return job_template_ping.patch(credential=ssh_credential_multi_ask.id)
 
 
 @pytest.mark.api
