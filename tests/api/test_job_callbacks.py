@@ -1,3 +1,4 @@
+import re
 import pytest
 import httplib
 import json
@@ -38,11 +39,11 @@ def host_public_ipv4_alias(request, authtoken, api_hosts_pg, group, my_public_ip
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Job_Callback(Base_Api_Test):
+class Test_Job_Template_Callback(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_1000')
 
-    def test_get(self, ansible_runner, job_template, host_config_key, host_public_ipv4, host_ipv4):
+    def test_get(self, job_template, host_config_key, host_public_ipv4, host_ipv4):
         '''Assert a GET on the /callback resource returns a list of matching hosts'''
         # enable callback
         job_template.patch(host_config_key=host_config_key)
@@ -155,6 +156,26 @@ class Test_Job_Callback(Base_Api_Test):
         assert result['failed']
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
+    def test_launch_variables_needed_to_start(self, ansible_runner, job_template_variables_needed_to_start, host_ipv4, host_config_key, ansible_default_ipv4):
+        '''Verify launch failure when launching a job_template that has required survey variables.'''
+        # assert callback
+        job_template_variables_needed_to_start.patch(host_config_key=host_config_key)
+        assert job_template_variables_needed_to_start.host_config_key == host_config_key
+
+        # trigger callback
+        args = dict(method="POST",
+                    status_code=httplib.ACCEPTED,
+                    url="http://%s/%s" % (ansible_default_ipv4, job_template_variables_needed_to_start.json['related']['callback']),
+                    body="host_config_key=%s" % host_config_key,)
+        args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
+        result = ansible_runner.uri(**args)
+
+        # verify callback response
+        assert result['status'] == httplib.BAD_REQUEST
+        assert result['failed']
+        assert result['json']['msg'] == 'Cannot start automatically, user input required!'
+
+
     def test_launch_multiple_hosts(self, ansible_runner, job_template, host_ipv4, host_ipv4_again, host_config_key, ansible_default_ipv4):
         '''Verify launch failure when launching a job_template where multiple hosts match '''
 
@@ -173,7 +194,7 @@ class Test_Job_Callback(Base_Api_Test):
         assert 'failed' in result and result['failed']
         assert result['json']['msg'] == 'Multiple hosts matched the request!'
 
-    def test_launch_success_limit(self, ansible_runner, job_template_with_limit, host_ipv4, host_config_key, ansible_default_ipv4):
+    def test_launch_success_limit(self, api_jobs_url, ansible_runner, job_template_with_limit, host_ipv4, host_config_key, ansible_default_ipv4):
         '''Assert that launching a callback job against a job_template with an
         existing 'limit' parameter successfully launches, but the job fails
         because no matching hosts were found.
@@ -196,6 +217,9 @@ class Test_Job_Callback(Base_Api_Test):
         assert not result['changed']
         assert 'failed' not in result, "Callback failed\n%s" % result
         assert result['content_length'].isdigit() and int(result['content_length']) == 0
+        assert 'location' in result, "Missing expected 'location' in callback response."
+        assert re.search(r'%s[0-9]+/$' % api_jobs_url, result['location']), \
+            "Unexpected format for 'location' header (%s)" % result['location']
 
         # FIXME - assert 'Location' header points to launched job
         # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
@@ -252,7 +276,62 @@ class Test_Job_Callback(Base_Api_Test):
         # Assert the affected host matches expected
         assert host_summaries_pg.results[0].host == host_ipv4.id
 
-    def test_launch_with_inventory_update(self, ansible_runner, job_template, host_config_key, cloud_group, ansible_default_ipv4, tower_version_cmp):
+    def test_launch_multiple(self, api_jobs_url, ansible_runner, job_template, host_ipv4, host_config_key, ansible_default_ipv4):
+        '''
+        Verify that issuing a callback, while a callback job from the same host
+        is already running, fails.
+        '''
+
+        # enable host_config_key
+        job_template.patch(host_config_key=host_config_key)
+        assert job_template.host_config_key == host_config_key
+
+        # issue multiple callbacks, only the first should succeed
+        for attempt in range(3):
+            callback_url="https://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback'])
+            args = dict(method="POST",
+                        timeout=60,
+                        status_code=httplib.ACCEPTED,
+                        url=callback_url,
+                        body="host_config_key=%s" % host_config_key,)
+            args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
+            result = ansible_runner.uri(**args)
+            print json.dumps(result)
+
+            if attempt == 0:
+                assert result['status'] == httplib.ACCEPTED
+                assert not result['changed']
+                assert 'failed' not in result, "First provisioning callback unexpectedly failed."
+                assert result['content_length'].isdigit() and int(result['content_length']) == 0
+                assert 'location' in result, "Missing expected 'location' in callback response."
+                assert re.search(r'%s[0-9]+/$' % api_jobs_url, result['location']), \
+                    "Unexpected format for 'location' header (%s)" % result['location']
+            else:
+                assert result['status'] == httplib.BAD_REQUEST
+                assert 'failed' in result, "Subsequent provisioning callback unexpectedly passed."
+
+        # FIXME - assert 'Location' header points to launched job
+        # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
+
+        # Wait for job to complete
+        jobs_pg = job_template.get_related('jobs', launch_type='callback', order_by='-id')
+        assert jobs_pg.count == 1
+        job_pg = jobs_pg.results[0].wait_until_completed(timeout=5 * 60)
+
+        # Assert job was successful
+        assert job_pg.launch_type == "callback"
+        assert job_pg.is_successful, \
+            "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
+            (job_pg.status, job_pg.result_stdout, job_pg.result_traceback, job_pg.job_explanation)
+
+        # Assert only a single host was affected
+        host_summaries_pg = job_pg.get_related('job_host_summaries')
+        assert host_summaries_pg.count == 1
+
+        # Assert the affected host matches expected
+        assert host_summaries_pg.results[0].host == host_ipv4.id
+
+    def test_launch_with_inventory_update(self, api_jobs_url, ansible_runner, job_template, host_config_key, cloud_group, ansible_default_ipv4, tower_version_cmp):
         '''Assert that a callback job against a job_template also initiates an inventory_update (when configured).'''
 
         if tower_version_cmp('2.0.0') < 0:
@@ -280,12 +359,15 @@ class Test_Job_Callback(Base_Api_Test):
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         result = ansible_runner.uri(**args)
-        print result
+        print json.dumps(result)
 
         assert 'failed' not in result, "Callback failed\n%s" % result
         assert 'status' in result, "Unexpected callback response"
         assert result['status'] in [httplib.ACCEPTED, httplib.BAD_REQUEST]
         assert not result['changed']
+        assert 'location' in result, "Missing expected 'location' in callback response."
+        assert re.search(r'%s[0-9]+/$' % api_jobs_url, result['location']), \
+            "Unexpected format for 'location' header (%s)" % result['location']
 
         # NOTE: We don't enforce that a matching system exists in the provided
         # cloud, so it's possible the callback fails to find a matching system.
@@ -294,10 +376,14 @@ class Test_Job_Callback(Base_Api_Test):
 
         # NOTE: We can't guarruntee that any cloud instances are running, so we
         # don't assert that cloud hosts were imported.
-        # assert cloud_group.get_related('hosts').count > 0, "No hosts found after inventory_update.  An inventory_update was not triggered by the callback as expected"
+        # assert cloud_group.get_related('hosts').count > 0, "No hosts found " \
+        #    "after inventory_update.  An inventory_update was not triggered by " \
+        #    "the callback as expected"
 
         # Even if no hosts were imported, groups should be created by the various inventory_update plugins
-        assert cloud_group.get_related('children').count > 0, "No child groups found after inventory_update.  An inventory_update was not triggered by the callback as expected"
+        assert cloud_group.get_related('children').count > 0, "No child groups " \
+            "found after inventory_update.  An inventory_update was not " \
+            "triggered by the callback as expected"
 
         # Assert that an inventory_update took place
         assert cloud_group.get_related('inventory_source').last_updated is not None
