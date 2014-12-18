@@ -85,7 +85,12 @@ def host_ipv4(request, authtoken, api_hosts_pg, group, ansible_default_ipv4):
 
 @pytest.fixture(scope="function")
 def my_public_ipv4(request):
-    '''Return the IP address of the system running pytest'''
+    '''
+    Return the IP address of the system running pytest.
+
+    NOTE: this doesn't work properly when the system running pytest and the
+    target system are both on a private network.
+    '''
     return json.load(urllib2.urlopen('http://httpbin.org/ip'))['origin']
 
 
