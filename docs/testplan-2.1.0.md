@@ -71,13 +71,13 @@ p   [ ] ansible-1.7.x
     2. [X] Verify no issues introduced wrt saving/reading job_stdout
     3. [X] Verify incorrect usage of `tower-manage register_instance` (several low priority issues filed)
     4. [X] Verify promoting a secondary
-    5. [ ] Verify promoting a secondary when jobs are running
+    5. [X] Verify promoting a secondary when jobs are running
     6. [ ] Verify promoting a secondary when the primary is unreachable
     9. [X] Verify removing a secondary with --hostname=<valid>
     10. [X] Verify removing a secondary with --uuid=<valid>
     11. [X] Verify changing primary hostname with with --hostname=<valid> --primary
     12. [X] Verify changing secondary hostname with with --hostname=<valid> --secondary
-    13. [ ] Verify integration completes successfully in an HA environment
+    13. [X] Verify integration completes successfully in an HA environment
 
 ### Feature: Multi-tenancy
 1. [X] Verify when AWX_PROOT_ENABLED, a job is unable to view details from other jobs on disk.  Includes the following:
