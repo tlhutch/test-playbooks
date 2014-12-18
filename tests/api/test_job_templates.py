@@ -336,8 +336,12 @@ class Test_Job_Template(Base_Api_Test):
             "Unexpected number of required variables returned when issuing a POST to the /launch endpoint(%s != %s)" % \
             (len(result['variables_needed_to_start']), len(required_variables))
 
-        # assert names of required variables
-        for variable in required_variables:
+        # assert names of required variables without a default value
+        required_variables_without_default = [question['variable']
+                                              for question in survey_spec.spec
+                                              if question.get('required', False) and
+                                              question.get('default') in (None, '')]
+        for variable in required_variables_without_default:
             assert variable in result['variables_needed_to_start'], \
                 "Missing required variable: %s" % variable
 
