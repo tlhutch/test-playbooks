@@ -1,9 +1,3 @@
-'''
-# 1) Verify users with unicode names and passwords
-# 2) Verify credentials, owned by the user, are removed upon DELETE
-'''
-
-import json
 import pytest
 import common.utils
 import common.exceptions
@@ -19,23 +13,25 @@ class Test_Organizations(Base_Api_Test):
     '''
     pytestmark = pytest.mark.usefixtures('authtoken')
 
-    # FIXME coming soon
-#    def test_duplicate(self, api_users_pg, some_user):
-#        '''Verify that usernames are unique'''
-#        payload = dict(username=some_user.username,
-#                       first_name="Another Joe (%s)" % common.utils.random_unicode(),
-#                       last_name="User (%s)" % common.utils.random_unicode(),
-#                       email="org_user_%s@example.com" % common.utils.random_ascii(),
-#                       password=common.utils.random_unicode())
-#        with pytest.raises(common.exceptions.Duplicate_Exception):
-#            api_users_pg.post(payload)
+    # TODO - test_post_as_superuser
+    # TODO - test_patch_as_superuser
+    # TODO - test_put_as_superuser
 
-    def test_cascade_delete(self, api_organizations_pg, organization, inventory_script):
+    # TODO - test_post_as_non_superuser
+    # TODO - test_put_as_non_superuser
+    # TODO - test_patch_as_non_superuser
+
+    def test_duplicate(self, api_organizations_pg, organization):
         '''
-        Verify that a inventory_scripts are deleted when the organization is
-        deleted.
+        Verify that organization names are unique.
+        '''
+        payload = dict(name=organization.name)
+        with pytest.raises(common.exceptions.Duplicate_Exception):
+            api_organizations_pg.post(payload)
 
-        TODO - this should test for other related fields.
+    def test_delete(self, api_organizations_pg, organization):
+        '''
+        Verify that deleting an organization actually works.
         '''
 
         # Delete the organization
@@ -44,7 +40,3 @@ class Test_Organizations(Base_Api_Test):
         # assert the organization was deleted
         matches = api_organizations_pg.get(id=organization.id)
         assert matches.count == 0, "An organization was deleted, but is still visible from the /api/v1/organizations/ endpoint"
-
-        # assert the related inventory_scripts were deleted
-        with pytest.raises(common.exceptions.NotFound_Exception):
-            inventory_script.get()
