@@ -7,12 +7,12 @@ import common.utils
 
 
 @pytest.fixture(scope="function")
-def job_template_no_credential(request, authtoken, api_job_templates_pg, project, inventory):
+def job_template_no_credential(request, authtoken, api_job_templates_pg, project, host_local):
     '''Define a job_template with no machine credential'''
 
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template without credentials - %s" % common.utils.random_unicode(),
-                   inventory=inventory.id,
+                   inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
                    playbook='site.yml', )  # This depends on the project selected
