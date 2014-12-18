@@ -189,9 +189,6 @@ class Test_Job_Template(Base_Api_Test):
         exc_info = pytest.raises(common.exceptions.BadRequest_Exception, launch_pg.post, payload)
         result = exc_info.value[1]
 
-        # with pytest.raises(common.exceptions.BadRequest_Exception):
-        #     result = launch_pg.post(payload)
-
         # assert response includes field: passwords_needed_to_start
         assert 'passwords_needed_to_start' in result, \
             "Expecting 'passwords_needed_to_start' in API response when " \
@@ -259,7 +256,7 @@ class Test_Job_Template(Base_Api_Test):
         job_pg = jobs_pg.results[0]
 
         # assert job has no extra_vars
-        assert job_pg.extra_vars == json.dumps({}), \
+        assert job_pg.extra_vars == '', \
             "No extra_vars were provided at launch, " \
             "but the job contains extra_vars (%s)" % (job_pg.extra_vars)
 
