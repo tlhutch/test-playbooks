@@ -762,25 +762,29 @@ class Test_Inventory_Schedules(Base_Api_Test):
 @pytest.mark.usefixtures('authtoken')
 class Test_Job_Template_Schedules(Base_Api_Test):
     '''
-    Test basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
+    TODO - Validation of job_template schedules
 
-    Test schedule rrule support ...
-      1. valid should be accepted
-      2. invalid should return BadRequest
+    This class tests the following:
+    * Verify basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
+    * Verify RBAC for above operations
+    * Verify only a single schedule can exist for each system_job_template
+    * Verify related fields map correctly (schedule->system_job_template and system_job_templates->schedules)
+    * Verify extra_vars handling
+    '''
 
-    Test related->job_template is correct?
 
-    Create single schedule (rrule), verify ...
-      1. job_template.next_update is expected
-      2. job_template is launched at desired time
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken')
+class Test_System_Job_Template_Schedules(Base_Api_Test):
+    '''
+    TODO - Validation of system_job_template schedules
 
-    Create multiple schedules (rrules), verify ...
-      1. job_template.next_update is expected
-      2. job_template is launched at desired time
-
-    RBAC
-      - admin can view/create/update/delete schedules
-      - org_admin can view/create/update/delete schedules
-      - user can *only* view schedules
-      - user w/ update perm can *only* view/create/update schedules
+    This class tests the following:
+    * Verify basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
+    * Verify RBAC for above operations (should be superuser-only)
+    * Verify only a single schedule can exist for each system_job_template
+    * Verify related fields map correctly (schedule->system_job_template and system_job_templates->schedules)
+    * Verify extra_vars handling
     '''
