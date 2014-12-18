@@ -1,7 +1,7 @@
 # Tower 2.1.0 Release Test Plan
 
 ## Resources
-* 1 full-time quality engineer (jlaska)
+* 2 full-time quality engineer (cwang, jlaska)
 
 ## Assumptions
 1. UI testing is performed manually.  While basic automated coverage exists, it is insufficient to test customer workflows.
@@ -51,6 +51,7 @@ p   [ ] ansible-1.7.x
 
 ### Feature: System Jobs
 1. API - FIXME
+  1. [ ] Verify only accessible 
 2. UI - FIXME
   1. [ ] Verify system job modal dialogs hold up to monkey clicking
 
@@ -64,9 +65,9 @@ p   [ ] ansible-1.7.x
     6. [X] Verify `configure` completes successfully for remote tower with external db and secondaries
     7. [X] Verify `setup.sh` completes successfully when adding a secondary after initial install
     8. [X] Verify adding secondaries to `inventory` and rerunning./setup.sh works
-    9. [ ] Verify running `configure` and `setup.sh` on a secondary successfully installs and adds to HA deployment
+    9. [X] Verify running `configure` and `setup.sh` on a secondary successfully installs and adds to HA deployment
 2. Runtime
-    1. [ ] Verify accessing secondary via http (application and /api) redirects to primary
+    1. [X] Verify accessing secondary via http (application and /api) redirects to primary
     2. [X] Verify no issues introduced wrt saving/reading job_stdout
     3. [X] Verify incorrect usage of `tower-manage register_instance` (several low priority issues filed)
     4. [X] Verify promoting a secondary
@@ -76,6 +77,7 @@ p   [ ] ansible-1.7.x
     10. [X] Verify removing a secondary with --uuid=<valid>
     11. [X] Verify changing primary hostname with with --hostname=<valid> --primary
     12. [X] Verify changing secondary hostname with with --hostname=<valid> --secondary
+    13. [ ] Verify integration completes successfully in an HA environment
 
 ### Feature: Multi-tenancy
 1. [X] Verify when AWX_PROOT_ENABLED, a job is unable to view details from other jobs on disk.  Includes the following:
@@ -144,3 +146,18 @@ p   [ ] ansible-1.7.x
 1. [ ] UI regression completed
 2. [ ] API regression completed
 3. [ ] Munin monitors work on all supported platforms
+
+## Retrospective
+
+This section is intended to gather feedback on things that worked well and
+things that could have been better during the release cycle. The feedback will
+be used as a basis for identifying areas for improvement for future releases.
+Any thoughts, big or small, are valuable.
+
+### Feedback/issues/concerns
+
+* QA UI automation exists, but isn't run on a regular automatic basis through jenkins.  Several UI changes to improve UI test-ability introduced regressions elsewhere in the UI.  These would have been caught with existing UI automation.
+
+### Recommendations
+
+1. Selenium UI automation needs to be fully automated by jenkins
