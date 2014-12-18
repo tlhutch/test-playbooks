@@ -22,6 +22,15 @@ def job_with_status_pending(request, job_sleep):
 
 
 @pytest.fixture(scope="function")
+def job_ping(request, job_template_ping):
+    '''
+    Launch the job_template_ping and return a job resource.
+    '''
+    job_pg = job_template_ping.launch()
+    return job_pg.wait_until_completed()
+
+
+@pytest.fixture(scope="function")
 def job_with_status_running(request, job_sleep):
     '''
     Wait for job_sleep to move from queued to running, and return the job.
