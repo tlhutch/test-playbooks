@@ -10,7 +10,7 @@ win_ec2_private_key: '~/.ssh/id_rsa'
 
 # Available windows ec2 images.
 win_ec2_images:
-    - {'name': 'server-2008',     'user': 'Administrator', 'id': 'ami-e4822f8c'}
-    - {'name': 'server-2008-r2',  'user': 'Administrator', 'id': 'ami-dc65c8b4'}
-    - {'name': 'server-2012',     'user': 'Administrator', 'id': 'ami-32822f5a'}
-    - {'name': 'server-2012-r2',  'user': 'Administrator', 'id': 'ami-904be6f8'}
+  - {'name': 'server-2008',       'user': 'Administrator', 'id': 'ami-b89d0cd0'}
+  - {'name': 'server-2008-r2',    'user': 'Administrator', 'id': 'ami-b68819de'}
+  - {'name': 'server-2012',       'user': 'Administrator', 'id': 'ami-e49a0b8c'}
+  - {'name': 'server-2012-r2',    'user': 'Administrator', 'id': 'ami-c49c0dac'}
