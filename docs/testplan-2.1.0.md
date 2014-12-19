@@ -23,7 +23,7 @@
 2. Installation completes successfully using supported ansible releases
     [X] ansible-1.9.x (devel)
     [X] ansible-1.8.x
-p   [ ] ansible-1.7.x
+    [X] ansible-1.7.x
 
 3. Verify AWS AMI boot successfully, and includes the expected license information
     [ ] license: unlicensed
@@ -50,10 +50,11 @@ p   [ ] ansible-1.7.x
 3. [X] Verify using older setup playbook (with appropriate modifications) correctly installs older ansible-tower
 
 ### Feature: System Jobs
-1. API - FIXME
-  1. [ ] Verify only accessible 
-2. UI - FIXME
-  1. [ ] Verify system job modal dialogs hold up to monkey clicking
+1. API
+  1. [X] Verify only accessible to superuser
+2. UI
+  1. [X] Verify system job modal dialogs hold up to monkey clicking
+  2. [X] Verify system job schedules
 
 ### Feature: HA
 1. Installer
@@ -72,7 +73,7 @@ p   [ ] ansible-1.7.x
     3. [X] Verify incorrect usage of `tower-manage register_instance` (several low priority issues filed)
     4. [X] Verify promoting a secondary
     5. [X] Verify promoting a secondary when jobs are running
-    6. [ ] Verify promoting a secondary when the primary is unreachable
+    6. [X] Verify promoting a secondary when the primary is unreachable
     9. [X] Verify removing a secondary with --hostname=<valid>
     10. [X] Verify removing a secondary with --uuid=<valid>
     11. [X] Verify changing primary hostname with with --hostname=<valid> --primary
@@ -93,7 +94,7 @@ p   [ ] ansible-1.7.x
 1. [X] Validate the survey can set variables
 1. [X] Test all question types and constraints
 1. [X] Ensure navigation from portal -> main -> portal works
-1. [ ] Makes sure there the “can_launch” behavior of the job API indicates when a survey is enabled
+1. [X] Makes sure there the “can_launch” behavior of the job API indicates when a survey is enabled
 1. [X] Make sure disabling the survey doesn’t delete the survey
 1. [X] Make sure survey has precedence over “prompt for variables”
 1. [X] Make sure both prompt for variables and survey can be used seperately
@@ -108,7 +109,7 @@ p   [ ] ansible-1.7.x
   2. [X] Verify /launch endpoint reflects state of enabled survey
   3. [X] Verify variables supplied at /launch resource correctly passed to job
   4. [X] Verify survey variables cannot overwrite job environment variables (HOME, PATH, _ etc...)
-  5. [ ] Verify behavior when POSTing to /api/v1/jobs/N/relaunch -- (FIXME: what is the behavior?)
+  5. [ ] Verify behavior when POSTing to /api/v1/jobs/N/relaunch
 
 2. UI
   1. [X] Verify survey modal dialogs hold up to monkey clicking
