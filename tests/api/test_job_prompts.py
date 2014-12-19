@@ -4,13 +4,16 @@ import common.utils
 import common.exceptions
 from tests.api import Base_Api_Test
 
+
 @pytest.fixture(scope="function")
 def extra_vars(request):
     return json.dumps(dict(overloaded=False))
 
+
 @pytest.fixture(scope="function")
 def prompt_extra_vars(request):
     return json.dumps(dict(overloaded=True, fail=False))
+
 
 @pytest.fixture(scope="function")
 def job_template_no_credential(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, host_ipv4, extra_vars):
@@ -25,6 +28,7 @@ def job_template_no_credential(request, authtoken, api_job_templates_pg, project
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
 
 @pytest.fixture(scope="function")
 def job_template_prompt_vars(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, host_ipv4, ssh_credential, extra_vars):
@@ -42,6 +46,7 @@ def job_template_prompt_vars(request, authtoken, api_job_templates_pg, project_a
     request.addfinalizer(obj.delete)
     return obj
 
+
 @pytest.fixture(scope="function")
 def job_template_prompt_pass(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, host_ipv4, ssh_credential_ask, extra_vars):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
@@ -57,6 +62,7 @@ def job_template_prompt_pass(request, authtoken, api_job_templates_pg, project_a
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
 
 @pytest.fixture(scope="function")
 def job_template_prompt_multipass(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, host_ipv4, ssh_credential_multi_ask, extra_vars):
@@ -74,8 +80,10 @@ def job_template_prompt_multipass(request, authtoken, api_job_templates_pg, proj
     request.addfinalizer(obj.delete)
     return obj
 
+
 @pytest.fixture(scope="function")
-def job_template_prompt_multipass_vars(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, host_ipv4, ssh_credential_multi_ask, extra_vars):
+def job_template_prompt_multipass_vars(request, authtoken, api_job_templates_pg, project_ansible_helloworld_hg, host_ipv4,
+                                       ssh_credential_multi_ask, extra_vars):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template with multi-ASK credential and ask_variables_on_launch - %s" % common.utils.random_unicode(),
@@ -212,6 +220,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
 
         # Wait 10mins for job to complete
         job_pg = job_pg.wait_until_completed(timeout=60 * 10)
+        print json.dumps(job_pg.json, indent=2)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
@@ -245,6 +254,7 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
 
         # Wait 10mins for job to complete
         job_pg = job_pg.wait_until_completed(timeout=60 * 10)
+        print json.dumps(job_pg.json, indent=2)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
