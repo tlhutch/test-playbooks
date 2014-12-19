@@ -129,7 +129,7 @@ def inventory_no_free_instances(request, authtoken, api_config_pg, api_inventori
     # Ensure there are at least 5 active hosts
     hosts_pg = obj.get_related('hosts')
     while api_config_pg.get().license_info.instance_count < 5:
-        payload = dict(name="host-%s" % common.utils.random_unicode(),
+        payload = dict(name="host-%s" % common.utils.random_unicode().replace(':', ''),
                        inventory=obj.id)
         hosts_pg.post(payload)
 
@@ -166,7 +166,7 @@ def assert_instance_counts(api_config_pg, license_instance_count, group):
              conf.license_info.available_instances)
 
         # Add a host to the inventory group
-        payload = dict(name="host-%s" % common.utils.random_ascii(),
+        payload = dict(name="host-%s" % common.utils.random_unicode().replace(':', ''),
                        description="host-%s" % common.utils.random_unicode(),
                        inventory=group.inventory)
         # The first 'license_instance_count' hosts should succeed
@@ -201,7 +201,7 @@ class Test_No_License(Base_Api_Test):
 
     def test_host(self, inventory, group):
         '''Verify that no hosts can be added'''
-        payload = dict(name="host-%s" % common.utils.random_unicode(),
+        payload = dict(name="host-%s" % common.utils.random_unicode().replace(':', ''),
                        description="host-%s" % common.utils.random_unicode(),
                        inventory=group.inventory)
         group_hosts_pg = group.get_related('hosts')
@@ -474,7 +474,7 @@ class Test_License_Expired(Base_Api_Test):
 
     def test_host(self, inventory, group):
         '''Verify that no hosts can be added'''
-        payload = dict(name="host-%s" % common.utils.random_unicode(),
+        payload = dict(name="host-%s" % common.utils.random_unicode().replace(':', ''),
                        description="host-%s" % common.utils.random_unicode(),
                        inventory=group.inventory)
         group_hosts_pg = group.get_related('hosts')
