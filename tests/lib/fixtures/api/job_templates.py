@@ -133,6 +133,7 @@ def job_template_ask_variables_on_launch(job_template_ping):
 
 @pytest.fixture(scope="function")
 def optional_survey_spec():
+    # TODO - add an optional question for each question type
     payload = dict(name=common.utils.random_unicode(),
                    description=common.utils.random_unicode(),
                    spec=[dict(required=False,
@@ -148,6 +149,7 @@ def optional_survey_spec():
 
 @pytest.fixture(scope="function")
 def required_survey_spec():
+    # TODO - add a required question for each question type
     payload = dict(name=common.utils.random_unicode(),
                    description=common.utils.random_unicode(),
                    spec=[dict(required=True,
