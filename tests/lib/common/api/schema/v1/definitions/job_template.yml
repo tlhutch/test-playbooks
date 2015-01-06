@@ -1,4 +1,3 @@
----
 job_template:
   additionalProperties: false
   properties:
@@ -26,7 +25,7 @@ job_template:
     next_job_run:
       format: date-time
       type: [string, 'null']
-    playbook: {pattern: '(^$|^.*\.(yaml|yml))', type: string}
+    playbook: {pattern: (^$|^.*\.(yaml|yml)), type: string}
     project: {$ref: '#/definitions/id_or_null'}
     related:
       additionalProperties: false
@@ -55,26 +54,27 @@ job_template:
     summary_fields:
       additionalProperties: false
       properties:
-        can_edit: {type: boolean}
         can_copy: {type: boolean}
+        can_edit: {type: boolean}
         cloud_credential: {$ref: '#/definitions/summary_fields_credential'}
+        created_by: {$ref: '#/definitions/summary_fields_user'}
         credential: {$ref: '#/definitions/summary_fields_credential'}
         current_job: {$ref: '#/definitions/summary_fields_job'}
         current_update: {$ref: '#/definitions/summary_fields_job'}
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         last_job: {$ref: '#/definitions/summary_fields_job'}
         last_update: {$ref: '#/definitions/summary_fields_job'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
         project: {$ref: '#/definitions/summary_fields_project'}
         survey: {$ref: '#/definitions/summary_fields_survey'}
-        created_by: {$ref: '#/definitions/summary_fields_user'}
-        modified_by: {$ref: '#/definitions/summary_fields_user'}
       type: object
     survey_enabled: {type: boolean}
     type: {pattern: ^job_template$, type: string}
     url: {format: uri, type: string}
     verbosity: {minimum: 0, type: number}
-  required: [id, cloud_credential, created, credential, description, extra_vars, forks,
-    has_schedules, ask_variables_on_launch, host_config_key, inventory, job_tags,
+  required: [id, cloud_credential, created, credential, description, extra_vars, force_handlers,
+    forks, has_schedules, ask_variables_on_launch, host_config_key, inventory, job_tags,
     job_type, last_job_failed, last_job_run, limit, modified, name, next_job_run,
-    playbook, project, related, status, summary_fields, type, url, verbosity]
+    playbook, project, related, skip_tags, start_at_task, status, summary_fields,
+    type, url, verbosity]
   type: object
