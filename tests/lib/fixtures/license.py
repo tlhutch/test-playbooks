@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 @pytest.fixture(scope='session')
 def tower_config_dir(request):
-    return '/etc/tower'
+    return '/etc/awx'
 
 
 @pytest.fixture(scope='session')

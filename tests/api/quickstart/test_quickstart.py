@@ -282,7 +282,11 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         assert len(_credentials) == len(credential_page.results)
 
     @pytest.mark.destructive
-    def test_inventory_scripts_post(self, api_inventory_scripts_pg, api_organizations_pg, _inventory_script):
+    def test_inventory_scripts_post(self, api_inventory_scripts_pg, api_organizations_pg, tower_version_cmp, _inventory_script):
+        # Skip if testing an older tower release
+        if tower_version_cmp('2.1.0') < 0:
+            pytest.skip("Only supported on tower-2.1.0 (or newer)")
+
         # Find desired org
         matches = api_organizations_pg.get(name__exact=_inventory_script['organization']).results
         assert len(matches) == 1
@@ -300,7 +304,11 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
-    def test_inventory_scripts_get(self, api_inventory_scripts_pg, _inventory_scripts):
+    def test_inventory_scripts_get(self, api_inventory_scripts_pg, tower_version_cmp, _inventory_scripts):
+        # Skip if testing an older tower release
+        if tower_version_cmp('2.1.0') < 0:
+            pytest.skip("Only supported on tower-2.1.0 (or newer)")
+
         # Get list of created inventories
         api_inventory_scripts_pg.get(or__name=[o['name'] for o in _inventory_scripts])
 
@@ -417,7 +425,11 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 groups_host_pg.post(payload)
 
     @pytest.mark.destructive
-    def test_inventory_sources_patch(self, api_groups_pg, api_credentials_pg, api_inventory_scripts_pg, _inventory_source):
+    def test_inventory_sources_patch(self, api_groups_pg, api_credentials_pg, api_inventory_scripts_pg, tower_version_cmp, _inventory_source):
+        # Skip if testing on tower < 2.1.0
+        if tower_version_cmp('2.1.0') < 0 and _inventory_source['source'] == 'custom':
+            pytest.skip("Only supported on tower-2.1.0 (or newer)")
+
         # Find desired group
         group_pg = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0]
 
@@ -437,7 +449,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             payload['credential'] = credential_pg.id
 
         # Add the desired source_script
-        if 'source_script' in _inventory_source:
+        if tower_version_cmp('2.1.0') >= 0 and 'source_script' in _inventory_source:
             script_pg = api_inventory_scripts_pg.get(name__iexact=_inventory_source['source_script']).results[0]
             payload['source_script'] = script_pg.id
 
@@ -448,7 +460,11 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         inventory_source_pg.patch(**payload)
 
     @pytest.mark.destructive
-    def test_inventory_sources_update(self, api_groups_pg, api_inventory_sources_pg, _inventory_source):
+    def test_inventory_sources_update(self, api_groups_pg, api_inventory_sources_pg, tower_version_cmp, _inventory_source):
+        # Skip if testing on tower < 2.1.0
+        if tower_version_cmp('2.1.0') < 0 and _inventory_source['source'] == 'custom':
+            pytest.skip("Only supported on tower-2.1.0 (or newer)")
+
         # Find desired group
         group_id = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0].id
 
@@ -466,7 +482,11 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     @pytest.mark.jira('AC-596', run=False)
-    def test_inventory_sources_update_status(self, api_groups_pg, api_inventory_sources_pg, _inventory_source):
+    def test_inventory_sources_update_status(self, api_groups_pg, api_inventory_sources_pg, tower_version_cmp, _inventory_source):
+        # Skip if testing on tower < 2.1.0
+        if tower_version_cmp('2.1.0') < 0 and _inventory_source['source'] == 'custom':
+            pytest.skip("Only supported on tower-2.1.0 (or newer)")
+
         # Find desired group
         group_id = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0].id
 
@@ -488,10 +508,14 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         print inv_updates_pg.result_stdout
 
     @pytest.mark.nondestructive
-    def test_inventory_sources_get_children(self, api_groups_pg, _inventory_source, region_choices):
+    def test_inventory_sources_get_children(self, api_groups_pg, tower_version_cmp, region_choices, _inventory_source):
         '''
         Tests that an inventory_sync created expected sub-groups
         '''
+        # Skip if testing on tower < 2.1.0
+        if tower_version_cmp('2.1.0') < 0 and _inventory_source['source'] == 'custom':
+            pytest.skip("Only supported on tower-2.1.0 (or newer)")
+
         # Find desired group
         group = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0]
 
@@ -515,10 +539,14 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                     print "Ignoring group '%s', it appears to not be a cloud region" % child.name
 
     @pytest.mark.nondestructive
-    def test_inventory_sources_get_hosts(self, api_groups_pg, api_hosts_pg, _inventory_source):
+    def test_inventory_sources_get_hosts(self, api_groups_pg, api_hosts_pg, tower_version_cmp, _inventory_source):
         '''
         Tests that an inventory_sync successfully imported hosts
         '''
+        # Skip if testing on tower < 2.1.0
+        if tower_version_cmp('2.1.0') < 0 and _inventory_source['source'] == 'custom':
+            pytest.skip("Only supported on tower-2.1.0 (or newer)")
+
         # Find desired group
         group = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0]
 

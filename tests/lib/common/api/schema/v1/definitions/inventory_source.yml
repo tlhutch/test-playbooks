@@ -67,7 +67,6 @@ inventory_source:
     url: {format: uri, type: string}
   required: [id, url, created, modified, inventory, group, overwrite, overwrite_vars,
     update_on_launch, last_job_run, last_job_failed, status, source, source_path,
-    source_script, source_vars, credential, source_regions, related, summary_fields,
-    type, next_job_run, has_schedules, description, name, update_cache_timeout, group_by,
-    instance_filters]
+    source_vars, credential, source_regions, related, summary_fields,
+    type, next_job_run, has_schedules, description, name, update_cache_timeout,]
   type: object

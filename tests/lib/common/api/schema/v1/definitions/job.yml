@@ -79,8 +79,8 @@ job:
     url: {format: uri, type: string}
     verbosity: {minimum: 0, type: number}
   required: [id, url, created, modified, job_type, inventory, project, playbook, credential,
-    cloud_credential, force_handlers, forks, verbosity, limit, extra_vars, job_template,
+    cloud_credential, forks, verbosity, limit, extra_vars, job_template,
     launch_type, started, elapsed, finished, status, failed, passwords_needed_to_start,
-    ask_variables_on_launch, related, summary_fields, skip_tags, start_at_task, type,
+    ask_variables_on_launch, related, summary_fields, type,
     name, description, job_explanation]
   type: object
