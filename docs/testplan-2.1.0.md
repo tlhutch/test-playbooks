@@ -31,12 +31,12 @@
 
 ### Upgrade
 1. Upgrade completes on all supported platforms
-    [ ] ubuntu-12.04
-    [ ] ubuntu-14.04
-    [ ] rhel-6.5
-    [ ] rhel-7.0
-    [ ] centos-6.5
-    [ ] centos-7.0
+    [X] ubuntu-12.04
+    [X] ubuntu-14.04
+    [X] rhel-6.5
+    [X] rhel-7.0
+    [X] centos-6.5
+    [X] centos-7.0
 
 2. [ ] Test upgrades using correct and incorrect values for the following fields: [admin_password, pg_password, redis_password, munin_password]
 3. [ ] Test upgrades with data, and ensure projects/inventory/jobs run post-upgrade
@@ -109,7 +109,7 @@
   2. [X] Verify /launch endpoint reflects state of enabled survey
   3. [X] Verify variables supplied at /launch resource correctly passed to job
   4. [X] Verify survey variables cannot overwrite job environment variables (HOME, PATH, _ etc...)
-  5. [ ] Verify behavior when POSTing to /api/v1/jobs/N/relaunch
+  5. [X] Verify behavior when POSTing to /api/v1/jobs/N/relaunch
 
 2. UI
   1. [X] Verify survey modal dialogs hold up to monkey clicking
@@ -122,7 +122,7 @@
 
 ### Feature: EC2 instance_filters and group_by
 1. [X] Verify valid and invalid inputs to group_by
-2. [ ] Verify valid and invalid inputs to instance_filters
+2. [X] Verify valid and invalid inputs to instance_filters
 3. [X] Verify group_by limits group creation to provided list
 4. [X] Verify instance_filters honored on host import
 
@@ -144,7 +144,7 @@
    4. [X] Verify superusers have full access
 
 ### Regresion
-1. [ ] UI regression completed
+1. [X] UI regression completed
 2. [X] API regression completed
 3. [ ] Munin monitors work on all supported platforms
 
