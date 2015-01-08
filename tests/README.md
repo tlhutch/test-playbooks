@@ -32,7 +32,7 @@ directory of the repository.
 
 4. Determine URL for an existing Ansible Tower instance (e.g. `http://tower.example.com`).
 
-5. Create an [ansible inventory file](http://docs.ansible.com/intro_inventory.html) `playbooks/inventory.auto` that describes your Ansible Tower instance.
+5. Create an [ansible inventory file](http://docs.ansible.com/intro_inventory.html) `playbooks/inventory.tower` that describes your Ansible Tower instance.
 
         cat <<EOF>playbooks/inventory.tower
         [ansible-tower]
