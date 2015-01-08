@@ -61,7 +61,7 @@ for LINE in $(env) ; do
         DELETE_ON_START|AWX_UPGRADE)
             echo "${VARNAME,,}: ${!VARNAME}" >> ${PLAYBOOK_DIR}/vars.yml
             ;;
-        AWX*|GALAXY*|AWS*|EC2*|RAX*|GCE*|AZURE*|INSTANCE*)
+        AWX*|GALAXY*|ANSIBLE*|AWS*|EC2*|RAX*|GCE*|AZURE*|INSTANCE*)
             echo "${VARNAME,,}: '${!VARNAME}'" >> ${PLAYBOOK_DIR}/vars.yml
             ;;
         *)
@@ -69,13 +69,6 @@ for LINE in $(env) ; do
             ;;
     esac
 done
-
-# Enable nightly ansible repository?
-if [[ "${ENABLE_ANSIBLE_NIGHTLY_REPO}" == true ]]; then
-    echo "ansible_install_method: 'nightly'" >> ${PLAYBOOK_DIR}/vars.yml
-else
-    echo "ansible_install_method: 'stable'" >> ${PLAYBOOK_DIR}/vars.yml
-fi
 
 # Establish the aw_repo_url.  This is the baseurl used by the install playbook.
 # If OFFICIAL=yes, use the public repository. Otherwise, use the nightly
