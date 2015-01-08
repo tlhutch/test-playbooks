@@ -43,7 +43,9 @@ directory of the repository.
 
         export ANSIBLE_HOST_KEY_CHECKING=False
 
-7. From the root directory of the repository, run the tests
+7. From the root directory of the repository, run all the tests with the
+   following command.  Note, it's more common to limit test execution with
+   either the `-m` and/or `-k` parameters.
 
         py.test --ansible-inventory=playbooks/inventory.tower --baseurl https://tower.example.com --destructive tests/
 
@@ -52,6 +54,7 @@ directory of the repository.
 * [HomeBrew](http://brew.sh/) - Additional package manager for OSX.
 * [Automated Test Hell](http://www.slideshare.net/wseliga/escaping-testhellxpdaysukraine2013) - presentation on automation best practices and learning experiences.
 * [pytest](http://pytest.org/latest/) - The python test framework used by tower-qa.
+* [pytest usage and invocations](http://pytest.org/latest/usage.html) - Learn how to run `py.test` from the command-line.
 * [pytest MozwebQA plugin](https://github.com/mozilla/pytest-mozwebqa) -  The pytest selenium plugin used by browser UI auotmation.
 
 ## TODO
