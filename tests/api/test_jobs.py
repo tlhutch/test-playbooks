@@ -22,6 +22,14 @@ def job_with_status_pending(request, job_sleep):
 
 
 @pytest.fixture(scope="function")
+def job_with_status_running(request, job_sleep):
+    '''
+    Wait for job_sleep to move from queued to running, and return the job.
+    '''
+    return job_sleep.wait_until_status('running')
+
+
+@pytest.fixture(scope="function")
 def job_ping(request, job_template_ping):
     '''
     Launch the job_template_ping and return a job resource.
@@ -31,11 +39,11 @@ def job_ping(request, job_template_ping):
 
 
 @pytest.fixture(scope="function")
-def job_with_status_running(request, job_sleep):
+def job_with_status_completed(request, job_ping):
     '''
-    Wait for job_sleep to move from queued to running, and return the job.
+    Wait for job_ping to move from queued to running, and return the job.
     '''
-    return job_sleep.wait_until_status('running')
+    return job_ping.wait_until_completed()
 
 
 @pytest.fixture()
@@ -156,6 +164,22 @@ class Test_Job(Base_Api_Test):
         assert job_with_status_running.status == 'canceled', \
             "Unexpected job status after cancelling job (status:%s)" % \
             job_with_status_running.status
+
+    def test_cancel_completed_job(self, job_with_status_completed):
+        '''
+        Verify the job->cancel endpoint behaves as expected when canceling a
+        completed job
+        '''
+        cancel_pg = job_with_status_completed.get_related('cancel')
+
+        # assert not can_cancel
+        assert not cancel_pg.can_cancel, \
+            "Unexpectedly able to cancel a completed job (can_cancel:%s)" % \
+            cancel_pg.can_cancel
+
+        # assert Method_Not_Allowed when attempting to cancel
+        with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
+            cancel_pg.post()
 
 
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
