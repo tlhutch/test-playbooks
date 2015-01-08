@@ -26,8 +26,8 @@
     [X] ansible-1.7.x
 
 3. Verify AWS AMI boot successfully, and includes the expected license information
-    [ ] license: unlicensed
-    [ ] license: 100
+    [X] license: unlicensed
+    [X] license: 100
 
 ### Upgrade
 1. Upgrade completes on all supported platforms
@@ -38,11 +38,11 @@
     [X] centos-6.5
     [X] centos-7.0
 
-2. [ ] Test upgrades using correct and incorrect values for the following fields: [admin_password, pg_password, redis_password, munin_password]
-3. [ ] Test upgrades with data, and ensure projects/inventory/jobs run post-upgrade
+2. [X] Test upgrades using correct and incorrect values for the following fields: [admin_password, pg_password, redis_password, munin_password]
+3. [X] Test upgrades with data, and ensure projects/inventory/jobs run post-upgrade
 
 ### Integration
-1. [ ] End-to-end integration completed on all supported platforms
+1. [X] End-to-end integration completed on all supported platforms
 
 ### Feature: Bind installer with package version
 1. [X] Verify setup playbook correctly installs a package within the desired version yum-based distros
