@@ -25,25 +25,27 @@ directory of the repository.
 
         pip install -r tests/requirements.txt
 
-3. Create, and modify, the file `tests/credentials.yml`.
+3. Create a credentials file named `tests/credentials.yml` using the template `tests/credentials.template` as a guide.
 
         cp tests/credentials.template tests/credentials.yml
         vim tests/credentials.yml  # update as needed
 
-4. Determine URL for an existing Ansible Tower instance (e.g. `http://tower.example.com`).
+4. Update the `tests/credentials.yml` file by adding all available credentials.  For help, refer to `tests/CREDENTIALS.md`.
 
-5. Create an [ansible inventory file](http://docs.ansible.com/intro_inventory.html) `playbooks/inventory.tower` that describes your Ansible Tower instance.
+5. Determine the URL for an existing Ansible Tower instance (e.g. `https://tower.example.com`).
+
+6. Create an [ansible inventory file](http://docs.ansible.com/intro_inventory.html) `playbooks/inventory.tower` that describes your Ansible Tower instance.
 
         cat <<EOF>playbooks/inventory.tower
         [ansible-tower]
         tower.example.com ansible_ssh_user=root
         EOF
 
-6. Disable ansible host key checking
+7. Disable ansible host key checking
 
         export ANSIBLE_HOST_KEY_CHECKING=False
 
-7. From the root directory of the repository, run all the tests with the
+8. From the root directory of the repository, run all the tests with the
    following command.  Note, it's more common to limit test execution with
    either the `-m` and/or `-k` parameters.
 
