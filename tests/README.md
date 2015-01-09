@@ -30,7 +30,7 @@ directory of the repository.
         cp tests/credentials.template tests/credentials.yml
         vim tests/credentials.yml  # update as needed
 
-4. Update the `tests/credentials.yml` file by adding all available credentials.  For help, refer to `tests/CREDENTIALS.md`.
+4. Update the `tests/credentials.yml` file by adding all available credentials.  For help, refer to [CREDENTIALS.md](CREDENTIALS.md).
 
 5. Determine the URL for an existing Ansible Tower instance (e.g. `https://tower.example.com`).
 
