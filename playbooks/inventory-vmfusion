@@ -63,7 +63,9 @@ if __name__ == "__main__":
 
         # gather VMs
         for vm in get_running_vms():
-            inventory['fusion'].append(get_vm_ip(vm))
+            vm_ip = get_vm_ip(vm)
+            if vm_ip is not None:
+                inventory['fusion'].append(vm_ip)
 
         # hostvars
         inventory['_meta'] = dict(hostvars={})
