@@ -54,6 +54,7 @@
     exact_count: 1
     count_tag:
         Name: '{{ec2_name_prefix}}-{{item.name}}'
+        ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
     wait: yes
   with_items: ec2_images
   register: ec2
