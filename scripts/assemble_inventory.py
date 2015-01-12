@@ -52,9 +52,9 @@ def parse_args():
     return (opts, args)
 
 
-job_path = '/job/Test_Tower_Install/CLOUD_PROVIDER={cloud_provider},PLATFORM={platform},label={label}/lastBuild'
+job_path = '/job/Test_Tower_Install/ANSIBLE_INSTALL_METHOD={ansible_install_method},PLATFORM={platform},label={label}/lastBuild'
 artifact_path = '/artifact/playbooks/inventory.log/*view*/'
-supported_cloud_providers = ['rax', 'ec2']
+ansible_install_methods = ['stable', 'nightly']
 supported_platforms = ['rhel-6.5-x86_64', 'centos-6.5-x86_64',
                        'centos-7.0-x86_64', 'rhel-7.0-x86_64',
                        'ubuntu-12.04-x86_64', 'ubuntu-14.04-x86_64']
@@ -65,11 +65,11 @@ if __name__ == "__main__":
 
     cfg = AnsibleInventory()
 
-    for cloud_provider in supported_cloud_providers:
+    for ansible_install_method in ansible_install_methods:
         for platform in supported_platforms:
             for label in ['test']:
                 url = urljoin(opts.jenkins, job_path + artifact_path)
-                url = url.format(**dict(cloud_provider=cloud_provider, platform=platform, label=label))
+                url = url.format(**dict(ansible_install_method=ansible_install_method, platform=platform, label=label))
                 r = requests.get(url, verify=False, auth=(opts.user, opts.token))
                 try:
                     cfg.readfp(StringIO.StringIO(r.text))
