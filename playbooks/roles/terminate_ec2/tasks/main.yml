@@ -9,12 +9,14 @@
     instance_type: '{{ ec2_instance_type }}'
     instance_tags:
         Name: '{{ec2_name_prefix}}-{{item.name}}'
+        ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
     group: '{{ ec2_security_group }}'
     key_name: '{{ ec2_key_name }}'
     image: '{{ item.id }}'
     exact_count: 0
     count_tag:
         Name: '{{ec2_name_prefix}}-{{item.name}}'
+        ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
     wait: yes
   with_items: ec2_images
   when: not {{skip_delete}}
