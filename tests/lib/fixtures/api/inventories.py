@@ -64,7 +64,7 @@ def inventory(request, authtoken, api_inventories_pg, organization):
                    description="Random inventory - %s" % common.utils.random_unicode(),
                    organization=organization.id,)
     obj = api_inventories_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
@@ -76,7 +76,7 @@ def host_ipv4(request, authtoken, api_hosts_pg, group, ansible_default_ipv4):
                    variables=json.dumps(dict(ansible_ssh_host=ansible_default_ipv4, ansible_connection="local")),
                    inventory=group.inventory,)
     obj = api_hosts_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
     # Add to group
     with pytest.raises(common.exceptions.NoContent_Exception):
         obj.get_related('groups').post(dict(id=group.id))
@@ -114,7 +114,7 @@ def group(request, authtoken, api_groups_pg, inventory):
                    description="group description - %s" % common.utils.random_unicode(),
                    inventory=inventory.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
@@ -130,7 +130,7 @@ def host_local(request, authtoken, api_hosts_pg, inventory, group):
                    variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
                    inventory=inventory.id,)
     obj = api_hosts_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
     # Add host to group
     with pytest.raises(common.exceptions.NoContent_Exception):
         obj.get_related('groups').post(dict(id=group.id))
@@ -144,7 +144,7 @@ def host_without_group(request, authtoken, inventory):
                    variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
                    inventory=inventory.id,)
     obj = inventory.get_related('hosts').post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
