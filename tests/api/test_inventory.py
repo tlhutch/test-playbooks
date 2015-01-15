@@ -107,20 +107,81 @@ def import_inventory(request, authtoken, api_inventories_pg, organization):
     return obj
 
 
-@pytest.fixture(scope="function")
-def delete_inventory(request, authtoken, api_inventories_pg, organization):
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
-                   description="Random inventory - %s" % common.utils.random_unicode(),
-                   organization=organization.id,)
-    obj = api_inventories_pg.post(payload)
-    # NOTE: This intentionally has no finalizer
-    return obj
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+class Test_Inventory(Base_Api_Test):
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
+
+    def test_host_without_group(self, ansible_runner, host_without_group, tower_version_cmp):
+        '''
+        Verify that /inventory/N/script includes hosts that are not a member of
+        any group.
+            1) Create inventory with hosts, but no groups
+            2) Verify the hosts appear in related->hosts
+            2) Verify the hosts appear in related->script
+
+        Trello: https://trello.com/c/kDdqEaOW
+        '''
+
+        if tower_version_cmp('2.0.0') < 0:
+            pytest.xfail("Only supported on tower-2.0.0 (or newer)")
+
+        inventory_pg = host_without_group.get_related('inventory')
+
+        # Verify /groups is empty
+        assert inventory_pg.get_related('groups').count == 0, \
+            "Inventory unexpectedly has groups (%s)" % inventory_pg.get_related('groups').count
+        # Verify /root_groups is empty
+        assert inventory_pg.get_related('root_groups').count == 0, \
+            "Inventory unexpectedly has root_groups (%s)" % inventory_pg.get_related('root_groups').count
+
+        all_hosts = inventory_pg.get_related('hosts')
+        assert all_hosts.count == 1
+
+        script = inventory_pg.get_related('script').json
+        script_all_hosts = len(script['all']['hosts'])
+
+        assert all_hosts.count == script_all_hosts, \
+            "The number of inventory hosts differs between endpoints " \
+            "/hosts (%s) and /script (%s)" % (all_hosts.count, script_all_hosts)
+
+    def test_cascade_delete(self, ansible_runner, inventory, host_local, host_without_group, group, api_groups_pg, api_hosts_pg):
+        '''Verify DELETE removes associated groups and hosts'''
+
+        # Verify inventory group/host counts
+        assert inventory.get_related('groups').count == 1
+        assert inventory.get_related('hosts').count == 2
+
+        # Delete the inventory
+        inventory.delete()
+
+        # Related resources should be forbidden
+        with pytest.raises(common.exceptions.Forbidden_Exception):
+            inventory.get_related('groups')
+
+        # Using main endpoint, find any matching groups
+        groups_pg = api_groups_pg.get(id=inventory.id)
+
+        # Assert no matching groups found
+        assert groups_pg.count == 0, "ERROR: not All inventory groups were deleted"
+
+        # Related resources should be forbidden
+        with pytest.raises(common.exceptions.Forbidden_Exception):
+            inventory.get_related('hosts')
+
+        # Using main endpoint, find any matching hosts
+        hosts_pg = api_hosts_pg.get(id=inventory.id)
+
+        # Assert no matching hosts found
+        assert hosts_pg.count == 0, "ERROR: not all inventory hosts were deleted"
 
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Inventory(Base_Api_Test):
+class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
     '''
     Verify successful 'awx-manage inventory_import' operation.  This class
     tests import using both --inventory-id and --inventory-name.  Importing
@@ -129,7 +190,7 @@ class Test_Inventory(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
 
-    def test_import_bad_id(self, ansible_runner, api_inventories_pg, import_inventory):
+    def test_using_bad_id(self, ansible_runner, api_inventories_pg, import_inventory):
         '''Verify that importing inventory using a bogus --inventory-id=<ID> fails'''
 
         # find an inventory_id that doesn't exist
@@ -339,71 +400,3 @@ EOF''' % (json.dumps(json_inventory_ipv6, indent=4),))
         Verify that tower can handle inventory_import when --source refers a
         directory.
         '''
-
-    def test_cascade_delete(self, ansible_runner, delete_inventory, api_groups_pg, api_hosts_pg):
-        '''Verify DELETE removes associated groups and hosts'''
-
-        # Upload inventory script
-        copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
-
-        # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (delete_inventory.id, copy['dest']))
-        logging.info(result['stdout'])
-
-        # Verify the import completed successfully
-        assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
-            % (result['stdout'], result['stderr'])
-
-        # Verify inventory group/host counts
-        assert delete_inventory.get_related('groups').count > 0
-        assert delete_inventory.get_related('hosts').count == 10
-
-        # Delete the inventory
-        delete_inventory.delete()
-
-        # Related resources should be forbidden
-        with pytest.raises(common.exceptions.Forbidden_Exception):
-            delete_inventory.get_related('groups')
-        # Assert associated groups have been deleted
-        groups_pg = api_groups_pg.get(id=delete_inventory.id)
-        assert groups_pg.count == 0, "ERROR: not All inventory groups were deleted"
-
-        # Related resources should be forbidden
-        with pytest.raises(common.exceptions.Forbidden_Exception):
-            delete_inventory.get_related('hosts')
-        # Assert associated hosts have been deleted
-        hosts_pg = api_hosts_pg.get(id=delete_inventory.id)
-        assert hosts_pg.count == 0, "ERROR: not all inventory hosts were deleted"
-
-    def test_host_without_group(self, ansible_runner, host_without_group, tower_version_cmp):
-        '''
-        Verify that /inventory/N/script includes hosts that are not a member of
-        any group.
-            1) Create inventory with hosts, but no groups
-            2) Verify the hosts appear in related->hosts
-            2) Verify the hosts appear in related->script
-
-        Trello: https://trello.com/c/kDdqEaOW
-        '''
-
-        if tower_version_cmp('2.0.0') < 0:
-            pytest.xfail("Only supported on tower-2.0.0 (or newer)")
-
-        inventory_pg = host_without_group.get_related('inventory')
-
-        # Verify /groups is empty
-        assert inventory_pg.get_related('groups').count == 0, \
-            "Inventory unexpectedly has groups (%s)" % inventory_pg.get_related('groups').count
-        # Verify /root_groups is empty
-        assert inventory_pg.get_related('root_groups').count == 0, \
-            "Inventory unexpectedly has root_groups (%s)" % inventory_pg.get_related('root_groups').count
-
-        all_hosts = inventory_pg.get_related('hosts')
-        assert all_hosts.count == 1
-
-        script = inventory_pg.get_related('script').json
-        script_all_hosts = len(script['all']['hosts'])
-
-        assert all_hosts.count == script_all_hosts, \
-            "The number of inventory hosts differs between endpoints " \
-            "/hosts (%s) and /script (%s)" % (all_hosts.count, script_all_hosts)
