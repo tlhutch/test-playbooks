@@ -310,10 +310,14 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # FIXME - assert 'Location' header points to launched job
         # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
 
-        # Wait for job to complete
+        # Find all jobs with launch_type=callback
         jobs_pg = job_template.get_related('jobs', launch_type='callback', order_by='-id')
+
+        # Assert only one job found
         assert jobs_pg.count == 1
-        job_pg = jobs_pg.results[0].wait_until_completed(timeout=5 * 60)
+
+        # Wait for job to complete
+        job_pg = jobs_pg.results[0].wait_until_completed(timeout=60 * 2)
 
         # Assert job was successful
         assert job_pg.launch_type == "callback"
