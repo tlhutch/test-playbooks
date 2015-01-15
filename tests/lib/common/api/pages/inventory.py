@@ -159,6 +159,16 @@ class Inventory_Source_Page(Base):
     update_on_launch = property(json_getter('update_on_launch'), json_setter('update_on_launch'))
     inventory = property(json_getter('inventory'), json_setter('inventory'))
 
+    def __str__(self):
+        # NOTE: I use .replace('%', '%%') to workaround an odd string
+        # formatting issue where result_stdout contained '%s'.  This later caused
+        # a python traceback when attempting to display output from this method.
+        output = "<%s id:%s, name:%s, status:%s, source:%s, last_update_failed:%s, last_updated:%s, " \
+            "result_traceback:%s, job_explanation:%s, job_args:%s>" % \
+            (self.__class__.__name__, self.id, self.name, self.status,
+             self.source, self.last_update_failed, self.last_updated)
+        return output.replace('%', '%%')
+
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related'], \
             "No such related attribute '%s'" % attr
