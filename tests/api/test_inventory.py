@@ -181,6 +181,64 @@ class Test_Inventory(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+class Test_Inventory_Update(Base_Api_Test):
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
+
+    def test_success(self, cloud_group):
+        '''
+        Verify successful inventory_update for various cloud providers.
+        '''
+
+        # Assert that the cloud_group has not updated
+        inv_source_pg = cloud_group.get_related('inventory_source')
+        assert not inv_source_pg.is_successful, "Before issuing an inventory_update, the inventory_source is unexpectedly marked as successful - %s" % inv_source_pg
+
+        # get launch page
+        launch_pg = inv_source_pg.get_related('update')
+
+        # assert can_update == True
+        assert launch_pg.can_update, \
+            "Inventory_source unexpectedly has can_update:%s" % \
+            (update_pg.json['can_update'],)
+
+        # launch update
+        result = launch_pg.post()
+
+        # assert launch response
+        assert 'inventory_update' in result.json, "Unexpected JSON response when launching an inventory_update - %s" % json.dumps(result.json)
+
+        # locate desired inventory_update
+        updates_pg = inv_source_pg.get_related('inventory_updates', id=result.json['inventory_update'])
+        assert updates_pg.count == 1, 'No inventory_update matching id:%s found' % result.json['inventory_update']
+
+        # wait for completion
+        update_pg = updates_pg.results[0].wait_until_completed(timeout=60 * 2)
+
+        # assert successful inventory_update
+        assert update_pg.is_successful, "inventory_update failed - %s" % update_pg
+
+        # assert successful inventory_source
+        inv_source_pg.get()
+        assert inv_source_pg.is_successful , "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+
+        # NOTE: We can't guarruntee that any cloud instances are running, so we
+        # don't assert that cloud hosts were imported.
+        # assert cloud_group.get_related('hosts').count > 0, "No hosts found " \
+        #    "after inventory_update.  An inventory_update was not triggered by " \
+        #    "the callback as expected"
+
+        # NOTE: We can't guarruntee that any cloud instances are running.
+        # Also, not all cloud inventory scripts create groups when no hosts are
+        # found. Therefore, we no longer assert that child groups were created.
+        # assert cloud_group.get_related('children').count > 0, "No child groups " \
+        #    "found after inventory_update.  An inventory_update was not " \
+        #    "triggered by the callback as expected"
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
 class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
     '''
     Verify successful 'awx-manage inventory_import' operation.  This class
