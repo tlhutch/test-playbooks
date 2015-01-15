@@ -61,7 +61,8 @@ class Test_Job_Template(Base_Api_Test):
 
     def test_launch_without_credential(self, job_template_no_credential):
         '''
-        Verify the job->launch endpoint behaves as expected
+        Verify the job->launch endpoint does not allow launching a job_template
+        that has no associated credential.
         '''
         launch_pg = job_template_no_credential.get_related('launch')
 
