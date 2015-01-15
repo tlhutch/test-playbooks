@@ -362,6 +362,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         result = ansible_runner.uri(**args)
         print json.dumps(result)
 
+        # Assert successful callback
         assert 'failed' not in result, "Callback failed\n%s" % result
         assert 'status' in result, "Unexpected callback response"
         assert result['status'] in [httplib.ACCEPTED, httplib.BAD_REQUEST]
@@ -378,14 +379,20 @@ class Test_Job_Template_Callback(Base_Api_Test):
         #    "after inventory_update.  An inventory_update was not triggered by " \
         #    "the callback as expected"
 
-        # Even if no hosts were imported, groups should be created by the various inventory_update plugins
-        assert cloud_group.get_related('children').count > 0, "No child groups " \
-            "found after inventory_update.  An inventory_update was not " \
-            "triggered by the callback as expected"
+        # NOTE: We can't guarruntee that any cloud instances are running.
+        # Also, not all cloud inventory scripts create groups when no hosts are
+        # found. Therefore, we no longer assert that child groups were created.
+        # assert cloud_group.get_related('children').count > 0, "No child groups " \
+        #    "found after inventory_update.  An inventory_update was not " \
+        #    "triggered by the callback as expected"
 
-        # Assert that an inventory_update took place
-        assert cloud_group.get_related('inventory_source').last_updated is not None
-        assert not cloud_group.get_related('inventory_source').last_update_failed
+        # Assert that the inventory_update is marked as successful
+        inv_source_pg = cloud_group.get_related('inventory_source')
+        assert inv_source_pg.is_successful , "An inventory_update was launched, but the inventory_source is not successful - %s" % inv_source_pg
+
+        # Assert that an inventory_update completed successfully
+        inv_update_pg = inv_source_pg.get_related('last_update')
+        assert inv_update_pg.is_successful, "An inventory_update was launched, but did not succeed - %s" % inv_update_pg
 
     def test_launch_without_inventory_update(self, ansible_runner, job_template, host_config_key, cloud_group, ansible_default_ipv4):
         '''Assert that a callback job against a job_template does not initiate an inventory_update'''
