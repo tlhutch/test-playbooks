@@ -80,10 +80,10 @@ class Test_Proot(Base_Api_Test):
         job_proot_2 = job_template_proot_2.launch()
 
         # wait for completion
-        job_proot_1 = job_proot_1.wait_until_completed(timeout=60 * 10)
+        job_proot_1 = job_proot_1.wait_until_completed(timeout=60 * 2)
 
         # wait for completion
-        job_proot_2 = job_proot_2.wait_until_completed(timeout=60 * 10)
+        job_proot_2 = job_proot_2.wait_until_completed(timeout=60 * 2)
 
         # assert successful completion of job
         assert job_proot_1.is_successful, "Job unsuccessful - %s " % job_proot_1
@@ -99,7 +99,7 @@ class Test_Proot(Base_Api_Test):
 
         # assert that job#1 finished after job#2 started
         assert du_parse(job_proot_1.finished) > du_parse(job_proot_2.started), \
-            "Job#1 (id:%s) started (%s) after job#2 (id:%s) finished (%s)" % \
+            "Job#1 (id:%s) finished (%s) before job#2 (id:%s) started (%s)" % \
             (job_proot_1.id, job_proot_1.finished, job_proot_2.id, job_proot_2.started)
 
 
