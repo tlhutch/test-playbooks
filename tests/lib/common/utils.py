@@ -2,6 +2,10 @@ import sys
 import time
 import random
 import string
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 class NoReloadError(Exception):
@@ -86,7 +90,13 @@ def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_
     if start_time is None:
         start_time = time.time()
     elif isinstance(start_time, time.struct_time):
-        start_time = time.mktime(start_time) - time.altzone
+        start_time = time.mktime(start_time)
+        # Adjust for timezone/daylight savings offset
+        if time.localtime().tm_isdst and time.daylight:
+            start_time -= time.altzone
+        else:
+            start_time -= time.timezone
+        log.debug("start_time: %s (%s)" % (time.ctime(start_time), start_time))
 
     while infinite or (attempt < attempts):
         obj.get()
@@ -113,7 +123,7 @@ def _print_state(obj, att, attval, elapsed, verbose_atts):
     for vatt in verbose_atts:
         vattval = getattr(obj, vatt, None)
         msgs.append("%s=%s" % (vatt, vattval))
-    print " ".join(msgs)
+    log.debug(" ".join(msgs))
 
 
 def random_int(maxint=sys.maxint):
@@ -164,3 +174,10 @@ def random_ipv6():
     Generates a random ipv6 address;; useful for testing.
     """
     return ':'.join('{0:x}'.format(random.randint(0, 2 ** 16 - 1)) for i in range(8))
+
+
+def random_loopback_ip():
+    """
+    Generates a random loopback ipv4 address;; useful for testing.
+    """
+    return "127.{}.{}.{}".format(random_int(255), random_int(255), random_int(255))
