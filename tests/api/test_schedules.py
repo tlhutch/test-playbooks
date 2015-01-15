@@ -602,36 +602,6 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.dtend == ro_schedule.dtend
         assert schedule_pg.next_run == ro_schedule.next_run
 
-    def XXX_test_schedule_update_with_credential_prompt(self, inventory_with_credential_prompt):
-        '''assert inventory with credential prompts launch, but fail'''
-        schedules_pg = inventory_with_credential_prompt.get_related('schedules')
-
-        # Create a schedule
-        rrule = RRule(dateutil.rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(seconds=+30), count=1)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="Update %s (interval:60, count:2)" % common.utils.random_unicode(),
-                       rrule=str(rrule))
-        schedule_pg = schedules_pg.post(payload)
-
-        # Is the next_run what we expect?
-        assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
-
-        # wait 5 minutes for 1 scheduled update to complete
-        unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
-
-        # Ensure correct number of scheduled launches occurred
-        assert unified_jobs_pg.count == 1
-
-        # Ensure the job status is failed
-        job_pg = unified_jobs_pg.results[0]
-        job_pg = common.utils.wait_until(job_pg, 'status', 'failed', interval=15, verbose=True, timeout=60 * 5)
-        assert job_pg.status == 'failed'
-
-        # Is the next_run still what we expect?
-        schedule_pg.get()
-        assert schedule_pg.next_run is None
-
     def test_delete(self, aws_inventory_source, rrule_minutely):
         '''assert successful schedule DELETE'''
         schedules_pg = aws_inventory_source.get_related('schedules')
@@ -771,6 +741,49 @@ class Test_Job_Template_Schedules(Base_Api_Test):
     * Verify related fields map correctly (schedule->system_job_template and system_job_templates->schedules)
     * Verify extra_vars handling
     '''
+
+    def test_schedule_with_credential_prompt(self, job_template_ask):
+        '''Verify that a job_template with a credential prompt launches jobs that fail.'''
+        schedules_pg = job_template_ask.get_related('schedules')
+
+        # Create a schedule
+        rrule = RRule(dateutil.rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(seconds=+30), count=1)
+        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+                       description="Update %s (interval:60, count:1)" % common.utils.random_unicode(),
+                       rrule=str(rrule))
+        schedule_pg = schedules_pg.post(payload)
+
+        # Is the next_run what we expect?
+        assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
+
+        # wait for a scheduled job to launch
+        unified_jobs_pg = schedule_pg.get_related('unified_jobs', launch_type='scheduled')
+        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 1)
+
+        # Assert expected number of launched jobs
+        assert unified_jobs_pg.count == 1
+
+        # Is the next_run still what we expect?
+        schedule_pg.get()
+        assert schedule_pg.next_run is None
+
+        # Wait for job to complete
+        job_pg = unified_jobs_pg.results[0].wait_until_completed(verbose=True, timeout=60 * 1)
+
+        # Assert the expected job status
+        assert job_pg.status == 'failed', \
+            "Unexpected status from scheduled job (%s != %s)" \
+            % (job_pg.status, 'failed')
+        assert job_pg.failed, \
+            "Unexpected failed value from scheduled job (%s != %s)" \
+            % (job_pg.failed, True)
+
+        # Assert the expected job_explanation
+        expected_explanation = "Scheduled job could not start because it was " \
+            "not in the right state or required manual credentials"
+        assert job_pg.job_explanation == expected_explanation, \
+            "Unexpected job_explanation from scheduled job (%s != %s)" \
+            % (job_pg.job_explanation, expected_explanation)
 
 
 @pytest.mark.api
