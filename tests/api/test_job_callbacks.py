@@ -285,7 +285,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # issue multiple callbacks, only the first should succeed
         for attempt in range(3):
-            callback_url="https://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback'])
+            callback_url = "https://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback'])
             args = dict(method="POST",
                         timeout=60,
                         status_code=httplib.ACCEPTED,
@@ -388,7 +388,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # Assert that the inventory_update is marked as successful
         inv_source_pg = cloud_group.get_related('inventory_source')
-        assert inv_source_pg.is_successful , "An inventory_update was launched, but the inventory_source is not successful - %s" % inv_source_pg
+        assert inv_source_pg.is_successful, "An inventory_update was launched, but the inventory_source is not successful - %s" % inv_source_pg
 
         # Assert that an inventory_update completed successfully
         inv_update_pg = inv_source_pg.get_related('last_update')

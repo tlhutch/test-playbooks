@@ -220,7 +220,7 @@ class Test_Inventory_Update(Base_Api_Test):
 
         # assert successful inventory_source
         inv_source_pg.get()
-        assert inv_source_pg.is_successful , "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+        assert inv_source_pg.is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
 
         # NOTE: We can't guarruntee that any cloud instances are running, so we
         # don't assert that cloud hosts were imported.

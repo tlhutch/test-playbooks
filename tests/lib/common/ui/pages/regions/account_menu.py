@@ -58,14 +58,14 @@ class Account_Menu(PageRegion):
 class Account_Submenu(List_Region):
     _root_locator = (By.CSS_SELECTOR, '#account-submenu.dropdown-menu')
     _related = {
-        'About Tower': None, #  FIXME
+        'About Tower': None,  # FIXME
         'Account Settings': User_Edit_Page,
-        'Contact Support': None, #  FIXME
-        'Inventory Script': None, #  FIXME
-        'Management Jobs': None, #  FIXME
-        'Monitor Tower': None, #  FIXME
+        'Contact Support': None,  # FIXME
+        'Inventory Script': None,  # FIXME
+        'Management Jobs': None,  # FIXME
+        'Monitor Tower': None,  # FIXME
         'Portal Mode': Portal_Page,
         'Exit Portal': Dashboard_Page,
-        'View License': None, #  FIXME
+        'View License': None,  # FIXME
         'Logout': Login_Page,
     }

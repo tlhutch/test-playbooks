@@ -102,7 +102,6 @@ class Test_Proot(Base_Api_Test):
             "Job#1 (id:%s) finished (%s) before job#2 (id:%s) started (%s)" % \
             (job_proot_1.id, job_proot_1.finished, job_proot_2.id, job_proot_2.started)
 
-
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import os
 import json
