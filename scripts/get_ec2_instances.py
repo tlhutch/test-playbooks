@@ -48,6 +48,7 @@ aws = boto.connect_ec2(aws_access_key_id=opts.id,
 utcnow = datetime.utcnow()
 
 # List running instances in all regions
+total_action = 0
 for region in aws.get_all_regions():
     conn = boto.ec2.connect_to_region(region.name,
                 aws_access_key_id=opts.id,
@@ -72,3 +73,10 @@ for region in aws.get_all_regions():
                 if opts.action is not None and hasattr(i, opts.action):
                     getattr(i, opts.action)()
                     print " ... %s" % opts.action
+                    total_action += 1
+
+# Display summary
+if opts.action and opts.action == 'terminate':
+    print "Instances terminated: %s" % total_action
+if opts.action and opts.action == 'terminate':
+    print "Instances stopped: %s" % total_action
