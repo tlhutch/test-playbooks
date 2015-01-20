@@ -329,7 +329,10 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         assert import_inventory.get_related('groups').count > 0
         assert import_inventory.get_related('hosts').count == 10
 
-    def test_import_multiple(self, ansible_runner, import_inventory):
+    # The following test was disabled as it did not consistently pass.  I'm not
+    # convinced this makes a great test considering timing can vary based on a
+    # variety of factors.
+    def FIXME_test_import_multiple(self, ansible_runner, import_inventory):
         '''Verify that multiple imports of the same inventory are subsequently are faster'''
         # Upload inventory script
         copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=100, ini=True)
