@@ -175,9 +175,10 @@ class Test_Users(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 api_users_pg.post(user_payload())
 
-    def test_is_superuser_false(self, request, user_password, api_users_pg, org_admin):
+    def test_org_admin_cannot_create_a_superuser(self, request, user_password, api_users_pg, org_admin):
         '''
-        Verify that various ways of specifying is_superuser all evaluate to False.
+        As an org admin, create normal users while using different ways of
+        specifying is_superuser=False.
 
         Trello: https://trello.com/c/HlZv6u6O
         '''
@@ -185,7 +186,9 @@ class Test_Users(Base_Api_Test):
         # Test various ways of passing is_superuser
         with self.current_user(org_admin.username, user_password):
             for is_superuser in (None, False, 'false', 'False', 'f', 0, '0'):
-                obj = api_users_pg.post(user_payload(is_superuser=is_superuser, password=user_password))
+                payload = user_payload(is_superuser=is_superuser)
+                print json.dumps(payload, indent=2)
+                obj = api_users_pg.post(payload)
                 request.addfinalizer(obj.delete)
                 assert not obj.is_superuser, "Unexpectedly created a superuser with the following payload\n%s" % json.dumps(obj.json, indent=2)
 
