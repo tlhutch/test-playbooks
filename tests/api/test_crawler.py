@@ -1,9 +1,8 @@
 import pytest
 import httplib
-from unittestzero import Assert
 from common.api.schema import validate
 from plugins.pytest_restqa.rest_client import Connection
-from plugins.pytest_restqa.pytest_restqa import load_credentials
+
 
 # Generate fixture values for 'method' and 'resource'
 def pytest_generate_tests(metafunc):
@@ -32,6 +31,7 @@ def pytest_generate_tests(metafunc):
         if test_set and id_list:
             metafunc.parametrize(fixture, test_set, ids=id_list)
 
+
 def assert_response(api, resource, method, response_code=httplib.OK, response_schema='unauthorized', data={}):
     '''Issue the desired API method on the provided resource.  Assert that the
     http response and JSON schema are valid
@@ -59,15 +59,18 @@ def assert_response(api, resource, method, response_code=httplib.OK, response_sc
     # Validate API JSON response
     validate(json, resource, response_schema)
 
+
 @pytest.fixture(scope="function")
 def logout(api):
     '''Logout of the API on each function call'''
     api.logout()
 
+
 @pytest.fixture(scope="function")
 def login(api, testsetup):
     '''Login to the API on each function call'''
     api.login(*testsetup.credentials['default'].values())
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -112,6 +115,7 @@ def test_unauthenticated(api, resource, method):
             (expected_response_code, expected_response_schema) = exception_matrix[resource][method]
 
     assert_response(api, resource, method, expected_response_code, expected_response_schema)
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
