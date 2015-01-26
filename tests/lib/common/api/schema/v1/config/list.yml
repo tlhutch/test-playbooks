@@ -5,6 +5,7 @@ type: object
 additionalAttributes: false
 required: [version, license_info, time_zone, ansible_version]
 properties:
+    eula: { type: string }
     version:
         $ref: '#/definitions/version_string'
     license_info:

@@ -5,5 +5,7 @@ required: [error, ]
 additionalProperties: False
 properties:
     error:
-        type: string
-        pattern: '^Invalid license$'
+        oneOf:
+            - {type: string, pattern: "^Invalid license$"}
+            - {type: string, pattern: "^Missing 'eula_accepted' property$"}
+            - {type: string, pattern: "^'eula_accepted' must be True$"}
