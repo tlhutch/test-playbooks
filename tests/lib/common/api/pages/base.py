@@ -109,16 +109,24 @@ class Base(Page):
             else:
                 raise common.exceptions.LicenseExceeded_Exception(exc_str)
         elif r.status_code == httplib.BAD_REQUEST:
-            # Attempt to validate the json response.  If it validates against a
-            # 'duplicate' method, then we return a Duplicate_Exception.  If
-            # validation fails, raise BadRequest_Exception.
-            try:
-                self.validate_json(json=data, request='duplicate')
-            except:
-                raise common.exceptions.BadRequest_Exception(exc_str + ": %s" % data, data)
-            else:
-                raise common.exceptions.Duplicate_Exception(exc_str + ". However, JSON validation determined the cause "
-                                                            "was a duplicate object already exists: %s" % data, data)
+            # Validate the 400 BAD_REQUEST response with known 400 errors.
+            for (request, exc) in [('license_invalid', common.exceptions.LicenseInvalid_Exception),
+                                   ('duplicate', common.exceptions.Duplicate_Exception)]:
+                try:
+                    self.validate_json(json=data, request=request)
+                except:
+                    continue
+                else:
+                    if request == 'duplicate':
+                        exc_str += ". However, JSON validation determined the cause " \
+                                   "was a duplicate object already exists: %s" % data
+                    else:
+                        exc_str += ": %s" % data
+                    raise exc(exc_str, data)
+
+            # No custom 400 exception was raised, raise a generic 400 BAD_REQUEST exception
+            raise common.exceptions.BadRequest_Exception(exc_str + ": %s" % data, data)
+
         elif r.status_code == httplib.INTERNAL_SERVER_ERROR:
             raise common.exceptions.InternalServerError_Exception(exc_str + ": %s" % data, data)
         elif r.status_code == httplib.METHOD_NOT_ALLOWED:
