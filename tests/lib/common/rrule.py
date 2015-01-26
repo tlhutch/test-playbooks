@@ -1,10 +1,12 @@
 import re
 import dateutil.rrule
 
+
 class RRule(dateutil.rrule.rrule):
     '''Sub-class rrule to support __str__'''
 
     FREQNAMES = ['YEARLY', 'MONTHLY', 'WEEKLY', 'DAILY', 'HOURLY', 'MINUTELY', 'SECONDLY']
+
     def __str__(self):
         parts = list()
         parts.append('FREQ=' + self.FREQNAMES[self._freq])

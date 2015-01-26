@@ -1,10 +1,8 @@
 import logging
 import json
-import urllib2
 import requests
 import warnings
 import types
-import httplib
 
 
 log = logging.getLogger(__name__)
@@ -66,6 +64,7 @@ class JSON_Wrapper(dict):
         else:
             self.__setitem__(item, value)
 
+
 def objectify(self):
     '''
     Returns an initialized JSON_Wrapper object.  Used by the Connection class
@@ -75,10 +74,11 @@ def objectify(self):
     # an empty-dict
     try:
         json = self.json()
-    except ValueError, e:
+    except ValueError:
         json = dict()
 
     return JSON_Wrapper(json=json)
+
 
 class Token_Auth(requests.auth.AuthBase):
     '''Implement token based authentication for requests'''
@@ -88,6 +88,7 @@ class Token_Auth(requests.auth.AuthBase):
     def __call__(self, request):
         request.headers['Authorization'] = 'Token %s' % self.token
         return request
+
 
 class Connection(object):
     def __init__(self, server, version=None, verify=False):

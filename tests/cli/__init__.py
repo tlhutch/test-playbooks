@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.mark.skip_selenium
 class Base_Cli_Test(object):
     '''
