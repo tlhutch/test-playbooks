@@ -1,11 +1,8 @@
-import sys
-import os
 import argparse
 import pytest_mozwebqa.credentials
 import pytest_mozwebqa.selenium_client
-from common.ui.pages import *
-from selenium import webdriver
-from selenium.webdriver.common.by import By
+from common.ui.pages import Login_Page
+from selenium.webdriver.common.by import By  # NOQA
 from IPython.frontend.terminal.embed import InteractiveShellEmbed
 
 
@@ -69,7 +66,6 @@ def parse_args():
                         choices=['firefox', 'chrome', 'safari'],
                         help='Specify selenium driver (default: %(default)s)')
 
-
     return parser.parse_args()
 
 
@@ -91,4 +87,3 @@ if __name__ == '__main__':
 
     # Stop mozwebqa
     mozwebqa.stop()
-
