@@ -14,6 +14,10 @@ class Forbidden_Exception(Exception):
     pass
 
 
+class LicenseInvalid_Exception(Exception):
+    pass
+
+
 class LicenseExceeded_Exception(Exception):
     pass
 
