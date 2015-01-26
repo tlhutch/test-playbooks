@@ -78,7 +78,7 @@ class CleanCommand(Command):
 setup(
     name="tower-qa",
     # tests_require=open('tests/requirements.txt', 'r').readlines(),
-    setup_requires=['pep8>=1.5.7', 'setuptools-pep8', 'setuptools_pyflakes', 'flake8'],
+    setup_requires=['setuptools-pep8', 'setuptools_pyflakes', 'flake8'],
     packages=find_packages(),
     cmdclass={
         'test': PyTest,
