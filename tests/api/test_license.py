@@ -52,6 +52,18 @@ def license_json(request, license_instance_count):
 
 
 @pytest.fixture(scope='function')
+def missing_eula_license_json(request, license_json):
+    del license_json['eula_accepted']
+    return license_json
+
+
+@pytest.fixture(scope='function')
+def eula_rejected_license_json(request, license_json):
+    license_json['eula_accepted'] = False
+    return license_json
+
+
+@pytest.fixture(scope='function')
 def trial_license_json(request, license_instance_count):
     return common.tower.license.generate_license(instance_count=license_instance_count,
                                                  days=31,
@@ -215,6 +227,7 @@ class Test_No_License(Base_Api_Test):
 
     def test_install_license_invalid(self, api_config_pg, ansible_runner, tower_license_path):
         '''Verify that various bogus license formats fail to successfully install'''
+
         with pytest.raises(common.exceptions.BadRequest_Exception):
             api_config_pg.post()
 
@@ -225,6 +238,18 @@ class Test_No_License(Base_Api_Test):
         # Assert that /etc/tower/license does not exist
         result = ansible_runner.stat(path=tower_license_path)
         assert not result['stat']['exists'], "No license was expected, but one was found"
+
+    def test_install_missing_eula_accepted_license(self, api_config_pg, missing_eula_license_json):
+        '''Verify failure while POSTing a license with no `eula_accepted` attribute.'''
+
+        with pytest.raises(common.exceptions.LicenseInvalid_Exception):
+            api_config_pg.post(missing_eula_license_json)
+
+    def test_install_eula_rejected_license(self, api_config_pg, eula_rejected_license_json):
+        '''Verify failure while POSTing a license with `eula_accepted:false` attribute.'''
+
+        with pytest.raises(common.exceptions.LicenseInvalid_Exception):
+            api_config_pg.post(eula_rejected_license_json)
 
     def test_install_license(self, api_config_pg, license_json, ansible_runner, tower_license_path):
         '''Verify that a license can be installed by issuing a POST to the /config endpoint'''
