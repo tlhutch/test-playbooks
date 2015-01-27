@@ -1,5 +1,6 @@
 .eggs
 *.egg
+*.egg-info
 *.swp
 *.pyc
 __pycache__
