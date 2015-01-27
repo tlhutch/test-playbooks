@@ -1,6 +1,7 @@
 import pytest
 import contextlib
 
+
 @pytest.mark.api
 class Base_Api_Test(object):
     '''

@@ -1,5 +1,5 @@
 import base
-from common.exceptions import *
+
 
 class Unified_Job_Template_Page(base.Base):
     base_url = '/api/v1/unified_job_templates/{id}/'
@@ -16,6 +16,7 @@ class Unified_Job_Template_Page(base.Base):
         else:
             raise NotImplementedError
         return related.get(**kwargs)
+
 
 class Unified_Job_Templates_Page(Unified_Job_Template_Page, base.Base_List):
     base_url = '/api/v1/unified_job_templates/'

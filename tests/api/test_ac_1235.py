@@ -1,7 +1,7 @@
 import pytest
 import json
-
 from tests.api import Base_Api_Test
+
 
 # Actual splunk.json observed in AC-1235 ... don't judge!
 inventory_dict = {
@@ -22149,6 +22149,7 @@ inventory_dict = {
         "vars": {}
     }
 }
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium

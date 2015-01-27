@@ -26,7 +26,10 @@ def generate_aws_file(**kwargs):
     return fname
 
 
-def generate_license(instance_count=20, contact_email="art@vandelay.com", company_name="Vandelay Industries", contact_name="Art Vandelay", license_date=None, days=None, trial=None, eula_accepted=True):
+def generate_license(instance_count=20, contact_email="art@vandelay.com",
+                     company_name="Vandelay Industries", contact_name="Art Vandelay",
+                     license_date=None, days=None, trial=None, eula_accepted=True):
+
     def to_seconds(itime):
         '''
         Convenience method to convert a time into seconds

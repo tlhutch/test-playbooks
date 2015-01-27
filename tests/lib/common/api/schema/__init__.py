@@ -1,14 +1,12 @@
-import os
 import sys
 import re
 import inspect
 import pkgutil
 import logging
 import jsonschema
-import glob
-import common.yaml_file
 from collections import defaultdict
 from urlparse import urlparse
+
 
 class Schema_Collection(object):
     def __init__(self):
@@ -58,6 +56,7 @@ class Schema_Collection(object):
 
         return getattr(self.schemas[version][resource], request)
 
+
 class Schema_Base(object):
     '''
     FIXME
@@ -86,6 +85,7 @@ class Schema_Base(object):
     def options(self):
         raise NotImplementedError('Implement in a sub-class')
 
+
 def __find_schema_versions(path, prefix):
     '''
     FIXME
@@ -96,6 +96,7 @@ def __find_schema_versions(path, prefix):
             yield (module_loader, name, ispkg)
         else:
             yield (module_loader, name, ispkg)
+
 
 def validate(data, resource, request, version=None):
     '''
@@ -108,10 +109,11 @@ def validate(data, resource, request, version=None):
 
     try:
         jsonschema.validate(data, schema, format_checker=jsonschema.FormatChecker())
-    except jsonschema.ValidationError, e:
+    except jsonschema.ValidationError:
         sys.stderr.write("Failure validating resource:%s, version:%s, request:%s\n" % (resource, version, request))
         exc_info = sys.exc_info()
         raise exc_info[1], None, exc_info[2]
+
 
 if __name__ == 'common.api.schema':
     prefix = __name__ + '.'

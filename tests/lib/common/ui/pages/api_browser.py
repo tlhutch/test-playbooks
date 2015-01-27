@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+
 class Api_Browser_Page(Page):
     _logo_locator = (By.CSS_SELECTOR, 'img.logo')
     _get_button_locator = (By.CSS_SELECTOR, 'form#get-form a.btn')
@@ -34,6 +35,7 @@ class Api_Browser_Page(Page):
     def options_button(self):
         return self.selenium.find_element(*self._options_button_locator)
 
+
 class Api_Browser_Home(Api_Browser_Page):
     _page_title = u"REST API \xb7 Ansible Tower REST API"
     _href_locator = (By.CSS_SELECTOR, "a[href = '{href}']")
@@ -58,6 +60,7 @@ class Api_Browser_Home(Api_Browser_Page):
         print popup.text
         popup.dismiss()
         # popup.accept()
+
 
 class Api_Browser_v1(Api_Browser_Page):
     _page_title = u"Version 1 \xb7 Ansible Tower REST API"

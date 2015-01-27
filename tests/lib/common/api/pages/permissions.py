@@ -1,5 +1,5 @@
 import base
-from common.exceptions import *
+
 
 class Permission_Page(base.Base):
     base_url = '/api/v1/users/{id}/permissions/{id}/'
@@ -13,6 +13,7 @@ class Permission_Page(base.Base):
     team = property(base.json_getter('team'), base.json_setter('team'))
     inventory = property(base.json_getter('inventory'), base.json_setter('inventory'))
     project = property(base.json_getter('project'), base.json_setter('project'))
+
 
 class Permissions_Page(Permission_Page, base.Base_List):
     base_url = '/api/v1/users/{id}/permissions/'

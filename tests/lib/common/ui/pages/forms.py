@@ -1,7 +1,7 @@
 import time
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.by import By
-from common.ui.pages import Base, BaseRegion
+from common.ui.pages import Base
 from common.ui.pages.regions.buttons import Base_Button
 from common.ui.pages.regions.lists import List_Region
 

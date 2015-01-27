@@ -1,6 +1,6 @@
 import base
 from job_templates import Job_Template_Page
-from common.exceptions import *
+
 
 class Job_Page(base.Task_Page, Job_Template_Page):
     base_url = '/api/v1/jobs/{id}/'
@@ -29,12 +29,15 @@ class Job_Page(base.Task_Page, Job_Template_Page):
             raise NotImplementedError
         return related.get(**kwargs)
 
+
 class Jobs_Page(Job_Page, base.Base_List):
     base_url = '/api/v1/jobs/'
+
 
 class Job_Cancel_Page(base.Task_Page, Job_Template_Page):
     base_url = '/api/v1/jobs/{id}/cancel'
     can_cancel = property(base.json_getter('can_cancel'), base.json_setter('can_cancel'))
+
 
 class Job_Event_Page(base.Base):
     base_url = '/api/v1/jobs/{id}/job_events/{id}/'
@@ -51,8 +54,10 @@ class Job_Event_Page(base.Base):
     play = property(base.json_getter('play'), base.json_setter('play'))
     task = property(base.json_getter('task'), base.json_setter('task'))
 
+
 class Job_Events_Page(Job_Event_Page, base.Base_List):
     base_url = '/api/v1/jobs/{id}/job_events/'
+
 
 class Job_Play_Page(base.Base):
     base_url = '/api/v1/jobs/{id}/job_plays/{id}/'
@@ -68,8 +73,10 @@ class Job_Play_Page(base.Base):
     skipped_count = property(base.json_getter('skipped_count'), base.json_setter('skipped_count'))
     unreachable_count = property(base.json_getter('unreachable_count'), base.json_setter('unreachable_count'))
 
+
 class Job_Plays_Page(Job_Play_Page, base.Base_List):
     base_url = '/api/v1/jobs/{id}/job_plays/'
+
 
 class Job_Task_Page(base.Base):
     base_url = '/api/v1/jobs/{id}/job_tasks/{id}/'
@@ -88,8 +95,10 @@ class Job_Task_Page(base.Base):
     changed_count = property(base.json_getter('changed_count'), base.json_setter('changed_count'))
     skipped_count = property(base.json_getter('skipped_count'), base.json_setter('skipped_count'))
 
+
 class Job_Tasks_Page(Job_Task_Page, base.Base_List):
     base_url = '/api/v1/jobs/{id}/job_tasks/'
+
 
 class Job_Host_Summary_Page(base.Base):
     base_url = '/api/v1/jobs/{id}/job_host_summaries/{id}/'
@@ -103,6 +112,7 @@ class Job_Host_Summary_Page(base.Base):
     failures = property(base.json_getter('failures'), base.json_setter('failures'))
     processed = property(base.json_getter('processed'), base.json_setter('processed'))
     skipped = property(base.json_getter('skipped'), base.json_setter('skipped'))
+
 
 class Job_Host_Summaries_Page(Job_Host_Summary_Page, base.Base_List):
     base_url = '/api/v1/jobs/{id}/job_host_summaries/'

@@ -3,7 +3,7 @@ from projects import Project_Page
 from inventory import Inventory_Page
 from job_templates import Job_Template_Page
 from jobs import Jobs_Page
-from common.exceptions import *
+
 
 class Schedule_Page(base.Task_Page):
     base_url = '/api/v1/schedules/{id}/'
@@ -28,6 +28,7 @@ class Schedule_Page(base.Task_Page):
         else:
             raise NotImplementedError
         return related.get(**kwargs)
+
 
 class Schedules_Page(Schedule_Page, base.Base_List):
     base_url = '/api/v1/schedules/'

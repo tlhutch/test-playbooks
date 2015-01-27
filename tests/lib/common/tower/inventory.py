@@ -1,6 +1,7 @@
 import optparse
 import json
 
+
 def upload_inventory(ansible_runner, nhosts=10, ini=False):
     '''
     Helper to upload inventory script to target host
@@ -22,6 +23,7 @@ EOF''' % json_inventory(nhosts)
     results = ansible_runner.copy(dest=copy_dest, force=True, mode=copy_mode, content=copy_content)
     assert 'failed' not in results, "Failed to create inventory file: %s" % results
     return results
+
 
 def generate_inventory(nhosts=100):
     '''
@@ -72,11 +74,13 @@ def generate_inventory(nhosts=100):
 
     return inv_list
 
+
 def json_inventory(nhosts=10):
     '''
     Return a JSON representation of inventory
     '''
     return json.dumps(generate_inventory(nhosts), indent=4)
+
 
 def ini_inventory(nhosts=10):
     '''
@@ -108,6 +112,7 @@ def ini_inventory(nhosts=10):
         output.append('')  # newline
 
     return '\n'.join(output)
+
 
 if __name__ == '__main__':
     parser = optparse.OptionParser()

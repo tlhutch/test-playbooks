@@ -105,11 +105,13 @@ class Credential_Create_Page(Form_Page):
     # key_unlock
     credential_ssh_key_unlock_ask = property(input_getter_by_name('credential_ssh_key_unlock_ask'), input_setter_by_name('credential_ssh_key_unlock_ask'))
     credential_ssh_key_unlock = property(input_getter_by_name('credential_ssh_key_unlock'), input_setter_by_name('credential_ssh_key_unlock'))
-    credential_ssh_key_unlock_confirm = property(input_getter_by_name('credential_ssh_key_unlock_confirm'), input_setter_by_name('credential_ssh_key_unlock_confirm'))
+    credential_ssh_key_unlock_confirm = property(input_getter_by_name('credential_ssh_key_unlock_confirm'),
+                                                 input_setter_by_name('credential_ssh_key_unlock_confirm'))
     # vault
     credential_vault_password_ask = property(input_getter_by_name('credential_vault_password_ask'), input_setter_by_name('credential_vault_password_ask'))
     credential_vault_password = property(input_getter_by_name('credential_vault_password'), input_setter_by_name('credential_vault_password'))
-    credential_vault_password_confirm = property(input_getter_by_name('credential_vault_password_confirm'), input_setter_by_name('credential_vault_password_confirm'))
+    credential_vault_password_confirm = property(input_getter_by_name('credential_vault_password_confirm'),
+                                                 input_setter_by_name('credential_vault_password_confirm'))
     # vCenter
     credential_host = property(input_getter_by_name('credential_host'), input_setter_by_name('credential_host'))
     credential_password = property(input_getter_by_name('credential_password'), input_setter_by_name('credential_password'))

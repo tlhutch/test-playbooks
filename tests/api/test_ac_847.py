@@ -2,6 +2,7 @@ import pytest
 import json
 from tests.api import Base_Api_Test
 
+
 # Actual ec2.out.txt observed in AC-847 ... don't judge!
 inventory_dict = {
     "ansible1.axialmarket.com": [
@@ -867,6 +868,7 @@ inventory_dict = {
         "ec2-54-234-233-19.compute-1.amazonaws.com"
     ]
 }
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium

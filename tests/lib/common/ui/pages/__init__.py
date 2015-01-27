@@ -1,14 +1,14 @@
-from page import *
-from base import *
-from api_browser import *
-from login import *
-from dashboard import *
-from organizations import *
-from users import *
-from teams import *
-from credentials import *
-from projects import *
-from inventories import *
-from job_templates import *
-from jobs import *
-from portal import *
+from page import *  # NOQA
+from base import *  # NOQA
+from api_browser import *  # NOQA
+from login import *  # NOQA
+from dashboard import *  # NOQA
+from organizations import *  # NOQA
+from users import *  # NOQA
+from teams import *  # NOQA
+from credentials import *  # NOQA
+from projects import *  # NOQA
+from inventories import *  # NOQA
+from job_templates import *  # NOQA
+from jobs import *  # NOQA
+from portal import *  # NOQA

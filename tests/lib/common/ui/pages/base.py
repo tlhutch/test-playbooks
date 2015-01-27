@@ -1,4 +1,3 @@
-import sys
 import logging
 from selenium.common.exceptions import NoSuchElementException
 from common.ui.pages import Page, PageRegion

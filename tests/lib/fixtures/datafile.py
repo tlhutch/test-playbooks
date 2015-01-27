@@ -3,9 +3,11 @@ import pytest
 from string import Template
 from tempfile import NamedTemporaryFile
 
+
 # Collection for storing unique combinations of data file paths
 # and filenames for usage reporting after a completed test run
 seen_data_files = set()
+
 
 @pytest.fixture(scope="module")
 def datafile(request):

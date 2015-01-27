@@ -1,3 +1,3 @@
-from pytest_restqa import *
+import pytest_restqa
 
 __version__ = pytest_restqa.__version__

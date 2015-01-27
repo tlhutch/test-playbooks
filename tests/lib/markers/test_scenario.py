@@ -1,6 +1,3 @@
-import py
-import pytest
-
 '''
 Automatically xfail remaining tests if previous test failed.  Tests will
 continue to run if:
@@ -12,6 +9,11 @@ For more information, refer to
 http://stackoverflow.com/questions/12411431/pytest-how-to-skip-the-rest-of-tests-in-the-class-if-one-has-failed/12579625#12579625
 '''
 
+
+import py
+import pytest
+
+
 def pytest_runtest_makereport(item, call):
     if "incremental" in item.keywords \
        and "destructive" in item.keywords \
@@ -20,6 +22,7 @@ def pytest_runtest_makereport(item, call):
                     call.excinfo.errisinstance(py.test.skip.Exception)]):
         parent = item.parent
         parent._previousfailed = item
+
 
 def pytest_runtest_setup(item):
     previousfailed = getattr(item.parent, "_previousfailed", None)

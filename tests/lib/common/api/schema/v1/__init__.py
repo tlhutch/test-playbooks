@@ -396,6 +396,7 @@ class Awx_Schema_Project_Update_Cancel(Awx_Schema):
     def post(self):
         return self.load_file('empty.yml')
 
+
 #
 # /unified_job_templates
 #
@@ -866,6 +867,7 @@ class Awx_Schema_Ping(Awx_Schema):
     @property
     def patch(self):
         return self.method_not_allowed
+
 
 #
 # /me

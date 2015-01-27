@@ -1,6 +1,3 @@
-import time
-from unittestzero import Assert
-
 class Page(object):
     """Base class for all API Pages"""
 
@@ -48,6 +45,7 @@ class Page(object):
     @property
     def delete(self):
         return self.api.delete
+
 
 class PageRegion(Page):
     """Base class for a page region (generally an element in a list of elements)."""

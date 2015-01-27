@@ -8,7 +8,9 @@ import common.utils
 import common.tower.license
 from tests.api import Base_Api_Test
 
+
 NUM_HOSTS = 100
+
 
 @pytest.fixture(scope="class")
 def credential(request, testsetup, api_credentials_pg, api_users_pg):
@@ -23,6 +25,7 @@ def credential(request, testsetup, api_credentials_pg, api_users_pg):
     request.addfinalizer(obj.delete)
 
     return obj
+
 
 @pytest.fixture(scope="class")
 def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups_pg, api_hosts_pg, random_organization):
@@ -66,6 +69,7 @@ EOF
 
     return inventory
 
+
 @pytest.fixture(
     scope="class",
     params=[
@@ -100,6 +104,7 @@ def job_template(request, testsetup, api_job_templates_pg, inventory, random_pro
 # @pytest.mark.performance
 # @pytest.mark.skip_selenium
 pytestmark = [pytest.mark.performance, pytest.mark.skip_selenium]
+
 
 @pytest.mark.api
 @pytest.mark.usefixtures('backup_license', 'install_license_1000')

@@ -1,5 +1,5 @@
 import base
-from common.exceptions import *
+
 
 class Dashboard_Page(base.Base):
     base_url = '/api/v1/dashboard/'

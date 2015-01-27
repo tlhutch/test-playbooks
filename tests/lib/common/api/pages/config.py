@@ -1,5 +1,5 @@
 import base
-from common.exceptions import *
+
 
 class Config_Page(base.Base):
     base_url = '/api/v1/config/'
