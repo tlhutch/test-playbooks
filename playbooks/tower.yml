@@ -1,8 +1,0 @@
----
-#
-# Install Tower
-#
-- hosts: all
-  sudo: yes
-  roles:
-    - { role: awx_setup }
