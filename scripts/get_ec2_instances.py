@@ -82,5 +82,5 @@ if __name__ == '__main__':
     # Display summary
     if opts.action and opts.action == 'terminate':
         print "Instances terminated: %s" % total_action
-    if opts.action and opts.action == 'terminate':
+    if opts.action and opts.action == 'stop':
         print "Instances stopped: %s" % total_action
