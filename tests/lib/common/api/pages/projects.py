@@ -1,5 +1,5 @@
 import common.utils
-from common.api.pages import Base, Base_List, Task_Page, json_getter, json_setter
+from common.api.pages import Base, Base_List, Unified_Job_Page, json_getter, json_setter
 
 
 class Project_Page(Base):
@@ -82,7 +82,7 @@ class Projects_Page(Project_Page, Base_List):
     base_url = '/api/v1/projects/'
 
 
-class Project_Update_Page(Task_Page):
+class Project_Update_Page(Unified_Job_Page):
     base_url = '/api/v1/project/{id}/update/'
 
     def get_related(self, name, **kwargs):

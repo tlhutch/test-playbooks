@@ -1,4 +1,4 @@
-from common.api.pages import Base, Base_List, Task_Page, json_setter, json_getter
+from common.api.pages import Base, Base_List, Unified_Job_Page, json_setter, json_getter
 
 
 class Inventory_Page(Base):
@@ -254,7 +254,7 @@ class Inventory_Source_Update_Page(Base):
     can_update = property(json_getter('can_update'), json_setter('can_update'))
 
 
-class Inventory_Update_Page(Task_Page):
+class Inventory_Update_Page(Unified_Job_Page):
     base_url = '/api/v1/inventory_updates/{id}/'
 
 

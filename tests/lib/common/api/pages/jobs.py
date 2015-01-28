@@ -2,7 +2,7 @@ import base
 from job_templates import Job_Template_Page
 
 
-class Job_Page(base.Task_Page, Job_Template_Page):
+class Job_Page(base.Unified_Job_Page, Job_Template_Page):
     base_url = '/api/v1/jobs/{id}/'
 
     def get_related(self, name, **kwargs):
@@ -34,7 +34,7 @@ class Jobs_Page(Job_Page, base.Base_List):
     base_url = '/api/v1/jobs/'
 
 
-class Job_Cancel_Page(base.Task_Page, Job_Template_Page):
+class Job_Cancel_Page(base.Unified_Job_Page, Job_Template_Page):
     base_url = '/api/v1/jobs/{id}/cancel'
     can_cancel = property(base.json_getter('can_cancel'), base.json_setter('can_cancel'))
 
