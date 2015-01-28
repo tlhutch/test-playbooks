@@ -53,6 +53,12 @@ def pytest_configure(config):
     ansible_inventory = config.getvalue('ansible_inventory')
     if not config.option.collectonly:
 
+        # FIXME - support for inventory script
+        # If executable
+        #   run
+        #   store output in tmpfile
+        #   ansible_inventory = tmpfile
+
         # Convert file URL to absolute path (file:///path/to/file.ini ->
         # /path/to/file.ini)
         if ansible_inventory.startswith('file:///'):
