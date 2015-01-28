@@ -228,7 +228,7 @@ class Test_No_License(Base_Api_Test):
     def test_install_license_invalid(self, api_config_pg, ansible_runner, tower_license_path):
         '''Verify that various bogus license formats fail to successfully install'''
 
-        with pytest.raises(common.exceptions.BadRequest_Exception):
+        with pytest.raises(common.exceptions.LicenseInvalid_Exception):
             api_config_pg.post()
 
         for invalid in [0, 1, -1, True, common.utils.random_unicode(), {}]:
