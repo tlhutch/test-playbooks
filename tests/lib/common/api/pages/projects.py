@@ -1,17 +1,11 @@
 import common.utils
-from common.api.pages import Base, Base_List, Unified_Job_Page, json_getter, json_setter
+from common.api.pages import json_getter, json_setter
+from common.api.pages import Base, Base_List, Unified_Job_Page, Unified_Job_Template_Page
 
 
-class Project_Page(Base):
+class Project_Page(Unified_Job_Template_Page):
     base_url = '/api/v1/projects/{id}/'
-    name = property(json_getter('name'), json_setter('name'))
-    description = property(json_getter('description'), json_setter('description'))
-    status = property(json_getter('status'), json_setter('status'))
     local_path = property(json_getter('local_path'), json_setter('local_path'))
-    last_updated = property(json_getter('last_updated'), json_setter('last_updated'))
-    last_update_failed = property(json_getter('last_update_failed'), json_setter('last_update_failed'))
-    last_job_run = property(json_getter('last_job_run'), json_setter('last_job_run'))
-    last_job_failed = property(json_getter('last_job_failed'), json_setter('last_job_failed'))
     scm_type = property(json_getter('scm_type'), json_setter('scm_type'))
     scm_url = property(json_getter('scm_url'), json_setter('scm_url'))
     scm_branch = property(json_getter('scm_branch'), json_setter('scm_branch'))
@@ -68,14 +62,10 @@ class Project_Page(Base):
     def is_successful(self):
         '''An project is considered successful when:
             0) scm_type != ""
-            1) status == 'successful'
-            2) not last_update_failed
-            3) last_updated
+            1) unified_job_template.is_successful
         '''
         return self.scm_type != "" and \
-            self.status == 'successful' and \
-            not self.last_update_failed and \
-            self.last_updated is not None
+            super(Project_Page, self).is_successful
 
 
 class Projects_Page(Project_Page, Base_List):

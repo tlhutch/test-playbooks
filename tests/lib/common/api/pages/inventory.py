@@ -1,4 +1,5 @@
-from common.api.pages import Base, Base_List, Unified_Job_Page, json_setter, json_getter
+import json
+from common.api.pages import Base, Base_List, Unified_Job_Page, Unified_Job_Template_Page, json_setter, json_getter
 
 
 class Inventory_Page(Base):
@@ -143,31 +144,16 @@ class Hosts_Page(Host_Page, Base_List):
     base_url = '/api/v1/hosts/'
 
 
-class Inventory_Source_Page(Base):
+class Inventory_Source_Page(Unified_Job_Template_Page):
     # FIXME - it would be nice for base_url to always return self.json.url.
     base_url = '/api/v1/inventory_sources/{id}/'
-    name = property(json_getter('name'), json_setter('name'))
+
     source = property(json_getter('source'), json_setter('source'))
     source_vars = property(json_getter('source_vars'), json_setter('source_vars'))
     source_script = property(json_getter('source_script'), json_setter('source_script'))
-    status = property(json_getter('status'), json_setter('status'))
-    description = property(json_getter('description'), json_setter('description'))
-    last_updated = property(json_getter('last_updated'), json_setter('last_updated'))
-    last_update_failed = property(json_getter('last_update_failed'), json_setter('last_update_failed'))
-    last_job_run = property(json_getter('last_job_run'), json_setter('last_job_run'))
     update_cache_timeout = property(json_getter('update_cache_timeout'), json_setter('update_cache_timeout'))
     update_on_launch = property(json_getter('update_on_launch'), json_setter('update_on_launch'))
     inventory = property(json_getter('inventory'), json_setter('inventory'))
-
-    def __str__(self):
-        # NOTE: I use .replace('%', '%%') to workaround an odd string
-        # formatting issue where result_stdout contained '%s'.  This later caused
-        # a python traceback when attempting to display output from this method.
-        output = "<%s id:%s, name:%s, status:%s, source:%s, last_update_failed:%s, last_updated:%s, " \
-            "result_traceback:%s, job_explanation:%s, job_args:%s>" % \
-            (self.__class__.__name__, self.id, self.name, self.status,
-             self.source, self.last_update_failed, self.last_updated)
-        return output.replace('%', '%%')
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related'], \
@@ -217,32 +203,13 @@ class Inventory_Source_Page(Base):
             (result.json['inventory_update'], self.url)
         return jobs_pg.results[0]
 
-    def wait_until_started(self, interval=1, verbose=0, timeout=60):
-        '''Wait until a job has started'''
-        return common.utils.wait_until(
-            self, 'status',
-            ('new', 'pending', 'waiting', 'running',),
-            interval=interval, verbose=verbose, timeout=timeout)
-
-    def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 8):
-        '''Wait until a current job has completed'''
-        return common.utils.wait_until(
-            self, 'status',
-            ('successful', 'failed', 'error', 'canceled',),
-            interval=interval, verbose=verbose, timeout=timeout)
-
     @property
     def is_successful(self):
         '''An inventory_source is considered successful when:
             0) source != ""
-            1) status == 'successful'
-            2) not last_update_failed
-            3) last_updated
+            1) super().is_successful
         '''
-        return self.source != "" and \
-            self.status == 'successful' and \
-            not self.last_update_failed and \
-            self.last_updated is not None
+        return self.source != "" and super(Inventory_Source_Page, self).is_successful
 
 
 class Inventory_Sources_Page(Inventory_Source_Page, Base_List):

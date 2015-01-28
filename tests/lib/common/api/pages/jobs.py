@@ -1,8 +1,7 @@
-import base
-from job_templates import Job_Template_Page
+from common.api.pages import json_setter, json_getter, Base, Base_List, Unified_Job_Page, Job_Template_Page
 
 
-class Job_Page(base.Unified_Job_Page, Job_Template_Page):
+class Job_Page(Unified_Job_Page, Job_Template_Page):
     base_url = '/api/v1/jobs/{id}/'
 
     def get_related(self, name, **kwargs):
@@ -16,7 +15,7 @@ class Job_Page(base.Unified_Job_Page, Job_Template_Page):
         elif name == 'job_host_summaries':
             related = Job_Host_Summaries_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'start':
-            related = base.Base(self.testsetup, base_url=self.json['related'][name])
+            related = Base(self.testsetup, base_url=self.json['related'][name])
         elif name == 'cancel':
             related = Job_Cancel_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'credential':
@@ -30,89 +29,89 @@ class Job_Page(base.Unified_Job_Page, Job_Template_Page):
         return related.get(**kwargs)
 
 
-class Jobs_Page(Job_Page, base.Base_List):
+class Jobs_Page(Job_Page, Base_List):
     base_url = '/api/v1/jobs/'
 
 
-class Job_Cancel_Page(base.Unified_Job_Page, Job_Template_Page):
+class Job_Cancel_Page(Unified_Job_Page, Job_Template_Page):
     base_url = '/api/v1/jobs/{id}/cancel'
-    can_cancel = property(base.json_getter('can_cancel'), base.json_setter('can_cancel'))
+    can_cancel = property(json_getter('can_cancel'), json_setter('can_cancel'))
 
 
-class Job_Event_Page(base.Base):
+class Job_Event_Page(Base):
     base_url = '/api/v1/jobs/{id}/job_events/{id}/'
 
-    created = property(base.json_getter('created'), base.json_setter('created'))
-    modified = property(base.json_getter('modified'), base.json_setter('modified'))
-    job = property(base.json_getter('job'), base.json_setter('job'))
-    event = property(base.json_getter('event'), base.json_setter('event'))
-    event_display = property(base.json_getter('event_display'), base.json_setter('event_display'))
-    failed = property(base.json_getter('failed'), base.json_setter('failed'))
-    changed = property(base.json_getter('changed'), base.json_setter('changed'))
-    host = property(base.json_getter('host'), base.json_setter('host'))
-    parent = property(base.json_getter('parent'), base.json_setter('parent'))
-    play = property(base.json_getter('play'), base.json_setter('play'))
-    task = property(base.json_getter('task'), base.json_setter('task'))
+    created = property(json_getter('created'), json_setter('created'))
+    modified = property(json_getter('modified'), json_setter('modified'))
+    job = property(json_getter('job'), json_setter('job'))
+    event = property(json_getter('event'), json_setter('event'))
+    event_display = property(json_getter('event_display'), json_setter('event_display'))
+    failed = property(json_getter('failed'), json_setter('failed'))
+    changed = property(json_getter('changed'), json_setter('changed'))
+    host = property(json_getter('host'), json_setter('host'))
+    parent = property(json_getter('parent'), json_setter('parent'))
+    play = property(json_getter('play'), json_setter('play'))
+    task = property(json_getter('task'), json_setter('task'))
 
 
-class Job_Events_Page(Job_Event_Page, base.Base_List):
+class Job_Events_Page(Job_Event_Page, Base_List):
     base_url = '/api/v1/jobs/{id}/job_events/'
 
 
-class Job_Play_Page(base.Base):
+class Job_Play_Page(Base):
     base_url = '/api/v1/jobs/{id}/job_plays/{id}/'
 
-    id = property(base.json_getter('id'), base.json_setter('id'))
-    play = property(base.json_getter('play'), base.json_setter('play'))
-    started = property(base.json_getter('started'), base.json_setter('started'))
-    changed = property(base.json_getter('changed'), base.json_setter('changed'))
-    failed = property(base.json_getter('failed'), base.json_setter('failed'))
-    ok_count = property(base.json_getter('ok_count'), base.json_setter('ok_count'))
-    failed_count = property(base.json_getter('failed_count'), base.json_setter('failed_count'))
-    changed_count = property(base.json_getter('changed_count'), base.json_setter('changed_count'))
-    skipped_count = property(base.json_getter('skipped_count'), base.json_setter('skipped_count'))
-    unreachable_count = property(base.json_getter('unreachable_count'), base.json_setter('unreachable_count'))
+    id = property(json_getter('id'), json_setter('id'))
+    play = property(json_getter('play'), json_setter('play'))
+    started = property(json_getter('started'), json_setter('started'))
+    changed = property(json_getter('changed'), json_setter('changed'))
+    failed = property(json_getter('failed'), json_setter('failed'))
+    ok_count = property(json_getter('ok_count'), json_setter('ok_count'))
+    failed_count = property(json_getter('failed_count'), json_setter('failed_count'))
+    changed_count = property(json_getter('changed_count'), json_setter('changed_count'))
+    skipped_count = property(json_getter('skipped_count'), json_setter('skipped_count'))
+    unreachable_count = property(json_getter('unreachable_count'), json_setter('unreachable_count'))
 
 
-class Job_Plays_Page(Job_Play_Page, base.Base_List):
+class Job_Plays_Page(Job_Play_Page, Base_List):
     base_url = '/api/v1/jobs/{id}/job_plays/'
 
 
-class Job_Task_Page(base.Base):
+class Job_Task_Page(Base):
     base_url = '/api/v1/jobs/{id}/job_tasks/{id}/'
 
-    id = property(base.json_getter('id'), base.json_setter('id'))
-    name = property(base.json_getter('name'), base.json_setter('name'))
-    failed = property(base.json_getter('failed'), base.json_setter('failed'))
-    changed = property(base.json_getter('changed'), base.json_setter('changed'))
-    created = property(base.json_getter('created'), base.json_setter('created'))
-    modified = property(base.json_getter('modified'), base.json_setter('modified'))
-    reported_hosts = property(base.json_getter('reported_hosts'), base.json_setter('reported_hosts'))
-    host_count = property(base.json_getter('host_count'), base.json_setter('host_count'))
-    failed_count = property(base.json_getter('failed_count'), base.json_setter('failed_count'))
-    unreachable_count = property(base.json_getter('unreachable_count'), base.json_setter('unreachable_count'))
-    successful_count = property(base.json_getter('successful_count'), base.json_setter('successful_count'))
-    changed_count = property(base.json_getter('changed_count'), base.json_setter('changed_count'))
-    skipped_count = property(base.json_getter('skipped_count'), base.json_setter('skipped_count'))
+    id = property(json_getter('id'), json_setter('id'))
+    name = property(json_getter('name'), json_setter('name'))
+    failed = property(json_getter('failed'), json_setter('failed'))
+    changed = property(json_getter('changed'), json_setter('changed'))
+    created = property(json_getter('created'), json_setter('created'))
+    modified = property(json_getter('modified'), json_setter('modified'))
+    reported_hosts = property(json_getter('reported_hosts'), json_setter('reported_hosts'))
+    host_count = property(json_getter('host_count'), json_setter('host_count'))
+    failed_count = property(json_getter('failed_count'), json_setter('failed_count'))
+    unreachable_count = property(json_getter('unreachable_count'), json_setter('unreachable_count'))
+    successful_count = property(json_getter('successful_count'), json_setter('successful_count'))
+    changed_count = property(json_getter('changed_count'), json_setter('changed_count'))
+    skipped_count = property(json_getter('skipped_count'), json_setter('skipped_count'))
 
 
-class Job_Tasks_Page(Job_Task_Page, base.Base_List):
+class Job_Tasks_Page(Job_Task_Page, Base_List):
     base_url = '/api/v1/jobs/{id}/job_tasks/'
 
 
-class Job_Host_Summary_Page(base.Base):
+class Job_Host_Summary_Page(Base):
     base_url = '/api/v1/jobs/{id}/job_host_summaries/{id}/'
 
-    play = property(base.json_getter('play'), base.json_setter('play'))
-    job = property(base.json_getter('job'), base.json_setter('job'))
-    host = property(base.json_getter('host'), base.json_setter('host'))
-    changed = property(base.json_getter('changed'), base.json_setter('changed'))
-    dark = property(base.json_getter('dark'), base.json_setter('dark'))
-    ok = property(base.json_getter('ok'), base.json_setter('ok'))
-    failures = property(base.json_getter('failures'), base.json_setter('failures'))
-    processed = property(base.json_getter('processed'), base.json_setter('processed'))
-    skipped = property(base.json_getter('skipped'), base.json_setter('skipped'))
+    play = property(json_getter('play'), json_setter('play'))
+    job = property(json_getter('job'), json_setter('job'))
+    host = property(json_getter('host'), json_setter('host'))
+    changed = property(json_getter('changed'), json_setter('changed'))
+    dark = property(json_getter('dark'), json_setter('dark'))
+    ok = property(json_getter('ok'), json_setter('ok'))
+    failures = property(json_getter('failures'), json_setter('failures'))
+    processed = property(json_getter('processed'), json_setter('processed'))
+    skipped = property(json_getter('skipped'), json_setter('skipped'))
 
 
-class Job_Host_Summaries_Page(Job_Host_Summary_Page, base.Base_List):
+class Job_Host_Summaries_Page(Job_Host_Summary_Page, Base_List):
     base_url = '/api/v1/jobs/{id}/job_host_summaries/'

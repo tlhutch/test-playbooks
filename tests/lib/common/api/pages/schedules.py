@@ -1,19 +1,15 @@
-import base
-from projects import Project_Page
-from inventory import Inventory_Page
-from job_templates import Job_Template_Page
-from jobs import Jobs_Page
+from common.api.pages import json_setter, json_getter, Base_List, Unified_Job_Page, Project_Page, Inventory_Page, Job_Template_Page, Jobs_Page
 
 
-class Schedule_Page(base.Unified_Job_Page):
+class Schedule_Page(Unified_Job_Page):
     base_url = '/api/v1/schedules/{id}/'
-    name = property(base.json_getter('name'), base.json_setter('name'))
-    description = property(base.json_getter('description'), base.json_setter('description'))
-    enabled = property(base.json_getter('enabled'), base.json_setter('enabled'))
-    dtstart = property(base.json_getter('dtstart'), base.json_setter('dtstart'))
-    dtend = property(base.json_getter('dtend'), base.json_setter('dtend'))
-    rrule = property(base.json_getter('rrule'), base.json_setter('rrule'))
-    next_run = property(base.json_getter('next_run'), base.json_setter('next_run'))
+    name = property(json_getter('name'), json_setter('name'))
+    description = property(json_getter('description'), json_setter('description'))
+    enabled = property(json_getter('enabled'), json_setter('enabled'))
+    dtstart = property(json_getter('dtstart'), json_setter('dtstart'))
+    dtend = property(json_getter('dtend'), json_setter('dtend'))
+    rrule = property(json_getter('rrule'), json_setter('rrule'))
+    next_run = property(json_getter('next_run'), json_setter('next_run'))
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
@@ -30,5 +26,5 @@ class Schedule_Page(base.Unified_Job_Page):
         return related.get(**kwargs)
 
 
-class Schedules_Page(Schedule_Page, base.Base_List):
+class Schedules_Page(Schedule_Page, Base_List):
     base_url = '/api/v1/schedules/'

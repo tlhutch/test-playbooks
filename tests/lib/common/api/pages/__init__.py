@@ -5,9 +5,10 @@ from organizations import *
 from users import *
 from teams import *
 from credentials import *
+from unified_jobs import *
+from unified_job_templates import *
 from projects import *
 from inventory import *
-from unified_job_templates import *
 from system_job_templates import *
 from job_templates import *
 from jobs import *
