@@ -3,7 +3,7 @@ $schema: 'http://json-schema.org/draft-04/schema#'
 id: '/api/v1/config/'
 type: object
 additionalAttributes: false
-required: [version, license_info, time_zone, ansible_version]
+required: [eula, version, license_info, time_zone, ansible_version]
 properties:
     eula: { type: string }
     version:
