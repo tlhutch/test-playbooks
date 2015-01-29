@@ -136,7 +136,7 @@ class Test_Projects(Base_Api_Test):
 
         # assert scm_delete_on_next_update == True
         assert project_ansible_playbooks_git.scm_delete_on_next_update, \
-            "After changing '%s', the value of 'scm_delete_on_next_update' is unexpected (%s != Trues)" % \
+            "After changing '%s', the value of 'scm_delete_on_next_update' is unexpected (%s != True)" % \
             (attr, project_ansible_playbooks_git.scm_delete_on_next_update)
 
         # update the project
@@ -147,7 +147,10 @@ class Test_Projects(Base_Api_Test):
 
         # wait for update to complete
         project_ansible_playbooks_git = project_ansible_playbooks_git.wait_until_completed()
-        # updates_pg.results.pop().wait_until_completed()
+
+        # assert project_update was successful
+        assert project_ansible_playbooks_git.is_successful, \
+            "Project update unsuccesful - %s" % project_ansible_playbooks_git
 
         # FIXME - verify that the project *was* deleted before updating
         # TASK: [delete project directory before update] ********************************
@@ -156,7 +159,7 @@ class Test_Projects(Base_Api_Test):
         # assert scm_delete_on_next_update == False
         assert not project_ansible_playbooks_git.scm_delete_on_next_update, \
             "After completing a project_update, the value of 'scm_delete_on_next_update' is unexpected (%s != False)" % \
-            (attr, project_ansible_playbooks_git.scm_delete_on_next_update)
+            (project_ansible_playbooks_git.scm_delete_on_next_update)
 
     def test_cancel_queued_update(self, project_ansible_git_nowait):
         '''
