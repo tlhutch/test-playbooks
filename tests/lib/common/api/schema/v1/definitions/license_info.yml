@@ -4,7 +4,6 @@ license_info:
     additionalAttributes: false
     properties:
         key_present: {type: boolean}
-        eula_accepted: {type: boolean}
         grace_period_remaining: {type: number}
         date_expired: {type: boolean}
         available_instances: {minimum: 0, type: number}
