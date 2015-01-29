@@ -51,6 +51,14 @@ def license_json(request, license_instance_count):
                                                  contact_email="%s@example.com" % common.utils.random_unicode())
 
 
+@pytest.fixture(
+    scope="function",
+    params=[None, 0, 1, -1, True, common.utils.random_unicode(), (), {}, {'eula_accepted': True}],
+)
+def invalid_license_json(request):
+    return request.param
+
+
 @pytest.fixture(scope='function')
 def missing_eula_license_json(request, license_json):
     del license_json['eula_accepted']
@@ -206,12 +214,12 @@ class Test_No_License(Base_Api_Test):
     '''
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license')
 
-    def test_metadata(self, api_config_pg):
+    def test_empty_license_info(self, api_config_pg):
         '''Verify the license_info field is empty'''
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=4)
 
-    def test_host(self, inventory, group):
+    def test_cannot_add_host(self, inventory, group):
         '''Verify that no hosts can be added'''
         payload = dict(name="host-%s" % common.utils.random_unicode().replace(':', ''),
                        description="host-%s" % common.utils.random_unicode(),
@@ -220,38 +228,35 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             group_hosts_pg.post(payload)
 
-    def test_job_launch(self, job_template):
+    def test_cannot_launch_job(self, job_template):
         '''Verify that job_templates cannot be launched'''
         with pytest.raises(common.exceptions.Forbidden_Exception):
             job_template.launch_job()
 
-    def test_install_license_invalid(self, api_config_pg, ansible_runner, tower_license_path):
+    def test_post_invalid_license(self, api_config_pg, ansible_runner, tower_license_path, invalid_license_json):
         '''Verify that various bogus license formats fail to successfully install'''
 
+        # Assert expected error when issuing a POST with an invalid license
         with pytest.raises(common.exceptions.LicenseInvalid_Exception):
-            api_config_pg.post()
-
-        for invalid in [0, 1, -1, True, common.utils.random_unicode(), {}]:
-            with pytest.raises(common.exceptions.BadRequest_Exception):
-                api_config_pg.post(invalid)
+            api_config_pg.post(invalid_license_json)
 
         # Assert that /etc/tower/license does not exist
         result = ansible_runner.stat(path=tower_license_path)
         assert not result['stat']['exists'], "No license was expected, but one was found"
 
-    def test_install_missing_eula_accepted_license(self, api_config_pg, missing_eula_license_json):
+    def test_post_license_without_eula_accepted(self, api_config_pg, missing_eula_license_json):
         '''Verify failure while POSTing a license with no `eula_accepted` attribute.'''
 
         with pytest.raises(common.exceptions.LicenseInvalid_Exception):
             api_config_pg.post(missing_eula_license_json)
 
-    def test_install_eula_rejected_license(self, api_config_pg, eula_rejected_license_json):
+    def test_post_license_with_rejected_eula(self, api_config_pg, eula_rejected_license_json):
         '''Verify failure while POSTing a license with `eula_accepted:false` attribute.'''
 
         with pytest.raises(common.exceptions.LicenseInvalid_Exception):
             api_config_pg.post(eula_rejected_license_json)
 
-    def test_install_license(self, api_config_pg, license_json, ansible_runner, tower_license_path):
+    def test_post_license(self, api_config_pg, license_json, ansible_runner, tower_license_path):
         '''Verify that a license can be installed by issuing a POST to the /config endpoint'''
         # Assert that /etc/tower/license does not exist
         result = ansible_runner.stat(path=tower_license_path)
