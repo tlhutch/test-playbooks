@@ -9,3 +9,4 @@ properties:
             - {type: string, pattern: "^Invalid license$"}
             - {type: string, pattern: "^Missing 'eula_accepted' property$"}
             - {type: string, pattern: "^'eula_accepted' must be True$"}
+            - {type: string, pattern: "^Invalid license data$")
