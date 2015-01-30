@@ -78,7 +78,9 @@ case "${OFFICIAL}" in
         echo "aw_repo_url: http://releases.ansible.com/ansible-tower" >> ${PLAYBOOK_DIR}/vars.yml
         ;;
     *)
-        echo "aw_repo_url: http://50.116.42.103/ansible-tower_nightlies_RTYUIOPOIUYTYU" >> ${PLAYBOOK_DIR}/vars.yml
+        # Including GIT_BRANCH allows using an aw_repo_url to install builds
+        # from branches
+        echo "aw_repo_url: http://50.116.42.103/ansible-tower_nightlies_RTYUIOPOIUYTYU/${GIT_BRANCH#*/}" >> ${PLAYBOOK_DIR}/vars.yml
         ;;
 esac
 
