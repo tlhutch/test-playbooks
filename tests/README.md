@@ -9,6 +9,7 @@ The installation instructions assume the following software is installed.
 
 1. [python-virtualenv](http://virtualenv.readthedocs.org)
 2. [virtualenvwrapper](http://virtualenvwrapper.readthedocs.org)
+3. SSH must be installed and running on the system under test (e.g. Tower)
 
 ## Instructions
 

@@ -81,8 +81,11 @@ def pytest_configure(config):
     if config.option.base_url and not config.option.collectonly:
         try:
             r = requests.get(config.option.base_url, verify=False, timeout=5)
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
-            py.test.exit("Unable to connect to %s" % (config.option.base_url,))
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError), e:
+            errstr = "Unable to connect to %s, %s" % (config.option.base_url, e)
+            py.test.fail(msg=errstr)
+            # I'm unclear why the following does not emit the error to stdout
+            # py.test.exit(errstr)
 
         assert r.status_code == httplib.OK, \
             "Base URL did not return status code %s. (URL: %s, Response: %s)" % \
