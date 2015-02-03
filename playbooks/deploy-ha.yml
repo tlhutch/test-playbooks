@@ -1,7 +1,4 @@
 ---
-#
-# Create remote hosts
-#
 - name: create instance(s)
   hosts: local
 
@@ -10,3 +7,15 @@
     - role: create_rds
     - role: save_inventory
       my_inventory_file: '{{inventory_dir}}/inventory.ha'
+
+- hosts: 'primary'
+  tasks:
+   - name: group hosts by distribution_major_version
+     action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
+
+- name: 'install tower on primary instances'
+  hosts: 'primary'
+  gather_facts: no
+  sudo: yes
+  roles:
+    - { role: awx_setup }
