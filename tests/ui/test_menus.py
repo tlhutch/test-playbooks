@@ -118,7 +118,7 @@ class Test_Portal_Menu(Base_UI_Test):
 
         # assert expected menu items
         actual_items = ui_portal_pg.header.account_menu.keys()
-        expected_items = [u'Exit Portal', u'Logout']
+        expected_items = [u'About Tower', u'Exit Portal', u'Logout']
         assert actual_items == expected_items, "Missing expected menu items (%s != %s)" % (actual_items, expected_items)
 
 
