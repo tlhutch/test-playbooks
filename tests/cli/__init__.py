@@ -1,19 +1,21 @@
+'''Base class for CLI tests.
+'''
 import pytest
 
 
 @pytest.mark.skip_selenium
-class Base_Cli_Test(object):
+class BaseCLITest(object):
     '''
     Base class for tower_cli tests
     '''
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         """ setup any state specific to the execution of the given class (which
         usually contains tests).
         """
         plugin = pytest.config.pluginmanager.getplugin("plugins.pytest_restqa.pytest_restqa")
         assert plugin, 'Unable to find pytest_restqa plugin'
-        self.testsetup = plugin.TestSetup
+        cls.testsetup = plugin.TestSetup
 
     @property
     def credentials(self):
@@ -26,12 +28,12 @@ class Base_Cli_Test(object):
         return self.testsetup.api
 
     @classmethod
-    def teardown_class(self):
+    def teardown_class(cls):
         '''
         Perform any required test teardown
         '''
 
-    def has_credentials(self, ctype, sub_ctype=None, fields=[]):
+    def has_credentials(self, ctype, sub_ctype=None, fields=None):
         '''
         assert whether requested credentials are present
         '''
@@ -49,7 +51,7 @@ class Base_Cli_Test(object):
             creds = creds[sub_ctype]
 
         # Ensure requested fields are present
-        if fields:
+        if fields is not None:
             assert all([field in creds for field in fields]), \
                 "Not all requested credential fields for section '%s' defined credentials.yaml" % \
                 ctype
