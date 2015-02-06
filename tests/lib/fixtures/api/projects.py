@@ -1,7 +1,12 @@
 import json
 import os.path
 import pytest
+import logging
 import common.utils
+import common.exceptions
+
+
+log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="function")
@@ -72,7 +77,12 @@ def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_con
     if fixture_args:
         payload.update(fixture_args.kwargs)
 
-    obj = api_projects_pg.post(payload)
+    try:
+        obj = api_projects_pg.post(payload)
+    except common.exceptions.Duplicate_Exception:
+        log.debug("POST failed - %s" % json.dumps(payload, indent=2))
+        raise
+
     request.addfinalizer(obj.silent_delete)
 
     # manually delete the local_path

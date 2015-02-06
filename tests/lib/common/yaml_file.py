@@ -3,7 +3,6 @@ import yaml
 import glob
 import logging
 from py.path import local
-from common.randomness import RandomizeValues
 
 
 log = logging.getLogger(__name__)
@@ -73,8 +72,7 @@ def load_file(filename=None):
     if path.check():
         fp = path.open()
         # FIXME - support load_all()
-        data = yaml.load(fp, Loader=Loader)
-        return RandomizeValues.from_dict(data)
+        return yaml.load(fp, Loader=Loader)
     else:
         msg = 'Usable to load data file at %s' % path
         raise Exception(msg)
