@@ -1,5 +1,6 @@
 import pytest
 import httplib
+import fauxfactory
 from tests.api import Base_Api_Test
 from common.api.schema import validate
 
@@ -11,8 +12,8 @@ class Test_Api_Basics(Base_Api_Test):
         r = api.get('/api/')
         assert r.status_code == httplib.OK, "Unable to connect"
 
-    def test_get_404(self, api, random_string):
-        r = api.get('/api/%s/' % random_string)
+    def test_get_404(self, api):
+        r = api.get('/api/%s/' % fauxfactory.gen_utf8())
         assert r.status_code == httplib.NOT_FOUND
 
     def test_get_schema(self, api):
