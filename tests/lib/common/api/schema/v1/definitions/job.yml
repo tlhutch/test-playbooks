@@ -73,7 +73,6 @@ job:
         project: {$ref: '#/definitions/summary_fields_project'}
         schedule: {$ref: '#/definitions/summary_fields_schedule'}
         unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
-        recent_jobs: {$ref: '#/definitions/summary_fields_recent_jobs'}
       type: object
     type: {$ref: '#/definitions/enum_job_type'}
     unified_job_template: {$ref: '#/definitions/id_or_null'}

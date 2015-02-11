@@ -66,6 +66,7 @@ job_template:
         last_update: {$ref: '#/definitions/summary_fields_job'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         project: {$ref: '#/definitions/summary_fields_project'}
+        recent_jobs: {$ref: '#/definitions/summary_fields_recent_jobs'}
         survey: {$ref: '#/definitions/summary_fields_survey'}
       type: object
     survey_enabled: {type: boolean}
