@@ -1,0 +1,8 @@
+---
+summary_fields_recent_job:
+    additionalProperties: false
+    properties:
+      id: {type: number}
+      status: {$ref: '#/definitions/enum_source_status'}
+    required: [id, status]
+    type: object
