@@ -134,8 +134,8 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         # POST to start
         start_pg.post()
 
-        # Wait 10mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60 * 10)
+        # Wait 2 mins for job to complete
+        job_pg = job_pg.wait_until_completed(timeout=60 * 2)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
@@ -164,8 +164,8 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         # POST to start
         start_pg.post()
 
-        # Wait 10mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60 * 10)
+        # Wait 2 mins for job to complete
+        job_pg = job_pg.wait_until_completed(timeout=60 * 2)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
@@ -189,8 +189,8 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
         passwords = dict(ssh_password=self.credentials['ssh']['password'])
         start_pg.post(passwords)
 
-        # Wait 10mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60 * 10)
+        # Wait 2 mins for job to complete
+        job_pg = job_pg.wait_until_completed(timeout=60 * 2)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
@@ -218,8 +218,8 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
                          ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'])
         start_pg.post(passwords)
 
-        # Wait 10mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60 * 10)
+        # Wait 2 mins for job to complete
+        job_pg = job_pg.wait_until_completed(timeout=60 * 2)
         print json.dumps(job_pg.json, indent=2)
 
         # Make sure there is no traceback in result_stdout or result_traceback
@@ -252,8 +252,8 @@ class Test_Job_Launch_Prompts(Base_Api_Test):
                          ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'])
         start_pg.post(passwords)
 
-        # Wait 10mins for job to complete
-        job_pg = job_pg.wait_until_completed(timeout=60 * 10)
+        # Wait 2 mins for job to complete
+        job_pg = job_pg.wait_until_completed(timeout=60 * 2)
         print json.dumps(job_pg.json, indent=2)
 
         # Make sure there is no traceback in result_stdout or result_traceback
