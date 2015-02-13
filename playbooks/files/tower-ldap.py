@@ -1,147 +1,183 @@
-{# Define a macro to return a domain suffix string (e.g. dc=example,dc=com) #}
-{% macro dn_suffix() -%}
-    {{ "dc=" + openldap_server_domain_name.split('.')|join(",dc=") }}
-{%- endmacro %}
+LOGGING['loggers']['django_auth_ldap']['handlers'] = ['rotating_file']
+LOGGING['loggers']['django_auth_ldap']['level'] = 'INFO'
 
-dn: {{ dn_suffix() }}
-dc: {{ openldap_server_domain_name.split('.')[0] }}
-description: My wonderful company as much text as you want to place
- in this line up to 32K continuation data for the line above must
- have &lt;CR> or &lt;CR>&lt;LF> i.e. ENTER work
- on both Windows and *nix system - new line MUST begin with ONE SPACE
-objectClass: dcObject
-objectClass: organization
-o: {{ openldap_server_domain_name }}
+###############################################################################
+# LDAP AUTHENTICATION SETTINGS
+###############################################################################
 
-# groups
+# AnsibleWorks AWX can be configured to centrally use LDAP as a source for
+# authentication information.  When so configured, a user who logs in with
+# a LDAP username and password will automatically get an AWX account created
+# for them, and they can be automatically placed into multiple organizations
+# as either regular users or organization administrators.  If users are created
+# via an LDAP login, by default they cannot change their username, firstname,
+# lastname, or set a local password for themselves. This is also tunable
+# to restrict editing of other field names.
 
-dn: ou=groups,{{ dn_suffix() }}
-objectClass: top
-objectClass: organizationalUnit
-ou: groups
+# For more information about these various settings, advanced users may refer
+# to django-auth-ldap docs, though this should not be neccessary for most
+# users: http://pythonhosted.org/django-auth-ldap/authentication.html
 
-# group: Engineering
+# LDAP server URI, such as "ldap://ldap.example.com:389" (non-SSL) or
+# "ldaps://ldap.example.com:636" (SSL).  LDAP authentication is disabled if this
+# parameter is empty.
 
-dn: cn=engineering,ou=groups,{{ dn_suffix() }}
-objectClass: top
-objectClass: groupOfNames
-cn: Engineering Users
-member: cn=eng_admin1,ou=people,{{ dn_suffix() }}
-member: cn=eng_user1,ou=people,{{ dn_suffix() }}
-member: cn=eng_user2,ou=people,{{ dn_suffix() }}
+AUTH_LDAP_SERVER_URI = 'ldap://162.209.63.71'
 
-dn: cn=admins,ou=groups,{{ dn_suffix() }}
-objectClass: top
-objectClass: groupOfNames
-cn: Admin Users
-member: cn=eng_admin1,ou=people,{{ dn_suffix() }}
+# DN (Distinguished Name) of user to bind for all search queries. Normally in the format
+# "CN=Some User,OU=Users,DC=example,DC=com" but may also be specified as
+# "DOMAIN\username" for Active Directory. This is the system user account 
+# we will use to login to query LDAP for other user information.
 
-# group: Sales
+AUTH_LDAP_BIND_DN = 'cn=Manager,dc=example,dc=com'
 
-dn: cn=sales,ou=groups,{{ dn_suffix() }}
-objectClass: top
-objectClass: groupOfNames
-cn: Sales Users
-member: cn=sales_user1,ou=people,{{ dn_suffix() }}
-member: cn=sales_user2,ou=people,{{ dn_suffix() }}
+# Password using to bind above user account.
 
-# group: IT
+AUTH_LDAP_BIND_PASSWORD = 'fo0m4nchU'
 
-dn: cn=it,ou=groups,{{ dn_suffix() }}
-objectClass: top
-objectClass: groupOfNames
-cn: IT Users
-member: cn=it_user1,ou=people,{{ dn_suffix() }}
-member: cn=it_user2,ou=people,{{ dn_suffix() }}
+# Whether to enable TLS when the LDAP connection is not using SSL.
 
+AUTH_LDAP_START_TLS = False
 
-# users
+# Imports needed for remaining LDAP configuration.
+# do not alter this section
 
-dn: ou=people,{{ dn_suffix() }}
-objectClass: top
-objectClass: organizationalUnit
-ou: people
+import ldap
+from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion
+from django_auth_ldap.config import ActiveDirectoryGroupType, GroupOfNamesType
 
-# users - engineering
+# LDAP search query to find users.  Any user that matches the pattern
+# below will be able to login to AWX.  The user should also be mapped
+# into an AWX organization (as defined later on in this file).  If multiple
+# search queries need to be supported use of "LDAPUnion" is possible. See
+# python-ldap documentation as linked at the top of this section.
 
-dn: cn=eng_user1,ou=people,{{ dn_suffix() }}
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: inetOrgPerson
-cn: eng_user1
-sn: User 1
-givenName: Engineering
-mail: eng_user1@{{ openldap_server_domain_name }}
-userPassword: password
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    'OU=people,DC=example,DC=com',   # Base DN
+    ldap.SCOPE_SUBTREE,             # SCOPE_BASE, SCOPE_ONELEVEL, SCOPE_SUBTREE
+    '(cn=%(user)s)',    # Query
+)
 
-dn: cn=eng_user2,ou=people,{{ dn_suffix() }}
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: inetOrgPerson
-cn: eng_user2
-sn: User 2
-givenName: Engineering
-mail: eng_user2@{{ openldap_server_domain_name }}
-userPassword: password
+# Alternative to user search, if user DNs are all of the same format. This will be
+# more efficient for lookups than the above system if it is usable in your organizational
+# environment. If this setting has a value it will be used instead of AUTH_LDAP_USER_SEARCH
+# above.
 
-dn: cn=eng_admin1,ou=people,{{ dn_suffix() }}
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: inetOrgPerson
-cn: eng_admin1
-sn: Admin 1
-givenName: Engineering
-mail: eng_admin1@{{ openldap_server_domain_name }}
-userPassword: password
+#AUTH_LDAP_USER_DN_TEMPLATE = 'uid=%(user)s,OU=Users,DC=example,DC=com'
 
-# users - IT
+# Mapping of LDAP user schema to AWX API user atrributes (key is user attribute name, value is LDAP
+# attribute name).  The default setting in this configuration file is valid for ActiveDirectory but
+# users with other LDAP configurations may need to change the values (not the keys) of the dictionary/hash-table
+# below.
 
-dn: cn=it_user1,ou=people,{{ dn_suffix() }}
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: inetOrgPerson
-cn: it_user1
-sn: Technology User 1
-givenName: Information
-mail: it_user1@{{ openldap_server_domain_name }}
-userPassword: password
+AUTH_LDAP_USER_ATTR_MAP = {
+    'first_name': 'givenName',
+    'last_name': 'sn',
+    'email': 'mail',
+}
 
-dn: cn=it_user2,ou=people,{{ dn_suffix() }}
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: inetOrgPerson
-cn: it_user2
-sn: Technology User 2
-givenName: Information
-mail: it_user2@{{ openldap_server_domain_name }}
-userPassword: password
+# Users in AWX are mapped to organizations based on their membership in LDAP groups.  The following setting defines
+# the LDAP search query to find groups. Note that this, unlike the user search above, does not support LDAPSearchUnion.
 
-# users - Sales
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
+    'DC=example,DC=com',    # Base DN
+    ldap.SCOPE_SUBTREE,     # SCOPE_BASE, SCOPE_ONELEVEL, SCOPE_SUBTREE
+    '(objectClass=groupOfNames)',  # Query
+)
 
-dn: cn=sales_user1,ou=people,{{ dn_suffix() }}
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: inetOrgPerson
-cn: sales_user1
-sn: Person 1
-givenName: Sales
-mail: sales_user1@{{ openldap_server_domain_name }}
-userPassword: password
+# The group type import may need to be changed based on the type of the LDAP server.
+# Values are listed at: http://pythonhosted.org/django-auth-ldap/groups.html#types-of-groups
 
-dn: cn=sales_user2,ou=people,{{ dn_suffix() }}
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: inetOrgPerson
-cn: sales_user2
-sn: Person 2
-givenName: Sales
-mail: sales_user2@{{ openldap_server_domain_name }}
-userPassword: password
+# AUTH_LDAP_GROUP_TYPE = ActiveDirectoryGroupType()
+AUTH_LDAP_GROUP_TYPE = GroupOfNamesType()
 
+# Group DN required to login. If specified, user must be a member of this
+# group to login via LDAP.  If not set, everyone in LDAP that matches the
+# user search defined above will be able to login via AWX.  Only one 
+# require group is supported.
+
+#AUTH_LDAP_REQUIRE_GROUP = ''
+
+# Group DN denied from login. If specified, user will not be allowed to login
+# if a member of this group.  Only one deny group is supported.
+
+#AUTH_LDAP_DENY_GROUP = ''
+
+# User profile flags updated from group membership (key is user attribute name,
+# value is group DN).  These are boolean fields that are matched based on
+# whether the user is a member of the given group.  So far only is_superuser
+# is settable via this method.  This flag is set both true and false at login
+# time based on current LDAP settings.
+
+AUTH_LDAP_USER_FLAGS_BY_GROUP = {
+    #'is_superuser': 'CN=Domain Admins,CN=Users,DC=example,DC=com',
+}
+
+# Mapping between organization admins/users and LDAP groups. This controls what
+# users are placed into what AWX organizations relative to their LDAP group
+# memberships. Keys are organization names.  Organizations will be created if not present.  
+# Values are dictionaries defining the options for each organization's membership.  For each organization 
+# it is possible to specify what groups are automatically users of the organization and also what
+# groups can administer the organization.  
+#
+# - admins: None, True/False, string or list/tuple of strings.
+#   If None, organization admins will not be updated based on LDAP values.
+#   If True, all users in LDAP will automatically be added as admins of the organization.
+#   If False, no LDAP users will be automatically added as admins of the organiation.
+#   If a string or list of strings, specifies the group DN(s) that will be added of the organization if they match
+#   any of the specified groups.
+# - remove_admins: True/False. Defaults to False. 
+#   If True, a user who is not an member of the given groups will be removed from the organization's administrative list.
+# - users: None, True/False, string or list/tuple of strings. Same rules apply
+#   as for admins.
+# - remove_users: True/False. Defaults to False. Same rules as apply for remove_admins
+
+AUTH_LDAP_ORGANIZATION_MAP = {
+    'LDAP': {
+        'admins': 'cn=engineering_admins,ou=groups,dc=example,dc=com',
+        'users': ['cn=engineering,ou=groups,dc=example,dc=com',
+                  'cn=sales,ou=groups,dc=example,dc=com',
+                  'cn=it,ou=groups,dc=example,dc=com',],
+        'remove_users' : False,
+        'remove_admins' : False,
+    },
+    #'Test Org 2': {
+    #    'admins': ['CN=Administrators,CN=Builtin,DC=example,DC=com'],
+    #    'users': True,
+    #    'remove_users' : False,
+    #    'remove_admins' : False,
+    #},
+}
+
+# Mapping between team members (users) and LDAP groups. Keys are team names
+# (will be created if not present). Values are dictionaries of options for
+# each team's membership, where each can contain the following parameters:
+# - organization: string. The name of the organization to which the team
+#   belongs.  The team will be created if the combination of organization and
+#   team name does not exist.  The organization will first be created if it
+#   does not exist.
+# - users: None, True/False, string or list/tuple of strings.
+#   If None, team members will not be updated.
+#   If True/False, all LDAP users will be added/removed as team members.
+#   If a string or list of strings, specifies the group DN(s). User will be
+#   added as a team member if the user is a member of ANY of these groups.
+# - remove: True/False. Defaults to False. If True, a user who is not a member
+#   of the given groups will be removed from the team.
+
+AUTH_LDAP_TEAM_MAP = {
+    'LDAP Engineering': {
+        'organization': 'LDAP',
+        'users': 'cn=engineering,ou=groups,dc=example,dc=com',
+        'remove': True,
+    },
+    'LDAP IT': {
+        'organization': 'LDAP',
+        'users': 'cn=it,ou=groups,dc=example,dc=com',
+        'remove': True,
+    },
+    'LDAP Sales': {
+        'organization': 'LDAP',
+        'users': 'cn=sales,ou=groups,dc=example,dc=com',
+        'remove': True,
+    },
+}
