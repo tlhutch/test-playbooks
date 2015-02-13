@@ -6,17 +6,17 @@
 #
 # Install LDAP
 #
-  roles: 
+  roles:
     - role: bennojoy.openldap_server
       openldap_server_ldif: 'files/tower-ldap.ldif'
 
   tasks:
     - name: transfer over LDAP configuration file
       template:
-        src=files/tower-ldap.py
-        dest=/etc/tower/conf.d
+        src: files/tower-ldap.py
+        dest: /etc/tower/conf.d/
 
     - name: restart ansible tower
       service:
-        name=ansible-tower
-        state=restarted 
+        name: ansible-tower
+        state: restarted
