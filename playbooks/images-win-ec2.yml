@@ -9,8 +9,9 @@ win_ec2_public_key: '~/.ssh/id_rsa.pub'
 win_ec2_private_key: '~/.ssh/id_rsa'
 
 # Available windows ec2 images.
+# https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Images:visibility=public-images;ownerAlias=amazon;platform=windows;architecture=x86_64;name=english;search=base;sort=desc:name
 win_ec2_images:
-  - {'name': 'server-2008',       'user': 'Administrator', 'id': 'ami-b89d0cd0'}
-  - {'name': 'server-2008-r2',    'user': 'Administrator', 'id': 'ami-b68819de'}
-  - {'name': 'server-2012',       'user': 'Administrator', 'id': 'ami-e49a0b8c'}
-  - {'name': 'server-2012-r2',    'user': 'Administrator', 'id': 'ami-c49c0dac'}
+  - {'name': 'server-2008',       'user': 'Administrator', 'id': 'ami-2c7a3244'}
+  - {'name': 'server-2008-r2',    'user': 'Administrator', 'id': 'ami-188ac270'}
+  - {'name': 'server-2012',       'user': 'Administrator', 'id': 'ami-7a7a3212'}
+  - {'name': 'server-2012-r2',    'user': 'Administrator', 'id': 'ami-b27830da'}
