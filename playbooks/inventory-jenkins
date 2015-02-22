@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import json
 import requests
 import httplib
@@ -20,7 +21,7 @@ supported_platforms = ['rhel-6.5-x86_64', 'centos-6.5-x86_64',
 
 
 class AnsibleInventory(ConfigParser.SafeConfigParser):
-    def write(self, fp):
+    def write_ini(self, fp):
         """Write an .ini-format representation of the configuration state."""
         if self._defaults:
             fp.write("[%s]\n" % self.DEFAULTSECT)
@@ -49,6 +50,8 @@ def parse_args():
     parser.add_argument("-t", "--token", dest="token",
                         default=os.getenv('JENKINS_TOKEN'),
                         help="Jenkins API-Token.")
+    parser.add_argument('--ini', action='store_true', default=False,
+                        help='Output inventory in INI format (default: %(default)s)')
     parser.add_argument('--list', action='store_true', default=True,
                         help='List all hosts and groups (default: %(default)s)')
     parser.add_argument('--host', action='store',
@@ -86,6 +89,7 @@ if __name__ == "__main__":
         raise NotImplementedError("Coming soon")
 
     elif args.list:
+        cfg = AnsibleInventory()
         master_inv = dict(_meta=dict(hostvars={}))
 
         for ansible_install_method in ansible_install_methods:
@@ -100,6 +104,11 @@ if __name__ == "__main__":
 
                     # extend master_inv
                     if local_inventory:
+                        try:
+                            cfg.read(local_inventory)
+                        except (ConfigParser.MissingSectionHeaderError, ConfigParser.ParsingError) as e:
+                            sys.stderr.write("Failed to download inventory.log: %s\n" % url)
+
                         jenkins_inv = ansible.inventory.Inventory(local_inventory)
 
                         # add group and hosts
@@ -117,4 +126,7 @@ if __name__ == "__main__":
                                 master_inv['_meta']['hostvars'][host.name] = host.vars
 
         if master_inv:
-            print json.dumps(master_inv, indent=2)
+            if args.ini:
+                cfg.write_ini(sys.stdout)
+            else:
+                print json.dumps(master_inv, indent=2)
