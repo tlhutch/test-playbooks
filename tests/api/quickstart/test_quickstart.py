@@ -685,9 +685,12 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         project_id = api_projects_pg.get(name__iexact=_job_template['project']).results[0].id
 
         # This is slightly nuts ... please look away
+        ansible_facts = ansible_facts.values()[0]['ansible_facts']
         if 'inventory_hostname' not in ansible_facts:
             if ansible_facts['ansible_domain'] == 'ec2.internal':
-                ec2_facts = ansible_runner.ec2_facts()
+                ec2_facts = ansible_runner.ec2_facts().values()[0]
+                print json.dumps(ec2_facts, indent=2)
+                assert 'ansible_facts' in ec2_facts
                 ansible_facts['inventory_hostname'] = ec2_facts['ansible_facts']['ansible_ec2_public_hostname']
             else:
                 ansible_facts['inventory_hostname'] = ansible_facts['ansible_fqdn'].replace('x86-64', 'x86_64')
