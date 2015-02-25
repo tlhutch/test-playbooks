@@ -1,3 +1,4 @@
+import json
 import pytest
 import common.utils
 import common.exceptions
@@ -133,14 +134,17 @@ def non_root_variation(request, authtoken, inventory, ansible_runner):
         content='''# --inventory-id %s %s''' % (inventory.id, request.param['inventory'])
     )
     for results in contacted.values():
-        assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
+        assert results['changed'] and 'failed' not in results, \
+            "Failed to create inventory file: %s" % \
+            json.dumps(results, indent=2)
 
     contacted = ansible_runner.shell(
         "awx-manage inventory_import --overwrite --inventory-id %s "
         "--source /tmp/inventory.ini" % inventory.id
     )
     for results in contacted.values():
-        assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
+        assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % \
+            json.dumps(results, indent=2)
 
     # Re-GET the resource to populate host/group information
     inventory = inventory.get()
