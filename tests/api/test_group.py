@@ -69,12 +69,20 @@ uk-host-1
 
 @pytest.fixture(scope="function", params=root_variations)
 def root_variation(request, authtoken, inventory, ansible_runner):
-    results = ansible_runner.copy(dest='/tmp/inventory.ini', force=True, mode='0644', content='''# --inventory-id %s
-%s''' % (inventory.id, request.param['inventory']))
-    assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
+    contacted = ansible_runner.copy(
+        dest='/tmp/inventory.ini',
+        force=True, mode='0644',
+        content='''# --inventory-id %s %s''' % (inventory.id, request.param['inventory'])
+    )
+    for results in contacted.values():
+        assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
-    results = ansible_runner.shell('awx-manage inventory_import --overwrite --inventory-id %s --source /tmp/inventory.ini' % inventory.id)
-    assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
+    contacted = ansible_runner.shell(
+        "awx-manage inventory_import --overwrite --inventory-id %s "
+        "--source /tmp/inventory.ini" % inventory.id
+    )
+    for results in contacted.values():
+        assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
 
     # Re-GET the resource to populate host/group information
     inventory = inventory.get()
@@ -119,12 +127,20 @@ non_root_variations = [dict(name=item['name'], inventory=inventory_prefix + item
 
 @pytest.fixture(scope="function", params=non_root_variations)
 def non_root_variation(request, authtoken, inventory, ansible_runner):
-    results = ansible_runner.copy(dest='/tmp/inventory.ini', force=True, mode='0644', content='''# --inventory-id %s
-%s''' % (inventory.id, request.param['inventory']))
-    assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
+    contacted = ansible_runner.copy(
+        dest='/tmp/inventory.ini',
+        force=True, mode='0644',
+        content='''# --inventory-id %s %s''' % (inventory.id, request.param['inventory'])
+    )
+    for results in contacted.values():
+        assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
-    results = ansible_runner.shell('awx-manage inventory_import --overwrite --inventory-id %s --source /tmp/inventory.ini' % inventory.id)
-    assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
+    contacted = ansible_runner.shell(
+        "awx-manage inventory_import --overwrite --inventory-id %s "
+        "--source /tmp/inventory.ini" % inventory.id
+    )
+    for results in contacted.values():
+        assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
 
     # Re-GET the resource to populate host/group information
     inventory = inventory.get()
@@ -138,12 +154,18 @@ all_variations = root_variations + non_root_variations
 
 @pytest.fixture(scope="function", params=all_variations)
 def variation(request, authtoken, inventory, ansible_runner):
-    results = ansible_runner.copy(dest='/tmp/inventory.ini', force=True, content='''# --inventory-id %s
-%s''' % (inventory.id, request.param['inventory']))
-    assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
+    contacted = ansible_runner.copy(
+        dest='/tmp/inventory.ini', force=True,
+        content='''# --inventory-id %s %s''' % (inventory.id, request.param['inventory']))
+    for results in contacted.values():
+        assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
-    results = ansible_runner.shell('awx-manage inventory_import --overwrite --inventory-id %s --source /tmp/inventory.ini' % inventory.id)
-    assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
+    contacted = ansible_runner.shell(
+        "awx-manage inventory_import --overwrite --inventory-id %s "
+        "--source /tmp/inventory.ini" % inventory.id
+    )
+    for results in contacted.values():
+        assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
 
     # Re-GET the resource to populate host/group information
     inventory = inventory.get()
