@@ -1,6 +1,5 @@
 import json
 import pytest
-import logging
 import common.tower.inventory
 import common.utils
 import common.exceptions
@@ -114,7 +113,7 @@ class Test_Inventory(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
 
-    def test_host_without_group(self, ansible_runner, host_without_group, tower_version_cmp):
+    def test_host_without_group(self, host_without_group, tower_version_cmp):
         '''
         Verify that /inventory/N/script includes hosts that are not a member of
         any group.
@@ -147,7 +146,7 @@ class Test_Inventory(Base_Api_Test):
             "The number of inventory hosts differs between endpoints " \
             "/hosts (%s) and /script (%s)" % (all_hosts.count, script_all_hosts)
 
-    def test_cascade_delete(self, ansible_runner, inventory, host_local, host_without_group, group, api_groups_pg, api_hosts_pg):
+    def test_cascade_delete(self, inventory, host_local, host_without_group, group, api_groups_pg, api_hosts_pg):
         '''Verify DELETE removes associated groups and hosts'''
 
         # Verify inventory group/host counts
@@ -192,7 +191,9 @@ class Test_Inventory_Update(Base_Api_Test):
 
         # Assert that the cloud_group has not updated
         inv_source_pg = cloud_group.get_related('inventory_source')
-        assert not inv_source_pg.is_successful, "Before issuing an inventory_update, the inventory_source is unexpectedly marked as successful - %s" % inv_source_pg
+        assert not inv_source_pg.is_successful, \
+            "Before issuing an inventory_update, the inventory_source " \
+            "is unexpectedly marked as successful - %s" % inv_source_pg
 
         # get launch page
         launch_pg = inv_source_pg.get_related('update')
@@ -200,7 +201,7 @@ class Test_Inventory_Update(Base_Api_Test):
         # assert can_update == True
         assert launch_pg.can_update, \
             "Inventory_source unexpectedly has can_update:%s" % \
-            (update_pg.json['can_update'],)
+            (launch_pg.json['can_update'],)
 
         # launch update
         result = launch_pg.post()
@@ -257,37 +258,37 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
             bad_id = common.utils.random_int()
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source /etc/fstab' % bad_id)
-        logging.info(result['stdout'])
-
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source /etc/fstab' % bad_id)
         # Verify the import failed
-        assert result['rc'] == 1, "awx-manage inventory_import succeeded unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
-            % (result['stdout'], result['stderr'])
+        for result in contacted.values():
+            assert result['rc'] == 1, "awx-manage inventory_import succeeded " \
+                "unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
+                % (result['stdout'], result['stderr'])
 
     def test_import_bad_name(self, ansible_runner, import_inventory):
         '''Verify that importing inventory using a bogus --inventory-name=<NAME> fails'''
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name "%s" --source /etc/fstab' % common.utils.random_ascii())
-        logging.info(result['stdout'])
-
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name "%s" --source /etc/fstab' % common.utils.random_ascii())
         # Verify the import failed
-        assert result['rc'] == 1, "awx-manage inventory_import succeeded unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
-            % (result['stdout'], result['stderr'])
+        for result in contacted.values():
+            assert result['rc'] == 1, "awx-manage inventory_import succeeded " \
+                "unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
+                % (result['stdout'], result['stderr'])
 
     def test_import_by_id(self, ansible_runner, import_inventory):
         '''Verify that importing inventory using --inventory-id=<ID> succeeds'''
 
         # Upload inventory script
-        copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
+        dest = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (import_inventory.id, copy['dest']))
-        logging.info(result['stdout'])
-
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (import_inventory.id, dest))
         # Verify the import completed successfully
-        assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
-            % (result['stdout'], result['stderr'])
+        for result in contacted.values():
+            assert result['rc'] == 0, "awx-manage inventory_import " \
+                "failed:\n[stdout]\n%s\n[stderr]\n%s" \
+                % (result['stdout'], result['stderr'])
 
         # Verify inventory group/host counts
         assert import_inventory.get_related('groups').count > 0
@@ -297,15 +298,16 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         '''Verify that importing inventory using --inventory-name=<NAME> succeeds'''
 
         # Upload inventory script
-        copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
+        dest = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, copy['dest']))
-        logging.info(result['stdout'])
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
 
-        # Verify the import completed successfully
-        assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
-            % (result['stdout'], result['stderr'])
+        for result in contacted.values():
+            # Verify the import completed successfully
+            assert result['rc'] == 0, "awx-manage inventory_import " \
+                "failed:\n[stdout]\n%s\n[stderr]\n%s" \
+                % (result['stdout'], result['stderr'])
 
         # Verify inventory group/host counts
         assert import_inventory.get_related('groups').count > 0
@@ -315,15 +317,16 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         '''Verify that importing inventory from a .INI file succeeds'''
 
         # Upload inventory script
-        copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10, ini=True)
+        dest = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10, ini=True)
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, copy['dest']))
-        logging.info(result['stdout'])
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
 
-        # Verify the import completed successfully
-        assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
-            % (result['stdout'], result['stderr'])
+        for result in contacted.values():
+            # Verify the import completed successfully
+            assert result['rc'] == 0, "awx-manage inventory_import " \
+                "failed:\n[stdout]\n%s\n[stderr]\n%s" \
+                % (result['stdout'], result['stderr'])
 
         # Verify inventory group/host counts
         assert import_inventory.get_related('groups').count > 0
@@ -335,42 +338,49 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
     def FIXME_test_import_multiple(self, ansible_runner, import_inventory):
         '''Verify that multiple imports of the same inventory are subsequently are faster'''
         # Upload inventory script
-        copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=100, ini=True)
+        dest = common.tower.inventory.upload_inventory(ansible_runner, nhosts=100, ini=True)
 
         # Run first awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, copy['dest']))
-        # Verify the import completed successfully
-        assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
-            % (result['stdout'], result['stderr'])
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
+        for result in contacted.values():
+            # Verify the import completed successfully
+            assert result['rc'] == 0, "awx-manage inventory_import " \
+                "failed:\n[stdout]\n%s\n[stderr]\n%s" \
+                % (result['stdout'], result['stderr'])
+
+            # Calculate total seconds. The expected delta format is - H:MM:SS.SSSSS
+            (hours, minutes, seconds) = result['delta'].split(':')
+            first_import = float(seconds) + 60 * float(minutes) + 60 * 60 * float(hours)
 
         # Verify inventory group/host counts
         assert import_inventory.get_related('groups').count > 0
         assert import_inventory.get_related('hosts').count == 100
 
-        # Calculate total seconds. The expected delta format is - H:MM:SS.SSSSS
-        (hours, minutes, seconds) = result['delta'].split(':')
-        first_import = float(seconds) + 60 * float(minutes) + 60 * 60 * float(hours)
-
         # Run second awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s --overwrite' % (import_inventory.name, copy['dest']))
-        # Verify the import completed successfully
-        assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
-            % (result['stdout'], result['stderr'])
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s --overwrite' % (import_inventory.name, copy['dest']))
+        for result in contacted.values():
+            # Verify the import completed successfully
+            assert result['rc'] == 0, "awx-manage inventory_import " \
+                "failed:\n[stdout]\n%s\n[stderr]\n%s" \
+                % (result['stdout'], result['stderr'])
 
-        # Calculate total seconds. The expected delta format is - H:MM:SS.SSSSS
-        (hours, minutes, seconds) = result['delta'].split(':')
-        second_import = float(seconds) + 60 * float(minutes) + 60 * 60 * float(hours)
+            # Calculate total seconds. The expected delta format is - H:MM:SS.SSSSS
+            (hours, minutes, seconds) = result['delta'].split(':')
+            second_import = float(seconds) + 60 * float(minutes) + 60 * 60 * float(hours)
 
         # Run third awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, copy['dest']))
-        # Verify the import completed successfully
-        assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
-            % (result['stdout'], result['stderr'])
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, copy['dest']))
+        for result in contacted.values():
+            # Verify the import completed successfully
+            assert result['rc'] == 0, "awx-manage inventory_import " \
+                "failed:\n[stdout]\n%s\n[stderr]\n%s" \
+                % (result['stdout'], result['stderr'])
 
-        # Calculate total seconds. The expected delta format is - H:MM:SS.SSSSS
-        (hours, minutes, seconds) = result['delta'].split(':')
-        third_import = float(seconds) + 60 * float(minutes) + 60 * 60 * float(hours)
+            # Calculate total seconds. The expected delta format is - H:MM:SS.SSSSS
+            (hours, minutes, seconds) = result['delta'].split(':')
+            third_import = float(seconds) + 60 * float(minutes) + 60 * 60 * float(hours)
 
+        # assert subsequent imports were faster
         assert first_import > second_import > third_import, \
             "Unexpected timing when importing inventory multiple times: %s, %s, %s" % \
             (first_import, second_import, third_import)
@@ -379,15 +389,15 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         '''Verify inventory_import fails if the number of imported hosts will exceed licensed amount'''
 
         # Upload inventory script
-        copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=2000)
+        dest = common.tower.inventory.upload_inventory(ansible_runner, nhosts=2000)
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (import_inventory.id, copy['dest']))
-        logging.info(result['stdout'])
-
-        # Verify the import failed
-        assert result['rc'] == 1, "awx-manage inventory_import succeeded unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
-            % (result['stdout'], result['stderr'])
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (import_inventory.id, dest))
+        for result in contacted.values():
+            # Verify the import failed
+            assert result['rc'] == 1, "awx-manage inventory_import " \
+                "succeeded unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
+                % (result['stdout'], result['stderr'])
 
         # Verify inventory group/host counts
         assert import_inventory.get_related('groups').count == 0
@@ -405,32 +415,36 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
             pytest.xfail("Only supported on tower-2.0.2 (or newer)")
 
         # Copy inventory_before to test system
-        result = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
+        contacted = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
 cat <<EOF
 %s
 EOF''' % (json.dumps(json_inventory_before, indent=4),))
-        assert 'failed' not in result, "Failed to create inventory file: %s" % result
+        for result in contacted.values():
+            assert 'failed' not in result, "Failed to create inventory file: %s" % result
 
         # Import inventory_before
         cmd = "awx-manage inventory_import --inventory-id %s --instance-id-var ec2_id " \
             "--source /tmp/inventory.sh" % import_inventory.id
-        result = ansible_runner.command(cmd)
-        assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
-        print result
+        contacted = ansible_runner.command(cmd)
+        for result in contacted.values():
+            assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
+            print result
 
         # Copy inventory_after to test system
-        result = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
+        contacted = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
 cat <<EOF
 %s
 EOF''' % (json.dumps(json_inventory_after, indent=4),))
-        assert 'failed' not in result, "Failed to create inventory file: %s" % result
+        for result in contacted.values():
+            assert 'failed' not in result, "Failed to create inventory file: %s" % result
 
         # Import inventory_after
         cmd = "awx-manage inventory_import --inventory-id %s --instance-id-var ec2_id " \
             "--source /tmp/inventory.sh" % import_inventory.id
-        result = ansible_runner.command(cmd)
-        assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
-        print result
+        contacted = ansible_runner.command(cmd)
+        for result in contacted.values():
+            assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
+            print result
 
     def test_import_ipv6_hosts(self, ansible_runner, import_inventory, json_inventory_ipv6, tower_version_cmp):
         '''
@@ -443,17 +457,19 @@ EOF''' % (json.dumps(json_inventory_after, indent=4),))
             pytest.xfail("Only supported on tower-2.0.2 (or newer)")
 
         # Copy inventory_before to test system
-        result = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
+        contacted = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content='''#!/bin/bash
 cat <<EOF
 %s
 EOF''' % (json.dumps(json_inventory_ipv6, indent=4),))
-        assert 'failed' not in result, "Failed to create inventory file: %s" % result
+        for result in contacted.values():
+            assert 'failed' not in result, "Failed to create inventory file: %s" % result
 
         # Import inventory_before
         cmd = "awx-manage inventory_import --inventory-id %s --source /tmp/inventory.sh" % import_inventory.id
-        result = ansible_runner.command(cmd)
-        assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
-        print result
+        contacted = ansible_runner.command(cmd)
+        for result in contacted.values():
+            assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
+            print result
 
     @pytest.mark.skipif(True, reason="TODO - https://trello.com/c/JF0hVue0")
     def test_import_directory(self, ansible_runner, import_inventory):

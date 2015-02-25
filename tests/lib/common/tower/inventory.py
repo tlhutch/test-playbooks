@@ -20,9 +20,10 @@ cat <<EOF
 EOF''' % json_inventory(nhosts)
 
     # Copy script to test system
-    results = ansible_runner.copy(dest=copy_dest, force=True, mode=copy_mode, content=copy_content)
-    assert 'failed' not in results, "Failed to create inventory file: %s" % results
-    return results
+    contacted = ansible_runner.copy(dest=copy_dest, force=True, mode=copy_mode, content=copy_content)
+    for result in contacted.values():
+        assert 'failed' not in result, "Failed to create inventory file: %s" % results
+    return copy_dest
 
 
 def generate_inventory(nhosts=100):
