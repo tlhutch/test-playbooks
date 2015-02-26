@@ -56,10 +56,13 @@ def host_config_key():
     return str(uuid.uuid4())
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def ansible_default_ipv4(request, ansible_facts):
     '''Return the ansible_default_ipv4 from ansible_facts of the system under test.'''
-    return ansible_facts['ansible_default_ipv4']['address']
+    if len(ansible_facts) > 1:
+        log.warning("ansible_facts for %d systems found, but returning "
+                    "only the first" % len(ansible_facts))
+    return ansible_facts.values()[0]['ansible_facts']['ansible_default_ipv4']['address']
 
 
 @pytest.fixture(scope="function")
@@ -188,7 +191,7 @@ inventory['{0}'] = list()
     for i in range(5):
         host_name = re.sub(r"[\':]", "", u"host-%s" % common.utils.random_unicode())
         script += u"inventory['{0}'].append('{1}')\n".format(group_name, host_name)
-    script += "print json.dumps(inventory)\n"
+    script += u"print json.dumps(inventory)\n"
     log.debug(script)
     return script
 

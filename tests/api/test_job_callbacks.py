@@ -74,12 +74,13 @@ class Test_Job_Template_Callback(Base_Api_Test):
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-        result = ansible_runner.uri(**args)
+        contacted = ansible_runner.uri(**args)
 
         # verify callback response
-        assert result['status'] == httplib.BAD_REQUEST, "Unexpected response code (%s!=%s)\n%s" % (result['status'], httplib.BAD_REQUEST, result)
-        assert result['failed']
-        assert result['json']['msg'] == 'No matching host could be found!'
+        for result in contacted.values():
+            assert result['status'] == httplib.BAD_REQUEST, "Unexpected response code (%s!=%s)\n%s" % (result['status'], httplib.BAD_REQUEST, result)
+            assert result['failed']
+            assert result['json']['msg'] == 'No matching host could be found!'
 
     def test_launch_with_no_matching_hosts(self, ansible_runner, job_template, host_config_key, ansible_default_ipv4, host_public_ipv4_alias):
         '''Verify launch failure when a matching host.name is found, but ansible_ssh_host is different.'''
@@ -92,12 +93,14 @@ class Test_Job_Template_Callback(Base_Api_Test):
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-        result = ansible_runner.uri(**args)
+        contacted = ansible_runner.uri(**args)
 
-        assert 'status' in result, "Unxpected response: %s" % result
-        assert result['status'] == httplib.BAD_REQUEST, "Unexpected response code (%s!=%s)\n%s" % (result['status'], httplib.BAD_REQUEST, result)
-        assert result['failed']
-        assert result['json']['msg'] == 'No matching host could be found!'
+        # verify callback response
+        for result in contacted.values():
+            assert 'status' in result, "Unxpected response: %s" % result
+            assert result['status'] == httplib.BAD_REQUEST, "Unexpected response code (%s!=%s)\n%s" % (result['status'], httplib.BAD_REQUEST, result)
+            assert result['failed']
+            assert result['json']['msg'] == 'No matching host could be found!'
 
     def test_launch_multiple_host_matches(self, ansible_runner, job_template, host_ipv4, host_ipv4_again, host_config_key, ansible_default_ipv4):
         '''Verify launch failure when launching a job_template where multiple hosts match '''
@@ -111,11 +114,13 @@ class Test_Job_Template_Callback(Base_Api_Test):
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-        result = ansible_runner.uri(**args)
+        contacted = ansible_runner.uri(**args)
 
-        assert result['status'] == httplib.BAD_REQUEST
-        assert 'failed' in result and result['failed']
-        assert result['json']['msg'] == 'Multiple hosts matched the request!'
+        # verify callback response
+        for result in contacted.values():
+            assert result['status'] == httplib.BAD_REQUEST
+            assert 'failed' in result and result['failed']
+            assert result['json']['msg'] == 'Multiple hosts matched the request!'
 
     def test_launch_with_incorrect_hostkey(self, ansible_runner, job_template, host_ipv4, host_config_key, ansible_default_ipv4):
         '''Verify launch failure when providing incorrect host_config_key'''
@@ -129,12 +134,13 @@ class Test_Job_Template_Callback(Base_Api_Test):
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=BOGUS",)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-        result = ansible_runner.uri(**args)
+        contacted = ansible_runner.uri(**args)
 
         # verify callback response
-        assert result['status'] == httplib.FORBIDDEN, "Unexpected response code (%s!=%s)\n%s" % (result['status'], httplib.FORBIDDEN, result)
-        assert result['failed']
-        assert result['json']['detail'] == 'You do not have permission to perform this action.'
+        for result in contacted.values():
+            assert result['status'] == httplib.FORBIDDEN, "Unexpected response code (%s!=%s)\n%s" % (result['status'], httplib.FORBIDDEN, result)
+            assert result['failed']
+            assert result['json']['detail'] == 'You do not have permission to perform this action.'
 
     def test_launch_without_credential(self, ansible_runner, job_template_no_credential, host_ipv4, host_config_key, ansible_default_ipv4):
         '''Verify launch failure when launching a job_template with no credentials'''
@@ -148,12 +154,13 @@ class Test_Job_Template_Callback(Base_Api_Test):
                     url="http://%s/%s" % (ansible_default_ipv4, job_template_no_credential.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-        result = ansible_runner.uri(**args)
+        contacted = ansible_runner.uri(**args)
 
         # verify callback response
-        assert result['status'] == httplib.BAD_REQUEST
-        assert result['failed']
-        assert result['json']['msg'] == 'Cannot start automatically, user input required!'
+        for result in contacted.values():
+            assert result['status'] == httplib.BAD_REQUEST
+            assert result['failed']
+            assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
     def test_launch_with_ask_credential(self, ansible_runner, job_template_ask, host_ipv4, host_config_key, ansible_default_ipv4):
         '''Verify launch failure when launching a job_template with ASK credentials'''
@@ -167,12 +174,13 @@ class Test_Job_Template_Callback(Base_Api_Test):
                     url="http://%s/%s" % (ansible_default_ipv4, job_template_ask.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-        result = ansible_runner.uri(**args)
+        contacted = ansible_runner.uri(**args)
 
         # verify callback response
-        assert result['status'] == httplib.BAD_REQUEST
-        assert result['failed']
-        assert result['json']['msg'] == 'Cannot start automatically, user input required!'
+        for result in contacted.values():
+            assert result['status'] == httplib.BAD_REQUEST
+            assert result['failed']
+            assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
     def test_launch_with_variables_needed_to_start(self, ansible_runner, job_template_variables_needed_to_start, host_ipv4, host_config_key, ansible_default_ipv4):
         '''Verify launch failure when launching a job_template that has required survey variables.'''
@@ -186,12 +194,13 @@ class Test_Job_Template_Callback(Base_Api_Test):
                     url="http://%s/%s" % (ansible_default_ipv4, job_template_variables_needed_to_start.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-        result = ansible_runner.uri(**args)
+        contacted = ansible_runner.uri(**args)
 
         # verify callback response
-        assert result['status'] == httplib.BAD_REQUEST
-        assert result['failed']
-        assert result['json']['msg'] == 'Cannot start automatically, user input required!'
+        for result in contacted.values():
+            assert result['status'] == httplib.BAD_REQUEST
+            assert result['failed']
+            assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
     def test_launch_with_limit(self, api_jobs_url, ansible_runner, job_template_with_limit, host_ipv4, host_config_key, ansible_default_ipv4):
         '''
@@ -211,12 +220,14 @@ class Test_Job_Template_Callback(Base_Api_Test):
                     url="http://%s/%s" % (ansible_default_ipv4, job_template_with_limit.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-        result = ansible_runner.uri(**args)
+        contacted = ansible_runner.uri(**args)
 
-        assert result['status'] == httplib.ACCEPTED
-        assert not result['changed']
-        assert 'failed' not in result, "Callback failed\n%s" % result
-        assert result['content_length'].isdigit() and int(result['content_length']) == 0
+        # verify callback response
+        for result in contacted.values():
+            assert result['status'] == httplib.ACCEPTED
+            assert not result['changed']
+            assert 'failed' not in result, "Callback failed\n%s" % result
+            assert result['content_length'].isdigit() and int(result['content_length']) == 0
 
         # FIXME - assert 'Location' header points to launched job
         # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
@@ -251,12 +262,14 @@ class Test_Job_Template_Callback(Base_Api_Test):
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-        result = ansible_runner.uri(**args)
+        contacted = ansible_runner.uri(**args)
 
-        assert result['status'] == httplib.ACCEPTED
-        assert not result['changed']
-        assert 'failed' not in result, "Callback failed\n%s" % result
-        assert result['content_length'].isdigit() and int(result['content_length']) == 0
+        # verify callback response
+        for result in contacted.values():
+            assert result['status'] == httplib.ACCEPTED
+            assert not result['changed']
+            assert 'failed' not in result, "Callback failed\n%s" % result
+            assert result['content_length'].isdigit() and int(result['content_length']) == 0
 
         # FIXME - assert 'Location' header points to launched job
         # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
@@ -298,20 +311,21 @@ class Test_Job_Template_Callback(Base_Api_Test):
                         url=callback_url,
                         body="host_config_key=%s" % host_config_key,)
             args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-            result = ansible_runner.uri(**args)
-            print json.dumps(result)
+            contacted = ansible_runner.uri(**args)
 
-            if attempt == 0:
-                assert result['status'] == httplib.ACCEPTED
-                assert not result['changed']
-                assert 'failed' not in result, "First provisioning callback unexpectedly failed."
-                assert result['content_length'].isdigit() and int(result['content_length']) == 0
-                assert 'location' in result, "Missing expected 'location' in callback response."
-                assert re.search(r'%s[0-9]+/$' % api_jobs_url, result['location']), \
-                    "Unexpected format for 'location' header (%s)" % result['location']
-            else:
-                assert result['status'] == httplib.BAD_REQUEST
-                assert 'failed' in result, "Subsequent provisioning callback unexpectedly passed."
+            # assert callback response
+            for result in contacted.values():
+                if attempt == 0:
+                    assert result['status'] == httplib.ACCEPTED
+                    assert not result['changed']
+                    assert 'failed' not in result, "First provisioning callback unexpectedly failed."
+                    assert result['content_length'].isdigit() and int(result['content_length']) == 0
+                    assert 'location' in result, "Missing expected 'location' in callback response."
+                    assert re.search(r'%s[0-9]+/$' % api_jobs_url, result['location']), \
+                        "Unexpected format for 'location' header (%s)" % result['location']
+                else:
+                    assert result['status'] == httplib.BAD_REQUEST
+                    assert 'failed' in result, "Subsequent provisioning callback unexpectedly passed."
 
         # FIXME - assert 'Location' header points to launched job
         # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
@@ -365,14 +379,14 @@ class Test_Job_Template_Callback(Base_Api_Test):
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-        result = ansible_runner.uri(**args)
-        print json.dumps(result)
+        contacted = ansible_runner.uri(**args)
 
         # Assert successful callback
-        assert 'failed' not in result, "Callback failed\n%s" % result
-        assert 'status' in result, "Unexpected callback response"
-        assert result['status'] in [httplib.ACCEPTED, httplib.BAD_REQUEST]
-        assert not result['changed']
+        for result in contacted.values():
+            assert 'failed' not in result, "Callback failed\n%s" % result
+            assert 'status' in result, "Unexpected callback response"
+            assert result['status'] in [httplib.ACCEPTED, httplib.BAD_REQUEST]
+            assert not result['changed']
 
         # NOTE: We don't enforce that a matching system exists in the provided
         # cloud, so it's possible the callback fails to find a matching system.
@@ -424,14 +438,15 @@ class Test_Job_Template_Callback(Base_Api_Test):
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-        result = ansible_runner.uri(**args)
-        print result
+        contacted = ansible_runner.uri(**args)
 
-        assert result['status'] in [httplib.ACCEPTED, httplib.BAD_REQUEST]
-        assert 'failed' not in result, "Callback failed\n%s" % result
-        assert not result['changed']
-        # Note, for this test, it is expected that no host will match
-        assert result['json']['msg'] == 'No matching host could be found!'
+        # assert callback response
+        for result in contacted.values():
+            assert result['status'] in [httplib.ACCEPTED, httplib.BAD_REQUEST]
+            assert 'failed' not in result, "Callback failed\n%s" % result
+            assert not result['changed']
+            # Note, for this test, it is expected that no host will match
+            assert result['json']['msg'] == 'No matching host could be found!'
 
         assert cloud_group.get_related('hosts').count == 0, "Hosts found.  An inventory_update was unexpectedly triggered by the callback"
         assert cloud_group.get_related('children').count == 0, "Children found.  An inventory_update was unexpectedly triggered by the callback"

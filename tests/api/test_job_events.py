@@ -1,6 +1,5 @@
 import pytest
 import json
-import logging
 import common.tower
 import common.tower.inventory
 import common.utils
@@ -43,15 +42,15 @@ def import_inventory(request, authtoken, api_inventories_pg, organization, ansib
     request.addfinalizer(obj.delete)
 
     # Upload inventory script
-    copy = common.tower.inventory.upload_inventory(ansible_runner, nhosts=request.param)
+    dest = common.tower.inventory.upload_inventory(ansible_runner, nhosts=request.param)
 
     # Run awx-manage inventory_import
-    result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (obj.id, copy['dest']))
-    logging.info(result['stdout'])
+    contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (obj.id, dest))
 
     # Verify the import completed successfully
-    assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
-        % (result['stdout'], result['stderr'])
+    for result in contacted.values():
+        assert result['rc'] == 0, "awx-manage inventory_import failed: %s" \
+            % json.dumps(result, indent=2)
 
     return obj
 
