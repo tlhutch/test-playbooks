@@ -1,10 +1,14 @@
 import re
+import logging
 import pytest
 import json
 import uuid
 import urllib2
 import common.utils
 import common.exceptions
+
+
+log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="function")
@@ -185,6 +189,7 @@ inventory['{0}'] = list()
         host_name = re.sub(r"[\':]", "", u"host-%s" % common.utils.random_unicode())
         script += u"inventory['{0}'].append('{1}')\n".format(group_name, host_name)
     script += "print json.dumps(inventory)\n"
+    log.debug(script)
     return script
 
 
