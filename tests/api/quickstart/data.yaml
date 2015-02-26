@@ -71,14 +71,14 @@ users:
     - username: ansible_user
       email: ansible_user@ansible.com
       password: password
-      first_name: Bender
+      first_name: Ansible
       last_name: User
       is_superuser: False
 
     - username: ansible_admin
       email: ansible_admin@ansible.com
       password: password
-      first_name: Bender
+      first_name: Ansible
       last_name: Admin
       is_superuser: False
 
