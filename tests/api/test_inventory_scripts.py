@@ -246,7 +246,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         job_pg = jobs_pg.results[0].wait_until_completed()
 
         # assert successful inventory_update
-        assert job_pg.is_successful, "Inventory update unsuccessful - %s\n== script ==\n%s" % (job_pg, inventory_script.script)
+        assert job_pg.is_successful, "Inventory update unsuccessful - %s" % job_pg
 
         # assert imported groups
         inv_pg = custom_inventory_source_with_vars.get_related('inventory')
