@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='class')
-def license_instance_count(request, ansible_runner):
+def license_instance_count(request):
     '''Number of host instances permitted by the license'''
     return 20
 
@@ -113,7 +113,12 @@ def install_license_grace_period(request, ansible_runner, license_instance_count
 @pytest.fixture(scope='class')
 def ansible_ec2_facts(ansible_runner):
     '''This will only work on an ec2 system'''
-    return ansible_runner.ec2_facts().get('ansible_facts', {})
+    contacted = ansible_runner.ec2_facts()
+    if len(contacted) > 1:
+        log.warning("%d ec2_facts returned, but only returning the first" % len(contacted))
+    ec2_facts = contacted.values()[0]
+    assert 'ansible_facts' in ec2_facts
+    return ec2_facts['ansible_facts']
 
 
 @pytest.fixture(scope='class')
@@ -241,8 +246,9 @@ class Test_No_License(Base_Api_Test):
             api_config_pg.post(invalid_license_json)
 
         # Assert that /etc/tower/license does not exist
-        result = ansible_runner.stat(path=tower_license_path)
-        assert not result['stat']['exists'], "No license was expected, but one was found"
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            assert not result['stat']['exists'], "No license was expected, but one was found"
 
     def test_post_license_without_eula_accepted(self, api_config_pg, missing_eula_license_json):
         '''Verify failure while POSTing a license with no `eula_accepted` attribute.'''
@@ -259,15 +265,17 @@ class Test_No_License(Base_Api_Test):
     def test_post_license(self, api_config_pg, license_json, ansible_runner, tower_license_path):
         '''Verify that a license can be installed by issuing a POST to the /config endpoint'''
         # Assert that /etc/tower/license does not exist
-        result = ansible_runner.stat(path=tower_license_path)
-        assert not result['stat']['exists'], "No license was expected, but one was found"
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            assert not result['stat']['exists'], "No license was expected, but one was found"
 
         # Install the license
         api_config_pg.post(license_json)
 
         # Assert that /etc/tower/license was created
-        result = ansible_runner.stat(path=tower_license_path)
-        assert result['stat']['exists'], "A license was not succesfully installed to %s" % (tower_license_path)
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            assert result['stat']['exists'], "A license was not succesfully installed to %s" % (tower_license_path)
 
 
 @pytest.mark.api
@@ -320,23 +328,31 @@ class Test_AWS_License(Base_Api_Test):
         license.
         '''
         # Assert that /etc/tower/aws exists
-        result = ansible_runner.stat(path=tower_aws_path)
-        assert result['stat']['exists'], "A AWS license was expected, but none were found. %s" % result
+        contacted = ansible_runner.stat(path=tower_aws_path)
+        for result in contacted.values():
+            assert result['stat']['exists'], "A AWS license was expected, but none were found. %s" % result
 
         # Assert that /etc/tower/license does not exist
-        result = ansible_runner.stat(path=tower_license_path)
-        assert not result['stat']['exists'], "No license was expected, but one was found. %s" % result
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            assert not result['stat']['exists'], "No license was expected, but one was found. %s" % result
 
         # Record the license md5
-        result = ansible_runner.stat(path=tower_aws_path)
-        result['stat']['md5']
+        contacted = ansible_runner.stat(path=tower_aws_path)
+        for result in contacted.values():
+            before_md5 = result['stat']['md5']
 
         # Update the license
         api_config_pg.post(license_json)
 
         # Assert that /etc/tower/license was created
-        result = ansible_runner.stat(path=tower_license_path)
-        assert result['stat']['exists'], "A license was expected, but none were found. %s" % result
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            assert result['stat']['exists'], "A license was expected, but none were found. %s" % result
+            after_md5 = result['stat']['md5']
+
+        # Assert the license file changed
+        assert before_md5 != after_md5, "The license file was not modified as expected"
 
         # Assert the current license is NOT an aws license
         conf = api_config_pg.get()
@@ -417,15 +433,17 @@ class Test_License_Warning(Base_Api_Test):
     def test_update_license(self, api_config_pg, license_json, ansible_runner, tower_license_path):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
         # Record the license md5
-        result = ansible_runner.stat(path=tower_license_path)
-        before_md5 = result['stat']['md5']
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            before_md5 = result['stat']['md5']
 
         # Update the license
         api_config_pg.post(license_json)
 
         # Assert that /etc/tower/license was modified
-        result = ansible_runner.stat(path=tower_license_path)
-        after_md5 = result['stat']['md5']
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            after_md5 = result['stat']['md5']
         assert before_md5 != after_md5, "The license file was not modified as expected"
 
 
@@ -519,15 +537,19 @@ class Test_License_Expired(Base_Api_Test):
     def test_update_license(self, api_config_pg, license_json, ansible_runner, tower_license_path):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
         # Record the license md5
-        result = ansible_runner.stat(path=tower_license_path)
-        before_md5 = result['stat']['md5']
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            before_md5 = result['stat']['md5']
 
         # Update the license
         api_config_pg.post(license_json)
 
+        # Record the license md5
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            after_md5 = result['stat']['md5']
+
         # Assert that /etc/tower/license was modified
-        result = ansible_runner.stat(path=tower_license_path)
-        after_md5 = result['stat']['md5']
         assert before_md5 != after_md5, "The license file was not modified as expected"
 
 
@@ -576,13 +598,17 @@ class Test_Trial_License(Base_Api_Test):
     def test_update_license(self, api_config_pg, trial_license_json, ansible_runner, tower_license_path):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
         # Record the license md5
-        result = ansible_runner.stat(path=tower_license_path)
-        before_md5 = result['stat']['md5']
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            before_md5 = result['stat']['md5']
 
         # Update the license
         api_config_pg.post(trial_license_json)
 
+        # Record the license md5
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            after_md5 = result['stat']['md5']
+
         # Assert that /etc/tower/license was modified
-        result = ansible_runner.stat(path=tower_license_path)
-        after_md5 = result['stat']['md5']
         assert before_md5 != after_md5, "The license file was not modified as expected"
