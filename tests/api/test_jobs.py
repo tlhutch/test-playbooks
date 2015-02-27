@@ -203,7 +203,7 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
 
-    def test_job_env(self, ansible_runner, job_template_with_cloud_credential):
+    def test_job_env(self, job_template_with_cloud_credential):
         '''Verify that job_env has the expected cloud_credential variables'''
 
         # launch job
@@ -215,7 +215,6 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
         # assert successful completion of job
         assert job_pg.is_successful, "Job unsuccessful - %s " % job_pg
 
-        # assert the expected job_env variables are present
         # FIXME: assert the values are correct
         cred = job_pg.get_related('cloud_credential')
         if cred.kind == 'aws':
@@ -231,6 +230,7 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
         else:
             raise Exception("Unhandled cloud type: %s" % cred.kind)
 
+        # assert the expected job_env variables are present
         for required in required_envvars:
             assert required in job_pg.job_env, \
                 "Missing required %s environment variable (%s) in job_env.\n%s" % \
