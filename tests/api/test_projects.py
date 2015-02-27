@@ -265,17 +265,18 @@ class Test_Projects(Base_Api_Test):
         while attempts < 5 and num_pending != 0:
             attempts += 1
             time.sleep(5)
-            result = ansible_runner.shell(
+            contacted = ansible_runner.shell(
                 "echo \"from awx.main.models import *; "
                 "print UnifiedJob.objects.filter(status__in=['running','waiting','pending'], unified_job_template={id}).count(); "
                 "print ['id:%s, status:%s' % (uj.id, uj.status) for uj in UnifiedJob.objects.filter(unified_job_template={id})]; \" "
                 "| tower-manage shell".format(id=project_with_queued_updates.id)
             )
-            assert 'stdout' in result, "Unexpected response from ansible_runner.shell"
-            match = re.search(r'>>> (\d)\n', result['stdout'], re.MULTILINE)
-            if match is None or not match.group(1).isdigit():
-                raise Exception("Unhandled response from tower-manage: %s" % result['stdout'])
-            num_pending = match.group(1)
+            for result in contacted.values():
+                assert 'stdout' in result, "Unexpected response from ansible_runner.shell"
+                match = re.search(r'>>> (\d)\n', result['stdout'], re.MULTILINE)
+                if match is None or not match.group(1).isdigit():
+                    raise Exception("Unhandled response from tower-manage: %s" % result['stdout'])
+                num_pending = match.group(1)
 
         assert int(num_pending) == 0, \
             "A project (id:%d) was deleted, but %s project_update(s) remains queued/waiting/running (attempts:%s)" % \
