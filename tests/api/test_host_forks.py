@@ -60,12 +60,14 @@ EOF
     ansible_runner.copy(src=fname, dest=remote_fname, mode='0755')
 
     # Run awx-manage inventory_import
-    result = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s'
+    contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s'
                                   % (inventory.name, remote_fname))
 
     # Verify the import completed successfully
-    assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
-        % (result['stdout'], result['stderr'])
+    for result in contacted.values():
+        assert result['rc'] == 0, \
+            "awx-manage inventory_import failed: %s" % \
+            json.dumps(result, indent=2)
 
     return inventory
 

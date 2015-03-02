@@ -895,12 +895,14 @@ EOF
         ansible_runner.copy(src=fd.name, dest='/tmp/%s' % p.basename, mode='0755')
 
         # Run awx-manage inventory_import
-        result = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source /tmp/%s'
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source /tmp/%s'
                                       % (inventory.id, p.basename))
 
         # Verify the import completed successfully
-        assert result['rc'] == 0, "awx-manage inventory_import failed:\n[stdout]\n%s\n[stderr]\n%s" \
-            % (result['stdout'], result['stderr'])
+        for result in contacted.values():
+            assert result['rc'] == 0, \
+                "awx-manage inventory_import failed: %s" % \
+                json.dumps(result, indent=2)
 
         # The expected delta format is - H:MM:SS.SSSSS
         (hours, minutes, seconds) = result['delta'].split(':')
