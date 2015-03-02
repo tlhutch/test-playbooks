@@ -1,6 +1,6 @@
 ---
 $schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/users/\d+/permissions/'
+id: '/api/v1/\w+/\d+/permissions/'
 $ref: '#/definitions/permission'
 
 definitions:
