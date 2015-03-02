@@ -11,6 +11,7 @@ pytest-cache
 pytest-mozwebqa
 pytest-capturelog
 pytest-instafail
+pytest-ansible
 # pytest-jira # Don't install until we fix the pytest-jira plugin
 UnittestZero
 requests
@@ -25,4 +26,3 @@ pyrax==1.6.3
 # pysphere==0.1.8
 pysphere
 fauxfactory
-pytest-ansible
