@@ -6,6 +6,7 @@ class Team_Page(base.Base):
     # FIXME - it would be nice for base_url to always return self.json.url.
     base_url = '/api/v1/teams/{id}/'
     name = property(base.json_getter('name'), base.json_setter('name'))
+    type = property(base.json_getter('type'), base.json_setter('type'))
     description = property(base.json_getter('description'), base.json_setter('description'))
     organization = property(base.json_getter('organization'), base.json_setter('organization'))
 

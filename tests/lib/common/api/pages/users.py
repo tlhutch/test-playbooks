@@ -4,6 +4,7 @@ import base
 class User_Page(base.Base):
     # FIXME - it would be nice for base_url to always return self.json.url.
     base_url = '/api/v1/users/{id}/'
+    type = property(base.json_getter('type'), base.json_setter('type'))
     username = property(base.json_getter('username'), base.json_setter('username'))
     first_name = property(base.json_getter('first_name'), base.json_setter('first_name'))
     last_name = property(base.json_getter('last_name'), base.json_setter('last_name'))

@@ -1,0 +1,2 @@
+enum_permission_type:
+  enum: [read, write, admin, run, check, create]

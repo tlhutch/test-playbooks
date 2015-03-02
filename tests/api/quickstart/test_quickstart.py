@@ -127,7 +127,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_organization_get(self, api_organizations_pg, _organizations):
         org_page = api_organizations_pg.get(or__name=[o['name'] for o in _organizations])
-        assert len(_organizations) == len(org_page.results)
+        assert len(_organizations) == org_page.count
 
     @pytest.mark.destructive
     def test_users_post(self, api_users_pg, _user):
@@ -146,7 +146,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_users_get(self, api_users_pg, _users):
         user_page = api_users_pg.get(username__in=','.join([o['username'] for o in _users]))
-        assert len(_users) == len(user_page.results)
+        assert len(_users) == user_page.count
 
     @pytest.mark.destructive
     def test_organizations_add_users(self, api_users_pg, api_organizations_pg, _organization):
@@ -186,7 +186,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         org_pg = api_organizations_pg.get(name__exact=_team['organization']).results[0]
 
         payload = dict(name=_team['name'],
-                       description=_team['description'],
+                       description=_team.get('description', ''),
                        organization=org_pg.id)
         try:
             api_teams_pg.post(payload)
@@ -197,7 +197,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     def test_teams_get(self, api_teams_pg, _teams):
         teams = _teams
         team_page = api_teams_pg.get(name__in=','.join([o['name'] for o in teams]))
-        assert len(teams) == len(team_page.results)
+        assert len(teams) == team_page.count
 
     @pytest.mark.destructive
     def test_teams_add_users(self, api_users_pg, api_teams_pg, _team):
@@ -280,7 +280,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_credentials_get(self, api_credentials_pg, _credentials):
         credential_page = api_credentials_pg.get(or__name=[o['name'] for o in _credentials])
-        assert len(_credentials) == len(credential_page.results)
+        assert len(_credentials) == credential_page.count
 
     @pytest.mark.destructive
     def test_inventory_scripts_post(self, api_inventory_scripts_pg, api_organizations_pg, _inventory_script):
@@ -306,7 +306,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         api_inventory_scripts_pg.get(or__name=[o['name'] for o in _inventory_scripts])
 
         # Validate number of inventories found
-        assert len(_inventory_scripts) == len(api_inventory_scripts_pg.results)
+        assert len(_inventory_scripts) == api_inventory_scripts_pg.count
 
     @pytest.mark.destructive
     def test_inventories_post(self, api_inventories_pg, api_organizations_pg, _inventory):
@@ -333,7 +333,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         api_inventories_pg.get(or__name=[o['name'] for o in _inventories])
 
         # Validate number of inventories found
-        assert len(_inventories) == len(api_inventories_pg.results)
+        assert len(_inventories) == api_inventories_pg.count
 
     @pytest.mark.destructive
     def test_groups_post(self, api_groups_pg, api_inventories_pg, _group):
@@ -367,7 +367,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         api_groups_pg.get(name__in=','.join([o['name'] for o in groups]), not__description="imported")
 
         # Validate number of inventories found
-        assert len(groups) == len(api_groups_pg.results)
+        assert len(groups) == api_groups_pg.count
 
     @pytest.mark.destructive
     def test_hosts_post(self, api_hosts_pg, api_inventories_pg, _host):
@@ -591,7 +591,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_projects_get(self, api_projects_pg, _projects):
         api_projects_pg.get(or__name=[o['name'] for o in _projects])
-        assert len(_projects) == len(api_projects_pg.results)
+        assert len(_projects) == api_projects_pg.count
 
     @pytest.mark.destructive
     def test_projects_update(self, api_projects_pg, api_organizations_pg, _project):
@@ -677,6 +677,43 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             with pytest.raises(NoContent_Exception):
                 project_related_pg.post(payload)
 
+    @pytest.mark.destructive
+    def test_permissions_post(self, api_users_pg, api_teams_pg, api_inventories_pg, api_projects_pg, api_job_templates_pg, _permission):
+
+        # locate desired user/team resource
+        if 'user' in _permission:
+            matches = api_users_pg.get(name__iexact=_permission['user']).results
+        elif 'team' in _permission:
+            matches = api_teams_pg.get(name__iexact=_permission['team']).results
+
+        # assert number of matches
+        assert len(matches) == 1
+        obj_pg = matches[0]
+        related_pg = obj_pg.get_related('permissions')
+
+        # build payload
+        payload = _permission
+        if obj_pg.type == 'team':
+            payload['team'] = obj_pg.id
+        elif obj_pg.type == 'user':
+            payload['user'] = obj_pg.id
+
+        for (attr, endpoint) in (('inventory', api_inventories_pg),
+                                 ('project', api_projects_pg),
+                                 ('job_template', api_job_templates_pg)):
+            if attr in payload:
+                matches = endpoint.get(name=payload[attr])
+                assert matches.count == 1, \
+                    "Unexpected number of %s found matching name:%s" % \
+                    (attr, payload[attr])
+                payload[attr] = matches.results[0].id
+
+        # post permission
+        try:
+            related_pg.post(payload)
+        except Duplicate_Exception, e:
+            pytest.xfail(str(e))
+
     @pytest.mark.jira('AC-641', run=True)
     @pytest.mark.destructive
     def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg,
@@ -700,17 +737,19 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         limit = _job_template.get('limit', '').format(**ansible_facts)
 
         # Create a new job_template
-        payload = dict(name=_job_template['name'],
-                       description=_job_template.get('description', None),
-                       job_type=_job_template['job_type'],
-                       playbook=_job_template['playbook'],
-                       job_tags=_job_template.get('job_tags', ''),
-                       limit=limit,
-                       inventory=inventory_id,
-                       project=project_id,
-                       allow_callbacks=_job_template.get('allow_callbacks', False),
-                       verbosity=_job_template.get('verbosity', 0),
-                       forks=_job_template.get('forks', 0))
+        payload = dict(
+            name=_job_template['name'],
+            description=_job_template.get('description', None),
+            job_type=_job_template['job_type'],
+            playbook=_job_template['playbook'],
+            job_tags=_job_template.get('job_tags', ''),
+            limit=limit,
+            inventory=inventory_id,
+            project=project_id,
+            allow_callbacks=_job_template.get('allow_callbacks', False),
+            verbosity=_job_template.get('verbosity', 0),
+            forks=_job_template.get('forks', 0)
+        )
 
         if 'extra_vars' in _job_template:
             payload['extra_vars'] = json.dumps(_job_template.get('extra_vars'))
@@ -718,7 +757,11 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Add credential identifiers
         for cred in ('credential', 'cloud_credential'):
             if cred in _job_template:
-                payload[cred] = api_credentials_pg.get(name__iexact=_job_template[cred]).results[0].id
+                matches = api_credentials_pg.get(name__iexact=_job_template[cred])
+                assert matches.count == 1, \
+                    "Unexpected number of matching credentials " \
+                    "found (%d != %d)" % (1, matches.count)
+                payload[cred] = matches.results[0].id
 
         try:
             api_job_templates_pg.post(payload)
@@ -728,7 +771,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_job_templates_get(self, api_job_templates_pg, _job_templates):
         api_job_templates_pg.get(or__name=[o['name'] for o in _job_templates])
-        assert len(_job_templates) == len(api_job_templates_pg.results)
+        assert len(_job_templates) == api_job_templates_pg.count
 
     @pytest.mark.destructive
     def test_jobs_launch(self, api_job_templates_pg, api_jobs_pg, _job_template):
@@ -739,13 +782,17 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Find desired object identifiers
         template_pg = api_job_templates_pg.get(name__iexact=_job_template['name']).results[0]
 
-        # Create the job
-        payload = dict(name=template_pg.name,  # Add Date?
-                       job_template=template_pg.id,
-                       inventory=template_pg.inventory,
-                       project=template_pg.project,
-                       playbook=template_pg.playbook,
-                       credential=template_pg.credential,)
+        # Build payload
+        payload = dict(
+            name=template_pg.name,  # Add Date?
+            job_template=template_pg.id,
+            inventory=template_pg.inventory,
+            project=template_pg.project,
+            playbook=template_pg.playbook,
+            credential=template_pg.credential
+        )
+
+        # Post the job
         job_pg = api_jobs_pg.post(payload)
 
         # Determine if job is able to start

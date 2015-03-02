@@ -1,34 +1,38 @@
----
 permission:
-    type: object
-    required: [ id, url, created, modified, name, description, user, team, project, inventory, permission_type, related, summary_fields, type]
-    additionalProperties: false
-    properties:
-        type: {type: string, pattern: ^permission$}
-        id: { type: number, minimum: 1, }
-        url: { type: string, format: uri, }
-        created:  { type: string, format: date-time, }
-        modified: { type: string, format: date-time, }
-        name: { type: string }
-        description: { type: string }
-        user: { $ref: '#/definitions/id_or_null' }
-        team: { $ref: '#/definitions/id_or_null' }
-        project: { $ref: '#/definitions/id_or_null' }
-        inventory: { $ref: '#/definitions/id_or_null' }
-        permission_type: { $ref: '#/definitions/enum_permission_type' }
-        related:
-            type: object
-            additionalProperties: false
-            properties:
-                user: { type: string, format: uri, }
-                team: { type: string, format: uri, }
-                inventory: { type: string, format: uri, }
-                project: { type: string, format: uri, }
-        summary_fields:
-            type: object
-            additionalProperties: false
-            properties:
-                user: { type: object, }
-                team: { type: object, }
-                inventory: { type: object, }
-                project: { type: object, }
+  additionalProperties: false
+  properties:
+    created: {format: date-time, type: string}
+    description: {type: string}
+    id: {minimum: 1, type: number}
+    inventory: {$ref: '#/definitions/id_or_null'}
+    modified: {format: date-time, type: string}
+    name: {type: string}
+    permission_type: {$ref: '#/definitions/enum_permission_type'}
+    project: {$ref: '#/definitions/id_or_null'}
+    related:
+      additionalProperties: false
+      properties:
+        created_by: {format: uri, type: string}
+        inventory: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
+        project: {format: uri, type: string}
+        team: {format: uri, type: string}
+        user: {format: uri, type: string}
+      type: object
+    summary_fields:
+      additionalProperties: false
+      properties:
+        created_by: { $ref: '#/definitions/summary_fields_user' }
+        inventory: { $ref: '#/definitions/summary_fields_inventory' }
+        modified_by: { $ref: '#/definitions/summary_fields_user' }
+        project: { $ref: '#/definitions/summary_fields_project' }
+        team: { $ref: '#/definitions/summary_fields_team' }
+        user: { $ref: '#/definitions/summary_fields_user' }
+      type: object
+    team: {$ref: '#/definitions/id_or_null'}
+    type: {pattern: ^permission$, type: string}
+    url: {format: uri, type: string}
+    user: {$ref: '#/definitions/id_or_null'}
+  required: [id, url, created, modified, name, description, user, team, project, inventory,
+    permission_type, related, summary_fields, type]
+  type: object
