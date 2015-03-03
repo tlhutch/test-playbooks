@@ -51,7 +51,12 @@ directory of the repository.
    following command.  Note, it's more common to limit test execution with
    either the `-m` and/or `-k` parameters.
 
-        py.test --ansible-inventory=playbooks/inventory.tower --baseurl https://tower.example.com --destructive tests/
+        py.test \
+            --ansible-inventory=playbooks/inventory.tower \
+            --ansible-host-pattern=tower.example.com \
+            --baseurl https://tower.example.com \
+            --destructive \
+            tests
 
 ## Recommended Reading
 
