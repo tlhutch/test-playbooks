@@ -56,6 +56,9 @@
         Name: '{{ec2_name_prefix}}-{{item.name}}'
         ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
     wait: yes
+    volumes:
+        - device_name: /dev/sda
+          delete_on_termination: true
   with_items: ec2_images
   register: ec2
 
