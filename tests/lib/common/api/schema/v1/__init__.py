@@ -634,6 +634,18 @@ class Awx_Schema_Job_Start(Awx_Schema):
         return self.load_file('empty.yml')
 
 
+class Awx_Schema_Job__Relaunch(Awx_Schema):
+    resource = '/api/v1/jobs/\d+/relaunch/'
+
+    @property
+    def get(self):
+        return self.load_file('jobs/relaunch.yml')
+
+    @property
+    def post(self):
+        return self.load_file('jobs/relaunched.yml')
+
+
 class Awx_Schema_Job_Events(Awx_Schema):
     resource = '/api/v1/jobs/\d+/job_events/'
 

@@ -1,0 +1,11 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/jobs/\d+/relaunch/'
+type: object
+additionalProperties: false
+required: [passwords_needed_to_start]
+properties:
+  passwords_needed_to_start:
+    $ref: '#/definitions/passwords_needed_to_start'
+definitions:
+    !include '../definitions/*_needed_to_start.yml'
