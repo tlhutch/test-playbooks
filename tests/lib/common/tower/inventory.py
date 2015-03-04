@@ -22,7 +22,8 @@ EOF''' % json_inventory(nhosts)
     # Copy script to test system
     contacted = ansible_runner.copy(dest=copy_dest, force=True, mode=copy_mode, content=copy_content)
     for result in contacted.values():
-        assert 'failed' not in result, "Failed to create inventory file: %s" % results
+        assert 'failed' not in result, \
+            "Failed to create inventory file: %s" % result
     return copy_dest
 
 

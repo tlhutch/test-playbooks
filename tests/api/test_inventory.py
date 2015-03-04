@@ -357,7 +357,7 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         assert import_inventory.get_related('hosts').count == 100
 
         # Run second awx-manage inventory_import
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s --overwrite' % (import_inventory.name, copy['dest']))
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s --overwrite' % (import_inventory.name, dest))
         for result in contacted.values():
             # Verify the import completed successfully
             assert result['rc'] == 0, "awx-manage inventory_import " \
@@ -369,7 +369,7 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
             second_import = float(seconds) + 60 * float(minutes) + 60 * 60 * float(hours)
 
         # Run third awx-manage inventory_import
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, copy['dest']))
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
         for result in contacted.values():
             # Verify the import completed successfully
             assert result['rc'] == 0, "awx-manage inventory_import " \

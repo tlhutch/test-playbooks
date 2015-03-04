@@ -60,8 +60,10 @@ EOF
     ansible_runner.copy(src=fname, dest=remote_fname, mode='0755')
 
     # Run awx-manage inventory_import
-    contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s'
-                                  % (inventory.name, remote_fname))
+    contacted = ansible_runner.shell(
+        "awx-manage inventory_import --inventory-name %s --source %s"
+        % (inventory.name, remote_fname)
+    )
 
     # Verify the import completed successfully
     for result in contacted.values():

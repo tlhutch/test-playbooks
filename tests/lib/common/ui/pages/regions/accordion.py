@@ -1,5 +1,5 @@
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait  # NOQA
 from common.ui.pages import BaseRegion
 from common.ui.pages.regions.buttons import Add_Button
 from common.ui.pages.regions.lists import SortTable_Region

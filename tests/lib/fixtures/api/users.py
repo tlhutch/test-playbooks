@@ -13,20 +13,6 @@ def user_password(request):
 
 
 @pytest.fixture(scope="function")
-def superuser(request, authtoken, organization, user_password):
-    payload = dict(username="super_user_%s" % common.utils.random_ascii(),
-                   first_name="Super (%s)" % common.utils.random_unicode(),
-                   last_name="User (%s)" % common.utils.random_unicode(),
-                   email="super_user_%s@example.com" % common.utils.random_ascii(),
-                   password=user_password,
-                   organization=organization.id,
-                   is_superuser=True)
-    obj = organization.get_related('admins').post(payload)
-    request.addfinalizer(obj.delete)
-    return obj
-
-
-@pytest.fixture(scope="function")
 def org_admin(request, authtoken, organization, user_password):
     payload = dict(username="org_admin_%s" % common.utils.random_ascii(),
                    first_name="Joe (%s)" % common.utils.random_unicode(),

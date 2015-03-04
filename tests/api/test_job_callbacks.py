@@ -182,7 +182,10 @@ class Test_Job_Template_Callback(Base_Api_Test):
             assert result['failed']
             assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
-    def test_launch_with_variables_needed_to_start(self, ansible_runner, job_template_variables_needed_to_start, host_ipv4, host_config_key, ansible_default_ipv4):
+    def test_launch_with_variables_needed_to_start(
+        self, ansible_runner, job_template_variables_needed_to_start,
+        host_ipv4, host_config_key, ansible_default_ipv4
+    ):
         '''Verify launch failure when launching a job_template that has required survey variables.'''
         # assert callback
         job_template_variables_needed_to_start.patch(host_config_key=host_config_key)
@@ -352,7 +355,10 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # Assert the affected host matches expected
         assert host_summaries_pg.results[0].host == host_ipv4.id
 
-    def test_launch_with_inventory_update(self, api_jobs_url, ansible_runner, job_template, host_config_key, cloud_group, ansible_default_ipv4, tower_version_cmp):
+    def test_launch_with_inventory_update(
+        self, api_jobs_url, ansible_runner, job_template, host_config_key,
+        cloud_group, ansible_default_ipv4, tower_version_cmp
+    ):
         '''Assert that a callback job against a job_template also initiates an inventory_update (when configured).'''
 
         if tower_version_cmp('2.0.0') < 0:

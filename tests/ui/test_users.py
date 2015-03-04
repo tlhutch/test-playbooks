@@ -311,7 +311,8 @@ class Test_Users(Base_UI_Test):
 
         # assert disassociation
         assert region.table.find_row('name', permission.name) is None, \
-            "Permission (%s) unexpectedly associated with user (%s)" % (permission.name, anonymous_user.name)
+            "Permission (%s) unexpectedly associated with user (%s)" % \
+            (permission.name, anonymous_user.name)
 
         # associate
         add_pg = region.add_btn.click()

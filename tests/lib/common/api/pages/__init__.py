@@ -1,18 +1,18 @@
 # Order matters
-from page import *
-from base import *
-from organizations import *
-from users import *
-from teams import *
-from credentials import *
-from unified_jobs import *
-from unified_job_templates import *
-from projects import *
-from inventory import *
-from system_job_templates import *
-from job_templates import *
-from jobs import *
-from config import *
-from dashboard import *
-from activity_stream import *
-from schedules import *
+from page import *  # NOQA
+from base import *  # NOQA
+from organizations import *  # NOQA
+from users import *  # NOQA
+from teams import *  # NOQA
+from credentials import *  # NOQA
+from unified_jobs import *  # NOQA
+from unified_job_templates import *  # NOQA
+from projects import *  # NOQA
+from inventory import *  # NOQA
+from system_job_templates import *  # NOQA
+from job_templates import *  # NOQA
+from jobs import *  # NOQA
+from config import *  # NOQA
+from dashboard import *  # NOQA
+from activity_stream import *  # NOQA
+from schedules import *  # NOQA

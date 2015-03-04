@@ -1,5 +1,5 @@
 from selenium.webdriver.common.by import By
-from common.ui.pages import *
+from common.ui.pages import PageRegion
 from common.ui.pages.regions.main_menu import Main_Menu
 from common.ui.pages.regions.account_menu import Account_Menu
 from common.ui.pages.regions.mobile_menu import Mobile_Menu

@@ -337,9 +337,9 @@ class Test_Group(Base_Api_Test):
         total_group_hosts = group.get_related('hosts').count
         total_group_all_hosts = group.get_related('all_hosts').count
         # FIXME - Count the number of children that exist *only* in this group
-        total_exclusive_group_children = total_group_children
+        total_exclusive_group_children = total_group_children  # NOQA
         # FIXME - Count the number of hosts that exist *only* in this group
-        total_exclusive_group_hosts = total_group_hosts
+        total_exclusive_group_hosts = total_group_hosts  # NOQA
         if parent_group is not None:
             total_parent_children = parent_group.get_related('children').count
             total_parent_hosts = parent_group.get_related('hosts').count
@@ -395,13 +395,13 @@ class Test_Group(Base_Api_Test):
 
         # decord data on inventory
         total_inv_groups = non_root_variation.get_related('groups').count
-        total_matching_groups = non_root_variation.get_related('groups', name=group.name).count
+        total_matching_groups = non_root_variation.get_related('groups', name=group.name).count  # NOQA
         total_inv_root_groups = non_root_variation.get_related('root_groups').count
-        total_matching_root_groups = non_root_variation.get_related('root_groups', name=group.name).count
+        total_matching_root_groups = non_root_variation.get_related('root_groups', name=group.name).count  # NOQA
         total_inv_hosts = non_root_variation.get_related('hosts').count
         # record data on group
-        total_group_children = group.get_related('children').count
-        total_group_hosts = group.get_related('hosts').count
+        total_group_children = group.get_related('children').count  # NOQA
+        total_group_hosts = group.get_related('hosts').count  # NOQA
         total_group_all_hosts = group.get_related('all_hosts').count
         # record data on parent_group (optional)
         if parent_group is not None:
@@ -457,13 +457,13 @@ class Test_Group(Base_Api_Test):
 
         # decord data on inventory
         total_inv_groups = root_variation.get_related('groups').count
-        total_matching_groups = root_variation.get_related('groups', name=group.name).count
+        total_matching_groups = root_variation.get_related('groups', name=group.name).count  # NOQA
         total_inv_root_groups = root_variation.get_related('root_groups').count
         total_matching_root_groups = root_variation.get_related('root_groups', name=group.name).count
         total_inv_hosts = root_variation.get_related('hosts').count
         # record data on group
-        total_group_children = group.get_related('children').count
-        total_group_hosts = group.get_related('hosts').count
+        total_group_children = group.get_related('children').count  # NOQA
+        total_group_hosts = group.get_related('hosts').count  # NOQA
         total_group_all_hosts = group.get_related('all_hosts').count
         # record data on dest_group
         total_dest_group_children = dest_group.get_related('children').count
@@ -533,13 +533,13 @@ class Test_Group(Base_Api_Test):
 
         # decord data on inventory
         total_inv_groups = non_root_variation.get_related('groups').count
-        total_matching_groups = non_root_variation.get_related('groups', name=group.name).count
+        total_matching_groups = non_root_variation.get_related('groups', name=group.name).count  # NOQA
         total_inv_root_groups = non_root_variation.get_related('root_groups').count
         total_matching_root_groups = non_root_variation.get_related('root_groups', name=group.name).count
         total_inv_hosts = non_root_variation.get_related('hosts').count
         # record data on group
-        total_group_children = group.get_related('children').count
-        total_group_hosts = group.get_related('hosts').count
+        total_group_children = group.get_related('children').count  # NOQA
+        total_group_hosts = group.get_related('hosts').count  # NOQA
         total_group_all_hosts = group.get_related('all_hosts').count
         # record data on dest_group
         total_dest_group_children = dest_group.get_related('children').count
