@@ -1,13 +1,8 @@
-'''conftest.py
-
-1) Update sys.path to include 'tests/lib'
-2) Automatically import a number of pytest plugins and fixtures
-'''
+'''Configuration for pytest plugins and fixtures'''
 
 import os
 import sys
 import pkgutil
-
 
 # Add tests/lib directory to path
 conftest_dir = os.path.dirname(__file__)
