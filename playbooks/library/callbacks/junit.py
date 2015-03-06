@@ -29,7 +29,7 @@ import xml.etree.ElementTree as ET
 
 
 class JUnitFile(object):
-    def __init__(self, filename=os.environ.get('JUNIT_CALLBACK_PATH', 'playbook-results.xml'), append=False):
+    def __init__(self, filename=os.environ.get('JUNIT_CALLBACK_PATH', 'results.xml'), append=False):
         self.filename = filename
         self.plays = list()
 
