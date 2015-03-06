@@ -26,3 +26,4 @@ pyrax==1.6.3
 # pysphere==0.1.8
 pysphere
 fauxfactory
+junit-xml
