@@ -104,7 +104,9 @@ class JUnitFile(object):
             assert res_end is not None
             startd = datetime.datetime.strptime(res_start, "%Y-%m-%d %H:%M:%S.%f")
             endd = datetime.datetime.strptime(res.get('end', res.get('stop')), "%Y-%m-%d %H:%M:%S.%f")
-            test_case.elapsed_sec = (endd - startd).total_seconds()
+            diff = endd - startd
+            # timedelta.total_seconds() does not work on py26
+            test_case.elapsed_sec = (diff.microseconds + (diff.seconds + diff.days*24*3600) * 1e6) / 1e6
 
         self.current_play.test_cases.append(test_case)
         return test_case
