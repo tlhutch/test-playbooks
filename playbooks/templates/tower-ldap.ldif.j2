@@ -20,20 +20,28 @@ objectClass: top
 objectClass: organizationalUnit
 ou: groups
 
+# group: Superusers
+
+dn: cn=superusers,ou=groups,{{ dn_suffix() }}
+objectClass: top
+objectClass: groupOfNames
+cn: superusers
+member: cn=super_user1,ou=people,{{ dn_suffix() }}
+
 # group: Engineering
 
 dn: cn=engineering,ou=groups,{{ dn_suffix() }}
 objectClass: top
 objectClass: groupOfNames
-cn: Engineering Users
+cn: engineering
 member: cn=eng_admin1,ou=people,{{ dn_suffix() }}
 member: cn=eng_user1,ou=people,{{ dn_suffix() }}
 member: cn=eng_user2,ou=people,{{ dn_suffix() }}
 
-dn: cn=admins,ou=groups,{{ dn_suffix() }}
+dn: cn=engineering_admins,ou=groups,{{ dn_suffix() }}
 objectClass: top
 objectClass: groupOfNames
-cn: Admin Users
+cn: engineering_admins
 member: cn=eng_admin1,ou=people,{{ dn_suffix() }}
 
 # group: Sales
@@ -41,7 +49,7 @@ member: cn=eng_admin1,ou=people,{{ dn_suffix() }}
 dn: cn=sales,ou=groups,{{ dn_suffix() }}
 objectClass: top
 objectClass: groupOfNames
-cn: Sales Users
+cn: sales
 member: cn=sales_user1,ou=people,{{ dn_suffix() }}
 member: cn=sales_user2,ou=people,{{ dn_suffix() }}
 
@@ -50,7 +58,7 @@ member: cn=sales_user2,ou=people,{{ dn_suffix() }}
 dn: cn=it,ou=groups,{{ dn_suffix() }}
 objectClass: top
 objectClass: groupOfNames
-cn: IT Users
+cn: it
 member: cn=it_user1,ou=people,{{ dn_suffix() }}
 member: cn=it_user2,ou=people,{{ dn_suffix() }}
 
@@ -61,6 +69,19 @@ dn: ou=people,{{ dn_suffix() }}
 objectClass: top
 objectClass: organizationalUnit
 ou: people
+
+# users - superusers
+
+dn: cn=super_user1,ou=people,{{ dn_suffix() }}
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: super_user1
+sn: User 1
+givenName: Super
+mail: super_user1@{{ openldap_server_domain_name }}
+userPassword: password
 
 # users - engineering
 

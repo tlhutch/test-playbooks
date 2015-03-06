@@ -29,11 +29,11 @@ LOGGING['loggers']['django_auth_ldap']['level'] = 'INFO'
 AUTH_LDAP_SERVER_URI = 'ldap://localhost'
 
 # DN (Distinguished Name) of user to bind for all search queries. Normally in the format
-# "CN=Some User,OU=Users,DC=example,DC=com" but may also be specified as
+# "cn=Some User,ou=Users,dc=example,dc=com" but may also be specified as
 # "DOMAIN\username" for Active Directory. This is the system user account 
 # we will use to login to query LDAP for other user information.
 
-AUTH_LDAP_BIND_DN = 'CN=Manager,DC=example,DC=com'
+AUTH_LDAP_BIND_DN = 'cn=Manager,dc=example,dc=com'
 
 # Password using to bind above user account.
 
@@ -53,9 +53,9 @@ AUTH_LDAP_START_TLS = True
 # python-ldap documentation as linked at the top of this section.
 
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
-    'OU=people,DC=example,DC=com',   # Base DN
+    'ou=people,dc=example,dc=com',   # Base DN
     ldap.SCOPE_SUBTREE,             # SCOPE_BASE, SCOPE_ONELEVEL, SCOPE_SUBTREE
-    '(CN=%(user)s)',    # Query
+    '(cn=%(user)s)',    # Query
 )
 
 # Alternative to user search, if user DNs are all of the same format. This will be
@@ -63,7 +63,7 @@ AUTH_LDAP_USER_SEARCH = LDAPSearch(
 # environment. If this setting has a value it will be used instead of AUTH_LDAP_USER_SEARCH
 # above.
 
-# AUTH_LDAP_USER_DN_TEMPLATE = 'cn=%(user)s,OU=people,DC=example,DC=com'
+# AUTH_LDAP_USER_DN_TEMPLATE = 'cn=%(user)s,ou=people,dc=example,dc=com'
 
 # Mapping of LDAP user schema to AWX API user atrributes (key is user attribute name, value is LDAP
 # attribute name).  The default setting in this configuration file is valid for ActiveDirectory but
@@ -80,7 +80,7 @@ AUTH_LDAP_USER_ATTR_MAP = {
 # the LDAP search query to find groups. Note that this, unlike the user search above, does not support LDAPSearchUnion.
 
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
-    'DC=example,DC=com',    # Base DN
+    'dc=example,dc=com',    # Base DN
     ldap.SCOPE_SUBTREE,     # SCOPE_BASE, SCOPE_ONELEVEL, SCOPE_SUBTREE
     '(objectClass=groupOfNames)',  # Query
 )
@@ -112,7 +112,7 @@ AUTH_LDAP_GROUP_TYPE = GroupOfNamesType()
 # time based on current LDAP settings.
 
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    #'is_superuser': 'CN=Domain Admins,CN=Users,DC=example,DC=com',
+    'is_superuser': 'cn=superusers,ou=groups,dc=example,dc=com',
 }
 
 # Mapping between organization admins/users and LDAP groups. This controls what
@@ -136,15 +136,15 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
 
 AUTH_LDAP_ORGANIZATION_MAP = {
     'LDAP Organization': {
-        'admins': 'CN=engineering_admins,OU=groups,DC=example,DC=com',
-        'users': ['CN=engineering,OU=groups,DC=example,DC=com',
-                  'CN=sales,OU=groups,DC=example,DC=com',
-                  'CN=it,OU=groups,DC=example,DC=com',],
+        'admins': 'cn=engineering_admins,ou=groups,dc=example,dc=com',
+        'users': ['cn=engineering,ou=groups,dc=example,dc=com',
+                  'cn=sales,ou=groups,dc=example,dc=com',
+                  'cn=it,ou=groups,dc=example,dc=com',],
         'remove_users' : False,
         'remove_admins' : False,
     },
     #'Test Org 2': {
-    #    'admins': ['CN=Administrators,CN=Builtin,DC=example,DC=com'],
+    #    'admins': ['cn=Administrators,cn=Builtin,dc=example,dc=com'],
     #    'users': True,
     #    'remove_users' : False,
     #    'remove_admins' : False,
@@ -169,17 +169,17 @@ AUTH_LDAP_ORGANIZATION_MAP = {
 AUTH_LDAP_TEAM_MAP = {
     'LDAP Engineering': {
         'organization': 'LDAP Organization',
-        'users': 'CN=engineering,OU=groups,DC=example,DC=com',
+        'users': 'cn=engineering,ou=groups,dc=example,dc=com',
         'remove': True,
     },
     'LDAP IT': {
         'organization': 'LDAP Organization',
-        'users': 'CN=it,OU=groups,DC=example,DC=com',
+        'users': 'cn=it,ou=groups,dc=example,dc=com',
         'remove': True,
     },
     'LDAP Sales': {
         'organization': 'LDAP Organization',
-        'users': 'CN=sales,OU=groups,DC=example,DC=com',
+        'users': 'cn=sales,ou=groups,dc=example,dc=com',
         'remove': True,
     },
 }
