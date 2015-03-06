@@ -56,12 +56,11 @@
         Name: '{{ec2_name_prefix}}-{{item.name}}'
         ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
     wait: yes
-    volumes:
-        - device_type: gp2
-        #  device_name: /dev/sda1
-          device_name: /dev/sda
-          volume_size: 10
-          delete_on_termination: true
+#    volumes:
+#        - device_type: gp2
+#          device_name: /dev/sda1
+#          volume_size: 10
+#          delete_on_termination: true
   with_items: ec2_images
   register: ec2
 
