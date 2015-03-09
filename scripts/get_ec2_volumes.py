@@ -16,16 +16,16 @@ def parse_args():
     parser.add_option("--key", action="store", dest="key",
                       default=os.environ.get('AWS_SECRET_KEY', None),
                       help="Amazon ec2 access key")
-    parser.add_option("--uptime", action="store", dest="uptime",
+    parser.add_option("--age", action="store", dest="age",
                       default=None, type="int",
-                      help="Only show instances with uptime greater than the value provided (default: %default)")
+                      help="Only show volumes with age greater than the value provided (default: %default)")
     parser.add_option("--filter", action="append", dest="filters",
                       default=[],
-                      help="Instance filters")
+                      help="Volume filters")
 
-    actions = ['stop', 'terminate']
+    actions = ['get', 'delete']
     parser.add_option("--action", action="store", dest="action",
-                      default=None, choices=actions,
+                      default=actions[0], choices=actions,
                       help="Perform the specified operation on matching instances (choices: %s)" % ', '.join(actions))
 
     # Parse args
@@ -63,24 +63,23 @@ if __name__ == '__main__':
             print "Failed to connect to region:%s, ignoring." % region.name
             continue
 
-        reservations = conn.get_all_instances(filters=opts.filters)
-        instances = [i for r in reservations for i in r.instances]
-        if instances:
-            print "== Instances [region:%s] ==" % region.name
-            for i in instances:
+        volumes = conn.get_all_volumes(filters=opts.filters)
+        if volumes:
+            print "== Volumes [region:%s] ==" % region.name
+            for vol in volumes:
                 # Using dateutil.parser results in tzoffset problems when comparing times
-                # launch_time = dateutil.parser.parse(i.launch_time)
-                launch_time = datetime.strptime(i.launch_time, "%Y-%m-%dT%H:%M:%S.%fZ")
-                if opts.uptime is None or (utcnow - launch_time) > timedelta(hours=opts.uptime):
-                    print " * %s %s (%s) %s" % (i.id, i.public_dns_name, i.launch_time,
-                                                ', '.join(["%s=%s" % item for item in i.tags.items()]))
-                    if opts.action is not None and hasattr(i, opts.action):
-                        getattr(i, opts.action)()
-                        print " ... %s" % opts.action
-                        total_action += 1
+                # create_time = dateutil.parser.parse(vol.create_time)
+                create_time = datetime.strptime(vol.create_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+                if opts.age is None or (utcnow - create_time) > timedelta(hours=opts.age):
+                    print " * %s %s/%s (%s) %s" % (vol.id, vol.status, \
+                        vol.attachment_state(), vol.create_time, \
+                        ', '.join(["%s=%s" % item for item in vol.tags.items()]))
+
+                if opts.action is not None and hasattr(vol, opts.action):
+                    getattr(vol, opts.action)()
+                    print " ... %s" % opts.action
+                    total_action += 1
 
     # Display summary
-    if opts.action and opts.action == 'terminate':
-        print "Instances terminated: %s" % total_action
-    if opts.action and opts.action == 'stop':
-        print "Instances stopped: %s" % total_action
+    if opts.action and opts.action == 'delete':
+        print "Volumes deleted: %s" % total_action
