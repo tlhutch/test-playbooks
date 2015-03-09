@@ -37,13 +37,14 @@ class Table_Region(PageRegion):
         # Sanitize the provided value
         value = self._convert_header(value)
 
-        if contains:
-            matching_cell_filter = lambda cell_text, value: value in cell_text
-        else:
-            matching_cell_filter = lambda cell_text, value: cell_text == value
+        def is_cell_match(cell_text, value, contains=False):
+            if contains:
+                return value in cell_text
+            else:
+                return cell_text == value
 
         for cell in self.header:
-            if matching_cell_filter(self._convert_header(cell.text), value):
+            if is_cell_match(self._convert_header(cell.text), value):
                 return cell
 
         assert False, "No header found matching '%s'" % value
@@ -109,14 +110,16 @@ class Table_Region(PageRegion):
         # names and expected values easy
         rows = [Table_Region.Row(self.testsetup, _root_element=el, _table=self) for el in rows_elements]
 
+        def is_cell_match(row, heading, value, contains=False):
+            if contains:
+                return value in row[heading].text
+            else:
+                return row[heading].text == value
+
         # Only include rows where the expected values are in the right columns
         matching_rows = list()
-        if contains:
-            matching_row_filter = lambda heading, value: value in row[heading].text
-        else:
-            matching_row_filter = lambda heading, value: row[heading].text == value
         for row in rows:
-            if all(matching_row_filter(*cell) for cell in cells.items()):
+            if all(is_cell_match(row, *cell) for cell in cells.items()):
                 matching_rows.append(row)
 
         return matching_rows
