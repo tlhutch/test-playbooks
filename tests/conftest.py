@@ -10,13 +10,12 @@ lib_dir = os.path.join(conftest_dir, 'lib')
 if os.path.isdir(lib_dir):
     sys.path.insert(0, lib_dir)
 
-
-import plugins
-import plugins.pytest_restqa
-import markers
-import fixtures
-import fixtures.api
-import fixtures.ui
+import plugins  # NOQA
+import plugins.pytest_restqa  # NOQA
+import markers  # NOQA
+import fixtures  # NOQA
+import fixtures.api  # NOQA
+import fixtures.ui  # NOQA
 
 
 # Load any plugins, fixtures and markers
