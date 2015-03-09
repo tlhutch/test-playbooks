@@ -71,9 +71,11 @@ if __name__ == '__main__':
                 # create_time = dateutil.parser.parse(vol.create_time)
                 create_time = datetime.strptime(vol.create_time, "%Y-%m-%dT%H:%M:%S.%fZ")
                 if opts.age is None or (utcnow - create_time) > timedelta(hours=opts.age):
-                    print " * %s %s/%s (%s) %s" % (vol.id, vol.status, \
-                        vol.attachment_state(), vol.create_time, \
-                        ', '.join(["%s=%s" % item for item in vol.tags.items()]))
+                    print " * %s %s/%s (%s) %s" % (
+                        vol.id, vol.status, vol.attachment_state(),
+                        vol.create_time,
+                        ', '.join(["%s=%s" % item for item in vol.tags.items()])
+                    )
 
                 if opts.action is not None and hasattr(vol, opts.action):
                     getattr(vol, opts.action)()
