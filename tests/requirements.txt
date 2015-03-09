@@ -27,3 +27,6 @@ pyrax==1.6.3
 pysphere
 fauxfactory
 junit-xml
+flake8
+pep8
+pylint
