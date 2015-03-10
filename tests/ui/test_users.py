@@ -304,7 +304,7 @@ class Test_Users(Base_UI_Test):
             "Credential (%s) was not properly associated with user (%s)" % (ssh_credential.name, anonymous_user.name)
 
     @pytest.mark.skipif(True, reason="TODO - define a permission API fixture")
-    def test_associate_permission(self, anonymous_user, ui_users_pg):
+    def test_associate_permission(self, anonymous_user, ui_users_pg, permission):
         '''Verify basic operation of adding permissions'''
         edit_pg = ui_users_pg.open(anonymous_user.id)
         region = edit_pg.accordion.click('Permissions')

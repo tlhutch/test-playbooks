@@ -291,7 +291,7 @@ class Test_Teams(Base_UI_Test):
             "Credential (%s) was not properly associated with team (%s)" % (ssh_credential.name, team.name)
 
     @pytest.mark.skipif(True, reason="TODO - define a permission API fixture")
-    def test_associate_permission(self, team, ui_teams_pg):
+    def test_associate_permission(self, team, ui_teams_pg, permission):
         '''Verify basic operation of adding permissions'''
         edit_pg = ui_teams_pg.open(team.id)
         region = edit_pg.accordion.click('Permissions')
