@@ -30,22 +30,26 @@ def job_with_status_running(request, job_sleep):
 
 
 @pytest.fixture(scope="function")
-def job_with_status_completed(request, job_template_ping):
+def job_with_multi_ask_credential_and_password_in_payload(request, job_template_multi_ask, testsetup):
     '''
-    Launch the job_template_ping and return a job resource.
+    Launch job_template_multi_ask with passwords in the payload.
     '''
-    job_pg = job_template_ping.launch()
-    return job_pg.wait_until_completed()
+    launch_pg = job_template_multi_ask.get_related("launch")
 
+    # assert expected values in launch_pg.passwords_needed_to_start
+    assert ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password'] == launch_pg.passwords_needed_to_start
 
-@pytest.fixture(scope="function")
-def job_with_ask_credential(request, job_template_ask):
-    '''
-    Launch the job_template_ask with playbook "ping" and return a job resource.
-    '''
-    job_pg = job_template_ask.patch(playbook='ping.yml')
-    job_pg = job_pg.launch()
-    return job_pg.wait_until_completed()
+    # launch prep and job launch
+    payload = dict(ssh_password=testsetup.credentials['ssh']['password'],
+                   sudo_password=testsetup.credentials['ssh']['sudo_password'],
+                   ssh_key_unlock=testsetup.credentials['ssh']['encrypted']['ssh_key_unlock'],
+                   vault_password=testsetup.credentials['ssh']['vault_password'])
+    result = launch_pg.post(payload)
+
+    # find and return specific job_pg
+    jobs_pg = job_template_multi_ask.get_related('jobs', id=result.json['job'])
+    assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
+    return jobs_pg.results[0]
 
 
 @pytest.fixture(scope="function")
@@ -168,22 +172,55 @@ class Test_Job(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             relaunch_pg.post()
 
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_relaunch_with_ask_credential_and_password_in_payload(self, job_with_ask_credential):
+    def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload, testsetup):
         '''
-        Verify relaunching a job where the credential has ASK passwords and a
-        valid password is supplied on the relaunch.
+        Verify that relaunching a job with a credential that includes ASK passwords, behaves as expected when
+        supplying the necessary passwords in the relaunch payload.
         '''
-        assert False
+        # get relaunch page
+        relaunch_pg = job_with_multi_ask_credential_and_password_in_payload.get_related('relaunch')
 
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_relaunch_with_ask_credential_and_without_password(self, job_with_ask_credential):
-        '''
-        Verify relaunching a job where the credential has ASK passwords.
+        # assert expected values in relaunch_pg.passwords_needed_to_start
+        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password'] == relaunch_pg.passwords_needed_to_start
 
-        In this instance, nothing is supplied for password on the relaunch.
+        # relaunch the job
+        payload = dict(ssh_password=testsetup.credentials['ssh']['password'],
+                       sudo_password=testsetup.credentials['ssh']['sudo_password'],
+                       ssh_key_unlock=testsetup.credentials['ssh']['encrypted']['ssh_key_unlock'],
+                       vault_password=testsetup.credentials['ssh']['vault_password'])
+        result = relaunch_pg.post(payload)
+
+        # locate appropriate job
+        jobs_pg = job_with_multi_ask_credential_and_password_in_payload.get_related('job_template').get_related('jobs', id=result.json['job'])
+        assert jobs_pg.count == 1, \
+            "Unexpected number of jobs returned (%s != %s)" % \
+            (jobs_pg.count, 1)
+
+        # wait for completion and assert success
+        job_pg = jobs_pg.results[0].wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+
+    def test_relaunch_with_multi_ask_credential_and_without_passwords(self, job_with_multi_ask_credential_and_password_in_payload):
         '''
-        assert False
+        Verify that relaunching a job with a multi-ask credential fails when not supplied with passwords.
+        '''
+        # get relaunch page
+        relaunch_pg = job_with_multi_ask_credential_and_password_in_payload.get_related('relaunch')
+
+        # assert value on relaunch resource
+        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password'] == relaunch_pg.passwords_needed_to_start
+
+        # relaunch the job
+        payload = {}
+        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, relaunch_pg.post, payload)
+        result = exc_info.value[1]
+
+        assert 'passwords_needed_to_start' in result, \
+            "Expecting 'passwords_needed_to_start' in API response when " \
+            "relaunching a job, without provided credential " \
+            "passwords. %s" % json.dumps(result)
+
+        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password'] == result['passwords_needed_to_start']
 
     def test_relaunch_with_extra_vars(self, job_with_extra_vars, job_extra_vars_dict):
         '''
