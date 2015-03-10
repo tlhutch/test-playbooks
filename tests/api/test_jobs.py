@@ -30,7 +30,7 @@ def job_with_status_running(request, job_sleep):
 
 
 @pytest.fixture(scope="function")
-def job_ping(request, job_template_ping):
+def job_with_status_completed(request, job_template_ping):
     '''
     Launch the job_template_ping and return a job resource.
     '''
@@ -39,11 +39,37 @@ def job_ping(request, job_template_ping):
 
 
 @pytest.fixture(scope="function")
-def job_with_status_completed(request, job_ping):
+def job_with_ask_credential(request, job_template_ask):
     '''
-    Wait for job_ping to move from queued to running, and return the job.
+    Launch the job_template_ask with playbook "ping" and return a job resource.
     '''
-    return job_ping.wait_until_completed()
+    job_pg = job_template_ask.patch(playbook='ping.yml')
+    job_pg = job_pg.launch()
+    return job_pg.wait_until_completed()
+
+
+@pytest.fixture(scope="function")
+def job_extra_vars_dict():
+    return dict(Flaff=True, Moffey=False, Maffey=True)
+
+
+@pytest.fixture(scope="function")
+def job_with_extra_vars(request, job_template_with_extra_vars, job_extra_vars_dict):
+    '''
+    Launch the job_template_extra_vars with playbook "ping" and return a job resource.
+    Extra vars are passed in with the post to the launch_pg.
+    '''
+    # setup and launch with proper payload
+    job_pg = job_template_with_extra_vars.patch(playbook='ping.yml')
+    payload = dict(extra_vars=job_extra_vars_dict)
+
+    launch_pg = job_pg.get_related("launch")
+    result = launch_pg.post(payload)
+
+    # find and return specific job_pg
+    jobs_pg = job_template_with_extra_vars.get_related('jobs', id=result.json['job'])
+    assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
+    return jobs_pg.results[0]
 
 
 @pytest.fixture()
@@ -101,33 +127,95 @@ class Test_Job(Base_Api_Test):
                 with pytest.raises(common.exceptions.Forbidden_Exception):
                     api_jobs_pg.post(job_template.json)
 
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_relaunch_with_credential(self, job_template):
+    def test_relaunch_with_credential(self, job_with_status_completed):
         '''
         Verify relaunching a job with a valid credential no-ask credential.
         '''
-        assert False
+        relaunch_pg = job_with_status_completed.get_related('relaunch')
 
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_relaunch_without_credential(self, job_template):
+        # assert values on relaunch resource
+        assert not relaunch_pg.passwords_needed_to_start
+
+        # relaunch the job
+        result = relaunch_pg.post()
+
+        # locate appropriate job
+        jobs_pg = job_with_status_completed.get_related('job_template').get_related('jobs', id=result.json['job'])
+        assert jobs_pg.count == 1, \
+            "Unexpected number of jobs returned (%d != %d)" % \
+            (jobs_pg.count, 1)
+
+        # wait for completion and assert success
+        job_pg = jobs_pg.results[0].wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+
+    def test_relaunch_with_deleted_credential(self, job_with_status_completed):
         '''
         Verify relaunching a job whose credential has been deleted.
         '''
+        credential_pg = job_with_status_completed.get_related('credential')
+
+        # delete credential
+        credential_pg.delete()
+
+        # get relaunch page
+        relaunch_pg = job_with_status_completed.get_related('relaunch')
+
+        # assert values on relaunch resource
+        assert not relaunch_pg.passwords_needed_to_start
+
+        # relaunch the job - FIXME: may need to change the following to match the actual error
+        with pytest.raises(common.exceptions.Forbidden_Exception):
+            relaunch_pg.post()
+
+    @pytest.mark.skipif(True, reason="not yet implemented")
+    def test_relaunch_with_ask_credential_and_password_in_payload(self, job_with_ask_credential):
+        '''
+        Verify relaunching a job where the credential has ASK passwords and a
+        valid password is supplied on the relaunch.
+        '''
         assert False
 
     @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_relaunch_with_ask_credential(self, job_template_multi_ask):
+    def test_relaunch_with_ask_credential_and_without_password(self, job_with_ask_credential):
         '''
         Verify relaunching a job where the credential has ASK passwords.
+
+        In this instance, nothing is supplied for password on the relaunch.
         '''
         assert False
 
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_relaunch_with_extra_vars(self):
+    def test_relaunch_with_extra_vars(self, job_with_extra_vars, job_extra_vars_dict):
         '''
-        Verify relaunching a job with extra_vars.
+        Verify that when you relaunch a job with extra_vars that the extra_vars are
+        preserved.
         '''
-        assert False
+        relaunch_pg = job_with_extra_vars.get_related('relaunch')
+
+        # assert values on relaunch resource
+        assert not relaunch_pg.passwords_needed_to_start
+
+        # relaunch the job
+        result = relaunch_pg.post()
+
+        # locate appropriate job
+        jobs_pg = job_with_extra_vars.get_related('job_template').get_related('jobs', id=result.json['job'])
+        assert jobs_pg.count == 1, \
+            "Unexpected number of jobs returned (%d != %d)" % \
+            (jobs_pg.count, 1)
+
+        # wait for completion and assert success
+        job_pg = jobs_pg.results[0].wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+
+        # assert job extra_vars contains correct value
+        try:
+            extra_vars = json.loads(job_pg.extra_vars)
+        except ValueError:
+            extra_vars = {}
+        assert extra_vars == job_extra_vars_dict, \
+            "The job relaunch extra_vars were not preserved (%s != %s)" % \
+            (extra_vars, job_extra_vars_dict)
 
     def test_cancel_pending_job(self, job_with_status_pending):
         '''

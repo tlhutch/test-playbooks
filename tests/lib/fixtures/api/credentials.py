@@ -25,7 +25,7 @@ def ssh_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
         payload.update(fixture_args.kwargs)
 
     obj = api_credentials_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 

@@ -1,4 +1,5 @@
 import pytest
+import json
 import common.utils
 
 # from credentials import ssh_credential
@@ -100,6 +101,23 @@ def job_template(request, authtoken, api_job_templates_pg, project, inventory, s
 
 
 @pytest.fixture(scope="function")
+def job_template_with_extra_vars(request, authtoken, api_job_templates_pg, project, inventory, ssh_credential):
+    '''Define a job_template with a set of extra_vars'''
+
+    payload = dict(name="job_template-%s" % common.utils.random_unicode(),
+                   description="Random job_template with machine credential - %s" % common.utils.random_unicode(),
+                   inventory=inventory.id,
+                   job_type='run',
+                   project=project.id,
+                   credential=ssh_credential.id,
+                   playbook='site.yml',  # This depends on the project selected
+                   extra_vars=json.dumps(dict(var1=1, var2=2)), )
+    obj = api_job_templates_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
 def job_template_sleep(job_template_ansible_playbooks_git, host_local):
     return job_template_ansible_playbooks_git.patch(playbook='sleep.yml')
 
@@ -119,11 +137,6 @@ def api_job_templates_options_json(authtoken, api_job_templates_pg):
 def job_template_status_choices(api_job_templates_options_json):
     '''Return job_template statuses from OPTIONS'''
     return dict(api_job_templates_options_json['actions']['GET']['status']['choices'])
-
-
-# @pytest.fixture(scope="function")
-# def job_template_no_credential(job_template_ping):
-#     return job_template_ping.patch(credential=None)
 
 
 @pytest.fixture(scope="function")
