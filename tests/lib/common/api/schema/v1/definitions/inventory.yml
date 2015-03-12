@@ -25,6 +25,7 @@ inventory:
         inventory_sources: {format: uri, type: string}
         organization: {format: uri, type: string}
         root_groups: {format: uri, type: string}
+        scan_job_templates: {format: uri, type: string}
         script: {format: uri, type: string}
         tree: {format: uri, type: string}
         variable_data: {format: uri, type: string}

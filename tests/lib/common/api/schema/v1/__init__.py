@@ -568,6 +568,10 @@ class Awx_Schema_Job_Template_Survey_Spec(Awx_Schema):
         return self.load_file('empty.yml')
 
 
+class Awx_Schema_Inventory_Scan_Job_Tempaltes(Awx_Schema_Job_Templates):
+    resource = '/api/v1/inventories/\d+/scan_job_templates/'
+
+
 #
 # /job_template/N/callback/
 #
