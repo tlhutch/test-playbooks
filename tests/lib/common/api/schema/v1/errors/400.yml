@@ -10,6 +10,7 @@ properties:
     organization: { $ref: '#/definitions/error_required_field' }
     inventory: { $ref: '#/definitions/error_required_field' }
     job_type: { $ref: '#/definitions/error_required_field' }
+    project: { $ref: '#/definitions/error_required_field' }
     playbook: { $ref: '#/definitions/error_required_field' }
     script: { $ref: '#/definitions/error_required_field_script' }
     non_field_errors: { $ref: '#/definitions/error_login_failure' }
