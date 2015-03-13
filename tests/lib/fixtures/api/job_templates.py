@@ -23,11 +23,11 @@ def job_template_no_credential(request, authtoken, api_job_templates_pg, project
 
 
 @pytest.fixture(scope="function")
-def job_template_with_limit(request, authtoken, api_job_templates_pg, project, inventory, ssh_credential):
+def job_template_with_limit(request, authtoken, api_job_templates_pg, project, host_local, ssh_credential):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template with limit - %s" % common.utils.random_unicode(),
-                   inventory=inventory.id,
+                   inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
                    limit='No_Match',
@@ -39,11 +39,11 @@ def job_template_with_limit(request, authtoken, api_job_templates_pg, project, i
 
 
 @pytest.fixture(scope="function")
-def job_template_ask(request, authtoken, api_job_templates_pg, project, inventory, ssh_credential_ask):
+def job_template_ask(request, authtoken, api_job_templates_pg, project, host_local, ssh_credential_ask):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template with ASK credential - %s" % common.utils.random_unicode(),
-                   inventory=inventory.id,
+                   inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
                    credential=ssh_credential_ask.id,
@@ -54,11 +54,11 @@ def job_template_ask(request, authtoken, api_job_templates_pg, project, inventor
 
 
 @pytest.fixture(scope="function")
-def job_template_multi_ask(request, authtoken, api_job_templates_pg, project, inventory, ssh_credential_multi_ask):
+def job_template_multi_ask(request, authtoken, api_job_templates_pg, project, host_local, ssh_credential_multi_ask):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template with multiple ASK credential - %s" % common.utils.random_unicode(),
-                   inventory=inventory.id,
+                   inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
                    credential=ssh_credential_multi_ask.id,
@@ -69,12 +69,12 @@ def job_template_multi_ask(request, authtoken, api_job_templates_pg, project, in
 
 
 @pytest.fixture(scope="function")
-def job_template_ansible_playbooks_git(request, authtoken, api_job_templates_pg, project_ansible_playbooks_git, inventory, ssh_credential):
+def job_template_ansible_playbooks_git(request, authtoken, api_job_templates_pg, project_ansible_playbooks_git, host_local, ssh_credential):
     '''Define a job_template with a valid machine credential'''
 
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template using ansible-playbooks.git - %s" % common.utils.random_unicode(),
-                   inventory=inventory.id,
+                   inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project_ansible_playbooks_git.id,
                    credential=ssh_credential.id,
@@ -85,12 +85,12 @@ def job_template_ansible_playbooks_git(request, authtoken, api_job_templates_pg,
 
 
 @pytest.fixture(scope="function")
-def job_template(request, authtoken, api_job_templates_pg, project, inventory, ssh_credential):
+def job_template(request, authtoken, api_job_templates_pg, project, host_local, ssh_credential):
     '''Define a job_template with a valid machine credential'''
 
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template with machine credentials - %s" % common.utils.random_unicode(),
-                   inventory=inventory.id,
+                   inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
                    credential=ssh_credential.id,
@@ -101,12 +101,12 @@ def job_template(request, authtoken, api_job_templates_pg, project, inventory, s
 
 
 @pytest.fixture(scope="function")
-def job_template_with_extra_vars(request, authtoken, api_job_templates_pg, project, inventory, ssh_credential):
+def job_template_with_extra_vars(request, authtoken, api_job_templates_pg, project, ssh_credential, host_local):
     '''Define a job_template with a set of extra_vars'''
 
     payload = dict(name="job_template-%s" % common.utils.random_unicode(),
                    description="Random job_template with machine credential - %s" % common.utils.random_unicode(),
-                   inventory=inventory.id,
+                   inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
                    credential=ssh_credential.id,
