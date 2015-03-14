@@ -55,7 +55,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # Assert the GET response includes expected inventory counts
         all_inventory_hosts = host_public_ipv4.get_related('inventory').get_related('hosts')
-        assert all_inventory_hosts.count == 2, "Unexpected number of inventory_hosts (%s != 2)" % all_inventory_hosts.count
+        assert all_inventory_hosts.count == 3, "Unexpected number of inventory_hosts (%s != 3)" % all_inventory_hosts.count
         assert len(callback_pg.matching_hosts) == 1, "Unexpected number of matching_hosts (%s != 1)" % len(callback_pg.matching_hosts)
 
         # Assert the GET response includes expected values in matching_hosts
