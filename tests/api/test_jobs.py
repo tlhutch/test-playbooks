@@ -60,14 +60,14 @@ def job_extra_vars_dict():
 @pytest.fixture(scope="function")
 def job_with_extra_vars(request, job_template_with_extra_vars, job_extra_vars_dict):
     '''
-    Launch the job_template_extra_vars with playbook "ping" and return a job resource.
-    Extra vars are passed in with the post to the launch_pg.
+    Launch the job_template_extra_vars and return a job resource.  Extra vars
+    are passed in with the POST request to the launch endpoint.
     '''
-    # setup and launch with proper payload
-    job_pg = job_template_with_extra_vars.patch(playbook='ping.yml')
-    payload = dict(extra_vars=job_extra_vars_dict)
+    # Locate job_template launch page
+    launch_pg = job_template_with_extra_vars.get_related('launch')
 
-    launch_pg = job_pg.get_related("launch")
+    # Launch with additional extra_vars
+    payload = dict(extra_vars=job_extra_vars_dict)
     result = launch_pg.post(payload)
 
     # find and return specific job_pg
@@ -140,17 +140,10 @@ class Test_Job(Base_Api_Test):
         # assert values on relaunch resource
         assert not relaunch_pg.passwords_needed_to_start
 
-        # relaunch the job
-        result = relaunch_pg.post()
+        # relaunch the job and wait for completion
+        job_pg = job_with_status_completed.relaunch().wait_until_completed()
 
-        # locate appropriate job
-        jobs_pg = job_with_status_completed.get_related('job_template').get_related('jobs', id=result.json['job'])
-        assert jobs_pg.count == 1, \
-            "Unexpected number of jobs returned (%d != %d)" % \
-            (jobs_pg.count, 1)
-
-        # wait for completion and assert success
-        job_pg = jobs_pg.results[0].wait_until_completed()
+        # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     def test_relaunch_with_deleted_credential(self, job_with_status_completed):
@@ -168,7 +161,8 @@ class Test_Job(Base_Api_Test):
         # assert values on relaunch resource
         assert not relaunch_pg.passwords_needed_to_start
 
-        # relaunch the job - FIXME: may need to change the following to match the actual error
+        # attempt relaunch the job, should raise exception
+        # FIXME - https://trello.com/c/MjOiEWgS
         with pytest.raises(common.exceptions.Forbidden_Exception):
             relaunch_pg.post()
 
@@ -181,23 +175,17 @@ class Test_Job(Base_Api_Test):
         relaunch_pg = job_with_multi_ask_credential_and_password_in_payload.get_related('relaunch')
 
         # assert expected values in relaunch_pg.passwords_needed_to_start
-        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password'] == relaunch_pg.passwords_needed_to_start
+        assert relaunch_pg.passwords_needed_to_start == \
+            ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password']
 
-        # relaunch the job
+        # relaunch the job and wait for completion
         payload = dict(ssh_password=testsetup.credentials['ssh']['password'],
                        sudo_password=testsetup.credentials['ssh']['sudo_password'],
                        ssh_key_unlock=testsetup.credentials['ssh']['encrypted']['ssh_key_unlock'],
                        vault_password=testsetup.credentials['ssh']['vault_password'])
-        result = relaunch_pg.post(payload)
+        job_pg = job_with_multi_ask_credential_and_password_in_payload.relaunch(payload).wait_until_completed()
 
-        # locate appropriate job
-        jobs_pg = job_with_multi_ask_credential_and_password_in_payload.get_related('job_template').get_related('jobs', id=result.json['job'])
-        assert jobs_pg.count == 1, \
-            "Unexpected number of jobs returned (%s != %s)" % \
-            (jobs_pg.count, 1)
-
-        # wait for completion and assert success
-        job_pg = jobs_pg.results[0].wait_until_completed()
+        # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     def test_relaunch_with_multi_ask_credential_and_without_passwords(self, job_with_multi_ask_credential_and_password_in_payload):
@@ -208,50 +196,47 @@ class Test_Job(Base_Api_Test):
         relaunch_pg = job_with_multi_ask_credential_and_password_in_payload.get_related('relaunch')
 
         # assert value on relaunch resource
-        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password'] == relaunch_pg.passwords_needed_to_start
+        assert relaunch_pg.passwords_needed_to_start == \
+            ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password']
 
         # relaunch the job
-        payload = {}
-        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, relaunch_pg.post, payload)
+        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, relaunch_pg.post, {})
         result = exc_info.value[1]
 
+        # assert expected error responses
         assert 'passwords_needed_to_start' in result, \
             "Expecting 'passwords_needed_to_start' in API response when " \
             "relaunching a job, without provided credential " \
             "passwords. %s" % json.dumps(result)
 
-        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password'] == result['passwords_needed_to_start']
+        assert result['passwords_needed_to_start'] == \
+            ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password']
 
-    def test_relaunch_with_extra_vars(self, job_with_extra_vars, job_extra_vars_dict):
+    def test_relaunch_uses_extra_vars_from_job(self, job_with_extra_vars, job_extra_vars_dict):
         '''
-        Verify that when you relaunch a job with extra_vars that the extra_vars are
-        preserved.
+        Verify that when you relaunch a job containing extra_vars in the
+        launch-time payload, the job extra_vars are used instead of the
+        job_template extra_vars.
         '''
         relaunch_pg = job_with_extra_vars.get_related('relaunch')
 
         # assert values on relaunch resource
         assert not relaunch_pg.passwords_needed_to_start
 
-        # relaunch the job
-        result = relaunch_pg.post()
+        # relaunch the job and wait for completion
+        job_pg = job_with_extra_vars.relaunch().wait_until_completed()
 
-        # locate appropriate job
-        jobs_pg = job_with_extra_vars.get_related('job_template').get_related('jobs', id=result.json['job'])
-        assert jobs_pg.count == 1, \
-            "Unexpected number of jobs returned (%d != %d)" % \
-            (jobs_pg.count, 1)
-
-        # wait for completion and assert success
-        job_pg = jobs_pg.results[0].wait_until_completed()
+        # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-        # assert job extra_vars contains correct value
+        # extra_vars supplied at [re]launch time supercede any values stored in
+        # the job_template.  Assert the extra_vars are expected.
         try:
             extra_vars = json.loads(job_pg.extra_vars)
         except ValueError:
             extra_vars = {}
         assert extra_vars == job_extra_vars_dict, \
-            "The job relaunch extra_vars were not preserved (%s != %s)" % \
+            "Unexpected extra_vars on relaunched job (%s != %s)" % \
             (extra_vars, job_extra_vars_dict)
 
     def test_cancel_pending_job(self, job_with_status_pending):

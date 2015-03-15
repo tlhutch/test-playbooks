@@ -35,15 +35,15 @@ class Job_Page(Unified_Job_Page, Job_Template_Page):
     # TODO: Other types of jobs support relaunch (system_job_templates), but
     # not all types (project_update, inventory_update).  As written, this
     # method only allows playbook_run relaunch.
-    def relaunch(self, **kwargs):
+    def relaunch(self, payload={}):
         '''
         Relaunch the job using related->relaunch endpoint
         '''
         # get related->launch
         relaunch_pg = self.get_related('relaunch')
 
-        # relaunch the job using optionally provided kwargs
-        result = relaunch_pg.post(**kwargs)
+        # relaunch the job using optionally provided payload
+        result = relaunch_pg.post(payload)
 
         # locate corresponding job_pg
         jobs_pg = self.get_related('job_template').get_related('jobs', id=result.json['job'])
