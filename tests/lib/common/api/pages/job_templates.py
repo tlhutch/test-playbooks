@@ -38,6 +38,9 @@ class Job_Template_Page(Unified_Job_Template_Page):
         elif name == 'jobs':
             from jobs import Jobs_Page
             related = Jobs_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'inventory':
+            from inventory import Inventory_Page
+            related = Inventory_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
