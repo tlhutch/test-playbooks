@@ -4,6 +4,7 @@ import pytest
 import json
 import uuid
 import urllib2
+import socket
 import common.utils
 import common.exceptions
 
@@ -76,7 +77,7 @@ def inventory(request, authtoken, api_inventories_pg, organization):
 
 
 @pytest.fixture(scope="function")
-def host_ipv4(request, authtoken, api_hosts_pg, group, ansible_default_ipv4):
+def host_with_default_ipv4_in_variables(request, authtoken, api_hosts_pg, group, ansible_default_ipv4):
     '''Create a random inventory host where ansible_ssh_host == ansible_default_ipv4.'''
     payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
                    description="host-%s" % common.utils.random_unicode(),
@@ -102,17 +103,27 @@ def my_public_ipv4(request):
 
 
 @pytest.fixture(scope="function")
-def host_public_ipv4(request, authtoken, api_hosts_pg, group, my_public_ipv4):
+def local_ipv4_addresses(request):
+    '''
+    Return the list of ip addresses for the system running tests.
+    '''
+    return socket.gethostbyname_ex(socket.gethostname())[2]
+
+
+@pytest.fixture(scope="function")
+def hosts_with_name_matching_local_ipv4_addresses(request, authtoken, group, local_ipv4_addresses):
     '''Create an inventory host matching the public ipv4 address of the system running pytest.'''
-    payload = dict(name=my_public_ipv4,
-                   description="test host %s" % common.utils.random_unicode(),
-                   inventory=group.inventory,)
-    obj = api_hosts_pg.post(payload)
-    request.addfinalizer(obj.delete)
-    # Add to group
-    with pytest.raises(common.exceptions.NoContent_Exception):
-        obj.get_related('groups').post(dict(id=group.id))
-    return obj
+    for ipv4_addr in local_ipv4_addresses:
+        payload = dict(name=ipv4_addr,
+                       description="test host %s" % common.utils.random_unicode(),
+                       inventory=group.inventory)
+        obj = group.get_related('hosts').post(payload)
+        request.addfinalizer(obj.delete)
+        # Add to group
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            obj.get_related('groups').post(dict(id=group.id))
+
+    return group.get_related('hosts', name__in=','.join(local_ipv4_addresses))
 
 
 @pytest.fixture(scope="function")
