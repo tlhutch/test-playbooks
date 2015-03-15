@@ -32,6 +32,28 @@ class Job_Page(Unified_Job_Page, Job_Template_Page):
             raise NotImplementedError
         return related.get(**kwargs)
 
+    # TODO: Other types of jobs support relaunch (system_job_templates), but
+    # not all types (project_update, inventory_update).  As written, this
+    # method only allows playbook_run relaunch.
+    def relaunch(self, **kwargs):
+        '''
+        Relaunch the job using related->relaunch endpoint
+        '''
+        # get related->launch
+        relaunch_pg = self.get_related('relaunch')
+
+        # relaunch the job using optionally provided kwargs
+        result = relaunch_pg.post(**kwargs)
+
+        # locate corresponding job_pg
+        jobs_pg = self.get_related('job_template').get_related('jobs', id=result.json['job'])
+        assert jobs_pg.count == 1, \
+            "unified_job id:%s was relaunched (id:%s) but no matching unified_job found" \
+            (self.id, result.json['job'])
+
+        # return job_pg
+        return jobs_pg.results[0]
+
 
 class Jobs_Page(Job_Page, Base_List):
     base_url = '/api/v1/jobs/'
