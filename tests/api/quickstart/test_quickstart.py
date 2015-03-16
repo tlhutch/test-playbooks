@@ -722,19 +722,6 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         inventory_id = api_inventories_pg.get(name__iexact=_job_template['inventory']).results[0].id
         project_id = api_projects_pg.get(name__iexact=_job_template['project']).results[0].id
 
-        # This is slightly nuts ... please look away
-        ansible_facts = ansible_facts.values()[0]['ansible_facts']
-        if 'inventory_hostname' not in ansible_facts:
-            if ansible_facts['ansible_domain'] == 'ec2.internal':
-                ec2_facts = ansible_runner.ec2_facts().values()[0]
-                assert 'ansible_facts' in ec2_facts
-                ansible_facts['inventory_hostname'] = ec2_facts['ansible_facts']['ansible_ec2_public_hostname']
-            else:
-                ansible_facts['inventory_hostname'] = ansible_facts['ansible_fqdn'].replace('x86-64', 'x86_64')
-
-        # Substitute any template parameters
-        limit = _job_template.get('limit', '').format(**ansible_facts)
-
         # Create a new job_template
         payload = dict(
             name=_job_template['name'],
@@ -742,7 +729,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             job_type=_job_template['job_type'],
             playbook=_job_template['playbook'],
             job_tags=_job_template.get('job_tags', ''),
-            limit=limit,
+            limit=_job_template.get('limit', ''),
             inventory=inventory_id,
             project=project_id,
             allow_callbacks=_job_template.get('allow_callbacks', False),
@@ -752,12 +739,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         # Optionally include extra_vars
         if 'extra_vars' in _job_template:
-            # Allow for variable substitution in extra_vars values
-            extra_vars = _job_template.get('extra_vars')
-            for key, val in extra_vars.items():
-                if isinstance(val, (unicode, str)):
-                    extra_vars[key] = val.format(**ansible_facts)
-            payload['extra_vars'] = json.dumps(extra_vars)
+            payload['extra_vars'] = json.dumps(_job_template['extra_vars'])
 
         # Add credential identifiers
         for cred in ('credential', 'cloud_credential'):
