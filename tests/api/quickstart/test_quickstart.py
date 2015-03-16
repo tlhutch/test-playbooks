@@ -727,7 +727,6 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         if 'inventory_hostname' not in ansible_facts:
             if ansible_facts['ansible_domain'] == 'ec2.internal':
                 ec2_facts = ansible_runner.ec2_facts().values()[0]
-                print json.dumps(ec2_facts, indent=2)
                 assert 'ansible_facts' in ec2_facts
                 ansible_facts['inventory_hostname'] = ec2_facts['ansible_facts']['ansible_ec2_public_hostname']
             else:
@@ -751,8 +750,14 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             forks=_job_template.get('forks', 0)
         )
 
+        # Optionally include extra_vars
         if 'extra_vars' in _job_template:
-            payload['extra_vars'] = json.dumps(_job_template.get('extra_vars'))
+            # Allow for variable substitution in extra_vars values
+            extra_vars = _job_template.get('extra_vars')
+            for key, val in extra_vars.items():
+                if isinstance(val, (unicode, str)):
+                    extra_vars[key] = val.format(**ansible_facts)
+            payload['extra_vars'] = json.dumps(extra_vars)
 
         # Add credential identifiers
         for cred in ('credential', 'cloud_credential'):

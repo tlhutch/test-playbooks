@@ -1204,6 +1204,8 @@ job_templates:
       inventory: inventory-all
       credential: SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)
       limit: '{inventory_hostname}:&cloud'
+      extra_vars:
+        ansible_ssh_user: '{ansible_env[SUDO_USER]}'
 
     - name: language_features/loop_nested.yml (limit:host-1*:&local_1-10, ssh_key_unlock:ASK)
       job_type: run
