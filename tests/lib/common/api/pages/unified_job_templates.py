@@ -42,13 +42,14 @@ class Unified_Job_Template_Page(Base):
         return related.get(**kwargs)
 
     def wait_until_started(self, interval=1, verbose=0, timeout=60):
-        '''Wait until a project_update has started'''
+        '''Wait until a unified_job_template has started.'''
         return common.utils.wait_until(
             self, 'status',
             ('new', 'pending', 'waiting', 'running',),
             interval=interval, verbose=verbose, timeout=timeout)
 
     def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 8):
+        '''Wait until a unified_job_template has completed.'''
         return common.utils.wait_until(
             self, 'status',
             ('successful', 'failed', 'error', 'canceled',),

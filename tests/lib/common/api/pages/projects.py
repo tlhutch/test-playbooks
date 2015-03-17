@@ -45,19 +45,6 @@ class Project_Page(Unified_Job_Template_Page):
             raise NotImplementedError
         return related.get(**kwargs)
 
-    def wait_until_started(self, interval=1, verbose=0, timeout=60):
-        '''Wait until a project_update has started'''
-        return common.utils.wait_until(
-            self, 'status',
-            ('new', 'pending', 'waiting', 'running',),
-            interval=interval, verbose=verbose, timeout=timeout)
-
-    def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 8):
-        return common.utils.wait_until(
-            self, 'status',
-            ('successful', 'failed', 'error', 'canceled',),
-            interval=interval, verbose=verbose, timeout=timeout)
-
     @property
     def is_successful(self):
         '''An project is considered successful when:
