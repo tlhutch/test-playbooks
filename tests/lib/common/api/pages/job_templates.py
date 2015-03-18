@@ -71,7 +71,7 @@ class Job_Template_Page(Unified_Job_Template_Page):
 
         return job_pg
 
-    def launch(self, **kwargs):
+    def launch(self, payload={}):
         '''
         Launch the job_template using related->launch endpoint.
         '''
@@ -85,7 +85,7 @@ class Job_Template_Page(Unified_Job_Template_Page):
             (launch_pg.id, launch_pg.can_start_without_user_input)
 
         # launch the job_template
-        result = launch_pg.post(**kwargs)
+        result = launch_pg.post(payload)
 
         # return job
         jobs_pg = self.get_related('jobs', id=result.json['job'])

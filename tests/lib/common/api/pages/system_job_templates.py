@@ -24,7 +24,7 @@ class System_Job_Template_Page(Unified_Job_Template_Page):
             raise NotImplementedError
         return related.get(**kwargs)
 
-    def launch(self, **kwargs):
+    def launch(self, payload={}):
         '''
         Launch the system_job_template using related->launch endpoint.
         '''
@@ -32,7 +32,7 @@ class System_Job_Template_Page(Unified_Job_Template_Page):
         launch_pg = self.get_related('launch')
 
         # launch the job_template
-        result = launch_pg.post(**kwargs)
+        result = launch_pg.post(payload)
 
         # return job
         jobs_pg = self.get_related('jobs', id=result.json['system_job'])
