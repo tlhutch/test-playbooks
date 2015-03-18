@@ -72,28 +72,6 @@ class Job_Template_Page(Unified_Job_Template_Page):
 
         return job_pg
 
-    def launch(self, **kwargs):
-        '''
-        Launch the job_template using related->launch endpoint
-        '''
-        # get related->launch
-        launch_pg = self.get_related('launch')
-
-        # assert can_start_without_user_input
-        assert launch_pg.can_start_without_user_input, \
-            "The specified job_template (id:%s) is not able to launch without user input.\n%s" % \
-            (launch_pg.id, json.dumps(launch_pg.json, indent=2))
-
-        # launch the job_template
-        result = launch_pg.post(**kwargs)
-
-        # return job
-        jobs_pg = self.get_related('jobs', id=result.json['job'])
-        assert jobs_pg.count == 1, \
-            "job_template launched (id:%s) but job not found in response at %s/jobs/" % \
-            (result.json['job'], self.url)
-        return jobs_pg.results[0]
-
 
 class Job_Templates_Page(Job_Template_Page, Base_List):
     base_url = '/api/v1/job_templates/'

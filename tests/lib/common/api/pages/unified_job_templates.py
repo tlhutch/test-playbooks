@@ -1,3 +1,4 @@
+import json
 import common.utils
 from common.api.pages import Base, Base_List, json_setter, json_getter
 
@@ -31,7 +32,9 @@ class Unified_Job_Template_Page(Base):
         return output.replace('%', '%%')
 
     def get_related(self, name, **kwargs):
-        assert name in self.json['related']
+        assert name in self.json['related'], \
+            "Unsupported related attribute '%s'" % name
+
         if name == 'start':
             related = Base(self.testsetup, base_url=self.json['related'][name])
         elif name == 'schedules':
@@ -54,6 +57,31 @@ class Unified_Job_Template_Page(Base):
             self, 'status',
             ('successful', 'failed', 'error', 'canceled',),
             interval=interval, verbose=verbose, timeout=timeout)
+
+    def launch(self, **kwargs):
+        '''
+        Launch the unified_job_template using related->launch endpoint.  Note,
+        not all unified_job_templates support launch.  An exception will be
+        raised when attempting to launch a unified_job_template that does not
+        support launch.
+        '''
+        # get related->launch
+        launch_pg = self.get_related('launch')
+
+        # assert can_start_without_user_input
+        assert launch_pg.can_start_without_user_input, \
+            "The specified unified_job_template (id:%s) is not able to launch without user input.\n%s" % \
+            (launch_pg.id, json.dumps(launch_pg.json, indent=2))
+
+        # launch the job_template
+        result = launch_pg.post(**kwargs)
+
+        # return job
+        jobs_pg = self.get_related('jobs', id=result.json['job'])
+        assert jobs_pg.count == 1, \
+            "job_template launched (id:%s) but job not found in response at %s/jobs/" % \
+            (result.json['job'], self.url)
+        return jobs_pg.results[0]
 
     @property
     def is_successful(self):
