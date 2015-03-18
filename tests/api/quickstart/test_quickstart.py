@@ -112,7 +112,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures("authtoken", "install_integration_license", "update_sshd_config", "set_rootpw")
 
     # Load test configuration
-    config = load_file(os.path.join(os.path.dirname(__file__), 'data.yaml'))
+    config = load_file(os.path.join(os.path.dirname(__file__), 'data.yml'))
 
     @pytest.mark.destructive
     def test_organizations_post(self, api_organizations_pg, _organization):
