@@ -24,6 +24,23 @@ class System_Job_Template_Page(Unified_Job_Template_Page):
             raise NotImplementedError
         return related.get(**kwargs)
 
+    def launch(self, **kwargs):
+        '''
+        Launch the system_job_template using related->launch endpoint.
+        '''
+        # get related->launch
+        launch_pg = self.get_related('launch')
+
+        # launch the job_template
+        result = launch_pg.post(**kwargs)
+
+        # return job
+        jobs_pg = self.get_related('jobs', id=result.json['system_job'])
+        assert jobs_pg.count == 1, \
+            "system_job_template launched (id:%s) but unable to find matching " \
+            "job at %s/jobs/" % (result.json['job'], self.url)
+        return jobs_pg.results[0]
+
 
 class System_Job_Templates_Page(System_Job_Template_Page, Base_List):
     base_url = '/api/v1/system_job_templates/'
