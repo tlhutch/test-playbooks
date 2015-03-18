@@ -352,7 +352,7 @@ credentials:
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
 
-    - name: 'Rackspace (team:IT)'i
+    - name: 'Rackspace (team:IT)'
       description: Rackspace Cloudserver credentials for bender_eng_user
       kind: rax
       user: null
