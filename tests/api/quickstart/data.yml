@@ -376,7 +376,7 @@ credentials:
     #
     # Google Compute Credential
     #
-    - name: 'Google Compute (team:IT)i'
+    - name: 'Google Compute (team:IT)'
       description: 'Google Compute for team:IT'
       kind: gce
       user: null
