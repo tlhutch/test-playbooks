@@ -1,11 +1,11 @@
 ---
-- name: 'gather facts'
+- name: 'Gather facts'
   hosts: '!local'
   tasks:
    - name: group hosts by distribution_major_version
      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
-- name: 'install and configure ansible-tower'
+- name: 'Install Tower'
   hosts: '!local'
   gather_facts: no
   sudo: yes
