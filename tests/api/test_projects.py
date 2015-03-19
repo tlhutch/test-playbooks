@@ -87,18 +87,14 @@ class Test_Projects(Base_Api_Test):
             scm_url='https://github.com/jlaska/ansible-playbooks.git',
         )
 
-        # update the project
-        update_pg = project_pg.get_related('update')
-        result = update_pg.post()
-        updates_pg = project_pg.get_related('project_updates', id=result.json['project_update'])
-        assert updates_pg.count == 1, 'No project update matching id:%s found' % result.json['project_update']
-
-        # wait for update to complete
-        latest_update_pg = updates_pg.results.pop().wait_until_completed()
-        project_pg = project_pg.wait_until_completed()
+        # update the project and wait for completion
+        latest_update_pg = project_pg.update().wait_until_completed()
 
         # assert project_update was successful
         assert latest_update_pg.is_successful, "Project update unsuccessful - %s" % latest_update_pg
+
+        # update the project endpoint
+        project_pg.get()
 
         # assert project is marked as successful
         assert project_pg.is_successful, "After a successful project update, " \

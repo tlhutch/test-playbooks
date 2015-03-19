@@ -1,3 +1,4 @@
+import json
 from common.api.pages import json_getter, json_setter
 from common.api.pages import Base, Base_List, Unified_Job_Page, Unified_Job_Template_Page
 
@@ -43,6 +44,33 @@ class Project_Page(Unified_Job_Template_Page):
         else:
             raise NotImplementedError
         return related.get(**kwargs)
+
+    def update(self):
+        '''
+        Update the project using related->update endpoint.
+        '''
+        # get related->launch
+        update_pg = self.get_related('update')
+
+        # assert can_update == True
+        assert update_pg.can_update, \
+            "The specified project (id:%s) is not able to update (can_update:%s)" % \
+            (self.id, update_pg.can_update)
+
+        # start the update
+        result = update_pg.post()
+
+        # assert JSON response
+        assert 'project_update' in result.json, \
+            "Unexpected JSON response when starting an project_update.\n%s" % \
+            json.dumps(result.json, indent=2)
+
+        # locate and return the specific update
+        jobs_pg = self.get_related('project_updates', id=result.json['project_update'])
+        assert jobs_pg.count == 1, \
+            "An project_update started (id:%s) but job not found in response at %s/inventory_updates/" % \
+            (result.json['project_update'], self.url)
+        return jobs_pg.results[0]
 
     @property
     def is_successful(self):

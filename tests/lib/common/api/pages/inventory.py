@@ -176,7 +176,7 @@ class Inventory_Source_Page(Unified_Job_Template_Page):
 
         return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
-    def update(self, **kwargs):
+    def update(self):
         '''
         Update the inventory_source using related->update endpoint
         '''
@@ -189,7 +189,7 @@ class Inventory_Source_Page(Unified_Job_Template_Page):
             (self.id, update_pg.can_update)
 
         # start the inventory_update
-        result = update_pg.post(**kwargs)
+        result = update_pg.post()
 
         # assert JSON response
         assert 'inventory_update' in result.json, \

@@ -203,18 +203,8 @@ class Test_Inventory_Update(Base_Api_Test):
             "Inventory_source unexpectedly has can_update:%s" % \
             (launch_pg.json['can_update'],)
 
-        # launch update
-        result = launch_pg.post()
-
-        # assert launch response
-        assert 'inventory_update' in result.json, "Unexpected JSON response when launching an inventory_update - %s" % json.dumps(result.json)
-
-        # locate desired inventory_update
-        updates_pg = inv_source_pg.get_related('inventory_updates', id=result.json['inventory_update'])
-        assert updates_pg.count == 1, 'No inventory_update matching id:%s found' % result.json['inventory_update']
-
-        # wait for completion
-        update_pg = updates_pg.results[0].wait_until_completed(timeout=60 * 2)
+        # launch update and wait for completion
+        update_pg = inv_source_pg.update().wait_until_completed()
 
         # assert successful inventory_update
         assert update_pg.is_successful, "inventory_update failed - %s" % update_pg

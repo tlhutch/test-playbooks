@@ -263,21 +263,11 @@ class Test_Inventory_Scripts(Base_Api_Test):
         Verify succesful inventory_update using a custom /inventory_script
         '''
 
-        # POST inventory_update
-        update_pg = custom_inventory_source_with_vars.get_related('update')
-        result = update_pg.post()
-
-        # assert JSON response
-        assert 'inventory_update' in result.json, "Unexpected JSON response when starting an inventory_update.\n%s" % \
-            json.dumps(result.json, indent=2)
-
-        # wait for inventory_update to complete
-        jobs_pg = api_unified_jobs_pg.get(id=result.json['inventory_update'])
-        assert jobs_pg.count == 1, "Unexpected number of inventory_updates found (%s != 1)" % jobs_pg.count
-        job_pg = jobs_pg.results[0].wait_until_completed()
+        # Update inventory_source and wait for completion
+        update_pg = custom_inventory_source_with_vars.update().wait_until_completed()
 
         # assert successful inventory_update
-        assert job_pg.is_successful, "Inventory update unsuccessful - %s" % job_pg
+        assert update_pg.is_successful, "Inventory update unsuccessful - %s" % update_pg
 
         # assert imported groups
         inv_pg = custom_inventory_source_with_vars.get_related('inventory')
@@ -289,25 +279,25 @@ class Test_Inventory_Scripts(Base_Api_Test):
         assert num_hosts > 0, "Unexpected number of hosts were imported as a result of an inventory_update" % num_hosts
 
         # assert expected environment variables
-        print json.dumps(job_pg.job_env, indent=2)
+        print json.dumps(update_pg.job_env, indent=2)
 
         # assert existing shell environment variables are *not* replaced
         for key, val in custom_inventory_source_vars_bad.items():
-            if key in job_pg.job_env:
+            if key in update_pg.job_env:
                 # assert existing shell environment variables are *not* replaced
-                assert job_pg.job_env[key] != val, "The reserved environment " \
+                assert update_pg.job_env[key] != val, "The reserved environment " \
                     "variable '%s' was incorrectly set ('%s')" % \
-                    (key, job_pg.job_env[key])
+                    (key, update_pg.job_env[key])
 
         # assert environment variables are replaced
         for key, val in custom_inventory_source_vars_good.items():
             # assert the variable has been set
-            assert key in job_pg.job_env, "inventory_update.job_env missing " \
+            assert key in update_pg.job_env, "inventory_update.job_env missing " \
                 "expected environment variable '%s'" % key
             # assert correct variable value
-            assert job_pg.job_env[key] == str(val), "The environment " \
+            assert update_pg.job_env[key] == str(val), "The environment " \
                 "variable '%s' was incorrectly set ('%s' != '%s')" % \
-                (key, job_pg.job_env[key], val)
+                (key, update_pg.job_env[key], val)
 
     # @pytest.mark.fixture_args(script_source='#!env python\nraise Exception("fail!")\n') # traceback
     # @pytest.mark.fixture_args(script_source='#!env python\nimport sys\nsys.exit(1)\n')
@@ -319,18 +309,9 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # PATCH inventory_source
         custom_inventory_source.patch(source_script=bad_inventory_script.id)
 
-        # POST inventory_update
-        update_pg = custom_inventory_source.get_related('update')
-        result = update_pg.post()
-
-        # assert JSON response
-        assert 'inventory_update' in result.json, "Unexpected JSON response when starting an inventory_update.\n%s" % \
-            json.dumps(result.json, indent=2)
-
-        # wait for inventory_update to complete
-        jobs_pg = api_unified_jobs_pg.get(id=result.json['inventory_update'])
-        assert jobs_pg.count == 1, "Unexpected number of inventory_updates found (%s != 1)" % jobs_pg.count
-        job_pg = jobs_pg.results[0].wait_until_completed()
+        # Update inventory_source and wait for completion
+        update_pg = custom_inventory_source.update().wait_until_completed()
 
         # assert failed inventory_update
-        assert not job_pg.is_successful, "Inventory update completed successfully, but was expected to fail  - %s " % job_pg
+        assert not update_pg.is_successful, "Inventory update completed " \
+            "successfully, but was expected to fail  - %s " % update_pg
