@@ -16,34 +16,37 @@ class Project_Page(Unified_Job_Template_Page):
     scm_update_cache_timeout = property(json_getter('scm_update_cache_timeout'), json_setter('scm_update_cache_timeout'))
     has_schedules = property(json_getter('has_schedules'), json_setter('has_schedules'))
 
-    def get_related(self, name, **kwargs):
-        assert name in self.json['related']
-        if name in ('last_update', 'last_job', 'current_update'):
-            related = Project_Update_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'project_updates':
-            related = Project_Updates_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'update':
-            related = Base(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'playbooks':
-            related = Playbooks_Page(self.testsetup, base_url=self.json['related'][name], objectify=False)
-        elif name == 'organizations':
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related'], \
+            "No such related attribute '%s'" % attr
+
+        if attr in ('last_update', 'last_job', 'current_update'):
+            cls = Project_Update_Page
+        elif attr == 'project_updates':
+            cls = Project_Updates_Page
+        elif attr == 'update':
+            cls = Project_Update_Launch_Page
+        elif attr == 'playbooks':
+            cls = Playbooks_Page
+        elif attr == 'organizations':
             from organizations import Organizations_Page
-            related = Organizations_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'teams':
+            cls = Organizations_Page
+        elif attr == 'teams':
             from teams import Teams_Page
-            related = Teams_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'schedules':
+            cls = Teams_Page
+        elif attr == 'schedules':
             from schedules import Schedules_Page
-            related = Schedules_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'next_schedule':
+            cls = Schedules_Page
+        elif attr == 'next_schedule':
             from schedules import Schedule_Page
-            related = Schedule_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'activity_stream':
+            cls = Schedule_Page
+        elif attr == 'activity_stream':
             from activity_stream import Activity_Stream_Page
-            related = Activity_Stream_Page(self.testsetup, base_url=self.json['related'][name])
+            cls = Activity_Stream_Page
         else:
-            raise NotImplementedError
-        return related.get(**kwargs)
+            raise NotImplementedError("No related class found for '%s'" % attr)
+
+        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
     def update(self):
         '''
@@ -86,8 +89,13 @@ class Projects_Page(Project_Page, Base_List):
     base_url = '/api/v1/projects/'
 
 
+class Project_Update_Launch_Page(Base):
+    base_url = '/api/v1/projects/{id}/update/'
+    can_update = property(json_getter('can_update'), json_setter('can_update'))
+
+
 class Project_Update_Page(Unified_Job_Page):
-    base_url = '/api/v1/project/{id}/update/'
+    base_url = '/api/v1/project_updates/{id}/'
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
