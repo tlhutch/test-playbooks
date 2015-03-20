@@ -11,6 +11,7 @@ class Unified_Job_Page(Base):
 
     id = property(json_getter('id'), json_setter('id'))
     name = property(json_getter('name'), json_setter('name'))
+    type = property(json_getter('type'), json_setter('type'))
     status = property(json_getter('status'), json_setter('status'))
     failed = property(json_getter('failed'), json_setter('failed'))
     result_traceback = property(json_getter('result_traceback'), json_setter('result_traceback'))
