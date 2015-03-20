@@ -48,15 +48,10 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.variables_needed_to_start
         assert not launch_pg.credential_needed_to_start
 
-        # launch the job_template
-        result = launch_pg.post()
+        # launch the job_template and wait for completion
+        job_pg = job_template_ping.launch().wait_until_completed()
 
-        # assert successful launch
-        jobs_pg = job_template_ping.get_related('jobs', id=result.json['job'])
-        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
-
-        # wait for completion and assert success
-        job_pg = jobs_pg.results[0].wait_until_completed()
+        # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     def test_launch_without_credential(self, job_template_no_credential):
@@ -92,14 +87,9 @@ class Test_Job_Template(Base_Api_Test):
 
         # launch the job_template providing the credential in the payload
         payload = dict(credential=ssh_credential.id)
-        result = launch_pg.post(payload)
+        job_pg = job_template_no_credential.launch(payload).wait_until_completed()
 
-        # assert successful launch
-        jobs_pg = job_template_no_credential.get_related('jobs', id=result.json['job'])
-        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
-
-        # wait for completion and assert success
-        job_pg = jobs_pg.results[0].wait_until_completed()
+        # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
         # assert job is associated with the expected credential
@@ -107,6 +97,26 @@ class Test_Job_Template(Base_Api_Test):
             "A job_template was launched with a credential in the payload, but" \
             "the launched job does not have the same credential " \
             "(%s != %s)" % (job_pg.credential, ssh_credential.id)
+
+    def test_launch_with_invalid_credential_in_payload(self, job_template_no_credential):
+        '''
+        Verify the job->launch endpoint behaves as expected when launched with
+        a bogus credential id.
+        '''
+        launch_pg = job_template_no_credential.get_related('launch')
+
+        # assert values on launch resource
+        assert not launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+        assert launch_pg.credential_needed_to_start
+
+        # launch the job_template providing a bogus credential in payload
+        for bogus in ['', 'one', 0, False, [], {}]:
+            payload = dict(credential=bogus)
+            with pytest.raises(common.exceptions.BadRequest_Exception):
+                job_template_no_credential.launch(payload).wait_until_completed()
 
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_no_credential, ssh_credential_multi_ask):
         '''
@@ -161,17 +171,10 @@ class Test_Job_Template(Base_Api_Test):
                        ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
                        vault_password=self.credentials['ssh']['vault_password'])
 
-        # launch the job_template
-        result = launch_pg.post(payload)
+        # launch the job_template and wait for completion
+        job_pg = job_template_no_credential.launch(payload).wait_until_completed()
 
-        # assert successful launch
-        assert 'job' in result.json, "Expected a json response with the field " \
-            "'job'.  Response: %s" % json.dumps(result.json)
-        jobs_pg = job_template_no_credential.get_related('jobs', id=result.json['job'])
-        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
-
-        # wait for completion and assert success
-        job_pg = jobs_pg.results[0].wait_until_completed()
+        # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     def test_launch_without_ask_variables_on_launch(self, job_template_ask_variables_on_launch):
@@ -187,13 +190,8 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.variables_needed_to_start
         assert not launch_pg.credential_needed_to_start
 
-        # launch the job_template
-        result = launch_pg.post()
-
-        # assert successful launch
-        jobs_pg = job_template_ask_variables_on_launch.get_related('jobs', id=result.json['job'])
-        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
-        job_pg = jobs_pg.results[0]
+        # launch the job_template and wait for completion
+        job_pg = job_template_ask_variables_on_launch.launch().wait_until_completed()
 
         # assert job has no extra_vars
         assert job_pg.extra_vars == '', \
@@ -215,12 +213,8 @@ class Test_Job_Template(Base_Api_Test):
 
         # launch the job_template
         payload = dict(extra_vars=dict(one=1, two=2, three=3))
-        result = launch_pg.post(payload)
-
-        # assert successful launch
-        jobs_pg = job_template_ask_variables_on_launch.get_related('jobs', id=result.json['job'])
-        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
-        job_pg = jobs_pg.results[0]
+        # launch the job_template and wait for completion
+        job_pg = job_template_ask_variables_on_launch.launch(payload).wait_until_completed()
 
         # assert extra_vars contains provided data
         try:
@@ -372,35 +366,24 @@ class Test_Job_Template(Base_Api_Test):
                          sudo_password=self.credentials['ssh']['sudo_password'],
                          ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
                          vault_password=self.credentials['ssh']['vault_password'])
-        result = launch_pg.post(passwords)
+        job_pg = job_template_passwords_needed_to_start.launch(passwords).wait_until_completed()
 
-        # assert successful launch
-        jobs_pg = job_template_passwords_needed_to_start.get_related('jobs', id=result.json['job'])
-        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
-
-        # wait for completion and assert success
-        job_pg = jobs_pg.results[0].wait_until_completed()
+        # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    def test_delete_with_running_job(self, job_template_sleep, api_jobs_pg):
+    def test_delete_template_while_job_is_running(self, job_template_sleep):
         '''
-        Verify that tower properly cancels active jobs when deleting the
+        Verify that tower properly cancels queued jobs when deleting the
         corresponding job_template.
         '''
-        launch_pg = job_template_sleep.get_related('launch')
-
         # launch the job_template
-        result = launch_pg.post()
+        job_pg = job_template_sleep.launch().wait_until_started()
 
         # delete the job_template
         job_template_sleep.delete()
 
-        # locate the launched job
-        jobs_pg = api_jobs_pg.get(id=result.json['job'])
-        assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
-
         # wait for completion and assert success
-        job_pg = jobs_pg.results[0].wait_until_completed()
+        job_pg = job_pg.wait_until_completed()
         assert job_pg.status == 'canceled', \
             "Unexpected Job status (%s != 'canceled') after deleting job_template" % (job_pg.status)
 
