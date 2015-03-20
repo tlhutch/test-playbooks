@@ -78,12 +78,6 @@ class Job_Template_Page(Unified_Job_Template_Page):
         # get related->launch
         launch_pg = self.get_related('launch')
 
-        # assert can_start_without_user_input
-        assert launch_pg.can_start_without_user_input, \
-            "Unable to launch job_template:%s without user input " \
-            "(can_start_without_user_input:%s)" % \
-            (launch_pg.id, launch_pg.can_start_without_user_input)
-
         # launch the job_template
         result = launch_pg.post(payload)
 
