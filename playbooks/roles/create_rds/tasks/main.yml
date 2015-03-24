@@ -8,6 +8,7 @@
     region: '{{ rds_region }}'
     command: create
     db_engine: '{{ item.db_engine }}'
+    engine_version: '{{ item.engine_version }}'
     db_name: '{{ item.db_name }}'
     size: '{{ item.size }}'
     instance_type: '{{ item.instance_type }}'

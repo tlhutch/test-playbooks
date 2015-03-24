@@ -15,4 +15,11 @@ ec2_images:
     - {'name': 'ha-secondary-ubuntu-14.04-x86_64', 'user': 'ubuntu',   'id': 'ami-8caa1ce4', 'type': 'm3.medium', 'groups': 'secondary'}
 
 rds_images:
-    - {'name': 'postgres', 'db_engine': 'postgres', 'db_name': 'awx', 'instance_type': '{{rds_instance_type}}', 'size': '{{rds_size}}', 'groups': 'postgres' }
+    - name: 'tower'
+      db_name: 'awx'
+      db_engine: 'postgres'
+      engine_version: '{{rds_engine_version}}'
+      instance_type: '{{rds_instance_type}}'
+      size: '{{rds_size}}'
+      groups: 'postgres'
+
