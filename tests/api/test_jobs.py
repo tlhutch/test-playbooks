@@ -146,6 +146,7 @@ class Test_Job(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
+    @pytest.mark.trello('https://trello.com/c/MjOiEWgS')
     def test_relaunch_with_deleted_credential(self, job_with_status_completed):
         '''
         Verify relaunching a job whose credential has been deleted.
@@ -161,8 +162,7 @@ class Test_Job(Base_Api_Test):
         # assert values on relaunch resource
         assert not relaunch_pg.passwords_needed_to_start
 
-        # attempt relaunch the job, should raise exception
-        # FIXME - https://trello.com/c/MjOiEWgS
+        # attempt to relaunch the job, should raise exception
         with pytest.raises(common.exceptions.Forbidden_Exception):
             relaunch_pg.post()
 

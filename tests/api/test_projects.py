@@ -251,7 +251,7 @@ class Test_Projects(Base_Api_Test):
         is marked as active=False, and therefore not visible through the API.
         '''
 
-        # delete all the projects
+        # delete the projects
         project_with_queued_updates.delete()
 
         # assert no unified_jobs remain running.  Poll using tower-manage until

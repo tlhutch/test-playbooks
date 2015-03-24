@@ -98,6 +98,7 @@ class Test_Job_Template(Base_Api_Test):
             "the launched job does not have the same credential " \
             "(%s != %s)" % (job_pg.credential, ssh_credential.id)
 
+    @pytest.mark.trello('https://trello.com/c/Iu5H2gHM', 'https://trello.com/c/gcllkAT7')
     def test_launch_with_invalid_credential_in_payload(self, job_template_no_credential):
         '''
         Verify the job->launch endpoint behaves as expected when launched with
