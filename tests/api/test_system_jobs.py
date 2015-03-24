@@ -2,7 +2,18 @@ import json
 import pytest
 import common.tower.inventory
 import common.utils
+import common.exceptions
 from tests.api import Base_Api_Test
+
+
+@pytest.fixture(scope="function", params=['cleanup_jobs_with_status_completed', 'cleanup_deleted_with_status_completed', 'cleanup_activitystream_with_status_completed', 'custom_inventory_update_with_status_completed', 'project_ansible_playbooks_git', 'job_with_status_completed'])
+def unified_job_with_status_completed(request):
+    '''
+    Launches jobs of all types sequentially.
+
+    Returns the job run.
+    '''
+    return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture(scope="function")
@@ -55,6 +66,28 @@ class Test_System_Jobs(Base_Api_Test):
 
         with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
             system_job.patch()
+
+    def test_cleanup_jobs(self, cleanup_jobs_template, unified_job_with_status_completed, api_jobs_pg, api_system_jobs_pg, api_unified_jobs_pg):
+        '''
+        Run jobs of different types sequentially and check that cleanup jobs deletes all of them.
+        '''
+        # launch cleanup job
+        payload = dict(extra_vars=dict(days=0))
+        cleanup_jobs_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
+
+        # check cleanup job status
+        assert cleanup_jobs_pg.is_successful, "Job unsuccessful - %s" % cleanup_jobs_pg
+
+        # Assert provided job has been deleted
+        with pytest.raises(common.exceptions.NotFound_Exception):
+            unified_job_with_status_completed.get()
+
+        # Query for unified_jobs matching the provided job id
+        results = api_unified_jobs_pg.get(id=unified_job_with_status_completed.id)
+
+        # Assert no matching jobs found
+        assert results.count == 0, "An unexpected number of unified jobs were found (%s != 0)" \
+            % results.count
 
     def test_cleanup_jobs_on_multiple_jobs(self, cleanup_jobs_template, multiple_jobs_with_status_completed, api_jobs_pg, api_system_jobs_pg, api_unified_jobs_pg):
         '''
