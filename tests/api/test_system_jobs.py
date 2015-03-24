@@ -62,13 +62,19 @@ class Test_System_Jobs(Base_Api_Test):
         '''
         # pretest
         job_types = [uj.type for uj in multiple_jobs_with_status_completed]
-        jobs_pg = api_jobs_pg.get()
-        system_jobs_pg = api_system_jobs_pg.get()
-        unified_jobs_pg = api_unified_jobs_pg.get()
 
-        assert jobs_pg.count == job_types.count('job')
-        assert system_jobs_pg.count == job_types.count('system_job')
-        assert unified_jobs_pg.count == len(job_types)
+        # assert expected jobs are present
+        jobs_pg = api_jobs_pg.get()
+        assert jobs_pg.count >= job_types.count('job'), "An unexpected number of jobs were found (%s < %s)" \
+            % (jobs_pg.count, job_types.count('job'))
+
+        system_jobs_pg = api_system_jobs_pg.get()
+        assert system_jobs_pg.count >= job_types.count('system_job'), "An unexpected number of system jobs were found (%s < %s)" \
+            % (system_jobs_pg.count, job_types.count('system_job'))
+
+        unified_jobs_pg = api_unified_jobs_pg.get()
+        assert unified_jobs_pg.count >= len(job_types), "An unexpected number of unified jobs were found were found (%s < %s)" \
+            % (unified_jobs_pg.count, len(job_types))
 
         # launch cleanup job
         payload = dict(extra_vars=dict(days=0))
