@@ -207,6 +207,19 @@ def api_projects_pg(testsetup, api_projects_url):
 
 
 #
+# /api/v1/activity_stream
+#
+@pytest.fixture(scope="module")
+def api_activity_stream_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'activity_stream')
+
+
+@pytest.fixture(scope="module")
+def api_activity_stream_pg(testsetup, api_activity_stream_url):
+    return Activity_Stream_Page(testsetup, base_url=api_activity_stream_url)
+
+
+#
 # /api/v1/credentials
 #
 @pytest.fixture(scope="module")

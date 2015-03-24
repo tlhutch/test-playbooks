@@ -17,13 +17,6 @@ def cleanup_jobs_template(request, api_system_job_templates_pg):
     return matches.results[0]
 
 
-@pytest.fixture(scope="function", params=['cleanup_jobs', 'cleanup_deleted', 'cleanup_activitystream'])
-def system_job_template(request, api_system_job_templates_pg):
-    matches = api_system_job_templates_pg.get(job_type=request.param)
-    assert matches.count == 1, "No matching system_job_template found with job_type=%s" % request.param
-    return matches.results[0]
-
-
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive

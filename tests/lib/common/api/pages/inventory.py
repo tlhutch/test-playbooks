@@ -15,6 +15,8 @@ class Inventory_Page(Base):
             related = Hosts_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'groups':
             related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'inventory_source':
+            related = Inventory_Source_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'root_groups':
             related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'script':

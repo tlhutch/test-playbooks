@@ -12,7 +12,7 @@ import common.exceptions
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope="function")
+pytest.fixture(scope="function")
 def api_inventory_sources_options_json(request, authtoken, api_inventory_sources_pg):
     '''Return inventory_sources OPTIONS json.'''
     return api_inventory_sources_pg.options().json
@@ -74,6 +74,25 @@ def inventory(request, authtoken, api_inventories_pg, organization):
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj
+
+
+@pytest.fixture(scope="function")
+def custom_inventory_update_with_status_completed(custom_inventory_source):
+    '''
+    Launches an inventory sync.
+    '''
+    # navigate to launch_pg and launch inventory update
+    update_pg = custom_inventory_source.get_related('update')
+    result = update_pg.post()
+
+    # navigate to inventory_update page and check results
+    inventory_updates_pg = custom_inventory_source.get_related('inventory_updates', id=result.json['inventory_update'])
+    assert inventory_updates_pg.count == 1, "Unexpected number of updates returned (%s != 1)" % inventory_updates_pg.count
+
+    inventory_update_pg = inventory_updates_pg.results[0].wait_until_completed()
+    assert inventory_update_pg.is_successful, "Job unsuccessful - %s" % inventory_update_pg
+
+    return inventory_update_pg
 
 
 @pytest.fixture(scope="function")

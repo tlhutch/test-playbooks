@@ -6,28 +6,18 @@ from tests.api import Base_Api_Test
 
 
 @pytest.fixture(scope="function")
-def cleanup_jobs_template(request, api_system_job_templates_pg):
+def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed, cleanup_deleted_with_status_completed, cleanup_activitystream_with_status_completed, custom_inventory_update_with_status_completed, project_ansible_playbooks_git, job_with_status_completed):
     '''
-    Return a System_Job_Template object representing the 'cleanup_jobs' system
-    job template.
+    Launches all three system jobs, an inventory update, an SCM update, and a job template.
+
+    Returns a list of the jobs run.
     '''
-    matches = api_system_job_templates_pg.get(job_type='cleanup_jobs')
-    assert matches.count == 1, "Unexpected number of results (%s) when querying " \
-        "for system_job_template job_type:cleanup_jobs" % matches.count
-    return matches.results[0]
-
-
-@pytest.fixture(scope="function", params=['cleanup_jobs', 'cleanup_deleted', 'cleanup_activitystream'])
-def system_job_template(request, api_system_job_templates_pg):
-    matches = api_system_job_templates_pg.get(job_type=request.param)
-    assert matches.count == 1, "No matching system_job_template found with job_type=%s" % request.param
-    return matches.results[0]
+    return [cleanup_jobs_with_status_completed, cleanup_deleted_with_status_completed, cleanup_activitystream_with_status_completed, custom_inventory_update_with_status_completed, project_ansible_playbooks_git, job_with_status_completed]
 
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-@pytest.mark.skipif(True, reason="not yet implemented")
 class Test_System_Jobs(Base_Api_Test):
     '''
     Verify actions with system_job_templates
@@ -35,71 +25,105 @@ class Test_System_Jobs(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken')
 
-    def test_get_as_superuser(self, api_system_job_templates_pg):
+    @pytest.mark.fixture_args(days=1000)
+    def test_get_as_superuser(self, system_job):
         '''
-        Verify that a superuser account is able to GET the system_jobs
-        resource.
+        Verify that a superuser account is able to GET a system_job resource.
         '''
-        results = api_system_job_templates_pg.get()
-        # NOTE: validation on the system_job_template name+description happens
-        # during JSON schema validation
-        assert results.count > 0, "Unexpected system_job_template count (%s)" % \
-            results.count
+        system_job.get()
 
-    def test_delete_as_superuser(self, api_system_job_templates_pg):
+    @pytest.mark.fixture_args(days=1000)
+    def test_get_as_non_superuser(self, non_superusers, user_password, api_system_jobs_pg, system_job):
         '''
-        Verify that a superuser account is able to GET the system_jobs
-        resource.
-        '''
-        results = api_system_job_templates_pg.get()
-        # NOTE: validation on the system_job_template name+description happens
-        # during JSON schema validation
-        assert results.count > 0, "Unexpected system_job_template count (%s)" % \
-            results.count
-
-    def test_get_as_non_superuser(self, api_system_job_templates_pg, non_superusers, user_password):
-        '''
-        Verify that non-superuser accounts are unable to access the
-        system_job_template endpoint
+        Verify that non-superuser accounts are unable to access a system_job.
         '''
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
                 with pytest.raises(common.exceptions.NotFound_Exception):
-                    api_system_job_templates_pg.get()
+                    api_system_jobs_pg.get(id=system_job.id)
 
-    def test_method_not_allowed(self, api_system_job_templates_pg):
+    @pytest.mark.fixture_args(days=1000)
+    def test_method_not_allowed(self, system_job):
         '''
         Verify that PUT, POST and PATCH are unsupported request methods
         '''
         with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
-            api_system_job_templates_pg.post()
-
-        system_job_template = api_system_job_templates_pg.get(id=1)
-        with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
-            system_job_template.put()
+            system_job.post()
 
         with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
-            system_job_template.patch()
+            system_job.put()
 
-    def test_relaunch_as_superuser(self, system_job_template):
+        with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
+            system_job.patch()
+
+    def test_cleanup_jobs_on_multiple_jobs(self, cleanup_jobs_template, multiple_jobs_with_status_completed, api_jobs_pg, api_system_jobs_pg, api_unified_jobs_pg):
         '''
-        Verify successful launch of a system_job_template
+        Run jobs of different types and check that cleanup jobs deletes all of them.
         '''
+        # pretest
+        job_types = [uj.type for uj in multiple_jobs_with_status_completed]
+        jobs_pg = api_jobs_pg.get()
+        system_jobs_pg = api_system_jobs_pg.get()
+        unified_jobs_pg = api_unified_jobs_pg.get()
 
-        result = system_job_template.get_related('launch').post()
-        assert 'system_job' in result.json, "Unexpected JSON response when " \
-            "launching system_job_template\n%s" % json.dumps(result.json, indent=2)
+        assert jobs_pg.count == job_types.count('job')
+        assert system_jobs_pg.count == job_types.count('system_job')
+        assert unified_jobs_pg.count == len(job_types)
 
-        job_pg = system_job_template.get_related('jobs', id=result.json['system_job']).results[0].wait_until_completed()
-        assert job_pg.is_successful, job_pg
+        # launch cleanup job
+        payload = dict(extra_vars=dict(days=0))
+        cleanup_jobs_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
 
-    def test_relaunch_as_non_superuser(self, system_job_template, non_superusers, user_password):
+        # check cleanup job status
+        assert cleanup_jobs_pg.is_successful, "Job unsuccessful - %s" % cleanup_jobs_pg
+
+        # assert jobs_pg is empty
+        jobs_pg = api_jobs_pg.get()
+        assert jobs_pg.count == 0, "jobs_pg.count not zero (%s != 0)" % jobs_pg.count
+
+        # assert that the cleanup_jobs job is the only job listed in system jobs
+        system_jobs_pg = api_system_jobs_pg.get()
+        assert system_jobs_pg.count == 1, "An unexpected number of system_jobs were found after running cleanup_jobs (%s != 1)" % system_jobs_pg.count
+        assert system_jobs_pg.results[0].id == cleanup_jobs_pg.id, "After running cleanup_jobs, an unexpected system_job.id was found (%s != %s)" \
+            % (system_jobs_pg.results[0].id, cleanup_jobs_pg.id)
+
+        # assert that the cleanup_jobs job is the only job listed in unified jobs
+        # Trello: https://trello.com/c/Kg5IBdUx
+        unified_jobs_pg = api_unified_jobs_pg.get()
+        assert unified_jobs_pg.count == 1, "An unexpected number of unified_jobs were found after running cleanup_jobs (%s != 1)" % unified_jobs_pg.count
+        assert unified_jobs_pg.results[0].id == cleanup_jobs_pg.id, "After running cleanup_jobs, an unexpected system_job.id was found (%s != %s)" \
+            % (unified_jobs_pg.results[0].id, cleanup_jobs_pg.id)
+
+    @pytest.mark.skipif(True, reason="not yet implemented")
+    def test_cleanup_deleted(self):
         '''
-        Verify launch fails when attempted by a non-superuser
+        Verifies cleanup_deleted functionality.
         '''
+        # Create a fixture that populates tower with information and then deletes everything.
+        # Run cleanup job and verify that objects are deleted from the API? They already are deleted - what does this system job actually do?
+        pass
 
-        launch_pg = system_job_template.get_related('launch')
-        for non_superuser in non_superusers:
-            with self.current_user(non_superuser.username, user_password):
-                with pytest.raises(common.exceptions.Forbidden_Exception):
-                    launch_pg.post()
+    def test_cleanup_activitystream(self, cleanup_activitystream_template, multiple_jobs_with_status_completed, api_activity_stream_pg):
+        '''
+        Launch jobs of different types, run cleanup activitystreams, and verify that the activitystream is cleared.
+        '''
+        # Create a fixture that runs a variety of tasks in Tower such as, create objects, delete objects, run jobs, edit items, etc.
+        # Do this for several different organizations. Parametrization will be good here.
+        # Run cleanup_activitystream for one user and verify that actity stream is cleaned for that user and others in the same organization.
+        # Check for all users
+
+        # pretest
+        activity_stream_pg = api_activity_stream_pg.get()
+        assert activity_stream_pg.count != 0, "Activity stream empty (%s == 0)." % activity_stream_pg.count
+
+        # launch job
+        payload = dict(extra_vars=dict(days=0))
+        system_jobs_pg = cleanup_activitystream_template.launch(payload)
+
+        # assess success
+        system_jobs_pg.wait_until_completed()
+        assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
+
+        # assert that activity_stream is cleared
+        activity_stream_pg = api_activity_stream_pg.get()
+        assert activity_stream_pg.count == 0, "After running cleanup_activitystream, activity_stream data is still present (count == %s)" % activity_stream_pg.count

@@ -5,6 +5,7 @@ from common.api.pages import Base, Base_List, Unified_Job_Page, Unified_Job_Temp
 
 class Project_Page(Unified_Job_Template_Page):
     base_url = '/api/v1/projects/{id}/'
+    type = property(json_getter('type'), json_setter('type'))
     local_path = property(json_getter('local_path'), json_setter('local_path'))
     scm_type = property(json_getter('scm_type'), json_setter('scm_type'))
     scm_url = property(json_getter('scm_url'), json_setter('scm_url'))
