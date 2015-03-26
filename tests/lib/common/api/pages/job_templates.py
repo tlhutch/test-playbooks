@@ -25,6 +25,9 @@ class Job_Template_Page(Unified_Job_Template_Page):
         assert name in self.json['related']
         if name == 'start':
             related = Base(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'credential':
+            from credentials import Credential_Page
+            related = Credential_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'schedules':
             from schedules import Schedules_Page
             related = Schedules_Page(self.testsetup, base_url=self.json['related'][name])
