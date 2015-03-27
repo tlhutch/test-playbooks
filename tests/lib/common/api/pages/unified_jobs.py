@@ -78,7 +78,7 @@ class Unified_Job_Page(Base):
             ('pending', 'running', 'successful', 'failed', 'error', 'canceled',),
             interval=interval, verbose=verbose, timeout=timeout)
 
-    def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 8):
+    def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 2):
         return self.wait_until_status(
             ('successful', 'failed', 'error', 'canceled',),
             interval=interval, verbose=verbose, timeout=timeout)
