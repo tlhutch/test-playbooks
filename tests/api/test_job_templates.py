@@ -119,7 +119,8 @@ class Test_Job_Template(Base_Api_Test):
             with pytest.raises(common.exceptions.BadRequest_Exception):
                 job_template_no_credential.launch(payload).wait_until_completed()
 
-    def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_no_credential, ssh_credential_multi_ask):
+    def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_no_credential,
+                                                                         ssh_credential_multi_ask):
         '''
         Verify that launching a job_template, while providing the credential in
         the payload, behaves as expected.
@@ -147,10 +148,10 @@ class Test_Job_Template(Base_Api_Test):
             "passwords. %s" % json.dumps(result)
 
         # assert expected 'passwords_needed_to_start'
-        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock',
-                'vault_password'] == result['passwords_needed_to_start']
+        assert ssh_credential_multi_ask.expected_passwords_needed_to_start == result['passwords_needed_to_start']
 
-    def test_launch_with_ask_credential_and_with_passwords_in_payload(self, job_template_no_credential, ssh_credential_multi_ask):
+    def test_launch_with_ask_credential_and_with_passwords_in_payload(self, job_template_no_credential,
+                                                                      ssh_credential_multi_ask):
         '''
         Verify that launching a job_template, while providing the credential in
         the payload, behaves as expected.
@@ -168,9 +169,12 @@ class Test_Job_Template(Base_Api_Test):
         # build a payload containing the credential and passwords
         payload = dict(credential=ssh_credential_multi_ask.id,
                        ssh_password=self.credentials['ssh']['password'],
-                       sudo_password=self.credentials['ssh']['sudo_password'],
                        ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
                        vault_password=self.credentials['ssh']['vault_password'])
+        if ssh_credential_multi_ask.su_password == 'ASK':
+            payload['su_password'] = self.credentials['ssh']['su_password']
+        elif ssh_credential_multi_ask.sudo_password == 'ASK':
+            payload['sudo_password'] = self.credentials['ssh']['sudo_password']
 
         # launch the job_template and wait for completion
         job_pg = job_template_no_credential.launch(payload).wait_until_completed()
@@ -329,19 +333,23 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.credential_needed_to_start
 
         # assert expected values in launch_pg.passwords_needed_to_start
-        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock',
-                'vault_password'] == launch_pg.passwords_needed_to_start
+        credential = job_template_passwords_needed_to_start.get_related('credential')
+        assert credential.expected_passwords_needed_to_start == launch_pg.passwords_needed_to_start
 
         # launch the job_template without passwords
         with pytest.raises(common.exceptions.BadRequest_Exception):
             launch_pg.post()
 
-        # launch the job_template with empty passwords
-        passwords = dict(ssh_password="",
-                         sudo_password="",
-                         ssh_key_unlock="")
+        # prepare payload with empty passwords
+        payload = dict(ssh_password='', ssh_key_unlock='')
+        if credential.su_password == 'ASK':
+            payload['su_password'] = ''
+        elif credential.sudo_password == 'ASK':
+            payload['sudo_password'] = ''
+
+        # launch the job_template
         with pytest.raises(common.exceptions.BadRequest_Exception):
-            launch_pg.post(passwords)
+            launch_pg.post(payload)
 
     def test_launch_with_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         '''
@@ -359,15 +367,20 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.credential_needed_to_start
 
         # assert expected passwords_needed_to_start
-        assert ['ssh_password', 'sudo_password', 'ssh_key_unlock',
-                'vault_password'] == launch_pg.passwords_needed_to_start
+        credential = job_template_passwords_needed_to_start.get_related('credential')
+        assert credential.expected_passwords_needed_to_start == launch_pg.passwords_needed_to_start
 
-        # launch the job_template with passwords
-        passwords = dict(ssh_password=self.credentials['ssh']['password'],
-                         sudo_password=self.credentials['ssh']['sudo_password'],
-                         ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                         vault_password=self.credentials['ssh']['vault_password'])
-        job_pg = job_template_passwords_needed_to_start.launch(passwords).wait_until_completed()
+        # prepare payload with passwords
+        payload = dict(ssh_password=self.credentials['ssh']['password'],
+                       ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
+                       vault_password=self.credentials['ssh']['vault_password'])
+        if credential.su_password == 'ASK':
+            payload['su_password'] = ''
+        elif credential.sudo_password == 'ASK':
+            payload['sudo_password'] = ''
+
+        # launch the job_template
+        job_pg = job_template_passwords_needed_to_start.launch(payload).wait_until_completed()
 
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg

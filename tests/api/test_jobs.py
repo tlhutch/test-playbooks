@@ -36,14 +36,22 @@ def job_with_multi_ask_credential_and_password_in_payload(request, job_template_
     '''
     launch_pg = job_template_multi_ask.get_related("launch")
 
-    # assert expected values in launch_pg.passwords_needed_to_start
-    assert ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password'] == launch_pg.passwords_needed_to_start
+    # determine whether sudo or su was used
+    credential = job_template_multi_ask.get_related('credential')
 
-    # launch prep and job launch
+    # assert expected values in launch_pg.passwords_needed_to_start
+    assert credential.expected_passwords_needed_to_start == launch_pg.passwords_needed_to_start
+
+    # build launch payload
     payload = dict(ssh_password=testsetup.credentials['ssh']['password'],
-                   sudo_password=testsetup.credentials['ssh']['sudo_password'],
                    ssh_key_unlock=testsetup.credentials['ssh']['encrypted']['ssh_key_unlock'],
                    vault_password=testsetup.credentials['ssh']['vault_password'])
+    if credential.su_password == 'ASK':
+        payload['su_password'] = testsetup.credentials['ssh']['su_password']
+    elif credential.sudo_password == 'ASK':
+        payload['sudo_password'] = testsetup.credentials['ssh']['sudo_password']
+
+    # launch job_template
     result = launch_pg.post(payload)
 
     # find and return specific job_pg
@@ -166,7 +174,7 @@ class Test_Job(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             relaunch_pg.post()
 
-    def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload, testsetup):
+    def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload, testsetup):  # NOQA
         '''
         Verify that relaunching a job with a credential that includes ASK passwords, behaves as expected when
         supplying the necessary passwords in the relaunch payload.
@@ -174,30 +182,37 @@ class Test_Job(Base_Api_Test):
         # get relaunch page
         relaunch_pg = job_with_multi_ask_credential_and_password_in_payload.get_related('relaunch')
 
+        # determine expected passwords
+        credential = job_with_multi_ask_credential_and_password_in_payload.get_related('credential')
+
         # assert expected values in relaunch_pg.passwords_needed_to_start
-        assert relaunch_pg.passwords_needed_to_start == \
-            ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password']
+        assert credential.expected_passwords_needed_to_start == relaunch_pg.passwords_needed_to_start
 
         # relaunch the job and wait for completion
         payload = dict(ssh_password=testsetup.credentials['ssh']['password'],
-                       sudo_password=testsetup.credentials['ssh']['sudo_password'],
                        ssh_key_unlock=testsetup.credentials['ssh']['encrypted']['ssh_key_unlock'],
                        vault_password=testsetup.credentials['ssh']['vault_password'])
+        if credential.su_password == 'ASK':
+            payload['su_password'] = testsetup.credentials['ssh']['su_password']
+        elif credential.sudo_password == 'ASK':
+            payload['sudo_password'] = testsetup.credentials['ssh']['sudo_password']
         job_pg = job_with_multi_ask_credential_and_password_in_payload.relaunch(payload).wait_until_completed()
 
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    def test_relaunch_with_multi_ask_credential_and_without_passwords(self, job_with_multi_ask_credential_and_password_in_payload):
+    def test_relaunch_with_multi_ask_credential_and_without_passwords(self, job_with_multi_ask_credential_and_password_in_payload):  # NOQA
         '''
         Verify that relaunching a job with a multi-ask credential fails when not supplied with passwords.
         '''
         # get relaunch page
         relaunch_pg = job_with_multi_ask_credential_and_password_in_payload.get_related('relaunch')
 
-        # assert value on relaunch resource
-        assert relaunch_pg.passwords_needed_to_start == \
-            ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password']
+        # determine expected passwords
+        credential = job_with_multi_ask_credential_and_password_in_payload.get_related('credential')
+
+        # assert expected values in relaunch_pg.passwords_needed_to_start
+        assert credential.expected_passwords_needed_to_start == relaunch_pg.passwords_needed_to_start
 
         # relaunch the job
         exc_info = pytest.raises(common.exceptions.BadRequest_Exception, relaunch_pg.post, {})
@@ -209,8 +224,8 @@ class Test_Job(Base_Api_Test):
             "relaunching a job, without provided credential " \
             "passwords. %s" % json.dumps(result)
 
-        assert result['passwords_needed_to_start'] == \
-            ['ssh_password', 'sudo_password', 'ssh_key_unlock', 'vault_password']
+        # assert expected values in response
+        assert credential.expected_passwords_needed_to_start == result['passwords_needed_to_start']
 
     def test_relaunch_uses_extra_vars_from_job(self, job_with_extra_vars, job_extra_vars_dict):
         '''
@@ -372,7 +387,8 @@ class Test_Update_On_Launch(Base_Api_Test):
         inv_src_pg = cloud_group.get_related('inventory_source')
         inv_src_pg.patch(update_on_launch=True)
         assert inv_src_pg.update_cache_timeout == 0
-        assert inv_src_pg.last_updated is None, "Not expecting inventory_source an have been updated - %s" % json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_updated is None, "Not expecting inventory_source an have been updated - %s" % \
+            json.dumps(inv_src_pg.json, indent=4)
 
         # 2) Update job_template to cloud inventory
         cloud_inventory_job_template.patch(inventory=cloud_group.inventory)
@@ -382,8 +398,10 @@ class Test_Update_On_Launch(Base_Api_Test):
 
         # 4) Ensure inventory_update was triggered
         inv_src_pg.get()
-        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % json.dumps(inv_src_pg.json, indent=4)
-        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s" % json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % \
+            json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s" % \
+            json.dumps(inv_src_pg.json, indent=4)
 
         # 5) Ensure inventory_update was successful
         last_update = inv_src_pg.get_related('last_update')
@@ -406,7 +424,8 @@ class Test_Update_On_Launch(Base_Api_Test):
             json.dumps(rax_inventory_source.json, indent=4)
 
         # 2) Update job_template to cloud inventory
-        assert rax_inventory_source.inventory == aws_inventory_source.inventory, "The inventory differs between the two inventory sources"
+        assert rax_inventory_source.inventory == aws_inventory_source.inventory, \
+            "The inventory differs between the two inventory sources"
         job_template.patch(inventory=aws_inventory_source.inventory)
 
         # 3) Launch job_template and wait for completion
@@ -428,12 +447,14 @@ class Test_Update_On_Launch(Base_Api_Test):
         # 5) Ensure inventory_update was successful
         last_update = aws_inventory_source.get_related('last_update')
         assert last_update.is_successful, "aws_inventory_source -> last_update unsuccessful - %s" % last_update
-        assert aws_inventory_source.is_successful, "inventory_source unsuccessful - %s" % json.dumps(aws_inventory_source.json, indent=4)
+        assert aws_inventory_source.is_successful, "inventory_source unsuccessful - %s" % \
+            json.dumps(aws_inventory_source.json, indent=4)
 
         # assert last_update successful
         last_update = rax_inventory_source.get_related('last_update')
         assert last_update.is_successful, "rax_inventory_source -> last_update unsuccessful - %s" % last_update
-        assert rax_inventory_source.is_successful, "inventory_source unsuccessful - %s" % json.dumps(rax_inventory_source.json, indent=4)
+        assert rax_inventory_source.is_successful, "inventory_source unsuccessful - %s" % \
+            json.dumps(rax_inventory_source.json, indent=4)
 
     def test_inventory_cache_timeout(self, cloud_inventory_job_template, cloud_group):
         '''Verify that an inventory_update is not triggered by job launch if the cache is still valid'''
@@ -443,7 +464,8 @@ class Test_Update_On_Launch(Base_Api_Test):
         cache_timeout = 60 * 5
         inv_src_pg.patch(update_on_launch=True, update_cache_timeout=cache_timeout)
         assert inv_src_pg.update_cache_timeout == cache_timeout
-        assert inv_src_pg.last_updated is None, "Not expecting inventory_source an have been updated - %s" % json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_updated is None, "Not expecting inventory_source an have been updated - %s" % \
+            json.dumps(inv_src_pg.json, indent=4)
 
         # 2) Update job_template to cloud inventory
         cloud_inventory_job_template.patch(inventory=cloud_group.inventory)
@@ -453,8 +475,10 @@ class Test_Update_On_Launch(Base_Api_Test):
 
         # 4) Ensure inventory_update was triggered
         inv_src_pg.get()
-        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % json.dumps(inv_src_pg.json, indent=4)
-        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s" % json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % \
+            json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s" % \
+            json.dumps(inv_src_pg.json, indent=4)
         last_updated = inv_src_pg.last_updated
         last_job_run = inv_src_pg.last_job_run
 
@@ -463,9 +487,11 @@ class Test_Update_On_Launch(Base_Api_Test):
 
         # 6) Ensure inventory_update was *NOT* triggered
         inv_src_pg.get()
-        assert inv_src_pg.last_updated == last_updated, "An inventory_update was unexpectedly triggered (last_updated changed)- %s" % \
+        assert inv_src_pg.last_updated == last_updated, \
+            "An inventory_update was unexpectedly triggered (last_updated changed)- %s" % \
             json.dumps(inv_src_pg.json, indent=4)
-        assert inv_src_pg.last_job_run == last_job_run, "An inventory_update was unexpectedly triggered (last_job_run changed)- %s" % \
+        assert inv_src_pg.last_job_run == last_job_run, \
+            "An inventory_update was unexpectedly triggered (last_job_run changed)- %s" % \
             json.dumps(inv_src_pg.json, indent=4)
 
     def test_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
@@ -503,9 +529,11 @@ class Test_Update_On_Launch(Base_Api_Test):
 
         # 3) Ensure project_update was *NOT* triggered
         project_ansible_playbooks_git.get()
-        assert project_ansible_playbooks_git.last_updated == last_updated, "A project_update happened, but was not expected"
+        assert project_ansible_playbooks_git.last_updated == last_updated, \
+            "A project_update happened, but was not expected"
 
-    def test_inventory_and_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git, cloud_group):
+    def test_inventory_and_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git,
+                                   cloud_group):
         '''Verify that a project_update and inventory_update are triggered by job launch'''
 
         # 1) Set scm_update_on_launch for the project
@@ -526,8 +554,10 @@ class Test_Update_On_Launch(Base_Api_Test):
 
         # 5) Ensure inventory_update was triggered and successful
         inv_src_pg.get()
-        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % json.dumps(inv_src_pg.json, indent=4)
-        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s" % json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % \
+            json.dumps(inv_src_pg.json, indent=4)
+        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s" % \
+            json.dumps(inv_src_pg.json, indent=4)
         assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
 
         # 6) Ensure project_update was triggered
