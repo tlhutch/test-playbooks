@@ -12,7 +12,7 @@ import common.exceptions
 log = logging.getLogger(__name__)
 
 
-pytest.fixture(scope="function")
+@pytest.fixture(scope="function")
 def api_inventory_sources_options_json(request, authtoken, api_inventory_sources_pg):
     '''Return inventory_sources OPTIONS json.'''
     return api_inventory_sources_pg.options().json
