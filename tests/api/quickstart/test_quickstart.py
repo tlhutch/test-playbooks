@@ -480,7 +480,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         inv_updates_pg = inv_src.get_related('inventory_updates', order_by='-id').results[0]
 
         # Wait for task to complete
-        inv_updates_pg = inv_updates_pg.wait_until_completed()
+        inv_updates_pg = inv_updates_pg.wait_until_completed(timeout=60 * 5)
 
         # Make sure there is no traceback in result_stdout or result_traceback
         assert inv_updates_pg.is_successful, "Job unsuccessful - %s" % inv_updates_pg
