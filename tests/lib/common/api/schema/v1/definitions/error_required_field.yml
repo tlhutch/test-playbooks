@@ -4,5 +4,8 @@ error_required_field:
     minItems: 1
     uniqueItems: True
     items:
-        type: string
-        pattern: '^This field is required.$'
+        oneOf:
+            - type: string
+              pattern: '^This field is required.$'
+            - type: string
+              pattern: '^This field cannot be blank.$'

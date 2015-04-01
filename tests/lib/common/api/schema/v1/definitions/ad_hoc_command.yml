@@ -1,0 +1,61 @@
+ad_hoc_command:
+  additionalProperties: false
+  properties:
+    cloud_credential: {$ref: '#/definitions/id_or_null'}
+    created: {format: date-time, type: string}
+    credential: {$ref: '#/definitions/id_or_null'}
+    elapsed: {type: number}
+    failed: {type: boolean}
+    finished:
+      format: date-time
+      type: [string, 'null']
+    forks: {minimum: 0, type: number}
+    id: {$ref: '#/definitions/id'}
+    inventory: {$ref: '#/definitions/id_or_null'}
+    job_args: {type: string}
+    job_cwd: {type: string}
+    job_env: {$ref: '#/definitions/job_env'}
+    job_explanation: {type: string}
+    job_tags: {type: string}
+    job_type: {$ref: '#/definitions/enum_job_job_type'}
+    launch_type: {$ref: '#/definitions/enum_launch_type'}
+    limit: {type: string}
+    modified: {format: date-time, type: string}
+    module_args: {type: string}
+    module_name: {type: string}
+    name: {type: string}
+    privilege_escalation: {$ref: '#/definitions/enum_privilege_escalation'}
+    related:
+      additionalProperties: false
+      properties:
+        activity_stream: {format: uri, type: string}
+        cancel: {format: uri, type: string}
+        created_by: {format: uri, type: string}
+        credential: {format: uri, type: string}
+        events: {format: uri, type: string}
+        inventory: {format: uri, type: string}
+        relaunch: {format: uri, type: string}
+        stdout: {format: uri, type: string}
+      required: [created_by, stdout, inventory, credential, activity_stream, events,
+        cancel, relaunch]
+      type: object
+    result_stdout: {type: string}
+    result_traceback: {type: string}
+    started:
+      format: date-time
+      type: [string, 'null']
+    status: {$ref: '#/definitions/enum_task_status'}
+    summary_fields:
+      additionalProperties: false
+      properties:
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        credential: {$ref: '#/definitions/summary_fields_credential'}
+        inventory: {$ref: '#/definitions/summary_fields_inventory'}
+      type: object
+    type: {pattern: ^ad_hoc_command$, type: string}
+    url: {format: uri, type: string}
+    verbosity: {minimum: 0, type: number}
+  required: [id, url, created, modified, job_type, inventory, credential, forks, verbosity,
+    limit, launch_type, started, elapsed, finished, status, failed, related, summary_fields,
+    type, name, privilege_escalation, module_name, module_args, job_explanation]
+  type: object

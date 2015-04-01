@@ -1032,3 +1032,22 @@ class Awx_Schema_Job_Template_Schedule(Awx_Schema_Schedule):
 
 class Awx_Schema_Job_Template_Jobs(Awx_Schema_Jobs):
     resource = '/api/v1/job_templates/\d+/jobs/'
+
+
+#
+# /ad_hoc_commands
+#
+class Awx_Schema_AdHoc_Commmands(Awx_Schema):
+    resource = '/api/v1/ad_hoc_commands/'
+
+    @property
+    def get(self):
+        return self.load_file('ad_hoc_commands/list.yml')
+
+
+class Awx_Schema_AdHoc_Commmand(Awx_Schema_AdHoc_Commmands):
+    resource = '/api/v1/ad_hoc_commands/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('ad_hoc_commands/item.yml')

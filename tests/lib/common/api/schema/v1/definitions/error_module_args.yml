@@ -1,0 +1,9 @@
+---
+error_module_args:
+    type: array
+    minItems: 1
+    uniqueItems: True
+    items:
+        type: string
+        pattern: '^No argument passed to command module.$'
+

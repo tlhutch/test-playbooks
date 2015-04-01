@@ -20,6 +20,7 @@ host:
     related:
       additionalProperties: true
       properties:
+        ad_hoc_commands: {format: uri, type: string}
         all_groups: {format: uri, type: string}
         created_by: {format: uri, type: string}
         modified_by: {format: uri, type: string}

@@ -18,6 +18,7 @@ inventory:
       additionalProperties: false
       properties:
         activity_stream: {format: uri, type: string}
+        ad_hoc_commands: {format: uri, type: string}
         created_by: {format: uri, type: string}
         modified_by: {format: uri, type: string}
         groups: {format: uri, type: string}
