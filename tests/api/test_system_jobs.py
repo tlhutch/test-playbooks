@@ -3,6 +3,7 @@ import pytest
 import common.tower.inventory
 import common.utils
 import common.exceptions
+import re
 from tests.api import Base_Api_Test
 
 
@@ -24,6 +25,18 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed, clea
     Returns a list of the jobs run.
     '''
     return [cleanup_jobs_with_status_completed, cleanup_deleted_with_status_completed, cleanup_activitystream_with_status_completed, custom_inventory_update_with_status_completed, project_ansible_playbooks_git, job_with_status_completed]
+
+
+@pytest.fixture(scope="function", params=['organization', 'org_user', 'team', 'ssh_credential', 'project', 'inventory', 'job_template', 'job_with_status_completed'])
+def deleted_object(request):
+    '''
+    Creates and deletes an object.
+
+    Returns the deleted object.
+    '''
+    obj = request.getfuncargvalue(request.param)
+    obj.delete()
+    return obj
 
 
 @pytest.mark.api
@@ -135,14 +148,37 @@ class Test_System_Jobs(Base_Api_Test):
         assert unified_jobs_pg.results[0].id == cleanup_jobs_pg.id, "After running cleanup_jobs, an unexpected system_job.id was found (%s != %s)" \
             % (unified_jobs_pg.results[0].id, cleanup_jobs_pg.id)
 
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_cleanup_deleted(self):
+    @pytest.mark.trello('https://trello.com/c/PbidSkwy')
+    def test_cleanup_deleted(self, deleted_object, cleanup_deleted_template):
         '''
-        Verifies cleanup_deleted functionality.
+        Creates and deletes different types of objects, runs cleanup_deleted, and then verifies that
+        objects are deleted.
         '''
-        # Create a fixture that populates tower with information and then deletes everything.
-        # Run cleanup job and verify that objects are deleted from the API? They already are deleted - what does this system job actually do?
-        pass
+        # launch job first time
+        payload = dict(extra_vars=dict(days=0))
+        system_jobs_pg = cleanup_deleted_template.launch(payload)
+
+        # assert success
+        system_jobs_pg.wait_until_completed()
+        assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
+
+        # assert something deleted
+        match = re.search(r'^Removed (\d+) items', system_jobs_pg.result_stdout, re.MULTILINE)
+        assert match, "Unexpected output from system job - %s" % system_jobs_pg
+        assert int(match.group(1)) > 0, "Unexpected number of deleted objects (%s)" % match.group(1)
+
+        # launch job second time
+        payload = dict(extra_vars=dict(days=0))
+        system_jobs_pg = cleanup_deleted_template.launch(payload)
+
+        # assert success
+        system_jobs_pg.wait_until_completed()
+        assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
+
+        # assert that nothing was deleted on the second job run
+        match = re.search(r'^Removed (\d+) items', system_jobs_pg.result_stdout, re.MULTILINE)
+        assert match, "Unexpected output from system job - %s" % system_jobs_pg
+        assert int(match.group(1)) == 0, "Unexpected number of deleted objects (%s)" % match.group(1)
 
     def test_cleanup_activitystream(self, cleanup_activitystream_template, multiple_jobs_with_status_completed, api_activity_stream_pg):
         '''

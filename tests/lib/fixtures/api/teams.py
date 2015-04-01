@@ -8,7 +8,7 @@ def team(request, authtoken, organization):
                    description="Random Team (%s)" % common.utils.random_unicode(),
                    organization=organization.id,)
     obj = organization.get_related('teams').post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
