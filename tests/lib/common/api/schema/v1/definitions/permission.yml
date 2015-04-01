@@ -8,6 +8,7 @@ permission:
     modified: {format: date-time, type: string}
     name: {type: string}
     permission_type: {$ref: '#/definitions/enum_permission_type'}
+    run_ad_hoc_commands: {type: boolean}
     project: {$ref: '#/definitions/id_or_null'}
     related:
       additionalProperties: false
