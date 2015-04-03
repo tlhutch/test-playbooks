@@ -737,14 +737,14 @@ class Test_Job_Template_Schedules(Base_Api_Test):
     This class tests the following:
     * Verify basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
     * Verify RBAC for above operations
-    * Verify only a single schedule can exist for each system_job_template
-    * Verify related fields map correctly (schedule->system_job_template and system_job_templates->schedules)
+    * Verify related fields map correctly (schedule->job_template and job_templates->schedules)
     * Verify extra_vars handling
     '''
+    @pytest.mark.trello('https://trello.com/c/RqBpZdh3')
+    def test_schedule_with_no_credential(self, job_template_no_credential):
+        '''Verify that a job_template with no credential launches jobs that fail.'''
 
-    def test_schedule_with_credential_prompt(self, job_template_ask):
-        '''Verify that a job_template with a credential prompt launches jobs that fail.'''
-        schedules_pg = job_template_ask.get_related('schedules')
+        schedules_pg = job_template_no_credential.get_related('schedules')
 
         # Create a schedule
         rrule = RRule(dateutil.rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(seconds=+30), count=1)
@@ -771,12 +771,7 @@ class Test_Job_Template_Schedules(Base_Api_Test):
         job_pg = unified_jobs_pg.results[0].wait_until_completed(verbose=True, timeout=60 * 1)
 
         # Assert the expected job status
-        assert job_pg.status == 'failed', \
-            "Unexpected status from scheduled job (%s != %s)" \
-            % (job_pg.status, 'failed')
-        assert job_pg.failed, \
-            "Unexpected failed value from scheduled job (%s != %s)" \
-            % (job_pg.failed, True)
+        assert not job_pg.is_successful, "Job unexpectedly completed successfully - %s" % job_pg
 
         # Assert the expected job_explanation
         expected_explanation = "Scheduled job could not start because it was " \
