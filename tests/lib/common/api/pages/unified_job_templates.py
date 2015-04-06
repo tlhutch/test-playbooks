@@ -20,14 +20,15 @@ class Unified_Job_Template_Page(Base):
     has_schedules = property(json_getter('has_schedules'), json_setter('has_schedules'))
 
     def __str__(self):
-        output = "<%s " % self.__class__.__name__
+        output_fields = [self.__class__.__name__]
         for attr in ('id', 'name', 'status', 'source', 'last_update_failed',
                      'last_updated', 'result_traceback', 'job_explanation', 'job_args'):
             if hasattr(self, attr):
-                output += "%s:%s" % (attr, getattr(self, attr))
+                output_fields.append("%s:%s" % (attr, getattr(self, attr)))
         # NOTE: I use .replace('%', '%%') to workaround an odd string
         # formatting issue where result_stdout contained '%s'.  This later caused
         # a python traceback when attempting to display output from this method.
+        output = "<%s>" % ", ".join(output_fields)
         return output.replace('%', '%%')
 
     def get_related(self, name, **kwargs):
