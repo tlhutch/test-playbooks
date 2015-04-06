@@ -100,4 +100,8 @@ if __name__ == '__main__':
     cfg['ssh']['sudo_username'] = os.environ.get("SUDO_USERNAME", "")
     cfg['ssh']['sudo_password'] = os.environ.get("SUDO_PASSWORD", "")
 
+    # Set trello info
+    cfg['trello']['key'] = os.environ.get("TRELLO_API_KEY", "")
+    cfg['trello']['token'] = os.environ.get("TRELLO_API_TOKEN", "")
+
     yaml.dump(cfg, open(credentials_file, 'w+'))
