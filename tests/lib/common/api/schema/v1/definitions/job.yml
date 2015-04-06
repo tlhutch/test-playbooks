@@ -16,6 +16,7 @@ job:
     forks: {minimum: 0, type: number}
     id: {$ref: '#/definitions/id'}
     inventory: {$ref: '#/definitions/id_or_null'}
+    job: {$ref: '#/definitions/id'}
     job_args: {type: string}
     job_cwd: {type: string}
     job_env: {$ref: '#/definitions/job_env'}
