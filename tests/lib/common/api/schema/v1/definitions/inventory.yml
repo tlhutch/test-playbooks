@@ -4,6 +4,7 @@ inventory:
   properties:
     type: {type: string, pattern: ^inventory$}
     created: {format: date-time, type: string}
+    can_run_ad_hoc_commands: {type: boolean}
     description: {type: string}
     groups_with_active_failures: {minimum: 0, type: number}
     has_active_failures: {type: boolean}

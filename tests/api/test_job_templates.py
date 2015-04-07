@@ -170,11 +170,8 @@ class Test_Job_Template(Base_Api_Test):
         payload = dict(credential=ssh_credential_multi_ask.id,
                        ssh_password=self.credentials['ssh']['password'],
                        ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                       vault_password=self.credentials['ssh']['vault_password'])
-        if ssh_credential_multi_ask.su_password == 'ASK':
-            payload['su_password'] = self.credentials['ssh']['su_password']
-        elif ssh_credential_multi_ask.sudo_password == 'ASK':
-            payload['sudo_password'] = self.credentials['ssh']['sudo_password']
+                       vault_password=self.credentials['ssh']['vault_password'],
+                       become_password=self.credentials['ssh']['become_password'])
 
         # launch the job_template and wait for completion
         job_pg = job_template_no_credential.launch(payload).wait_until_completed()
@@ -341,11 +338,7 @@ class Test_Job_Template(Base_Api_Test):
             launch_pg.post()
 
         # prepare payload with empty passwords
-        payload = dict(ssh_password='', ssh_key_unlock='')
-        if credential.su_password == 'ASK':
-            payload['su_password'] = ''
-        elif credential.sudo_password == 'ASK':
-            payload['sudo_password'] = ''
+        payload = dict(ssh_password='', ssh_key_unlock='', become_password='')
 
         # launch the job_template
         with pytest.raises(common.exceptions.BadRequest_Exception):
@@ -373,11 +366,8 @@ class Test_Job_Template(Base_Api_Test):
         # prepare payload with passwords
         payload = dict(ssh_password=self.credentials['ssh']['password'],
                        ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                       vault_password=self.credentials['ssh']['vault_password'])
-        if credential.su_password == 'ASK':
-            payload['su_password'] = ''
-        elif credential.sudo_password == 'ASK':
-            payload['sudo_password'] = ''
+                       vault_password=self.credentials['ssh']['vault_password'],
+                       become_password=self.credentials['ssh']['become_password'])
 
         # launch the job_template
         job_pg = job_template_passwords_needed_to_start.launch(payload).wait_until_completed()

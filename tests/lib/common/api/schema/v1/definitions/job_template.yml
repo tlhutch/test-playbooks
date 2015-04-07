@@ -2,6 +2,7 @@ job_template:
   additionalProperties: false
   properties:
     ask_variables_on_launch: {type: boolean}
+    become_enabled: {type: boolean}
     cloud_credential: {$ref: '#/definitions/id_or_null'}
     created: {format: date-time, type: string}
     credential: {$ref: '#/definitions/id_or_null'}

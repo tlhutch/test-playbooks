@@ -240,7 +240,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             # Assert the required credentials available?
             fields = ['username', 'password', 'ssh_key_data', 'ssh_key_unlock', ]
             if _credential['kind'] in ('ssh'):
-                fields += ['sudo_username', 'sudo_password', 'vault_password']
+                fields += ['become_username', 'become_password', 'vault_password']
             # The value 'encrypted' is not included in 'fields' because it is
             # *not* a valid payload key
             assert self.has_credentials(_credential['kind'], fields=fields + ['encrypted'])
@@ -249,8 +249,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             payload.update(dict(
                 ssh_key_data=_credential.get('ssh_key_data', ''),
                 ssh_key_unlock=_credential.get('ssh_key_unlock', ''),
-                sudo_username=_credential.get('sudo_username', ''),
-                sudo_password=_credential.get('sudo_password', ''),
+                become_username=_credential.get('become_username', ''),
+                become_password=_credential.get('become_password', ''),
                 vault_password=_credential.get('vault_password', ''),))
 
             # Apply any variable substitution
