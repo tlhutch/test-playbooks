@@ -351,6 +351,7 @@ class Test_Job(Base_Api_Test):
         final_update_pg = updated_project_pg.get_related('last_update')
         assert initial_update_pg.id != final_update_pg.id, "Update IDs are the same (%s = %s)" % (initial_update_pg.id, final_update_pg.id)
 
+
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
 def job_template_with_cloud_credential(request, job_template, host):
     cloud_credential = request.getfuncargvalue(request.param + '_credential')
