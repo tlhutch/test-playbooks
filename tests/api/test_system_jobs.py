@@ -67,6 +67,7 @@ class Test_System_Jobs(Base_Api_Test):
         with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
             system_job.patch()
 
+    @pytest.mark.trello('https://trello.com/c/Kg5IBdUx')
     def test_cleanup_jobs(self, cleanup_jobs_template, unified_job_with_status_completed, api_jobs_pg, api_system_jobs_pg, api_unified_jobs_pg):
         '''
         Run jobs of different types sequentially and check that cleanup jobs deletes all of them.
@@ -89,7 +90,9 @@ class Test_System_Jobs(Base_Api_Test):
         assert results.count == 0, "An unexpected number of unified jobs were found (%s != 0)" \
             % results.count
 
-    def test_cleanup_jobs_on_multiple_jobs(self, cleanup_jobs_template, multiple_jobs_with_status_completed, api_jobs_pg, api_system_jobs_pg, api_unified_jobs_pg):
+    @pytest.mark.trello('https://trello.com/c/Kg5IBdUx')
+    def test_cleanup_jobs_on_multiple_jobs(self, cleanup_jobs_template, multiple_jobs_with_status_completed, api_jobs_pg, api_system_jobs_pg,
+                                           api_unified_jobs_pg):
         '''
         Run jobs of different types and check that cleanup jobs deletes all of them.
         '''
@@ -127,7 +130,6 @@ class Test_System_Jobs(Base_Api_Test):
             % (system_jobs_pg.results[0].id, cleanup_jobs_pg.id)
 
         # assert that the cleanup_jobs job is the only job listed in unified jobs
-        # Trello: https://trello.com/c/Kg5IBdUx
         unified_jobs_pg = api_unified_jobs_pg.get()
         assert unified_jobs_pg.count == 1, "An unexpected number of unified_jobs were found after running cleanup_jobs (%s != 1)" % unified_jobs_pg.count
         assert unified_jobs_pg.results[0].id == cleanup_jobs_pg.id, "After running cleanup_jobs, an unexpected system_job.id was found (%s != %s)" \
