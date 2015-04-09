@@ -99,6 +99,10 @@ if __name__ == '__main__':
     cfg['ssh']['vault_password'] = os.environ.get("VAULT_PASSWORD", "")
     cfg['ssh']['sudo_username'] = os.environ.get("SUDO_USERNAME", "")
     cfg['ssh']['sudo_password'] = os.environ.get("SUDO_PASSWORD", "")
+    cfg['ssh']['su_username'] = os.environ.get("SU_USERNAME", "")
+    cfg['ssh']['su_password'] = os.environ.get("SU_PASSWORD", "")
+    cfg['ssh']['become_username'] = os.environ.get("BECOME_USERNAME", "")
+    cfg['ssh']['become_password'] = os.environ.get("BECOME_PASSWORD", "")
 
     # Set trello info
     cfg['trello']['key'] = os.environ.get("TRELLO_API_KEY", "")
