@@ -2,7 +2,7 @@ import pytest
 import common.utils
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def organization(request, authtoken, api_organizations_pg):
     payload = dict(name="org-%s" % common.utils.random_unicode(),
                    description="Random organization - %s" % common.utils.random_unicode())
@@ -11,7 +11,7 @@ def organization(request, authtoken, api_organizations_pg):
     return obj
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def another_organization(request, authtoken, api_organizations_pg):
     payload = dict(name="org-%s" % common.utils.random_unicode(),
                    description="Another random organization - %s" % common.utils.random_unicode())

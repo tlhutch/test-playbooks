@@ -96,7 +96,7 @@ def job_template(request, authtoken, api_job_templates_pg, project, host_local, 
                    credential=ssh_credential.id,
                    playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 

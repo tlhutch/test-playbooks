@@ -54,7 +54,7 @@ def org_user(request, authtoken, organization, user_password):
                    password=user_password,
                    organization=organization.id,)
     obj = organization.get_related('users').post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
