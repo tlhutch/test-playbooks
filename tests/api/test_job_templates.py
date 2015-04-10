@@ -28,6 +28,14 @@ def missing_field_survey_specs(request):
                  spec=[])]
 
 
+@pytest.fixture(scope="function", params=['project', 'inventory', 'credential'])
+def job_template_with_deleted_related(request, job_template):
+    '''Creates and deletes an object.'''
+    related_pg = job_template.get_related(request.param)
+    related_pg.delete()
+    return job_template
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -390,6 +398,25 @@ class Test_Job_Template(Base_Api_Test):
         job_pg = job_pg.wait_until_completed()
         assert job_pg.status == 'canceled', \
             "Unexpected Job status (%s != 'canceled') after deleting job_template" % (job_pg.status)
+
+    @pytest.mark.trello('https://trello.com/c/qyWExyDo')
+    def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
+        '''
+        Verify that the job->launch endpoint does not allow launching a
+        job_template whose related endpoints have been deleted.
+        '''
+        launch_pg = job_template_with_deleted_related.get_related('launch')
+
+        # assert values on launch resource
+        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
+
+        # launch the job_template
+        with pytest.raises(common.exceptions.BadRequest_Exception):
+            launch_pg.post()
 
 
 @pytest.mark.api
