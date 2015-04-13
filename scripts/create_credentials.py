@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     # Gather GCE and Azure KEY_DATA
     if "GCE_KEY_DATA" not in os.environ:
-        os.environ["GCE_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/google_compute_engine-c0945457e76d.pem")
+        os.environ["GCE_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/google_compute_engine-3fab726444ae.pem")
     if "AZURE_KEY_DATA" not in os.environ:
         os.environ["AZURE_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/id_rsa.azure.pem")
 
