@@ -16,3 +16,4 @@ from config import *  # NOQA
 from dashboard import *  # NOQA
 from activity_stream import *  # NOQA
 from schedules import *  # NOQA
+from ad_hoc_commands import *  # NOQA

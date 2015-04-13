@@ -21,6 +21,9 @@ class Inventory_Page(Base):
             related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'script':
             related = Base(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'ad_hoc_commands':
+            from ad_hoc_commands import Ad_Hoc_Commands_Page
+            related = Ad_Hoc_Commands_Page(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
@@ -94,6 +97,9 @@ class Group_Page(Base):
             related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'variable_data':
             related = Base(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'ad_hoc_commands':
+            from ad_hoc_commands import Ad_Hoc_Commands_Page
+            related = Ad_Hoc_Commands_Page(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
@@ -137,6 +143,9 @@ class Host_Page(Base):
             related = Inventory_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'groups':
             related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'ad_hoc_commands':
+            from ad_hoc_commands import Ad_Hoc_Commands_Page
+            related = Ad_Hoc_Commands_Page(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)

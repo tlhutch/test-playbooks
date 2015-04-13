@@ -389,6 +389,19 @@ def api_system_job_templates_pg(testsetup, api_system_job_templates_url):
     return System_Job_Templates_Page(testsetup, base_url=api_system_job_templates_url)
 
 
+#
+# /api/v1/ad_hoc_commands
+#
+@pytest.fixture(scope="module")
+def api_ad_hoc_commands_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'ad_hoc_commands')
+
+
+@pytest.fixture(scope="module")
+def api_ad_hoc_commands_pg(testsetup, api_ad_hoc_commands_url):
+    return Ad_Hoc_Commands_Page(testsetup, base_url=api_ad_hoc_commands_url)
+
+
 @pytest.fixture(scope="module")
 def region_choices(api_inventory_sources_pg):
     options = api_inventory_sources_pg.options()

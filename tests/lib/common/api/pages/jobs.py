@@ -34,6 +34,8 @@ class Job_Page(Unified_Job_Page, Job_Template_Page):
             related = Credential_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'relaunch':
             related = Job_Relaunch_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'stdout':
+            related = Job_Stdout_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
@@ -153,3 +155,7 @@ class Job_Relaunch_Page(Base):
     base_url = '/api/v1/jobs/{id}/relaunch/'
 
     passwords_needed_to_start = property(json_getter('passwords_needed_to_start'), json_setter('passwords_needed_to_start'))
+
+
+class Job_Stdout_Page(Base):
+    base_url = '/api/v1/jobs/{id}/stdout/'

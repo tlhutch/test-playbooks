@@ -284,6 +284,10 @@ class Awx_Schema_Credential(Awx_Schema_Credentials):
     def get(self):
         return self.load_file('credentials/item.yml')
 
+    @property
+    def patch(self):
+        return self.get
+
 
 class Awx_Schema_User_Credentials(Awx_Schema_Credentials):
     resource = '/api/v1/users/\d+/credentials/'
@@ -638,7 +642,7 @@ class Awx_Schema_Job_Start(Awx_Schema):
         return self.load_file('empty.yml')
 
 
-class Awx_Schema_Job__Relaunch(Awx_Schema):
+class Awx_Schema_Job_Relaunch(Awx_Schema):
     resource = '/api/v1/jobs/\d+/relaunch/'
 
     @property
@@ -1049,17 +1053,57 @@ class Awx_Schema_Job_Template_Jobs(Awx_Schema_Jobs):
 #
 # /ad_hoc_commands
 #
-class Awx_Schema_AdHoc_Commmands(Awx_Schema):
+class Awx_Schema_Ad_Hoc_Commmands(Awx_Schema):
     resource = '/api/v1/ad_hoc_commands/'
 
     @property
     def get(self):
         return self.load_file('ad_hoc_commands/list.yml')
 
+    @property
+    def post(self):
+        return self.load_file('ad_hoc_commands/item.yml')
 
-class Awx_Schema_AdHoc_Commmand(Awx_Schema_AdHoc_Commmands):
+
+class Awx_Schema_Ad_Hoc_Commmand(Awx_Schema_Ad_Hoc_Commmands):
     resource = '/api/v1/ad_hoc_commands/\d+/'
 
     @property
     def get(self):
         return self.load_file('ad_hoc_commands/item.yml')
+
+
+class Awx_Schema_Ad_Hoc_Relaunch(Awx_Schema):
+    resource = '/api/v1/ad_hoc_commands/\d+/relaunch/'
+
+    @property
+    def get(self):
+        return self.load_file('jobs/relaunch.yml')
+
+    @property
+    def post(self):
+        return self.load_file('ad_hoc_commands/item.yml')
+
+
+class Awx_Schema_Ad_Hoc_Related_Cancel(Awx_Schema):
+    resource = '/api/v1/ad_hoc_commands/\d+/cancel/'
+
+    @property
+    def get(self):
+        return self.load_file('jobs/cancel.yml')
+
+    @property
+    def post(self):
+        return self.load_file('empty.yml')
+
+
+class Awx_Schema_Inventory_Related_Ad_Hoc_Commands(Awx_Schema_Ad_Hoc_Commmands):
+    resource = '/api/v1/inventories/\d+/ad_hoc_commands/'
+
+
+class Awx_Schema_Group_Related_Ad_Hoc_Commands(Awx_Schema_Ad_Hoc_Commmands):
+    resource = '/api/v1/groups/\d+/ad_hoc_commands/'
+
+
+class Awx_Schema_Host_Related_Ad_Hoc_Commands(Awx_Schema_Ad_Hoc_Commmands):
+    resource = '/api/v1/hosts/\d+/ad_hoc_commands/'

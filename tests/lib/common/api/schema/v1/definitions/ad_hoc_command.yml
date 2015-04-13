@@ -1,6 +1,8 @@
-ad_hoc_command:
+ad_hoc_command
   additionalProperties: false
   properties:
+    ad_hoc_command: {$ref: '#/definitions/id_or_null'}
+    become_enabled: {type: boolean}
     cloud_credential: {$ref: '#/definitions/id_or_null'}
     created: {format: date-time, type: string}
     credential: {$ref: '#/definitions/id_or_null'}
@@ -24,7 +26,6 @@ ad_hoc_command:
     module_args: {type: string}
     module_name: {type: string}
     name: {type: string}
-    privilege_escalation: {$ref: '#/definitions/enum_privilege_escalation'}
     related:
       additionalProperties: false
       properties:
@@ -34,9 +35,10 @@ ad_hoc_command:
         credential: {format: uri, type: string}
         events: {format: uri, type: string}
         inventory: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
         relaunch: {format: uri, type: string}
         stdout: {format: uri, type: string}
-      required: [created_by, stdout, inventory, credential, activity_stream, events,
+      required: [stdout, activity_stream, events,
         cancel, relaunch]
       type: object
     result_stdout: {type: string}
@@ -51,11 +53,12 @@ ad_hoc_command:
         created_by: {$ref: '#/definitions/summary_fields_user'}
         credential: {$ref: '#/definitions/summary_fields_credential'}
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
       type: object
     type: {pattern: ^ad_hoc_command$, type: string}
     url: {format: uri, type: string}
     verbosity: {minimum: 0, type: number}
   required: [id, url, created, modified, job_type, inventory, credential, forks, verbosity,
     limit, launch_type, started, elapsed, finished, status, failed, related, summary_fields,
-    type, name, privilege_escalation, module_name, module_args, job_explanation]
+    type, name, module_name, module_args, job_explanation]
   type: object

@@ -22,7 +22,7 @@ def org_admin(request, authtoken, organization, user_password):
                    organization=organization.id,
                    is_superuser=False)
     obj = organization.get_related('admins').post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
     # Add as organization user
     with pytest.raises(common.exceptions.NoContent_Exception):
         organization.get_related('users').post(dict(id=obj.id))
