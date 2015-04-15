@@ -20,5 +20,6 @@ properties:
             - $ref: '#/definitions/system_job'
             - $ref: '#/definitions/project_update'
             - $ref: '#/definitions/inventory_update'
+            - $ref: '#/definitions/ad_hoc_command'
 definitions:
   !include '../definitions/*.yml'
