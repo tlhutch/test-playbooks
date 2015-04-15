@@ -304,8 +304,8 @@ class Test_AWS_License(Base_Api_Test):
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        if api_config_pg.get().license_info.instance_count > 0:
-            pytest.skip("Skipping test because instance_count > 0")
+        if api_config_pg.get().license_info.current_instances > 0:
+            pytest.skip("Skipping test because current_instances > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
@@ -388,8 +388,8 @@ class Test_License(Base_Api_Test):
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        if api_config_pg.get().license_info.instance_count > 0:
-            pytest.skip("Skipping test because instance_count > 0")
+        if api_config_pg.get().license_info.current_instances > 0:
+            pytest.skip("Skipping test because current_instances > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
     def test_key_visibility_admin(self, api_config_pg):
@@ -475,8 +475,8 @@ class Test_License_Grace_Period(Base_Api_Test):
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        if api_config_pg.get().license_info.instance_count > 0:
-            pytest.skip("Skipping test because instance_count > 0")
+        if api_config_pg.get().license_info.current_instances > 0:
+            pytest.skip("Skipping test because current_instances > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
     def test_job_launch(self, api_config_pg, job_template):
@@ -580,8 +580,8 @@ class Test_Trial_License(Base_Api_Test):
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        if api_config_pg.get().license_info.instance_count > 0:
-            pytest.skip("Skipping test because instance_count > 0")
+        if api_config_pg.get().license_info.current_instances > 0:
+            pytest.skip("Skipping test because current_instances > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
     def test_key_visibility_admin(self, api_config_pg):
