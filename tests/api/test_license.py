@@ -39,7 +39,9 @@ def install_trial_license(request, ansible_runner, license_instance_count, tower
     log.debug("calling fixture install_trial_license")
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=31, trial=True)
     # Using ansible, copy the license to the target system
-    ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
+    contacted = ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
+    for result in contacted.values():
+        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
 
 
 @pytest.fixture(scope='function')
@@ -86,28 +88,36 @@ def install_license(request, ansible_runner, license_instance_count, tower_licen
     log.debug("calling fixture install_license")
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=31)
     # Using ansible, copy the license to the target system
-    ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
+    contacted = ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
+    for result in contacted.values():
+        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
 
 
 @pytest.fixture(scope='class')
 def install_license_warning(request, ansible_runner, license_instance_count, tower_license_path):
     log.debug("calling fixture install_license_warning")
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=1)
-    ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
+    contacted = ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
+    for result in contacted.values():
+        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
 
 
 @pytest.fixture(scope='class')
 def install_license_expired(request, ansible_runner, license_instance_count, tower_license_path):
     log.debug("calling fixture install_license_expired")
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=-61)
-    ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
+    contacted = ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
+    for result in contacted.values():
+        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
 
 
 @pytest.fixture(scope='class')
 def install_license_grace_period(request, ansible_runner, license_instance_count, tower_license_path):
     log.debug("calling fixture install_license_grace_period")
     fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=-1)
-    ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
+    contacted = ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
+    for result in contacted.values():
+        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
 
 
 @pytest.fixture(scope='class')
@@ -135,7 +145,9 @@ def instance_id(ansible_ec2_facts):
 def install_license_aws(request, ansible_runner, license_instance_count, ami_id, instance_id, tower_aws_path):
     log.debug("calling fixture install_license_aws")
     fname = common.tower.license.generate_aws_file(instance_count=license_instance_count, ami_id=ami_id, instance_id=instance_id)
-    ansible_runner.copy(src=fname, dest=tower_aws_path, owner='awx', group='awx', mode='0600')
+    contacted = ansible_runner.copy(src=fname, dest=tower_aws_path, owner='awx', group='awx', mode='0600')
+    for result in contacted.values():
+        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
 
 
 @pytest.fixture(scope="function", params=['org_admin', 'org_user', 'anonymous_user'])
@@ -304,7 +316,7 @@ class Test_AWS_License(Base_Api_Test):
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        if api_config_pg.get().license_info.current_instances > 0:
+        if api_config_pg.get().license_info['current_instances'] > 0:
             pytest.skip("Skipping test because current_instances > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
