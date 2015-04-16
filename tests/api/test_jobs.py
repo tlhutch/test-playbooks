@@ -100,6 +100,14 @@ def project_with_scm_update_on_launch(request, project_ansible_playbooks_git):
         return project_ansible_playbooks_git.patch(scm_update_on_launch=True)
 
 
+@pytest.fixture(scope="function", params=['project', 'inventory', 'credential'])
+def job_with_deleted_related(request, job_with_status_completed):
+    '''Creates and deletes an related attribute of a job'''
+    related_pg = job_with_status_completed.get_related(request.param)
+    related_pg.delete()
+    return job_with_status_completed
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -157,17 +165,12 @@ class Test_Job(Base_Api_Test):
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     @pytest.mark.trello('https://trello.com/c/MjOiEWgS')
-    def test_relaunch_with_deleted_credential(self, job_with_status_completed):
+    def test_relaunch_with_deleted_related(self, job_with_deleted_related):
         '''
-        Verify relaunching a job whose credential has been deleted.
+        Verify relaunching a job whose related information has been deleted.
         '''
-        credential_pg = job_with_status_completed.get_related('credential')
-
-        # delete credential
-        credential_pg.delete()
-
         # get relaunch page
-        relaunch_pg = job_with_status_completed.get_related('relaunch')
+        relaunch_pg = job_with_deleted_related.get_related('relaunch')
 
         # assert values on relaunch resource
         assert not relaunch_pg.passwords_needed_to_start

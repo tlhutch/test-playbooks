@@ -20,6 +20,12 @@ class Job_Page(Unified_Job_Page, Job_Template_Page):
             related = Base(self.testsetup, base_url=self.json['related'][name])
         elif name == 'cancel':
             related = Job_Cancel_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'project':
+            from projects import Project_Page
+            related = Project_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'inventory':
+            from inventory import Inventory_Page
+            related = Inventory_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'credential':
             from credentials import Credential_Page
             related = Credential_Page(self.testsetup, base_url=self.json['related'][name])
