@@ -189,7 +189,7 @@ def assert_instance_counts(api_config_pg, license_instance_count, group):
     group_hosts_pg = group.get_related('hosts')
 
     current_hosts = 0
-    while current_hosts <= license_instance_count + 1:
+    while current_hosts <= license_instance_count:
         # Get the /config resource
         conf = api_config_pg.get()
 
@@ -314,9 +314,10 @@ class Test_AWS_License(Base_Api_Test):
         assert not conf.license_info.date_warning
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
+    @pytest.mark.trello('https://trello.com/c/Llol9BCJ')
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        if api_config_pg.get().license_info['current_instances'] > 0:
+        if api_config_pg.get().license_info.current_instances > 0:
             pytest.skip("Skipping test because current_instances > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
@@ -398,6 +399,7 @@ class Test_License(Base_Api_Test):
         assert int(conf.license_info['grace_period_remaining']) == \
             int(conf.license_info['time_remaining']) + 2592000
 
+    @pytest.mark.trello('https://trello.com/c/Llol9BCJ')
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:
@@ -485,6 +487,7 @@ class Test_License_Grace_Period(Base_Api_Test):
         assert int(conf.license_info['grace_period_remaining']) == \
             int(conf.license_info['time_remaining']) + 2592000
 
+    @pytest.mark.trello('https://trello.com/c/Llol9BCJ')
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:
@@ -590,6 +593,7 @@ class Test_Trial_License(Base_Api_Test):
         # Assert there is no grace_period, it should match time_remaining
         assert conf.license_info['grace_period_remaining'] == conf.license_info['time_remaining']
 
+    @pytest.mark.trello('https://trello.com/c/Llol9BCJ')
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:
