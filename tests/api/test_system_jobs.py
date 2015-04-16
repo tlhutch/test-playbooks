@@ -203,4 +203,6 @@ class Test_System_Jobs(Base_Api_Test):
 
         # assert that activity_stream is cleared
         activity_stream_pg = api_activity_stream_pg.get()
-        assert activity_stream_pg.count == 0, "After running cleanup_activitystream, activity_stream data is still present (count == %s)" % activity_stream_pg.count
+        assert activity_stream_pg.count == 0, "After running cleanup_activitystream, " \
+            "activity_stream data is still present (count == %s)" \
+            % activity_stream_pg.count
