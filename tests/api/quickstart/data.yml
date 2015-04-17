@@ -37,6 +37,7 @@ organizations:
         - ansible-playbooks.git (manual)
         - ansible-playbooks.git (github, ssh_key_data)
         - ansible-tower.git (github, ssh_key_data)
+        - tower-qa.git (github, ssh_key_data)
 
 users:
     - username: anonymous
@@ -1178,6 +1179,17 @@ projects:
       organization: Ansible, Inc
       scm_type: git
       scm_url: 'git@github.com:ansible/ansible-tower.git'
+      scm_branch: 'master'
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+      credential: git@github.com (ssh_key_data)
+
+    - name: tower-qa.git (github, ssh_key_data)
+      description: 'git@github.com:ansible/tower-qa.git (ssh_key_data)'
+      organization: Ansible, Inc
+      scm_type: git
+      scm_url: 'git@github.com:ansible/tower-qa.git'
       scm_branch: 'master'
       scm_clean: false
       scm_delete_on_update: false
