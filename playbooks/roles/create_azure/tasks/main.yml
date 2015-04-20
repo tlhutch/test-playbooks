@@ -13,6 +13,7 @@
     user: '{{ azure_ssh_user }}'
     management_cert_path: '{{ azure_management_cert_path }}'
     ssh_cert_path: '{{ azure_ssh_cert_path }}'
+    password: '{{ azure_password }}'
     endpoints: '{{ azure_endpoints }}'
     storage_account: '{{ azure_storage_account }}'
     subscription_id: '{{ azure_subscription_id }}'
