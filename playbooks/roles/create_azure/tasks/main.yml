@@ -4,18 +4,19 @@
 # - name: ensure keypair exists
 
 - name: create/locate instance(s)
-  azure:
+  azure_2:
     state: present
-    name: '{{azure_name_prefix}}-{{item.name}}'
-    role_size: '{{item.role_size}}'
-    image: '{{item.image}}'
-    location: '{{ azure_location }}'
+    name: "{{ item.storage_account }}-{{ item.name }}"
+    location: '{{ item.location }}'
+    storage_account: '{{ item.storage_account }}'
+    image: '{{ item.image|default(azure_image) }}'
+    role_size: '{{ item.role_size|default(azure_role_size) }}'
     user: '{{ azure_ssh_user }}'
     management_cert_path: '{{ azure_management_cert_path }}'
-    ssh_cert_path: '{{ azure_ssh_cert_path }}'
-    endpoints: '{{ azure_endpoints }}'
-    storage_account: '{{ azure_storage_account }}'
     subscription_id: '{{ azure_subscription_id }}'
+    ssh_cert_path: '{{ azure_ssh_cert_path }}'
+    password: '{{ azure_ssh_password }}'
+    endpoints: '{{ azure_endpoints }}'
     wait: yes
   with_items: azure_images
   register: azure

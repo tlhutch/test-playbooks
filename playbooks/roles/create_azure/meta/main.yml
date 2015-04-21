@@ -1,2 +1,3 @@
 dependencies:
+ - { role: setup_azure }
  - { role: terminate_azure, skip_delete: 'not {{delete_on_start}}' }
