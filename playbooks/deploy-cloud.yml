@@ -11,23 +11,3 @@
   sudo: yes
   roles:
     - { role: packages }
-
-- name: 'reset tower admin password (optional)'
-  hosts: cloud
-  sudo: yes
-  vars:
-    admin_password: fo0m4nchU
-  tasks:
-    - name: determine if awx is installed
-      shell: awx-manage --help
-      ignore_errors: true
-      register: is_awx_installed
-
-    - name: reset admin_password
-      shell: echo "from django.contrib.auth.models import User; usr = User.objects.get(username='admin'); usr.set_password('{{ admin_password }}'); usr.save();" | awx-manage shell
-      sudo_user: awx
-      when: is_awx_installed|success
-
-    - name: restart ansible-tower
-      service: name=ansible-tower state=restarted
-      when: is_awx_installed|success
