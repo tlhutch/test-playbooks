@@ -7,4 +7,4 @@ properties:
     detail:
         oneOf:
             - {type: string, pattern: '^license range of \d+ instances has been exceeded$'}
-            - {type: string, pattern: '^license count of \d+ instances has been reached$')
+            - {type: string, pattern: '^license count of \d+ instances has been reached$'}
