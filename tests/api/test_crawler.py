@@ -8,8 +8,15 @@ from plugins.pytest_restqa.rest_client import Connection
 def pytest_generate_tests(metafunc):
 
     for fixture in metafunc.fixturenames:
+        print dir(metafunc)
+        print metafunc
+
         test_set = list()
         id_list = list()
+
+        # Skip if running with --help or --collectonly
+        if pytest.config.option.help or pytest.config.option.collectonly:
+            return
 
         if fixture == 'method':
             request_methods = ['HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', ]
