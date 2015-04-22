@@ -777,6 +777,18 @@ class Awx_Schema_Inventory_Source_Update(Awx_Schema_Inventory_Source_Updates):
         return self.load_file('inventory_updates/item.yml')
 
 
+class Awx_Schema_Inventory_Source_Update_Cancel(Awx_Schema):
+    resource = '/api/v1/inventory_updates/\d+/cancel/'
+
+    @property
+    def get(self):
+        return self.load_file('inventory_updates/cancel.yml')
+
+    @property
+    def post(self):
+        return self.load_file('empty.yml')
+
+
 #
 # /inventory_scripts
 #

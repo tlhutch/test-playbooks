@@ -226,9 +226,24 @@ class Inventory_Source_Update_Page(Base):
 class Inventory_Update_Page(Unified_Job_Page):
     base_url = '/api/v1/inventory_updates/{id}/'
 
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related'], \
+            "No such related attribute '%s'" % attr
+        if attr == 'cancel':
+            cls = Inventory_Update_Cancel_Page
+        else:
+            raise NotImplementedError("No related class found for '%s'" % attr)
+
+        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
+
 
 class Inventory_Updates_Page(Inventory_Update_Page, Base_List):
     base_url = '/api/v1/inventory_sources/{inventory_source}/inventory_updates/'
+
+
+class Inventory_Update_Cancel_Page(Base):
+    base_url = '/api/v1/inventory_updates/{id}/cancel'
+    can_cancel = property(json_getter('can_cancel'), json_setter('can_cancel'))
 
 
 class Inventory_Script_Page(Base):

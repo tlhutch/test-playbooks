@@ -4,6 +4,7 @@ import json
 import pytest
 import common.tower.inventory
 import common.utils
+from dateutil.parser import parse
 from tests.api import Base_Api_Test
 
 
@@ -83,6 +84,14 @@ def job_with_extra_vars(request, job_template_with_extra_vars, job_extra_vars_di
     return jobs_pg.results[0]
 
 
+@pytest.fixture(scope="function", params=['project', 'inventory', 'credential'])
+def job_with_deleted_related(request, job_with_status_completed):
+    '''Creates and deletes an related attribute of a job'''
+    related_pg = job_with_status_completed.get_related(request.param)
+    related_pg.delete()
+    return job_with_status_completed
+
+
 @pytest.fixture()
 def utf8_template(request, authtoken, api_job_templates_pg, project_ansible_playbooks_git, host_local, ssh_credential):
     payload = dict(name="playbook:utf-8.yml.yml, random:%s" % (common.utils.random_unicode()),
@@ -102,12 +111,20 @@ def project_with_scm_update_on_launch(request, project_ansible_playbooks_git):
         return project_ansible_playbooks_git.patch(scm_update_on_launch=True)
 
 
-@pytest.fixture(scope="function", params=['project', 'inventory', 'credential'])
-def job_with_deleted_related(request, job_with_status_completed):
-    '''Creates and deletes an related attribute of a job'''
-    related_pg = job_with_status_completed.get_related(request.param)
-    related_pg.delete()
-    return job_with_status_completed
+@pytest.fixture(scope="function")
+def another_custom_group(request, authtoken, api_groups_pg, inventory, inventory_script):
+    payload = dict(name="custom-group-%s" % common.utils.random_ascii(),
+                   description="Custom Group %s" % common.utils.random_unicode(),
+                   inventory=inventory.id,
+                   variables=json.dumps(dict(my_group_variable=True)))
+    obj = api_groups_pg.post(payload)
+    request.addfinalizer(obj.delete)
+
+    # Set the inventory_source
+    inv_source = obj.get_related('inventory_source')
+    inv_source.patch(source='custom',
+                     source_script=inventory_script.id)
+    return obj
 
 
 @pytest.mark.api
@@ -349,6 +366,219 @@ class Test_Job(Base_Api_Test):
         updated_project_pg = project_with_scm_update_on_launch.get()
         final_update_pg = updated_project_pg.get_related('last_update')
         assert initial_update_pg.id != final_update_pg.id, "Update IDs are the same (%s = %s)" % (initial_update_pg.id, final_update_pg.id)
+
+    @pytest.mark.trello('https://trello.com/c/cfl2YtWA')
+    @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
+import json, time
+
+time.sleep(10)
+inventory = dict()
+
+print json.dumps(inventory)
+''')
+    def test_cascade_cancel_with_inventory_update(self, job_template, custom_group, api_unified_jobs_pg):
+        '''
+        Tests that if you cancel an inventory update before it finishes that its dependent job
+        fails.
+        '''
+        job_template.patch(inventory=custom_group.inventory)
+
+        inventory_source_pg = custom_group.get_related('inventory_source')
+        inventory_source_pg.patch(update_on_launch=True)
+
+        # Assert that the cloud_group has not updated
+        assert inventory_source_pg.last_updated is None, "inventory_source_pg unexpectedly updated."
+
+        # Launch job
+        job_pg = job_template.launch()
+
+        # Wait for the inventory_source to start
+        inventory_source_pg.wait_until_started()
+
+        # Cancel inventory update
+        update_pg = inventory_source_pg.get_related('current_update')
+        cancel_pg = update_pg.get_related('cancel')
+        assert cancel_pg.can_cancel, "The inventory_update is not cancellable, it may have already completed - %s" % update_pg.get()
+        cancel_pg.post()
+
+        # Assess job status
+        job_pg = job_pg.wait_until_completed()
+        assert not job_pg.is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
+        assert job_pg.job_explanation.startswith("Previous Task Failed: inventory_update"), \
+            "Unexpected job_explanation: %s" % job_pg.job_explanation
+
+        # Assert update_pg canceled
+        update_pg.get()
+        assert update_pg.status == 'canceled', "Did not cancel job (status:%s)" % update_pg.status
+
+        # Assert inventory source canceled
+        inventory_source_pg.get()
+        assert inventory_source_pg.status == 'canceled', "Did not cancel job (status:%s)" % inventory_source_pg.status
+
+    @pytest.mark.trello('https://trello.com/c/cfl2YtWA')
+    @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
+import json, time
+
+time.sleep(10)
+inventory = dict()
+
+print json.dumps(inventory)
+''')
+    def test_cascade_cancel_with_multiple_inventory_updates(self, job_template, custom_group, another_custom_group, api_unified_jobs_pg):
+        '''
+        Tests that if you cancel an inventory update before it finishes that its dependent jobs
+        fail.
+        '''
+        job_template.patch(inventory=custom_group.inventory)
+
+        inventory_source_pg = custom_group.get_related('inventory_source')
+        inventory_source_pg.patch(update_on_launch=True)
+
+        another_inventory_source_pg = another_custom_group.get_related('inventory_source')
+        another_inventory_source_pg.patch(update_on_launch=True)
+
+        # Assert that cloud_groups have not updated
+        assert inventory_source_pg.last_updated is None, "inventory_source_pg unexpectedly updated."
+        assert another_inventory_source_pg.last_updated is None, "another_inventory_source_pg unexpectedly updated."
+
+        # Launch job
+        job_pg = job_template.launch()
+
+        # Wait for the inventory sources to start
+        inventory_source_pg.wait_until_started()
+        another_inventory_source_pg.wait_until_started()
+
+        update_pg = inventory_source_pg.get_related('current_update')
+        another_update_pg = another_inventory_source_pg.get_related('current_update')
+
+        update_pg_started = parse(update_pg.created)
+        another_update_pg_started = parse(another_update_pg.created)
+
+        # Identify the sequence of the inventory updates and navigate to cancel_pg
+        if update_pg_started > another_update_pg_started:
+            cancel_pg = another_update_pg.get_related('cancel')
+            assert cancel_pg.can_cancel, "Inventory update is not cancellable, it may have already completed - %s" % another_update_pg.get()
+
+            # Set new set of vars
+            first_update = another_update_pg
+            second_update = update_pg
+            first_inventory_source = another_inventory_source_pg
+            second_inventory_source = inventory_source_pg
+
+        else:
+            cancel_pg = update_pg.get_related('cancel')
+            assert cancel_pg.can_cancel, "Inventory update is not cancellable, it may have already completed - %s" % update_pg.get()
+
+            # Set new set of vars
+            first_update = update_pg
+            second_update = another_update_pg
+            first_inventory_source = inventory_source_pg
+            second_inventory_source = another_inventory_source_pg
+
+        # Cancel the first inventory update
+        cancel_pg.post()
+
+        # Assess job status
+        job_pg = job_pg.wait_until_completed()
+        assert not job_pg.is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
+        assert job_pg.job_explanation.startswith("Previous Task Failed: inventory_update"), \
+            "Unexpected job_explanation: %s" % job_pg.job_explanation
+
+        # Assert first inventory update cancelled
+        first_update.get()
+        assert first_update.status == 'canceled', "Did not cancel job (status:%s)" % first_update.status
+
+        # Assert first inventory source cancelled
+        first_inventory_source.get()
+        assert first_inventory_source.status == 'canceled', "Did not cancel job (status:%s)" % first_inventory_source.status
+
+        # Assert second inventory update failed
+        second_update.get()
+        assert second_update.status == 'failed', "Secondary inventory update not failed (status:%s)" % second_update.status
+        assert second_update.job_explanation.startswith("Previous Task Failed: inventory_update")
+
+        # Assert second inventory update failed
+        second_inventory_source.get()
+        assert second_inventory_source.status == 'failed', "Secondary inventory update not failed (status:%s)" % second_inventory_source.status
+
+    @pytest.mark.trello('https://trello.com/c/cfl2YtWA')
+    def test_cascade_cancel_with_project_update(self, job_template, project_with_scm_update_on_launch, api_unified_jobs_pg):
+        '''
+        Tests that if you cancel a SCM update before it finishes that its dependent job
+        fails.
+        '''
+        job_template.patch(project=project_with_scm_update_on_launch.id)
+        project_with_scm_update_on_launch.patch(scm_url='https://github.com/ansible/ansible-examples')
+
+        # Launch job
+        job_pg = job_template.launch()
+
+        # Wait for new update to start and cancel it
+        project_with_scm_update_on_launch.wait_until_started()
+        current_update_pg = project_with_scm_update_on_launch.get_related('current_update')
+        cancel_pg = current_update_pg.get_related('cancel')
+        assert cancel_pg.can_cancel, "The project update is not cancellable, it may have already completed - %s" % current_update_pg.get()
+        cancel_pg.post()
+
+        # Assert that original job failed
+        job_pg = job_pg.wait_until_completed()
+        assert not job_pg.is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
+        assert job_pg.job_explanation.startswith("Previous Task Failed: project_update")
+
+        # Assert new scm update was canceled
+        current_update_pg.get()
+        assert current_update_pg.status == 'canceled'
+
+        # Assert project cancelled
+        project_with_scm_update_on_launch.get()
+        assert project_with_scm_update_on_launch.status == 'canceled'
+
+    @pytest.mark.trello('https://trello.com/c/cfl2YtWA')
+    def test_cascade_cancel_with_inventory_and_project_updates(self, job_template, project_with_scm_update_on_launch, custom_group, api_unified_jobs_pg):
+        '''
+        Tests that if you cancel a scm update before it finishes that its dependent job
+        fails. This test runs both inventory and SCM updates on job launch.
+        '''
+        job_template.patch(inventory=custom_group.inventory, project=project_with_scm_update_on_launch.id)
+        project_with_scm_update_on_launch.patch(scm_url='https://github.com/ansible/ansible-examples')
+
+        inventory_source_pg = custom_group.get_related('inventory_source')
+        inventory_source_pg.patch(update_on_launch=True)
+
+        # Assert that the cloud_group has not updated
+        assert inventory_source_pg.last_updated is None, "inventory_source_pg unexpectedly updated."
+
+        # Launch job
+        job_pg = job_template.launch()
+
+        # Wait for new update to start and cancel it
+        project_with_scm_update_on_launch.wait_until_started()
+        current_update_pg = project_with_scm_update_on_launch.get_related('current_update')
+        cancel_pg = current_update_pg.get_related('cancel')
+        assert cancel_pg.can_cancel, "The project update is not cancellable, it may have already completed - %s" % current_update_pg.get()
+        cancel_pg.post()
+
+        # Assert that original job failed
+        job_pg = job_pg.wait_until_completed()
+        assert not job_pg.is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
+        assert job_pg.job_explanation.startswith("Previous Task Failed: project_update")
+
+        # Assert new scm update was canceled
+        current_update_pg.get()
+        assert current_update_pg.status == 'canceled'
+
+        # Assert project cancelled
+        project_with_scm_update_on_launch.get()
+        assert project_with_scm_update_on_launch.status == 'canceled'
+
+        # Assert update_pg successful
+        inventory_source_pg.wait_until_completed()
+        update_pg = inventory_source_pg.get_related('last_update')
+        assert update_pg.is_successful, "Update unsuccessful - %s" % update_pg
+
+        # Assert inventory source successful
+        inventory_source_pg.get()
+        assert inventory_source_pg.is_successful, "inventory_source unsuccessful - %s" % inventory_source_pg
 
 
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
