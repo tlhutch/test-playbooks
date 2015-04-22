@@ -4,7 +4,7 @@
 # - name: ensure keypair exists
 
 - name: create/locate instance(s)
-  azure_2:
+  azure:
     state: present
     name: "{{ item.storage_account }}-{{ item.name }}"
     location: '{{ item.location }}'

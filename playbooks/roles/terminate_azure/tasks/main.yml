@@ -1,12 +1,11 @@
 ---
 
 - name: delete existing azure instance(s)
-  azure_2:
+  azure:
     state: absent
     name: "{{ item.storage_account }}-{{ item.name }}"
     management_cert_path: '{{ azure_management_cert_path }}'
     subscription_id: '{{ azure_subscription_id }}'
-    delete_empty_services: True
     wait: yes
   with_items: azure_images
   when: not {{skip_delete}}
