@@ -475,3 +475,28 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
         # update resource
         survey_spec.get()
         assert survey_spec.name == required_survey_spec['name']
+
+    def test_launch_survey_enabled(self, job_template_ping, required_survey_spec):
+        '''
+        Tests that launch_pg.survey_enabled operates as expected.
+        '''
+        # check that launch_pg.survey_enabled is False by default
+        launch_pg = job_template_ping.get_related("launch")
+        assert not launch_pg.survey_enabled, \
+            "launch_pg.survey_enabled is True even though JT survey_enabled is False \
+            and no survey given."
+
+        # check that launch_pg.survey_enabled is False when enabled on JT but no survey given
+        job_template_ping.patch(survey_enabled=True)
+        launch_pg = job_template_ping.get_related("launch")
+        assert not launch_pg.survey_enabled, \
+            "launch_pg.survey_enabled is True with JT survey_enabled as True \
+            and no survey given."
+
+        # check that launch_pg survey_enabled is True when enabled on JT and survey given
+        survey_spec = job_template_ping.get_related('survey_spec')
+        survey_spec.post(required_survey_spec)
+        launch_pg = job_template_ping.get_related("launch")
+        assert launch_pg.survey_enabled, \
+            "launch_pg.survey_enabled is False even though JT survey_enabled is True \
+            and valid survey posted."

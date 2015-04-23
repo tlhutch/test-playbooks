@@ -107,6 +107,7 @@ class Job_Template_Launch_Page(Base):
     passwords_needed_to_start = property(json_getter('passwords_needed_to_start'), json_setter('passwords_needed_to_start'))
     credential_needed_to_start = property(json_getter('credential_needed_to_start'), json_setter('credential_needed_to_start'))
     variables_needed_to_start = property(json_getter('variables_needed_to_start'), json_setter('variables_needed_to_start'))
+    survey_enabled = property(json_getter('survey_enabled'), json_setter('survey_enabled'))
 
 
 class Job_Template_Survey_Spec(Base):
