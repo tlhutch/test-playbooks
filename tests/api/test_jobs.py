@@ -373,8 +373,18 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
     def test_job_env(self, job_template_with_cloud_credential):
         '''Verify that job_env has the expected cloud_credential variables'''
 
+        # get cloud_credential
+        cloud_credential = job_template_with_cloud_credential.get_related('cloud_credential')
+
+        # TODO - set extra_vars env_variable and env_value
+        # payload = dict(extra_vars=cloud_extra_vars)
+        # job_template_with_cloud_credential.patch(
+        #     playbook='environ_test.yml',
+        #     extra_vars='{}',
+        # )
+
         # launch job
-        job_pg = job_template_with_cloud_credential.launch_job()
+        job_pg = job_template_with_cloud_credential.launch()
 
         # wait for completion
         job_pg = job_pg.wait_until_completed(timeout=60 * 10)
@@ -382,26 +392,42 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
         # assert successful completion of job
         assert job_pg.is_successful, "Job unsuccessful - %s " % job_pg
 
-        # FIXME: assert the values are correct
-        cred = job_pg.get_related('cloud_credential')
-        if cred.kind == 'aws':
-            required_envvars = ['AWS_ACCESS_KEY', 'AWS_SECRET_KEY']
-        elif cred.kind == 'rax':
-            required_envvars = ['RAX_USERNAME', 'RAX_API_KEY']
-        elif cred.kind == 'gce':
-            required_envvars = ['GCE_EMAIL', 'GCE_PROJECT', 'GCE_PEM_FILE_PATH']
-        elif cred.kind == 'azure':
-            required_envvars = ['AZURE_SUBSCRIPTION_ID', 'AZURE_CERT_PATH']
-        elif cred.kind == 'vmware':
-            required_envvars = ['VMWARE_HOST', 'VMWARE_USER', 'VMWARE_PASSWORD']
+        # Assert expected environment variables and their values
+        if cloud_credential.kind == 'aws':
+            self.has_credentials('cloud', cloud_credential.kind, ['username'])
+            expected_env_vars = dict(AWS_ACCESS_KEY=self.credentials['cloud'][cloud_credential.kind]['username'],
+                                     AWS_SECRET_KEY=u'**********')
+        elif cloud_credential.kind == 'rax':
+            self.has_credentials('cloud', cloud_credential.kind, ['username'])
+            expected_env_vars = dict(RAX_USERNAME=self.credentials['cloud'][cloud_credential.kind]['username'],
+                                     RAX_API_KEY=u'**********')
+        elif cloud_credential.kind == 'gce':
+            self.has_credentials('cloud', cloud_credential.kind, ['username', 'project'])
+            expected_env_vars = dict(GCE_EMAIL=self.credentials['cloud'][cloud_credential.kind]['username'],
+                                     GCE_PROJECT=self.credentials['cloud'][cloud_credential.kind]['project'],
+                                     # TODO - this should point to a valid path
+                                     GCE_PEM_FILE_PATH='')
+        elif cloud_credential.kind == 'azure':
+            self.has_credentials('cloud', cloud_credential.kind, ['username'])
+            expected_env_vars = dict(AZURE_SUBSCRIPTION_ID=self.credentials['cloud'][cloud_credential.kind]['username'],
+                                     # TODO - this should point to a valid path
+                                     AZURE_CERT_PATH='')
+        elif cloud_credential.kind == 'vmware':
+            self.has_credentials('cloud', cloud_credential.kind, ['username', 'host'])
+            expected_env_vars = dict(VMWARE_USER=self.credentials['cloud'][cloud_credential.kind]['username'],
+                                     VMWARE_PASSWORD=u'**********',
+                                     VMWARE_HOST=self.credentials['cloud'][cloud_credential.kind]['host'])
         else:
-            raise Exception("Unhandled cloud type: %s" % cred.kind)
+            raise Exception("Unhandled cloud type: %s" % cloud_credential.kind)
 
         # assert the expected job_env variables are present
-        for required in required_envvars:
-            assert required in job_pg.job_env, \
-                "Missing required %s environment variable (%s) in job_env.\n%s" % \
-                (cred.kind, required, json.dumps(job_pg.job_env))
+        for env_var, env_val in expected_env_vars.items():
+            assert env_var in job_pg.job_env, \
+                "Missing expected %s environment variable %s in job_env.\n%s" % \
+                (cloud_credential.kind, env_var, json.dumps(job_pg.job_env, indent=2))
+            assert job_pg.job_env[env_var] == env_val, \
+                "Unexpected value for %s environment variable %s in job_env (%s != %s)" % \
+                (cloud_credential.kind, env_var, job_pg.job_env[env_var], env_val)
 
 
 @pytest.fixture(scope="function")
