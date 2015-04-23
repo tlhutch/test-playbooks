@@ -6,7 +6,7 @@
 - name: create/locate instance(s)
   azure:
     state: present
-    name: "{{ item.storage_account }}-{{ item.name }}"
+    name: "{{ azure_name_prefix }}-{{ item.storage_account }}-{{ item.name }}"
     location: '{{ item.location }}'
     storage_account: '{{ item.storage_account }}'
     image: '{{ item.image|default(azure_image) }}'

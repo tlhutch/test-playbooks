@@ -3,7 +3,7 @@
 - name: delete existing azure instance(s)
   azure:
     state: absent
-    name: "{{ item.storage_account }}-{{ item.name }}"
+    name: "{{ azure_name_prefix }}-{{ item.storage_account }}-{{ item.name }}"
     management_cert_path: '{{ azure_management_cert_path }}'
     subscription_id: '{{ azure_subscription_id }}'
     wait: yes

@@ -7,7 +7,7 @@ skip: true
 # whether to use the existing image, or to delete it before proceeding
 skip_delete: false
 
-# azure_name_prefix: '{{ instance_name_prefix }}'
+azure_name_prefix: '{{ instance_name_prefix }}'
 azure_image: "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-12_04_4-LTS-amd64-server-20140514-en-us-30GB"
 azure_name_prefix: 'jenkins'
 azure_endpoints: '22,80,443,8080'
