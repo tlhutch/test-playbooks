@@ -6,6 +6,16 @@ import pytest
 # TODO - create some base method/class to abstract get/set on tower settings
 
 @pytest.fixture(scope='session')
+def tower_config_dir():
+    return '/etc/tower'
+
+
+@pytest.fixture(scope='session')
+def tower_confd_dir(tower_config_dir):
+    return os.path.join(tower_config_dir, 'conf.d')
+
+
+@pytest.fixture(scope='session')
 def tower_settings_path(request, tower_config_dir):
     return os.path.join(tower_config_dir, 'settings.py')
 
@@ -107,6 +117,73 @@ def ORG_ADMINS_CANNOT_SEE_ALL_USERS(request, ansible_runner, tower_settings_path
             for result in contacted.values():
                 assert 'failed' not in result, \
                     "Failure while removing ORG_ADMINS_CAN_SEE_ALL_USERS\n%s" % json.dumps(result, indent=2)
+
+        # restart ansible-tower (if changes were necesary)
+        if changed:
+            contacted = ansible_runner.service(
+                name='ansible-tower',
+                state='restarted'
+            )
+            for result in contacted.values():
+                assert 'failed' not in result, \
+                    "Failure restarting ansible-tower\n%s" % json.dumps(result, indent=2)
+    request.addfinalizer(fin)
+
+
+@pytest.fixture(scope="class")
+def AD_HOC_COMMANDS(request, ansible_runner, tower_confd_dir):
+    '''Class-scoped fixture to add/update /etc/tower/conf.d/ad_hoc.py with AD_HOC_COMMANDS.
+    '''
+    # define ad_hoc.py config file
+    ad_hoc_config_path = os.path.join(tower_confd_dir, 'ad_hoc.py')
+
+    # support ad_hoc_commands override
+    fixture_args = getattr(request.function, 'fixture_args', {})
+    if fixture_args and 'ad_hoc_commands' in fixture_args.kwargs:
+        commands = fixture_args.kwargs.get['ad_hoc_commands']
+    else:
+        commands = []
+
+    content = '''
+    AD_HOC_COMMANDS = %s
+    ''' % commands
+
+    # update ad_hoc.py
+    contacted = ansible_runner.copy(
+        backup=True,
+        dest=ad_hoc_config_path,
+        owner='awx',
+        group='awx',
+        mode='0640',
+        content=content
+    )
+
+    # assert success
+    for result in contacted.values():
+        assert 'failed' not in result, \
+            "Failure while setting AD_HOC_COMMANDS\n%s" % json.dumps(result, indent=2)
+        changed = 'changed' in result and result['changed']
+        backup_file = 'backup_file' in result and result['backup_file']
+
+    # restart ansible-tower (if changes were necesary)
+    if changed:
+        contacted = ansible_runner.service(
+            name='ansible-tower',
+            state='restarted'
+        )
+        for result in contacted.values():
+            assert 'failed' not in result, \
+                "Failure restarting ansible-tower\n%s" % json.dumps(result, indent=2)
+
+    def fin():
+        # restore ad_hoc.py (if changes were necesary)
+        if changed:
+            contacted = ansible_runner.command('mv -f %s %s' % (
+                backup_file, ad_hoc_config_path))
+
+            for result in contacted.values():
+                assert 'failed' not in result, \
+                    "Failure while removing AD_HOC_COMMANDS\n%s" % json.dumps(result, indent=2)
 
         # restart ansible-tower (if changes were necesary)
         if changed:

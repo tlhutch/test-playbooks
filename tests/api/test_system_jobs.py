@@ -1,4 +1,3 @@
-import json
 import pytest
 import common.tower.inventory
 import common.utils
@@ -7,7 +6,12 @@ import re
 from tests.api import Base_Api_Test
 
 
-@pytest.fixture(scope="function", params=['cleanup_jobs_with_status_completed', 'cleanup_deleted_with_status_completed', 'cleanup_activitystream_with_status_completed', 'custom_inventory_update_with_status_completed', 'project_ansible_playbooks_git', 'job_with_status_completed'])
+@pytest.fixture(scope="function", params=['cleanup_jobs_with_status_completed',
+                                          'cleanup_deleted_with_status_completed',
+                                          'cleanup_activitystream_with_status_completed',
+                                          'custom_inventory_update_with_status_completed',
+                                          'project_ansible_playbooks_git',
+                                          'job_with_status_completed'])
 def unified_job_with_status_completed(request):
     '''
     Launches jobs of all types sequentially.
@@ -18,16 +22,29 @@ def unified_job_with_status_completed(request):
 
 
 @pytest.fixture(scope="function")
-def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed, cleanup_deleted_with_status_completed, cleanup_activitystream_with_status_completed, custom_inventory_update_with_status_completed, project_ansible_playbooks_git, job_with_status_completed):
+def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
+                                        cleanup_deleted_with_status_completed,
+                                        cleanup_activitystream_with_status_completed,
+                                        custom_inventory_update_with_status_completed,
+                                        project_ansible_playbooks_git,
+                                        job_with_status_completed):
     '''
     Launches all three system jobs, an inventory update, an SCM update, and a job template.
 
     Returns a list of the jobs run.
     '''
-    return [cleanup_jobs_with_status_completed, cleanup_deleted_with_status_completed, cleanup_activitystream_with_status_completed, custom_inventory_update_with_status_completed, project_ansible_playbooks_git, job_with_status_completed]
+    return [cleanup_jobs_with_status_completed,
+            cleanup_deleted_with_status_completed,
+            cleanup_activitystream_with_status_completed,
+            custom_inventory_update_with_status_completed,
+            project_ansible_playbooks_git,
+            job_with_status_completed]
 
 
-@pytest.fixture(scope="function", params=['organization', 'org_user', 'team', 'ssh_credential', 'project', 'inventory', 'job_template', 'job_with_status_completed'])
+@pytest.fixture(scope="function", params=['organization', 'org_user', 'team',
+                                          'ssh_credential', 'project',
+                                          'inventory', 'job_template',
+                                          'job_with_status_completed'])
 def deleted_object(request):
     '''
     Creates and deletes an object.
