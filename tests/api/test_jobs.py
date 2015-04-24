@@ -1,5 +1,7 @@
-import pytest
+import re
+import types
 import json
+import pytest
 import common.tower.inventory
 import common.utils
 from tests.api import Base_Api_Test
@@ -376,18 +378,11 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
         # get cloud_credential
         cloud_credential = job_template_with_cloud_credential.get_related('cloud_credential')
 
-        # TODO - set extra_vars env_variable and env_value
-        # payload = dict(extra_vars=cloud_extra_vars)
-        # job_template_with_cloud_credential.patch(
-        #     playbook='environ_test.yml',
-        #     extra_vars='{}',
-        # )
-
         # launch job
         job_pg = job_template_with_cloud_credential.launch()
 
         # wait for completion
-        job_pg = job_pg.wait_until_completed(timeout=60 * 10)
+        job_pg = job_pg.wait_until_completed()
 
         # assert successful completion of job
         assert job_pg.is_successful, "Job unsuccessful - %s " % job_pg
@@ -395,28 +390,37 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
         # Assert expected environment variables and their values
         if cloud_credential.kind == 'aws':
             self.has_credentials('cloud', cloud_credential.kind, ['username'])
-            expected_env_vars = dict(AWS_ACCESS_KEY=self.credentials['cloud'][cloud_credential.kind]['username'],
-                                     AWS_SECRET_KEY=u'**********')
+            expected_env_vars = dict(
+                AWS_ACCESS_KEY=self.credentials['cloud'][cloud_credential.kind]['username'],
+                AWS_SECRET_KEY=u'**********'
+            )
         elif cloud_credential.kind == 'rax':
             self.has_credentials('cloud', cloud_credential.kind, ['username'])
-            expected_env_vars = dict(RAX_USERNAME=self.credentials['cloud'][cloud_credential.kind]['username'],
-                                     RAX_API_KEY=u'**********')
+            expected_env_vars = dict(
+                RAX_USERNAME=self.credentials['cloud'][cloud_credential.kind]['username'],
+                RAX_API_KEY=u'**********'
+            )
         elif cloud_credential.kind == 'gce':
             self.has_credentials('cloud', cloud_credential.kind, ['username', 'project'])
-            expected_env_vars = dict(GCE_EMAIL=self.credentials['cloud'][cloud_credential.kind]['username'],
-                                     GCE_PROJECT=self.credentials['cloud'][cloud_credential.kind]['project'],
-                                     # TODO - this should point to a valid path
-                                     GCE_PEM_FILE_PATH='')
+            expected_env_vars = dict(
+                GCE_EMAIL=self.credentials['cloud'][cloud_credential.kind]['username'],
+                GCE_PROJECT=self.credentials['cloud'][cloud_credential.kind]['project'],
+                GCE_PEM_FILE_PATH=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
+            )
         elif cloud_credential.kind == 'azure':
             self.has_credentials('cloud', cloud_credential.kind, ['username'])
-            expected_env_vars = dict(AZURE_SUBSCRIPTION_ID=self.credentials['cloud'][cloud_credential.kind]['username'],
-                                     # TODO - this should point to a valid path
-                                     AZURE_CERT_PATH='')
+            expected_env_vars = dict(
+                AZURE_SUBSCRIPTION_ID=self.credentials['cloud'][cloud_credential.kind]['username'],
+                AZURE_CERT_PATH=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
+            )
+
         elif cloud_credential.kind == 'vmware':
             self.has_credentials('cloud', cloud_credential.kind, ['username', 'host'])
-            expected_env_vars = dict(VMWARE_USER=self.credentials['cloud'][cloud_credential.kind]['username'],
-                                     VMWARE_PASSWORD=u'**********',
-                                     VMWARE_HOST=self.credentials['cloud'][cloud_credential.kind]['host'])
+            expected_env_vars = dict(
+                VMWARE_USER=self.credentials['cloud'][cloud_credential.kind]['username'],
+                VMWARE_PASSWORD=u'**********',
+                VMWARE_HOST=self.credentials['cloud'][cloud_credential.kind]['host']
+            )
         else:
             raise Exception("Unhandled cloud type: %s" % cloud_credential.kind)
 
@@ -425,9 +429,14 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
             assert env_var in job_pg.job_env, \
                 "Missing expected %s environment variable %s in job_env.\n%s" % \
                 (cloud_credential.kind, env_var, json.dumps(job_pg.job_env, indent=2))
-            assert job_pg.job_env[env_var] == env_val, \
-                "Unexpected value for %s environment variable %s in job_env (%s != %s)" % \
-                (cloud_credential.kind, env_var, job_pg.job_env[env_var], env_val)
+            if isinstance(env_val, types.FunctionType):
+                is_correct = env_val(job_pg.job_env[env_var])
+            else:
+                is_correct = job_pg.job_env[env_var] == env_val
+
+            assert is_correct, "Unexpected value for %s environment variable %s" \
+                "in job_env ('%s')" % (cloud_credential.kind, env_var,
+                                       job_pg.job_env[env_var])
 
 
 @pytest.fixture(scope="function")
