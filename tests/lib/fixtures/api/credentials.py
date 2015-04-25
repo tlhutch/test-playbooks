@@ -43,10 +43,10 @@ def ssh_credential_ask(request, authtoken, api_credentials_pg, admin_user, tests
     return obj
 
 
-@pytest.fixture(scope="function", params=['sudo', 'su'])
+@pytest.fixture(scope="function", params=['sudo', 'su', 'pbrun'])
 def ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create ssh credential with multiple 'ASK' passwords'''
-    if request.param not in ('sudo', 'su'):
+    if request.param not in ('sudo', 'su', 'pbrun'):
         raise Exception("Unsupported parameter value: %s" % request.param)
 
     payload = dict(name="credentials-%s" % common.utils.random_unicode(),
