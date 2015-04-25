@@ -294,7 +294,8 @@ class Test_Project_Schedules(Base_Api_Test):
         # Ensure the job status is failed
         job_pg = unified_jobs_pg.results[0]
         job_pg = common.utils.wait_until(job_pg, 'status', 'failed', interval=15, verbose=True, timeout=60 * 5)
-        assert job_pg.status == 'failed'
+        assert job_pg.status == 'failed', "Unexpected job status (%s != %s) - %s" % \
+            (job_pg.status, 'failed', job_pg)
 
         # Is the next_run still what we expect?
         schedule_pg.get()
