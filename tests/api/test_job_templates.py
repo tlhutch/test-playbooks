@@ -33,7 +33,7 @@ def job_template_with_deleted_related(request, job_template):
     '''Creates and deletes an object.'''
     related_pg = job_template.get_related(request.param)
     related_pg.delete()
-    return job_template
+    return (request.param, job_template)
 
 
 @pytest.mark.api
@@ -405,6 +405,8 @@ class Test_Job_Template(Base_Api_Test):
         Verify that the job->launch endpoint does not allow launching a
         job_template whose related endpoints have been deleted.
         '''
+        (related, job_template_with_deleted_related) = job_template_with_deleted_related
+
         launch_pg = job_template_with_deleted_related.get_related('launch')
 
         # assert values on launch resource
@@ -413,7 +415,13 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
 
-        # launch the job_template
+        # if a credential was deleted, the API should require one to launch
+        if related == 'credential':
+            assert launch_pg.credential_needed_to_start
+        else:
+            assert not launch_pg.credential_needed_to_start
+
+        # assert launch failure
         with pytest.raises(common.exceptions.BadRequest_Exception):
             launch_pg.post()
 
