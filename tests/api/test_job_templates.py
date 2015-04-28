@@ -412,7 +412,6 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
-        assert not launch_pg.credential_needed_to_start
 
         # launch the job_template
         with pytest.raises(common.exceptions.BadRequest_Exception):
