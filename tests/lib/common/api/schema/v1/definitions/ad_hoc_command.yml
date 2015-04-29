@@ -1,4 +1,4 @@
-ad_hoc_command
+ad_hoc_command:
   additionalProperties: false
   properties:
     ad_hoc_command: {$ref: '#/definitions/id_or_null'}
