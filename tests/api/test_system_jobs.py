@@ -10,8 +10,9 @@ from tests.api import Base_Api_Test
                                           'cleanup_deleted_with_status_completed',
                                           'cleanup_activitystream_with_status_completed',
                                           'custom_inventory_update_with_status_completed',
-                                          'project_ansible_playbooks_git',
-                                          'job_with_status_completed'])
+                                          'project_update_with_status_completed',
+                                          'job_with_status_completed',
+                                          'ad_hoc_with_status_completed'])
 def unified_job_with_status_completed(request):
     '''
     Launches jobs of all types sequentially.
@@ -26,10 +27,11 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
                                         cleanup_deleted_with_status_completed,
                                         cleanup_activitystream_with_status_completed,
                                         custom_inventory_update_with_status_completed,
-                                        project_ansible_playbooks_git,
-                                        job_with_status_completed):
+                                        project_update_with_status_completed,
+                                        job_with_status_completed,
+                                        ad_hoc_with_status_completed):
     '''
-    Launches all three system jobs, an inventory update, an SCM update, and a job template.
+    Launches all three system jobs, an inventory update, an SCM update, a job template, and an ad hoc command.
 
     Returns a list of the jobs run.
     '''
@@ -37,8 +39,9 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
             cleanup_deleted_with_status_completed,
             cleanup_activitystream_with_status_completed,
             custom_inventory_update_with_status_completed,
-            project_ansible_playbooks_git,
-            job_with_status_completed]
+            project_update_with_status_completed,
+            job_with_status_completed,
+            ad_hoc_with_status_completed]
 
 
 @pytest.fixture(scope="function", params=['organization', 'org_user', 'team',
@@ -97,7 +100,6 @@ class Test_System_Jobs(Base_Api_Test):
         with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
             system_job.patch()
 
-    @pytest.mark.trello('https://trello.com/c/Kg5IBdUx')
     def test_cleanup_jobs(self, cleanup_jobs_template, unified_job_with_status_completed, api_jobs_pg, api_system_jobs_pg, api_unified_jobs_pg):
         '''
         Run jobs of different types sequentially and check that cleanup jobs deletes all of them.
@@ -109,18 +111,24 @@ class Test_System_Jobs(Base_Api_Test):
         # check cleanup job status
         assert cleanup_jobs_pg.is_successful, "Job unsuccessful - %s" % cleanup_jobs_pg
 
-        # Assert provided job has been deleted
-        with pytest.raises(common.exceptions.NotFound_Exception):
-            unified_job_with_status_completed.get()
+        # assert provided job has been deleted
+        if unified_job_with_status_completed.type not in ['inventory_update', 'project_update']:
+            with pytest.raises(common.exceptions.NotFound_Exception):
+                unified_job_with_status_completed.get()
 
-        # Query for unified_jobs matching the provided job id
+        # query for unified_jobs matching the provided job id
         results = api_unified_jobs_pg.get(id=unified_job_with_status_completed.id)
 
-        # Assert no matching jobs found
-        assert results.count == 0, "An unexpected number of unified jobs were found (%s != 0)" \
-            % results.count
+        # calculate expected count
+        if unified_job_with_status_completed.type in ['inventory_update', 'project_update']:
+            expected_count = 1
+        else:
+            expected_count = 0
 
-    @pytest.mark.trello('https://trello.com/c/Kg5IBdUx')
+        # assert no matching jobs found
+        assert results.count == expected_count, "An unexpected number of unified jobs were found (%s != %s)" \
+            % (results.count, expected_count)
+
     def test_cleanup_jobs_on_multiple_jobs(self, cleanup_jobs_template, multiple_jobs_with_status_completed, api_jobs_pg, api_system_jobs_pg,
                                            api_unified_jobs_pg):
         '''
@@ -159,11 +167,14 @@ class Test_System_Jobs(Base_Api_Test):
         assert system_jobs_pg.results[0].id == cleanup_jobs_pg.id, "After running cleanup_jobs, an unexpected system_job.id was found (%s != %s)" \
             % (system_jobs_pg.results[0].id, cleanup_jobs_pg.id)
 
-        # assert that the cleanup_jobs job is the only job listed in unified jobs
+        # calculate number of remaining jobs
+        number_special_cases = len(filter(lambda x: x.type in ('project_update', 'inventory_update'), multiple_jobs_with_status_completed))
+        expected_number_remaining_jobs = number_special_cases + system_jobs_pg.count
+
+        # assess remaming unified jobs
         unified_jobs_pg = api_unified_jobs_pg.get()
-        assert unified_jobs_pg.count == 1, "An unexpected number of unified_jobs were found after running cleanup_jobs (%s != 1)" % unified_jobs_pg.count
-        assert unified_jobs_pg.results[0].id == cleanup_jobs_pg.id, "After running cleanup_jobs, an unexpected system_job.id was found (%s != %s)" \
-            % (unified_jobs_pg.results[0].id, cleanup_jobs_pg.id)
+        assert unified_jobs_pg.count == expected_number_remaining_jobs, "Unexpected number of unified_jobs returned \
+            (unified_jobs_pg.count: %s != expected_number_remaining_jobs: %s)" % (unified_jobs_pg.count, expected_number_remaining_jobs)
 
     @pytest.mark.trello('https://trello.com/c/PbidSkwy')
     def test_cleanup_deleted(self, deleted_object, cleanup_deleted_template):
@@ -201,11 +212,6 @@ class Test_System_Jobs(Base_Api_Test):
         '''
         Launch jobs of different types, run cleanup activitystreams, and verify that the activitystream is cleared.
         '''
-        # Create a fixture that runs a variety of tasks in Tower such as, create objects, delete objects, run jobs, edit items, etc.
-        # Do this for several different organizations. Parametrization will be good here.
-        # Run cleanup_activitystream for one user and verify that actity stream is cleaned for that user and others in the same organization.
-        # Check for all users
-
         # pretest
         activity_stream_pg = api_activity_stream_pg.get()
         assert activity_stream_pg.count != 0, "Activity stream empty (%s == 0)." % activity_stream_pg.count
