@@ -103,14 +103,14 @@ class Base(Page):
         elif r.status_code == httplib.NO_CONTENT:
             raise common.exceptions.NoContent_Exception(exc_str)
         elif r.status_code == httplib.NOT_FOUND:
-            raise common.exceptions.NotFound_Exception(exc_str)
+            raise common.exceptions.NotFound_Exception(exc_str, data)
         elif r.status_code == httplib.FORBIDDEN:
             try:
                 self.validate_json(json=data, request='license_exceeded')
             except:
-                raise common.exceptions.Forbidden_Exception(exc_str)
+                raise common.exceptions.Forbidden_Exception(exc_str, data)
             else:
-                raise common.exceptions.LicenseExceeded_Exception(exc_str)
+                raise common.exceptions.LicenseExceeded_Exception(exc_str, data)
         elif r.status_code == httplib.BAD_REQUEST:
             # Validate the 400 BAD_REQUEST response with known 400 errors.
             for (request, exc) in [('license_invalid', common.exceptions.LicenseInvalid_Exception),
@@ -122,22 +122,20 @@ class Base(Page):
                 else:
                     if request == 'duplicate':
                         exc_str += ". However, JSON validation determined the cause " \
-                                   "was a duplicate object already exists: %s" % data
-                    else:
-                        exc_str += ": %s" % data
+                                   "was a duplicate object already exists."
                     raise exc(exc_str, data)
 
             # No custom 400 exception was raised, raise a generic 400 BAD_REQUEST exception
-            raise common.exceptions.BadRequest_Exception(exc_str + ": %s" % data, data)
+            raise common.exceptions.BadRequest_Exception(exc_str, data)
 
         elif r.status_code == httplib.INTERNAL_SERVER_ERROR:
-            raise common.exceptions.InternalServerError_Exception(exc_str + ": %s" % data, data)
+            raise common.exceptions.InternalServerError_Exception(exc_str, data)
         elif r.status_code == httplib.METHOD_NOT_ALLOWED:
-            raise common.exceptions.Method_Not_Allowed_Exception(exc_str + ": %s" % data, data)
+            raise common.exceptions.Method_Not_Allowed_Exception(exc_str, data)
         elif r.status_code == httplib.UNAUTHORIZED:
-            raise common.exceptions.Unauthorized_Exception(exc_str + ": %s" % data, data)
+            raise common.exceptions.Unauthorized_Exception(exc_str, data)
         else:
-            raise common.exceptions.Unknown_Exception(exc_str + ": %s" % data, data)
+            raise common.exceptions.Unknown_Exception(exc_str, data)
 
     def get(self, **params):
         r = self.api.get(self.base_url.format(**self.json), params=params)
