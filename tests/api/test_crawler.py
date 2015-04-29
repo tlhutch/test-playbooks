@@ -8,9 +8,6 @@ from plugins.pytest_restqa.rest_client import Connection
 def pytest_generate_tests(metafunc):
 
     for fixture in metafunc.fixturenames:
-        print dir(metafunc)
-        print metafunc
-
         test_set = list()
         id_list = list()
 
