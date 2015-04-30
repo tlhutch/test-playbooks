@@ -48,6 +48,11 @@ def project(request, project_ansible_playbooks_git):
 
 
 @pytest.fixture(scope="function")
+def project_update_with_status_completed(request, project_ansible_playbooks_git):
+    return project_ansible_playbooks_git.get_related('last_update')
+
+
+@pytest.fixture(scope="function")
 def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_config, api_projects_pg, organization):
     '''
     Create a manual project associated with ansible-playbooks.git
