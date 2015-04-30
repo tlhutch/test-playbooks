@@ -91,9 +91,9 @@
 # before proceeding.
 - name: wait for instances to listen on port 5986 (winrm https)
   wait_for:
-    state=started
-    host={{ item.tagged_instances[0].public_ip }}
-    port=5986
+    state: started
+    host: '{{ item.tagged_instances[0].public_ip }}'
+    port: 5986
   with_items: win_ec2.results
   when: win_ec2_images and win_ec2 is defined
 

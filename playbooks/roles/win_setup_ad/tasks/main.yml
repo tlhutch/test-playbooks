@@ -24,7 +24,6 @@
   changed_when: "'DCPromo' in deploy_ad_ds_result.stdout"
 
 - name: add test users to ad
-  tags: foo
   win_user:
     name: "{{ item.username }}"
     password: "{{ item.password }}"
