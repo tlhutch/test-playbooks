@@ -195,7 +195,7 @@ class Test_Job(Base_Api_Test):
         assert not relaunch_pg.passwords_needed_to_start
 
         # attempt to relaunch the job, should raise exception
-        with pytest.raises(common.exceptions.Forbidden_Exception):
+        with pytest.raises(common.exceptions.BadRequest_Exception):
             relaunch_pg.post()
 
     def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload, testsetup):  # NOQA
