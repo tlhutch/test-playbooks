@@ -540,7 +540,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         assert not relaunch_pg.passwords_needed_to_start
 
         # relaunch the command
-        with pytest.raises(common.exceptions.Forbidden_Exception):
+        with pytest.raises(common.exceptions.BadRequest_Exception):
             relaunch_pg.post()
 
     def test_ad_hoc_activity_stream(self, api_ad_hoc_commands_pg, ad_hoc_with_status_completed):
