@@ -1090,7 +1090,7 @@ class Awx_Schema_Ad_Hoc_Related_Cancel(Awx_Schema):
 
     @property
     def get(self):
-        return self.load_file('jobs/cancel.yml')
+        return self.load_file('ad_hoc_commands/cancel.yml')
 
     @property
     def post(self):
