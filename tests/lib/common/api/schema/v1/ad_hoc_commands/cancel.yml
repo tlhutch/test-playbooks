@@ -3,9 +3,7 @@ $schema: http://json-schema.org/draft-04/schema#
 id: '/api/v1/ad_hoc_commands/\d+/cancel/'
 type: object
 additionalProperties: false
-required: [can_cancel, name]
+required: [can_cancel]
 properties:
   can_cancel:
     type: boolean
-  name:
-    type: string
