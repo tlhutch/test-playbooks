@@ -102,8 +102,9 @@ class Connection(object):
         # prepare session object
         self.session = requests.Session()
         adapter = requests.adapters.HTTPAdapter(max_retries=3)
-        self.session.mount('http://', adapter)
-        self.session.mount('https://', adapter)
+        # temporarily disabled to debug adapter problems
+        # self.session.mount('http://', adapter)
+        # self.session.mount('https://', adapter)
         self.session.headers['Content-type'] = 'application/json'
 
     # http://docs.python-requests.org/en/latest/api/?highlight=logging
@@ -183,7 +184,7 @@ class Connection(object):
         # Add convenience attribute 'code' to mimick urllib2 response
         response.code = response.status_code
 
-        # Add conventience method to return object representation of json
+        # Add convenience method to return object representation of json
         response.objectify = types.MethodType(objectify, response)
 
         return response
