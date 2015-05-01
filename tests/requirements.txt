@@ -13,9 +13,9 @@ pytest-capturelog
 pytest-instafail
 pytest-ansible
 pytest-trello
-# pytest-jira # Don't install until we fix the pytest-jira plugin
 UnittestZero
-requests
+# https://github.com/kennethreitz/requests/issues/2568
+requests==2.6.0
 PyYAML
 jsonschema
 inflect
@@ -24,11 +24,12 @@ python-dateutil
 azure==0.8.1
 boto==2.13.3
 pyrax==1.6.3
-# pysphere==0.1.8
 pysphere
 fauxfactory
 junit-xml
 # https://gitlab.com/pycqa/flake8/issues/9
-flake8==2.1.0
-pep8==1.5.6
+# flake8==2.1.0
+# pep8==1.5.6
+flake8
+pep8
 pylint
