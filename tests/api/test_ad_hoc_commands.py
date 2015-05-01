@@ -13,6 +13,7 @@ Tests for the main api/v1/ad_hoc_commands endpoint
 -[X] Verify that unprivileged users cannot launch commands
 -[] Verify that an org user with the correct permissions can launch a command
 
+-[X] Test that posts without specifying module defaults to command
 -[X] Verify that cancelling a command works
 -[X] Launching with ask-credential (valid passwords, without passwords, with invalid passwords)
 -[] Launching with no limit
@@ -237,6 +238,27 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
             with self.current_user(unprivileged_user.username, user_password):
                 with pytest.raises(common.exceptions.Forbidden_Exception):
                     ad_hoc_commands_pg.post(payload)
+
+    def test_launch_without_module_name(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
+        '''
+        Verifies that if you post without specifiying module_name that the command module is run.
+        '''
+        # create payload
+        payload = dict(job_type="run",
+                       inventory=inventory.id,
+                       credential=ssh_credential.id,
+                       module_args="true", )
+
+        # post the command
+        command_pg = api_ad_hoc_commands_pg.post(payload)
+
+        # assert command successful
+        command_pg.wait_until_completed()
+        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+
+        # check that command was indeed of module "command"
+        assert command_pg.module_name == "command"
+        assert command_pg.module_args == "true"
 
     def test_cancel_command(self, ad_hoc_with_status_pending):
         '''
