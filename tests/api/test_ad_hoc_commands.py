@@ -251,7 +251,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         cancel_pg.post()
 
         # verify that the command was canceled
-        ad_hoc_with_status_pending.get()
+        ad_hoc_with_status_pending.wait_until_completed()
         assert ad_hoc_with_status_pending.status == 'canceled', \
             "Unexpected command status after cancelling command (status:%s)" % \
             ad_hoc_with_status_pending.status
