@@ -16,11 +16,11 @@ Tests for the main api/v1/ad_hoc_commands endpoint
 -[X] Test that posts without specifying module defaults to command
 -[X] Verify that cancelling a command works
 -[X] Launching with ask-credential (valid passwords, without passwords, with invalid passwords)
--[] Launching with no limit
--[] With limit=all
--[] with limit=$hosts
--[] with limit=$groups
--[] with limit=no match
+-[X] Launching with no limit
+-[X] With limit=all
+-[X] with limit=$hosts
+-[X] with limit=$groups
+-[X] with limit=no match
 -[] Launching with args => that the args are passed correctly (TODO: discussion church passing args as string/JSON file???)
 
 -[X] Verify that privileged users can relaunch a command
@@ -328,120 +328,61 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         command_pg.wait_until_completed()
         assert not command_pg.is_successful, "Command successful, but was expected to fail - %s " % command_pg
 
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_post_with_no_limit(self, preloaded_inventory, ssh_credential, api_ad_hoc_commands_pg, api_hosts_pg):
+    @pytest.mark.parametrize("limit_value,expected_count", [
+        ("", 16),
+        ("all", 16),
+        ("host-14", 1),
+        ("group-1", 6),
+        ("group*:&group-1:!duplicate_host", 5),
+        ("duplicate_host", 1)
+    ])
+    @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
+import json
+
+inv = dict(_meta=dict(hostvars={}), hosts=[])
+
+# create three groups and put duplicate_host in all three groups
+for i in range(3):
+    inv['group-'+str(i)] = list()
+    host = "duplicate_host"
+    inv['group-'+str(i)].append(host)
+    inv['_meta']['hostvars'][host] = dict(ansible_ssh_host='127.0.0.1', ansible_connection='local')
+
+# create fifteen hosts, five per each group
+for i in range(15):
+    host = 'host-'+str(i)
+    inv['group-'+str(i%3)].append(host)
+    inv['_meta']['hostvars'][host] = dict(ansible_ssh_host='127.0.0.1', ansible_connection='local')
+
+print json.dumps(inv, indent=2)
+''')
+    def test_launch_with_various_limit_values(
+            self, limit_value,
+            expected_count,
+            custom_inventory_source,
+            custom_inventory_update_with_status_completed,
+            ssh_credential,
+            api_ad_hoc_commands_pg
+    ):
         '''
-        Verifies that posting with nothing for limit results in a command being run on all hosts.
+        Verifies payloads with different values for "limit" behave as expected.
         '''
-        commands_pg = api_ad_hoc_commands_pg.get()
+        custom_inventory_update_with_status_completed
 
         # create payload
         payload = dict(job_type="run",
-                       inventory=preloaded_inventory.id,
-                       credential=ssh_credential.id,
-                       module_name="ping", )
-
-        # post the command
-        command_pg = commands_pg.post(payload)
-
-        # assert success
-        command_pg.wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
-
-        # assert that command run on all hosts in inventory
-        hosts_pg = api_hosts_pg.get()
-        for host in hosts_pg.results:
-            ad_hoc_command_events_pg = host.get_related('ad_hoc_commands')
-            assert ad_hoc_command_events_pg.count == 1
-            assert ad_hoc_command_events_pg.results[0].id == command_pg.id
-
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_post_with_limit_all(self, preloaded_inventory, ssh_credential, api_ad_hoc_commands_pg):
-        '''
-        Verifies that posting with limit = "all" runs a commands on all hosts.
-        '''
-        commands_pg = api_ad_hoc_commands_pg.get()
-
-        # create payload
-        payload = dict(job_type="run",
-                       credential=ssh_credential.id,
-                       module_name="ping",
-                       limit="all", )
-
-        # post the command
-        command_pg = commands_pg.post(payload)
-
-        # assert success
-        command_pg.wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
-
-        # assert that command run on all hosts in inventory
-
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_post_with_limit_hosts(self, preloaded_inventory, ssh_credential, api_ad_hoc_commands_pg):
-        '''
-        Verifies that specific host selection works.
-        '''
-        commands_pg = api_ad_hoc_commands_pg.get()
-
-        # create payload
-        payload = dict(job_type="run",
+                       inventory=custom_inventory_source.inventory,
                        credential=ssh_credential.id,
                        module_name="ping",
-                       limit="", )
+                       limit=limit_value)
 
         # post the command
-        command_pg = commands_pg.post(payload)
-
-        # assert success
-        command_pg.wait_until_completed()
+        command_pg = api_ad_hoc_commands_pg.post(payload).wait_until_completed()
         assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
 
-        # assert that command run on specific hosts
-
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_post_with_limit_groups(self, inventory, ssh_credential, api_ad_hoc_commands_pg, privileged_users, user_password):
-        '''
-        Verifies that specific group selection works.
-        '''
-        commands_pg = api_ad_hoc_commands_pg.get()
-
-        # create payload
-        payload = dict(job_type="run",
-                       credential=ssh_credential.id,
-                       module_name="ping",
-                       limit="all", )
-
-        # post the command
-        command_pg = commands_pg.post(payload)
-
-        # assert success
-        command_pg.wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
-
-        # assert that hosts run on specific groups
-
-    @pytest.mark.skipif(True, reason="not yet implemented")
-    def test_post_with_no_match_limit(self, inventory, ssh_credential, api_ad_hoc_commands_pg, privileged_users, user_password):
-        '''
-        Verifies that if no hosts are matched that no commands are run.
-        '''
-        commands_pg = api_ad_hoc_commands_pg.get()
-
-        # create payload
-        payload = dict(job_type="run",
-                       credential=ssh_credential.id,
-                       module_name="ping",
-                       limit="non-existent host", )
-
-        # post the command
-        command_pg = commands_pg.post(payload)
-
-        # assert success
-        command_pg.wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
-
-        # assert that command run on no hosts
+        # assert that command run on correct number of hosts
+        events_pg = command_pg.get_related('events')
+        assert events_pg.count == expected_count
 
     def test_relaunch_command_with_privileged_users(
         self, inventory,
