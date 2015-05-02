@@ -528,6 +528,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         with pytest.raises(common.exceptions.BadRequest_Exception):
             relaunch_pg.post(payload)
 
+    @pytest.mark.trello('https://trello.com/c/IbvBelXJ')
     def test_relaunch_with_deleted_related(self, ad_hoc_with_status_completed, deleted_object):
         '''
         Verify that relaunching a job with deleted related fails.
