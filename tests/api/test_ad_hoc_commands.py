@@ -52,8 +52,6 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, in
     '''
     Launch command with multi_ask credential and passwords in the payload.
     '''
-    ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
-
     # create payload
     payload = dict(job_type="run",
                    inventory=inventory.id,
@@ -65,7 +63,7 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, in
                    become_password=testsetup.credentials['ssh']['become_password'], )
 
     # post the command
-    command_pg = ad_hoc_commands_pg.post(payload)
+    command_pg = api_ad_hoc_commands_pg.post(payload)
 
     # assert command successful
     command_pg.wait_until_completed()
@@ -203,8 +201,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         '''
         Verify that a superuser account is able to post to the ad_hoc_commands endpoint.
         '''
-        ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
-
         # create payload
         payload = dict(job_type="run",
                        inventory=inventory.id,
@@ -215,7 +211,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         for privileged_user in privileged_users:
             ssh_credential.patch(user=privileged_user.id)
             with self.current_user(privileged_user.username, user_password):
-                command_pg = ad_hoc_commands_pg.post(payload)
+                command_pg = api_ad_hoc_commands_pg.post(payload)
 
                 # assert command successful
                 command_pg.wait_until_completed()
@@ -225,8 +221,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         '''
         Verify that unprivileged users cannot post to the ad_hoc_commands endpoint.
         '''
-        ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
-
         # create payload
         payload = dict(job_type="run",
                        inventory=inventory.id,
@@ -237,7 +231,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         for unprivileged_user in unprivileged_users:
             with self.current_user(unprivileged_user.username, user_password):
                 with pytest.raises(common.exceptions.Forbidden_Exception):
-                    ad_hoc_commands_pg.post(payload)
+                    api_ad_hoc_commands_pg.post(payload)
 
     def test_launch_without_module_name(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
         '''
@@ -282,8 +276,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         '''
         Verifies that launching a command with an ask credential succeeds when supplied with proper passwords.
         '''
-        ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
-
         # create payload
         payload = dict(job_type="run",
                        inventory=inventory.id,
@@ -295,7 +287,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                        become_password=self.credentials['ssh']['become_password'], )
 
         # post the command
-        command_pg = ad_hoc_commands_pg.post(payload)
+        command_pg = api_ad_hoc_commands_pg.post(payload)
 
         # assert command successful
         command_pg.wait_until_completed()
@@ -305,8 +297,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         '''
         Verifies that launching a command with an ask credential fails when not supplied with required passwords.
         '''
-        ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
-
         # create payload
         payload = dict(job_type="run",
                        inventory=inventory.id,
@@ -315,14 +305,12 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
 
         # post the command
         with pytest.raises(common.exceptions.BadRequest_Exception):
-            ad_hoc_commands_pg.post(payload)
+            api_ad_hoc_commands_pg.post(payload)
 
     def test_launch_with_ask_credential_and_invalid_passwords_in_payload(self, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
         '''
         Verifies that launching a command with an ask credential fails when supplied with invalid passwords.
         '''
-        ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
-
         # create payload
         payload = dict(job_type="run",
                        inventory=inventory.id,
@@ -334,7 +322,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                        become_password=common.utils.random_unicode())
 
         # post the command
-        command_pg = ad_hoc_commands_pg.post(payload)
+        command_pg = api_ad_hoc_commands_pg.post(payload)
 
         # assert success
         command_pg.wait_until_completed()
@@ -463,8 +451,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         '''
         Verifies that privileged users can relaunch commands.
         '''
-        ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
-
         for privileged_user in privileged_users:
             # patch the credential for the current user
             ssh_credential.patch(user=privileged_user.id)
@@ -477,7 +463,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
 
             with self.current_user(privileged_user.username, user_password):
                 # post payload to ad_hoc_commands endpoint
-                ad_hoc_command_pg = ad_hoc_commands_pg.post(payload)
+                ad_hoc_command_pg = api_ad_hoc_commands_pg.post(payload)
 
                 # verify that the first ad hoc command ran successfully
                 ad_hoc_command_pg.wait_until_completed()
@@ -588,8 +574,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         # modify credential for org_admin
         ssh_credential.patch(user=org_admin.id)
 
-        ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
-
         # create payload
         payload = dict(job_type="run",
                        inventory=inventory.id,
@@ -598,7 +582,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
 
         # post payload to ad_hoc_commands endpoint
         with self.current_user(org_admin.username, user_password):
-            ad_hoc_command_pg = ad_hoc_commands_pg.post(payload)
+            ad_hoc_command_pg = api_ad_hoc_commands_pg.post(payload)
 
         # verify that the first ad hoc command ran successfully
         ad_hoc_command_pg.wait_until_completed()
