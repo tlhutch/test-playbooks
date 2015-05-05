@@ -354,6 +354,29 @@ def vmware_inventory_source(request, authtoken, vmware_group):
 
 
 #
+# Openstack group
+#
+@pytest.fixture(scope="function")
+def openstack_group(request, authtoken, api_groups_pg, inventory, openstack_credential):
+    payload = dict(name="openstack-group-%s" % fauxfactory.gen_alphanumeric()
+                   description="Openstack %s" % fauxfactory.gen_utf8(),
+                   inventory=inventory.id,
+                   credential=openstack_credential.id)
+    obj = api_groups_pg.post(payload)
+    request.addfinalizer(obj.delete)
+
+    # Set the inventory_source.sourc = 'openstack'
+    inv_source = obj.get_related('inventory_source')
+    inv_source.patch(source='openstack', credential=openstack_credential.id)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def openstack_inventory_source(request, authtoken, openstack_group):
+    return openstack_group.get_related('inventory_source')
+
+
+#
 # Custom group
 #
 @pytest.fixture(scope="function")
@@ -380,6 +403,6 @@ def custom_inventory_source(request, authtoken, custom_group):
 #
 # Convenience fixture that iterates through supported cloud_groups
 #
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
+@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware', 'openstack'])
 def cloud_group(request):
     return request.getfuncargvalue(request.param + '_group')
