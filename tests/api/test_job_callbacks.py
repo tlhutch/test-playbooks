@@ -2,7 +2,7 @@ import re
 import pytest
 import httplib
 import json
-import common.utils
+import fauxfactory
 import common.exceptions
 from tests.api import Base_Api_Test
 
@@ -11,7 +11,7 @@ from tests.api import Base_Api_Test
 def another_host_with_default_ipv4_in_variables(request, authtoken, api_hosts_pg, host_with_default_ipv4_in_variables):
     '''Create a another host object matching host_with_default_ipv4_in_variables'''
     payload = host_with_default_ipv4_in_variables.json
-    payload.update(name="another_host_with_default_ipv4_in_variables - %s" % common.utils.random_ascii(),)
+    payload.update(name="another_host_with_default_ipv4_in_variables - %s" % fauxfactory.gen_alphanumeric(),)
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.delete)
     # Add to group(s)
@@ -26,7 +26,7 @@ def hosts_with_name_matching_local_ipv4_addresses_but_random_ssh_host(request, g
     '''Create an inventory host matching the public ipv4 address of the system running pytest.'''
     for ipv4_addr in local_ipv4_addresses:
         payload = dict(name=ipv4_addr,
-                       description="test host %s" % common.utils.random_unicode(),
+                       description="test host %s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory,
                        variables=json.dumps(dict(ansible_ssh_host=common.utils.random_ipv4(),
                                                  ansible_connection="local")),)

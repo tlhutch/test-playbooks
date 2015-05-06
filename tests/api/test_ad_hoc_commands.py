@@ -1,6 +1,6 @@
-import json
 import pytest
-import common.utils
+import fauxfactory
+import common.exceptions
 from tests.api import Base_Api_Test
 
 '''
@@ -316,10 +316,10 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                        inventory=inventory.id,
                        credential=ssh_credential_multi_ask.id,
                        module_name="ping",
-                       ssh_password=common.utils.random_unicode(),
-                       ssh_key_unlock=common.utils.random_unicode(),
-                       vault_password=common.utils.random_unicode(),
-                       become_password=common.utils.random_unicode())
+                       ssh_password=fauxfactory.gen_utf8(),
+                       ssh_key_unlock=fauxfactory.gen_utf8(),
+                       vault_password=fauxfactory.gen_utf8(),
+                       become_password=fauxfactory.gen_utf8())
 
         # post the command
         command_pg = api_ad_hoc_commands_pg.post(payload)

@@ -1,11 +1,11 @@
 import pytest
-import common.utils
+import fauxfactory
 
 
 @pytest.fixture(scope="function")
 def team(request, authtoken, organization):
-    payload = dict(name="team_%s" % common.utils.random_unicode(),
-                   description="Random Team (%s)" % common.utils.random_unicode(),
+    payload = dict(name="team_%s" % fauxfactory.gen_utf8(),
+                   description="Random Team (%s)" % fauxfactory.gen_utf8(),
                    organization=organization.id,)
     obj = organization.get_related('teams').post(payload)
     request.addfinalizer(obj.silent_delete)
@@ -17,8 +17,8 @@ def many_teams(request, authtoken, many_organizations):
 
     obj_list = list()
     for i, organization in enumerate(many_organizations):
-        payload = dict(name="%s many teams" % common.utils.random_unicode(),
-                       description="Some Random Team (%s)" % common.utils.random_unicode(),
+        payload = dict(name="%s many teams" % fauxfactory.gen_utf8(),
+                       description="Some Random Team (%s)" % fauxfactory.gen_utf8(),
                        organization=organization.id,)
         obj = organization.get_related('teams').post(payload)
         request.addfinalizer(obj.delete)

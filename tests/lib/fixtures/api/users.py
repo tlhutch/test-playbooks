@@ -1,5 +1,6 @@
 import pytest
-import common.utils
+import fauxfactory
+import common.exceptions
 
 
 @pytest.fixture(scope="class")
@@ -14,10 +15,10 @@ def user_password(request):
 
 @pytest.fixture(scope="function")
 def org_admin(request, authtoken, organization, user_password):
-    payload = dict(username="org_admin_%s" % common.utils.random_ascii(),
-                   first_name="Joe (%s)" % common.utils.random_unicode(),
-                   last_name="Admin (%s)" % common.utils.random_unicode(),
-                   email="org_admin_%s@example.com" % common.utils.random_ascii(),
+    payload = dict(username="org_admin_%s" % fauxfactory.gen_alphanumeric(),
+                   first_name="Joe (%s)" % fauxfactory.gen_utf8(),
+                   last_name="Admin (%s)" % fauxfactory.gen_utf8(),
+                   email="org_admin_%s@example.com" % fauxfactory.gen_alphanumeric(),
                    password=user_password,
                    organization=organization.id,
                    is_superuser=False)
@@ -31,10 +32,10 @@ def org_admin(request, authtoken, organization, user_password):
 
 @pytest.fixture(scope="function")
 def another_org_admin(request, authtoken, another_organization, user_password):
-    payload = dict(username="org_admin_%s" % common.utils.random_ascii(),
-                   first_name="Joe (%s)" % common.utils.random_unicode(),
-                   last_name="Admin (%s)" % common.utils.random_unicode(),
-                   email="org_admin_%s@example.com" % common.utils.random_ascii(),
+    payload = dict(username="org_admin_%s" % fauxfactory.gen_alphanumeric(),
+                   first_name="Joe (%s)" % fauxfactory.gen_utf8(),
+                   last_name="Admin (%s)" % fauxfactory.gen_utf8(),
+                   email="org_admin_%s@example.com" % fauxfactory.gen_alphanumeric(),
                    password=user_password,
                    organization=another_organization.id,)
     obj = another_organization.get_related('admins').post(payload)
@@ -47,10 +48,10 @@ def another_org_admin(request, authtoken, another_organization, user_password):
 
 @pytest.fixture(scope="function")
 def org_user(request, authtoken, organization, user_password):
-    payload = dict(username="org_user_%s" % common.utils.random_ascii(),
-                   first_name="Joe (%s)" % common.utils.random_unicode(),
-                   last_name="User (%s)" % common.utils.random_unicode(),
-                   email="org_user_%s@example.com" % common.utils.random_ascii(),
+    payload = dict(username="org_user_%s" % fauxfactory.gen_alphanumeric(),
+                   first_name="Joe (%s)" % fauxfactory.gen_utf8(),
+                   last_name="User (%s)" % fauxfactory.gen_utf8(),
+                   email="org_user_%s@example.com" % fauxfactory.gen_alphanumeric(),
                    password=user_password,
                    organization=organization.id,)
     obj = organization.get_related('users').post(payload)
@@ -60,10 +61,10 @@ def org_user(request, authtoken, organization, user_password):
 
 @pytest.fixture(scope="function")
 def another_org_user(request, authtoken, another_organization, user_password):
-    payload = dict(username="org_user_%s" % common.utils.random_ascii(),
-                   first_name="Joe (%s)" % common.utils.random_unicode(),
-                   last_name="User (%s)" % common.utils.random_unicode(),
-                   email="org_user_%s@example.com" % common.utils.random_ascii(),
+    payload = dict(username="org_user_%s" % fauxfactory.gen_alphanumeric(),
+                   first_name="Joe (%s)" % fauxfactory.gen_utf8(),
+                   last_name="User (%s)" % fauxfactory.gen_utf8(),
+                   email="org_user_%s@example.com" % fauxfactory.gen_alphanumeric(),
                    password=user_password,
                    organization=another_organization.id,)
     obj = another_organization.get_related('users').post(payload)
@@ -73,10 +74,10 @@ def another_org_user(request, authtoken, another_organization, user_password):
 
 @pytest.fixture(scope="function")
 def anonymous_user(request, authtoken, api_users_pg, user_password):
-    payload = dict(username="anonymous_%s" % common.utils.random_ascii(),
-                   first_name="Joe (%s)" % common.utils.random_unicode(),
-                   last_name="User (%s)" % common.utils.random_unicode(),
-                   email="anonymous_user_%s@example.com" % common.utils.random_ascii(),
+    payload = dict(username="anonymous_%s" % fauxfactory.gen_alphanumeric(),
+                   first_name="Joe (%s)" % fauxfactory.gen_utf8(),
+                   last_name="User (%s)" % fauxfactory.gen_utf8(),
+                   email="anonymous_user_%s@example.com" % fauxfactory.gen_alphanumeric(),
                    password=user_password,)
     obj = api_users_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -85,10 +86,10 @@ def anonymous_user(request, authtoken, api_users_pg, user_password):
 
 @pytest.fixture(scope="function")
 def superuser(request, authtoken, api_users_pg, user_password):
-    payload = dict(username="superuser_%s" % common.utils.random_ascii(),
-                   first_name="Joe (%s)" % common.utils.random_unicode(),
-                   last_name="Superuser (%s)" % common.utils.random_unicode(),
-                   email="super_user_%s@example.com" % common.utils.random_ascii(),
+    payload = dict(username="superuser_%s" % fauxfactory.gen_alphanumeric(),
+                   first_name="Joe (%s)" % fauxfactory.gen_utf8(),
+                   last_name="Superuser (%s)" % fauxfactory.gen_utf8(),
+                   email="super_user_%s@example.com" % fauxfactory.gen_alphanumeric(),
                    password=user_password,
                    is_superuser=True)
     obj = api_users_pg.post(payload)
@@ -172,10 +173,10 @@ def unprivileged_user(request):
 def many_users(request, authtoken, api_users_pg, user_password):
     obj_list = list()
     for i in range(55):
-        payload = dict(username="anonymous_%d_%s" % (i, common.utils.random_ascii()),
-                       first_name="Joe (%s)" % common.utils.random_unicode(),
-                       last_name="User (%s)" % common.utils.random_unicode(),
-                       email="anonymous_%d_%s@example.com" % (i, common.utils.random_ascii()),
+        payload = dict(username="anonymous_%d_%s" % (i, fauxfactory.gen_alphanumeric()),
+                       first_name="Joe (%s)" % fauxfactory.gen_utf8(),
+                       last_name="User (%s)" % fauxfactory.gen_utf8(),
+                       email="anonymous_%d_%s@example.com" % (i, fauxfactory.gen_alphanumeric()),
                        password=user_password,)
         obj = api_users_pg.post(payload)
         request.addfinalizer(obj.delete)

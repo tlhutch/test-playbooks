@@ -1,7 +1,7 @@
 import json
 import pytest
+import fauxfactory
 import common.tower.inventory
-import common.utils
 from tests.api import Base_Api_Test
 
 
@@ -11,20 +11,20 @@ def missing_field_survey_specs(request):
     Returns a list of survey_spec's which should fail to post.
     '''
     return [dict(),
-            dict(description=common.utils.random_unicode(),
+            dict(description=fauxfactory.gen_utf8(),
                  spec=[dict(required=False,
                             question_name="Enter your email &mdash; &euro;",
                             variable="submitter_email",
                             type="text",)]),
-            dict(name=common.utils.random_unicode(),
+            dict(name=fauxfactory.gen_utf8(),
                  spec=[dict(required=False,
                             question_name="Enter your email &mdash; &euro;",
                             variable="submitter_email",
                             type="text",)]),
-            dict(name=common.utils.random_unicode(),
-                 description=common.utils.random_unicode()),
-            dict(name=common.utils.random_unicode(),
-                 description=common.utils.random_unicode(),
+            dict(name=fauxfactory.gen_utf8(),
+                 description=fauxfactory.gen_utf8()),
+            dict(name=fauxfactory.gen_utf8(),
+                 description=fauxfactory.gen_utf8(),
                  spec=[])]
 
 
@@ -456,8 +456,8 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
         payload = dict(name='',
                        description='',
                        spec=[dict(required=False,
-                                  question_name=common.utils.random_unicode(),
-                                  question_description=common.utils.random_unicode(),
+                                  question_name=fauxfactory.gen_utf8(),
+                                  question_description=fauxfactory.gen_utf8(),
                                   variable="submitter_email",
                                   type="text",)])
 

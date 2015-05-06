@@ -1,7 +1,6 @@
 import logging
 import inspect
 import httplib
-import common.utils
 from common.api.pages import Page
 # from page import Page
 from common.api.schema import validate

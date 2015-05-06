@@ -1,5 +1,5 @@
 import pytest
-import common.utils
+import fauxfactory
 from math import ceil
 from tests.ui import Base_UI_Test
 
@@ -161,7 +161,7 @@ class Test_Credentials(Base_UI_Test):
         assert ui_credentials_pg.is_the_active_tab
 
         # search for an org that doesn't exist
-        ui_credentials_pg.search.search_value = common.utils.random_unicode()
+        ui_credentials_pg.search.search_value = fauxfactory.gen_utf8()
         ui_credentials_pg = ui_credentials_pg.search.search_btn.click()
 
         # assert expected number of items found
@@ -181,8 +181,8 @@ class Test_Credentials(Base_UI_Test):
         assert not add_pg.save_btn.is_enabled(), "Incomplete form unexpectedly capable of submission"
 
         # Input Fields
-        add_pg.name = common.utils.random_unicode()
-        add_pg.description = common.utils.random_unicode()
+        add_pg.name = fauxfactory.gen_utf8()
+        add_pg.description = fauxfactory.gen_utf8()
         add_pg.owner = 'user'
         add_pg.user_username = anonymous_user.username
         add_pg.owner = 'team'
@@ -230,8 +230,8 @@ class Test_Credentials(Base_UI_Test):
         assert edit_pg.save_btn.is_enabled(), "Completed form unexpectedly incapable of submission"
 
         # Modify ssh_credential form fields
-        edit_pg.name = common.utils.random_unicode()
-        edit_pg.description = common.utils.random_unicode()
+        edit_pg.name = fauxfactory.gen_utf8()
+        edit_pg.description = fauxfactory.gen_utf8()
         if ssh_credential.user is None:
             edit_pg.owner = 'team'
         else:

@@ -1,6 +1,6 @@
 import json
 import pytest
-import common.utils
+import fauxfactory
 import common.exceptions
 from tests.api import Base_Api_Test
 
@@ -180,8 +180,8 @@ def variation(request, authtoken, inventory, ansible_runner):
 
 @pytest.fixture(scope="function")
 def another_inventory(request, authtoken, api_inventories_pg, organization):
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
-                   description="Another random inventory - %s" % common.utils.random_unicode(),
+    payload = dict(name="inventory-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Another random inventory - %s" % fauxfactory.gen_utf8(),
                    organization=organization.id,)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -190,7 +190,7 @@ def another_inventory(request, authtoken, api_inventories_pg, organization):
 
 @pytest.fixture(scope="function")
 def some_group(request, authtoken, inventory):
-    payload = dict(name="group-%s" % common.utils.random_unicode(),
+    payload = dict(name="group-%s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,)
     obj = inventory.get_related('groups').post(payload)
     request.addfinalizer(obj.silent_delete)
@@ -594,15 +594,15 @@ class Test_Group(Base_Api_Test):
         '''verify unable to add a circular dependency (top -> ... -> leaf -> top)'''
 
         # Add parent_group
-        payload = dict(name="root-%s" % common.utils.random_ascii(), inventory=inventory.id)
+        payload = dict(name="root-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
         parent_group = inventory.get_related('groups').post(payload)
 
         # Add child_group
-        payload = dict(name="child-%s" % common.utils.random_ascii(), inventory=inventory.id)
+        payload = dict(name="child-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
         child_group = parent_group.get_related('children').post(payload)
 
         # Add grandchild_group
-        payload = dict(name="grandchild-%s" % common.utils.random_ascii(), inventory=inventory.id)
+        payload = dict(name="grandchild-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
         grandchild_group = child_group.get_related('children').post(payload)
 
         # Attempt to associate circular dependency
@@ -614,11 +614,11 @@ class Test_Group(Base_Api_Test):
         '''verify duplicate group names are allowed if in a different inventory'''
 
         # Create inventory.parent_group
-        payload = dict(name="root-%s" % common.utils.random_ascii(), inventory=inventory.id)
+        payload = dict(name="root-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
         parent_group = inventory.get_related('groups').post(payload)
 
         # Create inventory.child_group
-        payload = dict(name="child-%s" % common.utils.random_ascii(), inventory=inventory.id)
+        payload = dict(name="child-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
         child_group = parent_group.get_related('children').post(payload)
 
         # Create another_inventory.parent_group (duplicate name, but different inventory)
@@ -634,11 +634,11 @@ class Test_Group(Base_Api_Test):
         '''verify duplicate group names, in the same inventory, are not allowed'''
 
         # Add parent_group
-        payload = dict(name="root-%s" % common.utils.random_ascii(), inventory=inventory.id)
+        payload = dict(name="root-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
         parent_group = inventory.get_related('groups').post(payload)
 
         # Add child_group
-        payload = dict(name="child-%s" % common.utils.random_ascii(), inventory=inventory.id)
+        payload = dict(name="child-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
         child_group = parent_group.get_related('children').post(payload)
 
         # Attempt to create duplicate group as a root_group

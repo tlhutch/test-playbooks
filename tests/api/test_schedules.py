@@ -1,5 +1,5 @@
 import pytest
-import common.utils
+import fauxfactory
 import common.exceptions
 import dateutil.rrule
 
@@ -91,7 +91,7 @@ def disabled_rrule_minutely(request, utcnow):
 def disabled_project_schedule(request, project, disabled_rrule_minutely):
     schedules_pg = project.get_related('schedules')
 
-    payload = dict(name="disabled-%s" % common.utils.random_unicode(),
+    payload = dict(name="disabled-%s" % fauxfactory.gen_utf8(),
                    description="Disabled schedule",
                    enabled=False,
                    rrule=str(disabled_rrule_minutely))
@@ -104,7 +104,7 @@ def disabled_project_schedule(request, project, disabled_rrule_minutely):
 def disabled_inventory_schedule(request, aws_inventory_source, disabled_rrule_minutely):
     schedules_pg = aws_inventory_source.get_related('schedules')
 
-    payload = dict(name="disabled-%s" % common.utils.random_unicode(),
+    payload = dict(name="disabled-%s" % fauxfactory.gen_utf8(),
                    description="Disabled schedule",
                    enabled=False,
                    rrule=str(disabled_rrule_minutely))
@@ -152,8 +152,8 @@ class Test_Project_Schedules(Base_Api_Test):
         schedules_pg = project.get_related('schedules')
 
         for unsupported_rrule in unsupported_rrules:
-            payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                           description="%s" % common.utils.random_unicode(),
+            payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                           description="%s" % fauxfactory.gen_utf8(),
                            enabled=True,
                            rrule=str(unsupported_rrule))
             with pytest.raises(common.exceptions.BadRequest_Exception):
@@ -183,8 +183,8 @@ class Test_Project_Schedules(Base_Api_Test):
         # commemorate first 10 years of pearl_harbor
         pearl_harbor = parse("Dec 7 1942")
         rrule = RRule(dateutil.rrule.YEARLY, dtstart=pearl_harbor, count=10, interval=1)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="Commemorate the attack on pearl harbor (%s)" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                       description="Commemorate the attack on pearl harbor (%s)" % fauxfactory.gen_utf8(),
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
         assert schedule_pg.dtstart == pearl_harbor.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -197,8 +197,8 @@ class Test_Project_Schedules(Base_Api_Test):
         # celebrate Odyssey three date
         odyssey_three = parse("Jan 1 2061")
         rrule = RRule(dateutil.rrule.YEARLY, dtstart=odyssey_three, interval=1)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="2061: Odyssey Three (%s)" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                       description="2061: Odyssey Three (%s)" % fauxfactory.gen_utf8(),
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
         assert schedule_pg.dtstart == odyssey_three.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -211,7 +211,7 @@ class Test_Project_Schedules(Base_Api_Test):
         last_week = datetime.utcnow() + relativedelta(weeks=-1, minutes=+1)
         next_week = datetime.utcnow() + relativedelta(weeks=+1, minutes=+1)
         rrule = RRule(dateutil.rrule.DAILY, dtstart=last_week, until=next_week)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
                        description="Daily update",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
@@ -224,7 +224,7 @@ class Test_Project_Schedules(Base_Api_Test):
 
         schedule_pg = schedules_pg.results[0]
         # change description
-        new_desc = common.utils.random_unicode()
+        new_desc = fauxfactory.gen_utf8()
         schedule_pg.description = new_desc
         # PUT changes
         schedule_pg.put()
@@ -239,7 +239,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedules_pg.count > 0
 
         schedule_pg = schedules_pg.results[0]
-        new_desc = common.utils.random_unicode()
+        new_desc = fauxfactory.gen_utf8()
         # PATCH changes
         schedule_pg.patch(description=new_desc)
         # GET updates
@@ -252,7 +252,7 @@ class Test_Project_Schedules(Base_Api_Test):
 
         # Create a schedule
         rrule = RRule(dateutil.rrule.HOURLY, dtstart=datetime.utcnow() + relativedelta(seconds=-30), count=2)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
                        description="Update (count:2)",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
@@ -276,8 +276,8 @@ class Test_Project_Schedules(Base_Api_Test):
 
         # Create a schedule
         rrule = RRule(dateutil.rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(seconds=+30), count=1)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="Update %s (interval:60, count:1)" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                       description="Update %s (interval:60, count:1)" % fauxfactory.gen_utf8(),
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
 
@@ -306,7 +306,7 @@ class Test_Project_Schedules(Base_Api_Test):
         schedules_pg = project.get_related('schedules')
 
         # Create a schedule
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
                        rrule=str(rrule_minutely))
         schedule_pg = schedules_pg.post(payload)
 
@@ -334,7 +334,7 @@ class Test_Project_Schedules(Base_Api_Test):
         schedules_pg = project.get_related('schedules')
 
         # Create schedule
-        payload = dict(name="schedule-%s-%s" % (rrule_frequency._freq, common.utils.random_unicode()),
+        payload = dict(name="schedule-%s-%s" % (rrule_frequency._freq, fauxfactory.gen_utf8()),
                        description="Update every %s" % rrule_frequency._freq,
                        rrule=str(rrule_frequency))
         print rrule_frequency
@@ -362,7 +362,7 @@ class Test_Project_Schedules(Base_Api_Test):
         now = datetime.utcnow() + relativedelta(seconds=+30)
         now_plus_5m = now + relativedelta(minutes=+5)
         rrule = RRule(dateutil.rrule.MINUTELY, dtstart=now, count=3, until=now_plus_5m)
-        payload = dict(name="minutely-%s" % common.utils.random_unicode(),
+        payload = dict(name="minutely-%s" % fauxfactory.gen_utf8(),
                        description="Update every minute (count:3)",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
@@ -385,7 +385,7 @@ class Test_Project_Schedules(Base_Api_Test):
     def test_project_delete(self, api_projects_pg, api_schedules_pg, organization):
         '''assert that schedules are deleted when a project is deleted'''
         # create a project
-        payload = dict(name="project-%s" % common.utils.random_unicode(),
+        payload = dict(name="project-%s" % fauxfactory.gen_utf8(),
                        organization=organization.id,
                        scm_type='hg',
                        scm_url='https://bitbucket.org/jlaska/ansible-helloworld')
@@ -398,8 +398,8 @@ class Test_Project_Schedules(Base_Api_Test):
         schedule_ids = list()
         for repeat in [dateutil.rrule.WEEKLY, dateutil.rrule.MONTHLY, dateutil.rrule.YEARLY]:
             rrule = RRule(repeat, dtstart=datetime.utcnow())
-            payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                           description=common.utils.random_unicode(),
+            payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                           description=fauxfactory.gen_utf8(),
                            rrule=str(rrule))
             print rrule
             schedule_pg = schedules_pg.post(payload)
@@ -459,8 +459,8 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedules_pg = inventory_source.get_related('schedules')
 
         rrule = RRule(dateutil.rrule.DAILY, dtstart=datetime.utcnow(), count=10, interval=5)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="%s" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                       description="%s" % fauxfactory.gen_utf8(),
                        enabled=True,
                        rrule=str(rrule))
         with pytest.raises(common.exceptions.BadRequest_Exception):
@@ -471,8 +471,8 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         for unsupported_rrule in unsupported_rrules:
-            payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                           description="%s" % common.utils.random_unicode(),
+            payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                           description="%s" % fauxfactory.gen_utf8(),
                            enabled=True,
                            rrule=str(unsupported_rrule))
             with pytest.raises(common.exceptions.BadRequest_Exception):
@@ -502,8 +502,8 @@ class Test_Inventory_Schedules(Base_Api_Test):
         # commemorate first 10 years of pearl_harbor
         pearl_harbor = parse("Dec 7 1942")
         rrule = RRule(dateutil.rrule.YEARLY, dtstart=pearl_harbor, count=10, interval=1)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="Commemorate the attack on pearl harbor (%s)" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                       description="Commemorate the attack on pearl harbor (%s)" % fauxfactory.gen_utf8(),
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
         assert schedule_pg.dtstart == pearl_harbor.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -516,8 +516,8 @@ class Test_Inventory_Schedules(Base_Api_Test):
         # commemorate first 10 years of pearl_harbor
         pearl_harbor = parse("Dec 7 1942")
         rrule = RRule(dateutil.rrule.YEARLY, dtstart=pearl_harbor, count=10, interval=1)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="Commemorate the attack on pearl harbor (%s)" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                       description="Commemorate the attack on pearl harbor (%s)" % fauxfactory.gen_utf8(),
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
         assert schedule_pg.dtstart == pearl_harbor.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -530,8 +530,8 @@ class Test_Inventory_Schedules(Base_Api_Test):
         # celebrate Odyssey three date
         odyssey_three = parse("Jan 1 2061")
         rrule = RRule(dateutil.rrule.YEARLY, dtstart=odyssey_three, interval=1)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="2061: Odyssey Three (%s)" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                       description="2061: Odyssey Three (%s)" % fauxfactory.gen_utf8(),
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
         assert schedule_pg.dtstart == odyssey_three.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -544,7 +544,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         last_week = datetime.utcnow() + relativedelta(weeks=-1, minutes=+1)
         next_week = datetime.utcnow() + relativedelta(weeks=+1, minutes=+1)
         rrule = RRule(dateutil.rrule.DAILY, dtstart=last_week, until=next_week)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
                        description="Daily update",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
@@ -557,7 +557,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
         schedule_pg = schedules_pg.results[0]
         # change description
-        new_desc = common.utils.random_unicode()
+        new_desc = fauxfactory.gen_utf8()
         schedule_pg.description = new_desc
         # PUT changes
         schedule_pg.put()
@@ -572,7 +572,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedules_pg.count > 0
 
         schedule_pg = schedules_pg.results[0]
-        new_desc = common.utils.random_unicode()
+        new_desc = fauxfactory.gen_utf8()
         # PATCH changes
         schedule_pg.patch(description=new_desc)
         # GET updates
@@ -585,7 +585,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
         # Create a schedule
         rrule = RRule(dateutil.rrule.HOURLY, dtstart=datetime.utcnow() + relativedelta(seconds=-30), count=2)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
                        description="Update (count:2)",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
@@ -608,7 +608,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         # Create a schedule
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
                        rrule=str(rrule_minutely))
         schedule_pg = schedules_pg.post(payload)
 
@@ -636,7 +636,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         # Create schedule
-        payload = dict(name="schedule-%s-%s" % (rrule_frequency._freq, common.utils.random_unicode()),
+        payload = dict(name="schedule-%s-%s" % (rrule_frequency._freq, fauxfactory.gen_utf8()),
                        description="Update every %s" % rrule_frequency._freq,
                        rrule=str(rrule_frequency))
         print rrule_frequency
@@ -664,7 +664,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         now = datetime.utcnow() + relativedelta(seconds=+30)
         now_plus_5m = now + relativedelta(minutes=+5)
         rrule = RRule(dateutil.rrule.MINUTELY, dtstart=now, count=3, until=now_plus_5m)
-        payload = dict(name="minutely-%s" % common.utils.random_unicode(),
+        payload = dict(name="minutely-%s" % fauxfactory.gen_utf8(),
                        description="Update every minute (count:3)",
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
@@ -688,8 +688,8 @@ class Test_Inventory_Schedules(Base_Api_Test):
         '''assert that schedules are deleted when a inventory group is deleted'''
 
         # create group/inventory_source
-        payload = dict(name="aws-group-%s" % common.utils.random_ascii(),
-                       description="AWS group %s" % common.utils.random_unicode(),
+        payload = dict(name="aws-group-%s" % fauxfactory.gen_alphanumeric(),
+                       description="AWS group %s" % fauxfactory.gen_utf8(),
                        inventory=inventory.id,
                        credential=aws_credential.id)
         aws_group = api_groups_pg.post(payload)
@@ -704,8 +704,8 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedule_ids = list()
         for repeat in [dateutil.rrule.WEEKLY, dateutil.rrule.MONTHLY, dateutil.rrule.YEARLY]:
             rrule = RRule(repeat, dtstart=datetime.utcnow())
-            payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                           description=common.utils.random_unicode(),
+            payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                           description=fauxfactory.gen_utf8(),
                            rrule=str(rrule))
             print rrule
             schedule_pg = schedules_pg.post(payload)
@@ -749,8 +749,8 @@ class Test_Job_Template_Schedules(Base_Api_Test):
 
         # Create a schedule
         rrule = RRule(dateutil.rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(seconds=+30), count=1)
-        payload = dict(name="schedule-%s" % common.utils.random_unicode(),
-                       description="Update %s (interval:60, count:1)" % common.utils.random_unicode(),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                       description="Update %s (interval:60, count:1)" % fauxfactory.gen_utf8(),
                        rrule=str(rrule))
         schedule_pg = schedules_pg.post(payload)
 

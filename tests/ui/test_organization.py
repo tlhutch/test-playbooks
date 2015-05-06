@@ -1,5 +1,5 @@
 import pytest
-import common.utils
+import fauxfactory
 from math import ceil
 from tests.ui import Base_UI_Test
 
@@ -151,7 +151,7 @@ class Test_Organization(Base_UI_Test):
         assert ui_organizations_pg.is_the_active_tab
 
         # search for an org that doesn't exist
-        ui_organizations_pg.search.search_value = common.utils.random_unicode()
+        ui_organizations_pg.search.search_value = fauxfactory.gen_utf8()
         ui_organizations_pg = ui_organizations_pg.search.search_btn.click()
 
         # assert expected number of items found
@@ -170,8 +170,8 @@ class Test_Organization(Base_UI_Test):
         assert add_pg.is_the_active_breadcrumb
 
         # Input Fields
-        add_pg.name = "Random Organization - %s" % common.utils.random_unicode()
-        add_pg.description = "Random description - %s" % common.utils.random_unicode()
+        add_pg.name = "Random Organization - %s" % fauxfactory.gen_utf8()
+        add_pg.description = "Random description - %s" % fauxfactory.gen_utf8()
 
         # Click Reset
         add_pg.reset_btn.click()
@@ -256,8 +256,8 @@ class Test_Organization(Base_UI_Test):
         edit_region = edit_pg.accordion.get('Properties')[1]
 
         # Modify organization form fields
-        edit_region.name = common.utils.random_unicode()
-        edit_region.description = common.utils.random_unicode()
+        edit_region.name = fauxfactory.gen_utf8()
+        edit_region.description = fauxfactory.gen_utf8()
 
         # Verify breadcrumb title updated
         assert edit_pg.is_the_active_breadcrumb

@@ -2,8 +2,8 @@ import re
 import types
 import json
 import pytest
+import fauxfactory
 import common.tower.inventory
-import common.utils
 from dateutil.parser import parse
 from tests.api import Base_Api_Test
 
@@ -94,8 +94,8 @@ def job_with_deleted_related(request, job_with_status_completed):
 
 @pytest.fixture()
 def utf8_template(request, authtoken, api_job_templates_pg, project_ansible_playbooks_git, host_local, ssh_credential):
-    payload = dict(name="playbook:utf-8.yml.yml, random:%s" % (common.utils.random_unicode()),
-                   description="utf-8.yml - %s" % (common.utils.random_unicode()),
+    payload = dict(name="playbook:utf-8.yml.yml, random:%s" % (fauxfactory.gen_utf8()),
+                   description="utf-8.yml - %s" % (fauxfactory.gen_utf8()),
                    inventory=host_local.inventory,
                    job_type='run',
                    project=project_ansible_playbooks_git.id,
@@ -113,8 +113,8 @@ def project_with_scm_update_on_launch(request, project_ansible_playbooks_git):
 
 @pytest.fixture(scope="function")
 def another_custom_group(request, authtoken, api_groups_pg, inventory, inventory_script):
-    payload = dict(name="custom-group-%s" % common.utils.random_ascii(),
-                   description="Custom Group %s" % common.utils.random_unicode(),
+    payload = dict(name="custom-group-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Custom Group %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    variables=json.dumps(dict(my_group_variable=True)))
     obj = api_groups_pg.post(payload)

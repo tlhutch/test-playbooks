@@ -1,6 +1,6 @@
 import pytest
 import urllib
-import common.utils
+import fauxfactory
 from math import ceil
 from tests.ui import Base_UI_Test
 from dateutil.parser import parse
@@ -105,8 +105,8 @@ def many_job_templates(request, api_job_templates_pg, job_template):
     obj_list = list()
     for i in range(55):
         payload = job_template.json
-        payload.update(dict(name="job_template-%s" % common.utils.random_unicode(),
-                            description="Random job_template with machine credentials - %s" % common.utils.random_unicode()))
+        payload.update(dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                            description="Random job_template with machine credentials - %s" % fauxfactory.gen_utf8()))
         obj = api_job_templates_pg.post(payload)
         request.addfinalizer(obj.delete)
         obj_list.append(obj)
@@ -243,7 +243,7 @@ class Test_Portal_Job_Templates(Base_UI_Test):
         assert ui_portal_pg.is_the_active_tab
 
         # search for an object that doesn't exist
-        ui_portal_pg.job_templates.search.search_value = common.utils.random_unicode()
+        ui_portal_pg.job_templates.search.search_value = fauxfactory.gen_utf8()
         ui_portal_pg = ui_portal_pg.job_templates.search.search_btn.click()
 
         # assert expected number of items found

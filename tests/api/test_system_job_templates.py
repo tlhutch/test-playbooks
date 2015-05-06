@@ -1,7 +1,6 @@
 import json
 import pytest
 import common.tower.inventory
-import common.utils
 from tests.api import Base_Api_Test
 
 

@@ -4,8 +4,7 @@ import json
 import tempfile
 import time
 import datetime
-import common.utils
-import common.tower.license
+import fauxfactory
 from tests.api import Base_Api_Test
 
 
@@ -16,7 +15,7 @@ NUM_HOSTS = 100
 def credential(request, testsetup, api_credentials_pg, api_users_pg):
     testsetup.api.login(*testsetup.credentials['default'].values())
 
-    payload = dict(name="credential-%s" % common.utils.random_unicode(), kind='ssh')
+    payload = dict(name="credential-%s" % fauxfactory.gen_utf8(), kind='ssh')
     # Add user id
     admin = api_users_pg.get(username__exact='admin').results.pop()
     payload['user'] = admin.id
@@ -30,7 +29,7 @@ def credential(request, testsetup, api_credentials_pg, api_users_pg):
 @pytest.fixture(scope="class")
 def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups_pg, api_hosts_pg, random_organization):
     # Create inventory
-    payload = dict(name="inventory-%s" % common.utils.random_unicode(),
+    payload = dict(name="inventory-%s" % fauxfactory.gen_utf8(),
                    organization=random_organization.id,
                    variables=json.dumps(dict(ansible_connection='local')))
     testsetup.api.login(*testsetup.credentials['default'].values())
@@ -38,7 +37,7 @@ def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups
     request.addfinalizer(inventory.delete)
 
     # Batch create group+hosts using awx-manage
-    grp_name = "group-%s" % common.utils.random_unicode()
+    grp_name = "group-%s" % fauxfactory.gen_utf8()
     inventory_dict = {grp_name: dict(hosts=[], vars={})}
     inventory_dict[grp_name]['hosts'] = ['host-%s' % num for num in range(NUM_HOSTS)]
     inventory_dict[grp_name]['vars'] = dict(ansible_connection='local')
@@ -85,7 +84,7 @@ EOF
     ]
 )
 def job_template(request, testsetup, api_job_templates_pg, inventory, random_project, credential):
-    payload = dict(name="template-%s-%s" % (request.param, common.utils.random_unicode()),
+    payload = dict(name="template-%s-%s" % (request.param, fauxfactory.gen_utf8()),
                    job_type='run',
                    playbook=request.param['playbook'],
                    job_tags='',

@@ -1,7 +1,7 @@
 import json
 import pytest
+import fauxfactory
 import common.tower.inventory
-import common.utils
 import common.exceptions
 from tests.api import Base_Api_Test
 
@@ -78,20 +78,20 @@ class Test_Inventory_Scripts(Base_Api_Test):
             api_inventory_scripts_pg.post(payload)
 
         # without script
-        payload = dict(name=common.utils.random_unicode(),
+        payload = dict(name=fauxfactory.gen_utf8(),
                        organization=organization.id)
         with pytest.raises(common.exceptions.BadRequest_Exception):
             api_inventory_scripts_pg.post(payload)
 
         # without script that includes hashbang
-        payload = dict(name=common.utils.random_unicode(),
+        payload = dict(name=fauxfactory.gen_utf8(),
                        organization=organization.id,
                        script='import json\nprint json.dumps({})')
         with pytest.raises(common.exceptions.BadRequest_Exception):
             api_inventory_scripts_pg.post(payload)
 
         # without organization
-        payload = dict(name=common.utils.random_unicode(),
+        payload = dict(name=fauxfactory.gen_utf8(),
                        script=script_source)
         with pytest.raises(common.exceptions.BadRequest_Exception):
             api_inventory_scripts_pg.post(payload)
@@ -100,8 +100,8 @@ class Test_Inventory_Scripts(Base_Api_Test):
         '''
         Verify POST as an organization user is forbidden.
         '''
-        payload = dict(name=common.utils.random_unicode(),
-                       description="Random inventory script - %s" % common.utils.random_unicode(),
+        payload = dict(name=fauxfactory.gen_utf8(),
+                       description="Random inventory script - %s" % fauxfactory.gen_utf8(),
                        organization=organization.id,
                        script=script_source)
 
@@ -178,9 +178,9 @@ class Test_Inventory_Scripts(Base_Api_Test):
         '''
         Verify successful PUT to /inventory_scripts/n
         '''
-        payload = dict(name=common.utils.random_unicode(),
-                       description="Random inventory script - %s" % common.utils.random_unicode(),
-                       script='#!/bin/bash\necho "%s"\n' % common.utils.random_unicode())
+        payload = dict(name=fauxfactory.gen_utf8(),
+                       description="Random inventory script - %s" % fauxfactory.gen_utf8(),
+                       script='#!/bin/bash\necho "%s"\n' % fauxfactory.gen_utf8())
         for key, val in payload.items():
             setattr(inventory_script, key, val)
         inventory_script.put()
@@ -194,9 +194,9 @@ class Test_Inventory_Scripts(Base_Api_Test):
         '''
         Verify successful PATCH to /inventory_scripts/n
         '''
-        payload = dict(name=common.utils.random_unicode(),
-                       description="Random inventory script - %s" % common.utils.random_unicode(),
-                       script='#!/bin/bash\necho "%s"\n' % common.utils.random_unicode())
+        payload = dict(name=fauxfactory.gen_utf8(),
+                       description="Random inventory script - %s" % fauxfactory.gen_utf8(),
+                       script='#!/bin/bash\necho "%s"\n' % fauxfactory.gen_utf8())
         inventory_script.patch(**payload)
         inventory_script.get()
         for key, val in payload.items():

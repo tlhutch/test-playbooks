@@ -1,5 +1,5 @@
 import pytest
-import common.utils
+import fauxfactory
 from tests.ui import Base_UI_Test
 
 
@@ -26,7 +26,7 @@ class Test_Login(Base_UI_Test):
 
     def test_login_without_passwd(self, ui_login_pg):
         '''Verify that after a successful login and logout, valid credentials are still required'''
-        ui_login_pg.password = common.utils.random_unicode()
+        ui_login_pg.password = fauxfactory.gen_utf8()
         ui_login_pg.click_on_login_button()
 
         # Verify login failed

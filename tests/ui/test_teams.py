@@ -1,5 +1,5 @@
 import pytest
-import common.utils
+import fauxfactory
 from math import ceil
 from tests.ui import Base_UI_Test
 
@@ -156,7 +156,7 @@ class Test_Teams(Base_UI_Test):
         assert ui_teams_pg.is_the_active_tab
 
         # search for an org that doesn't exist
-        ui_teams_pg.search.search_value = common.utils.random_unicode()
+        ui_teams_pg.search.search_value = fauxfactory.gen_utf8()
         ui_teams_pg = ui_teams_pg.search.search_btn.click()
 
         # assert expected number of items found
@@ -175,8 +175,8 @@ class Test_Teams(Base_UI_Test):
         assert add_pg.is_the_active_breadcrumb
 
         # Input Fields
-        add_pg.name = "Random Team - %s" % common.utils.random_unicode()
-        add_pg.description = "Random description - %s" % common.utils.random_unicode()
+        add_pg.name = "Random Team - %s" % fauxfactory.gen_utf8()
+        add_pg.description = "Random description - %s" % fauxfactory.gen_utf8()
         add_pg.organization_name = organization.name
 
         # Click Reset
@@ -245,9 +245,9 @@ class Test_Teams(Base_UI_Test):
         edit_region = edit_pg.accordion.get('Properties')[1]
 
         # Modify team form fields
-        edit_region.name = common.utils.random_unicode()
-        edit_region.description = common.utils.random_unicode()
-        edit_region.organization_name = common.utils.random_unicode()
+        edit_region.name = fauxfactory.gen_utf8()
+        edit_region.description = fauxfactory.gen_utf8()
+        edit_region.organization_name = fauxfactory.gen_utf8()
 
         # Verify breadcrumb title updated
         assert edit_pg.is_the_active_breadcrumb

@@ -2,7 +2,7 @@ import json
 import os.path
 import pytest
 import logging
-import common.utils
+import fauxfactory
 import common.exceptions
 
 
@@ -24,7 +24,7 @@ def project_status_choices(request, authtoken, api_projects_pg):
 @pytest.fixture(scope="function")
 def project_ansible_helloworld_hg(request, authtoken, api_projects_pg, organization):
     # Create project
-    payload = dict(name="project-%s" % common.utils.random_unicode(),
+    payload = dict(name="project-%s" % fauxfactory.gen_utf8(),
                    organization=organization.id,
                    scm_type='hg',
                    scm_url='https://bitbucket.org/jlaska/ansible-helloworld',
@@ -64,7 +64,7 @@ def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_con
     if fixture_args and fixture_args.kwargs.get('local_path', False):
         local_path = fixture_args.kwargs['local_path']
     else:
-        local_path = "project_dir_%s" % common.utils.random_unicode()
+        local_path = "project_dir_%s" % fauxfactory.gen_utf8()
 
     # Clone the repo
     results = ansible_runner.git(repo='https://github.com/jlaska/ansible-playbooks.git',
@@ -73,7 +73,7 @@ def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_con
 
     # Initialize the project payload
     payload = dict(name="ansible-playbooks.manual - %s" % local_path,
-                   description="manual project - %s" % common.utils.random_unicode(),
+                   description="manual project - %s" % fauxfactory.gen_utf8(),
                    organization=organization.id,
                    local_path=local_path,
                    scm_type='')
@@ -106,7 +106,7 @@ def project_manual(request, project_ansible_playbooks_manual):
 @pytest.fixture(scope="function")
 def project_ansible_playbooks_git_nowait(request, authtoken, api_projects_pg, organization):
     # Create project
-    payload = dict(name="ansible-playbooks.git - %s" % common.utils.random_unicode(),
+    payload = dict(name="ansible-playbooks.git - %s" % fauxfactory.gen_utf8(),
                    organization=organization.id,
                    scm_type='git',
                    scm_url='https://github.com/jlaska/ansible-playbooks.git',
@@ -132,7 +132,7 @@ def project_ansible_playbooks_git(request, project_ansible_playbooks_git_nowait)
 @pytest.fixture(scope="function")
 def project_ansible_git_nowait(request, authtoken, api_projects_pg, organization):
     # Create project
-    payload = dict(name="ansible-playbooks.git - %s" % common.utils.random_unicode(),
+    payload = dict(name="ansible-playbooks.git - %s" % fauxfactory.gen_utf8(),
                    organization=organization.id,
                    scm_type='git',
                    scm_url='https://github.com/ansible/ansible.git',
@@ -158,7 +158,7 @@ def project_ansible_git(request, project_ansible_git_nowait):
 @pytest.fixture(scope="function")
 def project_with_credential_prompt(request, authtoken, api_projects_pg, organization, scm_credential_key_unlock_ASK):
     # Create project
-    payload = dict(name="project-%s" % common.utils.random_unicode(),
+    payload = dict(name="project-%s" % fauxfactory.gen_utf8(),
                    organization=organization.id,
                    scm_type='git',
                    scm_url='git@github.com:ansible/ansible-examples.git',
@@ -173,8 +173,8 @@ def project_with_credential_prompt(request, authtoken, api_projects_pg, organiza
 def many_git_projects(request, authtoken, api_projects_pg, organization):
     obj_list = list()
     for i in range(55):
-        payload = dict(name="project-%d-%s" % (i, common.utils.random_unicode()),
-                       description="random project %d - %s" % (i, common.utils.random_unicode()),
+        payload = dict(name="project-%d-%s" % (i, fauxfactory.gen_utf8()),
+                       description="random project %d - %s" % (i, fauxfactory.gen_utf8()),
                        organization=organization.id,
                        scm_type='git',
                        scm_url='https://github.com/jlaska/ansible-playbooks.git',
@@ -192,12 +192,12 @@ def many_manual_projects(request, authtoken, ansible_runner, awx_config, api_pro
     obj_list = list()
     for i in range(55):
         # create project path
-        local_path = "project_dir_%s" % common.utils.random_unicode()
+        local_path = "project_dir_%s" % fauxfactory.gen_utf8()
         ansible_runner.file(path=os.path.join(awx_config['project_base_dir'], local_path),
                             state='directory', owner='awx', group='awx', mode=0755)
         # create manual project
         payload = dict(name="project-%d-%s" % (i, local_path),
-                       description="random project %d - %s" % (i, common.utils.random_unicode()),
+                       description="random project %d - %s" % (i, fauxfactory.gen_utf8()),
                        organization=organization.id,
                        scm_type=None,
                        local_path=local_path)

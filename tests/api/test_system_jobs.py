@@ -1,6 +1,5 @@
 import pytest
 import common.tower.inventory
-import common.utils
 import common.exceptions
 import re
 from tests.api import Base_Api_Test

@@ -1,7 +1,7 @@
 import json
 import pytest
+import fauxfactory
 import common.tower.inventory
-import common.utils
 import common.exceptions
 from tests.api import Base_Api_Test
 
@@ -24,7 +24,7 @@ def inventory_dict():
             "ec2_eventsSet": "",
             "ec2_group_name": "",
             "ec2_hypervisor": "xen",
-            "ec2_id": common.utils.random_ascii(),
+            "ec2_id": fauxfactory.gen_alphanumeric(),
             "ec2_image_id": "ami-eb6b0182",
             "ec2_instance_profile": "",
             "ec2_instance_type": "m1.small",
@@ -98,8 +98,8 @@ def json_inventory_ipv6(request):
 
 @pytest.fixture(scope="function")
 def import_inventory(request, authtoken, api_inventories_pg, organization):
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
-                   description="Random inventory - %s" % common.utils.random_unicode(),
+    payload = dict(name="inventory-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Random inventory - %s" % fauxfactory.gen_utf8(),
                    organization=organization.id,)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -259,7 +259,7 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         '''Verify that importing inventory using a bogus --inventory-name=<NAME> fails'''
 
         # Run awx-manage inventory_import
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name "%s" --source /etc/fstab' % common.utils.random_ascii())
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name "%s" --source /etc/fstab' % fauxfactory.gen_alphanumeric())
         # Verify the import failed
         for result in contacted.values():
             assert result['rc'] == 1, "awx-manage inventory_import succeeded " \

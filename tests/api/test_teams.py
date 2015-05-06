@@ -4,14 +4,14 @@
 '''
 
 import pytest
-import common.utils
+import fauxfactory
 import common.exceptions
 from tests.api import Base_Api_Test
 
 
 @pytest.fixture(scope="function")
 def some_team(request, testsetup, authtoken, organization):
-    payload = dict(name="some_team: %s" % common.utils.random_unicode(),
+    payload = dict(name="some_team: %s" % fauxfactory.gen_utf8(),
                    organization=organization.id)
     obj = organization.get_related('teams').post(payload)
     request.addfinalizer(obj.silent_delete)
@@ -21,7 +21,7 @@ def some_team(request, testsetup, authtoken, organization):
 @pytest.fixture(scope="function")
 def some_team_credential(request, testsetup, authtoken, some_team):
     '''Create ssh credential'''
-    payload = dict(name="credential-%s" % common.utils.random_unicode(),
+    payload = dict(name="credential-%s" % fauxfactory.gen_utf8(),
                    description="machine credential for team:%s" % some_team.name,
                    kind='ssh',
                    team=some_team.id,
@@ -35,9 +35,9 @@ def some_team_credential(request, testsetup, authtoken, some_team):
 def team_payload(**kwargs):
     payload = kwargs
     if 'name' not in kwargs:
-        payload['name'] = common.utils.random_unicode()
+        payload['name'] = fauxfactory.gen_utf8()
     if 'description' not in kwargs:
-        payload['description'] = common.utils.random_unicode()
+        payload['description'] = fauxfactory.gen_utf8()
     return payload
 
 

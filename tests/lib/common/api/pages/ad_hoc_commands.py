@@ -1,4 +1,4 @@
-from common.api.pages import Base, Base_List, json_setter, json_getter
+from common.api.pages import Base_List, json_setter, json_getter
 from jobs import Unified_Job_Page
 
 

@@ -7,7 +7,7 @@
 import re
 import time
 import pytest
-import common.utils
+import fauxfactory
 import common.exceptions
 from tests.api import Base_Api_Test
 
@@ -72,7 +72,7 @@ class Test_Projects(Base_Api_Test):
                 (related_pg.count, related_attr, 0, related_attr)
 
     # Override the project local_path to workaround and unicode issues
-    @pytest.mark.fixture_args(local_path="project_dir_%s" % common.utils.random_ascii())
+    @pytest.mark.fixture_args(local_path="project_dir_%s" % fauxfactory.gen_alphanumeric())
     def test_change_from_manual_to_scm_project(self, project_ansible_playbooks_manual):
         '''
         Verify tower can successfully convert a manual project, into a scm

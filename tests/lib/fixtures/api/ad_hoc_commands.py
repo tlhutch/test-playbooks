@@ -1,6 +1,4 @@
 import pytest
-import json
-import common.utils
 
 
 @pytest.fixture(scope="function")

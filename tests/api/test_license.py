@@ -19,7 +19,7 @@
 import json
 import pytest
 import logging
-import common.utils
+import fauxfactory
 import common.tower.license
 import common.exceptions
 from tests.api import Base_Api_Test
@@ -48,14 +48,14 @@ def install_trial_license(request, ansible_runner, license_instance_count, tower
 def license_json(request, license_instance_count):
     return common.tower.license.generate_license(instance_count=license_instance_count,
                                                  days=31,
-                                                 company_name=common.utils.random_unicode(),
-                                                 contact_name=common.utils.random_unicode(),
-                                                 contact_email="%s@example.com" % common.utils.random_unicode())
+                                                 company_name=fauxfactory.gen_utf8(),
+                                                 contact_name=fauxfactory.gen_utf8(),
+                                                 contact_email="%s@example.com" % fauxfactory.gen_utf8())
 
 
 @pytest.fixture(
     scope="function",
-    params=[None, 0, 1, -1, True, common.utils.random_unicode(), (), {}, {'eula_accepted': True}],
+    params=[None, 0, 1, -1, True, fauxfactory.gen_utf8(), (), {}, {'eula_accepted': True}],
 )
 def invalid_license_json(request):
     return request.param
@@ -78,9 +78,9 @@ def trial_license_json(request, license_instance_count):
     return common.tower.license.generate_license(instance_count=license_instance_count,
                                                  days=31,
                                                  trial=True,
-                                                 company_name=common.utils.random_unicode(),
-                                                 contact_name=common.utils.random_unicode(),
-                                                 contact_email="%s@example.com" % common.utils.random_unicode())
+                                                 company_name=fauxfactory.gen_utf8(),
+                                                 contact_name=fauxfactory.gen_utf8(),
+                                                 contact_email="%s@example.com" % fauxfactory.gen_utf8())
 
 
 @pytest.fixture(scope='class')
@@ -157,8 +157,8 @@ def non_admin_user(request):
 
 @pytest.fixture(scope="function")
 def inventory_no_free_instances(request, authtoken, api_config_pg, api_inventories_pg, organization):
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
-                   description="Random inventory - %s" % common.utils.random_unicode(),
+    payload = dict(name="inventory-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Random inventory - %s" % fauxfactory.gen_utf8(),
                    organization=organization.id,)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -166,7 +166,7 @@ def inventory_no_free_instances(request, authtoken, api_config_pg, api_inventori
     # Ensure there are at least 5 active hosts
     hosts_pg = obj.get_related('hosts')
     while api_config_pg.get().license_info.instance_count < 5:
-        payload = dict(name="host-%s" % common.utils.random_unicode().replace(':', ''),
+        payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
                        inventory=obj.id)
         hosts_pg.post(payload)
 
@@ -174,9 +174,9 @@ def inventory_no_free_instances(request, authtoken, api_config_pg, api_inventori
     json = common.tower.license.generate_license(instance_count=3,
                                                  days=-1,
                                                  trial=False,
-                                                 company_name=common.utils.random_unicode(),
-                                                 contact_name=common.utils.random_unicode(),
-                                                 contact_email="%s@example.com" % common.utils.random_unicode())
+                                                 company_name=fauxfactory.gen_utf8(),
+                                                 contact_name=fauxfactory.gen_utf8(),
+                                                 contact_email="%s@example.com" % fauxfactory.gen_utf8())
     api_config_pg.post(json)
 
     return obj
@@ -203,8 +203,8 @@ def assert_instance_counts(api_config_pg, license_instance_count, group):
              conf.license_info.available_instances)
 
         # Add a host to the inventory group
-        payload = dict(name="host-%s" % common.utils.random_unicode().replace(':', ''),
-                       description="host-%s" % common.utils.random_unicode(),
+        payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
+                       description="host-%s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
         # The first 'license_instance_count' hosts should succeed
         if current_hosts < license_instance_count:
@@ -238,8 +238,8 @@ class Test_No_License(Base_Api_Test):
 
     def test_cannot_add_host(self, inventory, group):
         '''Verify that no hosts can be added'''
-        payload = dict(name="host-%s" % common.utils.random_unicode().replace(':', ''),
-                       description="host-%s" % common.utils.random_unicode(),
+        payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
+                       description="host-%s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
         group_hosts_pg = group.get_related('hosts')
         with pytest.raises(common.exceptions.Forbidden_Exception):
@@ -537,8 +537,8 @@ class Test_License_Expired(Base_Api_Test):
 
     def test_host(self, inventory, group):
         '''Verify that no hosts can be added'''
-        payload = dict(name="host-%s" % common.utils.random_unicode().replace(':', ''),
-                       description="host-%s" % common.utils.random_unicode(),
+        payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
+                       description="host-%s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
         group_hosts_pg = group.get_related('hosts')
         with pytest.raises(common.exceptions.Forbidden_Exception):

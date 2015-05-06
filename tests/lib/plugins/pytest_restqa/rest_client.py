@@ -101,8 +101,8 @@ class Connection(object):
 
         # prepare session object
         self.session = requests.Session()
-        adapter = requests.adapters.HTTPAdapter(max_retries=3)
         # temporarily disabled to debug adapter problems
+        # adapter = requests.adapters.HTTPAdapter(max_retries=3)
         # self.session.mount('http://', adapter)
         # self.session.mount('https://', adapter)
         self.session.headers['Content-type'] = 'application/json'

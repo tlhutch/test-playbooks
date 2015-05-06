@@ -1,8 +1,8 @@
 import pytest
 import json
+import fauxfactory
 import common.tower
 import common.tower.inventory
-import common.utils
 from tests.api import Base_Api_Test
 
 
@@ -17,7 +17,7 @@ def num_hosts(request):
 
 @pytest.fixture()
 def dynamic_inventory(request, authtoken, api_job_templates_pg, project_ansible_playbooks_git, host_local, ssh_credential, num_hosts):
-    payload = dict(name="playbook:dynamic_inventory.yml, num_hosts:%s, random:%s" % (num_hosts, common.utils.random_unicode()),
+    payload = dict(name="playbook:dynamic_inventory.yml, num_hosts:%s, random:%s" % (num_hosts, fauxfactory.gen_utf8()),
                    description="dynamic_inventory, num_hosts:%s" % num_hosts,
                    inventory=host_local.inventory,
                    job_type='run',
@@ -35,8 +35,8 @@ inventory_hosts = [200, 500, 1000, 5000, 10000]
 
 @pytest.fixture(params=inventory_hosts)
 def import_inventory(request, authtoken, api_inventories_pg, organization, ansible_runner):
-    payload = dict(name="inventory:%s, hosts:%s" % (common.utils.random_ascii(), request.param),
-                   description="Random inventory %s with %s hosts" % (common.utils.random_unicode(), request.param),
+    payload = dict(name="inventory:%s, hosts:%s" % (fauxfactory.gen_alphanumeric(), request.param),
+                   description="Random inventory %s with %s hosts" % (fauxfactory.gen_utf8(), request.param),
                    organization=organization.id,)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -58,7 +58,7 @@ def import_inventory(request, authtoken, api_inventories_pg, organization, ansib
 @pytest.fixture()
 def setfact_50(request, authtoken, api_job_templates_pg, project_ansible_playbooks_git, import_inventory, ssh_credential):
     num_hosts = import_inventory.get_related('hosts').count
-    payload = dict(name="playbook:setfact_50.yml, hosts:%s, random:%s" % (num_hosts, common.utils.random_unicode()),
+    payload = dict(name="playbook:setfact_50.yml, hosts:%s, random:%s" % (num_hosts, fauxfactory.gen_utf8()),
                    description="setfact_50.yml with %s hosts" % (num_hosts),
                    inventory=import_inventory.id,
                    job_type='run',

@@ -5,7 +5,7 @@ import json
 import uuid
 import urllib2
 import socket
-import common.utils
+import fauxfactory
 import common.exceptions
 
 
@@ -68,8 +68,8 @@ def ansible_default_ipv4(request, ansible_facts):
 
 @pytest.fixture(scope="function")
 def inventory(request, authtoken, api_inventories_pg, organization):
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
-                   description="Random inventory - %s" % common.utils.random_unicode(),
+    payload = dict(name="inventory-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Random inventory - %s" % fauxfactory.gen_utf8(),
                    organization=organization.id,)
     obj = api_inventories_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
@@ -98,8 +98,8 @@ def custom_inventory_update_with_status_completed(custom_inventory_source):
 @pytest.fixture(scope="function")
 def host_with_default_ipv4_in_variables(request, authtoken, api_hosts_pg, group, ansible_default_ipv4):
     '''Create a random inventory host where ansible_ssh_host == ansible_default_ipv4.'''
-    payload = dict(name="random_host_alias - %s" % common.utils.random_ascii(),
-                   description="host-%s" % common.utils.random_unicode(),
+    payload = dict(name="random_host_alias - %s" % fauxfactory.gen_alphanumeric(),
+                   description="host-%s" % fauxfactory.gen_utf8(),
                    variables=json.dumps(dict(ansible_ssh_host=ansible_default_ipv4, ansible_connection="local")),
                    inventory=group.inventory,)
     obj = api_hosts_pg.post(payload)
@@ -134,7 +134,7 @@ def hosts_with_name_matching_local_ipv4_addresses(request, authtoken, group, loc
     '''Create an inventory host matching the public ipv4 address of the system running pytest.'''
     for ipv4_addr in local_ipv4_addresses:
         payload = dict(name=ipv4_addr,
-                       description="test host %s" % common.utils.random_unicode(),
+                       description="test host %s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
         obj = group.get_related('hosts').post(payload)
         request.addfinalizer(obj.delete)
@@ -147,8 +147,8 @@ def hosts_with_name_matching_local_ipv4_addresses(request, authtoken, group, loc
 
 @pytest.fixture(scope="function")
 def group(request, authtoken, api_groups_pg, inventory):
-    payload = dict(name="group-%s" % common.utils.random_ascii(),
-                   description="group description - %s" % common.utils.random_unicode(),
+    payload = dict(name="group-%s" % fauxfactory.gen_alphanumeric(),
+                   description="group description - %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id)
     obj = api_groups_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
@@ -176,8 +176,8 @@ def host_local(request, authtoken, api_hosts_pg, inventory, group):
 
 @pytest.fixture(scope="function")
 def host_without_group(request, authtoken, inventory):
-    payload = dict(name="random.host.%s" % common.utils.random_ascii(),
-                   description="a host detached from any groups - %s" % common.utils.random_unicode(),
+    payload = dict(name="random.host.%s" % fauxfactory.gen_alphanumeric(),
+                   description="a host detached from any groups - %s" % fauxfactory.gen_utf8(),
                    variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
                    inventory=inventory.id,)
     obj = inventory.get_related('hosts').post(payload)
@@ -187,8 +187,8 @@ def host_without_group(request, authtoken, inventory):
 
 @pytest.fixture(scope="function")
 def host(request, authtoken, api_hosts_pg, inventory, group):
-    payload = dict(name="random.host.%s" % common.utils.random_ascii(),
-                   description="random description - %s" % common.utils.random_unicode(),
+    payload = dict(name="random.host.%s" % fauxfactory.gen_alphanumeric(),
+                   description="random description - %s" % fauxfactory.gen_utf8(),
                    variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
                    inventory=inventory.id,)
     obj = api_hosts_pg.post(payload)
@@ -211,7 +211,7 @@ def script_source(request):
         return fixture_args.kwargs['source_script']
 
     # create script to generate inventory
-    group_name = re.sub(r"[\']", "", u"group-%s" % common.utils.random_unicode())
+    group_name = re.sub(r"[\']", "", u"group-%s" % fauxfactory.gen_utf8())
     script = u'''#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
@@ -219,7 +219,7 @@ inventory = dict()
 inventory['{0}'] = list()
 '''.format(group_name)
     for i in range(5):
-        host_name = re.sub(r"[\':]", "", u"host-%s" % common.utils.random_unicode())
+        host_name = re.sub(r"[\':]", "", u"host-%s" % fauxfactory.gen_utf8())
         script += u"inventory['{0}'].append('{1}')\n".format(group_name, host_name)
     script += u"print json.dumps(inventory)\n"
     log.debug(script)
@@ -229,8 +229,8 @@ inventory['{0}'] = list()
 @pytest.fixture(scope="function")
 def inventory_script(request, authtoken, api_inventory_scripts_pg, script_source, organization):
     # build payload
-    payload = dict(name="random_inventory_script-%s" % common.utils.random_unicode(),
-                   description="Random Inventory Script - %s" % common.utils.random_unicode(),
+    payload = dict(name="random_inventory_script-%s" % fauxfactory.gen_utf8(),
+                   description="Random Inventory Script - %s" % fauxfactory.gen_utf8(),
                    organization=organization.id,
                    script=script_source)
     obj = api_inventory_scripts_pg.post(payload)
@@ -243,8 +243,8 @@ def inventory_script(request, authtoken, api_inventory_scripts_pg, script_source
 #
 @pytest.fixture(scope="function")
 def aws_group(request, authtoken, api_groups_pg, inventory, aws_credential):
-    payload = dict(name="aws-group-%s" % common.utils.random_ascii(),
-                   description="AWS group %s" % common.utils.random_unicode(),
+    payload = dict(name="aws-group-%s" % fauxfactory.gen_alphanumeric(),
+                   description="AWS group %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=aws_credential.id)
     obj = api_groups_pg.post(payload)
@@ -266,8 +266,8 @@ def aws_inventory_source(request, authtoken, aws_group):
 #
 @pytest.fixture(scope="function")
 def rax_group(request, authtoken, api_groups_pg, inventory, rax_credential):
-    payload = dict(name="rax-group-%s" % common.utils.random_ascii(),
-                   description="Rackspace group %s" % common.utils.random_unicode(),
+    payload = dict(name="rax-group-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Rackspace group %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=rax_credential.id)
     obj = api_groups_pg.post(payload)
@@ -289,8 +289,8 @@ def rax_inventory_source(request, authtoken, rax_group):
 #
 @pytest.fixture(scope="function")
 def azure_group(request, authtoken, api_groups_pg, inventory, azure_credential):
-    payload = dict(name="azure-group-%s" % common.utils.random_ascii(),
-                   description="Microsoft Azure %s" % common.utils.random_unicode(),
+    payload = dict(name="azure-group-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Microsoft Azure %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=azure_credential.id)
     obj = api_groups_pg.post(payload)
@@ -312,8 +312,8 @@ def azure_inventory_source(request, authtoken, azure_group):
 #
 @pytest.fixture(scope="function")
 def gce_group(request, authtoken, api_groups_pg, inventory, gce_credential):
-    payload = dict(name="gce-group-%s" % common.utils.random_ascii(),
-                   description="Google Compute Engine %s" % common.utils.random_unicode(),
+    payload = dict(name="gce-group-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Google Compute Engine %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=gce_credential.id)
     obj = api_groups_pg.post(payload)
@@ -335,8 +335,8 @@ def gce_inventory_source(request, authtoken, gce_group):
 #
 @pytest.fixture(scope="function")
 def vmware_group(request, authtoken, api_groups_pg, inventory, vmware_credential):
-    payload = dict(name="vmware-group-%s" % common.utils.random_ascii(),
-                   description="VMware vCenter %s" % common.utils.random_unicode(),
+    payload = dict(name="vmware-group-%s" % fauxfactory.gen_alphanumeric(),
+                   description="VMware vCenter %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=vmware_credential.id)
     obj = api_groups_pg.post(payload)
@@ -358,8 +358,8 @@ def vmware_inventory_source(request, authtoken, vmware_group):
 #
 @pytest.fixture(scope="function")
 def custom_group(request, authtoken, api_groups_pg, inventory, inventory_script):
-    payload = dict(name="custom-group-%s" % common.utils.random_ascii(),
-                   description="Custom Group %s" % common.utils.random_unicode(),
+    payload = dict(name="custom-group-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Custom Group %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    variables=json.dumps(dict(my_group_variable=True)))
     obj = api_groups_pg.post(payload)

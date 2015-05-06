@@ -1,7 +1,6 @@
 import sys
 import time
 import random
-import string
 import logging
 
 
@@ -129,37 +128,6 @@ def _print_state(obj, att, attval, elapsed, verbose_atts):
 def random_int(maxint=sys.maxint):
     max = int(maxint)
     return random.randint(0, max)
-
-
-def _join_chars(chars, length):
-    """
-    Used by the random character functions.
-    """
-    mult = (length / len(chars)) + 1
-    mult_chars = chars * mult
-    return "".join(random.sample(mult_chars, length))
-
-
-def random_unicode(length=10):
-    """
-    Generates a random name; useful for testing.
-
-    Returns an encoded string of the specified length containing unicode values
-    up to code point 1000.
-    """
-    def get_char():
-        return unichr(random.randint(32, 1000))
-    chars = u"".join([get_char() for ii in xrange(length)])
-    return _join_chars(chars, length)
-
-
-def random_ascii(length=10):
-    """
-    Generates a random name; useful for testing.
-
-    Returns a string of the specified length containing only ASCII characters.
-    """
-    return _join_chars(string.ascii_letters, length)
 
 
 def random_ipv4():

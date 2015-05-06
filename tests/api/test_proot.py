@@ -1,7 +1,6 @@
 import pytest
 import json
-import common.tower.inventory
-import common.utils
+import fauxfactory
 from dateutil.parser import parse as du_parse
 from tests.api import Base_Api_Test
 
@@ -11,8 +10,8 @@ def job_template_proot_1(request, job_template_ansible_playbooks_git, host_local
     '''
     Return a job_template for running the test_proot.yml playbook.
     '''
-    payload = dict(name="playbook:test_proot.yml, random:%s" % (common.utils.random_unicode()),
-                   description="test_proot.yml - %s" % (common.utils.random_unicode()),
+    payload = dict(name="playbook:test_proot.yml, random:%s" % (fauxfactory.gen_utf8()),
+                   description="test_proot.yml - %s" % (fauxfactory.gen_utf8()),
                    playbook='test_proot.yml')
     return job_template_ansible_playbooks_git.patch(**payload)
 
@@ -26,8 +25,8 @@ def job_template_proot_2(request, organization, api_inventories_pg, api_job_temp
     same time.
     '''
     # create inventory
-    payload = dict(name="inventory-%s" % common.utils.random_ascii(),
-                   description="Random inventory - %s" % common.utils.random_unicode(),
+    payload = dict(name="inventory-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Random inventory - %s" % fauxfactory.gen_utf8(),
                    organization=organization.id,)
     inventory = api_inventories_pg.post(payload)
     request.addfinalizer(inventory.delete)
@@ -42,8 +41,8 @@ def job_template_proot_2(request, organization, api_inventories_pg, api_job_temp
 
     # create duplicate job_template
     payload = job_template_proot_1.json
-    payload.update(dict(name="playbook:test_proot.yml, random:%s" % (common.utils.random_unicode()),
-                        description="test_proot.yml - %s" % (common.utils.random_unicode()),
+    payload.update(dict(name="playbook:test_proot.yml, random:%s" % (fauxfactory.gen_utf8()),
+                        description="test_proot.yml - %s" % (fauxfactory.gen_utf8()),
                         inventory=inventory.id))
     job_template_proot_2 = api_job_templates_pg.post(payload)
     request.addfinalizer(job_template_proot_2.delete)

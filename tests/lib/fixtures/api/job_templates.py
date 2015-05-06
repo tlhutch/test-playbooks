@@ -1,6 +1,6 @@
 import pytest
 import json
-import common.utils
+import fauxfactory
 
 # from credentials import ssh_credential
 # from projects import project
@@ -11,8 +11,8 @@ import common.utils
 def job_template_no_credential(request, authtoken, api_job_templates_pg, project, host_local):
     '''Define a job_template with no machine credential'''
 
-    payload = dict(name="job_template-%s" % common.utils.random_unicode(),
-                   description="Random job_template without credentials - %s" % common.utils.random_unicode(),
+    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                   description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
@@ -25,8 +25,8 @@ def job_template_no_credential(request, authtoken, api_job_templates_pg, project
 @pytest.fixture(scope="function")
 def job_template_with_limit(request, authtoken, api_job_templates_pg, project, host_local, ssh_credential):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
-    payload = dict(name="job_template-%s" % common.utils.random_unicode(),
-                   description="Random job_template with limit - %s" % common.utils.random_unicode(),
+    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                   description="Random job_template with limit - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
@@ -41,8 +41,8 @@ def job_template_with_limit(request, authtoken, api_job_templates_pg, project, h
 @pytest.fixture(scope="function")
 def job_template_ask(request, authtoken, api_job_templates_pg, project, host_local, ssh_credential_ask):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
-    payload = dict(name="job_template-%s" % common.utils.random_unicode(),
-                   description="Random job_template with ASK credential - %s" % common.utils.random_unicode(),
+    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                   description="Random job_template with ASK credential - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
@@ -56,8 +56,8 @@ def job_template_ask(request, authtoken, api_job_templates_pg, project, host_loc
 @pytest.fixture(scope="function")
 def job_template_multi_ask(request, authtoken, api_job_templates_pg, project, host_local, ssh_credential_multi_ask):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
-    payload = dict(name="job_template-%s" % common.utils.random_unicode(),
-                   description="Random job_template with multiple ASK credential - %s" % common.utils.random_unicode(),
+    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                   description="Random job_template with multiple ASK credential - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
@@ -72,8 +72,8 @@ def job_template_multi_ask(request, authtoken, api_job_templates_pg, project, ho
 def job_template_ansible_playbooks_git(request, authtoken, api_job_templates_pg, project_ansible_playbooks_git, host_local, ssh_credential):
     '''Define a job_template with a valid machine credential'''
 
-    payload = dict(name="job_template-%s" % common.utils.random_unicode(),
-                   description="Random job_template using ansible-playbooks.git - %s" % common.utils.random_unicode(),
+    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                   description="Random job_template using ansible-playbooks.git - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project_ansible_playbooks_git.id,
@@ -88,8 +88,8 @@ def job_template_ansible_playbooks_git(request, authtoken, api_job_templates_pg,
 def job_template(request, authtoken, api_job_templates_pg, project, host_local, ssh_credential):
     '''Define a job_template with a valid machine credential'''
 
-    payload = dict(name="job_template-%s" % common.utils.random_unicode(),
-                   description="Random job_template with machine credentials - %s" % common.utils.random_unicode(),
+    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                   description="Random job_template with machine credentials - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
@@ -104,8 +104,8 @@ def job_template(request, authtoken, api_job_templates_pg, project, host_local, 
 def job_template_with_extra_vars(request, authtoken, api_job_templates_pg, project, ssh_credential, host_local):
     '''Define a job_template with a set of extra_vars'''
 
-    payload = dict(name="job_template-%s" % common.utils.random_unicode(),
-                   description="Random job_template with machine credential - %s" % common.utils.random_unicode(),
+    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                   description="Random job_template with machine credential - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
@@ -147,8 +147,8 @@ def job_template_ask_variables_on_launch(job_template_ping):
 @pytest.fixture(scope="function")
 def optional_survey_spec():
     # TODO - add an optional question for each question type
-    payload = dict(name=common.utils.random_unicode(),
-                   description=common.utils.random_unicode(),
+    payload = dict(name=fauxfactory.gen_utf8(),
+                   description=fauxfactory.gen_utf8(),
                    spec=[dict(required=False,
                               question_name="Enter your email &mdash; &euro;",
                               variable="submitter_email",
@@ -163,8 +163,8 @@ def optional_survey_spec():
 @pytest.fixture(scope="function")
 def required_survey_spec():
     # TODO - add a required question for each question type
-    payload = dict(name=common.utils.random_unicode(),
-                   description=common.utils.random_unicode(),
+    payload = dict(name=fauxfactory.gen_utf8(),
+                   description=fauxfactory.gen_utf8(),
                    spec=[dict(required=True,
                               question_name="Do you like chicken?",
                               question_description="Please indicate your chicken preference:",

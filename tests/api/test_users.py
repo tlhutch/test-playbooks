@@ -5,17 +5,17 @@
 
 import json
 import pytest
-import common.utils
+import fauxfactory
 import common.exceptions
 from tests.api import Base_Api_Test
 
 
 @pytest.fixture(scope="function")
 def some_user(request, testsetup, authtoken, api_users_pg):
-    payload = dict(username="org_admin_%s" % common.utils.random_ascii(),
-                   first_name="Joe (%s)" % common.utils.random_unicode(),
-                   last_name="User (%s)" % common.utils.random_unicode(),
-                   email="org_user_%s@example.com" % common.utils.random_ascii(),
+    payload = dict(username="org_admin_%s" % fauxfactory.gen_alphanumeric(),
+                   first_name="Joe (%s)" % fauxfactory.gen_utf8(),
+                   last_name="User (%s)" % fauxfactory.gen_utf8(),
+                   email="org_user_%s@example.com" % fauxfactory.gen_alphanumeric(),
                    password=testsetup.credentials['default']['password'],)
     obj = api_users_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
@@ -25,7 +25,7 @@ def some_user(request, testsetup, authtoken, api_users_pg):
 @pytest.fixture(scope="function")
 def some_ssh_credential(request, testsetup, authtoken, some_user):
     '''Create ssh credential'''
-    payload = dict(name="credential-%s" % common.utils.random_unicode(),
+    payload = dict(name="credential-%s" % fauxfactory.gen_utf8(),
                    description="machine credential for user:%s" % some_user.username,
                    kind='ssh',
                    user=some_user.id,
@@ -51,10 +51,10 @@ def user_payload(**kwargs):
     Convenience function to return a API payload for use with posting to
     /api/v1/users.
     '''
-    payload = dict(username="joe_user_%s" % common.utils.random_ascii(),
-                   first_name="Joe (%s)" % common.utils.random_unicode(),
-                   last_name="User (%s)" % common.utils.random_unicode(),
-                   email="joe_user_%s@example.com" % common.utils.random_ascii(),
+    payload = dict(username="joe_user_%s" % fauxfactory.gen_alphanumeric(),
+                   first_name="Joe (%s)" % fauxfactory.gen_utf8(),
+                   last_name="User (%s)" % fauxfactory.gen_utf8(),
+                   email="joe_user_%s@example.com" % fauxfactory.gen_alphanumeric(),
                    password=kwargs.get('password', 'password'))
     if 'is_superuser' in kwargs:
         payload['is_superuser'] = kwargs.get('is_superuser')
@@ -73,10 +73,10 @@ class Test_Users(Base_Api_Test):
     def test_duplicate(self, api_users_pg, some_user):
         '''Verify that usernames are unique'''
         payload = dict(username=some_user.username,
-                       first_name="Another Joe (%s)" % common.utils.random_unicode(),
-                       last_name="User (%s)" % common.utils.random_unicode(),
-                       email="org_user_%s@example.com" % common.utils.random_ascii(),
-                       password=common.utils.random_unicode())
+                       first_name="Another Joe (%s)" % fauxfactory.gen_utf8(),
+                       last_name="User (%s)" % fauxfactory.gen_utf8(),
+                       email="org_user_%s@example.com" % fauxfactory.gen_alphanumeric(),
+                       password=fauxfactory.gen_utf8())
         with pytest.raises(common.exceptions.Duplicate_Exception):
             api_users_pg.post(payload)
 

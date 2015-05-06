@@ -1,5 +1,5 @@
 import pytest
-import common.utils
+import fauxfactory
 from math import ceil
 from tests.ui import Base_UI_Test
 
@@ -179,7 +179,7 @@ class Test_Projects(Base_UI_Test):
         assert ui_projects_pg.is_the_active_tab
 
         # search for an object that doesn't exist
-        ui_projects_pg.search.search_value = common.utils.random_unicode()
+        ui_projects_pg.search.search_value = fauxfactory.gen_utf8()
         ui_projects_pg = ui_projects_pg.search.search_btn.click()
 
         # assert expected number of items found
@@ -200,8 +200,8 @@ class Test_Projects(Base_UI_Test):
         assert add_pg.scm_type == '', "Unexpected default value for scm_type ('%s' != '%s')" % ('', add_pg.scm_type)
 
         # update form fields
-        add_pg.name = common.utils.random_unicode()
-        add_pg.description = common.utils.random_unicode()
+        add_pg.name = fauxfactory.gen_utf8()
+        add_pg.description = fauxfactory.gen_utf8()
         add_pg.organization_name = organization.name
         add_pg.scm_type = 'git'
         add_pg.scm_clean = True
@@ -324,8 +324,8 @@ class Test_Projects(Base_UI_Test):
         assert edit_pg.save_btn.is_enabled(), "Completed form unexpectedly incapable of submission"
 
         # Modify project form fields
-        edit_pg.name = common.utils.random_unicode()
-        edit_pg.description = common.utils.random_unicode()
+        edit_pg.name = fauxfactory.gen_utf8()
+        edit_pg.description = fauxfactory.gen_utf8()
 
         # TODO ... play with more fields
 

@@ -1,5 +1,5 @@
 import pytest
-import common.utils
+import fauxfactory
 from math import ceil
 from tests.ui import Base_UI_Test
 
@@ -157,7 +157,7 @@ class Test_Users(Base_UI_Test):
         assert ui_users_pg.is_the_active_tab
 
         # search for an org that doesn't exist
-        ui_users_pg.search.search_value = common.utils.random_unicode()
+        ui_users_pg.search.search_value = fauxfactory.gen_utf8()
         ui_users_pg = ui_users_pg.search.search_btn.click()
 
         # assert expected number of items found
@@ -183,7 +183,7 @@ class Test_Users(Base_UI_Test):
             if field in ('is_superuser'):
                 setattr(add_pg, field, True)
             else:
-                setattr(add_pg, field, common.utils.random_unicode())
+                setattr(add_pg, field, fauxfactory.gen_utf8())
 
         # Click Reset
         add_pg.reset_btn.click()
@@ -263,7 +263,7 @@ class Test_Users(Base_UI_Test):
             if field in ('is_superuser'):
                 setattr(edit_region, field, not anonymous_user.is_superuser)
             else:
-                setattr(edit_region, field, common.utils.random_unicode())
+                setattr(edit_region, field, fauxfactory.gen_utf8())
 
         # Click Reset
         edit_region.reset_btn.click()

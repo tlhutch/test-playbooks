@@ -1,11 +1,11 @@
 import pytest
-import common.utils
+import fauxfactory
 
 
 @pytest.fixture(scope="function")
 def organization(request, authtoken, api_organizations_pg):
-    payload = dict(name="org-%s" % common.utils.random_unicode(),
-                   description="Random organization - %s" % common.utils.random_unicode())
+    payload = dict(name="org-%s" % fauxfactory.gen_utf8(),
+                   description="Random organization - %s" % fauxfactory.gen_utf8())
     obj = api_organizations_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj
@@ -13,8 +13,8 @@ def organization(request, authtoken, api_organizations_pg):
 
 @pytest.fixture(scope="function")
 def another_organization(request, authtoken, api_organizations_pg):
-    payload = dict(name="org-%s" % common.utils.random_unicode(),
-                   description="Another random organization - %s" % common.utils.random_unicode())
+    payload = dict(name="org-%s" % fauxfactory.gen_utf8(),
+                   description="Another random organization - %s" % fauxfactory.gen_utf8())
     obj = api_organizations_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj
@@ -25,8 +25,8 @@ def many_organizations(request, authtoken, api_organizations_pg):
 
     obj_list = list()
     for i in range(55):
-        payload = dict(name="%s random %s organization" % (i, common.utils.random_unicode()),
-                       description="Random organization %s %s" % (i, common.utils.random_unicode()))
+        payload = dict(name="%s random %s organization" % (i, fauxfactory.gen_utf8()),
+                       description="Random organization %s %s" % (i, fauxfactory.gen_utf8()))
         obj = api_organizations_pg.post(payload)
         request.addfinalizer(obj.silent_delete)
         obj_list.append(obj)
