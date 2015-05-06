@@ -98,12 +98,12 @@
   when: win_ec2_images and win_ec2 is defined
 
 - name: obtain windows passwords for instances
-  ec2_win_pass:
+  ec2_win_password:
     aws_access_key: '{{ aws_access_key }}'
     aws_secret_key: '{{ aws_secret_key }}'
     region: '{{ win_ec2_region }}'
     instance_id: "{{ item.tagged_instances[0].id }}"
-    private_key: "{{ lookup('file', win_ec2_private_key) }}"
+    key_file: "{{ win_ec2_private_key }}"
   with_items: win_ec2.results
   register: win_ec2_passwords
   when: win_ec2_images and win_ec2 is defined
@@ -115,7 +115,7 @@
     ansible_ssh_host: '{{ item.item.tagged_instances[0].public_ip }}'
     ansible_ssh_port: 5986
     ansible_ssh_user: '{{ item.item.item.user }}'
-    ansible_ssh_pass: '{{ item.password }}'
+    ansible_ssh_pass: '{{ item.win_password }}'
     ansible_connection: 'winrm'
   with_items: win_ec2_passwords.results
   when: win_ec2_images and win_ec2_passwords is defined
