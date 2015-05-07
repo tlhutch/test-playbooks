@@ -1085,6 +1085,22 @@ class Awx_Schema_Ad_Hoc_Relaunch(Awx_Schema):
         return self.load_file('ad_hoc_commands/item.yml')
 
 
+class Awx_Schema_Ad_Hoc_Events(Awx_Schema):
+    resource = '/api/v1/ad_hoc_commands/\d+/events/'
+
+    @property
+    def get(self):
+        return self.load_file('ad_hoc_command_events/list.yml')
+
+
+class Awx_Schema_Ad_Hoc_Event(Awx_Schema_Job_Events):
+    resource = '/api/v1/ad_hoc_command_events/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('ad_hoc_command_events/item.yml')
+
+
 class Awx_Schema_Ad_Hoc_Related_Cancel(Awx_Schema):
     resource = '/api/v1/ad_hoc_commands/\d+/cancel/'
 
