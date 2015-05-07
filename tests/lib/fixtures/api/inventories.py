@@ -358,7 +358,7 @@ def vmware_inventory_source(request, authtoken, vmware_group):
 #
 @pytest.fixture(scope="function")
 def openstack_group(request, authtoken, api_groups_pg, inventory, openstack_credential):
-    payload = dict(name="openstack-group-%s" % fauxfactory.gen_alphanumeric()
+    payload = dict(name="openstack-group-%s" % fauxfactory.gen_alphanumeric(),
                    description="Openstack %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=openstack_credential.id)
