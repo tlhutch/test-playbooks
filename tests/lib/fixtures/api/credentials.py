@@ -12,7 +12,7 @@ def credential_kind_choices(request, authtoken, api_credentials_pg):
 @pytest.fixture(scope="function")
 def ssh_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create ssh credential'''
-    payload = dict(name="credentials-%s" % fauxfactory.gen_utf(),
+    payload = dict(name="credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
                    user=admin_user.id,
