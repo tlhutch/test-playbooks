@@ -130,23 +130,23 @@ def ORG_ADMINS_CANNOT_SEE_ALL_USERS(request, ansible_runner, tower_settings_path
     request.addfinalizer(fin)
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def AD_HOC_COMMANDS(request, ansible_runner, tower_confd_dir):
-    '''Class-scoped fixture to add/update /etc/tower/conf.d/ad_hoc.py with AD_HOC_COMMANDS.
+    '''Function-scoped fixture to add/update /etc/tower/conf.d/ad_hoc.py with AD_HOC_COMMANDS.
     '''
     # define ad_hoc.py config file
     ad_hoc_config_path = os.path.join(tower_confd_dir, 'ad_hoc.py')
 
-    # support ad_hoc_commands override
+    # support ad_hoc_commands override by way of a class variable
     fixture_args = getattr(request.function, 'fixture_args', {})
-    if fixture_args and 'ad_hoc_commands' in fixture_args.kwargs:
-        commands = fixture_args.kwargs.get['ad_hoc_commands']
+    if fixture_args:
+        commands = fixture_args.kwargs.get('ad_hoc_commands', [])
     else:
         commands = []
 
     content = '''
-    AD_HOC_COMMANDS = %s
-    ''' % commands
+AD_HOC_COMMANDS = %s
+''' % commands
 
     # update ad_hoc.py
     contacted = ansible_runner.copy(
