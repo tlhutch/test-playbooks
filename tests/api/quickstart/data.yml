@@ -1299,10 +1299,10 @@ job_templates:
       job_tags: bar
       limit: not a valid hostname
 
-    - name: ansible-tower.git/setup/site.yml
+    - name: ansible-tower.git/setup/install.yml
       _launch: false
       job_type: run
-      playbook: setup/site.yml
+      playbook: setup/install.yml
       project: ansible-tower.git (github, ssh_key_data)
       inventory: local,
       credential: 'SSH (team:Ansible Users, ssh_key_data)'
