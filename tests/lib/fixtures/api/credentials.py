@@ -147,7 +147,8 @@ def openstack_credential(request, authtoken, api_credentials_pg, admin_user, tes
                    user=admin_user.id,
                    host=testsetup.credentials['cloud']['openstack']['host'],
                    username=testsetup.credentials['cloud']['openstack']['username'],
-                   password=testsetup.credentials['cloud']['openstack']['password'],)
+                   password=testsetup.credentials['cloud']['openstack']['password'],
+                   project=testsetup.credentials['cloud']['openstack']['project'])
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
