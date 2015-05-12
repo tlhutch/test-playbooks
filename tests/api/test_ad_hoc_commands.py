@@ -1,5 +1,6 @@
 import pytest
 import fauxfactory
+import json
 import common.exceptions
 from tests.api import Base_Api_Test
 
@@ -14,6 +15,7 @@ Tests for the main api/v1/ad_hoc_commands endpoint
 -[] Verify that an org user with the correct permissions can launch a command
 
 -[X] Test that posts without specifying module defaults to command
+-[X] Test that posts without specifying module_args fails with certain commands
 -[X] Verify that cancelling a command works
 -[X] Launching with ask-credential (valid passwords, without passwords, with invalid passwords)
 -[X] Launching with no limit
@@ -253,6 +255,26 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         # check that command was indeed of module "command"
         assert command_pg.module_name == "command"
         assert command_pg.module_args == "true"
+
+    def test_launch_without_module_args(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
+        '''
+        Verifies that if you post without specifiying module_args that the post fails with
+        the command module.
+        '''
+        # create payload
+        payload = dict(job_type="run",
+                       inventory=inventory.id,
+                       credential=ssh_credential.id,
+                       module_name="command", )
+
+        # post the command
+        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, api_ad_hoc_commands_pg.post, payload)
+        result = exc_info.value[1]
+
+        # assess result
+        assert result == {u'module_args': [u'No argument passed to command module.']}, \
+            "Unexpected response upon launching ad hoc command 'command' without " \
+            "specifying module_args. %s" % json.dumps(result)
 
     def test_cancel_command(self, ad_hoc_with_status_pending):
         '''
