@@ -32,7 +32,7 @@ Tests for the main api/v1/ad_hoc_commands endpoint
 
 Stranger situations
 -[X] Simple test: launch a command and assert that the activity stream gets populated
--[] changing settings.py and validating that you can new launch with new module names
+-[X] test changes to settings.py
 -[] Launching a command with an invalid payload <= loop through required in options
 -[X] Verify that deleting related is reflected correctly in the command page
 '''
@@ -581,3 +581,78 @@ print json.dumps(inv, indent=2)
         assert "inventory" not in ad_hoc_command_pg.json['related']
         assert "credential" not in ad_hoc_command_pg.json['related']
         assert "created_by" not in ad_hoc_command_pg.json['related']
+
+    @pytest.mark.fixture_args(ad_hoc_commands=['shell'])
+    def test_included_modules(self, inventory, ssh_credential, api_ad_hoc_commands_pg, AD_HOC_COMMANDS, ad_hoc_module_name_choices):
+        '''
+        Verifies that adding additional modules to ad_hoc.py unlocks additional modules.
+        '''
+        # assess options choices
+        assert 'shell' in ad_hoc_module_name_choices
+
+        # create payload
+        payload = dict(job_type="run",
+                       inventory=inventory.id,
+                       credential=ssh_credential.id,
+                       module_name="shell",
+                       module_args="true", )
+
+        # post the command
+        command_pg = api_ad_hoc_commands_pg.post(payload)
+
+        # assert command successful
+        command_pg.wait_until_completed()
+        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+
+        # check that correct module run
+        assert command_pg.module_name == "shell", "Incorrect module run. Expected 'shell' but got %s." % command_pg.module_name
+
+    @pytest.mark.fixture_args(ad_hoc_commands=[])
+    def test_excluded_modules(self, inventory, ssh_credential, api_ad_hoc_commands_pg, AD_HOC_COMMANDS, ad_hoc_module_name_choices):
+        '''
+        Verifies that removed modules are no longer callable.
+        '''
+        # assess options choices
+        assert not ad_hoc_module_name_choices
+
+        module_names = ['command',
+                        'shell',
+                        '',
+                        fauxfactory.gen_boolean(),
+                        fauxfactory.gen_utf8(),
+                        fauxfactory.gen_alphanumeric(),
+                        fauxfactory.gen_positive_integer()]
+
+        # create payload
+        for module_name in module_names:
+            payload = dict(job_type="run",
+                           inventory=inventory.id,
+                           credential=ssh_credential.id,
+                           module_name=module_name,
+                           module_args="true", )
+
+            # post the command
+            exc_info = pytest.raises(common.exceptions.BadRequest_Exception, api_ad_hoc_commands_pg.post, payload)
+            result = exc_info.value[1]
+
+            # assess result
+            assert result == {u'module_name': [u'Unsupported module for ad hoc commands.']}, \
+                "Unexpected response upon launching ad hoc command not included in " \
+                "ad_hoc.py. %s" % json.dumps(result)
+
+    @pytest.mark.fixture_args(ad_hoc_commands=[])
+    def test_relaunch_with_excluded_module(self, ad_hoc_with_status_completed, inventory, ssh_credential, api_ad_hoc_commands_pg, AD_HOC_COMMANDS):
+        '''
+        Verifies that you cannot relaunch a command which has been removed
+        from ad_hoc_commands.py.
+        '''
+        relaunch_pg = ad_hoc_with_status_completed.get_related('relaunch')
+
+        # relaunch ad hoc command
+        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, relaunch_pg.post)
+        result = exc_info.value[1]
+
+        # assess result
+        assert result == {u'module_name': [u'Unsupported module for ad hoc commands.']}, \
+            "Unexpected response when relaunching ad hoc command whose module " \
+            "has been removed from ad_hoc.py. %s" % json.dumps(result)
