@@ -175,7 +175,7 @@ class Test_System_Jobs(Base_Api_Test):
         assert unified_jobs_pg.count == expected_number_remaining_jobs, "Unexpected number of unified_jobs returned \
             (unified_jobs_pg.count: %s != expected_number_remaining_jobs: %s)" % (unified_jobs_pg.count, expected_number_remaining_jobs)
 
-    @pytest.mark.trello('https://trello.com/c/PbidSkwy')
+    @pytest.mark.trello('https://trello.com/c/2wB7DMdt')
     def test_cleanup_deleted(self, deleted_object, cleanup_deleted_template):
         '''
         Creates and deletes different types of objects, runs cleanup_deleted, and then verifies that
