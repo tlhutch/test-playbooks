@@ -9,12 +9,13 @@ from common.exceptions import BadRequest_Exception
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_OpenStack_Credential(Base_Api_Test):
+    @pytest.mark.trello('https://trello.com/c/j3m4jrNQ')
     @pytest.mark.parametrize("payload, expected_result", [
         (dict(password="foo", username="foo", host="foo"), {"project": ["Project name required for OpenStack credential."]}),
         (dict(project="foo", username="foo", host="foo"), {"password": ["Password required for OpenStack credential."]}),
         (dict(project="foo", password="foo", host="foo"), {"username": ["Username name required for OpenStack credential."]}),
         (dict(project="foo", password="foo", username="foo"), {"host": ["Host required for OpenStack credential."]}),
-    ])
+    ], ids=['project', 'password', 'username', 'host'])
     def test_post_invalid_credential(self, admin_user, api_credentials_pg, payload, expected_result):
         '''
         Tests that if you post an OpenStack credential with mising params that
