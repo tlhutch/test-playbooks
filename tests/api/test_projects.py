@@ -206,7 +206,8 @@ class Test_Projects(Base_Api_Test):
         cancel_pg.post()
 
         # wait for project_update to cancel
-        update_pg = update_pg.wait_until_status('canceled')
+        # ansible.git includes submodules, which can take time to update
+        update_pg = update_pg.wait_until_status('canceled', timeout=60 * 4)
 
         # assert project_update status is canceled
         assert update_pg.status == 'canceled', \
