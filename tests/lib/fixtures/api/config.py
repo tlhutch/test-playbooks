@@ -1,6 +1,7 @@
 import os
 import json
 import pytest
+import base64
 
 
 # TODO - create some base method/class to abstract get/set on tower settings
@@ -178,12 +179,29 @@ AD_HOC_COMMANDS = %s
     def fin():
         # restore ad_hoc.py (if changes were necesary)
         if changed:
-            contacted = ansible_runner.command('mv -f %s %s' % (
-                backup_file, ad_hoc_config_path))
-
+            # slurp contents of backup_file
+            contacted = ansible_runner.slurp(src=backup_file)
             for result in contacted.values():
                 assert 'failed' not in result, \
-                    "Failure while removing AD_HOC_COMMANDS\n%s" % json.dumps(result, indent=2)
+                    "Failure slurping backup file\n%s" % json.dumps(result, indent=2)
+
+            # restore original ad_hoc.py
+            contacted = ansible_runner.copy(
+                dest=ad_hoc_config_path,
+                owner='awx',
+                group='awx',
+                mode='0640',
+                content=base64.b64decode(contacted.values()[0]['content'])
+            )
+            for result in contacted.values():
+                assert 'failed' not in result, \
+                    "Failure restoring backup ad_hoc.py config file\n%s" % json.dumps(result, indent=2)
+
+            # delete the backup file
+            contacted = ansible_runner.file(src=backup_file, state='absent')
+            for result in contacted.values():
+                assert 'failed' not in result, \
+                    "Failure removing backgrup ad_hoc.py config file\n%s" % json.dumps(result, indent=2)
 
         # restart ansible-tower (if changes were necesary)
         if changed:
