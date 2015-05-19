@@ -40,3 +40,7 @@ class Unauthorized_Exception(Exception):
 
 class Unknown_Exception(Exception):
     pass
+
+
+class PaymentRequired_Exception(Exception):
+    pass

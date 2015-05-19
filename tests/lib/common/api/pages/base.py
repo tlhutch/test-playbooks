@@ -134,6 +134,8 @@ class Base(Page):
             raise common.exceptions.Method_Not_Allowed_Exception(exc_str, data)
         elif r.status_code == httplib.UNAUTHORIZED:
             raise common.exceptions.Unauthorized_Exception(exc_str, data)
+        elif r.status_code == httplib.PAYMENT_REQUIRED:
+            raise common.exceptions.PaymentRequired_Exception(exc_str, data)
         else:
             raise common.exceptions.Unknown_Exception(exc_str, data)
 

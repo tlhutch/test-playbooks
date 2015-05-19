@@ -5,6 +5,42 @@ import tempfile
 import json
 from datetime import datetime, timedelta
 
+LICENSES = {
+    'basic': {
+        'features': {
+            'activity_streams': False,
+            'ha': False,
+            'ldap': False,
+            'multiple_organizations': False,
+            'surveys': False,
+            'system_tracking': False,
+        },
+        'license_name': 'Basic',
+    },
+    'enterprise': {
+        'features': {
+            'activity_streams': True,
+            'ha': True,
+            'ldap': True,
+            'multiple_organizations': True,
+            'surveys': True,
+            'system_tracking': True,
+        },
+        'license_name': 'Enterprise',
+    },
+    'legacy': {
+        'features': {
+            'activity_streams': True,
+            'ha': True,
+            'ldap': True,
+            'multiple_organizations': True,
+            'surveys': True,
+            'system_tracking': False,
+        },
+        'license_name': 'Legacy',
+    },
+}
+
 
 def generate_license_file(**kwargs):
     meta = generate_license(**kwargs)
@@ -28,7 +64,8 @@ def generate_aws_file(**kwargs):
 
 def generate_license(instance_count=20, contact_email="art@vandelay.com",
                      company_name="Vandelay Industries", contact_name="Art Vandelay",
-                     license_date=None, days=None, trial=None, eula_accepted=True):
+                     license_date=None, days=None, trial=None, eula_accepted=True,
+                     license_type='legacy', features={}):
 
     def to_seconds(itime):
         '''
@@ -42,7 +79,9 @@ def generate_license(instance_count=20, contact_email="art@vandelay.com",
     meta = dict(instance_count=instance_count,
                 contact_email=contact_email,
                 company_name=company_name,
-                contact_name="Art Vandelay")
+                contact_name=contact_name,
+                license_type=license_type,
+                features=features)
 
     # Be sure to accept the eula
     meta['eula_accepted'] = eula_accepted
@@ -63,9 +102,23 @@ def generate_license(instance_count=20, contact_email="art@vandelay.com",
     sha.update(str(meta['instance_count']))
     sha.update(str(meta['license_date']))
 
+    # Set license type
+    if license_type != 'legacy':
+        sha.update('{license_type:%s}' % license_type)
+
     # Only generate a trial license if requested
     if meta.get('trial', False):
         sha.update(str(meta['trial']))
+
+    # Append features
+    default_features = LICENSES[license_type]['features']
+    for feature in sorted(default_features.keys()):
+        if feature not in features:
+            continue
+        if features[feature] == default_features[feature]:
+            continue
+        feature_str = '{%s:%r}' % (feature, features[feature])
+        sha.update(feature_str)
 
     meta['license_key'] = sha.hexdigest()
     return meta

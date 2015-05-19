@@ -195,3 +195,19 @@ def job_template_variables_needed_to_start(job_template_ping, required_survey_sp
 @pytest.fixture(scope="function")
 def job_template_passwords_needed_to_start(job_template_ping, ssh_credential_multi_ask):
     return job_template_ping.patch(credential=ssh_credential_multi_ask.id)
+
+
+@pytest.fixture(scope="function")
+def job_template_with_job_type_scan(request, authtoken, api_job_templates_pg, ssh_credential, host_local):
+    '''Job template with job_type scan'''
+
+    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                   description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
+                   inventory=host_local.get_related('inventory').id,
+                   job_type='scan',
+                   project=None,
+                   credential=ssh_credential.id,
+                   playbook='Default', )
+    obj = api_job_templates_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj

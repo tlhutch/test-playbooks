@@ -11,6 +11,15 @@ def job_with_status_completed(request, job_template_ping):
 
 
 @pytest.fixture(scope="function")
+def scan_job_with_status_completed(request, job_template_with_job_type_scan):
+    '''
+    Launch job_template_with_job_type_scan and return a job resource.
+    '''
+    job_pg = job_template_with_job_type_scan.launch()
+    return job_pg.wait_until_completed()
+
+
+@pytest.fixture(scope="function")
 def api_jobs_options_json(request, authtoken, api_jobs_pg):
     '''Return job statuses from OPTIONS'''
     return api_jobs_pg.options().json
