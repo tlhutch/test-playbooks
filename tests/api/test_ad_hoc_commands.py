@@ -55,8 +55,7 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, in
     Launch command with multi_ask credential and passwords in the payload.
     '''
     # create payload
-    payload = dict(job_type="run",
-                   inventory=inventory.id,
+    payload = dict(inventory=inventory.id,
                    credential=ssh_credential_multi_ask.id,
                    module_name="ping",
                    ssh_password=testsetup.credentials['ssh']['password'],
@@ -97,8 +96,7 @@ class Test_Ad_Hoc_Commands_Inventory(Base_Api_Test):
         ad_hoc_commands_pg = inventory.get_related('ad_hoc_commands')
 
         # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
+        payload = dict(inventory=inventory.id,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -133,8 +131,7 @@ class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
         ad_hoc_commands_pg = group.get_related('ad_hoc_commands')
 
         # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
+        payload = dict(inventory=inventory.id,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -169,8 +166,7 @@ class Test_Ad_Hoc_Commands_Host(Base_Api_Test):
         ad_hoc_commands_pg = host.get_related('ad_hoc_commands')
 
         # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
+        payload = dict(inventory=inventory.id,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -204,8 +200,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         Verify that a superuser account is able to post to the ad_hoc_commands endpoint.
         '''
         # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
+        payload = dict(inventory=inventory.id,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -224,8 +219,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         Verify that unprivileged users cannot post to the ad_hoc_commands endpoint.
         '''
         # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
+        payload = dict(inventory=inventory.id,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -240,8 +234,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         Verifies that if you post without specifiying module_name that the command module is run.
         '''
         # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
+        payload = dict(inventory=inventory.id,
                        credential=ssh_credential.id,
                        module_args="true", )
 
@@ -265,8 +258,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
 
         for invalid_module_name in invalid_module_names:
             # create payload
-            payload = dict(job_type="run",
-                           inventory=inventory.id,
+            payload = dict(inventory=inventory.id,
                            credential=ssh_credential.id,
                            module_name=invalid_module_name, )
 
@@ -280,8 +272,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         the command module.
         '''
         # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
+        payload = dict(inventory=inventory.id,
                        credential=ssh_credential.id,
                        module_name="command", )
 
@@ -317,8 +308,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         Verifies that launching a command with an ask credential succeeds when supplied with proper passwords.
         '''
         # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
+        payload = dict(inventory=inventory.id,
                        credential=ssh_credential_multi_ask.id,
                        module_name="ping",
                        ssh_password=self.credentials['ssh']['password'],
@@ -338,8 +328,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         Verifies that launching a command with an ask credential fails when not supplied with required passwords.
         '''
         # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
+        payload = dict(inventory=inventory.id,
                        credential=ssh_credential_multi_ask.id,
                        module_name="ping", )
 
@@ -352,8 +341,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         Verifies that launching a command with an ask credential fails when supplied with invalid passwords.
         '''
         # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
+        payload = dict(inventory=inventory.id,
                        credential=ssh_credential_multi_ask.id,
                        module_name="ping",
                        ssh_password=fauxfactory.gen_utf8(),
@@ -410,8 +398,7 @@ print json.dumps(inv, indent=2)
         custom_inventory_update_with_status_completed
 
         # create payload
-        payload = dict(job_type="run",
-                       inventory=custom_inventory_source.inventory,
+        payload = dict(inventory=custom_inventory_source.inventory,
                        credential=ssh_credential.id,
                        module_name="ping",
                        limit=limit_value)
@@ -440,8 +427,7 @@ print json.dumps(inv, indent=2)
             ssh_credential.patch(user=privileged_user.id)
 
             # create payload
-            payload = dict(job_type="run",
-                           inventory=inventory.id,
+            payload = dict(inventory=inventory.id,
                            credential=ssh_credential.id,
                            module_name="ping", )
 
@@ -567,8 +553,7 @@ print json.dumps(inv, indent=2)
         ssh_credential.patch(user=org_admin.id)
 
         # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
+        payload = dict(inventory=inventory.id,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -609,8 +594,7 @@ print json.dumps(inv, indent=2)
         assert 'shell' in ad_hoc_module_name_choices
 
         # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
+        payload = dict(inventory=inventory.id,
                        credential=ssh_credential.id,
                        module_name="shell",
                        module_args="true", )
@@ -641,8 +625,7 @@ print json.dumps(inv, indent=2)
 
         # create payload
         for module_name in module_names:
-            payload = dict(job_type="run",
-                           inventory=inventory.id,
+            payload = dict(inventory=inventory.id,
                            credential=ssh_credential.id,
                            module_name=module_name,
                            module_args="true", )
