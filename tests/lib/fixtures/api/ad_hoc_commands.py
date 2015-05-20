@@ -7,8 +7,7 @@ def ad_hoc_ping(request, api_ad_hoc_commands_pg, inventory, ssh_credential):
     Launch an ad_hoc ping command and return the job resource.
     '''
     ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
-    payload = dict(job_type="run",
-                   inventory=inventory.id,
+    payload = dict(inventory=inventory.id,
                    credential=ssh_credential.id,
                    module_name="ping")
 
