@@ -176,11 +176,18 @@ class Test_System_Jobs(Base_Api_Test):
             (unified_jobs_pg.count: %s != expected_number_remaining_jobs: %s)" % (unified_jobs_pg.count, expected_number_remaining_jobs)
 
     @pytest.mark.trello('https://trello.com/c/2wB7DMdt')
-    def test_cleanup_deleted(self, deleted_object, cleanup_deleted_template):
+    def test_cleanup_deleted(self, deleted_object, cleanup_deleted_template, ansible_runner):
         '''
         Creates and deletes different types of objects, runs cleanup_deleted, and then verifies that
         objects are deleted.
         '''
+        # XXX BEGIN temporary aid in debugging
+        import json
+        contacted = ansible_runner.shell('tower-manage cleanup_deleted --dry-run --days=0')
+        result = contacted.values()[0]
+        print json.dumps(result, indent=2)
+        # XXX END ============================
+
         # launch job first time
         payload = dict(extra_vars=dict(days=0))
         system_jobs_pg = cleanup_deleted_template.launch(payload)
