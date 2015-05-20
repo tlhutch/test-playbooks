@@ -74,14 +74,6 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, in
     return command_pg
 
 
-@pytest.fixture(
-    scope="function",
-    params=[-1, 0, 1, True, False, (), {}],
-)
-def invalid_module_name(request):
-    return request.param
-
-
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
@@ -264,19 +256,23 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         assert command_pg.module_name == "command"
         assert command_pg.module_args == "true"
 
-    def test_launch_with_invalid_module_name(self, inventory, ssh_credential, invalid_module_name, api_ad_hoc_commands_pg):
+    @pytest.mark.trello('https://trello.com/c/4jG0xMqo')
+    def test_launch_with_invalid_module_name(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
         '''
         Verifies that if you post with an invalid module_name that a BadRequest exception is raised.
         '''
-        # create payload
-        payload = dict(job_type="run",
-                       inventory=inventory.id,
-                       credential=ssh_credential.id,
-                       module_name=invalid_module_name, )
+        invalid_module_names = [-1, 0, 1, True, False, (), {}]
 
-        # post the command
-        with pytest.raises(common.exceptions.BadRequest_Exception):
-            api_ad_hoc_commands_pg.post(payload)
+        for invalid_module_name in invalid_module_names:
+            # create payload
+            payload = dict(job_type="run",
+                           inventory=inventory.id,
+                           credential=ssh_credential.id,
+                           module_name=invalid_module_name, )
+
+            # post the command
+            with pytest.raises(common.exceptions.BadRequest_Exception):
+                api_ad_hoc_commands_pg.post(payload)
 
     def test_launch_without_module_args(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
         '''
