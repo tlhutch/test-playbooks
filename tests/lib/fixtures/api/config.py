@@ -198,7 +198,7 @@ AD_HOC_COMMANDS = %s
                     "Failure restoring backup ad_hoc.py config file\n%s" % json.dumps(result, indent=2)
 
             # delete the backup file
-            contacted = ansible_runner.file(src=backup_file, state='absent')
+            contacted = ansible_runner.file(path=backup_file, state='absent')
             for result in contacted.values():
                 assert 'failed' not in result, \
                     "Failure removing backgrup ad_hoc.py config file\n%s" % json.dumps(result, indent=2)
