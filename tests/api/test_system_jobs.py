@@ -8,6 +8,7 @@ from tests.api import Base_Api_Test
 @pytest.fixture(scope="function", params=['cleanup_jobs_with_status_completed',
                                           'cleanup_deleted_with_status_completed',
                                           'cleanup_activitystream_with_status_completed',
+                                          'cleanup_deleted_with_status_completed',
                                           'custom_inventory_update_with_status_completed',
                                           'project_update_with_status_completed',
                                           'job_with_status_completed',
@@ -25,18 +26,20 @@ def unified_job_with_status_completed(request):
 def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
                                         cleanup_deleted_with_status_completed,
                                         cleanup_activitystream_with_status_completed,
+                                        cleanup_facts_with_status_completed,
                                         custom_inventory_update_with_status_completed,
                                         project_update_with_status_completed,
                                         job_with_status_completed,
                                         ad_hoc_with_status_completed):
     '''
-    Launches all three system jobs, an inventory update, an SCM update, a job template, and an ad hoc command.
+    Launches all four system jobs, an inventory update, an SCM update, a job template, and an ad hoc command.
 
     Returns a list of the jobs run.
     '''
     return [cleanup_jobs_with_status_completed,
             cleanup_deleted_with_status_completed,
             cleanup_activitystream_with_status_completed,
+            cleanup_facts_with_status_completed,
             custom_inventory_update_with_status_completed,
             project_update_with_status_completed,
             job_with_status_completed,
