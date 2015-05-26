@@ -183,7 +183,7 @@ class Test_Projects(Base_Api_Test):
         project_ansible_git_nowait = project_ansible_git_nowait.wait_until_completed()
 
         # assert project status is failed
-        assert project_ansible_git_nowait.status == 'failed', \
+        assert project_ansible_git_nowait.status == 'canceled', \
             "Unexpected project status after cancelling project update (status:%s)" % \
             project_ansible_git_nowait.status
 
@@ -218,7 +218,7 @@ class Test_Projects(Base_Api_Test):
         project_ansible_git_nowait = project_ansible_git_nowait.wait_until_completed()
 
         # assert project status is failed
-        assert project_ansible_git_nowait.status == 'failed', \
+        assert project_ansible_git_nowait.status == 'canceled', \
             "Unexpected project status after cancelling project update (status:%s)" % \
             project_ansible_git_nowait.status
 
