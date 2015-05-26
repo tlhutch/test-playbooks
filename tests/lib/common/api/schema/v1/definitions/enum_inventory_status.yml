@@ -1,3 +1,3 @@
 enum_inventory_status:
   enum: [none, never updated, pending, waiting, updating, running, failed, successful,
-    ok, missing]
+    ok, missing, canceled]

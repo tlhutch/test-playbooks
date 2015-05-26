@@ -367,7 +367,6 @@ class Test_Job(Base_Api_Test):
         final_update_pg = updated_project_pg.get_related('last_update')
         assert initial_update_pg.id != final_update_pg.id, "Update IDs are the same (%s = %s)" % (initial_update_pg.id, final_update_pg.id)
 
-    @pytest.mark.trello('https://trello.com/c/cfl2YtWA')
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
 
@@ -415,7 +414,6 @@ print json.dumps(inventory)
         inventory_source_pg.get()
         assert inventory_source_pg.status == 'canceled', "Did not cancel job (status:%s)" % inventory_source_pg.status
 
-    @pytest.mark.trello('https://trello.com/c/cfl2YtWA')
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
 
@@ -501,7 +499,6 @@ print json.dumps(inventory)
         second_inventory_source.get()
         assert second_inventory_source.status == 'failed', "Secondary inventory update not failed (status:%s)" % second_inventory_source.status
 
-    @pytest.mark.trello('https://trello.com/c/cfl2YtWA')
     def test_cascade_cancel_with_project_update(self, job_template, project_with_scm_update_on_launch, api_unified_jobs_pg):
         '''
         Tests that if you cancel a SCM update before it finishes that its dependent job
@@ -533,7 +530,6 @@ print json.dumps(inventory)
         project_with_scm_update_on_launch.get()
         assert project_with_scm_update_on_launch.status == 'canceled'
 
-    @pytest.mark.trello('https://trello.com/c/cfl2YtWA')
     def test_cascade_cancel_with_inventory_and_project_updates(self, job_template, project_with_scm_update_on_launch, custom_group, api_unified_jobs_pg):
         '''
         Tests that if you cancel a scm update before it finishes that its dependent job
