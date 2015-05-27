@@ -1,8 +1,10 @@
----
 summary_fields_recent_job:
-    additionalProperties: false
-    properties:
-      id: {type: number}
-      status: {$ref: '#/definitions/enum_source_status'}
-    required: [id, status]
-    type: object
+  additionalProperties: false
+  properties:
+    finished:
+      format: date-time
+      type: [string, null]
+    id: {type: number}
+    status: {$ref: '#/definitions/enum_source_status'}
+  required: [id, finished, status]
+  type: object
