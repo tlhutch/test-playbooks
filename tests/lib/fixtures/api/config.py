@@ -41,10 +41,7 @@ def AWX_PROOT_ENABLED(request, ansible_runner, tower_settings_path):
     if changed:
 
         # restart ansible-tower
-        contacted = ansible_runner.service(
-            name='ansible-tower',
-            state='restarted'
-        )
+        contacted = ansible_runner.command("ansible-tower-service restart")
 
         # assert success
         for result in contacted.values():
@@ -68,10 +65,7 @@ def AWX_PROOT_ENABLED(request, ansible_runner, tower_settings_path):
         # if changes were necesary ...
         if changed:
             # restart ansible-tower
-            contacted = ansible_runner.service(
-                name='ansible-tower',
-                state='restarted'
-            )
+            contacted = ansible_runner.command("ansible-tower-service restart")
 
             # assert success
             for result in contacted.values():
@@ -99,10 +93,7 @@ def ORG_ADMINS_CANNOT_SEE_ALL_USERS(request, ansible_runner, tower_settings_path
 
     # restart ansible-tower (if changes were necesary)
     if changed:
-        contacted = ansible_runner.service(
-            name='ansible-tower',
-            state='restarted'
-        )
+        contacted = ansible_runner.command("ansible-tower-service restart")
         for result in contacted.values():
             assert 'failed' not in result, \
                 "Failure restarting ansible-tower\n%s" % json.dumps(result, indent=2)
@@ -121,10 +112,7 @@ def ORG_ADMINS_CANNOT_SEE_ALL_USERS(request, ansible_runner, tower_settings_path
 
         # restart ansible-tower (if changes were necesary)
         if changed:
-            contacted = ansible_runner.service(
-                name='ansible-tower',
-                state='restarted'
-            )
+            contacted = ansible_runner.command("ansible-tower-service restart")
             for result in contacted.values():
                 assert 'failed' not in result, \
                     "Failure restarting ansible-tower\n%s" % json.dumps(result, indent=2)
@@ -168,10 +156,7 @@ AD_HOC_COMMANDS = %s
 
     # restart ansible-tower (if changes were necesary)
     if changed:
-        contacted = ansible_runner.service(
-            name='ansible-tower',
-            state='restarted'
-        )
+        contacted = ansible_runner.command("ansible-tower-service restart")
         for result in contacted.values():
             assert 'failed' not in result, \
                 "Failure restarting ansible-tower\n%s" % json.dumps(result, indent=2)
@@ -205,10 +190,7 @@ AD_HOC_COMMANDS = %s
 
         # restart ansible-tower (if changes were necesary)
         if changed:
-            contacted = ansible_runner.service(
-                name='ansible-tower',
-                state='restarted'
-            )
+            contacted = ansible_runner.command("ansible-tower-service restart")
             for result in contacted.values():
                 assert 'failed' not in result, \
                     "Failure restarting ansible-tower\n%s" % json.dumps(result, indent=2)
