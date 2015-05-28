@@ -40,3 +40,15 @@ def cleanup_activitystream_template(request, api_system_job_templates_pg):
     assert matches.count == 1, "Unexpected number of results (%s) when querying " \
         "for system_job_template job_type:cleanup_activitystream" % matches.count
     return matches.results[0]
+
+
+@pytest.fixture(scope="function")
+def cleanup_facts_template(request, api_system_job_templates_pg):
+    '''
+    Return a System_Job_Template object representing the 'cleanup facts'
+    system job template.
+    '''
+    matches = api_system_job_templates_pg.get(job_type='cleanup_facts')
+    assert matches.count == 1, "Unexpected number of results (%s) when querying " \
+        "for system_job_template job_type:cleanup_activitystream" % matches.count
+    return matches.results[0]
