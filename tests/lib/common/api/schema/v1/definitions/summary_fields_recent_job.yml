@@ -3,7 +3,7 @@ summary_fields_recent_job:
   properties:
     finished:
       format: date-time
-      type: [string, null]
+      type: [string, 'null']
     id: {type: number}
     status: {$ref: '#/definitions/enum_source_status'}
   required: [id, finished, status]
