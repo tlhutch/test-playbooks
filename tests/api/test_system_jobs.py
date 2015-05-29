@@ -178,7 +178,6 @@ class Test_System_Jobs(Base_Api_Test):
         assert unified_jobs_pg.count == expected_number_remaining_jobs, "Unexpected number of unified_jobs returned \
             (unified_jobs_pg.count: %s != expected_number_remaining_jobs: %s)" % (unified_jobs_pg.count, expected_number_remaining_jobs)
 
-    @pytest.mark.trello('https://trello.com/c/2wB7DMdt')
     def test_cleanup_deleted(self, deleted_object, cleanup_deleted_template, ansible_runner):
         '''
         Creates and deletes different types of objects, runs cleanup_deleted, and then verifies that
@@ -195,8 +194,10 @@ class Test_System_Jobs(Base_Api_Test):
         payload = dict(extra_vars=dict(days=0))
         system_jobs_pg = cleanup_deleted_template.launch(payload)
 
+        # wait 25 minutes for cleanup to finish
+        system_jobs_pg.wait_until_completed(timeout=60 * 25)
+
         # assert success
-        system_jobs_pg.wait_until_completed()
         assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
 
         # assert something deleted
@@ -229,8 +230,10 @@ class Test_System_Jobs(Base_Api_Test):
         payload = dict(extra_vars=dict(days=0))
         system_jobs_pg = cleanup_activitystream_template.launch(payload)
 
+        # wait 25 minutes for cleanup to finish
+        system_jobs_pg.wait_until_completed(timeout=60 * 25)
+
         # assess success
-        system_jobs_pg.wait_until_completed()
         assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
 
         # assert that activity_stream is cleared
