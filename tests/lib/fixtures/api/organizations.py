@@ -3,12 +3,24 @@ import fauxfactory
 
 
 @pytest.fixture(scope="function")
-def organization(request, authtoken, api_organizations_pg):
-    payload = dict(name="org-%s" % fauxfactory.gen_utf8(),
-                   description="Random organization - %s" % fauxfactory.gen_utf8())
-    obj = api_organizations_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
-    return obj
+def default_organization(authtoken, api_organizations_pg):
+    match = api_organizations_pg.get(name='Default')
+    if match.count == 1:
+        return match.results.pop()
+    else:
+        return None
+
+
+@pytest.fixture(scope="function")
+def organization(request, authtoken, api_organizations_pg, default_organization):
+    if default_organization is not None:
+        return default_organization
+    else:
+        payload = dict(name="Default Organization %s" % fauxfactory.gen_utf8(),
+                       description="Default organization - %s" % fauxfactory.gen_utf8())
+        obj = api_organizations_pg.post(payload)
+        request.addfinalizer(obj.silent_delete)
+        return obj
 
 
 @pytest.fixture(scope="function")
