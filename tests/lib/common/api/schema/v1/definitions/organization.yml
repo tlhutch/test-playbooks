@@ -20,7 +20,7 @@ organization:
           projects: { $ref: '#/definitions/uri' }
           teams: { $ref: '#/definitions/uri' }
           users: { $ref: '#/definitions/uri' }
-        required: [admins, inventories, users, projects, teams, activity_stream]
+        required: [created_by, admins, inventories, users, projects, teams, activity_stream]
         type: object
       summary_fields: {type: object}
       url: {format: uri, type: string}
