@@ -21,3 +21,8 @@ munin_password: {{munin_password}}
 pg_password: {{pg_password}}
 {% endif %}
 {% endif %}
+
+## Disable gpg signature checking on nightly builds
+{% if not aw_repo_url.contains(releases.ansible.com/ansible-tower') %}
+gpgcheck=0
+{% endif %}
