@@ -55,25 +55,21 @@ def pytest_generate_tests(metafunc):
 
 
 @pytest.fixture(scope='class')
-def install_integration_license(request, authtoken, ansible_runner, awx_config, tower_license_path, tower_aws_path):
+def install_integration_license(authtoken, api_config_pg, awx_config, tower_license_path, tower_aws_path):
     '''If a suitable license is not already installed, install a new license'''
     logging.debug("calling fixture install_integration_license")
     if not (awx_config['license_info'].get('valid_key', False) and
             awx_config['license_info'].get('compliant', False) and
             awx_config['license_info'].get('available_instances', 0) >= 10001):
 
-        logging.debug("backing up existing license")
-        # Backup any aws license
-        ansible_runner.shell('test -f {0} && mv {0} {0}.bak'.format(tower_aws_path), creates=tower_aws_path + '.bak', removes=tower_aws_path)
-
         # Install/replace license
         logging.debug("installing license {0}".format(tower_license_path))
-        fname = common.tower.license.generate_license_file(instance_count=10000, days=60)
-        ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
+        license_json = common.tower.license.generate_license(instance_count=10000, days=60)
+        api_config_pg.post(license_json)
 
 
 @pytest.fixture(scope='class')
-def update_sshd_config(request, ansible_runner):
+def update_sshd_config(ansible_runner):
     '''Update /etc/ssh/sshd_config to increase MaxSessions'''
 
     # Increase MaxSessions and MaxStartups
@@ -95,7 +91,7 @@ def update_sshd_config(request, ansible_runner):
 
 
 @pytest.fixture(scope='class')
-def set_rootpw(request, ansible_runner, testsetup):
+def set_rootpw(ansible_runner, testsetup):
     '''Set the rootpw to something we use in credentials'''
     assert 'ssh' in testsetup.credentials, "No SSH credentials defined"
     assert 'username' in testsetup.credentials['ssh'], "No SSH username defined in credentials"
