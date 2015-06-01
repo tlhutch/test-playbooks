@@ -23,6 +23,6 @@ pg_password: {{pg_password}}
 {% endif %}
 
 ## Disable gpg signature checking on nightly builds
-{% if not aw_repo_url.contains(releases.ansible.com/ansible-tower') %}
+{% if not aw_repo_url.contains("releases.ansible.com/ansible-tower") %}
 gpgcheck=0
 {% endif %}
