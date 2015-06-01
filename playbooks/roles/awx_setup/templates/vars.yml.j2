@@ -1,4 +1,5 @@
-# Override awx setup playbook variables
+---
+## Override awx setup playbook variables
 {% if aw_repo_url is defined %}
 aw_repo_url: {{aw_repo_url}}
 {% endif %}
@@ -7,7 +8,7 @@ awx_package_name: {{awx_package_name}}
 {% endif %}
 
 {% if not configure_script.stat.exists %}
-# Passwords included for tower < 2.1.0
+## Passwords included for tower < 2.1.0
 {% if admin_password is defined %}
 admin_password: {{admin_password}}
 {% endif %}
@@ -23,6 +24,6 @@ pg_password: {{pg_password}}
 {% endif %}
 
 ## Disable gpg signature checking on nightly builds
-{% if not aw_repo_url.contains("releases.ansible.com/ansible-tower") %}
-gpgcheck=0
+{% if "releases.ansible.com/ansible-tower" not in aw_repo_url %}
+gpgcheck: 0
 {% endif %}
