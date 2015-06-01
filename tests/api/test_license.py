@@ -28,13 +28,12 @@
 
 # Test Legacy License
 [X] Test metadata
-[N] Verify expected features
 [X] Verify that hosts can be added to license maximum
 [X] Verify that license_key is visible to admin user
 [X] Verify that license_key is not visible to non-admin users
 [?] Test cannot launch scan jobs
-[N] Test cannot create scan job templates
-[?] Test cannot run cleanup_facts
+[X] Test cannot create scan job templates
+[X] Test cannot run cleanup_facts
 [?] Test cannot GET single_fact endpoints
 [?] Test cannot GET fact_versions endpoints
 [?] Test cannot GET fact_compare endpoints
@@ -53,8 +52,8 @@
 [X] Test metadata
 [X] Tests that no hosts can be added
 [X] Test that job templates cannot be launched
-[N] Test that ad hoc commands cannot be launched from all four endpoints
-[N] Test that system jobs can be launched
+[X] Test that ad hoc commands cannot be launched from all four endpoints
+[?] Test that system jobs can be launched
 [X] Test that you can post a new license to the api/v1/config endpoint
 
 # Test Legacy Trial License
@@ -65,56 +64,46 @@
 [X] Test that you can update the license by posting to api/v1/config
 
 # Test Basic License
-[N] Test metadata
-[N] Test default features
+[X] Test metadata
 [X] Test can add hosts to limit
 [X] Test admin can see license key
 [X] Test non-admin cannot see license key
 [X] Test can launch jobs
 [X] Verify that job_templates cannot be launched when free_instances < 0
-[?] Test cannot post multiple organizations
-[N] Test cannot create surveys
-[?] Test cannot issue GET requests to randomly selected activity stream endpoints
+[X] Test cannot post multiple organizations
+[X] Test cannot create surveys
+[X] Test cannot issue GET requests to randomly selected activity stream endpoints
 [] Test cannot promote secondary
-[N] Test cannot register secondary
+[X] Test cannot register secondary
 [] Test that LDAP is disabled
 [?] Test cannot launch scan jobs
-[N] Test cannot create scan JT
-[?] Test cannot launch cleanup_facts
+[?] Test cannot create scan JT
+[X] Test cannot launch cleanup_facts
 [?] Test cannot GET single_fact endpoints
 [?] Test cannot GET fact_versions endpoints
 [?] Test cannot GET fact_compare endpoints
+[?] Test upgrade to enterprise
 
 # Test Enterprise License
-[N] Test metadata
-[N] Test default features
+[X] Test metadata
 [X] Test can add hosts to limit
 [X] Test admin can see key
 [X] Test non-admins cannot see keys
 [X] Test can launch job
 [X] Verify that job_templates cannot be launched when free_instances < 0
-[N] Test can post multiple organizations
-[N] Test can create surveys
-[?] Test can issue GET requests to randomly selected activity stream endpoints
+[X] Test can post multiple organizations
+[X] Test can create surveys
+[X] Test can issue GET requests to randomly selected activity stream endpoints
 [] Test can promote secondary
-[N] Test can register secondary
+[X] Test can register secondary
 [] Test that LDAP is enabled
-[N] Test can launch scan jobs
-[N] Test can create scan JT
-[N] Test can launch cleanup_facts
+[X] Test can launch scan jobs
+[X] Test can create scan JT
+[?] Test can launch cleanup_facts
 [?] Test can GET single_fact endpoints
 [?] Test can GET fact_versions endpoints
 [?] Test can GET fact_compare endpoints
-
-# Test Downgrade from Enterprise to Basic
-[N] Test downgrade Enterprise to Basic
-[N] Test meta
-[N] Test mongodb deactivated
-
-# Test Upgrade from Basic to Enterprise
-[N] Test upgrade Basic to Enterprise
-[N] Test meta
-[?] Test mongodb activated
+[X] Test downgrade to basic
 
 # Test features - A basic license with all feature enabled
 '''
@@ -552,8 +541,6 @@ class Test_Legacy_License(Base_Api_Test):
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
 
-    def test_default_license_features(self, api_config_pg):
-        '''Tests legacy default features.'''
         default_features = {u'surveys': True,
                             u'multiple_organizations': True,
                             u'activity_streams': True,
@@ -562,7 +549,6 @@ class Test_Legacy_License(Base_Api_Test):
                             u'system_tracking': False}
 
         # assess default features
-        conf = api_config_pg.get()
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for legacy license: %s." % conf.license_info
 
@@ -585,7 +571,7 @@ class Test_Legacy_License(Base_Api_Test):
             assert 'license_key' not in conf.license_info
 
     @pytest.mark.skipif(True, reason="Not yet implemented.")
-    def test_launch_scan_job(self, job_template_with_job_type_scan):
+    def test_unable_to_launch_scan_job(self, job_template_with_job_type_scan):
         '''Verify that scan jobs may not be run with a legacy license.'''
         launch_pg = job_template_with_job_type_scan.get_related('launch')
 
@@ -595,7 +581,7 @@ class Test_Legacy_License(Base_Api_Test):
         # FIXME
         assert result == {}
 
-    def test_post_scan_job_template(self, api_job_templates_pg, ssh_credential, host_local):
+    def test_unable_to_create_scan_job_template(self, api_job_templates_pg, ssh_credential, host_local):
         '''Verify that scan job templates may not be created with a legacy license.'''
         # create playload
         payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
@@ -613,8 +599,7 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to POST a scan job template with a legacy license - %s." % json.dumps(result)
 
-    @pytest.mark.trello('https://trello.com/c/Sz50XpNl')
-    def test_run_cleanup_facts(self, cleanup_facts_template):
+    def test_unable_to_run_cleanup_facts(self, cleanup_facts_template):
         '''Verify that cleanup_facts may not be run with a legacy license.'''
         launch_pg = cleanup_facts_template.get_related('launch')
 
@@ -626,16 +611,22 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {}
 
     @pytest.mark.skipif(True, reason="Not yet implemented.")
-    def test_get_with_legacy_license(self, host_local):
+    def test_unable_to_access_facts(self, host_local):
         '''Verify that GET requests are rejected from all fact endpoints with legacy license.'''
         inventory_pg = host_local.get_related('inventory')
         group_pg = host_local.get_related('group')
 
         # Check that GET requests rejected
-        inventory_pg.get_related('single_fact')
-        group_pg.get_related('single_fact')
-        host_local.get_related('single_fact')
-        host_local.get_related('fact_versions')
+        for (endpoint, related) in [(inventory_pg, 'single_fact'),
+                                    (group_pg, 'single_fact'),
+                                    (host_local, 'single_fact'),
+                                    (host_local, 'fact_versions'), ]:
+
+            exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, endpoint.get_related, related)
+            result = exc_info.value[1]
+
+            # FIXME
+            assert result == {}
 
 
 @pytest.mark.api
@@ -731,12 +722,7 @@ class Test_Legacy_License_Grace_Period(Base_Api_Test):
         if conf.license_info.free_instances < 0:
             pytest.skip("Unable to test because there are no free_instances remaining")
         else:
-            job_template.launch_job()
-
-    def FIXME_test_job_launch_hosts_exceeded(self, inventory_no_free_instances, job_template):
-        '''Verify that job_templates cannot be launched when free_instances < 0'''
-        with pytest.raises(common.exceptions.Forbidden_Exception):
-            job_template.launch_job()
+            job_template.launch_job().wait_until_completed()
 
 
 @pytest.mark.api
@@ -782,14 +768,17 @@ class Test_Legacy_License_Expired(Base_Api_Test):
     def test_job_launch(self, job_template):
         '''Verify that job_templates cannot be launched'''
         with pytest.raises(common.exceptions.Forbidden_Exception):
-            job_template.launch_job()
+            job_template.launch_job().wait_until_completed()
 
-    def test_system_job_launch(self, system_job_template):
-        '''Verify that system job templates can be launched'''
-        launch_pg = system_job_template.get_related("launch")
-        launch_pg.post()
+    @pytest.mark.skipif(True, reason="Not yet implemented.")
+    @pytest.mark.fixture_args(days=1000)
+    def test_system_job_launch(self, system_job):
+        '''Verify that system jobs can be launched'''
+        # launch job and assess success
+        system_job.wait_until_completed()
+        assert system_job.is_successful, "System job not successful - %s" % system_job
 
-    def test_ad_hoc_command_launch(self, api_ad_hoc_commands_pg, host_local, ssh_credential):
+    def test_unable_to_launch_ad_hoc_command_launch(self, api_ad_hoc_commands_pg, host_local, ssh_credential):
         '''Verify that ad hoc commands cannot be launched from all four ad hoc endpoints.'''
         ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
         inventory_pg = host_local.get_related('inventory')
@@ -802,28 +791,11 @@ class Test_Legacy_License_Expired(Base_Api_Test):
                        credential=ssh_credential.id,
                        module_name="ping")
 
-        # from api/v1/ad_hoc_commands
-        with pytest.raises(common.exceptions.Forbidden_Exception):
-            ad_hoc_commands_pg.post(payload), \
-                "ad hoc command launched with expired license from api/v1/ad_hoc_commands."
-
-        # from api/v1/inventories/{ID}/ad_hoc_commands
-        ad_hoc_commands_pg = inventory_pg.get_related('ad_hoc_commands')
-        with pytest.raises(common.exceptions.Forbidden_Exception):
-            ad_hoc_commands_pg.post(payload), \
-                "ad hoc command launched with expired license from api/v1/inventories/{ID}/ad_hoc_commands."
-
-        # from api/v1/groups/{ID}/ad_hoc_commands
-        ad_hoc_commands_pg = group_pg.get_related('ad_hoc_commands')
-        with pytest.raises(common.exceptions.Forbidden_Exception):
-            ad_hoc_commands_pg.post(payload), \
-                "ad hoc command launched with expired license from api/v1/groups/{ID}/ad_hoc_commands."
-
-        # from api/v1/hosts/{ID}/ad_hoc_commands
-        ad_hoc_commands_pg = host_local.get_related('ad_hoc_commands')
-        with pytest.raises(common.exceptions.Forbidden_Exception):
-            ad_hoc_commands_pg.post(payload), \
-                "ad hoc command launched with expired license from api/v1/hosts/{ID}/ad_hoc_commands."
+        for endpoint in [inventory_pg, group_pg, host_local]:
+            ad_hoc_commands_pg = endpoint.get_related('ad_hoc_commands')
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                ad_hoc_commands_pg.post(payload), \
+                    "Unexpectedly launched an ad_hoc_command with an expired license from %s." % ad_hoc_commands_pg.base_url
 
     def test_update_license(self, api_config_pg, legacy_license_json, ansible_runner, tower_license_path):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
@@ -942,8 +914,6 @@ class Test_Basic_License(Base_Api_Test):
             "Incorrect license_type returned. Expected 'basic,' " \
             "returned %s." % conf.license_info['license_type']
 
-    def test_default_license_features(self, api_config_pg):
-        '''Tests basic license default features.'''
         default_features = {u'surveys': False,
                             u'multiple_organizations': False,
                             u'activity_streams': False,
@@ -952,7 +922,6 @@ class Test_Basic_License(Base_Api_Test):
                             u'system_tracking': False}
 
         # assess default features
-        conf = api_config_pg.get()
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for basic license: %s." % conf.license_info
 
@@ -980,18 +949,13 @@ class Test_Basic_License(Base_Api_Test):
         if conf.license_info.free_instances < 0:
             pytest.skip("Unable to test because there are no free_instances remaining")
         else:
-            job_template.launch_job()
+            job_template.launch_job().wait_until_completed()
 
-    def FIXME_test_job_launch_hosts_exceeded(self, inventory_no_free_instances, job_template):
-        '''Verify that job_templates cannot be launched when free_instances < 0'''
-        with pytest.raises(common.exceptions.Forbidden_Exception):
-            job_template.launch_job()
-
-    def test_post_multiple_organizations(self, api_organizations_pg):
+    def test_unable_to_create_multiple_organizations(self, api_organizations_pg):
         '''Verify that attempting to create a second organization with a basic license raises a 402.'''
         # check that a default organization already exists
         organizations_pg = api_organizations_pg.get()
-        assert organizations_pg.count == 1, "Unexpected number of organizations returned (%s), but expecting one." % organizations_pg.count
+        assert organizations_pg.count >= 1, "Unexpected number of organizations returned (%s); expecting greater than or equal to one." % organizations_pg.count
 
         # post second organization and assess API response
         payload = dict(name="org-%s" % fauxfactory.gen_utf8(),
@@ -1004,7 +968,7 @@ class Test_Basic_License(Base_Api_Test):
             "Unexpected repsonse upon trying to create multiple organizations with a basic " \
             "license. %s" % json.dumps(result)
 
-    def test_create_survey(self, job_template_ping, required_survey_spec):
+    def test_unable_to_create_survey(self, job_template_ping, required_survey_spec):
         '''Verify that attempting to create a survey with a basic license raises a 402.'''
         job_template_ping.patch(survey_enabled=True)
 
@@ -1016,7 +980,7 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not allow adding surveys.'}, \
             "Unexpected API response when attempting to create a survey with a basic license - %s." % json.dumps(result)
 
-    def test_activity_streams(self, api_activity_stream_pg):
+    def test_unable_to_access_activity_stream(self, api_activity_stream_pg):
         '''Verify that GET requests to api/v1/activity_streams raise 402s.'''
         # Issue a GET to api/v1/activity_streams and assess the response
         exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, api_activity_stream_pg.get)
@@ -1025,7 +989,7 @@ class Test_Basic_License(Base_Api_Test):
         result == {u'detail': u'Your license does not allow use of the activity stream.'}, \
             "Unexpected API response when issuing a GET to api/v1/activity_streams with a basic license - %s." % json.dumps(result)
 
-    def test_register_secondary(self, ansible_runner):
+    def test_unable_to_register_secondary_ha(self, ansible_runner):
         '''Verifies that attempting to register a secondary with a basic license raises a license error.'''
         # attempt to register new instance
         contacted = ansible_runner.shell('tower-manage register_instance --hostname foo --secondary')
@@ -1036,7 +1000,7 @@ class Test_Basic_License(Base_Api_Test):
             "Unexpected stderr when attempting to register secondary with basic license: %s." % result['stderr']
 
     @pytest.mark.skipif(True, reason="Not yet implemented.")
-    def test_launch_scan_job(self, job_template_with_job_type_scan):
+    def test_unable_to_launch_scan_job(self, job_template_with_job_type_scan):
         '''Verify that scan jobs may not be run with a basic license.'''
         launch_pg = job_template_with_job_type_scan.get_related('launch')
 
@@ -1047,7 +1011,8 @@ class Test_Basic_License(Base_Api_Test):
         # FIXME
         assert result == {}
 
-    def test_post_scan_job_template(self, api_job_templates_pg, ssh_credential, host_local):
+    @pytest.mark.skipif(True, reason="Not yet implemented.")
+    def test_unable_to_create_scan_job_template(self, api_job_templates_pg, ssh_credential, host_local):
         '''Verify that scan job templates may not be created with a basic license.'''
         # create playload
         payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
@@ -1065,8 +1030,7 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to POST a scan job template with a legacy license - %s." % json.dumps(result)
 
-    @pytest.mark.trello('https://trello.com/c/Sz50XpNl')
-    def test_run_cleanup_facts(self, cleanup_facts_template):
+    def test_unable_to_run_cleanup_facts(self, cleanup_facts_template):
         '''Verify that cleanup_facts may not be run with a basic license.'''
         launch_pg = cleanup_facts_template.get_related('launch')
 
@@ -1088,6 +1052,45 @@ class Test_Basic_License(Base_Api_Test):
         group_pg.get_related('single_fact')
         host_local.get_related('single_fact')
         host_local.get_related('fact_versions')
+
+    def test_upgrade_to_enteprise(self, enterprise_license_json, api_config_pg, ansible_runner, tower_license_path):
+        '''That a basic license can get upgraded to an enterprise license by posting to api_config_pg.'''
+        # Record the license md5
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            before_md5 = result['stat']['md5']
+
+        # Update the license
+        api_config_pg.post(enterprise_license_json)
+
+        # Record the license md5
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            after_md5 = result['stat']['md5']
+
+        # Assert that /etc/tower/license was modified
+        assert before_md5 != after_md5, "The license file was not modified as expected"
+
+        # Assess license type
+        conf = api_config_pg.get()
+        assert conf.license_info['license_type'] == 'enterprise', \
+            "Incorrect license_type returned. Expected 'enterprise,' " \
+            "returned %s." % conf.license_info['license_type']
+
+        # check MongoDB using tower-manage
+        contacted = ansible_runner.shell('tower-manage uses_mongo')
+        result = contacted.values()[0]
+
+        assert 'MongoDB required' in result['stdout'], \
+            "Unexpected stdout when checking that MongoDB is active using tower-manage - %s." % result['stdout']
+
+        # check MongoDB using ansible-tower-service
+        contacted = ansible_runner.command("ansible-tower-service status")
+        result = contacted.values()[0]
+
+        # FIXME: use regular expressions here
+        assert 'mongod' in result['stdout'], \
+            "Unexpected stdout when checking that MongoDB is active using ansible-tower-service - %s." % result['stdout']
 
 
 @pytest.mark.api
@@ -1121,8 +1124,6 @@ class Test_Enterprise_License(Base_Api_Test):
             "Incorrect license_type returned. Expected 'enterprise,' " \
             "returned %s." % conf.license_info['license_type']
 
-    def test_default_license_features(self, api_config_pg):
-        '''Tests enterprise default features.'''
         default_features = {u'surveys': True,
                             u'multiple_organizations': True,
                             u'activity_streams': True,
@@ -1131,7 +1132,6 @@ class Test_Enterprise_License(Base_Api_Test):
                             u'system_tracking': True}
 
         # assess default features
-        conf = api_config_pg.get()
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for basic license: %s." % conf.license_info
 
@@ -1159,12 +1159,7 @@ class Test_Enterprise_License(Base_Api_Test):
         if conf.license_info.free_instances < 0:
             pytest.skip("Unable to test because there are no free_instances remaining")
         else:
-            job_template.launch_job()
-
-    def FIXME_test_job_launch_hosts_exceeded(self, inventory_no_free_instances, job_template):
-        '''Verify that job_templates cannot be launched when free_instances < 0'''
-        with pytest.raises(common.exceptions.Forbidden_Exception):
-            job_template.launch_job()
+            job_template.launch_job().wait_until_completed()
 
     def test_post_multiple_organizations(self, api_organizations_pg):
         '''Verify that multiple organizations may exist with an enterprise license.'''
@@ -1229,12 +1224,16 @@ class Test_Enterprise_License(Base_Api_Test):
         # post job template
         api_job_templates_pg.post(payload)
 
+    @pytest.mark.skipif(True, reason="Not yet implemented.")
     def test_run_cleanup_facts(self, cleanup_facts_template):
         '''Verifies that cleanup_facts may be run with an enterprise license.'''
-        launch_pg = cleanup_facts_template.get_related('launch')
+        # create payload
+        payload = dict(extra_vars=dict(granularity="1w", days="1000"))
 
-        # post job and check that job completes successfully
-        job_pg = launch_pg.post()
+        # launch cleanup_facts and wait until completed
+        job_pg = cleanup_facts_template.launch(payload).wait_until_completed()
+
+        # assess success
         assert job_pg.is_successful, "Unexpected job status upon launching cleanup_facts with" \
             "an enterprise license - %s." % job_pg
 
@@ -1250,13 +1249,7 @@ class Test_Enterprise_License(Base_Api_Test):
         host_local.get_related('single_fact')
         host_local.get_related('fact_versions')
 
-
-@pytest.mark.api
-@pytest.mark.skip_selenium
-class Test_Downgrade_License(Base_Api_Test):
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_enterprise_license')
-
-    def test_downgrade_from_enterprise_to_basic(self, basic_license_json, api_config_pg, ansible_runner, tower_license_path):
+    def test_downgrade_to_basic(self, basic_license_json, api_config_pg, ansible_runner, tower_license_path):
         '''That an enterprise license can get downgraded to a basic license by posting to api_config_pg.'''
         # Record the license md5
         contacted = ansible_runner.stat(path=tower_license_path)
@@ -1274,114 +1267,23 @@ class Test_Downgrade_License(Base_Api_Test):
         # Assert that /etc/tower/license was modified
         assert before_md5 != after_md5, "The license file was not modified as expected"
 
-    def test_metadata(self, api_config_pg):
-        '''Tests that api/v1/config reflects the new license.'''
-        conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
-
-        # Assert NOT Demo mode
-        assert not conf.is_demo_license
-
-        # Assert NOT AWS
-        assert not conf.is_aws_license
-
-        # Assert the license is valid
-        assert conf.is_valid_license
-
-        # Assert dates look sane?
-        assert not conf.license_info.date_expired
-        assert not conf.license_info.date_warning
-
-        # Assert grace_period is 30 days + time_remaining
-        assert int(conf.license_info['grace_period_remaining']) == \
-            int(conf.license_info['time_remaining']) + 2592000
-
         # Assess license type
+        conf = api_config_pg.get()
         assert conf.license_info['license_type'] == 'basic', \
             "Incorrect license_type returned. Expected 'basic,' " \
             "returned %s." % conf.license_info['license_type']
 
-    def test_mongodb_deactivated(self, ansible_runner):
-        '''Tests that MongoDB is deactivated.'''
-        # check using tower-manage
+        # check MongoDB using tower-manage
         contacted = ansible_runner.shell('tower-manage uses_mongo')
         result = contacted.values()[0]
 
         assert 'MongoDB NOT required' in result['stdout'], \
             "Unexpected stdout when checking that MongoDB is inactive using tower-manage - %s." % result['stdout']
 
-        # check using ansible-tower-service
+        # check MongoDB using ansible-tower-service
         contacted = ansible_runner.command("ansible-tower-service status")
         result = contacted.values()[0]
 
         # FIXME: use regex here
         assert 'mongodb' not in result['stdout'], \
             "Unexpected stdout when checking that MongoDB is inactive using ansible-tower-service - %s." % result['stdout']
-
-
-@pytest.mark.api
-@pytest.mark.skip_selenium
-class Test_Upgrade_License(Base_Api_Test):
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_basic_license')
-
-    def test_upgrade_from_basic_to_enteprise(self, enterprise_license_json, api_config_pg, ansible_runner, tower_license_path):
-        '''That a basic license can get upgraded to an enterprise license by posting to api_config_pg.'''
-        # Record the license md5
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            before_md5 = result['stat']['md5']
-
-        # Update the license
-        api_config_pg.post(enterprise_license_json)
-
-        # Record the license md5
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            after_md5 = result['stat']['md5']
-
-        # Assert that /etc/tower/license was modified
-        assert before_md5 != after_md5, "The license file was not modified as expected"
-
-    def test_metadata(self, api_config_pg):
-        '''Tests that api/v1/config reflects the new enterprise license.'''
-        conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
-
-        # Assert NOT Demo mode
-        assert not conf.is_demo_license
-
-        # Assert NOT AWS
-        assert not conf.is_aws_license
-
-        # Assert the license is valid
-        assert conf.is_valid_license
-
-        # Assert dates look sane?
-        assert not conf.license_info.date_expired
-        assert not conf.license_info.date_warning
-
-        # Assert grace_period is 30 days + time_remaining
-        assert int(conf.license_info['grace_period_remaining']) == \
-            int(conf.license_info['time_remaining']) + 2592000
-
-        # Assess license type
-        assert conf.license_info['license_type'] == 'enterprise', \
-            "Incorrect license_type returned. Expected 'enterprise,' " \
-            "returned %s." % conf.license_info['license_type']
-
-    def test_mongodb_activated(self, ansible_runner):
-        '''Tests that MongoDB is activated.'''
-        # check using tower-manage
-        contacted = ansible_runner.shell('tower-manage uses_mongo')
-        result = contacted.values()[0]
-
-        assert 'MongoDB required' in result['stdout'], \
-            "Unexpected stdout when checking that MongoDB is active using tower-manage - %s." % result['stdout']
-
-        # check using ansible-tower-service
-        contacted = ansible_runner.command("ansible-tower-service status")
-        result = contacted.values()[0]
-
-        # FIXME: use regular expressions here
-        assert 'mongod' in result['stdout'], \
-            "Unexpected stdout when checking that MongoDB is active using ansible-tower-service - %s." % result['stdout']
