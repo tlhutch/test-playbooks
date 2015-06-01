@@ -195,3 +195,10 @@ def job_template_variables_needed_to_start(job_template_ping, required_survey_sp
 @pytest.fixture(scope="function")
 def job_template_passwords_needed_to_start(job_template_ping, ssh_credential_multi_ask):
     return job_template_ping.patch(credential=ssh_credential_multi_ask.id)
+
+
+@pytest.fixture(scope="function")
+def job_template_with_job_type_scan(job_template):
+    '''Job template with job_type scan'''
+    obj = job_template.patch(playbook="Default", job_type="scan", project=None)
+    return obj

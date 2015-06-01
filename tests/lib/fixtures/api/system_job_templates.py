@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.fixture(scope="function", params=['cleanup_jobs', 'cleanup_deleted', 'cleanup_activitystream'])
+@pytest.fixture(scope="function", params=['cleanup_jobs', 'cleanup_deleted', 'cleanup_activitystream', 'cleanup_facts'])
 def system_job_template(request, api_system_job_templates_pg):
     return request.getfuncargvalue(request.param + '_template')
 
