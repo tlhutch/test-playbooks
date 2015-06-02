@@ -30,10 +30,9 @@ host:
         job_host_summaries: {format: uri, type: string}
         last_job: {format: uri, type: string}
         last_job_host_summary: {format: uri, type: string}
-        single_fact: {format: uri, type: string}
         variable_data: {format: uri, type: string}
       required: [job_host_summaries, variable_data, job_events, groups, all_groups,
-        inventory, single_fact]
+        inventory]
       type: object
     summary_fields:
       additionalProperties: true

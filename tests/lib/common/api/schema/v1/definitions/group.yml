@@ -29,11 +29,10 @@ group:
         job_events: {format: uri, type: string}
         job_host_summaries: {format: uri, type: string}
         potential_children: {format: uri, type: string}
-        single_fact: {format: uri, type: string}
         variable_data: {format: uri, type: string}
       required: [job_host_summaries, variable_data, inventory_source,
       job_events, potential_children, all_hosts, hosts, inventory, children,
-      activity_stream, inventory_sources, single_fact]
+      activity_stream, inventory_sources]
       type: object
     summary_fields:
       additionalProperties: false
