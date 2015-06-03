@@ -85,6 +85,12 @@ if __name__ == '__main__':
     cfg['cloud']['vmware']['password'] = os.environ["VMWARE_PASSWORD"]
     cfg['cloud']['vmware']['host'] = os.environ["VMWARE_HOST"]
 
+    # Set openstack info
+    cfg['cloud']['openstack']['username'] = os.environ["OPENSTACK_USERNAME"]
+    cfg['cloud']['openstack']['password'] = os.environ["OPENSTACK_PASSWORD"]
+    cfg['cloud']['openstack']['host'] = os.environ["OPENSTACK_HOST"]
+    cfg['cloud']['openstack']['project'] = os.environ["OPENSTACK_PROJECT"]
+
     # Set SCM info
     cfg['scm']['password'] = os.environ.get("SCM_PASSWORD", "")
     cfg['scm']['ssh_key_data'] = literal(open(os.environ["SCM_KEY_DATA"], 'r').read())
