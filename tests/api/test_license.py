@@ -1055,6 +1055,13 @@ class Test_Basic_License(Base_Api_Test):
 
     def test_upgrade_to_enteprise(self, enterprise_license_json, api_config_pg, ansible_runner, tower_license_path):
         '''That a basic license can get upgraded to an enterprise license by posting to api_config_pg.'''
+        # check that MongoDB is inactive with basic license
+        # port 27017 is the default MongoDB port
+        contacted = ansible_runner.wait_for(port='27017', timeout=5)
+        result = contacted.values()[0]
+
+        assert result['failed'], "MongoDB is unexpectedly active with a basic license."
+
         # Record the license md5
         contacted = ansible_runner.stat(path=tower_license_path)
         for result in contacted.values():
@@ -1084,13 +1091,12 @@ class Test_Basic_License(Base_Api_Test):
         assert 'MongoDB required' in result['stdout'], \
             "Unexpected stdout when checking that MongoDB is active using tower-manage - %s." % result['stdout']
 
-        # check MongoDB using ansible-tower-service
-        contacted = ansible_runner.command("ansible-tower-service status")
+        # check that MongoDB is now active after the upgrade to enterprise
+        # port 27017 is the default MongoDB port
+        contacted = ansible_runner.wait_for(port='27017', timeout=5)
         result = contacted.values()[0]
 
-        # FIXME: use regular expressions here
-        assert 'mongod' in result['stdout'], \
-            "Unexpected stdout when checking that MongoDB is active using ansible-tower-service - %s." % result['stdout']
+        assert 'failed' not in result, "MongoDB is unexpectedly inactive after upgrading to an enterprise license."
 
 
 @pytest.mark.api
@@ -1251,6 +1257,13 @@ class Test_Enterprise_License(Base_Api_Test):
 
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg, ansible_runner, tower_license_path):
         '''That an enterprise license can get downgraded to a basic license by posting to api_config_pg.'''
+        # check that MongoDB is active with an enterprise license
+        # port 27017 is the default MongoDB port
+        contacted = ansible_runner.wait_for(port='27017', timeout=5)
+        result = contacted.values()[0]
+
+        assert 'failed' not in result, "MongoDB is unexpectedly inactive with an enterprise licese."
+
         # Record the license md5
         contacted = ansible_runner.stat(path=tower_license_path)
         for result in contacted.values():
@@ -1280,10 +1293,9 @@ class Test_Enterprise_License(Base_Api_Test):
         assert 'MongoDB NOT required' in result['stdout'], \
             "Unexpected stdout when checking that MongoDB is inactive using tower-manage - %s." % result['stdout']
 
-        # check MongoDB using ansible-tower-service
-        contacted = ansible_runner.command("ansible-tower-service status")
+        # check that MongoDB is now inactive after the downgrade to basic
+        # port 27017 is the default MongoDB port
+        contacted = ansible_runner.wait_for(port='27017', timeout=5)
         result = contacted.values()[0]
 
-        # FIXME: use regex here
-        assert 'mongodb' not in result['stdout'], \
-            "Unexpected stdout when checking that MongoDB is inactive using ansible-tower-service - %s." % result['stdout']
+        assert result['failed'], "MongoDB is unexpectedly active after downgrading to a basic license."
