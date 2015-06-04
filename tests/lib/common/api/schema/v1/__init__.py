@@ -53,6 +53,10 @@ class Awx_Schema(Schema_Base):
         return self.load_file('errors/401.yml')
 
     @property
+    def payment_required(self):
+        return self.load_file('errors/402.yml')
+
+    @property
     def method_not_allowed(self):
         return self.load_file('errors/405.yml')
 

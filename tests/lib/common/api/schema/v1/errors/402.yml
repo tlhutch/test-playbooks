@@ -1,0 +1,12 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+type: object
+required: [detail, ]
+additionalProperties: False
+properties:
+    detail:
+        oneOf:
+            - type: string
+              pattern: '^Your Tower license only permits a single organization to exist.'
+            - type: string
+              pattern: '^Your license does not allow use of the activity stream.'

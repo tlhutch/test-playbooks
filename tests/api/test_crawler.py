@@ -141,7 +141,12 @@ def test_authenticated(api, resource, method):
     }
 
     exception_matrix = {
+        '/api/v1/organizations/': {
+            'POST': (httplib.PAYMENT_REQUIRED, 'payment_required'),
+        },
         '/api/v1/activity_stream/': {
+            'GET': (httplib.PAYMENT_REQUIRED, 'payment_required'),
+            'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },
         '/api/v1/authtoken/': {
