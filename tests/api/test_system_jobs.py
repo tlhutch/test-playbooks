@@ -71,14 +71,14 @@ class Test_System_Jobs(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
 
-    @pytest.mark.fixture_args(days=1000)
+    @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_get_as_superuser(self, system_job):
         '''
         Verify that a superuser account is able to GET a system_job resource.
         '''
         system_job.get()
 
-    @pytest.mark.fixture_args(days=1000)
+    @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_get_as_non_superuser(self, non_superusers, user_password, api_system_jobs_pg, system_job):
         '''
         Verify that non-superuser accounts are unable to access a system_job.
@@ -88,7 +88,7 @@ class Test_System_Jobs(Base_Api_Test):
                 with pytest.raises(common.exceptions.NotFound_Exception):
                     api_system_jobs_pg.get(id=system_job.id)
 
-    @pytest.mark.fixture_args(days=1000)
+    @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_method_not_allowed(self, system_job):
         '''
         Verify that PUT, POST and PATCH are unsupported request methods
