@@ -11,11 +11,15 @@ def default_organization(authtoken, api_organizations_pg):
 
 @pytest.fixture(scope="function")
 def organization(request, authtoken, api_organizations_pg):
-    payload = dict(name="Random organization %s" % fauxfactory.gen_utf8(),
-                   description="Random organization - %s" % fauxfactory.gen_utf8())
-    obj = api_organizations_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
-    return obj
+    fixture_args = getattr(request.function, 'fixture_args', None)
+    if fixture_args and fixture_args.kwargs.get('default_organization', False):
+        return request.getfuncargvalue('default_organization')
+    else:
+        payload = dict(name="Random organization %s" % fauxfactory.gen_utf8(),
+                       description="Random organization - %s" % fauxfactory.gen_utf8())
+        obj = api_organizations_pg.post(payload)
+        request.addfinalizer(obj.silent_delete)
+        return obj
 
 
 @pytest.fixture(scope="function")

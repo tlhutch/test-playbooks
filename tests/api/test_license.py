@@ -123,7 +123,7 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='class')
 def license_instance_count(request):
     '''Number of host instances permitted by the license'''
-    return 20
+    return 10
 
 
 @pytest.fixture(scope='class')
@@ -570,16 +570,24 @@ class Test_Legacy_License(Base_Api_Test):
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
-    @pytest.mark.skipif(True, reason="Not yet implemented.")
-    def test_unable_to_launch_scan_job(self, job_template_with_job_type_scan):
+    @pytest.mark.fixture_args(default_organization=True)
+    def test_unable_to_launch_scan_job(self, job_template):
         '''Verify that scan jobs may not be run with a legacy license.'''
-        launch_pg = job_template_with_job_type_scan.get_related('launch')
-
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, launch_pg.post)
+        payload = dict(job_type='scan', project=None)
+        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
         result = exc_info.value[1]
 
-        # FIXME
-        assert result == {}
+        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}
+
+        # FIXME - figure out how to test this
+        if False:
+            launch_pg = job_template.get_related('launch')
+
+            exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, launch_pg.post)
+            result = exc_info.value[1]
+
+            # FIXME
+            assert result == {}
 
     def test_unable_to_create_scan_job_template(self, api_job_templates_pg, ssh_credential, host_local):
         '''Verify that scan job templates may not be created with a legacy license.'''
@@ -929,6 +937,7 @@ class Test_Basic_License(Base_Api_Test):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for basic license: %s." % conf.license_info
 
+    @pytest.mark.fixture_args(default_organization=True)
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:
@@ -940,12 +949,14 @@ class Test_Basic_License(Base_Api_Test):
         print json.dumps(conf.json, indent=4)
         assert 'license_key' in conf.license_info
 
+    @pytest.mark.fixture_args(default_organization=True)
     def test_key_visibility_non_admin(self, api_config_pg, non_admin_user, user_password):
         with self.current_user(non_admin_user.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
+    @pytest.mark.fixture_args(default_organization=True)
     def test_job_launch(self, api_config_pg, job_template):
         '''Verify that job_templates can be launched while there are remaining free_instances'''
 
@@ -972,17 +983,27 @@ class Test_Basic_License(Base_Api_Test):
             "Unexpected repsonse upon trying to create multiple organizations with a basic " \
             "license. %s" % json.dumps(result)
 
+    @pytest.mark.fixture_args(default_organization=True)
     def test_unable_to_create_survey(self, job_template_ping, required_survey_spec):
         '''Verify that attempting to create a survey with a basic license raises a 402.'''
-        job_template_ping.patch(survey_enabled=True)
 
-        # post a survey and assess API response
-        survey_spec = job_template_ping.get_related('survey_spec')
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, survey_spec.post)
+        payload = dict(survey_enabled=True)
+        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template_ping.patch, **payload)
         result = exc_info.value[1]
 
-        assert result == {u'detail': u'Your license does not allow adding surveys.'}, \
-            "Unexpected API response when attempting to create a survey with a basic license - %s." % json.dumps(result)
+        assert result == {u'detail': u'Feature surveys is not enabled in the active license'}, \
+            "Unexpected API response when attempting to create a survey with a " \
+            "basic license - %s." % json.dumps(result)
+
+        # FIXME - need to implement
+        if False:
+            # post a survey and assess API response
+            survey_spec = job_template_ping.get_related('survey_spec')
+            exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, survey_spec.post)
+            result = exc_info.value[1]
+
+            assert result == {u'detail': u'Your license does not allow adding surveys.'}, \
+                "Unexpected API response when attempting to create a survey with a basic license - %s." % json.dumps(result)
 
     def test_unable_to_access_activity_stream(self, api_activity_stream_pg):
         '''Verify that GET requests to api/v1/activity_streams raise 402s.'''
@@ -1003,17 +1024,25 @@ class Test_Basic_License(Base_Api_Test):
         assert result['stderr'] == 'CommandError: Your Tower license does not permit creation of secondary instances.', \
             "Unexpected stderr when attempting to register secondary with basic license: %s." % result['stderr']
 
-    @pytest.mark.skipif(True, reason="Not yet implemented.")
-    def test_unable_to_launch_scan_job(self, job_template_with_job_type_scan):
+    @pytest.mark.fixture_args(default_organization=True)
+    def test_unable_to_launch_scan_job(self, job_template):
         '''Verify that scan jobs may not be run with a basic license.'''
-        launch_pg = job_template_with_job_type_scan.get_related('launch')
 
-        # launch the scan job and assess the response
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, launch_pg.post)
+        payload = dict(job_type='scan', project=None)
+        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
         result = exc_info.value[1]
 
-        # FIXME
-        assert result == {}
+        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}
+
+        # FIXME - figure out how to test this
+        if False:
+            launch_pg = job_template.get_related('launch')
+            # launch the scan job and assess the response
+            exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, launch_pg.post)
+            result = exc_info.value[1]
+
+            # FIXME
+            assert result == {}
 
     def test_unable_to_create_scan_job_template(self, api_job_templates_pg, ssh_credential, host_local):
         '''Verify that scan job templates may not be created with a basic license.'''
