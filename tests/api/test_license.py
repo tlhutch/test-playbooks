@@ -599,16 +599,20 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to POST a scan job template with a legacy license - %s." % json.dumps(result)
 
-    def test_unable_to_run_cleanup_facts(self, cleanup_facts_template):
+    @pytest.mark.fixture_args(older_than='1y', granularity='1y')
+    def test_unable_to_cleanup_facts(self, cleanup_facts):
         '''Verify that cleanup_facts may not be run with a legacy license.'''
-        launch_pg = cleanup_facts_template.get_related('launch')
 
-        # launch cleanup_facts and assess API response
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, launch_pg.post)
-        result = exc_info.value[1]
+        # wait for cleanup_facts to finish
+        job_pg = cleanup_facts.wait_until_completed()
 
-        # FIXME
-        assert result == {}
+        # assert expected failure
+        assert not job_pg.is_successful, "cleanup_facts job unexpectedly passed " \
+            "with a legacy license - %s" % job_pg
+
+        # assert expected stdout
+        assert job_pg.result_stdout == "CommandError: The System Tracking " \
+            "feature is not enabled for your Tower instance\r\n"
 
     @pytest.mark.skipif(True, reason="Not yet implemented.")
     def test_unable_to_access_facts(self, host_local):
@@ -1011,7 +1015,6 @@ class Test_Basic_License(Base_Api_Test):
         # FIXME
         assert result == {}
 
-    @pytest.mark.skipif(True, reason="Not yet implemented.")
     def test_unable_to_create_scan_job_template(self, api_job_templates_pg, ssh_credential, host_local):
         '''Verify that scan job templates may not be created with a basic license.'''
         # create playload
@@ -1030,16 +1033,20 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to POST a scan job template with a legacy license - %s." % json.dumps(result)
 
-    def test_unable_to_run_cleanup_facts(self, cleanup_facts_template):
+    @pytest.mark.fixture_args(older_than='1y', granularity='1y')
+    def test_unable_to_cleanup_facts(self, cleanup_facts):
         '''Verify that cleanup_facts may not be run with a basic license.'''
-        launch_pg = cleanup_facts_template.get_related('launch')
 
-        # launch cleanup_facts and assess the response
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, launch_pg.post)
-        result = exc_info.value[1]
+        # wait for cleanup_facts to finish
+        job_pg = cleanup_facts.wait_until_completed()
 
-        # FIXME
-        assert result == {}
+        # assert expected failure
+        assert not job_pg.is_successful, "cleanup_facts job unexpectedly passed " \
+            "with a basic license - %s" % job_pg
+
+        # assert expected stdout
+        assert job_pg.result_stdout == "CommandError: The System Tracking " \
+            "feature is not enabled for your Tower instance\r\n"
 
     @pytest.mark.skipif(True, reason="Not yet implemented.")
     def test_get_with_basic_license(self, host_local):
@@ -1230,18 +1237,16 @@ class Test_Enterprise_License(Base_Api_Test):
         # post job template
         api_job_templates_pg.post(payload)
 
-    @pytest.mark.skipif(True, reason="Not yet implemented.")
-    def test_run_cleanup_facts(self, cleanup_facts_template):
+    @pytest.mark.fixture_args(older_than='1y', granularity='1y')
+    def test_able_to_cleanup_facts(self, cleanup_facts):
         '''Verifies that cleanup_facts may be run with an enterprise license.'''
-        # create payload
-        payload = dict(extra_vars=dict(granularity="1w", days="1000"))
 
-        # launch cleanup_facts and wait until completed
-        job_pg = cleanup_facts_template.launch(payload).wait_until_completed()
+        # wait for cleanup_facts to finish
+        job_pg = cleanup_facts.wait_until_completed()
 
-        # assess success
-        assert job_pg.is_successful, "Unexpected job status upon launching cleanup_facts with" \
-            "an enterprise license - %s." % job_pg
+        # assert expected failure
+        assert job_pg.is_successful, "cleanup_facts job unexpectedly failed " \
+            "with an enterprise license - %s" % job_pg
 
     @pytest.mark.skipif(True, reason="Not yet implemented.")
     def test_get_with_enterprise_license(self, host_local):
