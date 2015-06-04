@@ -26,7 +26,7 @@ class Test_System_Job_Template(Base_Api_Test):
     TODO - verify schedules
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_enterprise_license_unlimited')
 
     def test_get_as_superuser(self, api_system_job_templates_pg):
         '''
@@ -73,7 +73,14 @@ class Test_System_Job_Template(Base_Api_Test):
             "launching system_job_template\n%s" % json.dumps(result.json, indent=2)
 
         job_pg = system_job_template.get_related('jobs', id=result.json['system_job']).results[0].wait_until_completed()
-        assert job_pg.is_successful, "System job unsuccessful - %s" % job_pg
+
+        # cleanup_facts jobs will fail when no extra_vars are provided
+        if job_pg.job_type == 'cleanup_facts':
+            assert not job_pg.is_successful, "System job unexpectedly succeeded - %s" % job_pg
+            assert job_pg.result_stdout == "CommandError: Both --granularity and --older_than are required.\r\n"
+        # all other system_jobs are expected to succeed
+        else:
+            assert job_pg.is_successful, "System job unexpectedly failed - %s" % job_pg
 
     def test_launch_as_non_superuser(self, system_job_template, non_superusers, user_password):
         '''
@@ -92,7 +99,7 @@ class Test_System_Job_Template(Base_Api_Test):
         '''
 
         launch_pg = system_job_template.get_related('launch')
-        payload = dict(extra_vars=dict(days=300))
+        payload = dict(extra_vars=dict(days='365', older_than='1y', granularity='1y'))
         result = launch_pg.post(payload)
 
         # assert json response

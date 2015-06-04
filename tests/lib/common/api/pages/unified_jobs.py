@@ -22,6 +22,7 @@ class Unified_Job_Page(Base):
     started = property(json_getter('started'), json_setter('started'))
     finished = property(json_getter('finished'), json_setter('finished'))
     launch_type = property(json_getter('launch_type'), json_setter('launch_type'))
+    job_type = property(json_getter('job_type'), json_setter('job_type'))
     job_env = property(json_getter('job_env'), json_setter('job_env'))
     job_args = property(json_getter('job_args'), json_setter('job_args'))
 
