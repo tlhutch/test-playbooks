@@ -378,6 +378,7 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             group_hosts_pg.post(payload)
 
+    @pytest.mark.fixture_args(default_organization=True)
     def test_cannot_launch_job(self, job_template):
         '''Verify that job_templates cannot be launched'''
         with pytest.raises(common.exceptions.Forbidden_Exception):
