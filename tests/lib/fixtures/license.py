@@ -91,18 +91,3 @@ def install_license_unlimited(request, ansible_runner, tower_license_path):
         log.debug("calling teardown install_license_unlimited")
         ansible_runner.file(path=tower_license_path, state='absent')
     request.addfinalizer(teardown)
-
-
-@pytest.fixture(scope='class')
-def install_enterprise_license_unlimited(request, ansible_runner, tower_license_path):
-    '''Install a license where instance_count=unlimited
-    '''
-
-    log.debug("calling fixture install_enterprise_license_unlimited")
-    fname = common.tower.license.generate_license_file(instance_count=sys.maxint, days=365, license_type='enterprise')
-    ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
-
-    def teardown():
-        log.debug("calling teardown install_enterprise_license_unlimited")
-        ansible_runner.file(path=tower_license_path, state='absent')
-    request.addfinalizer(teardown)
