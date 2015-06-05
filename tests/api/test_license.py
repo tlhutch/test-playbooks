@@ -631,7 +631,7 @@ class Test_Legacy_License(Base_Api_Test):
         job_pg = cleanup_facts.wait_until_completed()
 
         # assert expected failure
-        assert job_pg.is_successful == 'failed', "cleanup_facts job " \
+        assert job_pg.status == 'failed', "cleanup_facts job " \
             "unexpectedly passed with a legacy license - %s" % job_pg
 
         # assert expected stdout
@@ -1090,7 +1090,7 @@ class Test_Basic_License(Base_Api_Test):
         job_pg = cleanup_facts.wait_until_completed()
 
         # assert expected failure
-        assert job_pg.is_successful == 'failed', "cleanup_facts job " \
+        assert job_pg.status == 'failed', "cleanup_facts job " \
             "unexpectedly passed with a basic license - %s" % job_pg
 
         # assert expected stdout
