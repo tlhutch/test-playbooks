@@ -368,6 +368,7 @@ class Test_No_License(Base_Api_Test):
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=4)
 
+    @pytest.mark.fixture_args(default_organization=True)
     def test_cannot_add_host(self, inventory, group):
         '''Verify that no hosts can be added'''
         payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
@@ -428,6 +429,7 @@ class Test_AWS_License(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_legacy_license_aws')
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
+    @pytest.mark.trello('https://trello.com/c/Z9UxM1k2')
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.license_info)
@@ -451,7 +453,8 @@ class Test_AWS_License(Base_Api_Test):
             "returned %s." % conf.license_info['license_type']
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
-    @pytest.mark.trello('https://trello.com/c/Llol9BCJ')
+    @pytest.mark.trello('https://trello.com/c/Z9UxM1k2')
+    @pytest.mark.fixture_args(default_organization=True)
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:
@@ -465,6 +468,7 @@ class Test_AWS_License(Base_Api_Test):
         assert 'license_key' in conf.license_info
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
+    @pytest.mark.fixture_args(default_organization=True)
     def test_key_visibility_non_admin(self, api_config_pg, non_admin_user, user_password):
         with self.current_user(non_admin_user.username, user_password):
             conf = api_config_pg.get()
@@ -1044,6 +1048,7 @@ class Test_Basic_License(Base_Api_Test):
             # FIXME
             assert result == {}
 
+    @pytest.mark.fixture_args(default_organization=True)
     def test_unable_to_create_scan_job_template(self, api_job_templates_pg, ssh_credential, host_local):
         '''Verify that scan job templates may not be created with a basic license.'''
         # create playload
