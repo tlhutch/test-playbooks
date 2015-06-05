@@ -1207,17 +1207,6 @@ projects:
       scm_update_on_launch: false
       credential: git@github.com (ssh_key_data)
 
-    - name: tiad_demo.git (github, ssh_key_data)
-      description: 'git@github.com:phips/tiad_demo.git (ssh_key_data)'
-      organization: Ansible, Inc
-      scm_type: git
-      scm_url: 'git@github.com:phips/tiad_demo.git'
-      scm_branch: 'master'
-      scm_clean: false
-      scm_delete_on_update: false
-      scm_update_on_launch: false
-      credential: git@github.com (ssh_key_data)
-
 job_templates:
     - name: 'language_features/loop_plugins.yml (limit:localhost:&local)'
       job_type: check
