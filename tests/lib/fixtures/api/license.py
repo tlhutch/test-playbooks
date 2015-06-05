@@ -14,5 +14,6 @@ def install_enterprise_license_unlimited(request, api_config_pg):
     log.debug("calling fixture install_enterprise_license_unlimited")
     license_info = common.tower.license.generate_license(instance_count=sys.maxint, days=365, license_type='enterprise')
     api_config_pg.post(license_info)
+    request.addfinalizer(api_config_pg.delete)
 
     # FIXME - no way to teardown a license from the API

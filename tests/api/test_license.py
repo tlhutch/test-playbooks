@@ -197,6 +197,7 @@ def install_legacy_license(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31)
     api_config_pg.post(license_info)
+    request.addfinalizer(api_config_pg.delete)
 
 
 @pytest.fixture(scope='class')
@@ -204,6 +205,7 @@ def install_basic_license(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, license_type="basic")
     api_config_pg.post(license_info)
+    request.addfinalizer(api_config_pg.delete)
 
 
 @pytest.fixture(scope='class')
@@ -211,6 +213,7 @@ def install_enterprise_license(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, license_type="enterprise")
     api_config_pg.post(license_info)
+    request.addfinalizer(api_config_pg.delete)
 
 
 @pytest.fixture(scope='class')
@@ -218,6 +221,7 @@ def install_legacy_license_warning(request, api_config_pg, license_instance_coun
     log.debug("calling fixture install_legacy_license_warning")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=1)
     api_config_pg.post(license_info)
+    request.addfinalizer(api_config_pg.delete)
 
 
 @pytest.fixture(scope='class')
@@ -225,6 +229,7 @@ def install_legacy_license_expired(request, api_config_pg, license_instance_coun
     log.debug("calling fixture install_legacy_license_expired")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=-61)
     api_config_pg.post(license_info)
+    request.addfinalizer(api_config_pg.delete)
 
 
 @pytest.fixture(scope='class')
@@ -232,6 +237,7 @@ def install_legacy_license_grace_period(request, api_config_pg, license_instance
     log.debug("calling fixture install_legacy_license_grace_period")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=-1)
     api_config_pg.post(license_info)
+    request.addfinalizer(api_config_pg.delete)
 
 
 @pytest.fixture(scope='class')
@@ -292,6 +298,7 @@ def inventory_no_free_instances(request, authtoken, api_config_pg, api_inventori
                                                  contact_name=fauxfactory.gen_utf8(),
                                                  contact_email="%s@example.com" % fauxfactory.gen_utf8())
     api_config_pg.post(json)
+    request.addfinalizer(api_config_pg.delete)
 
     return obj
 
@@ -444,7 +451,7 @@ class Test_AWS_License(Base_Api_Test):
     @pytest.mark.trello('https://trello.com/c/Z9UxM1k2')
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
-        print json.dumps(conf.license_info)
+        print json.dumps(conf.license_info, indent=2)
 
         # Assert NOT Demo mode
         assert not conf.is_demo_license
