@@ -8,7 +8,7 @@ class Test_Config(Base_Api_Test):
     '''
     Verify the /config endpoint displays the expected information based on the current user
     '''
-    pytestmark = pytest.mark.usefixtures('authtoken')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_privileged_user(self, api_config_pg, privileged_user, user_password):
         '''Verify the project_local_paths and project_base_dir fields are present'''
