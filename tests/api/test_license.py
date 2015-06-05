@@ -620,8 +620,8 @@ class Test_Legacy_License(Base_Api_Test):
         job_pg = cleanup_facts.wait_until_completed()
 
         # assert expected failure
-        assert not job_pg.is_successful, "cleanup_facts job unexpectedly passed " \
-            "with a legacy license - %s" % job_pg
+        assert job_pg.is_successful == 'failed', "cleanup_facts job " \
+            "unexpectedly passed with a legacy license - %s" % job_pg
 
         # assert expected stdout
         assert job_pg.result_stdout == "CommandError: The System Tracking " \
@@ -1076,8 +1076,8 @@ class Test_Basic_License(Base_Api_Test):
         job_pg = cleanup_facts.wait_until_completed()
 
         # assert expected failure
-        assert not job_pg.is_successful, "cleanup_facts job unexpectedly passed " \
-            "with a basic license - %s" % job_pg
+        assert job_pg.is_successful == 'failed', "cleanup_facts job " \
+            "unexpectedly passed with a basic license - %s" % job_pg
 
         # assert expected stdout
         assert job_pg.result_stdout == "CommandError: The System Tracking " \
