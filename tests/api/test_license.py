@@ -127,13 +127,10 @@ def license_instance_count(request):
 
 
 @pytest.fixture(scope='class')
-def install_trial_legacy_license(request, ansible_runner, license_instance_count, tower_license_path):
+def install_trial_legacy_license(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_trial_legacy_license")
-    fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=31, trial=True)
-    # Using ansible, copy the license to the target system
-    contacted = ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
-    for result in contacted.values():
-        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
+    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, trial=True)
+    api_config_pg.post(license_info)
 
 
 @pytest.fixture(scope='function')
@@ -196,60 +193,45 @@ def trial_legacy_license_json(request, license_instance_count):
 
 
 @pytest.fixture(scope='class')
-def install_legacy_license(request, ansible_runner, license_instance_count, tower_license_path):
+def install_legacy_license(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license")
-    fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=31)
-    # Using ansible, copy the license to the target system
-    contacted = ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
-    for result in contacted.values():
-        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
+    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31)
+    api_config_pg.post(license_info)
 
 
 @pytest.fixture(scope='class')
-def install_basic_license(request, ansible_runner, license_instance_count, tower_license_path):
+def install_basic_license(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license")
-    fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=31, license_type="basic")
-    # Using ansible, copy the license to the target system
-    contacted = ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
-    for result in contacted.values():
-        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
+    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, license_type="basic")
+    api_config_pg.post(license_info)
 
 
 @pytest.fixture(scope='class')
-def install_enterprise_license(request, ansible_runner, license_instance_count, tower_license_path):
+def install_enterprise_license(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license")
-    fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=31, license_type="enterprise")
-    # Using ansible, copy the license to the target system
-    contacted = ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
-    for result in contacted.values():
-        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
+    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, license_type="enterprise")
+    api_config_pg.post(license_info)
 
 
 @pytest.fixture(scope='class')
-def install_legacy_license_warning(request, ansible_runner, license_instance_count, tower_license_path):
+def install_legacy_license_warning(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_warning")
-    fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=1)
-    contacted = ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
-    for result in contacted.values():
-        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
+    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=1)
+    api_config_pg.post(license_info)
 
 
 @pytest.fixture(scope='class')
-def install_legacy_license_expired(request, ansible_runner, license_instance_count, tower_license_path):
+def install_legacy_license_expired(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_expired")
-    fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=-61)
-    contacted = ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
-    for result in contacted.values():
-        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
+    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=-61)
+    api_config_pg.post(license_info)
 
 
 @pytest.fixture(scope='class')
-def install_legacy_license_grace_period(request, ansible_runner, license_instance_count, tower_license_path):
+def install_legacy_license_grace_period(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_grace_period")
-    fname = common.tower.license.generate_license_file(instance_count=license_instance_count, days=-1)
-    contacted = ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
-    for result in contacted.values():
-        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
+    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=-1)
+    api_config_pg.post(license_info)
 
 
 @pytest.fixture(scope='class')
@@ -353,6 +335,35 @@ def assert_instance_counts(api_config_pg, license_instance_count, group):
     assert conf.license_info.current_instances == license_instance_count
     assert conf.license_info.free_instances == 0
     assert conf.license_info.available_instances == license_instance_count
+
+
+def assert_mongo_status(ansible_runner, active=False):
+    '''Convenience method to assert the status of mongod.'''
+
+    # Inspect `tower-manage` expectations
+    contacted = ansible_runner.shell('tower-manage uses_mongo')
+    result = contacted.values()[0]
+
+    if active:
+        expected_output = 'MongoDB required'
+        errstr = "Unexpected stdout when checking that MongoDB is active" \
+            "using tower-manage - {stdout}."
+    else:
+        expected_output = 'MongoDB NOT required'
+        errstr = "Unexpected stdout when checking that MongoDB is inactive " \
+            "using tower-manage - {stdout}."
+
+    assert expected_output in result['stdout'], errstr.format(**result)
+
+    # check that MongoDB is now inactive after the downgrade to basic
+    # port 27017 is the default MongoDB port
+    contacted = ansible_runner.wait_for(port='27017', timeout=5)
+    result = contacted.values()[0]
+
+    if active:
+        assert 'failed' not in result, "MongoDB is unexpectedly inactive."
+    else:
+        assert 'failed' in result and result['failed'], "MongoDB is unexpectedly active."
 
 
 @pytest.mark.api
@@ -942,6 +953,9 @@ class Test_Basic_License(Base_Api_Test):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for basic license: %s." % conf.license_info
 
+    def test_mongod_is_not_running(self, ansible_runner, api_config_pg):
+        assert_mongo_status(ansible_runner, active=False)
+
     @pytest.mark.fixture_args(default_organization=True)
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
@@ -1097,12 +1111,9 @@ class Test_Basic_License(Base_Api_Test):
 
     def test_upgrade_to_enteprise(self, enterprise_license_json, api_config_pg, ansible_runner, tower_license_path):
         '''That a basic license can get upgraded to an enterprise license by posting to api_config_pg.'''
-        # check that MongoDB is inactive with basic license
-        # port 27017 is the default MongoDB port
-        contacted = ansible_runner.wait_for(port='27017', timeout=5)
-        result = contacted.values()[0]
 
-        assert result['failed'], "MongoDB is unexpectedly active with a basic license."
+        # check that MongoDB is inactive with basic license
+        assert_mongo_status(ansible_runner, active=False)
 
         # Record the license md5
         contacted = ansible_runner.stat(path=tower_license_path)
@@ -1126,19 +1137,8 @@ class Test_Basic_License(Base_Api_Test):
             "Incorrect license_type returned. Expected 'enterprise,' " \
             "returned %s." % conf.license_info['license_type']
 
-        # check MongoDB using tower-manage
-        contacted = ansible_runner.shell('tower-manage uses_mongo')
-        result = contacted.values()[0]
-
-        assert 'MongoDB required' in result['stdout'], \
-            "Unexpected stdout when checking that MongoDB is active using tower-manage - %s." % result['stdout']
-
-        # check that MongoDB is now active after the upgrade to enterprise
-        # port 27017 is the default MongoDB port
-        contacted = ansible_runner.wait_for(port='27017', timeout=5)
-        result = contacted.values()[0]
-
-        assert 'failed' not in result, "MongoDB is unexpectedly inactive after upgrading to an enterprise license."
+        # check that MongoDB is active with enterprise license
+        assert_mongo_status(ansible_runner, active=True)
 
 
 @pytest.mark.api
@@ -1182,6 +1182,9 @@ class Test_Enterprise_License(Base_Api_Test):
         # assess default features
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for basic license: %s." % conf.license_info
+
+    def test_mongod_is_running(self, ansible_runner, api_config_pg):
+        assert_mongo_status(ansible_runner, active=True)
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
@@ -1298,11 +1301,7 @@ class Test_Enterprise_License(Base_Api_Test):
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg, ansible_runner, tower_license_path):
         '''That an enterprise license can get downgraded to a basic license by posting to api_config_pg.'''
         # check that MongoDB is active with an enterprise license
-        # port 27017 is the default MongoDB port
-        contacted = ansible_runner.wait_for(port='27017', timeout=5)
-        result = contacted.values()[0]
-
-        assert 'failed' not in result, "MongoDB is unexpectedly inactive with an enterprise licese."
+        assert_mongo_status(ansible_runner, active=True)
 
         # Record the license md5
         contacted = ansible_runner.stat(path=tower_license_path)
@@ -1334,8 +1333,4 @@ class Test_Enterprise_License(Base_Api_Test):
             "Unexpected stdout when checking that MongoDB is inactive using tower-manage - %s." % result['stdout']
 
         # check that MongoDB is now inactive after the downgrade to basic
-        # port 27017 is the default MongoDB port
-        contacted = ansible_runner.wait_for(port='27017', timeout=5)
-        result = contacted.values()[0]
-
-        assert result['failed'], "MongoDB is unexpectedly active after downgrading to a basic license."
+        assert_mongo_status(ansible_runner, active=False)
