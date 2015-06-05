@@ -17,7 +17,8 @@ UnittestZero
 # https://github.com/kennethreitz/requests/issues/2568
 requests==2.6.0
 PyYAML
-jsonschema
+# https://github.com/Julian/jsonschema/issues/228
+jsonschema==2.4.0
 inflect
 ansible
 python-dateutil
