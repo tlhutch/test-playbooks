@@ -80,7 +80,7 @@ def login(api, testsetup):
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 @pytest.mark.usefixtures("logout")
-def test_unauthenticated(api, resource, method):
+def test_unauthenticated(api, resource, method, no_license):
 
     expected_response = {
         'HEAD': (httplib.UNAUTHORIZED, 'head'),
@@ -129,7 +129,7 @@ def test_unauthenticated(api, resource, method):
 # Or ...
 #  @pytest.mark.usefixtures("authtoken")
 @pytest.mark.usefixtures("authtoken")
-def test_authenticated(api, resource, method):
+def test_authenticated(api, resource, method, no_license):
 
     expected_response = {
         'HEAD': (httplib.OK, 'head'),

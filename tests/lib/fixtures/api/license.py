@@ -7,6 +7,13 @@ import common.tower.license
 log = logging.getLogger(__name__)
 
 
+@pytest.fixture(scope='function')
+def no_license(request, api_config_pg):
+    '''Remove an active license'''
+    log.debug("deleting any active license")
+    api_config_pg.delete()
+
+
 @pytest.fixture(scope='class')
 def install_enterprise_license_unlimited(request, api_config_pg):
     '''Install an enterprise license where instance_count=unlimited'''
