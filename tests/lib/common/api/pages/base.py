@@ -65,7 +65,7 @@ class Base(Page):
             data = r.json()
         except ValueError, e:
             '''If there was no json to parse'''
-            log.warn("Unable to parse JSON response: %s - %s" % (e, r.text))
+            log.warn("Unable to parse JSON response (%s): %s - '%s'" % (r.status_code, e, r.text))
             data = dict()
 
         exc_str = "%s (%s) received" % (httplib.responses[r.status_code], r.status_code)
