@@ -80,7 +80,6 @@ PY_ARGS+=(--ansible-sudo)
 PY_ARGS+=(--baseurl "https://${INVENTORY_HOST}")
 PY_ARGS+=(--api-debug)
 PY_ARGS+=(--destructive)
-PY_ARGS+=(--instafail)
 
 # Run the tests ...
 py.test -v \
