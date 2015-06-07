@@ -532,6 +532,14 @@ class Test_AWS_License(Base_Api_Test):
         assert not conf.is_aws_license, "After installing a regular license, the /config endpoint reports that a AWS license is active. %s" \
             % json.dumps(conf.json, indent=4)
 
+    @pytest.mark.skipif(True, reason="Not yet implemented. Wait until licenses are function scoped fixtures before enabling this")
+    def test_delete_license(self, api_config_pg):
+        '''Verify the license_info field is empty after deleting the license'''
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            api_config_pg.delete()
+        conf = api_config_pg.get()
+        assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -662,6 +670,14 @@ class Test_Legacy_License(Base_Api_Test):
 
             # FIXME
             assert result == {}
+
+    @pytest.mark.skipif(True, reason="Not yet implemented. Wait until licenses are function scoped fixtures before enabling this")
+    def test_delete_license(self, api_config_pg):
+        '''Verify the license_info field is empty after deleting the license'''
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            api_config_pg.delete()
+        conf = api_config_pg.get()
+        assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
 
 
 @pytest.mark.api
@@ -1147,6 +1163,14 @@ class Test_Basic_License(Base_Api_Test):
         # check that MongoDB is active with enterprise license
         assert_mongo_status(ansible_runner, active=True)
 
+    @pytest.mark.skipif(True, reason="Not yet implemented. Wait until licenses are function scoped fixtures before enabling this")
+    def test_delete_license(self, api_config_pg):
+        '''Verify the license_info field is empty after deleting the license'''
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            api_config_pg.delete()
+        conf = api_config_pg.get()
+        assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -1341,3 +1365,11 @@ class Test_Enterprise_License(Base_Api_Test):
 
         # check that MongoDB is now inactive after the downgrade to basic
         assert_mongo_status(ansible_runner, active=False)
+
+    @pytest.mark.skipif(True, reason="Not yet implemented. Wait until licenses are function scoped fixtures before enabling this")
+    def test_delete_license(self, api_config_pg):
+        '''Verify the license_info field is empty after deleting the license'''
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            api_config_pg.delete()
+        conf = api_config_pg.get()
+        assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
