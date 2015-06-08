@@ -79,8 +79,7 @@ def login(api, testsetup):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
-@pytest.mark.usefixtures("no_license", "logout")
-def test_unauthenticated(api, resource, method):
+def test_unauthenticated(api, resource, method, no_license):
 
     expected_response = {
         'HEAD': (httplib.UNAUTHORIZED, 'head'),
@@ -118,18 +117,19 @@ def test_unauthenticated(api, resource, method):
         if method in exception_matrix[resource]:
             (expected_response_code, expected_response_schema) = exception_matrix[resource][method]
 
-    assert_response(api, resource, method, expected_response_code, expected_response_schema)
+    # Query API with no auth credentials
+    try:
+        previous_auth = api.session.auth
+        api.logout()
+        assert_response(api, resource, method, expected_response_code, expected_response_schema)
+    finally:
+        api.session.auth = previous_auth
 
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
-# Either works ...
-#  @pytest.mark.usefixtures("login")
-# Or ...
-#  @pytest.mark.usefixtures("authtoken")
-@pytest.mark.usefixtures("authtoken", "no_license")
-def test_authenticated(api, resource, method):
+def test_authenticated(api, resource, method, no_license):
 
     expected_response = {
         'HEAD': (httplib.OK, 'head'),
