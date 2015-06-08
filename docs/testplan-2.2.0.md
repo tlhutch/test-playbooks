@@ -45,12 +45,15 @@
 1. [ ] End-to-end integration completed on all supported platforms
 
 ### Feature: Job Template Status
+1. [ ] Verify expected tooltip
+2. [ ] Verify clicking a sparkline job directs the user to the expected page
+3. [ ] Verify sparklines are responsive to live event data
 
 ### Feature: Ad Hoc Commands
 
 ### Feature: Product Differentiation
 
-### Feature: Compliance
+### Feature: System Tracking
 
 ### Feature: UI Refresh
 
@@ -69,5 +72,6 @@ be used as a basis for identifying areas for improvement for future releases.
 Any thoughts, big or small, are valuable.
 
 ### Feedback/issues/concerns
+1. Design work continued late into the release cycle
 
 ### Recommendations
