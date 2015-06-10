@@ -12,6 +12,7 @@ class Job_Template_Page(Unified_Job_Template_Page):
     base_url = '/api/v1/job_templates/{id}/'
 
     url = property(json_getter('url'), json_setter('url'))
+    type = property(json_getter('type'), json_setter('type'))
     inventory = property(json_getter('inventory'), json_setter('inventory'))
     project = property(json_getter('project'), json_setter('project'))
     playbook = property(json_getter('playbook'), json_setter('playbook'))

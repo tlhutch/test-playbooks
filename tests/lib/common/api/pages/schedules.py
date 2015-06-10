@@ -4,6 +4,7 @@ from common.api.pages import json_setter, json_getter, Base_List, Unified_Job_Pa
 class Schedule_Page(Unified_Job_Page):
     base_url = '/api/v1/schedules/{id}/'
     name = property(json_getter('name'), json_setter('name'))
+    type = property(json_getter('type'), json_setter('type'))
     description = property(json_getter('description'), json_setter('description'))
     enabled = property(json_getter('enabled'), json_setter('enabled'))
     dtstart = property(json_getter('dtstart'), json_setter('dtstart'))

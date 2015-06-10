@@ -6,6 +6,7 @@ class Organization_Page(base.Base):
     base_url = '/api/v1/organizations/{id}/'
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
+    type = property(base.json_getter('type'), base.json_setter('type'))
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']

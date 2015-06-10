@@ -6,6 +6,7 @@ class Inventory_Page(Base):
     # FIXME - it would be nice for base_url to always return self.json.url.
     base_url = '/api/v1/inventory/{id}/'
     name = property(json_getter('name'), json_setter('name'))
+    type = property(json_getter('type'), json_setter('type'))
     description = property(json_getter('description'), json_setter('description'))
     variables = property(json_getter('variables'), json_setter('variables'))
 

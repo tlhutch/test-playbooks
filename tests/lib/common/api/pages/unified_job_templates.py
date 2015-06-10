@@ -11,6 +11,7 @@ class Unified_Job_Template_Page(Base):
     base_url = '/api/v1/unified_job_templates/{id}/'
 
     name = property(json_getter('name'), json_setter('name'))
+    type = property(json_getter('type'), json_setter('type'))
     description = property(json_getter('description'), json_setter('description'))
     status = property(json_getter('status'), json_setter('status'))
     last_updated = property(json_getter('last_updated'), json_setter('last_updated'))
