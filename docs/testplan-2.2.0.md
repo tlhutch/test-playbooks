@@ -30,7 +30,14 @@
     [ ] license: 100
 
 ### Upgrade
-1. Upgrade completes on all supported platforms
+1. Upgrade completes on all supported platforms from 2.1.*
+    [ ] ubuntu-12.04
+    [ ] ubuntu-14.04
+    [ ] rhel-6.5
+    [ ] rhel-7.0
+    [ ] centos-6.5
+    [ ] centos-7.0
+2. Upgrade completes on all supported platforms from 2.0.*
     [ ] ubuntu-12.04
     [ ] ubuntu-14.04
     [ ] rhel-6.5
