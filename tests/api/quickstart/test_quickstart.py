@@ -261,6 +261,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 fields = ['username', 'ssh_key_data']
             elif _credential['kind'] == 'vmware':
                 fields = ['username', 'password', 'host']
+            elif _credential['kind'] == 'openstack':
+                fields = ['username', 'project', 'host', 'password']
             else:
                 fields = ['username', 'password']
             assert self.has_credentials('cloud', _credential['kind'], fields=fields)

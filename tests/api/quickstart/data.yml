@@ -411,6 +411,8 @@ credentials:
       cloud: true
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
+      project: '{project}'   # Gathered from credentials.yaml
+      host: '{host}'         # Gathered from credentials.yaml
 
     #
     # Ansible Users team credentials
