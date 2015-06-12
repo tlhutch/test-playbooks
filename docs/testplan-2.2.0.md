@@ -37,6 +37,7 @@
     [ ] rhel-7.0
     [ ] centos-6.5
     [ ] centos-7.0
+
 2. Upgrade completes on all supported platforms from 2.0.*
     [ ] ubuntu-12.04
     [ ] ubuntu-14.04
@@ -57,14 +58,30 @@
 3. [ ] Verify sparklines are responsive to live event data
 
 ### Feature: Ad Hoc Commands
+1. [ ] Assert correct RBAC permission handling
+1. [ ] Assert ad_hoc_command detail page displays correctly
+1. [ ] Assert launch and relaunch with various credential types (including --become escalation) works correctly
 
 ### Feature: Product Differentiation
-
-### Feature: System Tracking
-
-### Feature: UI Refresh
+1. Legacy License
+2. Basic License
+3. Enterprise License
 
 ### Feature: OpenStack Inventory
+
+### Feature: UI Refresh
+1. Dashboard
+    [ ] Displays correctly in latest IE, Chrome and Firefox
+    [ ] Responds correctly to mobile resize
+    [ ] Links and tooltips work as expected
+2. Sparklines
+    [ ] Data accurately reflects reality
+    [ ] Responds to live events
+    [ ] Links and tooltips display correctly
+3. Simplified Jobs page
+4. License page
+
+### Feature: System Tracking
 
 ### Regresion
 1. [ ] UI regression completed
