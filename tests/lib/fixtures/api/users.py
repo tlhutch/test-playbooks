@@ -1,5 +1,6 @@
 import pytest
 import fauxfactory
+import contextlib
 import common.exceptions
 
 
@@ -182,3 +183,19 @@ def many_users(request, authtoken, api_users_pg, user_password):
         request.addfinalizer(obj.delete)
         obj_list.append(obj)
     return obj_list
+
+
+@pytest.fixture(scope="function")
+def current_user(request, testsetup):
+    '''
+    Return a context manager to allow performing operations as an alternate user
+    '''
+    @contextlib.contextmanager
+    def ctx(username=None, password=None):
+        try:
+            previous_auth = testsetup.api.session.auth
+            testsetup.api.login(username, password)
+            yield
+        finally:
+            testsetup.api.session.auth = previous_auth
+    return ctx
