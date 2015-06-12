@@ -1,3 +1,4 @@
+import fauxfactory
 import base
 
 
@@ -25,6 +26,17 @@ class User_Page(base.Base):
         else:
             raise NotImplementedError
         return related.get(**kwargs)
+
+    def add_permission(self, permission_type, project=None, inventory=None):
+        perm_pg = self.get_related('permissions')
+        payload = dict(name=fauxfactory.gen_utf8(),
+                       description=fauxfactory.gen_utf8(),
+                       user=self.id,
+                       permission_type=permission_type,
+                       project=project,
+                       inventory=inventory)
+        result = perm_pg.post(payload)
+        return result
 
 
 class Users_Page(User_Page, base.Base_List):

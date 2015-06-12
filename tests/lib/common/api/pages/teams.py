@@ -1,3 +1,4 @@
+import fauxfactory
 import base
 from users import Users_Page
 
@@ -28,6 +29,17 @@ class Team_Page(base.Base):
             raise NotImplementedError
         related = related_cls(self.testsetup, base_url=self.json['related'][name])
         return related.get(**kwargs)
+
+    def add_permission(self, permission_type, project=None, inventory=None):
+        perm_pg = self.get_related('permissions')
+        payload = dict(name=fauxfactory.gen_utf8(),
+                       description=fauxfactory.gen_utf8(),
+                       user=self.id,
+                       permission_type=permission_type,
+                       project=project,
+                       inventory=inventory)
+        result = perm_pg.post(payload)
+        return result
 
 
 class Teams_Page(Team_Page, base.Base_List):
