@@ -353,12 +353,12 @@ def assert_mongo_status(ansible_runner, active=False):
 
     if active:
         expected_output = 'MongoDB required'
-        errstr = "Unexpected stdout when checking that MongoDB is active" \
-            "using tower-manage - {stdout}."
+        errstr = "Unexpected stdout when checking that MongoDB is active " \
+            "using tower-manage: '{stdout}'"
     else:
         expected_output = 'MongoDB NOT required'
         errstr = "Unexpected stdout when checking that MongoDB is inactive " \
-            "using tower-manage - {stdout}."
+            "using tower-manage: '{stdout}'"
 
     assert expected_output in result['stdout'], errstr.format(**result)
 
