@@ -341,6 +341,10 @@ class Awx_Schema_Project(Awx_Schema_Projects):
         return self.get
 
 
+class Awx_Schema_Org_Projects(Awx_Schema_Projects):
+    resource = '/api/v1/organizations/\d+/projects/'
+
+
 class Awx_Schema_User_Organizations(Awx_Schema_Organizations):
     resource = '/api/v1/users/\d+/organizations/'
 
@@ -351,10 +355,6 @@ class Awx_Schema_User_Admin_Organizations(Awx_Schema_Organizations):
 
 class Awx_Schema_Project_Organizations(Awx_Schema_Organizations):
     resource = '/api/v1/projects/\d+/organizations/'
-
-
-class Awx_Schema_Org_Projects(Awx_Schema_Projects):
-    resource = '/api/v1/organizations/\d+/projects/'
 
 
 class Awx_Schema_Projects_Project_Updates(Awx_Schema):
