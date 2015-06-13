@@ -368,9 +368,9 @@ def assert_mongo_status(ansible_runner, active=False):
     result = contacted.values()[0]
 
     if active:
-        assert 'failed' not in result, "MongoDB is unexpectedly inactive."
+        assert 'failed' not in result, "MongoDB is inactive, but is expected to be active - %s" % json.dumps(result, indent=2)
     else:
-        assert 'failed' in result and result['failed'], "MongoDB is unexpectedly active."
+        assert 'failed' in result and result['failed'], "MongoDB is active, but was expected to be inactive - %s" % json.dumps(result, indent=2)
 
 
 @pytest.mark.api
