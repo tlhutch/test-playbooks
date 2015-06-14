@@ -34,21 +34,6 @@ def backup_license(request, ansible_runner, tower_license_path, tower_aws_path):
 
 
 @pytest.fixture(scope='class')
-def install_license_100(request, ansible_runner, tower_license_path):
-    '''Install a license where instance_count=100
-    '''
-
-    log.debug("calling fixture install_license_100")
-    fname = common.tower.license.generate_license_file(instance_count=100, days=365)
-    ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
-
-    def teardown():
-        log.debug("calling teardown install_license_100")
-        ansible_runner.file(path=tower_license_path, state='absent')
-    request.addfinalizer(teardown)
-
-
-@pytest.fixture(scope='class')
 def install_license_1000(request, ansible_runner, tower_license_path):
     '''Install a license where instance_count=1000
     '''

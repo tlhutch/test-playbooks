@@ -126,7 +126,7 @@ def license_instance_count(request):
     return 10
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='function')
 def install_trial_legacy_license(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_trial_legacy_license")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, trial=True)
@@ -192,15 +192,14 @@ def trial_legacy_license_json(request, license_instance_count):
                                                  contact_email="%s@example.com" % fauxfactory.gen_utf8())
 
 
-@pytest.fixture(scope='class')
-def install_legacy_license(request, api_config_pg, license_instance_count):
+@pytest.fixture(scope='function')
+def install_legacy_license(request, api_config_pg, legacy_license_json):
     log.debug("calling fixture install_legacy_license")
-    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31)
-    api_config_pg.post(license_info)
+    api_config_pg.post(legacy_license_json)
     request.addfinalizer(api_config_pg.delete)
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='function')
 def install_basic_license(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, license_type="basic")
@@ -208,15 +207,15 @@ def install_basic_license(request, api_config_pg, license_instance_count):
     request.addfinalizer(api_config_pg.delete)
 
 
-@pytest.fixture(scope='class')
-def install_enterprise_license(request, api_config_pg, license_instance_count):
-    log.debug("calling fixture install_legacy_license")
-    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, license_type="enterprise")
-    api_config_pg.post(license_info)
+@pytest.fixture(scope='function')
+def install_enterprise_license(request, api_config_pg, enterprise_license_json):
+    log.debug("calling fixture install_enterprise_license")
+    # license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, license_type="enterprise")
+    api_config_pg.post(enterprise_license_json)
     request.addfinalizer(api_config_pg.delete)
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='function')
 def install_legacy_license_warning(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_warning")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=1)
@@ -224,7 +223,7 @@ def install_legacy_license_warning(request, api_config_pg, license_instance_coun
     request.addfinalizer(api_config_pg.delete)
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='function')
 def install_legacy_license_expired(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_expired")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=-61)
@@ -232,7 +231,7 @@ def install_legacy_license_expired(request, api_config_pg, license_instance_coun
     request.addfinalizer(api_config_pg.delete)
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='function')
 def install_legacy_license_grace_period(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_grace_period")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=-1)
@@ -261,18 +260,13 @@ def instance_id(ansible_ec2_facts):
     return ansible_ec2_facts['ansible_ec2_instance_id']
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='function')
 def install_legacy_license_aws(request, ansible_runner, license_instance_count, ami_id, instance_id, tower_aws_path):
     log.debug("calling fixture install_legacy_license_aws")
     fname = common.tower.license.generate_aws_file(instance_count=license_instance_count, ami_id=ami_id, instance_id=instance_id)
     contacted = ansible_runner.copy(src=fname, dest=tower_aws_path, owner='awx', group='awx', mode='0600')
     for result in contacted.values():
         assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
-
-
-@pytest.fixture(scope="function", params=['org_admin', 'org_user', 'anonymous_user'])
-def non_admin_user(request):
-    return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture(scope="function")
@@ -344,21 +338,22 @@ def assert_instance_counts(api_config_pg, license_instance_count, group):
     assert conf.license_info.available_instances == license_instance_count
 
 
-def assert_mongo_status(ansible_runner, active=False):
+def __assert_mongo_status(ansible_runner, running=False, has_license=True):
     '''Convenience method to assert the status of mongod.'''
 
     # Inspect `tower-manage` expectations
     contacted = ansible_runner.shell('tower-manage uses_mongo')
     result = contacted.values()[0]
 
-    if active:
+    if running:
         expected_output = 'MongoDB required'
-        errstr = "Unexpected stdout when checking that MongoDB is active " \
-            "using tower-manage: '{stdout}'"
+        errstr = "Unexpected stdout when asserting MongoDB is running."
     else:
-        expected_output = 'MongoDB NOT required'
-        errstr = "Unexpected stdout when checking that MongoDB is inactive " \
-            "using tower-manage: '{stdout}'"
+        if has_license:
+            expected_output = 'MongoDB NOT required'
+        else:
+            expected_output = 'No license available.'
+        errstr = "Unexpected stdout when asserting MongoDB is not running."
 
     assert expected_output in result['stdout'], errstr.format(**result)
 
@@ -367,10 +362,18 @@ def assert_mongo_status(ansible_runner, active=False):
     contacted = ansible_runner.wait_for(port='27017', timeout=5)
     result = contacted.values()[0]
 
-    if active:
-        assert 'failed' not in result, "MongoDB is inactive, but is expected to be active - %s" % json.dumps(result, indent=2)
+    if running:
+        assert 'failed' not in result, "MongoDB is not running, but is expected to be running - %s" % json.dumps(result, indent=2)
     else:
-        assert 'failed' in result and result['failed'], "MongoDB is active, but was expected to be inactive - %s" % json.dumps(result, indent=2)
+        assert 'failed' in result and result['failed'], "MongoDB is running, but was not expected to be running - %s" % json.dumps(result, indent=2)
+
+
+def assert_mongo_is_not_running(ansible_runner, has_license=True):
+    __assert_mongo_status(ansible_runner, running=False, has_license=has_license)
+
+
+def assert_mongo_is_running(ansible_runner):
+    __assert_mongo_status(ansible_runner, running=True)
 
 
 @pytest.mark.api
@@ -379,12 +382,15 @@ class Test_No_License(Base_Api_Test):
     '''
     Verify /config behaves as expected when no license is installed
     '''
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'no_license')
 
     def test_empty_license_info(self, api_config_pg):
         '''Verify the license_info field is empty'''
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=4)
+
+    def test_mongod_is_not_running(self, ansible_runner, api_config_pg):
+        assert_mongo_is_not_running(ansible_runner, has_license=False)
 
     @pytest.mark.fixture_args(default_organization=True)
     def test_cannot_add_host(self, inventory, group):
@@ -445,7 +451,7 @@ class Test_No_License(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_AWS_License(Base_Api_Test):
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_legacy_license_aws')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license_aws')
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     @pytest.mark.trello('https://trello.com/c/Z9UxM1k2')
@@ -481,15 +487,15 @@ class Test_AWS_License(Base_Api_Test):
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
-    def test_key_visibility_admin(self, api_config_pg):
+    def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
         assert 'license_key' in conf.license_info
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     @pytest.mark.fixture_args(default_organization=True)
-    def test_key_visibility_non_admin(self, api_config_pg, non_admin_user, user_password):
-        with self.current_user(non_admin_user.username, user_password):
+    def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
+        with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
@@ -532,11 +538,9 @@ class Test_AWS_License(Base_Api_Test):
         assert not conf.is_aws_license, "After installing a regular license, the /config endpoint reports that a AWS license is active. %s" \
             % json.dumps(conf.json, indent=4)
 
-    @pytest.mark.skipif(True, reason="Not yet implemented. Wait until licenses are function scoped fixtures before enabling this")
     def test_delete_license(self, api_config_pg):
         '''Verify the license_info field is empty after deleting the license'''
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            api_config_pg.delete()
+        api_config_pg.delete()
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
 
@@ -544,7 +548,7 @@ class Test_AWS_License(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_Legacy_License(Base_Api_Test):
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_legacy_license')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -590,38 +594,23 @@ class Test_Legacy_License(Base_Api_Test):
             pytest.skip("Skipping test because current_instances > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
-    def test_key_visibility_admin(self, api_config_pg):
+    def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
         assert 'license_key' in conf.license_info
 
-    def test_key_visibility_non_admin(self, api_config_pg, non_admin_user, user_password):
-        with self.current_user(non_admin_user.username, user_password):
+    def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
+        with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
-    @pytest.mark.fixture_args(default_organization=True)
-    def test_unable_to_launch_scan_job(self, job_template):
-        '''Verify that scan jobs may not be run with a legacy license.'''
-        payload = dict(job_type='scan', project=None)
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
-        result = exc_info.value[1]
-
-        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}
-
-        # FIXME - figure out how to test this
-        if False:
-            launch_pg = job_template.get_related('launch')
-
-            exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, launch_pg.post)
-            result = exc_info.value[1]
-
-            # FIXME
-            assert result == {}
-
-    def test_unable_to_create_scan_job_template(self, api_job_templates_pg, ssh_credential, host_local):
+    def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
         '''Verify that scan job templates may not be created with a legacy license.'''
+        conf = api_config_pg.get()
+        if conf.license_info.free_instances < 0:
+            pytest.skip("Unable to test because there are no free_instances remaining")
+
         # create playload
         payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
                        description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
@@ -637,6 +626,29 @@ class Test_Legacy_License(Base_Api_Test):
 
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to POST a scan job template with a legacy license - %s." % json.dumps(result)
+
+    @pytest.mark.fixture_args(default_organization=True)
+    def test_unable_to_launch_scan_job(self, api_config_pg, job_template):
+        '''Verify that scan jobs may not be run with a legacy license.'''
+        conf = api_config_pg.get()
+        if conf.license_info.free_instances < 0:
+            pytest.skip("Unable to test because there are no free_instances remaining")
+
+        payload = dict(job_type='scan', project=None)
+        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
+        result = exc_info.value[1]
+
+        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}
+
+        # FIXME - figure out how to test this
+        if False:
+            launch_pg = job_template.get_related('launch')
+
+            exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, launch_pg.post)
+            result = exc_info.value[1]
+
+            # FIXME
+            assert result == {}
 
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
@@ -671,11 +683,9 @@ class Test_Legacy_License(Base_Api_Test):
             # FIXME
             assert result == {}
 
-    @pytest.mark.skipif(True, reason="Not yet implemented. Wait until licenses are function scoped fixtures before enabling this")
     def test_delete_license(self, api_config_pg):
         '''Verify the license_info field is empty after deleting the license'''
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            api_config_pg.delete()
+        api_config_pg.delete()
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
 
@@ -683,7 +693,7 @@ class Test_Legacy_License(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_Legacy_License_Warning(Base_Api_Test):
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_legacy_license_warning')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license_warning')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -731,7 +741,7 @@ class Test_Legacy_License_Warning(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_Legacy_License_Grace_Period(Base_Api_Test):
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_legacy_license_grace_period')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license_grace_period')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -779,7 +789,7 @@ class Test_Legacy_License_Grace_Period(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_Legacy_License_Expired(Base_Api_Test):
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_legacy_license_expired')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license_expired')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -821,15 +831,21 @@ class Test_Legacy_License_Expired(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             job_template.launch_job().wait_until_completed()
 
-    @pytest.mark.skipif(True, reason="Not yet implemented.")
-    @pytest.mark.fixture_args(days=1000)
+    @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job):
         '''Verify that system jobs can be launched'''
         # launch job and assess success
         system_job.wait_until_completed()
-        assert system_job.is_successful, "System job not successful - %s" % system_job
 
-    def test_unable_to_launch_ad_hoc_command_launch(self, api_ad_hoc_commands_pg, host_local, ssh_credential):
+        # cleanup_facts jobs will fail if the license does not support it
+        if system_job.job_type == 'cleanup_facts':
+            assert system_job.status == 'failed', "System job unexpectedly succeeded - %s" % system_job
+            assert system_job.result_stdout == "CommandError: The System Tracking feature is not enabled for your Tower instance\r\n"
+        # all other system_jobs are expected to succeed
+        else:
+            assert system_job.is_successful, "System job unexpectedly failed - %s" % system_job
+
+    def test_unable_to_launch_ad_hoc_command(self, api_ad_hoc_commands_pg, host_local, ssh_credential):
         '''Verify that ad hoc commands cannot be launched from all four ad hoc endpoints.'''
         ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
         inventory_pg = host_local.get_related('inventory')
@@ -870,7 +886,7 @@ class Test_Legacy_License_Expired(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_Legacy_Trial_License(Base_Api_Test):
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_trial_legacy_license')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_trial_legacy_license')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -904,13 +920,13 @@ class Test_Legacy_Trial_License(Base_Api_Test):
             pytest.skip("Skipping test because current_instances > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
-    def test_key_visibility_admin(self, api_config_pg):
+    def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
         assert conf.is_trial_license
 
-    def test_key_visibility_non_admin(self, api_config_pg, non_admin_user, user_password):
-        with self.current_user(non_admin_user.username, user_password):
+    def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
+        with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
@@ -937,7 +953,7 @@ class Test_Legacy_Trial_License(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_Basic_License(Base_Api_Test):
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_basic_license')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_basic_license')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -977,7 +993,7 @@ class Test_Basic_License(Base_Api_Test):
             "Unexpected features returned for basic license: %s." % conf.license_info
 
     def test_mongod_is_not_running(self, ansible_runner, api_config_pg):
-        assert_mongo_status(ansible_runner, active=False)
+        assert_mongo_is_not_running(ansible_runner)
 
     @pytest.mark.fixture_args(default_organization=True)
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
@@ -986,14 +1002,14 @@ class Test_Basic_License(Base_Api_Test):
             pytest.skip("Skipping test because current_instances > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
-    def test_key_visibility_admin(self, api_config_pg):
+    def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
         assert 'license_key' in conf.license_info
 
     @pytest.mark.fixture_args(default_organization=True)
-    def test_key_visibility_non_admin(self, api_config_pg, non_admin_user, user_password):
-        with self.current_user(non_admin_user.username, user_password):
+    def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
+        with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
@@ -1026,8 +1042,11 @@ class Test_Basic_License(Base_Api_Test):
             "license. %s" % json.dumps(result)
 
     @pytest.mark.fixture_args(default_organization=True)
-    def test_unable_to_create_survey(self, job_template_ping, required_survey_spec):
+    def test_unable_to_create_survey(self, api_config_pg, job_template_ping, required_survey_spec):
         '''Verify that attempting to create a survey with a basic license raises a 402.'''
+        conf = api_config_pg.get()
+        if conf.license_info.free_instances < 0:
+            pytest.skip("Unable to test because there are no free_instances remaining")
 
         payload = dict(survey_enabled=True)
         exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template_ping.patch, **payload)
@@ -1067,8 +1086,11 @@ class Test_Basic_License(Base_Api_Test):
             "Unexpected stderr when attempting to register secondary with basic license: %s." % result['stderr']
 
     @pytest.mark.fixture_args(default_organization=True)
-    def test_unable_to_launch_scan_job(self, job_template):
+    def test_unable_to_launch_scan_job(self, api_config_pg, job_template):
         '''Verify that scan jobs may not be run with a basic license.'''
+        conf = api_config_pg.get()
+        if conf.license_info.free_instances < 0:
+            pytest.skip("Unable to test because there are no free_instances remaining")
 
         payload = dict(job_type='scan', project=None)
         exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
@@ -1087,8 +1109,12 @@ class Test_Basic_License(Base_Api_Test):
             assert result == {}
 
     @pytest.mark.fixture_args(default_organization=True)
-    def test_unable_to_create_scan_job_template(self, api_job_templates_pg, ssh_credential, host_local):
+    def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
         '''Verify that scan job templates may not be created with a basic license.'''
+        conf = api_config_pg.get()
+        if conf.license_info.free_instances < 0:
+            pytest.skip("Unable to test because there are no free_instances remaining")
+
         # create playload
         payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
                        description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
@@ -1136,7 +1162,7 @@ class Test_Basic_License(Base_Api_Test):
         '''That a basic license can get upgraded to an enterprise license by posting to api_config_pg.'''
 
         # check that MongoDB is inactive with basic license
-        assert_mongo_status(ansible_runner, active=False)
+        assert_mongo_is_not_running(ansible_runner)
 
         # Record the license md5
         contacted = ansible_runner.stat(path=tower_license_path)
@@ -1161,13 +1187,11 @@ class Test_Basic_License(Base_Api_Test):
             "returned %s." % conf.license_info['license_type']
 
         # check that MongoDB is active with enterprise license
-        assert_mongo_status(ansible_runner, active=True)
+        assert_mongo_is_running(ansible_runner)
 
-    @pytest.mark.skipif(True, reason="Not yet implemented. Wait until licenses are function scoped fixtures before enabling this")
     def test_delete_license(self, api_config_pg):
         '''Verify the license_info field is empty after deleting the license'''
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            api_config_pg.delete()
+        api_config_pg.delete()
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
 
@@ -1175,7 +1199,7 @@ class Test_Basic_License(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_Enterprise_License(Base_Api_Test):
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_enterprise_license')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -1215,7 +1239,13 @@ class Test_Enterprise_License(Base_Api_Test):
             "Unexpected features returned for basic license: %s." % conf.license_info
 
     def test_mongod_is_running(self, ansible_runner, api_config_pg):
-        assert_mongo_status(ansible_runner, active=True)
+        assert_mongo_is_running(ansible_runner)
+
+    def test_delete_license(self, api_config_pg):
+        '''Verify the license_info field is empty after deleting the license'''
+        api_config_pg.delete()
+        conf = api_config_pg.get()
+        assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
@@ -1223,13 +1253,13 @@ class Test_Enterprise_License(Base_Api_Test):
             pytest.skip("Skipping test because current_instances > 0")
         assert_instance_counts(api_config_pg, license_instance_count, group)
 
-    def test_key_visibility_admin(self, api_config_pg):
+    def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
         assert 'license_key' in conf.license_info
 
-    def test_key_visibility_non_admin(self, api_config_pg, non_admin_user, user_password):
-        with self.current_user(non_admin_user.username, user_password):
+    def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
+        with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
@@ -1255,8 +1285,12 @@ class Test_Enterprise_License(Base_Api_Test):
         assert organizations_pg.count > 1, "Multiple organizations are supposed" \
             "to exist, but do not. Instead, only %s exist." % api_organizations_pg.count
 
-    def test_create_survey(self, job_template_ping, required_survey_spec):
+    def test_create_survey(self, api_config_pg, job_template_ping, required_survey_spec):
         '''Verify that surveys may be created with an enterprise license.'''
+        conf = api_config_pg.get()
+        if conf.license_info.free_instances < 0:
+            pytest.skip("Unable to test because there are no free_instances remaining")
+
         job_template_ping.patch(survey_enabled=True)
 
         # post survey
@@ -1284,27 +1318,48 @@ class Test_Enterprise_License(Base_Api_Test):
         assert 'CommandError: Instance already registered with a different hostname' in result['stderr'], \
             "Unexpected stderr when attempting to register secondary with basic license: %s." % result['stderr']
 
-    def test_launch_scan_job(self, job_template_with_job_type_scan):
-        '''Verifies that scan jobs may be launched with an enterprise license.'''
-        # launch the job_template and wait for completion
-        job_pg = job_template_with_job_type_scan.launch().wait_until_completed()
-
-        # assert success
-        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
-
-    def test_post_scan_job_template(self, api_job_templates_pg, ssh_credential, host_local):
+    def test_post_scan_job_template(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
         '''Verifies that scan job templates may be created with an enterprise license.'''
+        conf = api_config_pg.get()
+        if conf.license_info.free_instances < 0:
+            pytest.skip("Unable to test because there are no free_instances remaining")
+
         # create payload
         payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
-                       description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
+                       description="Random scan job_template - %s" % fauxfactory.gen_utf8(),
                        inventory=host_local.get_related('inventory').id,
                        job_type='scan',
                        project=None,
                        credential=ssh_credential.id,
                        playbook='Default', )
 
-        # post job template
+        # post scan_job template
         api_job_templates_pg.post(payload)
+
+    def test_launch_scan_job(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
+        '''Verifies that scan jobs may be launched with an enterprise license.
+        '''
+        conf = api_config_pg.get()
+        if conf.license_info.free_instances < 0:
+            pytest.skip("Unable to test because there are no free_instances remaining")
+
+        # create payload
+        payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                       description="Random scan job_template - %s" % fauxfactory.gen_utf8(),
+                       inventory=host_local.get_related('inventory').id,
+                       job_type='scan',
+                       project=None,
+                       credential=ssh_credential.id,
+                       playbook='Default', )
+
+        # post scan_job template
+        scan_job_template_pg = api_job_templates_pg.post(payload)
+
+        # launch the job_template and wait for completion
+        job_pg = scan_job_template_pg.launch().wait_until_completed()
+
+        # assert success
+        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_able_to_cleanup_facts(self, cleanup_facts):
@@ -1332,7 +1387,7 @@ class Test_Enterprise_License(Base_Api_Test):
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg, ansible_runner, tower_license_path):
         '''That an enterprise license can get downgraded to a basic license by posting to api_config_pg.'''
         # check that MongoDB is active with an enterprise license
-        assert_mongo_status(ansible_runner, active=True)
+        assert_mongo_is_running(ansible_runner)
 
         # Record the license md5
         contacted = ansible_runner.stat(path=tower_license_path)
@@ -1356,20 +1411,5 @@ class Test_Enterprise_License(Base_Api_Test):
             "Incorrect license_type returned. Expected 'basic,' " \
             "returned %s." % conf.license_info['license_type']
 
-        # check MongoDB using tower-manage
-        contacted = ansible_runner.shell('tower-manage uses_mongo')
-        result = contacted.values()[0]
-
-        assert 'MongoDB NOT required' in result['stdout'], \
-            "Unexpected stdout when checking that MongoDB is inactive using tower-manage - %s." % result['stdout']
-
         # check that MongoDB is now inactive after the downgrade to basic
-        assert_mongo_status(ansible_runner, active=False)
-
-    @pytest.mark.skipif(True, reason="Not yet implemented. Wait until licenses are function scoped fixtures before enabling this")
-    def test_delete_license(self, api_config_pg):
-        '''Verify the license_info field is empty after deleting the license'''
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            api_config_pg.delete()
-        conf = api_config_pg.get()
-        assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
+        assert_mongo_is_not_running(ansible_runner)

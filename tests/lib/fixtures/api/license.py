@@ -8,10 +8,11 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='function')
-def no_license(authtoken, api_config_pg):
+def no_license(request, authtoken, api_config_pg):
     '''Remove an active license'''
     log.debug("deleting any active license")
     api_config_pg.delete()
+    request.addfinalizer(api_config_pg.delete)
 
 
 @pytest.fixture(scope='class')
