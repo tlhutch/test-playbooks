@@ -99,6 +99,10 @@ class Connection(object):
         self.url = ""
         self.requests_log = None
 
+        # disable urllib3 warnings
+        if not self.verify:
+            requests.packages.urllib3.disable_warnings()
+
         # prepare session object
         self.session = requests.Session()
         # temporarily disabled to debug adapter problems
