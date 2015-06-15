@@ -216,6 +216,14 @@ def install_enterprise_license(request, api_config_pg, enterprise_license_json):
 
 
 @pytest.fixture(scope='function')
+def install_enterprise_license_expired(request, api_config_pg, license_instance_count):
+    log.debug("calling fixture install_enterprise_license_expired")
+    license_info = common.tower.license.generate_license(license_type='enterprise', instance_count=license_instance_count, days=-61)
+    api_config_pg.post(license_info)
+    request.addfinalizer(api_config_pg.delete)
+
+
+@pytest.fixture(scope='function')
 def install_legacy_license_warning(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_warning")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=1)
@@ -1413,3 +1421,43 @@ class Test_Enterprise_License(Base_Api_Test):
 
         # check that MongoDB is now inactive after the downgrade to basic
         assert_mongo_is_not_running(ansible_runner)
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+class Test_Enterprise_License_Expired(Base_Api_Test):
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_expired')
+
+    def test_metadata(self, api_config_pg):
+        conf = api_config_pg.get()
+        print json.dumps(conf.json, indent=4)
+
+        # Assert NOT Demo mode
+        assert not conf.is_demo_license
+
+        # Assert NOT AWS information
+        assert not conf.is_aws_license
+
+        # Assert the license is valid
+        assert conf.is_valid_license
+
+        # Assert dates look sane?
+        assert conf.license_info.date_expired
+        assert conf.license_info.date_warning
+
+        # Assert grace_period is 30 days + time_remaining
+        assert int(conf.license_info['grace_period_remaining']) == \
+            int(conf.license_info['time_remaining']) + 2592000
+
+        # Assess license type
+        assert conf.license_info['license_type'] == 'enterprise', \
+            "Incorrect license_type returned. Expected 'enterprise' " \
+            "returned %s." % conf.license_info['license_type']
+
+    @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
+    def test_system_job_launch(self, system_job):
+        '''Verify that system jobs can be launched'''
+        # launch job and assess success
+        system_job.wait_until_completed()
+
+        assert system_job.is_successful, "System job unexpectedly failed - %s" % system_job
