@@ -411,6 +411,20 @@ class Test_No_License(Base_Api_Test):
             group_hosts_pg.post(payload)
 
     @pytest.mark.fixture_args(default_organization=True)
+    def test_can_launch_project_update(self, project_ansible_playbooks_git_nowait):
+        '''Verify that project_updates can be launched'''
+        job_pg = project_ansible_playbooks_git_nowait.update().wait_until_completed()
+        assert job_pg.is_successful, "project_update was unsuccessful - %s" % job_pg
+
+    @pytest.mark.fixture_args(default_organization=True)
+    def test_can_launch_inventory_update_but_it_should_fail(self, custom_inventory_source):
+        '''Verify that inventory_updates can be launched, but they fail because
+        no license is installed.'''
+        job_pg = custom_inventory_source.update().wait_until_completed()
+        assert job_pg.status == 'failed', "inventory_update was unexpectedly successful - %s" % job_pg
+        assert 'CommandError: License has expired!' in job_pg.result_stdout
+
+    @pytest.mark.fixture_args(default_organization=True)
     def test_cannot_launch_job(self, job_template):
         '''Verify that job_templates cannot be launched'''
         with pytest.raises(common.exceptions.Forbidden_Exception):
