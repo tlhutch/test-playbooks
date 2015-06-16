@@ -64,8 +64,10 @@ def old_deleted_object(request, ansible_runner, tmpdir):
     obj = request.getfuncargvalue(request.param)
     obj.delete()
 
-    # Create python script to age the deleted object
-    py_script = '''#!/usr/bin/env python
+    # The following is no longer required now that we have 'tower-manage age_deleted'
+    if False:
+        # Create python script to age the deleted object
+        py_script = '''#!/usr/bin/env python
 import sys
 import re
 
@@ -121,20 +123,27 @@ setattr(obj, name_attr, new_name)
 print("AFTER: %s" % new_name.encode('ascii', 'replace'))
 obj.save()
 '''
-    p = tmpdir.mkdir("ansible").join("age.py")
-    fd = p.open('w+')
-    fd.write(py_script)
-    fd.close()
+        p = tmpdir.mkdir("ansible").join("age.py")
+        fd = p.open('w+')
+        fd.write(py_script)
+        fd.close()
 
-    # copy script to test system
-    contacted = ansible_runner.copy(src=fd.name, dest='/tmp/%s' % p.basename, mode='0755')
-    result = contacted.values()[0]
-    assert 'failed' not in result, "ansible.copy unexpectedly failed - %s" % json.dumps(result, indent=2)
+        # copy script to test system
+        contacted = ansible_runner.copy(src=fd.name, dest='/tmp/%s' % p.basename, mode='0755')
+        result = contacted.values()[0]
+        assert 'failed' not in result, "ansible.copy unexpectedly failed - %s" % json.dumps(result, indent=2)
+
+        # age the deleted object
+        contacted = ansible_runner.command("%s %s %s" % (result['dest'], convert_to_camelcase(obj.type), obj.id))
+        result = contacted.values()[0]
+        assert result['rc'] == 0, "ansible.command unexpectedly failed - %s" % json.dumps(result, indent=2)
 
     # age the deleted object
-    contacted = ansible_runner.command("%s %s %s" % (result['dest'], convert_to_camelcase(obj.type), obj.id))
+    cmd = "tower-manage age_deleted --days 365 --id %s --type %s" % (obj.id, convert_to_camelcase(obj.type))
+    contacted = ansible_runner.command(cmd)
     result = contacted.values()[0]
-    assert result['rc'] == 0, "ansible.command unexpectedly failed - %s" % json.dumps(result, indent=2)
+    assert result['rc'] == 0, "tower-manage age_deleted unexpectedly failed - %s" % json.dumps(result, indent=2)
+    assert result['stdout'] == "Aged 1 items"
 
     # return the deleted object
     return obj
