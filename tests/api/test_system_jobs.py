@@ -61,6 +61,11 @@ def old_deleted_object(request, ansible_runner, tmpdir):
 
     Returns the deleted object.
     '''
+    # If a organization is requested, acquire an enterprise license so we can
+    # create and delete the organization
+    if request.param == 'organization':
+        request.getfuncargvalue('install_enterprise_license_unlimited')
+
     obj = request.getfuncargvalue(request.param)
     obj.delete()
 
