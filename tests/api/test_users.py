@@ -98,7 +98,7 @@ class Test_Users(Base_Api_Test):
         with pytest.raises(common.exceptions.NotFound_Exception):
             some_ssh_credential.get()
 
-    def test_org_admins_can_see_all_users(self, user_password, api_users_pg, org_admin, org_users, non_org_users):
+    def test_org_admins_can_see_all_users(self, user_password, api_users_pg, org_admin, org_users, install_enterprise_license_unlimited, non_org_users):
         '''
         Verify the default behavior where a Tower org admin can see users
         outside their organization.

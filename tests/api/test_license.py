@@ -400,7 +400,6 @@ class Test_No_License(Base_Api_Test):
     def test_mongod_is_not_running(self, ansible_runner, api_config_pg):
         assert_mongo_is_not_running(ansible_runner, has_license=False)
 
-    @pytest.mark.fixture_args(default_organization=True)
     def test_cannot_add_host(self, inventory, group):
         '''Verify that no hosts can be added'''
         payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
@@ -410,13 +409,11 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             group_hosts_pg.post(payload)
 
-    @pytest.mark.fixture_args(default_organization=True)
     def test_can_launch_project_update(self, project_ansible_playbooks_git_nowait):
         '''Verify that project_updates can be launched'''
         job_pg = project_ansible_playbooks_git_nowait.update().wait_until_completed()
         assert job_pg.is_successful, "project_update was unsuccessful - %s" % job_pg
 
-    @pytest.mark.fixture_args(default_organization=True)
     def test_can_launch_inventory_update_but_it_should_fail(self, custom_inventory_source):
         '''Verify that inventory_updates can be launched, but they fail because
         no license is installed.'''
@@ -424,7 +421,6 @@ class Test_No_License(Base_Api_Test):
         assert job_pg.status == 'failed', "inventory_update was unexpectedly successful - %s" % job_pg
         assert 'CommandError: License has expired!' in job_pg.result_stdout
 
-    @pytest.mark.fixture_args(default_organization=True)
     def test_cannot_launch_job(self, job_template):
         '''Verify that job_templates cannot be launched'''
         with pytest.raises(common.exceptions.Forbidden_Exception):
@@ -501,7 +497,6 @@ class Test_AWS_License(Base_Api_Test):
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     @pytest.mark.trello('https://trello.com/c/Z9UxM1k2')
-    @pytest.mark.fixture_args(default_organization=True)
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:
@@ -515,7 +510,6 @@ class Test_AWS_License(Base_Api_Test):
         assert 'license_key' in conf.license_info
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
-    @pytest.mark.fixture_args(default_organization=True)
     def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
         with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
@@ -649,7 +643,6 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to POST a scan job template with a legacy license - %s." % json.dumps(result)
 
-    @pytest.mark.fixture_args(default_organization=True)
     def test_unable_to_launch_scan_job(self, api_config_pg, job_template):
         '''Verify that scan jobs may not be run with a legacy license.'''
         conf = api_config_pg.get()
@@ -1017,7 +1010,6 @@ class Test_Basic_License(Base_Api_Test):
     def test_mongod_is_not_running(self, ansible_runner, api_config_pg):
         assert_mongo_is_not_running(ansible_runner)
 
-    @pytest.mark.fixture_args(default_organization=True)
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:
@@ -1029,14 +1021,12 @@ class Test_Basic_License(Base_Api_Test):
         print json.dumps(conf.json, indent=4)
         assert 'license_key' in conf.license_info
 
-    @pytest.mark.fixture_args(default_organization=True)
     def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
         with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
-    @pytest.mark.fixture_args(default_organization=True)
     def test_job_launch(self, api_config_pg, job_template):
         '''Verify that job_templates can be launched while there are remaining free_instances'''
 
@@ -1063,7 +1053,6 @@ class Test_Basic_License(Base_Api_Test):
             "Unexpected repsonse upon trying to create multiple organizations with a basic " \
             "license. %s" % json.dumps(result)
 
-    @pytest.mark.fixture_args(default_organization=True)
     def test_unable_to_create_survey(self, api_config_pg, job_template_ping, required_survey_spec):
         '''Verify that attempting to create a survey with a basic license raises a 402.'''
         conf = api_config_pg.get()
@@ -1107,7 +1096,6 @@ class Test_Basic_License(Base_Api_Test):
         assert result['stderr'] == 'CommandError: Your Tower license does not permit creation of secondary instances.', \
             "Unexpected stderr when attempting to register secondary with basic license: %s." % result['stderr']
 
-    @pytest.mark.fixture_args(default_organization=True)
     def test_unable_to_launch_scan_job(self, api_config_pg, job_template):
         '''Verify that scan jobs may not be run with a basic license.'''
         conf = api_config_pg.get()
@@ -1130,7 +1118,6 @@ class Test_Basic_License(Base_Api_Test):
             # FIXME
             assert result == {}
 
-    @pytest.mark.fixture_args(default_organization=True)
     def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
         '''Verify that scan job templates may not be created with a basic license.'''
         conf = api_config_pg.get()

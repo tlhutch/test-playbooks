@@ -29,3 +29,18 @@ class Config_Page(base.Base):
     def is_trial_license(self):
         return self.is_valid_license and \
             self.license_info.get('trial', False)
+
+    @property
+    def is_legacy_license(self):
+        return self.is_valid_license and \
+            self.license_info.get('license_type', None) == 'legacy'
+
+    @property
+    def is_basic_license(self):
+        return self.is_valid_license and \
+            self.license_info.get('license_type', None) == 'basic'
+
+    @property
+    def is_enterprise_license(self):
+        return self.is_valid_license and \
+            self.license_info.get('license_type', None) == 'enterprise'

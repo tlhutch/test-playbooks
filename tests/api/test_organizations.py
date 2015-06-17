@@ -28,7 +28,7 @@ class Test_Organizations(Base_Api_Test):
         with pytest.raises(common.exceptions.Duplicate_Exception):
             api_organizations_pg.post(payload)
 
-    def test_delete(self, api_organizations_pg, organization):
+    def test_delete(self, api_organizations_pg, install_enterprise_license_unlimited, organization):
         '''
         Verify that deleting an organization actually works.
         '''

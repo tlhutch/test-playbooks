@@ -222,7 +222,7 @@ class Test_Projects(Base_Api_Test):
             "Unexpected project status after cancelling project update (status:%s)" % \
             project_ansible_git_nowait.status
 
-    def test_delete_related_fields(self, project_ansible_playbooks_git):
+    def test_delete_related_fields(self, install_enterprise_license_unlimited, project_ansible_playbooks_git):
         '''Verify that related fields on a deleted resource respond as expected'''
 
         # delete all the projects
