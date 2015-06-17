@@ -60,30 +60,6 @@ def job_with_multi_ask_credential_and_password_in_payload(request, job_template_
     return jobs_pg.results[0]
 
 
-@pytest.fixture(scope="function")
-def job_extra_vars_dict():
-    return dict(Flaff=True, Moffey=False, Maffey=True)
-
-
-@pytest.fixture(scope="function")
-def job_with_extra_vars(request, job_template_with_extra_vars, job_extra_vars_dict):
-    '''
-    Launch the job_template_extra_vars and return a job resource.  Extra vars
-    are passed in with the POST request to the launch endpoint.
-    '''
-    # Locate job_template launch page
-    launch_pg = job_template_with_extra_vars.get_related('launch')
-
-    # Launch with additional extra_vars
-    payload = dict(extra_vars=job_extra_vars_dict)
-    result = launch_pg.post(payload)
-
-    # find and return specific job_pg
-    jobs_pg = job_template_with_extra_vars.get_related('jobs', id=result.json['job'])
-    assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
-    return jobs_pg.results[0]
-
-
 @pytest.fixture(scope="function", params=['project', 'inventory', 'credential'])
 def job_with_deleted_related(request, job_with_status_completed):
     '''Creates and deletes an related attribute of a job'''

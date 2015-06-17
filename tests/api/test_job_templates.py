@@ -62,6 +62,52 @@ class Test_Job_Template(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
+    def test_launch_with_extra_vars_from_job_template(self, job_template_with_extra_vars):
+        '''
+        Verify that when no launch-time extra_vars are provided, variables from
+        the job_template are used.
+        '''
+        launch_pg = job_template_with_extra_vars.get_related('launch')
+
+        # assert values on launch resource
+        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
+
+        # assert job successful
+        job_pg = job_template_with_extra_vars.launch().wait_until_completed()
+        assert job_pg.is_successful, "job unsuccessful - %s" % job_pg
+
+        # assert extra_vars match job_template extra_vars
+        assert job_pg.extra_vars == job_template_with_extra_vars.extra_vars
+
+    def test_launch_with_extra_vars_at_launch(self, job_template_with_extra_vars, job_extra_vars_dict):
+        '''
+        Verify that when launch-time extra_vars are provided, they supercede
+        any variables from the job_template.
+        '''
+        launch_pg = job_template_with_extra_vars.get_related('launch')
+
+        # assert values on launch resource
+        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
+
+        # Launch job_template and assert successful completion
+        job_pg = job_template_with_extra_vars.launch(dict(extra_vars=job_extra_vars_dict)).wait_until_completed()
+        assert job_pg.is_successful, "job unsuccessful - %s" % job_pg
+
+        # assert job.extra_vars match the launch-time extra_vars
+        try:
+            job_extra_vars = json.loads(job_pg.extra_vars)
+        except ValueError:
+            job_extra_vars = {}
+        assert job_extra_vars == job_extra_vars_dict
+
     def test_launch_without_credential(self, job_template_no_credential):
         '''
         Verify the job->launch endpoint does not allow launching a job_template
