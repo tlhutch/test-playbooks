@@ -70,7 +70,7 @@ if __name__ == '__main__':
                 # Using dateutil.parser results in tzoffset problems when comparing times
                 # create_time = dateutil.parser.parse(vol.create_time)
                 create_time = datetime.strptime(vol.create_time, "%Y-%m-%dT%H:%M:%S.%fZ")
-                if opts.age is None or (utcnow - create_time) > timedelta(hours=opts.age):
+                if opts.age is None or (utcnow - create_time) > timedelta(minutes=opts.age):
                     print " * %s %s/%s (%s) %s" % (
                         vol.id, vol.status, vol.attachment_state(),
                         vol.create_time,

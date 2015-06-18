@@ -71,7 +71,7 @@ if __name__ == '__main__':
                 # Using dateutil.parser results in tzoffset problems when comparing times
                 # launch_time = dateutil.parser.parse(i.launch_time)
                 launch_time = datetime.strptime(i.launch_time, "%Y-%m-%dT%H:%M:%S.%fZ")
-                if opts.uptime is None or (utcnow - launch_time) > timedelta(hours=opts.uptime):
+                if opts.uptime is None or (utcnow - launch_time) > timedelta(minutes=opts.uptime):
                     print " * %s %s (%s) %s" % (i.id, i.public_dns_name, i.launch_time,
                                                 ', '.join(["%s=%s" % item for item in i.tags.items()]))
                     if opts.action is not None and hasattr(i, opts.action):
