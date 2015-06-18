@@ -208,11 +208,20 @@ def install_basic_license(request, api_config_pg, license_instance_count):
 
 
 @pytest.fixture(scope='function')
-def install_enterprise_license(request, api_config_pg, enterprise_license_json):
+def install_enterprise_license(request, ansible_runner, api_config_pg, enterprise_license_json):
     log.debug("calling fixture install_enterprise_license")
-    # license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, license_type="enterprise")
     api_config_pg.post(enterprise_license_json)
-    request.addfinalizer(api_config_pg.delete)
+
+    def teardown():
+        # Delete the license
+        api_config_pg.delete()
+
+        # Wait for Mongo to stop
+        contacted = ansible_runner.wait_for(port='27017', delay=5, state='absent')
+        result = contacted.values()[0]
+        assert 'failed' not in result, "An enterprise license was deleted, but it appears mongod is still running."
+
+    request.addfinalizer(teardown)
 
 
 @pytest.fixture(scope='function')
@@ -365,15 +374,16 @@ def __assert_mongo_status(ansible_runner, running=False, has_license=True):
 
     assert expected_output in result['stdout'], errstr.format(**result)
 
-    # check that MongoDB is now inactive after the downgrade to basic
-    # port 27017 is the default MongoDB port
-    contacted = ansible_runner.wait_for(port='27017', timeout=5)
-    result = contacted.values()[0]
-
+    # Assert mongod is in the desired state (the default mongod port is 27017)
     if running:
-        assert 'failed' not in result, "MongoDB is not running, but is expected to be running - %s" % json.dumps(result, indent=2)
+        contacted = ansible_runner.wait_for(port='27017', timeout=5)
+        errstr = "MongoDB is not running, but is expected to be running."
     else:
-        assert 'failed' in result and result['failed'], "MongoDB is running, but was not expected to be running - %s" % json.dumps(result, indent=2)
+        contacted = ansible_runner.wait_for(port='27017', state='absent', delay=5, timeout=5)
+        errstr = "MongoDB is running, but was not expected to be running"
+
+    assert 'failed' not in result, errstr
+    result = contacted.values()[0]
 
 
 def assert_mongo_is_not_running(ansible_runner, has_license=True):
