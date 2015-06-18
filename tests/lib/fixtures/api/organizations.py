@@ -12,7 +12,7 @@ def default_organization(authtoken, api_organizations_pg):
 @pytest.fixture(scope="function")
 def organization(request, authtoken, api_config_pg, api_organizations_pg):
     api_config_pg.get()
-    if not api_config_pg.is_enterprise_license:
+    if api_config_pg.is_basic_license:
         return request.getfuncargvalue('default_organization')
     else:
         payload = dict(name="Random organization %s" % fauxfactory.gen_utf8(),
