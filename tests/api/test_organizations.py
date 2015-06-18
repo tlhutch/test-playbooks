@@ -10,7 +10,7 @@ class Test_Organizations(Base_Api_Test):
     '''
     Verify the /users endpoint displays the expected information based on the current user
     '''
-    pytestmark = pytest.mark.usefixtures('authtoken')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
     # TODO - test_post_as_superuser
     # TODO - test_patch_as_superuser
@@ -28,7 +28,7 @@ class Test_Organizations(Base_Api_Test):
         with pytest.raises(common.exceptions.Duplicate_Exception):
             api_organizations_pg.post(payload)
 
-    def test_delete(self, api_organizations_pg, install_enterprise_license_unlimited, organization):
+    def test_delete(self, api_organizations_pg, organization):
         '''
         Verify that deleting an organization actually works.
         '''
