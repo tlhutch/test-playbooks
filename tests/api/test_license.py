@@ -219,7 +219,12 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
         # Wait for Mongo to stop
         contacted = ansible_runner.wait_for(port='27017', delay=5, state='absent')
         result = contacted.values()[0]
-        assert 'failed' not in result, "An enterprise license was deleted, but it appears mongod is still running."
+        if 'failed' in result:
+            log.warn("mongod did not stop, forcing shutdown")
+            contacted = ansible_runner.command('mongod --shutdown --dbpath /var/lib/mongo')
+            result = contacted.values()[0]
+            assert 'failed' not in result, "Command failed - %s" % json.dumps(result, indent=2)
+            raise Exception("MongoDB was still running after the license was deleted.")
 
     request.addfinalizer(teardown)
 

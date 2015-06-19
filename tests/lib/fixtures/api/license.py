@@ -1,6 +1,7 @@
-import pytest
 import sys
+import json
 import logging
+import pytest
 import common.tower.license
 
 
@@ -30,6 +31,12 @@ def install_enterprise_license_unlimited(request, api_config_pg, ansible_runner)
         # Wait for Mongo to stop
         contacted = ansible_runner.wait_for(port='27017', delay=5, state='absent')
         result = contacted.values()[0]
-        assert 'failed' not in result, "An enterprise license was deleted, but it appears mongod is still running."
+        # Mongo did not stop, force shutdown and raise exception
+        if 'failed' in result:
+            log.warn("mongod failed to stop, forcing shutdown")
+            contacted = ansible_runner.command('mongod --dbpath /var/lib/mongo --shutdown')
+            result = contacted.values()[0]
+            assert result['rc'] == 0, "Failed to shutdown mongod - %s" % json.dump(result, indent=2)
+            raise Exception("MongoDB was still running after the license was deleted.")
 
     request.addfinalizer(teardown)
