@@ -434,7 +434,7 @@ class Test_No_License(Base_Api_Test):
         no license is installed.'''
         job_pg = custom_inventory_source.update().wait_until_completed()
         assert job_pg.status == 'failed', "inventory_update was unexpectedly successful - %s" % job_pg
-        assert 'CommandError: License has expired!' in job_pg.result_stdout
+        assert 'CommandError: No Tower license found!' in job_pg.result_stdout
 
     def test_cannot_launch_job(self, job_template):
         '''Verify that job_templates cannot be launched'''
