@@ -1402,19 +1402,19 @@ schedules:
       enabled: true
       rrule: 'DTSTART:{dtstart}; RRULE:FREQ=MINUTELY;INTERVAL=30;COUNT=10'
 
-    - name: Update inventory-aws every hour
-      _type: inventory_source
-      description: Update every hour with a COUNT=5
-      unified_job_template: Amazon EC2 Instances (inventory-aws)
-      enabled: true
-      rrule: 'DTSTART:{dtstart}; RRULE:FREQ=HOURLY;INTERVAL=1;COUNT=5'
-
-    - name: Update inventory-rax every day
-      _type: inventory_source
-      description: Update every day
-      unified_job_template: Rackspace Cloud Servers (inventory-rax)
-      enabled: true
-      rrule: 'DTSTART:{dtstart}; RRULE:FREQ=DAILY;INTERVAL=1'
+#    - name: Update inventory-aws every hour
+#      _type: inventory_source
+#      description: Update every hour with a COUNT=5
+#      unified_job_template: Amazon EC2 Instances (inventory-aws)
+#      enabled: true
+#      rrule: 'DTSTART:{dtstart}; RRULE:FREQ=HOURLY;INTERVAL=1;COUNT=5'
+#
+#    - name: Update inventory-rax every day
+#      _type: inventory_source
+#      description: Update every day
+#      unified_job_template: Rackspace Cloud Servers (inventory-rax)
+#      enabled: true
+#      rrule: 'DTSTART:{dtstart}; RRULE:FREQ=DAILY;INTERVAL=1'
 
     - name: Launch language_features/tag.yml on Sunday
       _type: job_template
