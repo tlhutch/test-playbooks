@@ -1,3 +1,4 @@
+import types
 import pytest
 import fauxfactory
 
@@ -6,7 +7,15 @@ import fauxfactory
 def default_organization(authtoken, api_organizations_pg):
     match = api_organizations_pg.get(name='Default')
     assert match.count == 1, "No default organization found (%s)" % match.count
-    return match.results.pop()
+    obj = match.results.pop()
+
+    # Protect from inadvertantly deleting the default organization
+    def protect_from_delete(self):
+        raise Exception("Attempting to delete the default organization.  " +
+                        "Have you installed the appropriate Tower license?")
+
+    obj.delete = types.MethodType(protect_from_delete, obj)
+    return obj
 
 
 @pytest.fixture(scope="function")
