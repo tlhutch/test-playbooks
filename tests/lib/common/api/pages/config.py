@@ -44,3 +44,6 @@ class Config_Page(base.Base):
     def is_enterprise_license(self):
         return self.is_valid_license and \
             self.license_info.get('license_type', None) == 'enterprise'
+
+    def has_feature(self, feature):
+        return self.license_info.get('features', {}).get(feature, False)
