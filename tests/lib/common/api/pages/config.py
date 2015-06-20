@@ -45,5 +45,7 @@ class Config_Page(base.Base):
         return self.is_valid_license and \
             self.license_info.get('license_type', None) == 'enterprise'
 
-    def has_feature(self, feature):
-        return self.license_info.get('features', {}).get(feature, False)
+    @property
+    def features(self):
+        '''returns a list of enabled license features'''
+        return [k for k, v in self.license_info.get('features', {}).items() if v]
