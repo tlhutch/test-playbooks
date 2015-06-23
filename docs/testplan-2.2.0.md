@@ -53,35 +53,32 @@
 1. [ ] End-to-end integration completed on all supported platforms
 
 ### Feature: Job Template Status
-1. [ ] Verify expected tooltip
-2. [ ] Verify clicking a sparkline job directs the user to the expected page
-3. [ ] Verify sparklines are responsive to live event data
+1. [X] Verify expected tooltip
+2. [X] Verify clicking a sparkline job directs the user to the expected page
+3. [] Verify sparklines are responsive to live event data
 
 ### Feature: Ad Hoc Commands
-1. [ ] Assert correct RBAC permission handling
-1. [ ] Assert ad_hoc_command detail page displays correctly
+1. [X] Assert correct RBAC permission handling
+1. [X] Assert ad_hoc_command detail page displays correctly
 1. [ ] Assert launch and relaunch with various credential types (including --become escalation) works correctly
 
 ### Feature: Product Differentiation
-1. Legacy License
-2. Basic License
-3. Enterprise License
+1. [ ] Legacy License
+2. [ ] Basic License
+3. [ ] Enterprise License
 
 ### Feature: OpenStack Inventory
 
 ### Feature: UI Refresh
 1. Dashboard
-    [ ] Displays correctly in latest IE, Chrome and Firefox
-    [ ] Responds correctly to mobile resize
-    [ ] Links and tooltips work as expected
-2. Sparklines
-    [ ] Data accurately reflects reality
-    [ ] Responds to live events
-    [ ] Links and tooltips display correctly
-3. Simplified Jobs page
-4. License page
+   [ ] Displays correctly in latest IE, Chrome and Firefox
+   [ ] Responds correctly to mobile resize
+   [ ] Links and tooltips work as expected
+2. [ ] Simplified Jobs page
+3. [ ] License page
 
 ### Feature: System Tracking
+1. [ ] Check no-scan screen for both single host and host compare
 
 ### Regresion
 1. [ ] UI regression completed
