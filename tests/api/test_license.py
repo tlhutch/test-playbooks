@@ -216,8 +216,8 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
         # Delete the license
         api_config_pg.delete()
 
-        # Wait for Mongo to stop
-        contacted = ansible_runner.wait_for(port='27017', delay=5, state='absent')
+        # Wait for Mongo to stop (tower allows 30 seconds before forcing shutdown)
+        contacted = ansible_runner.wait_for(port='27017', timeout=35, state='absent')
         result = contacted.values()[0]
         if 'failed' in result:
             log.warn("mongod did not stop, forcing shutdown")
