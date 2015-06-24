@@ -29,22 +29,22 @@
     * [ ] Vagrant
 
 ### Upgrade
-1. Upgrade completes on all supported platforms from 2.1.*
+1. Upgrade completes on all supported platforms from `2.1.*`
     * [ ] ubuntu-12.04
     * [ ] ubuntu-14.04
     * [ ] rhel-6.5
     * [ ] rhel-7.0
     * [ ] centos-6.5
     * [ ] centos-7.0
-1. Upgrade completes on all supported platforms from 2.0.*
+1. Upgrade completes on all supported platforms from `2.0.*`
     * [ ] ubuntu-12.04
     * [ ] ubuntu-14.04
     * [ ] rhel-6.5
     * [ ] rhel-7.0
     * [ ] centos-6.5
     * [ ] centos-7.0
-1. [ ] Test upgrades using correct and incorrect values for the following fields: [admin_password, pg_password, redis_password, munin_password]
-1. [ ] Test upgrades with data, and ensure projects/inventory/jobs run post-upgrade
+1. Verify the following functions work as intended after upgrade
+    * [ ] Existing project, inventory and job_templates relaunch successfully
 
 ### Integration
 1. [ ] End-to-end integration completed on all supported platforms
@@ -52,7 +52,7 @@
 ### Feature: Job Template Status
 1. [X] Verify expected tooltip
 1. [X] Verify clicking a sparkline job directs the user to the expected page
-1. [] Verify sparklines are responsive to live event data
+1. [ ] Verify sparklines are responsive to live event data
 
 ### Feature: Ad Hoc Commands
 1. [X] Assert correct RBAC permission handling
@@ -60,9 +60,23 @@
 1. [ ] Assert launch and relaunch with various credential types (including --become escalation) works correctly
 
 ### Feature: Product Differentiation
-1. [ ] Legacy License
-1. [ ] Basic License
-1. [ ] Enterprise License
+1. Legacy License
+    * [X] Verified all existing `2.1.x` functionality remains available to users
+    * [X] Verified system_tracking is not available
+        * Unable to create job_templates with `type=scan`
+        * Unable to launch scan jobs
+        * Unable to run cleanup_facts
+1. Basic License
+    * [X] Verified the following features are unavailable (ldap, ha, system_tracking, multiple_organizations and activity_stream)
+        * Unable to create job_templates with `type=scan`
+        * Unable to launch scan jobs
+        * Unable to run cleanup_facts
+        * Unable to authenticate as LDAP user
+        * Unable to view activity_stream data
+        * Unable to create more than 1 organization
+        * Unable to create and launch scan job_templates
+        * Unable to promote primary or secondaries
+1. Enterprise License
 
 ### Feature: OpenStack Inventory
 1. [ ] OpenStack inventory_updates complete successfully on all supported platforms
