@@ -5,6 +5,12 @@
   get_url: url={{aw_repo_url}}/{{awx_setup_path}} dest=/tmp mode=0640
   register: tarball
 
+- name: remove any previously extracted tarball files
+  file:
+    path: '/tmp/setup'
+    state: absent
+    recurse: yes
+
 - name: untar ansible-tower-setup
   shell: tar -xvf {{tarball.dest}} --transform "s|^[^/]*|setup|" chdir=/tmp
 
