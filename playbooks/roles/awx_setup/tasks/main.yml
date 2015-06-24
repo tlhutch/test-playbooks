@@ -2,54 +2,69 @@
 # Download ansible-tower-setup and run the setup playbook
 
 - name: download ansible-tower-setup tarball
-  get_url: url={{aw_repo_url}}/{{awx_setup_path}} dest=/tmp mode=0640
+  get_url:
+    url: '{{aw_repo_url}}/{{awx_setup_path}}'
+    dest: /tmp
+    mode: 0640
   register: tarball
 
 - name: remove any previously extracted tarball files
   file:
     path: '/tmp/setup'
     state: absent
-    recurse: yes
 
 - name: untar ansible-tower-setup
-  shell: tar -xvf {{tarball.dest}} --transform "s|^[^/]*|setup|" chdir=/tmp
+  command: tar -xvf {{tarball.dest}} --transform "s|^[^/]*|setup|"
+  args:
+      chdir: /tmp
 
 - name: is awx already installed?
-  stat: path=/etc/tower/awx.cert
+  stat:
+    path: /etc/tower/awx.cert
   register: is_awx_installed
 
 - name: disable sudo requiretty for root
-  lineinfile: dest=/etc/sudoers
-     state=present
-     regexp='^Defaults:root'
-     line='Defaults:root !requiretty'
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^Defaults:root'
+    line: 'Defaults:root !requiretty'
 
 # Newer tower setup playbooks (>= 2.1.0) require running ./configure first
 - name: determine if a configure script exists
-  stat: path=/tmp/setup/configure
+  stat:
+    path: /tmp/setup/configure
   register: configure_script
 
 - name: create tower_setup_conf.yml file
-  template: src=tower_setup_conf.yml.j2 dest=/tmp/setup/tower_setup_conf.yml
+  template:
+    src: tower_setup_conf.yml.j2
+    dest: /tmp/setup/tower_setup_conf.yml
   when: configure_script.stat.exists == True and (not is_awx_installed.stat.exists or awx_upgrade)
 
 - name: create inventory file
-  template: src=inventory.j2 dest=/tmp/setup/inventory
+  template:
+    src: inventory.j2
+    dest: /tmp/setup/inventory
   when: configure_script.stat.exists == True and (not is_awx_installed.stat.exists or awx_upgrade)
 
 - name: run configure script
   command: ./configure -o tower_setup_conf.yml --no-secondary-prompt
-     chdir=/tmp/setup
+  args:
+    chdir: /tmp/setup
   when: configure_script.stat.exists == True and (not is_awx_installed.stat.exists or awx_upgrade)
 
 - name: create vars.yml file
-  template: src=vars.yml.j2 dest=/tmp/setup/vars.yml
+  template:
+    src: vars.yml.j2
+    dest: /tmp/setup/vars.yml
   when: not is_awx_installed.stat.exists or awx_upgrade
 
 - name: setup.sh
   command: ./setup.sh -e @vars.yml
-     chdir=/tmp/setup
-     # creates=/etc/tower/awx.cert
+  args:
+      chdir: /tmp/setup
+      # creates: /etc/tower/awx.cert
   environment:
     ANSIBLE_HOST_KEY_CHECKING: False
   when: not is_awx_installed.stat.exists or awx_upgrade
