@@ -15,3 +15,6 @@ ec2_name_prefix: '{{ instance_name_prefix }}'
 
 # default list of images
 ec2_images: []
+
+# should termination wait until completed?
+wait: true

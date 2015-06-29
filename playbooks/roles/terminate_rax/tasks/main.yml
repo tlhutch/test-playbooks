@@ -9,7 +9,7 @@
     flavor: '{{ rax_flavor }}'
     image: '{{ item.uuid }}'
     region: '{{ rax_region }}'
-    wait: yes
+    wait: '{{ wait|default(True) }}'
     wait_timeout: 300
     state: absent
   register: rax

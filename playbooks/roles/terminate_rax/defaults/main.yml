@@ -17,3 +17,6 @@ rax_meta:
 # default list of images
 # Use `nova image-list` to determine active images
 rax_images: []
+
+# should termination wait until completed?
+wait: true

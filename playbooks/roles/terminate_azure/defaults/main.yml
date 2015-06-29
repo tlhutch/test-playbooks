@@ -1,1 +1,3 @@
 ---
+# should termination wait until completed?
+wait: true

@@ -5,3 +5,6 @@ skip_delete: false
 
 # default list of images
 rds_images: []
+
+# should termination wait until completed?
+wait: true
