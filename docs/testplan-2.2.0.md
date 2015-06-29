@@ -77,23 +77,41 @@
         * Unable to create and launch scan job_templates
         * Unable to promote primary or secondaries
 1. Enterprise License
+    * [X] Verified the following features are available
+        * Able to create job_templates with `type=scan`
+        * Able to launch scan jobs
+        * Able to run cleanup_facts
+        * Able to authenticate as LDAP user
+        * Able to view activity_stream data
+        * Able to create more than 1 organization
+        * Able to create and launch scan job_templates
+        * Able to promote primary or secondaries
 
 ### Feature: OpenStack Inventory
 1. [ ] OpenStack inventory_updates complete successfully on all supported platforms
-1. [ ] Imported hosts include variables that allow for connectivity with ansible (e.g. ansible_ssh_host)
+2. [ ] Imported hosts include variables that allow for connectivity with ansible (e.g. ansible_ssh_host)
 
 ### Feature: UI Refresh
-1. Dashboard
-   * [ ] Displays correctly in latest IE, Chrome and Firefox
+1. [ ] Dashboard
+   * [X] Displays correctly in latest IE, Chrome and Firefox
    * [ ] Responds correctly to mobile resize
-   * [ ] Links and tooltips work as expected
-1. [ ] Simplified Jobs page
-1. [ ] License page
+   * [X] Links and tooltips work as expected
+2. [X] Simplified Jobs page
+3. [X] License page
 
 ### Feature: System Tracking
-1. [ ] Check no-scan screen for both single host and host compare
+1. [X] Check no-scan screen for both single host and host compare
+2. [X] Check that the UI allows for additional modules: file and custom
+3. [ ] Verify single-host compare functionality
+   * [ ] Verify that the left date picker takes on dates lesser-than or equal-to the right date picker
+   * [ ] Verify that scan results are date-picker appropriate
+   * [ ] Verify scan result content
+4. [ ] Verify host-compare functionality
+   * [ ] Verify that scan results are date-picker appropriate
+   * [ ] Verify scan content - content should be correspond to correct host
+5. [ ] Verify cleanup facts functionality
 
 ### Regresion
-1. [ ] UI regression completed
+1. [X] UI regression completed
 1. [ ] API regression completed
 1. [ ] Munin monitors work on all supported platforms
