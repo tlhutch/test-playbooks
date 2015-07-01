@@ -92,9 +92,9 @@
 2. [ ] Imported hosts include variables that allow for connectivity with ansible (e.g. ansible_ssh_host)
 
 ### Feature: UI Refresh
-1. [ ] Dashboard
+1. [X] Dashboard
    * [X] Displays correctly in latest IE, Chrome and Firefox
-   * [ ] Responds correctly to mobile resize
+   * [X] Responds correctly to mobile resize
    * [X] Links and tooltips work as expected
 2. [X] Simplified Jobs page
 3. [X] License page
@@ -105,13 +105,13 @@
     1. [X] Verify that the files module does not appear until adding appropriate extra_vars to the scan_job
     1. [X] Verify that custom facts display correctly (created project and scan job_template and scan job)
     1. [ ] Verify single-host compare functionality
-       * [ ] Verify that the left date picker accepts values older-than, or equal-to, the right date picker
-       * [ ] Verify that the desired scan results are selected when choosing various date-picker values
+       * [X] Verify that the left date picker accepts values older-than, or equal-to, the right date picker
+       * [X] Verify that the desired scan results are selected when choosing various date-picker values
        * [ ] Verify expected scan result content
     1. [ ] Verify host-compare functionality
-       * [ ] Verify that the desired scan results are selected when choosing various date-picker values
+       * [X] Verify that the desired scan results are selected when choosing various date-picker values
        * [ ] Verify expected scan result content - content should be correspond to correct host
-    1. [ ] Verify cleanup facts functionality - scheduled and manual
+    1. [X] Verify cleanup facts functionality - scheduled and manual
 1. API
     1. [ ] Verify desired result with various HTTP methods on system_tracking endpoints
     1. [ ] Verify endpoint documentation is acceptable
