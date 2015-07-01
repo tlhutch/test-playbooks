@@ -102,21 +102,22 @@
 ### Feature: System Tracking
 1. UI
     1. [X] Verify UI for single host and host-compare with no scan_jobs
-    1. [X] Verify that the files module does not appear until adding appropriate extra_vars to the scan_job
-    1. [X] Verify that custom facts display correctly (created project and scan job_template and scan job)
-    1. [X] Verify single-host compare functionality
+    2. [X] Verify that the files module does not appear until adding appropriate extra_vars to the scan_job
+    3. [X] Verify that custom facts display correctly (created project and scan job_template and scan job)
+    4. [X] Verify that actual diff-ing algorithm
+    5. [X] Verify single-host compare functionality
        * [X] Verify that the left date picker accepts values older-than, or equal-to, the right date picker
        * [X] Verify that the desired scan results are selected when choosing various date-picker values
        * [X] Verify expected scan result content
-    1. [X] Verify host-compare functionality
+    6. [X] Verify host-compare functionality
        * [X] Verify that the desired scan results are selected when choosing various date-picker values
        * [X] Verify expected scan result content - content should be correspond to correct host
-    1. [X] Verify cleanup facts functionality - scheduled and manual
-1. API
+    7. [X] Verify cleanup facts functionality - scheduled and manual
+2. API
     1. [ ] Verify desired result with various HTTP methods on system_tracking endpoints
-    1. [X] Verify endpoint documentation is acceptable
-    1. [X] Verify RBAC behavior with system_tracking endpoints
-    1. [X] Verify bogus inputs
+    2. [X] Verify endpoint documentation is acceptable
+    3. [X] Verify RBAC behavior with system_tracking endpoints
+    4. [X] Verify bogus inputs
 
 ### Regresion
 1. [X] UI regression completed
