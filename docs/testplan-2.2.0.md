@@ -100,18 +100,25 @@
 3. [X] License page
 
 ### Feature: System Tracking
-1. [X] Check no-scan screen for both single host and host compare
-2. [X] Check that the UI allows for additional modules: file and custom
-3. [ ] Verify single-host compare functionality
-   * [ ] Verify that the left date picker takes on dates lesser-than or equal-to the right date picker
-   * [ ] Verify that scan results are date-picker appropriate
-   * [ ] Verify scan result content
-4. [ ] Verify host-compare functionality
-   * [ ] Verify that scan results are date-picker appropriate
-   * [ ] Verify scan content - content should be correspond to correct host
-5. [ ] Verify cleanup facts functionality
+1. UI
+    1. [X] Verify UI for single host and host-compare with no scan_jobs
+    1. [X] Verify that the files module does not appear until adding appropriate extra_vars to the scan_job
+    1. [X] Verify that custom facts display correctly (created project and scan job_template and scan job)
+    1. [ ] Verify single-host compare functionality
+       * [ ] Verify that the left date picker accepts values older-than, or equal-to, the right date picker
+       * [ ] Verify that the desired scan results are selected when choosing various date-picker values
+       * [ ] Verify expected scan result content
+    1. [ ] Verify host-compare functionality
+       * [ ] Verify that the desired scan results are selected when choosing various date-picker values
+       * [ ] Verify expected scan result content - content should be correspond to correct host
+    1. [ ] Verify cleanup facts functionality - scheduled and manual
+1. API
+    1. [ ] Verify desired result with various HTTP methods on system_tracking endpoints
+    1. [ ] Verify endpoint documentation is acceptable
+    1. [ ] Verify RBAC behavior with system_tracking endpoints
+    1. [ ] Verify bogus inputs
 
 ### Regresion
 1. [X] UI regression completed
-1. [ ] API regression completed
-1. [ ] Munin monitors work on all supported platforms
+1. [X] API regression completed
+1. [X] Munin monitors work on all supported platforms
