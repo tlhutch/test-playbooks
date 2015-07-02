@@ -23,12 +23,13 @@
     path: /etc/tower/awx.cert
   register: is_awx_installed
 
-- name: disable sudo requiretty for root
-  lineinfile:
-    dest: /etc/sudoers
-    state: present
-    regexp: '^Defaults:root'
-    line: 'Defaults:root !requiretty'
+- name: create sudoers config
+  template:
+    src: sudoers.j2
+    dest: /etc/sudoers.d/tower-qa
+    mode: '0640'
+    owner: 'root'
+    group: 'root'
 
 # Newer tower setup playbooks (>= 2.1.0) require running ./configure first
 - name: determine if a configure script exists
