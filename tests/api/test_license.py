@@ -217,7 +217,7 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
         api_config_pg.delete()
 
         # Wait for Mongo to stop (tower allows 30 seconds before forcing shutdown)
-        contacted = ansible_runner.wait_for(port='27017', timeout=35, state='absent')
+        contacted = ansible_runner.wait_for(port='27017', state='absent')
         result = contacted.values()[0]
         if 'failed' in result:
             log.warn("mongod did not stop, forcing shutdown")
@@ -384,7 +384,7 @@ def __assert_mongo_status(ansible_runner, running=False, has_license=True):
         contacted = ansible_runner.wait_for(port='27017', timeout=5)
         errstr = "MongoDB is not running, but is expected to be running."
     else:
-        contacted = ansible_runner.wait_for(port='27017', state='absent', delay=5, timeout=5)
+        contacted = ansible_runner.wait_for(port='27017', state='absent', delay=5)
         errstr = "MongoDB is running, but was not expected to be running"
 
     assert 'failed' not in result, errstr
@@ -1107,7 +1107,10 @@ class Test_Basic_License(Base_Api_Test):
         contacted = ansible_runner.shell('tower-manage register_instance --hostname foo --secondary')
         result = contacted.values()[0]
 
+        # FIXME - we now allow creation of secondaries
+
         # assess output
+        assert result['rc'] == 1, "Unexpected error code from tower-manage command"
         assert result['stderr'] == 'CommandError: Your Tower license does not permit creation of secondary instances.', \
             "Unexpected stderr when attempting to register secondary with basic license: %s." % result['stderr']
 
