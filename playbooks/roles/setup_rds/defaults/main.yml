@@ -9,7 +9,7 @@ rds_port: '5432'
 rds_username: 'FIXME'
 rds_password: 'FIXME'
 rds_db_engine: 'postgres'
-rds_engine_version: null
+rds_engine_version: '9.4'
 
 # rds_images should be provided elsewhere (e.g. -e extra_vars)
 rds_images: []
