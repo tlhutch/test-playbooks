@@ -25,3 +25,14 @@ database: internal
 pg_password: {{pg_password}}
 {% endif %}
 {% endif %}
+
+{% if 'mongodb' in hostvars['127.0.0.1'] %}
+mongo: true
+mongo_database: {{hostvars['127.0.0.1']['mongodb']['database']}}
+mongo_host: {{hostvars['127.0.0.1']['mongodb']['host']}}
+mongo_port: {{hostvars['127.0.0.1']['mongodb']['port']}}
+mongo_username: {{hostvars['127.0.0.1']['mongodb']['username']}}
+mongo_password: {{hostvars['127.0.0.1']['mongodb']['password']}}
+{% else %}
+mongo: false
+{% endif %}
