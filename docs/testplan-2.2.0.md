@@ -44,7 +44,9 @@
     * [ ] centos-6.5
     * [ ] centos-7.0
 1. Verify the following functions work as intended after upgrade
-    * [ ] Existing project, inventory and job_templates relaunch successfully
+    * [ ] Launch project_updates for existing projects
+    * [ ] Launch inventory_udpates for existing inventory_source
+    * [ ] Launch, and relaunch, existing job_templates
 
 ### Integration
 1. [ ] End-to-end integration completed on all supported platforms
@@ -57,7 +59,7 @@
 ### Feature: Ad Hoc Commands
 1. [X] Assert correct RBAC permission handling
 1. [X] Assert ad_hoc_command detail page displays correctly
-1. [ ] Assert launch and relaunch with various credential types (including --become escalation) works correctly
+1. [X] Assert launch and relaunch with various credential types (including --become escalation) works correctly
 
 ### Feature: Product Differentiation
 1. Legacy License
@@ -119,7 +121,12 @@
     3. [X] Verify RBAC behavior with system_tracking endpoints
     4. [X] Verify bogus inputs
 
-### Regresion
+### Regression
 1. [X] UI regression completed
 1. [X] API regression completed
 1. [X] Munin monitors work on all supported platforms
+1. [X] Tower HA installation
+    * [X] Registering new secondary instances
+    * [X] Secondary web traffic redirects to primary (excluding /api/v1/ping/)
+    * [ ] Promoting a secondary
+1. [X] Tower LDAP Integration
