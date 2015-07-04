@@ -61,6 +61,11 @@
 1. [X] Assert ad_hoc_command detail page displays correctly
 1. [X] Assert launch and relaunch with various credential types (including --become escalation) works correctly
 
+### Feature: Backup and Restore
+1. [ ] Verify successful backup and restore using setup.sh
+1. [ ] Verify backup/restore successfully restores mongod data
+1. [ ] Verify backup/restore behaves as expected with remote db
+
 ### Feature: Product Differentiation
 1. Legacy License
     * [X] Verified all existing `2.1.x` functionality remains available to users
@@ -126,7 +131,8 @@
 1. [X] API regression completed
 1. [X] Munin monitors work on all supported platforms
 1. [X] Tower HA installation
-    * [X] Registering new secondary instances
-    * [X] Secondary web traffic redirects to primary (excluding /api/v1/ping/)
-    * [ ] Promoting a secondary
+    * [X] Verify successful registration of secondary instances
+    * [X] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
+    * [X] Verify promoting secondary instance
+    * [ ] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
 1. [X] Tower LDAP Integration
