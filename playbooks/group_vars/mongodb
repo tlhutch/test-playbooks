@@ -1,0 +1,5 @@
+---
+mongo_database: 'system_tracking'
+mongo_username: 'tower'
+mongo_password: 'password'
+mongo_port: '27017'

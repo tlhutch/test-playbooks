@@ -30,7 +30,7 @@ pg_password: {{pg_password}}
 {% set mongo_host = groups['mongodb'][0] %}
 mongo: true
 mongo_database: {{ hostvars[mongo_host]['mongo_database'] }}
-mongo_host: {{ hostvars[mongo_host]['mongo_host'] }}
+mongo_host: mongo_host
 mongo_port: {{ hostvars[mongo_host]['mongo_port'] }}
 mongo_username: {{ hostvars[mongo_host]['mongo_username'] }}
 mongo_password: {{ hostvars[mongo_host]['mongo_password'] }}
