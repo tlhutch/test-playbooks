@@ -1,32 +1,17 @@
 ---
 # Tasks to delete (optionally) and create rax instances
 
-- name: ensure awx security group exists
+- name: Ensure security groups exist
   ec2_group:
-    state: present
-    name: '{{ ec2_security_group }}'
-    description: Security Group for AWX instances
-    region: '{{ ec2_region }}'
     aws_access_key: '{{ aws_access_key }}'
     aws_secret_key: '{{ aws_secret_key }}'
-    rules:
-      - proto: tcp
-        from_port: 80
-        to_port: 80
-        cidr_ip: 0.0.0.0/0
-      - proto: tcp
-        from_port: 22
-        to_port: 22
-        cidr_ip: 0.0.0.0/0
-      - proto: tcp
-        from_port: 443
-        to_port: 443
-        cidr_ip: 0.0.0.0/0
-      - proto: tcp
-        from_port: 8080
-        to_port: 8080
-        cidr_ip: 0.0.0.0/0
-  when: ec2_images
+    state: present
+    name: '{{ item.name }}'
+    description: '{{ item.description }}'
+    region: '{{ ec2_region }}'
+    rules: '{{ item.rules }}'
+  when: ec2_security_groups and ec2_images
+  with_items: ec2_security_groups
 
 - name: ensure keypair exists
   ec2_key:
@@ -48,7 +33,7 @@
     instance_tags:
         Name: '{{ec2_name_prefix}}-{{item.name}}'
         ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
-    group: '{{ ec2_security_group }}'
+    group: '{{ item.security_group|default(ec2_security_group) }}'
     key_name: '{{ ec2_key_name }}'
     image: '{{ item.id }}'
     exact_count: 1

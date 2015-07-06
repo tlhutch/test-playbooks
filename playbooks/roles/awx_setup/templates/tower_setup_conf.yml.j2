@@ -26,13 +26,14 @@ pg_password: {{pg_password}}
 {% endif %}
 {% endif %}
 
-{% if 'mongodb' in hostvars['127.0.0.1'] %}
+{% if groups['mongodb']|length > 0 %}
+{% set mongo_host = groups['mongodb'][0] %}
 mongo: true
-mongo_database: {{hostvars['127.0.0.1']['mongodb']['database']}}
-mongo_host: {{hostvars['127.0.0.1']['mongodb']['host']}}
-mongo_port: {{hostvars['127.0.0.1']['mongodb']['port']}}
-mongo_username: {{hostvars['127.0.0.1']['mongodb']['username']}}
-mongo_password: {{hostvars['127.0.0.1']['mongodb']['password']}}
+mongo_database: {{ hostvars[mongo_host]['mongo_database'] }}
+mongo_host: {{ hostvars[mongo_host]['mongo_host'] }}
+mongo_port: {{ hostvars[mongo_host]['mongo_port'] }}
+mongo_username: {{ hostvars[mongo_host]['mongo_username'] }}
+mongo_password: {{ hostvars[mongo_host]['mongo_password'] }}
 {% else %}
 mongo: false
 {% endif %}

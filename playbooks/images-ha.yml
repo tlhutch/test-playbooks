@@ -8,13 +8,45 @@ my_inventory_file: '{{inventory_dir}}/inventory.ha'
 #
 
 ec2_images:
-    - {'name': 'ha-primary-centos-6.5-x86_64',     'user': 'root',     'id': 'ami-8997afe0', 'type': 'm3.medium', 'groups': 'primary'}
-    - {'name': 'ha-secondary-rhel-6.5-x86_64',     'user': 'ec2-user', 'id': 'ami-8d756fe4', 'type': 'm3.medium', 'groups': 'secondary'}
-    - {'name': 'ha-secondary-rhel-7.0-x86_64',     'user': 'ec2-user', 'id': 'ami-785bae10', 'type': 'm3.medium', 'groups': 'secondary'}
-    - {'name': 'ha-secondary-ubuntu-12.04-x86_64', 'user': 'ubuntu',   'id': 'ami-2ccc7a44', 'type': 'm3.medium', 'groups': 'secondary'}
-    - {'name': 'ha-secondary-ubuntu-14.04-x86_64', 'user': 'ubuntu',   'id': 'ami-8caa1ce4', 'type': 'm3.medium', 'groups': 'secondary'}
-    # - {'name': 'ha-mongo-centos-7.0-x86_64',       'user': 'centos',   'id': 'ami-96a818fe', 'type': 'm3.medium', 'groups': 'mongodb' }
+    - {'name': 'ha-primary-centos-6.5-x86_64',     'user': 'root',     'id': 'ami-8997afe0', 'type': 'm3.medium', 'groups': 'primary',   'security_group': 'Tower'}
+    - {'name': 'ha-secondary-rhel-6.5-x86_64',     'user': 'ec2-user', 'id': 'ami-8d756fe4', 'type': 'm3.medium', 'groups': 'secondary', 'security_group': 'Tower'}
+    - {'name': 'ha-secondary-rhel-7.0-x86_64',     'user': 'ec2-user', 'id': 'ami-785bae10', 'type': 'm3.medium', 'groups': 'secondary', 'security_group': 'Tower'}
+    - {'name': 'ha-secondary-ubuntu-12.04-x86_64', 'user': 'ubuntu',   'id': 'ami-2ccc7a44', 'type': 'm3.medium', 'groups': 'secondary', 'security_group': 'Tower'}
+    - {'name': 'ha-secondary-ubuntu-14.04-x86_64', 'user': 'ubuntu',   'id': 'ami-8caa1ce4', 'type': 'm3.medium', 'groups': 'secondary', 'security_group': 'Tower'}
+    - {'name': 'ha-mongo-centos-7.0-x86_64',       'user': 'centos',   'id': 'ami-96a818fe', 'type': 'm3.medium', 'groups': 'mongodb',   'security_group': 'MongoDB'}
 
+ec2_security_groups:
+    - name: Tower
+      description: Security group for Tower instances
+      rules:
+        - proto: tcp
+          from_port: 80
+          to_port: 80
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 22
+          to_port: 22
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 443
+          to_port: 443
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 8080
+          to_port: 8080
+          cidr_ip: 0.0.0.0/0
+
+    - name: MongoDB
+      description: Security group for MongoDB instances
+      rules:
+        - proto: tcp
+          from_port: 22
+          to_port: 22
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 27017
+          to_port: 27017
+          cidr_ip: 0.0.0.0/0
 
 rds_images:
     - name: 'tower'

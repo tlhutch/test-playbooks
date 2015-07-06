@@ -8,14 +8,22 @@
     - role: save_inventory
       my_inventory_file: '{{inventory_dir}}/inventory.ha'
 
-- hosts: 'primary'
+- name: 'Install mongodb'
+  hosts: 'mongodb'
+  gather_facts: yes
+  sudo: yes
+  roles:
+    - role: install_mongodb
+
+- name: 'Group hosts by distribution_major_version'
+  hosts: 'primary'
   tasks:
    - name: group hosts by distribution_major_version
      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
-- name: 'install tower on primary instances'
+- name: 'Install tower on primary instances'
   hosts: 'primary'
   gather_facts: no
   sudo: yes
   roles:
-    - { role: awx_setup }
+    - role: awx_setup
