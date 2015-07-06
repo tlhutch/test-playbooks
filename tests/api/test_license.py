@@ -1107,12 +1107,12 @@ class Test_Basic_License(Base_Api_Test):
         contacted = ansible_runner.shell('tower-manage register_instance --hostname foo --secondary')
         result = contacted.values()[0]
 
-        # FIXME - we now allow creation of secondaries
-
         # assess output
         assert result['rc'] == 1, "Unexpected error code from tower-manage command"
-        assert result['stderr'] == 'CommandError: Your Tower license does not permit creation of secondary instances.', \
-            "Unexpected stderr when attempting to register secondary with basic license: %s." % result['stderr']
+
+        # FIXME - we now allow secondary registration without a license.  Only
+        # promotion is restricted via the license.
+        assert 'CommandError: Instance already registered with a different hostname' in result['stderr']
 
     def test_unable_to_launch_scan_job(self, api_config_pg, job_template):
         '''Verify that scan jobs may not be run with a basic license.'''
