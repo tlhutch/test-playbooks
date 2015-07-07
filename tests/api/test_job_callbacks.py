@@ -337,7 +337,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # issue multiple callbacks, only the first should succeed
         for attempt in range(3):
-            callback_url = "https://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback'])
+            callback_url = "http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback'])
             args = dict(method="POST",
                         timeout=60,
                         status_code=httplib.ACCEPTED,
