@@ -26,7 +26,7 @@ pg_password: {{pg_password}}
 {% endif %}
 {% endif %}
 
-{% if groups['mongodb']|length > 0 %}
+{% if 'mongodb' in groups and groups['mongodb']|length > 0 %}
 {% set mongo_host = groups['mongodb'][0] %}
 mongo: true
 mongo_database: {{ hostvars[mongo_host]['mongo_database'] }}
