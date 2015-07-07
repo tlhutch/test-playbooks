@@ -64,7 +64,7 @@ def install_integration_license(authtoken, api_config_pg, awx_config, tower_lice
 
         # Install/replace license
         logging.debug("installing license {0}".format(tower_license_path))
-        license_json = common.tower.license.generate_license(instance_count=10000, days=60)
+        license_json = common.tower.license.generate_license(instance_count=10000, days=60, license_type='enterprise')
         api_config_pg.post(license_json)
 
 
