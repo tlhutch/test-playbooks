@@ -54,7 +54,7 @@
 ### Feature: Job Template Status
 1. [X] Verify expected tooltip
 1. [X] Verify clicking a sparkline job directs the user to the expected page
-1. [ ] Verify sparklines are responsive to live event data
+1. [X] Verify sparklines are responsive to live event data
 
 ### Feature: Ad Hoc Commands
 1. [X] Assert correct RBAC permission handling
@@ -95,8 +95,8 @@
         * Able to promote primary or secondaries
 
 ### Feature: OpenStack Inventory
-1. [ ] OpenStack inventory_updates complete successfully on all supported platforms
-2. [ ] Imported hosts include variables that allow for connectivity with ansible (e.g. ansible_ssh_host)
+1. [X] OpenStack inventory_updates complete successfully on all supported platforms
+2. [X] Imported hosts include variables that allow for connectivity with ansible (e.g. ansible_ssh_host)
 
 ### Feature: UI Refresh
 1. [X] Dashboard
