@@ -6,5 +6,6 @@
 # Create remote hosts
 #
 - hosts: local
+  connection: local
   roles:
     - { role: destroy_cloud }

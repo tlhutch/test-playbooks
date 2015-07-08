@@ -3,6 +3,7 @@
 
 - name: 'deploy cloud instances'
   hosts: local
+  connection: local
   roles:
     - { role: deploy_cloud }
 
