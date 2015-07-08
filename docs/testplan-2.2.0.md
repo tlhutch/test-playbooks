@@ -134,5 +134,5 @@
     * [X] Verify successful registration of secondary instances
     * [X] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
     * [X] Verify promoting secondary instance
-    * [ ] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
+    * [X] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
 1. [X] Tower LDAP Integration
