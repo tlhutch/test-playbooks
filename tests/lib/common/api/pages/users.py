@@ -12,20 +12,22 @@ class User_Page(base.Base):
     is_superuser = property(base.json_getter('is_superuser'), base.json_setter('is_superuser'))
     email = property(base.json_getter('email'), base.json_setter('email'))
 
-    def get_related(self, name, **kwargs):
-        assert name in self.json['related']
-        if name == 'credentials':
-            from credentials import Credentials_Page
-            related = Credentials_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'permissions':
-            from permissions import Permissions_Page
-            related = Permissions_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name in ('organizations', 'admin_of_organizations'):
-            from organizations import Organizations_Page
-            related = Organizations_Page(self.testsetup, base_url=self.json['related'][name])
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related'], \
+            "No such related attribute '%s'" % attr
+
+        if attr == 'permissions':
+            from permissions import Permissions_Page as cls
+        elif attr == 'credentials':
+            from credentials import Credentials_Page as cls
+        elif attr in ('organizations', 'admin_of_organizations'):
+            from organizations import Organizations_Page as cls
+        elif attr == 'teams':
+            from teams import Teams_Page as cls
         else:
-            raise NotImplementedError
-        return related.get(**kwargs)
+            raise NotImplementedError("No related class found for '%s'" % attr)
+
+        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
     def add_permission(self, permission_type, project=None, inventory=None):
         perm_pg = self.get_related('permissions')
