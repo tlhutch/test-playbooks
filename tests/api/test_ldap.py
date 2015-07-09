@@ -1,0 +1,82 @@
+import pytest
+import common.exceptions
+from tests.api import Base_Api_Test
+
+
+@pytest.fixture(params=["install_legacy_license", "install_enterprise_license"])
+def ldap_enabled_license(request):
+    return request.getfuncargvalue(request.param)
+
+
+@pytest.fixture(params=["no_license", "install_basic_license"])
+def ldap_disabled_license(request):
+    return request.getfuncargvalue(request.param)
+
+
+@pytest.fixture
+def cleanup_ldap_info(request, api_users_pg, api_teams_pg, api_organizations_pg):
+
+    def purge_info():
+        # Delete Users
+        users = api_users_pg.get(username__in=['it_user1', 'eng_admin1'])
+        for user in users.results:
+            user.delete()
+
+        # Delete team
+        teams = api_teams_pg.get(name='LDAP IT')
+        for team in teams.results:
+            team.delete()
+
+        # Delete organization
+        orgs = api_organizations_pg.get(name='LDAP Organization')
+        for org in orgs.results:
+            org.delete()
+
+    purge_info()
+    request.addfinalizer(purge_info)
+
+
+@pytest.mark.ldap
+@pytest.mark.api
+@pytest.mark.destructive
+@pytest.mark.skip_selenium
+class Test_Ldap(Base_Api_Test):
+    '''
+    Verify the /users endpoint displays the expected information based on the current user
+    '''
+    pytestmark = pytest.mark.usefixtures('authtoken')
+
+    def test_objects_created_after_successful_login(self, cleanup_ldap_info, api_users_pg, user_password, current_user, install_legacy_license):
+        '''FIXME'''
+
+        # Login as an LDAP user
+        with current_user(username='it_user1', password=user_password):
+            api_users_pg.get(username='it_user1')
+
+        # Verify the expected user was created
+        users = api_users_pg.get(username='it_user1')
+        assert users.count == 1
+        user = users.results[0]
+
+        # Verify the expected team was created
+        teams = user.get_related('teams', name='LDAP IT')
+        assert teams.count == 1
+
+        # Verify expected organization was created
+        orgs = user.get_related('organizations', name='LDAP Organization')
+        assert orgs.count == 1
+
+    def test_org_admin_ldap_user(self, cleanup_ldap_info, api_users_pg, current_user, user_password):
+        with current_user(username='eng_admin1', password=user_password):
+            user = api_users_pg.get(username='eng_admin1').results[0]
+            orgs = user.get_related('admin_of_organizations', name="LDAP Organization")
+            assert orgs.count == 1
+
+    def test_license_enables_ldap_authentication(self, api_users_pg, user_password, ldap_enabled_license, current_user):
+        with current_user(username='it_user1', password=user_password):
+            api_users_pg.get(username='it_user1')
+
+    def test_license_disables_ldap_authentication(self, api_users_pg, user_password, ldap_disabled_license, current_user):
+        with pytest.raises(common.exceptions.Unauthorized_Exception):
+            with current_user(username='it_user1', password=user_password):
+                api_users_pg.get(username='it_user1')
