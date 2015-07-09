@@ -867,6 +867,10 @@ class Awx_Schema_Org_Teams(Awx_Schema_Teams):
     resource = '/api/v1/organizations/\d+/teams/'
 
 
+class Awx_Schema_User_Teams(Awx_Schema_Teams):
+    resource = '/api/v1/users/\d+/teams/'
+
+
 #
 # /config
 #
