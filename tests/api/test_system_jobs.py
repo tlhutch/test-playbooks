@@ -66,84 +66,11 @@ def old_deleted_object(request, ansible_runner, tmpdir):
     if request.param == 'organization':
         request.getfuncargvalue('install_enterprise_license_unlimited')
 
+    # Delete the requested object
     obj = request.getfuncargvalue(request.param)
     obj.delete()
 
-    # The following is no longer required now that we have 'tower-manage age_deleted'
-    if False:
-        # Create python script to age the deleted object
-        py_script = '''#!/usr/bin/env python
-import sys
-import re
-
-# prepare tower environment
-from awx import prepare_env
-prepare_env()
-from awx.main import models
-
-# parse arguments
-if len(sys.argv) == 3:
-   obj_type = sys.argv[1]
-   obj_id = sys.argv[2]
-else:
-   print "Usage: %s <object-type> <id>" % sys.argv[0]
-   sys.exit(1)
-
-from dateutil.relativedelta import relativedelta
-from dateutil.parser import parse
-
-# Assert tower model exists
-assert hasattr(models, obj_type), "No tower model found matching name: %s" % obj_type
-
-# Assert object id
-obj_cls = getattr(models, obj_type)
-obj = obj_cls.objects.get(id=obj_id)
-
-# Determine id and name attributes
-if obj_type == 'User':
-    name_attr = 'username'
-    active_attr = 'is_active'
-else:
-    name_attr = 'name'
-    active_attr = 'active'
-
-# Assert that the object is inactive
-assert not getattr(obj, active_attr), "The object is still marked as active"
-
-# Extract deleted datestamp from the object name
-obj_name = getattr(obj, name_attr)
-match = re.match(r'^(_\w*_)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+[^_]+)(.*)$', obj_name)
-if not match:
-    raise Exception("Unable to parse name attribute for a datestamp: %s" % obj_name)
-
-try:
-    deleted_date = parse(match.group(2))
-except Exception, e:
-    raise Exception("Unable to parse date from object name: %s - %s" % (match.group(2), e))
-
-deleted_date = deleted_date - relativedelta(days=365)
-print("BEFORE: %s" % obj_name.encode('ascii', 'replace'))
-new_name = match.group(1) + deleted_date.strftime('%Y-%m-%dT%H:%M:%S.%f%z') + match.group(3)
-setattr(obj, name_attr, new_name)
-print("AFTER: %s" % new_name.encode('ascii', 'replace'))
-obj.save()
-'''
-        p = tmpdir.mkdir("ansible").join("age.py")
-        fd = p.open('w+')
-        fd.write(py_script)
-        fd.close()
-
-        # copy script to test system
-        contacted = ansible_runner.copy(src=fd.name, dest='/tmp/%s' % p.basename, mode='0755')
-        result = contacted.values()[0]
-        assert 'failed' not in result, "ansible.copy unexpectedly failed - %s" % json.dumps(result, indent=2)
-
-        # age the deleted object
-        contacted = ansible_runner.command("%s %s %s" % (result['dest'], convert_to_camelcase(obj.type), obj.id))
-        result = contacted.values()[0]
-        assert result['rc'] == 0, "ansible.command unexpectedly failed - %s" % json.dumps(result, indent=2)
-
-    # age the deleted object
+    # Age the deleted object using 'tower-manage'
     cmd = "tower-manage age_deleted --days 365 --id %s --type %s" % (obj.id, convert_to_camelcase(obj.type))
     contacted = ansible_runner.command(cmd)
     result = contacted.values()[0]
