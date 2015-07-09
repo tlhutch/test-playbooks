@@ -10,6 +10,14 @@ def convert_to_camelcase(s):
     return ''.join(x.capitalize() or '_' for x in s.split('_'))
 
 
+@pytest.fixture(scope="function")
+def system_job_with_status_pending(request, system_job):
+    '''
+    Wait for system_job to move from new to queued, and return the system_job.
+    '''
+    return system_job.wait_until_started()
+
+
 @pytest.fixture(scope="function", params=['cleanup_jobs_with_status_completed',
                                           'cleanup_deleted_with_status_completed',
                                           'cleanup_activitystream_with_status_completed',
@@ -273,3 +281,25 @@ class Test_System_Jobs(Base_Api_Test):
         assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
 
         # assert facts have been removed
+
+    def test_cancel_system_job(self, system_job_with_status_pending):
+        '''
+        Test that system_jobs may be cancelled.
+        '''
+        cancel_pg = system_job_with_status_pending.get_related('cancel')
+        assert cancel_pg.can_cancel, "Unable to cancel job (can_cancel:%s)" % cancel_pg.can_cancel
+
+        # cancel job
+        cancel_pg.post()
+
+        # wait for job to cancel
+        system_job_with_status_pending = system_job_with_status_pending.wait_until_status('canceled')
+
+        # xfail if the job completed
+        if system_job_with_status_pending.status == 'successful':
+            pytest.xfail("The test was unable to cancel the system_job in time, and the system_job completed successfully.")
+
+        # assert that the system job was cancelled
+        assert system_job_with_status_pending.status == 'canceled', \
+            "Unexpected job status after cancelling system job (status:%s)" % \
+            system_job_with_status_pending.status

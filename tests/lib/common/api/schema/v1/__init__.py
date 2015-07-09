@@ -517,6 +517,18 @@ class Awx_Schema_System_Job(Awx_Schema_System_Jobs):
         return self.post
 
 
+class Awx_Schema_System_Job_Cancel(Awx_Schema):
+    resource = '/api/v1/system_jobs/\d+/cancel/'
+
+    @property
+    def get(self):
+        return self.load_file('jobs/cancel.yml')
+
+    @property
+    def post(self):
+        return self.load_file('empty.yml')
+
+
 #
 # /job_templates
 #
