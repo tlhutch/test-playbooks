@@ -22,7 +22,7 @@ team:
         permissions: { $ref: '#/definitions/uri' }
         projects: { $ref: '#/definitions/uri' }
         users: { $ref: '#/definitions/uri' }
-      required: [created_by, permissions, users, projects, credentials,
+      required: [permissions, users, projects, credentials,
         activity_stream]
       type: object
     summary_fields:
