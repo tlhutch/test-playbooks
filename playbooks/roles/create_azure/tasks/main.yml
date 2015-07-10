@@ -1,5 +1,5 @@
 ---
-# Tasks to delete (optionally) and create rax instances
+# TODO: Require either ssh_cert_path or password. Whichever is specified, only use it.
 
 # - name: ensure keypair exists
 
@@ -11,13 +11,14 @@
     storage_account: '{{ item.storage_account }}'
     image: '{{ item.image|default(azure_image) }}'
     role_size: '{{ item.role_size|default(azure_role_size) }}'
-    user: '{{ azure_ssh_user }}'
+    user: '{{ item.user|default(azure_ssh_user) }}'
     management_cert_path: '{{ azure_management_cert_path }}'
     subscription_id: '{{ azure_subscription_id }}'
-    ssh_cert_path: '{{ azure_ssh_cert_path }}'
-    password: '{{ azure_ssh_password }}'
+    #ssh_cert_path: '{{ azure_ssh_cert_path }}'
+    password: '{{ item.password|default(azure_ssh_password) }}'
     endpoints: '{{ azure_endpoints }}'
     wait: yes
+    wait_timeout: 1200
   with_items: azure_images
   register: azure
 
@@ -29,17 +30,23 @@
     state=started
     host={{ item.public_dns_name }}
     port=22
+    timeout=1200
   with_items: azure.results
   when: azure_images and azure is defined
 
 - name: add_host
-  add_host: name={{ item.deployment.name }}
-     groups=cloud,azure,{{ item.deployment.name }}
-     ansible_ssh_user={{ azure_ssh_user|default('root') }}
-     ansible_ssh_host={{ item.public_dns_name }}
-     # ansible_ssh_private_key_file={{ azure_keypair_private }}
+  add_host:
+    name: '{{ item.deployment.name }}'
+    groups: 'cloud,azure,{{ item.deployment.name }}'
+    ansible_ssh_user: '{{ item.user|default(azure_ssh_user) }}'
+    ansible_ssh_host: '{{ item.public_dns_name }}'
+    ansible_ssh_pass: '{{ item.password|default(azure_ssh_password) }}'
+    #ansible_ssh_private_key_file: '{{ azure_ssh_cert_path }}'
   with_items: azure.results
   when: azure_images and azure is defined
+
+- debug: var=hostvars[item]
+  with_items: groups['cloud']
 
 # HACK: While sshd may be listening, it may not fully accept connections
 # immediately
