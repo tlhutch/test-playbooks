@@ -212,11 +212,16 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
     log.debug("calling fixture install_enterprise_license")
     api_config_pg.post(enterprise_license_json)
 
+    # Wait for mongod to start
+    contacted = ansible_runner.wait_for(port='27017', state='present')
+    assert 'failed' not in contacted.values()[0], \
+        "MongoDB is not running, but is expected to be running."
+
     def teardown():
         # Delete the license
         api_config_pg.delete()
 
-        # Wait for Mongo to stop (tower allows 30 seconds before forcing shutdown)
+        # Wait for Mongo to stop
         contacted = ansible_runner.wait_for(port='27017', state='absent')
         result = contacted.values()[0]
         if 'failed' in result:
@@ -230,11 +235,31 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
 
 
 @pytest.fixture(scope='function')
-def install_enterprise_license_expired(request, api_config_pg, license_instance_count):
+def install_enterprise_license_expired(request, ansible_runner, api_config_pg, license_instance_count):
     log.debug("calling fixture install_enterprise_license_expired")
     license_info = common.tower.license.generate_license(license_type='enterprise', instance_count=license_instance_count, days=-61)
     api_config_pg.post(license_info)
-    request.addfinalizer(api_config_pg.delete)
+
+    # Wait for mongod to start
+    contacted = ansible_runner.wait_for(port='27017', state='present')
+    assert 'failed' not in contacted.values()[0], \
+        "MongoDB is not running, but is expected to be running."
+
+    def teardown():
+        # Delete the license
+        api_config_pg.delete()
+
+        # Wait for Mongo to stop
+        contacted = ansible_runner.wait_for(port='27017', state='absent')
+        result = contacted.values()[0]
+        if 'failed' in result:
+            log.warn("mongod did not stop, forcing shutdown")
+            contacted = ansible_runner.command('mongod --shutdown --dbpath /var/lib/mongo')
+            result = contacted.values()[0]
+            assert 'failed' not in result, "Command failed - %s" % json.dumps(result, indent=2)
+            raise Exception("MongoDB was still running after the license was deleted.")
+
+    request.addfinalizer(teardown)
 
 
 @pytest.fixture(scope='function')
@@ -386,9 +411,10 @@ def __assert_mongo_status(ansible_runner, running=False, has_license=True):
     else:
         contacted = ansible_runner.wait_for(port='27017', state='absent', delay=5)
         errstr = "MongoDB is running, but was not expected to be running"
+        # FIXME - should we force a --shutdown here?
 
-    assert 'failed' not in result, errstr
     result = contacted.values()[0]
+    assert 'failed' not in result, errstr
 
 
 def assert_mongo_is_not_running(ansible_runner, has_license=True):
