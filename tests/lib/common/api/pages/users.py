@@ -29,14 +29,15 @@ class User_Page(base.Base):
 
         return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
-    def add_permission(self, permission_type, project=None, inventory=None):
+    def add_permission(self, permission_type, project=None, inventory=None, run_ad_hoc_commands=None):
         perm_pg = self.get_related('permissions')
         payload = dict(name=fauxfactory.gen_utf8(),
                        description=fauxfactory.gen_utf8(),
                        user=self.id,
                        permission_type=permission_type,
                        project=project,
-                       inventory=inventory)
+                       inventory=inventory,
+                       run_ad_hoc_commands=run_ad_hoc_commands)
         result = perm_pg.post(payload)
         return result
 
