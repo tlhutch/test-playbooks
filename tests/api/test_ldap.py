@@ -41,13 +41,12 @@ def cleanup_ldap_info(request, api_users_pg, api_teams_pg, api_organizations_pg)
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Ldap(Base_Api_Test):
-    '''
-    Verify the /users endpoint displays the expected information based on the current user
-    '''
     pytestmark = pytest.mark.usefixtures('authtoken')
 
     def test_objects_created_after_successful_login(self, cleanup_ldap_info, api_users_pg, user_password, current_user, install_legacy_license):
-        '''FIXME'''
+        '''Verify that related LDAP objects are created after a successful
+        login.  For example, the LDAP User, associated teams and
+        organizations.'''
 
         # Login as an LDAP user
         with current_user(username='it_user1', password=user_password):
@@ -67,16 +66,25 @@ class Test_Ldap(Base_Api_Test):
         assert orgs.count == 1
 
     def test_org_admin_ldap_user(self, cleanup_ldap_info, api_users_pg, current_user, user_password):
+        '''Verified that an LDAP organization admin relationship is created at
+        login.'''
+
         with current_user(username='eng_admin1', password=user_password):
             user = api_users_pg.get(username='eng_admin1').results[0]
             orgs = user.get_related('admin_of_organizations', name="LDAP Organization")
             assert orgs.count == 1
 
     def test_license_enables_ldap_authentication(self, api_users_pg, user_password, ldap_enabled_license, current_user):
+        '''Verified Tower supports LDAP authentication with a supported
+        license.'''
+
         with current_user(username='it_user1', password=user_password):
             api_users_pg.get(username='it_user1')
 
     def test_license_disables_ldap_authentication(self, api_users_pg, user_password, ldap_disabled_license, current_user):
+        '''Verified Tower disables LDAP authentication with an unsupported
+        license.'''
+
         with pytest.raises(common.exceptions.Unauthorized_Exception):
             with current_user(username='it_user1', password=user_password):
                 api_users_pg.get(username='it_user1')
