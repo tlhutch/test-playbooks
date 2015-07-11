@@ -136,3 +136,7 @@
     * [X] Verify promoting secondary instance
     * [X] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
 1. [X] Tower LDAP Integration
+    * [X] Verify license enablement with legacy or enterprise license (disabled elsewhere).
+    * [X] Verify Tower respects LDAP username and password on login
+    * [X] Verify Tower creates user related objects on successful login (User, Teams, Organization, Admin_of_organizations).
+    * [X] Verify successful login for an Organization Administrator
