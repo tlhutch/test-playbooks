@@ -406,10 +406,10 @@ def __assert_mongo_status(ansible_runner, running=False, has_license=True):
 
     # Assert mongod is in the desired state (the default mongod port is 27017)
     if running:
-        contacted = ansible_runner.wait_for(port='27017', timeout=5)
+        contacted = ansible_runner.wait_for(port='27017', state='present')
         errstr = "MongoDB is not running, but is expected to be running."
     else:
-        contacted = ansible_runner.wait_for(port='27017', state='absent', delay=5)
+        contacted = ansible_runner.wait_for(port='27017', state='absent')
         errstr = "MongoDB is running, but was not expected to be running"
         # FIXME - should we force a --shutdown here?
 
