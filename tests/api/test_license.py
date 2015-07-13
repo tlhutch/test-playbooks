@@ -209,7 +209,15 @@ def install_basic_license(request, api_config_pg, license_instance_count):
 
 @pytest.fixture(scope='function')
 def install_enterprise_license(request, ansible_runner, api_config_pg, enterprise_license_json):
-    log.debug("calling fixture install_enterprise_license")
+    log.debug("calling license fixture install_enterprise_license")
+
+    # Wait for mongod to be absent ... this could unnecesarily delay things,
+    # but avoids the scenario where a previous enterprise license teardown()
+    # completes prematurely, and the server is processing a mongod stop *and*
+    # start request at the time.
+    ansible_runner.wait_for(port='27017', state='absent')
+
+    # POST a license
     api_config_pg.post(enterprise_license_json)
 
     # Wait for mongod to start
@@ -218,6 +226,8 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
         "MongoDB is not running, but is expected to be running."
 
     def teardown():
+        log.debug("calling license teardown install_enterprise_license")
+
         # Delete the license
         api_config_pg.delete()
 
@@ -237,15 +247,23 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
 @pytest.fixture(scope='function')
 def install_enterprise_license_expired(request, ansible_runner, api_config_pg, license_instance_count):
     log.debug("calling fixture install_enterprise_license_expired")
+
+    # Wait for mongod to be absent ... this could unnecesarily delay things,
+    # but avoids the scenario where a previous enterprise license teardown()
+    # completes prematurely, and the server is processing a mongod stop *and*
+    # start request at the time.
+    ansible_runner.wait_for(port='27017', state='absent')
+
     license_info = common.tower.license.generate_license(license_type='enterprise', instance_count=license_instance_count, days=-61)
     api_config_pg.post(license_info)
 
     # Wait for mongod to start
-    contacted = ansible_runner.wait_for(port='27017', state='present')
+    contacted = ansible_runner.wait_for(port='27017', state='present', delay=5)
     assert 'failed' not in contacted.values()[0], \
         "MongoDB is not running, but is expected to be running."
 
     def teardown():
+        log.debug("calling license teardown install_enterprise_license_expired")
         # Delete the license
         api_config_pg.delete()
 

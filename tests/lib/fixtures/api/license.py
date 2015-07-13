@@ -41,8 +41,21 @@ def install_enterprise_license(request, api_config_pg, ansible_runner):
     '''Install an enterprise license where instance_count=unlimited'''
 
     log.debug("calling fixture install_enterprise_license_unlimited")
+
+    # Wait for mongod to be absent ... this could unnecesarily delay things,
+    # but avoids the scenario where a previous enterprise license teardown()
+    # completes prematurely, and the server is processing a mongod stop *and*
+    # start request at the time.
+    ansible_runner.wait_for(port='27017', state='absent')
+
+    # Post the license
     license_info = common.tower.license.generate_license(instance_count=sys.maxint, days=365, license_type='enterprise')
     api_config_pg.post(license_info)
+
+    # Wait for mongod to start
+    contacted = ansible_runner.wait_for(port='27017', state='present', delay=5)
+    assert 'failed' not in contacted.values()[0], \
+        "MongoDB is not running, but is expected to be running."
 
     def teardown():
         # Delete the license
@@ -67,8 +80,21 @@ def install_enterprise_license_unlimited(request, api_config_pg, ansible_runner)
     '''Install an enterprise license where instance_count=unlimited'''
 
     log.debug("calling fixture install_enterprise_license_unlimited")
+
+    # Wait for mongod to be absent ... this could unnecesarily delay things,
+    # but avoids the scenario where a previous enterprise license teardown()
+    # completes prematurely, and the server is processing a mongod stop *and*
+    # start request at the time.
+    ansible_runner.wait_for(port='27017', state='absent')
+
+    # Post the license
     license_info = common.tower.license.generate_license(instance_count=sys.maxint, days=365, license_type='enterprise')
     api_config_pg.post(license_info)
+
+    # Wait for mongod to start
+    contacted = ansible_runner.wait_for(port='27017', state='present', delay=5)
+    assert 'failed' not in contacted.values()[0], \
+        "MongoDB is not running, but is expected to be running."
 
     def teardown():
         # Delete the license
