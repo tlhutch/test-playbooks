@@ -1229,7 +1229,7 @@ class Test_Basic_License(Base_Api_Test):
         host_local.get_related('single_fact')
         host_local.get_related('fact_versions')
 
-    def test_upgrade_to_enteprise(self, enterprise_license_json, api_config_pg, ansible_runner, tower_license_path):
+    def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg, ansible_runner, tower_license_path):
         '''That a basic license can get upgraded to an enterprise license by posting to api_config_pg.'''
 
         # check that MongoDB is inactive with basic license
