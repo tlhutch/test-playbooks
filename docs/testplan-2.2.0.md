@@ -14,15 +14,15 @@
 
 ### Installation
 1. Installation completes successfully on all supported platforms
-    * [ ] ubuntu-12.04
-    * [ ] ubuntu-14.04
-    * [ ] rhel-6.5
-    * [ ] rhel-7.0
-    * [ ] centos-6.5
-    * [ ] centos-7.0
+    * [X] ubuntu-12.04
+    * [X] ubuntu-14.04
+    * [X] rhel-6.5
+    * [X] rhel-7.0
+    * [X] centos-6.5
+    * [X] centos-7.0
 1. Installation completes successfully using supported ansible releases
-    * [ ] ansible-2.0
-    * [ ] ansible-1.9.x
+    * [X] ansible-2.0
+    * [X] ansible-1.9.x
     * [ ] ansible-1.8.x
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed)
@@ -30,12 +30,12 @@
 
 ### Upgrade
 1. Upgrade completes on all supported platforms from `2.1.*`
-    * [ ] ubuntu-12.04
-    * [ ] ubuntu-14.04
-    * [ ] rhel-6.5
-    * [ ] rhel-7.0
-    * [ ] centos-6.5
-    * [ ] centos-7.0
+    * [X] ubuntu-12.04
+    * [X] ubuntu-14.04
+    * [X] rhel-6.5
+    * [X] rhel-7.0
+    * [X] centos-6.5
+    * [X] centos-7.0
 1. Upgrade completes on all supported platforms from `2.0.*`
     * [ ] ubuntu-12.04
     * [ ] ubuntu-14.04
@@ -44,12 +44,12 @@
     * [ ] centos-6.5
     * [ ] centos-7.0
 1. Verify the following functions work as intended after upgrade
-    * [ ] Launch project_updates for existing projects
-    * [ ] Launch inventory_udpates for existing inventory_source
-    * [ ] Launch, and relaunch, existing job_templates
+    * [X] Launch project_updates for existing projects
+    * [X] Launch inventory_udpates for existing inventory_source
+    * [X] Launch, and relaunch, existing job_templates
 
 ### Integration
-1. [ ] End-to-end integration completed on all supported platforms
+1. [X] End-to-end integration completed on all supported platforms
 
 ### Feature: Job Template Status
 1. [X] Verify expected tooltip
