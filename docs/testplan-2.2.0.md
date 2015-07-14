@@ -64,7 +64,7 @@
 ### Feature: Backup and Restore
 1. [X] Verify successful backup and restore using setup.sh
 1. [X] Verify backup/restore successfully restores mongod data
-1. [ ] Verify backup/restore behaves as expected with remote db
+1. [X] Verify backup/restore behaves as expected with remote db - (workaround needed, kbase article forethecoming)
 
 ### Feature: Product Differentiation
 1. Legacy License
