@@ -23,10 +23,10 @@
 1. Installation completes successfully using supported ansible releases
     * [X] ansible-2.0
     * [X] ansible-1.9.x
-    * [ ] ansible-1.8.x
+    * [X] ansible-1.8.x (tested manually)
 1. Installation completes successfully on supported images
-    * [ ] AMI (unlicensed)
-    * [ ] Vagrant
+    * [X] AMI (unlicensed)
+    * [X] Vagrant
 
 ### Upgrade
 1. Upgrade completes on all supported platforms from `2.1.*`
