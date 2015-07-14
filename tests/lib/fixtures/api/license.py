@@ -42,12 +42,6 @@ def install_enterprise_license(request, api_config_pg, ansible_runner):
 
     log.debug("calling fixture install_enterprise_license_unlimited")
 
-    # Wait for mongod to be absent ... this could unnecesarily delay things,
-    # but avoids the scenario where a previous enterprise license teardown()
-    # completes prematurely, and the server is processing a mongod stop *and*
-    # start request at the time.
-    ansible_runner.wait_for(port='27017', state='absent')
-
     # Post the license
     license_info = common.tower.license.generate_license(instance_count=sys.maxint, days=365, license_type='enterprise')
     api_config_pg.post(license_info)
@@ -61,7 +55,10 @@ def install_enterprise_license(request, api_config_pg, ansible_runner):
         # Delete the license
         api_config_pg.delete()
 
-        # Wait for Mongo to stop (tower allows 30 seconds before forcing shutdown)
+        # Pause to allow tower to do it's thing
+        ansible_runner.pause(seconds=15)
+
+        # Wait for mongo to stop listening over the network
         contacted = ansible_runner.wait_for(port='27017', state='absent')
         result = contacted.values()[0]
         # Mongo did not stop, force shutdown and raise exception
@@ -71,6 +68,9 @@ def install_enterprise_license(request, api_config_pg, ansible_runner):
             result = contacted.values()[0]
             assert result['rc'] == 0, "Failed to shutdown mongod - %s" % json.dump(result, indent=2)
             raise Exception("MongoDB was still running after the license was deleted.")
+
+        # Wait for mongod to be absent
+        # ansible_runner.shell('while pidof mongod ; do sleep 1 ; done')
 
     request.addfinalizer(teardown)
 
@@ -85,7 +85,7 @@ def install_enterprise_license_unlimited(request, api_config_pg, ansible_runner)
     # but avoids the scenario where a previous enterprise license teardown()
     # completes prematurely, and the server is processing a mongod stop *and*
     # start request at the time.
-    ansible_runner.wait_for(port='27017', state='absent')
+    ansible_runner.pause(seconds='10')
 
     # Post the license
     license_info = common.tower.license.generate_license(instance_count=sys.maxint, days=365, license_type='enterprise')
@@ -100,6 +100,9 @@ def install_enterprise_license_unlimited(request, api_config_pg, ansible_runner)
         # Delete the license
         api_config_pg.delete()
 
+        # Pause to allow tower to do it's thing
+        ansible_runner.pause(seconds=15)
+
         # Wait for Mongo to stop (tower allows 30 seconds before forcing shutdown)
         contacted = ansible_runner.wait_for(port='27017', state='absent')
         result = contacted.values()[0]
@@ -110,5 +113,8 @@ def install_enterprise_license_unlimited(request, api_config_pg, ansible_runner)
             result = contacted.values()[0]
             assert result['rc'] == 0, "Failed to shutdown mongod - %s" % json.dump(result, indent=2)
             raise Exception("MongoDB was still running after the license was deleted.")
+
+        # Wait for mongod to be absent
+        # ansible_runner.shell('while pidof mongod ; do sleep 1 ; done')
 
     request.addfinalizer(teardown)

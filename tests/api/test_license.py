@@ -201,7 +201,7 @@ def install_legacy_license(request, api_config_pg, legacy_license_json):
 
 @pytest.fixture(scope='function')
 def install_basic_license(request, api_config_pg, license_instance_count):
-    log.debug("calling fixture install_legacy_license")
+    log.debug("calling fixture install_basic_license")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, license_type="basic")
     api_config_pg.post(license_info)
     request.addfinalizer(api_config_pg.delete)
@@ -210,12 +210,6 @@ def install_basic_license(request, api_config_pg, license_instance_count):
 @pytest.fixture(scope='function')
 def install_enterprise_license(request, ansible_runner, api_config_pg, enterprise_license_json):
     log.debug("calling license fixture install_enterprise_license")
-
-    # Wait for mongod to be absent ... this could unnecesarily delay things,
-    # but avoids the scenario where a previous enterprise license teardown()
-    # completes prematurely, and the server is processing a mongod stop *and*
-    # start request at the time.
-    ansible_runner.wait_for(port='27017', state='absent')
 
     # POST a license
     api_config_pg.post(enterprise_license_json)
@@ -231,7 +225,10 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
         # Delete the license
         api_config_pg.delete()
 
-        # Wait for Mongo to stop
+        # Pause to allow tower to do it's thing
+        ansible_runner.pause(seconds=15)
+
+        # Wait for Mongo to stop listening over the network
         contacted = ansible_runner.wait_for(port='27017', state='absent')
         result = contacted.values()[0]
         if 'failed' in result:
@@ -241,18 +238,16 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
             assert 'failed' not in result, "Command failed - %s" % json.dumps(result, indent=2)
             raise Exception("MongoDB was still running after the license was deleted.")
 
+        # Wait for mongod to be absent
+        # contacted = ansible_runner.shell('while pidof mongod ; do sleep 1 ; done')
+        # FIXME - inspect the response?
+
     request.addfinalizer(teardown)
 
 
 @pytest.fixture(scope='function')
 def install_enterprise_license_expired(request, ansible_runner, api_config_pg, license_instance_count):
     log.debug("calling fixture install_enterprise_license_expired")
-
-    # Wait for mongod to be absent ... this could unnecesarily delay things,
-    # but avoids the scenario where a previous enterprise license teardown()
-    # completes prematurely, and the server is processing a mongod stop *and*
-    # start request at the time.
-    ansible_runner.wait_for(port='27017', state='absent')
 
     license_info = common.tower.license.generate_license(license_type='enterprise', instance_count=license_instance_count, days=-61)
     api_config_pg.post(license_info)
@@ -267,6 +262,9 @@ def install_enterprise_license_expired(request, ansible_runner, api_config_pg, l
         # Delete the license
         api_config_pg.delete()
 
+        # Pause to allow tower to do it's thing
+        ansible_runner.pause(seconds=15)
+
         # Wait for Mongo to stop
         contacted = ansible_runner.wait_for(port='27017', state='absent')
         result = contacted.values()[0]
@@ -276,6 +274,10 @@ def install_enterprise_license_expired(request, ansible_runner, api_config_pg, l
             result = contacted.values()[0]
             assert 'failed' not in result, "Command failed - %s" % json.dumps(result, indent=2)
             raise Exception("MongoDB was still running after the license was deleted.")
+
+        # Wait for mongod to be absent
+        # contacted = ansible_runner.shell('while pidof mongod ; do sleep 1 ; done')
+        # FIXME - inspect the response?
 
     request.addfinalizer(teardown)
 
