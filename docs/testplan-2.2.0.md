@@ -62,8 +62,8 @@
 1. [X] Assert launch and relaunch with various credential types (including --become escalation) works correctly
 
 ### Feature: Backup and Restore
-1. [ ] Verify successful backup and restore using setup.sh
-1. [ ] Verify backup/restore successfully restores mongod data
+1. [X] Verify successful backup and restore using setup.sh
+1. [X] Verify backup/restore successfully restores mongod data
 1. [ ] Verify backup/restore behaves as expected with remote db
 
 ### Feature: Product Differentiation
@@ -121,7 +121,7 @@
        * [X] Verify expected scan result content - content should be correspond to correct host
     7. [X] Verify cleanup facts functionality - scheduled and manual
 2. API
-    1. [ ] Verify desired result with various HTTP methods on system_tracking endpoints
+    1. [X] Verify desired result with various HTTP methods on system_tracking endpoints
     2. [X] Verify endpoint documentation is acceptable
     3. [X] Verify RBAC behavior with system_tracking endpoints
     4. [X] Verify bogus inputs
