@@ -1,5 +1,5 @@
 ---
 mongo_database: 'system_tracking'
 mongo_username: 'tower'
-mongo_password: 'password'
+mongo_password: 'fo0m4nchU'
 mongo_port: '27017'
