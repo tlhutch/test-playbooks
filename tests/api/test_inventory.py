@@ -467,3 +467,110 @@ EOF''' % (json.dumps(json_inventory_ipv6, indent=4),))
         Verify that tower can handle inventory_import when --source refers a
         directory.
         '''
+
+
+'''
+# Unprivileged users
+Test supported methods for an unprivileged user
+Test supported methods for an unprivileged user with inventory-read permissions
+Test supported methods for an unprivileged user with inventory-write permissions
+Test supported methods for an unprivileged user with inventory-read and -write permissions
+
+Test supported methods for privileged users
+'''
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+class Test_Inventory_Permissions(Base_Api_Test):
+    '''
+    Tests Tower inventory permissions.
+    '''
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
+
+    def test_unprivileged_user_with_no_permissions(self, inventory, api_inventories_pg, unprivileged_users, user_password):
+        '''
+        Verifies that all HTTP requests are rejected for an unprivileged user except OPTIONS.
+        '''
+        for unprivileged_user in unprivileged_users:
+            with self.current_user(unprivileged_user.username, user_password):
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    inventory.get()
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    inventory.put()
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    inventory.patch()
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    api_inventories_pg.post()
+                api_inventories_pg.options()
+
+    def test_unprivileged_user_with_read_permission(self, inventory, another_inventory, api_inventories_pg,
+                                                    unprivileged_users, user_password):
+        '''
+        Verifies that GET and OPTIONS are accepted for an unprivileged user with inventory-
+        read permissions.
+        '''
+        for unprivileged_user in unprivileged_users:
+            unprivileged_user.add_permission("read", inventory=inventory.id)
+            with self.current_user(unprivileged_user.username, user_password):
+                inventory.get()
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    inventory.put()
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    inventory.patch()
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    api_inventories_pg.post()
+                api_inventories_pg.options()
+
+                # Test GET against another inventory
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    another_inventory.get()
+
+    def test_unprivileged_user_with_write_permission(self, inventory, api_inventories_pg, unprivileged_users, user_password):
+        '''
+        Tests that an unprivileged user with inventory-write permissions
+        may issue GET, PUT and PATCH requests to their inventory.
+        '''
+        for unprivileged_user in unprivileged_users:
+            unprivileged_user.add_permission("write", inventory=inventory.id)
+            with self.current_user(unprivileged_user.username, user_password):
+                inventory.get()
+                inventory.put()
+                inventory.patch()
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    api_inventories_pg.post()
+                api_inventories_pg.options()
+
+    def test_unprivileged_user_with_readwrite_permission(self, inventory, api_inventories_pg, unprivileged_users, user_password):
+        '''
+        Verifies that GET, PUT, PATCH, and OPTIONS are supported methods for an
+        unprivileged user with inventory-read and -write permissions.
+        '''
+        for unprivileged_user in unprivileged_users:
+            unprivileged_user.add_permission("read", inventory=inventory.id)
+            unprivileged_user.add_permission("write", inventory=inventory.id)
+            with self.current_user(unprivileged_user.username, user_password):
+                inventory.get()
+                inventory.put()
+                inventory.patch()
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    api_inventories_pg.post()
+                api_inventories_pg.options()
+
+    def test_privileged_user_with_no_permissions(self, inventory, organization, api_inventories_pg, privileged_users, user_password):
+        '''
+        Test that privileged users can issue GET, PUT, PATCH, POST, and OPTIONS without additional permissions.
+        '''
+        for privileged_user in privileged_users:
+            payload = dict(name="inventory-%s" % fauxfactory.gen_alphanumeric(),
+                           description="Random inventory - %s" % fauxfactory.gen_utf8(),
+                           organization=organization.id,)
+
+            with self.current_user(privileged_user.username, user_password):
+                inventory.get()
+                inventory.put()
+                inventory.patch()
+                api_inventories_pg.post(payload)
+                api_inventories_pg.options()

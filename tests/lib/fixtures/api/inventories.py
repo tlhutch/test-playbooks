@@ -77,6 +77,16 @@ def inventory(request, authtoken, api_inventories_pg, organization):
 
 
 @pytest.fixture(scope="function")
+def another_inventory(request, authtoken, api_inventories_pg, organization):
+    payload = dict(name="inventory-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Random inventory - %s" % fauxfactory.gen_utf8(),
+                   organization=organization.id,)
+    obj = api_inventories_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
 def custom_inventory_update_with_status_completed(custom_inventory_source):
     '''
     Launches an inventory sync.
