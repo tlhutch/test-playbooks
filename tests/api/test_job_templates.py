@@ -577,3 +577,175 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
         assert launch_pg.survey_enabled, \
             "launch_pg.survey_enabled is False even though JT survey_enabled is True \
             and valid survey posted."
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+class Test_Job_Template_Permissions(Base_Api_Test):
+    '''
+    Tests job template permissions.
+    '''
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
+
+    def test_unprivileged_user_with_no_permissions(self, api_job_templates_pg, job_template, org_user, user_password):
+        '''
+        Tests that an unprivileged user with no permissions:
+        - Cannot issue PUT and PATCH requests to an existing job template.
+        - Cannot launch existing job templates.
+        - Cannot create new job templates.
+        Inventory-read permission is present.
+        '''
+        # create payload
+        payload = job_template.json
+        payload.update(dict(name="Additional test job template - %s" % fauxfactory.gen_utf8()))
+
+        org_user.add_permission("read", inventory=job_template.inventory)
+        credential = job_template.get_related("credential")
+        credential.patch(user=org_user.id)
+
+        # test http methods
+        with self.current_user(org_user.username, user_password):
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                job_template.get()
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                job_template.patch()
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                job_template.put()
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                job_template.launch()
+
+            # test creating new job template
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                api_job_templates_pg.post(payload)
+
+    def test_unprivileged_user_with_create_permission(self, api_job_templates_pg, job_template, org_user, user_password):
+        '''
+        Tests that an unprivileged user with create permissions:
+        - Can issue PATCH and PUT requests to an existing job template.
+        - Can launch existing job templates.
+        - Can create new job templates.
+        Inventory-read permission is present.
+        '''
+        # create payload
+        payload = job_template.json
+        payload.update(dict(name="Additional test job template - %s" % fauxfactory.gen_utf8()))
+
+        org_user.add_permission("read", inventory=job_template.inventory)
+        org_user.add_permission("create", inventory=job_template.inventory, project=job_template.project)
+        credential = job_template.get_related("credential")
+        credential.patch(user=org_user.id)
+
+        # test http methods
+        with self.current_user(org_user.username, user_password):
+            job_template.get()
+            job_template.patch()
+            job_template.put()
+
+            job_pg = job_template.launch().wait_until_completed()
+            assert job_pg.is_successful, "Job template launched by org_user with create permission unexpectedly unsuccessful - %s" % job_pg
+
+            # test creating new job template
+            job_template_pg = api_job_templates_pg.post(payload)
+            job_template_pg.delete()
+
+    def test_unprivileged_user_with_run_permissions(self, api_job_templates_pg, job_template, org_user, user_password):
+        '''
+        Tests that an unprivileged user with no permissions:
+        - Can not issue PUT and PATCH requests to an existing job template.
+        - Can launch existing job templates.
+        - Cannot create new job templates.
+        Inventory-read permission is present.
+        '''
+        # create payload
+        payload = job_template.json
+        payload.update(dict(name="Additional test job template - %s" % fauxfactory.gen_utf8()))
+
+        org_user.add_permission("read", inventory=job_template.inventory)
+        org_user.add_permission("run", inventory=job_template.inventory, project=job_template.project)
+        credential = job_template.get_related("credential")
+        credential.patch(user=org_user.id)
+
+        # test http methods
+        with self.current_user(org_user.username, user_password):
+            job_template.get()
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                job_template.patch()
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                job_template.put()
+
+            job_pg = job_template.launch().wait_until_completed()
+            assert job_pg.is_successful, "Job template launched by org user with run permission unexpectedly unsuccessful - %s" % job_pg
+
+            # test creating new job template
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                api_job_templates_pg.post(payload)
+
+    def test_unprivileged_user_with_check_permissions(self, api_job_templates_pg, another_job_template, check_job_template,
+                                                      org_user, user_password):
+        '''
+        Tests that an unprivileged user with no permissions:
+        - Can not issue PUT and PATCH requests to an existing job template.
+        - Can launch check job templates.
+        - Cannot launch regular job templates.
+        - Cannot create new job templates.
+        Inventory-read permission is present.
+        '''
+        # create payload
+        payload = another_job_template.json
+        payload.update(dict(name="Additional test job template - %s" % fauxfactory.gen_utf8()))
+
+        org_user.add_permission("read", inventory=check_job_template.inventory)
+        org_user.add_permission("check", inventory=check_job_template.inventory, project=check_job_template.project)
+        credential = check_job_template.get_related("credential")
+        credential.patch(user=org_user.id)
+
+        # test http methods
+        with self.current_user(org_user.username, user_password):
+            check_job_template.get()
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                check_job_template.patch()
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                check_job_template.put()
+            job_pg = check_job_template.launch().wait_until_completed()
+            assert job_pg.is_successful, "Check job template launched by org user with check permission unexpectedly unsuccessful - %s" % job_pg
+
+            # test creating new job template
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                api_job_templates_pg.post(payload)
+
+            # attempt to launch a run-type job template
+            credential = another_job_template.get_related("credential")
+            credential.patch(user=org_user.id)
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                another_job_template.launch()
+
+    def test_privileged_user_with_no_permissions(self, api_job_templates_pg, job_template, privileged_users, user_password):
+        '''
+        Tests that privileged users without permissions can:
+        - Edit existing job templates
+        - Create new job templates
+        - Launch existing job templates
+        '''
+        payload = job_template.json
+
+        for privileged_user in privileged_users:
+            # create payload
+            payload.update(dict(name="Additional test job template - %s" % fauxfactory.gen_utf8()))
+
+            credential = job_template.get_related("credential")
+            credential.patch(user=privileged_user.id)
+
+            # test http methods
+            with self.current_user(privileged_user.username, user_password):
+                job_template.get()
+                job_template.patch()
+                job_template.put()
+
+                job_pg = job_template.launch().wait_until_completed()
+                assert job_pg.is_successful, "Job template launched by privileged user unexpectedly unsuccessful - %s" % job_pg
+
+                # test creating new job template
+                job_template_pg = api_job_templates_pg.post(payload)
+                job_template_pg.delete()

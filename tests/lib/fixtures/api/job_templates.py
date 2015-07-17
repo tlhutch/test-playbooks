@@ -101,6 +101,17 @@ def job_template(request, authtoken, api_job_templates_pg, project, host_local, 
 
 
 @pytest.fixture(scope="function")
+def another_job_template(request, authtoken, api_job_templates_pg, job_template):
+    '''Define a job_template with a valid machine credential'''
+
+    payload = job_template.json
+    payload.update(name="Another job template - %s" % fauxfactory.gen_utf8())
+    obj = api_job_templates_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
 def job_template_with_extra_vars(request, authtoken, api_job_templates_pg, project, ssh_credential, host_local):
     '''Define a job_template with a set of extra_vars'''
 
@@ -115,6 +126,11 @@ def job_template_with_extra_vars(request, authtoken, api_job_templates_pg, proje
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
+
+
+@pytest.fixture(scope="function")
+def check_job_template(job_template):
+    return job_template.patch(job_type="check")
 
 
 @pytest.fixture(scope="function")
