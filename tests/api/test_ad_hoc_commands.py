@@ -12,7 +12,6 @@ Tests that span all four endpoints
 Tests for the main api/v1/ad_hoc_commands endpoint
 -[X] Verify that privileged users can launch a command from api/v1/ad_hoc_commands
 -[X] Verify that unprivileged users cannot launch commands
--[] Verify that an org user with the correct permissions can launch a command
 
 -[X] Test that posts without specifying module defaults to command
 -[X] Test that posts without specifying module_args fails with certain commands
@@ -35,6 +34,11 @@ Stranger situations
 -[X] test changes to settings.py
 -[] Launching a command with an invalid payload <= loop through required in options
 -[X] Verify that deleting related is reflected correctly in the command page
+
+Permissions
+-[X] Verify that unprivileged users cannot launch commands without the ad hoc permission
+-[X] Verify that unprivileged users with the correct permissions can launch a command
+-[X] Verify that privileged users can launch commands without permissions
 '''
 
 
@@ -225,6 +229,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
 
         # post payload as unprivileged user
         for unprivileged_user in unprivileged_users:
+            ssh_credential.patch(user=unprivileged_user.id)
             with self.current_user(unprivileged_user.username, user_password):
                 with pytest.raises(common.exceptions.Forbidden_Exception):
                     api_ad_hoc_commands_pg.post(payload)
@@ -656,3 +661,77 @@ print json.dumps(inv, indent=2)
         assert result == {"module_name": ["Select a valid choice. ping is not one of the available choices."]}, \
             "Unexpected response when relaunching ad hoc command whose module " \
             "has been removed from ad_hoc.py. %s" % json.dumps(result)
+
+
+@pytest.mark.api
+@pytest.mark.destructive
+@pytest.mark.skip_selenium
+class Test_Ad_Hoc_Permissions(Base_Api_Test):
+    '''
+    Tests ad hoc permissions.
+    '''
+    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
+
+    def test_unprivileged_user_with_no_permissions(self, inventory, ssh_credential, api_ad_hoc_commands_pg, unprivileged_users, user_password):
+        '''
+        Verify that unprivileged users without ad hoc launch cannot launch ad hoc commands.
+        '''
+        # create payload
+        payload = dict(inventory=inventory.id,
+                       credential=ssh_credential.id,
+                       module_name="ping", )
+
+        # post payload as unprivileged user
+        for unprivileged_user in unprivileged_users:
+            # grant the user permissions
+            unprivileged_user.add_permission('read', inventory=inventory.id)
+            # associate the credential with the user
+            ssh_credential.patch(user=unprivileged_user.id)
+            # post the command as the privileged user
+            with self.current_user(unprivileged_user.username, user_password):
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    api_ad_hoc_commands_pg.post(payload)
+
+    def test_unprivileged_user_with_readexecute_permissions(self, inventory, ssh_credential, api_ad_hoc_commands_pg, unprivileged_users, user_password):
+        '''
+        Verify that unprivileged users with ad hoc launch can post to the ad_hoc_commands endpoint.
+        '''
+        # create payload
+        payload = dict(inventory=inventory.id,
+                       credential=ssh_credential.id,
+                       module_name="ping", )
+
+        # post payload as unprivileged user
+        for unprivileged_user in unprivileged_users:
+            # grant the user permissions
+            unprivileged_user.add_permission('read', inventory=inventory.id, run_ad_hoc_commands=True)
+            # associate the credential with the user
+            ssh_credential.patch(user=unprivileged_user.id)
+            # post the command as the privileged user
+            with self.current_user(unprivileged_user.username, user_password):
+                command_pg = api_ad_hoc_commands_pg.post(payload)
+
+            # assert command successful
+            command_pg.wait_until_completed()
+            assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+
+    def test_privileged_user_with_no_permissions(self, inventory, ssh_credential, api_ad_hoc_commands_pg, privileged_users, user_password):
+        '''
+        Verify that privileged users can post to the ad_hoc_commands endpoint without permissions.
+        '''
+        # create payload
+        payload = dict(inventory=inventory.id,
+                       credential=ssh_credential.id,
+                       module_name="ping", )
+
+        # post payload as unprivileged user
+        for privileged_user in privileged_users:
+            # associate the credential with the user
+            ssh_credential.patch(user=privileged_user.id)
+            # post the command as the privileged user
+            with self.current_user(privileged_user.username, user_password):
+                command_pg = api_ad_hoc_commands_pg.post(payload)
+
+            # assert command successful
+            command_pg.wait_until_completed()
+            assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
