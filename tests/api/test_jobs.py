@@ -1,11 +1,15 @@
 import re
 import types
 import json
+import logging
 import pytest
 import fauxfactory
 import common.tower.inventory
 from dateutil.parser import parse
 from tests.api import Base_Api_Test
+
+
+log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="function")
@@ -101,6 +105,25 @@ def another_custom_group(request, authtoken, api_groups_pg, inventory, inventory
     inv_source.patch(source='custom',
                      source_script=inventory_script.id)
     return obj
+
+
+@pytest.fixture(scope="function")
+def stop_mongodb(request, ansible_runner):
+    '''Stops MongoDB'''
+
+    log.debug("calling fixture stop_mongodb")
+
+    # Attempt to stop MongoDB a first time
+    contacted = ansible_runner.service(name="mongod", state="stopped")
+
+    # Check MongoDB and stop it a second time if necessary
+    contacted = ansible_runner.wait_for(port='27017', state='absent')
+    result = contacted.values()[0]
+    if 'failed' in result:
+        log.warn("mongod did not stop, forcing shutdown")
+        contacted = ansible_runner.command('mongod --shutdown --dbpath /var/lib/mongo')
+        result = contacted.values()[0]
+        assert 'failed' not in result, "Command failed - %s" % json.dumps(result, indent=2)
 
 
 @pytest.mark.api
@@ -551,6 +574,21 @@ print json.dumps(inventory)
         # Assert inventory source successful
         inventory_source_pg.get()
         assert inventory_source_pg.is_successful, "inventory_source unsuccessful - %s" % inventory_source_pg
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+class Test_Scan_Job(Base_Api_Test):
+    '''Tests for scan jobs.'''
+    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license')
+
+    def test_launch_scan_job_without_mongodb(self, install_enterprise_license, stop_mongodb, scan_job_with_status_completed):
+        '''Tests that scan jobs without mongodb running fail appropriately.'''
+        assert scan_job_with_status_completed.status == "error", \
+            "Unexpected job status when running a scan job without MongoDB running - %s." % scan_job_with_status_completed.status
+        assert scan_job_with_status_completed.result_traceback.endswith("RuntimeError: Fact Scan Database is offline\n"), \
+            "Unexpected traceback upon running a scan job with MongoDB offline - %s." % scan_job_with_status_completed.result_traceback
 
 
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
