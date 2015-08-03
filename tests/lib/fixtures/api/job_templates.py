@@ -134,6 +134,22 @@ def check_job_template(job_template):
 
 
 @pytest.fixture(scope="function")
+def scan_job_template(request, authtoken, api_job_templates_pg, ssh_credential, host_local):
+    '''Define a basic scan job_template'''
+
+    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                   description="Random scan job_template with machine credential - %s" % fauxfactory.gen_utf8(),
+                   inventory=host_local.get_related('inventory').id,
+                   job_type='scan',
+                   project=None,
+                   credential=ssh_credential.id,
+                   playbook='Default', )
+    obj = api_job_templates_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
 def job_template_sleep(job_template_ansible_playbooks_git, host_local):
     return job_template_ansible_playbooks_git.patch(playbook='sleep.yml')
 
@@ -214,7 +230,7 @@ def job_template_passwords_needed_to_start(job_template_ping, ssh_credential_mul
 
 
 @pytest.fixture(scope="function")
-def job_template_with_job_type_scan(job_template):
-    '''Job template with job_type scan'''
-    obj = job_template.patch(playbook="Default", job_type="scan", project=None)
-    return obj
+def files_scan_job_template(scan_job_template):
+    '''Scan job template with files enabled.'''
+    variables = dict(scan_file_paths="/tmp,/bin")
+    return scan_job_template.patch(extra_vars=json.dumps(variables))

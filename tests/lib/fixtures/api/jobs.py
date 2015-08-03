@@ -6,17 +6,23 @@ def job_with_status_completed(request, job_template_ping):
     '''
     Launch job_template_ping and return a job resource.
     '''
-    job_pg = job_template_ping.launch()
-    return job_pg.wait_until_completed()
+    return job_template_ping.launch().wait_until_completed()
 
 
 @pytest.fixture(scope="function")
-def scan_job_with_status_completed(request, job_template_with_job_type_scan):
+def scan_job_with_status_completed(request, scan_job_template):
     '''
-    Launch job_template_with_job_type_scan and return a job resource.
+    Launch scan_job_template and return a job resource.
     '''
-    job_pg = job_template_with_job_type_scan.launch()
-    return job_pg.wait_until_completed()
+    return scan_job_template.launch().wait_until_completed()
+
+
+@pytest.fixture(scope="function")
+def files_scan_job_with_status_completed(request, files_scan_job_template):
+    '''
+    Launch files_scan_job_template and return a job resource.
+    '''
+    return files_scan_job_template.launch().wait_until_completed()
 
 
 @pytest.fixture(scope="function")
