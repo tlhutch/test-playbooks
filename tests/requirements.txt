@@ -2,7 +2,7 @@
 # on Mozilla WebQA projects
 
 pip
-setuptools
+setuptools==18.1
 distribute==0.7.3
 selenium
 py
@@ -25,7 +25,7 @@ ansible
 python-dateutil
 azure==0.8.1
 boto==2.13.3
-pyrax==1.6.3
+pyrax==1.9.4
 pysphere
 fauxfactory
 junit-xml
