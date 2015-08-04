@@ -1,0 +1,15 @@
+fact_view:
+  additionalProperties: false
+  properties:
+    timestamp: {format: date-time, type:string}
+    host:
+      additionalProperties: false
+      properties:
+        inventory_id: {minimum: 1, type: number}
+        hostname: {type: string} 
+        id: {type: string} 
+    module: {type: string}
+    fact:
+      additionalProperties: true
+  required: [timestamp, host, module, fact]
+  type: object

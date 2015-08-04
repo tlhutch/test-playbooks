@@ -1,0 +1,6 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/hosts/\d+/fact_versions/'
+$ref: '#/definitions/fact_version'
+definitions:
+  !include '../definitions/*.yml'

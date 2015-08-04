@@ -97,7 +97,7 @@ class Test_System_Jobs(Base_Api_Test):
     Verify actions with system_job_templates
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_enterprise_license_unlimited')
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_get_as_superuser(self, system_job):
@@ -263,12 +263,16 @@ class Test_System_Jobs(Base_Api_Test):
             "activity_stream data is still present (count == %s)" \
             % activity_stream_pg.count
 
-    @pytest.mark.skipif(True, reason="Not yet implemented")
-    def test_cleanup_facts(self, cleanup_facts_template):
+    def test_cleanup_facts(self, files_scan_job_with_status_completed, cleanup_facts_template):
         '''
-        Launch a cleanup_facts job and assert desired facts have been deleted.
+        Launch a cleanup_facts job and assert facts have been deleted.
         '''
-        # assert facts exist
+        # navigate to fact_versions
+        host_pg = files_scan_job_with_status_completed.get_related('inventory').get_related('hosts').results[0]
+        fact_versions_pg = host_pg.get_related('fact_versions')
+
+        # assert facts in fact_versions
+        assert fact_versions_pg.count > 0, "Even though scan job was run, facts do not exist: %s." % fact_versions_pg.count
 
         # launch job
         payload = dict(extra_vars=dict(granularity='0d', older_than='0d'))
@@ -280,7 +284,8 @@ class Test_System_Jobs(Base_Api_Test):
         # assess success
         assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
 
-        # assert facts have been removed
+        # assert no facts in fact_versions
+        assert fact_versions_pg.get().count == 0, "Even though cleanup_facts was run, facts still exist: %s." % fact_versions_pg.count
 
     def test_cancel_system_job(self, system_job_with_status_pending):
         '''

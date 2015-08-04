@@ -229,6 +229,22 @@ class Awx_Schema_Hosts(Awx_Schema):
         return self.load_file('hosts/duplicate.yml')
 
 
+class Awx_Schema_Host_Related_Fact_Versions(Awx_Schema):
+    resource = '/api/v1/hosts/\d+/fact_versions/'
+
+    @property
+    def get(self):
+        return self.load_file('fact_versions/list.yml')
+
+
+class Awx_Schema_Fact_View(Awx_Schema):
+    resource = '/api/v1/hosts/\d+/fact_view/'
+
+    @property
+    def get(self):
+        return self.load_file('fact_view/item.yml')
+
+
 class Awx_Schema_Group_Related_Hosts(Awx_Schema_Hosts):
     resource = '/api/v1/groups/\d+/hosts/'
 

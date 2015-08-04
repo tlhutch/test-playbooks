@@ -147,9 +147,39 @@ class Host_Page(Base):
         elif attr == 'ad_hoc_commands':
             from ad_hoc_commands import Ad_Hoc_Commands_Page
             related = Ad_Hoc_Commands_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'fact_versions':
+            related = Fact_Versions_Page(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
+
+
+class Fact_Version_Page(Base):
+    base_url = '/api/v1/hosts/{id}/fact_versions/'
+
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related']
+        if attr == 'fact_view':
+            related = Fact_View_Page(self.testsetup, base_url=self.json['related'][attr])
+        else:
+            raise NotImplementedError
+        return related.get(**kwargs)
+
+
+class Fact_Versions_Page(Fact_Version_Page, Base_List):
+    base_url = '/api/v1/hosts/{id}/fact_versions/'
+
+    @property
+    def count(self):
+        return len(self.results)
+
+
+class Fact_View_Page(Base):
+    base_url = '/api/v1/hosts/{id}/fact_view/'
+    timestamp = property(json_getter('timestamp'), json_setter('timestamp'))
+    host = property(json_getter('host'), json_setter('host'))
+    module = property(json_getter('module'), json_setter('module'))
+    fact = property(json_getter('fact'), json_setter('fact'))
 
 
 class Hosts_Page(Host_Page, Base_List):
