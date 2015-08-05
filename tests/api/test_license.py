@@ -1058,7 +1058,7 @@ class Test_Basic_License(Base_Api_Test):
         '''Verify that attempting to create a second organization with a basic license raises a 402.'''
         # check that a default organization already exists
         organizations_pg = api_organizations_pg.get()
-        assert organizations_pg.count >= 1, "Unexpected number of organizations returned (%s)." % organizations_pg.count
+        assert organizations_pg.count > 0, "Unexpected number of organizations returned (%s)." % organizations_pg.count
 
         # post second organization and assess API response
         payload = dict(name="org-%s" % fauxfactory.gen_utf8(),
