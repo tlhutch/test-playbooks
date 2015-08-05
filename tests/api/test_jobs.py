@@ -114,7 +114,7 @@ def stop_mongodb(request, ansible_runner):
     log.debug("calling fixture stop_mongodb")
 
     # Attempt to stop MongoDB a first time
-    contacted = ansible_runner.service(name="mongod", state="stopped")
+    ansible_runner.service(name="mongod", state="stopped")
 
     # Check MongoDB and stop it a second time if necessary
     contacted = ansible_runner.wait_for(port='27017', state='absent')
