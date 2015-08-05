@@ -17,7 +17,6 @@
 [X] Verify that license_key is visible to admin user
 [X] Verify that license_key is not visible to non-admin users
 [X] Test cannot create scan job templates
-[X] Test cannot patch job template into scan job template
 [] Test cannot run scan jobs
 [X] Test cannot run cleanup_facts
 [X] Test cannot GET fact_versions endpoints
@@ -60,7 +59,6 @@
 [] Test cannot promote secondary
 [] Test that LDAP is disabled
 [X] Test cannot create scan JT
-[X] Test cannot patch job template into scan job template
 [] Test cannot run scan jobs
 [X] Test cannot launch cleanup_facts
 [X] Test cannot GET fact_versions endpoints
@@ -664,7 +662,7 @@ class Test_Legacy_License(Base_Api_Test):
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
-    def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
+    def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, job_template):
         '''Verify that scan job templates may not be created with a legacy license.'''
         conf = api_config_pg.get()
         if conf.license_info.free_instances < 0:
@@ -673,10 +671,10 @@ class Test_Legacy_License(Base_Api_Test):
         # create playload
         payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
                        description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
-                       inventory=host_local.inventory,
+                       inventory=job_template.inventory,
                        job_type='scan',
                        project=None,
-                       credential=ssh_credential.id,
+                       credential=job_template.credential,
                        playbook='Default', )
 
         # post the scan job template and assess response
@@ -686,12 +684,7 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to POST a scan job template with a legacy license - %s." % json.dumps(result)
 
-    def test_unable_to_patch_job_template_into_scan_job_template(self, api_config_pg, job_template):
-        '''Verify that job templates may not be able to be patched into scan job templates with a legacy license.'''
-        conf = api_config_pg.get()
-        if conf.license_info.free_instances < 0:
-            pytest.skip("Unable to test because there are no free_instances remaining")
-
+        # attempt to patch job template into scan job template
         payload = dict(job_type='scan', project=None)
         exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
         result = exc_info.value[1]
@@ -1100,7 +1093,7 @@ class Test_Basic_License(Base_Api_Test):
         result == {u'detail': u'Your license does not allow use of the activity stream.'}, \
             "Unexpected API response when issuing a GET to api/v1/activity_streams with a basic license - %s." % json.dumps(result)
 
-    def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
+    def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, job_template):
         '''Verify that scan job templates may not be created with a basic license.'''
         conf = api_config_pg.get()
         if conf.license_info.free_instances < 0:
@@ -1109,25 +1102,20 @@ class Test_Basic_License(Base_Api_Test):
         # create playload
         payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
                        description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
-                       inventory=host_local.inventory,
+                       inventory=job_template.inventory,
                        job_type='scan',
                        project=None,
-                       credential=ssh_credential.id,
+                       credential=job_template.credential,
                        playbook='Default', )
 
-        # post the scan job template and assess the response
+        # post the scan job template and assess response
         exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, api_job_templates_pg.post, payload)
         result = exc_info.value[1]
 
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to POST a scan job template with a basic license - %s." % json.dumps(result)
 
-    def test_unable_to_patch_job_template_into_scan_job_template(self, api_config_pg, job_template):
-        '''Verify that job templates may not be able to be patched into scan job templates with a basic license.'''
-        conf = api_config_pg.get()
-        if conf.license_info.free_instances < 0:
-            pytest.skip("Unable to test because there are no free_instances remaining")
-
+        # attempt to patch job template into scan job template
         payload = dict(job_type='scan', project=None)
         exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
         result = exc_info.value[1]
