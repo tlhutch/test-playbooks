@@ -276,6 +276,17 @@ class Test_Job(Base_Api_Test):
             "Unexpected job status after cancelling job (status:%s)" % \
             job_with_status_pending.status
 
+        # Make sure the ansible-playbook did not start
+
+        # Inspect the job_events and assert that the playbook_on_start
+        # event was never received.  If 'playbook_on_start' event appears, then
+        # ansible-playbook started, and the job was not cancelled in the
+        # 'pending' state.
+        job_events = job_with_status_pending.get_related('job_events', event="playbook_on_start")
+        assert job_events.count == 0, "The pending job was successfully " \
+            "canceled, but a 'playbook_on_start' host_event was received. " \
+            "It appears that the job was not cancelled while in pending."
+
     def test_cancel_running_job(self, job_with_status_running):
         '''
         Verify the job->cancel endpoint behaves as expected when canceling a
@@ -293,6 +304,21 @@ class Test_Job(Base_Api_Test):
         assert job_with_status_running.status == 'canceled', \
             "Unexpected job status after cancelling job (status:%s)" % \
             job_with_status_running.status
+
+        # Make sure the ansible-playbook did not complete
+
+        # First, inspect the job_events and assert that the playbook_on_stats
+        # event was never received.  If 'playbook_on_stats' event appears, then
+        # ansible-playbook completed, despite the job status being marked as
+        # 'canceled'.
+        job_events = job_with_status_running.get_related('job_events', event="playbook_on_stats")
+        assert job_events.count == 0, "The job was successfully canceled, but a" \
+            "'playbook_on_stats' host_event was received.  It appears that the " \
+            "ansible-playbook didn't cancel as expected."
+
+        # Second, be sure the standard "PLAY RECAP" is missing from standard
+        # output
+        assert "PLAY RECAP ************" not in job_with_status_running.result_stdout
 
     def test_cancel_completed_job(self, job_with_status_completed):
         '''
