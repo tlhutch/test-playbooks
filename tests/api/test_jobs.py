@@ -224,11 +224,11 @@ class Test_Job(Base_Api_Test):
         # assert expected values in response
         assert credential.expected_passwords_needed_to_start == result['passwords_needed_to_start']
 
-    def test_relaunch_uses_extra_vars_from_job(self, job_with_extra_vars, job_extra_vars_dict):
+    def test_relaunch_uses_extra_vars_from_job(self, job_with_extra_vars):
         '''
         Verify that when you relaunch a job containing extra_vars in the
-        launch-time payload, the job extra_vars are used instead of the
-        job_template extra_vars.
+        launch-time payload, the resulting extra_vars *and* the job_template
+        extra_vars are used.
         '''
         relaunch_pg = job_with_extra_vars.get_related('relaunch')
 
@@ -236,20 +236,27 @@ class Test_Job(Base_Api_Test):
         assert not relaunch_pg.passwords_needed_to_start
 
         # relaunch the job and wait for completion
-        job_pg = job_with_extra_vars.relaunch().wait_until_completed()
+        relaunched_job_pg = job_with_extra_vars.relaunch().wait_until_completed()
 
         # assert success
-        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+        assert relaunched_job_pg.is_successful, "Job unsuccessful - %s" % relaunched_job_pg
 
-        # extra_vars supplied at [re]launch time supercede any values stored in
-        # the job_template.  Assert the extra_vars are expected.
+        # coerce extra_vars into a dictionary
         try:
-            extra_vars = json.loads(job_pg.extra_vars)
+            job_extra_vars = json.loads(job_with_extra_vars.extra_vars)
         except ValueError:
-            extra_vars = {}
-        assert extra_vars == job_extra_vars_dict, \
-            "Unexpected extra_vars on relaunched job (%s != %s)" % \
-            (extra_vars, job_extra_vars_dict)
+            job_extra_vars = {}
+
+        try:
+            relaunch_extra_vars = json.loads(relaunched_job_pg.extra_vars)
+        except ValueError:
+            relaunch_extra_vars = {}
+
+        # assert the extra_vars on the relaunched job, match the extra_vars
+        # used in the original job
+        assert set(relaunch_extra_vars) == set(job_extra_vars), \
+            "The extra_vars on a relaunched job should match the extra_vars on the job being relaunched (%s != %s)" % \
+            (relaunch_extra_vars, job_extra_vars)
 
     def test_cancel_pending_job(self, job_with_status_pending):
         '''

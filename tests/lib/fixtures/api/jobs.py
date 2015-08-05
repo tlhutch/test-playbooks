@@ -60,14 +60,6 @@ def job_with_extra_vars(request, job_template_with_extra_vars, job_extra_vars_di
     Launch the job_template_extra_vars and return a job resource.  Extra vars
     are passed in with the POST request to the launch endpoint.
     '''
-    # Locate job_template launch page
-    launch_pg = job_template_with_extra_vars.get_related('launch')
-
     # Launch with additional extra_vars
     payload = dict(extra_vars=job_extra_vars_dict)
-    result = launch_pg.post(payload)
-
-    # find and return specific job_pg
-    jobs_pg = job_template_with_extra_vars.get_related('jobs', id=result.json['job'])
-    assert jobs_pg.count == 1, "Unexpected number of jobs returned (%s != 1)" % jobs_pg.count
-    return jobs_pg.results[0]
+    return job_template_with_extra_vars.launch(payload)
