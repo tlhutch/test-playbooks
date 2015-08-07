@@ -126,6 +126,14 @@ def stop_mongodb(request, ansible_runner):
         assert 'failed' not in result, "Command failed - %s" % json.dumps(result, indent=2)
 
 
+def assert_fact_modules(facts, **kwargs):
+    '''Convenience method to assess fact module contents.'''
+    assert len(facts) == len(kwargs), "Unexpected number of new facts found ..."
+    module_names = [x.module for x in facts]
+    for (mod_name, mod_count) in kwargs.items():
+        assert module_names.count(mod_name) == mod_count, "Unexpected number of facts found (%d) for module %s" % (mod_count, mod_name)
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -629,6 +637,104 @@ print json.dumps(inventory)
 class Test_Scan_Job(Base_Api_Test):
     '''Tests for scan jobs.'''
     pytestmark = pytest.mark.usefixtures('authtoken')
+
+    def test_scan_job(self, install_enterprise_license_unlimited, scan_job_template):
+        '''Verifies that a default scan job populates fact_versions with the default three scan modules.'''
+        # obtain initial fact results
+        fact_versions_pg = scan_job_template.get_related('inventory').get_related('hosts').results[0].get_related('fact_versions')
+        initial_fact_versions = fact_versions_pg.results
+
+        # launch the scan job and check that the job is successful
+        job_pg = scan_job_template.launch().wait_until_completed()
+        assert job_pg.is_successful, "Scan job unexpected failed - %s." % job_pg
+
+        # verify that we have three new fact scans
+        final_fact_versions = fact_versions_pg.get().results
+        new_facts = set(final_fact_versions) - set(initial_fact_versions)
+        assert_fact_modules(new_facts, ansible=1, packages=1, services=1)
+
+    def test_file_scan_job(self, install_enterprise_license_unlimited, files_scan_job_template):
+        '''Tests file scan jobs.'''
+        # obtain intial fact results
+        fact_versions_pg = files_scan_job_template.get_related('inventory').get_related('hosts').results[0].get_related('fact_versions')
+        initial_fact_versions = fact_versions_pg.results
+
+        # launch the scan job and check that the job is successful
+        job_pg = files_scan_job_template.launch().wait_until_completed()
+        assert job_pg.is_successful, "Files scan job unexpected failed - %s." % job_pg
+
+        # verify that we have four new fact scans
+        final_fact_versions = fact_versions_pg.get().results
+        new_facts = set(final_fact_versions) - set(initial_fact_versions)
+        assert_fact_modules(new_facts, ansible=1, packages=1, services=1, files=1)
+
+    def test_recursive_file_scan_job(self, install_enterprise_license_unlimited, scan_job_template):
+        '''Tests that recursive file scan jobs pick up nested files'''
+        # obtain intial fact results
+        fact_versions_pg = scan_job_template.get_related('inventory').get_related('hosts').results[0].get_related('fact_versions')
+        initial_fact_versions = fact_versions_pg.results
+
+        # create a recursive file scan job template
+        variables = dict(scan_file_paths="/tmp,/bin", scan_use_recursive="true")
+        scan_job_template.patch(extra_vars=json.dumps(variables))
+
+        # launch the scan job and check that the job is successful
+        job_pg = scan_job_template.launch().wait_until_completed()
+        assert job_pg.is_successful, "Scan job unexpected failed - %s." % job_pg
+
+        # verify that we have four new fact scans
+        final_fact_versions = fact_versions_pg.get().results
+        new_facts = set(final_fact_versions) - set(initial_fact_versions)
+        assert_fact_modules(new_facts, ansible=1, packages=1, services=1, files=1)
+
+        # check that a specific recursive file exists in fact results
+        files_fact_version_pg = filter(lambda x: x.module == "files", new_facts)
+        files_fact_view_pg = files_fact_version_pg[0].get_related('fact_view')
+        assert any(fact.path == "/bin/ls" for fact in files_fact_view_pg.fact), \
+            "Did not find target file 'bin/ls' after running recursive file scan. Results: %s." % files_fact_view_pg.fact
+
+    def test_file_scan_job_with_checksums(self, install_enterprise_license_unlimited, scan_job_template):
+        '''Tests that checksum file scan jobs include checksums.'''
+        # obtain intial fact results
+        fact_versions_pg = scan_job_template.get_related('inventory').get_related('hosts').results[0].get_related('fact_versions')
+        initial_fact_versions = fact_versions_pg.results
+
+        # create a file scan job template with checksums
+        variables = dict(scan_file_paths="/tmp,/bin", scan_use_checksum="true")
+        scan_job_template.patch(extra_vars=json.dumps(variables))
+
+        # launch the scan job and check that the job is successful
+        job_pg = scan_job_template.launch().wait_until_completed()
+        assert job_pg.is_successful, "Scan job unexpected failed - %s." % job_pg
+
+        # verify that we have four new fact scans
+        final_fact_versions = fact_versions_pg.get().results
+        new_facts = set(final_fact_versions) - set(initial_fact_versions)
+        assert_fact_modules(new_facts, ansible=1, packages=1, services=1, files=1)
+
+        # assert facts with checksum data exist
+        files_fact_version_pg = filter(lambda x: x.module == "files", new_facts)
+        files_fact_view_pg = files_fact_version_pg[0].get_related('fact_view')
+        file_checksums = [x for x in files_fact_view_pg.fact if 'checksum' in x]
+        assert len(file_checksums) > 0, "No files with checksums found after running a checksum scan job - %s." % file_checksums
+
+    def test_custom_scan_job(self, install_enterprise_license_unlimited, job_template):
+        '''Tests custom scan jobs.'''
+        # obtain intial fact results
+        fact_versions_pg = job_template.get_related('inventory').get_related('hosts').results[0].get_related('fact_versions')
+        initial_fact_versions = fact_versions_pg.results
+
+        # create custom scan job template
+        custom_scan_job_template = job_template.patch(playbook="scan_custom.yml", job_type="scan")
+
+        # launch the scan job and check that the job is successful
+        job_pg = custom_scan_job_template.launch().wait_until_completed()
+        assert job_pg.is_successful, "Scan job unexpected failed - %s." % job_pg
+
+        # verify that we have one new fact scan
+        final_fact_versions = fact_versions_pg.get().results
+        new_facts = set(final_fact_versions) - set(initial_fact_versions)
+        assert_fact_modules(new_facts, foo=1)
 
     def test_launch_scan_job_without_mongodb(self, install_enterprise_license, stop_mongodb, scan_job_with_status_completed):
         '''Tests that scan jobs without mongodb running fail appropriately.'''

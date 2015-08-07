@@ -156,6 +156,8 @@ class Host_Page(Base):
 
 class Fact_Version_Page(Base):
     base_url = '/api/v1/hosts/{id}/fact_versions/'
+    module = property(json_getter('module'), json_setter('module'))
+    timestamp = property(json_getter('timestamp'), json_setter('timestamp'))
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related']
