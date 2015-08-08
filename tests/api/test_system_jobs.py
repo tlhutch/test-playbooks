@@ -92,6 +92,7 @@ def old_deleted_object(request, ansible_runner, tmpdir):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.first
 class Test_System_Jobs(Base_Api_Test):
     '''
     Verify actions with system_job_templates
