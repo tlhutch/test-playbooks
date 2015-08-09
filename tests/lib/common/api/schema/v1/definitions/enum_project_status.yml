@@ -1,3 +1,3 @@
 enum_project_status:
   enum: [none, never updated, pending, waiting, updating, running, failed, successful,
-    ok, missing, canceled]
+    ok, missing, canceled, error]
