@@ -175,17 +175,17 @@ class Test_Projects(Base_Api_Test):
         update_pg = update_pg.wait_until_status('canceled')
 
         # assert project_update status is canceled
-        assert update_pg.status == 'canceled', \
-            "Unexpected project_update status after cancelling project update (status:%s)" % \
-            update_pg.status
+        assert update_pg.status == 'canceled', "Unexpected project_update " \
+            "status after cancelling project update (expected status:canceled) " \
+            "- %s" % update_pg
 
         # update project resource
         project_ansible_git_nowait = project_ansible_git_nowait.wait_until_completed()
 
         # assert project status is failed
         assert project_ansible_git_nowait.status == 'canceled', \
-            "Unexpected project status after cancelling project update (status:%s)" % \
-            project_ansible_git_nowait.status
+            "Unexpected project status after cancelling project update" \
+            "(expected status:canceled) - %s" % project_ansible_git_nowait
 
     def test_cancel_running_update(self, project_ansible_git_nowait):
         '''
@@ -210,17 +210,17 @@ class Test_Projects(Base_Api_Test):
         update_pg = update_pg.wait_until_status('canceled', timeout=60 * 4)
 
         # assert project_update status is canceled
-        assert update_pg.status == 'canceled', \
-            "Unexpected project_update status after cancelling project update (status:%s)" % \
-            update_pg.status
+        assert update_pg.status == 'canceled', "Unexpected project_update " \
+            "status after cancelling project update (expected status:canceled) " \
+            "- %s" % update_pg
 
         # update project resource
         project_ansible_git_nowait = project_ansible_git_nowait.wait_until_completed()
 
         # assert project status is failed
-        assert project_ansible_git_nowait.status == 'canceled', \
-            "Unexpected project status after cancelling project update (status:%s)" % \
-            project_ansible_git_nowait.status
+        assert project_ansible_git_nowait.status == 'canceled', "Unexpected " \
+            "project status after cancelling project update (expected " \
+            "status:canceled) - %s" % project_ansible_git_nowait
 
     def test_delete_related_fields(self, install_enterprise_license_unlimited, project_ansible_playbooks_git):
         '''Verify that related fields on a deleted resource respond as expected'''

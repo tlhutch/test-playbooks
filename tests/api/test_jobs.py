@@ -296,8 +296,8 @@ class Test_Job(Base_Api_Test):
         job_with_status_pending = job_with_status_pending.wait_until_status('canceled')
 
         assert job_with_status_pending.status == 'canceled', \
-            "Unexpected job status after cancelling job (status:%s)" % \
-            job_with_status_pending.status
+            "Unexpected job status after cancelling (expected 'canceled') - " \
+            "%s" % job_with_status_pending
 
         # Make sure the ansible-playbook did not start
 
@@ -324,9 +324,9 @@ class Test_Job(Base_Api_Test):
         # wait for job to cancel
         job_with_status_running = job_with_status_running.wait_until_status('canceled')
 
-        assert job_with_status_running.status == 'canceled', \
-            "Unexpected job status after cancelling job (status:%s)" % \
-            job_with_status_running.status
+        assert job_with_status_running.status == 'canceled', "Unexpected job" \
+            "status after cancelling job (expected status:canceled) - %s" % \
+            job_with_status_running
 
         # Make sure the ansible-playbook did not complete
 
@@ -440,11 +440,15 @@ print json.dumps(inventory)
 
         # Assert update_pg canceled
         update_pg.get()
-        assert update_pg.status == 'canceled', "Did not cancel job (status:%s)" % update_pg.status
+        assert update_pg.status == 'canceled', "Unexpected job" \
+            "status after cancelling (expected 'canceled') - %s" % \
+            update_pg
 
         # Assert inventory source canceled
         inventory_source_pg.get()
-        assert inventory_source_pg.status == 'canceled', "Did not cancel job (status:%s)" % inventory_source_pg.status
+        assert inventory_source_pg.status == 'canceled', "Unexpected " \
+            "inventory_source status after cancelling (expected 'canceled') " \
+            "- %s" % inventory_source_pg
 
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
@@ -556,7 +560,9 @@ print json.dumps(inventory)
 
         # Assert new scm update was canceled
         current_update_pg.get()
-        assert current_update_pg.status == 'canceled'
+        assert current_update_pg.status == 'canceled', "Unexpected job" \
+            "status after cancelling (expected 'canceled') - %s" % \
+            current_update_pg
 
         # Assert project cancelled
         project_with_scm_update_on_launch.get()
@@ -593,11 +599,15 @@ print json.dumps(inventory)
 
         # Assert new scm update was canceled
         current_update_pg.get()
-        assert current_update_pg.status == 'canceled'
+        assert current_update_pg.status == 'canceled', "Unexpected job" \
+            "status after cancelling (expected 'canceled') - %s" % \
+            current_update_pg
 
         # Assert project cancelled
         project_with_scm_update_on_launch.get()
-        assert project_with_scm_update_on_launch.status == 'canceled'
+        assert project_with_scm_update_on_launch.status == 'canceled', \
+            "Unexpected job status after cancelling (expected 'canceled') - " \
+            "%s" % project_with_scm_update_on_launch
 
         # Assert update_pg successful
         inventory_source_pg.wait_until_completed()
