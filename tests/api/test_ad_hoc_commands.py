@@ -306,8 +306,8 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         # verify that the command was canceled
         ad_hoc_with_status_pending.wait_until_completed()
         assert ad_hoc_with_status_pending.status == 'canceled', \
-            "Unexpected command status after cancelling command (status:%s)" % \
-            ad_hoc_with_status_pending.status
+            "Unexpected command status after cancelling (expected " \
+            "status:canceled) - %s" % ad_hoc_with_status_pending
 
     def test_launch_with_ask_credential_and_passwords_in_payload(self, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
         '''
@@ -327,7 +327,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
 
         # assert command successful
         command_pg.wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+        assert command_pg.is_successful, "Command unsuccessful - %s" % command_pg
 
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
         '''
