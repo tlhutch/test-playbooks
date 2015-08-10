@@ -520,11 +520,13 @@ print json.dumps(inventory)
 
         # Assert first inventory update cancelled
         first_update.get()
-        assert first_update.status == 'canceled', "Did not cancel job (status:%s)" % first_update.status
+        assert first_update.status == 'canceled', "Did not cancel job as " \
+            "expected (expected status:canceled) - %s" % first_update
 
         # Assert first inventory source cancelled
         first_inventory_source.get()
-        assert first_inventory_source.status == 'canceled', "Did not cancel job (status:%s)" % first_inventory_source.status
+        assert first_inventory_source.status == 'canceled', "Did not cancel job as " \
+            "expected (expected status:canceled) - %s" % first_inventory_source
 
         # Assert second inventory update failed
         second_update.get()
@@ -566,7 +568,9 @@ print json.dumps(inventory)
 
         # Assert project cancelled
         project_with_scm_update_on_launch.get()
-        assert project_with_scm_update_on_launch.status == 'canceled'
+        assert project_with_scm_update_on_launch.status == 'canceled', \
+            "Unexpected project_update status (expected status:canceled) - %s" % \
+            project_with_scm_update_on_launch
 
     def test_cascade_cancel_with_inventory_and_project_updates(self, job_template, project_with_scm_update_on_launch, custom_group, api_unified_jobs_pg):
         '''
