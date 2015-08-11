@@ -59,7 +59,7 @@ for LINE in $(env) ; do
     set -- $LINE
     VARNAME="$1"
     case $VARNAME in
-        DELETE_ON_START|AWX_UPGRADE)
+        DELETE_ON_START|MINIMUM_VAR_SPACE)
             echo "${VARNAME,,}: ${!VARNAME}" >> ${PLAYBOOK_DIR}/vars.yml
             ;;
         AWX*|AW_*|GALAXY*|ANSIBLE*|AWS*|EC2*|RAX*|GCE*|AZURE*|INSTANCE*)

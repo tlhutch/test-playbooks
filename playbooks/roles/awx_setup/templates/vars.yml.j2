@@ -27,3 +27,8 @@ pg_password: {{pg_password}}
 {% if not aw_repo_url.endswith("//releases.ansible.com/ansible-tower") %}
 gpgcheck: 0
 {% endif %}
+
+## Allow disabling the tower preflight disk space check
+{% if minimum_var_space is defined %}
+minimum_var_space: {{minimum_var_space}}
+{% endif %}
