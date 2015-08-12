@@ -200,6 +200,32 @@ class Test_Job_Template(Base_Api_Test):
             "the launched job does not have the same credential " \
             "(%s != %s)" % (job_pg.credential, ssh_credential.id)
 
+    def test_launch_with_team_credential(self, job_template_no_credential, team_with_org_admin, team_ssh_credential, user_password):
+        '''Verifies that a team user can use a team credential to launch a job template.'''
+        team_user = team_with_org_admin.get_related('users').results[0]
+        with self.current_user(team_user.username, user_password):
+            launch_pg = job_template_no_credential.get_related('launch')
+
+            # assert values on launch resource
+            assert not launch_pg.can_start_without_user_input
+            assert not launch_pg.ask_variables_on_launch
+            assert not launch_pg.passwords_needed_to_start
+            assert not launch_pg.variables_needed_to_start
+            assert launch_pg.credential_needed_to_start
+
+            # launch the job_template providing the credential in the payload
+            payload = dict(credential=team_ssh_credential.id)
+            job_pg = job_template_no_credential.launch(payload).wait_until_completed()
+
+            # assert success
+            assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+
+            # assert job is associated with the expected credential
+            assert job_pg.credential == team_ssh_credential.id, \
+                "A job_template was launched with a credential in the payload, but" \
+                "the launched job does not have the same credential " \
+                "(%s != %s)" % (job_pg.credential, team_ssh_credential.id)
+
     def test_launch_with_invalid_credential_in_payload(self, job_template_no_credential):
         '''
         Verify the job->launch endpoint behaves as expected when launched with

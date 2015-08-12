@@ -67,6 +67,20 @@ def ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user,
 
 
 @pytest.fixture(scope="function")
+def team_ssh_credential(request, testsetup, authtoken, team_with_org_admin):
+    '''Create team ssh credential'''
+    payload = dict(name="credential-%s" % fauxfactory.gen_utf8(),
+                   description="machine credential for team:%s" % team_with_org_admin.name,
+                   kind='ssh',
+                   team=team_with_org_admin.id,
+                   username=testsetup.credentials['ssh']['username'],
+                   password=testsetup.credentials['ssh']['password'],)
+    obj = team_with_org_admin.get_related('credentials').post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
 def aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create a randomly named Amazon Cloud credential'''
     payload = dict(name="awx-credential-%s" % fauxfactory.gen_utf8(),

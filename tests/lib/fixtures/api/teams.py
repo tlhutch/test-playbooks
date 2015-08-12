@@ -1,5 +1,6 @@
 import pytest
 import fauxfactory
+import common.exceptions
 
 
 @pytest.fixture(scope="function")
@@ -10,6 +11,18 @@ def team(request, authtoken, organization):
     obj = organization.get_related('teams').post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj
+
+
+@pytest.fixture(scope="function")
+def team_with_org_admin(request, team, org_admin):
+    '''A team with an org_admin as a member'''
+    users_pg = team.get_related('users')
+    payload = dict(id=org_admin.id)
+    with pytest.raises(common.exceptions.NoContent_Exception):
+        obj = users_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(team.silent_delete)
+    return team
 
 
 @pytest.fixture(scope="function")

@@ -8,10 +8,9 @@ from common.exceptions import BadRequest_Exception
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Credentials(Base_Api_Test):
+class Test_Credential(Base_Api_Test):
     def test_unicode(self, admin_user, api_credentials_pg):
-        '''Create creating an ssh credential where the password fields contain unicode.'''
-
+        '''Create an ssh credential where the password fields contain unicode.'''
         payload = dict(name=fauxfactory.gen_utf8(),
                        description=fauxfactory.gen_utf8(),
                        kind='ssh',
@@ -24,19 +23,13 @@ class Test_Credentials(Base_Api_Test):
         credential = api_credentials_pg.post(payload)
         credential.delete()
 
-
-@pytest.mark.api
-@pytest.mark.skip_selenium
-@pytest.mark.destructive
-class Test_OpenStack_Credential(Base_Api_Test):
-    @pytest.mark.trello('https://trello.com/c/j3m4jrNQ')
     @pytest.mark.parametrize("payload, expected_result", [
         (dict(password="foo", username="foo", host="foo"), {"project": ["Project name required for OpenStack credential."]}),
         (dict(project="foo", username="foo", host="foo"), {"password": ["Password or API key required for OpenStack credential."]}),
         (dict(project="foo", password="foo", host="foo"), {"username": ["Username required for OpenStack credential."]}),
         (dict(project="foo", password="foo", username="foo"), {"host": ["Host required for OpenStack credential."]}),
     ], ids=['project', 'password', 'username', 'host'])
-    def test_post_invalid_credential(self, admin_user, api_credentials_pg, payload, expected_result):
+    def test_post_invalid_openstack_credential(self, admin_user, api_credentials_pg, payload, expected_result):
         '''
         Tests that if you post an OpenStack credential with missing params that
         the post fails.
@@ -47,9 +40,8 @@ class Test_OpenStack_Credential(Base_Api_Test):
                        kind='openstack',
                        user=admin_user.id, ))
 
+        # post payload and verify that exception raised
         exc_info = pytest.raises(BadRequest_Exception, api_credentials_pg.post, payload)
         result = exc_info.value[1]
-
-        # post payload and verify that exception raised
         assert result == expected_result, "Unexpected response when posting a credential " \
             "with a missing param. %s" % json.dumps(result)
