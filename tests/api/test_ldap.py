@@ -65,7 +65,7 @@ class Test_Ldap(Base_Api_Test):
         orgs = user.get_related('organizations', name='LDAP Organization')
         assert orgs.count == 1
 
-    def test_org_admin_ldap_user(self, cleanup_ldap_info, api_users_pg, current_user, user_password):
+    def test_org_admin_ldap_user(self, cleanup_ldap_info, api_users_pg, current_user, user_password, install_legacy_license):
         '''Verified that an LDAP organization admin relationship is created at
         login.'''
 
@@ -78,13 +78,13 @@ class Test_Ldap(Base_Api_Test):
         '''Verified Tower supports LDAP authentication with a supported
         license.'''
 
-        with current_user(username='it_user1', password=user_password):
-            api_users_pg.get(username='it_user1')
+        with current_user(username='eng_user1', password=user_password):
+            api_users_pg.get(username='eng_user1')
 
     def test_license_disables_ldap_authentication(self, api_users_pg, user_password, ldap_disabled_license, current_user):
         '''Verified Tower disables LDAP authentication with an unsupported
         license.'''
 
         with pytest.raises(common.exceptions.Unauthorized_Exception):
-            with current_user(username='it_user1', password=user_password):
-                api_users_pg.get(username='it_user1')
+            with current_user(username='sales_user1', password=user_password):
+                api_users_pg.get(username='sales_user1')
