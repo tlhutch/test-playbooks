@@ -8,7 +8,7 @@ from tests.ui import Base_UI_Test
 @pytest.mark.nondestructive
 class Test_Login(Base_UI_Test):
 
-    pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
 
     def test_login(self, home_page_logged_in, admin_user):
         '''Verify a successful login'''

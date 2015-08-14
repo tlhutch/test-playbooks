@@ -29,7 +29,7 @@ def table_sort(request):
 @pytest.mark.nondestructive
 class Test_Teams(Base_UI_Test):
 
-    pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
 
     def test_active_tab(self, ui_teams_pg):
         '''Verify the basics of the teams page'''

@@ -97,7 +97,7 @@ class Test_System_Jobs(Base_Api_Test):
     Verify actions with system_job_templates
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_enterprise_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_get_as_superuser(self, system_job):

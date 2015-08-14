@@ -57,7 +57,7 @@ class Test_Proot(Base_Api_Test):
     Tests to assert correctness while running with AWX_PROOT_ENABLED=True
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited', 'AWX_PROOT_ENABLED')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited', 'AWX_PROOT_ENABLED')
 
     def test_job_isolation(self, job_template_proot_1, job_template_proot_2):
         '''
