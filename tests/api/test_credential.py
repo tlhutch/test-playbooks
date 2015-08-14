@@ -8,6 +8,26 @@ from common.exceptions import BadRequest_Exception
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+class Test_Credentials(Base_Api_Test):
+    def test_unicode(self, admin_user, api_credentials_pg):
+        '''Create creating an ssh credential where the password fields contain unicode.'''
+
+        payload = dict(name=fauxfactory.gen_utf8(),
+                       description=fauxfactory.gen_utf8(),
+                       kind='ssh',
+                       user=admin_user.id,
+                       username=fauxfactory.gen_alphanumeric(),
+                       password=fauxfactory.gen_utf8(),
+                       become_method="sudo",
+                       become_username=fauxfactory.gen_alphanumeric(),
+                       become_password=fauxfactory.gen_utf8())
+        credential = api_credentials_pg.post(payload)
+        credential.delete()
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
 class Test_OpenStack_Credential(Base_Api_Test):
     @pytest.mark.trello('https://trello.com/c/j3m4jrNQ')
     @pytest.mark.parametrize("payload, expected_result", [
@@ -18,7 +38,7 @@ class Test_OpenStack_Credential(Base_Api_Test):
     ], ids=['project', 'password', 'username', 'host'])
     def test_post_invalid_credential(self, admin_user, api_credentials_pg, payload, expected_result):
         '''
-        Tests that if you post an OpenStack credential with mising params that
+        Tests that if you post an OpenStack credential with missing params that
         the post fails.
         '''
         # create payload
