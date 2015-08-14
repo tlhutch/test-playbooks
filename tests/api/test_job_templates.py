@@ -41,7 +41,7 @@ def job_template_with_deleted_related(request, job_template):
 @pytest.mark.destructive
 class Test_Job_Template(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
     def test_launch(self, job_template_ping):
         '''
@@ -527,7 +527,7 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
     Test survey_creation
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
     def test_post_with_missing_fields(self, job_template_ping, missing_field_survey_specs):
         '''

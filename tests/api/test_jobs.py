@@ -131,7 +131,7 @@ def stop_mongodb(request, ansible_runner):
 @pytest.mark.destructive
 class Test_Job(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
     def test_utf8(self, utf8_template):
         '''
@@ -628,7 +628,7 @@ print json.dumps(inventory)
 @pytest.mark.destructive
 class Test_Scan_Job(Base_Api_Test):
     '''Tests for scan jobs.'''
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license')
+    pytestmark = pytest.mark.usefixtures('authtoken')
 
     def test_launch_scan_job_without_mongodb(self, install_enterprise_license, stop_mongodb, scan_job_with_status_completed):
         '''Tests that scan jobs without mongodb running fail appropriately.'''
@@ -657,7 +657,7 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
     environment variables ('job_env')
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
     def test_job_env(self, job_template_with_cloud_credential):
         '''Verify that job_env has the expected cloud_credential variables'''
@@ -742,7 +742,7 @@ class Test_Update_On_Launch(Base_Api_Test):
     initiated on job launch
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
     def test_inventory(self, cloud_inventory_job_template, cloud_group):
         '''Verify that an inventory_update is triggered by job launch'''

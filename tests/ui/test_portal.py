@@ -12,7 +12,7 @@ from dateutil.relativedelta import relativedelta
 @pytest.mark.nondestructive
 class Test_Portal(Base_UI_Test):
 
-    pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
 
     def test_account_menu(self, ui_portal_pg):
         '''Verify the Portal page account_menu links behave as expected.'''
@@ -118,7 +118,7 @@ def many_job_templates(request, api_job_templates_pg, job_template):
 @pytest.mark.nondestructive
 class Test_Portal_Job_Templates(Base_UI_Test):
 
-    pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
     # search_filters = ('Name', 'Description')
     # table_sort = [('name', 'ascending'),
     #               ('name', 'descending'),
@@ -298,7 +298,7 @@ class Test_Portal_Job_Templates(Base_UI_Test):
 @pytest.mark.skipif(True, reason="FIXME - UI portal tests coming soon!")
 class Test_Portal_Jobs(Base_UI_Test):
 
-    pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
 
     def test_jobs_only_includes_playbook_runs(self):
         '''Verify a that jobs region only shows jobs of type=playbook_run'''

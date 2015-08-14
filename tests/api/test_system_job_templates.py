@@ -26,7 +26,7 @@ class Test_System_Job_Template(Base_Api_Test):
     TODO - verify schedules
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'backup_license', 'install_enterprise_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get_as_superuser(self, api_system_job_templates_pg):
         '''

@@ -7,7 +7,7 @@ from tests.ui import Base_UI_Test
 @pytest.mark.nondestructive
 class Test_Main_Menu(Base_UI_Test):
 
-    pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
 
     def test_menu_items(self, ui_dashboard_pg):
         '''
@@ -29,7 +29,7 @@ class Test_Main_Menu(Base_UI_Test):
 @pytest.mark.nondestructive
 class Test_Account_Menu(Base_UI_Test):
 
-    pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
 
     def test_superuser_menu_items(self, ui_dashboard_pg):
         '''
@@ -103,7 +103,7 @@ class Test_Account_Menu(Base_UI_Test):
 @pytest.mark.nondestructive
 class Test_Portal_Menu(Base_UI_Test):
 
-    pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
 
     def test_menu_items(self, ui_portal_pg):
         '''
@@ -127,7 +127,7 @@ class Test_Portal_Menu(Base_UI_Test):
 @pytest.mark.nondestructive
 class Test_Mobile_Menu(Base_UI_Test):
 
-    pytestmark = pytest.mark.usefixtures('window_mobile', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('window_mobile', 'install_license_unlimited')
 
     def test_visibility(self, ui_dashboard_pg):
         '''

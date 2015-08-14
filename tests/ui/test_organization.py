@@ -27,7 +27,7 @@ def table_sort(request, admin_user, org_admin):
 @pytest.mark.nondestructive
 class Test_Organization(Base_UI_Test):
 
-    pytestmark = pytest.mark.usefixtures('maximized', 'backup_license', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
 
     def test_active_tab(self, ui_organizations_pg):
         '''Verify the basics of the organizations page'''
