@@ -15,8 +15,8 @@ def some_user(request, testsetup, authtoken, api_users_pg):
     payload = dict(username="org_admin_%s" % fauxfactory.gen_alphanumeric(),
                    first_name="Joe (%s)" % fauxfactory.gen_utf8(),
                    last_name="User (%s)" % fauxfactory.gen_utf8(),
-                   email="org_user_%s@example.com" % fauxfactory.gen_alphanumeric(),
-                   password=testsetup.credentials['default']['password'],)
+                   email=fauxfactory.gen_email(),
+                   password=fauxfactory.gen_utf8())
     obj = api_users_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj
@@ -54,7 +54,7 @@ def user_payload(**kwargs):
     payload = dict(username="joe_user_%s" % fauxfactory.gen_alphanumeric(),
                    first_name="Joe (%s)" % fauxfactory.gen_utf8(),
                    last_name="User (%s)" % fauxfactory.gen_utf8(),
-                   email="joe_user_%s@example.com" % fauxfactory.gen_alphanumeric(),
+                   email=fauxfactory.gen_email(),
                    password=kwargs.get('password', 'password'))
     if 'is_superuser' in kwargs:
         payload['is_superuser'] = kwargs.get('is_superuser')
@@ -75,7 +75,7 @@ class Test_Users(Base_Api_Test):
         payload = dict(username=some_user.username,
                        first_name="Another Joe (%s)" % fauxfactory.gen_utf8(),
                        last_name="User (%s)" % fauxfactory.gen_utf8(),
-                       email="org_user_%s@example.com" % fauxfactory.gen_alphanumeric(),
+                       email=fauxfactory.gen_email(),
                        password=fauxfactory.gen_utf8())
         with pytest.raises(common.exceptions.Duplicate_Exception):
             api_users_pg.post(payload)

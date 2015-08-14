@@ -120,7 +120,7 @@ def legacy_license_json(request, license_instance_count):
                                                  days=31,
                                                  company_name=fauxfactory.gen_utf8(),
                                                  contact_name=fauxfactory.gen_utf8(),
-                                                 contact_email="%s@example.com" % fauxfactory.gen_utf8())
+                                                 contact_email=fauxfactory.gen_email())
 
 
 @pytest.fixture(scope='function')
@@ -129,7 +129,7 @@ def basic_license_json(request, license_instance_count):
                                                  days=31,
                                                  company_name=fauxfactory.gen_utf8(),
                                                  contact_name=fauxfactory.gen_utf8(),
-                                                 contact_email="%s@example.com" % fauxfactory.gen_utf8(),
+                                                 contact_email=fauxfactory.gen_email(),
                                                  license_type="basic")
 
 
@@ -139,7 +139,7 @@ def enterprise_license_json(request, license_instance_count):
                                                  days=31,
                                                  company_name=fauxfactory.gen_utf8(),
                                                  contact_name=fauxfactory.gen_utf8(),
-                                                 contact_email="%s@example.com" % fauxfactory.gen_utf8(),
+                                                 contact_email=fauxfactory.gen_email(),
                                                  license_type="enterprise")
 
 
@@ -170,7 +170,7 @@ def trial_legacy_license_json(request, license_instance_count):
                                                  trial=True,
                                                  company_name=fauxfactory.gen_utf8(),
                                                  contact_name=fauxfactory.gen_utf8(),
-                                                 contact_email="%s@example.com" % fauxfactory.gen_utf8())
+                                                 contact_email=fauxfactory.gen_email())
 
 
 @pytest.fixture(scope='function')
@@ -338,7 +338,7 @@ def inventory_no_free_instances(request, authtoken, api_config_pg, api_inventori
                                                  trial=False,
                                                  company_name=fauxfactory.gen_utf8(),
                                                  contact_name=fauxfactory.gen_utf8(),
-                                                 contact_email="%s@example.com" % fauxfactory.gen_utf8())
+                                                 contact_email=fauxfactory.gen_email())
     api_config_pg.post(json)
     request.addfinalizer(api_config_pg.delete)
 
