@@ -57,12 +57,13 @@
   when: rds_images and rds is defined
 
 - name: add_host
-  add_host: name='# {{item.instance.id}}'
-     groups: "rds,{{item.item.groups|default('')}}"
-     postgres_username: '{{item.instance.username}}'
-     postgres_password: '{{rds_password}}'
-     postgres_host: '{{item.instance.endpoint}}'
-     ansible_ssh_host: '{{item.instance.endpoint}}'
-     ansible_ssh_user: '{{item.instance.username}}'
+  add_host:
+    name: '# {{item.instance.id}}'
+    groups: "rds,{{item.item.groups|default('')}}"
+    postgres_username: '{{item.instance.username}}'
+    postgres_password: '{{rds_password}}'
+    postgres_host: '{{item.instance.endpoint}}'
+    ansible_ssh_host: '{{item.instance.endpoint}}'
+    ansible_ssh_user: '{{item.instance.username}}'
   with_items: rds.results
   when: rds_images and rds is defined
