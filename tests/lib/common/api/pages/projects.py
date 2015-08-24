@@ -97,6 +97,7 @@ class Project_Update_Launch_Page(Base):
 
 class Project_Update_Page(Unified_Job_Page):
     base_url = '/api/v1/project_updates/{id}/'
+    local_path = property(json_getter('local_path'), json_setter('local_path'))
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
