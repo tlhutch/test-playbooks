@@ -7,6 +7,7 @@ class Config_Page(base.Base):
     license_info = property(base.json_getter('license_info'), base.json_setter('license_info'))
     ansible_version = property(base.json_getter('ansible_version'), base.json_setter('ansible_version'))
     time_zone = property(base.json_getter('time_zone'), base.json_setter('time_zone'))
+    project_base_dir = property(base.json_getter('project_base_dir'), base.json_setter('project_base_dir'))
 
     @property
     def is_aws_license(self):

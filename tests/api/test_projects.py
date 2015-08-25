@@ -5,6 +5,7 @@
 '''
 
 import re
+import os
 import time
 import pytest
 import fauxfactory
@@ -19,6 +20,20 @@ def project_with_queued_updates(project_ansible_playbooks_git_nowait):
     for i in range(4):
         update_pg.post({})
     return project_ansible_playbooks_git_nowait
+
+
+@pytest.fixture(scope="function")
+def project_with_galaxy_requirements(request, authtoken, organization):
+    # Create project
+    payload = dict(name="project-with-galaxy-requirements - %s" % fauxfactory.gen_utf8(),
+                   scm_type='git',
+                   scm_url='https://github.com/simfarm/ansible-playbooks',
+                   scm_clean=False,
+                   scm_delete_on_update=False,
+                   scm_update_on_launch=False,)
+    obj = organization.get_related('projects').post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
 
 
 @pytest.mark.api
@@ -278,3 +293,14 @@ class Test_Projects(Base_Api_Test):
         assert int(num_pending) == 0, \
             "A project (id:%d) was deleted, but %s project_update(s) remains queued/waiting/running (attempts:%s)" % \
             (project_with_queued_updates.id, num_pending, attempts)
+
+    def test_project_with_galaxy_requirements(self, ansible_runner, project_with_galaxy_requirements, api_config_pg):
+        '''Tests requirements download for project with requirements file.'''
+        project_with_galaxy_requirements.wait_until_completed()
+        last_update_pg = project_with_galaxy_requirements.get_related('last_update')
+        last_update_pg.wait_until_completed()
+
+        # assert that requirements were downloaded
+        contacted = ansible_runner.stat(path=os.path.join(api_config_pg.project_base_dir, last_update_pg.local_path, "roles/yatesr.timezone"))
+        for result in contacted.values():
+            assert result['stat']['exists'], "Requirement 'yatesr.timezone' was not found."
