@@ -2,18 +2,18 @@
 ec2_public_key: '~/.ssh/id_rsa.jenkins.pub'
 
 ec2_images:
-    - {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-8997afe0', 'type': 'm3.medium', 'groups': 'primary', 'security_group': 'Tower' }
-    - {'name': 'centos-7.0-x86_64',   'user': 'centos',      'id': 'ami-96a818fe', 'type': 'm3.medium', 'groups': 'primary', 'security_group': 'Tower' }
+    - {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-8997afe0', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
+    - {'name': 'centos-7.0-x86_64',   'user': 'centos',      'id': 'ami-96a818fe', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
     # The following is actually rhel-6.6
-    - {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-8d756fe4', 'type': 'm3.medium', 'groups': 'primary', 'security_group': 'Tower' }
+    - {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-8d756fe4', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
     # The following is actually rhel-7.1
-    - {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-12663b7a', 'type': 'm3.medium', 'groups': 'primary', 'security_group': 'Tower' }
-    - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-2ccc7a44', 'type': 'm3.medium', 'groups': 'primary', 'security_group': 'Tower' }
-    - {'name': 'ubuntu-12.10-x86_64', 'user': 'ubuntu',      'id': 'ami-fd4e4394', 'type': 'm3.medium', 'groups': 'primary', 'security_group': 'Tower' }
-    - {'name': 'ubuntu-13.10-x86_64', 'user': 'ubuntu',      'id': 'ami-7461a11c', 'type': 'm3.medium', 'groups': 'primary', 'security_group': 'Tower' }
-    - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-8caa1ce4', 'type': 'm3.medium', 'groups': 'primary', 'security_group': 'Tower' }
-    - {'name': 'fedora-19-x86_64',    'user': 'fedora',      'id': 'ami-b22e5cdb', 'type': 'm3.medium', 'groups': 'primary', 'security_group': 'Tower' }
-    - {'name': 'fedora-20-x86_64',    'user': 'fedora',      'id': 'ami-1337187a', 'type': 'm3.medium', 'groups': 'primary', 'security_group': 'Tower' }
+    - {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-12663b7a', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
+    - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-2ccc7a44', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
+    - {'name': 'ubuntu-12.10-x86_64', 'user': 'ubuntu',      'id': 'ami-fd4e4394', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
+    - {'name': 'ubuntu-13.10-x86_64', 'user': 'ubuntu',      'id': 'ami-7461a11c', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
+    - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-8caa1ce4', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
+    - {'name': 'fedora-19-x86_64',    'user': 'fedora',      'id': 'ami-b22e5cdb', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
+    - {'name': 'fedora-20-x86_64',    'user': 'fedora',      'id': 'ami-1337187a', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
 
 ec2_security_groups:
     - name: Tower

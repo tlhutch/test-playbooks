@@ -1,7 +1,7 @@
 ---
 # AWS variables
 rds_region: 'us-east-1'
-rds_instance_type: 'db.m3.medium'
+rds_instance_type: 'db.m3.large'
 rds_security_group: 'postgres' # sg-c23561a8
 rds_name_prefix: '{{ instance_name_prefix }}'
 rds_size: 5

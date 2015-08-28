@@ -2,7 +2,7 @@
 
 # EC2 options for windows instances.
 win_ec2_region: 'us-east-1'
-win_ec2_instance_type: 'm3.medium'
+win_ec2_instance_type: 'm3.large'
 win_ec2_security_group: 'Ansible WinRM'
 win_ec2_key_name: 'ansible-winrm'
 win_ec2_public_key: '~/.ssh/id_rsa.pub'
