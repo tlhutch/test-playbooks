@@ -63,15 +63,11 @@
 
 ### Upgrade offline installer
 1. Upgrade completes on all supported platforms from `2.1.*`
-    * [] ubuntu-12.04
-    * [] ubuntu-14.04
     * [] rhel-6.5
     * [] rhel-7.0
     * [] centos-6.5
     * [] centos-7.0
 1. Upgrade completes on all supported platforms from `2.0.*`
-    * [] ubuntu-12.04
-    * [] ubuntu-14.04
     * [] rhel-6.5
     * [] rhel-7.0
     * [] centos-6.5
@@ -86,7 +82,7 @@
 
 ### Feature: Offline installer 
 1. [] Running the installer on the same box as Tower
-1. [] Running the installer on a different box as Tower and connecting remotely
+1. [] Running the installer on a different box as Tower and connecting remotely (sudo and su)
 1. [] Installer is single downloadable object
 1. [] Installer signed by Ansible 
 1. [] Installer contains all non-vendor dependencies, Ansible, and Tower
