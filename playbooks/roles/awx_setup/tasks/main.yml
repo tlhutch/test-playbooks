@@ -50,7 +50,7 @@
   when: configure_script.stat.exists == True and (not is_awx_installed.stat.exists or awx_upgrade)
 
 - name: run configure script
-  command: ./configure -o tower_setup_conf.yml --no-secondary-prompt
+  command: ./configure --options-file tower_setup_conf.yml --inventory-file inventory --no-secondary-prompt
   args:
     chdir: /tmp/setup
   when: configure_script.stat.exists == True and (not is_awx_installed.stat.exists or awx_upgrade)
