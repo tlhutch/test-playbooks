@@ -1235,7 +1235,7 @@ projects:
       organization: Ansible, Inc
       scm_type: git
       scm_url: 'git@github.com:ansible/ansible-tower.git'
-      scm_branch: 'master'
+      scm_branch: 'stable'
       scm_clean: false
       scm_delete_on_update: false
       scm_update_on_launch: false
