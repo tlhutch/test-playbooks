@@ -9,11 +9,12 @@ Ansible Tower and related services.
 
 ## Playbooks
 
- * `tower.yml` - Install Tower
  * `deploy-tower.yml` - Create cloud instances and install tower to each instance
  * `deploy-cloud.yml` - Create cloud instances
  * `destroy-cloud.yml` - Terminate cloud instances
+ * `deploy-ldap.yml` - Create cloud instances, and install tower in an LDAP configuration
  * `deploy-ha.yml` - Create cloud instances, and install tower in an HA configuration
+ * `install-tower.yml` - Install Tower to an already provisioned system
 
 ## Variable files
 
@@ -28,4 +29,5 @@ Ansible Tower and related services.
 ## Inventory
 
  * `inventory` - Inventory file that describes a single localhost
- * `inventory-vmfusion` - Inventory script that returns active VMware Fusion hosts
+ * `inventory-vmfusion.py` - Inventory script that returns active VMware Fusion hosts
+ * `inventory-jenkins.py` - Ansible inventory script that loads inventory from the latest nightly `Test_Tower_Install` artifacts
