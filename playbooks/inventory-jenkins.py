@@ -12,9 +12,8 @@ import ansible.inventory
 from urlparse import urljoin
 
 
-job_path = '/job/Test_Tower_Install/ANSIBLE_INSTALL_METHOD={ansible_install_method},PLATFORM={platform},label={label}/lastBuild'
+job_path = '/job/Test_Tower_Install/PLATFORM={platform},label={label}/lastBuild'
 artifact_path = '/artifact/playbooks/inventory.log/*view*/'
-ansible_install_methods = ['stable', 'nightly']
 supported_platforms = ['rhel-6.5-x86_64', 'centos-6.5-x86_64',
                        'centos-7.0-x86_64', 'rhel-7.0-x86_64',
                        'ubuntu-12.04-x86_64', 'ubuntu-14.04-x86_64']
@@ -92,38 +91,37 @@ if __name__ == "__main__":
         cfg = AnsibleInventory()
         master_inv = dict(_meta=dict(hostvars={}))
 
-        for ansible_install_method in ansible_install_methods:
-            for platform in supported_platforms:
-                for label in ['test']:
-                    # build URL to Jenkins artifact
-                    url = urljoin(args.jenkins, job_path + artifact_path)
-                    url = url.format(**dict(ansible_install_method=ansible_install_method, platform=platform, label=label))
+        for platform in supported_platforms:
+            for label in ['test']:
+                # build URL to Jenkins artifact
+                url = urljoin(args.jenkins, job_path + artifact_path)
+                url = url.format(**dict(platform=platform, label=label))
 
-                    # download artifact
-                    local_inventory = download_url(url, verify=False, auth=(args.user, args.token))
+                # download artifact
+                local_inventory = download_url(url, verify=False, auth=(args.user, args.token))
 
-                    # extend master_inv
-                    if local_inventory:
-                        try:
-                            cfg.read(local_inventory)
-                        except (ConfigParser.MissingSectionHeaderError, ConfigParser.ParsingError) as e:
-                            sys.stderr.write("Failed to download inventory.log: %s\n" % url)
+                # extend master_inv
+                if local_inventory:
+                    try:
+                        cfg.read(local_inventory)
+                    except (ConfigParser.MissingSectionHeaderError, ConfigParser.ParsingError) as e:
+                        sys.stderr.write("Failed to download inventory.log: %s\n" % url)
 
-                        jenkins_inv = ansible.inventory.Inventory(local_inventory)
+                    jenkins_inv = ansible.inventory.Inventory(local_inventory)
 
-                        # add group and hosts
-                        for grp in jenkins_inv.get_groups():
-                            # Initialize group dictionary
-                            if grp.name not in master_inv:
-                                master_inv[grp.name] = dict(hosts=[], vars={})
-                            # Add group_vars
-                            master_inv[grp.name]['vars'].update(grp.get_variables())
-                            for host in grp.get_hosts():
-                                # Add host to the group
-                                if host.name not in master_inv[grp.name]['hosts']:
-                                    master_inv[grp.name]['hosts'].append(host.name)
-                                # Add hostvars
-                                master_inv['_meta']['hostvars'][host.name] = host.vars
+                    # add group and hosts
+                    for grp in jenkins_inv.get_groups():
+                        # Initialize group dictionary
+                        if grp.name not in master_inv:
+                            master_inv[grp.name] = dict(hosts=[], vars={})
+                        # Add group_vars
+                        master_inv[grp.name]['vars'].update(grp.get_variables())
+                        for host in grp.get_hosts():
+                            # Add host to the group
+                            if host.name not in master_inv[grp.name]['hosts']:
+                                master_inv[grp.name]['hosts'].append(host.name)
+                            # Add hostvars
+                            master_inv['_meta']['hostvars'][host.name] = host.vars
 
         if master_inv:
             if args.ini:
