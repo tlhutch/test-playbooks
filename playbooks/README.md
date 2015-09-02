@@ -10,7 +10,8 @@ Ansible Tower and related services.
 ## Playbooks
 
  * `deploy-tower.yml` - Create cloud instances and install tower to each instance
- * `deploy-cloud.yml` - Create cloud instances
+ * `deploy-ansible.yml` - Create cloud instances and install ansible
+ * `deploy.yml` - Create cloud instances
  * `destroy-cloud.yml` - Terminate cloud instances
  * `deploy-ldap.yml` - Create cloud instances, and install tower in an LDAP configuration
  * `deploy-ha.yml` - Create cloud instances, and install tower in an HA configuration
