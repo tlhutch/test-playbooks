@@ -93,7 +93,7 @@ class Test_Job_Template(Base_Api_Test):
         # assert extra_vars match job_template extra_vars
         assert job_extra_vars == job_template_extra_vars
 
-    def test_launch_with_extra_vars_at_launch(self, job_template_with_extra_vars, job_extra_vars_dict):
+    def test_launch_with_extra_vars_at_launch(self, job_template_with_extra_vars, job_extra_vars_dict, tower_version_cmp):
         '''
         Verify that when launch-time extra_vars are provided, the job
         extra_variables are a union of the launch-time variables and the
@@ -108,28 +108,36 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.variables_needed_to_start
         assert not launch_pg.credential_needed_to_start
 
-        # Launch job_template and assert successful completion
+        # launch job_template and assert successful completion
         job_pg = job_template_with_extra_vars.launch(dict(extra_vars=job_extra_vars_dict)).wait_until_completed()
         assert job_pg.is_successful, "job unsuccessful - %s" % job_pg
 
-        # coerce extra_vars into a dictionary for a proper comparison
+        # format job extra_vars
         try:
             job_extra_vars = json.loads(job_pg.extra_vars)
         except ValueError:
             job_extra_vars = {}
-        try:
-            job_template_extra_vars = json.loads(job_template_with_extra_vars.extra_vars)
-        except ValueError:
-            job_template_extra_vars = {}
 
-        # assert the job_template extra_vars are a subset of the job extra_vars
-        assert set(job_template_extra_vars) < set(job_extra_vars)
+        # variable precedence changed in 2.4.0
+        if tower_version_cmp('2.4.0') < 0:
+            # assert job.extra_vars match the launch-time extra_vars
+            assert job_extra_vars == job_extra_vars_dict
 
-        # assert the launch-time extra_vars are a subset of the job extra_vars
-        assert set(job_extra_vars_dict) < set(job_extra_vars)
+        else:
+            # coerce extra_vars into a dictionary for a proper comparison
+            try:
+                job_template_extra_vars = json.loads(job_template_with_extra_vars.extra_vars)
+            except ValueError:
+                job_template_extra_vars = {}
 
-        # assert the job extra_vars are a union of the job_template and launch-time extra_vars
-        assert set(job_extra_vars) == set(job_template_extra_vars) | set(job_extra_vars_dict)
+            # assert the job_template extra_vars are a subset of the job extra_vars
+            assert set(job_template_extra_vars) < set(job_extra_vars)
+
+            # assert the launch-time extra_vars are a subset of the job extra_vars
+            assert set(job_extra_vars_dict) < set(job_extra_vars)
+
+            # assert the job extra_vars are a union of the job_template and launch-time extra_vars
+            assert set(job_extra_vars) == set(job_template_extra_vars) | set(job_extra_vars_dict)
 
     def test_launch_without_credential(self, job_template_no_credential):
         '''
