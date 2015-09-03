@@ -19,9 +19,7 @@ def team_with_org_admin(request, team, org_admin):
     users_pg = team.get_related('users')
     payload = dict(id=org_admin.id)
     with pytest.raises(common.exceptions.NoContent_Exception):
-        obj = users_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
-    request.addfinalizer(team.silent_delete)
+        users_pg.post(payload)
     return team
 
 
