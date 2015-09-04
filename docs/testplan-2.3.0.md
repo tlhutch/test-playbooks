@@ -81,6 +81,7 @@
 1. [] End-to-end integration completed on all supported platforms
 
 ### Feature: Offline installer 
+1. [] Retest the configure script
 1. [] Running the installer on the same box as Tower
 1. [] Running the installer on a different box as Tower and connecting remotely (sudo and su)
 1. [] Installer is single downloadable object
