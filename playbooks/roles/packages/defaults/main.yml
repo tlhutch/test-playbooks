@@ -1,10 +1,10 @@
 ---
 
 # Specify the ansible install method
-ansible_install_method: 'nightly'
+ansible_install_method: 'stable'
 
 # Specify a nightly package repository, used when ansible_install_method == 'nightly'
-ansible_nightly_repo: http://50.116.42.103/ansible_nightlies_QcGXFZKv5VfQHi
+ansible_nightly_repo: http://jenkins.testing.ansible.com/ansible_nightlies_QcGXFZKv5VfQHi
 
 # Specify an ansible pip package name/version.  Can use any format accepted by
 # 'pip' module (including URL to tarball)

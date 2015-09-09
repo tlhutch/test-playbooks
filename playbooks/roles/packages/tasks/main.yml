@@ -10,23 +10,31 @@
       paths: '../vars'
 
 - name: install playbook dependency rpms
-  yum: name={{item}} state=installed
+  yum:
+    name: '{{item}}'
+    state: installed
   with_items: rpm_role_dependencies
   when: ansible_pkg_mgr == 'yum'
 
 - name: install playbook dependency debs
-  apt: pkg={{item}} state=latest update_cache=yes
+  apt:
+    pkg: '{{item}}'
+    state: latest
+    update_cache: yes
   with_items: deb_role_dependencies
   when: ansible_pkg_mgr == 'apt'
 
 - name: include rhui tasks
   include: rhui.yml
+  when: ansible_distribution == 'RedHat'
 
 - name: include rhsm tasks
   include: rhsm.yml
+  when: ansible_distribution == 'RedHat'
 
 - name: include epel tasks
   include: epel.yml
+  when: ansible_os_family == 'RedHat' and ansible_install_method in ['stable', 'testing', 'nightly']
 
 # install ansible nightly rpm repo (optional)
 
@@ -84,3 +92,4 @@
 - name: verify that ansible was installed
   command: ansible --version
   changed_when: false
+  when: ansible_install_method != None

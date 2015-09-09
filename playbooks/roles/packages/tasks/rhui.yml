@@ -8,7 +8,7 @@
 
 - name: update rh-amazon-rhui-client (RHEL EC2 only)
   yum: name=rh-amazon-rhui-client state=latest
-  when: ansible_distribution == 'RedHat' and rhui_repo.stat.exists
+  when: rhui_repo.stat.exists
 
 - name: enable rhui repositories
   ini_file:
@@ -16,5 +16,5 @@
     section: '{{ item }}'
     option: enabled
     value: 1
-  when: ansible_distribution == 'RedHat' and rhui_repo.stat.exists
+  when: rhui_repo.stat.exists
   with_items: redhat_rhui_repos

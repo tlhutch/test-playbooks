@@ -14,5 +14,5 @@
 
 - name: enable rhsm repositories
   command: subscription-manager repos --enable '{{ item }}'
-  when: ansible_distribution == 'RedHat' and rhsm_repo.stat.exists and rhsm_cert.stat.exists
+  when: rhsm_repo.stat.exists and rhsm_cert.stat.exists
   with_items: redhat_rhsm_repos
