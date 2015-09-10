@@ -84,11 +84,11 @@
 1. [] Retest the configure script
 1. [] Running the installer on the same box as Tower
 1. [] Running the installer on a different box as Tower and connecting remotely (sudo and su)
-1. [] Installer is single downloadable object
+1. [x] Installer is single downloadable object
 1. [] Installer signed by Ansible 
 1. [] Installer contains all non-vendor dependencies, Ansible, and Tower
 1. [] Installation of non-vendor dependencies should not require internet access
-1. [] Installer includes list of vendor repositories
+1. [x] Installer includes list of vendor repositories
 1. [] Installer should leave pre-existing versions of Ansible intact 
 1. [] Integration passes 
 
