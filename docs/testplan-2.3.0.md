@@ -30,16 +30,16 @@
 
 ### Installation offline installer
 1. Installation completes successfully on all supported platforms
-    * [] rhel 6.5
+    * [X] rhel 6.5
     * [] rhel 6.6
     * [] rhel 6.7
     * [] rhel 7.0
     * [] rhel 7.1
     * [] centos 6.5
-    * [] centos 6.6
+    * [X] centos 6.6
     * [] centos 6.7
     * [] centos 7.0
-    * [] centos 7.1
+    * [X] centos 7.1
 
 ### Upgrade online installer
 1. Upgrade completes on all supported platforms from `2.1.*`
