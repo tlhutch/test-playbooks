@@ -14,15 +14,15 @@
 
 ### Installation online installer
 1. Installation completes successfully on all supported platforms
-    * [] ubuntu-12.04
-    * [] ubuntu-14.04
-    * [] rhel-6.5
-    * [] rhel-7.0
-    * [] centos-6.5
-    * [] centos-7.0
+    * [x] ubuntu-12.04
+    * [x] ubuntu-14.04
+    * [x] rhel-6.5
+    * [x] rhel-7.0
+    * [x] centos-6.5
+    * [x] centos-7.0
 1. Installation completes successfully using supported ansible releases
     * [] ansible-2.0
-    * [] ansible-1.9.x
+    * [x] ansible-1.9.x
     * [] ansible-1.8.x (tested manually)
 1. Installation completes successfully on supported images
     * [] AMI (unlicensed)
@@ -91,6 +91,12 @@
 1. [x] Installer includes list of vendor repositories
 1. [] Installer should leave pre-existing versions of Ansible intact 
 1. [] Integration passes 
+
+### Feature: Package Signing
+1. [X] Verified creation and install of signed DEB builds
+1. [X] Verified creation and install of signed RPM builds
+1. [X] Verified manual creation of signed TAR builds
+1. [X] Verified manual creation of signed Bundle_TAR builds
 
 ### Regression
 1. [] UI regression completed
