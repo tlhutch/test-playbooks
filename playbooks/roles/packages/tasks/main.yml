@@ -39,7 +39,9 @@
 # install ansible nightly rpm repo (optional)
 
 - name: install ansible nightly yum repository
-  template: src=files/ansible_yum.repo.j2 dest=/etc/yum.repos.d/ansible.repo
+  template:
+    src: files/ansible_yum.repo.j2
+    dest: /etc/yum.repos.d/ansible.repo
   register: yum_repo
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
 
@@ -50,43 +52,65 @@
 # install ansible nightly rpm repo (optional)
 
 - name: install ansible nightly apt repository
-  template: src=files/ansible_apt.repo.j2 dest=/etc/apt/sources.list.d/ansible_repo.list
+  template:
+    src: files/ansible_apt.repo.j2
+    dest: /etc/apt/sources.list.d/ansible_repo.list
   when: ansible_pkg_mgr == 'apt' and ansible_install_method == 'nightly'
 
 # install ansible ppa
 
 - name: install ansible stable apt repository
-  apt_repository: repo={{ansible_ppa}} state=present
+  apt_repository:
+    repo: '{{ansible_ppa}}'
+    state: present
   when: ansible_pkg_mgr == 'apt' and ansible_ppa is defined
 
 # install ansible
 
 - name: install ansible rpm (stable)
-  yum: name=ansible state=latest
+  yum:
+    name: ansible
+    state: latest
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'stable'
 
 - name: install ansible rpm (testing)
-  yum: name=ansible enablerepo='*-testing' state=latest
+  yum:
+    name: ansible
+    enablerepo: '*-testing'
+    state: latest
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'testing'
 
 - name: install ansible rpm (nightly)
-  yum: name=ansible enablerepo=ansible-nightly state=latest
+  yum:
+    name: ansible
+    enablerepo: ansible-nightly
+    state: latest
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
 
 - name: install ansible deb
-  apt: pkg=ansible state=latest update_cache=yes force=yes
+  apt:
+    name: ansible
+    state: latest
+    update_cache: yes
+    force: yes
   when: ansible_pkg_mgr == 'apt' and ansible_install_method in ['stable', 'testing', 'nightly']
 
 - name: install pip rpm
-  yum: name=python-pip state=installed
+  yum:
+    name: python-pip
+    state: installed
   when: ansible_install_method == 'pip' and ansible_pkg_mgr == 'yum'
 
 - name: install pip deb
-  apt: name=python-pip state=installed
+  apt:
+    name: python-pip
+    state: installed
   when: ansible_install_method == 'pip' and ansible_pkg_mgr == 'apt'
 
 - name: install ansible pip
-  pip: name={{ansible_pip}} state=latest
+  pip:
+    name: '{{ansible_pip}}'
+    state: latest
   when: ansible_install_method == 'pip'
 
 - name: verify that ansible was installed
