@@ -44,7 +44,7 @@
 ### Upgrade online installer
 1. Upgrade completes on all supported platforms from `2.2.*`
     * [X] ubuntu-12.04 [jlaska]
-    * [X] ubuntu-14.04 [jlaska]
+    * [] ubuntu-14.04 [jlaska]
     * [X] rhel-6.5 [jlaska]
     * [] rhel-7.0 [jlaska]
     * [X] centos-6.5 [jlaska]
@@ -52,10 +52,10 @@
 1. Upgrade completes on all supported platforms from `2.1.*`
     * [] ubuntu-12.04 [cwang]
     * [] ubuntu-14.04 [cwang]
-    * [] rhel-6.5 [cwang]
+    * [X] rhel-6.5 [cwang]
     * [] rhel-7.0 [cwang]
-    * [] centos-6.5 [cwang]
-    * [] centos-7.0 [cwang]
+    * [X] centos-6.5 [cwang]
+    * [X] centos-7.0 [cwang]
 1. Verify the following functions work as intended after upgrade
     * [] Launch project_updates for existing projects
     * [] Launch inventory_udpates for existing inventory_source
