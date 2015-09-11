@@ -31,10 +31,10 @@
 ### Installation bundle installer
 1. Installation completes successfully on all supported platforms
     * [X] rhel 6.5
-    * [] rhel 6.6
-    * [] rhel 6.7
-    * [] rhel 7.0
-    * [] rhel 7.1
+    * [X] rhel 6.6
+    * [X] rhel 6.7
+    * [X] rhel 7.0
+    * [X] rhel 7.1
     * [X] centos 6.5
     * [X] centos 6.6
     * [] centos 6.7
@@ -52,10 +52,10 @@
 1. Upgrade completes on all supported platforms from `2.1.*`
     * [] ubuntu-12.04 [cwang]
     * [] ubuntu-14.04 [cwang]
-    * [X] rhel-6.5 [cwang]
-    * [] rhel-7.0 [cwang]
-    * [X] centos-6.5 [cwang]
-    * [X] centos-7.0 [cwang]
+    * [X] rhel-6.5
+    * [] rhel-7.0
+    * [X] centos-6.5
+    * [X] centos-7.0
 1. Verify the following functions work as intended after upgrade
     * [x] Launch project_updates for existing projects
     * [x] Launch inventory_udpates for existing inventory_source
@@ -70,8 +70,8 @@
 1. [X] Running the installer on a different box as Tower and connecting remotely (sudo and su)
 1. [X] Installer is single downloadable object
 1. [X] Installer signed by Ansible
-1. [] Installer contains all non-vendor dependencies, Ansible, and Tower
-1. [] Installation of non-vendor dependencies should not require internet access
+1. [X] Installer contains all non-distribution dependencies needed to install Ansible and Tower
+1. [X] Installation of non-distribution dependencies should use the bundled repository
 1. [X] Installer includes list of vendor repositories
 1. [X] Installer should leave pre-existing versions of Ansible intact
 1. [] Integration passes [cwang]
