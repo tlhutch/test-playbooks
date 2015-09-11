@@ -23,7 +23,7 @@
 1. Installation completes successfully using supported ansible releases
     * [x] ansible-2.0
     * [x] ansible-1.9.x
-    * [] ansible-1.8.x [jlaska]
+    * [x] ansible-1.8.x (not tested on *all* platforms)
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed) [jlaska]
     * [ ] Vagrant [jlaska]
@@ -50,10 +50,10 @@
     * [X] centos-6.5
     * [X] centos-7.0
 1. Upgrade completes on all supported platforms from `2.1.*`
-    * [] ubuntu-12.04 [cwang]
-    * [] ubuntu-14.04 [cwang]
+    * [ ] ubuntu-12.04 [cwang]
+    * [ ] ubuntu-14.04 [cwang]
     * [X] rhel-6.5
-    * [] rhel-7.0
+    * [X] rhel-7.0
     * [X] centos-6.5
     * [X] centos-7.0
 1. Verify the following functions work as intended after upgrade
@@ -74,7 +74,7 @@
 1. [X] Installation of non-distribution dependencies should use the bundled repository
 1. [X] Installer includes list of vendor repositories
 1. [X] Installer should leave pre-existing versions of Ansible intact
-1. [] Integration passes [cwang]
+1. [X] Integration passes
 
 ### Feature: Package Signing
 1. [X] Verified creation and install of signed DEB builds
