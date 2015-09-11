@@ -74,7 +74,7 @@
 1. [] Installation of non-vendor dependencies should not require internet access
 1. [X] Installer includes list of vendor repositories
 1. [X] Installer should leave pre-existing versions of Ansible intact
-1. [] Integration passes
+1. [] Integration passes [cwang]
 
 ### Feature: Package Signing
 1. [X] Verified creation and install of signed DEB builds
