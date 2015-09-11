@@ -28,14 +28,14 @@
     * [] AMI (unlicensed) [jlaska]
     * [] Vagrant [jlaska]
 
-### Installation offline installer
+### Installation bundle installer
 1. Installation completes successfully on all supported platforms
     * [X] rhel 6.5
     * [] rhel 6.6
     * [] rhel 6.7
     * [] rhel 7.0
     * [] rhel 7.1
-    * [] centos 6.5
+    * [X] centos 6.5
     * [X] centos 6.6
     * [] centos 6.7
     * [] centos 7.0
@@ -56,22 +56,6 @@
     * [] rhel-7.0 [cwang]
     * [] centos-6.5 [cwang]
     * [] centos-7.0 [cwang]
-1. Verify the following functions work as intended after upgrade
-    * [] Launch project_updates for existing projects
-    * [] Launch inventory_udpates for existing inventory_source
-    * [] Launch, and relaunch, existing job_templates
-
-### Upgrade offline installer
-1. Upgrade completes on all supported platforms from `2.1.*`
-    * [] rhel-6.5
-    * [] rhel-7.0
-    * [] centos-6.5
-    * [] centos-7.0
-1. Upgrade completes on all supported platforms from `2.0.*`
-    * [] rhel-6.5
-    * [] rhel-7.0
-    * [] centos-6.5
-    * [] centos-7.0
 1. Verify the following functions work as intended after upgrade
     * [] Launch project_updates for existing projects
     * [] Launch inventory_udpates for existing inventory_source
