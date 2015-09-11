@@ -42,14 +42,14 @@
     * [X] centos 7.1
 
 ### Upgrade online installer
-1. Upgrade completes on all supported platforms from `2.1.*`
-    * [] ubuntu-12.04 [jlaska]
-    * [] ubuntu-14.04 [jlaska]
-    * [] rhel-6.5 [jlaska]
+1. Upgrade completes on all supported platforms from `2.2.*`
+    * [X] ubuntu-12.04 [jlaska]
+    * [X] ubuntu-14.04 [jlaska]
+    * [X] rhel-6.5 [jlaska]
     * [] rhel-7.0 [jlaska]
-    * [] centos-6.5 [jlaska]
-    * [] centos-7.0 [jlaska]
-1. Upgrade completes on all supported platforms from `2.0.*`
+    * [X] centos-6.5 [jlaska]
+    * [X] centos-7.0 [jlaska]
+1. Upgrade completes on all supported platforms from `2.1.*`
     * [] ubuntu-12.04 [cwang]
     * [] ubuntu-14.04 [cwang]
     * [] rhel-6.5 [cwang]
