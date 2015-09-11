@@ -37,7 +37,7 @@
     * [X] rhel 7.1
     * [X] centos 6.5
     * [X] centos 6.6
-    * [ ] centos 6.7
+    * [X] centos 6.7
     * [X] centos 7.0
     * [X] centos 7.1
 
