@@ -21,7 +21,7 @@
     * [x] centos-6.5
     * [x] centos-7.0
 1. Installation completes successfully using supported ansible releases
-    * [] ansible-2.0  [jlaska]
+    * [x] ansible-2.0
     * [x] ansible-1.9.x
     * [] ansible-1.8.x [jlaska]
 1. Installation completes successfully on supported images
