@@ -84,15 +84,15 @@
 
 ### Regression
 1. [X] UI regression completed
-1. [] API regression completed
+1. [X] API regression completed
 1. [X] Munin monitors work on all supported platforms
 1. [] Tower HA installation [jlaska]
     * [] Verify successful registration of secondary instances
     * [] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
     * [] Verify promoting secondary instance
     * [] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
-1. [] Tower LDAP Integration [jlaska]
-    * [] Verify license enablement with legacy or enterprise license (disabled elsewhere).
-    * [] Verify Tower respects LDAP username and password on login
-    * [] Verify Tower creates user related objects on successful login (User, Teams, Organization, Admin_of_organizations).
-    * [] Verify successful login for an Organization Administrator
+1. [X] Tower LDAP Integration [jlaska]
+    * [X] Verify license enablement with legacy or enterprise license (disabled elsewhere).
+    * [X] Verify Tower respects LDAP username and password on login
+    * [X] Verify Tower creates user related objects on successful login (User, Teams, Organization, Admin_of_organizations).
+    * [X] Verify successful login for an Organization Administrator
