@@ -25,8 +25,8 @@
     * [x] ansible-1.9.x
     * [] ansible-1.8.x [jlaska]
 1. Installation completes successfully on supported images
-    * [] AMI (unlicensed) [jlaska]
-    * [] Vagrant [jlaska]
+    * [ ] AMI (unlicensed) [jlaska]
+    * [ ] Vagrant [jlaska]
 
 ### Installation bundle installer
 1. Installation completes successfully on all supported platforms
@@ -37,8 +37,8 @@
     * [X] rhel 7.1
     * [X] centos 6.5
     * [X] centos 6.6
-    * [] centos 6.7
-    * [] centos 7.0
+    * [ ] centos 6.7
+    * [X] centos 7.0
     * [X] centos 7.1
 
 ### Upgrade online installer
