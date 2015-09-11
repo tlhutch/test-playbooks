@@ -50,8 +50,8 @@
     * [X] centos-6.5
     * [X] centos-7.0
 1. Upgrade completes on all supported platforms from `2.1.*`
-    * [ ] ubuntu-12.04 [cwang]
-    * [ ] ubuntu-14.04 [cwang]
+    * [X] ubuntu-12.04
+    * [X] ubuntu-14.04
     * [X] rhel-6.5
     * [X] rhel-7.0
     * [X] centos-6.5
