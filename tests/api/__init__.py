@@ -3,6 +3,7 @@ import contextlib
 
 
 @pytest.mark.api
+@pytest.mark.skip_selenium
 class Base_Api_Test(object):
     '''
     Base class
