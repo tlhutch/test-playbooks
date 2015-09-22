@@ -69,3 +69,9 @@
   environment:
     ANSIBLE_HOST_KEY_CHECKING: False
   when: not is_awx_installed.stat.exists or awx_upgrade
+
+- name: verify Tower API is accepting connections
+  uri:
+      url: 'https://localhost/api/v1/ping'
+      validate_certs: false
+      status_code: '200'
