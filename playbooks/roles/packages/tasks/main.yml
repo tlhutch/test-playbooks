@@ -116,4 +116,4 @@
 - name: verify that ansible was installed
   command: ansible --version
   changed_when: false
-  when: ansible_install_method != None
+  when: ansible_install_method not in ['none', None]
