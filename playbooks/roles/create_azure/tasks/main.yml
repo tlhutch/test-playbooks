@@ -45,9 +45,6 @@
   with_items: azure.results
   when: azure_images and azure is defined
 
-- debug: var=hostvars[item]
-  with_items: groups['cloud']
-
 # HACK: While sshd may be listening, it may not fully accept connections
 # immediately
 - pause: seconds=30
