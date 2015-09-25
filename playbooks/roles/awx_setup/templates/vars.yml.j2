@@ -26,6 +26,7 @@ pg_password: {{pg_password}}
 ## Disable gpg signature checking on nightly builds
 {% if not aw_repo_url.endswith("//releases.ansible.com/ansible-tower") %}
 gpgcheck: 0
+pendo_state: {{ pendo_state|default('off') }}
 {% endif %}
 
 ## Allow disabling the tower preflight disk space check
