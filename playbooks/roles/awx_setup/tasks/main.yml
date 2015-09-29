@@ -72,6 +72,8 @@
 
 - name: verify Tower API is accepting connections
   uri:
-      url: 'https://localhost/api/v1/ping'
+      url: 'https://localhost/api/v1/config/'
       validate_certs: false
       status_code: '200'
+      user: 'admin'
+      password: '{{ admin_password }}'
