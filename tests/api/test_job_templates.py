@@ -314,7 +314,7 @@ class Test_Job_Template(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    def test_launch_without_ask_variables_on_launch(self, job_template_ask_variables_on_launch):
+    def test_launch_without_ask_variables_on_launch(self, job_template_ask_variables_on_launch, tower_version_cmp):
         '''
         Verify the job->launch endpoint behaves as expected when ask_variables_on_launch is enabled
         '''
@@ -330,8 +330,14 @@ class Test_Job_Template(Base_Api_Test):
         # launch the job_template and wait for completion
         job_pg = job_template_ask_variables_on_launch.launch().wait_until_completed()
 
+        # extra_vars handling changed in 2.4
+        if tower_version_cmp('2.4.0') < 0:
+            expected_result = ''
+        else:
+            expected_result = '{}'
+
         # assert job has no extra_vars
-        assert job_pg.extra_vars == '', \
+        assert job_pg.extra_vars == expected_result, \
             "No extra_vars were provided at launch, " \
             "but the job contains extra_vars (%s)" % (job_pg.extra_vars)
 
