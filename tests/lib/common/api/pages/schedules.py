@@ -6,11 +6,13 @@ class Schedule_Page(Unified_Job_Page):
     name = property(json_getter('name'), json_setter('name'))
     type = property(json_getter('type'), json_setter('type'))
     description = property(json_getter('description'), json_setter('description'))
+    unified_job_template = property(json_getter('unified_job_template'), json_setter('unified_job_template'))
     enabled = property(json_getter('enabled'), json_setter('enabled'))
     dtstart = property(json_getter('dtstart'), json_setter('dtstart'))
     dtend = property(json_getter('dtend'), json_setter('dtend'))
     rrule = property(json_getter('rrule'), json_setter('rrule'))
     next_run = property(json_getter('next_run'), json_setter('next_run'))
+    extra_data = property(json_getter('extra_data'), json_setter('extra_data'))
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
