@@ -12,11 +12,13 @@
   file:
     path: '/tmp/setup'
     state: absent
+  when: tarball.changed
 
 - name: untar ansible-tower-setup
   command: tar -xvf {{tarball.dest}} --transform "s|^[^/]*|setup|"
   args:
       chdir: /tmp
+  when: tarball.changed
 
 - name: is awx already installed?
   stat:
