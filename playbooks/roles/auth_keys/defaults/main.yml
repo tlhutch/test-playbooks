@@ -1,13 +1,13 @@
 ---
 authorized_keys:
-    - url: https://github.com/abadger.keys
-    - url: https://github.com/ansible-jenkins.keys
-    - url: https://github.com/cchurch.keys
-    - url: https://github.com/chrismeyersfsu.keys
-    - url: https://github.com/jaredevantabor.keys
-    - url: https://github.com/jenkins.keys
-    - url: https://github.com/jimi-c.keys
-    - url: https://github.com/jlaska.keys
-    - url: https://github.com/jlmitch5.keys
-    - url: https://github.com/matburt.keys
-    - url: https://github.com/simfarm.keys
+    - url: 'https://github.com/abadger.keys'
+    - url: 'https://github.com/ansible-jenkins.keys'
+    - url: 'https://github.com/cchurch.keys'
+    - url: 'https://github.com/chrismeyersfsu.keys'
+    - url: 'https://github.com/jaredevantabor.keys'
+    - url: 'https://github.com/jenkins.keys'
+    - url: 'https://github.com/jimi-c.keys'
+    - url: 'https://github.com/jlaska.keys'
+    - url: 'https://github.com/jlmitch5.keys'
+    - url: 'https://github.com/matburt.keys'
+    - url: 'https://github.com/simfarm.keys'
