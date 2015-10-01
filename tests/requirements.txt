@@ -6,7 +6,10 @@ setuptools==18.1
 distribute==0.7.3
 selenium
 py
-pytest
+# Remove the following when the  following bug is fixed
+# https://github.com/pytest-dev/pytest/issues/1085
+git+https://github.com/nicoddemus/pytest@param-ids-fix 
+# pytest
 pytest-cov
 pytest-cache
 pytest-mozwebqa
