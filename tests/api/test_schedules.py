@@ -741,7 +741,6 @@ class Test_Job_Template_Schedules(Base_Api_Test):
     * Verify related fields map correctly (schedule->job_template and job_templates->schedules)
     * Verify extra_vars handling
     '''
-    @pytest.mark.trello('https://trello.com/c/RqBpZdh3')
     def test_schedule_with_no_credential(self, job_template_no_credential):
         '''Verify that a job_template with no credential launches jobs that fail.'''
 
@@ -787,13 +786,26 @@ class Test_Job_Template_Schedules(Base_Api_Test):
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken')
 class Test_System_Job_Template_Schedules(Base_Api_Test):
-    '''
-    TODO - Validation of system_job_template schedules
+    '''Tests system job schedules.'''
+    @pytest.mark.parametrize("name, count, system_job_template_id, kwargs", [
+        ("Cleanup Job Schedule", 1, 1, dict(days='120')),
+        ("Cleanup Deleted Data Schedule", 1, 2, dict(days='30')),
+        ("Cleanup Activity Schedule", 1, 3, dict(days='355')),
+        ("Cleanup Fact Schedule", 0, 4, dict(older_than='120d', granularity='1w')),
+    ], ids=['Cleanup Job Schedule', 'Cleanup Deleted Data Schedule', 'Cleanup Activity Schedule', 'Cleanup Fact Schedule'])
+    def test_prepopulated_schedules(self, api_schedules_pg, name, count, system_job_template_id, kwargs):
+        '''Tests default system jobs'''
+        schedules_pg = api_schedules_pg.get()
 
-    This class tests the following:
-    * Verify basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
-    * Verify RBAC for above operations (should be superuser-only)
-    * Verify only a single schedule can exist for each system_job_template
-    * Verify related fields map correctly (schedule->system_job_template and system_job_templates->schedules)
-    * Verify extra_vars handling
-    '''
+        # find prepopulated system jobs
+        default_schedules = filter(lambda x: x.name == name and x.extra_data == kwargs, schedules_pg.results)
+        assert len(default_schedules) == count, "Unexpected number of schedules with name '%s' found." % name
+
+        # assess system job
+        if default_schedules:
+            default_schedule_pg = default_schedules[0]
+            assert default_schedule_pg.unified_job_template == system_job_template_id, \
+                "Schedule '%s' is of wrong unified_job_template. Expected %s, got %s." \
+                % (name, system_job_template_id, default_schedule_pg.unified_job_template)
+            assert default_schedule_pg.extra_data == kwargs, \
+                "Unexpected extra_data with '%s.'" % name
