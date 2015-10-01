@@ -185,6 +185,19 @@ def host_local(request, authtoken, api_hosts_pg, inventory, group):
 
 
 @pytest.fixture(scope="function")
+def host_with_default_connection(request, authtoken, api_hosts_pg, inventory, group):
+    payload = dict(name="localhost",
+                   description="a non-random local host",
+                   inventory=inventory.id,)
+    obj = api_hosts_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
+    # Add host to group
+    with pytest.raises(common.exceptions.NoContent_Exception):
+        obj.get_related('groups').post(dict(id=group.id))
+    return obj
+
+
+@pytest.fixture(scope="function")
 def host_without_group(request, authtoken, inventory):
     payload = dict(name="random.host.%s" % fauxfactory.gen_alphanumeric(),
                    description="a host detached from any groups - %s" % fauxfactory.gen_utf8(),

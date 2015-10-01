@@ -1,8 +1,25 @@
 import pytest
 import json
 import fauxfactory
+import common.exceptions
 from dateutil.parser import parse as du_parse
 from tests.api import Base_Api_Test
+
+
+@pytest.fixture(scope="function")
+def job_template_with_ssh_connection(request, authtoken, api_job_templates_pg, project, ssh_credential, host_with_default_connection):
+    '''Define a job_template with no machine credential'''
+
+    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                   description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
+                   inventory=host_with_default_connection.get_related('inventory').id,
+                   job_type='run',
+                   project=project.id,
+                   credential=ssh_credential.id,
+                   playbook='site.yml', )  # This depends on the project selected
+    obj = api_job_templates_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
 
 
 @pytest.fixture(scope="function")
@@ -10,6 +27,7 @@ def job_template_proot_1(request, job_template_ansible_playbooks_git, host_local
     '''
     Return a job_template for running the test_proot.yml playbook.
     '''
+
     payload = dict(name="playbook:test_proot.yml, random:%s" % (fauxfactory.gen_utf8()),
                    description="test_proot.yml - %s" % (fauxfactory.gen_utf8()),
                    playbook='test_proot.yml')
@@ -24,20 +42,17 @@ def job_template_proot_2(request, organization, api_inventories_pg, api_job_temp
     Tower will run job_template_proot_1 and job_template_proot_2 to run at the
     same time.
     '''
-    # create inventory
-    payload = dict(name="inventory-%s" % fauxfactory.gen_alphanumeric(),
-                   description="Random inventory - %s" % fauxfactory.gen_utf8(),
-                   organization=organization.id,)
-    inventory = api_inventories_pg.post(payload)
+    # copy inventory
+    inventory_json = job_template_proot_1.get_related('inventory').json
+    inventory_json['name'] = "inventory-%s" % fauxfactory.gen_alphanumeric()
+    inventory = api_inventories_pg.post(inventory_json)
     request.addfinalizer(inventory.delete)
 
-    # create host
-    payload = dict(name="local",
-                   description="a non-random local host",
-                   variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
-                   inventory=inventory.id,)
-    host_local = inventory.get_related('hosts').post(payload)
-    request.addfinalizer(host_local.delete)
+    # copy host
+    host_json = job_template_proot_1.get_related('inventory').get_related('hosts').results[0].json
+    host_json['name'] = fauxfactory.gen_ipaddr()
+    with pytest.raises(common.exceptions.NoContent_Exception):
+        inventory.get_related('hosts').post(host_json)
 
     # create duplicate job_template
     payload = job_template_proot_1.json
@@ -190,3 +205,16 @@ print json.dumps({})
 
         # assert successful inventory_update
         assert job_pg.is_successful, "Inventory update unsuccessful - %s" % job_pg
+
+    def test_ssh_connections(self, job_template_with_ssh_connection):
+        '''
+        Verify that jobs complete successfully when connecting to inventory
+        using the default ansible connection type (e.g. not local).
+        '''
+        job_with_ssh_connection = job_template_with_ssh_connection.launch()
+
+        # wait for completion
+        job_with_ssh_connection = job_with_ssh_connection.wait_until_completed(timeout=60 * 2)
+
+        # assert successful completion of job
+        assert job_with_ssh_connection.is_successful, "Job unsuccessful - %s " % job_with_ssh_connection
