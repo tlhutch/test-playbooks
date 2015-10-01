@@ -12,7 +12,56 @@
 
 ## Features Tested
 
-### Installation online installer
+### Pendo Integration
+QUESTION:
+ * How to verify pendo communication?
+
+1. [ ] Test enablement with various license types
+1. [ ] Verify settings.py honored (/api/v1/config/)
+1. [ ] Verify that Pendo js is *not* loaded when disabled
+
+### Pluggable Authentication
+QUESTION:
+ * who can help setup test environments
+
+ 1. [ ] Verify enablement/disablement via settings.py
+ 1. [ ] Verify [un]successful login with Google Hosted credentials
+ 1. [ ] Verify [un]successful login with SAML credentials
+ 1. [ ] Verify [un]successful login with Redis credentials
+ 1. [ ] Verify [un]successful login with GitHub credentials
+
+### Custom Rebranding
+
+1. [ ] Verify 'local_settings.json' support
+1. [ ] Verify custom branding remains after upgrade (nightly)
+1. [ ] Verify custom branding remains after backup/restore
+1. [ ] Test bogus image sizes and formats
+
+### Session Fixes
+
+1. [ ] Verify number of concurrent logins (1, N)
+1. [ ] Verify new API timeout header exists for authentication connections
+1. [ ] Verify UI honors HTTP timeout header
+1. [ ] Verify UI logs user out when token expires, even when user is idle
+
+### Regression
+1. [ ] Comprehensive RBAC coverage using EuroNext and NeuStar datasets
+1. [ ] UI regression completed
+1. [ ] API regression completed
+1. [ ] End-to-end integration completed on all supported platforms
+1. [ ] Munin monitors work on all supported platforms
+1. [ ] Tower HA installation
+    * [ ] Verify successful registration of secondary instances
+    * [ ] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
+    * [ ] Verify promoting secondary instance
+    * [ ] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
+1. [ ] Tower LDAP Integration [jlaska]
+    * [ ] Verify license enablement with legacy or enterprise license (disabled elsewhere).
+    * [ ] Verify Tower respects LDAP username and password on login
+    * [ ] Verify Tower creates user related objects on successful login (User, Teams, Organization, Admin_of_organizations).
+    * [ ] Verify successful login for an Organization Administrator
+
+#### Installation online installer
 1. Installation completes successfully on all supported platforms
     * [ ] ubuntu-12.04
     * [ ] ubuntu-14.04
@@ -28,7 +77,7 @@
     * [ ] AMI (unlicensed) [jlaska]
     * [ ] Vagrant [jlaska]
 
-### Installation bundle installer
+#### Installation bundle installer
 1. Installation completes successfully on all supported platforms
     * [ ] rhel 6.5
     * [ ] rhel 6.6
@@ -41,7 +90,7 @@
     * [ ] centos 7.0
     * [ ] centos 7.1
 
-### Upgrade online installer
+#### Upgrade installer
 1. Upgrade completes on all supported platforms from `2.2.*`
     * [ ] ubuntu-12.04
     * [ ] ubuntu-14.04
@@ -60,22 +109,3 @@
     * [ ] Launch project_updates for existing projects
     * [ ] Launch inventory_udpates for existing inventory_source
     * [ ] Launch, and relaunch, existing job_templates
-
-### Integration
-1. [ ] End-to-end integration completed on all supported platforms
-
-### Regression
-1. [ ] Comprehensive RBAC coverage using EuroNext and NeuStar datasets
-1. [ ] UI regression completed
-1. [ ] API regression completed
-1. [ ] Munin monitors work on all supported platforms
-1. [ ] Tower HA installation [jlaska]
-    * [ ] Verify successful registration of secondary instances
-    * [ ] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
-    * [ ] Verify promoting secondary instance
-    * [ ] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
-1. [ ] Tower LDAP Integration [jlaska]
-    * [ ] Verify license enablement with legacy or enterprise license (disabled elsewhere).
-    * [ ] Verify Tower respects LDAP username and password on login
-    * [ ] Verify Tower creates user related objects on successful login (User, Teams, Organization, Admin_of_organizations).
-    * [ ] Verify successful login for an Organization Administrator
