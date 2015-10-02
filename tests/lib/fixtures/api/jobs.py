@@ -63,3 +63,11 @@ def job_with_extra_vars(request, job_template_with_extra_vars, job_extra_vars_di
     # Launch with additional extra_vars
     payload = dict(extra_vars=job_extra_vars_dict)
     return job_template_with_extra_vars.launch(payload)
+
+
+@pytest.fixture(scope="function")
+def job_with_ssh_connection(request, job_template_with_ssh_connection):
+    '''
+    Launch the job_with_ssh_connection and return a job resource.
+    '''
+    return job_template_with_ssh_connection.launch()

@@ -7,22 +7,6 @@ from tests.api import Base_Api_Test
 
 
 @pytest.fixture(scope="function")
-def job_template_with_ssh_connection(request, authtoken, api_job_templates_pg, project, ssh_credential, host_with_default_connection):
-    '''Define a job_template with no machine credential'''
-
-    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
-                   description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
-                   inventory=host_with_default_connection.get_related('inventory').id,
-                   job_type='run',
-                   project=project.id,
-                   credential=ssh_credential.id,
-                   playbook='site.yml', )  # This depends on the project selected
-    obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
-    return obj
-
-
-@pytest.fixture(scope="function")
 def job_template_proot_1(request, job_template_ansible_playbooks_git, host_local):
     '''
     Return a job_template for running the test_proot.yml playbook.
@@ -206,13 +190,11 @@ print json.dumps({})
         # assert successful inventory_update
         assert job_pg.is_successful, "Inventory update unsuccessful - %s" % job_pg
 
-    def test_ssh_connections(self, job_template_with_ssh_connection):
+    def test_ssh_connections(self, job_with_ssh_connection):
         '''
         Verify that jobs complete successfully when connecting to inventory
         using the default ansible connection type (e.g. not local).
         '''
-        job_with_ssh_connection = job_template_with_ssh_connection.launch()
-
         # wait for completion
         job_with_ssh_connection = job_with_ssh_connection.wait_until_completed(timeout=60 * 2)
 

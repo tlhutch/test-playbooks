@@ -43,6 +43,28 @@ def ssh_credential_ask(request, authtoken, api_credentials_pg, admin_user, tests
     return obj
 
 
+@pytest.fixture(scope="function")
+def ssh_credential_with_ssh_key_data_and_sudo(request, ansible_facts, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create ssh credential with the following properties:
+        * username: SUDO_USER
+        * become_method: sudo
+        * ssh_key_data: <str>
+    '''
+    SUDO_USER = ansible_facts.values()[0]['ansible_facts']['ansible_env']['SUDO_USER']
+
+    payload = dict(name=fauxfactory.gen_utf8(),
+                   description=fauxfactory.gen_utf8(),
+                   kind='ssh',
+                   user=admin_user.id,
+                   username=SUDO_USER,
+                   become_method="sudo",
+                   ssh_key_data=testsetup.credentials['ssh']['ssh_key_data'])
+
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
 @pytest.fixture(scope="function", params=['sudo', 'su', 'pbrun'])
 def ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create ssh credential with multiple 'ASK' passwords'''

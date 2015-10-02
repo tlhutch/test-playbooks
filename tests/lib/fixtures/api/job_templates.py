@@ -177,6 +177,27 @@ def job_template_ask_variables_on_launch(job_template_ping):
 
 
 @pytest.fixture(scope="function")
+def job_template_with_ssh_connection(request, testsetup, ansible_facts,
+                                     authtoken, api_job_templates_pg, project,
+                                     ssh_credential_with_ssh_key_data_and_sudo, host_with_default_connection):
+    '''Define a job_template that uses a machine credential that uses 'ssh',
+    not a 'local' connection.'''
+
+    # Create job_template
+    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                   description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
+                   inventory=host_with_default_connection.get_related('inventory').id,
+                   job_type='run',
+                   project=project.id,
+                   credential=ssh_credential_with_ssh_key_data_and_sudo.id,
+                   verbosity=4,
+                   playbook='site.yml', )  # This depends on the project selected
+    obj = api_job_templates_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
 def optional_survey_spec():
     # TODO - add an optional question for each question type
     payload = dict(name=fauxfactory.gen_utf8(),
