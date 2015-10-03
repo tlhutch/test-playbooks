@@ -37,11 +37,11 @@ QUESTION:
 
 ### Custom Rebranding
 
-1. [ ] Test base login modal image and text support
-1. [ ] Verify 'local_settings.json' support
+1. [X] Test base login modal image and text support
+1. [X] Verify 'local_settings.json' support
 1. [ ] Verify custom branding remains after upgrade (nightly)
-1. [ ] Verify custom branding remains after backup/restore
-1. [ ] Test bogus image sizes and formats
+1. [X] Verify custom branding remains after backup/restore
+1. [X] Test bogus image sizes and formats
 
 ### Session Fixes
 
