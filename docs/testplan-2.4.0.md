@@ -17,8 +17,12 @@ QUESTION:
  * How to verify pendo communication?
 
 1. [ ] Test enablement with various license types
+1. [ ] Test that only admin user can configure pendo
 1. [ ] Verify settings.py honored (/api/v1/config/)
-1. [ ] Verify that Pendo js is *not* loaded when disabled
+1. [ ] Verify that three modes configurable: off, anonymous, and detailed
+1. [ ] Verify correct tags for anonymous and detailed modes
+1. [ ] Verify that Pendo defaults to "Anonymous" mode after fresh install
+1. [ ] Verify that Pendo defaults to "Off" after upgrade in the absence of opt-in value
 
 ### Pluggable Authentication
 QUESTION:
@@ -27,11 +31,13 @@ QUESTION:
  1. [ ] Verify enablement/disablement via settings.py
  1. [ ] Verify [un]successful login with Google Hosted credentials
  1. [ ] Verify [un]successful login with SAML credentials
- 1. [ ] Verify [un]successful login with Redis credentials
+ 1. [ ] Verify [un]successful login with RADIUS credentials
  1. [ ] Verify [un]successful login with GitHub credentials
+ 1. [ ] SAML and RADIUS are enterprise features
 
 ### Custom Rebranding
 
+1. [ ] Test base login modal image and text support
 1. [ ] Verify 'local_settings.json' support
 1. [ ] Verify custom branding remains after upgrade (nightly)
 1. [ ] Verify custom branding remains after backup/restore
@@ -41,8 +47,10 @@ QUESTION:
 
 1. [ ] Verify number of concurrent logins (1, N)
 1. [ ] Verify new API timeout header exists for authentication connections
+1. [ ] Ensure that websockets are disabled for logged-out users
 1. [ ] Verify UI honors HTTP timeout header
 1. [ ] Verify UI logs user out when token expires, even when user is idle
+1. [ ] Verify logout modal
 
 ### Regression
 1. [ ] Comprehensive RBAC coverage using EuroNext and NeuStar datasets
@@ -91,14 +99,14 @@ QUESTION:
     * [ ] centos 7.1
 
 #### Upgrade installer
-1. Upgrade completes on all supported platforms from `2.2.*`
+1. Upgrade completes on all supported platforms from `2.3.*`
     * [ ] ubuntu-12.04
     * [ ] ubuntu-14.04
     * [ ] rhel-6.5
     * [ ] rhel-7.0
     * [ ] centos-6.5
     * [ ] centos-7.0
-1. Upgrade completes on all supported platforms from `2.1.*`
+1. Upgrade completes on all supported platforms from `2.2.*`
     * [ ] ubuntu-12.04
     * [ ] ubuntu-14.04
     * [ ] rhel-6.5
