@@ -51,6 +51,8 @@ QUESTION:
 1. [ ] Verify UI honors HTTP timeout header
 1. [ ] Verify UI logs user out when token expires, even when user is idle
 1. [ ] Verify logout modal
+1. [ ] Verify API honors HTTP timeout
+1. [ ] Verify that varying the timeout setting in `settings.py` causes appropriate newly set time results in HTTP headers
 
 ### Regression
 1. [ ] Comprehensive RBAC coverage using EuroNext and NeuStar datasets
