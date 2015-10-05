@@ -23,6 +23,7 @@ QUESTION:
 1. [ ] Verify correct tags for anonymous and detailed modes
 1. [ ] Verify that Pendo defaults to "Anonymous" mode after fresh install
 1. [ ] Verify that Pendo defaults to "Off" after upgrade in the absence of opt-in value
+1. [ ] Verify Pendo only gets downloaded when flagged appropriately in settings.py
 
 ### Pluggable Authentication
 QUESTION:
