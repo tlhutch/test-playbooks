@@ -43,6 +43,7 @@ QUESTION:
 1. [ ] Verify custom branding remains after upgrade (nightly)
 1. [X] Verify custom branding remains after backup/restore
 1. [X] Test bogus image sizes and formats
+1. [ ] Verify that custom rebranding is enterprise only
 
 ### Session Fixes
 
