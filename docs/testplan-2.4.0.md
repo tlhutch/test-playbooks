@@ -13,8 +13,7 @@
 ## Features Tested
 
 ### Pendo Integration
-QUESTION:
- * How to verify pendo communication?
+*QUESTION*: How to verify pendo communication?
 
 1. [ ] Test enablement with various license types
 1. [ ] Test that only admin user can configure pendo
@@ -26,8 +25,7 @@ QUESTION:
 1. [ ] Verify Pendo only gets downloaded when flagged appropriately in settings.py
 
 ### Pluggable Authentication
-QUESTION:
- * who can help setup test environments
+*QUESTION*: who can help setup test environments
 
  1. [ ] Verify enablement/disablement via settings.py
  1. [ ] Verify [un]successful login with Google Hosted credentials
@@ -55,6 +53,7 @@ QUESTION:
 1. [ ] Verify logout modal
 1. [ ] Verify API honors HTTP timeout
 1. [ ] Verify that varying the timeout setting in `settings.py` causes appropriate newly set time results in HTTP headers
+1. [ ] With Tower loaded in multiple browser tabs, verify inactivity in one tab doesn't force a logout in another active tab
 
 ### Regression
 1. [ ] Comprehensive RBAC coverage using EuroNext and NeuStar datasets
