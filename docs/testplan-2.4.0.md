@@ -43,13 +43,13 @@
 
 ### Session Fixes
 
-1. [ ] Verify number of concurrent logins (1, N)
+1. [X] Verify number of concurrent logins (1, N)
 1. [X] Verify new API timeout header exists for authentication connections
 1. [ ] Ensure that websockets are disabled for logged-out users
 1. [X] Verify UI honors HTTP timeout header
 1. [X] Verify UI logs user out when token expires, even when user is idle
 1. [ ] Verify logout modal
-1. [ ] Verify API honors HTTP timeout
+1. [X] Verify API honors HTTP timeout
 1. [X] Verify that varying the timeout setting in `settings.py` causes appropriate newly set time results in HTTP headers
 1. [X] With Tower loaded in multiple browser tabs, verify inactivity in one tab doesn't force a logout in another active tab
 
