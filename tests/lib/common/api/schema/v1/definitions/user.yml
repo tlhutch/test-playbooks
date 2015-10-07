@@ -1,30 +1,31 @@
----
 user:
-  type: object
-  required: [created, email, first_name, id, is_superuser, last_name, ldap_dn, related,
-    url, username, type]
   additionalProperties: false
   properties:
-    type: {type: string, pattern: ^user$}
+    auth: {minItems: 0, type: array, uniqueItems: true}
     created: {format: date-time, type: string}
     email: {format: email, type: string}
     first_name: {type: string}
-    id: { $ref: '#/definitions/id' }
+    id: {$ref: '#/definitions/id'}
     is_superuser: {type: boolean}
     last_name: {type: string}
     ldap_dn: {type: string}
     modified: {format: date-time, type: string}
     related:
-      type: object
-      required: [admin_of_organizations, credentials, organizations, permissions, projects, teams, activity_stream]
       additionalProperties: false
       properties:
-        activity_stream: { $ref: '#/definitions/uri' }
-        admin_of_organizations: { $ref: '#/definitions/uri' }
-        credentials: { $ref: '#/definitions/uri' }
-        organizations: { $ref: '#/definitions/uri' }
-        permissions: { $ref: '#/definitions/uri' }
-        projects: { $ref: '#/definitions/uri' }
-        teams: { $ref: '#/definitions/uri' }
+        activity_stream: {$ref: '#/definitions/uri'}
+        admin_of_organizations: {$ref: '#/definitions/uri'}
+        credentials: {$ref: '#/definitions/uri'}
+        organizations: {$ref: '#/definitions/uri'}
+        permissions: {$ref: '#/definitions/uri'}
+        projects: {$ref: '#/definitions/uri'}
+        teams: {$ref: '#/definitions/uri'}
+      required: [admin_of_organizations, credentials, organizations, permissions,
+        projects, teams, activity_stream]
+      type: object
+    type: {pattern: ^user$, type: string}
     url: {format: uri, type: string}
     username: {type: string}
+  required: [created, email, first_name, id, is_superuser, last_name, ldap_dn, related,
+    url, username, type, auth]
+  type: object
