@@ -13,7 +13,12 @@
   gather_facts: yes
   sudo: yes
   roles:
-    - role: install_mongodb
+    - role: chrismeyersfsu.install_mongod
+      install_mongod_admin_username: 'superuser'
+      install_mongod_admin_password: 'superuser'
+      install_mongod_user_username: '{{ mongo_username }}'
+      install_mongod_user_password: '{{ mongo_password }}'
+      install_mongod_user_database: '{{ mongo_database }}'
 
 - name: 'Group hosts by distribution_major_version'
   hosts: 'primary'
