@@ -15,12 +15,10 @@
 ### Pendo Integration
 *QUESTION*: How to verify pendo communication?
 
-1. [ ] Test enablement with various license types
-1. [ ] Test that only admin user can configure pendo
-1. [ ] Verify settings.py honored (/api/v1/config/)
-1. [ ] Verify that three modes configurable: off, anonymous, and detailed
+1. [X] Verify settings.py honored (/api/v1/config/)
+1. [X] Verify that three modes configurable: off, anonymous, and detailed
 1. [ ] Verify correct tags for anonymous and detailed modes
-1. [ ] Verify that Pendo defaults to "Anonymous" mode after fresh install
+1. [X] Verify that Pendo defaults to "Detailed" mode after fresh install
 1. [ ] Verify that Pendo defaults to "Off" after upgrade in the absence of opt-in value
 1. [ ] Verify Pendo only gets downloaded when flagged appropriately in settings.py
 
@@ -46,14 +44,14 @@
 ### Session Fixes
 
 1. [ ] Verify number of concurrent logins (1, N)
-1. [ ] Verify new API timeout header exists for authentication connections
+1. [X] Verify new API timeout header exists for authentication connections
 1. [ ] Ensure that websockets are disabled for logged-out users
-1. [ ] Verify UI honors HTTP timeout header
-1. [ ] Verify UI logs user out when token expires, even when user is idle
+1. [X] Verify UI honors HTTP timeout header
+1. [X] Verify UI logs user out when token expires, even when user is idle
 1. [ ] Verify logout modal
 1. [ ] Verify API honors HTTP timeout
-1. [ ] Verify that varying the timeout setting in `settings.py` causes appropriate newly set time results in HTTP headers
-1. [ ] With Tower loaded in multiple browser tabs, verify inactivity in one tab doesn't force a logout in another active tab
+1. [X] Verify that varying the timeout setting in `settings.py` causes appropriate newly set time results in HTTP headers
+1. [X] With Tower loaded in multiple browser tabs, verify inactivity in one tab doesn't force a logout in another active tab
 
 ### Regression
 1. [ ] Comprehensive RBAC coverage using EuroNext and NeuStar datasets
