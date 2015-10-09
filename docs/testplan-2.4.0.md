@@ -20,12 +20,13 @@
 1. [ ] Verify correct tags for anonymous and detailed modes
 1. [X] Verify that Pendo defaults to "Detailed" mode after fresh install
 1. [ ] Verify that Pendo defaults to "Off" after upgrade in the absence of opt-in value
-1. [ ] Verify Pendo only gets downloaded when flagged appropriately in settings.py
+1. [X] Verify Pendo only gets downloaded when flagged appropriately in settings.py
+1. [ ] Verify Pendo network requests
 
 ### Pluggable Authentication
 *QUESTION*: who can help setup test environments
 
- 1. [ ] Verify enablement/disablement via settings.py
+ 1. [ ] Verify enablement/disablement via social_auth.py
  1. [ ] Verify [un]successful login with Google Hosted credentials
  1. [ ] Verify [un]successful login with SAML credentials
  1. [ ] Verify [un]successful login with RADIUS credentials
