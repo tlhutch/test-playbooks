@@ -87,6 +87,12 @@ def utf8_template(request, authtoken, api_job_templates_pg, project_ansible_play
 
 
 @pytest.fixture(scope="function")
+def job_template_with_project_ansible(job_template, project_ansible_git):
+    project_ansible_git.patch(scm_update_on_launch=True)
+    return job_template.patch(project=project_ansible_git.id, playbook='samples/included_playbook.yml')
+
+
+@pytest.fixture(scope="function")
 def project_with_scm_update_on_launch(request, project_ansible_playbooks_git):
         return project_ansible_playbooks_git.patch(scm_update_on_launch=True)
 
@@ -417,11 +423,9 @@ print json.dumps(inventory)
 ''')
     def test_cascade_cancel_with_inventory_update(self, job_template, custom_group, api_unified_jobs_pg):
         '''
-        Tests that if you cancel an inventory update before it finishes that its dependent job
-        fails.
+        Tests that if you cancel an inventory update before it finishes that its dependent job fails.
         '''
         job_template.patch(inventory=custom_group.inventory)
-
         inventory_source_pg = custom_group.get_related('inventory_source')
         inventory_source_pg.patch(update_on_launch=True)
 
@@ -441,22 +445,17 @@ print json.dumps(inventory)
         cancel_pg.post()
 
         # Assess job status
-        job_pg = job_pg.wait_until_completed()
-        assert not job_pg.is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
+        assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
         assert job_pg.job_explanation.startswith("Previous Task Failed: inventory_update"), \
             "Unexpected job_explanation: %s" % job_pg.job_explanation
 
         # Assert update_pg canceled
-        update_pg.get()
-        assert update_pg.status == 'canceled', "Unexpected job" \
-            "status after cancelling (expected 'canceled') - %s" % \
-            update_pg
+        assert update_pg.get().status == 'canceled', "Unexpected job" \
+            "status after cancelling (expected 'canceled') - %s" % update_pg
 
         # Assert inventory source canceled
-        inventory_source_pg.get()
-        assert inventory_source_pg.status == 'canceled', "Unexpected " \
-            "inventory_source status after cancelling (expected 'canceled') " \
-            "- %s" % inventory_source_pg
+        assert inventory_source_pg.get().status == 'canceled', "Unexpected " \
+            "inventory_source status after cancelling (expected 'canceled') - %s" % inventory_source_pg
 
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
@@ -468,8 +467,7 @@ print json.dumps(inventory)
 ''')
     def test_cascade_cancel_with_multiple_inventory_updates(self, job_template, custom_group, another_custom_group, api_unified_jobs_pg):
         '''
-        Tests that if you cancel an inventory update before it finishes that its dependent jobs
-        fail.
+        Tests that if you cancel an inventory update before it finishes that its dependent jobs fail.
         '''
         job_template.patch(inventory=custom_group.inventory)
 
@@ -487,12 +485,8 @@ print json.dumps(inventory)
         job_pg = job_template.launch()
 
         # Wait for the inventory sources to start
-        inventory_source_pg.wait_until_started()
-        another_inventory_source_pg.wait_until_started()
-
-        update_pg = inventory_source_pg.get_related('current_update')
-        another_update_pg = another_inventory_source_pg.get_related('current_update')
-
+        update_pg = inventory_source_pg.wait_until_started().get_related('current_update')
+        another_update_pg = another_inventory_source_pg.wait_until_started().get_related('current_update')
         update_pg_started = parse(update_pg.created)
         another_update_pg_started = parse(another_update_pg.created)
 
@@ -521,73 +515,59 @@ print json.dumps(inventory)
         cancel_pg.post()
 
         # Assess job status
-        job_pg = job_pg.wait_until_completed()
-        assert not job_pg.is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
+        assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
         assert job_pg.job_explanation.startswith("Previous Task Failed: inventory_update"), \
             "Unexpected job_explanation: %s" % job_pg.job_explanation
 
         # Assert first inventory update cancelled
-        first_update.get()
-        assert first_update.status == 'canceled', "Did not cancel job as " \
+        assert first_update.get().status == 'canceled', "Did not cancel job as " \
             "expected (expected status:canceled) - %s" % first_update
 
         # Assert first inventory source cancelled
-        first_inventory_source.get()
-        assert first_inventory_source.status == 'canceled', "Did not cancel job as " \
+        assert first_inventory_source.get().status == 'canceled', "Did not cancel job as " \
             "expected (expected status:canceled) - %s" % first_inventory_source
 
         # Assert second inventory update failed
-        second_update.get()
-        assert second_update.status == 'failed', "Secondary inventory update not failed (status:%s)" % second_update.status
+        assert second_update.get().status == 'failed', "Secondary inventory update not failed (status:%s)" % second_update.status
         assert second_update.job_explanation.startswith("Previous Task Failed: inventory_update")
 
         # Assert second inventory update failed
-        second_inventory_source.get()
-        assert second_inventory_source.status == 'failed', "Secondary inventory update not failed (status:%s)" % second_inventory_source.status
+        assert second_inventory_source.get().status == 'failed', "Secondary inventory update not failed (status:%s)" % second_inventory_source.status
 
-    def test_cascade_cancel_with_project_update(self, job_template, project_with_scm_update_on_launch, api_unified_jobs_pg):
+    def test_cascade_cancel_with_project_update(self, job_template_with_project_ansible, api_unified_jobs_pg):
         '''
-        Tests that if you cancel a SCM update before it finishes that its dependent job
-        fails.
+        Tests that if you cancel a SCM update before it finishes that its dependent job fails.
         '''
-        job_template.patch(project=project_with_scm_update_on_launch.id)
-        project_with_scm_update_on_launch.patch(scm_url='https://github.com/ansible/ansible-examples')
+        project_pg = job_template_with_project_ansible.get_related('project')
 
         # Launch job
-        job_pg = job_template.launch()
+        job_pg = job_template_with_project_ansible.launch()
 
         # Wait for new update to start and cancel it
-        project_with_scm_update_on_launch.wait_until_started()
-        current_update_pg = project_with_scm_update_on_launch.get_related('current_update')
+        current_update_pg = project_pg.wait_until_started().get_related('current_update')
         cancel_pg = current_update_pg.get_related('cancel')
         assert cancel_pg.can_cancel, "The project update is not cancellable, it may have already completed - %s" % current_update_pg.get()
         cancel_pg.post()
 
         # Assert that original job failed
-        job_pg = job_pg.wait_until_completed()
-        assert not job_pg.is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
+        assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
         assert job_pg.job_explanation.startswith("Previous Task Failed: project_update")
 
         # Assert new scm update was canceled
-        current_update_pg.get()
-        assert current_update_pg.status == 'canceled', "Unexpected job" \
-            "status after cancelling (expected 'canceled') - %s" % \
-            current_update_pg
+        assert current_update_pg.get().status == 'canceled', "Unexpected job" \
+            "status after cancelling (expected 'canceled') - %s" % current_update_pg
 
         # Assert project cancelled
-        project_with_scm_update_on_launch.get()
-        assert project_with_scm_update_on_launch.status == 'canceled', \
-            "Unexpected project_update status (expected status:canceled) - %s" % \
-            project_with_scm_update_on_launch
+        assert project_pg.get().status == 'canceled', \
+            "Unexpected project_update status (expected status:canceled) - %s" % project_pg
 
-    def test_cascade_cancel_with_inventory_and_project_updates(self, job_template, project_with_scm_update_on_launch, custom_group, api_unified_jobs_pg):
+    def test_cascade_cancel_with_inventory_and_project_updates(self, job_template_with_project_ansible, custom_group, api_unified_jobs_pg):
         '''
         Tests that if you cancel a scm update before it finishes that its dependent job
         fails. This test runs both inventory and SCM updates on job launch.
         '''
-        job_template.patch(inventory=custom_group.inventory, project=project_with_scm_update_on_launch.id)
-        project_with_scm_update_on_launch.patch(scm_url='https://github.com/ansible/ansible-examples')
-
+        project_pg = job_template_with_project_ansible.get_related('project')
+        job_template_with_project_ansible.patch(inventory=custom_group.inventory)
         inventory_source_pg = custom_group.get_related('inventory_source')
         inventory_source_pg.patch(update_on_launch=True)
 
@@ -595,40 +575,31 @@ print json.dumps(inventory)
         assert inventory_source_pg.last_updated is None, "inventory_source_pg unexpectedly updated."
 
         # Launch job
-        job_pg = job_template.launch()
+        job_pg = job_template_with_project_ansible.launch()
 
         # Wait for new update to start and cancel it
-        project_with_scm_update_on_launch.wait_until_started()
-        current_update_pg = project_with_scm_update_on_launch.get_related('current_update')
+        current_update_pg = project_pg.wait_until_started().get_related('current_update')
         cancel_pg = current_update_pg.get_related('cancel')
         assert cancel_pg.can_cancel, "The project update is not cancellable, it may have already completed - %s" % current_update_pg.get()
         cancel_pg.post()
 
         # Assert that original job failed
-        job_pg = job_pg.wait_until_completed()
-        assert not job_pg.is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
+        assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
         assert job_pg.job_explanation.startswith("Previous Task Failed: project_update")
 
         # Assert new scm update was canceled
-        current_update_pg.get()
-        assert current_update_pg.status == 'canceled', "Unexpected job" \
-            "status after cancelling (expected 'canceled') - %s" % \
+        assert current_update_pg.get().status == 'canceled', "Unexpected job status after cancelling (expected 'canceled') - %s" % \
             current_update_pg
 
         # Assert project cancelled
-        project_with_scm_update_on_launch.get()
-        assert project_with_scm_update_on_launch.status == 'canceled', \
-            "Unexpected job status after cancelling (expected 'canceled') - " \
-            "%s" % project_with_scm_update_on_launch
+        assert project_pg.get().status == 'canceled', "Unexpected job status after cancelling (expected 'canceled') - %s" % project_pg
 
         # Assert update_pg successful
-        inventory_source_pg.wait_until_completed()
-        update_pg = inventory_source_pg.get_related('last_update')
+        update_pg = inventory_source_pg.wait_until_completed().get_related('last_update')
         assert update_pg.is_successful, "Update unsuccessful - %s" % update_pg
 
         # Assert inventory source successful
-        inventory_source_pg.get()
-        assert inventory_source_pg.is_successful, "inventory_source unsuccessful - %s" % inventory_source_pg
+        assert inventory_source_pg.get().is_successful, "inventory_source unsuccessful - %s" % inventory_source_pg
 
 
 @pytest.mark.api
