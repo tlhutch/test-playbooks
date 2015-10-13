@@ -13,7 +13,6 @@
 ## Features Tested
 
 ### Pendo Integration
-*QUESTION*: How to verify pendo communication?
 
 1. [X] Verify settings.py honored (/api/v1/config/)
 1. [X] Verify that three modes configurable: off, anonymous, and detailed
@@ -40,13 +39,12 @@
 1. [X] Verify custom branding remains after upgrade (nightly)
 1. [X] Verify custom branding remains after backup/restore
 1. [X] Test bogus image sizes and formats
-1. [ ] Verify that custom rebranding is enterprise only
 
 ### Session Fixes
 
 1. [X] Verify number of concurrent logins (1, N)
 1. [X] Verify new API timeout header exists for authentication connections
-1. [ ] Ensure that websockets are disabled for logged-out users
+1. [X] Ensure that websockets are disabled for logged-out users
 1. [X] Verify UI honors HTTP timeout header
 1. [X] Verify UI logs user out when token expires, even when user is idle
 1. [ ] Verify logout modal
