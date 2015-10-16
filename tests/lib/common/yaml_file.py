@@ -8,7 +8,7 @@ from py.path import local
 log = logging.getLogger(__name__)
 
 
-class Loader(yaml.CLoader):
+class Loader(yaml.Loader):
     def __init__(self, stream):
         self._root = os.path.split(stream.name)[0]
         super(Loader, self).__init__(stream)
