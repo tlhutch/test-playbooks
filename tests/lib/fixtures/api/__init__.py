@@ -110,6 +110,18 @@ def api_dashboard_pg(testsetup, api_dashboard_url):
 
 
 #
+# /api/v1/ping
+#
+@pytest.fixture(scope="module")
+def api_ping_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'ping')
+
+
+@pytest.fixture(scope="module")
+def api_ping_pg(testsetup, api_ping_url):
+    return Ping_Page(testsetup, base_url=api_ping_url)
+
+#
 # /api/v1/config
 #
 @pytest.fixture(scope="module")
