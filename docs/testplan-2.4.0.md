@@ -16,11 +16,11 @@
 
 1. [X] Verify settings.py honored (/api/v1/config/)
 1. [X] Verify that three modes configurable: off, anonymous, and detailed
-1. [ ] Verify correct tags for anonymous and detailed modes
+1. [X] Verify correct tags for anonymous and detailed modes
 1. [X] Verify that Pendo defaults to "Detailed" mode after fresh install
-1. [ ] Verify that Pendo defaults to "Off" after upgrade in the absence of opt-in value
+1. [X] Verify that Pendo defaults to "Off" after upgrade in the absence of opt-in value
 1. [X] Verify Pendo only gets downloaded when flagged appropriately in settings.py
-1. [ ] Verify Pendo network requests
+1. [X] Verify Pendo network requests
 
 ### Pluggable Authentication
 *QUESTION*: who can help setup test environments
