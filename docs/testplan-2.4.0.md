@@ -23,10 +23,9 @@
 1. [X] Verify Pendo network requests
 
 ### Pluggable Authentication
-*QUESTION*: who can help setup test environments
 
  1. [ ] Verify enablement/disablement via social_auth.py
- 1. [ ] Verify [un]successful login with Google Hosted credentials
+ 1. [X] Verify [un]successful login with Google Hosted credentials
  1. [ ] Verify [un]successful login with SAML credentials
  1. [ ] Verify [un]successful login with RADIUS credentials
  1. [ ] Verify [un]successful login with GitHub credentials
