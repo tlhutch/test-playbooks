@@ -46,31 +46,39 @@ def install_enterprise_license(request, api_config_pg, ansible_runner):
     license_info = common.tower.license.generate_license(instance_count=sys.maxint, days=365, license_type='enterprise')
     api_config_pg.post(license_info)
 
-    # Wait for mongod to start
-    contacted = ansible_runner.wait_for(port='27017', state='present', delay=5)
-    assert 'failed' not in contacted.values()[0], \
-        "MongoDB is not running, but is expected to be running."
+    # Determine if mongo is needed
+    contacted = ansible_runner.command("tower-manage uses_mongo --local")
+    if "MongoDB required" in contacted.values()[0]['stdout']:
+        # Wait for mongod to start
+        contacted = ansible_runner.wait_for(port='27017', state='present', delay=5)
+        assert 'failed' not in contacted.values()[0], \
+            "MongoDB is not running, but is expected to be running."
 
     def teardown():
+        # Determine if mongo is needed
+        contacted = ansible_runner.command("tower-manage uses_mongo --local")
+        result = contacted.values()[0]
+        assert result['rc'] == 0, "Unable to detect if mongo is needed"
+
         # Delete the license
         api_config_pg.delete()
 
-        # Pause to allow tower to do it's thing
-        ansible_runner.pause(seconds=15)
+        # If mongo was required, be sure it's stopped
+        if "MongoDB required" in result['stdout']:
 
-        # Wait for mongo to stop listening over the network
-        contacted = ansible_runner.wait_for(port='27017', state='absent')
-        result = contacted.values()[0]
-        # Mongo did not stop, force shutdown and raise exception
-        if 'failed' in result:
-            log.warn("mongod failed to stop, forcing shutdown")
-            contacted = ansible_runner.command('mongod --dbpath /var/lib/mongo --shutdown')
+            # Wait for mongo to stop listening over the network
+            contacted = ansible_runner.wait_for(port='27017', state='absent', delay=5)
             result = contacted.values()[0]
-            assert result['rc'] == 0, "Failed to shutdown mongod - %s" % json.dump(result, indent=2)
-            raise Exception("MongoDB was still running after the license was deleted.")
+            # Mongo did not stop, force shutdown and raise exception
+            if 'failed' in result:
+                log.warn("mongod failed to stop, forcing shutdown")
+                contacted = ansible_runner.command('mongod --dbpath /var/lib/mongo --shutdown')
+                result = contacted.values()[0]
+                assert result['rc'] == 0, "Failed to shutdown mongod - %s" % json.dump(result, indent=2)
+                raise Exception("MongoDB was still running after the license was deleted.")
 
-        # Wait for mongod to be absent
-        # ansible_runner.shell('while pidof mongod ; do sleep 1 ; done')
+            # Wait for mongod to be absent
+            # ansible_runner.shell('while pidof mongod ; do sleep 1 ; done')
 
     request.addfinalizer(teardown)
 

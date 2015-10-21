@@ -123,13 +123,13 @@ def stop_mongodb(request, ansible_runner):
     ansible_runner.service(name="mongod", state="stopped")
 
     # Check MongoDB and stop it a second time if necessary
-    contacted = ansible_runner.wait_for(port='27017', state='absent')
+    contacted = ansible_runner.wait_for(port='27017', state='absent', delay=5)
     result = contacted.values()[0]
     if 'failed' in result:
         log.warn("mongod did not stop, forcing shutdown")
         contacted = ansible_runner.command('mongod --shutdown --dbpath /var/lib/mongo')
         result = contacted.values()[0]
-        assert 'failed' not in result, "Command failed - %s" % json.dumps(result, indent=2)
+        assert result['rc'] == 0, "Failed to shutdown mongod - %s" % json.dump(result, indent=2)
 
 
 def assert_fact_modules(facts, **kwargs):
