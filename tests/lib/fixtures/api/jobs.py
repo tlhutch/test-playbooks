@@ -51,13 +51,13 @@ def job_launch_type_choices(request, api_jobs_options_json):
 
 @pytest.fixture(scope="function")
 def job_extra_vars_dict():
-    return dict(Flaff=True, Moffey=False, Maffey=True)
+    return dict(Flaff=True, Moffey=False, Maffey=True, intersection="job")
 
 
 @pytest.fixture(scope="function")
 def job_with_extra_vars(request, job_template_with_extra_vars, job_extra_vars_dict):
     '''
-    Launch the job_template_extra_vars and return a job resource.  Extra vars
+    Launch the job_template_extra_vars and return a job resource. Extra vars
     are passed in with the POST request to the launch endpoint.
     '''
     # Launch with additional extra_vars

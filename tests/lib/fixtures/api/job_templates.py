@@ -122,7 +122,7 @@ def job_template_with_extra_vars(request, authtoken, api_job_templates_pg, proje
                    project=project.id,
                    credential=ssh_credential.id,
                    playbook='site.yml',  # This depends on the project selected
-                   extra_vars=json.dumps(dict(one=1, two=2, three=3)))
+                   extra_vars=json.dumps(dict(one=1, two=2, three=3, intersection="job template")))
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj

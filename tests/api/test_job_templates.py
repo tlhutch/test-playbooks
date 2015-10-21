@@ -139,6 +139,10 @@ class Test_Job_Template(Base_Api_Test):
             # assert the job extra_vars are a union of the job_template and launch-time extra_vars
             assert set(job_extra_vars) == set(job_template_extra_vars) | set(job_extra_vars_dict)
 
+            # assert that run-time extra_vars take precedence over job template extra_vars
+            assert job_extra_vars['intersection'] == u'job', \
+                "A launch-time extra_var did not replace a job_template extra_var as expected."
+
     def test_launch_without_credential(self, job_template_no_credential):
         '''
         Verify the job->launch endpoint does not allow launching a job_template
