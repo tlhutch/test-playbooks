@@ -48,7 +48,11 @@ def install_enterprise_license(request, api_config_pg, ansible_runner):
 
     # Determine if mongo is needed
     contacted = ansible_runner.command("tower-manage uses_mongo --local")
-    if "MongoDB required" in contacted.values()[0]['stdout']:
+    result = contacted.values()[0]
+    assert result['rc'] in [0, 1], "Unexpected exit code from 'tower-manage uses_mongo' command: %s" % result['rc']
+    uses_mongo = 'MongoDB required' in result['stdout']
+
+    if uses_mongo:
         # Wait for mongod to start
         contacted = ansible_runner.wait_for(port='27017', state='present', delay=5)
         assert 'failed' not in contacted.values()[0], \
@@ -58,14 +62,14 @@ def install_enterprise_license(request, api_config_pg, ansible_runner):
         # Determine if mongo is needed
         contacted = ansible_runner.command("tower-manage uses_mongo --local")
         result = contacted.values()[0]
-        assert result['rc'] == 0, "Unable to detect if mongo is needed"
+        assert result['rc'] in [0, 1], "Unexpected exit code from 'tower-manage uses_mongo' command: %s" % result['rc']
+        uses_mongo = 'MongoDB required' in result['stdout']
 
         # Delete the license
         api_config_pg.delete()
 
         # If mongo was required, be sure it's stopped
-        if "MongoDB required" in result['stdout']:
-
+        if uses_mongo:
             # Wait for mongo to stop listening over the network
             contacted = ansible_runner.wait_for(port='27017', state='absent', delay=5)
             result = contacted.values()[0]
