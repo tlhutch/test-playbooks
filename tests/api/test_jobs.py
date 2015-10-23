@@ -446,8 +446,18 @@ print json.dumps(inventory)
 
         # Assess job status
         assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
-        assert job_pg.job_explanation.startswith("Previous Task Failed: inventory_update"), \
+        assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
             "Unexpected job_explanation: %s" % job_pg.job_explanation
+
+        try:
+            job_explanation = json.loads(job_pg.job_explanation.split("Previous Task Failed:", 1)[1])
+        except ValueError:
+            job_explanation = ''
+
+        last_update_pg = custom_group.get_related('inventory_source').get_related('last_update')
+        assert job_explanation['job_type'] == last_update_pg.type
+        assert job_explanation['job_name'] == last_update_pg.name
+        assert job_explanation['job_id'] == str(last_update_pg.id)
 
         # Assert update_pg canceled
         assert update_pg.get().status == 'canceled', "Unexpected job" \
@@ -516,8 +526,17 @@ print json.dumps(inventory)
 
         # Assess job status
         assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
-        assert job_pg.job_explanation.startswith("Previous Task Failed: inventory_update"), \
+        assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
             "Unexpected job_explanation: %s" % job_pg.job_explanation
+
+        try:
+            job_explanation = json.loads(job_pg.job_explanation.split("Previous Task Failed:", 1)[1])
+        except ValueError:
+            job_explanation = ''
+
+        assert job_explanation['job_type'] == first_update.type
+        assert job_explanation['job_name'] == first_update.name
+        assert job_explanation['job_id'] == str(first_update.id)
 
         # Assert first inventory update cancelled
         assert first_update.get().status == 'canceled', "Did not cancel job as " \
@@ -529,7 +548,17 @@ print json.dumps(inventory)
 
         # Assert second inventory update failed
         assert second_update.get().status == 'failed', "Secondary inventory update not failed (status:%s)" % second_update.status
-        assert second_update.job_explanation.startswith("Previous Task Failed: inventory_update")
+        assert second_update.job_explanation.startswith(u'Previous Task Failed:'), \
+            "Unexpected job_explanation: %s" % second_update.job_explanation
+
+        try:
+            inventory_job_explanation = json.loads(second_update.job_explanation.split("Previous Task Failed:", 1)[1])
+        except ValueError:
+            inventory_job_explanation = ''
+
+        assert inventory_job_explanation['job_type'] == first_update.type
+        assert inventory_job_explanation['job_name'] == first_update.name
+        assert inventory_job_explanation['job_id'] == str(first_update.id)
 
         # Assert second inventory update failed
         assert second_inventory_source.get().status == 'failed', "Secondary inventory update not failed (status:%s)" % second_inventory_source.status
@@ -551,7 +580,18 @@ print json.dumps(inventory)
 
         # Assert that original job failed
         assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
-        assert job_pg.job_explanation.startswith("Previous Task Failed: project_update")
+        assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
+            "Unexpected job_explanation: %s" % job_pg.job_explanation
+
+        try:
+            job_explanation = json.loads(job_pg.job_explanation.split("Previous Task Failed:", 1)[1])
+        except ValueError:
+            job_explanation = ''
+
+        last_update_pg = job_template_with_project_ansible.get_related('project').get_related('last_update')
+        assert job_explanation['job_type'] == last_update_pg.type
+        assert job_explanation['job_name'] == last_update_pg.name
+        assert job_explanation['job_id'] == str(last_update_pg.id)
 
         # Assert new scm update was canceled
         assert current_update_pg.get().status == 'canceled', "Unexpected job" \
@@ -585,7 +625,18 @@ print json.dumps(inventory)
 
         # Assert that original job failed
         assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
-        assert job_pg.job_explanation.startswith("Previous Task Failed: project_update")
+        assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
+            "Unexpected job_explanation: %s" % job_pg.job_explanation
+
+        try:
+            job_explanation = json.loads(job_pg.job_explanation.split("Previous Task Failed:", 1)[1])
+        except ValueError:
+            job_explanation = ''
+
+        last_update_pg = job_template_with_project_ansible.get_related('project').get_related('last_update')
+        assert job_explanation['job_type'] == last_update_pg.type
+        assert job_explanation['job_name'] == last_update_pg.name
+        assert job_explanation['job_id'] == str(last_update_pg.id)
 
         # Assert new scm update was canceled
         assert current_update_pg.get().status == 'canceled', "Unexpected job status after cancelling (expected 'canceled') - %s" % \
