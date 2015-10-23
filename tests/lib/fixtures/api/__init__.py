@@ -121,6 +121,7 @@ def api_ping_url(api, api_v1_url):
 def api_ping_pg(testsetup, api_ping_url):
     return Ping_Page(testsetup, base_url=api_ping_url)
 
+
 #
 # /api/v1/config
 #
