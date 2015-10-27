@@ -295,12 +295,14 @@ class Test_Projects(Base_Api_Test):
             (project_with_queued_updates.id, num_pending, attempts)
 
     def test_project_with_galaxy_requirements(self, ansible_runner, project_with_galaxy_requirements, api_config_pg):
-        '''Tests requirements download for project with requirements file.'''
-        project_with_galaxy_requirements.wait_until_completed()
-        last_update_pg = project_with_galaxy_requirements.get_related('last_update')
-        last_update_pg.wait_until_completed()
+        '''Verify that project requirements are downloaded when specified in a requirements file.'''
+        last_update_pg = project_with_galaxy_requirements.wait_until_completed().get_related('last_update')
+        assert last_update_pg.is_successful, "Project update unsuccessful - %s" % last_update_pg
 
-        # assert that requirements were downloaded
-        contacted = ansible_runner.stat(path=os.path.join(api_config_pg.project_base_dir, last_update_pg.local_path, "roles/yatesr.timezone"))
+        # assert that expected galaxy requirements were downloaded
+        expected_role_path = os.path.join(api_config_pg.project_base_dir,
+                                          last_update_pg.local_path, "roles/yatesr.timezone")
+        contacted = ansible_runner.stat(path=expected_role_path)
         for result in contacted.values():
-            assert result['stat']['exists'], "Requirement 'yatesr.timezone' was not found."
+            assert result['stat']['exists'], "The expected galaxy role requirement was not found (%s)." % \
+                expected_role_path
