@@ -19,7 +19,7 @@ job_event:
         changed: { type: boolean, }
         host: { $ref: '#/definitions/id_or_null' }
         host_name: { type: string }
-        parent: { type: number, minimum: 1 }
+        parent: { $ref: '#/definitions/id_or_null' }
         counter: { type: number, minimum: 0 }
         play: { type: string, }
         task: { type: string, }
