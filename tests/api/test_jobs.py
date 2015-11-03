@@ -416,7 +416,7 @@ class Test_Job(Base_Api_Test):
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
 
-time.sleep(10)
+time.sleep(60)
 inventory = dict()
 
 print json.dumps(inventory)
@@ -470,7 +470,7 @@ print json.dumps(inventory)
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
 
-time.sleep(10)
+time.sleep(60)
 inventory = dict()
 
 print json.dumps(inventory)
