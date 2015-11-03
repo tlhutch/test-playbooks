@@ -18,5 +18,6 @@ activity_stream:
       additionalProperties: true
     object1: {type: string}
     object2: {type: string}
-  required: [id, url, related, summary_fields, timestamp, operation, changes, object1, object2]
+    object_association: {type: string}
+  required: [id, url, related, summary_fields, timestamp, operation, changes, object1, object2, object_association]
   type: object
