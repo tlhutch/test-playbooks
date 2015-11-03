@@ -43,7 +43,7 @@ def cleanup_ldap_info(request, api_users_pg, api_teams_pg, api_organizations_pg)
 class Test_Ldap(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken')
 
-    def test_objects_created_after_successful_login(self, cleanup_ldap_info, api_users_pg, user_password, current_user, install_legacy_license):
+    def test_objects_created_after_successful_login(self, install_legacy_license, cleanup_ldap_info, api_users_pg, user_password, current_user):
         '''Verify that related LDAP objects are created after a successful
         login.  For example, the LDAP User, associated teams and
         organizations.'''
@@ -65,7 +65,7 @@ class Test_Ldap(Base_Api_Test):
         orgs = user.get_related('organizations', name='LDAP Organization')
         assert orgs.count == 1
 
-    def test_org_admin_ldap_user(self, cleanup_ldap_info, api_users_pg, current_user, user_password, install_legacy_license):
+    def test_org_admin_ldap_user(self, install_legacy_license, cleanup_ldap_info, api_users_pg, current_user, user_password):
         '''Verified that an LDAP organization admin relationship is created at
         login.'''
 
