@@ -70,15 +70,15 @@
 
 #### Installation online installer
 1. Installation completes successfully on all supported platforms
-    * [ ] ubuntu-12.04
-    * [ ] ubuntu-14.04
-    * [ ] rhel-6.5
-    * [ ] rhel-7.0
-    * [ ] centos-6.5
-    * [ ] centos-7.0
+    * [X] ubuntu-12.04
+    * [X] ubuntu-14.04
+    * [X] rhel-6.5
+    * [X] rhel-7.0
+    * [X] centos-6.5
+    * [X] centos-7.0
 1. Installation completes successfully using supported ansible releases
     * [ ] ansible-2.0
-    * [ ] ansible-1.9.x
+    * [X] ansible-1.9.x
     * [ ] ansible-1.8.x (not tested on *all* platforms)
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed) [jlaska]
@@ -86,10 +86,10 @@
 
 #### Installation bundle installer
 1. Installation completes successfully on all supported platforms
-    * [ ] rhel-6
-    * [ ] rhel-7
-    * [ ] centos-6
-    * [ ] centos-7
+    * [X] rhel-6
+    * [X] rhel-7
+    * [X] centos-6
+    * [X] centos-7
 
 #### Upgrade installer
 1. Upgrade completes on all supported platforms from `2.3.*`
