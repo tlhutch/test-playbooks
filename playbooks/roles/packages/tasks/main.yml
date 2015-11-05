@@ -34,7 +34,7 @@
 
 - name: include epel tasks
   include: epel.yml
-  when: ansible_os_family == 'RedHat' and ansible_install_method in ['stable', 'testing', 'nightly']
+  when: ansible_os_family == 'RedHat' and ansible_install_method in ['stable', 'testing', 'nightly', 'pip']
 
 # install ansible nightly rpm repo (optional)
 
