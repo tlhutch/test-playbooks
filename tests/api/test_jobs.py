@@ -87,9 +87,23 @@ def utf8_template(request, authtoken, api_job_templates_pg, project_ansible_play
 
 
 @pytest.fixture(scope="function")
-def job_template_with_project_ansible(job_template, project_ansible_git):
-    project_ansible_git.patch(scm_update_on_launch=True)
-    return job_template.patch(project=project_ansible_git.id, playbook='samples/included_playbook.yml')
+def project_django(request, authtoken, organization):
+    # Create project
+    payload = dict(name="django.git - %s" % fauxfactory.gen_utf8(),
+                   scm_type='git',
+                   scm_url='https://github.com/ansible-test/django.git',
+                   scm_clean=False,
+                   scm_delete_on_update=True,
+                   scm_update_on_launch=True,)
+    obj = organization.get_related('projects').post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def job_template_with_project_django(job_template, project_django):
+    project_django.wait_until_completed()
+    return job_template.patch(project=project_django.id, playbook='ping.yml')
 
 
 @pytest.fixture(scope="function")
@@ -416,6 +430,7 @@ class Test_Job(Base_Api_Test):
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
 
+# sleep helps us cancel the inventory update
 time.sleep(60)
 inventory = dict()
 
@@ -448,16 +463,14 @@ print json.dumps(inventory)
         assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
         assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
             "Unexpected job_explanation: %s" % job_pg.job_explanation
-
         try:
-            job_explanation = json.loads(job_pg.job_explanation.split("Previous Task Failed:", 1)[1])
-        except ValueError:
-            job_explanation = ''
+            job_explanation = json.loads(job_pg.job_explanation[22:])
+        except Exception:
+            pytest.fail("job_explanation not stored as JSON data: %s") % job_explanation
 
-        last_update_pg = custom_group.get_related('inventory_source').get_related('last_update')
-        assert job_explanation['job_type'] == last_update_pg.type
-        assert job_explanation['job_name'] == last_update_pg.name
-        assert job_explanation['job_id'] == str(last_update_pg.id)
+        assert job_explanation['job_type'] == update_pg.type
+        assert job_explanation['job_name'] == update_pg.name
+        assert job_explanation['job_id'] == str(update_pg.id)
 
         # Assert update_pg canceled
         assert update_pg.get().status == 'canceled', "Unexpected job" \
@@ -470,6 +483,7 @@ print json.dumps(inventory)
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
 
+# sleep helps us cancel the inventory update
 time.sleep(60)
 inventory = dict()
 
@@ -528,11 +542,10 @@ print json.dumps(inventory)
         assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
         assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
             "Unexpected job_explanation: %s" % job_pg.job_explanation
-
         try:
-            job_explanation = json.loads(job_pg.job_explanation.split("Previous Task Failed:", 1)[1])
-        except ValueError:
-            job_explanation = ''
+            job_explanation = json.loads(job_pg.job_explanation[22:])
+        except Exception:
+            pytest.fail("job_explanation not stored as JSON data: %s") % job_explanation
 
         assert job_explanation['job_type'] == first_update.type
         assert job_explanation['job_name'] == first_update.name
@@ -550,11 +563,10 @@ print json.dumps(inventory)
         assert second_update.get().status == 'failed', "Secondary inventory update not failed (status:%s)" % second_update.status
         assert second_update.job_explanation.startswith(u'Previous Task Failed:'), \
             "Unexpected job_explanation: %s" % second_update.job_explanation
-
         try:
-            inventory_job_explanation = json.loads(second_update.job_explanation.split("Previous Task Failed:", 1)[1])
-        except ValueError:
-            inventory_job_explanation = ''
+            inventory_job_explanation = json.loads(second_update.job_explanation[22:])
+        except Exception:
+            pytest.fail("job_explanation not stored as JSON data: %s") % inventory_job_explanation
 
         assert inventory_job_explanation['job_type'] == first_update.type
         assert inventory_job_explanation['job_name'] == first_update.name
@@ -563,14 +575,14 @@ print json.dumps(inventory)
         # Assert second inventory update failed
         assert second_inventory_source.get().status == 'failed', "Secondary inventory update not failed (status:%s)" % second_inventory_source.status
 
-    def test_cascade_cancel_with_project_update(self, job_template_with_project_ansible, api_unified_jobs_pg):
+    def test_cascade_cancel_with_project_update(self, job_template_with_project_django, api_unified_jobs_pg):
         '''
         Tests that if you cancel a SCM update before it finishes that its dependent job fails.
         '''
-        project_pg = job_template_with_project_ansible.get_related('project')
+        project_pg = job_template_with_project_django.get_related('project')
 
         # Launch job
-        job_pg = job_template_with_project_ansible.launch()
+        job_pg = job_template_with_project_django.launch()
 
         # Wait for new update to start and cancel it
         current_update_pg = project_pg.wait_until_started().get_related('current_update')
@@ -582,32 +594,30 @@ print json.dumps(inventory)
         assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
         assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
             "Unexpected job_explanation: %s" % job_pg.job_explanation
-
         try:
-            job_explanation = json.loads(job_pg.job_explanation.split("Previous Task Failed:", 1)[1])
-        except ValueError:
-            job_explanation = ''
+            job_explanation = json.loads(job_pg.job_explanation[22:])
+        except Exception:
+            pytest.fail("job_explanation not stored as JSON data: %s") % job_explanation
 
-        last_update_pg = job_template_with_project_ansible.get_related('project').get_related('last_update')
-        assert job_explanation['job_type'] == last_update_pg.type
-        assert job_explanation['job_name'] == last_update_pg.name
-        assert job_explanation['job_id'] == str(last_update_pg.id)
+        assert job_explanation['job_type'] == current_update_pg.type
+        assert job_explanation['job_name'] == current_update_pg.name
+        assert job_explanation['job_id'] == str(current_update_pg.id)
 
         # Assert new scm update was canceled
-        assert current_update_pg.get().status == 'canceled', "Unexpected job" \
+        assert current_update_pg.get().status == 'canceled', "Unexpected project_update" \
             "status after cancelling (expected 'canceled') - %s" % current_update_pg
 
         # Assert project cancelled
         assert project_pg.get().status == 'canceled', \
-            "Unexpected project_update status (expected status:canceled) - %s" % project_pg
+            "Unexpected project status (expected status:canceled) - %s" % project_pg
 
-    def test_cascade_cancel_with_inventory_and_project_updates(self, job_template_with_project_ansible, custom_group, api_unified_jobs_pg):
+    def test_cascade_cancel_project_update_with_inventory_and_project_updates(self, job_template_with_project_django, custom_group, api_unified_jobs_pg):
         '''
         Tests that if you cancel a scm update before it finishes that its dependent job
         fails. This test runs both inventory and SCM updates on job launch.
         '''
-        project_pg = job_template_with_project_ansible.get_related('project')
-        job_template_with_project_ansible.patch(inventory=custom_group.inventory)
+        project_pg = job_template_with_project_django.get_related('project')
+        job_template_with_project_django.patch(inventory=custom_group.inventory)
         inventory_source_pg = custom_group.get_related('inventory_source')
         inventory_source_pg.patch(update_on_launch=True)
 
@@ -615,7 +625,7 @@ print json.dumps(inventory)
         assert inventory_source_pg.last_updated is None, "inventory_source_pg unexpectedly updated."
 
         # Launch job
-        job_pg = job_template_with_project_ansible.launch()
+        job_pg = job_template_with_project_django.launch()
 
         # Wait for new update to start and cancel it
         current_update_pg = project_pg.wait_until_started().get_related('current_update')
@@ -627,30 +637,91 @@ print json.dumps(inventory)
         assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
         assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
             "Unexpected job_explanation: %s" % job_pg.job_explanation
-
         try:
-            job_explanation = json.loads(job_pg.job_explanation.split("Previous Task Failed:", 1)[1])
-        except ValueError:
-            job_explanation = ''
+            job_explanation = json.loads(job_pg.job_explanation[22:])
+        except Exception:
+            pytest.fail("job_explanation not stored as JSON data: %s") % job_explanation
 
-        last_update_pg = job_template_with_project_ansible.get_related('project').get_related('last_update')
-        assert job_explanation['job_type'] == last_update_pg.type
-        assert job_explanation['job_name'] == last_update_pg.name
-        assert job_explanation['job_id'] == str(last_update_pg.id)
+        assert job_explanation['job_type'] == current_update_pg.type
+        assert job_explanation['job_name'] == current_update_pg.name
+        assert job_explanation['job_id'] == str(current_update_pg.id)
 
-        # Assert new scm update was canceled
+        # Assert new scm update was cancelled
         assert current_update_pg.get().status == 'canceled', "Unexpected job status after cancelling (expected 'canceled') - %s" % \
             current_update_pg
 
         # Assert project cancelled
-        assert project_pg.get().status == 'canceled', "Unexpected job status after cancelling (expected 'canceled') - %s" % project_pg
+        assert project_pg.get().status == 'canceled', "Unexpected project status after cancelling (expected 'canceled') - %s" % project_pg
 
         # Assert update_pg successful
         update_pg = inventory_source_pg.wait_until_completed().get_related('last_update')
-        assert update_pg.is_successful, "Update unsuccessful - %s" % update_pg
+        assert update_pg.is_successful, "Inventory update unexpectedly unsuccessful - %s" % update_pg
 
         # Assert inventory source successful
-        assert inventory_source_pg.get().is_successful, "inventory_source unsuccessful - %s" % inventory_source_pg
+        assert inventory_source_pg.get().is_successful, "inventory_source unexpectedly unsuccessful - %s" % inventory_source_pg
+
+    @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
+import json, time
+
+# sleep helps us cancel the inventory update
+time.sleep(60)
+inventory = dict()
+
+print json.dumps(inventory)
+''')
+    def test_cascade_cancel_inventory_update_with_inventory_and_project_updates(self, job_template, custom_group, api_unified_jobs_pg):
+        '''
+        Tests that if you cancel an inventory update before it finishes that its dependent job
+        fails. This test runs both inventory and SCM updates on job launch.
+        '''
+        project_pg = job_template.get_related('project')
+        project_pg.patch(update_on_launch=True)
+        job_template.patch(inventory=custom_group.inventory)
+        inventory_source_pg = custom_group.get_related('inventory_source')
+        inventory_source_pg.patch(update_on_launch=True)
+
+        # Assert that the cloud_group has not updated
+        assert inventory_source_pg.last_updated is None, "inventory_source_pg unexpectedly updated."
+
+        # Launch job
+        job_pg = job_template.launch()
+
+        # Wait for the inventory_source to start
+        inventory_source_pg.wait_until_started()
+
+        # Cancel inventory update
+        update_pg = inventory_source_pg.get_related('current_update')
+        cancel_pg = update_pg.get_related('cancel')
+        assert cancel_pg.can_cancel, "The inventory_update is not cancellable, it may have already completed - %s" % update_pg.get()
+        cancel_pg.post()
+
+        # Assert that original job failed
+        assert not job_pg.wait_until_completed().is_successful, "Job run unexpectedly completed successfully - %s" % job_pg
+        assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
+            "Unexpected job_explanation: %s" % job_pg.job_explanation
+        try:
+            job_explanation = json.loads(job_pg.job_explanation[22:])
+        except Exception:
+            pytest.fail("job_explanation not stored as JSON data: %s") % job_explanation
+
+        assert job_explanation['job_type'] == update_pg.type
+        assert job_explanation['job_name'] == update_pg.name
+        assert job_explanation['job_id'] == str(update_pg.id)
+
+        # Assert new scm update was successful
+        project_update_pg = project_pg.get_related('last_update')
+        assert project_update_pg.wait_until_completed().status == 'successful', "Project update unsuccessful - %s." % project_update_pg
+
+        # Assert project successful
+        assert project_pg.get().status == 'successful', "Project unsuccessful - %s" % project_pg
+
+        # Assert update_pg cancelled
+        assert update_pg.get().status == "canceled", "Unexpected inventory update_pg status after cancelling (expected 'canceled') - %s" % \
+            update_pg
+
+        # Assert inventory source cancelled
+        assert inventory_source_pg.get().status == "canceled", \
+            "Unexpected inventory_source status after cancelling (expected 'canceled') - %s" % inventory_source_pg
 
 
 @pytest.mark.api
