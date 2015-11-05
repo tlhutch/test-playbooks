@@ -53,10 +53,10 @@
 
 ### Regression
 1. [ ] Comprehensive RBAC coverage using EuroNext and NeuStar datasets
-1. [ ] UI regression completed
+1. [X] UI regression completed
 1. [ ] API regression completed
 1. [ ] End-to-end integration completed on all supported platforms
-1. [ ] Munin monitors work on all supported platforms
+1. [X] Munin monitors work on all supported platforms
 1. [i] Tower HA installation
     * [i] Verify successful registration of secondary instances
     * [i] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
@@ -77,7 +77,7 @@
     * [X] centos-6.5
     * [X] centos-7.0
 1. Installation completes successfully using supported ansible releases
-    * [ ] ansible-2.0
+    * [X] ansible-2.0
     * [X] ansible-1.9.x
     * [ ] ansible-1.8.x (not tested on *all* platforms)
 1. Installation completes successfully on supported images
