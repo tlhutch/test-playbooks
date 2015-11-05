@@ -57,16 +57,16 @@
 1. [ ] API regression completed
 1. [ ] End-to-end integration completed on all supported platforms
 1. [ ] Munin monitors work on all supported platforms
-1. [ ] Tower HA installation
-    * [ ] Verify successful registration of secondary instances
-    * [ ] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
-    * [ ] Verify promoting secondary instance
-    * [ ] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
-1. [ ] Tower LDAP Integration [jlaska]
-    * [ ] Verify license enablement with legacy or enterprise license (disabled elsewhere).
-    * [ ] Verify Tower respects LDAP username and password on login
-    * [ ] Verify Tower creates user related objects on successful login (User, Teams, Organization, Admin_of_organizations).
-    * [ ] Verify successful login for an Organization Administrator
+1. [i] Tower HA installation
+    * [i] Verify successful registration of secondary instances
+    * [i] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
+    * [i] Verify promoting secondary instance
+    * [i] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
+1. [i] Tower LDAP Integration [jlaska]
+    * [i] Verify license enablement with legacy or enterprise license (disabled elsewhere).
+    * [i] Verify Tower respects LDAP username and password on login
+    * [i] Verify Tower creates user related objects on successful login (User, Teams, Organization, Admin_of_organizations).
+    * [i] Verify successful login for an Organization Administrator
 
 #### Installation online installer
 1. Installation completes successfully on all supported platforms
@@ -82,7 +82,7 @@
     * [ ] ansible-1.8.x (not tested on *all* platforms)
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed) [jlaska]
-    * [ ] Vagrant [jlaska]
+    * [X] Vagrant [jlaska]
 
 #### Installation bundle installer
 1. Installation completes successfully on all supported platforms
@@ -93,12 +93,12 @@
 
 #### Upgrade installer
 1. Upgrade completes on all supported platforms from `2.3.*`
-    * [ ] ubuntu-12.04
-    * [ ] ubuntu-14.04
-    * [ ] rhel-6.5
-    * [ ] rhel-7.0
-    * [ ] centos-6.5
-    * [ ] centos-7.0
+    * [X] ubuntu-12.04
+    * [X] ubuntu-14.04
+    * [X] rhel-6.5
+    * [X] rhel-7.0
+    * [X] centos-6.5
+    * [X] centos-7.0
 1. Upgrade completes on all supported platforms from `2.2.*`
     * [ ] ubuntu-12.04
     * [ ] ubuntu-14.04
@@ -107,6 +107,6 @@
     * [ ] centos-6.5
     * [ ] centos-7.0
 1. Verify the following functions work as intended after upgrade
-    * [ ] Launch project_updates for existing projects
-    * [ ] Launch inventory_udpates for existing inventory_source
-    * [ ] Launch, and relaunch, existing job_templates
+    * [X] Launch project_updates for existing projects
+    * [X] Launch inventory_udpates for existing inventory_source
+    * [X] Launch, and relaunch, existing job_templates
