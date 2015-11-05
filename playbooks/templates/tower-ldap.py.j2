@@ -2,8 +2,22 @@ import ldap
 from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion
 from django_auth_ldap.config import ActiveDirectoryGroupType, GroupOfNamesType
 
-# LOGGING['loggers']['django_auth_ldap']['handlers'] = ['rotating_file']
-# LOGGING['loggers']['django_auth_ldap']['level'] = 'INFO'
+# # Enable debug logging (2.3.* and earlier)
+# LOGGING['handlers']['django_auth_ldap'] =  {
+#     'level': 'DEBUG',
+#     'class':'logging.handlers.RotatingFileHandler',
+#     'filters': ['require_debug_false'],
+#     'filename': '/var/log/tower/tower.log',
+#     'maxBytes': 1024 * 1024 * 5, # 5 MB
+#     'backupCount': 5,
+#     'formatter':'simple',
+# }
+#
+# LOGGING['loggers']['django_auth_ldap']['handlers'] = ['django_auth_ldap']
+# LOGGING['loggers']['django_auth_ldap']['level'] = 'DEBUG'
+
+# Enable debug logging (2.4.0 and beyond)
+LOGGING['handlers']['tower_warnings']['level'] =  'DEBUG'
 
 ###############################################################################
 # LDAP AUTHENTICATION SETTINGS
