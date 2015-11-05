@@ -52,21 +52,20 @@
 1. [X] With Tower loaded in multiple browser tabs, verify inactivity in one tab doesn't force a logout in another active tab
 
 ### Regression
-1. [ ] Comprehensive RBAC coverage using EuroNext and NeuStar datasets
 1. [X] UI regression completed
 1. [ ] API regression completed
 1. [ ] End-to-end integration completed on all supported platforms
 1. [X] Munin monitors work on all supported platforms
-1. [i] Tower HA installation
-    * [i] Verify successful registration of secondary instances
-    * [i] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
-    * [i] Verify promoting secondary instance
-    * [i] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
-1. [i] Tower LDAP Integration [jlaska]
-    * [i] Verify license enablement with legacy or enterprise license (disabled elsewhere).
-    * [i] Verify Tower respects LDAP username and password on login
-    * [i] Verify Tower creates user related objects on successful login (User, Teams, Organization, Admin_of_organizations).
-    * [i] Verify successful login for an Organization Administrator
+1. [X] Tower HA installation
+    * [X] Verify successful registration of secondary instances
+    * [X] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
+    * [X] Verify promoting secondary instance
+    * [ ] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
+1. [X] Tower LDAP Integration [jlaska]
+    * [X] Verify license enablement with legacy or enterprise license (disabled elsewhere).
+    * [X] Verify Tower respects LDAP username and password on login
+    * [X] Verify Tower creates user related objects on successful login (User, Teams, Organization, Admin_of_organizations).
+    * [X] Verify successful login for an Organization Administrator
 
 #### Installation online installer
 1. Installation completes successfully on all supported platforms
@@ -79,7 +78,7 @@
 1. Installation completes successfully using supported ansible releases
     * [X] ansible-2.0
     * [X] ansible-1.9.x
-    * [ ] ansible-1.8.x (not tested on *all* platforms)
+    * [i] ansible-1.8.x (not tested on *all* platforms)
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed) [jlaska]
     * [X] Vagrant [jlaska]
