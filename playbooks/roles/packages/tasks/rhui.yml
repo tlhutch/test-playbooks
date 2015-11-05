@@ -7,7 +7,9 @@
   register: rhui_repo
 
 - name: update rh-amazon-rhui-client (RHEL EC2 only)
-  yum: name=rh-amazon-rhui-client state=latest
+  yum:
+    name: rh-amazon-rhui-client
+    state: latest
   when: rhui_repo.stat.exists
 
 - name: enable rhui repositories
