@@ -190,6 +190,14 @@ def openstack_credential(request, authtoken, api_credentials_pg, admin_user, tes
     return obj
 
 
+#
+# Convenience fixture that iterates through supported cloud_credential types
+#
+@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware', 'openstack'])
+def cloud_credential(request):
+    return request.getfuncargvalue(request.param + '_credential')
+
+
 @pytest.fixture(scope="function")
 def scm_credential_key_unlock_ASK(request, authtoken, api_credentials_pg, admin_user):
     '''Create scm credential with scm_key_unlock="ASK"'''

@@ -766,10 +766,8 @@ class Test_Scan_Job(Base_Api_Test):
             "Unexpected traceback upon running a scan job with MongoDB offline - %s." % scan_job_with_status_completed.result_traceback
 
 
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware'])
-def job_template_with_cloud_credential(request, job_template, host):
-    cloud_credential = request.getfuncargvalue(request.param + '_credential')
-
+@pytest.fixture(scope="function")
+def job_template_with_cloud_credential(request, job_template, cloud_credential, host):
     # PATCH the job_template with the correct inventory and cloud_credential
     job_template.patch(inventory=host.inventory,
                        cloud_credential=cloud_credential.id)
