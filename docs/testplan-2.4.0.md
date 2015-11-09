@@ -46,7 +46,7 @@
 1. [X] Ensure that websockets are disabled for logged-out users
 1. [X] Verify UI honors HTTP timeout header
 1. [X] Verify UI logs user out when token expires, even when user is idle
-1. [ ] Verify logout modal
+1. [X] Verify logout modal
 1. [X] Verify API honors HTTP timeout
 1. [X] Verify that varying the timeout setting in `settings.py` causes appropriate newly set time results in HTTP headers
 1. [X] With Tower loaded in multiple browser tabs, verify inactivity in one tab doesn't force a logout in another active tab
@@ -54,7 +54,6 @@
 ### Regression
 1. [X] UI regression completed
 1. [ ] API regression completed
-1. [ ] End-to-end integration completed on all supported platforms
 1. [X] Munin monitors work on all supported platforms
 1. [X] Tower HA installation
     * [X] Verify successful registration of secondary instances
