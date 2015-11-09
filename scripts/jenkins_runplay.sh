@@ -211,8 +211,8 @@ if [ -n "${AUTHORIZED_KEYS}" ]; then
     done
 fi
 
-# Disable strict host key checking
-export ANSIBLE_HOST_KEY_CHECKING=False
+export ANSIBLE_HOST_KEY_CHECKING=False      # Disable strict host key checking
+export ANSIBLE_RETRY_FILES_ENABLED=False    # Disable .retry files
 
 # How much verbosity do you want ...
 if [[ "${VERBOSE}" == true ]]; then
