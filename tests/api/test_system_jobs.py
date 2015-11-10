@@ -10,14 +10,6 @@ def convert_to_camelcase(s):
     return ''.join(x.capitalize() or '_' for x in s.split('_'))
 
 
-@pytest.fixture(scope="function")
-def system_job_with_status_pending(request, system_job):
-    '''
-    Wait for system_job to move from new to queued, and return the system_job.
-    '''
-    return system_job.wait_until_started()
-
-
 @pytest.fixture(scope="function", params=['cleanup_jobs_with_status_completed',
                                           'cleanup_deleted_with_status_completed',
                                           'cleanup_activitystream_with_status_completed',
@@ -300,10 +292,6 @@ class Test_System_Jobs(Base_Api_Test):
 
         # wait for job to cancel
         system_job_with_status_pending = system_job_with_status_pending.wait_until_status('canceled')
-
-        # xfail if the job completed
-        if system_job_with_status_pending.status == 'successful':
-            pytest.xfail("The test was unable to cancel the system_job in time, and the system_job completed successfully.")
 
         # assert that the system job was cancelled
         assert system_job_with_status_pending.status == 'canceled', \

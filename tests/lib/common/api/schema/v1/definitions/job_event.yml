@@ -43,7 +43,7 @@ job_event:
 
         related:
             type: object
-            required: [ job, parent, ]
+            required: [ job, ]
             additionalProperties: False
             properties:
                 job:   { type: string, format: uri }
