@@ -24,7 +24,7 @@ def ad_hoc_ping(request, api_ad_hoc_commands_pg, inventory, ssh_credential):
 
 
 @pytest.fixture(scope="function")
-def ad_hoc_with_status_pending(ad_hoc_ping):
+def ad_hoc_with_status_pending(pause_awx_task_system, ad_hoc_ping):
     '''
     Wait for ad_hoc_ping to move from new to queued and return the job.
     '''

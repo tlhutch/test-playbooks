@@ -21,11 +21,11 @@ def job_sleep(request, job_template_sleep):
 
 
 @pytest.fixture(scope="function")
-def job_with_status_pending(request, job_sleep):
+def job_with_status_pending(job_template_sleep, pause_awx_task_system):
     '''
     Wait for job_sleep to move from new to queued, and return the job.
     '''
-    return job_sleep.wait_until_started()
+    return job_template_sleep.launch().wait_until_started()
 
 
 @pytest.fixture(scope="function")
@@ -334,9 +334,9 @@ class Test_Job(Base_Api_Test):
         # ansible-playbook started, and the job was not cancelled in the
         # 'pending' state.
         job_events = job_with_status_pending.get_related('job_events', event="playbook_on_start")
-        if job_events.count > 0:
-            pytest.skip("The pending job was successfully cancelled, but a "
-                        "'playbook_on_start' host_event was received.")
+        assert job_events.count == 0, "The pending job was successfully " \
+            "canceled, but a 'playbook_on_start' host_event was received. " \
+            "It appears that the job was not cancelled while in pending."
 
     def test_cancel_running_job(self, job_with_status_running):
         '''
