@@ -59,7 +59,7 @@
     * [X] Verify successful registration of secondary instances
     * [X] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
     * [X] Verify promoting secondary instance
-    * [ ] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
+    * [X] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
 1. [X] Tower LDAP Integration [jlaska]
     * [X] Verify license enablement with legacy or enterprise license (disabled elsewhere).
     * [X] Verify Tower respects LDAP username and password on login
@@ -77,7 +77,7 @@
 1. Installation completes successfully using supported ansible releases
     * [X] ansible-2.0
     * [X] ansible-1.9.x
-    * [i] ansible-1.8.x (not tested on *all* platforms)
+    * [X] ansible-1.8.x (manually tested on EL platforms)
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed) [jlaska]
     * [X] Vagrant [jlaska]
