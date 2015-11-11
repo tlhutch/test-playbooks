@@ -536,7 +536,6 @@ class Test_Job_Template(Base_Api_Test):
         assert job_pg.status == 'canceled', \
             "Unexpected Job status (%s != 'canceled') after deleting job_template" % (job_pg.status)
 
-    @pytest.mark.trello('https://trello.com/c/qyWExyDo')
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         '''
         Verify that the job->launch endpoint does not allow launching a
