@@ -179,8 +179,6 @@ class Test_Users(Base_Api_Test):
         '''
         As an org admin, create normal users while using different ways of
         specifying is_superuser=False.
-
-        Trello: https://trello.com/c/HlZv6u6O
         '''
 
         # Test various ways of passing is_superuser
@@ -202,8 +200,6 @@ class Test_Org_Admin(Base_Api_Test):
     organization.  Requires setting the following tower variable:
 
     > ORG_ADMINS_CANNOT_SEE_ALL_USERS = False
-
-    Trello: https://trello.com/c/M74W11hQ
     '''
     pytestmark = pytest.mark.usefixtures('authtoken', 'ORG_ADMINS_CANNOT_SEE_ALL_USERS', 'install_license_unlimited')
 

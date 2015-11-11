@@ -514,7 +514,6 @@ class Test_AWS_License(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license_aws')
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
-    @pytest.mark.trello('https://trello.com/c/Z9UxM1k2')
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.license_info, indent=2)
@@ -538,7 +537,6 @@ class Test_AWS_License(Base_Api_Test):
             "returned %s." % conf.license_info['license_type']
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
-    @pytest.mark.trello('https://trello.com/c/Z9UxM1k2')
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:
@@ -804,7 +802,6 @@ class Test_Legacy_License_Grace_Period(Base_Api_Test):
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
 
-    @pytest.mark.trello('https://trello.com/c/Llol9BCJ')
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:
@@ -948,7 +945,6 @@ class Test_Legacy_Trial_License(Base_Api_Test):
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
 
-    @pytest.mark.trello('https://trello.com/c/Llol9BCJ')
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:

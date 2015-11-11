@@ -120,8 +120,6 @@ class Test_Inventory(Base_Api_Test):
             1) Create inventory with hosts, but no groups
             2) Verify the hosts appear in related->hosts
             2) Verify the hosts appear in related->script
-
-        Trello: https://trello.com/c/kDdqEaOW
         '''
 
         if tower_version_cmp('2.0.0') < 0:
@@ -397,8 +395,6 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         '''
         Verify that tower can handle inventory_import where the host name
         remains the same, but the instance_id changes.
-
-        Verify https://trello.com/c/QWnujT3v
         '''
 
         if tower_version_cmp('2.0.2') < 0:
@@ -439,8 +435,6 @@ EOF''' % (json.dumps(json_inventory_after, indent=4),))
     def test_import_ipv6_hosts(self, ansible_runner, import_inventory, json_inventory_ipv6, tower_version_cmp):
         '''
         Verify that tower can handle inventory_import with ipv6 hosts.
-
-        Trello: https://trello.com/c/ZBHrkuLb
         '''
 
         if tower_version_cmp('2.0.2') < 0:

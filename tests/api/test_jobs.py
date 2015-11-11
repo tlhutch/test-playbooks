@@ -210,7 +210,6 @@ class Test_Job(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    @pytest.mark.trello('https://trello.com/c/MjOiEWgS')
     def test_relaunch_with_deleted_related(self, job_with_deleted_related):
         '''
         Verify relaunching a job whose related information has been deleted.

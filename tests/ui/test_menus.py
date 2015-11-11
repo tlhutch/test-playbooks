@@ -65,8 +65,6 @@ class Test_Account_Menu(Base_UI_Test):
     def test_non_superuser_menu_items_after_exiting_portal(self, ui_dashboard_pg, non_superuser, user_password):
         '''
         Verify the account menu items are correct upon returning from portal mode.
-
-        Trello: https://trello.com/c/AuT9wUmw
         '''
 
         with self.current_user(non_superuser.username, user_password):

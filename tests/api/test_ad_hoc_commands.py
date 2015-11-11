@@ -254,7 +254,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         assert command_pg.module_name == "command"
         assert command_pg.module_args == "true"
 
-    @pytest.mark.trello('https://trello.com/c/4jG0xMqo')
     def test_launch_with_invalid_module_name(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
         '''
         Verifies that if you post with an invalid module_name that a BadRequest exception is raised.
@@ -520,7 +519,6 @@ print json.dumps(inv, indent=2)
         with pytest.raises(common.exceptions.BadRequest_Exception):
             relaunch_pg.post(payload)
 
-    @pytest.mark.trello('https://trello.com/c/IbvBelXJ')
     def test_relaunch_with_deleted_related(self, ad_hoc_with_status_completed, deleted_object):
         '''
         Verify that relaunching a job with deleted related fails.

@@ -92,8 +92,6 @@ class Test_Projects(Base_Api_Test):
         '''
         Verify tower can successfully convert a manual project, into a scm
         managed project.
-
-        Trello: https://trello.com/c/YFlvkd4Y
         '''
 
         # change the scm_type to 'git'
