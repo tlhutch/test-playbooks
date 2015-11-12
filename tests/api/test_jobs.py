@@ -896,13 +896,17 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
                 AZURE_SUBSCRIPTION_ID=self.credentials['cloud'][cloud_credential.kind]['username'],
                 AZURE_CERT_PATH=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
             )
-
         elif cloud_credential.kind == 'vmware':
             self.has_credentials('cloud', cloud_credential.kind, ['username', 'host'])
             expected_env_vars = dict(
                 VMWARE_USER=self.credentials['cloud'][cloud_credential.kind]['username'],
                 VMWARE_PASSWORD=u'**********',
                 VMWARE_HOST=self.credentials['cloud'][cloud_credential.kind]['host']
+            )
+        elif cloud_credential.kind == 'openstack':
+            self.has_credentials('cloud', cloud_credential.kind, ['username', 'host', 'project'])
+            expected_env_vars = dict(
+                OS_CLIENT_CONFIG_FILE=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
             )
         else:
             raise Exception("Unhandled cloud type: %s" % cloud_credential.kind)
