@@ -80,7 +80,7 @@
     * [X] ansible-1.8.x (manually tested on EL platforms)
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed) [jlaska]
-    * [X] Vagrant [jlaska]
+    * [X] Vagrant
 
 #### Installation bundle installer
 1. Installation completes successfully on all supported platforms
