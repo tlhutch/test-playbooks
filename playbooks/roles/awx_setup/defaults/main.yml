@@ -2,7 +2,7 @@
 awx_upgrade: false
 
 # Choose location for ansible-tower package repository
-aw_repo_url: http://50.116.42.103/ansible-tower_nightlies_RTYUIOPOIUYTYU
+aw_repo_url: http://jenkins.testing.ansible.com/ansible-tower_nightlies_RTYUIOPOIUYTYU
 # aw_repo_url: http://releases.ansible.com/ansible-tower
 
 # Choose location for awx-setup

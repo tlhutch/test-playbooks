@@ -31,7 +31,7 @@ class AnsibleInventory(ConfigParser.SafeConfigParser):
 def parse_args():
     parser = optparse.OptionParser()
     parser.add_option("-j", "--jenkins", dest="jenkins",
-                      default=os.getenv('JENKINS_URL', 'http://50.116.42.103'),
+                      default=os.getenv('JENKINS_URL', 'http://jenkins.testing.ansible.com'),
                       help="URL to Jenkins (default: %default).")
     parser.add_option("-u", "--user", dest="user",
                       default=os.getenv('JENKINS_USER', os.getenv('USER')),
