@@ -69,27 +69,27 @@
 
 - name: install ansible rpm (stable)
   yum:
-    name: ansible
+    name: '{{ ansible_package_name }}'
     state: latest
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'stable'
 
 - name: install ansible rpm (testing)
   yum:
-    name: ansible
+    name: '{{ ansible_package_name }}'
     enablerepo: '*-testing'
     state: latest
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'testing'
 
 - name: install ansible rpm (nightly)
   yum:
-    name: ansible
+    name: '{{ ansible_package_name }}'
     enablerepo: ansible-nightly
     state: latest
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
 
 - name: install ansible deb
   apt:
-    name: ansible
+    name: '{{ ansible_package_name }}'
     state: latest
     update_cache: yes
     force: yes
@@ -109,7 +109,7 @@
 
 - name: install ansible pip
   pip:
-    name: '{{ansible_pip}}'
+    name: '{{ ansible_package_name }}'
     state: latest
   when: ansible_install_method == 'pip'
 
