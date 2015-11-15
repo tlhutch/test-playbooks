@@ -831,9 +831,9 @@ class Test_Scan_Job(Base_Api_Test):
     def test_launch_scan_job_without_mongodb(self, install_enterprise_license, stop_mongodb, scan_job_with_status_completed):
         '''Tests that scan jobs without mongodb running fail appropriately.'''
         assert scan_job_with_status_completed.status == "error", \
-            "Unexpected job status when running a scan job without MongoDB running - %s." % scan_job_with_status_completed.status
+            "Unexpected job status when running a scan job without MongoDB running - %s" % scan_job_with_status_completed
         assert scan_job_with_status_completed.result_traceback.endswith("RuntimeError: Fact Scan Database is offline\n"), \
-            "Unexpected traceback upon running a scan job with MongoDB offline - %s." % scan_job_with_status_completed.result_traceback
+            "Unexpected traceback upon running a scan job with MongoDB offline - %s" % scan_job_with_status_completed
 
 
 @pytest.fixture(scope="function")
