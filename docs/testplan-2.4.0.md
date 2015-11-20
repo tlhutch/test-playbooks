@@ -24,12 +24,12 @@
 
 ### Pluggable Authentication
 
- 1. [ ] Verify enablement/disablement via social_auth.py
+ 1. [X] Verify enablement/disablement via social_auth.py
  1. [X] Verify [un]successful login with Google Hosted credentials
- 1. [ ] Verify [un]successful login with SAML credentials
- 1. [ ] Verify [un]successful login with RADIUS credentials
- 1. [ ] Verify [un]successful login with GitHub credentials
- 1. [ ] SAML and RADIUS are enterprise features
+ 1. [X] Verify [un]successful login with SAML credentials
+ 1. [X] Verify [un]successful login with RADIUS credentials
+ 1. [X] Verify [un]successful login with GitHub credentials
+ 1. [X] SAML and RADIUS are enterprise features
 
 ### Custom Rebranding
 
@@ -53,7 +53,7 @@
 
 ### Regression
 1. [X] UI regression completed
-1. [ ] API regression completed
+1. [X] API regression completed
 1. [X] Munin monitors work on all supported platforms
 1. [X] Tower HA installation
     * [X] Verify successful registration of secondary instances
