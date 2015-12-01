@@ -305,6 +305,10 @@ class Awx_Schema_Credential(Awx_Schema_Credentials):
         return self.load_file('credentials/item.yml')
 
     @property
+    def put(self):
+        return self.get
+
+    @property
     def patch(self):
         return self.get
 

@@ -1,8 +1,32 @@
 import json
 import pytest
 import fauxfactory
+import logging
 import common.tower.inventory
 from tests.api import Base_Api_Test
+
+
+log = logging.getLogger(__name__)
+
+
+# TODO - move this to pytest-ansible
+@pytest.fixture(scope="function")
+def ansible_distribution(request, ansible_facts):
+    '''Return the ansible_distribution from ansible_facts of the system under test.'''
+    if len(ansible_facts) > 1:
+        log.warning("ansible_facts for %d systems found, but returning "
+                    "only the first" % len(ansible_facts))
+    return ansible_facts.values()[0]['ansible_facts']['ansible_distribution']
+
+
+# TODO - move this to pytest-ansible
+@pytest.fixture(scope="function")
+def ansible_distribution_version(request, ansible_facts):
+    '''Return the ansible_distribution_version from ansible_facts of the system under test.'''
+    if len(ansible_facts) > 1:
+        log.warning("ansible_facts for %d systems found, but returning "
+                    "only the first" % len(ansible_facts))
+    return ansible_facts.values()[0]['ansible_facts']['ansible_distribution_version']
 
 
 @pytest.fixture(scope="function")
@@ -317,6 +341,58 @@ class Test_Job_Template(Base_Api_Test):
 
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+
+    def test_launch_with_unencrypted_ssh_credential(self, request, job_template, unencrypted_ssh_credential_with_ssh_key_data,
+                                                    ansible_distribution, ansible_distribution_version):
+        '''Launch job template with unencrypted ssh_credential'''
+        job_template.patch(credential=unencrypted_ssh_credential_with_ssh_key_data.id)
+
+        launch_pg = job_template.get_related('launch')
+        assert not launch_pg.passwords_needed_to_start
+        job_pg = job_template.launch().wait_until_completed()
+
+        # assess job launch behavior with an openssh credential
+        # OpenSSH_6.6.1p1 Ubuntu-2ubuntu2 supports OpenSSH credentials
+        if "unencrypted_open_ssh_credential" in request._fixturedefs.keys():
+            if (ansible_distribution, ansible_distribution_version) == ("Ubuntu", "14.04"):
+                assert job_pg.is_successful, "Job %s unexpectedly failed with credential %s." \
+                    % (job_pg, unencrypted_ssh_credential_with_ssh_key_data)
+            else:
+                assert job_pg.status == 'error'
+                assert "RuntimeError: It looks like you're trying to use a private key in OpenSSH format" in job_pg.result_traceback, \
+                    "Unexpected job_pg.result_traceback when launching a job with a OpenSSH credential: %s." % job_pg.result_traceback
+
+        # assess job launch behavior with other credential types
+        else:
+            assert job_pg.is_successful, "Job %s unexpectedly failed with credential %s." \
+                % (job_pg, unencrypted_ssh_credential_with_ssh_key_data)
+
+    def test_launch_with_encrypted_ssh_credential(self, request, job_template, encrypted_ssh_credential_with_ssh_key_data,
+                                                  ansible_distribution, ansible_distribution_version):
+        '''Launch job template with encrypted ssh_credential'''
+        job_template.patch(credential=encrypted_ssh_credential_with_ssh_key_data.id)
+
+        launch_pg = job_template.get_related('launch')
+        assert launch_pg.passwords_needed_to_start == [u'ssh_key_unlock']
+
+        payload = dict(ssh_key_unlock="fo0m4nchU")
+        job_pg = job_template.launch(payload).wait_until_completed()
+
+        # assess job launch behavior with an openssh credential
+        # OpenSSH_6.6.1p1 Ubuntu-2ubuntu2 supports OpenSSH credentials
+        if "encrypted_open_ssh_credential" in request._fixturedefs.keys():
+            if (ansible_distribution, ansible_distribution_version) == ("Ubuntu", "14.04"):
+                assert job_pg.is_successful, "Job %s unexpectedly failed with credential %s." \
+                    % (job_pg, encrypted_ssh_credential_with_ssh_key_data)
+            else:
+                assert job_pg.status == 'error'
+                assert "RuntimeError: It looks like you're trying to use a private key in OpenSSH format" in job_pg.result_traceback, \
+                    "Unexpected job_pg.result_traceback when launching a job with a OpenSSH credential: %s." % job_pg.result_traceback
+
+        # assess job launch behavior with other credential types
+        else:
+            assert job_pg.is_successful, "Job %s unexpectedly failed with credential %s." \
+                % (job_pg, encrypted_ssh_credential_with_ssh_key_data)
 
     def test_launch_without_ask_variables_on_launch(self, job_template_ask_variables_on_launch, tower_version_cmp):
         '''
