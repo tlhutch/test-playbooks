@@ -205,10 +205,11 @@ def optional_survey_spec():
                    spec=[dict(required=False,
                               question_name="Enter your email &mdash; &euro;",
                               variable="submitter_email",
-                              type="text",),
+                              type="text",
+                              default="mjones@maffletrox.edu"),
                          dict(required=False,
                               question_name="Enter your employee number email &mdash; &euro;",
-                              variable="submitter_email",
+                              variable="employee_number",
                               type="integer",)])
     return payload
 
@@ -234,7 +235,12 @@ def required_survey_spec():
                          dict(required=False,
                               question_name="Enter your email &mdash; &euro;",
                               variable="submitter_email",
-                              type="text")])
+                              type="text"),
+                         dict(required=False,
+                              question_name="Test question",
+                              variable="intersection",
+                              type="text",
+                              default="survey"), ])
     return payload
 
 
