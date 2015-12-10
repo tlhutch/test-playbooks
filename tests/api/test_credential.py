@@ -9,6 +9,13 @@ from common.exceptions import BadRequest_Exception
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Credential(Base_Api_Test):
+    def test_credential_crud(self, ssh_credential_with_ssh_key_data):
+        '''Tests CRUD for various credentials with ssh_key_data'''
+        ssh_credential_with_ssh_key_data.get()
+        ssh_credential_with_ssh_key_data.patch()
+        ssh_credential_with_ssh_key_data.put()
+        ssh_credential_with_ssh_key_data.delete()
+
     def test_unicode(self, admin_user, api_credentials_pg):
         '''Create an ssh credential where the password fields contain unicode.'''
         payload = dict(name=fauxfactory.gen_utf8(),
