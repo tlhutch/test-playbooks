@@ -158,7 +158,7 @@ AD_HOC_COMMANDS = %s
     if changed:
         contacted = ansible_runner.command("ansible-tower-service restart")
         for result in contacted.values():
-            assert 'failed' not in result, \
+            assert result['rc'] == 0, \
                 "Failure restarting ansible-tower\n%s" % json.dumps(result, indent=2)
 
     def fin():
@@ -192,6 +192,6 @@ AD_HOC_COMMANDS = %s
         if changed:
             contacted = ansible_runner.command("ansible-tower-service restart")
             for result in contacted.values():
-                assert 'failed' not in result, \
+                assert result['rc'] == 0, \
                     "Failure restarting ansible-tower\n%s" % json.dumps(result, indent=2)
     request.addfinalizer(fin)
