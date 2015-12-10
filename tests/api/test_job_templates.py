@@ -4,6 +4,7 @@ import fauxfactory
 import logging
 import common.tower.inventory
 from tests.api import Base_Api_Test
+from distutils.version import LooseVersion
 
 
 log = logging.getLogger(__name__)
@@ -342,21 +343,34 @@ class Test_Job_Template(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    def test_launch_with_unencrypted_ssh_credential(self, request, job_template, unencrypted_ssh_credential_with_ssh_key_data,
+    def test_launch_with_unencrypted_ssh_credential(self, ansible_runner, job_template, unencrypted_ssh_credential_with_ssh_key_data,
                                                     ansible_distribution, ansible_distribution_version):
         '''Launch job template with unencrypted ssh_credential'''
-        job_template.patch(credential=unencrypted_ssh_credential_with_ssh_key_data.id)
+        (credential_type, credential_pg) = unencrypted_ssh_credential_with_ssh_key_data
+
+        job_template.patch(credential=credential_pg.id)
 
         launch_pg = job_template.get_related('launch')
         assert not launch_pg.passwords_needed_to_start
         job_pg = job_template.launch().wait_until_completed()
 
-        # assess job launch behavior with an openssh credential
-        # OpenSSH_6.6.1p1 Ubuntu-2ubuntu2 supports OpenSSH credentials
-        if "unencrypted_open_ssh_credential" in request._fixturedefs.keys():
-            if (ansible_distribution, ansible_distribution_version) == ("Ubuntu", "14.04"):
+        # support for ECDSA credentials was introduced in OpenSSH 5.7
+        if credential_type == "unencrypted_ecdsa":
+            contacted = ansible_runner.command('ssh -V')
+            if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("5.7"):
                 assert job_pg.is_successful, "Job %s unexpectedly failed with credential %s." \
-                    % (job_pg, unencrypted_ssh_credential_with_ssh_key_data)
+                    % (job_pg, credential_pg)
+            else:
+                assert job_pg.status == 'failed'
+                assert "Enter passphrase for /tmp/ansible_tower_" in job_pg.result_stdout, \
+                    "Unexpected job_pg.result_stdout when launching a job with an ECDSA credential: %s." % job_pg.result_stdout
+
+        # support for OpenSSH credentials was introduced in OpenSSH 6.5
+        elif credential_type == "unencrypted_open":
+            contacted = ansible_runner.command('ssh -V')
+            if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("6.5"):
+                assert job_pg.is_successful, "Job %s unexpectedly failed with credential %s." \
+                    % (job_pg, credential_pg)
             else:
                 assert job_pg.status == 'error'
                 assert "RuntimeError: It looks like you're trying to use a private key in OpenSSH format" in job_pg.result_traceback, \
@@ -365,25 +379,37 @@ class Test_Job_Template(Base_Api_Test):
         # assess job launch behavior with other credential types
         else:
             assert job_pg.is_successful, "Job %s unexpectedly failed with credential %s." \
-                % (job_pg, unencrypted_ssh_credential_with_ssh_key_data)
+                % (job_pg, credential_pg)
 
-    def test_launch_with_encrypted_ssh_credential(self, request, job_template, encrypted_ssh_credential_with_ssh_key_data,
+    def test_launch_with_encrypted_ssh_credential(self, ansible_runner, job_template, encrypted_ssh_credential_with_ssh_key_data,
                                                   ansible_distribution, ansible_distribution_version):
         '''Launch job template with encrypted ssh_credential'''
-        job_template.patch(credential=encrypted_ssh_credential_with_ssh_key_data.id)
+        (credential_type, credential_pg) = encrypted_ssh_credential_with_ssh_key_data
+
+        job_template.patch(credential=credential_pg.id)
 
         launch_pg = job_template.get_related('launch')
         assert launch_pg.passwords_needed_to_start == [u'ssh_key_unlock']
-
         payload = dict(ssh_key_unlock="fo0m4nchU")
         job_pg = job_template.launch(payload).wait_until_completed()
 
-        # assess job launch behavior with an openssh credential
-        # OpenSSH_6.6.1p1 Ubuntu-2ubuntu2 supports OpenSSH credentials
-        if "encrypted_open_ssh_credential" in request._fixturedefs.keys():
-            if (ansible_distribution, ansible_distribution_version) == ("Ubuntu", "14.04"):
+        # support for ECDSA credentials was introduced in OpenSSH 5.7
+        if credential_type == "encrypted_ecdsa":
+            contacted = ansible_runner.command('ssh -V')
+            if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("5.7"):
                 assert job_pg.is_successful, "Job %s unexpectedly failed with credential %s." \
-                    % (job_pg, encrypted_ssh_credential_with_ssh_key_data)
+                    % (job_pg, credential_pg)
+            else:
+                assert job_pg.status == 'failed'
+                assert "Enter passphrase for /tmp/ansible_tower_" in job_pg.result_stdout, \
+                    "Unexpected job_pg.result_stdout when launching a job with an ECDSA credential: %s." % job_pg.result_stdout
+
+        # support for OpenSSH credentials was introduced in OpenSSH 6.5
+        elif credential_type == "encrypted_open":
+            contacted = ansible_runner.command('ssh -V')
+            if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("6.5"):
+                assert job_pg.is_successful, "Job %s unexpectedly failed with credential %s." \
+                    % (job_pg, credential_pg)
             else:
                 assert job_pg.status == 'error'
                 assert "RuntimeError: It looks like you're trying to use a private key in OpenSSH format" in job_pg.result_traceback, \
@@ -392,7 +418,7 @@ class Test_Job_Template(Base_Api_Test):
         # assess job launch behavior with other credential types
         else:
             assert job_pg.is_successful, "Job %s unexpectedly failed with credential %s." \
-                % (job_pg, encrypted_ssh_credential_with_ssh_key_data)
+                % (job_pg, credential_pg)
 
     def test_launch_without_ask_variables_on_launch(self, job_template_ask_variables_on_launch, tower_version_cmp):
         '''
