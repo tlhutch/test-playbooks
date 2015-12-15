@@ -421,4 +421,6 @@ def region_choices(api_inventory_sources_pg):
 
     # The format is a list of lists in the format: [['<internal-string>', '<human-readable-string>'], ...]
     return dict(ec2=[r[0] for r in options.json.get('actions', {}).get('GET', {}).get('source_regions', {}).get('ec2_region_choices', [])],
-                rax=[r[0] for r in options.json.get('actions', {}).get('GET', {}).get('source_regions', {}).get('rax_region_choices', [])])
+                rax=[r[0] for r in options.json.get('actions', {}).get('GET', {}).get('source_regions', {}).get('rax_region_choices', [])],
+                azure=[r[0] for r in options.json.get('actions', {}).get('GET', {}).get('source_regions', {}).get('azure_region_choices', [])],
+                gce=[r[0] for r in options.json.get('actions', {}).get('GET', {}).get('source_regions', {}).get('gce_region_choices', [])])

@@ -1,5 +1,5 @@
 import json
-from common.api.pages import Base, Base_List, Unified_Job_Page, Unified_Job_Template_Page, json_setter, json_getter
+from common.api.pages import Base, Base_List, Unified_Job_Page, Unified_Job_Template_Page, Credential_Page, json_setter, json_getter
 
 
 class Inventory_Page(Base):
@@ -83,6 +83,7 @@ class Group_Page(Base):
     description = property(json_getter('description'), json_setter('description'))
     inventory = property(json_getter('inventory'), json_setter('inventory'))
     variables = property(json_getter('variables'), json_setter('variables'))
+    total_hosts = property(json_getter('total_hosts'), json_setter('total_hosts'))
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related']
@@ -198,6 +199,9 @@ class Inventory_Source_Page(Unified_Job_Template_Page):
     update_cache_timeout = property(json_getter('update_cache_timeout'), json_setter('update_cache_timeout'))
     update_on_launch = property(json_getter('update_on_launch'), json_setter('update_on_launch'))
     inventory = property(json_getter('inventory'), json_setter('inventory'))
+    group_by = property(json_getter('group_by'), json_setter('group_by'))
+    source_regions = property(json_getter('source_regions'), json_setter('source_regions'))
+    instance_filters = property(json_getter('instance_filters'), json_setter('instance_filters'))
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related'], \
@@ -205,6 +209,8 @@ class Inventory_Source_Page(Unified_Job_Template_Page):
         cls = None
         if attr in ('last_update', 'current_update'):
             cls = Inventory_Update_Page
+        elif attr == 'credential':
+            cls = Credential_Page
         elif attr == 'inventory_updates':
             cls = Inventory_Updates_Page
         elif attr == 'inventory':

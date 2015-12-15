@@ -217,12 +217,238 @@ class Test_Inventory_Update(Base_Api_Test):
         #    "after inventory_update.  An inventory_update was not triggered by " \
         #    "the callback as expected"
 
-        # NOTE: We can't guarruntee that any cloud instances are running.
+        # NOTE: We can't guaruntee that any cloud instances are running.
         # Also, not all cloud inventory scripts create groups when no hosts are
         # found. Therefore, we no longer assert that child groups were created.
         # assert cloud_group.get_related('children').count > 0, "No child groups " \
         #    "found after inventory_update.  An inventory_update was not " \
         #    "triggered by the callback as expected"
+
+    def test_successful_inventory_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):
+        '''
+        Tests that inventory imports succeed with all possible choices for source_regions.
+        '''
+        # provide list of values supported for source_regions given each provider
+        cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
+        if cloud_provider == 'aws':
+            source_regions = region_choices['ec2']
+        elif cloud_provider == 'rax':
+            source_regions = region_choices['rax']
+        elif cloud_provider == 'azure':
+            source_regions = region_choices['azure']
+        elif cloud_provider == 'gce':
+            source_regions = region_choices['gce']
+        else:
+            raise NotImplementedError("Unexpected cloud_provider: %s." % cloud_provider)
+
+        for source_region in source_regions:
+            # patch inv_source_pg
+            inv_source_pg = cloud_group_supporting_source_regions.get_related('inventory_source')
+            inv_source_pg.patch(source_regions=source_region)
+            assert inv_source_pg.source_regions.lower() == source_region.lower(), \
+                "Unexpected value for inv_source_pg.source_regions after patching the inv_source_pg with %s." % source_region
+
+            # assert that the update was successful
+            update_pg = inv_source_pg.update().wait_until_completed()
+            assert update_pg.is_successful, "inventory_update %s failed with region %s." % (update_pg, source_region)
+            assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+
+    def test_inventory_update_with_populated_source_region(self, cloud_group_supporting_source_regions):
+        '''
+        Tests that hosts are imported when applying source regions containing hosts.
+
+        NOTE: test may fail if our expected test hosts are down.
+        '''
+        # provide test source_region given each provider
+        cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
+        if cloud_provider == 'aws':
+            source_region = "us-east-1"
+        elif cloud_provider == 'rax':
+            source_region = "DFW"
+        elif cloud_provider == 'azure':
+            source_region = "East_US_1"
+        elif cloud_provider == 'gce':
+            source_region = "us-central1-f"
+        else:
+            raise NotImplementedError("Unexpected cloud_provider: %s." % cloud_provider)
+
+        # patch inv_source_pg
+        inv_source_pg = cloud_group_supporting_source_regions.get_related('inventory_source')
+        inv_source_pg.patch(source_regions=source_region)
+        assert inv_source_pg.source_regions.lower() == source_region.lower(), \
+            "Unexpected value for inv_source_pg.source_regions after patching the inv_source_pg with %s." % source_region
+
+        # assert that the update was successful
+        update_pg = inv_source_pg.update().wait_until_completed()
+        assert update_pg.is_successful, "inventory_update %s failed with region %s." % (update_pg, source_region)
+        assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+
+        # assert that hosts were imported
+        assert cloud_group_supporting_source_regions.get().total_hosts > 0, \
+            "Unexpected number of hosts returned %s." % cloud_group_supporting_source_regions.total_hosts
+
+    def test_inventory_update_with_unpopulated_source_region(self, cloud_group_supporting_source_regions):
+        '''
+        Tests that hosts are not imported when applying source regions not containing hosts.
+
+        NOTE: test may fail if someone spins up an instance in one of these regions. Regions correspond as follow:
+        * sa-east-1    => South America (Sao Paulo)
+        * HKG          => Hong Kong
+        * West_Japan   => Japan West
+        * asia-east1-c => Asia East (C)
+        '''
+        # provide test source_region given each provider
+        cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
+        if cloud_provider == 'aws':
+            source_region = "sa-east-1"
+        elif cloud_provider == 'rax':
+            source_region = "HKG"
+        elif cloud_provider == 'azure':
+            source_region = "West_Japan"
+        elif cloud_provider == 'gce':
+            source_region = "asia-east1-c"
+        else:
+            raise NotImplementedError("Unexpected cloud_provider: %s." % cloud_provider)
+
+        # patch inv_source_pg
+        inv_source_pg = cloud_group_supporting_source_regions.get_related('inventory_source')
+        inv_source_pg.patch(source_regions=source_region)
+        assert inv_source_pg.source_regions.lower() == source_region.lower(), \
+            "Unexpected value for inv_source_pg.source_regions after patching the inv_source_pg with %s." % source_region
+
+        # assert that the update was successful
+        update_pg = inv_source_pg.update().wait_until_completed()
+        assert update_pg.is_successful, "inventory_update %s failed with region %s." % (update_pg, source_region)
+        assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+
+        # assert that no hosts were imported
+        assert cloud_group_supporting_source_regions.get().total_hosts == 0, \
+            "Unexpected number of hosts returned (%s != 0)." % cloud_group_supporting_source_regions.total_hosts
+
+    @pytest.mark.parametrize("instance_filter", ["tag-key=Name", "key-name=jenkins", "tag:Name=*"])
+    def test_inventory_update_with_matched_aws_instance_filter(self, aws_group, instance_filter):
+        '''
+        Tests inventory imports with matched AWS instance filters
+
+        NOTE: test may fail if our expected test hosts are down.
+        '''
+        # patch the inv_source_pg and launch the update
+        inv_source_pg = aws_group.get_related('inventory_source')
+        inv_source_pg.patch(instance_filters=instance_filter)
+        assert inv_source_pg.instance_filters == instance_filter
+        update_pg = inv_source_pg.update().wait_until_completed()
+
+        # assert that the update was successful
+        assert update_pg.is_successful, "inventory_update failed - %s" % update_pg
+        assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+
+        # assert whether hosts were imported
+        assert aws_group.get().total_hosts > 0, "Unexpected number of hosts returned %s." % aws_group.total_hosts
+
+    @pytest.mark.parametrize("instance_filter", ["tag-key=UNMATCHED", "key-name=UNMATCHED", "tag:Name=UNMATCHED"])
+    def test_inventory_update_with_unmatched_aws_instance_filter(self, aws_group, instance_filter):
+        '''
+        Tests inventory imports with unmatched AWS instance filters
+
+        NOTE: test may fail if someone spins up an unexpected instance.
+        '''
+        # patch the inv_source_pg and launch the update
+        inv_source_pg = aws_group.get_related('inventory_source')
+        inv_source_pg.patch(instance_filters=instance_filter)
+        assert inv_source_pg.instance_filters == instance_filter
+        update_pg = inv_source_pg.update().wait_until_completed()
+
+        # assert that the update was successful
+        assert update_pg.is_successful, "inventory_update failed - %s" % update_pg
+        assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+
+        # assert whether hosts were imported
+        assert aws_group.get().total_hosts == 0, "Unexpected number of hosts returned (%s != 0)." % aws_group.total_hosts
+
+    @pytest.mark.parametrize("only_group_by", [
+        "", "availability_zone", "ami_id", "instance_id", "instance_type", "key_pair", "region", "security_group", "availability_zone,ami_id"
+    ], ids=["\"\"", "availability_zone", "ami_id", "instance_id", "instance_type", "key_pair", "region", "security_group", "availability_zone,ami_id"])
+    def test_aws_only_group_by(self, aws_group, only_group_by):
+        '''Tests AWS only_group_by'''
+        # update the inv_source_pg and launch the inventory update
+        inv_source_pg = aws_group.get_related('inventory_source')
+        inv_source_pg.patch(group_by=only_group_by)
+        update_pg = inv_source_pg.update().wait_until_completed()
+
+        # assess that the update was successful
+        assert update_pg.is_successful, "inventory_update failed - %s" % update_pg
+        assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+
+        # get updated groups_pg
+        groups_pg = aws_group.get_related('children')
+
+        # assess spawned groups, given each value for only_group_by
+        if only_group_by == "":
+            assert inv_source_pg.group_by == ""
+            assert len(groups_pg.results) == 9
+            expected_group_names = ["ec2", "images", "keys", "regions", "security_groups", "tags", "types", "vpcs", "zones"]
+            for group_name in expected_group_names:
+                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
+
+        elif only_group_by == "availability_zone":
+            assert inv_source_pg.group_by == "availability_zone"
+            assert len(groups_pg.results) == 2
+            expected_group_names = ["ec2", "zones"]
+            for group_name in expected_group_names:
+                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
+
+        elif only_group_by == "ami_id":
+            assert inv_source_pg.group_by == "ami_id"
+            assert len(groups_pg.results) == 2
+            expected_group_names = ["ec2", "images"]
+            for group_name in expected_group_names:
+                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
+
+        elif only_group_by == "instance_id":
+            assert inv_source_pg.group_by == "instance_id"
+            assert len(groups_pg.results) == 2
+            expected_group_names = ["ec2", "instances"]
+            for group_name in expected_group_names:
+                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
+
+        elif only_group_by == "instance_type":
+            assert inv_source_pg.group_by == "instance_type"
+            assert len(groups_pg.results) == 2
+            expected_group_names = ["ec2", "types"]
+            for group_name in expected_group_names:
+                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
+
+        elif only_group_by == "key_pair":
+            assert inv_source_pg.group_by == "key_pair"
+            assert len(groups_pg.results) == 2
+            expected_group_names = ["ec2", "keys"]
+            for group_name in expected_group_names:
+                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
+
+        elif only_group_by == "region":
+            assert inv_source_pg.group_by == "region"
+            assert len(groups_pg.results) == 2
+            expected_group_names = ["ec2", "regions"]
+            for group_name in expected_group_names:
+                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
+            assert len([group for group in groups_pg.results if group.name == 'regions']) == 1
+
+        elif only_group_by == "security_group":
+            assert inv_source_pg.group_by == "security_group"
+            assert len(groups_pg.results) == 2
+            expected_group_names = ["ec2", "security_groups"]
+            for group_name in expected_group_names:
+                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
+
+        elif only_group_by == "availability_zone,ami_id":
+            assert inv_source_pg.group_by == "availability_zone,ami_id"
+            assert len(groups_pg.results) == 3
+            expected_group_names = ["ec2", "zones", "images"]
+            for group_name in expected_group_names:
+                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
+
+        else:
+            raise NotImplementedError("Unhandled value for only_group_by: %s" % only_group_by)
 
 
 @pytest.mark.api

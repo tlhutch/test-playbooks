@@ -153,14 +153,6 @@ class Awx_Schema_Inventories(Awx_Schema):
         return self.load_file('inventories/item.yml')
 
     @property
-    def put(self):
-        return self.load_file('inventories/item.yml')
-
-    @property
-    def patch(self):
-        return self.load_file('inventories/item.yml')
-
-    @property
     def duplicate(self):
         return self.load_file('inventories/duplicate.yml')
 
@@ -171,6 +163,14 @@ class Awx_Schema_Inventory(Awx_Schema_Inventories):
     @property
     def get(self):
         return self.load_file('inventories/item.yml')
+
+    @property
+    def put(self):
+        return self.get
+
+    @property
+    def patch(self):
+        return self.get
 
 
 class Awx_Schema_Variable_Data(Awx_Schema):
@@ -203,6 +203,22 @@ class Awx_Schema_Groups(Awx_Schema):
     @property
     def duplicate(self):
         return self.load_file('groups/duplicate.yml')
+
+
+class Awx_Schema_Group(Awx_Schema_Groups):
+    resource = '/api/v1/groups/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('groups/item.yml')
+
+    @property
+    def put(self):
+        return self.put
+
+    @property
+    def patch(self):
+        return self.get
 
 
 class Awx_Schema_Host_Groups(Awx_Schema_Groups):
@@ -608,7 +624,7 @@ class Awx_Schema_Job_Template_Survey_Spec(Awx_Schema):
         return self.load_file('empty.yml')
 
 
-class Awx_Schema_Inventory_Scan_Job_Tempaltes(Awx_Schema_Job_Templates):
+class Awx_Schema_Inventory_Scan_Job_Templates(Awx_Schema_Job_Templates):
     resource = '/api/v1/inventories/\d+/scan_job_templates/'
 
 
