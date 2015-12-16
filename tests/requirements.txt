@@ -2,7 +2,7 @@
 # on Mozilla WebQA projects
 
 pip
-setuptools==18.4
+setuptools>=18.4
 distribute==0.7.3
 selenium
 py
