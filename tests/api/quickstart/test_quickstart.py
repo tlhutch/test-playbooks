@@ -498,20 +498,21 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         children_pg = group.get_related('children')
 
         # Assert sub-groups were synced
-        assert children_pg.count > 0, "No sub-groups were created for inventory '%s'" % _inventory_source['name']
-
-        # Ensure all only groups matching source_regions were imported
-        if 'source_regions' in _inventory_source and _inventory_source['source_regions'] != '':
-            expected_source_regions = re.split(r'[,\s]+', _inventory_source['source_regions'])
-            for child in children_pg.results:
-                # If the group is an official region (e.g. 'us-east-1' or
-                # 'ORD'), make sure it's one we asked for
-                if child.name in region_choices[_inventory_source['source']]:
-                    assert child.name in expected_source_regions, \
-                        "Imported region (%s) that wasn't in list of expected regions (%s)" % \
-                        (child.name, expected_source_regions)
-                else:
-                    print "Ignoring group '%s', it appears to not be a cloud region" % child.name
+        if children_pg.count == 0:
+            pytest.skip("No sub-groups were created for inventory '%s'" % _inventory_source['name'])
+        else:
+            # Ensure all only groups matching source_regions were imported
+            if 'source_regions' in _inventory_source and _inventory_source['source_regions'] != '':
+                expected_source_regions = re.split(r'[,\s]+', _inventory_source['source_regions'])
+                for child in children_pg.results:
+                    # If the group is an official region (e.g. 'us-east-1' or
+                    # 'ORD'), make sure it's one we asked for
+                    if child.name in region_choices[_inventory_source['source']]:
+                        assert child.name in expected_source_regions, \
+                            "Imported region (%s) that wasn't in list of expected regions (%s)" % \
+                            (child.name, expected_source_regions)
+                    else:
+                        print "Ignoring group '%s', it appears to not be a cloud region" % child.name
 
     @pytest.mark.nondestructive
     def test_inventory_sources_get_hosts(self, api_groups_pg, api_hosts_pg, _inventory_source):
@@ -525,14 +526,15 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         group_hosts_pg = group.get_related('hosts')
 
         # Validate number of hosts found
-        assert group_hosts_pg.count > 0, "No hosts were synced for group '%s'" % group.name
-
-        # Assert all hosts are enabled ... this isn't a good test, having
-        # disabled hosts isn't bad.  This may happen with systems are coming
-        # online when the inventory import happens.
-        # disabled_hosts = group_hosts_pg.get(enabled=False)
-        # assert disabled_hosts.count == 0, \
-        #    "ERROR: detected disabled inventory_update groups\n%s" % group.get_related('inventory_source').get_related('last_update').result_stdout
+        if group_hosts_pg.count == 0:
+            pytest.skip("No hosts were synced for group '%s'" % group.name)
+        else:
+            # Assert all hosts are enabled ... this isn't a good test, having
+            # disabled hosts isn't bad.  This may happen with systems are coming
+            # online when the inventory import happens.
+            # disabled_hosts = group_hosts_pg.get(enabled=False)
+            # assert disabled_hosts.count == 0, \
+            #    "ERROR: detected disabled inventory_update groups\n%s" % group.get_related('inventory_source').get_related('last_update').result_stdout
 
     @pytest.mark.destructive
     def test_projects_post(self, api_projects_pg, api_organizations_pg, api_credentials_pg, awx_config, _project, ansible_runner):
