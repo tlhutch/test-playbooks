@@ -514,28 +514,6 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                     else:
                         print "Ignoring group '%s', it appears to not be a cloud region" % child.name
 
-    @pytest.mark.nondestructive
-    def test_inventory_sources_get_hosts(self, api_groups_pg, api_hosts_pg, _inventory_source):
-        '''
-        Tests that an inventory_sync successfully imported hosts
-        '''
-        # Find desired group
-        group = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0]
-
-        # Find hosts within the group
-        group_hosts_pg = group.get_related('hosts')
-
-        # Validate number of hosts found
-        if group_hosts_pg.count == 0:
-            pytest.skip("No hosts were synced for group '%s'" % group.name)
-        else:
-            # Assert all hosts are enabled ... this isn't a good test, having
-            # disabled hosts isn't bad.  This may happen with systems are coming
-            # online when the inventory import happens.
-            # disabled_hosts = group_hosts_pg.get(enabled=False)
-            # assert disabled_hosts.count == 0, \
-            #    "ERROR: detected disabled inventory_update groups\n%s" % group.get_related('inventory_source').get_related('last_update').result_stdout
-
     @pytest.mark.destructive
     def test_projects_post(self, api_projects_pg, api_organizations_pg, api_credentials_pg, awx_config, _project, ansible_runner):
         # Checkout repository on the target system
