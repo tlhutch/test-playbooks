@@ -14,7 +14,7 @@
 #
 gen_passwd() {
     # tr -dc A-Za-z0-9_ < /dev/urandom | head -c 16
-    openssl rand -base64 8 | md5 | head -c10
+    openssl rand -base64 8 | md5sum | head -c10
 }
 
 #
