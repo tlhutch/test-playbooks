@@ -1090,6 +1090,14 @@ class Awx_Schema_Job_Template_Jobs(Awx_Schema_Jobs):
     resource = '/api/v1/job_templates/\d+/jobs/'
 
 
+class Awx_Schema_System_Job_Template_Schedules(Awx_Schema_Schedules):
+    resource = '/api/v1/system_job_templates/\d+/schedules/'
+
+
+class Awx_Schema_System_Job_Template_Schedule(Awx_Schema_Schedule):
+    resource = '/api/v1/system_job_templates/\d+/schedules/\d+/'
+
+
 #
 # /ad_hoc_commands
 #

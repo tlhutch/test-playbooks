@@ -113,6 +113,36 @@ def disabled_inventory_schedule(request, aws_inventory_source, disabled_rrule_mi
     return obj
 
 
+@pytest.fixture(scope="function")
+def multiple_management_job_schedules(request, system_job_template, rrule_minutely, tower_version_cmp):
+    '''Create two schedules per each system job template.'''
+    if tower_version_cmp('2.4.0') < 0:
+        pytest.xfail("Only supported on tower-2.4.0 and later.")
+
+    # Create schedule payload
+    payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
+                   description="Update every %s" % rrule_minutely._freq,
+                   rrule=str(rrule_minutely))
+
+    # Update payload for system job template type
+    if system_job_template.job_type == "cleanup_facts":
+        payload.update(dict(extra_data=dict(older_than='120d', granularity='1w')))
+    else:
+        payload.update(dict(extra_data=dict(days='120')))
+
+    # Create first schedule
+    schedules_pg = system_job_template.get_related('schedules')
+    first_schedule = schedules_pg.post(payload)
+
+    # Update payload and create second schedule
+    payload.update(name="schedule-%s" % fauxfactory.gen_utf8())
+    second_schedule = schedules_pg.post(payload)
+
+    request.addfinalizer(first_schedule.silent_delete)
+    request.addfinalizer(second_schedule.silent_delete)
+    return schedules_pg.get()
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -334,7 +364,7 @@ class Test_Project_Schedules(Base_Api_Test):
         schedules_pg = project.get_related('schedules')
 
         # Create schedule
-        payload = dict(name="schedule-%s-%s" % (rrule_frequency._freq, fauxfactory.gen_utf8()),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
                        description="Update every %s" % rrule_frequency._freq,
                        rrule=str(rrule_frequency))
         print rrule_frequency
@@ -636,7 +666,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         # Create schedule
-        payload = dict(name="schedule-%s-%s" % (rrule_frequency._freq, fauxfactory.gen_utf8()),
+        payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
                        description="Update every %s" % rrule_frequency._freq,
                        rrule=str(rrule_frequency))
         print rrule_frequency
@@ -809,3 +839,9 @@ class Test_System_Job_Template_Schedules(Base_Api_Test):
                 % (name, system_job_template_id, default_schedule_pg.unified_job_template)
             assert default_schedule_pg.extra_data == kwargs, \
                 "Unexpected extra_data with '%s.'" % name
+
+    def test_multiple_schedules(self, multiple_management_job_schedules):
+        '''Tests that multiple schedules may be created for each system_job_template.'''
+        # assert correct number of schedules
+        assert multiple_management_job_schedules.count >= 2, \
+            "Unexpected number of system_job_template schedules found after creating an additional two schedules."
