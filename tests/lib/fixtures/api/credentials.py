@@ -93,7 +93,7 @@ def ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user,
 
 
 @pytest.fixture(scope="function")
-def team_ssh_credential(request, testsetup, authtoken, team_with_org_admin):
+def team_ssh_credential(request, authtoken, team_with_org_admin, testsetup):
     '''Create team ssh credential'''
     payload = dict(name="credential-%s" % fauxfactory.gen_utf8(),
                    description="machine credential for team:%s" % team_with_org_admin.name,
@@ -102,6 +102,36 @@ def team_ssh_credential(request, testsetup, authtoken, team_with_org_admin):
                    username=testsetup.credentials['ssh']['username'],
                    password=testsetup.credentials['ssh']['password'],)
     obj = team_with_org_admin.get_related('credentials').post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def unencrypted_scm_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create an unencrypted scm credential'''
+    payload = dict(name="scm credentials-%s" % fauxfactory.gen_utf8(),
+                   description="unencrypted scm credential - %s" % fauxfactory.gen_utf8(),
+                   kind='scm',
+                   user=admin_user.id,
+                   ssh_key_data=testsetup.credentials['scm']['ssh_key_data'],
+                   ssh_key_unlock=testsetup.credentials['scm']['ssh_key_unlock'],)
+
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def encrypted_scm_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create an encrypted scm credential'''
+    payload = dict(name="scm credentials-%s" % fauxfactory.gen_utf8(),
+                   description="encrypted scm credential - %s" % fauxfactory.gen_utf8(),
+                   kind='scm',
+                   user=admin_user.id,
+                   ssh_key_data=testsetup.credentials['scm']['encrypted']['ssh_key_data'],
+                   ssh_key_unlock=testsetup.credentials['scm']['encrypted']['ssh_key_unlock'],)
+
+    obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj
 
