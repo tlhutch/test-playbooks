@@ -10,26 +10,6 @@ from distutils.version import LooseVersion
 log = logging.getLogger(__name__)
 
 
-# TODO - move this to pytest-ansible
-@pytest.fixture(scope="function")
-def ansible_distribution(request, ansible_facts):
-    '''Return the ansible_distribution from ansible_facts of the system under test.'''
-    if len(ansible_facts) > 1:
-        log.warning("ansible_facts for %d systems found, but returning "
-                    "only the first" % len(ansible_facts))
-    return ansible_facts.values()[0]['ansible_facts']['ansible_distribution']
-
-
-# TODO - move this to pytest-ansible
-@pytest.fixture(scope="function")
-def ansible_distribution_version(request, ansible_facts):
-    '''Return the ansible_distribution_version from ansible_facts of the system under test.'''
-    if len(ansible_facts) > 1:
-        log.warning("ansible_facts for %d systems found, but returning "
-                    "only the first" % len(ansible_facts))
-    return ansible_facts.values()[0]['ansible_facts']['ansible_distribution_version']
-
-
 @pytest.fixture(scope="function")
 def missing_field_survey_specs(request):
     '''
@@ -343,8 +323,7 @@ class Test_Job_Template(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    def test_launch_with_unencrypted_ssh_credential(self, ansible_runner, job_template, unencrypted_ssh_credential_with_ssh_key_data,
-                                                    ansible_distribution, ansible_distribution_version):
+    def test_launch_with_unencrypted_ssh_credential(self, ansible_runner, job_template, unencrypted_ssh_credential_with_ssh_key_data):
         '''Launch job template with unencrypted ssh_credential'''
         (credential_type, credential_pg) = unencrypted_ssh_credential_with_ssh_key_data
 
@@ -381,8 +360,7 @@ class Test_Job_Template(Base_Api_Test):
             assert job_pg.is_successful, "Job %s unexpectedly failed with credential %s." \
                 % (job_pg, credential_pg)
 
-    def test_launch_with_encrypted_ssh_credential(self, ansible_runner, job_template, encrypted_ssh_credential_with_ssh_key_data,
-                                                  ansible_distribution, ansible_distribution_version):
+    def test_launch_with_encrypted_ssh_credential(self, ansible_runner, job_template, encrypted_ssh_credential_with_ssh_key_data):
         '''Launch job template with encrypted ssh_credential'''
         (credential_type, credential_pg) = encrypted_ssh_credential_with_ssh_key_data
 
