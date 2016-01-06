@@ -12,7 +12,7 @@ ec2_images:
     - {'name': 'rhel-6.5-x86_64',        'user': 'ec2-user',    'id': 'ami-8d756fe4', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
     - {'name': 'rhel-6.6-x86_64',        'user': 'ec2-user',    'id': 'ami-aed06ac6', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
     - {'name': 'rhel-6.7-x86_64',        'user': 'ec2-user',    'id': 'ami-0d28fe66', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
-    - {'name': 'rhel-7.0-x86_64',        'user': 'ec2-user',    'id': 'ami-12663b7a', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
+    - {'name': 'rhel-7.0-x86_64',        'user': 'ec2-user',    'id': 'ami-a8d369c0', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
     - {'name': 'rhel-7.1-x86_64',        'user': 'ec2-user',    'id': 'ami-12663b7a', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
     - {'name': 'rhel-7.2-x86_64',        'user': 'ec2-user',    'id': 'ami-2051294a', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
     - {'name': 'ubuntu-12.04-x86_64',    'user': 'ubuntu',      'id': 'ami-2ccc7a44', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
