@@ -16,7 +16,8 @@ job_path = '/job/Test_Tower_Install/PLATFORM={platform},label={label}/lastBuild'
 artifact_path = '/artifact/playbooks/inventory.log/*view*/'
 supported_platforms = ['rhel-6.7-x86_64', 'centos-6.latest-x86_64',
                        'centos-7.latest-x86_64', 'rhel-7.2-x86_64',
-                       'ubuntu-12.04-x86_64', 'ubuntu-14.04-x86_64']
+                       'ubuntu-12.04-x86_64', 'ubuntu-14.04-x86_64',
+                       'ol-6.7-x86_64', 'ol-7.2-x86_64']
 
 
 class AnsibleInventory(ConfigParser.SafeConfigParser):
