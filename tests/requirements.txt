@@ -38,4 +38,5 @@ junit-xml
 # pep8==1.5.6
 flake8
 pep8>=1.5.7,<1.6
-pylint
+pylin
+keyring==5.7.0
