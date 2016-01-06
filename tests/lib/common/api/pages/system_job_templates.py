@@ -9,6 +9,7 @@ class System_Job_Template_Page(Unified_Job_Template_Page):
     description = property(json_getter('description'), json_setter('description'))
     status = property(json_getter('status'), json_setter('status'))
     type = property(json_getter('type'), json_setter('type'))
+    job_type = property(json_getter('job_type'), json_setter('job_type'))
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
