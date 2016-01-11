@@ -5,7 +5,7 @@ ec2_images:
     # CentOS 6.5, 6.6 images not produced by CentOS (1/5/15)
     - {'name': 'centos-6.5-x86_64',      'user': 'root',        'id': 'ami-8997afe0', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
     # Latest CentOS6: need to confirm that the ami id remains valid when the image is updated
-    - {'name': 'centos-6.latest-x86_64', 'user': 'root',        'id': 'ami-57cd8732', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
+    - {'name': 'centos-6.latest-x86_64', 'user': 'centos',      'id': 'ami-57cd8732', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
     - {'name': 'centos-7.0-x86_64',      'user': 'centos',      'id': 'ami-96a818fe', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
     # Latest CentOS7: need to confirm that the ami id remains valid when the image is updated
     - {'name': 'centos-7.latest-x86_64', 'user': 'centos',      'id': 'ami-61bbf104', 'type': 'm3.large', 'groups': 'primary', 'security_group': 'Tower' }
