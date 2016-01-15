@@ -8,9 +8,15 @@ import httplib
 import argparse
 import tempfile
 import ConfigParser
+import ansible
 import ansible.inventory
+from pkg_resources import parse_version
 from urlparse import urljoin
 
+has_ansible_v2 = parse_version(ansible.__version__) >= parse_version('2.0.0')
+if has_ansible_v2:
+    from ansible.parsing.dataloader import DataLoader
+    from ansible.vars import VariableManager
 
 job_path = '/job/Test_Tower_Install/PLATFORM={platform},label={label}/lastBuild'
 artifact_path = '/artifact/playbooks/inventory.log/*view*/'
@@ -93,7 +99,7 @@ if __name__ == "__main__":
         master_inv = dict(_meta=dict(hostvars={}))
 
         for platform in supported_platforms:
-            for label in ['test']:
+            for label in ['rhel-7', 'ubuntu-14.04', 'test']:
                 # build URL to Jenkins artifact
                 url = urljoin(args.jenkins, job_path + artifact_path)
                 url = url.format(**dict(platform=platform, label=label))
@@ -108,7 +114,15 @@ if __name__ == "__main__":
                     except (ConfigParser.MissingSectionHeaderError, ConfigParser.ParsingError) as e:
                         sys.stderr.write("Failed to download inventory.log: %s\n" % url)
 
-                    jenkins_inv = ansible.inventory.Inventory(local_inventory)
+                    # TODO - v2 support doesn't actually work yet
+                    if has_ansible_v2:
+                        inv_args = []
+                        inv_kwargs = dict(loader=DataLoader(), variable_manager=VariableManager(), host_list=local_inventory)
+                    else:
+                        inv_args = [local_inventory]
+                        inv_kwargs = {}
+
+                    jenkins_inv = ansible.inventory.Inventory(*inv_args, **inv_kwargs)
 
                     # add group and hosts
                     for grp in jenkins_inv.get_groups():
@@ -116,7 +130,7 @@ if __name__ == "__main__":
                         if grp.name not in master_inv:
                             master_inv[grp.name] = dict(hosts=[], vars={})
                         # Add group_vars
-                        master_inv[grp.name]['vars'].update(grp.get_variables())
+                        master_inv[grp.name]['vars'].update(jenkins_inv.get_group_variables(grp.name))
                         for host in grp.get_hosts():
                             # Add host to the group
                             if host.name not in master_inv[grp.name]['hosts']:
