@@ -14,7 +14,8 @@
 {% endfor %}
 {% else %}
 [primary]
-{{ inventory_hostname }} ansible_ssh_user={{ hostvars[inventory_hostname]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[inventory_hostname]['ansible_ssh_host'] }}
+localhost ansible_connection=local
+{# {{ inventory_hostname }} ansible_ssh_user={{ hostvars[inventory_hostname]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[inventory_hostname]['ansible_ssh_host'] }} #}
 {% endif %}
 
 [all:vars]
