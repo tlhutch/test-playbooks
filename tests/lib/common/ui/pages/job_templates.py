@@ -1,6 +1,11 @@
-import base
+from base import TowerPage
+
+from common.ui.pages.regions import (
+    RefreshButton, 
+    StreamButton, 
+)
 
 
-class Job_Templates(base.Base):
-    '''FIXME'''
-    _tab_title = 'Job Templates'
+class JobTemplates(TowerPage):
+
+    _path = '/#/job_templates'

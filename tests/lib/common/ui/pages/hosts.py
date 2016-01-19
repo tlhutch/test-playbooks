@@ -6,6 +6,6 @@ from common.ui.pages.regions import (
 )
 
 
-class Projects(TowerPage):
+class Hosts(TowerPage):
 
-    _path = '/#/projects'
+    _path = '/#/home/hosts'

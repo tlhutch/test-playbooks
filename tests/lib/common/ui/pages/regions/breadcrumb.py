@@ -1,8 +1,9 @@
 from selenium.webdriver.common.by import By
-from common.ui.pages.regions.lists import List_Region
+
+from common.ui.pages.regions.lists import ListRegion
 
 
-class Breadcrumb_Region(List_Region):
+class BreadcrumbRegion(ListRegion):
     '''Describes the breadcrumb region'''
 
     _root_locator = (By.CSS_SELECTOR, 'ul.ansible-breadcrumb')
@@ -11,4 +12,4 @@ class Breadcrumb_Region(List_Region):
 
     @property
     def active_crumb(self):
-        return self.find_element(*self._active_breadcrumb_locator).get_attribute('text')
+        return self.find_element(self._active_breadcrumb_locator).text

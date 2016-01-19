@@ -1,13 +1,8 @@
 import pytest
-from common.ui.pages import Api_Browser_Home
-from tests.ui import Base_UI_Test
 
 
-@pytest.mark.ui
-@pytest.mark.selenium
-@pytest.mark.nondestructive
-@pytest.mark.usefixtures("maximized")
-class Test_Api_Browser(Base_UI_Test):
+@pytest.mark.skipif(True, reason='Needs to be updated with 3.0 page models')
+class Test_Api_Browser(object):
 
     def test_home_pg(self, mozwebqa):
         home_pg = Api_Browser_Home(mozwebqa)

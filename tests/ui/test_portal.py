@@ -2,15 +2,12 @@ import pytest
 import urllib
 import fauxfactory
 from math import ceil
-from tests.ui import Base_UI_Test
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 
 
-@pytest.mark.ui
-@pytest.mark.selenium
-@pytest.mark.nondestructive
-class Test_Portal(Base_UI_Test):
+@pytest.mark.skipif(True, reason='Needs to be updated with 3.0 page models')
+class Test_Portal(object):
 
     pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
 
@@ -113,10 +110,8 @@ def many_job_templates(request, api_job_templates_pg, job_template):
     return obj_list
 
 
-@pytest.mark.ui
-@pytest.mark.selenium
-@pytest.mark.nondestructive
-class Test_Portal_Job_Templates(Base_UI_Test):
+@pytest.mark.skipif(True, reason='Needs to be updated with 3.0 page models')
+class Test_Portal_Job_Templates(object):
 
     pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
     # search_filters = ('Name', 'Description')
@@ -292,11 +287,8 @@ class Test_Portal_Job_Templates(Base_UI_Test):
             (match_row.status.value, job_status_choices['successful'])
 
 
-@pytest.mark.ui
-@pytest.mark.selenium
-@pytest.mark.nondestructive
-@pytest.mark.skipif(True, reason="FIXME - UI portal tests coming soon!")
-class Test_Portal_Jobs(Base_UI_Test):
+@pytest.mark.skipif(True, reason='Needs to be updated with 3.0 page models')
+class Test_Portal_Jobs(object):
 
     pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
 

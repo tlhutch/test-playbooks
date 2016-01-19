@@ -1,6 +1,11 @@
-import base
+from base import TowerPage
 
+from common.ui.pages.regions import (
+    RefreshButton, 
+    StreamButton,
+)
 
-class Inventories(base.Base):
-    '''FIXME'''
-    _tab_title = 'Inventories'
+class Inventories(TowerPage):
+
+    _path = '/#/inventories'
+

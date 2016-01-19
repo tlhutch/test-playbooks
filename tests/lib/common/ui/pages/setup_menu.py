@@ -6,6 +6,6 @@ from common.ui.pages.regions import (
 )
 
 
-class Projects(TowerPage):
+class SetupMenu(TowerPage):
 
-    _path = '/#/projects'
+    _path = '/#/setup'
