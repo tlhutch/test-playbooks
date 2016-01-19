@@ -1,3 +1,4 @@
+import logging
 import re
 import urlparse
 
@@ -5,6 +6,7 @@ from requests.structures import CaseInsensitiveDict
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 
+log = logging.getLogger(__name__)
 
 _meta_registry = CaseInsensitiveDict()
 
