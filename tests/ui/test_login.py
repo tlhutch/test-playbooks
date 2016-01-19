@@ -2,7 +2,8 @@ import pytest
 
 from tests.ui import BaseTestUI
 
-pytestmark = pytest.mark.usefixtures('maximized_window_size','install_license_unlimited')
+pytestmark = pytest.mark.usefixtures('maximized_window_size', 'install_license_unlimited')
+
 
 class TestLogin(BaseTestUI):
 
@@ -25,7 +26,6 @@ class TestLogin(BaseTestUI):
         assert not ui_login.is_logged_in(), (
             'Unable to verify a successful logout')
 
-
     def test_login_using_enter_key(self, ui_login, default_credentials):
         """Verify a successful login and logout with default credentials
         """
@@ -43,7 +43,6 @@ class TestLogin(BaseTestUI):
 
         assert ui_dashboard.header.user == un, (
             'Unable to verify a successful login with default credentials')
-
 
     @pytest.mark.parametrize('username,password', [
         ('wrosellini', 'quintus'),

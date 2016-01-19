@@ -1,7 +1,6 @@
 from selenium.webdriver.common.by import By
 
 from page import Page
-from page import Region
 
 from common.ui.pages.regions import (
     DashboardLink,
@@ -13,8 +12,10 @@ from common.ui.pages.regions import (
 class LoginButton(DashboardLink):
     _root_locator = (By.ID, 'login-button')
 
+
 class LoginUsername(Field):
     _root_locator = (By.ID, 'login-username')
+
 
 class LoginPassword(Field):
     _root_locator = (By.ID, 'login-password')

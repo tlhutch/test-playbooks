@@ -1,7 +1,3 @@
-import time
-
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 from common.ui.pages.page import Region
@@ -54,4 +50,3 @@ class Clickable(Region):
     @property
     def spinny(self):
         return Spinny(self.page)
-

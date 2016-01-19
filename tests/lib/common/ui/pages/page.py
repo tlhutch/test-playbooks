@@ -2,12 +2,8 @@ import re
 import urlparse
 
 from requests.structures import CaseInsensitiveDict
-from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.remote.webelement import WebElement
 
 
 _meta_registry = CaseInsensitiveDict()
@@ -32,7 +28,7 @@ class Selector(object):
 
     _timeout = 25
 
-    def __init__(self, base_url, driver,  **kwargs):
+    def __init__(self, base_url, driver, **kwargs):
         self.driver = driver
         self.kwargs = kwargs
 
@@ -141,7 +137,6 @@ class Selector(object):
         self.wait.until_not(lambda _: self.is_element_present(locator))
 
 
-
 class Page(Selector):
 
     @property
@@ -181,7 +176,6 @@ class Page(Selector):
         """
         return self._url.path in self._current_url.path
 
-
     def _load_page(self, page_key):
         """Initialize an external page object instance using the meta
         registry."""
@@ -211,7 +205,6 @@ class Page(Selector):
         self.wait.until(lambda _: self.is_loaded())
 
         return self
-
 
 
 class Region(Selector):
@@ -261,4 +254,3 @@ class Region(Selector):
 
     def wait_until_not_present(self):
         self.wait.until_not(lambda _: self.is_present())
-

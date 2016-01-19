@@ -23,7 +23,7 @@ class HeaderProjectsLink(ProjectsLink):
 
 
 class HeaderInventoriesLink(InventoriesLink):
-     _root_locator = (By.ID, 'main_menu_inventories_link')
+    _root_locator = (By.ID, 'main_menu_inventories_link')
 
 
 class HeaderJobTemplatesLink(JobTemplatesLink):
@@ -48,11 +48,6 @@ class HeaderLogoutLink(LogoutLink):
 
 class HeaderUserLink(UserLink):
     _root_locator = (By.ID, 'main_menu_current_user_link')
-
-
-class HeaderDocsLink(Region):
-    _root_locator = (By.ID, 'main_menu_docs_link')
-
 
 
 class HeaderStandard(Region):
@@ -80,7 +75,7 @@ class HeaderStandard(Region):
         return HeaderUserLink(self.page)
 
     @property
-    def docs_link(self): 
+    def docs_link(self):
         return HeaderDocsLink(self.page)
 
     @property
@@ -99,13 +94,12 @@ class HeaderStandard(Region):
         return self.is_element_displayed(self.user_link._root_locator)
 
 
-
 class HeaderProjectsMobileLink(ProjectsLink):
     _root_locator = (By.ID, 'main_menu_projects_mobile_link')
 
 
 class HeaderInventoriesMobileLink(InventoriesLink):
-     _root_locator = (By.ID, 'main_menu_inventories_mobile_link')
+    _root_locator = (By.ID, 'main_menu_inventories_mobile_link')
 
 
 class HeaderJobTemplatesMobileLink(JobTemplatesLink):
@@ -116,16 +110,8 @@ class HeaderJobsMobileLink(JobsLink):
     _root_locator = (By.ID, 'main_menu_jobs_mobile_link')
 
 
-class HeaderUserMobileLink(UserLink):
-    _root_locator = (By.ID, 'main_menu_current_user_mobile_link')
-
-
 class HeaderSetupMobileLink(SetupLink):
     _root_locator = (By.ID, 'main_menu_setup_mobile_link')
-
-
-class HeaderDocsMobileLink(Link):
-    _root_locator = (By.ID, 'main_menu_docs_mobile_link')
 
 
 class HeaderLogoutMobileLink(LogoutLink):
@@ -167,7 +153,7 @@ class HeaderMobile(Region):
         return HeaderUserMobileLink(self.page)
 
     @property
-    def docs_link(self): 
+    def docs_link(self):
         return HeaderDocsMobileLink(self.page)
 
     @property
@@ -198,6 +184,7 @@ class HeaderMobile(Region):
 
 class Logo(DashboardLink):
     _root_locator = (By.ID, 'main_menu_logo')
+
 
 class SocketStatusNotification(Region):
     _root_locator = (By.ID, 'main_menu_socket_status_notification')
@@ -281,10 +268,9 @@ class Header(Region):
 
         self.standard_menu = HeaderStandard(self.page, **kwargs)
         self.mobile_menu = HeaderMobile(self.page, **kwargs)
-    
+
     def is_displayed(self):
         try:
             return self.current_menu.is_displayed()
         except NoSuchElementException:
             return False
-

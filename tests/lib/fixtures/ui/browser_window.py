@@ -4,6 +4,7 @@ import pytest
 
 log = logging.getLogger(__name__)
 
+
 @pytest.fixture(scope="function", params=['maximized', 'laptop', 'mobile', 'small_mobile', 'hdtv'])
 def window_size(request):
     return request.getfuncargvalue(request.param + '_window_size')

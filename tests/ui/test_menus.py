@@ -1,5 +1,3 @@
-import pytest
-
 from tests.ui import BaseTestUI
 
 
@@ -38,9 +36,8 @@ class TestHeaderMenu(BaseTestUI):
         assert ui_dashboard.header.logout_link.is_displayed(), (
             'Expected header menu logout link to be visible')
 
-
-    def test_header_displays_correct_username(
-        self, default_credentials, anonymous_user, user_password, ui_dashboard):
+    def test_header_displays_correct_username(self, default_credentials,
+                                              anonymous_user, user_password, ui_dashboard):
 
         default_un = default_credentials['username']
 
@@ -50,8 +47,3 @@ class TestHeaderMenu(BaseTestUI):
         with ui_dashboard.current_user(username=anonymous_user.username, password=user_password):
             assert ui_dashboard.header.user == anonymous_user.username.lower(), (
                 'Unable to verify that the header displays the correct username')
-
-
-
-
-

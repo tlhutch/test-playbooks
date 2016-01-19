@@ -53,4 +53,4 @@ class ResetButton(Clickable):
 class SearchButton(Clickable):
     """A search [1] magnifying glass button
     """
-    _root_locator =  None
+    _root_locator = None

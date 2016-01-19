@@ -1,8 +1,6 @@
 from selenium.webdriver.common.by import By
 
 from common.ui.pages.page import Region
-from clickable import Clickable
-
 
 
 class SearchDropDown(Region):
@@ -11,6 +9,3 @@ class SearchDropDown(Region):
 
     _toggle_button = (By.ID, 'search_field_ddown')
     _options = (By.ID, '')
-
-
-

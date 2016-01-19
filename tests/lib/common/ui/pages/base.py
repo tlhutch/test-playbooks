@@ -1,13 +1,10 @@
 from contextlib import contextmanager
 
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.by import By
-
 from login import Login
 from page import Page
 
-from common.ui.pages.regions import Header
-from common.ui.pages.regions import Spinny
+from common.ui.pages.regions.header import Header
+from common.ui.pages.regions.spinny import Spinny
 
 
 class TowerPage(Page):
@@ -27,7 +24,6 @@ class TowerPage(Page):
         pw = password or self.kwargs.get('password')
 
         loginPage = Login(self.base_url, self.driver, **self.kwargs)
-        
         loginPage.open()
         loginPage.login(un, pw).wait_for_page_load()
 
@@ -62,4 +58,3 @@ class TowerPage(Page):
         finally:
             map(self.driver.add_cookie, cookies)
             self.refresh()
-

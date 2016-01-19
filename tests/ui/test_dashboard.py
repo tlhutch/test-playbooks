@@ -2,6 +2,7 @@ import pytest
 
 from tests.ui import BaseTestUI
 
+
 @pytest.mark.login
 class TestDashboard(BaseTestUI):
 
@@ -29,8 +30,6 @@ class TestDashboard(BaseTestUI):
 
         assert ui_dashboard.job_templates_list.is_displayed(), (
             'Unable to locate job templates list')
-        
+
         assert ui_dashboard.jobs_list.is_displayed(), (
             'Unable to locate job slist')
-
-

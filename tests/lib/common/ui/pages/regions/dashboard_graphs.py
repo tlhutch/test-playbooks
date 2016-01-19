@@ -1,6 +1,5 @@
-from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 
-from common.ui.pages.page import Region
 from clickable import Clickable
 
 
@@ -16,7 +15,7 @@ class DashboardGraphStatus(Clickable):
 
     def is_enabled(self):
         return self.background_color == 'rgba(215, 215, 215, 1)'
-        
+
     def is_disabled(self):
         return not self.is_enabled()
 
@@ -48,15 +47,13 @@ class DashboardGraphTab(DashboardGraphStatus):
 
     def click(self):
         super(DashboardGraphTab, self).click()
-        
         self.wait_until_enabled()
-
         return self.page
 
 
 class DashboardGraphDropdown(Clickable):
 
-    _item_locator = None 
+    _item_locator = None
 
     @property
     def item_locator(self):

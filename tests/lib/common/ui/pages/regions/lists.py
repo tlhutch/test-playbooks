@@ -1,6 +1,4 @@
-import re
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
 from common.ui.pages.page import Region
 
 
@@ -24,7 +22,7 @@ class ListRegion(Region):
         Return a list of items identified by _item_locator
         '''
         elements = self.find_elements(self._item_locator)
-        return [e for e in  elements if e.is_displayed()]
+        return [e for e in elements if e.is_displayed()]
 
     def count(self):
         '''

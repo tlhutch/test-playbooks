@@ -1,16 +1,17 @@
-from selenium.common.exceptions import NoSuchElementException 
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 from page import Region
 from base import TowerPage
 
 from common.ui.pages.regions import (
-    Button,
-    PageReference,
-    RefreshButton,
     DashboardGraphToggle,
     DashboardGraphTab,
     DashboardGraphDropdown,
+    JobsLink,
+    JobTemplatesLink,
+    PageReference,
+    RefreshButton
 )
 
 
@@ -116,9 +117,8 @@ class Dashboard(TowerPage):
             yield DashboardCountsLink(self, root=element)
 
 
-
 class DashboardCountsLink(PageReference):
-    
+
     _counts_number = (By.CLASS_NAME, 'DashboardCounts-number')
     _counts_label = (By.CLASS_NAME, 'DashboardCounts-label')
 
@@ -131,9 +131,8 @@ class DashboardCountsLink(PageReference):
         return self.find_element(self._counts_label).text.lower()
 
 
-
 class DashboardTable(Region):
-    
+
     _row_locator = (By.CLASS_NAME, 'List-tableRow')
 
     @property
@@ -147,7 +146,6 @@ class DashboardTable(Region):
     def _rows(self):
         for element in self.find_elements(self.row_locator):
             yield DashboardTableRow(self.page, root=element)
-
 
 
 class DashboardJobTemplatesTable(DashboardTable):
@@ -165,7 +163,7 @@ class DashboardTableRow(Region):
     _launch = (By.CLASS_NAME, 'DashboardList-actionButton--launch')
     _time = (By.CLASS_NAME, 'DashboardList-timeCell')
     _title = (By.CLASS_NAME, 'DashboardList-nameContainer')
-    
+
     @property
     def edit(self):
         return JobTemplatesLink(self.page, root=self.find_element(self._edit))
@@ -185,7 +183,6 @@ class DashboardTableRow(Region):
     @property
     def activity(self):
         return Region(self.page, root=self._find_element(self._activity))
-
 
 
 class DashboardJobStatusToolbar(Region):
@@ -208,15 +205,15 @@ class DashboardJobStatusToolbar(Region):
     @property
     def period_dropdown(self):
         return DashboardGraphDropdown(
-            self.page, 
-            root_locator=self._period_dropdown, 
+            self.page,
+            root_locator=self._period_dropdown,
             item_locator=self._period_items)
 
     @property
     def job_types_dropdown(self):
         return DashboardGraphDropdown(
-            self.page, 
-            root_locator=self._type_dropdown, 
+            self.page,
+            root_locator=self._type_dropdown,
             item_locator=self._type_items)
 
     def find_status_button(self, text):

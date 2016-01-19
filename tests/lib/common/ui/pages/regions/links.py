@@ -1,7 +1,5 @@
 import urlparse
 
-from selenium.webdriver.common.by import By
-
 from clickable import Clickable
 
 
@@ -14,7 +12,7 @@ class Link(Clickable):
     @property
     def _href(self):
         return urlparse.urlparse(self.href, allow_fragments=False)
-        
+
 
 class ProjectsLink(Link):
 
@@ -85,7 +83,7 @@ class UserLink(Link):
 
         return self.page._load_page('User')
 
-        
+
 class DashboardLink(Link):
 
     _spinny = True
@@ -114,4 +112,3 @@ class PageReference(Link):
         super(PageReference, self).after_click()
 
         return self.page._load_page(self._page_path)
-

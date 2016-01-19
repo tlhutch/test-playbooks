@@ -91,4 +91,3 @@ class Pagination(PaginationLinks, PaginationLabels):
     @property
     def labels(self):
         return PaginationLabels(self.page, root=self.find_element(PaginationLabels._root_locator))
-
