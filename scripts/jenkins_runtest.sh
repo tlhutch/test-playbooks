@@ -30,11 +30,19 @@ SAUCE_CREDS=${SAUCE_CREDS:-tests/saucelabs.yml}
 # Determine --baseurl parameter using `ansible --list-hosts`
 if [ -f "${ANSIBLE_INVENTORY}" ]; then
     INVENTORY_HOST=$(ansible "${PLATFORM}:&${CLOUD_PROVIDER}" -i ${ANSIBLE_INVENTORY} --list-hosts)
-    if [ $? -ne 0 -o "${INVENTORY_HOST}" = "No hosts matched" ]; then
+    if [ $? -ne 0 ] || [ "${INVENTORY_HOST}" == *"provided host list is empty"* ]; then
         echo "Unable to find a matching host: ${PLATFORM}:&${CLOUD_PROVIDER}"
         exit 1
     fi
+    IFSBAK="${IFS}" IFS=$'\n'
+    INVENTORY_HOST_ARRAY=(${INVENTORY_HOST})            # Parse lines into array
+    if [ ${#INVENTORY_HOST_ARRAY[@]} -ne 2 ]; then      # Expect summary line then line listing host
+        echo "Host list does not contain exactly one host"
+        exit 1
+    fi
+    INVENTORY_HOST="${INVENTORY_HOST_ARRAY[1]}"
     INVENTORY_HOST="${INVENTORY_HOST//[[:space:]]/}"    # remove whitespace
+    IFS="${IFSBAK}"
 else
     echo "Ansible inventory file not found: ${ANSIBLE_INVENTORY}"
     exit 1
