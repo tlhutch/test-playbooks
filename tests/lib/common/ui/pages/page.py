@@ -176,7 +176,10 @@ class Page(Selector):
     def is_loaded(self):
         """Return true or false indicating if page is loaded
         """
-        return self._url.path in self._current_url.path
+        base_present = self.base_url in self.current_url
+        path_present = self._url.path in self._current_url.path
+
+        return base_present and path_present
 
     def _load_page(self, page_key):
         """Initialize an external page object instance using the meta
