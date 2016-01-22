@@ -97,7 +97,16 @@ def install_enterprise_license_unlimited(request, api_config_pg, ansible_runner)
     # but avoids the scenario where a previous enterprise license teardown()
     # completes prematurely, and the server is processing a mongod stop *and*
     # start request at the time.
-    ansible_runner.pause(seconds='10')
+    # Workaround for pause module bug (refer
+    # https://github.com/ansible/ansible/commit/ca8261ed317fea7415828ab8a80f44c3f3d15d9c).
+    # Once fixed after 2.0.0.2, the following should be replaced with the `pause`
+    # module.
+    contacted = ansible_runner.command('sleep 10')
+    # contacted = ansible_runner.pause(seconds='10')
+    assert 'failed' not in contacted.values()[0], \
+        "Failure occurred while calling ansible pause module. " \
+        "Module exception below:\n%s" % \
+        contacted.values()[0].get('exception', 'Missing exception')
 
     # Post the license
     license_info = common.tower.license.generate_license(instance_count=sys.maxint, days=365, license_type='enterprise')
