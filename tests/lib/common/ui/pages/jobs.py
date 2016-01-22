@@ -1,6 +1,6 @@
-import base
+from base import TowerPage
 
 
-class Jobs(base.Base):
-    '''FIXME'''
-    _tab_title = 'Jobs'
+class Jobs(TowerPage):
+
+    _path = '/#/jobs'

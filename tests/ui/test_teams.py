@@ -1,7 +1,6 @@
 import pytest
 import fauxfactory
 from math import ceil
-from tests.ui import Base_UI_Test
 
 
 @pytest.fixture(scope="function")
@@ -24,10 +23,8 @@ def table_sort(request):
             ('organization', 'descending')]
 
 
-@pytest.mark.ui
-@pytest.mark.selenium
-@pytest.mark.nondestructive
-class Test_Teams(Base_UI_Test):
+@pytest.mark.skipif(True, reason='Needs to be updated with 3.0 page models')
+class Test_Teams(object):
 
     pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
 

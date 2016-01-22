@@ -1,6 +1,6 @@
-import base
+from base import TowerPage
 
 
-class Job_Templates(base.Base):
-    '''FIXME'''
-    _tab_title = 'Job Templates'
+class JobTemplates(TowerPage):
+
+    _path = '/#/job_templates'

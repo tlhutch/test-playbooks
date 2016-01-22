@@ -1,57 +1,73 @@
 import pytest
-import fauxfactory
-from tests.ui import Base_UI_Test
+
+from tests.ui import BaseTestUI
+
+pytestmark = pytest.mark.usefixtures('maximized_window_size', 'install_license_unlimited')
 
 
-@pytest.mark.ui
-@pytest.mark.selenium
-@pytest.mark.nondestructive
-class Test_Login(Base_UI_Test):
+class TestLogin(BaseTestUI):
 
-    pytestmark = pytest.mark.usefixtures('maximized', 'install_license_unlimited')
+    def test_login_logout(self, ui_login, default_credentials):
+        """Verify a successful login and logout with default credentials
+        """
+        un = default_credentials['username']
+        pw = default_credentials['password']
 
-    def test_login(self, home_page_logged_in, admin_user):
-        '''Verify a successful login'''
-        assert home_page_logged_in.account_menu.current_user == admin_user.username
+        ui_dashboard = ui_login.login(un, pw)
 
-    def test_login_without_user(self, ui_login_pg):
-        '''Verify that after a successful login and logout, valid credentials are still required'''
-        ui_login_pg.username = 'FooBar'
-        ui_login_pg.click_on_login_button()
+        assert ui_login.is_logged_in(), (
+            'Unable to verify a successful login with default credentials')
 
-        # Verify login failed
-        assert not ui_login_pg.is_logged_in, "Expecting a failed login"
-        assert ui_login_pg.has_alert_dialog, "Expecting login failure dialog"
-        assert ui_login_pg.alert_dialog.body == 'Please provide a username and password before attempting to login.'
+        ui_dashboard.header.logout_link.click()
 
-    def test_login_without_passwd(self, ui_login_pg):
-        '''Verify that after a successful login and logout, valid credentials are still required'''
-        ui_login_pg.password = fauxfactory.gen_utf8()
-        ui_login_pg.click_on_login_button()
+        assert not ui_login.is_logged_in(), (
+            'Unable to verify a successful logout')
 
-        # Verify login failed
-        assert not ui_login_pg.is_logged_in, "Expecting a failed login"
-        assert ui_login_pg.has_alert_dialog, "Expecting login failure dialog"
-        assert ui_login_pg.alert_dialog.body == 'Please provide a username and password before attempting to login.'
+    def test_login_using_enter_key(self, ui_login, default_credentials):
+        """Verify a successful login and logout with default credentials
+        """
+        un = default_credentials['username']
+        pw = default_credentials['password']
 
-    def test_logout(self, home_page_logged_in):
-        assert home_page_logged_in.is_logged_in, "Unable to determine if logged in"
-        home_page_logged_in.logout()
-        assert not home_page_logged_in.is_logged_in, "Unable to determine if logged out"
+        # Check login when using the enter key
+        ui_login.username.clear()
+        ui_login.username.send_keys(un)
 
-    def test_login_without_user_passwd(self, home_page_logged_in):
-        '''Verify that after a successful login and logout, valid credentials are still required'''
-        # Assert successful login
-        assert home_page_logged_in.is_logged_in, "Unable to determine if logged in"
-        # Logout
-        login_pg = home_page_logged_in.logout()
-        assert not login_pg.is_logged_in, "Unable to determine if logged out"
-        # Attempt to login without supplying a username or password
-        login_pg.click_on_login_button()
-        # Assert unsuccessful login
-        assert not login_pg.is_logged_in, "Not expecting to be logged in"
-        assert login_pg.has_alert_dialog, "Expecting login failure dialog"
-        assert login_pg.alert_dialog.body == 'Please provide a username and password before attempting to login.'
-        # Dismiss the alert dialog
-        login_pg.alert_dialog.ok_btn.click()
-        # assert not login_pg.has_alert_dialog, "Login error dialog should have been dismissed"
+        ui_login.password.clear()
+        ui_login.password.send_keys(pw)
+
+        ui_dashboard = ui_login.login_button.send_enter_key()
+
+        assert ui_login.is_logged_in(), (
+            'Unable to verify a successful login with default credentials')
+
+        assert ui_dashboard.header.user == un, (
+            'Unable to verify a successful login with default credentials')
+
+    @pytest.mark.parametrize('username,password', [
+        ('wrosellini', 'quintus'),
+        ('wrosellini', ''),
+        ('', 'quintus'),
+        ('', '')
+    ])
+    def test_login_invalid_credentials(self, ui_login, username, password):
+        """Verify that after a successful login and logout, valid credentials
+        are still required
+        """
+        ui_login.header.wait_until_not_displayed()
+
+        ui_login.username.clear()
+        ui_login.username.send_keys(username)
+
+        ui_login.password.clear()
+        ui_login.password.send_keys(password)
+
+        ui_login.login_button.wait_until_clickable()
+        ui_login.login_button.root.click()
+        ui_login.login_button.wait_for_spinny()
+
+        assert not ui_login.is_logged_in(), (
+            'Expected a failed login')
+
+        assert ui_login.displayed_alert_errors, (
+            'Expected login failure alert error(s) to be displayed')

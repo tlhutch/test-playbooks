@@ -1,6 +1,6 @@
-import base
+from base import TowerPage
 
 
-class Inventories(base.Base):
-    '''FIXME'''
-    _tab_title = 'Inventories'
+class Inventories(TowerPage):
+
+    _path = '/#/inventories'

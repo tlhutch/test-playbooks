@@ -1,136 +1,69 @@
-import logging
-from selenium.common.exceptions import NoSuchElementException
-from common.ui.pages import Page, PageRegion
+from contextlib import contextmanager
+
+from selenium.common.exceptions import TimeoutException
+
+from login import Login
+from page import Page
+
+from common.ui.pages.regions.header import Header
+from common.ui.pages.regions.spinny import Spinny
 
 
-log = logging.getLogger(__name__)
-
-
-class Base(Page):
-    '''
-    Base class for Tower UI pages
-    '''
-    _page_title = 'Ansible Tower'
-    _breadcrumb_title = 'UNDEFINED'
-    _related = {}
-
-    def go_to_login_page(self):
-        self.selenium.get(self.base_url)
-        from common.ui.pages.login import Login_Page
-        self.wait_for_spinny()
-        return Login_Page(self.testsetup)
+class TowerPage(Page):
 
     @property
     def header(self):
-        from common.ui.pages.regions.header import Header_Region
-        return Header_Region(self.testsetup)
+        return Header(self)
 
     @property
-    def mobile_menu(self):
-        return self.header.mobile_menu
+    def spinny(self):
+        return Spinny(self)
 
-    @property
-    def account_menu(self):
-        return self.header.account_menu
+    def open(self, username=None, password=None):
+        """Open the driver directly to this page
+        """
+        un = username or self.kwargs.get('username')
+        pw = password or self.kwargs.get('password')
 
-    @property
-    def is_logged_in(self):
-        return self.header.is_logged_in
+        loginPage = Login(self.base_url, self.driver, **self.kwargs)
+        loginPage.open()
+        loginPage.login(un, pw).wait_for_page_load()
+
+        return self
 
     def logout(self):
-        return self.header.logout()
+        """Ensure the test client is logged out of Ansible Tower
+        """
+        if self.header.is_displayed():
+            self.header.logout_link.click()
 
-    @property
-    def has_alert_dialog(self):
-        return self.alert_dialog.is_displayed()
+    def refresh(self):
+        """Refresh the page
+        """
+        super(TowerPage, self).refresh()
 
-    @property
-    def alert_dialog(self):
-        from common.ui.pages.regions.dialogs import Alert_Dialog
-        return Alert_Dialog(self.testsetup)
+        self.wait_for_spinny()
 
-    @property
-    def has_login_dialog(self):
-        return self.login_dialog.is_displayed()
+        return self
 
-    @property
-    def login_dialog(self):
-        from common.ui.pages.login import Login_Page
-        return Login_Page(self.testsetup)
-
-    @property
-    def breadcrumb(self):
-        from common.ui.pages.regions.breadcrumb import Breadcrumb_Region
-        return Breadcrumb_Region(self.testsetup, _root_element=self.find_element(*Breadcrumb_Region._root_locator))
-
-    @property
-    def has_breadcrumb(self):
-        return self.breadcrumb.is_displayed()
-
-    @property
-    def is_the_active_breadcrumb(self):
-        assert self.has_breadcrumb, "No breadcrumb visible"
-        assert self._breadcrumb_title == self.breadcrumb.active_crumb, \
-            "Expected breadcrumb title: %s. Actual breadcrumb title: %s" % \
-            (self._breadcrumb_title, self.breadcrumb.active_crumb)  # IGNORE:E1101
-
-        return True
-
-    @property
-    def csrf_token(self):
-        csrf_meta = self.selenium.find_element_by_css_selector("meta[name=csrf-token]")
-        return csrf_meta.get_attribute('content')
-
-    @csrf_token.setter
-    def csrf_token(self, value):
-        # Changing the CSRF Token on the fly via the DOM by iterating
-        # over the meta tags
-        script = '''
-            var elements = document.getElementsByTagName("meta");
-            for (var i=0, element; element = elements[i]; i++) {
-                var ename = element.getAttribute("name");
-                if (ename != null && ename.toLowerCase() == "csrf-token") {
-                    element.setAttribute("content", "%s");
-                    break;
-                }
-            }
-        ''' % value
-        self.selenium.execute_script(script)
-
-    @property
-    def is_the_dashboard_page(self):
-        '''Return whether the currently loaded page is the dashboard page'''
-        return self.get_current_page_path().startswith('/#/home')
-
-    @property
-    def main_menu(self):
-        from common.ui.pages.regions.main_menu import Main_Menu
-        return Main_Menu(self.testsetup)
-
-    @property
-    def is_the_active_tab(self):
-        '''Return whether the current page is the active/highlighted tab'''
-        if not hasattr(self, '_tab_title'):
-            log.warning("No _tab_title set, unable to verify active tab")
-            return True
-
-        # determine selected tab
+    @contextmanager
+    def current_user(self, username, password):
+        """Momentarily switch to a different user and re-open page
+        """
+        cookies = self.driver.get_cookies()
         try:
-            active_tab = self.main_menu.active_item
-        except NoSuchElementException:
-            log.warning("unable to determine the active tab")
-            active_tab = None
+            self.logout()
+            self.open(username, password)
+            yield
 
-        # if no selected tab, is dashboard page active
-        if active_tab is None and self.is_the_dashboard_page:
-            active_tab = "Home"
+        finally:
+            map(self.driver.add_cookie, cookies)
+            self.refresh()
 
-        assert self._tab_title == active_tab, \
-            "Expected tab title: %s. Actual tab title: %s" % \
-            (self._tab_title, active_tab)
+    def wait_for_spinny(self):
+        try:
+            self.spinny.wait_until_displayed()
+        except TimeoutException:
+            pass
 
-        return True
-
-
-class BaseRegion(PageRegion, Base):
-    '''sub-class'''
+        self.spinny.wait_until_not_displayed()

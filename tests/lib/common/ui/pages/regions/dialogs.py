@@ -1,9 +1,8 @@
 from selenium.webdriver.common.by import By
-# from selenium.common.exceptions import NoSuchElementException
-from common.ui.pages import PageRegion
+from common.ui.pages.page import Region
 
 
-class Base_Dialog(PageRegion):
+class BaseDialog(Region):
     '''
     Describes a basic modal dialog.  Should not be used directly.
     '''
@@ -20,26 +19,26 @@ class Base_Dialog(PageRegion):
 
     @property
     def title(self):
-        return self.find_element(*self._title_locator).text
+        return self.find_element(self._title_locator).text
 
     @property
     def body(self):
-        return self.find_element(*self._body_locator).text
+        return self.find_element(self._body_locator).text
 
     @property
     def action_btn(self):
-        return self.find_element(*self._action_btn_locator)
+        return self.find_element(self._action_btn_locator)
 
     @property
     def cancel_btn(self):
-        return self.find_element(*self._cancel_btn_locator)
+        return self.find_element(self._cancel_btn_locator)
 
     @property
     def close_btn(self):
-        return self.find_element(*self._close_btn_locator)
+        return self.find_element(self._close_btn_locator)
 
 
-class Alert_Dialog(Base_Dialog):
+class AlertDialog(BaseDialog):
     '''
     Describes the alert modal dialog typically used for presenting errors
     '''
@@ -51,10 +50,10 @@ class Alert_Dialog(Base_Dialog):
 
     @property
     def ok_btn(self):
-        return self.find_element(*self._action_btn_locator)
+        return self.find_element(self._action_btn_locator)
 
 
-class Prompt_Dialog(Base_Dialog):
+class PromptDialog(BaseDialog):
     '''
     Describes the prompt modal dialog typically used for presenting prompts/confirmations
     '''

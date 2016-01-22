@@ -1,10 +1,11 @@
 from selenium.webdriver.common.by import By
-from common.ui.pages import PageRegion
-from common.ui.pages.regions.lists import List_Region
-from common.ui.pages.regions.buttons import Base_Button
+
+from common.ui.pages.page import Region
+from common.ui.pages.regions.lists import ListRegion
+from common.ui.pages.regions.buttons import Button
 
 
-class PaginationLinks_Region(List_Region):
+class PaginationLinks(ListRegion):
     '''Represents the pagination links at the bottom of a table'''
     _root_locator = (By.CSS_SELECTOR, '#pagination-links')
     _item_locator = (By.CSS_SELECTOR, 'li.ng-scope > a')
@@ -20,23 +21,19 @@ class PaginationLinks_Region(List_Region):
 
     @property
     def first_page(self):
-        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['first']),
-                           _on_click=self.wait_for_spinny, _item_class=self._item_class)
+        return Button(self.page, root=self.find_element(self._locators['first']))
 
     @property
     def prev_page(self):
-        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['previous']),
-                           _on_click=self.wait_for_spinny, _item_class=self._item_class)
+        return Button(self.page, root=self.find_element(self._locators['previous']))
 
     @property
     def next_page(self):
-        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['next']),
-                           _on_click=self.wait_for_spinny, _item_class=self._item_class)
+        return Button(self.page, root=self.find_element(self._locators['next']))
 
     @property
     def last_page(self):
-        return Base_Button(self.testsetup, _root_element=self.find_element(*self._locators['last']),
-                           _on_click=self.wait_for_spinny, _item_class=self._item_class)
+        return Button(self.page, root=self.find_element(self._locators['last']))
 
     @property
     def active_page(self):
@@ -48,7 +45,7 @@ class PaginationLinks_Region(List_Region):
         return int(value)
 
 
-class PaginationLabels_Region(PageRegion):
+class PaginationLabels(Region):
     '''Represents the pagination links at the bottom of a table'''
     _root_locator = (By.CSS_SELECTOR, '#pagination-labels')
     _locators = {
@@ -59,37 +56,38 @@ class PaginationLabels_Region(PageRegion):
 
     @property
     def current_page(self):
-        value = self.find_element(*self._locators['current-page']).text
+        value = self.find_element(self._locators['current-page']).text
         assert value.isdigit(), "expecting digit, but found %s" % type(value)
         return int(value)
 
     @property
     def total_pages(self):
-        value = self.find_element(*self._locators['total-pages']).text
+        value = self.find_element(self._locators['total-pages']).text
         assert value.isdigit(), "expecting digit, but found %s" % type(value)
         return int(value)
 
     @property
     def total_items(self):
-        value = self.find_element(*self._locators['total-items']).text
+        value = self.find_element(self._locators['total-items']).text
         assert value.isdigit(), "expecting digit, but found %s" % type(value)
         return int(value)
 
 
-class Pagination_Region(PaginationLinks_Region, PaginationLabels_Region):
+class Pagination(PaginationLinks, PaginationLabels):
     '''Represents the pagination links at the bottom of a table'''
     _root_locator = (By.CSS_SELECTOR, 'div.page-row')  # Call should provide element/locator
     _locators = {}
 
-    def __init__(self, testsetup, **kwargs):
-        super(Pagination_Region, self).__init__(testsetup, **kwargs)
-        self._locators.update(PaginationLinks_Region._locators)
-        self._locators.update(PaginationLabels_Region._locators)
+    def __init__(self, page, root=None, **kwargs):
+        super(Pagination, self).__init__(page, root=root, **kwargs)
+
+        self._locators.update(PaginationLinks._locators)
+        self._locators.update(PaginationLabels._locators)
 
     @property
     def links(self):
-        return PaginationLinks_Region(self.testsetup, _root_element=self.find_element(*PaginationLinks_Region._root_locator))
+        return PaginationLinks(self.page, root=self.find_element(PaginationLinks._root_locator))
 
     @property
     def labels(self):
-        return PaginationLabels_Region(self.testsetup, _root_element=self.find_element(*PaginationLabels_Region._root_locator))
+        return PaginationLabels(self.page, root=self.find_element(PaginationLabels._root_locator))

@@ -1,92 +1,81 @@
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait  # NOQA
-from common.ui.pages import Base
-from common.ui.pages.forms import input_getter, input_setter
+
+from page import Page
+
+from common.ui.pages.regions import (
+    DashboardLink,
+    Field,
+    Header,
+)
 
 
-class Login_Page(Base):
-    # The following should move to using alert_dialog
-    _login_license_warning_button_locator = (By.ID, 'alert2_ok_btn')
+class LoginButton(DashboardLink):
+    _root_locator = (By.ID, 'login-button')
 
-    _locators = {
-        'username': (By.CSS_SELECTOR, '#login-username'),
-        'password': (By.CSS_SELECTOR, '#login-password'),
-        'login_btn': (By.CSS_SELECTOR, '#login-button'),
-    }
 
-    _related = {
-        '/#/portal': 'common.ui.pages.portal.Portal_Page',
-    }
+class LoginUsername(Field):
+    _root_locator = (By.ID, 'login-username')
 
-    username = property(input_getter(_locators['username']), input_setter(_locators['username']))
-    password = property(input_getter(_locators['password']), input_setter(_locators['password']))
 
-    def is_displayed(self):
-        '''
-        Return whether the login modal dialog is displayed.
-        '''
-        return self.login_btn.is_displayed()
+class LoginPassword(Field):
+    _root_locator = (By.ID, 'login-password')
 
-    @property
-    def is_the_current_page(self):
-        '''Override the base implementation to make sure that we are actually on the login screen
-        and not the actual dashboard
-        '''
-        return Base.is_the_current_page and self.is_element_visible(*self._locators['login_btn'])
+
+class Login(Page):
+
+    _path = '/#/login'
+
+    _alert_errors = (By.CLASS_NAME, 'LoginModal-alert--error')
+    _field_errors = (By.CLASS_NAME, 'error')
 
     @property
-    def login_btn(self):
-        return self.selenium.find_element(*self._locators['login_btn'])
+    def alert_errors(self):
+        return self.find_elements(self._alert_errors)
 
     @property
-    def license_warning_button(self):
-        return self.selenium.find_element(*self._login_license_warning_button_locator)
+    def field_errors(self):
+        return self.find_elements(self._field_errors)
 
-    def click_on_login_button(self):
-        self.login_btn.click()
+    @property
+    def displayed_alert_errors(self):
+        return [elem for elem in self.alert_errors if elem.is_displayed()]
 
-    def press_enter_on_login_button(self):
-        self.login_btn.send_keys(Keys.RETURN)
+    @property
+    def displayed_field_errors(self):
+        return [elem for elem in self.field_errors if elem.is_displayed()]
 
-    def login(self, user='default'):
-        return self.login_with_mouse_click(user)
-        # return self.login_with_enter_key(user)
+    @property
+    def header(self):
+        return Header(self)
 
-    def login_with_enter_key(self, user='default'):
-        return self.__do_login(self.press_enter_on_login_button, user)
+    @property
+    def login_button(self):
+        return LoginButton(self)
 
-    def login_with_mouse_click(self, user='default'):
-        return self.__do_login(self.click_on_login_button, user)
+    @property
+    def username(self):
+        return LoginUsername(self)
 
-    def __do_login(self, login_method, user='default'):
-        '''
-        login to the application using the specified 'login_method'
-        '''
-        # Wait for "busy" throbber to go away
-        self.wait_for_spinny()
+    @property
+    def password(self):
+        return LoginPassword(self)
 
-        self.__set_login_fields(user)
-        # Submit field (click submit, press <enter> etc...)
-        login_method()
+    def is_logged_in(self):
+        return self.header.is_displayed()
 
-        # Wait for "busy" throbber to go away
-        self.wait_for_spinny()
+    def is_loaded(self):
+        return super(Login, self).is_loaded() and not self.is_logged_in()
 
-        # FIXME - Acknowledge license warning dialog
-        # try:
-        #     self.license_warning_button.click()
-        # except:
-        #     pass
+    def login(self, username, password):
+        self.username.clear()
+        self.username.send_keys(username)
 
-        # Wait for "busy" throbber to go away
-        # self.wait_for_spinny()
+        self.password.clear()
+        self.password.send_keys(password)
 
-        # Return appropriate page object based on the current_page_path()
-        return self.get_related(self.get_current_page_path(),
-                                default='common.ui.pages.Dashboard_Page')(self.testsetup)
+        return self.login_button.click()
 
-    def __set_login_fields(self, user='default'):
-        credentials = self.testsetup.credentials['users'][user]
-        self.username = credentials['username']
-        self.password = credentials['password']
+
+class Logout(Login):
+
+    _path = '/#/logout'
