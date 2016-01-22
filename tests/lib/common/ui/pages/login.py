@@ -73,23 +73,7 @@ class Login(Page):
         self.password.clear()
         self.password.send_keys(password)
 
-        self.login_button.before_click()
-        self.login_button.wait_until_clickable()
-        self.login_button.root.click()
-
-        if self.displayed_field_errors:
-            return self
-
-        if self.displayed_alert_errors:
-            if username == '' or password == '':
-                return self
-
-        self.login_button.wait_for_spinny()
-
-        if self.displayed_alert_errors:
-            return self
-        else:
-            return self._load_page('dashboard')
+        return self.login_button.click()
 
 
 class Logout(Login):

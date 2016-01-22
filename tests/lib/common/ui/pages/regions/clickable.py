@@ -1,3 +1,4 @@
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 
 from common.ui.pages.page import Region
@@ -44,7 +45,11 @@ class Clickable(Region):
         return self.after_click()
 
     def wait_for_spinny(self):
-        self.spinny.wait_until_displayed()
+        try:
+            self.spinny.wait_until_displayed()
+        except TimeoutException:
+            pass
+
         self.spinny.wait_until_not_displayed()
 
     @property

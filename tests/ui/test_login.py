@@ -30,7 +30,10 @@ class TestLogin(BaseTestUI):
         pw = default_credentials['password']
 
         # Check login when using the enter key
+        ui_login.username.clear()
         ui_login.username.send_keys(un)
+
+        ui_login.password.clear()
         ui_login.password.send_keys(pw)
 
         ui_dashboard = ui_login.login_button.send_enter_key()
@@ -53,7 +56,15 @@ class TestLogin(BaseTestUI):
         """
         ui_login.header.wait_until_not_displayed()
 
-        ui_login.login(username, password)
+        ui_login.username.clear()
+        ui_login.username.send_keys(username)
+
+        ui_login.password.clear()
+        ui_login.password.send_keys(password)
+
+        ui_login.login_button.wait_until_clickable()
+        ui_login.login_button.root.click()
+        ui_login.login_button.wait_for_spinny()
 
         assert not ui_login.is_logged_in(), (
             'Expected a failed login')

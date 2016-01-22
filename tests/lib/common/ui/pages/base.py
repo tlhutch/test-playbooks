@@ -1,5 +1,7 @@
 from contextlib import contextmanager
 
+from selenium.common.exceptions import TimeoutException
+
 from login import Login
 from page import Page
 
@@ -40,8 +42,7 @@ class TowerPage(Page):
         """
         super(TowerPage, self).refresh()
 
-        self.spinny.wait_until_displayed()
-        self.spinny.wait_until_not_displayed()
+        self.wait_for_spinny()
 
         return self
 
@@ -58,3 +59,11 @@ class TowerPage(Page):
         finally:
             map(self.driver.add_cookie, cookies)
             self.refresh()
+
+    def wait_for_spinny(self):
+        try:
+            self.spinny.wait_until_displayed()
+        except TimeoutException:
+            pass
+
+        self.spinny.wait_until_not_displayed()

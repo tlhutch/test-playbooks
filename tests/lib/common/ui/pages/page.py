@@ -28,7 +28,7 @@ class Selector(object):
 
     __metaclass__ = MetaSelector
 
-    _timeout = 25
+    _timeout = 15
 
     def __init__(self, base_url, driver, **kwargs):
         self.driver = driver
