@@ -13,10 +13,7 @@ class TestLogin(BaseTestUI):
         un = default_credentials['username']
         pw = default_credentials['password']
 
-        ui_login.username.send_keys(un)
-        ui_login.password.send_keys(pw)
-
-        ui_dashboard = ui_login.login_button.click()
+        ui_dashboard = ui_login.login(un, pw)
 
         assert ui_login.is_logged_in(), (
             'Unable to verify a successful login with default credentials')
@@ -56,10 +53,7 @@ class TestLogin(BaseTestUI):
         """
         ui_login.header.wait_until_not_displayed()
 
-        ui_login.username.send_keys(username)
-        ui_login.password.send_keys(password)
-
-        ui_login.login_button.root.click()
+        ui_login.login(username, password)
 
         assert not ui_login.is_logged_in(), (
             'Expected a failed login')

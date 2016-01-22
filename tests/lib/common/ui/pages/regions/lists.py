@@ -8,14 +8,14 @@ class ListRegion(Region):
     _unique_attribute = 'text'
     _related = {}
 
-    def get(self, name):
+    def get(self, value):
         '''
-        Return item with text matching the provided name
+        Return element with text matching the provided name
         '''
         for el in self.items():
-            if el.get_attribute(self._unique_attribute) == name:
+            if el.get_attribute(self._unique_attribute) == value:
                 return el
-        raise Exception("No item with %s = '%s' found" % (self._unique_attribute, name))
+        raise Exception("No item with %s = '%s' found" % (self._unique_attribute, value))
 
     def items(self):
         '''
@@ -38,11 +38,10 @@ class ListRegion(Region):
         '''
         return [el.get_attribute(self._unique_attribute) for el in self.items()]
 
-    def click(self, name):
+    def click(self, value):
         '''
-        Clicks on the desired element, and returns an instance specified in _related
+        Click on the element with a unique attribute matching the provided value
         '''
-        el = self.get(name)
+        el = self.get(value)
+        self.wait.until(lambda _: el.is_enabled())
         el.click()
-        self.wait_for_spinny()
-        return self.get_related(name)(self.testsetup)

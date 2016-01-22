@@ -26,14 +26,23 @@ class Login(Page):
     _path = '/#/login'
 
     _alert_errors = (By.CLASS_NAME, 'LoginModal-alert--error')
+    _field_errors = (By.CLASS_NAME, 'error')
 
     @property
     def alert_errors(self):
         return self.find_elements(self._alert_errors)
 
     @property
+    def field_errors(self):
+        return self.find_elements(self._field_errors)
+
+    @property
     def displayed_alert_errors(self):
         return [elem for elem in self.alert_errors if elem.is_displayed()]
+
+    @property
+    def displayed_field_errors(self):
+        return [elem for elem in self.field_errors if elem.is_displayed()]
 
     @property
     def header(self):
@@ -64,7 +73,23 @@ class Login(Page):
         self.password.clear()
         self.password.send_keys(password)
 
-        return self.login_button.click()
+        self.login_button.before_click()
+        self.login_button.wait_until_clickable()
+        self.login_button.root.click()
+
+        if self.displayed_field_errors:
+            return self
+
+        if self.displayed_alert_errors:
+            if username == '' or password == '':
+                return self
+
+        self.login_button.wait_for_spinny()
+
+        if self.displayed_alert_errors:
+            return self
+        else:
+            return self._load_page('dashboard')
 
 
 class Logout(Login):

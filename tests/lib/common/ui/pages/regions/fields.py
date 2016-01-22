@@ -1,7 +1,19 @@
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
+
 from common.ui.pages.page import Region
 
 
 class Field(Region):
+
+    _error = (By.CLASS_NAME, 'error')
+
+    @property
+    def errors(self):
+        try:
+            return self.find_element(self._error)
+        except NoSuchElementException:
+            return []
 
     def clear(self):
         self.root.clear()
