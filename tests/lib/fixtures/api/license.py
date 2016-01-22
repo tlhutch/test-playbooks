@@ -40,7 +40,7 @@ def install_basic_license(request, api_config_pg, ansible_runner):
 def install_enterprise_license(request, api_config_pg, ansible_runner):
     '''Install an enterprise license where instance_count=unlimited'''
 
-    log.debug("calling fixture install_enterprise_license_unlimited")
+    log.debug("calling fixture install_enterprise_license")
 
     # Post the license
     license_info = common.tower.license.generate_license(instance_count=sys.maxint, days=365, license_type='enterprise')
