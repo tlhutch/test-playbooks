@@ -734,22 +734,6 @@ class Awx_Schema_Job_Relaunch(Awx_Schema):
         return self.load_file('jobs/relaunched.yml')
 
 
-class Awx_Schema_Job_Events(Awx_Schema):
-    resource = '/api/v1/jobs/\d+/job_events/'
-
-    @property
-    def get(self):
-        return self.load_file('job_events/list.yml')
-
-
-class Awx_Schema_Job_Event(Awx_Schema_Job_Events):
-    resource = '/api/v1/jobs/\d+/job_events/\d+/'
-
-    @property
-    def get(self):
-        return self.load_file('job_events/item.yml')
-
-
 class Awx_Schema_Job_Host_Summaries(Awx_Schema):
     resource = '/api/v1/jobs/\d+/job_host_summaries/'
 
@@ -796,6 +780,30 @@ class Awx_Schema_Job_Task(Awx_Schema_Job_Tasks):
     @property
     def get(self):
         return self.load_file('job_tasks/item.yml')
+
+
+class Awx_Schema_Job_Events(Awx_Schema):
+    resource = '/api/v1/jobs/\d+/job_events/'
+
+    @property
+    def get(self):
+        return self.load_file('job_events/list.yml')
+
+
+class Awx_Schema_Job_Event(Awx_Schema_Job_Events):
+    resource = '/api/v1/job_events/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('job_events/item.yml')
+
+
+class Awx_Schema_Job_Stdout(Awx_Schema):
+    resource = '/api/v1/jobs/\d+/stdout/'
+
+    @property
+    def get(self):
+        return self.load_file('job_stdout/item.yml')
 
 
 #

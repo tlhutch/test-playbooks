@@ -1,0 +1,6 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/jobs/\d+/stdout/'
+$ref: '#/definitions/job_stdout'
+definitions:
+  !include '../definitions/*.yml'
