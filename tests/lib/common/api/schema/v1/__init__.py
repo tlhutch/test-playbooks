@@ -73,6 +73,18 @@ class Awx_Schema_v1(Awx_Schema):
         return self.load_file('api_v1.yml')
 
 
+class Awx_Schema_Settings(Awx_Schema):
+    resource = '/api/v1/settings/'
+
+    @property
+    def get(self):
+        return self.load_file('settings/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('settings/item.yml')
+
+
 class Awx_Schema_Organizations(Awx_Schema):
     resource = '/api/v1/organizations/'
 
