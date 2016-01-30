@@ -108,13 +108,6 @@ def license_instance_count(request):
 
 
 @pytest.fixture(scope='function')
-def install_trial_legacy_license(request, api_config_pg, license_instance_count):
-    log.debug("calling fixture install_trial_legacy_license")
-    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, trial=True)
-    api_config_pg.post(license_info)
-
-
-@pytest.fixture(scope='function')
 def legacy_license_json(request, license_instance_count):
     return common.tower.license.generate_license(instance_count=license_instance_count,
                                                  days=31,
@@ -174,10 +167,40 @@ def trial_legacy_license_json(request, license_instance_count):
 
 
 @pytest.fixture(scope='function')
+def install_trial_legacy_license(request, api_config_pg, license_instance_count):
+    log.debug("calling fixture install_trial_legacy_license")
+    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, trial=True)
+    api_config_pg.post(license_info)
+
+    # Confirm that license is present
+    conf = api_config_pg.get()
+    assert conf.is_valid_license, 'Expected valid license, invalid license found'
+
+    # Confirm license type, license_key have expected values
+    assert conf.is_legacy_license, \
+        "Expected legacy license, found %s." % conf.license_info.license_type
+    assert conf.is_trial_license, \
+        "Expected trial license, found regular license"
+    assert conf.license_info.license_key == license_info['license_key'], \
+        "License found differs from license applied"
+
+
+@pytest.fixture(scope='function')
 def install_legacy_license(request, api_config_pg, legacy_license_json):
+    # Apply license
     log.debug("calling fixture install_legacy_license")
     api_config_pg.post(legacy_license_json)
     request.addfinalizer(api_config_pg.delete)
+
+    # Confirm that license is present
+    conf = api_config_pg.get()
+    assert conf.is_valid_license, 'Expected valid license, invalid license found'
+
+    # Confirm license type, license_key have expected values
+    assert conf.is_legacy_license, \
+        "Expected legacy license, found %s." % conf.license_info.license_type
+    assert conf.license_info.license_key == legacy_license_json['license_key'], \
+        "License found differs from license applied"
 
 
 @pytest.fixture(scope='function')
@@ -187,6 +210,16 @@ def install_basic_license(request, api_config_pg, license_instance_count):
     api_config_pg.post(license_info)
     request.addfinalizer(api_config_pg.delete)
 
+    # Confirm that license is present
+    conf = api_config_pg.get()
+    assert conf.is_valid_license, 'Expected valid license, invalid license found'
+
+    # Confirm license type, license_key have expected values
+    assert conf.is_basic_license, \
+        "Expected basic license, found %s." % conf.license_info.license_type
+    assert conf.license_info.license_key == license_info['license_key'], \
+        "License found differs from license applied"
+
 
 @pytest.fixture(scope='function')
 def install_enterprise_license(request, ansible_runner, api_config_pg, enterprise_license_json):
@@ -194,6 +227,16 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
 
     # POST a license
     api_config_pg.post(enterprise_license_json)
+
+    # Confirm that license is present
+    conf = api_config_pg.get()
+    assert conf.is_valid_license, 'Expected valid license, invalid license found'
+
+    # Confirm license type, license_key have expected values
+    assert conf.is_enterprise_license, \
+        "Expected enterprise license, %s." % conf.license_info.license_type
+    assert conf.license_info.license_key == enterprise_license_json['license_key'], \
+        "License found differs from license applied"
 
     # Wait for mongod to start
     contacted = ansible_runner.wait_for(port='27017', state='present')
@@ -475,10 +518,9 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(common.exceptions.LicenseInvalid_Exception):
             api_config_pg.post(invalid_license_json)
 
-        # Assert that /etc/tower/license does not exist
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            assert not result['stat']['exists'], "No license was expected, but one was found"
+        # Assert that no license has been applied
+        conf = api_config_pg.get()
+        assert conf.license_info == {}, "No license was expected, found %s" % conf.license_info
 
     def test_post_legacy_license_without_eula_accepted(self, api_config_pg, missing_eula_legacy_license_json):
         '''Verify failure while POSTing a license with no `eula_accepted` attribute.'''
@@ -497,15 +539,25 @@ class Test_No_License(Base_Api_Test):
         # Assert that /etc/tower/license does not exist
         contacted = ansible_runner.stat(path=tower_license_path)
         for result in contacted.values():
-            assert not result['stat']['exists'], "No license was expected, but one was found"
+            assert not result['stat']['exists'], "No license file was expected, but one was found"
+
+        # Assert that no license present at /api/v1/config/
+        conf = api_config_pg.get()
+        assert not conf.is_valid_license, "No license was expected, but one was found"
 
         # Install the license
         api_config_pg.post(legacy_license_json)
 
-        # Assert that /etc/tower/license was created
+        # Assert that license present at /api/v1/config/
+        conf = api_config_pg.get()
+        assert conf.license_info != {}, "License expected, but none found"
+        assert conf.license_info.license_key == legacy_license_json['license_key']
+
+        # Assert that /etc/tower/license still does not exist
+        # (license no longer stored in file, stored in db instead)
         contacted = ansible_runner.stat(path=tower_license_path)
         for result in contacted.values():
-            assert result['stat']['exists'], "A license was not succesfully installed to %s" % (tower_license_path)
+            assert not result['stat']['exists'], "No license file was expected, but one was found"
 
 
 @pytest.mark.api
@@ -580,17 +632,30 @@ class Test_AWS_License(Base_Api_Test):
         # Update the license
         api_config_pg.post(legacy_license_json)
 
-        # Assert that /etc/tower/license was created
-        contacted = ansible_runner.stat(path=tower_license_path)
+        # Assert that /etc/tower/aws still exists
+        contacted = ansible_runner.stat(path=tower_aws_path)
+        for result in contacted.values():
+            assert result['stat']['exists'], "A AWS license was expected, but none were found. %s" % result
+
+        # .. and is unchanged
+        contacted = ansible_runner.stat(path=tower_aws_path)
         for result in contacted.values():
             assert result['stat']['exists'], "A license was expected, but none were found. %s" % result
             after_md5 = result['stat']['md5']
+        assert before_md5 == after_md5, "The license file was modified unexpectedly (md5 hash differs)."
 
-        # Assert the license file changed
-        assert before_md5 != after_md5, "The license file was not modified as expected"
+        # Assert that /etc/tower/license still does not exist
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            assert not result['stat']['exists'], "No license was expected, but one was found. %s" % result
+
+        # Get license
+        conf = api_config_pg.get()
+        assert conf.license_info != {}, "No license listed in /api/v1/config/."
+        assert conf.license_info.license_key == legacy_license_json['license_key'], \
+            "Retrieved license differs from uploaded license (license_key differs)"
 
         # Assert the current license is NOT an aws license
-        conf = api_config_pg.get()
         assert not conf.is_aws_license, "After installing a regular license, the /config endpoint reports that a AWS license is active. %s" \
             % json.dumps(conf.json, indent=4)
 
@@ -754,21 +819,25 @@ class Test_Legacy_License_Warning(Base_Api_Test):
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
 
-    def test_update_license(self, api_config_pg, legacy_license_json, ansible_runner, tower_license_path):
+    def test_update_license(self, api_config_pg, legacy_license_json, ansible_runner):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
-        # Record the license md5
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            before_md5 = result['stat']['md5']
+        # Record license_key
+        conf = api_config_pg.get()
+        before_license_key = conf.license_info.license_key
 
         # Update the license
         api_config_pg.post(legacy_license_json)
 
-        # Assert that /etc/tower/license was modified
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            after_md5 = result['stat']['md5']
-        assert before_md5 != after_md5, "The license file was not modified as expected"
+        # Record license_key
+        conf = api_config_pg.get()
+        after_license_key = conf.license_info.license_key
+        assert before_license_key != after_license_key, \
+            "Expected license_key to change after applying new license, but found old value."
+
+        # Assert license_key is correct
+        expected_license_key = legacy_license_json['license_key']
+        assert after_license_key == expected_license_key, \
+            "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
 
 @pytest.mark.api
@@ -863,6 +932,7 @@ class Test_Legacy_License_Expired(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             job_template.launch_job().wait_until_completed()
 
+    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job):
         '''Verify that system jobs can be launched'''
@@ -896,23 +966,25 @@ class Test_Legacy_License_Expired(Base_Api_Test):
                 ad_hoc_commands_pg.post(payload), \
                     "Unexpectedly launched an ad_hoc_command with an expired license from %s." % ad_hoc_commands_pg.base_url
 
-    def test_update_license(self, api_config_pg, legacy_license_json, ansible_runner, tower_license_path):
+    def test_update_license(self, api_config_pg, legacy_license_json, ansible_runner):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
-        # Record the license md5
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            before_md5 = result['stat']['md5']
+        # Record license_key
+        conf = api_config_pg.get()
+        before_license_key = conf.license_info.license_key
 
         # Update the license
         api_config_pg.post(legacy_license_json)
 
-        # Record the license md5
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            after_md5 = result['stat']['md5']
+        # Record license_key
+        conf = api_config_pg.get()
+        after_license_key = conf.license_info.license_key
+        assert before_license_key != after_license_key, \
+            "Expected license_key to change after applying new license, but found old value."
 
-        # Assert that /etc/tower/license was modified
-        assert before_md5 != after_md5, "The license file was not modified as expected"
+        # Assert license_key is correct
+        expected_license_key = legacy_license_json['license_key']
+        assert after_license_key == expected_license_key, \
+            "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
 
 @pytest.mark.api
@@ -962,23 +1034,25 @@ class Test_Legacy_Trial_License(Base_Api_Test):
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
-    def test_update_license(self, api_config_pg, trial_legacy_license_json, ansible_runner, tower_license_path):
+    def test_update_license(self, api_config_pg, trial_legacy_license_json, ansible_runner):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
-        # Record the license md5
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            before_md5 = result['stat']['md5']
+        # Record license_key
+        conf = api_config_pg.get()
+        before_license_key = conf.license_info.license_key
 
         # Update the license
         api_config_pg.post(trial_legacy_license_json)
 
-        # Record the license md5
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            after_md5 = result['stat']['md5']
+        # Record license_key
+        conf = api_config_pg.get()
+        after_license_key = conf.license_info.license_key
+        assert before_license_key != after_license_key, \
+            "Expected license_key to change after applying new license, but found old value."
 
-        # Assert that /etc/tower/license was modified
-        assert before_md5 != after_md5, "The license file was not modified as expected"
+        # Assert license_key is correct
+        expected_license_key = trial_legacy_license_json['license_key']
+        assert after_license_key == expected_license_key, \
+            "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
 
 @pytest.mark.api
@@ -1147,29 +1221,16 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected JSON response upon attempting to navigate to fact_versions with a basic license - %s." % json.dumps(result)
 
-    def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg, ansible_runner, tower_license_path):
+    def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg, ansible_runner):
         '''Verify that a basic license can get upgraded to an enterprise license.'''
 
         # check that MongoDB is inactive with basic license
         assert_mongo_is_not_running(ansible_runner)
 
-        # Record the license md5
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            before_md5 = result['stat']['md5']
-
         # Update the license
         api_config_pg.post(enterprise_license_json)
 
-        # Record the license md5
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            after_md5 = result['stat']['md5']
-
-        # Assert that /etc/tower/license was modified
-        assert before_md5 != after_md5, "The license file was not modified as expected"
-
-        # Assess license type
+        # Confirm enterprise license present
         conf = api_config_pg.get()
         assert conf.license_info['license_type'] == 'enterprise', \
             "Incorrect license_type returned. Expected 'enterprise,' " \
@@ -1331,6 +1392,7 @@ class Test_Enterprise_License(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
+    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_able_to_cleanup_facts(self, cleanup_facts):
         '''Verifies that cleanup_facts may be run with an enterprise license.'''
@@ -1342,6 +1404,7 @@ class Test_Enterprise_License(Base_Api_Test):
         assert job_pg.is_successful, "cleanup_facts job unexpectedly failed " \
             "with an enterprise license - %s" % job_pg
 
+    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/742")
     def test_able_to_get_facts(self, scan_job_with_status_completed):
         '''Verify that that enterprise license users can GET fact endpoints.'''
         host_pg = scan_job_with_status_completed.get_related('inventory').get_related('hosts').results[0]
@@ -1351,26 +1414,13 @@ class Test_Enterprise_License(Base_Api_Test):
         for fact_version in fact_versions_pg.results:
             fact_version.get_related('fact_view')
 
-    def test_downgrade_to_basic(self, basic_license_json, api_config_pg, ansible_runner, tower_license_path):
+    def test_downgrade_to_basic(self, basic_license_json, api_config_pg, ansible_runner):
         '''Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg.'''
         # check that MongoDB is active with an enterprise license
         assert_mongo_is_running(ansible_runner)
 
-        # Record the license md5
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            before_md5 = result['stat']['md5']
-
         # Update the license
         api_config_pg.post(basic_license_json)
-
-        # Record the license md5
-        contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            after_md5 = result['stat']['md5']
-
-        # Assert that /etc/tower/license was modified
-        assert before_md5 != after_md5, "The license file was not modified as expected"
 
         # Assess license type
         conf = api_config_pg.get()
@@ -1419,6 +1469,7 @@ class Test_Enterprise_License_Expired(Base_Api_Test):
             "Incorrect license_type returned. Expected 'enterprise' " \
             "returned %s." % conf.license_info['license_type']
 
+    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job):
         '''Verify that system jobs can be launched'''
