@@ -185,6 +185,7 @@ class Test_Projects(Base_Api_Test):
             "After completing a project_update, the value of 'scm_delete_on_next_update' is unexpected (%s != False)" % \
             (project_ansible_playbooks_git.scm_delete_on_next_update)
 
+    @pytest.xfail(reason="https://github.com/ansible/ansible-tower/issues/749")
     def test_cancel_queued_update(self, project_ansible_git_nowait):
         '''
         Verify the project->current_update->cancel endpoint behaves as expected when canceling a
@@ -215,6 +216,7 @@ class Test_Projects(Base_Api_Test):
             "Unexpected project status after cancelling project update" \
             "(expected status:canceled) - %s" % project_ansible_git_nowait
 
+    @pytest.xfail(reason="https://github.com/ansible/ansible-tower/issues/749")
     def test_cancel_running_update(self, project_ansible_git_nowait):
         '''
         Verify the project->current_update->cancel endpoint behaves as expected
