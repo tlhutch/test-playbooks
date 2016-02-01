@@ -757,6 +757,7 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to patch a job template into a scan job template with a legacy license - %s." % json.dumps(result)
 
+    @pytest.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
         '''Verify that cleanup_facts may not be run with a legacy license.'''
@@ -1197,6 +1198,7 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to patch a job template into a scan job template with a basic license - %s." % json.dumps(result)
 
+    @pytest.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
         '''Verify that cleanup_facts may not be run with a basic license.'''
