@@ -273,14 +273,14 @@ class Test_Job_Template_Callback(Base_Api_Test):
         assert job_pg.status == "failed"
 
         # Assert expected output in result_stdout
-        error_strings = ["ERROR: Specified --limit does not match any hosts",
-                         "ERROR: provided hosts list is empty"]
+        error_strings = ["Specified --limit does not match any hosts",
+                         "provided hosts list is empty"]
         assert any([True for errstr in error_strings if errstr in job_pg.result_stdout]), \
             "Unable to find expected error (%s) in job_pg.result_stdout (%s)" % \
             (error_strings, job_pg.result_stdout)
 
     def test_launch(self, ansible_runner, job_template, host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4):
-        '''Assert that launching a callback job against a job_template successfully launches, and the job successfully runs on a single host..'''
+        '''Assert that launching a callback job against a job_template successfully launches, and the job successfully runs on a single host.'''
 
         # enable host_config_key
         job_template.patch(host_config_key=host_config_key)
