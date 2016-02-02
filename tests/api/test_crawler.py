@@ -126,7 +126,7 @@ def test_unauthenticated(api, resource, method, no_license):
         api.session.auth = previous_auth
 
 
-@pytest.xfail(reason="https://github.com/ansible/ansible-tower/issues/762")
+@pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/762")
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
