@@ -256,7 +256,7 @@ class Test_System_Jobs(Base_Api_Test):
             "activity_stream data is still present (count == %s)" \
             % activity_stream_pg.count
 
-    @pytest.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
+    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     def test_cleanup_facts(self, files_scan_job_with_status_completed, cleanup_facts_template):
         '''
         Launch a cleanup_facts job and assert facts have been deleted.
