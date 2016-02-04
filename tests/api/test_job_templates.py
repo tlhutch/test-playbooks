@@ -333,18 +333,8 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.passwords_needed_to_start
         job_pg = job_template.launch().wait_until_completed()
 
-        # support for ECDSA credentials was introduced in OpenSSH 5.7
-        if credential_type == "unencrypted_ecdsa":
-            contacted = ansible_runner.command('ssh -V')
-            if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("5.7"):
-                assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
-            else:
-                assert job_pg.status == 'failed', "Job did not fail as expected - %s" % job_pg
-                assert "Enter passphrase for /tmp/ansible_tower_" in job_pg.result_stdout, \
-                    "Unexpected job_pg.result_stdout when launching a job with an ECDSA credential: %s." % job_pg.result_stdout
-
         # support for OpenSSH credentials was introduced in OpenSSH 6.5
-        elif credential_type == "unencrypted_open":
+        if credential_type == "unencrypted_open":
             contacted = ansible_runner.command('ssh -V')
             if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("6.5"):
                 assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
@@ -368,18 +358,8 @@ class Test_Job_Template(Base_Api_Test):
         payload = dict(ssh_key_unlock="fo0m4nchU")
         job_pg = job_template.launch(payload).wait_until_completed()
 
-        # support for ECDSA credentials was introduced in OpenSSH 5.7
-        if credential_type == "encrypted_ecdsa":
-            contacted = ansible_runner.command('ssh -V')
-            if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("5.7"):
-                assert job_pg.is_successful, "Job failed unexpectedly - %s" % job_pg
-            else:
-                assert job_pg.status == 'failed', "Job did not fail as expected - %s" % job_pg
-                assert "Enter passphrase for /tmp/ansible_tower_" in job_pg.result_stdout, \
-                    "Unexpected job_pg.result_stdout when launching a job with an ECDSA credential: %s." % job_pg.result_stdout
-
         # support for OpenSSH credentials was introduced in OpenSSH 6.5
-        elif credential_type == "encrypted_open":
+        if credential_type == "encrypted_open":
             contacted = ansible_runner.command('ssh -V')
             if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("6.5"):
                 assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
