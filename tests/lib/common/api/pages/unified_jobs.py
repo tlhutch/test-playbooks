@@ -25,6 +25,7 @@ class Unified_Job_Page(Base):
     job_type = property(json_getter('job_type'), json_setter('job_type'))
     job_env = property(json_getter('job_env'), json_setter('job_env'))
     job_args = property(json_getter('job_args'), json_setter('job_args'))
+    limit = property(json_getter('limit'), json_setter('limit'))
 
     def __str__(self):
         # NOTE: I use .replace('%', '%%') to workaround an odd string
