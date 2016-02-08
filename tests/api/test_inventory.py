@@ -262,7 +262,7 @@ class Test_Inventory_Update(Base_Api_Test):
         '''
         # TODO: Once we populate all regions with an instance, don't think we'll need a test
         # tailored to a subset of regions with instances.
-        
+
         # provide test source_region given each provider
         cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
         if cloud_provider == 'aws':
@@ -303,7 +303,7 @@ class Test_Inventory_Update(Base_Api_Test):
         '''
         # TODO: Once we populate all regions with an instance, don't think we'll need a test
         # geared towards empty regions.
-        
+
         # provide test source_region given each provider
         cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
         if cloud_provider == 'aws':
