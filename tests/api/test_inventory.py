@@ -252,6 +252,7 @@ class Test_Inventory_Update(Base_Api_Test):
             update_pg = inv_source_pg.update().wait_until_completed()
             assert update_pg.is_successful, "inventory_update %s failed with region %s." % (update_pg, source_region)
             assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+            # TODO: Assert specific cloud instance is now listed in group
 
     def test_inventory_update_with_populated_source_region(self, cloud_group_supporting_source_regions):
         '''
@@ -259,6 +260,9 @@ class Test_Inventory_Update(Base_Api_Test):
 
         NOTE: test may fail if our expected test hosts are down.
         '''
+        # TODO: Once we populate all regions with an instance, don't think we'll need a test
+        # tailored to a subset of regions with instances.
+        
         # provide test source_region given each provider
         cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
         if cloud_provider == 'aws':
@@ -297,6 +301,9 @@ class Test_Inventory_Update(Base_Api_Test):
         * West_Japan   => Japan West
         * asia-east1-c => Asia East (C)
         '''
+        # TODO: Once we populate all regions with an instance, don't think we'll need a test
+        # geared towards empty regions.
+        
         # provide test source_region given each provider
         cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
         if cloud_provider == 'aws':
@@ -343,6 +350,9 @@ class Test_Inventory_Update(Base_Api_Test):
         assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
 
         # assert whether hosts were imported
+        # TODO: Assert specific cloud instance is now listed in group
+        # (We can probably create our test instance in such a way that
+        #  the instance filters only give the test instance - e.g. creating a unique key/value pair).
         assert aws_group.get().total_hosts > 0, "Unexpected number of hosts returned %s." % aws_group.total_hosts
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=UNMATCHED", "key-name=UNMATCHED", "tag:Name=UNMATCHED"])
@@ -382,6 +392,7 @@ class Test_Inventory_Update(Base_Api_Test):
         # get updated groups_pg
         groups_pg = aws_group.get_related('children')
 
+        # TODO: Assert specific cloud instance is listed in group
         # assess spawned groups, given each value for only_group_by
         if only_group_by == "":
             assert inv_source_pg.group_by == ""
@@ -389,6 +400,7 @@ class Test_Inventory_Update(Base_Api_Test):
             expected_group_names = ["ec2", "images", "keys", "regions", "security_groups", "tags", "types", "vpcs", "zones"]
             for group_name in expected_group_names:
                 assert len([group for group in groups_pg.results if group.name == group_name]) == 1
+                # TODO: Assert specific cloud instance is now listed in group
 
         elif only_group_by == "availability_zone":
             assert inv_source_pg.group_by == "availability_zone"
