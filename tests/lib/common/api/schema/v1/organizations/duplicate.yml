@@ -8,6 +8,6 @@ properties:
         uniqueItems: True
         items:
             type: string
-            pattern: '^Organization with this Name already exists.$'
+            pattern: '^Organization with this [Nn]ame already exists.$'
 required: [name, ]
 additionalProperties: False

@@ -10,4 +10,4 @@ properties:
         uniqueItems: true
         items:
             type: string
-            pattern: '^Schedule with this Name already exists.$'
+            pattern: '^Schedule with this [Nn]ame already exists.$'
