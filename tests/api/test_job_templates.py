@@ -509,11 +509,104 @@ class Test_Job_Template(Base_Api_Test):
             assert variable in launch_pg.variables_needed_to_start, \
                 "Missing required variable: %s" % variable
 
-        # TODO - launch the job_template
+        # launch the job_template
+        payload = dict(extra_vars=dict(likes_chicken=["yes"], favorite_color="green"))
+        job_pg = job_template_variables_needed_to_start.launch(payload).wait_until_completed()
 
-        # TODO - assert successful launch
+        # assert successful launch
+        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-        # TODO - assert extra_vars contains provided data
+        # coerce job extra_vars into a dictionary
+        try:
+            job_extra_vars = json.loads(job_pg.extra_vars)
+        except ValueError:
+            job_extra_vars = {}
+
+        # find job vars from survey defaults
+        survey_default_vars = dict((question['variable'], question['default'])
+                                   for question in survey_spec.spec
+                                   if question.get('required', False) is False and
+                                   question.get('default') not in (None, ''))
+
+        # assert extra_vars contains provided data
+        assert set(job_extra_vars) == set(survey_default_vars) | set(payload['extra_vars'])
+
+    def test_launch_with_variables_needed_to_start_and_extra_vars_at_launch(self, job_template_with_extra_vars, required_survey_spec,
+                                                                            job_extra_vars_dict, tower_version_cmp):
+        '''
+        Verify that when launch-time extra_vars are provided, the job
+        extra_variables are a union of the job_template variables, survey
+        variables, and launch-time variables.
+        '''
+        job_template_with_extra_vars.patch(survey_enabled=True)
+        survey_spec = job_template_with_extra_vars.get_related('survey_spec').post(required_survey_spec).get()
+
+        # find future job variables that come exclusively from the survey
+        survey_vars = [question['variable']
+                       for question in survey_spec.spec
+                       if (question.get('required', False) is False and
+                       (question.get('default') not in (None, '')))]
+
+        launch_pg = job_template_with_extra_vars.get_related('launch')
+
+        # assert values on launch resource
+        assert not launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
+
+        # assert number of required variables
+        required_variables = [question['variable']
+                              for question in survey_spec.spec
+                              if (question.get('required', False) is True)]
+        assert len(launch_pg.variables_needed_to_start) == len(required_variables), \
+            "Unexpected number of required variables (%s != %s)" % \
+            (len(launch_pg.variables_needed_to_start), len(required_variables))
+
+        # assert names of required variables
+        for variable in required_variables:
+            assert variable in launch_pg.variables_needed_to_start, \
+                "Missing required variable: %s" % variable
+
+        # launch job_template and assert successful completion
+        job_extra_vars_dict.update(dict(likes_chicken=["yes"], favorite_color="green"))
+        job_pg = job_template_with_extra_vars.launch(dict(extra_vars=job_extra_vars_dict)).wait_until_completed()
+        assert job_pg.is_successful, "job unsuccessful - %s" % job_pg
+
+        # format job extra_vars
+        try:
+            job_extra_vars = json.loads(job_pg.extra_vars)
+        except ValueError:
+            job_extra_vars = {}
+
+        # variable precedence changed in 2.4.0
+        if tower_version_cmp('2.4.0') < 0:
+            # assert job.extra_vars match the launch-time extra_vars
+            assert job_extra_vars == job_extra_vars_dict
+
+        else:
+            # coerce extra_vars into a dictionary for a proper comparison
+            try:
+                job_template_extra_vars = json.loads(job_template_with_extra_vars.extra_vars)
+            except ValueError:
+                job_template_extra_vars = {}
+
+            # assert the job_template extra_vars are a subset of the job extra_vars
+            assert set(job_template_extra_vars) < set(job_extra_vars)
+
+            # assert the survey extra_vars are a subset of the job extra_vars
+            assert set(survey_vars) < set(job_extra_vars)
+
+            # assert the launch-time extra_vars are a subset of the job extra_vars
+            assert set(job_extra_vars_dict) < set(job_extra_vars)
+
+            # assert the job extra_vars are a union of the job_template, survey, and launch-time extra_vars
+            assert set(job_extra_vars) == set(job_template_extra_vars) | set(survey_vars) | set(job_extra_vars_dict)
+
+            # assert that launch-time extra_vars take precedence over job template and survey extra_vars
+            assert job_extra_vars['intersection'] == u'job', \
+                "A launch-time extra_var did not replace a job_template extra_var and survey extra_var as expected."
 
     def test_launch_without_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         '''
@@ -621,7 +714,7 @@ class Test_Job_Template(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Job_Template_Survey_Spec(Base_Api_Test):
     '''
-    Test survey_creation
+    Test job_template surveys
     '''
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
@@ -675,7 +768,7 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
 
     def test_launch_survey_enabled(self, job_template_ping, required_survey_spec):
         '''
-        Tests that launch_pg.survey_enabled operates as expected.
+        Assess launch_pg.survey_enabled under various scenarios.
         '''
         # check that launch_pg.survey_enabled is False by default
         launch_pg = job_template_ping.get_related("launch")
@@ -697,6 +790,38 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
         assert launch_pg.survey_enabled, \
             "launch_pg.survey_enabled is False even though JT survey_enabled is True \
             and valid survey posted."
+
+    def test_launch_with_optional_survey_spec(self, job_template_ping, optional_survey_spec):
+        '''
+        Verify launch_pg attributes with an optional survey spec and job extra_vars.
+        '''
+        # post a survey
+        job_template_ping.patch(survey_enabled=True)
+        survey_pg = job_template_ping.get_related('survey_spec').post(optional_survey_spec).get()
+
+        # assess launch_pg values
+        launch_pg = job_template_ping.get_related('launch')
+        assert launch_pg.can_start_without_user_input
+        assert launch_pg.variables_needed_to_start == []
+
+        # launch the job_template and assess results
+        job_pg = job_template_ping.launch().wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+
+        # format job extra_vars
+        try:
+            job_extra_vars = json.loads(job_pg.extra_vars)
+        except ValueError:
+            job_extra_vars = {}
+
+        # find expected job extra_vars from survey
+        survey_extra_vars = dict((question['variable'], question['default'])
+                                 for question in survey_pg.spec
+                                 if question.get('required', False) is False and
+                                 question.get('default') not in (None, ''))
+
+        # assert expected job extra_vars
+        assert set(job_extra_vars) == set(survey_extra_vars)
 
 
 @pytest.mark.api
