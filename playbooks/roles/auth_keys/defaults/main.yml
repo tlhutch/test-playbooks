@@ -13,3 +13,4 @@ authorized_keys:
     - 'https://github.com/simfarm.keys'
     - 'https://github.com/jladdjr.keys'
     - 'https://github.com/jakemcdermott.keys'
+    - 'https://github.com/ghjm.keys'
