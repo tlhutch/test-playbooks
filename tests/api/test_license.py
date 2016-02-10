@@ -171,6 +171,7 @@ def install_trial_legacy_license(request, api_config_pg, license_instance_count)
     log.debug("calling fixture install_trial_legacy_license")
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, trial=True)
     api_config_pg.post(license_info)
+    request.addfinalizer(api_config_pg.delete)
 
     # Confirm that license is present
     conf = api_config_pg.get()
@@ -309,6 +310,8 @@ def install_enterprise_license_expired(request, ansible_runner, api_config_pg, l
 @pytest.fixture(scope='function')
 def install_legacy_license_warning(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_warning")
+
+    # Post license
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=1)
     api_config_pg.post(license_info)
     request.addfinalizer(api_config_pg.delete)
@@ -317,6 +320,8 @@ def install_legacy_license_warning(request, api_config_pg, license_instance_coun
 @pytest.fixture(scope='function')
 def install_legacy_license_expired(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_expired")
+
+    # Apply license
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=-61)
     api_config_pg.post(license_info)
     request.addfinalizer(api_config_pg.delete)
@@ -325,6 +330,8 @@ def install_legacy_license_expired(request, api_config_pg, license_instance_coun
 @pytest.fixture(scope='function')
 def install_legacy_license_grace_period(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_grace_period")
+
+    # Apply license
     license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=-1)
     api_config_pg.post(license_info)
     request.addfinalizer(api_config_pg.delete)
@@ -357,7 +364,14 @@ def install_legacy_license_aws(request, ansible_runner, license_instance_count, 
     fname = common.tower.license.generate_aws_file(instance_count=license_instance_count, ami_id=ami_id, instance_id=instance_id)
     contacted = ansible_runner.copy(src=fname, dest=tower_aws_path, owner='awx', group='awx', mode='0600')
     for result in contacted.values():
-        assert 'failed' not in result, "Failure installing license\n%s" % json.dumps(result, indent=2)
+        assert 'failed' not in result, "Failure installing aws license\n%s" % json.dumps(result, indent=2)
+
+    def teardown():
+        contacted = ansible_runner.file(path=tower_aws_path, state='absent')
+        for result in contacted.values():
+            assert 'failed' not in result, "Failure removing license\n%s" % json.dumps(result, indent=2)
+
+    request.addfinalizer(teardown)
 
 
 @pytest.fixture(scope="function")
@@ -518,6 +532,11 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(common.exceptions.LicenseInvalid_Exception):
             api_config_pg.post(invalid_license_json)
 
+        # Confirm license file not present
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            assert not result['stat']['exists'], "License file was not expected, but one was found"
+
         # Assert that no license has been applied
         conf = api_config_pg.get()
         assert conf.license_info == {}, "No license was expected, found %s" % conf.license_info
@@ -534,7 +553,7 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(common.exceptions.LicenseInvalid_Exception):
             api_config_pg.post(eula_rejected_legacy_license_json)
 
-    def test_post_legacy_license(self, api_config_pg, legacy_license_json, ansible_runner, tower_license_path):
+    def test_post_legacy_license(self, api_config_pg, legacy_license_json, ansible_runner, tower_license_path, tower_version_cmp):
         '''Verify that a license can be installed by issuing a POST to the /config endpoint'''
         # Assert that /etc/tower/license does not exist
         contacted = ansible_runner.stat(path=tower_license_path)
@@ -548,13 +567,26 @@ class Test_No_License(Base_Api_Test):
         # Install the license
         api_config_pg.post(legacy_license_json)
 
+        # Confirm license file is [not] present (depending on version)
+        contacted = ansible_runner.stat(path=tower_license_path)
+        if tower_version_cmp('3.0.0') < 0:
+            for result in contacted.values():
+                assert result['stat']['exists'], "License file was expected, but none was found"
+        else:
+            for result in contacted.values():
+                assert not result['stat']['exists'], "No license file was expected, but one was found"
+
         # Assert that license present at /api/v1/config/
         conf = api_config_pg.get()
         assert conf.license_info != {}, "License expected, but none found"
         assert conf.license_info.license_key == legacy_license_json['license_key']
 
-        # Assert that /etc/tower/license still does not exist
-        # (license no longer stored in file, stored in db instead)
+        # Remove license
+        api_config_pg.delete()
+        conf = api_config_pg.get()
+        assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
+
+        # Confirm license file is not present
         contacted = ansible_runner.stat(path=tower_license_path)
         for result in contacted.values():
             assert not result['stat']['exists'], "No license file was expected, but one was found"
@@ -589,6 +621,13 @@ class Test_AWS_License(Base_Api_Test):
             "returned %s." % conf.license_info['license_type']
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
+    def test_license_file(self, api_config_pg, ansible_runner, tower_aws_path):
+        '''Verify that aws license file is created. Note: aws license is stored in file not database.'''
+        contacted = ansible_runner.stat(path=tower_aws_path)
+        for result in contacted.values():
+            assert result['stat']['exists'], "AWS license file was expected, but none was found"
+
+    @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:
@@ -609,7 +648,7 @@ class Test_AWS_License(Base_Api_Test):
             assert 'license_key' not in conf.license_info
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
-    def test_update_license(self, api_config_pg, legacy_license_json, ansible_runner, tower_license_path, tower_aws_path):
+    def test_update_license(self, api_config_pg, legacy_license_json, ansible_runner, tower_license_path, tower_aws_path, tower_version_cmp):
         '''Verify that a regular license can be installed by issuing a POST to
         the /config endpoint.  The regular license should win out over the AWS
         license.
@@ -644,12 +683,16 @@ class Test_AWS_License(Base_Api_Test):
             after_md5 = result['stat']['md5']
         assert before_md5 == after_md5, "The license file was modified unexpectedly (md5 hash differs)."
 
-        # Assert that /etc/tower/license still does not exist
+        # Confirm license file is [not] present (depending on version)
         contacted = ansible_runner.stat(path=tower_license_path)
-        for result in contacted.values():
-            assert not result['stat']['exists'], "No license was expected, but one was found. %s" % result
+        if tower_version_cmp('3.0.0') < 0:
+            for result in contacted.values():
+                assert result['stat']['exists'], "License file was expected, but none was found"
+        else:
+            for result in contacted.values():
+                assert not result['stat']['exists'], "No license file was expected, but one was found"
 
-        # Get license
+        # Confirm new license present in /api/v1/config
         conf = api_config_pg.get()
         assert conf.license_info != {}, "No license listed in /api/v1/config/."
         assert conf.license_info.license_key == legacy_license_json['license_key'], \
@@ -659,11 +702,26 @@ class Test_AWS_License(Base_Api_Test):
         assert not conf.is_aws_license, "After installing a regular license, the /config endpoint reports that a AWS license is active. %s" \
             % json.dumps(conf.json, indent=4)
 
-    def test_delete_license(self, api_config_pg):
+        # Remove license
+        api_config_pg.delete()
+        conf = api_config_pg.get()
+        assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
+
+        # Confirm license file is not present
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            assert not result['stat']['exists'], "No license file was expected, but one was found"
+
+    def test_delete_license(self, api_config_pg, ansible_runner, tower_license_path):
         '''Verify the license_info field is empty after deleting the license'''
         api_config_pg.delete()
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
+
+        # Confirm license file not present
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            assert not result['stat']['exists'], "License file was not expected, but one was found"
 
 
 @pytest.mark.api
@@ -709,6 +767,16 @@ class Test_Legacy_License(Base_Api_Test):
         # Assess default features
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for legacy license: %s." % conf.license_info
+
+    def test_license_file(self, api_config_pg, tower_version_cmp, ansible_runner, tower_license_path):
+        '''Verify that tower license file is [not] created (depending on tower version)'''
+        contacted = ansible_runner.stat(path=tower_license_path)
+        if tower_version_cmp('3.0.0') < 0:
+            for result in contacted.values():
+                assert result['stat']['exists'], "License file was expected, but none was found"
+        else:
+            for result in contacted.values():
+                assert not result['stat']['exists'], "No license file was expected, but one was found"
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
@@ -782,11 +850,16 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected API response upon attempting to navigate to fact_versions with a legacy license - %s." % json.dumps(result)
 
-    def test_delete_license(self, api_config_pg):
+    def test_delete_license(self, api_config_pg, ansible_runner, tower_license_path):
         '''Verify the license_info field is empty after deleting the license'''
         api_config_pg.delete()
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
+
+        # Confirm license file not present
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            assert not result['stat']['exists'], "License file was not expected, but one was found"
 
 
 @pytest.mark.api
@@ -820,14 +893,37 @@ class Test_Legacy_License_Warning(Base_Api_Test):
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
 
-    def test_update_license(self, api_config_pg, legacy_license_json, ansible_runner):
+    def test_license_file(self, api_config_pg, tower_version_cmp, ansible_runner, tower_license_path):
+        '''Verify that tower license file is [not] created (depending on tower version)'''
+        contacted = ansible_runner.stat(path=tower_license_path)
+        if tower_version_cmp('3.0.0') < 0:
+            for result in contacted.values():
+                assert result['stat']['exists'], "License file was expected, but none was found"
+        else:
+            for result in contacted.values():
+                assert not result['stat']['exists'], "No license file was expected, but one was found"
+
+    def test_update_license(self, api_config_pg, legacy_license_json, ansible_runner, tower_license_path, tower_version_cmp):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
+        # Record the license md5 (if running older version of tower)
+        if tower_version_cmp('3.0.0') < 0:
+            contacted = ansible_runner.stat(path=tower_license_path)
+            for result in contacted.values():
+                before_md5 = result['stat']['md5']
+
         # Record license_key
         conf = api_config_pg.get()
         before_license_key = conf.license_info.license_key
 
         # Update the license
         api_config_pg.post(legacy_license_json)
+
+        # Assert that /etc/tower/license was modified (if running older version of tower)
+        if tower_version_cmp('3.0.0') < 0:
+            contacted = ansible_runner.stat(path=tower_license_path)
+            for result in contacted.values():
+                after_md5 = result['stat']['md5']
+            assert before_md5 != after_md5, "The license file was not modified as expected"
 
         # Record license_key
         conf = api_config_pg.get()
@@ -871,6 +967,16 @@ class Test_Legacy_License_Grace_Period(Base_Api_Test):
         assert conf.license_info['license_type'] == 'legacy', \
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
+
+    def test_license_file(self, api_config_pg, tower_version_cmp, ansible_runner, tower_license_path):
+        '''Verify that tower license file is [not] created (depending on tower version)'''
+        contacted = ansible_runner.stat(path=tower_license_path)
+        if tower_version_cmp('3.0.0') < 0:
+            for result in contacted.values():
+                assert result['stat']['exists'], "License file was expected, but none was found"
+        else:
+            for result in contacted.values():
+                assert not result['stat']['exists'], "No license file was expected, but one was found"
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
@@ -918,6 +1024,18 @@ class Test_Legacy_License_Expired(Base_Api_Test):
         assert conf.license_info['license_type'] == 'legacy', \
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
+
+    def test_license_file(self, api_config_pg, tower_version_cmp, ansible_runner, tower_license_path):
+        '''Verify that tower license file is [not] created (depending on tower version)'''
+        # TODO: If you post a legacy license file that's expired, do we expect the license file
+        #       to still get created?
+        contacted = ansible_runner.stat(path=tower_license_path)
+        if tower_version_cmp('3.0.0') < 0:
+            for result in contacted.values():
+                assert result['stat']['exists'], "License file was expected, but none was found"
+        else:
+            for result in contacted.values():
+                assert not result['stat']['exists'], "No license file was expected, but one was found"
 
     def test_host(self, inventory, group):
         '''Verify that no hosts can be added'''
@@ -967,14 +1085,27 @@ class Test_Legacy_License_Expired(Base_Api_Test):
                 ad_hoc_commands_pg.post(payload), \
                     "Unexpectedly launched an ad_hoc_command with an expired license from %s." % ad_hoc_commands_pg.base_url
 
-    def test_update_license(self, api_config_pg, legacy_license_json, ansible_runner):
+    def test_update_license(self, api_config_pg, legacy_license_json, ansible_runner, tower_license_path, tower_version_cmp):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
+        # Record the license md5 (if running older version of tower)
+        if tower_version_cmp('3.0.0') < 0:
+            contacted = ansible_runner.stat(path=tower_license_path)
+            for result in contacted.values():
+                before_md5 = result['stat']['md5']
+
         # Record license_key
         conf = api_config_pg.get()
         before_license_key = conf.license_info.license_key
 
         # Update the license
         api_config_pg.post(legacy_license_json)
+
+        # Record the license md5 and assert file has changed (if running older version of tower)
+        if tower_version_cmp('3.0.0') < 0:
+            contacted = ansible_runner.stat(path=tower_license_path)
+            for result in contacted.values():
+                after_md5 = result['stat']['md5']
+                assert before_md5 != after_md5, "The license file was not modified as expected"
 
         # Record license_key
         conf = api_config_pg.get()
@@ -1018,6 +1149,16 @@ class Test_Legacy_Trial_License(Base_Api_Test):
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
 
+    def test_license_file(self, api_config_pg, tower_version_cmp, ansible_runner, tower_license_path):
+        '''Verify that tower license file is [not] created (depending on tower version)'''
+        contacted = ansible_runner.stat(path=tower_license_path)
+        if tower_version_cmp('3.0.0') < 0:
+            for result in contacted.values():
+                assert result['stat']['exists'], "License file was expected, but none was found"
+        else:
+            for result in contacted.values():
+                assert not result['stat']['exists'], "No license file was expected, but one was found"
+
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:
@@ -1035,8 +1176,14 @@ class Test_Legacy_Trial_License(Base_Api_Test):
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
-    def test_update_license(self, api_config_pg, trial_legacy_license_json, ansible_runner):
+    def test_update_license(self, api_config_pg, trial_legacy_license_json, ansible_runner, tower_license_path, tower_version_cmp):
         '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
+        # Record the license md5 (if running older version of tower)
+        if tower_version_cmp('3.0.0') < 0:
+            contacted = ansible_runner.stat(path=tower_license_path)
+            for result in contacted.values():
+                before_md5 = result['stat']['md5']
+
         # Record license_key
         conf = api_config_pg.get()
         before_license_key = conf.license_info.license_key
@@ -1044,11 +1191,21 @@ class Test_Legacy_Trial_License(Base_Api_Test):
         # Update the license
         api_config_pg.post(trial_legacy_license_json)
 
+        # Record the license md5 (if running older version of tower)
+        if tower_version_cmp('3.0.0') < 0:
+            contacted = ansible_runner.stat(path=tower_license_path)
+            for result in contacted.values():
+                after_md5 = result['stat']['md5']
+
         # Record license_key
         conf = api_config_pg.get()
         after_license_key = conf.license_info.license_key
         assert before_license_key != after_license_key, \
             "Expected license_key to change after applying new license, but found old value."
+
+        # Assert that /etc/tower/license was modified
+        if tower_version_cmp('3.0.0') < 0:
+            assert before_md5 != after_md5, "The license file was not modified as expected"
 
         # Assert license_key is correct
         expected_license_key = trial_legacy_license_json['license_key']
@@ -1099,6 +1256,16 @@ class Test_Basic_License(Base_Api_Test):
         # assess default features
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for basic license: %s." % conf.license_info
+
+    def test_license_file(self, api_config_pg, tower_version_cmp, ansible_runner, tower_license_path):
+        '''Verify that tower license file is [not] created (depending on tower version)'''
+        contacted = ansible_runner.stat(path=tower_license_path)
+        if tower_version_cmp('3.0.0') < 0:
+            for result in contacted.values():
+                assert result['stat']['exists'], "License file was expected, but none was found"
+        else:
+            for result in contacted.values():
+                assert not result['stat']['exists'], "No license file was expected, but one was found"
 
     def test_mongod_is_not_running(self, ansible_runner, api_config_pg):
         assert_mongo_is_not_running(ansible_runner)
@@ -1223,14 +1390,39 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected JSON response upon attempting to navigate to fact_versions with a basic license - %s." % json.dumps(result)
 
-    def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg, ansible_runner):
+    def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg, ansible_runner, tower_license_path, tower_version_cmp):
         '''Verify that a basic license can get upgraded to an enterprise license.'''
 
         # check that MongoDB is inactive with basic license
         assert_mongo_is_not_running(ansible_runner)
 
+        # Record the license md5 (if running older version of tower)
+        if tower_version_cmp('3.0.0') < 0:
+            contacted = ansible_runner.stat(path=tower_license_path)
+            for result in contacted.values():
+                before_md5 = result['stat']['md5']
+
         # Update the license
         api_config_pg.post(enterprise_license_json)
+
+        # Record the license md5 (if running older version of tower)
+        if tower_version_cmp('3.0.0') < 0:
+            contacted = ansible_runner.stat(path=tower_license_path)
+            for result in contacted.values():
+                after_md5 = result['stat']['md5']
+
+        # Record license_key
+        conf = api_config_pg.get()
+        after_license_key = conf.license_info.license_key
+
+        # Assert that /etc/tower/license was modified
+        if tower_version_cmp('3.0.0') < 0:
+            assert before_md5 != after_md5, "The license file was not modified as expected"
+
+        # Assert license_key is correct
+        expected_license_key = enterprise_license_json['license_key']
+        assert after_license_key == expected_license_key, \
+            "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
         # Confirm enterprise license present
         conf = api_config_pg.get()
@@ -1241,11 +1433,16 @@ class Test_Basic_License(Base_Api_Test):
         # check that MongoDB is active with enterprise license
         assert_mongo_is_running(ansible_runner)
 
-    def test_delete_license(self, api_config_pg):
+    def test_delete_license(self, api_config_pg, ansible_runner, tower_license_path):
         '''Verify the license_info field is empty after deleting the license'''
         api_config_pg.delete()
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
+
+        # Confirm license file not present
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            assert not result['stat']['exists'], "License file was not expected, but one was found"
 
 
 @pytest.mark.api
@@ -1291,6 +1488,16 @@ class Test_Enterprise_License(Base_Api_Test):
         # assess default features
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for enterprise license: %s." % conf.license_info
+
+    def test_license_file(self, api_config_pg, tower_version_cmp, ansible_runner, tower_license_path):
+        '''Verify that tower license file is [not] created (depending on tower version)'''
+        contacted = ansible_runner.stat(path=tower_license_path)
+        if tower_version_cmp('3.0.0') < 0:
+            for result in contacted.values():
+                assert result['stat']['exists'], "License file was expected, but none was found"
+        else:
+            for result in contacted.values():
+                assert not result['stat']['exists'], "No license file was expected, but one was found"
 
     def test_mongod_is_running(self, ansible_runner, api_config_pg):
         assert_mongo_is_running(ansible_runner)
@@ -1416,13 +1623,33 @@ class Test_Enterprise_License(Base_Api_Test):
         for fact_version in fact_versions_pg.results:
             fact_version.get_related('fact_view')
 
-    def test_downgrade_to_basic(self, basic_license_json, api_config_pg, ansible_runner):
+    def test_downgrade_to_basic(self, basic_license_json, api_config_pg, ansible_runner, tower_license_path, tower_version_cmp):
         '''Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg.'''
         # check that MongoDB is active with an enterprise license
         assert_mongo_is_running(ansible_runner)
 
+        # Record the license md5 (if running older version of tower)
+        if tower_version_cmp('3.0.0') < 0:
+            contacted = ansible_runner.stat(path=tower_license_path)
+            for result in contacted.values():
+                before_md5 = result['stat']['md5']
+
         # Update the license
         api_config_pg.post(basic_license_json)
+
+        # Record license_key
+        conf = api_config_pg.get()
+        after_license_key = conf.license_info.license_key
+
+        # Record the license md5 (if running older version of tower)
+        if tower_version_cmp('3.0.0') < 0:
+            contacted = ansible_runner.stat(path=tower_license_path)
+            for result in contacted.values():
+                after_md5 = result['stat']['md5']
+
+        # Assert that /etc/tower/license was modified
+        if tower_version_cmp('3.0.0') < 0:
+            assert before_md5 != after_md5, "The license file was not modified as expected"
 
         # Assess license type
         conf = api_config_pg.get()
@@ -1430,14 +1657,24 @@ class Test_Enterprise_License(Base_Api_Test):
             "Incorrect license_type returned. Expected 'basic,' " \
             "returned %s." % conf.license_info['license_type']
 
+        # Assert license_key is correct
+        expected_license_key = basic_license_json['license_key']
+        assert after_license_key == expected_license_key, \
+            "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
+
         # check that MongoDB is now inactive after the downgrade to basic
         assert_mongo_is_not_running(ansible_runner)
 
-    def test_delete_license(self, api_config_pg):
+    def test_delete_license(self, api_config_pg, ansible_runner, tower_license_path):
         '''Verify the license_info field is empty after deleting the license'''
         api_config_pg.delete()
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
+
+        # Confirm license file not present
+        contacted = ansible_runner.stat(path=tower_license_path)
+        for result in contacted.values():
+            assert not result['stat']['exists'], "License file was not expected, but one was found"
 
 
 @pytest.mark.api
@@ -1470,6 +1707,18 @@ class Test_Enterprise_License_Expired(Base_Api_Test):
         assert conf.license_info['license_type'] == 'enterprise', \
             "Incorrect license_type returned. Expected 'enterprise' " \
             "returned %s." % conf.license_info['license_type']
+
+    def test_license_file(self, api_config_pg, tower_version_cmp, ansible_runner, tower_license_path):
+        '''Verify that tower license file is [not] created (depending on tower version)'''
+        # TODO: If an expired enterprise license is posted, do we expected a license file
+        #       to get created?
+        contacted = ansible_runner.stat(path=tower_license_path)
+        if tower_version_cmp('3.0.0') < 0:
+            for result in contacted.values():
+                assert result['stat']['exists'], "License file was expected, but none was found"
+        else:
+            for result in contacted.values():
+                assert not result['stat']['exists'], "No license file was expected, but one was found"
 
     @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
