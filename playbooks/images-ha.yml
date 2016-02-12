@@ -8,12 +8,12 @@ my_inventory_file: '{{inventory_dir}}/inventory.ha'
 #
 
 ec2_images:
-    - {'name': 'ha-primary-centos-6.5-x86_64',     'user': 'root',     'id': 'ami-8997afe0', 'type': 'm3.large', 'groups': 'primary',   'security_group': 'Tower'}
-    - {'name': 'ha-secondary-rhel-6.5-x86_64',     'user': 'ec2-user', 'id': 'ami-8d756fe4', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
-    - {'name': 'ha-secondary-rhel-7.0-x86_64',     'user': 'ec2-user', 'id': 'ami-785bae10', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
-    - {'name': 'ha-secondary-ubuntu-12.04-x86_64', 'user': 'ubuntu',   'id': 'ami-2ccc7a44', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
-    - {'name': 'ha-secondary-ubuntu-14.04-x86_64', 'user': 'ubuntu',   'id': 'ami-8caa1ce4', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
-    - {'name': 'ha-mongo-centos-7.0-x86_64',       'user': 'centos',   'id': 'ami-96a818fe', 'type': 'm3.large', 'groups': 'mongodb',   'security_group': 'MongoDB'}
+    - {'name': 'ha-primary-centos-6.latest-x86_64', 'user': 'root',     'id': 'ami-57cd8732', 'type': 'm3.large', 'groups': 'primary',   'security_group': 'Tower'}
+    - {'name': 'ha-secondary-rhel-6.7-x86_64',      'user': 'ec2-user', 'id': 'ami-0d28fe66', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
+    - {'name': 'ha-secondary-rhel-7.2-x86_64',      'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
+    - {'name': 'ha-secondary-ubuntu-12.04-x86_64',  'user': 'ubuntu',   'id': 'ami-c3f1d4a9', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
+    - {'name': 'ha-secondary-ubuntu-14.04-x86_64',  'user': 'ubuntu',   'id': 'ami-20d3fc4a', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
+    - {'name': 'ha-mongo-centos-7.latest-x86_64',   'user': 'centos',   'id': 'ami-61bbf104', 'type': 'm3.large', 'groups': 'mongodb',   'security_group': 'MongoDB'}
 
 ec2_security_groups:
     - name: Tower
