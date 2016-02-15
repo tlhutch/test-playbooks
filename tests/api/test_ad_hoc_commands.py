@@ -361,31 +361,45 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         command_pg.wait_until_completed()
         assert not command_pg.is_successful, "Command successful, but was expected to fail - %s " % command_pg
 
-    @pytest.mark.parametrize("limit_value,expected_count", [
-        ("", 16),
-        ("all", 16),
-        ("host-14", 1),
-        ("group-1", 6),
-        ("group*:&group-1:!duplicate_host", 5),
-        ("duplicate_host", 1)
+    @pytest.mark.parametrize("limit_value, expected_count", [
+        ("", 11),
+        ("all", 11),
+        ("host-6", 1),
+        ("group-1", 4),
+        ("group*:&group-1:!duplicate_host", 3),  # All groups intersect with "group-1" and not "duplicate_host"
+        ("duplicate_host", 1),
+        pytest.mark.xfail(reason="https://github.com/ansible/ansible/issues/14513")(("host with spaces in name", 1)),
+        ("UNMATCHED_LIMIT", 0)
     ])
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json
 
+# Create hosts and groups
 inv = dict(_meta=dict(hostvars={}), hosts=[])
+inv['group-0'] = [
+   "duplicate_host",
+   "host with spaces in name",
+   "host-1",
+   "host-2",
+   "host-3",
+]
+inv['group-1'] = [
+   "duplicate_host",
+   "host-4",
+   "host-5",
+   "host-6",
+]
+inv['group-2'] = [
+   "duplicate_host",
+   "host-7",
+   "host-8",
+   "host-9",
+]
 
-# create three groups and put duplicate_host in all three groups
-for i in range(3):
-    inv['group-'+str(i)] = list()
-    host = "duplicate_host"
-    inv['group-'+str(i)].append(host)
-    inv['_meta']['hostvars'][host] = dict(ansible_ssh_host='127.0.0.1', ansible_connection='local')
-
-# create fifteen hosts, five per each group
-for i in range(15):
-    host = 'host-'+str(i)
-    inv['group-'+str(i%3)].append(host)
-    inv['_meta']['hostvars'][host] = dict(ansible_ssh_host='127.0.0.1', ansible_connection='local')
+# Add _meta hostvars
+for grp, hosts in inv.items():
+    for host in hosts:
+        inv['_meta']['hostvars'][host] = dict(ansible_ssh_host='127.0.0.1', ansible_connection='local')
 
 print json.dumps(inv, indent=2)
 ''')
@@ -398,10 +412,8 @@ print json.dumps(inv, indent=2)
             api_ad_hoc_commands_pg
     ):
         '''
-        Verifies payloads with different values for "limit" behave as expected.
+        Verifies payloads with different values for limit behave as expected.
         '''
-        custom_inventory_update_with_status_completed
-
         # create payload
         payload = dict(inventory=custom_inventory_source.inventory,
                        credential=ssh_credential.id,
@@ -410,7 +422,7 @@ print json.dumps(inv, indent=2)
 
         # post the command
         command_pg = api_ad_hoc_commands_pg.post(payload).wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+        assert command_pg.is_successful, "Command unsuccessful - %s" % command_pg
 
         # assert that command run on correct number of hosts
         events_pg = command_pg.get_related('events')
