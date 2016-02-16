@@ -43,8 +43,8 @@
 
 #### Installation bundle installer
 1. Installation completes successfully on all supported platforms (* Test on Ansible 1.9?)
-    * [ ] rhel-6.7
-    * [ ] rhel-7.2
+    * [x] rhel-6.7
+    * [x] rhel-7.2
     * [x] centos-6.7
     * [x] centos-7.1
 
