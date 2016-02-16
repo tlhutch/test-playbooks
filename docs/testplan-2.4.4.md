@@ -45,13 +45,13 @@
 1. Installation completes successfully on all supported platforms (* Test on Ansible 1.9?)
     * [ ] rhel-6.7
     * [ ] rhel-7.2
-    * [ ] centos-6.7
-    * [ ] centos-7.1
+    * [x] centos-6.7
+    * [x] centos-7.1
 
 #### Upgrade installer
 1. Upgrade completes on all supported platforms from `2.3.*` (Chris)
-    * [ ] ubuntu-12.04
-    * [ ] ubuntu-14.04
+    * [x] ubuntu-12.04
+    * [x] ubuntu-14.04
     * [x] rhel-6.7
     * [x] rhel-7.2
     * [x] centos-6.7
