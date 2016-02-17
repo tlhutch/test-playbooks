@@ -11,7 +11,7 @@
 ## Features Tested
 
 ### Regression
-1. [ ] UI regression completed (Jake)
+1. [x] UI regression completed (Jake)
 1. [ ] API regression completed (Automated)
 1. [x] Munin monitors work on all supported platforms (Chris)
 1. [ ] Tower HA installation (Jim)
