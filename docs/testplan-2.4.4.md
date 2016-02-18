@@ -12,7 +12,7 @@
 
 ### Regression
 1. [x] UI regression completed (Jake)
-1. [ ] API regression completed (Automated)
+1. [x] API regression completed (Automated)
 1. [x] Munin monitors work on all supported platforms (Chris)
 1. [ ] Tower HA installation (Jim)
     * [ ] Verify successful registration of secondary instances
@@ -57,12 +57,12 @@
     * [x] centos-6.7
     * [x] centos-7.2
 1. Upgrade completes on all supported platforms from `2.2.*` (Jim)
-    * [ ] ubuntu-12.04
-    * [ ] ubuntu-14.04
-    * [ ] rhel-6.7
-    * [ ] rhel-7.2
-    * [ ] centos-6.7
-    * [ ] centos-7.2
+    * [x] ubuntu-12.04
+    * [x] ubuntu-14.04
+    * [x] rhel-6.7
+    * [x] rhel-7.2
+    * [x] centos-6.7
+    * [x] centos-7.2
 1. Verify the following functions work as intended after upgrade
     * [x] Launch project_updates for existing projects
     * [x] Launch inventory_udpates for existing inventory_source
