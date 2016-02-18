@@ -38,8 +38,8 @@
     * [x] ansible-1.9.x
     * [x] ansible-1.8.x (manually tested on EL platforms)
 1. Installation completes successfully on supported images (Jim)
-    * [ ] AMI (unlicensed)
-    * [ ] Vagrant
+    * [x] AMI (unlicensed)
+    * [x] Vagrant
 
 #### Installation bundle installer
 1. Installation completes successfully on all supported platforms (* Test on Ansible 1.9?)
