@@ -312,9 +312,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # Assert job was successful
         assert job_pg.launch_type == "callback"
-        assert job_pg.is_successful, \
-            "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
-            (job_pg.status, job_pg.result_stdout, job_pg.result_traceback, job_pg.job_explanation)
+        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
         # Assert only a single host was affected
         # NOTE: may need to poll as the job_host_summaries are calculated
@@ -374,9 +372,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # Assert job was successful
         assert job_pg.launch_type == "callback"
-        assert job_pg.is_successful, \
-            "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s\nJob explanation: %s" % \
-            (job_pg.status, job_pg.result_stdout, job_pg.result_traceback, job_pg.job_explanation)
+        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
         # Assert only a single host was affected
         host_summaries_pg = job_pg.get_related('job_host_summaries')
