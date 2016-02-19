@@ -8,7 +8,7 @@ my_inventory_file: '{{inventory_dir}}/inventory.ha'
 #
 
 ec2_images:
-    - {'name': 'ha-primary-centos-6.latest-x86_64', 'user': 'root',     'id': 'ami-57cd8732', 'type': 'm3.large', 'groups': 'primary',   'security_group': 'Tower'}
+    - {'name': 'ha-primary-centos-6.latest-x86_64', 'user': 'centos',   'id': 'ami-57cd8732', 'type': 'm3.large', 'groups': 'primary',   'security_group': 'Tower'}
     - {'name': 'ha-secondary-rhel-6.7-x86_64',      'user': 'ec2-user', 'id': 'ami-0d28fe66', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
     - {'name': 'ha-secondary-rhel-7.2-x86_64',      'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
     - {'name': 'ha-secondary-ubuntu-12.04-x86_64',  'user': 'ubuntu',   'id': 'ami-c3f1d4a9', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
