@@ -47,7 +47,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
 
     def test_get_without_matching_hosts(self, job_template, host_config_key):
-        '''Assert a GET on the /callback resource returns a list of matching hosts'''
+        '''Assert a GET on the /callback resource returns an empty list of matching hosts'''
         # enable callback
         job_template.patch(host_config_key=host_config_key)
         assert job_template.host_config_key == host_config_key
@@ -60,7 +60,8 @@ class Test_Job_Template_Callback(Base_Api_Test):
         assert len(callback_pg.matching_hosts) == 0, \
             "Unexpected number of matching_hosts (%s != 0)" % len(callback_pg.matching_hosts)
 
-    def test_get_with_matching_hosts(self, job_template, host_config_key, hosts_with_name_matching_local_ipv4_addresses, host_with_default_ipv4_in_variables):
+    def test_get_with_matching_hosts(self, ansible_runner, job_template, host_config_key, host_with_default_ipv4_in_variables,
+                                     ansible_default_ipv4, testsetup):
         '''Assert a GET on the /callback resource returns a list of matching hosts'''
         # enable callback
         job_template.patch(host_config_key=host_config_key)
@@ -70,16 +71,30 @@ class Test_Job_Template_Callback(Base_Api_Test):
         callback_pg = job_template.get_related('callback')
         assert callback_pg.host_config_key == host_config_key
 
+        # issue a GET to the callback page from the Tower host
+        args = dict(method="GET",
+                    status_code=httplib.OK,
+                    url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
+                    user=testsetup.credentials['users']['admin']['username'],
+                    password=testsetup.credentials['users']['admin']['password'],
+                    force_basic_auth=True)
+        contacted = ansible_runner.uri(**args)
+
+        # verify response
+        for result in contacted.values():
+            assert result['status'] == httplib.OK
+            assert not result['changed']
+            assert 'failed' not in result, "GET to callback_pg failed\n%s" % result
+
         # Assert the GET response includes expected inventory counts
         all_inventory_hosts = host_with_default_ipv4_in_variables.get_related('inventory').get_related('hosts')
         assert all_inventory_hosts.count > 1, "Unexpected number of inventory_hosts (%s <= 1)" % all_inventory_hosts.count
-        assert len(callback_pg.matching_hosts) == 1, "Unexpected number of matching_hosts (%s != 1)" % len(callback_pg.matching_hosts)
+        matching_hosts = contacted.values()[0]['json']['matching_hosts']
+        assert len(matching_hosts) == 1, "Unexpected number of matching_hosts (%s != 1)" % len(matching_hosts)
 
-        # Assert the GET response includes expected values in matching_hosts
-        assert [host.name
-                for host in hosts_with_name_matching_local_ipv4_addresses.results
-                if host.name in callback_pg.matching_hosts]
-        assert host_with_default_ipv4_in_variables.name not in callback_pg.matching_hosts
+        # Assert the GET response includes expected value in matching_hosts
+        assert matching_hosts[0] == host_with_default_ipv4_in_variables.name, \
+            "Unexpected matching host displayed on callback_pg - %s." % matching_hosts[0]
 
     def test_launch_without_hosts(self, ansible_runner, job_template, host_config_key, ansible_default_ipv4):
         '''Verify launch failure when no matching inventory host can be found'''
