@@ -14,11 +14,11 @@
 1. [x] UI regression completed (Jake)
 1. [x] API regression completed (Automated)
 1. [x] Munin monitors work on all supported platforms (Chris)
-1. [ ] Tower HA installation (Jim)
-    * [ ] Verify successful registration of secondary instances
-    * [ ] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
-    * [ ] Verify promoting secondary instance
-    * [ ] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
+1. [x] Tower HA installation (Jim)
+    * [x] Verify successful registration of secondary instances
+    * [x] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
+    * [x] Verify promoting secondary instance
+    * [x] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
 1. [x] Tower LDAP Integration (Chris)
     * [x] Verify license enablement with legacy or enterprise license (disabled elsewhere).
     * [x] Verify Tower respects LDAP username and password on login
