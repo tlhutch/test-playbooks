@@ -429,3 +429,11 @@ def custom_inventory_source(request, authtoken, custom_group):
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware', 'openstack'])
 def cloud_group(request):
     return request.getfuncargvalue(request.param + '_group')
+
+
+#
+# Convenience fixture that iterates through cloud groups that support source_regions
+#
+@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce'])
+def cloud_group_supporting_source_regions(request):
+    return request.getfuncargvalue(request.param + '_group')
