@@ -10,14 +10,16 @@
 - name: 'Install tower'
   hosts: 'primary'
   gather_facts: yes
-  sudo: yes
+  become: true
+  become_method: sudo
   roles:
     - role: awx_setup
 
 - name: 'Install ldap'
   hosts: 'ldap'
   gather_facts: yes
-  sudo: yes
+  become: true
+  become_method: sudo
   roles:
     - role: bennojoy.openldap_server
       openldap_server_ldif: 'templates/tower-ldap.ldif.j2'
@@ -27,7 +29,8 @@
 - name: 'Configure Tower to authenticate using LDAP'
   hosts: 'primary'
   gather_facts: no
-  sudo: yes
+  become: true
+  become_method: sudo
   tasks:
     - name: Install Tower LDAP configuration file
       template:

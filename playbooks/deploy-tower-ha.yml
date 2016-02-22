@@ -11,7 +11,8 @@
 - name: 'Install mongodb'
   hosts: 'mongodb'
   gather_facts: yes
-  sudo: yes
+  become: true
+  become_method: sudo
   roles:
     - role: chrismeyersfsu.install_mongod
       install_mongod_admin_username: 'superuser'
@@ -29,6 +30,7 @@
 - name: 'Install tower on primary instances'
   hosts: 'primary'
   gather_facts: no
-  sudo: yes
+  become: true
+  become_method: sudo
   roles:
     - role: awx_setup

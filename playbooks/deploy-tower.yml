@@ -15,6 +15,7 @@
 - name: 'Install Tower'
   hosts: 'primary'
   gather_facts: no
-  sudo: yes
+  become: true
+  become_method: sudo
   roles:
     - { role: awx_setup }
