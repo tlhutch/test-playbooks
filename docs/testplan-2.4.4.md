@@ -50,12 +50,12 @@
 
 #### Upgrade installer
 1. Upgrade completes on all supported platforms from `2.4.3` (Jim)
-    * [ ] ubuntu-12.04
-    * [ ] ubuntu-14.04
-    * [ ] rhel-6.7
-    * [ ] rhel-7.2
-    * [ ] centos-6.7
-    * [ ] centos-7.1
+    * [x] ubuntu-12.04
+    * [x] ubuntu-14.04
+    * [x] rhel-6.7
+    * [x] rhel-7.2
+    * [x] centos-6.7
+    * [x] centos-7.1
 1. Upgrade completes on all supported platforms from `2.3.*` (Chris)
     * [x] ubuntu-12.04
     * [x] ubuntu-14.04
@@ -72,5 +72,5 @@
     * [x] centos-7.2
 1. Verify the following functions work as intended after upgrade
     * [x] Launch project_updates for existing projects
-    * [x] Launch inventory_udpates for existing inventory_source
+    * [x] Launch inventory_updates for existing inventory_source
     * [x] Launch, and relaunch, existing job_templates
