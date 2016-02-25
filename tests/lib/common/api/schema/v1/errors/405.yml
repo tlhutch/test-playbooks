@@ -6,4 +6,4 @@ additionalProperties: False
 properties:
     detail:
         type: string
-        pattern: "^Method '?[A-Z]+'? not allowed.$"
+        pattern: "^Method ['\"]?[A-Z]+['\"]? not allowed.$"
