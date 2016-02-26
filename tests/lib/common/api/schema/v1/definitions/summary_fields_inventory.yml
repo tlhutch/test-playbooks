@@ -2,6 +2,7 @@
 summary_fields_inventory:
     additionalProperties: false
     properties:
+      id: {$ref: '#/definitions/id'}
       description: {type: string}
       groups_with_active_failures: {minimum: 0, type: number}
       has_active_failures: {type: boolean}
@@ -12,5 +13,5 @@ summary_fields_inventory:
       total_groups: {minimum: 0, type: number}
       total_hosts: {minimum: 0, type: number}
       total_inventory_sources: {minimum: 0, type: number}
-    required: [name, description, has_active_failures, hosts_with_active_failures]
+    required: [id, name, description, has_active_failures, hosts_with_active_failures]
     type: object

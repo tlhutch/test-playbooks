@@ -1,9 +1,10 @@
 ---
 summary_fields_project:
     type: object
-    required: [name, description]
+    required: [id, name, description]
     additionalProperties: false
     properties:
+      id: {$ref: '#/definitions/id'}
       description: {type: string}
       name: {type: string}
       status:

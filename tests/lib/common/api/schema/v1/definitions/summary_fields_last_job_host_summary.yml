@@ -2,6 +2,7 @@
 summary_fields_last_job_host_summary:
     additionalProperties: false
     properties:
+      id: {$ref: '#/definitions/id'}
       failed: {type: boolean}
-    required: [failed]
+    required: [id, failed]
     type: object

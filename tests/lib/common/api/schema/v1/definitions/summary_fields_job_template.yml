@@ -2,8 +2,9 @@
 summary_fields_job_template:
     additionalProperties: false
     properties:
+      id: {$ref: '#/definitions/id'}
       description: {type: string}
       name: {type: string}
       unified_job_type: {$ref: '#/definitions/enum_job_type'}
-    required: [name, description]
+    required: [id, name, description]
     type: object

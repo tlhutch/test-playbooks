@@ -2,7 +2,8 @@
 summary_fields_organization:
     additionalProperties: false
     properties:
+        id: {$ref: '#/definitions/id'}
         description: {type: string}
         name: {type: string}
-    required: [name, description]
+    required: [id, name, description]
     type: object

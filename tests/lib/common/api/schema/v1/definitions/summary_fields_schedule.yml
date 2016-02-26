@@ -1,9 +1,10 @@
 ---
 summary_fields_schedule:
     type: object
-    required: [name, description]
+    required: [id, name, description]
     additionalProperties: false
     properties:
+      id: {$ref: '#/definitions/id'}
       description: {type: string}
       name: {type: string}
       next_run: {format: date-time, type: ['null', string]}
