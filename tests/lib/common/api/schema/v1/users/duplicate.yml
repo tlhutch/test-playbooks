@@ -9,5 +9,6 @@ properties:
         minItems: 0
         uniqueItems: true
         items:
-            type: string
-            pattern: '^User with this Username already exists.$'
+            oneOf:
+                - {type: string, pattern: '^User with this Username already exists.$'}
+                - {type: string, pattern: '^A user with that username already exists.$'}
