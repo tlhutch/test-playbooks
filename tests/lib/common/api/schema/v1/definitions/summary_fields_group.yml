@@ -11,6 +11,8 @@ summary_fields_group:
       name: {type: string}
       total_groups: {minimum: 0, type: number}
       total_hosts: {minimum: 0, type: number}
-    required: [id, name, description, has_active_failures, has_inventory_sources, hosts_with_active_failures,
+    # FIXME: required: [id, name, description, has_active_failures, has_inventory_sources, hosts_with_active_failures,
+    #   total_hosts, total_groups, groups_with_active_failures]
+      required: [name, description, has_active_failures, has_inventory_sources, hosts_with_active_failures,
       total_hosts, total_groups, groups_with_active_failures]
     type: object

@@ -6,5 +6,6 @@ summary_fields_job_template:
       description: {type: string}
       name: {type: string}
       unified_job_type: {$ref: '#/definitions/enum_job_type'}
-    required: [id, name, description]
+    # FIXME: required: [id, name, description]
+    required: [name, description]
     type: object

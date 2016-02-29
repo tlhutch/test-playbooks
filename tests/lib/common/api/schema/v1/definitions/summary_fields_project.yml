@@ -1,7 +1,8 @@
 ---
 summary_fields_project:
     type: object
-    required: [id, name, description]
+    required: [name, description]
+    # FIXME: required: [id, name, description]
     additionalProperties: false
     properties:
       id: {$ref: '#/definitions/id'}

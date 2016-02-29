@@ -4,5 +4,6 @@ summary_fields_last_job_host_summary:
     properties:
       id: {$ref: '#/definitions/id'}
       failed: {type: boolean}
-    required: [id, failed]
+    # FIXME: required: [id, failed]
+    required: [failed]
     type: object

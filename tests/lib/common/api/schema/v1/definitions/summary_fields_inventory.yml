@@ -13,5 +13,6 @@ summary_fields_inventory:
       total_groups: {minimum: 0, type: number}
       total_hosts: {minimum: 0, type: number}
       total_inventory_sources: {minimum: 0, type: number}
-    required: [id, name, description, has_active_failures, hosts_with_active_failures]
+    # FIXME: required: [id, name, description, has_active_failures, hosts_with_active_failures]
+    required: [name, description, has_active_failures, hosts_with_active_failures]
     type: object

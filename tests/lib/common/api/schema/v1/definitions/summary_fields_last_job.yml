@@ -10,5 +10,6 @@ summary_fields_last_job:
       job_template_id: {$ref: '#/definitions/id'}
       job_template_name: {type: string}
       status: {$ref: '#/definitions/enum_source_status'}
-    required: [id, name, description, status, failed, job_template_id, job_template_name]
+    # FIXME: required: [id, name, description, status, failed, job_template_id, job_template_name]
+    required: [name, description, status, failed, job_template_id, job_template_name]
     type: object
