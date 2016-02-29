@@ -257,6 +257,22 @@ class Awx_Schema_Hosts(Awx_Schema):
         return self.load_file('hosts/duplicate.yml')
 
 
+class Awx_Schema_Host(Awx_Schema_Hosts):
+    resource = '/api/v1/hosts/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('hosts/item.yml')
+
+    @property
+    def put(self):
+        return self.put
+
+    @property
+    def patch(self):
+        return self.get
+
+
 class Awx_Schema_Host_Related_Fact_Versions(Awx_Schema):
     resource = '/api/v1/hosts/\d+/fact_versions/'
 

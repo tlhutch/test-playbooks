@@ -1,7 +1,10 @@
 ---
 summary_fields_team:
     additionalProperties: false
+    required: [name, description]
+    # FIXME: required: [id, name, description]
     properties:
+      id: {$ref: '#/definitions/id'}
       name: {type: string}
       description: {type: string}
     type: object
