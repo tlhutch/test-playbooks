@@ -614,7 +614,7 @@ print json.dumps(inv, indent=2)
         assert command_pg.module_name == "shell", "Incorrect module run. Expected 'shell' but got %s." % command_pg.module_name
 
     @pytest.mark.fixture_args(ad_hoc_commands=[])
-    def test_excluded_modules(self, inventory, ssh_credential, api_ad_hoc_commands_pg, AD_HOC_COMMANDS, ad_hoc_module_name_choices):
+    def test_excluded_modules(self, inventory, ssh_credential, api_ad_hoc_commands_pg, AD_HOC_COMMANDS, ad_hoc_module_name_choices, tower_version_cmp):
         '''
         Verifies that removed modules are no longer callable.
         '''
@@ -639,12 +639,16 @@ print json.dumps(inv, indent=2)
             result = exc_info.value[1]
 
             # assess result
-            assert result == {'module_name': ['Select a valid choice. %s is not one of the available choices.' % module_name]}, \
-                "Unexpected response upon launching ad hoc command %s not included in " \
-                "ad_hoc.py. %s" % (module_name, json.dumps(result))
+            errorMsg = "Unexpected response upon launching ad hoc command %s not included in " \
+                       "ad_hoc.py. %s" % (module_name, json.dumps(result))
+            if tower_version_cmp('3.0.0') < 0:
+                assert result == {'module_name': ['Select a valid choice. %s is not one of the available choices.' % module_name]}, errorMsg
+            else:
+                assert result == {u'module_name': [u'"%s" is not a valid choice.' % module_name]}, errorMsg
 
     @pytest.mark.fixture_args(ad_hoc_commands=[])
-    def test_relaunch_with_excluded_module(self, ad_hoc_with_status_completed, inventory, ssh_credential, api_ad_hoc_commands_pg, AD_HOC_COMMANDS):
+    def test_relaunch_with_excluded_module(self, ad_hoc_with_status_completed, inventory, ssh_credential, api_ad_hoc_commands_pg, AD_HOC_COMMANDS,
+                                           tower_version_cmp):
         '''
         Verifies that you cannot relaunch a command which has been removed
         from ad_hoc_commands.py.
@@ -656,9 +660,12 @@ print json.dumps(inv, indent=2)
         result = exc_info.value[1]
 
         # assess result
-        assert result == {"module_name": ["Select a valid choice. ping is not one of the available choices."]}, \
-            "Unexpected response when relaunching ad hoc command whose module " \
-            "has been removed from ad_hoc.py. %s" % json.dumps(result)
+        errorMsg = "Unexpected response when relaunching ad hoc command whose module " \
+                   "has been removed from ad_hoc.py. %s" % json.dumps(result)
+        if tower_version_cmp('3.0.0') < 0:
+            assert result == {"module_name": ["Select a valid choice. ping is not one of the available choices."]}, errorMsg
+        else:
+            assert result == {u'module_name': [u'"ping" is not a valid choice.']}, errorMsg
 
 
 @pytest.mark.api

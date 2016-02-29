@@ -146,7 +146,7 @@ def stop_mongodb(request, ansible_runner):
         assert result['rc'] == 0, "Failed to shutdown mongod - %s" % json.dump(result, indent=2)
 
 
-def assert_fact_modules(facts, **kwargs):
+def assess_fact_modules(facts, **kwargs):
     '''Convenience method to assess fact module contents.'''
     assert len(facts) == len(kwargs), "Unexpected number of new facts found ..."
     module_names = [x.module for x in facts]
@@ -746,7 +746,7 @@ class Test_Scan_Job(Base_Api_Test):
         # verify that we have three new fact scans
         final_fact_versions = fact_versions_pg.get().results
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
-        assert_fact_modules(new_facts, ansible=1, packages=1, services=1)
+        assess_fact_modules(new_facts, ansible=1, packages=1, services=1)
 
     @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     def test_file_scan_job(self, install_enterprise_license_unlimited, files_scan_job_template):
@@ -762,7 +762,7 @@ class Test_Scan_Job(Base_Api_Test):
         # verify that we have four new fact scans
         final_fact_versions = fact_versions_pg.get().results
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
-        assert_fact_modules(new_facts, ansible=1, packages=1, services=1, files=1)
+        assess_fact_modules(new_facts, ansible=1, packages=1, services=1, files=1)
 
     @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     def test_recursive_file_scan_job(self, install_enterprise_license_unlimited, scan_job_template):
@@ -782,7 +782,7 @@ class Test_Scan_Job(Base_Api_Test):
         # verify that we have four new fact scans
         final_fact_versions = fact_versions_pg.get().results
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
-        assert_fact_modules(new_facts, ansible=1, packages=1, services=1, files=1)
+        assess_fact_modules(new_facts, ansible=1, packages=1, services=1, files=1)
 
         # check that a specific recursive file exists in fact results
         files_fact_version_pg = filter(lambda x: x.module == "files", new_facts)
@@ -808,7 +808,7 @@ class Test_Scan_Job(Base_Api_Test):
         # verify that we have four new fact scans
         final_fact_versions = fact_versions_pg.get().results
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
-        assert_fact_modules(new_facts, ansible=1, packages=1, services=1, files=1)
+        assess_fact_modules(new_facts, ansible=1, packages=1, services=1, files=1)
 
         # assert facts with checksum data exist
         files_fact_version_pg = filter(lambda x: x.module == "files", new_facts)
@@ -833,7 +833,7 @@ class Test_Scan_Job(Base_Api_Test):
         # verify that we have one new fact scan
         final_fact_versions = fact_versions_pg.get().results
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
-        assert_fact_modules(new_facts, foo=1)
+        assess_fact_modules(new_facts, foo=1)
 
     def test_launch_scan_job_without_mongodb(self, install_enterprise_license, stop_mongodb, scan_job_with_status_completed):
         '''Tests that scan jobs without mongodb running fail appropriately.'''
