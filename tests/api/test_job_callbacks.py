@@ -246,7 +246,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
             assert result['failed']
             assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
-    def test_launch_with_limit(self, api_jobs_url, ansible_runner, job_template_with_limit,
+    def test_launch_with_limit(self, api_jobs_url, ansible_runner, job_template_with_random_limit,
                                host_with_default_ipv4_in_variables, host_config_key,
                                ansible_default_ipv4):
         '''
@@ -256,14 +256,14 @@ class Test_Job_Template_Callback(Base_Api_Test):
         '''
 
         # validate host_config_key
-        job_template_with_limit.patch(host_config_key=host_config_key)
-        assert job_template_with_limit.host_config_key == host_config_key
+        job_template_with_random_limit.patch(host_config_key=host_config_key)
+        assert job_template_with_random_limit.host_config_key == host_config_key
 
         # issue callback
         args = dict(method="POST",
                     timeout=60,
                     status_code=httplib.ACCEPTED,
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template_with_limit.json['related']['callback']),
+                    url="http://%s/%s" % (ansible_default_ipv4, job_template_with_random_limit.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         contacted = ansible_runner.uri(**args)
@@ -279,7 +279,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
 
         # Wait for job to complete
-        jobs_pg = job_template_with_limit.get_related('jobs', launch_type='callback', order_by='-id')
+        jobs_pg = job_template_with_random_limit.get_related('jobs', launch_type='callback', order_by='-id')
         assert jobs_pg.count == 1
         job_pg = jobs_pg.results[0].wait_until_completed(timeout=5 * 60)
 

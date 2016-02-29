@@ -708,6 +708,85 @@ class Test_Job_Template(Base_Api_Test):
         with pytest.raises(common.exceptions.BadRequest_Exception):
             launch_pg.post()
 
+    @pytest.mark.parametrize("limit_value, expected_count", [
+        ("", 12),
+        ("all", 12),
+        ("host-6", 1),
+        ("group-1", 4),
+        ("group*:&group-1:!duplicate_host", 3),  # All groups intersect with "group-1" and not "duplicate_host"
+        ("duplicate_host", 1),
+        pytest.mark.xfail(reason="https://github.com/ansible/ansible/issues/14513")(("host with spaces in name", 1)),
+    ])
+    @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
+import json
+
+# Create hosts and groups
+inv = dict(_meta=dict(hostvars={}), hosts=[])
+inv['group-0'] = [
+   "duplicate_host",
+   "host with spaces in name",
+   "host-1",
+   "host-2",
+   "host-3",
+]
+inv['group-1'] = [
+   "duplicate_host",
+   "host-4",
+   "host-5",
+   "host-6",
+]
+inv['group-2'] = [
+   "duplicate_host",
+   "host-7",
+   "host-8",
+   "host-9",
+]
+
+# Add _meta hostvars
+for grp, hosts in inv.items():
+    for host in hosts:
+        inv['_meta']['hostvars'][host] = dict(ansible_ssh_host='127.0.0.1', ansible_connection='local')
+
+print json.dumps(inv, indent=2)
+''')
+    def test_launch_with_matched_limit_value(
+            self, limit_value,
+            expected_count,
+            custom_inventory_source,
+            custom_inventory_update_with_status_completed,
+            job_template
+    ):
+        '''
+        Verifies that job_template launches with different values for limit behave as expected.
+        '''
+        # patch job_template
+        job_template.patch(limit=limit_value)
+        assert job_template.limit == limit_value, "Unexpected job_template limit with job template - %s." % job_template
+
+        # launch the job template
+        job_pg = job_template.launch().wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+
+        # assert that job run on correct number of hosts
+        job_host_summaries_pg = job_pg.get_related('job_host_summaries')
+        assert job_host_summaries_pg.count == expected_count
+
+    def test_launch_with_unmatched_limit_value(self, job_template_with_random_limit):
+        '''
+        Verify that launching a job template without matching hosts fails appropriately.
+        '''
+        # check that our job_template limit is unmatched
+        hosts_pg = job_template_with_random_limit.get_related("inventory").get_related("hosts")
+        host_names = [host.name for host in hosts_pg.results]
+        for host_name in host_names:
+            assert host_name != job_template_with_random_limit.limit, "Matching host unexpectedly found - %s." % host_name
+
+        # launch the job template and check the results
+        job_pg = job_template_with_random_limit.launch().wait_until_completed()
+        assert job_pg.status == "failed", "Unexpected job_pg.status - %s." % job_pg
+        assert "ERROR: Specified --limit does not match any hosts" in job_pg.result_stdout, \
+            "Unexpected job_pg.result_stdout when launching a job_template with an unmatched limit."
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium

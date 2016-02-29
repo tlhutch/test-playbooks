@@ -21,6 +21,7 @@ class Job_Template_Page(Unified_Job_Template_Page):
     extra_vars = property(json_getter('extra_vars'), json_setter('extra_vars'))
     host_config_key = property(json_getter('host_config_key'), json_setter('host_config_key'))
     ask_variables_on_launch = property(json_getter('ask_variables_on_launch'), json_setter('ask_variables_on_launch'))
+    limit = property(json_getter('limit'), json_setter('limit'))
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
