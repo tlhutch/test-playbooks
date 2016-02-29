@@ -211,13 +211,13 @@ class Test_Inventory_Update(Base_Api_Test):
         inv_source_pg.get()
         assert inv_source_pg.is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
 
-        # NOTE: We can't guarruntee that any cloud instances are running, so we
+        # NOTE: We can't guarantee that any cloud instances are running, so we
         # don't assert that cloud hosts were imported.
         # assert cloud_group.get_related('hosts').count > 0, "No hosts found " \
         #    "after inventory_update.  An inventory_update was not triggered by " \
         #    "the callback as expected"
 
-        # NOTE: We can't guaruntee that any cloud instances are running.
+        # NOTE: We can't guarantee that any cloud instances are running.
         # Also, not all cloud inventory scripts create groups when no hosts are
         # found. Therefore, we no longer assert that child groups were created.
         # assert cloud_group.get_related('children').count > 0, "No child groups " \
