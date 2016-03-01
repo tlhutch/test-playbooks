@@ -146,12 +146,66 @@ def stop_mongodb(request, ansible_runner):
         assert result['rc'] == 0, "Failed to shutdown mongod - %s" % json.dump(result, indent=2)
 
 
-def assess_fact_modules(facts, **kwargs):
-    '''Convenience method to assess fact module contents.'''
+def confirm_fact_modules_present(facts, **kwargs):
+    '''Convenience function to assess fact module contents.'''
     assert len(facts) == len(kwargs), "Unexpected number of new facts found ..."
     module_names = [x.module for x in facts]
     for (mod_name, mod_count) in kwargs.items():
         assert module_names.count(mod_name) == mod_count, "Unexpected number of facts found (%d) for module %s" % (mod_count, mod_name)
+
+
+@pytest.fixture(scope="function")
+def job_template_with_no_log_playbook(job_template, project_ansible_git):
+    '''JT with no_log_local test playbook'''
+    host_pg = job_template.get_related('inventory').get_related('hosts').results[0]
+    host_pg.patch(name='testhost')
+    job_template.patch(project=project_ansible_git.id, playbook='test/integration/no_log_local.yml', verbosity=1)
+    return job_template
+
+
+def assess_job_event_pg_for_no_log(job_event_pg):
+    '''Convenience function to assess job_event_pg contents in testing no_log.'''
+    # Check job event output for tasks with loops
+    if 'item' in job_event_pg.task:
+        for result in job_event_pg.event_data['res']['results']:
+            # For skipped items
+            if result.get('skipped', None):
+                if result['_ansible_no_log']:
+                    assert result['censored'] == \
+                        "the output has been hidden due to the fact that 'no_log: true' was specified for this result"
+                else:
+                    assert "LOG_ME" in result['item']
+            # For item tasks with no_log
+            elif result['_ansible_no_log']:
+                assert "item" not in result
+                assert "<censored>" in result['cmd']
+                assert result['censored'] == \
+                    "the output has been hidden due to the fact that 'no_log: true' was specified for this result"
+            # For item tasks without no_log
+            else:
+                assert "LOG_ME" in result['item']
+                assert "LOG_ME" in result['cmd']
+                assert "LOG_ME" in result['stdout']
+                assert "LOG_ME" in result['invocation']['module_args']['_raw_params']
+                assert "LOG_ME" in result['stdout_lines'][0]
+
+    # Check job event output for non-loop tasks
+    else:
+        # For skipped tasks
+        if "skipped task" in job_event_pg.task:
+            return
+        # For tasks with no_log
+        elif job_event_pg.event_data['res']['_ansible_no_log']:
+            assert "item" not in job_event_pg.event_data['res']
+            assert "<censored>" in job_event_pg.event_data['res']['cmd']
+            assert job_event_pg.event_data['res']['censored'] == \
+                "the output has been hidden due to the fact that 'no_log: true' was specified for this result"
+        # For tasks without no_log
+        else:
+            assert "LOG_ME" in job_event_pg.event_data['res']['cmd']
+            assert "LOG_ME" in job_event_pg.event_data['res']['stdout']
+            assert "LOG_ME" in job_event_pg.event_data['res']['invocation']['module_args']['_raw_params']
+            assert "LOG_ME" in job_event_pg.event_data['res']['stdout_lines'][0]
 
 
 @pytest.mark.api
@@ -724,6 +778,31 @@ print json.dumps(inventory)
         assert inventory_source_pg.get().status == "canceled", \
             "Unexpected inventory_source status after cancelling (expected 'canceled') - %s" % inventory_source_pg
 
+    def test_job_with_no_log(self, job_template_with_no_log_playbook, ansible_version_cmp):
+        '''
+        Tests that jobs with 'no_log' censor the following:
+        * jobs/N/job_events
+        * jobs/N.result_stdout
+        '''
+        # Test for ansible-v2 or greater
+        if ansible_version_cmp('2.0.0.0') < 0:
+            pytest.skip("Only supported on ansible-2.0.0.0 (or newer)")
+
+        # Launch test job template
+        job_pg = job_template_with_no_log_playbook.launch().wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+
+        # Check job_events
+        job_events_pg = job_pg.get_related('job_events', event__startswith='runner_on')
+        for job_event_pg in job_events_pg.results:
+            assess_job_event_pg_for_no_log(job_event_pg)
+
+        # Check result_stdout
+        assert job_pg.result_stdout.count("LOG_ME") == 21, \
+            "Unexpected number of instances of 'LOG_ME' in job_pg.result_stdout: expected 21, got %s." % job_pg.result_stdout.count("LOG_ME")
+        assert job_pg.result_stdout.count("censored") == 12, \
+            "Unexpected number of instances of 'censored' in job_pg.result_stdout: expected 12, got %s." % job_pg.result_stdout.count("censored")
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -746,7 +825,7 @@ class Test_Scan_Job(Base_Api_Test):
         # verify that we have three new fact scans
         final_fact_versions = fact_versions_pg.get().results
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
-        assess_fact_modules(new_facts, ansible=1, packages=1, services=1)
+        confirm_fact_modules_present(new_facts, ansible=1, packages=1, services=1)
 
     @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     def test_file_scan_job(self, install_enterprise_license_unlimited, files_scan_job_template):
@@ -762,7 +841,7 @@ class Test_Scan_Job(Base_Api_Test):
         # verify that we have four new fact scans
         final_fact_versions = fact_versions_pg.get().results
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
-        assess_fact_modules(new_facts, ansible=1, packages=1, services=1, files=1)
+        confirm_fact_modules_present(new_facts, ansible=1, packages=1, services=1, files=1)
 
     @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     def test_recursive_file_scan_job(self, install_enterprise_license_unlimited, scan_job_template):
@@ -782,7 +861,7 @@ class Test_Scan_Job(Base_Api_Test):
         # verify that we have four new fact scans
         final_fact_versions = fact_versions_pg.get().results
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
-        assess_fact_modules(new_facts, ansible=1, packages=1, services=1, files=1)
+        confirm_fact_modules_present(new_facts, ansible=1, packages=1, services=1, files=1)
 
         # check that a specific recursive file exists in fact results
         files_fact_version_pg = filter(lambda x: x.module == "files", new_facts)
@@ -808,7 +887,7 @@ class Test_Scan_Job(Base_Api_Test):
         # verify that we have four new fact scans
         final_fact_versions = fact_versions_pg.get().results
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
-        assess_fact_modules(new_facts, ansible=1, packages=1, services=1, files=1)
+        confirm_fact_modules_present(new_facts, ansible=1, packages=1, services=1, files=1)
 
         # assert facts with checksum data exist
         files_fact_version_pg = filter(lambda x: x.module == "files", new_facts)
@@ -833,7 +912,7 @@ class Test_Scan_Job(Base_Api_Test):
         # verify that we have one new fact scan
         final_fact_versions = fact_versions_pg.get().results
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
-        assess_fact_modules(new_facts, foo=1)
+        confirm_fact_modules_present(new_facts, foo=1)
 
     def test_launch_scan_job_without_mongodb(self, install_enterprise_license, stop_mongodb, scan_job_with_status_completed):
         '''Tests that scan jobs without mongodb running fail appropriately.'''

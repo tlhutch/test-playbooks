@@ -86,6 +86,8 @@ class Job_Event_Page(Base):
     parent = property(json_getter('parent'), json_setter('parent'))
     play = property(json_getter('play'), json_setter('play'))
     task = property(json_getter('task'), json_setter('task'))
+    event_level = property(json_getter('event_level'), json_setter('event_level'))
+    event_data = property(json_getter('event_data'), json_setter('event_data'))
 
 
 class Job_Events_Page(Job_Event_Page, Base_List):

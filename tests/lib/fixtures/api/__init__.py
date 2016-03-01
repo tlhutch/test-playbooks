@@ -149,14 +149,24 @@ def api_config_pg(testsetup, api_config_url):
 
 
 @pytest.fixture(scope="module")
-def tower_version(request, awx_config):
-    return awx_config['version']
-    # return api_config_pg.get().version
+def tower_version(api_config_pg):
+    return api_config_pg.get().version
 
 
 @pytest.fixture(scope="module")
 def tower_version_cmp(request, tower_version):
     return lambda x: common.tower.version_cmp(tower_version, x)
+
+
+@pytest.fixture(scope='module')
+def ansible_version(api_config_pg):
+    '''Returns the ansible version of the system under test.'''
+    return api_config_pg.get().ansible_version
+
+
+@pytest.fixture(scope="module")
+def ansible_version_cmp(request, ansible_version):
+    return lambda x: common.tower.version_cmp(ansible_version, x)
 
 
 @pytest.fixture(scope="module")
