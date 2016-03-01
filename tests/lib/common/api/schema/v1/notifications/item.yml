@@ -1,0 +1,6 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/notifications/\d+/'
+$ref: '#/definitions/notifications'
+definitions:
+  !include '../definitions/*.yml'

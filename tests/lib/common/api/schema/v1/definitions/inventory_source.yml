@@ -43,10 +43,14 @@ inventory_source:
         modified_by: {format: uri, type: string}
         next_job: {format: uri, type: string}
         next_schedule: {format: uri, type: string}
+        notifiers_any: {format: uri, type: string}
+        notifiers_error: {format: uri, type: string}
+        notifiers_success: {format: uri, type: string}
         schedules: {format: uri, type: string}
         source_script: {format: uri, type: string}
         update: {format: uri, type: string}
-      required: [inventory_updates, update, inventory]
+      required: [inventory_updates, update, inventory,
+                 notifiers_any, notifiers_error, notifiers_success]
       type: object
     source: {type: string}
     source_path: {type: string}

@@ -46,13 +46,15 @@ job:
         job_tasks: {format: uri, type: string}
         job_template: {format: uri, type: string}
         modified_by: {format: uri, type: string}
+        notifications: {format: uri, type: string}
         project: {format: uri, type: string}
         relaunch: {format: uri, type: string}
         schedule: {format: uri, type: string}
         start: {format: uri, type: string}
         stdout: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
-      required: [job_host_summaries, job_events, start, cancel, activity_stream]
+      required: [job_host_summaries, job_events, start, cancel, activity_stream,
+                 notifications]
       type: object
     result_stdout: {type: string}
     result_traceback: {type: string}
