@@ -36,8 +36,14 @@ def parse_args():
         if getattr(opts, required) is None:
             parser.error("Missing required parameter: --%s" % required)
 
-    # Convert filters list to dictionary
-    opts.filters = dict([f.split('=', 1) for f in opts.filters])
+    # Convert filter list to dictionary
+    filter_dict = dict()
+    for term in opts.filters:
+        (k, v) = term.split('=', 1)
+        if k not in filter_dict:
+            filter_dict[k] = list()
+        filter_dict[k].append(v)
+    opts.filters = filter_dict
 
     return (opts, args)
 
