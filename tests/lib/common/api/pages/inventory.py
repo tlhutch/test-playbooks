@@ -279,6 +279,8 @@ class Inventory_Update_Page(Unified_Job_Page):
             "No such related attribute '%s'" % attr
         if attr == 'cancel':
             cls = Inventory_Update_Cancel_Page
+        elif attr == 'inventory_source':
+            cls = Inventory_Source_Page
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 
