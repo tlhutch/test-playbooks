@@ -3,39 +3,32 @@
 
 pip
 setuptools>=18.4
-distribute==0.7.3
+distribute
 selenium
 py
-# Remove the following when the  following bug is fixed
-# https://github.com/pytest-dev/pytest/issues/1085
-git+https://github.com/nicoddemus/pytest@param-ids-fix 
-# pytest
+pytest
 pytest-cov
 pytest-cache
 pytest-mozwebqa
 pytest-capturelog
 pytest-instafail
+pytest-ordering
 pytest-ansible
 pytest-trello
-pytest-ordering
-UnittestZero
-# https://github.com/kennethreitz/requests/issues/2568
-requests==2.6.0
+pytest-github
+requests
 PyYAML
-# https://github.com/Julian/jsonschema/issues/228
-jsonschema==2.4.0
+jsonschema
 inflect
 ansible
 python-dateutil
+fauxfactory
+junit-xml
+flake8
+pep8
+pylint
+# support for cloud APIs
 azure==0.8.1
 boto==2.13.3
 pyrax==1.9.4
 pysphere
-fauxfactory
-junit-xml
-# https://gitlab.com/pycqa/flake8/issues/9
-# flake8==2.1.0
-# pep8==1.5.6
-flake8
-pep8>=1.5.7,<1.6
-pylint
