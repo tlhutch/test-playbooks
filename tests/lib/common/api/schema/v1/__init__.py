@@ -1223,3 +1223,51 @@ class Awx_Schema_Group_Related_Ad_Hoc_Commands(Awx_Schema_Ad_Hoc_Commmands):
 
 class Awx_Schema_Host_Related_Ad_Hoc_Commands(Awx_Schema_Ad_Hoc_Commmands):
     resource = '/api/v1/hosts/\d+/ad_hoc_commands/'
+
+
+class Awx_Schema_Notifiers(Awx_Schema):
+    resource = '/api/v1/notifiers/'
+
+    @property
+    def get(self):
+        return self.load_file('notifiers/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('notifiers/item.yml')
+
+    @property
+    def duplicate(self):
+        return self.load_file('notifiers/duplicate.yml')
+
+
+class Awx_Schema_Notifier(Awx_Schema_Notifiers):
+    resource = '/api/v1/notifiers/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('notifiers/item.yml')
+
+    @property
+    def patch(self):
+        return self.get
+
+    @property
+    def put(self):
+        return self.get
+
+
+class Awx_Schema_Notifications(Awx_Schema):
+    resource = '/api/v1/notifications/'
+
+    @property
+    def get(self):
+        return self.load_file('notifications/list.yml')
+
+
+class Awx_Schema_Notification(Awx_Schema_Notifications):
+    resource = '/api/v1/notifications/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('notifications/item.yml')

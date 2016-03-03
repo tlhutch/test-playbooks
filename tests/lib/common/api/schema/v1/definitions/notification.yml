@@ -1,0 +1,26 @@
+---
+notification:
+    type: object
+    required: [id, type, url, related, summary_fields, created, modified, notifier, error, status, notifications_sent, notifications_type, recipients, subject]
+    # FIXME: change to 'additionalProperties: false' once we decide on the type for 'value'
+    # https://github.com/ansible/ansible-tower/issues/713
+    additionalProperties: true
+    properties:
+      id: {$ref: '#/definitions/id'}
+      type: {pattern: ^notification$, type: string}
+      url: {format: uri, type: string}
+      related:
+        additionalProperties: false
+        properties:
+          notifier: {format: uri, type: string}
+        required: [notifier]
+      summary_fields: {type: object}
+      created: {format: date-time, type: string}
+      modified: {format: date-time, type: string}
+      notifier: {$ref: '#/definitions/id'}
+      error: {type: string}
+      status: {$ref: '#/definitions/enum_notification_status'}
+      notifications_sent: {minimum: 0, type: integer}
+      notifications_type: {$ref: '#/definitions/enum_notification_type'}
+      recipients: {type: string}
+      subject: {type: string}

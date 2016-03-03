@@ -19,3 +19,5 @@ from activity_stream import *  # NOQA
 from schedules import *  # NOQA
 from ad_hoc_commands import *  # NOQA
 from settings import *  # NOQA
+from notifications import *  # NOQA
+from notifiers import *  # NOQA

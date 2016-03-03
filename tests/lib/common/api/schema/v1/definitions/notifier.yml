@@ -1,0 +1,36 @@
+---
+notifier:
+    type: object
+    required: [id, type, url, related, summary_fields, created, modified, name, description, organization, notification_type, notification_configuration]
+    # FIXME: change to 'additionalProperties: false' once we decide on the type for 'value'
+    # https://github.com/ansible/ansible-tower/issues/713
+    additionalProperties: true
+    properties:
+      id: {$ref: '#/definitions/id'}
+      type: {pattern: ^notifier$, type: string}
+      url: {format: uri, type: string}
+      related:
+        additionalProperties: false
+        properties:
+          created_by: {format: uri, type: string}
+          modified_by: {format: uri, type: string}
+          test: {format: uri, type: string}
+          notifications: {format: uri, type: string}
+          organization: {format: uri, type: string}
+        required: [created_by, modified_by, test, notifications, organization]
+        type: object
+      summary_fields:
+        additionalProperties: false
+        properties:
+          organization: {$ref: '#/definitions/summary_fields_organization'}
+          created_by: {$ref: '#/definitions/summary_fields_user'}
+          modified_by: {$ref: '#/definitions/summary_fields_user'}
+        type: object
+        required: [organization, created_by, modified_by]
+      created: {format: date-time, type: string}
+      modified: {format: date-time, type: string}
+      name: {type: string}
+      description: {type: string}
+      organization: { $ref: '#/definitions/id_or_null' }
+      notification_type: {$ref: '#/definitions/enum_notification_type'}
+      notification_configuration: {type: object}  # FIXME: Use oneOf to validate different forms this can take 
