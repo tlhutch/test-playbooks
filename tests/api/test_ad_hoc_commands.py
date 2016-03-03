@@ -607,7 +607,8 @@ print json.dumps(inv, indent=2)
         Verifies that adding additional modules to ad_hoc.py unlocks additional modules.
         '''
         # assess options choices
-        assert 'shell' in ad_hoc_module_name_choices
+        assert ad_hoc_module_name_choices == {u'shell': u'shell'}, \
+            "Ad hoc command OPTIONS not updated for updated ad_hoc.py"
 
         # create payload
         payload = dict(inventory=inventory.id,
@@ -631,7 +632,8 @@ print json.dumps(inv, indent=2)
         Verifies that removed modules are no longer callable.
         '''
         # assess options choices
-        assert not ad_hoc_module_name_choices
+        assert ad_hoc_module_name_choices == {}, \
+            "Ad hoc command OPTIONS not updated for updated ad_hoc.py"
 
         module_names = ['command',
                         'shell',
