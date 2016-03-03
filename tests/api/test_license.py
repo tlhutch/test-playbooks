@@ -1,7 +1,6 @@
 '''
 # Test No License
 [X] Test that config.license_info is empty before license is added
-[X] Test mongod isn't running
 [X] Test that you cannot add hosts without a license
 [X] Test can launch project updates
 [X] Test inventory updates launch but fail
@@ -48,7 +47,6 @@
 
 # Test Basic License
 [X] Test metadata
-[X] Test mongod isn't running
 [X] Test can add hosts to limit
 [X] Test admin can see license key
 [X] Test non-admin cannot see license key
@@ -67,7 +65,6 @@
 
 # Test Enterprise License
 [X] Test metadata
-[X] Test mongod is running
 [X] Test can add hosts to limit
 [X] Test admin can see key
 [X] Test non-admins cannot see keys
@@ -239,11 +236,6 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
     assert conf.license_info.license_key == enterprise_license_json['license_key'], \
         "License found differs from license applied"
 
-    # Wait for mongod to start
-    contacted = ansible_runner.wait_for(port='27017', state='present')
-    assert 'failed' not in contacted.values()[0], \
-        "MongoDB is not running, but is expected to be running."
-
     def teardown():
         log.debug("calling license teardown install_enterprise_license")
 
@@ -252,20 +244,6 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
 
         # Pause to allow tower to do it's thing
         ansible_runner.pause(seconds=15)
-
-        # Wait for Mongo to stop listening over the network
-        contacted = ansible_runner.wait_for(port='27017', state='absent')
-        result = contacted.values()[0]
-        if 'failed' in result:
-            log.warn("mongod did not stop, forcing shutdown")
-            contacted = ansible_runner.command('mongod --shutdown --dbpath /var/lib/mongo')
-            result = contacted.values()[0]
-            assert 'failed' not in result, "Command failed - %s" % json.dumps(result, indent=2)
-            raise Exception("MongoDB was still running after the license was deleted.")
-
-        # Wait for mongod to be absent
-        # contacted = ansible_runner.shell('while pidof mongod ; do sleep 1 ; done')
-        # FIXME - inspect the response?
 
     request.addfinalizer(teardown)
 
@@ -277,11 +255,6 @@ def install_enterprise_license_expired(request, ansible_runner, api_config_pg, l
     license_info = common.tower.license.generate_license(license_type='enterprise', instance_count=license_instance_count, days=-61)
     api_config_pg.post(license_info)
 
-    # Wait for mongod to start
-    contacted = ansible_runner.wait_for(port='27017', state='present', delay=5)
-    assert 'failed' not in contacted.values()[0], \
-        "MongoDB is not running, but is expected to be running."
-
     def teardown():
         log.debug("calling license teardown install_enterprise_license_expired")
         # Delete the license
@@ -289,20 +262,6 @@ def install_enterprise_license_expired(request, ansible_runner, api_config_pg, l
 
         # Pause to allow tower to do it's thing
         ansible_runner.pause(seconds=15)
-
-        # Wait for Mongo to stop
-        contacted = ansible_runner.wait_for(port='27017', state='absent')
-        result = contacted.values()[0]
-        if 'failed' in result:
-            log.warn("mongod did not stop, forcing shutdown")
-            contacted = ansible_runner.command('mongod --shutdown --dbpath /var/lib/mongo')
-            result = contacted.values()[0]
-            assert 'failed' not in result, "Command failed - %s" % json.dumps(result, indent=2)
-            raise Exception("MongoDB was still running after the license was deleted.")
-
-        # Wait for mongod to be absent
-        # contacted = ansible_runner.shell('while pidof mongod ; do sleep 1 ; done')
-        # FIXME - inspect the response?
 
     request.addfinalizer(teardown)
 
@@ -443,46 +402,6 @@ def assert_instance_counts(api_config_pg, license_instance_count, group):
     assert conf.license_info.available_instances == license_instance_count
 
 
-def __assert_mongo_status(ansible_runner, running=False, has_license=True):
-    '''Convenience method to assert the status of mongod.'''
-
-    # Inspect `tower-manage` expectations
-    contacted = ansible_runner.shell('tower-manage uses_mongo')
-    result = contacted.values()[0]
-
-    if running:
-        expected_output = 'MongoDB required'
-        errstr = "Unexpected stdout when asserting MongoDB is running."
-    else:
-        if has_license:
-            expected_output = 'MongoDB NOT required'
-        else:
-            expected_output = 'No license available.'
-        errstr = "Unexpected stdout when asserting MongoDB is not running."
-
-    assert expected_output in result['stdout'], errstr.format(**result)
-
-    # Assert mongod is in the desired state (the default mongod port is 27017)
-    if running:
-        contacted = ansible_runner.wait_for(port='27017', state='present')
-        errstr = "MongoDB is not running, but is expected to be running."
-    else:
-        contacted = ansible_runner.wait_for(port='27017', state='absent')
-        errstr = "MongoDB is running, but was not expected to be running"
-        # FIXME - should we force a --shutdown here?
-
-    result = contacted.values()[0]
-    assert 'failed' not in result, errstr
-
-
-def assert_mongo_is_not_running(ansible_runner, has_license=True):
-    __assert_mongo_status(ansible_runner, running=False, has_license=has_license)
-
-
-def assert_mongo_is_running(ansible_runner):
-    __assert_mongo_status(ansible_runner, running=True)
-
-
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_No_License(Base_Api_Test):
@@ -495,9 +414,6 @@ class Test_No_License(Base_Api_Test):
         '''Verify the license_info field is empty'''
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=4)
-
-    def test_mongod_is_not_running(self, ansible_runner, api_config_pg):
-        assert_mongo_is_not_running(ansible_runner, has_license=False)
 
     def test_cannot_add_host(self, inventory, group):
         '''Verify that no hosts can be added'''
@@ -825,7 +741,6 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to patch a job template into a scan job template with a legacy license - %s." % json.dumps(result)
 
-    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
         '''Verify that cleanup_facts may not be run with a legacy license.'''
@@ -1051,7 +966,6 @@ class Test_Legacy_License_Expired(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             job_template.launch_job().wait_until_completed()
 
-    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job):
         '''Verify that system jobs can be launched'''
@@ -1267,9 +1181,6 @@ class Test_Basic_License(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
-    def test_mongod_is_not_running(self, ansible_runner, api_config_pg):
-        assert_mongo_is_not_running(ansible_runner)
-
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > 0:
@@ -1365,7 +1276,6 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to patch a job template into a scan job template with a basic license - %s." % json.dumps(result)
 
-    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
         '''Verify that cleanup_facts may not be run with a basic license.'''
@@ -1392,9 +1302,6 @@ class Test_Basic_License(Base_Api_Test):
 
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg, ansible_runner, tower_license_path, tower_version_cmp):
         '''Verify that a basic license can get upgraded to an enterprise license.'''
-
-        # check that MongoDB is inactive with basic license
-        assert_mongo_is_not_running(ansible_runner)
 
         # Record the license md5 (if running older version of tower)
         if tower_version_cmp('3.0.0') < 0:
@@ -1429,9 +1336,6 @@ class Test_Basic_License(Base_Api_Test):
         assert conf.license_info['license_type'] == 'enterprise', \
             "Incorrect license_type returned. Expected 'enterprise,' " \
             "returned %s." % conf.license_info['license_type']
-
-        # check that MongoDB is active with enterprise license
-        assert_mongo_is_running(ansible_runner)
 
     def test_delete_license(self, api_config_pg, ansible_runner, tower_license_path):
         '''Verify the license_info field is empty after deleting the license'''
@@ -1498,9 +1402,6 @@ class Test_Enterprise_License(Base_Api_Test):
         else:
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
-
-    def test_mongod_is_running(self, ansible_runner, api_config_pg):
-        assert_mongo_is_running(ansible_runner)
 
     def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
@@ -1601,7 +1502,6 @@ class Test_Enterprise_License(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_able_to_cleanup_facts(self, cleanup_facts):
         '''Verifies that cleanup_facts may be run with an enterprise license.'''
@@ -1613,7 +1513,6 @@ class Test_Enterprise_License(Base_Api_Test):
         assert job_pg.is_successful, "cleanup_facts job unexpectedly failed " \
             "with an enterprise license - %s" % job_pg
 
-    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/742")
     def test_able_to_get_facts(self, scan_job_with_status_completed):
         '''Verify that that enterprise license users can GET fact endpoints.'''
         host_pg = scan_job_with_status_completed.get_related('inventory').get_related('hosts').results[0]
@@ -1625,9 +1524,6 @@ class Test_Enterprise_License(Base_Api_Test):
 
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg, ansible_runner, tower_license_path, tower_version_cmp):
         '''Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg.'''
-        # check that MongoDB is active with an enterprise license
-        assert_mongo_is_running(ansible_runner)
-
         # Record the license md5 (if running older version of tower)
         if tower_version_cmp('3.0.0') < 0:
             contacted = ansible_runner.stat(path=tower_license_path)
@@ -1661,9 +1557,6 @@ class Test_Enterprise_License(Base_Api_Test):
         expected_license_key = basic_license_json['license_key']
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
-
-        # check that MongoDB is now inactive after the downgrade to basic
-        assert_mongo_is_not_running(ansible_runner)
 
     def test_delete_license(self, api_config_pg, ansible_runner, tower_license_path):
         '''Verify the license_info field is empty after deleting the license'''
@@ -1720,7 +1613,6 @@ class Test_Enterprise_License_Expired(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
-    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job):
         '''Verify that system jobs can be launched'''

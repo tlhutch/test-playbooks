@@ -127,25 +127,6 @@ def another_custom_group(request, authtoken, api_groups_pg, inventory, inventory
     return obj
 
 
-@pytest.fixture(scope="function")
-def stop_mongodb(request, ansible_runner):
-    '''Stops MongoDB'''
-
-    log.debug("calling fixture stop_mongodb")
-
-    # Attempt to stop MongoDB a first time
-    ansible_runner.service(name="mongod", state="stopped")
-
-    # Check MongoDB and stop it a second time if necessary
-    contacted = ansible_runner.wait_for(port='27017', state='absent', delay=5)
-    result = contacted.values()[0]
-    if 'failed' in result:
-        log.warn("mongod did not stop, forcing shutdown")
-        contacted = ansible_runner.command('mongod --shutdown --dbpath /var/lib/mongo')
-        result = contacted.values()[0]
-        assert result['rc'] == 0, "Failed to shutdown mongod - %s" % json.dump(result, indent=2)
-
-
 def confirm_fact_modules_present(facts, **kwargs):
     '''Convenience function to assess fact module contents.'''
     assert len(facts) == len(kwargs), "Unexpected number of new facts found ..."
@@ -811,7 +792,6 @@ class Test_Scan_Job(Base_Api_Test):
     '''Tests for scan jobs.'''
     pytestmark = pytest.mark.usefixtures('authtoken')
 
-    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     def test_scan_job(self, install_enterprise_license_unlimited, scan_job_template):
         '''Verifies that a default scan job populates fact_versions with the default three scan modules.'''
         # obtain initial fact results
@@ -827,7 +807,6 @@ class Test_Scan_Job(Base_Api_Test):
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
         confirm_fact_modules_present(new_facts, ansible=1, packages=1, services=1)
 
-    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     def test_file_scan_job(self, install_enterprise_license_unlimited, files_scan_job_template):
         '''Tests file scan jobs.'''
         # obtain intial fact results
@@ -843,7 +822,6 @@ class Test_Scan_Job(Base_Api_Test):
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
         confirm_fact_modules_present(new_facts, ansible=1, packages=1, services=1, files=1)
 
-    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     def test_recursive_file_scan_job(self, install_enterprise_license_unlimited, scan_job_template):
         '''Tests that recursive file scan jobs pick up nested files'''
         # obtain intial fact results
@@ -869,7 +847,6 @@ class Test_Scan_Job(Base_Api_Test):
         assert any(fact.path == "/bin/ls" for fact in files_fact_view_pg.fact), \
             "Did not find target file 'bin/ls' after running recursive file scan. Results: %s." % files_fact_view_pg.fact
 
-    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     def test_file_scan_job_with_checksums(self, install_enterprise_license_unlimited, scan_job_template):
         '''Tests that checksum file scan jobs include checksums.'''
         # obtain intial fact results
@@ -895,7 +872,6 @@ class Test_Scan_Job(Base_Api_Test):
         file_checksums = [x for x in files_fact_view_pg.fact if 'checksum' in x]
         assert len(file_checksums) > 0, "No files with checksums found after running a checksum scan job - %s." % file_checksums
 
-    @pytest.mark.xfail(reason="https://github.com/ansible/ansible-tower/issues/741")
     def test_custom_scan_job(self, install_enterprise_license_unlimited, job_template):
         '''Tests custom scan jobs.'''
         # obtain intial fact results
@@ -913,13 +889,6 @@ class Test_Scan_Job(Base_Api_Test):
         final_fact_versions = fact_versions_pg.get().results
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
         confirm_fact_modules_present(new_facts, foo=1)
-
-    def test_launch_scan_job_without_mongodb(self, install_enterprise_license, stop_mongodb, scan_job_with_status_completed):
-        '''Tests that scan jobs without mongodb running fail appropriately.'''
-        assert scan_job_with_status_completed.status == "error", \
-            "Unexpected job status when running a scan job without MongoDB running - %s" % scan_job_with_status_completed
-        assert scan_job_with_status_completed.result_traceback.endswith("RuntimeError: Fact Scan Database is offline\n"), \
-            "Unexpected traceback upon running a scan job with MongoDB offline - %s" % scan_job_with_status_completed
 
 
 @pytest.fixture(scope="function")
