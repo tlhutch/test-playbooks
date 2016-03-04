@@ -92,6 +92,7 @@ class Test_System_Jobs(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_get_as_superuser(self, system_job):
         '''
@@ -99,6 +100,7 @@ class Test_System_Jobs(Base_Api_Test):
         '''
         system_job.get()
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_get_as_non_superuser(self, non_superusers, user_password, api_system_jobs_pg, system_job):
         '''
@@ -109,6 +111,7 @@ class Test_System_Jobs(Base_Api_Test):
                 with pytest.raises(common.exceptions.NotFound_Exception):
                     api_system_jobs_pg.get(id=system_job.id)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_method_not_allowed(self, system_job):
         '''
@@ -123,6 +126,7 @@ class Test_System_Jobs(Base_Api_Test):
         with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
             system_job.patch()
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
     def test_cleanup_jobs(self, cleanup_jobs_template, unified_job_with_status_completed, api_jobs_pg, api_system_jobs_pg, api_unified_jobs_pg):
         '''
         Run jobs of different types sequentially and check that cleanup jobs deletes all of them.
@@ -152,6 +156,7 @@ class Test_System_Jobs(Base_Api_Test):
         assert results.count == expected_count, "An unexpected number of unified jobs were found (%s != %s)" \
             % (results.count, expected_count)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
     def test_cleanup_jobs_on_multiple_jobs(self, cleanup_jobs_template, multiple_jobs_with_status_completed, api_jobs_pg, api_system_jobs_pg,
                                            api_unified_jobs_pg):
         '''
@@ -199,6 +204,7 @@ class Test_System_Jobs(Base_Api_Test):
         assert unified_jobs_pg.count == expected_number_remaining_jobs, "Unexpected number of unified_jobs returned \
             (unified_jobs_pg.count: %s != expected_number_remaining_jobs: %s)" % (unified_jobs_pg.count, expected_number_remaining_jobs)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
     def test_cleanup_deleted(self, tmpdir, old_deleted_object, cleanup_deleted_template, ansible_runner):
         '''
         Creates and deletes different types of objects, runs cleanup_deleted, and then verifies that
@@ -232,6 +238,7 @@ class Test_System_Jobs(Base_Api_Test):
         assert match, "Unexpected output from system job - %s" % system_jobs_pg
         assert int(match.group(1)) == 0, "Unexpected number of deleted objects (%s)" % match.group(1)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
     def test_cleanup_activitystream(self, cleanup_activitystream_template, multiple_jobs_with_status_completed, api_activity_stream_pg):
         '''
         Launch jobs of different types, run cleanup activitystreams, and verify that the activitystream is cleared.
@@ -256,6 +263,7 @@ class Test_System_Jobs(Base_Api_Test):
             "activity_stream data is still present (count == %s)" \
             % activity_stream_pg.count
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
     def test_cleanup_facts(self, files_scan_job_with_status_completed, cleanup_facts_template):
         '''
         Launch a cleanup_facts job and assert facts have been deleted.
@@ -280,6 +288,7 @@ class Test_System_Jobs(Base_Api_Test):
         # assert no facts in fact_versions
         assert fact_versions_pg.get().count == 0, "Even though cleanup_facts was run, facts still exist: %s." % fact_versions_pg.count
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
     def test_cancel_system_job(self, system_job_with_status_pending):
         '''
         Test that system_jobs may be cancelled.
