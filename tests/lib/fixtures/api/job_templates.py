@@ -261,3 +261,21 @@ def files_scan_job_template(scan_job_template):
     '''Scan job template with files enabled.'''
     variables = dict(scan_file_paths="/tmp,/bin")
     return scan_job_template.patch(extra_vars=json.dumps(variables))
+
+
+@pytest.fixture(scope="function")
+def job_template_with_schedule(request, authtoken, job_template):
+    """A job template with an associated schedule
+    """
+
+    obj = job_template.get_related('schedules').post({
+        "name": "test_schedule-%s" % fauxfactory.gen_utf8(),
+        "description": "every day for 1 time",
+        "enabled": True,
+        "rrule": "DTSTART:20160213T050000Z RRULE:FREQ=DAILY;INTERVAL=1;COUNT=1",
+        "extra_data": {}
+    })
+
+    request.addfinalizer(obj.silent_delete)
+
+    return job_template

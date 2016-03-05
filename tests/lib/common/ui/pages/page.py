@@ -2,13 +2,19 @@ import logging
 import re
 import urlparse
 
-from requests.structures import CaseInsensitiveDict
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import UnexpectedAlertPresentException
+from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.events import AbstractEventListener
+from selenium.webdriver.support.events import EventFiringWebDriver
+from selenium.webdriver.support.expected_conditions import title_contains
 from selenium.webdriver.support.ui import WebDriverWait
+
 
 log = logging.getLogger(__name__)
 
-_meta_registry = CaseInsensitiveDict()
+_meta_registry = {}
 
 
 class MetaSelector(type):
@@ -16,33 +22,30 @@ class MetaSelector(type):
     def __new__(meta, name, bases, class_dict):
         cls = type.__new__(meta, name, bases, class_dict)
 
-        _meta_registry[cls.__name__] = cls
-
-        if hasattr(cls, '_path') and getattr(cls, '_path') is not None:
-            _meta_registry[getattr(cls, '_path')] = cls
+        if getattr(cls, '_path', None):
+            _meta_registry[cls.__name__] = cls
 
         return cls
 
 
 class Selector(object):
 
-    __metaclass__ = MetaSelector
-
-    _timeout = 15
+    _timeout = 20
 
     def __init__(self, base_url, driver, **kwargs):
+
+        if not isinstance(driver, EventFiringWebDriver):
+            driver = EventFiringWebDriver(driver, SelectorEventListener())
+
         self.driver = driver
         self.kwargs = kwargs
 
         self.wait = WebDriverWait(self.driver, self.timeout)
-
-        if isinstance(base_url, str):
-            base_url = urlparse.urlparse(base_url, allow_fragments=False)
-        self._base_url = base_url
+        self._base_url = urlparse.urlparse(base_url, allow_fragments=False)
 
     @property
     def base_url(self):
-        return self._base_url.geturl()
+        return self._base_url.geturl().rstrip('/')
 
     @property
     def timeout(self):
@@ -52,73 +55,73 @@ class Selector(object):
     def root(self):
         return self.driver
 
-    def find_element(self, locator, root_locator=None):
-        if root_locator is not None:
-            root = self.find_element(root_locator)
-        else:
-            root = self.root
-
-        return root.find_element(*locator)
-
-    def find_elements(self, locator, root_locator=None):
-        if root_locator is not None:
-            root = self.find_element(root_locator)
-        else:
-            root = self.root
-
-        return root.find_elements(*locator)
-
-    def filter_elements(self, locator, root_locator=None, **kwargs):
-
-        elements = self.find_elements(locator, root_locator=root_locator)
-
-        for element in elements:
-            if self._element_matches_by_filter(element, **kwargs):
-                return element
-
-        raise NoSuchElementException
-
-    def find_element_by_text(self, locator, text, root_locator=None):
-
-        text = self._normalize_text(text)
-
-        if root_locator is not None:
-            root = self.find_element(root_locator)
-        else:
-            root = self.root
-
-        for element in root.find_elements(*locator):
-            if text == self._normalize_text(element.text):
-                return element
-
-        raise NoSuchElementException
-
-    def _element_matches_by_filter(self, element, **kwargs):
-        for key, value in kwargs.iteritems():
-            if not element.get_attribute(key) == value:
-                return False
-        return True
-
     def _normalize_text(self, text):
         return re.sub('[^0-9a-zA-Z_]+', '', text.replace(' ', '_')).lower()
+
+    def _get_page(self, name):
+        """Return an external page object instance using the meta registry.
+        """
+        return _meta_registry[name]
+
+    def _lookup_page(self, url):
+        """Search the meta registry for a page with a matching url
+        """
+        _url = urlparse.urlparse(url, allow_fragments=False)
+
+        if self._base_url.netloc == _url.netloc:
+            for new_page in _meta_registry.values():
+                p = new_page(self.base_url, self.driver)
+                if p.path.rstrip('/') == _url.path.rstrip('/'):
+                    return new_page
+        raise ValueError('page lookup failed for url: {}'.format(url))
+
+    def find_element(self, locator):
+        if By.is_valid(locator[0]):
+            return self.root.find_element(*locator)
+
+        assert isinstance(locator, tuple) and locator, (
+            'must be a valid locator or non-empty tuple of valid locators')
+
+        assert all([By.is_valid(loc[0]) for loc in locator]), (
+            'must be a valid locator or non-empty tuple of valid locators')
+
+        element = self.root
+
+        for loc in locator:
+            element = element.find_element(*loc)
+
+        return element
+
+    def find_elements(self, locator):
+        return self.root.find_elements(*locator)
 
     def is_element_clickable(self, locator):
         try:
             return self.find_element(locator).is_enabled()
-        except NoSuchElementException:
+        except (NoSuchElementException, WebDriverException):
             return False
 
     def is_element_displayed(self, locator):
         try:
             return self.find_element(locator).is_displayed()
-        except NoSuchElementException:
+        except (NoSuchElementException, WebDriverException):
             return False
 
     def is_element_present(self, locator):
         try:
             return self.find_element(locator)
-        except NoSuchElementException:
+        except (NoSuchElementException, WebDriverException):
             return False
+
+    def lookup_element(self, locator, text=None, **kwargs):
+        if text is not None:
+            text = self._normalize_text(text)
+
+        for e in self.find_elements(locator):
+            if all([e.get_attribute(k) == v for k, v in kwargs.iteritems()]):
+                if text is None or text == self._normalize_text(e.text):
+                    return e
+        raise NoSuchElementException
 
     def wait_until_element_displayed(self, locator):
         self.wait.until(lambda _: self.is_element_displayed(locator))
@@ -141,21 +144,29 @@ class Selector(object):
 
 class Page(Selector):
 
-    @property
-    def _url(self):
-        return self._base_url._replace(path=self._path or '')
+    __metaclass__ = MetaSelector
+
+    _path = None
 
     @property
     def _current_url(self):
         return urlparse.urlparse(self.current_url, allow_fragments=False)
 
     @property
+    def _url(self):
+        return self._base_url._replace(path=self.path)
+
+    @property
+    def path(self):
+        return self._path.format(**self.kwargs)
+
+    @property
     def url(self):
-        return self._url.geturl()
+        return self._url.geturl().rstrip('/')
 
     @property
     def current_url(self):
-        return self.driver.current_url
+        return self.driver.current_url.rstrip('/')
 
     @property
     def source(self):
@@ -168,79 +179,176 @@ class Page(Selector):
         """
         self.driver.back()
 
+    def get(self, url):
+        return self.driver.get(url)
+
+    def open(self):
+        if not self.is_loaded():
+            self.get(self.url)
+        return self
+
     def get_active_element(self):
         """Return the element that has the current focus
         """
         return self.driver.execute_script('return document.activeElement;')
 
     def is_loaded(self):
-        """Return true or false indicating if page is loaded
+        """Return true or false indicating if this page is currently loaded
         """
-        netloc_match = self._base_url.netloc == self._current_url.netloc
-        path_present = self._url.path in self._current_url.path
+        try:
+            _current_url = self._current_url
+        except (AttributeError, WebDriverException):
+            return False
 
-        return netloc_match and path_present
+        netloc_match = self._url.netloc == _current_url.netloc
+        path_match = self._url.path.rstrip('/') in _current_url.path.rstrip('/')
 
-    def _load_page(self, page_key):
-        """Initialize an external page object instance using the meta
-        registry."""
-
-        loaded_page = _meta_registry[page_key](
-            self._base_url, self.driver, **self.kwargs)
-
-        loaded_page.wait_for_page_load()
-
-        return loaded_page
-
-    def open(self):
-        if not self.is_loaded():
-            self.driver.get(self._url.geturl())
-
-        return self
+        return netloc_match and path_match
 
     def refresh(self):
         """Refresh the current page
         """
         self.driver.refresh()
-        self.wait_for_page_load()
-
+        self.wait_until_loaded()
         return self
 
-    def wait_for_page_load(self):
+    def wait_until_loaded(self):
         self.wait.until(lambda _: self.is_loaded())
-
         return self
 
 
 class Region(Selector):
 
     _root_locator = None
+    _root_extension = None
 
-    def __init__(self, page, root=None, **kwargs):
+    def __init__(self, page, **kwargs):
         super(Region, self).__init__(page.base_url, page.driver, **kwargs)
-        self._root_element = root
         self.page = page
 
     @property
     def root(self):
-        if self._root_element is None:
-            if self.root_locator is not None:
+        base_root = self.kwargs.get('root') or self._locate_base_root()
+
+        if base_root is not self.driver:
+            if self.root_extension is not None:
+                try:
+                    return base_root.find_element(*self.root_extension)
+                except (NoSuchElementException, WebDriverException):
+                    return self.driver
+        return base_root
+
+    def _locate_base_root(self):
+        if self.root_locator is not None:
+            try:
                 return self.page.find_element(self.root_locator)
-            return self.driver
-        return self._root_element
+            except (NoSuchElementException, WebDriverException):
+                return self.driver
+        return self.driver
 
     @property
     def root_locator(self):
         return self.kwargs.get('root_locator', self._root_locator)
 
+    @property
+    def root_extension(self):
+        return self.kwargs.get('root_extension', self._root_extension)
+
+    @property
+    def size(self):
+        self.wait_until_present()
+        return self.root.size
+
+    @property
+    def location(self):
+        self.wait_until_present()
+        return self.root.location
+
+    @property
+    def text(self):
+        self.wait_until_present()
+        return self.root.text
+
+    @property
+    def value(self):
+        self.wait_until_present()
+        return self.root.get_attribute('value') or self.text
+
+    @property
+    def v1(self):
+        """Top-left vertex (x, y) coordinate tuple
+
+        Coordinate units are in pixels and are relative to the top-left
+        corner of the page
+
+        v1 *--------*
+           | Region |
+           *--------* v2
+        """
+        point = self.location
+
+        return (point['x'], point['y'])
+
+    @property
+    def v2(self):
+        """Bottom-right vertex (x, y) coordinate tuple
+
+        Coordinate units are in pixels and are relative to the top-left
+        corner of the page
+
+        v1 *--------*
+           | Region |
+           *--------* v2
+        """
+        point = self.location
+        size = self.size
+
+        return (point['x'] + size['width'], point['y'] + size['height'])
+
+    def overlaps_with(self, other_region):
+        """Determine if this region overlaps the bounding box of another
+        """
+        (x1, y1) = self.v1
+        (x2, y2) = self.v2
+
+        (x1_other, y1_other) = other_region.v1
+        (x2_other, y2_other) = other_region.v2
+
+        return x1 < x2_other and x2 > x1_other and y1 < y2_other and y2 > y1_other
+
+    def surrounds(self, other_region):
+        """Determine if this region fully surrounds the bounding box of another
+        """
+        (x1, y1) = self.v1
+        (x2, y2) = self.v2
+
+        (x1_other, y1_other) = other_region.v1
+        (x2_other, y2_other) = other_region.v2
+
+        return x1 < x1_other and y1 < y1_other and x2 > x2_other and y2 > y2_other
+
     def is_clickable(self):
-        return self.is_displayed() and self.root.is_enabled()
+        try:
+            return self.is_displayed() and self.root.is_enabled()
+        except (AttributeError, WebDriverException):
+            # We end up here if the root element becomes stale or unavailable
+            # while checking if its enabled
+            return False
 
     def is_displayed(self):
-        return self.is_present() and self.root.is_displayed()
+        try:
+            return self.is_present() and self.root.is_displayed()
+        except (AttributeError, WebDriverException):
+            # We end up here if the root element becomes stale or unavailable
+            # while checking if its displayed
+            return False
 
     def is_present(self):
         return self.root is not self.driver
+
+    def click(self):
+        self.wait_until_clickable()
+        self.root.click()
 
     def wait_until_displayed(self):
         self.wait.until(lambda _: self.is_displayed())
@@ -259,3 +367,21 @@ class Region(Selector):
 
     def wait_until_not_present(self):
         self.wait.until_not(lambda _: self.is_present())
+
+
+class SelectorEventListener(AbstractEventListener):
+
+    def on_exception(self, exception, driver):
+        if isinstance(exception, UnexpectedAlertPresentException):
+            driver.switch_to_alert().accept()
+
+    def after_navigate_to(self, url, driver):
+        if driver.name == 'internet explorer':
+            if self._title_contains(driver, 'Certificate Error'):
+                driver.find_element_by_id('overridelink').click()
+
+    def _title_contains(self, driver, text):
+        try:
+            return title_contains(text)(driver)
+        except WebDriverException:
+            return False

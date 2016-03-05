@@ -1,12 +1,21 @@
 from buttons import *  # NOQA
 from fields import *  # NOQA
+from forms import *  # NOQA
 from links import *  # NOQA
 
 from clickable import Clickable  # NOQA
-from lists import ListRegion  # NOQA
+from panels import ListPanel  # NOQA
 from header import Header  # NOQA
 from spinny import Spinny  # NOQA
+from pagination import Pagination  # NOQA
 
-from dashboard_graphs import DashboardGraphToggle  # NOQA
-from dashboard_graphs import DashboardGraphTab  # NOQA
-from dashboard_graphs import DashboardGraphDropdown  # NOQA
+from tabs import PanelToggleTab  # NOQA
+from tabs import PanelTab  # NOQA
+
+from search import Search  # NOQA
+from table import Table  # NOQA
+from table import FormGeneratorTable  # NOQA
+import cells  # NOQA
+from forms import FormPanel, RadioButtons  # NOQA
+from dialogs import DeleteDialog  # NOQA
+from dialogs import LegacyDeleteDialog  # NOQA

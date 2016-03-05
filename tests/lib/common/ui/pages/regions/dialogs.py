@@ -1,67 +1,75 @@
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+
 from common.ui.pages.page import Region
+from clickable import Clickable
 
 
-class BaseDialog(Region):
-    '''
-    Describes a basic modal dialog.  Should not be used directly.
-    '''
+class Dialog(Region):
+    _root_locator = (By.ID, 'prompt-modal')
+    _close = (By.CLASS_NAME, 'Modal-exitHolder')
+    _cancel = (By.ID, 'prompt_cancel_btn')
+    _action = (By.ID, 'prompt_action_btn')
+    _title = (By.CLASS_NAME, 'Modal-title')
 
-    _root_locator = (By.CSS_SELECTOR, '#prompt-modal')
-    _title_locator = (By.CSS_SELECTOR, 'div.modal-header')
-    _body_locator = (By.CSS_SELECTOR, '#prompt-body')
-    _action_btn_locator = (By.CSS_SELECTOR, '#prompt_action_button')
-    _cancel_btn_locator = (By.CSS_SELECTOR, '#prompt_cancel_button')
-    _close_btn_locator = (By.CSS_SELECTOR, 'button.close')
+    @property
+    def action(self):
+        return Clickable(self.page, root_locator=self._action, spinny=True)
 
-    def is_displayed(self):
-        return self._root_element.is_displayed()
+    @property
+    def cancel(self):
+        return Clickable(self.page, root_locator=self._cancel, spinny=True)
+
+    @property
+    def close(self):
+        return Clickable(self.page, root_locator=self._close, spinny=True)
 
     @property
     def title(self):
-        return self.find_element(self._title_locator).text
+        return self.find_element(self._title)
+
+    def click_outside(self):
+        # get the x axis pixel distance between title and close button
+        dx = abs(self.title.location['x'] - self.close.location['x'])
+
+        # get the y axis pixel distance between title and cancel button
+        dy = abs(self.title.location['y'] - self.cancel.location['y'])
+
+        offset = max(dx, dy)
+
+        action = ActionChains(self.page.driver)
+        action.move_to_element_with_offset(self.root, offset, offset)
+        action.click()
+        action.perform()
+
+
+class DeleteDialog(Dialog):
 
     @property
-    def body(self):
-        return self.find_element(self._body_locator).text
+    def delete(self):
+        return self.action
+
+    def is_displayed(self):
+        return super(DeleteDialog, self).is_displayed() and "DELETE" in self.title.text
+
+
+class LegacyDeleteDialog(Region):
+    _root_locator = (By.CSS_SELECTOR, '.ui-dialog')
+    _title = (By.CSS_SELECTOR, '.ui-dialog-titlebar')
+    _close = (By.CLASS_NAME, 'close')
+    _delete = (By.ID, 'group-delete-ok-button')
 
     @property
-    def action_btn(self):
-        return self.find_element(self._action_btn_locator)
+    def close(self):
+        return Clickable(self.page, root_locator=self._close, spinny=True)
 
     @property
-    def cancel_btn(self):
-        return self.find_element(self._cancel_btn_locator)
+    def delete(self):
+        return Clickable(self.page, root_locator=self._delete, spinny=True)
 
     @property
-    def close_btn(self):
-        return self.find_element(self._close_btn_locator)
+    def title(self):
+        return self.find_element(self._title)
 
-
-class AlertDialog(BaseDialog):
-    '''
-    Describes the alert modal dialog typically used for presenting errors
-    '''
-
-    _root_locator = (By.CSS_SELECTOR, '#alert-modal')
-    _title_locator = (By.CSS_SELECTOR, '#alertHeader')
-    _body_locator = (By.CSS_SELECTOR, '#alert-modal-msg')
-    _action_btn_locator = (By.CSS_SELECTOR, '#alert_ok_btn')
-
-    @property
-    def ok_btn(self):
-        return self.find_element(self._action_btn_locator)
-
-
-class PromptDialog(BaseDialog):
-    '''
-    Describes the prompt modal dialog typically used for presenting prompts/confirmations
-    '''
-
-    _root_locator = (By.CSS_SELECTOR, '#prompt-modal')
-    _title_locator = (By.CSS_SELECTOR, 'div.modal-header')
-    _body_locator = (By.CSS_SELECTOR, '#prompt-body')
-
-    _action_btn_locator = (By.CSS_SELECTOR, '#prompt_action_button')
-    _cancel_btn_locator = (By.CSS_SELECTOR, '#prompt_cancel_button')
-    _close_btn_locator = (By.CSS_SELECTOR, 'button.close')
+    def is_displayed(self):
+        return super(LegacyDeleteDialog, self).is_displayed() and 'Delete' in self.title.text

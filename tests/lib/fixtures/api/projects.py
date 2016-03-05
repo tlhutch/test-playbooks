@@ -231,3 +231,23 @@ def many_manual_projects(request, authtoken, ansible_runner, awx_config, organiz
             return ansible_runner.file(state='absent', path=os.path.join(awx_config['project_base_dir'], local_path))
         request.addfinalizer(delete_project_dir)
     return obj_list
+
+
+@pytest.fixture(scope="function")
+def project_with_schedule(request, authtoken, project_ansible_playbooks_git_nowait):
+    """A project with a schedule
+    """
+    project = project_ansible_playbooks_git_nowait
+    project.wait_until_completed()
+    schedule_data = {
+        "name": "test_schedule-%s" % fauxfactory.gen_utf8(),
+        "description": "every day for 1 time",
+        "enabled": True,
+        "rrule": "DTSTART:20160213T050000Z RRULE:FREQ=DAILY;INTERVAL=1;COUNT=1",
+        "extra_data": {}
+    }
+
+    obj = project.get_related('schedules').post(schedule_data)
+    request.addfinalizer(obj.silent_delete)
+
+    return project

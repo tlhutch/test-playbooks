@@ -1,3 +1,4 @@
+from selenium.common.exceptions import UnexpectedAlertPresentException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -8,22 +9,35 @@ class Spinny(Region):
 
     _root_locator = (By.CSS_SELECTOR, "div.spinny")
 
-    # TODO: Pull these values from a config file once we're using pytest-vars
-    # and pytest-selenium
-    _timeout_displayed = 10
-    _timeout_not_displayed = 60
+    def __init__(self, page, **kwargs):
+        super(Spinny, self).__init__(page, **kwargs)
 
-    def __init__(self, page, root=None, **kwargs):
-        super(Spinny, self).__init__(page, root=root, **kwargs)
+        self._wait_one = WebDriverWait(self.driver, 10)
+        self._wait_two = WebDriverWait(self.driver, 60)
 
-        self._wait_displayed = WebDriverWait(
-            self.driver, self._timeout_displayed)
+    def is_clickable(self):
+        try:
+            return super(Spinny, self).is_clickable()
+        except UnexpectedAlertPresentException:
+            # We end up here if an unhandled alert shows up on the page while
+            # checking if the root element is displayed or enabled
+            self.handle_alert()
+            return False
 
-        self._wait_not_displayed = WebDriverWait(
-            self.driver, self._timeout_not_displayed)
+    def is_displayed(self):
+        try:
+            return super(Spinny, self).is_displayed()
+        except UnexpectedAlertPresentException:
+            # We end up here if an unhandled alert shows up on the page while
+            # checking if the root element is displayed
+            self.handle_alert()
+            return False
+
+    def handle_alert(self):
+        self.driver.switch_to_alert().accept()
 
     def wait_until_displayed(self):
-        self._wait_displayed.until(lambda _: self.is_displayed())
+        self._wait_one.until(lambda _: self.is_displayed())
 
     def wait_until_not_displayed(self):
-        self._wait_not_displayed.until_not(lambda _: self.is_displayed())
+        self._wait_two.until_not(lambda _: self.is_displayed())
