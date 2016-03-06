@@ -32,10 +32,22 @@ class EditActionCell(Clickable):
 class SCMUpdateActionCell(Clickable):
     _spinny = True
     _root_extension = (By.ID, 'scm_update-action')
+    _close_alert = (By.CSS_SELECTOR, 'button[class=close][data-target="#alert-modal"]')
 
     @property
     def tool_tip(self):
         return self.root.get_attribute('aw-tool-tip').lower()
+
+    @property
+    def dismiss_alert(self):
+        return self.kwargs.get('dismiss_alert', True)
+
+    def after_click(self):
+        if self.dismiss_alert:
+            close_alert = Region(self.page, root_locator=self._close_alert)
+            if close_alert.is_displayed():
+                close_alert.click()
+        return super(SCMUpdateActionCell, self).after_click()
 
 
 class SyncStatusCell(Clickable):

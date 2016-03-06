@@ -53,13 +53,18 @@ def test_active_project_update(project, ui_projects):
     assert results[0]['scm_update'].tool_tip == 'start an scm update', (
         'Unexpected project update button tooltip status message')
 
-    # verify ui last_updated changed
-    assert ui_last_updated != results[0]['last_updated'].text, (
-        'ui project last_update value unexpectedly unchanged')
-
     # verify api last_updated changed
     assert api_last_updated != project.last_updated, (
         'api project last_update value unexpectedly unchanged')
+
+    # if we detect a refresh button click it and re-query the table
+    if ui_projects.refresh_button.is_displayed():
+        ui_projects.refresh_button.click()
+        results = ui_projects.table.query(lambda r: r['name'].text == project.name)
+
+    # verify ui last_updated changed
+    assert ui_last_updated != results[0]['last_updated'].text, (
+        'ui project last_update value unexpectedly unchanged')
 
 
 @pytest.mark.skipif(True, reason='not implemented')

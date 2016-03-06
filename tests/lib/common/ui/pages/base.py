@@ -136,6 +136,8 @@ class TowerPage(Page):
 
 class TowerCrudPage(TowerPage):
 
+    _refresh_button = (By.CSS_SELECTOR, 'button[aw-tool-tip="Refresh the page"]')
+
     @property
     def add_button(self):
         return self.list_panel.add_button
@@ -151,6 +153,10 @@ class TowerCrudPage(TowerPage):
     @property
     def search(self):
         return self.list_panel.search
+
+    @property
+    def refresh_button(self):
+        return Region(self, root_locator=self._refresh_button)
 
     def open(self, username=None, password=None):
         super(TowerCrudPage, self).open(username, password, wait=False)
