@@ -78,7 +78,7 @@ def test_no_pagination(authtoken, api_projects_pg, ui_projects):
         'Pagination unexpectedly displayed')
 
 
-@pytest.mark.xfail(reason='https://github.com/ansible/ansible-tower/issues/902')
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/902')
 def test_edit_search_region_toggle(ui_projects_edit):
     """Verify search regions are not visible when their associated data tables
     are not populated
