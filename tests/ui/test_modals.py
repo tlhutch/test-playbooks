@@ -51,7 +51,7 @@ def test_job_templates_delete_modal_blur_click(ui_job_templates):
     check_modal_blur_click(prompt_modal)
 
 
-@pytest.mark.skipif(True, 'Requires a job_with_schedule fixture')
+@pytest.mark.skipif(True, reason='Requires a job_with_schedule fixture')
 @pytest.mark.usefixtures(
     'authtoken',
     'install_enterprise_license_unlimited',
