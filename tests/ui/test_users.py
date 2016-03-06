@@ -29,13 +29,11 @@ def test_create_user(api_users_pg, ui_users_add):
     ui_users_add.details.confirm_password.set_text(pw)
 
     ui_users_add.details.organization.set_text('Default')
-    while(ui_users_add.details.organization_api_error.is_displayed()):
-        ui_users_add.details.organization.set_text('Default')
 
     ui_users_add.details.save.click()
 
     # search the table for the newly created user row
-    results = ui_users_add.table.query(lambda r: r['username'].root.text == un)
+    results = ui_users_add.table.query(lambda r: r['username'].text == un)
 
     # verify newly created user row
     assert len(results) == 1, 'Expected table data not found'

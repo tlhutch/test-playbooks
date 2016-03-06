@@ -138,8 +138,9 @@ class TextInput(Region):
         return self.root.get_attribute('type') == 'password'
 
     def set_text(self, text):
-        self.root.clear()
-        self.root.send_keys(text)
+        if self.text != text:
+            self.root.clear()
+            self.root.send_keys(text)
 
 
 class CodeMirror(TextInput):
