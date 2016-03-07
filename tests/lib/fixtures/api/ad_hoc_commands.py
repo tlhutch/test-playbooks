@@ -2,12 +2,12 @@ import pytest
 
 
 @pytest.fixture(scope="function")
-def ad_hoc_ping(request, api_ad_hoc_commands_pg, inventory, ssh_credential):
+def ad_hoc_ping(request, api_ad_hoc_commands_pg, host, ssh_credential):
     '''
     Launch an ad_hoc ping command and return the job resource.
     '''
     ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
-    payload = dict(inventory=inventory.id,
+    payload = dict(inventory=host.get_related('inventory').id,
                    credential=ssh_credential.id,
                    module_name="ping")
 

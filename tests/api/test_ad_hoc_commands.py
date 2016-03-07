@@ -54,12 +54,12 @@ def deleted_object(request):
 
 
 @pytest.fixture(scope="function")
-def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg, testsetup):
+def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, host, ssh_credential_multi_ask, api_ad_hoc_commands_pg, testsetup):
     '''
     Launch command with multi_ask credential and passwords in the payload.
     '''
     # create payload
-    payload = dict(inventory=inventory.id,
+    payload = dict(inventory=host.get_related('inventory').id,
                    credential=ssh_credential_multi_ask.id,
                    module_name="ping",
                    ssh_password=testsetup.credentials['ssh']['password'],
@@ -93,14 +93,15 @@ class Test_Ad_Hoc_Commands_Inventory(Base_Api_Test):
         ad_hoc_commands_pg = inventory.get_related('ad_hoc_commands')
         ad_hoc_commands_pg.get()
 
-    def test_post_as_superuser(self, inventory, ssh_credential):
+    def test_post_as_superuser(self, host, ssh_credential):
         '''
         Verify that a superuser account is able to POST to the ad_hoc_commands endpoint.
         '''
-        ad_hoc_commands_pg = inventory.get_related('ad_hoc_commands')
+        inventory_pg = host.get_related('inventory')
+        ad_hoc_commands_pg = inventory_pg.get_related('ad_hoc_commands')
 
         # create payload
-        payload = dict(inventory=inventory.id,
+        payload = dict(inventory=inventory_pg.id,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -128,14 +129,14 @@ class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
         ad_hoc_commands_pg = group.get_related('ad_hoc_commands')
         ad_hoc_commands_pg.get()
 
-    def test_post_as_superuser(self, group, inventory, ssh_credential):
+    def test_post_as_superuser(self, group, host, ssh_credential):
         '''
         Verify that a superuser account is able to POST to the ad_hoc_commands endpoint.
         '''
         ad_hoc_commands_pg = group.get_related('ad_hoc_commands')
 
         # create payload
-        payload = dict(inventory=inventory.id,
+        payload = dict(inventory=host.get_related('inventory').id,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -163,14 +164,14 @@ class Test_Ad_Hoc_Commands_Host(Base_Api_Test):
         ad_hoc_commands_pg = host.get_related('ad_hoc_commands')
         ad_hoc_commands_pg.get()
 
-    def test_post_as_superuser(self, host, inventory, ssh_credential):
+    def test_post_as_superuser(self, host, ssh_credential):
         '''
         Verify that a superuser account is able to POST to the ad_hoc_commands endpoint.
         '''
         ad_hoc_commands_pg = host.get_related('ad_hoc_commands')
 
         # create payload
-        payload = dict(inventory=inventory.id,
+        payload = dict(inventory=host.get_related('inventory').id,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -199,12 +200,12 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
             with self.current_user(user.username, user_password):
                 api_ad_hoc_commands_pg.get()
 
-    def test_post_as_privileged_user(self, inventory, ssh_credential, api_ad_hoc_commands_pg, privileged_users, user_password):
+    def test_post_as_privileged_user(self, host, ssh_credential, api_ad_hoc_commands_pg, privileged_users, user_password):
         '''
         Verify that a superuser account is able to post to the ad_hoc_commands endpoint.
         '''
         # create payload
-        payload = dict(inventory=inventory.id,
+        payload = dict(inventory=host.get_related('inventory').id,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -234,12 +235,12 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                 with pytest.raises(common.exceptions.Forbidden_Exception):
                     api_ad_hoc_commands_pg.post(payload)
 
-    def test_launch_without_module_name(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
+    def test_launch_without_module_name(self, host, ssh_credential, api_ad_hoc_commands_pg):
         '''
         Verifies that if you post without specifiying module_name that the command module is run.
         '''
         # create payload
-        payload = dict(inventory=inventory.id,
+        payload = dict(inventory=host.get_related('inventory').id,
                        credential=ssh_credential.id,
                        module_args="true", )
 
@@ -308,12 +309,12 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
             "Unexpected command status after cancelling (expected " \
             "status:canceled) - %s" % ad_hoc_with_status_pending
 
-    def test_launch_with_ask_credential_and_passwords_in_payload(self, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
+    def test_launch_with_ask_credential_and_passwords_in_payload(self, host, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
         '''
         Verifies that launching a command with an ask credential succeeds when supplied with proper passwords.
         '''
         # create payload
-        payload = dict(inventory=inventory.id,
+        payload = dict(inventory=host.get_related('inventory').id,
                        credential=ssh_credential_multi_ask.id,
                        module_name="ping",
                        ssh_password=self.credentials['ssh']['password'],
@@ -369,7 +370,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         ("group*:&group-1:!duplicate_host", 3),  # All groups intersect with "group-1" and not "duplicate_host"
         ("duplicate_host", 1),
         pytest.mark.github('https://github.com/ansible/ansible/issues/14513')(("host with spaces in name", 1)),
-        ("UNMATCHED_LIMIT", 0)
     ])
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json
@@ -403,19 +403,18 @@ for grp, hosts in inv.items():
 
 print json.dumps(inv, indent=2)
 ''')
-    def test_launch_with_various_limit_values(
+    def test_launch_with_matched_limit_value(
             self, limit_value,
             expected_count,
-            custom_inventory_source,
             custom_inventory_update_with_status_completed,
             ssh_credential,
             api_ad_hoc_commands_pg
     ):
         '''
-        Verifies payloads with different values for limit behave as expected.
+        Verifies that ad hoc command launches with different values for limit behave as expected.
         '''
         # create payload
-        payload = dict(inventory=custom_inventory_source.inventory,
+        payload = dict(inventory=custom_inventory_update_with_status_completed.get_related('inventory_source').inventory,
                        credential=ssh_credential.id,
                        module_name="ping",
                        limit=limit_value)
@@ -428,8 +427,34 @@ print json.dumps(inv, indent=2)
         events_pg = command_pg.get_related('events')
         assert events_pg.count == expected_count
 
+    def test_launch_with_unmatched_limit_value(self, host, ssh_credential, api_ad_hoc_commands_pg, ansible_version_cmp):
+        '''
+        Verify that launching an ad hoc command without matching host fails appropriately.
+        '''
+        # create payload
+        payload = dict(inventory=host.get_related('inventory').id,
+                       credential=ssh_credential.id,
+                       module_name="ping",
+                       limit=fauxfactory.gen_utf8())
+
+        # check that our limit is unmatched
+        hosts_pg = host.get_related('inventory').get_related("hosts")
+        host_names = [host.name for host_pg in hosts_pg.results]
+        for host_name in host_names:
+            assert host_name != payload['limit'], "Matching host unexpectedly found - %s." % host_name
+
+        # launch the job template and check the results
+        # unmatched commands fail starting with ansible-2.0.1.0
+        job_pg = api_ad_hoc_commands_pg.post(payload).wait_until_completed()
+        if ansible_version_cmp('2.0.1.0') < 0:
+            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        else:
+            assert job_pg.status == "failed", "Unexpected job_pg.status - %s." % job_pg
+            assert "Specified hosts options do not match any hosts" in job_pg.result_stdout, \
+                "Unexpected job_pg.result_stdout when launching an ad hoc command with an unmatched limit."
+
     def test_relaunch_command_with_privileged_users(
-        self, inventory,
+        self, host,
         ssh_credential,
         api_ad_hoc_commands_pg,
         api_unified_jobs_pg,
@@ -444,7 +469,7 @@ print json.dumps(inv, indent=2)
             ssh_credential.patch(user=privileged_user.id)
 
             # create payload
-            payload = dict(inventory=inventory.id,
+            payload = dict(inventory=host.get_related('inventory').id,
                            credential=ssh_credential.id,
                            module_name="ping", )
 
@@ -561,17 +586,19 @@ print json.dumps(inv, indent=2)
         activity_stream_pg = ad_hoc_command_pg.get_related('activity_stream')
         assert activity_stream_pg.count == 1, "Activity stream not populated."
 
-    def test_command_page_update(self, org_admin, user_password, inventory, ssh_credential, api_ad_hoc_commands_pg):
+    def test_command_page_update(self, org_admin, user_password, host, ssh_credential, api_ad_hoc_commands_pg):
         '''
         Tests that deleting related objects will be reflected in the updated command page.
         '''
+        inventory_pg = host.get_related('inventory')
+
         # modify credential for org_admin
         ssh_credential.patch(user=org_admin.id)
 
         # create payload
-        payload = dict(inventory=inventory.id,
+        payload = dict(inventory=inventory_pg.id,
                        credential=ssh_credential.id,
-                       module_name="ping", )
+                       module_name="ping")
 
         # post payload to ad_hoc_commands endpoint
         with self.current_user(org_admin.username, user_password):
@@ -582,7 +609,7 @@ print json.dumps(inv, indent=2)
         assert ad_hoc_command_pg.is_successful, "Ad hoc command unsuccessful - %s" % ad_hoc_command_pg
 
         # delete related objects
-        inventory.delete()
+        inventory_pg.delete()
         ssh_credential.delete()
         org_admin.delete()
 
@@ -602,7 +629,7 @@ print json.dumps(inv, indent=2)
         assert "created_by" not in ad_hoc_command_pg.json['related']
 
     @pytest.mark.fixture_args(ad_hoc_commands=['shell'])
-    def test_included_modules(self, inventory, ssh_credential, api_ad_hoc_commands_pg, AD_HOC_COMMANDS, ad_hoc_module_name_choices):
+    def test_included_modules(self, host, ssh_credential, api_ad_hoc_commands_pg, AD_HOC_COMMANDS, ad_hoc_module_name_choices):
         '''
         Verifies that adding additional modules to ad_hoc.py unlocks additional modules.
         '''
@@ -611,7 +638,7 @@ print json.dumps(inv, indent=2)
             "Ad hoc command OPTIONS not updated for updated ad_hoc.py"
 
         # create payload
-        payload = dict(inventory=inventory.id,
+        payload = dict(inventory=host.get_related('inventory').id,
                        credential=ssh_credential.id,
                        module_name="shell",
                        module_args="true", )
@@ -661,7 +688,7 @@ print json.dumps(inv, indent=2)
                 assert result == {u'module_name': [u'"%s" is not a valid choice.' % module_name]}, errorMsg
 
     @pytest.mark.fixture_args(ad_hoc_commands=[])
-    def test_relaunch_with_excluded_module(self, ad_hoc_with_status_completed, inventory, ssh_credential, api_ad_hoc_commands_pg, AD_HOC_COMMANDS,
+    def test_relaunch_with_excluded_module(self, ad_hoc_with_status_completed, api_ad_hoc_commands_pg, AD_HOC_COMMANDS,
                                            tower_version_cmp):
         '''
         Verifies that you cannot relaunch a command which has been removed
@@ -711,19 +738,19 @@ class Test_Ad_Hoc_Permissions(Base_Api_Test):
                 with pytest.raises(common.exceptions.Forbidden_Exception):
                     api_ad_hoc_commands_pg.post(payload)
 
-    def test_unprivileged_user_with_readexecute_permissions(self, inventory, ssh_credential, api_ad_hoc_commands_pg, unprivileged_users, user_password):
+    def test_unprivileged_user_with_readexecute_permissions(self, host, ssh_credential, api_ad_hoc_commands_pg, unprivileged_users, user_password):
         '''
         Verify that unprivileged users with ad hoc launch can post to the ad_hoc_commands endpoint.
         '''
         # create payload
-        payload = dict(inventory=inventory.id,
+        payload = dict(inventory=host.get_related('inventory').id,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
         # post payload as unprivileged user
         for unprivileged_user in unprivileged_users:
             # grant the user permissions
-            unprivileged_user.add_permission('read', inventory=inventory.id, run_ad_hoc_commands=True)
+            unprivileged_user.add_permission('read', inventory=host.get_related('inventory').id, run_ad_hoc_commands=True)
             # associate the credential with the user
             ssh_credential.patch(user=unprivileged_user.id)
             # post the command as the privileged user
@@ -734,12 +761,12 @@ class Test_Ad_Hoc_Permissions(Base_Api_Test):
             command_pg.wait_until_completed()
             assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
 
-    def test_privileged_user_with_no_permissions(self, inventory, ssh_credential, api_ad_hoc_commands_pg, privileged_users, user_password):
+    def test_privileged_user_with_no_permissions(self, host, ssh_credential, api_ad_hoc_commands_pg, privileged_users, user_password):
         '''
         Verify that privileged users can post to the ad_hoc_commands endpoint without permissions.
         '''
         # create payload
-        payload = dict(inventory=inventory.id,
+        payload = dict(inventory=host.get_related('inventory').id,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
