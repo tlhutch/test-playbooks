@@ -180,7 +180,19 @@ class Page(Selector):
         self.driver.back()
 
     def get(self, url):
-        return self.driver.get(url)
+        if self.driver.name == 'internet explorer':
+            self.wait.until(lambda _: self._get_success)
+        else:
+            self.get(url)
+
+    def _get_success(self, url):
+        # This is here because IE 11 WebDriver sometimes fails with a java
+        # threadpool exception when using the url get method.
+        try:
+            self.driver.get(url)
+            return True
+        except WebDriverException:
+            return False
 
     def open(self):
         if not self.is_loaded():
