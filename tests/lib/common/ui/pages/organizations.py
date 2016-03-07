@@ -40,7 +40,7 @@ class OrganizationCard(Region):
 
     @property
     def displayed_link_names(self):
-        return [link.root.text for link in self.links]
+        return [link.text for link in self.links]
 
     @property
     def displayed_link_badges(self):
@@ -53,7 +53,7 @@ class OrganizationCard(Region):
     def get_badge(self, name):
         text = self._normalize_text(name)
         for n, link in enumerate(self.links):
-            if self._normalize_text(link.root.text) == text:
+            if self._normalize_text(link.text) == text:
                 return self.badges[n]
         raise NoSuchElementException
 
@@ -63,7 +63,7 @@ class OrganizationCard(Region):
     def get_link(self, name):
         text = self._normalize_text(name)
         for link in self.links:
-            if self._normalize_text(link.root.text) == text:
+            if self._normalize_text(link.text) == text:
                 return link
         raise NoSuchElementException
 
