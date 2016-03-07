@@ -26,8 +26,7 @@ junit-xml
 flake8
 pep8
 pylint
-# support for cloud APIs
-azure==0.8.1
-boto==2.13.3
-pyrax==1.9.4
+azure
+boto
+pyrax
 pysphere
