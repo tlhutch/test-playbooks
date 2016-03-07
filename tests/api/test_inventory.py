@@ -224,11 +224,14 @@ class Test_Inventory_Update(Base_Api_Test):
         #    "found after inventory_update.  An inventory_update was not " \
         #    "triggered by the callback as expected"
 
-    def test_successful_inventory_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):
+    def test_inventory_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):
         '''
-        Tests that inventory imports succeed with all possible choices for source_regions.
+        Assess inventory imports with all possible choices for source_regions.
+
+        Note: we expect inventory imports with certain regions to fail. For more context,
+        please see https://github.com/ansible/ansible-tower/issues/545.
         '''
-        # provide list of values supported for source_regions given each provider
+        # provide list of values for source_regions given each provider
         cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
         if cloud_provider == 'aws':
             source_regions = region_choices['ec2']
@@ -240,18 +243,27 @@ class Test_Inventory_Update(Base_Api_Test):
             source_regions = region_choices['gce']
         else:
             raise NotImplementedError("Unexpected cloud_provider: %s." % cloud_provider)
+        unsupported_source_regions = ['cn-north-1', 'us-gov-west-1', 'LON']
 
         for source_region in source_regions:
-            # patch inv_source_pg
+            # patch inv_source_pg and launch update
             inv_source_pg = cloud_group_supporting_source_regions.get_related('inventory_source')
             inv_source_pg.patch(source_regions=source_region)
             assert inv_source_pg.source_regions.lower() == source_region.lower(), \
                 "Unexpected value for inv_source_pg.source_regions after patching the inv_source_pg with %s." % source_region
-
-            # assert that the update was successful
             update_pg = inv_source_pg.update().wait_until_completed()
-            assert update_pg.is_successful, "inventory_update %s failed with region %s." % (update_pg, source_region)
-            assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+
+            # assert that the update was successful if used with supported source region
+            if source_region not in unsupported_source_regions:
+                assert update_pg.is_successful, "inventory_update %s failed with supported region %s." % (update_pg, source_region)
+                assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+            # assert that update fails if used with unsupported source region
+            else:
+                assert update_pg.status == "failed", \
+                    "inventory_update %s did not fail with unsupported region %s." % (update_pg, source_region)
+                assert inv_source_pg.get().status == "failed", \
+                    "An inventory_update failed, but the inventory_source did not fail - %s" % inv_source_pg
+
             # TODO: Assert specific cloud instance is now listed in group
 
     def test_inventory_update_with_populated_source_region(self, cloud_group_supporting_source_regions):
