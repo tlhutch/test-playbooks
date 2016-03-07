@@ -182,7 +182,7 @@ class Fact_View_Page(Base):
     timestamp = property(json_getter('timestamp'), json_setter('timestamp'))
     host = property(json_getter('host'), json_setter('host'))
     module = property(json_getter('module'), json_setter('module'))
-    fact = property(json_getter('fact'), json_setter('fact'))
+    facts = property(json_getter('facts'), json_setter('facts'))
 
 
 class Hosts_Page(Host_Page, Base_List):
