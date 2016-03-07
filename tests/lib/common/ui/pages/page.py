@@ -181,9 +181,9 @@ class Page(Selector):
 
     def get(self, url):
         if self.driver.name == 'internet explorer':
-            self.wait.until(lambda _: self._get_success)
+            self.wait.until(lambda _: self._get_success(url))
         else:
-            self.get(url)
+            self.driver.get(url)
 
     def _get_success(self, url):
         # This is here because IE 11 WebDriver sometimes fails with a java
