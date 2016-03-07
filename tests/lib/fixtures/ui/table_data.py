@@ -119,5 +119,4 @@ def populate_organizations(
         data['name'] = 'ui-organization-%s' % fauxfactory.gen_utf8()
         data['description'] = fauxfactory.gen_utf8()
 
-        obj = api_organizations_pg.post(data)
-        request.addfinalizer(obj.silent_delete)
+        api_organizations_pg.post(data)
