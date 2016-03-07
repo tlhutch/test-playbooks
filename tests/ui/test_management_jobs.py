@@ -56,12 +56,11 @@ def test_api_referential_integrity(api_system_job_templates_pg, ui_management_jo
     assert len(management_cards) == len(system_jobs), (
         'Unexpected number of management job cards displayed')
 
-    for n, card in enumerate(management_cards):
+    expected_titles = [job.json['name'].lower() for job in system_jobs]
 
-        expected_title = system_jobs[n].json['name'].lower()
-        title = card.title.text.lower()
-
-        assert title == expected_title, 'Unexpected management card title'
+    for card in management_cards:
+        assert card.title.text.lower() in expected_titles, (
+            'Unexpected management card title')
 
 
 @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1071')
