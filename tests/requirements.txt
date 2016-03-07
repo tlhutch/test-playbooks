@@ -3,7 +3,6 @@
 
 pip
 setuptools>=18.4
-distribute
 selenium
 py
 pytest
