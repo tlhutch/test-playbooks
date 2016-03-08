@@ -109,11 +109,11 @@ class Test_Job_Events(Base_Api_Test):
         # assert job_tasks matches job_events?parent=N job_tasks
         for play in job_events_plays.results:
 
-            # NOTE: ansible core does nothing with playbook_on_notify events,
-            # so we're excluding them below.  Additionally, the
-            # 'playbook_on_no_hosts_matched' indicates there are will be
-            # host_events associated with the task
-            job_events_tasks = job_pg.get_related('job_events', parent=play.id, not__event__in=','.join(('playbook_on_notify', 'playbook_on_no_hosts_matched')))
+            # NOTE: playbook_on_* events are playbook-scoped and therefore do not have associated tasks.
+            # We filter out a subset of these here.
+            job_events_tasks = job_pg.get_related('job_events', parent=play.id, not__event__in=','.join(('playbook_on_notify',
+                                                                                                         'playbook_on_no_hosts_matched',
+                                                                                                         'playbook_on_no_hosts_remaining')))
             job_tasks_pg = job_pg.get_related('job_tasks', event_id=play.id)
 
             assert job_tasks_pg.count == job_events_tasks.count, \
