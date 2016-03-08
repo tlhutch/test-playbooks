@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import re
 import types
 import json
@@ -80,7 +82,7 @@ def utf8_template(request, authtoken, api_job_templates_pg, project_ansible_play
                    job_type='run',
                    project=project_ansible_playbooks_git.id,
                    credential=ssh_credential.id,
-                   playbook='utf-8.yml',)
+                   playbook=u'utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml',)
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
