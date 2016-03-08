@@ -844,7 +844,7 @@ class Test_Scan_Job(Base_Api_Test):
         # check that a specific recursive file exists in fact results
         files_fact_version_pg = filter(lambda x: x.module == "files", new_facts)
         files_fact_view_pg = files_fact_version_pg[0].get_related('fact_view')
-        assert any(fact.path == "/bin/ls" for fact in files_fact_view_pg.fact), \
+        assert any(fact.path == "/bin/ls" for fact in files_fact_view_pg.facts), \
             "Did not find target file 'bin/ls' after running recursive file scan. Results: %s." % files_fact_view_pg.fact
 
     def test_file_scan_job_with_checksums(self, install_enterprise_license_unlimited, scan_job_template):
@@ -869,7 +869,7 @@ class Test_Scan_Job(Base_Api_Test):
         # assert facts with checksum data exist
         files_fact_version_pg = filter(lambda x: x.module == "files", new_facts)
         files_fact_view_pg = files_fact_version_pg[0].get_related('fact_view')
-        file_checksums = [x for x in files_fact_view_pg.fact if 'checksum' in x]
+        file_checksums = [x for x in files_fact_view_pg.facts if 'checksum' in x]
         assert len(file_checksums) > 0, "No files with checksums found after running a checksum scan job - %s." % file_checksums
 
     def test_custom_scan_job(self, install_enterprise_license_unlimited, job_template):
