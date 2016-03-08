@@ -1,6 +1,9 @@
 from itertools import combinations
+
+import json
 import urlparse
 
+import fauxfactory
 import pytest
 
 pytestmark = [
@@ -153,3 +156,69 @@ def test_navigation_with_edit_query_params(ui_inventories_edit):
 
     assert query_nav_select == {'target': ['job_template']}, (
         'Unexpected activity stream url query parameters after nav select')
+
+
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1179')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+def test_activity_stream_event_details(ui_inventories_edit):
+    """Verify basic activity stream detail functionality
+    """
+    new_inventory_name = fauxfactory.gen_utf8()
+
+    # change the name of the inventory
+    ui_inventories_edit.details.name.set_text(new_inventory_name)
+    ui_inventories_edit.details.save.click()
+
+    # navigate to the activity stream page
+    activity_stream = ui_inventories_edit.activity_stream_link.click()
+
+    # verify we have at least one event in our activity stream
+    assert len(activity_stream.table.rows) > 0, (
+        'Activity stream table unexecptedly not populated')
+
+    # sort the table by event time in ascending order
+    activity_stream.table.set_column_sort_order(('event_time', 'ascending'))
+
+    # get the top row
+    top_row = activity_stream.table[0]
+
+    # verify the top row mentions an inventory update and the inventory name
+    assert 'inventory' in top_row['action'].text.lower(), (
+        'Inventory update unexpectedly not found in top row action column')
+
+    assert 'update' in top_row['action'].text.lower(), (
+        'Inventory update unexpectedly not found in top row action column')
+
+    assert new_inventory_name.lower() in top_row['action'].text.lower(), (
+        'New inventory name unexpetedly not found in top row action column')
+
+    # get the details modal for the top row
+    event_details = top_row['event_details'].click()
+
+    event_details.wait_until_displayed()
+
+    assert event_details.close.is_clickable(), (
+        'Event details close button unexpectedly not clickable')
+
+    assert event_details.ok.is_clickable(), (
+        'Event details ok button unexpectedly not clickable')
+
+    assert event_details.changes.is_displayed(), (
+        'Changes information unexpectedly not displayed')
+
+    # verify the changes detail text is valid json
+    try:
+        json.loads(event_details.changes.text)
+    except ValueError:
+        pytest.fail('Unable to verify displayed change text is valid json')
+
+    assert new_inventory_name in event_details.changes.text, (
+        'New inventory name unexpectedly not found in change details')
+
+    # verify user and operation details regions are fully surrounded by the
+    # modal window
+    assert event_details.surrounds(event_details.initiated_by), (
+        'User details region not fully surrounded by event details modal')
+
+    assert event_details.surrounds(event_details.operation), (
+        'User details region not fully surrounded by event details modal')
