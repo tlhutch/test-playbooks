@@ -78,7 +78,7 @@ def pytest_configure(config):
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         config._debug_rest_hdlr.setFormatter(formatter)
 
-    if not (config.option.help or config.option.collectonly or config.option.showfixtures):
+    if not (config.option.help or config.option.collectonly or config.option.showfixtures or config.option.markers):
         if config.option.base_url:
             try:
                 r = requests.get(config.option.base_url, verify=False, timeout=5)
