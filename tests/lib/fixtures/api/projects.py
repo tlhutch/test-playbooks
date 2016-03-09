@@ -152,11 +152,11 @@ def project_ansible_git(request, project_ansible_git_nowait):
 
 
 @pytest.fixture(scope="function")
-def project_ansible_internal_git_nowait(request, authtoken, encrypted_scm_credential, organization):
+def project_ansible_docsite_git_nowait(request, authtoken, encrypted_scm_credential, organization):
     # Create project
-    payload = dict(name="ansible-internal.git - %s" % fauxfactory.gen_utf8(),
+    payload = dict(name="ansible-docsite.git - %s" % fauxfactory.gen_utf8(),
                    scm_type='git',
-                   scm_url='git@github.com:ansible/ansible-internal.git',
+                   scm_url='git@github.com:ansible/docsite.git',
                    scm_clean=False,
                    scm_delete_on_update=False,
                    scm_update_on_launch=False,
@@ -167,14 +167,14 @@ def project_ansible_internal_git_nowait(request, authtoken, encrypted_scm_creden
 
 
 @pytest.fixture(scope="function")
-def project_ansible_internal_git(request, project_ansible_internal_git_nowait):
+def project_ansible_docsite_git(request, project_ansible_docsite_git_nowait):
     # Wait for project update to complete
-    updates_pg = project_ansible_internal_git_nowait.get_related('project_updates', order_by="-id")
+    updates_pg = project_ansible_docsite_git_nowait.get_related('project_updates', order_by="-id")
     assert updates_pg.count > 0, 'No project updates found'
     latest_update_pg = updates_pg.results.pop().wait_until_completed()
     # Assert project_update completed successfully
     assert latest_update_pg.is_successful, "Job unsuccessful - %s" % latest_update_pg
-    return project_ansible_internal_git_nowait.get()
+    return project_ansible_docsite_git_nowait.get()
 
 
 @pytest.fixture(scope="function")
