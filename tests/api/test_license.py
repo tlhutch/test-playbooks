@@ -741,7 +741,7 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to patch a job template into a scan job template with a legacy license - %s." % json.dumps(result)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
         '''Verify that cleanup_facts may not be run with a legacy license.'''
@@ -967,7 +967,7 @@ class Test_Legacy_License_Expired(Base_Api_Test):
         with pytest.raises(common.exceptions.Forbidden_Exception):
             job_template.launch_job().wait_until_completed()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job):
         '''Verify that system jobs can be launched'''
@@ -1278,7 +1278,7 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
             "Unexpected API response when attempting to patch a job template into a scan job template with a basic license - %s." % json.dumps(result)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
         '''Verify that cleanup_facts may not be run with a basic license.'''
@@ -1505,7 +1505,7 @@ class Test_Enterprise_License(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_able_to_cleanup_facts(self, cleanup_facts):
         '''Verifies that cleanup_facts may be run with an enterprise license.'''
@@ -1617,7 +1617,7 @@ class Test_Enterprise_License_Expired(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/790')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job):
         '''Verify that system jobs can be launched'''
