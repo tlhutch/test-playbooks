@@ -215,7 +215,7 @@ def host(request, authtoken, api_hosts_pg, inventory, group):
                    variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
                    inventory=inventory.id,)
     obj = api_hosts_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
     # Add host to group
     with pytest.raises(common.exceptions.NoContent_Exception):
         obj.get_related('groups').post(dict(id=group.id))
