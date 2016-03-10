@@ -1,9 +1,13 @@
+import dateutil.rrule
 import json
-import os.path
-import pytest
 import logging
+import os.path
+
 import fauxfactory
+import pytest
+
 import common.exceptions
+import common.rrule
 
 
 log = logging.getLogger(__name__)
@@ -239,11 +243,15 @@ def project_with_schedule(request, authtoken, project_ansible_playbooks_git_nowa
     """
     project = project_ansible_playbooks_git_nowait
     project.wait_until_completed()
+
+    schedule_rrule = common.rrule.RRule(
+      dateutil.rrule.DAILY, count=1, byminute='', bysecond='', byhour='')
+
     schedule_data = {
         "name": "test_schedule-%s" % fauxfactory.gen_utf8(),
         "description": "every day for 1 time",
         "enabled": True,
-        "rrule": "DTSTART:20160213T050000Z RRULE:FREQ=DAILY;INTERVAL=1;COUNT=1",
+        "rrule": "{0}".format(schedule_rrule),
         "extra_data": {}
     }
 
