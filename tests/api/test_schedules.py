@@ -840,6 +840,7 @@ class Test_System_Job_Template_Schedules(Base_Api_Test):
             assert default_schedule_pg.extra_data == kwargs, \
                 "Unexpected extra_data with '%s.'" % name
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     def test_multiple_schedules(self, multiple_management_job_schedules):
         '''Tests that multiple schedules may be created for each system_job_template.'''
         # assert correct number of schedules
