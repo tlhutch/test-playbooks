@@ -37,7 +37,10 @@ class TowerPage(Page):
 
     @property
     def current_crumb(self):
-        return self.crumbs[-1]
+        try:
+            return self.crumbs[-1]
+        except IndexError:
+            return None
 
     @property
     def header(self):
