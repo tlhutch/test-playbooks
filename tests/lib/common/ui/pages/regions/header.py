@@ -6,14 +6,13 @@ from common.ui.pages.page import Region
 from clickable import Clickable
 
 from links import (
-    Link,
+    LogoutLink,
     DashboardLink,
     ProjectsLink,
     InventoriesLink,
     JobTemplatesLink,
     JobsLink,
     SetupLink,
-    LogoutLink,
     UserLink,
 )
 
@@ -38,11 +37,12 @@ class HeaderSetupLink(SetupLink):
     _root_locator = (By.ID, 'main_menu_setup_link')
 
 
-class HeaderDocsLink(Link):
+class HeaderDocsLink(Clickable):
     _root_locator = (By.ID, 'main_menu_docs_link')
 
 
 class HeaderLogoutLink(LogoutLink):
+    _spinny = False
     _root_locator = (By.ID, 'main_menu_logout_link')
 
 
@@ -115,6 +115,7 @@ class HeaderSetupMobileLink(SetupLink):
 
 
 class HeaderLogoutMobileLink(LogoutLink):
+    _spinny = False
     _root_locator = (By.ID, 'main_menu_logout_mobile_link')
 
 
@@ -193,6 +194,7 @@ class SocketStatusNotification(Region):
 class Header(Region):
 
     _item_locator = (By.CLASS_NAME, 'MainMenu-item')
+    _is_current_route = (By.CLASS_NAME, 'is-currentRoute')
 
     @property
     def projects_link(self):
@@ -239,6 +241,10 @@ class Header(Region):
         return self.current_menu.user
 
     @property
+    def current_route_id(self):
+        return self.find_element(self._is_current_route).get_attribute('id')
+
+    @property
     def displayed_link_labels(self):
         labels = []
         for element in self.find_elements(self._item_locator):
@@ -266,8 +272,8 @@ class Header(Region):
     def __init__(self, page, **kwargs):
         super(Header, self).__init__(page, **kwargs)
 
-        self.standard_menu = HeaderStandard(self.page, **kwargs)
-        self.mobile_menu = HeaderMobile(self.page, **kwargs)
+        self.standard_menu = HeaderStandard(self.page)
+        self.mobile_menu = HeaderMobile(self.page)
 
     def is_displayed(self):
         try:

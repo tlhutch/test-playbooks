@@ -1,93 +1,137 @@
 from selenium.webdriver.common.by import By
 
 from common.ui.pages.page import Region
-from common.ui.pages.regions.lists import ListRegion
-from common.ui.pages.regions.buttons import Button
+from common.ui.pages.regions.clickable import Clickable
 
 
-class PaginationLinks(ListRegion):
-    '''Represents the pagination links at the bottom of a table'''
+class PaginationLink(Clickable):
+    _spinny = True
     _root_locator = (By.CSS_SELECTOR, '#pagination-links')
+
+
+class PaginationFirstLink(PaginationLink):
+    _root_extension = (By.CSS_SELECTOR, '#first-page-set')
+
+
+class PaginationPreviousLink(PaginationLink):
+    _root_extension = (By.CSS_SELECTOR, '#previous-page')
+
+
+class PaginationNextLink(PaginationLink):
+    _root_extension = (By.CSS_SELECTOR, '#next-page')
+
+
+class PaginationLastLink(PaginationLink):
+    _root_extension = (By.CSS_SELECTOR, '#last-page-set')
+
+
+class PaginationActiveLink(PaginationLink):
+    _root_extension = (By.CSS_SELECTOR, 'li.active > a')
+
+
+class PaginationNumberedLinks(PaginationLink):
     _item_locator = (By.CSS_SELECTOR, 'li.ng-scope > a')
-    _item_class = None
-    _locators = {
-        'current': (By.CSS_SELECTOR, 'li.active > a'),
-        'first': (By.CSS_SELECTOR, '#first-page-set'),
-        'previous': (By.CSS_SELECTOR, '#previous-page'),
-        'next': (By.CSS_SELECTOR, '#next-page'),
-        'last': (By.CSS_SELECTOR, '#last-page-set'),
-    }
-    page_size = 20
+
+    def __len__(self):
+        return len(self.items())
+
+    def options(self):
+        return [element.text for element in self.items()]
+
+    def get(self, option):
+        element = self.lookup_element(self._item_locator, text=option)
+        return Clickable(self.page, root=element, spinny=True)
+
+    def click(self, option):
+        self.get(option).click()
+
+    def items(self):
+        return self.find_elements(self._item_locator)
+
+
+class PaginationLabel(Region):
+    _root_locator = (By.CSS_SELECTOR, '.List-paginationPager--pageof')
 
     @property
-    def first_page(self):
-        return Button(self.page, root=self.find_element(self._locators['first']))
+    def value(self):
+        return self._normalize_text(self.root.text)
+
+
+class PaginationCurrentPageLabel(PaginationLabel):
+    _root_extension = (By.CSS_SELECTOR, '#current-page')
+
+
+class PaginationTotalPagesLabel(PaginationLabel):
+    _root_extension = (By.CSS_SELECTOR, '#total-pages')
+
+
+class Pagination(Region):
+    _root_locator = None
+    _total_items = (By.CSS_SELECTOR, '#total-items')
 
     @property
-    def prev_page(self):
-        return Button(self.page, root=self.find_element(self._locators['previous']))
+    def active(self):
+        return PaginationActiveLink(self.page)
 
     @property
-    def next_page(self):
-        return Button(self.page, root=self.find_element(self._locators['next']))
+    def first(self):
+        return PaginationFirstLink(self.page)
 
     @property
-    def last_page(self):
-        return Button(self.page, root=self.find_element(self._locators['last']))
+    def previous(self):
+        return PaginationPreviousLink(self.page)
 
     @property
-    def active_page(self):
-        '''
-        Returns the current page as an integer.
-        '''
-        value = self.find_element(*self._locators['current']).text
-        assert value.isdigit(), "expecting digit, but found %s" % type(value)
-        return int(value)
-
-
-class PaginationLabels(Region):
-    '''Represents the pagination links at the bottom of a table'''
-    _root_locator = (By.CSS_SELECTOR, '#pagination-labels')
-    _locators = {
-        'current-page': (By.CSS_SELECTOR, '#current-page'),
-        'total-pages': (By.CSS_SELECTOR, '#total-pages'),
-        'total-items': (By.CSS_SELECTOR, '#total-items'),
-    }
+    def next(self):
+        return PaginationNextLink(self.page)
 
     @property
-    def current_page(self):
-        value = self.find_element(self._locators['current-page']).text
-        assert value.isdigit(), "expecting digit, but found %s" % type(value)
-        return int(value)
+    def last(self):
+        return PaginationLastLink(self.page)
 
     @property
-    def total_pages(self):
-        value = self.find_element(self._locators['total-pages']).text
-        assert value.isdigit(), "expecting digit, but found %s" % type(value)
-        return int(value)
+    def numbered_links(self):
+        return PaginationNumberedLinks(self.page)
+
+    @property
+    def current_page_label(self):
+        return PaginationCurrentPageLabel(self.page)
+
+    @property
+    def total_pages_label(self):
+        return PaginationTotalPagesLabel(self.page)
+
+    @property
+    def total_items_label(self):
+        return self.find_element(self._total_items)
 
     @property
     def total_items(self):
-        value = self.find_element(self._locators['total-items']).text
-        assert value.isdigit(), "expecting digit, but found %s" % type(value)
-        return int(value)
-
-
-class Pagination(PaginationLinks, PaginationLabels):
-    '''Represents the pagination links at the bottom of a table'''
-    _root_locator = (By.CSS_SELECTOR, 'div.page-row')  # Call should provide element/locator
-    _locators = {}
-
-    def __init__(self, page, root=None, **kwargs):
-        super(Pagination, self).__init__(page, root=root, **kwargs)
-
-        self._locators.update(PaginationLinks._locators)
-        self._locators.update(PaginationLabels._locators)
+        # 'ITEMS X-Y OF Z' -> Z
+        return int(self.total_items_label.text.split()[-1])
 
     @property
-    def links(self):
-        return PaginationLinks(self.page, root=self.find_element(PaginationLinks._root_locator))
+    def item_range(self):
+        # 'ITEMS X-Y OF Z' -> (X, Y)
+        text = self.total_items_label.text
+        return map(int, text.split()[1].split(u'\u2013'))
 
     @property
-    def labels(self):
-        return PaginationLabels(self.page, root=self.find_element(PaginationLabels._root_locator))
+    def current_page(self):
+        return int(self.current_page_label.value)
+
+    @property
+    def total_pages(self):
+        return int(self.total_pages_label.value)
+
+    def rewind(self):
+        while self.previous.is_displayed():
+            if self.current_page <= 1:
+                break
+            self.previous.click()
+
+    def fast_forward(self):
+        while self.next.is_displayed():
+            if self.current_page >= self.total_pages:
+                break
+            self.next.click()

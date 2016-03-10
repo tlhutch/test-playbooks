@@ -1,13 +1,21 @@
+from activity_stream import ActivityStream  # NOQA
+from credentials import Credentials  # NOQA
 from dashboard import Dashboard  # NOQA
 from hosts import Hosts  # NOQA
 from inventories import Inventories  # NOQA
+from inventory_scripts import InventoryScripts  # NOQA
 from jobs import Jobs  # NOQA
 from job_templates import JobTemplates  # NOQA
+from license import License  # NOQA
 from login import Login  # NOQA
-from login import Logout  # NOQA
+from manage_inventory import ManageInventory  # NOQA
+from management_jobs import ManagementJobs  # NOQA
+from organizations import Organizations  # NOQA
+from page import Page, Region  # NOQA
 from projects import Projects  # NOQA
+from schedules import JobTemplateSchedules  # NOQA
+from schedules import ProjectSchedules  # NOQA
+from schedules import ManagementJobSchedules  # NOQA
 from setup_menu import SetupMenu  # NOQA
-from users import User  # NOQA
 from users import Users  # NOQA
-from page import Page  # NOQA
-from page import Region  # NOQA
+from teams import Teams  # NOQA

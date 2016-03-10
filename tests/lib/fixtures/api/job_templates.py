@@ -1,6 +1,10 @@
-import pytest
+import dateutil.rrule
 import json
+
 import fauxfactory
+import pytest
+
+import common.rrule
 
 # from credentials import ssh_credential
 # from projects import project
@@ -261,3 +265,23 @@ def files_scan_job_template(scan_job_template):
     '''Scan job template with files enabled.'''
     variables = dict(scan_file_paths="/tmp,/bin")
     return scan_job_template.patch(extra_vars=json.dumps(variables))
+
+
+@pytest.fixture(scope="function")
+def job_template_with_schedule(request, authtoken, job_template):
+    """A job template with an associated schedule
+    """
+    schedule_rrule = common.rrule.RRule(
+        dateutil.rrule.DAILY, count=1, byminute='', bysecond='', byhour='')
+
+    obj = job_template.get_related('schedules').post({
+        "name": "test_schedule-%s" % fauxfactory.gen_utf8(),
+        "description": "every day for 1 time",
+        "enabled": True,
+        "rrule": '{0}'.format(schedule_rrule),
+        "extra_data": {}
+    })
+
+    request.addfinalizer(obj.silent_delete)
+
+    return job_template

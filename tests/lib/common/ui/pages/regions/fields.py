@@ -16,12 +16,13 @@ class Field(Region):
             return []
 
     def clear(self):
+        self.wait_until_displayed()
         self.root.clear()
-
         return self
 
     def send_keys(self, text):
         self.before_send_keys()
+        self.clear()
         self.root.send_keys(text)
         return self.after_send_keys()
 

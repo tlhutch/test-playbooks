@@ -5,14 +5,85 @@ from page import Region
 from base import TowerPage
 
 from common.ui.pages.regions import (
-    DashboardGraphToggle,
-    DashboardGraphTab,
-    DashboardGraphDropdown,
-    JobsLink,
-    JobTemplatesLink,
+    ClockButton,
+    Clickable,
     PageReference,
-    RefreshButton
+    PanelTab,
+    PanelToggleTab,
+    Table,
 )
+
+from common.ui.pages.regions.cells import (
+    EditActionCell,
+    SubmitActionCell,
+)
+
+
+class DashboardNameCell(Clickable):
+    _root_extension = (By.CLASS_NAME, 'DashboardList-nameCell')
+
+
+class DashboardTimeCell(Region):
+    _root_extension = (By.CLASS_NAME, 'DashboardList-timeCell')
+
+
+class DashboardViewAll(Clickable):
+    _spinny = True
+    _root_extension = (By.CLASS_NAME, 'Dashboard-list--viewAll')
+
+
+class JobsTable(Table):
+
+    _root_extension = (By.CLASS_NAME, 'DashboardList-container')
+
+    _row_spec = (
+        ('name', DashboardNameCell),
+        ('time', DashboardTimeCell)
+    )
+
+
+class JobTemplatesTable(Table):
+
+    _root_extension = (By.CLASS_NAME, 'DashboardList-container')
+
+    _row_spec = (
+        ('name', DashboardNameCell),
+        ('edit', EditActionCell),
+        ('submit', SubmitActionCell)
+    )
+
+
+class DashboardNoJobs(Region):
+    _root_extension = (By.CLASS_NAME, 'Dashboard-list--noJobs')
+
+
+class DashboardListPanel(Region):
+
+    @property
+    def view_all(self):
+        return DashboardViewAll(self.page, root=self.root)
+
+    @property
+    def no_jobs(self):
+        return DashboardNoJobs(self.page, root=self.root)
+
+
+class DashboardJobsPanel(DashboardListPanel):
+
+    _root_locator = (By.CLASS_NAME, 'Dashboard-list--jobs')
+
+    @property
+    def table(self):
+        return JobsTable(self.page, root=self.root)
+
+
+class DashboardJobTemplatesPanel(DashboardListPanel):
+
+    _root_locator = (By.CLASS_NAME, 'Dashboard-list--jobTemplates')
+
+    @property
+    def table(self):
+        return JobTemplatesTable(self.page, root=self.root)
 
 
 class Dashboard(TowerPage):
@@ -20,20 +91,19 @@ class Dashboard(TowerPage):
     _path = '/#/home'
 
     _counts_buttons = (By.CLASS_NAME, 'DashboardCounts-buttonStyle')
-    _graph_tabs = (By.CLASS_NAME, 'DashboardGraphs-tab')
-    _graphs = (By.CLASS_NAME, 'DashboardGraphs')
+    _job_status_graph_tab = (By.CLASS_NAME, 'DashboardGraphs-tab--firstTab')
+    _host_status_graph_tab = (By.CLASS_NAME, 'DashboardGraphs-tab--lastTab')
     _jobs_list = (By.CSS_SELECTOR, 'jobs-list.Dashboard-list')
     _job_status_graph = (By.CLASS_NAME, 'DashboardGraphs-graph--jobStatusGraph')
-    _job_templates_list = (By.CSS_SELECTOR, 'job-templates-list.Dashboard-list')
     _host_status_graph = (By.CLASS_NAME, 'DashboardGraphs-graph--hostStatusGraph')
 
     @property
-    def job_templates_table(self):
-        return DashboardJobTemplatesTable(self)
+    def job_templates(self):
+        return DashboardJobTemplatesPanel(self)
 
     @property
-    def jobs_table(self):
-        return DashboardJobsTable(self)
+    def jobs(self):
+        return DashboardJobsPanel(self)
 
     @property
     def hosts(self):
@@ -61,42 +131,32 @@ class Dashboard(TowerPage):
 
     @property
     def host_status_graph_tab(self):
-        return self.find_graph_tab('host status')
+        return PanelTab(self, root_locator=self._host_status_graph_tab)
 
     @property
     def job_status_graph_tab(self):
-        return self.find_graph_tab('job status')
+        return PanelTab(self, root_locator=self._job_status_graph_tab)
 
     @property
     def counts_labels(self):
         return [(count.number, count.label) for count in self._counts()]
 
     @property
-    def refresh_button(self):
-        return RefreshButton(self)
-
-    @property
-    def job_templates_list(self):
-        return Region(self, root_locator=self._job_templates_list)
-
-    @property
-    def jobs_list(self):
-        return Region(self, root_locator=self._jobs_list)
-
-    @property
-    def graphs(self):
-        return Region(self, root_locator=self._graphs)
-
-    @property
     def host_status_graph(self):
+        if not self.host_status_graph_tab.is_enabled():
+            self.host_status_graph_tab.click()
         return Region(self, root_locator=self._host_status_graph)
 
     @property
     def job_status_graph(self):
+        if not self.job_status_graph_tab.is_enabled():
+            self.job_status_graph_tab.click()
         return Region(self, root_locator=self._job_status_graph)
 
     @property
     def job_status_toolbar(self):
+        if not self.job_status_graph_tab.is_enabled():
+            self.job_status_graph_tab.click()
         return DashboardJobStatusToolbar(self)
 
     def find_counts(self, text):
@@ -108,9 +168,8 @@ class Dashboard(TowerPage):
 
         raise NoSuchElementException
 
-    def find_graph_tab(self, text):
-        element = self.find_element_by_text(self._graph_tabs, text)
-        return DashboardGraphTab(self, root=element)
+    def has_clock_button(self):
+        return ClockButton(self).is_present()
 
     def _counts(self):
         for element in self.find_elements(self._counts_buttons):
@@ -131,64 +190,68 @@ class DashboardCountsLink(PageReference):
         return self.find_element(self._counts_label).text.lower()
 
 
-class DashboardTable(Region):
+class DashboardGraphDropdown(Clickable):
 
-    _row_locator = (By.CLASS_NAME, 'List-tableRow')
-
-    @property
-    def rows(self):
-        return list(self._rows())
+    _item_locator = None
 
     @property
-    def row_locator(self):
-        return self.kwargs.get('row_locator', self._row_locator)
+    def item_locator(self):
+        return self.kwargs.get('item_locator', self._item_locator)
 
-    def _rows(self):
-        for element in self.find_elements(self.row_locator):
-            yield DashboardTableRow(self.page, root=element)
+    def _items(self):
+        for element in self.page.find_elements(self.item_locator):
+            yield Clickable(self.page, root=element)
 
+    def _collapse(self):
+        item = next(self._items())
 
-class DashboardJobTemplatesTable(DashboardTable):
-    _root_locator = (By.CLASS_NAME, 'Dashboard-list--jobTemplates')
+        if item.is_displayed():
+            self.click()
+            item.wait_until_not_displayed()
 
+    def _expand(self):
+        item = next(self._items())
 
-class DashboardJobsTable(DashboardTable):
-    _root_locator = (By.CLASS_NAME, 'Dashboard-list--jobs')
-
-
-class DashboardTableRow(Region):
-
-    _activity = (By.CLASS_NAME, 'DashboardList-activityCell')
-    _edit = (By.CLASS_NAME, 'DashboardList-actionButton--edit')
-    _launch = (By.CLASS_NAME, 'DashboardList-actionButton--launch')
-    _time = (By.CLASS_NAME, 'DashboardList-timeCell')
-    _title = (By.CLASS_NAME, 'DashboardList-nameContainer')
+        if not item.is_displayed():
+            self.click()
+            item.wait_until_displayed()
 
     @property
-    def edit(self):
-        return JobTemplatesLink(self.page, root=self.find_element(self._edit))
+    def selected_option(self):
+        return self._normalize_text(self.root.text)
 
-    @property
-    def launch(self):
-        return JobsLink(self.page, root=self.find_element(self._launch))
+    def get_options(self):
+        self._expand()
 
-    @property
-    def time(self):
-        return Region(self.page, root=self._find_element(self._time))
+        options = []
 
-    @property
-    def title(self):
-        return Region(self.page, root=self.find_element(self._title))
+        for item in self._items():
+            options.append(self._normalize_text(item.root.text))
 
-    @property
-    def activity(self):
-        return Region(self.page, root=self._find_element(self._activity))
+        self._collapse()
+
+        return options
+
+    def select_option(self, text):
+        text = self._normalize_text(text)
+
+        self._expand()
+
+        for item in self._items():
+            if self._normalize_text(item.root.text) == text:
+                item.click()
+                self._collapse()
+                return
+
+        self._collapse()
+
+        raise NoSuchElementException
 
 
 class DashboardJobStatusToolbar(Region):
 
     _root_locator = (By.CSS_SELECTOR, '.DashboardGraphs-graphToolbar')
-    _status_buttons = (By.CSS_SELECTOR, '.DashboardGraphs-statusFilter--jobStatus')
+    _status_buttons = (By.CLASS_NAME, 'DashboardGraphs-statusFilter--jobStatus')
     _type_dropdown = (By.CSS_SELECTOR, '#type-dropdown')
     _period_dropdown = (By.CSS_SELECTOR, '#period-dropdown')
     _type_items = (By.CSS_SELECTOR, '.DashboardGraphs-filterDropdownItems--jobType.dropdown-menu > li > a')
@@ -196,11 +259,17 @@ class DashboardJobStatusToolbar(Region):
 
     @property
     def success_status_button(self):
-        return self.find_status_button('successful')
+        for element in self.page.find_elements(self._status_buttons):
+            if 'success' in element.get_attribute('ng-class').lower():
+                return PanelToggleTab(self.page, root=element)
+        raise NoSuchElementException
 
     @property
     def fail_status_button(self):
-        return self.find_status_button('failed')
+        for element in self.page.find_elements(self._status_buttons):
+            if 'failed' in element.get_attribute('ng-class').lower():
+                return PanelToggleTab(self.page, root=element)
+        raise NoSuchElementException
 
     @property
     def period_dropdown(self):
@@ -215,7 +284,3 @@ class DashboardJobStatusToolbar(Region):
             self.page,
             root_locator=self._type_dropdown,
             item_locator=self._type_items)
-
-    def find_status_button(self, text):
-        element = self.find_element_by_text(self._status_buttons, text)
-        return DashboardGraphToggle(self.page, root=element)

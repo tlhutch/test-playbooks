@@ -1,11 +1,11 @@
 from selenium.webdriver.common.by import By
 
-from page import Page
+from common.ui.pages.page import Page
 
 from common.ui.pages.regions import (
     DashboardLink,
     Field,
-    Header,
+    Header
 )
 
 
@@ -27,6 +27,7 @@ class Login(Page):
 
     _alert_errors = (By.CLASS_NAME, 'LoginModal-alert--error')
     _field_errors = (By.CLASS_NAME, 'error')
+    _backdrop = (By.CLASS_NAME, 'LoginModal-backDrop')
 
     @property
     def alert_errors(self):
@@ -61,21 +62,16 @@ class Login(Page):
         return LoginPassword(self)
 
     def is_logged_in(self):
-        return self.header.is_displayed()
+        return not self.is_element_present(self._backdrop)
 
-    def is_loaded(self):
-        return super(Login, self).is_loaded() and not self.is_logged_in()
+    def wait_until_loaded(self):
+        super(Login, self).wait_until_loaded()
+        if not self.is_element_displayed(self._backdrop):
+            self.driver.refresh()
+            self.wait.until(lambda _: self.is_element_displayed(self._backdrop))
 
     def login(self, username, password):
-        self.username.clear()
         self.username.send_keys(username)
-
-        self.password.clear()
         self.password.send_keys(password)
 
         return self.login_button.click()
-
-
-class Logout(Login):
-
-    _path = '/#/logout'
