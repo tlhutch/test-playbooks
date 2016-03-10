@@ -245,7 +245,7 @@ def project_with_schedule(request, authtoken, project_ansible_playbooks_git_nowa
     project.wait_until_completed()
 
     schedule_rrule = common.rrule.RRule(
-      dateutil.rrule.DAILY, count=1, byminute='', bysecond='', byhour='')
+        dateutil.rrule.DAILY, count=1, byminute='', bysecond='', byhour='')
 
     schedule_data = {
         "name": "test_schedule-%s" % fauxfactory.gen_utf8(),
