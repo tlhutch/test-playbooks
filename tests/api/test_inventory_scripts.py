@@ -174,6 +174,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "Filtering by %s returned unexpected number of results (%s != %s)" % \
                 (attr, filter_results.count, 1)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1026')
     def test_put(self, api_inventory_scripts_pg, inventory_script):
         '''
         Verify successful PUT to /inventory_scripts/n
@@ -190,6 +191,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "Unexpected value for %s field ('%s' != '%s')" % \
                 (key, getattr(inventory_script, key), val)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1026')
     def test_patch(self, api_inventory_scripts_pg, inventory_script):
         '''
         Verify successful PATCH to /inventory_scripts/n

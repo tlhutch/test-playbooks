@@ -291,6 +291,7 @@ class Test_Inventory_Update(Base_Api_Test):
         assert cloud_group_supporting_source_regions.get().total_hosts > 0, \
             "Unexpected number of hosts returned %s." % cloud_group_supporting_source_regions.total_hosts
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/625')
     def test_inventory_update_with_unpopulated_source_region(self, cloud_group_supporting_source_regions):
         '''
         Tests that hosts are not imported when applying source regions not containing hosts.
