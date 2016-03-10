@@ -96,12 +96,12 @@ def test_navigation_dropdown(ui_activity_stream, anonymous_user, user_password):
         selected_option = ui_activity_stream.nav_dropdown.selected_option
 
         assert selected_option == option, (
-            'Navigation option {} unexpectedly unselected'.format(option))
+            'Navigation option {0} unexpectedly unselected'.format(option))
 
         subtitle = ui_activity_stream.subtitle.text.lower()
 
         assert selected_option.lower() in subtitle, (
-            'Unexpected stream subtitle {} given selected option {}'.format(
+            'Unexpected stream subtitle {0} given selected option {1}'.format(
                 subtitle, selected_option))
 
     # check that a non-default option remains selected after refreshing
@@ -109,12 +109,12 @@ def test_navigation_dropdown(ui_activity_stream, anonymous_user, user_password):
     ui_activity_stream.nav_dropdown.select(non_default)
 
     assert ui_activity_stream.nav_dropdown.selected_option == non_default, (
-        'Navigation option {} unexpectedly unselected'.format(non_default))
+        'Navigation option {0} unexpectedly unselected'.format(non_default))
 
     ui_activity_stream.refresh()
 
     assert ui_activity_stream.nav_dropdown.selected_option == non_default, (
-        'Navigation option {} unexpectedly unselected'.format(non_default))
+        'Navigation option {0} unexpectedly unselected'.format(non_default))
 
 
 @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1072')

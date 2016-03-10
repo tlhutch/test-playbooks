@@ -23,7 +23,7 @@ def check_table_sort(table):
             actual_column_sort_order = table.get_column_sort_order()
 
             assert actual_column_sort_order == column_sort_order, (
-                'Unexpected column sort order {} != {}'.format(
+                'Unexpected column sort order {0} != {1}'.format(
                     actual_column_sort_order, column_sort_order))
 
 

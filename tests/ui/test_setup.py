@@ -15,16 +15,16 @@ def check_card_titles(expected_card_titles, displayed_card_titles):
     """
     for expected_title in expected_card_titles:
         assert expected_title in displayed_card_titles, (
-            'card with title {} unexpectedly not displayed'.format(
+            'card with title {0} unexpectedly not displayed'.format(
                 expected_title))
 
     for displayed_title in displayed_card_titles:
         assert displayed_title in expected_card_titles, (
-            'card with title {} unexpectedly displayed'.format(
+            'card with title {0} unexpectedly displayed'.format(
                 displayed_title))
 
     assert displayed_card_titles == expected_card_titles, (
-        'unexpected card ordering: {} != {}'.format(
+        'unexpected card ordering: {0} != {1}'.format(
             displayed_card_titles, expected_card_titles))
 
 
@@ -42,13 +42,13 @@ def test_cards_route_to_expected_destination(ui_setup):
 
     for (card, dest) in card_destinations:
         assert card.is_displayed(), (
-            'card with expected destination {} not displayed'.format(dest))
+            'card with expected destination {0} not displayed'.format(dest))
 
         loaded_page = card.click()
         current_path = loaded_page._current_url.path
 
         assert dest in current_path, (
-            '{} unexpectedly not in current url path {}'.format(
+            '{0} unexpectedly not in current url path {1}'.format(
                 dest, current_path))
 
         loaded_page.header.setup_link.click()

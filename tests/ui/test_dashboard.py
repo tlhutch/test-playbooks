@@ -52,27 +52,27 @@ def test_job_status_toolbar_dropdowns(ui_dashboard):
     for (name, dd) in dropdowns:
         for option in dd.get_options():
 
-            msg = 'job status toolbar {} dropdown'.format(name)
+            msg = 'job status toolbar {0} dropdown'.format(name)
 
             assert dd.is_displayed(), (
-                'Expected {} to be displayed'.format(msg))
+                'Expected {0} to be displayed'.format(msg))
 
             dd.select_option(option)
             selected_option = dd.selected_option
 
             assert selected_option == option, (
-                'Unexpected {} value: {} != {}'.format(msg, selected_option, option))
+                'Unexpected {0} value: {1} != {2}'.format(msg, selected_option, option))
 
             ui_dashboard.host_status_graph_tab.click()
             ui_dashboard.job_status_graph_tab.click()
 
             assert dd.is_displayed(), (
-                'Expected {} to be displayed'.format(msg))
+                'Expected {0} to be displayed'.format(msg))
 
             selected_option = dd.selected_option
 
             assert selected_option == option, (
-                'Unexpected {} value: {} != {}'.format(msg, selected_option, option))
+                'Unexpected {0} value: {1} != {2}'.format(msg, selected_option, option))
 
 
 def test_job_status_toolbar_status_buttons(ui_dashboard):

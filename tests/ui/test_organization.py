@@ -17,7 +17,7 @@ def test_api_referential_integrity(api_organizations_pg, ui_organizations):
     names = [d.lower() for d in ui_organizations.displayed_card_labels]
 
     assert names == expected_names, (
-        'Unexpected card names: {} != {}'.format(names, expected_names))
+        'Unexpected card names: {0} != {1}'.format(names, expected_names))
 
     api_count = api_organizations_pg.count
     badge_number = ui_organizations.badge_number
@@ -75,21 +75,21 @@ def test_component_visibility(ui_organizations):
 
     for expected_name in expected_links:
         assert expected_name in displayed_links, (
-            'Card link with name {} unexpectedly not displayed'.format(
+            'Card link with name {0} unexpectedly not displayed'.format(
                 expected_name))
 
     for displayed_name in displayed_links:
         assert displayed_name in expected_links, (
-            'Card link with name {} unexpectedly displayed'.format(
+            'Card link with name {0} unexpectedly displayed'.format(
                 displayed_name))
 
     assert displayed_links == expected_links, (
-        'Unexpected card link ordering: {} != {}'.format(
+        'Unexpected card link ordering: {0} != {1}'.format(
             displayed_links, expected_links))
 
     for link_name in displayed_links:
         assert default_card.get_link(link_name).is_clickable(), (
-            'Card link with name {} unexpectedly not clickable'.format(
+            'Card link with name {0} unexpectedly not clickable'.format(
                 link_name))
 
 

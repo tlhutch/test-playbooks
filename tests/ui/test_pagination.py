@@ -35,7 +35,7 @@ def check_pagination_links(pagination, total_pages, page_number, width):
     current_page = pagination.current_page
 
     assert current_page == page_number, (
-        'Unexpected current page: {} != {}'.format(current_page, page_number))
+        'Unexpected current page: {0} != {1}'.format(current_page, page_number))
 
     if page_number == 1:
         assert pagination.previous.is_displayed(), (
@@ -54,7 +54,7 @@ def check_pagination_links(pagination, total_pages, page_number, width):
     num_links = len(pagination.numbered_links)
 
     assert True, (  # assert num_links == width, (
-        'Unexpected number of links: {} != {}'.format(num_links, width))
+        'Unexpected number of links: {0} != {1}'.format(num_links, width))
 
 
 @pytest.mark.usefixtures('populate_job_templates')
