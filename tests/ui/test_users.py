@@ -53,11 +53,11 @@ def test_update_user(api_users_pg, ui_users_edit):
     """
     # get user data api side
     user_id = ui_users_edit.kwargs.get('index')
-    api_user_data = api_users_pg.get(id=user_id).results[0].json
+    api_user_data = api_users_pg.get(id=user_id).results[0]
 
     # query the table for the edited user
     results = ui_users_edit.table.query(
-        lambda r: r['username'].text == api_user_data['username'])
+        lambda r: r['username'].text == api_user_data.username)
 
     # fail informatively if we don't find the row of the user we're editing
     assert len(results) == 1, 'Unable to find row of edited resource'
@@ -84,24 +84,24 @@ def test_update_user(api_users_pg, ui_users_edit):
     ui_users_edit.details.save.click()
 
     # get user data api side
-    api_user_data = api_users_pg.get(id=user_id).results[0].json
+    api_user_data = api_users_pg.get(id=user_id).results[0]
 
     # verify the update took place
-    assert api_user_data['username'] == username, (
+    assert api_user_data.username == username, (
         'Unable to verify successful update of user resource')
 
-    assert api_user_data['first_name'] == first_name, (
+    assert api_user_data.first_name == first_name, (
         'Unable to verify successful update of user resource')
 
-    assert api_user_data['last_name'] == last_name, (
+    assert api_user_data.last_name == last_name, (
         'Unable to verify successful update of user resource')
 
-    assert api_user_data['email'] == email, (
+    assert api_user_data.email == email, (
         'Unable to verify successful update of user resource')
 
     # query the table for the edited user
     results = ui_users_edit.table.query(
-        lambda r: r['username'].text == api_user_data['username'])
+        lambda r: r['username'].text == api_user_data.username)
 
     # check that we find a row showing updated user data
     assert len(results) == 1, 'Unable to find row of updated resource'
