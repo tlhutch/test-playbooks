@@ -41,10 +41,8 @@ def test_create_user(api_users_pg, ui_users_add):
     assert ui_users_add.table.row_is_selected(results[0]), (
         'Newly created user row unexpectedly unselected')
 
-    # get user data api side
-    api_user_results = api_users_pg.get(username=un).results
-
-    assert len(api_user_results) == 1, (
+    # verify user data api side
+    assert api_users_pg.get(username=un).count == 1, (
         'Unable to verify successful creation of user resource')
 
 
