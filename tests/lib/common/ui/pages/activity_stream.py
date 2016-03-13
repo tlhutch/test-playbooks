@@ -3,8 +3,60 @@ from selenium.webdriver.common.by import By
 from common.ui.pages.base import TowerPage
 from common.ui.pages.page import Region
 
+from common.ui.pages.regions import Clickable
+
 from common.ui.pages.regions.forms import SelectDropDown
 from common.ui.pages.regions.panels import ListPanel
+from common.ui.pages.regions.table import Table
+from common.ui.pages.regions.cells import DescriptionCell
+
+
+class ActivityStreamActionModal(Region):
+    _root_locator = (By.CLASS_NAME, 'modal-content')
+
+    _close = (By.CSS_SELECTOR, 'button[class="close Modal-exit"]')
+    _changes = (By.CLASS_NAME, 'StreamDetail-changes')
+    _ok = (By.ID, 'action_cancel_btn')
+    _initiated_by = (By.CSS_SELECTOR, '[class="StreamDetail-inlineRow"][ng-show="user"]')
+    _operation = (By.CSS_SELECTOR, '[ng-bind="operation"]')
+
+    @property
+    def close(self):
+        return Region(self.page, root_locator=self._close)
+
+    @property
+    def changes(self):
+        return Region(self.page, root_locator=self._changes)
+
+    @property
+    def ok(self):
+        return Region(self.page, root_locator=self._ok)
+
+    @property
+    def initiated_by(self):
+        return Region(self.page, root_locator=self._initiated_by)
+
+    @property
+    def operation(self):
+        return Region(self.page, root_locator=self._operation)
+
+
+class EventDetailCell(Clickable):
+    _root_extension = (By.CSS_SELECTOR, "i[class='fa fa-search-plus']")
+
+    def after_click(self):
+        super(EventDetailCell, self).after_click()
+        return ActivityStreamActionModal(self.page)
+
+
+class ActivityTable(Table):
+
+    _root_locator = (By.CSS_SELECTOR, '#activities_table')
+
+    _row_spec = (
+        ('action', DescriptionCell),
+        ('event_details', EventDetailCell)
+    )
 
 
 class ActivityStreamSearch(Region):
@@ -44,6 +96,10 @@ class ActivityStream(TowerPage):
     @property
     def panel(self):
         return ListPanel(self)
+
+    @property
+    def table(self):
+        return ActivityTable(self)
 
     @property
     def target(self):

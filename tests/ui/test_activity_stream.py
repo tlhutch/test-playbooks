@@ -1,6 +1,9 @@
 from itertools import combinations
+
+import json
 import urlparse
 
+import fauxfactory
 import pytest
 
 pytestmark = [
@@ -153,3 +156,76 @@ def test_navigation_with_edit_query_params(ui_inventories_edit):
 
     assert query_nav_select == {'target': ['job_template']}, (
         'Unexpected activity stream url query parameters after nav select')
+
+
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+def test_activity_stream_after_inventory_update(ui_inventories_edit):
+    """Verify displayed event details, routing, and page functionality when
+    updating a crud page resource and clicking over to the activity stream.
+    """
+    new_inventory_name = fauxfactory.gen_utf8()
+
+    # change the name of the inventory
+    ui_inventories_edit.details.name.set_text(new_inventory_name)
+    ui_inventories_edit.details.save.click()
+
+    # navigate to the activity stream page
+    activity_stream = ui_inventories_edit.activity_stream_link.click()
+
+    # verify we have at least one event in our activity stream
+    assert len(activity_stream.table.rows) > 0, (
+        'Activity stream table unexpectedly not populated')
+
+    # sort the table by event time in ascending order
+    activity_stream.table.set_column_sort_order(('event_time', 'ascending'))
+
+    # get the top row
+    top_row = activity_stream.table[0]
+
+    # verify the top row mentions an inventory update and the inventory name
+    expected_text = ('inventory', 'update', new_inventory_name)
+
+    for text in expected_text:
+        assert text.lower() in top_row['action'].text.lower(), (
+            '{0} not found in top row action column'.format(text))
+
+
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1179')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+def test_event_details_modal_visibility(inventory, ui_activity_stream):
+    """Verify component visibility, layout, and responsiveness of the activity
+    stream event details modal
+    """
+    # update the inventory
+    inventory.patch(name=fauxfactory.gen_alphanumeric(length=100))
+
+    # refresh the page and sort the table by event time in ascending order
+    ui_activity_stream.refresh()
+    ui_activity_stream.table.set_column_sort_order(('event_time', 'ascending'))
+
+    # click open the details modal for the top row
+    event_details = ui_activity_stream.table[0]['event_details'].click()
+    event_details.wait_until_displayed()
+
+    assert event_details.close.is_clickable(), (
+        'Event details close button unexpectedly not clickable')
+
+    assert event_details.ok.is_clickable(), (
+        'Event details ok button unexpectedly not clickable')
+
+    assert event_details.changes.is_displayed(), (
+        'Changes information unexpectedly not displayed')
+
+    # verify the displayed changes detail text is valid json
+    try:
+        json.loads(event_details.changes.text)
+    except ValueError:
+        pytest.fail('Unable to verify displayed change text is valid json')
+
+    # verify user and operation details regions are fully surrounded by the
+    # modal window
+    assert event_details.surrounds(event_details.initiated_by), (
+        'User details not fully surrounded by event details modal')
+
+    assert event_details.surrounds(event_details.operation), (
+        'Operation details not fully surrounded by event details modal')
