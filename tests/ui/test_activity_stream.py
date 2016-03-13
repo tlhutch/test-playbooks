@@ -158,10 +158,10 @@ def test_navigation_with_edit_query_params(ui_inventories_edit):
         'Unexpected activity stream url query parameters after nav select')
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1179')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-def test_activity_stream_event_details(ui_inventories_edit):
-    """Verify basic activity stream detail functionality
+def test_activity_stream_after_inventory_update(ui_inventories_edit):
+    """Verify displayed event details, routing, and page functionality when
+    updating a crud page resource and clicking over to the activity stream.
     """
     new_inventory_name = fauxfactory.gen_utf8()
 
@@ -174,7 +174,7 @@ def test_activity_stream_event_details(ui_inventories_edit):
 
     # verify we have at least one event in our activity stream
     assert len(activity_stream.table.rows) > 0, (
-        'Activity stream table unexecptedly not populated')
+        'Activity stream table unexpectedly not populated')
 
     # sort the table by event time in ascending order
     activity_stream.table.set_column_sort_order(('event_time', 'ascending'))
@@ -183,18 +183,28 @@ def test_activity_stream_event_details(ui_inventories_edit):
     top_row = activity_stream.table[0]
 
     # verify the top row mentions an inventory update and the inventory name
-    assert 'inventory' in top_row['action'].text.lower(), (
-        'Inventory update unexpectedly not found in top row action column')
+    expected_text = ('inventory', 'update', new_inventory_name)
 
-    assert 'update' in top_row['action'].text.lower(), (
-        'Inventory update unexpectedly not found in top row action column')
+    for text in expected_text:
+        assert text.lower() in top_row['action'].text.lower(), (
+            '{0} not found in top row action column'.format(text))
 
-    assert new_inventory_name.lower() in top_row['action'].text.lower(), (
-        'New inventory name unexpetedly not found in top row action column')
 
-    # get the details modal for the top row
-    event_details = top_row['event_details'].click()
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1179')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+def test_event_details_modal_visibility(inventory, ui_activity_stream):
+    """Verify component visibility, layout, and responsiveness of the activity
+    stream event details modal
+    """
+    # update the inventory
+    inventory.patch(name=fauxfactory.gen_alphanumeric(length=100))
 
+    # refresh the page and sort the table by event time in ascending order
+    ui_activity_stream.refresh()
+    ui_activity_stream.table.set_column_sort_order(('event_time', 'ascending'))
+
+    # click open the details modal for the top row
+    event_details = ui_activity_stream.table[0]['event_details'].click()
     event_details.wait_until_displayed()
 
     assert event_details.close.is_clickable(), (
@@ -206,19 +216,16 @@ def test_activity_stream_event_details(ui_inventories_edit):
     assert event_details.changes.is_displayed(), (
         'Changes information unexpectedly not displayed')
 
-    # verify the changes detail text is valid json
+    # verify the displayed changes detail text is valid json
     try:
         json.loads(event_details.changes.text)
     except ValueError:
         pytest.fail('Unable to verify displayed change text is valid json')
 
-    assert new_inventory_name in event_details.changes.text, (
-        'New inventory name unexpectedly not found in change details')
-
     # verify user and operation details regions are fully surrounded by the
     # modal window
     assert event_details.surrounds(event_details.initiated_by), (
-        'User details region not fully surrounded by event details modal')
+        'User details not fully surrounded by event details modal')
 
     assert event_details.surrounds(event_details.operation), (
-        'User details region not fully surrounded by event details modal')
+        'Operation details not fully surrounded by event details modal')
