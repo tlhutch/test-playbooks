@@ -13,7 +13,7 @@
     wait_timeout: 300
     state: absent
   register: rax
-  with_items: rax_images
+  with_items: '{{ rax_images }}'
   when: not {{skip_delete}}
   until: rax|success
   retries: 5

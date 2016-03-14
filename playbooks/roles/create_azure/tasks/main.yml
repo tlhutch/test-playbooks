@@ -19,7 +19,7 @@
     endpoints: '{{ azure_endpoints }}'
     wait: yes
     wait_timeout: 1200
-  with_items: azure_images
+  with_items: '{{ azure_images }}'
   register: azure
 
 # Despite using `wait` on the azure module, instances aren't accepting ssh
@@ -31,7 +31,7 @@
     host={{ item.public_dns_name }}
     port=22
     timeout=1200
-  with_items: azure.results
+  with_items: '{{ azure.results }}'
   when: azure_images and azure is defined
 
 - name: add_host
@@ -42,7 +42,7 @@
     ansible_ssh_host: '{{ item.public_dns_name }}'
     ansible_ssh_pass: '{{ item.password|default(azure_ssh_password) }}'
     #ansible_ssh_private_key_file: '{{ azure_ssh_cert_path }}'
-  with_items: azure.results
+  with_items: '{{ azure.results }}'
   when: azure_images and azure is defined
 
 # HACK: While sshd may be listening, it may not fully accept connections

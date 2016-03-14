@@ -10,7 +10,7 @@
     public_key: '{{ item }}'
     state: present
   register: keypair
-  with_file: rax_public_key
+  with_file: '{{ rax_public_key }}'
   when: rax_images
 
 - name: create (or locate) rax instance(s)
@@ -34,7 +34,7 @@
   # retries: 3
   # until: rax|success and 'ACTIVE' in rax.instances|selectattr('rax_status')
   # until: rax.instances[0].rax_status == 'ACTIVE'
-  with_items: rax_images
+  with_items: '{{ rax_images }}'
 
 # Despite using `wait` on the ec2 module, instances aren't accepting ssh
 # connections immediately.  The following will ensure systems are ready for use
@@ -44,7 +44,7 @@
     state=started
     host={{ item.instances[0].accessIPv4 }}
     port=22
-  with_items: rax.results
+  with_items: '{{ rax.results }}'
   when: rax_images and rax is defined
 
 - name: add_host
@@ -53,7 +53,7 @@
      groups=cloud,rax,{{item.item.name}},{{item.item.groups|default('')}}
      ansible_ssh_user=root
      ansible_ssh_host={{ item.instances[0].accessIPv4 }}
-  with_items: rax.results
+  with_items: '{{ rax.results }}'
   when: rax_images and rax is defined
 
 # HACK: While sshd may be listening, it may not fully accept connections

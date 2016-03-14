@@ -8,5 +8,5 @@
     instance_name: '{{rds_name_prefix}}-{{item.name}}'
     wait: '{{ wait|default(True) }}'
     wait_timeout: 600
-  with_items: rds_images
+  with_items: '{{ rds_images }}'
   when: not {{skip_delete}}

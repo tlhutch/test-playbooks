@@ -18,5 +18,5 @@
         Name: '{{ec2_name_prefix}}-{{item.name}}'
         ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
     wait: '{{ wait|default(True) }}'
-  with_items: ec2_images
+  with_items: '{{ ec2_images }}'
   when: not {{skip_delete}}
