@@ -19,4 +19,4 @@
     option: enabled
     value: 1
   when: rhui_repo.stat.exists
-  with_items: redhat_rhui_repos
+  with_items: '{{ redhat_rhui_repos }}'

@@ -27,7 +27,7 @@
 
 - name: rhn_register | enable RHN channels
   command: rhn-channel -u '$rhn_username' -p '$rhn_password' -a -c $item
-  with_items: rhn_channels
+  with_items: '{{ rhn_channels }}'
   when: rhn_register is defined and rhn_method == 'rhn' and rhn_channels|length > 0
 
 #

@@ -15,4 +15,4 @@
 - name: enable rhsm repositories
   command: subscription-manager repos --enable '{{ item }}'
   when: rhsm_repo.stat.exists and rhsm_cert.stat.exists
-  with_items: redhat_rhsm_repos
+  with_items: '{{ redhat_rhsm_repos }}'

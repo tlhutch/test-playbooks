@@ -13,7 +13,7 @@
   yum:
     name: '{{item}}'
     state: installed
-  with_items: rpm_role_dependencies
+  with_items: '{{ rpm_role_dependencies }}'
   when: ansible_pkg_mgr == 'yum'
 
 - name: install playbook dependency debs
@@ -21,7 +21,7 @@
     pkg: '{{item}}'
     state: latest
     update_cache: yes
-  with_items: deb_role_dependencies
+  with_items: '{{ deb_role_dependencies }}'
   when: ansible_pkg_mgr == 'apt'
 
 - name: include rhui tasks

@@ -20,7 +20,7 @@
     region: '{{ ec2_region }}'
     name: '{{ ec2_key_name }}'
     key_material: "{{ item }}"
-  with_file: ec2_public_key
+  with_file: '{{ ec2_public_key }}'
   register: keypair
   when: ec2_images
 
