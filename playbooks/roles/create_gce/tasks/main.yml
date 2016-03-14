@@ -31,7 +31,7 @@
     state=started
     host={{ item.instance_data[0].public_ip }}
     port=22
-  with_items: '{{ gce.results }}'
+  with_items: '{{ (gce|default({})).results|default([]) }}'
   when: gce_images and gce is defined
 
 - name: add_host
@@ -40,7 +40,7 @@
      ansible_ssh_user={{ gce_ssh_user|default('root') }}
      ansible_ssh_host={{ item.instance_data[0].public_ip }}
      # ansible_ssh_private_key_file={{ gce_keypair_private }}
-  with_items: '{{ gce.results }}'
+  with_items: '{{ (gce|default({})).results|default([]) }}'
   when: gce_images and gce is defined
 
 # HACK: While sshd may be listening, it may not fully accept connections

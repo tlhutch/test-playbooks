@@ -10,7 +10,7 @@
     instance_id: '{{ item.tagged_instances[0].id }}'
     name: '{{ec2_name_prefix}}-{{item.item.name}}'
     wait: yes
-  with_items: '{{ ec2.results }}'
+  with_items: '{{ (ec2|default({})).results|default([]) }}'
   register: ec2_ami
   when: ec2_images
 

@@ -42,7 +42,7 @@
     state: started
     host: '{{ item.instance.endpoint }}'
     port: '{{ item.instance.port  }}'
-  with_items: '{{ rds.results }}'
+  with_items: '{{ (rds|default({})).results|default([]) }}'
   when: rds_images and rds is defined
 
 # define tower_db variable for potential use by roles/awx_install
@@ -53,7 +53,7 @@
         pg_password: '{{rds_password}}'
         pg_host: '{{item.instance.endpoint}}'
         pg_port: '{{rds_port}}'
-  with_items: '{{ rds.results }}'
+  with_items: '{{ (rds|default({})).results|default([]) }}'
   when: rds_images and rds is defined
 
 - name: add_host
@@ -65,5 +65,5 @@
     postgres_host: '{{item.instance.endpoint}}'
     ansible_ssh_host: '{{item.instance.endpoint}}'
     ansible_ssh_user: '{{item.instance.username}}'
-  with_items: '{{ rds.results }}'
+  with_items: '{{ (rds|default({})).results|default([]) }}'
   when: rds_images and rds is defined
