@@ -20,7 +20,7 @@
 #
 
 # Variable defaults
-MARKEXPR=${@:-not (performance or selenium or ldap or ha)}
+MARKEXPR=${@:-not (performance or ui or ldap or ha)}
 TESTEXPR=${TESTEXPR:-}
 ANSIBLE_INVENTORY=${ANSIBLE_INVENTORY:-playbooks/inventory.log}
 JUNIT_XML=${JUNIT_XML:-tests/results.xml}
