@@ -16,6 +16,21 @@ class Notification_Page(Base):
     recipients = property(json_getter('recipients'), json_setter('recipients'))
     subject = property(json_getter('subject'), json_setter('subject'))
 
+    def __str__(self):
+        return "<%s id:%s, notification_type:%s, status:%s, error:%s, " \
+            "notifications_sent:%s, subject:%s, recipients:%s>" % \
+            (self.__class__.__name__, self.id, self.notification_type, self.status,
+             self.error, self.notifications_sent, self.subject, self.recipients)
+
+    @property
+    def is_successful(self):
+        '''
+        Return whether the notification was created successfully. This means that:
+         * self.status == 'successful'
+         * self.error == False
+        '''
+        return 'successful' == self.status.lower() and not self.error
+
 
 class Notifications_Page(Notification_Page, Base_List):
     base_url = '/api/v1/notifications/'

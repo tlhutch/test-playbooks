@@ -859,7 +859,7 @@ class Awx_Schema_Job_Host_Summaries(Awx_Schema):
 
 
 class Awx_Schema_Job_Host_Summary(Awx_Schema_Job_Host_Summaries):
-    resource = '/api/v1/jobs/\d+/job_host_summaries/\d+/'
+    resource = '/api/v1/job_host_summaries/\d+/'
 
     @property
     def get(self):
@@ -1539,6 +1539,10 @@ class Awx_Schema_Notification(Awx_Schema_Notifications):
     @property
     def get(self):
         return self.load_file('notifications/item.yml')
+
+
+class Awx_Schema_Notification_Template_Notifications(Awx_Schema_Notifications):
+    resource = '/api/v1/notification_templates/\d+/notifications/'
 
 
 class Awx_Schema_Job_Notifications(Awx_Schema_Notifications):

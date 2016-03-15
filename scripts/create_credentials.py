@@ -128,4 +128,59 @@ if __name__ == '__main__':
     cfg['github']['token'] = os.environ.get("GITHUB_TOKEN", "")
     cfg['github']['completed'] = os.environ.get("GITHUB_COMPLETED", "").split(' ')
 
+    # Set e-mail service info
+    cfg['notification_services']['email']['host'] = os.environ.get("EMAIL_HOST", "")
+    cfg['notification_services']['email']['password'] = os.environ.get("EMAIL_PASSWORD", "")
+    cfg['notification_services']['email']['port'] = int(os.environ.get("EMAIL_PORT", ""))
+    # FIXME: turn this into proper list
+    cfg['notification_services']['email']['recipients'] = [os.environ.get("EMAIL_RECIPIENTS", "")]
+    cfg['notification_services']['email']['sender'] = os.environ.get("EMAIL_SENDER", "")
+    cfg['notification_services']['email']['use_ssl'] = os.environ.get("EMAIL_USE_SSL", "").lower() == 'true'
+    cfg['notification_services']['email']['use_tls'] = os.environ.get("EMAIL_USE_TLS", "").lower() == 'true'
+    cfg['notification_services']['email']['username'] = os.environ.get("EMAIL_USERNAME", "")
+
+    # Set hipchat service info
+    cfg['notification_services']['hipchat']['message_from'] = os.environ.get("HIPCHAT_MESSAGE_FROM", "")
+    cfg['notification_services']['hipchat']['api_url'] = os.environ.get("HIPCHAT_API_URL", "")
+    cfg['notification_services']['hipchat']['color'] = os.environ.get("HIPCHAT_COLOR", "")
+    # FIXME: Turn into proper list
+    cfg['notification_services']['hipchat']['rooms'] = [os.environ.get("HIPCHAT_ROOMS", "")]
+    cfg['notification_services']['hipchat']['bot_token'] = os.environ.get("HIPCHAT_BOT_TOKEN", "")
+    cfg['notification_services']['hipchat']['user_token'] = os.environ.get("HIPCHAT_USER_TOKEN", "")
+    cfg['notification_services']['hipchat']['notify'] = os.environ.get("HIPCHAT_NOTIFY", "").lower() == 'true'
+
+    # Set irc service info
+    cfg['notification_services']['irc']['server'] = os.environ.get("IRC_SERVER", "")
+    cfg['notification_services']['irc']['port'] = int(os.environ.get("IRC_PORT", ""))
+    cfg['notification_services']['irc']['use_ssl'] = os.environ.get("IRC_USE_SSL", "").lower() == 'true'
+    cfg['notification_services']['irc']['password'] = os.environ.get("IRC_PASSWORD", "")
+    cfg['notification_services']['irc']['nickname'] = os.environ.get("IRC_NICKNAME", "")
+    # FIXME: Turn into proper list
+    cfg['notification_services']['irc']['targets'] = [os.environ.get("IRC_TARGETS", "")]
+
+    # Set pagerduty service info
+    cfg['notification_services']['pagerduty']['client_name'] = os.environ.get("PAGERDUTY_CLIENT_NAME", "")
+    cfg['notification_services']['pagerduty']['service_key'] = os.environ.get("PAGERDUTY_SERVICE_KEY", "")
+    cfg['notification_services']['pagerduty']['subdomain'] = os.environ.get("PAGERDUTY_SUBDOMAIN", "")
+    cfg['notification_services']['pagerduty']['token'] = os.environ.get("PAGERDUTY_TOKEN", "")
+
+    # Set slack service info
+    cfg['notification_services']['slack']['channels'] = [os.environ.get("SLACK_CHANNELS", "")]
+    cfg['notification_services']['slack']['token'] = os.environ.get("SLACK_TOKEN", "")
+
+    # Set twilio service info
+    cfg['notification_services']['twilio']['account_sid'] = os.environ.get("TWILIO_ACCOUNT_SID", "")
+    cfg['notification_services']['twilio']['account_token'] = os.environ.get("TWILIO_ACCOUNT_TOKEN", "")
+    cfg['notification_services']['twilio']['from_number'] = os.environ.get("TWILIO_FROM_NUMBER", "")
+    cfg['notification_services']['twilio']['to_numbers'] = [os.environ.get("TWILIO_TO_NUMBERS", "")]
+
+    # Set webhook service info
+    cfg['notification_services']['webhook']['url'] = os.environ.get("WEBHOOK_URL", "")
+    # FIXME: (Hack) Turn into dictionary
+    cfg['notification_services']['webhook']['headers'] = {}
+    # FIXME: Update with new fields
+    cfg['notification_services']['webhook']['gce_project'] = os.environ.get("WEBHOOK_PROJECT", "")
+    cfg['notification_services']['webhook']['gce_parent_key'] = os.environ.get("WEBHOOK_PARENT_KEY", "")
+    cfg['notification_services']['webhook']['gce_body_field'] = os.environ.get("WEBHOOK_BODY_FIELD", "")
+
     yaml.dump(cfg, open(credentials_file, 'w+'))

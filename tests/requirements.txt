@@ -32,3 +32,6 @@ boto
 pyrax
 pysphere
 factory_boy
+slacker
+hypchat
+gcloud
