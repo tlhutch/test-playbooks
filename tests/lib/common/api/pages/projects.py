@@ -44,6 +44,15 @@ class Project_Page(Unified_Job_Template_Page):
         elif attr == 'activity_stream':
             from activity_stream import Activity_Stream_Page
             cls = Activity_Stream_Page
+        elif attr == 'notification_templates_any':
+            from notification_templates import Notification_Templates_Page
+            cls = Notification_Templates_Page
+        elif attr == 'notification_templates_error':
+            from notification_templates import Notification_Templates_Page
+            cls = Notification_Templates_Page
+        elif attr == 'notification_templates_success':
+            from notification_templates import Notification_Templates_Page
+            cls = Notification_Templates_Page
         elif attr == 'access_list':
             from access_list import Access_List_Page
             cls = Access_List_Page

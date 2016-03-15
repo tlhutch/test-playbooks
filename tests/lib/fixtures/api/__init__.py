@@ -463,16 +463,16 @@ def api_notifications_pg(testsetup, api_notifications_url):
 
 
 #
-# /api/v1/notifiers
+# /api/v1/notification_templates
 #
 @pytest.fixture(scope="module")
-def api_notifiers_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'notifiers')
+def api_notification_templates_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'notification_templates')
 
 
 @pytest.fixture(scope="module")
-def api_notifiers_pg(testsetup, api_notifiers_url):
-    return Notifiers_Page(testsetup, base_url=api_notifiers_url)
+def api_notification_templates_pg(testsetup, api_notification_templates_url):
+    return Notification_Templates_Page(testsetup, base_url=api_notification_templates_url)
 
 
 #

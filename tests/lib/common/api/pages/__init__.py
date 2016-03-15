@@ -4,7 +4,7 @@ from base import *  # NOQA
 from access_list import *  # NOQA
 from roles import *  # NOQA
 from notifications import *  # NOQA
-from notifiers import *  # NOQA
+from notification_templates import *  # NOQA
 from organizations import *  # NOQA
 from users import *  # NOQA
 from teams import *  # NOQA

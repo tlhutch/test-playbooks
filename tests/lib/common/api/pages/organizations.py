@@ -22,6 +22,15 @@ class Organization_Page(base.Base):
         elif name == 'activity_stream':
             from activity_stream import Activity_Stream_Page
             related = Activity_Stream_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'notification_templates_any':
+            from notification_templates import Notification_Templates_Page
+            related = Notification_Templates_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'notification_templates_error':
+            from notification_templates import Notification_Templates_Page
+            related = Notification_Templates_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'notification_templates_success':
+            from notification_templates import Notification_Templates_Page
+            related = Notification_Templates_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'access_list':
             from access_list import Access_List_Page
             related = Access_List_Page(self.testsetup, base_url=self.json['related'][name])

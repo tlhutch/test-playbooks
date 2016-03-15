@@ -1296,30 +1296,134 @@ class Awx_Schema_Host_Related_Ad_Hoc_Commands(Awx_Schema_Ad_Hoc_Commmands):
 
 
 #
-# /notifiers
+# /notification_templates
 #
-class Awx_Schema_Notifiers(Awx_Schema):
-    resource = '/api/v1/notifiers/'
+class Awx_Schema_Notification_Templates(Awx_Schema):
+    resource = '/api/v1/notification_templates/'
 
     @property
     def get(self):
-        return self.load_file('notifiers/list.yml')
+        return self.load_file('notification_templates/list.yml')
 
     @property
     def post(self):
-        return self.load_file('notifiers/item.yml')
+        return self.load_file('notification_templates/item.yml')
 
     @property
     def duplicate(self):
-        return self.load_file('notifiers/duplicate.yml')
+        return self.load_file('notification_templates/duplicate.yml')
 
 
-class Awx_Schema_Notifier(Awx_Schema_Notifiers):
-    resource = '/api/v1/notifiers/\d+/'
+class Awx_Schema_Notification_Template(Awx_Schema_Notification_Templates):
+    resource = '/api/v1/notification_templates/\d+/'
 
     @property
     def get(self):
-        return self.load_file('notifiers/item.yml')
+        return self.load_file('notification_templates/item.yml')
+
+    @property
+    def patch(self):
+        return self.get
+
+    @property
+    def put(self):
+        return self.get
+
+
+class Awx_Schema_Notification_Template_Test(Awx_Schema):
+    resource = '/api/v1/notification_templates/\d+/test/'
+
+    @property
+    def post(self):
+        return self.load_file('notification_templates/test.yml')
+
+
+class Awx_Schema_Notification_Templates_Any(Awx_Schema):
+    resource = '/api/v1/\w+/\d+/notification_templates_any/'
+
+    @property
+    def get(self):
+        return self.load_file('notification_templates/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('empty.yml')
+
+    @property
+    def duplicate(self):
+        return self.load_file('notification_templates/duplicate.yml')
+
+
+class Awx_Schema_Notification_Template_Any(Awx_Schema_Notification_Templates_Any):
+    resource = '/api/v1/\w+/\d+/notification_templates_any/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('notification_templates/item.yml')
+
+    @property
+    def patch(self):
+        return self.get
+
+    @property
+    def put(self):
+        return self.get
+
+
+class Awx_Schema_Notification_Templates_Error(Awx_Schema):
+    resource = '/api/v1/\w+/\d+/notification_templates_error/'
+
+    @property
+    def get(self):
+        return self.load_file('notification_templates/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('empty.yml')
+
+    @property
+    def duplicate(self):
+        return self.load_file('notification_templates/duplicate.yml')
+
+
+class Awx_Schema_Notification_Template_Error(Awx_Schema_Notification_Templates_Error):
+    resource = '/api/v1/\w+/\d+/notification_templates_error/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('notification_templates/item.yml')
+
+    @property
+    def patch(self):
+        return self.get
+
+    @property
+    def put(self):
+        return self.get
+
+
+class Awx_Schema_Notification_Templates_Success(Awx_Schema):
+    resource = '/api/v1/\w+/\d+/notification_templates_success/'
+
+    @property
+    def get(self):
+        return self.load_file('notification_templates/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('empty.yml')
+
+    @property
+    def duplicate(self):
+        return self.load_file('notification_templates/duplicate.yml')
+
+
+class Awx_Schema_Notification_Template_Success(Awx_Schema_Notification_Templates_Success):
+    resource = '/api/v1/\w+/\d+/notification_templates_success/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('notification_templates/item.yml')
 
     @property
     def patch(self):
