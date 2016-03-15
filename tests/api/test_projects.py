@@ -114,12 +114,12 @@ class Test_Projects(Base_Api_Test):
         assert project_pg.is_successful, "After a successful project update, " \
             "the project is not marked as successful - id:%s" % project_pg.id
 
-    def test_update_with_private_git_repository(self, ansible_runner, project_ansible_internal_git):
+    def test_update_with_private_git_repository(self, ansible_runner, project_ansible_docsite_git):
         '''
         Tests that project updates succeed with private git repositories.
         '''
         # find project path
-        local_path = project_ansible_internal_git.local_path
+        local_path = project_ansible_docsite_git.local_path
         expected_project_path = os.path.join('/var/lib/awx/projects/', local_path)
 
         # assert project directory created
