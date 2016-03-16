@@ -23,6 +23,7 @@
 MARKEXPR=${@:-not (performance or ui or ldap or ha)}
 TESTEXPR=${TESTEXPR:-}
 ANSIBLE_INVENTORY=${ANSIBLE_INVENTORY:-playbooks/inventory.log}
+ANSIBLE_VERSION=$(python -c 'import ansible; print ansible.__version__;')
 JUNIT_XML=${JUNIT_XML:-tests/results.xml}
 WEBQA_REPORT=${WEBQA_REPORT:-tests/results/index.html}
 SAUCE_CREDS=${SAUCE_CREDS:-tests/saucelabs.yml}
@@ -36,7 +37,10 @@ if [ -f "${ANSIBLE_INVENTORY}" ]; then
     fi
     IFSBAK="${IFS}" IFS=$'\n'
     INVENTORY_HOST_ARRAY=(${INVENTORY_HOST})            # Parse lines into array
-    if [ ${#INVENTORY_HOST_ARRAY[@]} -ne 2 ]; then      # Expect summary line then line listing host
+    if [[ "${ANSIBLE_VERSION}" = 2* ]]; then           #Ansible v2 includes summary line (remove if present)
+        unset INVENTORY_HOST_ARRAY[0]
+    fi
+    if [ ${#INVENTORY_HOST_ARRAY[@]} -ne 1 ]; then      # Confirm one host listed 
         echo "Host list does not contain exactly one host"
         exit 1
     fi
