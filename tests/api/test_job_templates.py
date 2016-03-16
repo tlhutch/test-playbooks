@@ -789,6 +789,45 @@ print json.dumps(inv, indent=2)
         assert "Specified --limit does not match any hosts" in job_pg.result_stdout, \
             "Unexpected job_pg.result_stdout when launching a job_template with an unmatched limit."
 
+    def test_launch_with_matched_tag_value(self, job_template_with_random_tag):
+        '''
+        Tests that target tasks are run when launching a job with job_tags.
+        '''
+        # patch our JT such that its tag value matches a single playbook task
+        job_template_with_random_tag.patch(job_tags="tag")
+        assert job_template_with_random_tag.job_tags == "tag"
+
+        # launch JT and assess results
+        job_pg = job_template_with_random_tag.launch().wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        assert "\"-t\", \"tag\"" in job_pg.job_args, \
+            "Launched a tag JT but '-t tag' not found in job_args."
+
+        # check that expected tasks run
+        task_events = job_pg.get_related('job_events', event='playbook_on_task_start')
+        assert task_events.count == 2, \
+            "Unexpected number of task_events returned (%s != 2)" % task_events.count
+        for task_event in task_events.results:
+            host_events = task_event.get_related('children', event__startswith='runner_on')
+            assert host_events.count == 1, \
+                "Unexpected number of host_events returned (%s != 1)." % host_events.count
+
+    def test_launch_with_unmatched_tag_value(self, job_template_with_random_tag, ansible_version_cmp):
+        '''
+        Tests launching jobs with an unmatched tag value.
+        '''
+        job_pg = job_template_with_random_tag.launch().wait_until_completed()
+
+        # jobs with unmatched tags failed pre-ansible-v2
+        if ansible_version_cmp('2.0.0.0') < 0:
+            assert job_pg.status == 'failed', "Unexpected job status for job - %s." % job_pg
+            assert "ERROR: tag(s) not found in playbook" in job_pg.result_stdout, \
+                "Unexpected job_pg.result_stdout: %s." % job_pg.result_stdout
+        else:
+            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+            assert job_pg.job_tags == job_template_with_random_tag.job_tags, \
+                "Value for job_tags inconsistent with job_template value."
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium

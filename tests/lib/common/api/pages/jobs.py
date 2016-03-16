@@ -94,6 +94,17 @@ class Job_Event_Page(Base):
     event_level = property(json_getter('event_level'), json_setter('event_level'))
     event_data = property(json_getter('event_data'), json_setter('event_data'))
 
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related'], \
+            "No such related attribute '%s'" % attr
+
+        if attr == 'children':
+            cls = Job_Events_Page
+        else:
+            raise NotImplementedError("No related class found for '%s'" % attr)
+
+        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
+
 
 class Job_Events_Page(Job_Event_Page, Base_List):
     base_url = '/api/v1/jobs/{id}/job_events/'

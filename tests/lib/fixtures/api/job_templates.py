@@ -43,6 +43,22 @@ def job_template_with_random_limit(request, authtoken, api_job_templates_pg, pro
 
 
 @pytest.fixture(scope="function")
+def job_template_with_random_tag(request, authtoken, api_job_templates_pg, project_ansible_git, host_local, ssh_credential):
+    '''Create a job template with a valid machine credential, but a tag parameter that matches nothing'''
+    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+                   description="Random job_template with tag - %s" % fauxfactory.gen_utf8(),
+                   inventory=host_local.get_related('inventory').id,
+                   job_type='run',
+                   project=project_ansible_git.id,
+                   job_tags=fauxfactory.gen_utf8(),
+                   credential=ssh_credential.id,
+                   playbook='test/integration/test_tags.yml', )  # This depends on the project selected
+    obj = api_job_templates_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
 def job_template_ask(request, authtoken, api_job_templates_pg, project, host_local, ssh_credential_ask):
     '''Create a job_template with a valid machine credential, but a limit parameter that matches nothing'''
     payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),

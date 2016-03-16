@@ -1334,16 +1334,6 @@ job_templates:
       job_tags: foo
       limit: unresolvable-name.example.com
 
-    - name: 'language_features/tags.yml (tags:bar, limit:not a valid hostname)'
-      job_type: run
-      allow_callbacks: false
-      playbook: language_features/tags.yml
-      project: ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
-      inventory: inventory-all
-      credential: 'SSH (user:bender_eng_user, ssh_key_data)'
-      job_tags: bar
-      limit: not a valid hostname
-
     - name: ansible-tower.git/setup/install.yml
       _launch: false
       job_type: run
