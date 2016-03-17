@@ -10,9 +10,41 @@
 
 ## Features Tested
 
+### Mongo-ectomy and Installer changes
+Feature: https://drive.google.com/open?id=1fJeLZefxSia0-XSS0Gx_jeG5lYXUkU8V1LD9juEnlDc
+
+1. [ ] FIXME
+
+### Notifications
+Feature: https://drive.google.com/open?id=14qb12baMp5aYWVpxXGEKxiC_wX3ZpHe3Bf6hwUue9rI
+
+1. [ ] FIXME
+
+### RBAC Permission changes
+Feature: https://drive.google.com/open?id=1n_hLt0vKV5ytyYtA5oj71QLKiWtKQkhVezbUvUj_npA
+
+1. [ ] FIXME
+
+### Prompt for all the things
+Feature: https://drive.google.com/open?id=15iSHWjgCk0oyuHX9soWtClB9dOJ4Qlxm5H8fsTqoTuo
+
+1. [ ] FIXME
+
 ### Database Config (e.g. /api/v1/settings)
-1. []  
+Feature: https://drive.google.com/open?id=1Oc84TUnV2eh2Cy29vVfUfdJmV_qyg7NnTAEhuqoYdiQ
+
+1. [ ] FIXME
  
+### Tower UX/UI Refresh
+Feature: https://drive.google.com/open?id=1fJeLZefxSia0-XSS0Gx_jeG5lYXUkU8V1LD9juEnlDc
+
+1. [ ] FIXME
+
+### Django Upgrade
+Feature: https://drive.google.com/open?id=18RB73_CSFX6uSOZLmp9McHU1mVfhw5eUKNDEzJScnjA
+
+1. [ ] FIXME
+
 ### Regression
 1. [] UI regression completed
 1. [] API regression completed
