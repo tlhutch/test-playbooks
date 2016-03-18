@@ -104,8 +104,16 @@
 - name: install pip deb
   apt:
     name: python-pip
-    state: installed
-  when: ansible_install_method == 'pip' and ansible_pkg_mgr == 'apt'
+    state: latest
+  when: ansible_install_method == 'pip' and ansible_pkg_mgr == 'apt' and ansible_distribution_major_version != '12'
+
+# The version of pip on ubuntu-12.04 is older than ancient ... the following
+# dark arts will ensure a working version is installed.
+- name: install pip deb (12.04 only)
+  shell: "curl https://bootstrap.pypa.io/get-pip.py | python -"
+  register: result
+  changed_when: '"Successfully installed" in result.stdout'
+  when: ansible_install_method == 'pip' and ansible_pkg_mgr == 'apt' and ansible_distribution_major_version == '12'
 
 - name: install ansible pip
   pip:
