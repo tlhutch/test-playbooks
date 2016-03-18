@@ -44,7 +44,7 @@ if [ -f "${ANSIBLE_INVENTORY}" ]; then
         echo "Host list does not contain exactly one host"
         exit 1
     fi
-    INVENTORY_HOST="${INVENTORY_HOST_ARRAY[1]}"
+    INVENTORY_HOST="${INVENTORY_HOST_ARRAY[0]}"
     INVENTORY_HOST="${INVENTORY_HOST//[[:space:]]/}"    # remove whitespace
     IFS="${IFSBAK}"
 else
