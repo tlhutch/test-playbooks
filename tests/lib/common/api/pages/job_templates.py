@@ -22,6 +22,8 @@ class Job_Template_Page(Unified_Job_Template_Page):
     host_config_key = property(json_getter('host_config_key'), json_setter('host_config_key'))
     ask_variables_on_launch = property(json_getter('ask_variables_on_launch'), json_setter('ask_variables_on_launch'))
     limit = property(json_getter('limit'), json_setter('limit'))
+    job_tags = property(json_getter('job_tags'), json_setter('job_tags'))
+    verbosity = property(json_getter('verbosity'), json_setter('verbosity'))
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']

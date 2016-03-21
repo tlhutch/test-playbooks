@@ -62,7 +62,8 @@ def test_update_user(api_users_pg, ui_users_edit):
     # fail informatively if we don't find the row of the user we're editing
     assert len(results) == 1, 'Unable to find row of edited resource'
 
-    # verify the row corresponding to the user we're editing is highlighted
+    # verify that the row selection indicator is displayed for the row
+    # corresponding to the user we're editing
     assert ui_users_edit.table.row_is_selected(results[0]), (
         'Edited user row unexpectedly unselected')
 
