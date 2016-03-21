@@ -37,8 +37,8 @@ if [ -f "${ANSIBLE_INVENTORY}" ]; then
     fi
     IFSBAK="${IFS}" IFS=$'\n'
     INVENTORY_HOST_ARRAY=(${INVENTORY_HOST})            # Parse lines into array
-    if [[ "${ANSIBLE_VERSION}" = 2* ]]; then           #Ansible v2 includes summary line (remove if present)
-        unset INVENTORY_HOST_ARRAY[0]
+    if [[ "${ANSIBLE_VERSION}" = 2* ]]; then            #Ansible v2 includes summary line (remove if present)
+        INVENTORY_HOST_ARRAY=("${INVENTORY_HOST_ARRAY[@]:1}")
     fi
     if [ ${#INVENTORY_HOST_ARRAY[@]} -ne 1 ]; then      # Confirm one host listed 
         echo "Host list does not contain exactly one host"
