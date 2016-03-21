@@ -50,29 +50,22 @@
 
 1. [ ] FIXME
 
-### Regression
+## Regression
 1. [ ] UI regression completed
 1. [ ] API regression completed
-1. [ ] Munin monitors work on all supported platforms
-1. [ ] Tower HA installation
-    * [ ] Verify successful registration of secondary instances
-    * [ ] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
-    * [ ] Verify promoting secondary instance
-    * [ ] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
-1. [ ] Tower LDAP Integration
-    * [ ] Verify license enablement with legacy or enterprise license (disabled elsewhere).
-    * [ ] Verify Tower respects LDAP username and password on login
-    * [ ] Verify Tower creates user related objects on successful login (User, Teams, Organization, Admin_of_organizations).
-    * [ ] Verify successful login for an Organization Administrator
+1. [ ] Tower HA installation regression completed
+1. [ ] Tower LDAP Integration regression completed
 
-#### Installation online installer
+### Installation
 1. Installation completes successfully on all supported platforms
     * [ ] ubuntu-12.04
     * [ ] ubuntu-14.04
-    * [ ] rhel-6.7
-    * [ ] rhel-7.2
-    * [ ] centos-6.7
-    * [ ] centos-7.1
+    * [ ] rhel-6.latest
+    * [ ] rhel-7.latest
+    * [ ] centos-6.latest
+    * [ ] centos-7.latest
+    * [ ] ol-6.latest
+    * [ ] ol-7.latest
 1. Installation completes successfully using supported ansible releases
     * [ ] ansible-2.0
     * [ ] ansible-1.9.x
@@ -80,29 +73,17 @@
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed)
     * [ ] Vagrant
+1. Bundled installation completes successfully on all supported platforms
+    * [ ] rhel-6.latest
+    * [ ] rhel-7.latest
+    * [ ] centos-6.latest
+    * [ ] centos-7.latest
+    * [ ] ol-6.latest
+    * [ ] ol-7.latest
 
-#### Installation bundle installer
-1. Installation completes successfully on all supported platforms
-    * [ ] rhel-6.7
-    * [ ] rhel-7.2
-    * [ ] centos-6.7
-    * [ ] centos-7.1
-
-#### Upgrade installer
-1. Upgrade completes on all supported platforms from `2.4.*`
-    * [ ] ubuntu-12.04
-    * [ ] ubuntu-14.04
-    * [ ] rhel-6.7
-    * [ ] rhel-7.2
-    * [ ] centos-6.7
-    * [ ] centos-7.1
-1. Upgrade completes on all supported platforms from `2.3.*`
-    * [ ] ubuntu-12.04
-    * [ ] ubuntu-14.04
-    * [ ] rhel-6.7
-    * [ ] rhel-7.2
-    * [ ] centos-6.7
-    * [ ] centos-7.1
+### Upgrades
+1. [ ] Upgrade completes on all supported platforms from `2.4.*`
+1. [ ] Upgrade completes on all supported platforms from `2.3.*`
 1. Verify the following functions work as intended after upgrade
     * [ ] Launch project_updates for existing projects
     * [ ] Launch inventory_udpates for existing inventory_source
