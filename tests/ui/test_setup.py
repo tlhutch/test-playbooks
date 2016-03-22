@@ -65,6 +65,7 @@ def test_card_visibility_and_ordering(ui_setup, anonymous_user, user_password):
         'ORGANIZATIONS',
         'MANAGEMENT JOBS',
         'INVENTORY SCRIPTS',
+        'NOTIFICATIONS',
         'VIEW YOUR LICENSE',
         'ABOUT TOWER'
     ]
@@ -77,6 +78,7 @@ def test_card_visibility_and_ordering(ui_setup, anonymous_user, user_password):
         'TEAMS',
         'ORGANIZATIONS',
         'INVENTORY SCRIPTS',
+        'NOTIFICATIONS',
         'VIEW YOUR LICENSE',
         'ABOUT TOWER'
     ]
