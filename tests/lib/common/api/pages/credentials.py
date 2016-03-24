@@ -7,6 +7,7 @@ class Credential_Page(base.Base):
     name = property(base.json_getter('name'), base.json_setter('name'))
     type = property(base.json_getter('type'), base.json_setter('type'))
     description = property(base.json_getter('description'), base.json_setter('description'))
+    domain = property(base.json_getter('domain'), base.json_setter('domain'))
     kind = property(base.json_getter('kind'), base.json_setter('kind'))
     user = property(base.json_getter('user'), base.json_setter('user'))
     team = property(base.json_getter('team'), base.json_setter('team'))
