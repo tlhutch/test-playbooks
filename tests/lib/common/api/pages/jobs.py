@@ -1,4 +1,7 @@
-from common.api.pages import json_setter, json_getter, Base, Base_List, Unified_Job_Page, Job_Template_Page
+from common.api.pages import (
+    json_setter, json_getter, Base, Base_List,
+    Unified_Job_Page, Job_Template_Page, Notifications_Page
+)
 
 
 class Job_Page(Unified_Job_Page, Job_Template_Page):
@@ -36,6 +39,8 @@ class Job_Page(Unified_Job_Page, Job_Template_Page):
             related = Job_Relaunch_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'stdout':
             related = Job_Stdout_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'notifications':
+            related = Notifications_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get(**kwargs)

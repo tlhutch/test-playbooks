@@ -27,6 +27,7 @@ system_job:
         schedule: {format: uri, type: string}
         stdout: {format: uri, type: string}
         system_job_template: {format: uri, type: string}
+        notifications: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
       type: object
     result_stdout: {type: string}
