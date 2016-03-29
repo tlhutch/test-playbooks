@@ -9,6 +9,7 @@ class Inventory_Page(Base):
     type = property(json_getter('type'), json_setter('type'))
     description = property(json_getter('description'), json_setter('description'))
     variables = property(json_getter('variables'), json_setter('variables'))
+    organization = property(json_getter('organization'), json_setter('organization'))
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related']

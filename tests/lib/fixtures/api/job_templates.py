@@ -286,8 +286,9 @@ def files_scan_job_template(scan_job_template):
 
 @pytest.fixture(scope="function")
 def job_template_with_schedule(request, authtoken, job_template):
-    """A job template with an associated schedule
-    """
+    '''
+    A job template with an associated schedule.
+    '''
     schedule_rrule = common.rrule.RRule(
         dateutil.rrule.DAILY, count=1, byminute='', bysecond='', byhour='')
 
@@ -302,3 +303,28 @@ def job_template_with_schedule(request, authtoken, job_template):
     request.addfinalizer(obj.silent_delete)
 
     return job_template
+
+
+@pytest.fixture(scope="function")
+def job_template_with_label(request, authtoken, job_template, label):
+    '''
+    Job template with a randomly named label.
+    '''
+    with pytest.raises(common.exceptions.NoContent_Exception):
+        job_template.get_related('labels').post(dict(id=label.id))
+    return job_template.get()
+
+
+@pytest.fixture(scope="function")
+def job_template_with_labels(request, authtoken, job_template):
+    '''
+    Job template with three randomly named labels.
+    '''
+    organization_id = job_template.get_related('inventory').organization
+    labels_pg = job_template.get_related('labels')
+
+    # create three labels
+    for i in range(3):
+        payload = dict(name="label %s - %s" % (i, fauxfactory.gen_utf8()), organization=organization_id)
+        labels_pg.post(payload)
+    return job_template.get()
