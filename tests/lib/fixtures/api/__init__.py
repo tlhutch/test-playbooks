@@ -473,3 +473,16 @@ def api_notifiers_url(api, api_v1_url):
 @pytest.fixture(scope="module")
 def api_notifiers_pg(testsetup, api_notifiers_url):
     return Notifiers_Page(testsetup, base_url=api_notifiers_url)
+
+
+#
+# /api/v1/labels
+#
+@pytest.fixture(scope="module")
+def api_labels_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'labels')
+
+
+@pytest.fixture(scope="module")
+def api_labels_pg(testsetup, api_labels_url):
+    return Labels_Page(testsetup, base_url=api_labels_url)

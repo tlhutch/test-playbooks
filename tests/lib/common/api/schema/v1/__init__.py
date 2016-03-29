@@ -1271,3 +1271,31 @@ class Awx_Schema_Notification(Awx_Schema_Notifications):
     @property
     def get(self):
         return self.load_file('notifications/item.yml')
+
+
+class Awx_Labels(Awx_Schema):
+    resource = '/api/v1/labels/'
+
+    @property
+    def get(self):
+        return self.load_file('labels/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('labels/item.yml')
+
+    @property
+    def duplicate(self):
+        return self.load_file('labels/duplicate.yml')
+
+
+class Awx_Label(Awx_Labels):
+    resource = '/api/v1/labels/\d+/'
+
+    @property
+    def patch(self):
+        return self.get
+
+    @property
+    def put(self):
+        return self.get
