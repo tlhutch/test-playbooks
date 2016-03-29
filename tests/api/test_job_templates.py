@@ -710,6 +710,27 @@ class Test_Job_Template(Base_Api_Test):
         with pytest.raises(common.exceptions.BadRequest_Exception):
             launch_pg.post()
 
+    def test_launch_check_job_template(self, job_template):
+        '''
+        Launch check job template and assess results.
+        '''
+        # patch job template
+        job_template.patch(job_type='check', playbook='check.yml')
+        assert job_template.job_type == 'check'
+        assert job_template.playbook == 'check.yml'
+
+        # launch JT and assess results
+        job_pg = job_template.launch().wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        assert job_pg.job_type == "check", "Unexpected job_type after launching check JT."
+        assert "\"--check\"" in job_pg.job_args, \
+            "Launched a check JT but '--check' not present in job_args."
+
+        # check that target task skipped
+        matching_job_events = job_pg.get_related('job_events', event='runner_on_skipped')
+        assert matching_job_events.count == 1, \
+            "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
+
     @pytest.mark.parametrize("limit_value, expected_count", [
         ("", 12),
         ("all", 12),

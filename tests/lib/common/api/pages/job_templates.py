@@ -24,6 +24,7 @@ class Job_Template_Page(Unified_Job_Template_Page):
     limit = property(json_getter('limit'), json_setter('limit'))
     job_tags = property(json_getter('job_tags'), json_setter('job_tags'))
     verbosity = property(json_getter('verbosity'), json_setter('verbosity'))
+    job_type = property(json_getter('job_type'), json_setter('job_type'))
 
     def get_related(self, name, **kwargs):
         assert name in self.json['related']
