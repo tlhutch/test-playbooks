@@ -43,6 +43,11 @@ class Selector(object):
         self.wait = WebDriverWait(self.driver, self.timeout)
         self._base_url = urlparse.urlparse(base_url, allow_fragments=False)
 
+    def _get_page(self, name):
+        """Return an external page object using the meta registry.
+        """
+        return _meta_registry[name]
+
     @property
     def base_url(self):
         return self._base_url.geturl().rstrip('/')
@@ -57,11 +62,6 @@ class Selector(object):
 
     def _normalize_text(self, text):
         return re.sub('[^0-9a-zA-Z_]+', '', text.replace(' ', '_')).lower()
-
-    def _get_page(self, name):
-        """Return an external page object instance using the meta registry.
-        """
-        return _meta_registry[name]
 
     def _lookup_page(self, url):
         """Search the meta registry for a page with a matching url
@@ -379,6 +379,46 @@ class Region(Selector):
 
     def wait_until_not_present(self):
         self.wait.until_not(lambda _: self.is_present())
+
+
+class RegionMap(Region):
+
+    # Region subclasses are mapped to keys that are usuable from within
+    # a region spec
+    _region_registry = {}
+
+    # The region_spec maps a property attribute name to a dictionary
+    # that is used to lookup a region object in the registry and
+    # initialize it with a set of keyword arguments.
+    _region_spec = {}
+
+    def __getattr__(self, name):
+        try:
+            spec = self._region_spec[name]
+        except KeyError:
+            raise AttributeError
+        else:
+            return self._load_region(spec)
+
+    def _load_region(self, spec):
+        """Lookup and initialize a region from the region registry using the
+        provided spec dictionary
+        """
+        kwargs = spec.copy()
+        region_type = kwargs.pop('region_type', 'default')
+
+        if 'root_extension' in kwargs and 'root_locator' not in kwargs:
+            kwargs['root'] = self.root
+
+        if region_type == 'default':
+            return Region(self.page, **kwargs)
+        else:
+            return self._region_registry[region_type](self.page, **kwargs)
+
+    def get_regions(self, **kwargs):
+        for name, spec in self._region_spec.iteritems():
+            if all(spec.get(k) == v for k, v in kwargs.iteritems()):
+                yield (name, self._load_region(spec))
 
 
 class SelectorEventListener(AbstractEventListener):
