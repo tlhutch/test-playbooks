@@ -7,7 +7,7 @@ from common.ui.pages.regions import Table
 from common.ui.pages.regions import Field
 from common.ui.pages.regions import PanelTab
 from common.ui.pages.regions import FormGeneratorTable
-from common.ui.pages.regions import SelectDropDown
+from common.ui.pages.forms import SelectDropDown
 
 from common.ui.pages.regions.cells import (
     JobStatusCell,
@@ -87,7 +87,7 @@ class ProjectsDetailsPanel(Region):
     _name = (By.CSS_SELECTOR, '#project_name')
     _description = (By.CSS_SELECTOR, '#project_description')
     _organization = (By.CSS_SELECTOR, '[class=form-control][name=organization_name]')
-    _scm_type = (By.CSS_SELECTOR, '#project_scm_type')
+    _scm_type = ((By.CSS_SELECTOR, '[for=scm_type]'), (By.XPATH, '..'))
 
     @property
     def name(self):

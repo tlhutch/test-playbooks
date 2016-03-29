@@ -6,7 +6,7 @@ from common.ui.pages.regions import Table
 
 from common.ui.pages.regions.tabs import PanelTab
 
-from common.ui.pages.regions.forms import (
+from common.ui.pages.forms import (
     FormPanel,
     TextInput,
     Lookup,
@@ -37,10 +37,10 @@ class UsersTable(Table):
 
 class UserDetailForm(FormPanel):
 
-    _first_name = (By.ID, 'user_first_name')
-    _last_name = (By.ID, 'user_last_name')
-    _email = (By.ID, 'user_email')
-    _username = (By.ID, 'user_username')
+    _first_name = ((By.CSS_SELECTOR, '[for=first_name]'), (By.XPATH, '..'))
+    _last_name = ((By.CSS_SELECTOR, '[for=last_name]'), (By.XPATH, '..'))
+    _email = ((By.CSS_SELECTOR, '[for=email]'), (By.XPATH, '..'))
+    _username = ((By.CSS_SELECTOR, '[for=username]'), (By.XPATH, '..'))
     _password = ((By.CSS_SELECTOR, '[for=password]'), (By.XPATH, '..'))
     _confirm_password = ((By.CSS_SELECTOR, '[for=password_confirm]'), (By.XPATH, '..'))
     _organization = ((By.CSS_SELECTOR, '[for=organization]'), (By.XPATH, '..'))
@@ -50,29 +50,25 @@ class UserDetailForm(FormPanel):
     def first_name(self):
         return TextInput(
             self.page,
-            root=self.root,
-            root_extension=self._first_name)
+            root_locator=self._first_name)
 
     @property
     def last_name(self):
         return TextInput(
             self.page,
-            root=self.root,
-            root_extension=self._last_name)
+            root_locator=self._last_name)
 
     @property
     def email(self):
         return TextInput(
             self.page,
-            root=self.root,
-            root_extension=self._email)
+            root_locator=self._email)
 
     @property
     def username(self):
         return TextInput(
             self.page,
-            root=self.root,
-            root_extension=self._username)
+            root_locator=self._username)
 
     @property
     def password(self):

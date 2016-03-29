@@ -4,7 +4,7 @@ from common.ui.pages.base import TowerPage
 from common.ui.pages.page import Region
 from common.ui.pages.regions import Clickable
 
-from common.ui.pages.regions.forms import SelectDropDown
+from common.ui.pages.forms import SelectDropDown
 
 
 class RocketLauncher(Clickable):
@@ -48,9 +48,9 @@ class ManagementLaunchModal(Region):
     _cancel = (By.ID, 'prompt-for-days-facts-cancel')
     _close = (By.CSS_SELECTOR, 'button[class=close]')
     _granularity_keep_amount = (By.ID, 'granularity_keep_amount')
-    _granularity_keep_unit = (By.ID, 'granularity_keep_unit')
+    _granularity_keep_unit = ((By.ID, 'granularity_keep_unit'), (By.XPATH, '..'))
     _keep_amount = (By.ID, 'keep_amount')
-    _keep_unit = (By.ID, 'keep_unit')
+    _keep_unit = ((By.ID, 'keep_unit'), (By.XPATH, '..'))
     _launch = (By.ID, 'prompt-for-days-facts-launch')
     _title = (By.CLASS_NAME, 'ui-dialog-titlebar')
 
@@ -93,19 +93,17 @@ class ManagementLaunchModal(Region):
     def granularity_keep_unit(self):
         return SelectDropDown(
             self.page,
-            root=self.root,
-            root_extension=self._granularity_keep_unit)
+            root_locator=self._granularity_keep_unit)
 
     @property
     def keep_unit(self):
         return SelectDropDown(
             self.page,
-            root=self.root,
-            root_extension=self._keep_unit)
+            root_locator=self._keep_unit)
 
     @property
     def title(self):
-        return SelectDropDown(
+        return Region(
             self.page,
             root=self.root,
             root_extension=self.title)

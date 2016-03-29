@@ -14,19 +14,6 @@ pytestmark = [
 ]
 
 
-@pytest.fixture(params=('ui_job_templates_add', 'ui_job_templates_edit'))
-def ui_job_templates_update(request):
-    return request.getfuncargvalue(request.param)
-
-
-@pytest.mark.usefixtures('supported_window_sizes')
-def test_details_component_visibility(ui_job_templates_update):
-    """Verify basic details form component visibility
-    """
-    assert ui_job_templates_update.details.machine_credential.is_displayed(), (
-        'Machine credential form element unexpectedly not displayed')
-
-
 @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1199')
 @pytest.mark.usefixtures('authtoken')
 def test_update_job_template(api_job_templates_pg, ui_job_templates_edit):

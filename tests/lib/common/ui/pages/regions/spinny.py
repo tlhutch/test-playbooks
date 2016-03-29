@@ -1,3 +1,4 @@
+from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import UnexpectedAlertPresentException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -12,7 +13,7 @@ class Spinny(Region):
     def __init__(self, page, **kwargs):
         super(Spinny, self).__init__(page, **kwargs)
 
-        self._wait_one = WebDriverWait(self.driver, 10)
+        self._wait_one = WebDriverWait(self.driver, 4)
         self._wait_two = WebDriverWait(self.driver, 60)
 
     def is_clickable(self):
@@ -41,3 +42,10 @@ class Spinny(Region):
 
     def wait_until_not_displayed(self):
         self._wait_two.until_not(lambda _: self.is_displayed())
+
+    def wait_cycle(self):
+        try:
+            self.wait_until_displayed()
+        except TimeoutException:
+            pass
+        self.wait_until_not_displayed()
