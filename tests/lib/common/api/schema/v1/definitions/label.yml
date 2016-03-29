@@ -1,0 +1,22 @@
+---
+label:
+    type: object
+    required: [id, type, url, related, summary_fields, created, modified, name, organization]
+    additionalProperties: false
+    properties:
+      id: { $ref: '#/definitions/id' }
+      type: {type: string, pattern: ^label$} 
+      url: {format: uri, type: string}
+      related:
+        additionalProperties: false
+        properties:
+          created_by: { $ref: '#/definitions/uri' }
+          modified_by: { $ref: '#/definitions/uri' }
+          organization: { $ref: '#/definitions/uri' }
+        required: [created_by, modified_by, organization]
+        type: object
+      summary_fields: {type: object}
+      created: {format: date-time, type: string}
+      modified: {format: date-time, type: string}
+      name: {type: string}
+      organization: {$ref: '#/definitions/id_or_null'}
