@@ -7,16 +7,8 @@ class Ad_Hoc_Command_Page(Unified_Job_Page):
     Base class for ad hoc commands.
     '''
     base_url = '/api/v1/ad_hoc_commands/{id}/'
-    '''
-    name = property(json_getter('name'), json_setter('name'))
-    launch_type = property(json_getter('launch_type'), json_setter('launch_type'))
-    status = property(json_getter('status'), json_setter('status'))
-    failed = property(json_getter('failed'), json_setter('failed'))
-    result_stdout = property(json_getter('result_stdout'), json_setter('result_stdout'))
-    job_type = property(json_getter('job_type'), json_setter('job_type'))
     inventory = property(json_getter('inventory'), json_setter('inventory'))
     credential = property(json_getter('credential'), json_setter('credential'))
-    '''
     become_enabled = property(json_getter('become_enabled'), json_setter('become_enabled'))
     module_name = property(json_getter('module_name'), json_setter('module_name'))
     module_args = property(json_getter('module_args'), json_setter('module_args'))
