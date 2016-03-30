@@ -12,9 +12,10 @@ class FormGroup(Region):
 
     _label = (By.CSS_SELECTOR, 'label')
     _help = (By.CSS_SELECTOR, "a[id*='awp-']")
+    _errors = (By.CLASS_NAME, 'error')
 
     @property
-    def required(self):
+    def is_required(self):
         return self.kwargs.get('required', False)
 
     @property
@@ -28,6 +29,10 @@ class FormGroup(Region):
         """Get the formGroup label region
         """
         return Region(self.page, root=self.root, root_extension=self._label)
+
+    @property
+    def errors(self):
+        return [e.text for e in self.find_elements(self._errors)]
 
 
 class TextInputMixin(object):
