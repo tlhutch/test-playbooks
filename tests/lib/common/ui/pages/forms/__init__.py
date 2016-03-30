@@ -26,7 +26,7 @@ class FormPanel(RegionMap):
         'password': Password,
         'radio_buttons': RadioButtons,
         'select': SelectDropDown,
-        'text_input': TextInput
+        'text_input': TextInput,
     }
 
     @property
