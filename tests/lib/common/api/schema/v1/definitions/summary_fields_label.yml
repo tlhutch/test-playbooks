@@ -1,0 +1,7 @@
+summary_fields_label:
+  additionalProperties: false
+  properties:
+    id: {$ref: '#/definitions/id'}
+    name: {type: string}
+  required: [id, name]
+  type: object

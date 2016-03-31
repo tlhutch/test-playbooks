@@ -26,34 +26,40 @@ class Job_Template_Page(Unified_Job_Template_Page):
     verbosity = property(json_getter('verbosity'), json_setter('verbosity'))
     job_type = property(json_getter('job_type'), json_setter('job_type'))
 
-    def get_related(self, name, **kwargs):
-        assert name in self.json['related']
-        if name == 'start':
-            related = Base(self.testsetup, base_url=self.json['related'][name])
-        elif name in ('credential', 'cloud_credential'):
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related'], \
+            "No such related attribute '%s'" % attr
+
+        if attr == 'start':
+            cls = Base
+        elif attr in ('credential', 'cloud_credential'):
             from credentials import Credential_Page
-            related = Credential_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'schedules':
+            cls = Credential_Page
+        elif attr == 'schedules':
             from schedules import Schedules_Page
-            related = Schedules_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'callback':
-            related = Job_Template_Callback_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'launch':
-            related = Job_Template_Launch_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'survey_spec':
-            related = Job_Template_Survey_Spec(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'jobs':
+            cls = Schedules_Page
+        elif attr == 'callback':
+            cls = Job_Template_Callback_Page
+        elif attr == 'launch':
+            cls = Job_Template_Launch_Page
+        elif attr == 'survey_spec':
+            cls = Job_Template_Survey_Spec
+        elif attr == 'jobs':
             from jobs import Jobs_Page
-            related = Jobs_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'inventory':
+            cls = Jobs_Page
+        elif attr == 'inventory':
             from inventory import Inventory_Page
-            related = Inventory_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'project':
+            cls = Inventory_Page
+        elif attr == 'project':
             from projects import Project_Page
-            related = Project_Page(self.testsetup, base_url=self.json['related'][name])
+            cls = Project_Page
+        elif attr == 'labels':
+            from labels import Labels_Page
+            cls = Labels_Page
         else:
-            raise NotImplementedError
-        return related.get(**kwargs)
+            raise NotImplementedError("No related class found for '%s'" % attr)
+
+        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
     def post_job(self, **kwargs):
         '''

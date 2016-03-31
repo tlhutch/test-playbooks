@@ -9,10 +9,6 @@ class Label_Page(Base):
     name = property(json_getter('name'), json_setter('name'))
     organization = property(json_getter('organization'), json_setter('organization'))
 
-
-class Labels_Page(Label_Page, Base_List):
-    base_url = '/api/v1/labels/'
-
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related'], \
             "No such related attribute '%s'" % attr
@@ -30,3 +26,7 @@ class Labels_Page(Label_Page, Base_List):
             raise NotImplementedError("No related class found for '%s'" % attr)
 
         return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
+
+
+class Labels_Page(Label_Page, Base_List):
+    base_url = '/api/v1/labels/'

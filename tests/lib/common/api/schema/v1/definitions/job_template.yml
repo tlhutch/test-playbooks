@@ -50,7 +50,8 @@ job_template:
         notifiers_any: {format: uri, type: string}
         notifiers_error: {format: uri, type: string}
         notifiers_success: {format: uri, type: string}
-      required: [created_by, jobs, activity_stream,
+        labels: {format: uri, type: string}
+      required: [created_by, jobs, activity_stream, labels,
       notifiers_any, notifiers_error, notifiers_success]
       type: object
     skip_tags: {type: string}
@@ -73,6 +74,7 @@ job_template:
         project: {$ref: '#/definitions/summary_fields_project'}
         recent_jobs: {$ref: '#/definitions/summary_fields_recent_jobs'}
         survey: {$ref: '#/definitions/summary_fields_survey'}
+        labels: {$ref: '#/definitions/summary_fields_labels'}
       type: object
     survey_enabled: {type: boolean}
     type: {pattern: ^job_template$, type: string}

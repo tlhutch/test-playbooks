@@ -7,43 +7,49 @@ from common.api.pages import (
 class Job_Page(Unified_Job_Page, Job_Template_Page):
     base_url = '/api/v1/jobs/{id}/'
 
-    def get_related(self, name, **kwargs):
-        assert name in self.json['related']
-        if name == 'job_events':
-            related = Job_Events_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'job_plays':
-            related = Job_Plays_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'job_tasks':
-            related = Job_Tasks_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'job_template':
-            related = Job_Template_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'job_host_summaries':
-            related = Job_Host_Summaries_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'start':
-            related = Base(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'cancel':
-            related = Job_Cancel_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'project':
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related'], \
+            "No such related attribute '%s'" % attr
+
+        if attr == 'job_events':
+            cls = Job_Events_Page
+        elif attr == 'job_plays':
+            cls = Job_Plays_Page
+        elif attr == 'job_tasks':
+            cls = Job_Tasks_Page
+        elif attr == 'job_template':
+            cls = Job_Template_Page
+        elif attr == 'job_host_summaries':
+            cls = Job_Host_Summaries_Page
+        elif attr == 'start':
+            cls = Base
+        elif attr == 'cancel':
+            cls = Job_Cancel_Page
+        elif attr == 'project':
             from projects import Project_Page
-            related = Project_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'inventory':
+            cls = Project_Page
+        elif attr == 'inventory':
             from inventory import Inventory_Page
-            related = Inventory_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'credential':
+            cls = Inventory_Page
+        elif attr == 'credential':
             from credentials import Credential_Page
-            related = Credential_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'cloud_credential':
+            cls = Credential_Page
+        elif attr == 'cloud_credential':
             from credentials import Credential_Page
-            related = Credential_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'relaunch':
-            related = Job_Relaunch_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'stdout':
-            related = Job_Stdout_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'notifications':
-            related = Notifications_Page(self.testsetup, base_url=self.json['related'][name])
+            cls = Credential_Page
+        elif attr == 'relaunch':
+            cls = Job_Relaunch_Page
+        elif attr == 'stdout':
+            cls = Job_Stdout_Page
+        elif attr == 'notifications':
+            cls = Notifications_Page
+        elif attr == 'labels':
+            from labels import Labels_Page
+            cls = Labels_Page
         else:
-            raise NotImplementedError
-        return related.get(**kwargs)
+            raise NotImplementedError("No related class found for '%s'" % attr)
+
+        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
     # TODO: Other types of jobs support relaunch (system_job_templates), but
     # not all types (project_update, inventory_update).  As written, this

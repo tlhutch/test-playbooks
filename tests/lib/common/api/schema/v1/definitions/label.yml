@@ -15,7 +15,13 @@ label:
           organization: { $ref: '#/definitions/uri' }
         required: [created_by, modified_by, organization]
         type: object
-      summary_fields: {type: object}
+      summary_fields:
+        additionalProperties: false
+        properties:
+          created_by: {$ref: '#/definitions/summary_fields_user'}
+          modified_by: {$ref: '#/definitions/summary_fields_user'}
+          organization: {$ref: '#/definitions/summary_fields_organization'}
+        type: object
       created: {format: date-time, type: string}
       modified: {format: date-time, type: string}
       name: {type: string}

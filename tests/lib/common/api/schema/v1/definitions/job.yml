@@ -53,8 +53,9 @@ job:
         start: {format: uri, type: string}
         stdout: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
+        labels: {format: uri, type: string}
       required: [job_host_summaries, job_events, start, cancel, activity_stream,
-                 notifications]
+                 notifications, labels]
       type: object
     result_stdout: {type: string}
     result_traceback: {type: string}
@@ -76,6 +77,7 @@ job:
         project: {$ref: '#/definitions/summary_fields_project'}
         schedule: {$ref: '#/definitions/summary_fields_schedule'}
         unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
+        labels: {$ref: '#/definitions/summary_fields_labels'}
       type: object
     type: {$ref: '#/definitions/enum_job_type'}
     unified_job_template: {$ref: '#/definitions/id_or_null'}

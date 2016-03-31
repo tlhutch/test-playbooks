@@ -1080,8 +1080,6 @@ class Awx_Schema_Object_Activity_Stream(Awx_Schema_Activity_Stream):
 #
 # /schedules
 #
-
-
 class Awx_Schema_Schedules(Awx_Schema):
     resource = '/api/v1/schedules/'
 
@@ -1225,6 +1223,9 @@ class Awx_Schema_Host_Related_Ad_Hoc_Commands(Awx_Schema_Ad_Hoc_Commmands):
     resource = '/api/v1/hosts/\d+/ad_hoc_commands/'
 
 
+#
+# /notifiers
+#
 class Awx_Schema_Notifiers(Awx_Schema):
     resource = '/api/v1/notifiers/'
 
@@ -1257,6 +1258,9 @@ class Awx_Schema_Notifier(Awx_Schema_Notifiers):
         return self.get
 
 
+#
+# /notifications
+#
 class Awx_Schema_Notifications(Awx_Schema):
     resource = '/api/v1/notifications/'
 
@@ -1273,6 +1277,13 @@ class Awx_Schema_Notification(Awx_Schema_Notifications):
         return self.load_file('notifications/item.yml')
 
 
+class Awx_Schema_Job_Notifications(Awx_Schema_Notifications):
+    resource = '/api/v1/jobs/\d+/notifications/'
+
+
+#
+# /labels
+#
 class Awx_Labels(Awx_Schema):
     resource = '/api/v1/labels/'
 
@@ -1293,9 +1304,21 @@ class Awx_Label(Awx_Labels):
     resource = '/api/v1/labels/\d+/'
 
     @property
+    def get(self):
+        return self.load_file('labels/item.yml')
+
+    @property
     def patch(self):
         return self.get
 
     @property
     def put(self):
         return self.get
+
+
+class Awx_Schema_Job_Template_Labels(Awx_Labels):
+    resource = '/api/v1/job_templates/\d+/labels/'
+
+
+class Awx_Schema_Job_Labels(Awx_Labels):
+    resource = '/api/v1/jobs/\d+/labels/'
