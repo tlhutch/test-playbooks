@@ -59,7 +59,7 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, ho
     Launch command with multi_ask credential and passwords in the payload.
     '''
     # create payload
-    payload = dict(inventory=host.get_related('inventory').id,
+    payload = dict(inventory=host.inventory,
                    credential=ssh_credential_multi_ask.id,
                    module_name="ping",
                    ssh_password=testsetup.credentials['ssh']['password'],
@@ -136,7 +136,7 @@ class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
         ad_hoc_commands_pg = group.get_related('ad_hoc_commands')
 
         # create payload
-        payload = dict(inventory=host.get_related('inventory').id,
+        payload = dict(inventory=host.inventory,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -171,7 +171,7 @@ class Test_Ad_Hoc_Commands_Host(Base_Api_Test):
         ad_hoc_commands_pg = host.get_related('ad_hoc_commands')
 
         # create payload
-        payload = dict(inventory=host.get_related('inventory').id,
+        payload = dict(inventory=host.inventory,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -205,7 +205,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         Verify that a superuser account is able to post to the ad_hoc_commands endpoint.
         '''
         # create payload
-        payload = dict(inventory=host.get_related('inventory').id,
+        payload = dict(inventory=host.inventory,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
@@ -240,7 +240,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         Verifies that if you post without specifiying module_name that the command module is run.
         '''
         # create payload
-        payload = dict(inventory=host.get_related('inventory').id,
+        payload = dict(inventory=host.inventory,
                        credential=ssh_credential.id,
                        module_args="true", )
 
@@ -314,7 +314,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         Verifies that launching a command with an ask credential succeeds when supplied with proper passwords.
         '''
         # create payload
-        payload = dict(inventory=host.get_related('inventory').id,
+        payload = dict(inventory=host.inventory,
                        credential=ssh_credential_multi_ask.id,
                        module_name="ping",
                        ssh_password=self.credentials['ssh']['password'],
@@ -432,7 +432,7 @@ print json.dumps(inv, indent=2)
         Verify that launching an ad hoc command without matching host fails appropriately.
         '''
         # create payload
-        payload = dict(inventory=host.get_related('inventory').id,
+        payload = dict(inventory=host.inventory,
                        credential=ssh_credential.id,
                        module_name="ping",
                        limit=fauxfactory.gen_utf8())
@@ -469,7 +469,7 @@ print json.dumps(inv, indent=2)
             ssh_credential.patch(user=privileged_user.id)
 
             # create payload
-            payload = dict(inventory=host.get_related('inventory').id,
+            payload = dict(inventory=host.inventory,
                            credential=ssh_credential.id,
                            module_name="ping", )
 
@@ -571,6 +571,20 @@ print json.dumps(inv, indent=2)
         with pytest.raises(common.exceptions.BadRequest_Exception):
             relaunch_pg.post()
 
+    @pytest.mark.fixture_args(module_name='shell', module_args='exit 1', job_type='check')
+    def test_launch_with_check(self, host, ssh_credential, ad_hoc_with_status_completed):
+        '''
+        Verifies check command behavior.
+        '''
+        assert ad_hoc_with_status_completed.job_type == 'check'
+        assert "\"--check\"" in ad_hoc_with_status_completed.job_args, \
+            "Launched a check command but '--check' not present in job_args."
+
+        # check that target task skipped
+        matching_job_events = ad_hoc_with_status_completed.get_related('events', event='runner_on_skipped')
+        assert matching_job_events.count == 1, \
+            "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
+
     def test_ad_hoc_activity_stream(self, api_ad_hoc_commands_pg, ad_hoc_with_status_completed):
         '''
         Verifies that launching an ad hoc command updates the activity stream.
@@ -638,7 +652,7 @@ print json.dumps(inv, indent=2)
             "Ad hoc command OPTIONS not updated for updated ad_hoc.py"
 
         # create payload
-        payload = dict(inventory=host.get_related('inventory').id,
+        payload = dict(inventory=host.inventory,
                        credential=ssh_credential.id,
                        module_name="shell",
                        module_args="true", )
@@ -743,14 +757,14 @@ class Test_Ad_Hoc_Permissions(Base_Api_Test):
         Verify that unprivileged users with ad hoc launch can post to the ad_hoc_commands endpoint.
         '''
         # create payload
-        payload = dict(inventory=host.get_related('inventory').id,
+        payload = dict(inventory=host.inventory,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
         # post payload as unprivileged user
         for unprivileged_user in unprivileged_users:
             # grant the user permissions
-            unprivileged_user.add_permission('read', inventory=host.get_related('inventory').id, run_ad_hoc_commands=True)
+            unprivileged_user.add_permission('read', inventory=host.inventory, run_ad_hoc_commands=True)
             # associate the credential with the user
             ssh_credential.patch(user=unprivileged_user.id)
             # post the command as the privileged user
@@ -766,7 +780,7 @@ class Test_Ad_Hoc_Permissions(Base_Api_Test):
         Verify that privileged users can post to the ad_hoc_commands endpoint without permissions.
         '''
         # create payload
-        payload = dict(inventory=host.get_related('inventory').id,
+        payload = dict(inventory=host.inventory,
                        credential=ssh_credential.id,
                        module_name="ping", )
 
