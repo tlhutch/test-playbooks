@@ -798,6 +798,10 @@ class Awx_Schema_Job_Event(Awx_Schema_Job_Events):
         return self.load_file('job_events/item.yml')
 
 
+class Awx_Schema_Job_Event_Children(Awx_Schema_Job_Events):
+    resource = '/api/v1/job_events/\d+/children/'
+
+
 class Awx_Schema_Job_Stdout(Awx_Schema):
     resource = '/api/v1/jobs/\d+/stdout/'
 
