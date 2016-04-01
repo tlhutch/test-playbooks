@@ -205,6 +205,10 @@ class Awx_Schema_Inventory(Awx_Schema_Inventories):
         return self.get
 
 
+class Awx_Schema_Organization_Inventories(Awx_Schema_Inventories):
+    resource = '/api/v1/organizations/\d+/inventories/'
+
+
 class Awx_Schema_Inventory_Access_List(Awx_Schema):
     resource = '/api/v1/inventories/\d+/access_list/'
 

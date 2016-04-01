@@ -7,6 +7,7 @@ class Organization_Page(base.Base):
     name = property(base.json_getter('name'), base.json_setter('name'))
     description = property(base.json_getter('description'), base.json_setter('description'))
     type = property(base.json_getter('type'), base.json_setter('type'))
+    summary_fields = property(base.json_getter('summary_fields'), base.json_setter('summary_fields'))
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related'], \
@@ -21,6 +22,9 @@ class Organization_Page(base.Base):
         elif attr == 'teams':
             from teams import Teams_Page
             cls = Teams_Page
+        elif attr == 'inventories':
+            from inventory import Inventories_Page
+            cls = Inventories_Page
         elif attr == 'projects':
             from projects import Projects_Page
             cls = Projects_Page
