@@ -7,14 +7,14 @@ def ad_hoc_ping(request, api_ad_hoc_commands_pg, host, ssh_credential):
     Launch an ad_hoc ping command and return the job resource.
     '''
     ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
-    payload = dict(inventory=host.get_related('inventory').id,
+    payload = dict(inventory=host.inventory,
                    credential=ssh_credential.id,
                    module_name="ping")
 
     fixture_args = getattr(request.function, 'fixture_args', None)
     for key in ('module_name', 'module_args', 'job_type'):
         if fixture_args and key in fixture_args.kwargs:
-            payload[key] = fixture_args.kwargs['key']
+            payload[key] = fixture_args.kwargs[key]
 
     return ad_hoc_commands_pg.post(payload)
 
