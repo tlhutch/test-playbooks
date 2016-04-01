@@ -11,14 +11,10 @@ def ad_hoc_ping(request, api_ad_hoc_commands_pg, host, ssh_credential):
                    credential=ssh_credential.id,
                    module_name="ping")
 
-    # optionally override module_name
     fixture_args = getattr(request.function, 'fixture_args', None)
-    if fixture_args and fixture_args.kwargs.get('module_name', False):
-        payload['module_name'] = fixture_args.kwargs['module_name']
-
-    # optionally override module_args
-    if fixture_args and fixture_args.kwargs.get('module_args', False):
-        payload['module_args'] = fixture_args.kwargs['module_args']
+    for key in ('module_name', 'module_args', 'job_type'):
+        if fixture_args and key in fixture_args.kwargs:
+            payload[key] = fixture_args.kwargs['key']
 
     return ad_hoc_commands_pg.post(payload)
 
