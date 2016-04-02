@@ -12,8 +12,9 @@ class Spinny(Region):
 
     def __init__(self, page, **kwargs):
         super(Spinny, self).__init__(page, **kwargs)
-
+        # set timeout when waiting for spinny to be displayed
         self._wait_one = WebDriverWait(self.driver, 4)
+        # set timeout when waiting for spinny to not be displayed
         self._wait_two = WebDriverWait(self.driver, 60)
 
     def is_clickable(self):
@@ -44,8 +45,13 @@ class Spinny(Region):
         self._wait_two.until_not(lambda _: self.is_displayed())
 
     def wait_cycle(self):
+        """Wait for spinny to appear and then disappear
+        """
         try:
             self.wait_until_displayed()
         except TimeoutException:
+            # We perform a pass-through on this exception because it is common to
+            # miss the initial appearance of spinny entirely when running tests
+            # on remote webdrivers (saucelabs, etc).
             pass
         self.wait_until_not_displayed()

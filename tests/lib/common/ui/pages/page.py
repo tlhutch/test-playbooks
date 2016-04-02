@@ -383,7 +383,7 @@ class Region(Selector):
 
 class RegionMap(Region):
 
-    # Region subclasses are mapped to keys that are usuable from within
+    # Region subclasses are mapped to keys that are usable from within
     # a region spec
     _region_registry = {}
 
@@ -416,6 +416,10 @@ class RegionMap(Region):
             return self._region_registry[region_type](self.page, **kwargs)
 
     def get_regions(self, **kwargs):
+        """Generate (name, region) tuples for of regions defined in the
+        region spec. Results can be filtered by spec dictionary values
+        using keyword arguments.
+        """
         for name, spec in self._region_spec.iteritems():
             if all(spec.get(k) == v for k, v in kwargs.iteritems()):
                 yield (name, self._load_region(spec))
