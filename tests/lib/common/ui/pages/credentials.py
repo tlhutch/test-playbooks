@@ -2,8 +2,8 @@ from selenium.webdriver.common.by import By
 
 from common.ui.pages.base import TowerCrudPage
 
-from common.ui.pages.regions.forms import Checkbox
-from common.ui.pages.regions.forms import Password
+from common.ui.pages.forms import Checkbox
+from common.ui.pages.forms import Password
 
 
 class SSHPassword(Password):

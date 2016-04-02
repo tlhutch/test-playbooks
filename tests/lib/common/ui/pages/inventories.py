@@ -15,7 +15,7 @@ from common.ui.pages.regions.cells import (
     SyncStatusCell
 )
 
-from common.ui.pages.regions.forms import (
+from common.ui.pages.forms import (
     CodeMirror,
     Lookup,
     RadioButtons,

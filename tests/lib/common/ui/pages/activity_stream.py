@@ -5,7 +5,7 @@ from common.ui.pages.page import Region
 
 from common.ui.pages.regions import Clickable
 
-from common.ui.pages.regions.forms import SelectDropDown
+from common.ui.pages.forms import SelectDropDown
 from common.ui.pages.regions.panels import ListPanel
 from common.ui.pages.regions.table import Table
 from common.ui.pages.regions.cells import DescriptionCell
@@ -71,7 +71,7 @@ class ActivityStream(TowerPage):
     _username = (By.ID, 'search-widget-container')
     _resources = (By.ID, 'search-widget-container2')
     _related = (By.ID, 'search-widget-container3')
-    _nav_dropdown = (By.ID, 'stream-dropdown-nav')
+    _nav_dropdown = ((By.ID, 'stream-dropdown-nav'), (By.XPATH, '..'))
 
     @property
     def subtitle(self):

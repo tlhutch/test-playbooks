@@ -3,7 +3,7 @@ from selenium.webdriver.common.by import By
 from common.ui.pages.base import TowerCrudPage
 from common.ui.pages.regions.table import Table
 
-from common.ui.pages.regions.forms import (
+from common.ui.pages.forms import (
     FormPanel,
     FormSearch,
     TextInput,
@@ -37,11 +37,11 @@ class ScheduleTable(Table):
 
 class ScheduleFormPanel(FormPanel):
 
-    _name = (By.ID, 'schedulerName')
-    _start_date = (By.ID, 'schedulerStartDt')
-    _time_zone = (By.ID, 'schedulerTimeZone')
-    _frequency = (By.ID, 'schedulerFrequency')
-    _date_format = (By.ID, 'date-choice')
+    _name = ((By.ID, 'schedulerName'), (By.XPATH, '..'))
+    _start_date = ((By.ID, 'schedulerStartDt'), (By.XPATH, '..'))
+    _time_zone = ((By.ID, 'schedulerTimeZone'), (By.XPATH, '..'))
+    _frequency = ((By.ID, 'schedulerFrequency'), (By.XPATH, '..'))
+    _date_format = ((By.ID, 'date-choice'), (By.XPATH, '..'))
 
     @property
     def search(self):

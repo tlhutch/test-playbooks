@@ -1,6 +1,5 @@
 from buttons import *  # NOQA
 from fields import *  # NOQA
-from forms import *  # NOQA
 from links import *  # NOQA
 
 from clickable import Clickable  # NOQA
@@ -16,6 +15,5 @@ from search import Search  # NOQA
 from table import Table  # NOQA
 from table import FormGeneratorTable  # NOQA
 import cells  # NOQA
-from forms import FormPanel, RadioButtons  # NOQA
 from dialogs import DeleteDialog  # NOQA
 from dialogs import LegacyDeleteDialog  # NOQA

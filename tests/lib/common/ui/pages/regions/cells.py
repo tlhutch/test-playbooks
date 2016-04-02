@@ -3,10 +3,9 @@ from selenium.webdriver.common.by import By
 from common.ui.pages.page import Region
 
 from dialogs import DeleteDialog
-from common.ui.pages.regions import (
-    Clickable,
-    UserLink
-)
+
+from common.ui.pages.regions.clickable import Clickable
+from common.ui.pages.regions.links import UserLink
 
 
 #
