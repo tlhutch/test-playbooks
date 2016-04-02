@@ -56,6 +56,9 @@ class Job_Template_Page(Unified_Job_Template_Page):
         elif attr == 'labels':
             from labels import Labels_Page
             cls = Labels_Page
+        elif attr == 'access_list':
+            from access_list import Access_List_Page
+            cls = Access_List_Page
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 

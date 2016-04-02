@@ -31,6 +31,7 @@ job_template:
     related:
       additionalProperties: false
       properties:
+        access_list: {format: uri, type: string}
         activity_stream: {format: uri, type: string}
         callback: {format: uri, type: string}
         cloud_credential: {format: uri, type: string}
@@ -39,20 +40,20 @@ job_template:
         current_job: {format: uri, type: string}
         inventory: {format: uri, type: string}
         jobs: {format: uri, type: string}
+        labels: {format: uri, type: string}
         last_job: {format: uri, type: string}
         launch: {format: uri, type: string}
         modified_by: {format: uri, type: string}
         next_schedule: {format: uri, type: string}
+        notifiers_any: {format: uri, type: string}
+        notifiers_error: {format: uri, type: string}
+        notifiers_success: {format: uri, type: string}
         project: {format: uri, type: string}
         schedule: {format: uri, type: string}
         schedules: {format: uri, type: string}
         survey_spec: {format: uri, type: string}
-        notifiers_any: {format: uri, type: string}
-        notifiers_error: {format: uri, type: string}
-        notifiers_success: {format: uri, type: string}
-        labels: {format: uri, type: string}
-      required: [created_by, jobs, activity_stream, labels,
-      notifiers_any, notifiers_error, notifiers_success]
+      required: [created_by, jobs, activity_stream, labels, notifiers_any, notifiers_error,
+        notifiers_success, access_list]
       type: object
     skip_tags: {type: string}
     start_at_task: {type: string}
@@ -68,13 +69,22 @@ job_template:
         current_job: {$ref: '#/definitions/summary_fields_job'}
         current_update: {$ref: '#/definitions/summary_fields_job'}
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
+        labels: {$ref: '#/definitions/summary_fields_labels'}
         last_job: {$ref: '#/definitions/summary_fields_job'}
         last_update: {$ref: '#/definitions/summary_fields_job'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
+        permissions: {$ref: '#/definitions/summary_fields_permission'}
         project: {$ref: '#/definitions/summary_fields_project'}
         recent_jobs: {$ref: '#/definitions/summary_fields_recent_jobs'}
+        roles:
+          additionalProperties: false
+          properties:
+            admin_role: {$ref: '#/definitions/summary_fields_role'}
+            auditor_role: {$ref: '#/definitions/summary_fields_role'}
+            executor_role: {$ref: '#/definitions/summary_fields_role'}
+          required: [auditor_role, admin_role, executor_role]
+          type: object
         survey: {$ref: '#/definitions/summary_fields_survey'}
-        labels: {$ref: '#/definitions/summary_fields_labels'}
       type: object
     survey_enabled: {type: boolean}
     type: {pattern: ^job_template$, type: string}

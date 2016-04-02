@@ -109,6 +109,14 @@ class Awx_Schema_Organization(Awx_Schema_Organizations):
         return self.load_file('organizations/item.yml')
 
 
+class Awx_Schema_Organizations_Access_List(Awx_Schema):
+    resource = '/api/v1/organizations/\d+/access_list/'
+
+    @property
+    def get(self):
+        return self.load_file('access_list/list.yml')
+
+
 class Awx_Schema_Users(Awx_Schema):
     resource = '/api/v1/users/'
 
@@ -139,6 +147,14 @@ class Awx_Schema_User(Awx_Schema_Users):
     @property
     def put(self):
         return self.get
+
+
+class Awx_Schema_User_Access_List(Awx_Schema):
+    resource = '/api/v1/users/\d+/access_list/'
+
+    @property
+    def get(self):
+        return self.load_file('access_list/list.yml')
 
 
 class Awx_Schema_Team_Users(Awx_Schema_Users):
@@ -183,6 +199,14 @@ class Awx_Schema_Inventory(Awx_Schema_Inventories):
     @property
     def patch(self):
         return self.get
+
+
+class Awx_Schema_Inventory_Access_List(Awx_Schema):
+    resource = '/api/v1/inventories/\d+/access_list/'
+
+    @property
+    def get(self):
+        return self.load_file('access_list/list.yml')
 
 
 class Awx_Schema_Variable_Data(Awx_Schema):
@@ -231,6 +255,14 @@ class Awx_Schema_Group(Awx_Schema_Groups):
     @property
     def patch(self):
         return self.get
+
+
+class Awx_Schema_Group_Access_List(Awx_Schema):
+    resource = '/api/v1/groups/\d+/access_list/'
+
+    @property
+    def get(self):
+        return self.load_file('access_list/list.yml')
 
 
 class Awx_Schema_Host_Groups(Awx_Schema_Groups):
@@ -357,6 +389,14 @@ class Awx_Schema_Credential(Awx_Schema_Credentials):
         return self.get
 
 
+class Awx_Schema_Credential_Access_List(Awx_Schema):
+    resource = '/api/v1/credential/\d+/access_list/'
+
+    @property
+    def get(self):
+        return self.load_file('access_list/list.yml')
+
+
 class Awx_Schema_User_Credentials(Awx_Schema_Credentials):
     resource = '/api/v1/users/\d+/credentials/'
 
@@ -403,6 +443,14 @@ class Awx_Schema_Project(Awx_Schema_Projects):
     @property
     def put(self):
         return self.get
+
+
+class Awx_Schema_Project_Access_List(Awx_Schema):
+    resource = '/api/v1/projects/\d+/access_list/'
+
+    @property
+    def get(self):
+        return self.load_file('access_list/list.yml')
 
 
 class Awx_Schema_Org_Projects(Awx_Schema_Projects):
@@ -626,6 +674,14 @@ class Awx_Schema_Job_Template(Awx_Schema_Job_Templates):
     @property
     def put(self):
         return self.get
+
+
+class Awx_Schema_Job_Template_Access_List(Awx_Schema):
+    resource = '/api/v1/job_templates/\d+/access_list/'
+
+    @property
+    def get(self):
+        return self.load_file('access_list/list.yml')
 
 
 class Awx_Schema_Job_Template_Launch(Awx_Schema):
@@ -937,6 +993,14 @@ class Awx_Schema_Teams(Awx_Schema):
     @property
     def duplicate(self):
         return self.load_file('teams/duplicate.yml')
+
+
+class Awx_Schema_Teams_Access_List(Awx_Schema):
+    resource = '/api/v1/teams/\d+/access_list/'
+
+    @property
+    def get(self):
+        return self.load_file('access_list/list.yml')
 
 
 class Awx_Schema_Project_Teams(Awx_Schema_Teams):
@@ -1326,3 +1390,22 @@ class Awx_Schema_Job_Template_Labels(Awx_Labels):
 
 class Awx_Schema_Job_Labels(Awx_Labels):
     resource = '/api/v1/jobs/\d+/labels/'
+
+
+#
+# /roles
+#
+class Awx_Roles(Awx_Schema):
+    resource = '/api/v1/roles/'
+
+    @property
+    def get(self):
+        return self.load_file('roles/list.yml')
+
+
+class Awx_Role(Awx_Schema):
+    resource = '/api/v1/roles/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('roles/item.yml')

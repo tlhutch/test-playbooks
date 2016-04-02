@@ -1,8 +1,6 @@
----
 group:
   additionalProperties: false
   properties:
-    type: {type: string, pattern: ^group$}
     created: {format: date-time, type: string}
     description: {type: string}
     groups_with_active_failures: {minimum: 0, type: number}
@@ -16,35 +14,47 @@ group:
     related:
       additionalProperties: false
       properties:
+        access_list: {format: uri, type: string}
         activity_stream: {format: uri, type: string}
         ad_hoc_commands: {format: uri, type: string}
         all_hosts: {format: uri, type: string}
         children: {format: uri, type: string}
         created_by: {format: uri, type: string}
-        modified_by: {format: uri, type: string}
         hosts: {format: uri, type: string}
         inventory: {format: uri, type: string}
         inventory_source: {format: uri, type: string}
         inventory_sources: {format: uri, type: string}
         job_events: {format: uri, type: string}
         job_host_summaries: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
         potential_children: {format: uri, type: string}
         variable_data: {format: uri, type: string}
-      required: [job_host_summaries, variable_data, inventory_source,
-      job_events, potential_children, all_hosts, hosts, inventory, children,
-      activity_stream, inventory_sources]
+      required: [job_host_summaries, variable_data, inventory_source, job_events,
+        potential_children, all_hosts, hosts, inventory, children, activity_stream,
+        inventory_sources]
       type: object
     summary_fields:
       additionalProperties: false
       properties:
+        created_by: {$ref: '#/definitions/summary_fields_user'}
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         inventory_source: {$ref: '#/definitions/summary_fields_source'}
-        created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
-      required: [inventory, inventory_source]
+        permissions: {$ref: '#/definitions/summary_fields_permission'}
+        roles:
+          additionalProperties: false
+          properties:
+            admin_role: {$ref: '#/definitions/summary_fields_role'}
+            auditor_role: {$ref: '#/definitions/summary_fields_role'}
+            executor_role: {$ref: '#/definitions/summary_fields_role'}
+            updater_role: {$ref: '#/definitions/summary_fields_role'}
+          required: [auditor_role, admin_role, updater_role, executor_role]
+          type: object
+      required: [inventory, inventory_source, roles, permissions]
       type: object
     total_groups: {minimum: 0, type: number}
     total_hosts: {minimum: 0, type: number}
+    type: {pattern: ^group$, type: string}
     url: {format: uri, type: string}
     variables: {type: string}
   required: [id, url, created, modified, name, description, inventory, variables,

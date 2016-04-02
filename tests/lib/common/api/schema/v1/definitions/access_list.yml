@@ -1,4 +1,4 @@
-user:
+access_list:
   additionalProperties: false
   properties:
     auth: {minItems: 0, type: array, uniqueItems: true}
@@ -23,6 +23,24 @@ user:
         teams: {$ref: '#/definitions/uri'}
       required: [admin_of_organizations, credentials, organizations, projects, teams,
         activity_stream, roles, access_list]
+      type: object
+    summary_fields:
+      additionalProperties: false
+      properties:
+        direct_access:
+          items:
+          - {$ref: '#/definitions/summary_fields_access'}
+          minItems: 0
+          type: array
+          uniqueItems: true
+        indirect_access:
+          items:
+          - {$ref: '#/definitions/summary_fields_access'}
+          minItems: 0
+          type: array
+          uniqueItems: true
+        permissions: {$ref: '#/definitions/summary_fields_permission'}
+      required: [direct_access, indirect_access, permissions]
       type: object
     type: {pattern: ^user$, type: string}
     url: {format: uri, type: string}

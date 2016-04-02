@@ -25,6 +25,9 @@ class Team_Page(base.Base):
         elif name == 'permissions':
             from permissions import Permissions_Page
             related_cls = Permissions_Page
+        elif name == 'access_list':
+            from access_list import Access_List_Page
+            related_cls = Access_List_Page
         else:
             raise NotImplementedError
         related = related_cls(self.testsetup, base_url=self.json['related'][name])

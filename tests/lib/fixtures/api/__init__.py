@@ -486,3 +486,16 @@ def api_labels_url(api, api_v1_url):
 @pytest.fixture(scope="module")
 def api_labels_pg(testsetup, api_labels_url):
     return Labels_Page(testsetup, base_url=api_labels_url)
+
+
+#
+# /api/v1/roles
+#
+@pytest.fixture(scope="module")
+def api_roles_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'roles')
+
+
+@pytest.fixture(scope="module")
+def api_roles_pg(testsetup, api_roles_url):
+    return Roles_Page(testsetup, base_url=api_roles_url)

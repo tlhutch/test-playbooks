@@ -22,6 +22,9 @@ class Organization_Page(base.Base):
         elif name == 'activity_stream':
             from activity_stream import Activity_Stream_Page
             related = Activity_Stream_Page(self.testsetup, base_url=self.json['related'][name])
+        elif name == 'access_list':
+            from access_list import Access_List_Page
+            related = Access_List_Page(self.testsetup, base_url=self.json['related'][name])
         else:
             raise NotImplementedError
         return related.get(**kwargs)

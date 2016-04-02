@@ -1,32 +1,34 @@
----
 organization:
-    type: object
-    required: [id, url, name, description, created, modified, summary_fields, related, type]
-    additionalProperties: false
-    properties:
-      created: {format: date-time, type: string}
-      description: {type: string}
-      id: { $ref: '#/definitions/id' }
-      modified: {format: date-time, type: string}
-      name: {type: string}
-      related:
-        additionalProperties: false
-        properties:
-          activity_stream: { $ref: '#/definitions/uri' }
-          admins: { $ref: '#/definitions/uri' }
-          created_by: { $ref: '#/definitions/uri' }
-          modified_by: { $ref: '#/definitions/uri' }
-          inventories: { $ref: '#/definitions/uri' }
-          projects: { $ref: '#/definitions/uri' }
-          teams: { $ref: '#/definitions/uri' }
-          users: { $ref: '#/definitions/uri' }
-          notifiers: { $ref: '#/definitions/uri' }
-          notifiers_any: { $ref: '#/definitions/uri' }
-          notifiers_error: { $ref: '#/definitions/uri' }
-          notifiers_success: { $ref: '#/definitions/uri' }
-        required: [admins, inventories, users, projects, teams, activity_stream,
-        notifiers, notifiers_any, notifiers_error, notifiers_success]
-        type: object
-      summary_fields: {type: object}
-      url: {format: uri, type: string}
-      type: { enum: [organization] }
+  additionalProperties: false
+  properties:
+    created: {format: date-time, type: string}
+    description: {type: string}
+    id: {$ref: '#/definitions/id'}
+    modified: {format: date-time, type: string}
+    name: {type: string}
+    related:
+      additionalProperties: false
+      properties:
+        access_list: {$ref: '#/definitions/uri'}
+        activity_stream: {$ref: '#/definitions/uri'}
+        admins: {$ref: '#/definitions/uri'}
+        created_by: {$ref: '#/definitions/uri'}
+        inventories: {$ref: '#/definitions/uri'}
+        modified_by: {$ref: '#/definitions/uri'}
+        notifiers: {$ref: '#/definitions/uri'}
+        notifiers_any: {$ref: '#/definitions/uri'}
+        notifiers_error: {$ref: '#/definitions/uri'}
+        notifiers_success: {$ref: '#/definitions/uri'}
+        projects: {$ref: '#/definitions/uri'}
+        teams: {$ref: '#/definitions/uri'}
+        users: {$ref: '#/definitions/uri'}
+      required: [admins, inventories, users, projects, teams, activity_stream, notifiers,
+        notifiers_any, notifiers_error, notifiers_success, access_list]
+      type: object
+    summary_fields: {type: object}
+    type:
+      enum: [organization]
+    url: {format: uri, type: string}
+  required: [id, url, name, description, created, modified, summary_fields, related,
+    type]
+  type: object
