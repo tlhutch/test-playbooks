@@ -4,7 +4,6 @@ from common.ui.pages.base import TowerCrudPage
 from common.ui.pages.page import Region
 
 from common.ui.pages.regions import Table
-from common.ui.pages.regions import Field
 from common.ui.pages.regions import PanelTab
 from common.ui.pages.regions import FormGeneratorTable
 from common.ui.pages.forms import SelectDropDown
@@ -91,15 +90,15 @@ class ProjectsDetailsPanel(Region):
 
     @property
     def name(self):
-        return Field(self.page, root_locator=self._name)
+        return Region(self.page, root_locator=self._name)
 
     @property
     def description(self):
-        return Field(self.page, root_locator=self._description)
+        return Region(self.page, root_locator=self._description)
 
     @property
     def organization(self):
-        return Field(self.page, root_locator=self._organization)
+        return Region(self.page, root_locator=self._organization)
 
     @property
     def scm_type(self):

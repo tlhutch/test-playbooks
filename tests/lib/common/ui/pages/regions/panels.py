@@ -33,8 +33,7 @@ class ListPanel(Region):
     def pagination(self):
         return Pagination(
             self.page,
-            root=self.root,
-            root_extension=self._pagination)
+            root_locator=self._pagination)
 
     @property
     def title(self):

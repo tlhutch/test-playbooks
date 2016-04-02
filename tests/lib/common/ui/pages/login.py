@@ -1,30 +1,20 @@
 from selenium.webdriver.common.by import By
 
 from common.ui.pages.page import Page
+from common.ui.pages.page import Region
 
-from common.ui.pages.regions import (
-    DashboardLink,
-    Field,
-    Header
-)
-
-
-class LoginButton(DashboardLink):
-    _root_locator = (By.ID, 'login-button')
-
-
-class LoginUsername(Field):
-    _root_locator = (By.ID, 'login-username')
-
-
-class LoginPassword(Field):
-    _root_locator = (By.ID, 'login-password')
+from common.ui.pages.regions import Link
+from common.ui.pages.regions import Header
+from common.ui.pages.regions import Spinny
 
 
 class Login(Page):
 
     _path = '/#/login'
 
+    _login_username = (By.ID, 'login-username')
+    _login_password = (By.ID, 'login-password')
+    _login_button = (By.ID, 'login-button')
     _alert_errors = (By.CLASS_NAME, 'LoginModal-alert--error')
     _field_errors = (By.CLASS_NAME, 'error')
     _backdrop = (By.CLASS_NAME, 'LoginModal-backDrop')
@@ -50,16 +40,16 @@ class Login(Page):
         return Header(self)
 
     @property
-    def login_button(self):
-        return LoginButton(self)
-
-    @property
     def username(self):
-        return LoginUsername(self)
+        return Region(self, root_locator=self._login_username)
 
     @property
     def password(self):
-        return LoginPassword(self)
+        return Region(self, root_locator=self._login_password)
+
+    @property
+    def login_button(self):
+        return Link(self, root_locator=self._login_button, load_page='Dashboard', spinny=True)
 
     def is_logged_in(self):
         return not self.is_element_present(self._backdrop)
@@ -75,3 +65,8 @@ class Login(Page):
         self.password.send_keys(password)
 
         return self.login_button.click()
+
+    def open(self):
+        super(Login, self).open()
+        Spinny(self).wait_cycle()
+        return self

@@ -103,10 +103,9 @@ class Password(TextInputMixin, FormGroup):
             root=self.root,
             root_extension=self._password_button)
 
-        return self._normalize_text(password_button.text)
+        return password_button.normalized_text
 
     def select(self, option):
-        option = self._normalize_text(option)
 
         if option not in self.options:
             raise ValueError('Invalid selection')
@@ -116,7 +115,7 @@ class Password(TextInputMixin, FormGroup):
             root=self.root,
             root_extension=self._password_button)
 
-        if option != self._normalize_text(password_button.text):
+        if option != password_button.normalized_text:
             password_button.click()
 
         return self

@@ -2,6 +2,7 @@ import pytest
 
 pytestmark = [
     pytest.mark.ui,
+    pytest.mark.pagination,
     pytest.mark.usefixtures(
         'install_enterprise_license_unlimited',
         'maximized_window_size'

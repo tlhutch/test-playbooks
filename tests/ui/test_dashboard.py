@@ -50,14 +50,14 @@ def test_job_status_toolbar_dropdowns(ui_dashboard):
         ('job_types', toolbar.job_types_dropdown))
 
     for (name, dd) in dropdowns:
-        for option in dd.get_options():
+        for option in dd.options:
 
             msg = 'job status toolbar {0} dropdown'.format(name)
 
             assert dd.is_displayed(), (
                 'Expected {0} to be displayed'.format(msg))
 
-            dd.select_option(option)
+            dd.select(option)
             selected_option = dd.selected_option
 
             assert selected_option == option, (

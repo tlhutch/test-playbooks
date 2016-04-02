@@ -16,20 +16,21 @@ class TableHeader(Region):
 
     @property
     def columns(self):
-        return self.find_elements(self._header_columns)
-
-    @property
-    def column_names(self):
-        text_values = [self._normalize_text(e.text) for e in self.columns]
-        return [t for t in text_values if t]
+        return [Region(self.page, root=e) for e in self.find_elements(self._header_columns)]
 
     @property
     def sortable_columns(self):
-        return self.find_elements(self._sortable_columns)
+        elements = self.find_elements(self._sortable_columns)
+        return [Clickable(self.page, root=e, spinny=True) for e in elements]
+
+    @property
+    def column_names(self):
+        text_values = [r.normalized_text for r in self.columns]
+        return [t for t in text_values if t]
 
     @property
     def sortable_column_names(self):
-        return [self._normalize_text(e.text) for e in self.sortable_columns]
+        return [r.normalized_text for r in self.sortable_columns]
 
     @property
     def sorted_column(self):
@@ -43,7 +44,7 @@ class TableHeader(Region):
 
     @property
     def sorted_column_name(self):
-        return self._normalize_text(self.sorted_column.root.text)
+        return self.sorted_column.normalized_text
 
     @property
     def sort_order(self):
@@ -59,11 +60,8 @@ class TableHeader(Region):
     def set_column_sort_order(self, column_sort_order):
         (column_name, sort_order) = column_sort_order
 
-        sortable_element = self.lookup_element(
-            self._sortable_columns, text=column_name)
-
-        sortable_column = Clickable(
-            self.page, root=sortable_element, spinny=True)
+        sortable_column = filter(
+            lambda c: c.normalized_text == column_name, self.sortable_columns).pop()
 
         if self.sorted_column_name != column_name:
             sortable_column.click()

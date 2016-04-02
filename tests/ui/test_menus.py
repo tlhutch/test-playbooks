@@ -17,11 +17,11 @@ def test_header_displays_correct_username(ui_dashboard, anonymous_user,
     """
     default_un = default_credentials['username']
 
-    assert ui_dashboard.header.user == default_un, (
+    assert ui_dashboard.header.username.lower() == default_un.lower(), (
         'Unable to verify correctly displayed username on header')
 
     with ui_dashboard.current_user(anonymous_user.username, user_password):
-        assert ui_dashboard.header.user == anonymous_user.username.lower(), (
+        assert ui_dashboard.header.username.lower() == anonymous_user.username.lower(), (
             'Unable to verify that the header displays the correct username')
 
 
@@ -33,30 +33,30 @@ def test_header_menu_item_visibility(ui_dashboard):
         'Expected dashboard header menu to visible')
 
     assert ui_dashboard.header.logo.is_displayed(), (
-        'Expected header inventories_link link to be visible')
+        'Expected header logo link link to be visible')
 
-    assert ui_dashboard.header.projects_link.is_displayed(), (
-        'Expected header inventories_link link to be visible')
+    assert ui_dashboard.header.projects.is_displayed(), (
+        'Expected header projects link link to be visible')
 
-    assert ui_dashboard.header.inventories_link.is_displayed(), (
-        'Expected header inventories_link link to be visible')
+    assert ui_dashboard.header.inventories.is_displayed(), (
+        'Expected header inventories link link to be visible')
 
-    assert ui_dashboard.header.job_templates_link.is_displayed(), (
+    assert ui_dashboard.header.job_templates.is_displayed(), (
         'Expected header job_templates link to be visible')
 
-    assert ui_dashboard.header.jobs_link.is_displayed(), (
+    assert ui_dashboard.header.jobs.is_displayed(), (
         'Expected header jobs link to be visible')
 
-    assert ui_dashboard.header.user_link.is_displayed(), (
+    assert ui_dashboard.header.user.is_displayed(), (
         'Expected header user link to be visible')
 
-    assert ui_dashboard.header.setup_link.is_displayed(), (
+    assert ui_dashboard.header.setup.is_displayed(), (
         'Expected header menu setup link to be visible')
 
-    assert ui_dashboard.header.docs_link.is_displayed(), (
+    assert ui_dashboard.header.docs.is_displayed(), (
         'Expected header menu docs link to be visible')
 
-    assert ui_dashboard.header.logout_link.is_displayed(), (
+    assert ui_dashboard.header.logout.is_displayed(), (
         'Expected header menu logout link to be visible')
 
 
@@ -66,32 +66,32 @@ def test_header_links(ui_dashboard):
     """
     header = ui_dashboard.header
 
-    header.jobs_link.click()
+    header.jobs.click()
     assert 'jobs' in ui_dashboard._current_url.path, (
         'Expected jobs_link in url after clicking header jobs link ')
     header.logo.click()
 
-    header.user_link.click()
+    header.user.click()
     assert 'users' in ui_dashboard._current_url.path, (
         'Expected users in url after clicking header user link')
     header.logo.click()
 
-    header.setup_link.click()
+    header.setup.click()
     assert 'setup' in ui_dashboard._current_url.path, (
         'Expected setup in url after clicking header setup link')
     header.logo.click()
 
-    header.job_templates_link.click()
+    header.job_templates.click()
     assert 'job_templates' in ui_dashboard._current_url.path, (
         'Expected job_templates in url after clicking header job templates link')
     header.logo.click()
 
-    header.projects_link.click()
+    header.projects.click()
     assert 'projects' in ui_dashboard._current_url.path, (
         'Expected projects in url after clicking header projects link')
     header.logo.click()
 
-    header.inventories_link.click()
+    header.inventories.click()
     assert 'inventories' in ui_dashboard._current_url.path, (
         'Expected inventories in url after clicking header inventories link')
     header.logo.click()

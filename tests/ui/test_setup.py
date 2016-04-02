@@ -51,7 +51,7 @@ def test_cards_route_to_expected_destination(ui_setup):
             '{0} unexpectedly not in current url path {1}'.format(
                 dest, current_path))
 
-        loaded_page.header.setup_link.click()
+        loaded_page.header.setup.click()
 
 
 @pytest.mark.usefixtures('supported_window_sizes')

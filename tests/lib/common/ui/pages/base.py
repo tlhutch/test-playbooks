@@ -3,15 +3,13 @@ from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 import urllib
 
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 
 from login import Login
 from page import Page
 from page import Region
 
-from common.ui.pages.regions import ActivityStreamLink
-from common.ui.pages.regions import DashboardLink
+from common.ui.pages.regions import Link
 from common.ui.pages.regions import Header
 from common.ui.pages.regions import ListPanel
 from common.ui.pages.regions import Spinny
@@ -21,15 +19,8 @@ class TowerPage(Page):
 
     _crumbs = (By.CLASS_NAME, 'BreadCrumb-item')
     _tab_pane = (By.CLASS_NAME, 'tab-pane')
-    _dash_button = (By.CSS_SELECTOR, 'i[class="BreadCrumb-menuLinkImage fa fa-tachometer"]')
-
-    @property
-    def dashboard_button(self):
-        return DashboardLink(self, root_locator=self._dash_button)
-
-    @property
-    def activity_stream_link(self):
-        return ActivityStreamLink(self)
+    _dashboard_button = (By.CSS_SELECTOR, 'i[class="BreadCrumb-menuLinkImage fa fa-tachometer"]')
+    _activity_stream_link = (By.CSS_SELECTOR, 'i[class="BreadCrumb-menuLinkImage icon-activity-stream"]')
 
     @property
     def crumbs(self):
@@ -78,7 +69,7 @@ class TowerPage(Page):
         """Ensure the client is logged out of Ansible Tower
         """
         if self.header.is_displayed():
-            self.header.logout_link.click()
+            self.header.logout.click()
 
     def refresh(self):
         """Refresh the page
@@ -129,12 +120,17 @@ class TowerPage(Page):
             self.refresh()
 
     def wait_for_spinny(self):
-        try:
-            self.spinny.wait_until_displayed()
-        except TimeoutException:
-            pass
+        """Wait for spinny to appear and then disappear
+        """
+        Spinny(self).wait_cycle()
 
-        self.spinny.wait_until_not_displayed()
+    @property
+    def activity_stream_link(self):
+        return Link(self, root_locator=self._activity_stream_link, load_page='ActivityStream', spinny=True)
+
+    @property
+    def dashboard_button(self):
+        return Link(self, root_locator=self._dashboard_button, load_page='Dashboard', spinny=True)
 
 
 class TowerCrudPage(TowerPage):
