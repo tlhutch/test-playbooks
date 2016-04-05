@@ -53,14 +53,14 @@ class Dashboard(TowerPage):
 
     @property
     def counts(self):
-        count_names = [
+        count_names = (
             'jobs',
             'hosts',
             'failed hosts',
             'projects',
             'inventories',
             'inventory sync failures',
-            'projects sync failures']
+            'projects sync failures')
 
         for name in count_names:
             yield self._locate_count_button(name)

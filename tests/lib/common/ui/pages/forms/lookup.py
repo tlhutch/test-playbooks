@@ -1,3 +1,5 @@
+import time
+
 from selenium.webdriver.common.by import By
 
 from common.ui.pages.page import Region
@@ -24,7 +26,7 @@ class Lookup(TextInputMixin, FormGroup):
 
     @property
     def spinny(self):
-        return self.kwargs.get('spinny', True)
+        return self.kwargs.get('spinny', False)
 
     @property
     def lookup_button(self):
@@ -44,3 +46,23 @@ class Lookup(TextInputMixin, FormGroup):
             # TODO: make modal open, search, and select process opaque
             # to the test writer by modeling it as a generic form
             # widget select operation
+
+    #
+    # The retry + poll logic in the two methods below are a temporary
+    # workaround for https://github.com/ansible/ansible-tower/issues/1461
+    # and should be removed when this issue is resolved.
+    #
+    def set_text(self, text, retry=True):
+        if retry:
+            self._set_text_with_retry(text)
+        else:
+            TextInputMixin.set_text(self, text)
+
+    def _set_text_with_retry(self, text):
+        timeout = time.time() + 25
+        while True:
+            self.clear()
+            TextInputMixin.set_text(self, text)
+            time.sleep(1)
+            if not self.errors or time.time() > timeout:
+                break

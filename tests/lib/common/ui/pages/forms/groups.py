@@ -22,8 +22,9 @@ class SelectDropDown(FormGroup):
         return select_model.first_selected_option.text
 
     def select(self, option):
-        select_model = Select(self.find_element(self._select))
-        return select_model.select_by_visible_text(option)
+        if option != self.selected_option:
+            select_model = Select(self.find_element(self._select))
+            select_model.select_by_visible_text(option)
 
 
 class Checkbox(FormGroup):
@@ -121,7 +122,20 @@ class Password(TextInputMixin, FormGroup):
         return self
 
 
+class TextArea(TextInputMixin, FormGroup):
+
+    _text_input = (By.TAG_NAME, 'textarea')
+
+    @property
+    def _text_input_region(self):
+        return Region(self.page, root=self.find_element(self._text_input))
+
+
 class TextInput(TextInputMixin, FormGroup):
+    pass
+
+
+class Email(TextInputMixin, FormGroup):
     pass
 
 

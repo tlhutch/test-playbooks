@@ -3,18 +3,9 @@ from selenium.webdriver.common.by import By
 from common.ui.pages.base import TowerCrudPage
 from common.ui.pages.regions.tabs import PanelTab
 from common.ui.pages.regions.table import Table
-
-from common.ui.pages.regions.cells import (
-    CopyActionCell,
-    DeleteActionCell,
-    EditActionCell,
-    DescriptionCell,
-    NameCell,
-    ScheduleActionCell,
-    SubmitActionCell
-)
-
 from common.ui.pages.forms import FormPanel
+
+from common.ui.pages.regions.cells import *  # NOQA
 
 
 class JobTemplatesTable(Table):
@@ -43,6 +34,7 @@ class JobTemplatesEditDetails(FormPanel):
         },
         'inventory': {
             'required': True,
+            'spinny': True,
             'region_type': 'lookup',
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=inventory]'),
@@ -50,6 +42,7 @@ class JobTemplatesEditDetails(FormPanel):
         },
         'project': {
             'required': True,
+            'spinny': True,
             'region_type': 'lookup',
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=project]'),
@@ -147,7 +140,7 @@ class JobTemplates(TowerCrudPage):
 
     @property
     def forms(self):
-        return [self.completed_jobs, self.schedules, self.details]
+        return [self.details]
 
     @property
     def table(self):

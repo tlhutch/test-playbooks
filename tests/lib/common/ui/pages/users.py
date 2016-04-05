@@ -5,21 +5,10 @@ from common.ui.pages.page import Region
 from common.ui.pages.regions import Table
 
 from common.ui.pages.regions.tabs import PanelTab
+from common.ui.pages.forms import FormPanel
+from common.ui.pages.forms import Lookup
 
-from common.ui.pages.forms import (
-    FormPanel,
-    TextInput,
-    Lookup,
-    Password,
-)
-
-from common.ui.pages.regions.cells import (
-    UserNameCell,
-    FirstNameCell,
-    LastNameCell,
-    EditActionCell,
-    DeleteActionCell
-)
+from common.ui.pages.regions.cells import *  # NOQA
 
 
 class UsersTable(Table):
@@ -37,62 +26,54 @@ class UsersTable(Table):
 
 class UserDetailForm(FormPanel):
 
-    _first_name = ((By.CSS_SELECTOR, '[for=first_name]'), (By.XPATH, '..'))
-    _last_name = ((By.CSS_SELECTOR, '[for=last_name]'), (By.XPATH, '..'))
-    _email = ((By.CSS_SELECTOR, '[for=email]'), (By.XPATH, '..'))
-    _username = ((By.CSS_SELECTOR, '[for=username]'), (By.XPATH, '..'))
-    _password = ((By.CSS_SELECTOR, '[for=password]'), (By.XPATH, '..'))
-    _confirm_password = ((By.CSS_SELECTOR, '[for=password_confirm]'), (By.XPATH, '..'))
+    _region_spec = {
+        'first_name': {
+            'required': True,
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.CSS_SELECTOR, '[for=first_name]'),
+                (By.XPATH, '..'))
+        },
+        'last_name': {
+            'required': True,
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.CSS_SELECTOR, '[for=last_name]'),
+                (By.XPATH, '..'))
+        },
+        'email': {
+            'required': True,
+            'region_type': 'email',
+            'root_locator': (
+                (By.CSS_SELECTOR, '[for=email]'),
+                (By.XPATH, '..'))
+        },
+        'username': {
+            'required': True,
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.CSS_SELECTOR, '[for=username]'),
+                (By.XPATH, '..'))
+        },
+        'superuser': {
+            'region_type': 'checkbox',
+            'root_locator': (
+                (By.ID, 'user_is_superuser_chbox'),
+                (By.XPATH, '..'),
+                (By.XPATH, '..'))
+        }
+    }
+
     _organization = ((By.CSS_SELECTOR, '[for=organization]'), (By.XPATH, '..'))
     _organization_api_error = (By.CSS_SELECTOR, '#user-organization-api-error')
 
     @property
-    def first_name(self):
-        return TextInput(
-            self.page,
-            root_locator=self._first_name)
-
-    @property
-    def last_name(self):
-        return TextInput(
-            self.page,
-            root_locator=self._last_name)
-
-    @property
-    def email(self):
-        return TextInput(
-            self.page,
-            root_locator=self._email)
-
-    @property
-    def username(self):
-        return TextInput(
-            self.page,
-            root_locator=self._username)
-
-    @property
-    def password(self):
-        return Password(
-            self.page,
-            root_locator=self._password)
-
-    @property
-    def confirm_password(self):
-        return Password(
-            self.page,
-            root_locator=self._confirm_password)
+    def organization_api_error(self):
+        return Region(self.page, root_locator=self._organization_api_error)
 
     @property
     def organization(self):
-        return Lookup(
-            self.page,
-            root_locator=self._organization)
-
-    @property
-    def organization_api_error(self):
-        return Region(
-            self.page,
-            root_locator=self._organization_api_error)
+        return Lookup(self.page, root_locator=self._organization)
 
 
 class Users(TowerCrudPage):
@@ -100,6 +81,10 @@ class Users(TowerCrudPage):
     _path = '/#/users/{index}'
 
     _details_tab = (By.ID, 'user_tab')
+
+    @property
+    def forms(self):
+        return [self.details]
 
     @property
     def table(self):

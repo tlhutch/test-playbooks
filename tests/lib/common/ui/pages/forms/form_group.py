@@ -32,7 +32,7 @@ class FormGroup(Region):
 
     @property
     def errors(self):
-        return [e.text for e in self.find_elements(self._errors)]
+        return [e.text for e in self.find_elements(self._errors) if e.text]
 
 
 class TextInputMixin(object):
@@ -59,6 +59,7 @@ class TextInputMixin(object):
         return self._text_input_region.root.get_attribute('value')
 
     def clear(self):
+        self._text_input_region.wait_until_clickable()
         self._text_input_region.root.clear()
 
     def is_hidden(self):
