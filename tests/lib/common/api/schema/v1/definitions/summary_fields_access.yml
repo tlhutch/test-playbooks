@@ -1,0 +1,16 @@
+summary_fields_access:
+  additionalProperties: false
+  properties:
+    permissions: {$ref: '#/definitions/summary_fields_permission'}
+    role:
+      additionalProperties: false
+      properties:
+        description: {type: string}
+        id: {$ref: '#/definitions/id'}
+        name: {type: string}
+        related: {type: object}
+        resource_name: {type: string}
+        resource_type: {type: string}
+      required: [description, id, name]
+  required: [role, permissions]
+  type: object

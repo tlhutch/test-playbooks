@@ -1,35 +1,44 @@
----
 team:
-  type: object
   additionalProperties: false
-  required: [created, id, url, related, summary_fields, name, description, organization, type]
   properties:
-    type: {type: string, pattern: ^team$}
     created: {format: date-time, type: string}
     description: {type: string}
     id: {minimum: 1, type: number}
     modified: {format: date-time, type: string}
     name: {type: string}
-    organization: { $ref: '#/definitions/id_or_null' }
+    organization: {$ref: '#/definitions/id_or_null'}
     related:
       additionalProperties: false
       properties:
-        activity_stream: { $ref: '#/definitions/uri' }
-        created_by: { $ref: '#/definitions/uri' }
-        modified_by: { $ref: '#/definitions/uri' }
-        credentials: { $ref: '#/definitions/uri' }
-        organization: { $ref: '#/definitions/uri' }
-        permissions: { $ref: '#/definitions/uri' }
-        projects: { $ref: '#/definitions/uri' }
-        users: { $ref: '#/definitions/uri' }
-      required: [permissions, users, projects, credentials,
-        activity_stream]
+        access_list: {$ref: '#/definitions/uri'}
+        activity_stream: {$ref: '#/definitions/uri'}
+        created_by: {$ref: '#/definitions/uri'}
+        credentials: {$ref: '#/definitions/uri'}
+        modified_by: {$ref: '#/definitions/uri'}
+        organization: {$ref: '#/definitions/uri'}
+        projects: {$ref: '#/definitions/uri'}
+        roles: {$ref: '#/definitions/uri'}
+        users: {$ref: '#/definitions/uri'}
+      required: [users, projects, credentials, activity_stream]
       type: object
     summary_fields:
       additionalProperties: false
       properties:
-        organization: { $ref: '#/definitions/summary_fields_organization' }
-        created_by: { $ref: '#/definitions/summary_fields_user' }
-        modified_by: { $ref: '#/definitions/summary_fields_user' }
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
+        organization: {$ref: '#/definitions/summary_fields_organization'}
+        permissions: {$ref: '#/definitions/summary_fields_permission'}
+        roles:
+          additionalProperties: false
+          properties:
+            admin_role: {$ref: '#/definitions/summary_fields_role'}
+            auditor_role: {$ref: '#/definitions/summary_fields_role'}
+            member_role: {$ref: '#/definitions/summary_fields_role'}
+          required: [auditor_role, admin_role, member_role]
+          type: object
       type: object
-    url: { $ref: '#/definitions/uri' }
+    type: {pattern: ^team$, type: string}
+    url: {$ref: '#/definitions/uri'}
+  required: [created, id, url, related, summary_fields, name, description, organization,
+    type]
+  type: object

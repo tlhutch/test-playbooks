@@ -44,6 +44,9 @@ class Project_Page(Unified_Job_Template_Page):
         elif attr == 'activity_stream':
             from activity_stream import Activity_Stream_Page
             cls = Activity_Stream_Page
+        elif attr == 'access_list':
+            from access_list import Access_List_Page
+            cls = Access_List_Page
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 
