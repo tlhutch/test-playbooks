@@ -4,15 +4,14 @@
 #
 # To launch instance:
 #
-# ansible-playbook -i playbooks/inventory playbooks/deploy-tower-ami.yml
+# ansible-playbook -i playbooks/inventory -e "tower_ami_id=ami-xxx" playbooks/deploy-tower-ami.yml
 #
 # To terminate instance:
 #
-# ansible-playbook -i playbooks/inventory -e "instance_state=stopped" playbooks/deploy-tower-ami.yml
+# ansible-playbook -i playbooks/inventory -e "tower_ami_id=ami-xxx" -e "instance_state=stopped" playbooks/deploy-tower-ami.yml
 #
 - hosts: local
   vars:
-    tower_major_version: 2
     instance_state: 'running'
     ec2_security_groups:
       - name: Tower
@@ -37,13 +36,9 @@
   pre_tasks:
     - name: 'Find latest Tower AMI.'
       ec2_ami_find:
-        ami_tags:
-          Name: 'Ansible Tower {{ tower_major_version }}.*'
+        ami_id: '{{ tower_ami_id }}'
         region: 'us-east-1'
-        sort: 'tag'
-        sort_tag: 'Name'
-        sort_order: 'descending'
-        sort_end: 1
+        no_result_action: fail
       register: tower_ami
 
     - name: 'Set ec2_images variable based on ec2_ami_find results'
