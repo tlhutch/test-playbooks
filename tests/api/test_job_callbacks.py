@@ -440,13 +440,13 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # However, it should have initiated an inventory update.
         # assert result['json']['msg'] == 'No matching host could be found!'
 
-        # NOTE: We can't guarruntee that any cloud instances are running, so we
+        # NOTE: We can't guarantee that any cloud instances are running, so we
         # don't assert that cloud hosts were imported.
         # assert cloud_group.get_related('hosts').count > 0, "No hosts found " \
         #    "after inventory_update.  An inventory_update was not triggered by " \
         #    "the callback as expected"
 
-        # NOTE: We can't guarruntee that any cloud instances are running.
+        # NOTE: We can't guarantee that any cloud instances are running.
         # Also, not all cloud inventory scripts create groups when no hosts are
         # found. Therefore, we no longer assert that child groups were created.
         # assert cloud_group.get_related('children').count > 0, "No child groups " \
