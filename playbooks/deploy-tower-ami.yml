@@ -1,0 +1,67 @@
+---
+# This playbook allows for launching an EC2 instance from the latest AMI
+# for a specific version of Tower.
+#
+# To launch instance:
+#
+# ansible-playbook -i playbooks/inventory -e "tower_ami_id=ami-xxx" playbooks/deploy-tower-ami.yml
+#
+# To terminate instance:
+#
+# ansible-playbook -i playbooks/inventory -e "tower_ami_id=ami-xxx" -e "instance_state=stopped" playbooks/deploy-tower-ami.yml
+#
+- hosts: local
+  vars:
+    instance_state: 'running'
+    ec2_security_groups:
+      - name: Tower
+        description: Security group for Tower instances
+        rules:
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 8080
+            to_port: 8080
+            cidr_ip: 0.0.0.0/0
+  pre_tasks:
+    - name: 'Find latest Tower AMI.'
+      ec2_ami_find:
+        ami_id: '{{ tower_ami_id }}'
+        region: 'us-east-1'
+        no_result_action: fail
+      register: tower_ami
+
+    - name: 'Set ec2_images variable based on ec2_ami_find results'
+      set_fact:
+        ec2_images:
+          - name: '{{ tower_ami.results[0].tags.Name }} AMI'
+            groups: primary
+            security_group: Tower
+            type: 'm3.large'
+            id: '{{ tower_ami.results[0].ami_id }}'
+            user: 'ubuntu'
+
+    - name: 'Set fact to conditionally trigger terminate_ec2 role.'
+      set_fact:
+        skip_delete: false
+      when: instance_state == 'stopped'
+
+  roles:
+    - role: create_ec2
+      when: instance_state == 'running'
+
+    - role: save_inventory
+      when: instance_state == 'running'
+
+    - role: destroy_cloud
+      when: instance_state == 'stopped'
