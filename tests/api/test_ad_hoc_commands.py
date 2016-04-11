@@ -576,6 +576,9 @@ print json.dumps(inv, indent=2)
         '''
         Verifies check command behavior.
         '''
+        assert ad_hoc_with_status_completed.is_successful, "Command unsuccessful - %s." % ad_hoc_with_status_completed
+
+        # check command attributes
         assert ad_hoc_with_status_completed.job_type == 'check'
         assert "\"--check\"" in ad_hoc_with_status_completed.job_args, \
             "Launched a check command but '--check' not present in job_args."
