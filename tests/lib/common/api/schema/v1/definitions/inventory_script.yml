@@ -15,16 +15,27 @@ inventory_script:
         organization: {format: uri, type: string}
       required: [created_by, modified_by]
       type: object
-    script: {type: [string, 'null']}
+    script:
+      type: [string, 'null']
     summary_fields:
       additionalProperties: false
       properties:
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         organization: {$ref: '#/definitions/summary_fields_organization'}
+        permissions: {$ref: '#/definitions/summary_fields_permission'}
+        roles:
+          additionalProperties: false
+          properties:
+            admin_role: {$ref: '#/definitions/summary_fields_role'}
+            auditor_role: {$ref: '#/definitions/summary_fields_role'}
+            member_role: {$ref: '#/definitions/summary_fields_role'}
+          required: [auditor_role, admin_role, member_role]
+          type: object
+      required: [permissions, roles]
       type: object
     type: {pattern: ^custom_inventory_script$, type: string}
     url: {format: uri, type: string}
-  required: [ created, description, id, modified, name, related, script,
-  organization, summary_fields ]
+  required: [created, description, id, modified, name, related, script, organization,
+    summary_fields]
   type: object
