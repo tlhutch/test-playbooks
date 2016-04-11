@@ -258,19 +258,8 @@ class Test_Projects(Base_Api_Test):
         # delete all the projects
         project_ansible_playbooks_git.delete()
 
-        # assert some related resources are okay
-        for related in ('last_job', 'last_update'):
-            assert project_ansible_playbooks_git.get_related(related)
-
-        # assert specific related resources are forbidden (403)
-        for related in ('schedules', 'activity_stream', 'project_updates', 'teams', ):
-            print related
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                assert project_ansible_playbooks_git.get_related(related)
-
-        # assert specific related resources are notfound (404)
-        for related in ('playbooks', 'update'):
-            print related
+        # assert related resources are notfound (404)
+        for related in ('last_job', 'last_update', 'schedules', 'activity_stream', 'project_updates', 'teams', 'playbooks', 'update'):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 assert project_ansible_playbooks_git.get_related(related)
 

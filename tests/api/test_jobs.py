@@ -110,7 +110,7 @@ def job_template_with_project_django(job_template, project_django):
 
 @pytest.fixture(scope="function")
 def project_with_scm_update_on_launch(request, project_ansible_playbooks_git):
-        return project_ansible_playbooks_git.patch(scm_update_on_launch=True)
+    return project_ansible_playbooks_git.patch(scm_update_on_launch=True)
 
 
 @pytest.fixture(scope="function")
