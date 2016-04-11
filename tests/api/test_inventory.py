@@ -155,21 +155,21 @@ class Test_Inventory(Base_Api_Test):
         inventory.delete()
 
         # Related resources should be forbidden
-        with pytest.raises(common.exceptions.Forbidden_Exception):
+        with pytest.raises(common.exceptions.NotFound_Exception):
             inventory.get_related('groups')
 
         # Using main endpoint, find any matching groups
-        groups_pg = api_groups_pg.get(id=inventory.id)
+        groups_pg = api_groups_pg.get(inventory=inventory.id)
 
         # Assert no matching groups found
         assert groups_pg.count == 0, "ERROR: not All inventory groups were deleted"
 
         # Related resources should be forbidden
-        with pytest.raises(common.exceptions.Forbidden_Exception):
+        with pytest.raises(common.exceptions.NotFound_Exception):
             inventory.get_related('hosts')
 
         # Using main endpoint, find any matching hosts
-        hosts_pg = api_hosts_pg.get(id=inventory.id)
+        hosts_pg = api_hosts_pg.get(inventory=inventory.id)
 
         # Assert no matching hosts found
         assert hosts_pg.count == 0, "ERROR: not all inventory hosts were deleted"
