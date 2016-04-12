@@ -28,17 +28,17 @@
     * [x] centos-7.1
 1. Installation completes successfully using supported ansible releases
     * [x] ansible-2.0 (Chris)
-    * [] ansible-1.9.x (Jim)
+    * [x] ansible-1.9.x (Jim)
 1. Installation completes successfully on supported images
     * [X] AMI (unlicensed) (James)
     * [X] Vagrant (James)
 
 #### Installation bundle installer
 1. Installation completes successfully on all supported platforms (Jim)
-    * [] rhel-6.7
-    * [] rhel-7.2
-    * [] centos-6.7
-    * [] centos-7.1
+    * [x] rhel-6.7
+    * [x] rhel-7.2
+    * [x] centos-6.7
+    * [x] centos-7.1
 
 #### Upgrade installer
 1. Upgrade completes on all supported platforms from `2.4.4` (Jim)
