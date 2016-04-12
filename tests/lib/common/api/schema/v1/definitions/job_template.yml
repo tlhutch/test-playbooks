@@ -23,6 +23,7 @@ job_template:
     limit: {type: string}
     modified: {format: date-time, type: string}
     name: {type: string}
+    network_credential: {$ref: '#/definitions/id_or_null'}
     next_job_run:
       format: date-time
       type: [string, 'null']
@@ -44,6 +45,7 @@ job_template:
         last_job: {format: uri, type: string}
         launch: {format: uri, type: string}
         modified_by: {format: uri, type: string}
+        network_credential: {format: uri, type: string}
         next_schedule: {format: uri, type: string}
         notifiers_any: {format: uri, type: string}
         notifiers_error: {format: uri, type: string}
@@ -73,6 +75,7 @@ job_template:
         last_job: {$ref: '#/definitions/summary_fields_job'}
         last_update: {$ref: '#/definitions/summary_fields_job'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
+        network_credential: {$ref: '#/definitions/summary_fields_network_credential'}
         permissions: {$ref: '#/definitions/summary_fields_permission'}
         project: {$ref: '#/definitions/summary_fields_project'}
         recent_jobs: {$ref: '#/definitions/summary_fields_recent_jobs'}
@@ -92,7 +95,7 @@ job_template:
     verbosity: {minimum: 0, type: number}
   required: [id, cloud_credential, created, credential, description, extra_vars, force_handlers,
     forks, has_schedules, ask_variables_on_launch, host_config_key, inventory, job_tags,
-    job_type, last_job_failed, last_job_run, limit, modified, name, next_job_run,
-    playbook, project, related, skip_tags, start_at_task, status, summary_fields,
+    job_type, last_job_failed, last_job_run, limit, modified, name, network_credential,
+    next_job_run, playbook, project, related, skip_tags, start_at_task, status, summary_fields,
     type, url, verbosity]
   type: object
