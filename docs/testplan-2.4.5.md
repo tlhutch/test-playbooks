@@ -12,11 +12,6 @@
 
 ### Regression
 1. [] API regression completed (Chris)
-1. [] Tower HA installation (Jim)
-    * [] Verify successful registration of secondary instances
-    * [] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
-    * [] Verify promoting secondary instance
-    * [] Verified tower-manage commands: [list_instances,register_instance,remove_instance,update_instance]
 1. [] Tower LDAP Integration (Chris)
     * [] Verify license enablement with legacy or enterprise license (disabled elsewhere).
     * [] Verify Tower respects LDAP username and password on login
