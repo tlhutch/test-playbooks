@@ -30,8 +30,8 @@
     * [x] ansible-2.0 (Chris)
     * [] ansible-1.9.x (Jim)
 1. Installation completes successfully on supported images
-    * [] AMI (unlicensed) (James)
-    * [] Vagrant (James)
+    * [X] AMI (unlicensed) (James)
+    * [X] Vagrant (James)
 
 #### Installation bundle installer
 1. Installation completes successfully on all supported platforms (Jim)
