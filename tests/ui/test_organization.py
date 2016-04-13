@@ -3,31 +3,47 @@ import pytest
 pytestmark = [pytest.mark.ui, pytest.mark.nondestructive]
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1466')
 @pytest.mark.usefixtures(
     'authtoken',
     'install_enterprise_license_unlimited',
-    'another_organization',
+    'populate_organizations',
     'maximized_window_size'
 )
 def test_api_referential_integrity(api_organizations_pg, ui_organizations):
     """Peform basic end-to-end read-only verification of displayed page
     content against data returned by the organizations api
     """
-    expected_names = [r.name.lower() for r in api_organizations_pg.get().results]
-    names = [d.lower() for d in ui_organizations.displayed_card_labels]
+    api_organizations_pg.get()
 
-    assert names == expected_names, (
-        'Unexpected card names: {0} != {1}'.format(names, expected_names))
-
-    api_count = api_organizations_pg.count
-    badge_number = ui_organizations.badge_number
-    card_count = len(ui_organizations.displayed_card_labels)
-
-    assert api_count == badge_number == card_count, (
-        'organizations api count, displayed badge number, and card count'
+    assert api_organizations_pg.count == ui_organizations.badge_number, (
+        'organizations api count and displayed badge number '
         'unexpectedly different')
 
-    # TODO: Check all data references on the page
+    # get the actual number of organization cards present on the page
+    card_count = len(ui_organizations.displayed_card_labels)
+    # get the item count indicated by the pagination label
+    count_label = ui_organizations.pagination.item_range[1]
+
+    assert card_count == count_label, (
+        'The number of displayed organization cards differs '
+        'from the list panel item count label')
+
+    # get the organization names displayed on each card
+    displayed_names = ui_organizations.displayed_card_labels
+    displayed_names = sorted(map(ui_organizations._normalize_text, displayed_names))
+
+    # retrieve organization names from the associated api endpoint
+    expected_names = [r.name for r in api_organizations_pg.results]
+    expected_names = sorted(map(ui_organizations._normalize_text, expected_names))
+
+    # get a subset of api organization names corresponding to those we expect
+    # to be displayed on the first page
+    expected_names = expected_names[:card_count]
+
+    assert displayed_names == expected_names, (
+        'Unexpected card names: {0} != {1}'.format(
+            displayed_names, expected_names))
 
 
 @pytest.mark.usefixtures(
