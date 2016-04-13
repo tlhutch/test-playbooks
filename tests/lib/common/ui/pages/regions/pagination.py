@@ -4,37 +4,15 @@ from common.ui.pages.page import Region
 from common.ui.pages.regions.clickable import Clickable
 
 
-class PaginationLink(Clickable):
-    _spinny = True
+class NumberedLinks(Clickable):
+
     _root_locator = (By.CSS_SELECTOR, '#pagination-links')
-
-
-class PaginationFirstLink(PaginationLink):
-    _root_extension = (By.CSS_SELECTOR, '#first-page-set')
-
-
-class PaginationPreviousLink(PaginationLink):
-    _root_extension = (By.CSS_SELECTOR, '#previous-page')
-
-
-class PaginationNextLink(PaginationLink):
-    _root_extension = (By.CSS_SELECTOR, '#next-page')
-
-
-class PaginationLastLink(PaginationLink):
-    _root_extension = (By.CSS_SELECTOR, '#last-page-set')
-
-
-class PaginationActiveLink(PaginationLink):
-    _root_extension = (By.CSS_SELECTOR, 'li.active > a')
-
-
-class PaginationNumberedLinks(PaginationLink):
     _item_locator = (By.CSS_SELECTOR, 'li.ng-scope > a')
 
     def __len__(self):
         return len(self.items())
 
+    @property
     def options(self):
         return [element.text for element in self.items()]
 
@@ -42,87 +20,104 @@ class PaginationNumberedLinks(PaginationLink):
         element = self.lookup_element(self._item_locator, text=option)
         return Clickable(self.page, root=element, spinny=True)
 
-    def click(self, option):
-        self.get(option).click()
-
     def items(self):
         return self.find_elements(self._item_locator)
 
 
-class PaginationLabel(Region):
-    _root_locator = (By.CSS_SELECTOR, '.List-paginationPager--pageof')
-
-    @property
-    def value(self):
-        return self._normalize_text(self.root.text)
-
-
-class PaginationCurrentPageLabel(PaginationLabel):
-    _root_extension = (By.CSS_SELECTOR, '#current-page')
-
-
-class PaginationTotalPagesLabel(PaginationLabel):
-    _root_extension = (By.CSS_SELECTOR, '#total-pages')
-
-
 class Pagination(Region):
+
     _root_locator = None
+
     _total_items = (By.CSS_SELECTOR, '#total-items')
+
+    _first = (
+        (By.CSS_SELECTOR, '#pagination-links'),
+        (By.CSS_SELECTOR, '#first-page-set'))
+
+    _previous = (
+        (By.CSS_SELECTOR, '#pagination-links'),
+        (By.CSS_SELECTOR, '#previous-page'))
+
+    _next = (
+        (By.CSS_SELECTOR, '#pagination-links'),
+        (By.CSS_SELECTOR, '#next-page'))
+
+    _last = (
+        (By.CSS_SELECTOR, '#pagination-links'),
+        (By.CSS_SELECTOR, '#last-page-set'))
+
+    _active = (
+        (By.CSS_SELECTOR, '#pagination-links'),
+        (By.CSS_SELECTOR, 'li.active > a'))
+
+    _total_pages = (
+        (By.CSS_SELECTOR, '.List-paginationPager--pageof'),
+        (By.CSS_SELECTOR, '#total-pages'))
+
+    _current_page = (
+        (By.CSS_SELECTOR, '.List-paginationPager--pageof'),
+        (By.CSS_SELECTOR, '#current-page'))
 
     @property
     def active(self):
-        return PaginationActiveLink(self.page)
+        return Clickable(
+            self.page,
+            root=self.find_element(self._active),
+            spinny=True)
 
     @property
     def first(self):
-        return PaginationFirstLink(self.page)
+        return Clickable(
+            self.page,
+            root=self.find_element(self._first),
+            spinny=True)
 
     @property
     def previous(self):
-        return PaginationPreviousLink(self.page)
+        return Clickable(
+            self.page,
+            root=self.find_element(self._previous),
+            spinny=True)
 
     @property
     def next(self):
-        return PaginationNextLink(self.page)
+        return Clickable(
+            self.page,
+            root=self.find_element(self._next),
+            spinny=True)
 
     @property
     def last(self):
-        return PaginationLastLink(self.page)
+        return Clickable(
+            self.page,
+            root=self.find_element(self._last),
+            spinny=True)
 
     @property
     def numbered_links(self):
-        return PaginationNumberedLinks(self.page)
-
-    @property
-    def current_page_label(self):
-        return PaginationCurrentPageLabel(self.page)
-
-    @property
-    def total_pages_label(self):
-        return PaginationTotalPagesLabel(self.page)
-
-    @property
-    def total_items_label(self):
-        return self.find_element(self._total_items)
+        return NumberedLinks(self.page)
 
     @property
     def total_items(self):
+        label = Region(self.page, root=self.find_element(self._total_items))
         # 'ITEMS X-Y OF Z' -> Z
-        return int(self.total_items_label.text.split()[-1])
+        return int(label.text.split()[-1])
 
     @property
     def item_range(self):
+        label = Region(self.page, root=self.find_element(self._total_items))
         # 'ITEMS X-Y OF Z' -> (X, Y)
-        text = self.total_items_label.text
-        return map(int, text.split()[1].split(u'\u2013'))
+        return map(int, label.text.split()[1].split(u'\u2013'))
 
     @property
     def current_page(self):
-        return int(self.current_page_label.value)
+        label = Region(self.page, root=self.find_element(self._current_page))
+        return int(label.value)
 
     @property
     def total_pages(self):
-        return int(self.total_pages_label.value)
+        label = Region(self.page, root=self.find_element(self._total_pages))
+        return int(label.value)
 
     def rewind(self):
         while self.previous.is_displayed():

@@ -118,7 +118,7 @@ class Selector(object):
             text = self._normalize_text(text)
 
         for e in self.find_elements(locator):
-            if all([e.get_attribute(k) == v for k, v in kwargs.iteritems()]):
+            if all(e.get_attribute(k) == v for k, v in kwargs.iteritems()):
                 if text is None or text == self._normalize_text(e.text):
                     return e
         raise NoSuchElementException
@@ -287,6 +287,10 @@ class Region(Selector):
         return self.root.get_attribute('value') or self.text
 
     @property
+    def normalized_text(self):
+        return self._normalize_text(self.text)
+
+    @property
     def v1(self):
         """Top-left vertex (x, y) coordinate tuple
 
@@ -361,6 +365,16 @@ class Region(Selector):
     def click(self):
         self.wait_until_clickable()
         self.root.click()
+
+    def clear(self):
+        self.wait_until_displayed()
+        self.root.clear()
+        return self
+
+    def send_keys(self, text):
+        self.wait_until_displayed()
+        self.root.send_keys(text)
+        return self
 
     def wait_until_displayed(self):
         self.wait.until(lambda _: self.is_displayed())

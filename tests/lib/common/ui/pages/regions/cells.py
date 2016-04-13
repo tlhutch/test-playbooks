@@ -5,7 +5,7 @@ from common.ui.pages.page import Region
 from dialogs import DeleteDialog
 
 from common.ui.pages.regions.clickable import Clickable
-from common.ui.pages.regions.links import UserLink
+from common.ui.pages.regions.links import Link
 
 
 #
@@ -98,7 +98,9 @@ class OrganizationCell(Clickable):
     _root_extension = (By.CLASS_NAME, 'organization-column')
 
 
-class UserNameCell(UserLink):
+class UserNameCell(Link):
+    _spinny = True
+    _load_page = 'Users'
     _root_extension = (By.CLASS_NAME, 'username-column')
 
 

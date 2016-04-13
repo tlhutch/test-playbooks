@@ -22,8 +22,9 @@ class SelectDropDown(FormGroup):
         return select_model.first_selected_option.text
 
     def select(self, option):
-        select_model = Select(self.find_element(self._select))
-        return select_model.select_by_visible_text(option)
+        if option != self.selected_option:
+            select_model = Select(self.find_element(self._select))
+            select_model.select_by_visible_text(option)
 
 
 class Checkbox(FormGroup):
@@ -103,10 +104,9 @@ class Password(TextInputMixin, FormGroup):
             root=self.root,
             root_extension=self._password_button)
 
-        return self._normalize_text(password_button.text)
+        return password_button.normalized_text
 
     def select(self, option):
-        option = self._normalize_text(option)
 
         if option not in self.options:
             raise ValueError('Invalid selection')
@@ -116,13 +116,26 @@ class Password(TextInputMixin, FormGroup):
             root=self.root,
             root_extension=self._password_button)
 
-        if option != self._normalize_text(password_button.text):
+        if option != password_button.normalized_text:
             password_button.click()
 
         return self
 
 
+class TextArea(TextInputMixin, FormGroup):
+
+    _text_input = (By.TAG_NAME, 'textarea')
+
+    @property
+    def _text_input_region(self):
+        return Region(self.page, root=self.find_element(self._text_input))
+
+
 class TextInput(TextInputMixin, FormGroup):
+    pass
+
+
+class Email(TextInputMixin, FormGroup):
     pass
 
 

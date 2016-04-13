@@ -22,7 +22,7 @@ def test_login_logout(ui_login, default_credentials):
     assert ui_login.is_logged_in(), (
         'Unable to verify a successful login with default credentials')
 
-    ui_dashboard.header.logout_link.click()
+    ui_dashboard.header.logout.click()
 
     assert not ui_login.is_logged_in(), (
         'Unable to verify a successful logout')
@@ -42,7 +42,7 @@ def test_login_using_enter_key(ui_login, default_credentials):
     assert ui_login.is_logged_in(), (
         'Unable to verify a successful login with default credentials')
 
-    assert ui_dashboard.header.user == un, (
+    assert ui_dashboard.header.username.lower() == un.lower(), (
         'Unable to verify a successful login with default credentials')
 
 

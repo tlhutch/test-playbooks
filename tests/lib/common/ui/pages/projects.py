@@ -1,28 +1,13 @@
 from selenium.webdriver.common.by import By
 
 from common.ui.pages.base import TowerCrudPage
-from common.ui.pages.page import Region
 
 from common.ui.pages.regions import Table
-from common.ui.pages.regions import Field
 from common.ui.pages.regions import PanelTab
 from common.ui.pages.regions import FormGeneratorTable
-from common.ui.pages.forms import SelectDropDown
+from common.ui.pages.forms import FormPanel
 
-from common.ui.pages.regions.cells import (
-    JobStatusCell,
-    NameCell,
-    TypeCell,
-    SCMUpdateActionCell,
-    ScheduleActionCell,
-    EditActionCell,
-    DeleteActionCell,
-    DescriptionCell,
-    LastUpdatedCell,
-    FirstRunCell,
-    NextRunCell,
-    FinalRunCell
-)
+from common.ui.pages.regions.cells import *  # NOQA
 
 
 class ProjectsTable(Table):
@@ -68,42 +53,56 @@ class ProjectsOrganizationTable(FormGeneratorTable):
     )
 
 
-class ProjectsOrganizationsPanel(Region):
+class ProjectsDetails(FormPanel):
+
+    _region_spec = {
+        'description': {
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=description]'),
+                (By.XPATH, '..'))
+        },
+        'name': {
+            'required': True,
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=name]'),
+                (By.XPATH, '..'))
+        },
+        'scm_url': {
+            'required': True,
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=scm_url]'),
+                (By.XPATH, '..'))
+        },
+        'scm_branch': {
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=scm_branch]'),
+                (By.XPATH, '..'))
+        },
+        'credential': {
+            'region_type': 'lookup',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=credential]'),
+                (By.XPATH, '..'))
+        },
+    }
+
+
+class ProjectsOrganizations(FormPanel):
 
     @property
     def table(self):
         return ProjectsOrganizationTable(self.page)
 
 
-class ProjectsSchedulesPanel(Region):
+class ProjectsSchedules(FormPanel):
 
     @property
     def table(self):
         return ProjectsSchedulesTable(self.page)
-
-
-class ProjectsDetailsPanel(Region):
-
-    _name = (By.CSS_SELECTOR, '#project_name')
-    _description = (By.CSS_SELECTOR, '#project_description')
-    _organization = (By.CSS_SELECTOR, '[class=form-control][name=organization_name]')
-    _scm_type = ((By.CSS_SELECTOR, '[for=scm_type]'), (By.XPATH, '..'))
-
-    @property
-    def name(self):
-        return Field(self.page, root_locator=self._name)
-
-    @property
-    def description(self):
-        return Field(self.page, root_locator=self._description)
-
-    @property
-    def organization(self):
-        return Field(self.page, root_locator=self._organization)
-
-    @property
-    def scm_type(self):
-        return SelectDropDown(self.page, root_locator=self._scm_type)
 
 
 class Projects(TowerCrudPage):
@@ -113,6 +112,10 @@ class Projects(TowerCrudPage):
     _details_tab = (By.ID, 'project_tab')
     _organizations_tab = (By.ID, 'organizations_tab')
     _schedules_tab = (By.ID, 'schedules_tab')
+
+    @property
+    def forms(self):
+        return [self.details]
 
     @property
     def table(self):
@@ -133,14 +136,14 @@ class Projects(TowerCrudPage):
     @property
     def details(self):
         self.details_tab.enable()
-        return ProjectsDetailsPanel(self)
+        return ProjectsDetails(self)
 
     @property
     def organizations(self):
         self.organizations_tab.enable()
-        return ProjectsOrganizationsPanel(self)
+        return ProjectsOrganizations(self)
 
     @property
     def schedules(self):
         self.schedules_tab.enable()
-        return ProjectsSchedulesPanel(self)
+        return ProjectsSchedules(self)

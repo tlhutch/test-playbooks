@@ -27,6 +27,8 @@ class FormPanel(RegionMap):
         'radio_buttons': RadioButtons,
         'select': SelectDropDown,
         'text_input': TextInput,
+        'text_area': TextArea,
+        'email': Email,
     }
 
     @property

@@ -11,10 +11,6 @@ class PanelButton(Clickable):
         'rgba(250, 250, 250, 1)', 'rgb(250, 250, 250)')
 
     @property
-    def text(self):
-        return self.normalize_text(self.root.text)
-
-    @property
     def background_color(self):
         return self.root.value_of_css_property('background-color')
 

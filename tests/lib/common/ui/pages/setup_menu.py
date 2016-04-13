@@ -1,10 +1,10 @@
 from selenium.webdriver.common.by import By
 
 from common.ui.pages.base import TowerPage
-from common.ui.pages.regions import PageReference
+from common.ui.pages.regions import Link
 
 
-class SetupCard(PageReference):
+class SetupCard(Link):
     _root_locator = (By.CLASS_NAME, 'SetupMenu')
     _description = (By.CLASS_NAME, 'SetupItem-description')
     _title = (By.CLASS_NAME, 'SetupItem-title')

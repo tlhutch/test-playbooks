@@ -1,5 +1,3 @@
-from buttons import *  # NOQA
-from fields import *  # NOQA
 from links import *  # NOQA
 
 from clickable import Clickable  # NOQA

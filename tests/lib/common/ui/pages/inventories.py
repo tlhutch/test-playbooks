@@ -5,26 +5,12 @@ from common.ui.pages.page import Region
 
 from common.ui.pages.regions import Table
 from common.ui.pages.regions.tabs import PanelTab
+from common.ui.pages.forms import FormPanel
 
-from common.ui.pages.regions.cells import (
-    DeleteActionCell,
-    EditActionCell,
-    JobStatusCell,
-    NameCell,
-    OrganizationCell,
-    SyncStatusCell
-)
-
-from common.ui.pages.forms import (
-    CodeMirror,
-    Lookup,
-    RadioButtons,
-    TextInput,
-    FormPanel,
-)
+from common.ui.pages.regions.cells import *  # NOQA
 
 
-class InventoryTable(Table):
+class InventoriesTable(Table):
 
     _root_locator = (By.CSS_SELECTOR, '#inventories_table')
 
@@ -40,31 +26,34 @@ class InventoryTable(Table):
 
 class InventoriesEditDetails(FormPanel):
 
-    _desc = ((By.CSS_SELECTOR, '[for=inventory_description]'), (By.XPATH, '..'))
-    _name = ((By.CSS_SELECTOR, '[for=inventory_name]'), (By.XPATH, '..'))
-    _orgz = ((By.CSS_SELECTOR, '[for=inventory_organization]'), (By.XPATH, '..'))
-    _parse = (By.CSS_SELECTOR, '#inventory_variables_parse_type')
-    _variables = (By.XPATH, "//div[@id='cm-variables-container']/div/div/textarea")
-
-    @property
-    def description(self):
-        return TextInput(self.page, root_locator=self._desc)
-
-    @property
-    def name(self):
-        return TextInput(self.page, root_locator=self._name)
-
-    @property
-    def organization(self):
-        return Lookup(self.page, root_locator=self._orgz)
-
-    @property
-    def parse_type(self):
-        return RadioButtons(self.page, root_extension=self._parse)
-
-    @property
-    def variables(self):
-        return CodeMirror(self.page, root_locator=self._variables)
+    _region_spec = {
+        'description': {
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=inventory_description]'),
+                (By.XPATH, '..'))
+        },
+        'name': {
+            'required': True,
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=inventory_name]'),
+                (By.XPATH, '..'))
+        },
+        'organization': {
+            'required': True,
+            'region_type': 'lookup',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=organization]'),
+                (By.XPATH, '..'))
+        },
+        'variables_parse_type': {
+            'region_type': 'radio_buttons',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=variables]'),
+                (By.XPATH, '..'))
+        },
+    }
 
 
 class Inventories(TowerCrudPage):
@@ -75,8 +64,12 @@ class Inventories(TowerCrudPage):
     _scan_job_templates_tab = (By.ID, 'scan_job_templates_tab')
 
     @property
+    def forms(self):
+        return [self.details]
+
+    @property
     def table(self):
-        return InventoryTable(self)
+        return InventoriesTable(self)
 
     @property
     def details(self):
