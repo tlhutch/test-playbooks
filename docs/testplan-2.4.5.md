@@ -42,12 +42,12 @@
 
 #### Upgrade installer
 1. Upgrade completes on all supported platforms from `2.4.4` (Jim)
-    * [] ubuntu-12.04
-    * [] ubuntu-14.04
-    * [] rhel-6.7
-    * [] rhel-7.2
-    * [] centos-6.7
-    * [] centos-7.1
+    * [x] ubuntu-12.04
+    * [x] ubuntu-14.04
+    * [x] rhel-6.7
+    * [x] rhel-7.2
+    * [x] centos-6.7
+    * [x] centos-7.1
 1. Upgrade completes on all supported platforms from `2.3.*` (Chris)
     * [x] ubuntu-12.04
     * [x] ubuntu-14.04
