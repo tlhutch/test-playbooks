@@ -90,6 +90,7 @@ class OrganizationCard(Region):
     _badges = (By.CLASS_NAME, 'OrgCards-linkBadge')
     _label = (By.CLASS_NAME, 'OrgCards-label')
     _links = (By.CLASS_NAME, 'OrgCards-linkName')
+    _selected_card = (By.CLASS_NAME, 'OrgCards-card--selected')
 
     @property
     def delete(self):
@@ -124,6 +125,22 @@ class OrganizationCard(Region):
     @property
     def displayed_link_badges(self):
         return [badge.text for badge in self.badges]
+
+    @property
+    def is_selected(self):
+        # get the currently selected card
+        results = self.page.find_elements(self._selected_card)
+
+        # if no cards are selected, stop here
+        if not results:
+            return False
+
+        # get the label text of the selected card and compare it to the
+        # label text of this card
+        selected_label = results[0].find_element(*self._label).text
+        selected_label = self._normalize_text(selected_label)
+
+        return selected_label == self.label.normalized_text
 
     def get_badge(self, name):
         name = self._normalize_text(name)

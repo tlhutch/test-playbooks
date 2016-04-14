@@ -1,3 +1,4 @@
+import fauxfactory
 import pytest
 
 pytestmark = [pytest.mark.ui, pytest.mark.nondestructive]
@@ -108,13 +109,37 @@ def test_component_visibility(ui_organizations):
             'Card link with name {0} unexpectedly not clickable'.format(
                 link_name))
 
-
-@pytest.mark.skipif(True, reason='not implemented')
-@pytest.mark.usefixtures('authtoken')
+@pytest.mark.ui_debug
+@pytest.mark.usefixtures(
+    'authtoken',
+    'install_enterprise_license_unlimited',
+)
 def test_create_organization(api_organizations_pg, ui_organizations_add):
     """Basic end-to-end verification for creating an organization
     """
-    pass  # TODO: implement
+    # make some data
+    name = fauxfactory.gen_alphanumeric()
+    description = fauxfactory.gen_alphanumeric()
+
+    # add organization
+    ui_organizations_add.details.name.set_text(name)
+    ui_organizations_add.details.description.set_text(description)
+    ui_organizations_add.details.save.click()
+
+    # verify organization data api side
+    assert api_organizations_pg.get(name=name).count == 1, (
+        'Unable to verify successful creation of organization resource')
+
+    # verify the newly created organization card data is displayed on the page
+    displayed_names = ui_organizations_add.displayed_card_labels
+    displayed_names = map(ui_organizations_add._normalize_text, displayed_names)
+
+    assert ui_organizations_add._normalize_text(name) in displayed_names, (
+        'Unable to verify successful creation of organization resource')
+
+    # verify the new organization card is selected
+    assert ui_organizations_add.get_card(name).is_selected, (
+        'Card for new organization unexpectedly not selected')
 
 
 @pytest.mark.skipif(True, reason='not implemented')
