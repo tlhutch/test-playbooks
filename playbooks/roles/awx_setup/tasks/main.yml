@@ -83,3 +83,4 @@
       status_code: '200'
       user: 'admin'
       password: '{{ admin_password }}'
+      force_basic_auth: yes
