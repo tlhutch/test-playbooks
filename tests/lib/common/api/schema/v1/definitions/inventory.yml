@@ -48,7 +48,8 @@ inventory:
             auditor_role: {$ref: '#/definitions/summary_fields_role'}
             executor_role: {$ref: '#/definitions/summary_fields_role'}
             updater_role: {$ref: '#/definitions/summary_fields_role'}
-          required: [auditor_role, admin_role, updater_role, executor_role]
+            usage_role: {$ref: '#/definitions/summary_fields_role'}
+          required: [auditor_role, admin_role, updater_role, executor_role, usage_role]
           type: object
       required: [permissions, roles]
       type: object
