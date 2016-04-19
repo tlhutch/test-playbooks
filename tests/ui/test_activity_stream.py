@@ -120,7 +120,6 @@ def test_navigation_dropdown(ui_activity_stream, anonymous_user, user_password):
         'Navigation option {0} unexpectedly unselected'.format(non_default))
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1072')
 @pytest.mark.usefixtures(
     'authtoken',
     'install_enterprise_license_unlimited',
