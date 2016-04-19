@@ -23,9 +23,6 @@ pytestmark = [
     'ui_credentials_edit',
 ])
 def form_page(request):
-    if request.param == 'ui_teams_edit':
-        if 'test_required_fields' in request.node._nodeid:
-            pytest.xfail(reason='https://github.com/ansible/ansible-tower/issues/1468')
     return request.getfuncargvalue(request.param)
 
 
