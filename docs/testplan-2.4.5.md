@@ -11,7 +11,7 @@
 ## Features Tested
 
 ### Regression
-1. [] API regression completed (Chris)
+1. [x] API regression completed (Chris)
 1. [x] Tower LDAP Integration (Chris)
     * [x] Verify license enablement with legacy or enterprise license (disabled elsewhere).
     * [x] Verify Tower respects LDAP username and password on login
