@@ -12,6 +12,7 @@
 #
 - hosts: local
   vars:
+    ami_user: 'centos'
     instance_state: 'running'
     ec2_security_groups:
       - name: Tower
@@ -49,7 +50,7 @@
             security_group: Tower
             type: 'm3.large'
             id: '{{ tower_ami.results[0].ami_id }}'
-            user: 'ubuntu'
+            user: '{{ ami_user }}'
 
     - name: 'Set fact to conditionally trigger terminate_ec2 role.'
       set_fact:
