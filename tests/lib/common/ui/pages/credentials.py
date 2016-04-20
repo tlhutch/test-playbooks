@@ -103,12 +103,12 @@ class CredDetails(FormPanel):
 
     @property
     def satellite_v6(self):
-        self.kind.select('Satellite 6')
+        self.kind.select('Red Hat Satellite 6')
         return Satellite6Details(self.page)
 
     @property
     def cloudforms(self):
-        self.kind.select('CloudForms')
+        self.kind.select('Red Hat CloudForms')
         return CloudFormsDetails(self.page)
 
 

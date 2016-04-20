@@ -21,7 +21,7 @@ from common.ui.pages.regions.cells import (
 
 
 class JobsTable(Table):
-    _root_locator = (By.CSS_SELECTOR, '#all_jobs_table')
+    _root_locator = (By.CSS_SELECTOR, '#jobs_table')
 
     _row_spec = (
         ('id', IdCell),

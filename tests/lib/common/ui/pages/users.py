@@ -31,28 +31,28 @@ class UserDetailForm(FormPanel):
             'required': True,
             'region_type': 'text_input',
             'root_locator': (
-                (By.CSS_SELECTOR, '[for=first_name]'),
+                (By.CSS_SELECTOR, 'label[for=first_name]'),
                 (By.XPATH, '..'))
         },
         'last_name': {
             'required': True,
             'region_type': 'text_input',
             'root_locator': (
-                (By.CSS_SELECTOR, '[for=last_name]'),
+                (By.CSS_SELECTOR, 'label[for=last_name]'),
                 (By.XPATH, '..'))
         },
         'email': {
             'required': True,
             'region_type': 'email',
             'root_locator': (
-                (By.CSS_SELECTOR, '[for=email]'),
+                (By.CSS_SELECTOR, 'label[for=email]'),
                 (By.XPATH, '..'))
         },
         'username': {
             'required': True,
             'region_type': 'text_input',
             'root_locator': (
-                (By.CSS_SELECTOR, '[for=username]'),
+                (By.CSS_SELECTOR, 'label[for=username]'),
                 (By.XPATH, '..'))
         },
         'superuser': {
@@ -61,7 +61,19 @@ class UserDetailForm(FormPanel):
                 (By.ID, 'user_is_superuser_chbox'),
                 (By.XPATH, '..'),
                 (By.XPATH, '..'))
-        }
+        },
+        'password': {
+            'region_type': 'password',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=password]'),
+                (By.XPATH, '..'))
+        },
+        'password_confirm': {
+            'region_type': 'password',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=password_confirm]'),
+                (By.XPATH, '..'))
+        },
     }
 
     _organization = ((By.CSS_SELECTOR, '[for=organization]'), (By.XPATH, '..'))
