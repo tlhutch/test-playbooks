@@ -26,7 +26,7 @@ def test_create_user(api_users_pg, ui_users_add):
 
     ui_users_add.details.username.set_text(un)
     ui_users_add.details.password.set_text(pw)
-    ui_users_add.details.confirm_password.set_text(pw)
+    ui_users_add.details.password_confirm.set_text(pw)
     ui_users_add.details.organization.set_text('Default')
 
     ui_users_add.details.save.click()
@@ -80,7 +80,7 @@ def test_update_user(api_users_pg, ui_users_edit):
     ui_users_edit.details.email.set_text(email)
     ui_users_edit.details.username.set_text(username)
     ui_users_edit.details.password.set_text(password)
-    ui_users_edit.details.confirm_password.set_text(password)
+    ui_users_edit.details.password_confirm.set_text(password)
 
     ui_users_edit.details.save.click()
 

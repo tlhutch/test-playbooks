@@ -68,26 +68,12 @@ class ActivityStream(TowerPage):
     _path = '/#/activity_stream'
 
     _subtitle = (By.CSS_SELECTOR, '[class="List-titleText"]')
-    _username = (By.ID, 'search-widget-container')
-    _resources = (By.ID, 'search-widget-container2')
     _related = (By.ID, 'search-widget-container3')
     _nav_dropdown = ((By.ID, 'stream-dropdown-nav'), (By.XPATH, '..'))
 
     @property
     def subtitle(self):
         return self.find_element(self._subtitle)
-
-    @property
-    def username(self):
-        return ActivityStreamSearch(self, root_locator=self._username)
-
-    @property
-    def resources(self):
-        return ActivityStreamSearch(self, root_locator=self._resources)
-
-    @property
-    def related_resources(self):
-        return ActivityStreamSearch(self, root_locator=self._related)
 
     @property
     def nav_dropdown(self):

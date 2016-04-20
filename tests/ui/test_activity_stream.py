@@ -1,5 +1,3 @@
-from itertools import combinations
-
 import json
 import urlparse
 
@@ -30,21 +28,6 @@ def test_component_visibility_(ui_activity_stream):
 
     assert not ui.panel.badge.is_displayed(), (
         'List panel badge unexpectedly displayed')
-
-    assert ui.username.is_displayed(), (
-        'Username input region unexpectedly not displayed')
-
-    assert ui.resources.is_displayed(), (
-        'Resources input region unexpectedly not displayed')
-
-    assert ui.related_resources.is_displayed(), (
-        'Related input region unexpectedly not displayed')
-
-    search_locations = (ui.username, ui.resources, ui.related_resources)
-
-    for (region, other_region) in combinations(search_locations, 2):
-        assert not region.overlaps_with(other_region), (
-            'Search regions unexpectedly overlapping')
 
     assert ui.panel.surrounds(ui.nav_dropdown), (
         'Navigation dropdown not completely surrounded by list panel')
