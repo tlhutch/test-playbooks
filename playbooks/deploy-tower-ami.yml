@@ -45,7 +45,7 @@
     - name: 'Set ec2_images variable based on ec2_ami_find results'
       set_fact:
         ec2_images:
-          - name: '{{ tower_ami.results[0].tags.Name }} AMI'
+          - name: '{{ tower_ami.results[0].tags.Name | non_alphanumeric_to_underscores | lower }}_ami'
             groups: primary
             security_group: Tower
             type: 'm3.large'
