@@ -81,7 +81,7 @@ job_template:
         last_update: {$ref: '#/definitions/summary_fields_job'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         network_credential: {$ref: '#/definitions/summary_fields_network_credential'}
-        permissions: {$ref: '#/definitions/summary_fields_permission'}
+        permissions: {$ref: '#/definitions/summary_fields_permissions'}
         project: {$ref: '#/definitions/summary_fields_project'}
         recent_jobs: {$ref: '#/definitions/summary_fields_recent_jobs'}
         roles:
@@ -89,10 +89,12 @@ job_template:
           properties:
             admin_role: {$ref: '#/definitions/summary_fields_role'}
             auditor_role: {$ref: '#/definitions/summary_fields_role'}
-            executor_role: {$ref: '#/definitions/summary_fields_role'}
-          required: [auditor_role, admin_role, executor_role]
+            execute_role: {$ref: '#/definitions/summary_fields_role'}
+            read_role: {$ref: '#/definitions/summary_fields_role'}
+          required: [auditor_role, admin_role, execute_role, read_role]
           type: object
         survey: {$ref: '#/definitions/summary_fields_survey'}
+      required: [labels, can_copy, can_edit, recent_jobs, permissions, roles]
       type: object
     survey_enabled: {type: boolean}
     type: {pattern: ^job_template$, type: string}

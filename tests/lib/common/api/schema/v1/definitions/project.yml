@@ -57,7 +57,26 @@ project:
     scm_update_on_launch: {type: boolean}
     scm_url: {type: string}
     status: {$ref: '#/definitions/enum_project_status'}
-    summary_fields: {type: object}
+    summary_fields:
+      additional_properties: false
+      properties:
+        last_job: {$ref: '#/definitions/summary_fields_job'}
+        last_update: {$ref: '#/definitions/summary_fields_job'}
+        organization: {$ref: '#/definitions/summary_fields_organization'}
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        permissions: {$ref: '#/definitions/summary_fields_permissions'}
+        roles:
+          additionalProperties: false
+          properties:
+            auditor_role: {$ref: '#/definitions/summary_fields_role'}
+            admin_role: {$ref: '#/definitions/summary_fields_role'}
+            scm_update_role: {$ref: '#/definitions/summary_fields_role'}
+            member_role: {$ref: '#/definitions/summary_fields_role'}
+            read_role: {$ref: '#/definitions/summary_fields_role'}
+          required: [auditor_role, admin_role, scm_update_role, member_role, read_role]
+          type: object
+      required: [permissions, roles]
+      type: object
     type: {pattern: ^project$, type: string}
     url: {format: uri, type: string}
   required: [id, name, url, created, modified, last_job_run, description, last_job_failed,

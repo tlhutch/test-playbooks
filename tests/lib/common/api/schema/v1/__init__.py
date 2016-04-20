@@ -109,7 +109,7 @@ class Awx_Schema_Organization(Awx_Schema_Organizations):
         return self.load_file('organizations/item.yml')
 
 
-class Awx_Schema_Organizations_Access_List(Awx_Schema):
+class Awx_Schema_Organization_Access_List(Awx_Schema):
     resource = '/api/v1/organizations/\d+/access_list/'
 
     @property
@@ -995,7 +995,7 @@ class Awx_Schema_Teams(Awx_Schema):
         return self.load_file('teams/duplicate.yml')
 
 
-class Awx_Schema_Teams_Access_List(Awx_Schema):
+class Awx_Schema_Team_Access_List(Awx_Schema):
     resource = '/api/v1/teams/\d+/access_list/'
 
     @property

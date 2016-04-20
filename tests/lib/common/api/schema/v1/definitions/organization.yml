@@ -25,7 +25,24 @@ organization:
       required: [admins, inventories, users, projects, teams, activity_stream, notifiers,
         notifiers_any, notifiers_error, notifiers_success, access_list]
       type: object
-    summary_fields: {type: object}
+    summary_fields:
+      additionalProperties: false
+      properties:
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
+        permissions: {$ref: '#/definitions/summary_fields_permissions'}
+        roles:
+          additionalProperties: false
+          properties:
+            auditor_role: {$ref: '#/definitions/summary_fields_role'}
+            admin_role: {$ref: '#/definitions/summary_fields_role'}
+            member_role: {$ref: '#/definitions/summary_fields_role'}
+            read_role: {$ref: '#/definitions/summary_fields_role'}
+          required: [auditor_role, admin_role, member_role, read_role]
+          type: object
+        related_field_counts: {$ref: '#/definitions/summary_fields_related_field_counts'}
+      required: [permissions, roles, related_field_counts]
+      type: object
     type:
       enum: [organization]
     url: {format: uri, type: string}

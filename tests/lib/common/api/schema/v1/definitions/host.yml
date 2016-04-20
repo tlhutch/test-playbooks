@@ -18,34 +18,37 @@ host:
     modified: {format: date-time, type: string}
     name: {type: string}
     related:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         ad_hoc_commands: {format: uri, type: string}
         all_groups: {format: uri, type: string}
         created_by: {format: uri, type: string}
         modified_by: {format: uri, type: string}
+        fact_versions: {format: uri, type: string}
+        inventory_sources: {format: uri, type: string}
         groups: {format: uri, type: string}
+        activity_stream: {format: uri, type: string}
+        ad_hoc_command_events: {format: uri, type: string}
         inventory: {format: uri, type: string}
         job_events: {format: uri, type: string}
         job_host_summaries: {format: uri, type: string}
         last_job: {format: uri, type: string}
         last_job_host_summary: {format: uri, type: string}
         variable_data: {format: uri, type: string}
-      required: [job_host_summaries, variable_data, job_events, groups, all_groups,
-        inventory]
+      required: [job_host_summaries, variable_data, job_events, ad_hoc_commands, fact_versions, inventory_sources,
+        activity_stream, all_groups, ad_hoc_command_events, inventory]
       type: object
     summary_fields:
-      additionalProperties: true
+      additionalProperties: false
       properties:
-        inventory: {$ref: '#/definitions/summary_fields_inventory'}
         last_job: {$ref: '#/definitions/summary_fields_last_job'}
         last_job_host_summary: {$ref: '#/definitions/summary_fields_last_job_host_summary'}
-        total_groups: {minimum: 0, type: number}
-        total_hosts: {minimum: 0, type: number}
-        total_inventory_sources: {minimum: 0, type: number}
+        inventory: {$ref: '#/definitions/summary_fields_inventory'}
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
-      required: [inventory]
+        permissions: {$ref: '#/definitions/summary_fields_permissions'}
+        recent_jobs: {$ref: '#/definitions/summary_fields_recent_jobs'}
+      required: [inventory, permissions, recent_jobs]
       type: object
     url: {format: uri, type: string}
     variables: {type: string}

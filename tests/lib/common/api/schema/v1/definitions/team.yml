@@ -27,15 +27,17 @@ team:
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         organization: {$ref: '#/definitions/summary_fields_organization'}
-        permissions: {$ref: '#/definitions/summary_fields_permission'}
+        permissions: {$ref: '#/definitions/summary_fields_permissions'}
         roles:
           additionalProperties: false
           properties:
             admin_role: {$ref: '#/definitions/summary_fields_role'}
             auditor_role: {$ref: '#/definitions/summary_fields_role'}
             member_role: {$ref: '#/definitions/summary_fields_role'}
-          required: [auditor_role, admin_role, member_role]
+            read_role: {$ref: '#/definitions/summary_fields_role'}
+          required: [auditor_role, admin_role, member_role, read_role]
           type: object
+      required: [permissions, roles]
       type: object
     type: {pattern: ^team$, type: string}
     url: {$ref: '#/definitions/uri'}
