@@ -195,24 +195,6 @@ def project_with_credential_prompt(request, authtoken, organization, scm_credent
 
 
 @pytest.fixture(scope="function")
-def many_git_projects(request, authtoken, organization):
-    obj_list = list()
-    related = organization.get_related('projects')
-    for i in range(55):
-        payload = dict(name="project-%d-%s" % (i, fauxfactory.gen_utf8()),
-                       description="random project %d - %s" % (i, fauxfactory.gen_utf8()),
-                       scm_type='git',
-                       scm_url='https://github.com/jlaska/ansible-playbooks.git',
-                       scm_clean=False,
-                       scm_delete_on_update=False,
-                       scm_update_on_launch=False,)
-        obj = related.post(payload)
-        request.addfinalizer(obj.silent_delete)
-        obj_list.append(obj)
-    return obj_list
-
-
-@pytest.fixture(scope="function")
 def many_manual_projects(request, authtoken, ansible_runner, awx_config, organization):
     obj_list = list()
     related = organization.get_related('projects')
