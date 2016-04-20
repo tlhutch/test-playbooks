@@ -4,13 +4,9 @@ from selenium.webdriver.common.by import By
 from page import Region
 from base import TowerPage
 
-from common.ui.pages.regions import (
-    Clickable,
-    Link,
-    PanelTab,
-    PanelToggleTab,
-    Table,
-)
+from common.ui.pages.regions import Clickable
+from common.ui.pages.regions import Link
+from common.ui.pages.regions import Table
 
 from common.ui.pages.regions.cells import *  # NOQA
 
@@ -20,11 +16,8 @@ class Dashboard(TowerPage):
     _path = '/#/home'
 
     _count_buttons = (By.CLASS_NAME, 'DashboardCounts-buttonStyle')
-    _job_status_graph_tab = (By.CLASS_NAME, 'DashboardGraphs-tab--firstTab')
-    _host_status_graph_tab = (By.CLASS_NAME, 'DashboardGraphs-tab--lastTab')
     _jobs_list = (By.CSS_SELECTOR, 'jobs-list.Dashboard-list')
     _job_status_graph = (By.CLASS_NAME, 'DashboardGraphs-graph--jobStatusGraph')
-    _host_status_graph = (By.CLASS_NAME, 'DashboardGraphs-graph--hostStatusGraph')
     _clock_button = (By.CSS_SELECTOR, "i[class*='fa-clock-o']")
 
     @property
@@ -74,29 +67,11 @@ class Dashboard(TowerPage):
         return DashboardJobTemplatesPanel(self)
 
     @property
-    def host_status_graph_tab(self):
-        return PanelTab(self, root_locator=self._host_status_graph_tab)
-
-    @property
-    def job_status_graph_tab(self):
-        return PanelTab(self, root_locator=self._job_status_graph_tab)
-
-    @property
-    def host_status_graph(self):
-        if not self.host_status_graph_tab.is_enabled():
-            self.host_status_graph_tab.click()
-        return Region(self, root_locator=self._host_status_graph)
-
-    @property
     def job_status_graph(self):
-        if not self.job_status_graph_tab.is_enabled():
-            self.job_status_graph_tab.click()
         return Region(self, root_locator=self._job_status_graph)
 
     @property
     def job_status_toolbar(self):
-        if not self.job_status_graph_tab.is_enabled():
-            self.job_status_graph_tab.click()
         return DashboardJobStatusToolbar(self)
 
     def has_clock_button(self):
@@ -230,7 +205,7 @@ class DashboardGraphDropdown(Clickable):
     @property
     def options(self):
         self._expand()
-        options = [item.normalized_text for item in self._items()]
+        options = [item.normalized_text for item in self._items() if item.normalized_text]
         self._collapse()
         return options
 
@@ -250,25 +225,12 @@ class DashboardGraphDropdown(Clickable):
 class DashboardJobStatusToolbar(Region):
 
     _root_locator = (By.CSS_SELECTOR, '.DashboardGraphs-graphToolbar')
-    _status_buttons = (By.CLASS_NAME, 'DashboardGraphs-statusFilter--jobStatus')
     _type_dropdown = (By.CSS_SELECTOR, '#type-dropdown')
     _period_dropdown = (By.CSS_SELECTOR, '#period-dropdown')
     _type_items = (By.CSS_SELECTOR, '.DashboardGraphs-filterDropdownItems--jobType.dropdown-menu > li > a')
     _period_items = (By.CSS_SELECTOR, '.DashboardGraphs-filterDropdownItems--period.dropdown-menu > li > a')
-
-    @property
-    def success_status_button(self):
-        for element in self.page.find_elements(self._status_buttons):
-            if 'success' in element.get_attribute('ng-class').lower():
-                return PanelToggleTab(self.page, root=element)
-        raise NoSuchElementException
-
-    @property
-    def fail_status_button(self):
-        for element in self.page.find_elements(self._status_buttons):
-            if 'failed' in element.get_attribute('ng-class').lower():
-                return PanelToggleTab(self.page, root=element)
-        raise NoSuchElementException
+    _status_dropdown = (By.CSS_SELECTOR, '#status-dropdown')
+    _status_items = (By.CSS_SELECTOR, '[aria-labelledby="status-dropdown"] > li > a')
 
     @property
     def period_dropdown(self):
@@ -283,3 +245,10 @@ class DashboardJobStatusToolbar(Region):
             self.page,
             root_locator=self._type_dropdown,
             item_locator=self._type_items)
+
+    @property
+    def status_dropdown(self):
+        return DashboardGraphDropdown(
+            self.page,
+            root_locator=self._status_dropdown,
+            item_locator=self._status_items)
