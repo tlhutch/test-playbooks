@@ -104,7 +104,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # trigger callback
         args = dict(method="POST",
-                    status_code=httplib.ACCEPTED,
+                    status_code=httplib.CREATED,
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -125,7 +125,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         assert job_template.host_config_key == host_config_key
 
         args = dict(method="POST",
-                    status_code=httplib.ACCEPTED,
+                    status_code=httplib.CREATED,
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -149,7 +149,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         assert job_template.host_config_key == host_config_key
 
         args = dict(method="POST",
-                    status_code=httplib.ACCEPTED,
+                    status_code=httplib.CREATED,
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -169,7 +169,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # trigger callback
         args = dict(method="POST",
-                    status_code=httplib.ACCEPTED,
+                    status_code=httplib.CREATED,
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=BOGUS",)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -191,7 +191,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # trigger callback
         args = dict(method="POST",
-                    status_code=httplib.ACCEPTED,
+                    status_code=httplib.CREATED,
                     url="http://%s/%s" % (ansible_default_ipv4, job_template_no_credential.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -211,7 +211,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # trigger callback
         args = dict(method="POST",
-                    status_code=httplib.ACCEPTED,
+                    status_code=httplib.CREATED,
                     url="http://%s/%s" % (ansible_default_ipv4, job_template_ask.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -234,7 +234,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # trigger callback
         args = dict(method="POST",
-                    status_code=httplib.ACCEPTED,
+                    status_code=httplib.CREATED,
                     url="http://%s/%s" % (ansible_default_ipv4, job_template_variables_needed_to_start.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -262,7 +262,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # issue callback
         args = dict(method="POST",
                     timeout=60,
-                    status_code=httplib.ACCEPTED,
+                    status_code=httplib.CREATED,
                     url="http://%s/%s" % (ansible_default_ipv4, job_template_with_random_limit.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -270,7 +270,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # verify callback response
         for result in contacted.values():
-            assert result['status'] == httplib.ACCEPTED
+            assert result['status'] == httplib.CREATED
             assert not result['changed']
             assert 'failed' not in result, "Callback failed\n%s" % result
             assert result['content_length'].isdigit() and int(result['content_length']) == 0
@@ -304,7 +304,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # issue callback
         args = dict(method="POST",
                     timeout=60,
-                    status_code=httplib.ACCEPTED,
+                    status_code=httplib.CREATED,
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -312,7 +312,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # verify callback response
         for result in contacted.values():
-            assert result['status'] == httplib.ACCEPTED
+            assert result['status'] == httplib.CREATED
             assert not result['changed']
             assert 'failed' not in result, "Callback failed\n%s" % result
             assert result['content_length'].isdigit() and int(result['content_length']) == 0
@@ -353,7 +353,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
             callback_url = "http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback'])
             args = dict(method="POST",
                         timeout=60,
-                        status_code=httplib.ACCEPTED,
+                        status_code=httplib.CREATED,
                         url=callback_url,
                         body="host_config_key=%s" % host_config_key,)
             args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -362,7 +362,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
             # assert callback response
             for result in contacted.values():
                 if attempt == 0:
-                    assert result['status'] == httplib.ACCEPTED
+                    assert result['status'] == httplib.CREATED
                     assert not result['changed']
                     assert 'failed' not in result, "First provisioning callback unexpectedly failed."
                     assert result['content_length'].isdigit() and int(result['content_length']) == 0
@@ -430,7 +430,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # it is updated.
         args = dict(method="POST",
                     timeout=180,
-                    status_code=[httplib.ACCEPTED, httplib.BAD_REQUEST],
+                    status_code=[httplib.CREATED, httplib.BAD_REQUEST],
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -440,7 +440,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         for result in contacted.values():
             assert 'failed' not in result, "Callback failed\n%s" % result
             assert 'status' in result, "Unexpected callback response"
-            assert result['status'] in [httplib.ACCEPTED, httplib.BAD_REQUEST]
+            assert result['status'] in [httplib.CREATED, httplib.BAD_REQUEST]
             assert not result['changed']
 
         # NOTE: We don't enforce that a matching system exists in the provided
@@ -489,7 +489,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # issue callback (expected to return 400)
         args = dict(method="POST",
                     timeout=60,
-                    status_code=[httplib.ACCEPTED, httplib.BAD_REQUEST],
+                    status_code=[httplib.CREATED, httplib.BAD_REQUEST],
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
@@ -497,7 +497,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # assert callback response
         for result in contacted.values():
-            assert result['status'] in [httplib.ACCEPTED, httplib.BAD_REQUEST]
+            assert result['status'] in [httplib.CREATED, httplib.BAD_REQUEST]
             assert 'failed' not in result, "Callback failed\n%s" % result
             assert not result['changed']
             # Note, for this test, it is expected that no host will match
