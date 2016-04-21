@@ -1,10 +1,109 @@
 ---
 $schema: http://json-schema.org/draft-04/schema#
 id: '/api/v1/job_templates/\d+/launch/'
-type: object
 additionalProperties: false
-required: [job]
 properties:
-  job:
-    type: integer
-    minimum: 0
+  ignored_fields:
+    additionalProperties: false
+    properties:
+      extra_vars: {type: string}
+      job_type: {type: string}
+      limit: {type: string}
+      inventory: {type: string}
+      credential: {type: string}
+      job_tags: {type: string}
+      skip_tags: {type: string}
+    type: object
+  ask_variables_on_launch: {type: boolean}
+  cloud_credential: {$ref: '#/definitions/id_or_null'}
+  created: {format: date-time, type: string}
+  credential: {$ref: '#/definitions/id_or_null'}
+  description: {type: string}
+  elapsed: {type: number}
+  extra_vars: {type: string}
+  failed: {type: boolean}
+  finished:
+    format: date-time
+    type: [string, 'null']
+  force_handlers: {type: boolean}
+  forks: {minimum: 0, type: number}
+  id: {$ref: '#/definitions/id'}
+  inventory: {$ref: '#/definitions/id_or_null'}
+  job: {$ref: '#/definitions/id'}
+  job_args: {type: string}
+  job_cwd: {type: string}
+  job_env: {$ref: '#/definitions/job_env'}
+  job_explanation: {type: string}
+  job_tags: {type: string}
+  job_template: {$ref: '#/definitions/id_or_null'}
+  job_type: {$ref: '#/definitions/enum_job_job_type'}
+  launch_type: {$ref: '#/definitions/enum_launch_type'}
+  limit: {type: string}
+  modified: {format: date-time, type: string}
+  name: {type: string}
+  network_credential: {$ref: '#/definitions/id_or_null'}
+  passwords_needed_to_start: {$ref: '#/definitions/passwords_needed_to_start'}
+  playbook: {pattern: '^(|.*\.ya?ml)$', type: string}
+  project: {$ref: '#/definitions/id_or_null'}
+  related:
+    additionalProperties: false
+    properties:
+      activity_stream: {format: uri, type: string}
+      cancel: {format: uri, type: string}
+      cloud_credential: {format: uri, type: string}
+      created_by: {format: uri, type: string}
+      credential: {format: uri, type: string}
+      inventory: {format: uri, type: string}
+      job_events: {format: uri, type: string}
+      job_host_summaries: {format: uri, type: string}
+      job_plays: {format: uri, type: string}
+      job_tasks: {format: uri, type: string}
+      job_template: {format: uri, type: string}
+      labels: {format: uri, type: string}
+      modified_by: {format: uri, type: string}
+      network_credential: {format: uri, type: string}
+      notifications: {format: uri, type: string}
+      project: {format: uri, type: string}
+      relaunch: {format: uri, type: string}
+      schedule: {format: uri, type: string}
+      start: {format: uri, type: string}
+      stdout: {format: uri, type: string}
+      unified_job_template: {format: uri, type: string}
+    required: [job_host_summaries, job_events, start, cancel, activity_stream, notifications,
+      labels]
+    type: object
+  result_stdout: {type: string}
+  result_traceback: {type: string}
+  skip_tags: {type: string}
+  start_at_task: {type: string}
+  started:
+    format: date-time
+    type: [string, 'null']
+  status: {$ref: '#/definitions/enum_task_status'}
+  summary_fields:
+    additionalProperties: false
+    properties:
+      cloud_credential: {$ref: '#/definitions/summary_fields_credential'}
+      created_by: {$ref: '#/definitions/summary_fields_user'}
+      credential: {$ref: '#/definitions/summary_fields_credential'}
+      inventory: {$ref: '#/definitions/summary_fields_inventory'}
+      job_template: {$ref: '#/definitions/summary_fields_job_template'}
+      labels: {$ref: '#/definitions/summary_fields_labels'}
+      modified_by: {$ref: '#/definitions/summary_fields_user'}
+      network_credential: {$ref: '#/definitions/summary_fields_network_credential'}
+      project: {$ref: '#/definitions/summary_fields_project'}
+      schedule: {$ref: '#/definitions/summary_fields_schedule'}
+      unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
+    type: object
+  type: {$ref: '#/definitions/enum_job_type'}
+  unified_job_template: {$ref: '#/definitions/id_or_null'}
+  url: {format: uri, type: string}
+  verbosity: {minimum: 0, type: number}
+required: [id, url, created, modified, job_type, inventory, project, playbook, credential,
+  cloud_credential, forks, verbosity, limit, extra_vars, job_template, launch_type,
+  started, elapsed, finished, status, failed, passwords_needed_to_start, ask_variables_on_launch,
+  related, summary_fields, type, force_handlers, skip_tags, start_at_task, name,
+  description, job_explanation, network_credential]
+type: object
+definitions:
+    !include '../definitions/*.yml'

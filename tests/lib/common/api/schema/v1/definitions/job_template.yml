@@ -1,6 +1,11 @@
 job_template:
   additionalProperties: false
   properties:
+    ask_credential_on_launch: {type: boolean}
+    ask_inventory_on_launch: {type: boolean}
+    ask_job_type_on_launch: {type: boolean}
+    ask_limit_on_launch: {type: boolean}
+    ask_tags_on_launch: {type: boolean}
     ask_variables_on_launch: {type: boolean}
     become_enabled: {type: boolean}
     cloud_credential: {$ref: '#/definitions/id_or_null'}
