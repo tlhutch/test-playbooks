@@ -40,16 +40,18 @@ inventory:
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         organization: {$ref: '#/definitions/summary_fields_organization'}
-        permissions: {$ref: '#/definitions/summary_fields_permission'}
+        permissions: {$ref: '#/definitions/summary_fields_permissions'}
         roles:
           additionalProperties: false
           properties:
             admin_role: {$ref: '#/definitions/summary_fields_role'}
+            execute_role: {$ref: '#/definitions/summary_fields_role'}
+            adhoc_role: {$ref: '#/definitions/summary_fields_role'}
+            update_role: {$ref: '#/definitions/summary_fields_role'}
+            read_role: {$ref: '#/definitions/summary_fields_role'}
             auditor_role: {$ref: '#/definitions/summary_fields_role'}
-            executor_role: {$ref: '#/definitions/summary_fields_role'}
-            updater_role: {$ref: '#/definitions/summary_fields_role'}
-            usage_role: {$ref: '#/definitions/summary_fields_role'}
-          required: [auditor_role, admin_role, updater_role, executor_role, usage_role]
+            use_role: {$ref: '#/definitions/summary_fields_role'}
+          required: [admin_role, execute_role, adhoc_role, update_role, read_role, auditor_role, use_role]
           type: object
       required: [permissions, roles]
       type: object
