@@ -209,25 +209,50 @@ def vmware_credential(request, authtoken, api_credentials_pg, admin_user, testse
 
 
 @pytest.fixture(scope="function")
-def openstack_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Openstack credential'''
-    payload = dict(name="openstack-credential-%s" % fauxfactory.gen_utf8(),
-                   description="Openstack credential %s" % fauxfactory.gen_utf8(),
+def openstack_v2_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create a randomly named Openstack_v2 credential'''
+    payload = dict(name="openstack-v2-credential-%s" % fauxfactory.gen_utf8(),
+                   description="Openstack_v2 credential %s" % fauxfactory.gen_utf8(),
                    kind='openstack',
                    user=admin_user.id,
-                   host=testsetup.credentials['cloud']['openstack']['host'],
-                   username=testsetup.credentials['cloud']['openstack']['username'],
-                   password=testsetup.credentials['cloud']['openstack']['password'],
-                   project=testsetup.credentials['cloud']['openstack']['project'])
+                   host=testsetup.credentials['cloud']['openstack_v2']['host'],
+                   username=testsetup.credentials['cloud']['openstack_v2']['username'],
+                   password=testsetup.credentials['cloud']['openstack_v2']['password'],
+                   project=testsetup.credentials['cloud']['openstack_v2']['project'])
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def openstack_v3_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create a randomly named Openstack_v3 credential'''
+    payload = dict(name="openstack-v3-credential-%s" % fauxfactory.gen_utf8(),
+                   description="Openstack_v3 credential %s" % fauxfactory.gen_utf8(),
+                   kind='openstack',
+                   user=admin_user.id,
+                   host=testsetup.credentials['cloud']['openstack_v3']['host'],
+                   username=testsetup.credentials['cloud']['openstack_v3']['username'],
+                   password=testsetup.credentials['cloud']['openstack_v3']['password'],
+                   project=testsetup.credentials['cloud']['openstack_v3']['project'],
+                   domain=testsetup.credentials['cloud']['openstack_v3']['domain'])
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 
 #
+# Convenience fixture that iterates through OpenStack credentials
+#
+@pytest.fixture(scope="function", params=['openstack_v2', 'openstack_v3'])
+def openstack_credential(request):
+    return request.getfuncargvalue(request.param + '_credential')
+
+
+#
 # Convenience fixture that iterates through supported cloud_credential types
 #
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware', 'openstack'])
+@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware', 'openstack_v2', 'openstack_v3'])
 def cloud_credential(request):
     return request.getfuncargvalue(request.param + '_credential')
 

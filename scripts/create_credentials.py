@@ -85,11 +85,18 @@ if __name__ == '__main__':
     cfg['cloud']['vmware']['password'] = os.environ["VMWARE_PASSWORD"]
     cfg['cloud']['vmware']['host'] = os.environ["VMWARE_HOST"]
 
-    # Set openstack info
-    cfg['cloud']['openstack']['username'] = os.environ["OPENSTACK_USERNAME"]
-    cfg['cloud']['openstack']['password'] = os.environ["OPENSTACK_PASSWORD"]
-    cfg['cloud']['openstack']['host'] = os.environ["OPENSTACK_HOST"]
-    cfg['cloud']['openstack']['project'] = os.environ["OPENSTACK_PROJECT"]
+    # Set openstack_v2 info
+    cfg['cloud']['openstack_v2']['username'] = os.environ["OPENSTACK_V2_USERNAME"]
+    cfg['cloud']['openstack_v2']['password'] = os.environ["OPENSTACK_V2_PASSWORD"]
+    cfg['cloud']['openstack_v2']['host'] = os.environ["OPENSTACK_V2_HOST"]
+    cfg['cloud']['openstack_v2']['project'] = os.environ["OPENSTACK_V2_PROJECT"]
+
+    # Set openstack_v3 info
+    cfg['cloud']['openstack_v3']['username'] = os.environ["OPENSTACK_V3_USERNAME"]
+    cfg['cloud']['openstack_v3']['password'] = os.environ["OPENSTACK_V3_PASSWORD"]
+    cfg['cloud']['openstack_v3']['host'] = os.environ["OPENSTACK_V3_HOST"]
+    cfg['cloud']['openstack_v3']['project'] = os.environ["OPENSTACK_V3_PROJECT"]
+    cfg['cloud']['openstack_v3']['domain'] = os.environ["OPENSTACK_V3_DOMAIN"]
 
     # Set SCM info
     cfg['scm']['password'] = os.environ.get("SCM_PASSWORD", "")
