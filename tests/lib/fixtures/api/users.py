@@ -171,21 +171,6 @@ def unprivileged_user(request):
 
 
 @pytest.fixture(scope="function")
-def many_users(request, authtoken, api_users_pg, user_password):
-    obj_list = list()
-    for i in range(55):
-        payload = dict(username="anonymous_%d_%s" % (i, fauxfactory.gen_alphanumeric()),
-                       first_name="Joe (%s)" % fauxfactory.gen_utf8(),
-                       last_name="User (%s)" % fauxfactory.gen_utf8(),
-                       email=fauxfactory.gen_email(),
-                       password=user_password,)
-        obj = api_users_pg.post(payload)
-        request.addfinalizer(obj.delete)
-        obj_list.append(obj)
-    return obj_list
-
-
-@pytest.fixture(scope="function")
 def current_user(request, testsetup):
     '''
     Return a context manager to allow performing operations as an alternate user

@@ -195,31 +195,6 @@ def project_with_credential_prompt(request, authtoken, organization, scm_credent
 
 
 @pytest.fixture(scope="function")
-def many_manual_projects(request, authtoken, ansible_runner, awx_config, organization):
-    obj_list = list()
-    related = organization.get_related('projects')
-    for i in range(55):
-        # create project path
-        local_path = "project_dir_%s" % fauxfactory.gen_utf8()
-        ansible_runner.file(path=os.path.join(awx_config['project_base_dir'], local_path),
-                            state='directory', owner='awx', group='awx', mode=0755)
-        # create manual project
-        payload = dict(name="project-%d-%s" % (i, local_path),
-                       description="random project %d - %s" % (i, fauxfactory.gen_utf8()),
-                       scm_type=None,
-                       local_path=local_path)
-        obj = related.post(payload)
-        obj_list.append(obj)
-        request.addfinalizer(obj.silent_delete)
-
-        # delete project directory when finished
-        def delete_project_dir():
-            return ansible_runner.file(state='absent', path=os.path.join(awx_config['project_base_dir'], local_path))
-        request.addfinalizer(delete_project_dir)
-    return obj_list
-
-
-@pytest.fixture(scope="function")
 def project_with_schedule(request, authtoken, project_ansible_playbooks_git_nowait):
     """A project with a schedule
     """
