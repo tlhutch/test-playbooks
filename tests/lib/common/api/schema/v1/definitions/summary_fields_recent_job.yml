@@ -6,5 +6,6 @@ summary_fields_recent_job:
       type: [string, 'null']
     id: {type: number}
     status: {$ref: '#/definitions/enum_source_status'}
+    name: {type: string}
   required: [id, finished, status]
   type: object
