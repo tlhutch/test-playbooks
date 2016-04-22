@@ -961,12 +961,17 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
                 VMWARE_HOST=self.credentials['cloud'][cloud_credential.kind]['host']
             )
         elif cloud_credential.kind == 'openstack':
-            self.has_credentials('cloud', cloud_credential.kind, ['username', 'host', 'project'])
+            if "openstack-v2" in cloud_credential.name:
+                self.has_credentials('cloud', 'openstack_v2', ['username', 'host', 'project'])
+            elif "openstack-v3" in cloud_credential.name:
+                self.has_credentials('cloud', 'openstack_v3', ['username', 'host', 'project', 'domain'])
+            else:
+                raise ValueError("Unhandled OpenStack credential: %s" % cloud_credential.name)
             expected_env_vars = dict(
                 OS_CLIENT_CONFIG_FILE=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
             )
         else:
-            raise Exception("Unhandled cloud type: %s" % cloud_credential.kind)
+            raise ValueError("Unhandled cloud type: %s" % cloud_credential.kind)
 
         # assert the expected job_env variables are present
         for env_var, env_val in expected_env_vars.items():
