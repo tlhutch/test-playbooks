@@ -67,25 +67,27 @@
 
 # install ansible
 
-- name: install ansible rpm (stable)
-  yum:
-    name: '{{ ansible_package_name }}'
-    state: latest
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'stable'
-
-- name: install ansible rpm (testing)
-  yum:
-    name: '{{ ansible_package_name }}'
-    enablerepo: '*-testing'
-    state: latest
+- name: Enable ansible repo (testing)
+  ini_file:
+        dest: /etc/yum.repos.d/ansible.repo
+    section: 'epel-testing'
+    option: enabled
+    value: 1
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'testing'
 
-- name: install ansible rpm (nightly)
+- name: Enable ansible repo (nightly)
+  ini_file:
+        dest: /etc/yum.repos.d/ansible.repo
+    section: 'ansible-nightly'
+    option: enabled
+    value: 1
+  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
+
+- name: install ansible rpm (stable or as above)
   yum:
     name: '{{ ansible_package_name }}'
-    enablerepo: ansible-nightly
     state: latest
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
+  when: ansible_pkg_mgr == 'yum'
 
 - name: install ansible deb
   apt:
