@@ -36,6 +36,7 @@ rpm_role_dependencies:
     - make
     - gcc
     - git
+    - yum-utils
 
 # DEB dependencies needed for the role
 deb_role_dependencies:

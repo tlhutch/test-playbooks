@@ -67,20 +67,12 @@
 
 # install ansible
 
-- name: Enable ansible repo (testing)
-  ini_file:
-        dest: /etc/yum.repos.d/ansible.repo
-    section: 'epel-testing'
-    option: enabled
-    value: 1
+- name: Enable epel-testing repo (testing)
+  command: yum-config-manager --enable epel-testing
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'testing'
 
 - name: Enable ansible repo (nightly)
-  ini_file:
-        dest: /etc/yum.repos.d/ansible.repo
-    section: 'ansible-nightly'
-    option: enabled
-    value: 1
+  command: yum-config-manager --enable ansible-nightly
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
 
 - name: install ansible rpm (stable or as above)
