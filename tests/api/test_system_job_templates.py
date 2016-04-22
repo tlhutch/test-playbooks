@@ -79,7 +79,7 @@ class Test_System_Job_Template(Base_Api_Test):
 
         # cleanup_facts jobs will fail when no extra_vars are provided
         if job_pg.job_type == 'cleanup_facts':
-            assert not job_pg.is_successful, "System job unexpectedly succeeded - %s" % job_pg
+            assert job_pg.status == 'failed', "Unexpected cleanup_facts job status - %s" % job_pg.status
             assert job_pg.result_stdout == "CommandError: Both --granularity and --older_than are required.\r\n"
         # all other system_jobs are expected to succeed
         else:
