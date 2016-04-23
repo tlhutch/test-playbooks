@@ -36,7 +36,7 @@
   include: epel.yml
   when: ansible_os_family == 'RedHat' and ansible_install_method in ['stable', 'testing', 'nightly', 'pip']
 
-# install ansible nightly rpm repo (optional)
+# install ansible nightly yum repo (optional)
 
 - name: install ansible nightly yum repository
   template:
@@ -49,13 +49,25 @@
   command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
   when: yum_repo is defined and yum_repo.changed
 
-# install ansible nightly rpm repo (optional)
+# install ansible nightly apt repo (optional)
 
 - name: install ansible nightly apt repository
   template:
     src: files/ansible_apt.repo.j2
     dest: /etc/apt/sources.list.d/ansible_repo.list
   when: ansible_pkg_mgr == 'apt' and ansible_install_method == 'nightly'
+
+# enable epel-testing repo (optional)
+
+- name: Enable epel-testing repo (testing)
+  command: yum-config-manager --enable epel-testing
+  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'testing'
+
+# enable ansible-nightly repo (optional)
+
+- name: Enable ansible repo (nightly)
+  command: yum-config-manager --enable ansible-nightly
+  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
 
 # install ansible ppa
 
@@ -66,14 +78,6 @@
   when: ansible_pkg_mgr == 'apt' and ansible_ppa is defined
 
 # install ansible
-
-- name: Enable epel-testing repo (testing)
-  command: yum-config-manager --enable epel-testing
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'testing'
-
-- name: Enable ansible repo (nightly)
-  command: yum-config-manager --enable ansible-nightly
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
 
 - name: install ansible rpm (stable or as above)
   yum:
