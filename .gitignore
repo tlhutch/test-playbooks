@@ -8,6 +8,7 @@ results
 results.xml
 *.log
 *.jsonc
+.tox
 .cache
 /playbooks/credentials.yml
 /playbooks/*vars.*

@@ -2,39 +2,35 @@ import sys
 import os
 import glob
 import shutil
-import time
 from distutils import log
 from setuptools import setup, Command, find_packages
 from setuptools.command.test import test as TestCommand
 
 
-results_dir = 'results'
-results_timestamp = time.strftime("%s", time.localtime())
-default_args = '-v -l --tb=native --junitxml=%s/%s.xml --resultlog=%s/%s.log' % \
-    (results_dir, results_timestamp, results_dir, results_timestamp)
+class ToxTestCommand(TestCommand):
 
+    """Test command which runs tox under the hood."""
 
-class PyTest(TestCommand):
+    user_options = [('tox-args=', 'a', "Arguments to pass to tox")]
+
+    def initialize_options(self):
+        """Initialize options and set their defaults."""
+        TestCommand.initialize_options(self)
+        self.tox_args = '--recreate'
+
     def finalize_options(self):
+        """Add options to the test runner (tox)."""
         TestCommand.finalize_options(self)
+        self.test_args = []
         self.test_suite = True
-        self.test_args = os.environ.get('PY_ARGS', default_args)
-
-        if not os.path.isdir(results_dir):
-            os.mkdir(results_dir)
-
-        if 'PY_KEYWORDEXPR' in os.environ:
-            self.test_args += ' -k "%s"' % os.environ.get('PY_KEYWORDEXPR')
-
-        self.test_args += " %s" % os.environ.get('PY_TESTS', 'tests')
 
     def run_tests(self):
-        # import here, cause outside the eggs aren't loaded elsewhere
-        import pytest
-        log.info("Running: py.test %s" % self.test_args)
-        sys.path.insert(0, 'lib')
-        rc = pytest.main(self.test_args)
-        sys.exit(rc)
+        """Invoke the test runner (tox)."""
+        # import here, cause outside the eggs aren't loaded
+        import tox
+        import shlex
+        errno = tox.cmdline(args=shlex.split(self.tox_args))
+        sys.exit(errno)
 
 
 class CleanCommand(Command):
@@ -77,11 +73,18 @@ class CleanCommand(Command):
 
 setup(
     name="tower-qa",
-    setup_requires=['setuptools-pep8', 'setuptools_pyflakes', 'setuptools-lint', 'flake8'],
+    version="0.0.1",
+    description="Playbooks and py.test automation for testing Ansible Tower",
+    # setup_requires=['setuptools-pep8', 'setuptools_pyflakes', 'setuptools-lint', 'flake8'],
+    url='http://github.com/ansible/tower-qa',
+    platforms='any',
     packages=find_packages(),
     cmdclass={
-        'test': PyTest,
+        'test': ToxTestCommand,
         'clean': CleanCommand,
         # 'build_sphinx': BuildSphinx},
-    }
+    },
+    tests_requires=[
+        'tox',
+    ],
 )
