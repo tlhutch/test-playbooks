@@ -19,8 +19,9 @@ if has_ansible_v2:
     from ansible.vars import VariableManager
     from ansible.utils.vars import load_extra_vars
 
-job_path = '/job/Test_Tower_Install/PLATFORM={platform},label={label}/lastBuild'
+job_path = '/job/Test_Tower_Install/ANSIBLE_NIGHTLY_BRANCH={ansible_nightly_branch},PLATFORM={platform},label={label}/lastBuild'
 artifact_path = '/artifact/playbooks/inventory.log/*view*/'
+ansible_nightly_branches = ['devel', 'stable-2.0', 'stable-1.9']
 supported_platforms = ['rhel-6.7-x86_64', 'centos-6.latest-x86_64',
                        'centos-7.latest-x86_64', 'rhel-7.2-x86_64',
                        'ubuntu-12.04-x86_64', 'ubuntu-14.04-x86_64',
@@ -99,57 +100,57 @@ if __name__ == "__main__":
         cfg = AnsibleInventory()
         master_inv = dict(_meta=dict(hostvars={}))
 
-        for platform in supported_platforms:
-            for label in ['rhel-7', ]:
-                # build URL to Jenkins artifact
-                url = urljoin(args.jenkins, job_path + artifact_path)
-                url = url.format(**dict(platform=platform, label=label))
+        for ansible_nightly_branch in ansible_nightly_branches:
+            for platform in supported_platforms:
+                for label in ['rhel-7', ]:
+                    # build URL to Jenkins artifact
+                    url = urljoin(args.jenkins, job_path + artifact_path)
+                    url = url.format(**dict(ansible_nightly_branch=ansible_nightly_branch, platform=platform, label=label))
 
-                # download artifact
-                local_inventory = download_url(url, verify=False, auth=(args.user, args.token))
+                    # download artifact
+                    local_inventory = download_url(url, verify=False, auth=(args.user, args.token))
 
-                # extend master_inv
-                if local_inventory:
-                    try:
-                        cfg.read(local_inventory)
-                    except (ConfigParser.MissingSectionHeaderError, ConfigParser.ParsingError) as e:
-                        sys.stderr.write("Failed to download inventory.log: %s\n" % url)
+                    # extend master_inv
+                    if local_inventory:
+                        try:
+                            cfg.read(local_inventory)
+                        except (ConfigParser.MissingSectionHeaderError, ConfigParser.ParsingError) as e:
+                            sys.stderr.write("Failed to download inventory.log: %s\n" % url)
 
-                    # TODO - v2 support doesn't actually work yet
-                    if has_ansible_v2:
-                        class FakeOptions(object):
-                            extra_vars = dict()
+                        if has_ansible_v2:
+                            class FakeOptions(object):
+                                extra_vars = dict()
 
-                        loader = DataLoader()
-                        variable_manager = VariableManager()
-                        variable_manager.extra_vars = load_extra_vars(loader=loader, options=FakeOptions())
-                        inv_args = [loader, variable_manager]
-                        inv_kwargs = dict(host_list=local_inventory)
-                        get_groups = lambda x: x.get_groups().values()
-                        get_group_vars = lambda x, y: x.get_group_variables(y)
-                        # Workaround until fixed in `devel`
-                        ansible.inventory.HOSTS_PATTERNS_CACHE = {}
-                    else:
-                        inv_args = [local_inventory, ]
-                        inv_kwargs = {}
-                        get_groups = lambda x: x.get_groups()
-                        get_group_vars = lambda x, y: x.get_group_variables(y)
+                            loader = DataLoader()
+                            variable_manager = VariableManager()
+                            variable_manager.extra_vars = load_extra_vars(loader=loader, options=FakeOptions())
+                            inv_args = [loader, variable_manager]
+                            inv_kwargs = dict(host_list=local_inventory)
+                            get_groups = lambda x: x.get_groups().values()
+                            get_group_vars = lambda x, y: x.get_group_variables(y)
+                            # Workaround until fixed in `devel`
+                            ansible.inventory.HOSTS_PATTERNS_CACHE = {}
+                        else:
+                            inv_args = [local_inventory, ]
+                            inv_kwargs = {}
+                            get_groups = lambda x: x.get_groups()
+                            get_group_vars = lambda x, y: x.get_group_variables(y)
 
-                    jenkins_inv = ansible.inventory.Inventory(*inv_args, **inv_kwargs)
+                        jenkins_inv = ansible.inventory.Inventory(*inv_args, **inv_kwargs)
 
-                    # add group and hosts
-                    for grp in get_groups(jenkins_inv):
-                        # Initialize group dictionary
-                        if grp.name not in master_inv:
-                            master_inv[grp.name] = dict(hosts=[], vars={})
-                        # Add group_vars
-                        master_inv[grp.name]['vars'].update(get_group_vars(jenkins_inv, grp.name))
-                        for host in grp.get_hosts():
-                            # Add host to the group
-                            if host.name not in master_inv[grp.name]['hosts']:
-                                master_inv[grp.name]['hosts'].append(host.name)
-                            # Add hostvars
-                            master_inv['_meta']['hostvars'][host.name] = host.vars
+                        # add group and hosts
+                        for grp in get_groups(jenkins_inv):
+                            # Initialize group dictionary
+                            if grp.name not in master_inv:
+                                master_inv[grp.name] = dict(hosts=[], vars={})
+                            # Add group_vars
+                            master_inv[grp.name]['vars'].update(get_group_vars(jenkins_inv, grp.name))
+                            for host in grp.get_hosts():
+                                # Add host to the group
+                                if host.name not in master_inv[grp.name]['hosts']:
+                                    master_inv[grp.name]['hosts'].append(host.name)
+                                # Add hostvars
+                                master_inv['_meta']['hostvars'][host.name] = host.vars
 
         if master_inv:
             if args.ini:
