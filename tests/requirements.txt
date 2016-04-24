@@ -13,7 +13,6 @@ pytest-capturelog
 pytest-instafail
 pytest-ordering
 pytest-ansible
-pytest-trello
 pytest-github
 requests
 PyYAML

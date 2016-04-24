@@ -692,7 +692,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         except Duplicate_Exception, e:
             pytest.xfail(str(e))
 
-    @pytest.mark.jira('AC-641', run=True)
+    # AT ONE POINT RELATED TO JIRA(AC-641)
     @pytest.mark.destructive
     def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg,
                                 api_job_templates_pg, _job_template, ansible_facts, ansible_runner):

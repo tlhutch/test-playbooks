@@ -117,11 +117,7 @@ if __name__ == '__main__':
     cfg['ssh']['become_username'] = os.environ.get("BECOME_USERNAME", "")
     cfg['ssh']['become_password'] = os.environ.get("BECOME_PASSWORD", "")
 
-    # Set trello info
-    cfg['trello']['key'] = os.environ.get("TRELLO_API_KEY", "")
-    cfg['trello']['token'] = os.environ.get("TRELLO_API_TOKEN", "")
-
-    # Set trello info
+    # Set github info
     cfg['github']['username'] = os.environ.get("GITHUB_USERNAME", "")
     cfg['github']['token'] = os.environ.get("GITHUB_TOKEN", "")
     cfg['github']['completed'] = os.environ.get("GITHUB_COMPLETED", [])

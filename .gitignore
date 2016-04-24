@@ -13,7 +13,6 @@ results.xml
 /playbooks/credentials.yml
 /playbooks/*vars.*
 /playbooks/inventory.*
-/tests/jira.cfg
 /tests/credentials.yml
 /tests/credentials.yaml
 /tests/sauce_labs.yaml
