@@ -40,7 +40,7 @@ group:
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         inventory_source: {$ref: '#/definitions/summary_fields_source'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
-        permissions: {$ref: '#/definitions/summary_fields_permissions'}
+        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
         roles:
           additionalProperties: false
           properties:
@@ -52,7 +52,7 @@ group:
             auditor_role: {$ref: '#/definitions/summary_fields_role'}
           required: [admin_role, execute_role, adhoc_role, update_role, read_role, auditor_role]
           type: object
-      required: [inventory, inventory_source, roles, permissions]
+      required: [inventory, inventory_source, roles, active_roles]
       type: object
     total_groups: {minimum: 0, type: number}
     total_hosts: {minimum: 0, type: number}

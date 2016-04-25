@@ -1,10 +1,8 @@
 role:
   additionalProperties: false
   properties:
-    created: {format: date-time, type: string}
     description: {format: string}
     id: {$ref: '#/definitions/id'}
-    modified: {format: date-time, type: string}
     name: {format: string}
     related:
       additionalProperties: false

@@ -39,8 +39,8 @@ access_list:
           minItems: 0
           type: array
           uniqueItems: true
-        permissions: {$ref: '#/definitions/summary_fields_permission'}
-      required: [direct_access, indirect_access, permissions]
+        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
+      required: [direct_access, indirect_access, active_roles]
       type: object
     type: {pattern: ^user$, type: string}
     url: {format: uri, type: string}
