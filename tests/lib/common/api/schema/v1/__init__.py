@@ -839,11 +839,15 @@ class Awx_Schema_Job_Task(Awx_Schema_Job_Tasks):
 
 
 class Awx_Schema_Job_Events(Awx_Schema):
-    resource = '/api/v1/jobs/\d+/job_events/'
+    resource = '/api/v1/job_events/'
 
     @property
     def get(self):
         return self.load_file('job_events/list.yml')
+
+
+class Awx_Schema_Job_Job_Events(Awx_Schema_Job_Events):
+    resource = '/api/v1/jobs/\d+/job_events/'
 
 
 class Awx_Schema_Job_Event(Awx_Schema_Job_Events):
