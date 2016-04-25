@@ -109,7 +109,7 @@ def test_component_visibility(ui_organizations):
             'Card link with name {0} unexpectedly not clickable'.format(
                 link_name))
 
-@pytest.mark.ui_debug
+
 @pytest.mark.usefixtures(
     'authtoken',
     'install_enterprise_license_unlimited',
