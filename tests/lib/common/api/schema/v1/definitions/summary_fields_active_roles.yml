@@ -1,0 +1,6 @@
+---
+summary_fields_active_roles:
+    items: {$ref: '#/definitions/enum_active_role', type: string}
+    minItems: 0
+    type: array 
+    uniqueItems: true

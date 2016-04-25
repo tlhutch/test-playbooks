@@ -1,7 +1,7 @@
 summary_fields_access:
   additionalProperties: false
   properties:
-    permissions: {$ref: '#/definitions/summary_fields_permission'}
+    active_roles: {$ref: '#/definitions/summary_fields_permission'}
     role:
       additionalProperties: false
       properties:
@@ -12,5 +12,5 @@ summary_fields_access:
         resource_name: {type: string}
         resource_type: {type: string}
       required: [description, id, name]
-  required: [role, permissions]
+  required: [role, active_roles]
   type: object

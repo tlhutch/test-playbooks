@@ -64,7 +64,7 @@ project:
         last_update: {$ref: '#/definitions/summary_fields_job'}
         organization: {$ref: '#/definitions/summary_fields_organization'}
         created_by: {$ref: '#/definitions/summary_fields_user'}
-        permissions: {$ref: '#/definitions/summary_fields_permissions'}
+        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
         roles:
           additionalProperties: false
           properties:
@@ -75,7 +75,7 @@ project:
             read_role: {$ref: '#/definitions/summary_fields_role'}
           required: [auditor_role, admin_role, scm_update_role, member_role, read_role]
           type: object
-      required: [permissions, roles]
+      required: [active_roles, roles]
       type: object
     type: {pattern: ^project$, type: string}
     url: {format: uri, type: string}

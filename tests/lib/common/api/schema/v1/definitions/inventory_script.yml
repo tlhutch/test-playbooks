@@ -23,7 +23,7 @@ inventory_script:
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         organization: {$ref: '#/definitions/summary_fields_organization'}
-        permissions: {$ref: '#/definitions/summary_fields_permissions'}
+        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
         roles:
           additionalProperties: false
           properties:
@@ -33,7 +33,7 @@ inventory_script:
             read_role: {$ref: '#/definitions/summary_fields_role'}
           required: [auditor_role, admin_role, member_role, read_role]
           type: object
-      required: [permissions, roles]
+      required: [active_roles, roles]
       type: object
     type: {pattern: ^custom_inventory_script$, type: string}
     url: {format: uri, type: string}
