@@ -46,9 +46,8 @@ host:
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
-        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
         recent_jobs: {$ref: '#/definitions/summary_fields_recent_jobs'}
-      required: [inventory, active_roles, recent_jobs]
+      required: [inventory, recent_jobs]
       type: object
     url: {format: uri, type: string}
     variables: {type: string}
