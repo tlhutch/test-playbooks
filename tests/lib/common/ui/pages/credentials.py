@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from common.ui.pages.base import TowerCrudPage
 from common.ui.pages.forms import FormPanel
 from common.ui.pages.forms import SelectDropDown
+from common.ui.pages.forms import Password
 
 
 class Credentials(TowerCrudPage):
@@ -20,12 +21,14 @@ class Credentials(TowerCrudPage):
             'openstack',
             'aws',
             'gce',
-            'azure',
+            'azure_classic',
+            'azure_resource_manager',
             'rackspace',
             'vmware_vcenter',
             'source_control',
             'satellite_v6',
-            'cloudforms',)
+            'cloudforms',
+            'network',)
 
         for form in subforms:
             yield getattr(self.details, form)
@@ -97,9 +100,14 @@ class CredDetails(FormPanel):
         return AWSDetails(self.page)
 
     @property
-    def azure(self):
-        self.kind.select('Microsoft Azure')
-        return AzureDetails(self.page)
+    def azure_classic(self):
+        self.kind.select('Microsoft Azure Classic (deprecated)')
+        return AzureClassicDetails(self.page)
+
+    @property
+    def azure_resource_manager(self):
+        self.kind.select('Microsoft Azure Resource Manager')
+        return AzureResourceManagerDetails(self.page)
 
     @property
     def satellite_v6(self):
@@ -110,6 +118,11 @@ class CredDetails(FormPanel):
     def cloudforms(self):
         self.kind.select('Red Hat CloudForms')
         return CloudFormsDetails(self.page)
+
+    @property
+    def network(self):
+        self.kind.select('Network')
+        return NetworkDetails(self.page)
 
 
 class MachineDetails(CredDetails):
@@ -289,14 +302,14 @@ class VMWareDetails(CredDetails):
         CredDetails._region_spec.items() + _region_spec.items())
 
 
-class AzureDetails(CredDetails):
+class AzureClassicDetails(CredDetails):
 
     _region_spec = {
         'subscription_id': {
             'region_type': 'text_input',
             'required': True,
             'root_locator': (
-                (By.CSS_SELECTOR, 'label[for=subscription_id]'),
+                (By.CSS_SELECTOR, 'label[for=subscription]'),
                 (By.XPATH, '..'))
         },
         'ssh_key_data': {
@@ -306,6 +319,58 @@ class AzureDetails(CredDetails):
                 (By.CSS_SELECTOR, 'label[for=ssh_key_data]'),
                 (By.XPATH, '..'))
         },
+    }
+
+    _region_spec = dict(
+        CredDetails._region_spec.items() + _region_spec.items())
+
+
+class AzureResourceManagerDetails(CredDetails):
+
+    _region_spec = {
+        'subscription_id': {
+            'region_type': 'text_input',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=subscription]'),
+                (By.XPATH, '..'))
+        },
+        'username': {
+            'region_type': 'text_input',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=username]'),
+                (By.XPATH, '..'))
+        },
+        'password': {
+            'region_type': 'password',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=password]'),
+                (By.XPATH, '..'))
+        },
+        'client_id': {
+            'region_type': 'text_input',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=client]'),
+                (By.XPATH, '..'))
+        },
+        'client_secret': {
+            'region_type': 'password',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=secret]'),
+                (By.XPATH, '..'))
+        },
+        'tenant_id': {
+            'region_type': 'text_input',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=tenant]'),
+                (By.XPATH, '..'))
+        },
+
     }
 
     _region_spec = dict(
@@ -377,9 +442,16 @@ class Satellite6Details(CredDetails):
     _region_spec = {
         'username': {
             'region_type': 'text_input',
-            'required': False,
+            'required': True,
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=username]'),
+                (By.XPATH, '..'))
+        },
+        'password': {
+            'region_type': 'password',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=password]'),
                 (By.XPATH, '..'))
         },
     }
@@ -393,12 +465,66 @@ class CloudFormsDetails(CredDetails):
     _region_spec = {
         'username': {
             'region_type': 'text_input',
-            'required': False,
+            'required': True,
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=username]'),
+                (By.XPATH, '..'))
+        },
+        'password': {
+            'region_type': 'password',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=password]'),
                 (By.XPATH, '..'))
         },
     }
 
     _region_spec = dict(
         CredDetails._region_spec.items() + _region_spec.items())
+
+
+class NetworkDetails(CredDetails):
+
+    _region_spec = {
+        'username': {
+            'region_type': 'text_input',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=username]'),
+                (By.XPATH, '..'))
+        },
+        'password': {
+            'region_type': 'password',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=password]'),
+                (By.XPATH, '..'))
+        },
+        'ssh_key': {
+            'region_type': 'text_area',
+            'required': False,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=ssh_key_data]'),
+                (By.XPATH, '..'))
+        },
+        'authorize': {
+            'region_type': 'checkbox',
+            'required': False,
+            'root_locator': (
+                (By.ID, 'credential_authorize_chbox'),
+                (By.XPATH, '..'),
+                (By.XPATH, '..'))
+        },
+    }
+
+    _region_spec = dict(
+        CredDetails._region_spec.items() + _region_spec.items())
+
+    _auth_password = (
+        (By.CSS_SELECTOR, 'label[for=authorize_password]'),
+        (By.XPATH, '..'))
+
+    @property
+    def auth_password(self):
+        self.authorize.select(True)
+        return Password(self.page, root_locator=self._auth_password)
