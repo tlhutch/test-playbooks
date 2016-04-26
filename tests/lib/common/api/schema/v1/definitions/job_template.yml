@@ -94,7 +94,7 @@ job_template:
           required: [auditor_role, admin_role, execute_role, read_role]
           type: object
         survey: {$ref: '#/definitions/summary_fields_survey'}
-      required: [labels, can_copy, can_edit, recent_jobs, active_roles, roles]
+      required: [labels, can_copy, can_edit, recent_jobs, roles]
       type: object
     survey_enabled: {type: boolean}
     type: {pattern: ^job_template$, type: string}

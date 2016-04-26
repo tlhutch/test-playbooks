@@ -75,7 +75,7 @@ project:
             read_role: {$ref: '#/definitions/summary_fields_role'}
           required: [auditor_role, admin_role, scm_update_role, member_role, read_role]
           type: object
-      required: [active_roles, roles]
+      required: [roles]
       type: object
     type: {pattern: ^project$, type: string}
     url: {format: uri, type: string}
