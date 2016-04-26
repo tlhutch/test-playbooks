@@ -92,27 +92,29 @@ def hosts_yaml(request, authtoken, api_hosts_pg, inventory_json, variables_yaml)
 # /job_templates
 #
 @pytest.fixture(scope="function")
-def job_templates_json(request, authtoken, api_job_templates_pg, project, inventory_json, variables_json):
+def job_templates_json(request, authtoken, api_job_templates_pg, project, ssh_credential, inventory_json, variables_json):
 
     payload = dict(name="template-%s" % fauxfactory.gen_utf8(),
                    extra_vars=variables_json,
                    inventory=inventory_json.id,
                    job_type='run',
                    project=project.id,
-                   playbook='site.yml', )  # This depends on the project selected
+                   playbook='site.yml',
+                   credential=ssh_credential.id)
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
 
 
 @pytest.fixture(scope="function")
-def job_templates_yaml(request, authtoken, api_job_templates_pg, project, inventory_yaml, variables_yaml):
+def job_templates_yaml(request, authtoken, api_job_templates_pg, project, ssh_credential, inventory_yaml, variables_yaml):
     payload = dict(name="template-%s" % fauxfactory.gen_utf8(),
                    extra_vars=variables_yaml,
                    inventory=inventory_yaml.id,
                    job_type='run',
                    project=project.id,
-                   playbook='site.yml', )  # This depends on the project selected
+                   playbook='site.yml',
+                   credential=ssh_credential.id)
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
