@@ -20,7 +20,8 @@ def job_template_no_credential(request, authtoken, api_job_templates_pg, project
                    inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
-                   playbook='site.yml', )  # This depends on the project selected
+                   playbook='site.yml',  # This depends on the project selected
+                   ask_credential_on_launch='true')
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
