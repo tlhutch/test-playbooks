@@ -6,7 +6,7 @@ properties:
   ignored_fields:
     additionalProperties: false
     properties:
-      extra_vars: {type: string}
+      extra_vars: {type: object}
       job_type: {type: string}
       limit: {type: string}
       inventory: {type: string}
