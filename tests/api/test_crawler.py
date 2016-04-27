@@ -186,6 +186,9 @@ def test_authenticated(api, resource, method, no_license):
         },
         '/api/v1/roles/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
+        '/api/v1/job_events/': {
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         }
     }
 
