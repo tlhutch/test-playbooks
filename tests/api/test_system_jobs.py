@@ -299,8 +299,8 @@ class Test_System_Jobs(Base_Api_Test):
         # cancel job
         cancel_pg.post()
 
-        # wait for job to cancel
-        system_job_with_status_pending = system_job_with_status_pending.wait_until_status('canceled')
+        # wait for job to complete
+        system_job_with_status_pending = system_job_with_status_pending.wait_until_completed()
 
         # assert that the system job was cancelled
         assert system_job_with_status_pending.status == 'canceled', \

@@ -356,8 +356,8 @@ class Test_Job(Base_Api_Test):
         # cancel job
         cancel_pg.post()
 
-        # wait for job to cancel
-        job_with_status_pending = job_with_status_pending.wait_until_status('canceled')
+        # wait for job to complete
+        job_with_status_pending = job_with_status_pending.wait_until_completed()
 
         assert job_with_status_pending.status == 'canceled', \
             "Unexpected job status after cancelling (expected 'canceled') - " \
@@ -385,8 +385,8 @@ class Test_Job(Base_Api_Test):
         # cancel job
         cancel_pg.post()
 
-        # wait for job to cancel
-        job_with_status_running = job_with_status_running.wait_until_status('canceled')
+        # wait for job to complete
+        job_with_status_running = job_with_status_running.wait_until_completed()
 
         assert job_with_status_running.status == 'canceled', "Unexpected job" \
             "status after cancelling job (expected status:canceled) - %s" % \
