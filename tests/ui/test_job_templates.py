@@ -14,7 +14,6 @@ pytestmark = [
 ]
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1199')
 @pytest.mark.usefixtures('authtoken')
 def test_update_job_template(api_job_templates_pg, ui_job_templates_edit):
     """Basic end-to-end functional test for updating an existing job template
