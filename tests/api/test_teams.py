@@ -58,26 +58,6 @@ class Test_Teams(Base_Api_Test):
         with pytest.raises(common.exceptions.Duplicate_Exception):
             api_teams_pg.post(payload)
 
-    def test_cascade_delete(self, api_credentials_pg, some_team, some_team_credential):
-        '''
-        Verify that a team credentials are deleted when a team is deleted.
-        '''
-
-        # Delete the team
-        some_team.delete()
-
-        # Shouldn't be able to query credentials for the deleted team
-        with pytest.raises(common.exceptions.Forbidden_Exception):
-            some_team.get_related('credentials')
-
-        # Verify that the teams credentials were deleted
-        remaining_creds = api_credentials_pg.get(id=some_team_credential.id)
-        assert remaining_creds.count == 0, "The team was deleted, however a credential owned by the team (id:%s) remains" % remaining_creds.results[0].id
-
-        # The credential should have been deleted
-        with pytest.raises(common.exceptions.NotFound_Exception):
-            some_team_credential.get()
-
     def test_privileged_user_can_create_team(self, request, api_teams_pg, privileged_user, user_password, organization):
         '''
         Verify that a privileged user can create teams.

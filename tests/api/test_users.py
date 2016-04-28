@@ -80,24 +80,6 @@ class Test_Users(Base_Api_Test):
         with pytest.raises(common.exceptions.Duplicate_Exception):
             api_users_pg.post(payload)
 
-    def test_cascade_delete(self, api_credentials_pg, some_user, some_ssh_credential):
-        '''Verify that a credentials, owned by a user, are deleted when the user is deleted'''
-
-        # Delete the user
-        some_user.delete()
-
-        # Shouldn't be able to query credentials for the deleted user
-        with pytest.raises(common.exceptions.Forbidden_Exception):
-            some_user.get_related('credentials')
-
-        # Verify that the users credentials were deleted
-        remaining_creds = api_credentials_pg.get(id=some_ssh_credential.id)
-        assert remaining_creds.count == 0, "The user was deleted, however a credential owned by the user (id:%s) remains" % remaining_creds.results[0].id
-
-        # The credential should have been deleted
-        with pytest.raises(common.exceptions.NotFound_Exception):
-            some_ssh_credential.get()
-
     def test_org_admins_can_see_all_users(self, user_password, api_users_pg, org_admin, org_users, install_enterprise_license_unlimited, non_org_users):
         '''
         Verify the default behavior where a Tower org admin can see users
