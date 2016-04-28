@@ -32,10 +32,22 @@ class JobTemplatesEditDetails(FormPanel):
                 (By.CSS_SELECTOR, 'label[for=credential]'),
                 (By.XPATH, '..'))
         },
+        'ask_machine_credential': {
+            'region_type': 'checkbox',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=credential]'),
+                (By.XPATH, '..'))
+        },
         'inventory': {
             'required': True,
             'spinny': True,
             'region_type': 'lookup',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=inventory]'),
+                (By.XPATH, '..'))
+        },
+        'ask_inventory': {
+            'region_type': 'checkbox',
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=inventory]'),
                 (By.XPATH, '..'))
@@ -73,6 +85,12 @@ class JobTemplatesEditDetails(FormPanel):
                 (By.CSS_SELECTOR, 'label[for=job_type]'),
                 (By.XPATH, '..'))
         },
+        'ask_job_type': {
+            'region_type': 'checkbox',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=job_type]'),
+                (By.XPATH, '..'))
+        },
         'forks': {
             'region_type': 'form_group',
             'root_locator': (
@@ -97,6 +115,12 @@ class JobTemplatesEditDetails(FormPanel):
                 (By.CSS_SELECTOR, 'label[for=job_tags]'),
                 (By.XPATH, '..'))
         },
+        'ask_job_tags': {
+            'region_type': 'checkbox',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=job_tags]'),
+                (By.XPATH, '..'))
+        },
         'playbook': {
             'region_type': 'select',
             'root_locator': (
@@ -112,7 +136,7 @@ class JobTemplatesEditDetails(FormPanel):
         'ask_variables': {
             'region_type': 'checkbox',
             'root_locator': (
-                (By.CSS_SELECTOR, '#job_templates_ask_variables_on_launch_chbox'),
+                (By.CSS_SELECTOR, 'label[for=variables]'),
                 (By.XPATH, '..'))
         },
         'become_enabled': {
