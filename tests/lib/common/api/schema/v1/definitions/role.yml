@@ -25,6 +25,9 @@ role:
       properties:
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
+        resource_name: {format: string}
+        resource_type: {format: string}
+        resource_type_display_name: {format: string}
       type: object
     type: {pattern: ^role$, type: string}
     url: {format: uri, type: string}
