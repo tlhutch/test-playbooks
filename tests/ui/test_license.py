@@ -1,9 +1,10 @@
-import pytest
 import json
-
 from time import time
 from random import randint
 from datetime import datetime, timedelta
+
+import pytest
+
 from common.tower.license import generate_license_file
 
 pytestmark = [
