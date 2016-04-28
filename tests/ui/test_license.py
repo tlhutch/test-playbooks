@@ -27,15 +27,15 @@ def test_expiration_date(ui_license):
         days=randint(30, 999),
         license_type='enterprise')
 
-    with open(license_path) as license:
-        license = json.load(license)
+    with open(license_path) as license_:
+        license_ = json.load(license_)
 
     ui_license.upload(license_path)
     ui_license.agree_eula.click()
 
     ui_license.submit.click()
 
-    license_date = int(license['license_date'])
+    license_date = int(license_['license_date'])
     current_date = int(time())
     time_remaining = timedelta(seconds=license_date - current_date).days
     expires_on = datetime.utcnow() + timedelta(days=time_remaining)
