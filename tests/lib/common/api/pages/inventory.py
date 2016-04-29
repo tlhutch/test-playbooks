@@ -11,32 +11,37 @@ class Inventory_Page(Base):
     variables = property(json_getter('variables'), json_setter('variables'))
 
     def get_related(self, attr, **kwargs):
-        assert attr in self.json['related']
+        assert attr in self.json['related'], \
+            "No such related attribute '%s'" % attr
         if attr == 'hosts':
-            related = Hosts_Page(self.testsetup, base_url=self.json['related'][attr])
+            cls = Hosts_Page
         elif attr == 'groups':
-            related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
+            cls = Groups_Page
         elif attr == 'inventory_source':
-            related = Inventory_Source_Page(self.testsetup, base_url=self.json['related'][attr])
+            cls = Inventory_Source_Page
         elif attr == 'root_groups':
-            related = Groups_Page(self.testsetup, base_url=self.json['related'][attr])
+            cls = Groups_Page
         elif attr == 'script':
-            related = Base(self.testsetup, base_url=self.json['related'][attr])
+            cls = Base
         elif attr == 'ad_hoc_commands':
             from ad_hoc_commands import Ad_Hoc_Commands_Page
-            related = Ad_Hoc_Commands_Page(self.testsetup, base_url=self.json['related'][attr])
+            cls = Ad_Hoc_Commands_Page
         elif attr == 'organization':
             from organizations import Organization_Page
-            related = Organization_Page(self.testsetup, base_url=self.json['related'][attr])
+            cls = Organization_Page
         elif attr == 'access_list':
             from access_list import Access_List_Page
-            related = Access_List_Page(self.testsetup, base_url=self.json['related'][attr])
+            cls = Access_List_Page
         elif attr == 'roles':
             from roles import Roles_Page
-            related = Roles_Page(self.testsetup, base_url=self.json['related'][attr])
+            cls = Roles_Page
+        elif attr == 'job_templates':
+            from job_templates import Job_Templates_Page
+            cls = Job_Templates_Page
         else:
-            raise NotImplementedError
-        return related.get(**kwargs)
+            raise NotImplementedError("No related class found for '%s'" % attr)
+
+        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
     def print_ini(self):
         '''

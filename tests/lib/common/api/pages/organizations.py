@@ -8,35 +8,44 @@ class Organization_Page(base.Base):
     description = property(base.json_getter('description'), base.json_setter('description'))
     type = property(base.json_getter('type'), base.json_setter('type'))
 
-    def get_related(self, name, **kwargs):
-        assert name in self.json['related']
-        if name in ['users', 'admins']:
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related'], \
+            "No such related attribute '%s'" % attr
+
+        if attr in ['users', 'admins']:
             from users import Users_Page
-            related = Users_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'teams':
+            cls = Users_Page
+        elif attr in ['created_by', 'modified_by']:
+            from users import User_Page
+            cls = User_Page
+        elif attr == 'teams':
             from teams import Teams_Page
-            related = Teams_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'projects':
+            cls = Teams_Page
+        elif attr == 'projects':
             from projects import Projects_Page
-            related = Projects_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'activity_stream':
+            cls = Projects_Page
+        elif attr == 'activity_stream':
             from activity_stream import Activity_Stream_Page
-            related = Activity_Stream_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'notification_templates_any':
+            cls = Activity_Stream_Page
+        elif attr in ['notification_templates_any', 'notification_templates_error', 'notification_templates_success']:
             from notification_templates import Notification_Templates_Page
-            related = Notification_Templates_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'notification_templates_error':
-            from notification_templates import Notification_Templates_Page
-            related = Notification_Templates_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'notification_templates_success':
-            from notification_templates import Notification_Templates_Page
-            related = Notification_Templates_Page(self.testsetup, base_url=self.json['related'][name])
-        elif name == 'access_list':
+            cls = Notification_Templates_Page
+        elif attr == 'access_list':
             from access_list import Access_List_Page
-            related = Access_List_Page(self.testsetup, base_url=self.json['related'][name])
+            cls = Access_List_Page
+        elif attr == 'credentials':
+            from credentials import Credentials_Page
+            cls = Credentials_Page
+        elif attr == 'inventories':
+            from inventory import Inventories_Page
+            cls = Inventories_Page
+        elif attr == 'projects':
+            from projects import Projects_Page
+            cls = Projects_Page
         else:
-            raise NotImplementedError
-        return related.get(**kwargs)
+            raise NotImplementedError("No related class found for '%s'" % attr)
+
+        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
 
 class Organizations_Page(Organization_Page, base.Base_List):

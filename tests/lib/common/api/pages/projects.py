@@ -29,9 +29,9 @@ class Project_Page(Unified_Job_Template_Page):
             cls = Project_Update_Launch_Page
         elif attr == 'playbooks':
             cls = Playbooks_Page
-        elif attr == 'organizations':
-            from organizations import Organizations_Page
-            cls = Organizations_Page
+        elif attr == 'organization':
+            from organizations import Organization_Page
+            cls = Organization_Page
         elif attr == 'teams':
             from teams import Teams_Page
             cls = Teams_Page
