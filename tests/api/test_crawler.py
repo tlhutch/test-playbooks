@@ -7,33 +7,37 @@ from plugins.pytest_restqa.rest_client import Connection
 # Generate fixture values for 'method' and 'resource'
 def pytest_generate_tests(metafunc):
 
-    for fixture in metafunc.fixturenames:
-        test_set = list()
-        id_list = list()
+    # Don't attempt to crawl if we weren't asked to do so
+    for_reals = not (metafunc.config.option.help or metafunc.config.option.showfixtures or
+                     metafunc.config.option.markers) and metafunc.config.option.base_url not in [None, '']
+    if for_reals:
+        for fixture in metafunc.fixturenames:
+            test_set = list()
+            id_list = list()
 
-        # Skip if running with --help or --collectonly
-        if pytest.config.option.help or pytest.config.option.collectonly:
-            return
+            # Skip if running with --help or --collectonly
+            if pytest.config.option.help or pytest.config.option.collectonly:
+                return
 
-        if fixture == 'method':
-            request_methods = ['HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', ]
-            test_set.extend(request_methods)
-            id_list.extend(request_methods)
+            if fixture == 'method':
+                request_methods = ['HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', ]
+                test_set.extend(request_methods)
+                id_list.extend(request_methods)
 
-        if fixture == 'resource':
-            # Discover available API resources
-            api = Connection(pytest.config.option.base_url)
-            r = api.get('/api/')
-            data = r.json()
-            current_version = data.get('current_version')
-            r = api.get(current_version)
-            api_resources = r.json().values()
+            if fixture == 'resource':
+                # Discover available API resources
+                api = Connection(pytest.config.option.base_url)
+                r = api.get('/api/')
+                data = r.json()
+                current_version = data.get('current_version')
+                r = api.get(current_version)
+                api_resources = r.json().values()
 
-            test_set.extend(api_resources)
-            id_list.extend(api_resources)
+                test_set.extend(api_resources)
+                id_list.extend(api_resources)
 
-        if test_set and id_list:
-            metafunc.parametrize(fixture, test_set, ids=id_list)
+            if test_set and id_list:
+                metafunc.parametrize(fixture, test_set, ids=id_list)
 
 
 def assert_response(api, resource, method, response_code=httplib.OK, response_schema='unauthorized', data={}):
