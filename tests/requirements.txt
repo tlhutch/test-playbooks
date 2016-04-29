@@ -14,6 +14,8 @@ pytest-instafail
 pytest-ordering
 pytest-ansible
 pytest-github
+pylama
+pylama_pylint
 requests
 PyYAML
 jsonschema
@@ -24,7 +26,7 @@ fauxfactory
 junit-xml
 flake8
 pep8
-pylint
+# pylint
 azure
 boto
 pyrax
