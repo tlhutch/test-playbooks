@@ -369,7 +369,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         ("group-1", 4),
         ("group*:&group-1:!duplicate_host", 3),  # All groups intersect with "group-1" and not "duplicate_host"
         ("duplicate_host", 1),
-        pytest.mark.github('https://github.com/ansible/ansible/issues/14513')(("host with spaces in name", 1)),
     ])
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json
