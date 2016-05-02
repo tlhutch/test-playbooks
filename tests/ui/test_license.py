@@ -31,7 +31,12 @@ def test_expiration_date(ui_license):
         license_ = json.load(license_)
 
     ui_license.upload(license_path)
+
+    assert not ui_license.submit.is_clickable()
+
     ui_license.agree_eula.click()
+
+    assert ui_license.submit.is_clickable()
 
     ui_license.submit.click()
 
