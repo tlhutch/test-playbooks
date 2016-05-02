@@ -13,6 +13,7 @@ organization:
         activity_stream: {$ref: '#/definitions/uri'}
         admins: {$ref: '#/definitions/uri'}
         created_by: {$ref: '#/definitions/uri'}
+        credentials: {$ref: '#/definitions/uri'}
         inventories: {$ref: '#/definitions/uri'}
         modified_by: {$ref: '#/definitions/uri'}
         notifiers: {$ref: '#/definitions/uri'}
@@ -22,7 +23,7 @@ organization:
         projects: {$ref: '#/definitions/uri'}
         teams: {$ref: '#/definitions/uri'}
         users: {$ref: '#/definitions/uri'}
-      required: [admins, inventories, users, projects, teams, activity_stream, notifiers,
+      required: [admins, inventories, credentials, users, projects, teams, activity_stream, notifiers,
         notifiers_any, notifiers_error, notifiers_success, access_list]
       type: object
     summary_fields:
