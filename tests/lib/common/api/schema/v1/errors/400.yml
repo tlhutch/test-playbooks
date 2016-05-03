@@ -9,7 +9,7 @@ properties:
     password: { $ref: '#/definitions/error_required_field' }
     organization: { $ref: '#/definitions/error_required_field' }
     credential: { $ref: '#/definitions/error_required_field' }
-    inventory: { $ref: '#/definitions/error_required_field' }
+    inventory: { $ref: '#/definitions/error_required_field_inventory' }
     job_type: { $ref: '#/definitions/error_required_field' }
     project: { $ref: '#/definitions/error_required_field' }
     playbook: { $ref: '#/definitions/error_required_field' }
