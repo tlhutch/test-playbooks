@@ -85,6 +85,12 @@ if __name__ == '__main__':
     cfg['cloud']['vmware']['password'] = os.environ["VMWARE_PASSWORD"]
     cfg['cloud']['vmware']['host'] = os.environ["VMWARE_HOST"]
 
+    # Set legacy openstack info
+    cfg['cloud']['openstack']['username'] = os.environ["OPENSTACK_USERNAME"]
+    cfg['cloud']['openstack']['password'] = os.environ["OPENSTACK_PASSWORD"]
+    cfg['cloud']['openstack']['host'] = os.environ["OPENSTACK_HOST"]
+    cfg['cloud']['openstack']['project'] = os.environ["OPENSTACK_PROJECT"]
+
     # Set openstack_v2 info
     cfg['cloud']['openstack_v2']['username'] = os.environ["OPENSTACK_V2_USERNAME"]
     cfg['cloud']['openstack_v2']['password'] = os.environ["OPENSTACK_V2_PASSWORD"]
