@@ -6,7 +6,7 @@ properties:
     name: { $ref: '#/definitions/error_required_field' }
     rrule: { $ref: '#/definitions/error_required_field' }
     username: { $ref: '#/definitions/error_required_field' }
-    password: { $ref: '#/definitions/error_required_field' }
+    password: { $ref: '#/definitions/error_required_field_password' }
     organization: { $ref: '#/definitions/error_required_field' }
     credential: { $ref: '#/definitions/error_required_field' }
     inventory: { $ref: '#/definitions/error_required_field' }
