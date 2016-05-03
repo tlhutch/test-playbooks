@@ -1,8 +1,6 @@
-import json
 import pytest
 import common.tower.inventory
 import common.exceptions
-import re
 from tests.api import Base_Api_Test
 
 
@@ -13,7 +11,7 @@ def convert_to_camelcase(s):
 @pytest.fixture(scope="function", params=['cleanup_jobs_with_status_completed',
                                           'cleanup_deleted_with_status_completed',
                                           'cleanup_activitystream_with_status_completed',
-                                          'cleanup_deleted_with_status_completed',
+                                          'cleanup_facts_with_status_completed',
                                           'custom_inventory_update_with_status_completed',
                                           'project_update_with_status_completed',
                                           'job_with_status_completed',
@@ -49,36 +47,6 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
             project_update_with_status_completed,
             job_with_status_completed,
             ad_hoc_with_status_completed]
-
-
-@pytest.fixture(scope="function", params=['organization', 'org_user', 'team',
-                                          'ssh_credential', 'project',
-                                          'inventory', 'job_template',
-                                          'job_with_status_completed'])
-def old_deleted_object(request, ansible_runner, tmpdir):
-    '''
-    Creates and deletes an object.
-
-    Returns the deleted object.
-    '''
-    # If a organization is requested, acquire an enterprise license so we can
-    # create and delete the organization
-    if request.param == 'organization':
-        request.getfuncargvalue('install_enterprise_license_unlimited')
-
-    # Delete the requested object
-    obj = request.getfuncargvalue(request.param)
-    obj.delete()
-
-    # Age the deleted object using 'tower-manage'
-    cmd = "tower-manage age_deleted --days 365 --id %s --type %s" % (obj.id, convert_to_camelcase(obj.type))
-    contacted = ansible_runner.command(cmd)
-    result = contacted.values()[0]
-    assert result['rc'] == 0, "tower-manage age_deleted unexpectedly failed - %s" % json.dumps(result, indent=2)
-    assert result['stdout'] == "Aged 1 items"
-
-    # return the deleted object
-    return obj
 
 
 @pytest.mark.api
@@ -200,40 +168,6 @@ class Test_System_Jobs(Base_Api_Test):
         # check actual remaining jobs
         assert unified_jobs_pg.count == expected_number_remaining_jobs, "Unexpected number of unified_jobs returned \
             (unified_jobs_pg.count: %s != expected_number_remaining_jobs: %s)" % (unified_jobs_pg.count, expected_number_remaining_jobs)
-
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
-    def test_cleanup_deleted(self, tmpdir, old_deleted_object, cleanup_deleted_template, ansible_runner):
-        '''
-        Creates and deletes different types of objects, runs cleanup_deleted, and then verifies that
-        objects are deleted.
-        '''
-        # launch job first time
-        payload = dict(extra_vars=dict(days=365))
-        system_jobs_pg = cleanup_deleted_template.launch(payload)
-
-        # wait for cleanup to finish
-        system_jobs_pg.wait_until_completed()
-
-        # assert success
-        assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
-
-        # assert something deleted
-        match = re.search(r'^Removed (\d+) items', system_jobs_pg.result_stdout, re.MULTILINE)
-        assert match, "Unexpected output from system job - %s" % system_jobs_pg
-        assert int(match.group(1)) == 1, "Unexpected number of deleted objects (%s)" % match.group(1)
-
-        # launch job second time
-        payload = dict(extra_vars=dict(days=365))
-        system_jobs_pg = cleanup_deleted_template.launch(payload)
-
-        # assert success
-        system_jobs_pg.wait_until_completed()
-        assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
-
-        # assert that nothing was deleted on the second job run
-        match = re.search(r'^Removed (\d+) items', system_jobs_pg.result_stdout, re.MULTILINE)
-        assert match, "Unexpected output from system job - %s" % system_jobs_pg
-        assert int(match.group(1)) == 0, "Unexpected number of deleted objects (%s)" % match.group(1)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     def test_cleanup_activitystream(self, cleanup_activitystream_template, multiple_jobs_with_status_completed, api_activity_stream_pg):
