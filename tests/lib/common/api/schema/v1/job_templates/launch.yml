@@ -19,5 +19,37 @@ properties:
     $ref: '#/definitions/passwords_needed_to_start'
   variables_needed_to_start:
     $ref: '#/definitions/variables_needed_to_start'
+  job_template_data:
+    additionalProperties: false
+    properties:
+      id: {$ref: '#/definitions/id'}
+      description: {type: string}
+      name: {type: string}
+    type: object
+    required: [id, description, name]
+  defaults:
+    additionalProperties: false
+    properties:
+      job_tags: {type: string}
+      extra_vars: {type: string}
+      job_type: {type: string}
+      skip_tags: {type: string}
+      limit: {type: string}
+      inventory:
+        additionalProperties: false
+        properties:
+          id: {$ref: '#/definitions/id_or_null'}
+          name: {$ref: '#/definitions/string_or_null'}
+        type: object
+        required: [id, name]
+      credential:
+        additionalProperties: false
+        properties:
+          id: {$ref: '#/definitions/id_or_null'}
+          name: {$ref: '#/definitions/string_or_null'}
+        type: object
+        required: [id, name]
+    type: object
+    required: [job_tags, extra_vars, job_type, skip_tags, limit, inventory, credential]
 definitions:
-    !include '../definitions/*_needed_to_start.yml'
+    !include '../definitions/*.yml'
