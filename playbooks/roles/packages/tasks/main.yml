@@ -83,7 +83,7 @@
   yum:
     name: '{{ ansible_package_name }}'
     state: latest
-  when: ansible_pkg_mgr == 'yum'
+  when: ansible_pkg_mgr == 'yum' and ansible_install_method in ['stable', 'testing', 'nightly']
 
 - name: install ansible deb
   apt:
