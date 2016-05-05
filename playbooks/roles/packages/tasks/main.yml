@@ -88,7 +88,7 @@
 - name: install ansible deb
   apt:
     name: '{{ ansible_package_name }}'
-    state: latest
+    state: present
     update_cache: yes
     force: yes
   when: ansible_pkg_mgr == 'apt' and ansible_install_method in ['stable', 'testing', 'nightly']
