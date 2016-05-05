@@ -9,8 +9,8 @@ properties:
       extra_vars: {type: object}
       job_type: {type: string}
       limit: {type: string}
-      inventory: {type: string}
-      credential: {type: string}
+      inventory: {$ref: '#/definitions/id'}
+      credential: {$ref: '#/definitions/id'}
       job_tags: {type: string}
       skip_tags: {type: string}
     type: object

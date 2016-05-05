@@ -6,9 +6,11 @@ import pytest
 
 import common.rrule
 
-# from credentials import ssh_credential
-# from projects import project
-# from inventories import inventory
+
+@pytest.fixture(scope="function", params=['job_template', 'check_job_template'])
+def nonscan_job_template(request):
+    '''Convenience fixture that iterates through non-scan JTs.'''
+    return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture(scope="function")
@@ -158,7 +160,7 @@ def check_job_template(job_template):
 def scan_job_template(request, authtoken, api_job_templates_pg, ssh_credential, host_local):
     '''Define a basic scan job_template'''
 
-    payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
+    payload = dict(name="scan_job_template-%s" % fauxfactory.gen_utf8(),
                    description="Random scan job_template with machine credential - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
                    job_type='scan',
@@ -228,6 +230,22 @@ def optional_survey_spec():
                               variable="submitter_email",
                               type="text",
                               default="mjones@maffletrox.edu"),
+                         dict(required=False,
+                              question_name="Enter your employee number email &mdash; &euro;",
+                              variable="employee_number",
+                              type="integer",)])
+    return payload
+
+
+@pytest.fixture(scope="function")
+def optional_survey_spec_without_defaults():
+    # TODO - add an optional question for each question type
+    payload = dict(name=fauxfactory.gen_utf8(),
+                   description=fauxfactory.gen_utf8(),
+                   spec=[dict(required=False,
+                              question_name="Enter your email &mdash; &euro;",
+                              variable="submitter_email",
+                              type="text",),
                          dict(required=False,
                               question_name="Enter your employee number email &mdash; &euro;",
                               variable="employee_number",
