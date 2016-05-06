@@ -35,9 +35,9 @@ project:
         last_update: {format: uri, type: string}
         modified_by: {format: uri, type: string}
         next_schedule: {format: uri, type: string}
-        notifiers_any: {format: uri, type: string}
-        notifiers_error: {format: uri, type: string}
-        notifiers_success: {format: uri, type: string}
+        notification_templates_any: {format: uri, type: string}
+        notification_templates_error: {format: uri, type: string}
+        notification_templates_success: {format: uri, type: string}
         organization: {format: uri, type: string}
         playbooks: {format: uri, type: string}
         project_updates: {format: uri, type: string}
@@ -45,7 +45,8 @@ project:
         teams: {format: uri, type: string}
         update: {format: uri, type: string}
       required: [created_by, organization, project_updates, playbooks, update, teams,
-        activity_stream, notifiers_any, notifiers_error, notifiers_success, access_list]
+        activity_stream, notification_templates_any, notification_templates_error,
+        notification_templates_success, access_list]
       type: object
     scm_branch: {type: string}
     scm_clean: {type: boolean}

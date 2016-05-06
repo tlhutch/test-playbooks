@@ -52,15 +52,15 @@ job_template:
         modified_by: {format: uri, type: string}
         network_credential: {format: uri, type: string}
         next_schedule: {format: uri, type: string}
-        notifiers_any: {format: uri, type: string}
-        notifiers_error: {format: uri, type: string}
-        notifiers_success: {format: uri, type: string}
+        notification_templates_any: {format: uri, type: string}
+        notification_templates_error: {format: uri, type: string}
+        notification_templates_success: {format: uri, type: string}
         project: {format: uri, type: string}
         schedule: {format: uri, type: string}
         schedules: {format: uri, type: string}
         survey_spec: {format: uri, type: string}
-      required: [created_by, jobs, activity_stream, labels, notifiers_any, notifiers_error,
-        notifiers_success, access_list]
+      required: [created_by, jobs, activity_stream, labels, notification_templates_any, notification_templates_error,
+        notification_templates_success, access_list]
       type: object
     skip_tags: {type: string}
     start_at_task: {type: string}
