@@ -24,14 +24,14 @@ system_job_template:
         last_job: {format: uri, type: string}
         launch: {format: uri, type: string}
         next_schedule: {format: uri, type: string}
-        notifiers_any: {format: uri, type: string}
-        notifiers_error: {format: uri, type: string}
-        notifiers_success: {format: uri, type: string}
+        notification_templates_any: {format: uri, type: string}
+        notification_templates_error: {format: uri, type: string}
+        notification_templates_success: {format: uri, type: string}
         schedule: {format: uri, type: string}
         schedules: {format: uri, type: string}
         survey_spec: {format: uri, type: string}
         modified_by: {format: uri, type: string}
-      required: [jobs, notifiers_any, notifiers_error, notifiers_success]
+      required: [jobs, notification_templates_any, notification_templates_error, notification_templates_success]
       type: object
     status: {$ref: '#/definitions/enum_job_template_status'}
     summary_fields:
