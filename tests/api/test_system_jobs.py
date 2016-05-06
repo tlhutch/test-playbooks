@@ -76,7 +76,7 @@ class Test_System_Jobs(Base_Api_Test):
         '''
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
-                with pytest.raises(common.exceptions.NotFound_Exception):
+                with pytest.raises(common.exceptions.Forbidden_Exception):
                     api_system_jobs_pg.get(id=system_job.id)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
