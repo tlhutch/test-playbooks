@@ -4,5 +4,8 @@ error_required_field_inventory:
     minItems: 1
     uniqueItems: True
     items:
-        type: string
-        pattern: '^No valid inventory.$'
+        oneOf:
+            - type: string
+              pattern: '^No valid inventory.$'
+            - type: string
+              pattern: '^This field is required.$'

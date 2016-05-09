@@ -1,0 +1,6 @@
+---
+summary_fields_owners:
+    items: {$ref: '#/definitions/summary_fields_owner'}
+    minItems: 0
+    type: array
+    uniqueItems: true
