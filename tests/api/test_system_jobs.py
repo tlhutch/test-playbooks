@@ -9,7 +9,6 @@ def convert_to_camelcase(s):
 
 
 @pytest.fixture(scope="function", params=['cleanup_jobs_with_status_completed',
-                                          'cleanup_deleted_with_status_completed',
                                           'cleanup_activitystream_with_status_completed',
                                           'cleanup_facts_with_status_completed',
                                           'custom_inventory_update_with_status_completed',
@@ -27,7 +26,6 @@ def unified_job_with_status_completed(request):
 
 @pytest.fixture(scope="function")
 def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
-                                        cleanup_deleted_with_status_completed,
                                         cleanup_activitystream_with_status_completed,
                                         cleanup_facts_with_status_completed,
                                         custom_inventory_update_with_status_completed,
@@ -40,7 +38,6 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
     Returns a list of the jobs run.
     '''
     return [cleanup_jobs_with_status_completed,
-            cleanup_deleted_with_status_completed,
             cleanup_activitystream_with_status_completed,
             cleanup_facts_with_status_completed,
             custom_inventory_update_with_status_completed,
