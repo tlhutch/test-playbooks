@@ -1,0 +1,9 @@
+summary_fields_owner:
+  additionalProperties: false
+  properties:
+    url: {format: uri, type: string}
+    description: {type: string}
+    id: {$ref: '#/definitions/id'}
+    name: {type: string}
+  required: [url, description, id, name]
+  type: object
