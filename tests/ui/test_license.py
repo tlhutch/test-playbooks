@@ -67,6 +67,8 @@ def test_license_date(api_config_pg, ui_license):
 
 
 def test_malformed_license(ui_license):
+    """Verify the alert modal is displayed when an invalid json file is uploaded
+    """
     (fd, license_path) = tempfile.mkstemp(suffix='.json')
     os.write(fd, 'this is not valid json')
     os.close(fd)
