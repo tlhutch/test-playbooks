@@ -59,8 +59,8 @@ job_template:
         schedule: {format: uri, type: string}
         schedules: {format: uri, type: string}
         survey_spec: {format: uri, type: string}
-      required: [created_by, jobs, activity_stream, labels, notification_templates_any, notification_templates_error,
-        notification_templates_success, access_list]
+      required: [created_by, jobs, activity_stream, labels, notification_templates_any,
+        notification_templates_error, notification_templates_success, access_list]
       type: object
     skip_tags: {type: string}
     start_at_task: {type: string}
@@ -68,6 +68,7 @@ job_template:
     summary_fields:
       additionalProperties: false
       properties:
+        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
         can_copy: {type: boolean}
         can_edit: {type: boolean}
         cloud_credential: {$ref: '#/definitions/summary_fields_credential'}
@@ -81,7 +82,6 @@ job_template:
         last_update: {$ref: '#/definitions/summary_fields_job'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         network_credential: {$ref: '#/definitions/summary_fields_network_credential'}
-        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
         project: {$ref: '#/definitions/summary_fields_project'}
         recent_jobs: {$ref: '#/definitions/summary_fields_recent_jobs'}
         roles:

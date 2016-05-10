@@ -1,4 +1,4 @@
-summary_fields_label:
+summary_fields_labels_result:
   additionalProperties: false
   properties:
     id: {$ref: '#/definitions/id'}
