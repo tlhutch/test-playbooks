@@ -1,5 +1,4 @@
 import os
-import json
 import tempfile
 from time import time
 from random import randint
@@ -35,7 +34,7 @@ def test_license_upload(ui_license):
 
     assert ui_license.submit.is_clickable()
 
-    ui_license.submit.click() # redirects to dashboard here
+    ui_license.submit.click()  # redirects to dashboard here
 
     ui_license.get(ui_license.url)
     ui_license.wait_for_spinny()
@@ -78,6 +77,7 @@ def test_malformed_license(ui_license):
     ui_license.alert_modal.wait_until_displayed()
 
     assert 'invalid' in ui_license.alert_modal.text.lower()
+
 
 def test_missing_license_file(ui_license):
     """Verify the submit button is not clickable when a file is attached to

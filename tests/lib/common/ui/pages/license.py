@@ -24,7 +24,6 @@ class License(TowerPage):
     _expires_on = (By.XPATH, '//*[text()="Expires On"]/following::div')
     _time_remaining = (By.XPATH, '//*[text()="Time Remaining"]/following::div')
 
-
     @property
     def license_status(self):
         return Region(self, root_locator=self._license_status)
