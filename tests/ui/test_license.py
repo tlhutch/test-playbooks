@@ -78,3 +78,12 @@ def test_malformed_license(ui_license):
     ui_license.alert_modal.wait_until_displayed()
 
     assert 'invalid' in ui_license.alert_modal.text.lower()
+
+def test_missing_license_file(ui_license):
+    """Verify the submit button is not clickable when a file is attached to
+    the upload input but does not exist on disk.
+    """
+    ui_license.upload('/not_a_real_file.json')
+    ui_license.agree_eula.click()
+
+    assert not ui_license.submit.is_clickable()
