@@ -12,6 +12,8 @@ class License(TowerPage):
 
     _license_status = (By.XPATH, '//*[text()="License"]/following::div')
 
+    _alert_modal = (By.CSS_SELECTOR, '[id="alert-modal-msg"]')
+
     _agree_eula = (
         (By.CSS_SELECTOR, '[class="License-details--label"]'),
         (By.CSS_SELECTOR, '[type="checkbox'))
@@ -46,6 +48,10 @@ class License(TowerPage):
     @property
     def time_remaining(self):
         return Region(self, root_locator=self._time_remaining)
+
+    @property
+    def alert_modal(self):
+        return Region(self, root_locator=self._alert_modal)
 
     def upload(self, file_path):
         self.license_upload.root.send_keys(file_path)

@@ -1,4 +1,6 @@
+import os
 import json
+import tempfile
 from time import time
 from random import randint
 from datetime import datetime, timedelta
@@ -62,3 +64,15 @@ def test_license_date(api_config_pg, ui_license):
 
     assert ui_license.time_remaining.text == "%s Days" % time_remaining
     assert ui_license.expires_on.text == expires_on.strftime("%m/%d/%Y")
+
+
+def test_malformed_license(ui_license):
+    (fd, license_path) = tempfile.mkstemp(suffix='.json')
+    os.write(fd, 'this is not valid json')
+    os.close(fd)
+
+    ui_license.upload(license_path)
+
+    ui_license.alert_modal.wait_until_displayed()
+
+    assert 'invalid' in ui_license.alert_modal.text.lower()
