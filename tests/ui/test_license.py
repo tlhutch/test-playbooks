@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from common.tower.license import generate_license_file
+from common.tower.license import generate_license, generate_license_file
 
 pytestmark = [
     pytest.mark.ui,
@@ -17,18 +17,13 @@ pytestmark = [
 ]
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1250')
 @pytest.mark.usefixtures('no_license')
-def test_expiration_date(ui_license):
-    """Check that the correct expiration date and time remaining are
-    displayed on the license page.
+def test_license_upload(ui_license):
+    """Basic end-to-end verification for uploading a valid license
     """
     license_path = generate_license_file(
         days=randint(30, 999),
         license_type='enterprise')
-
-    with open(license_path) as license_:
-        license_ = json.load(license_)
 
     ui_license.upload(license_path)
 
@@ -38,9 +33,29 @@ def test_expiration_date(ui_license):
 
     assert ui_license.submit.is_clickable()
 
-    ui_license.submit.click()
+    ui_license.submit.click() # redirects to dashboard here
 
-    license_date = int(license_['license_date'])
+    ui_license.get(ui_license.url)
+    ui_license.wait_for_spinny()
+
+    assert ui_license.license_status.text == 'Valid'
+
+
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1250')
+@pytest.mark.usefixtures('no_license')
+def test_license_date(api_config_pg, ui_license):
+    """Verify the correct time remaining and license expiration date
+    """
+    license_info = generate_license(
+        days=randint(30, 999),
+        license_type='enterprise')
+
+    api_config_pg.post(license_info)
+
+    ui_license.get(ui_license.url)
+    ui_license.wait_for_spinny()
+
+    license_date = int(license_info['license_date'])
     current_date = int(time())
     time_remaining = timedelta(seconds=license_date - current_date).days
     expires_on = datetime.utcnow() + timedelta(days=time_remaining)

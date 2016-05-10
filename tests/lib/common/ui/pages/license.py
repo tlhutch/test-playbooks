@@ -10,6 +10,8 @@ class License(TowerPage):
 
     _path = '/#/license'
 
+    _license_status = (By.XPATH, '//*[text()="License"]/following::div')
+
     _agree_eula = (
         (By.CSS_SELECTOR, '[class="License-details--label"]'),
         (By.CSS_SELECTOR, '[type="checkbox'))
@@ -19,6 +21,11 @@ class License(TowerPage):
 
     _expires_on = (By.XPATH, '//*[text()="Expires On"]/following::div')
     _time_remaining = (By.XPATH, '//*[text()="Time Remaining"]/following::div')
+
+
+    @property
+    def license_status(self):
+        return Region(self, root_locator=self._license_status)
 
     @property
     def agree_eula(self):
@@ -30,7 +37,7 @@ class License(TowerPage):
 
     @property
     def submit(self):
-        return Clickable(self, root_locator=self._submit, spinny=True)
+        return Clickable(self, root_locator=self._submit)
 
     @property
     def expires_on(self):
