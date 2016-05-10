@@ -449,3 +449,13 @@ for jobTemplate in SystemJobTemplate.objects.all():
     return ManagementJobs(mozwebqa.base_url,
                           mozwebqa.selenium,
                           **default_credentials).open()
+
+
+@pytest.fixture
+def ui_license(
+    mozwebqa,
+    default_credentials
+):
+    return License(mozwebqa.base_url,
+                   mozwebqa.selenium,
+                   **default_credentials).open()
