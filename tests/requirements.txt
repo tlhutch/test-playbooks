@@ -31,3 +31,4 @@ azure
 boto
 pyrax
 pysphere
+pytest-factoryboy
