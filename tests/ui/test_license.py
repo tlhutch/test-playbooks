@@ -42,7 +42,6 @@ def test_license_upload(ui_license):
     assert ui_license.license_status.text == 'Valid'
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1250')
 @pytest.mark.usefixtures('no_license')
 def test_license_date(api_config_pg, ui_license):
     """Verify the correct time remaining and license expiration date
@@ -54,6 +53,7 @@ def test_license_date(api_config_pg, ui_license):
     api_config_pg.post(license_info)
 
     ui_license.get(ui_license.url)
+    ui_license.time_remaining.wait_until_displayed()
     ui_license.wait_for_spinny()
 
     license_date = int(license_info['license_date'])
