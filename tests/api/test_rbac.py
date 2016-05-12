@@ -4,6 +4,7 @@ import factory
 import fauxfactory
 import pytest
 from pytest_factoryboy import register
+from pytest_factoryboy import LazyFixture
 
 from common.api.pages import *
 from common.exceptions import LicenseExceeded_Exception as Forbidden_Exception # TODO: Fix this
@@ -13,51 +14,53 @@ pytestmark = [pytest.mark.nondestructive, pytest.mark.rbac]
 
 
 class PageFactoryOptions(factory.base.FactoryOptions):
-
+    """Tower API Page Model Base Factory Config
+    """
     def _build_default_options(self):
         options = super(PageFactoryOptions, self)._build_default_options()
         options.append(factory.base.OptionDefault(
-            'page_get_or_create', (), inherit=True))
+            'get_or_create', (), inherit=True))
         return options
 
 
 class PageFactory(factory.Factory):
-    """Base Factory for Tower API Page Model Objects
+    """Tower API Page Model Base Factory
     """
     _options_class = PageFactoryOptions
 
     @classmethod
     def _get_or_create(cls, model_class, *args, **kwargs):
-        """Create an instance of the model through its associated
-        rest api endpoint if it doesn't already exist
+        """Create an instance of the model through its associated rest api
+        endpoint if it doesn't already exist
         """
+        model = model_class(*args)
         key_fields = {}
-        for field in cls._meta.page_get_or_create:
+        for field in cls._meta.get_or_create:
             if field not in kwargs:
                 raise factory.errors.FactoryError(
-                    "page_get_or_create - "
-                    "Unable to find initialization value for '{0}' "
-                    "in factory {1}".format(field, cls.__name__))
+                    "Unable to find initialization value for "
+                    "'{0}' in factory {1}".format(field, cls.__name__))
             key_fields[field] = kwargs[field]
         try:
-            obj = model_class.get(**key_fields).results.pop()
+            obj = model.get(**key_fields).results.pop()
         except IndexError:
-            obj = model_class.post(kwargs)
+            obj = model.post(kwargs)
         return obj
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         """Create data and post to the associated endpoint
         """
-        if cls._meta.page_get_or_create:
+        if cls._meta.get_or_create:
             return cls._get_or_create(model_class, *args, **kwargs)
-        return model_class.post(kwargs)
+        return model_class(*args).post(kwargs)
 
 
 class OrganizationFactory(PageFactory):
     class Meta:
         model = Organizations_Page
-        page_get_or_create = ('name',)
+        inline_args = ('testsetup',)
+        get_or_create = ('name',)
     name = factory.Sequence(lambda n: 'org_{}'.format(n))
     description = fauxfactory.gen_utf8()
 
@@ -65,7 +68,8 @@ class OrganizationFactory(PageFactory):
 class UserFactory(PageFactory):
     class Meta:
         model = Users_Page
-        page_get_or_create = ('username',)
+        inline_args = ('testsetup',)
+        get_or_create = ('username',)
     username = factory.Sequence(lambda n: 'user_{}'.format(n))
     organization = factory.SubFactory(OrganizationFactory)
     password = 'fo0m4nchU'
@@ -78,7 +82,8 @@ class UserFactory(PageFactory):
 class ProjectFactory(PageFactory):
     class Meta:
         model = Projects_Page
-        page_get_or_create = ('name',)
+        inline_args = ('testsetup',)
+        get_or_create = ('name',)
     name = factory.Sequence(lambda n: 'project_{}'.format(n))
     organization = factory.SubFactory(OrganizationFactory)
     scm_type = 'git'
@@ -91,11 +96,10 @@ class ProjectFactory(PageFactory):
             return 'https://bitbucket.org/jlaska/ansible-helloworld'
 
 
-register(OrganizationFactory, 'org_factory')
+register(OrganizationFactory)
 register(UserFactory, 'user_factory')
 register(ProjectFactory, 'project_factory')
 
-##############################################################################
 
 @pytest.fixture
 def auth_user(testsetup, api_authtoken_url, default_password):
@@ -139,10 +143,8 @@ def test_access_ex1(auth_user, add_role, user_factory, org_factory, project_fact
     red_project = project_factory(name='red_project', organization__name='red')
     blu_project = project_factory(name='blu_project', organization__name='blu')
     # make users and roles
-    red_org_admin = user_factory(username='red_org_admin')
-    red_org_member = user_factory(username='red_org_member')
-    add_role(red, 'admin', red_org_admin)
-    add_role(blu, 'member', red_org_member)
+    add_role(red, 'admin', user_factory(username='red_org_admin'))
+    add_role(blu, 'member', user_factory(username='red_org_member'))
     # check some access
     with auth_user('red_org_admin'):
         # an org admin can run project updates on projects in their org
@@ -150,6 +152,7 @@ def test_access_ex1(auth_user, add_role, user_factory, org_factory, project_fact
         # but not on projects outside of their org
         with pytest.raises(Forbidden_Exception):
             blu_project.get_related('update').can_update
+
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 def test_access_ex2(auth_user, add_role, project_factory):
