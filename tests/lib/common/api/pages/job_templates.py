@@ -61,6 +61,15 @@ class Job_Template_Page(Unified_Job_Template_Page):
         elif attr == 'labels':
             from labels import Labels_Page
             cls = Labels_Page
+        elif attr == 'notification_templates_any':
+            from notification_templates import Notification_Templates_Page
+            cls = Notification_Templates_Page
+        elif attr == 'notification_templates_error':
+            from notification_templates import Notification_Templates_Page
+            cls = Notification_Templates_Page
+        elif attr == 'notification_templates_success':
+            from notification_templates import Notification_Templates_Page
+            cls = Notification_Templates_Page
         elif attr == 'access_list':
             from access_list import Access_List_Page
             cls = Access_List_Page

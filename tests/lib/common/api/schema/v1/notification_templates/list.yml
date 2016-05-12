@@ -1,6 +1,6 @@
 ---
 $schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/notifiers/'
+id: '/api/v1/notification_templates/'
 type: object
 additionalProperties: false
 required: [count, next, previous, results]
@@ -15,6 +15,6 @@ properties:
     minItems: 0
     uniqueItems: true
     items:
-        $ref: '#/definitions/notifier'
+        $ref: '#/definitions/notification_template'
 definitions:
   !include '../definitions/*.yml'

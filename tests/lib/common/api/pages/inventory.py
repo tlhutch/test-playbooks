@@ -25,6 +25,9 @@ class Inventory_Page(Base):
         elif attr == 'ad_hoc_commands':
             from ad_hoc_commands import Ad_Hoc_Commands_Page
             related = Ad_Hoc_Commands_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'organization':
+            from organizations import Organization_Page
+            related = Organization_Page(self.testsetup, base_url=self.json['related'][attr])
         elif attr == 'access_list':
             from access_list import Access_List_Page
             related = Access_List_Page(self.testsetup, base_url=self.json['related'][attr])
@@ -223,6 +226,15 @@ class Inventory_Source_Page(Unified_Job_Template_Page):
         elif attr == 'schedules':
             from schedules import Schedules_Page
             cls = Schedules_Page
+        elif attr == 'notification_templates_any':
+            from notification_templates import Notification_Templates_Page
+            cls = Notification_Templates_Page
+        elif attr == 'notification_templates_error':
+            from notification_templates import Notification_Templates_Page
+            cls = Notification_Templates_Page
+        elif attr == 'notification_templates_success':
+            from notification_templates import Notification_Templates_Page
+            cls = Notification_Templates_Page
 
         if cls is None:
             raise NotImplementedError("No related class found for '%s'" % attr)

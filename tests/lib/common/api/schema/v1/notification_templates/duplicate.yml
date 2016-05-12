@@ -8,6 +8,6 @@ properties:
         uniqueItems: True
         items:
             type: string
-            pattern: '^Notifier with this Name already exists.$'
+            pattern: '^Notification template with this Name already exists.$'
 required: [name]
 additionalProperties: False

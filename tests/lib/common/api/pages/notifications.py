@@ -8,7 +8,7 @@ class Notification_Page(Base):
     url = property(json_getter('url'), json_setter('url'))
     created = property(json_getter('created'), json_setter('created'))
     modified = property(json_getter('modified'), json_setter('modified'))
-    notifier = property(json_getter('notifier'), json_setter('notifier'))
+    notification_template = property(json_getter('notification_template'), json_setter('notification_template'))
     error = property(json_getter('error'), json_setter('error'))
     status = property(json_getter('status'), json_setter('status'))
     notifications_sent = property(json_getter('notifications_sent'), json_setter('notifications_sent'))
