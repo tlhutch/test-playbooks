@@ -250,4 +250,9 @@ class Test_AC_1035(Base_Api_Test):
 
     def test_job_templates_extra_var_attr_invalid(self, job_templates_yaml):
         '''Assert that no data validation happens updating extra_vars with invalid JSON/YAML'''
-        job_templates_yaml.patch(extra_vars="{")
+        payload = dict(extra_vars="{")
+        exc_info = pytest.raises(BadRequest_Exception, job_templates_yaml.patch, **payload)
+        result = exc_info.value[1]
+
+        assert result == {u'extra_vars': [u'Must be valid JSON or YAML']}, \
+            "Unexpected API response when patching a JT with invalid JSON/YAML extra_vars: %s." % json.dumps(result)
