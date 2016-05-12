@@ -26,6 +26,7 @@ def form_page(request):
     return request.getfuncargvalue(request.param)
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1907')
 @pytest.mark.usefixtures('supported_window_sizes')
 def test_details_component_visibility(form_page):
     """Verify basic form component visibility and responsiveness
