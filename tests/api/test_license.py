@@ -730,7 +730,7 @@ class Test_Legacy_License(Base_Api_Test):
         exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, api_job_templates_pg.post, payload)
         result = exc_info.value[1]
 
-        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
+        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license.'}, \
             "Unexpected API response when attempting to POST a scan job template with a legacy license - %s." % json.dumps(result)
 
         # attempt to patch job template into scan job template
@@ -738,7 +738,7 @@ class Test_Legacy_License(Base_Api_Test):
         exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
         result = exc_info.value[1]
 
-        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
+        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license.'}, \
             "Unexpected API response when attempting to patch a job template into a scan job template with a legacy license - %s." % json.dumps(result)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
@@ -1267,7 +1267,7 @@ class Test_Basic_License(Base_Api_Test):
         exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, api_job_templates_pg.post, payload)
         result = exc_info.value[1]
 
-        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
+        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license.'}, \
             "Unexpected API response when attempting to POST a scan job template with a basic license - %s." % json.dumps(result)
 
         # attempt to patch job template into scan job template
@@ -1275,7 +1275,7 @@ class Test_Basic_License(Base_Api_Test):
         exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
         result = exc_info.value[1]
 
-        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license'}, \
+        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license.'}, \
             "Unexpected API response when attempting to patch a job template into a scan job template with a basic license - %s." % json.dumps(result)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
