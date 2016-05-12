@@ -159,7 +159,7 @@ def test_activity_stream_after_inventory_update(ui_inventories_edit):
         'Activity stream table unexpectedly not populated')
 
     # sort the table by event time in ascending order
-    activity_stream.table.set_column_sort_order(('event_time', 'ascending'))
+    activity_stream.table.set_column_sort_order(('time', 'ascending'))
 
     # get the top row
     top_row = activity_stream.table[0]
