@@ -212,3 +212,14 @@ def test_access_example_02(auth_user, add_role, project_factory, role):
         # nor can they see the organization their project belongs to
         with pytest.raises(Forbidden_Exception):
             green_project.get_related('organization')
+
+
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+def test_example_03(api_users_pg, api_organizations_pg, user_factory):
+    n = 50
+    assert api_users_pg.get(last_name='mac').count == 0
+    assert api_organizations_pg.get(name='philly').count == 0
+    for _ in range(n):
+        user_factory(last_name='mac', related_org__name='philly')
+    assert api_users_pg.get(last_name='mac').count == n
+    assert api_organizations_pg.get(name='philly').count == 1
