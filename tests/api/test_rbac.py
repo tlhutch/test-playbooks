@@ -55,6 +55,19 @@ class PageFactory(factory.Factory):
         return model_class(testsetup).post(kwargs)
 
 
+def factory_fixture(page_factory, **factory_defaults):
+    @pytest.fixture
+    def _factory(request):
+        def _model(**kwargs):
+            kwargs = dict(factory_defaults.items() + kwargs.items())
+            obj = page_factory(request=request, **kwargs)
+            request.addfinalizer(obj.silent_delete)
+            return obj
+        return _model
+    return _factory
+
+##############################################################################
+
 class OrgFactory(PageFactory):
     class Meta:
         model = Organizations_Page
@@ -105,32 +118,14 @@ class ProjectFactory(PageFactory):
         elif self.scm_type == 'hg':
             return 'https://bitbucket.org/jlaska/ansible-helloworld'
 
+
+# register factory fixtures
+org_factory = factory_fixture(OrgFactory)
+user_factory = factory_fixture(UserFactory)
+project_factory = factory_fixture(ProjectFactory)
+hg_project_factory = factory_fixture(ProjectFactory, scm_type="hg")
+
 ##############################################################################
-
-@pytest.fixture
-def project_factory(request):
-    def _project(**kwargs):
-        obj = ProjectFactory(request=request, **kwargs)
-        request.addfinalizer(obj.silent_delete)
-        return obj
-    return _project
-
-@pytest.fixture
-def user_factory(request):
-    def _user(**kwargs):
-        obj = UserFactory(request=request, **kwargs)
-        request.addfinalizer(obj.silent_delete)
-        return obj
-    return _user
-
-@pytest.fixture
-def org_factory(request):
-    def _org(**kwargs):
-        obj = OrgFactory(request=request, **kwargs)
-        request.addfinalizer(obj.silent_delete)
-        return obj
-    return _org
-
 
 @pytest.fixture
 def auth_user(testsetup, api_authtoken_url, default_password):
@@ -166,6 +161,17 @@ def add_role(request, testsetup, user_factory):
 ##############################################################################
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+def test_factory_fixture_defaults(project_factory, hg_project_factory):
+    project = project_factory(related_org__name='Default')
+    hg_project = hg_project_factory(related_org__name='Default')
+    assert 'github' in project.scm_url
+    assert 'bitbucket' in hg_project.scm_url
+    # you can override registered factory fixture defaults
+    other_hg = hg_project_factory(scm_type='git', related_org__name='Default')
+    assert 'github' in other_hg.scm_url
+
+
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 def test_access_example_01(auth_user, add_role, user_factory, org_factory, project_factory):
     # make some orgs
     red = org_factory(name='red', description='Reliable Excavation & Demolition')
@@ -183,16 +189,18 @@ def test_access_example_01(auth_user, add_role, user_factory, org_factory, proje
         with pytest.raises(Forbidden_Exception):
             blu_project.get_related('update').can_update
 
+
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-def test_access_example_02(auth_user, add_role, project_factory):
+@pytest.mark.parametrize('role', ['admin', 'member', 'scm_update'])
+def test_access_example_02(auth_user, add_role, project_factory, role):
     # add_role and factories are 'get or create' with respect to resource
     # dependencies. You don't need to bring factory fixtures into your
     # test context unless you need to explicitly interact with the endpoint.
     green_project = project_factory(name='green_project', related_org__name='green')
     other_project = project_factory(name='other_project', related_org__name='green')
     add_role(green_project, 'admin', 'green_project_admin')
-    add_role(green_project, 'member','green_project_member')
-    with auth_user('green_project_member'):
+    add_role(green_project, role, 'green_project_user')
+    with auth_user('green_project_user'):
         # project members can run project updates
         assert green_project.get_related('update').can_update
         # and see who their project admins are
