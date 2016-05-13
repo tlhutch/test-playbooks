@@ -3,8 +3,6 @@ from contextlib import contextmanager
 import factory
 import fauxfactory
 import pytest
-from pytest_factoryboy import register
-from pytest_factoryboy import LazyFixture
 
 from common.api.pages import *
 from common.exceptions import LicenseExceeded_Exception as Forbidden_Exception # TODO: Fix this
@@ -14,7 +12,7 @@ pytestmark = [pytest.mark.nondestructive, pytest.mark.rbac]
 
 
 class PageFactoryOptions(factory.base.FactoryOptions):
-    """Tower API Page Model Base Factory Config
+    """Configuration for PageFactory
     """
     def _build_default_options(self):
         options = super(PageFactoryOptions, self)._build_default_options()
@@ -29,17 +27,17 @@ class PageFactory(factory.Factory):
     _options_class = PageFactoryOptions
 
     @classmethod
-    def _get_or_create(cls, model_class, *args, **kwargs):
+    def _get_or_create(cls, model_class, testsetup, **kwargs):
         """Create an instance of the model through its associated rest api
         endpoint if it doesn't already exist
         """
-        model = model_class(*args)
+        model = model_class(testsetup)
         key_fields = {}
         for field in cls._meta.get_or_create:
             if field not in kwargs:
                 raise factory.errors.FactoryError(
-                    "Unable to find initialization value for "
-                    "'{0}' in factory {1}".format(field, cls.__name__))
+                    "{0} factory initialization value '{1}' not found".format(
+                        cls.__name__, field))
             key_fields[field] = kwargs[field]
         try:
             obj = model.get(**key_fields).results.pop()
@@ -48,19 +46,21 @@ class PageFactory(factory.Factory):
         return obj
 
     @classmethod
-    def _create(cls, model_class, *args, **kwargs):
+    def _create(cls, model_class, request, **kwargs):
         """Create data and post to the associated endpoint
         """
+        testsetup = request.getfuncargvalue('testsetup')
         if cls._meta.get_or_create:
-            return cls._get_or_create(model_class, *args, **kwargs)
-        return model_class(*args).post(kwargs)
+            return cls._get_or_create(model_class, testsetup, **kwargs)
+        return model_class(testsetup).post(kwargs)
 
 
-class OrganizationFactory(PageFactory):
+class OrgFactory(PageFactory):
     class Meta:
         model = Organizations_Page
-        inline_args = ('testsetup',)
+        inline_args = ('request',)
         get_or_create = ('name',)
+
     name = factory.Sequence(lambda n: 'org_{}'.format(n))
     description = fauxfactory.gen_utf8()
 
@@ -68,24 +68,34 @@ class OrganizationFactory(PageFactory):
 class UserFactory(PageFactory):
     class Meta:
         model = Users_Page
-        inline_args = ('testsetup',)
+        inline_args = ('request',)
         get_or_create = ('username',)
+        exclude = ('related_org',)
+
+    related_org = factory.SubFactory(
+        OrgFactory, request=factory.SelfAttribute('..request'))
+
     username = factory.Sequence(lambda n: 'user_{}'.format(n))
-    organization = factory.SubFactory(OrganizationFactory)
     password = 'fo0m4nchU'
-    is_superuser = False
     first_name = fauxfactory.gen_utf8()
     last_name = fauxfactory.gen_utf8()
     email = fauxfactory.gen_email()
+    is_superuser = False
+    organization = factory.SelfAttribute('related_org.id')
 
 
 class ProjectFactory(PageFactory):
     class Meta:
         model = Projects_Page
-        inline_args = ('testsetup',)
+        inline_args = ('request',)
         get_or_create = ('name',)
+        exclude = ('related_org',)
+
+    related_org = factory.SubFactory(
+        OrgFactory, request=factory.SelfAttribute('..request'))
+
     name = factory.Sequence(lambda n: 'project_{}'.format(n))
-    organization = factory.SubFactory(OrganizationFactory)
+    organization = factory.SelfAttribute('related_org.id')
     scm_type = 'git'
 
     @factory.LazyAttribute
@@ -95,10 +105,31 @@ class ProjectFactory(PageFactory):
         elif self.scm_type == 'hg':
             return 'https://bitbucket.org/jlaska/ansible-helloworld'
 
+##############################################################################
 
-register(OrganizationFactory)
-register(UserFactory, 'user_factory')
-register(ProjectFactory, 'project_factory')
+@pytest.fixture
+def project_factory(request):
+    def _project(**kwargs):
+        obj = ProjectFactory(request=request, **kwargs)
+        request.addfinalizer(obj.silent_delete)
+        return obj
+    return _project
+
+@pytest.fixture
+def user_factory(request):
+    def _user(**kwargs):
+        obj = UserFactory(request=request, **kwargs)
+        request.addfinalizer(obj.silent_delete)
+        return obj
+    return _user
+
+@pytest.fixture
+def org_factory(request):
+    def _org(**kwargs):
+        obj = OrgFactory(request=request, **kwargs)
+        request.addfinalizer(obj.silent_delete)
+        return obj
+    return _org
 
 
 @pytest.fixture
@@ -135,16 +166,15 @@ def add_role(request, testsetup, user_factory):
 ##############################################################################
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-def test_access_ex1(auth_user, add_role, user_factory, org_factory, project_factory):
-    import pdb; pdb.set_trace()
+def test_access_example_01(auth_user, add_role, user_factory, org_factory, project_factory):
     # make some orgs
     red = org_factory(name='red', description='Reliable Excavation & Demolition')
     blu = org_factory(name='blu', description='Builders League United')
-    red_project = project_factory(name='red_project', organization__name='red')
-    blu_project = project_factory(name='blu_project', organization__name='blu')
+    red_project = project_factory(name='red_project', related_org__name='red')
+    blu_project = project_factory(name='blu_project', related_org__name='blu')
     # make users and roles
-    add_role(red, 'admin', user_factory(username='red_org_admin'))
-    add_role(blu, 'member', user_factory(username='red_org_member'))
+    red_org_admin = user_factory(username='red_org_admin', related_org__name='red')
+    add_role(red, 'admin', red_org_admin)
     # check some access
     with auth_user('red_org_admin'):
         # an org admin can run project updates on projects in their org
@@ -153,14 +183,13 @@ def test_access_ex1(auth_user, add_role, user_factory, org_factory, project_fact
         with pytest.raises(Forbidden_Exception):
             blu_project.get_related('update').can_update
 
-
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-def test_access_ex2(auth_user, add_role, project_factory):
+def test_access_example_02(auth_user, add_role, project_factory):
     # add_role and factories are 'get or create' with respect to resource
     # dependencies. You don't need to bring factory fixtures into your
     # test context unless you need to explicitly interact with the endpoint.
-    green_project = project_factory(name='green_project', organization__name='green')
-    other_project = project_factory(name='other_project', organization__name='green')
+    green_project = project_factory(name='green_project', related_org__name='green')
+    other_project = project_factory(name='other_project', related_org__name='green')
     add_role(green_project, 'admin', 'green_project_admin')
     add_role(green_project, 'member','green_project_member')
     with auth_user('green_project_member'):
