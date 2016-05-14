@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import json
 import os
 
 from Crypto.PublicKey import RSA
@@ -29,11 +30,10 @@ class PageFactory(factory.Factory):
     _options_class = PageFactoryOptions
 
     @classmethod
-    def _get_or_create(cls, model_class, testsetup, **kwargs):
+    def _get_or_create(cls, model, **kwargs):
         """Create an instance of the model through its associated rest api
         endpoint if it doesn't already exist
         """
-        model = model_class(testsetup)
         key_fields = {}
         for field in cls._meta.get_or_create:
             if field not in kwargs:
@@ -51,11 +51,11 @@ class PageFactory(factory.Factory):
     def _create(cls, model_class, request, **kwargs):
         """Create data and post to the associated endpoint
         """
-        testsetup = request.getfuncargvalue('testsetup')
+        model = model_class(request.getfuncargvalue('testsetup'))
         if cls._meta.get_or_create:
-            obj = cls._get_or_create(model_class, testsetup, **kwargs)
+            obj = cls._get_or_create(model, **kwargs)
         else:
-            obj = model_class(testsetup).post(kwargs)
+            obj = model.post(kwargs)
         request.addfinalizer(obj.silent_delete)
         return obj
 
@@ -81,25 +81,6 @@ class OrgFactory(PageFactory):
     description = factory.LazyFunction(fauxfactory.gen_utf8)
 
 
-class UserFactory(PageFactory):
-    class Meta:
-        model = Users_Page
-        inline_args = ('request',)
-        get_or_create = ('username',)
-        exclude = ('related_org',)
-
-    related_org = factory.SubFactory(
-        OrgFactory, request=factory.SelfAttribute('..request'))
-
-    username = factory.Sequence(lambda n: 'user_{}'.format(n))
-    password = 'fo0m4nchU'
-    is_superuser = False
-    first_name = factory.LazyFunction(fauxfactory.gen_utf8)
-    last_name = factory.LazyFunction(fauxfactory.gen_utf8)
-    email = factory.LazyFunction(fauxfactory.gen_email)
-    organization = factory.SelfAttribute('related_org.id')
-
-
 class ProjectFactory(PageFactory):
     class Meta:
         model = Projects_Page
@@ -121,35 +102,36 @@ class ProjectFactory(PageFactory):
         elif self.scm_type == 'hg':
             return 'https://bitbucket.org/jlaska/ansible-helloworld'
 
+    @factory.post_generation
+    def wait(self, create, extracted, **kwargs):
+        """When calling this factory, use keyword argument wait=True
+        to update the project and wait for it to be completed
+        """
+        if create and extracted:
+            update = self.get_related('project_updates', order_by="-id")
+            try:
+                update.results.pop().wait_until_completed()
+            except IndexError:
+                raise IndexError('No project updates found')
 
-class InventoryFactory(PageFactory):
+
+class UserFactory(PageFactory):
     class Meta:
-        model = Inventories_Page
+        model = Users_Page
         inline_args = ('request',)
-        get_or_create = ('name',)
+        get_or_create = ('username',)
         exclude = ('related_org',)
 
     related_org = factory.SubFactory(
         OrgFactory, request=factory.SelfAttribute('..request'))
 
-    name = factory.Sequence(lambda n: 'inventory_{}'.format(n))
-    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    username = factory.Sequence(lambda n: 'user_{}'.format(n))
+    password = 'fo0m4nchU'
+    is_superuser = False
+    first_name = factory.LazyFunction(fauxfactory.gen_utf8)
+    last_name = factory.LazyFunction(fauxfactory.gen_utf8)
+    email = factory.LazyFunction(fauxfactory.gen_email)
     organization = factory.SelfAttribute('related_org.id')
-
-
-class GroupFactory(PageFactory):
-    class Meta:
-        model = Groups_Page
-        inline_args = ('request',)
-        get_or_create = ('name',)
-        exclude = ('related_inventory',)
-
-    related_inventory = factory.SubFactory(
-        InventoryFactory, request=factory.SelfAttribute('..request'))
-
-    name = factory.Sequence(lambda n: 'group_{}'.format(n))
-    description = factory.LazyFunction(fauxfactory.gen_utf8)
-    inventory = factory.SelfAttribute('related_inventory.id')
 
 
 class CredentialFactory(PageFactory):
@@ -174,14 +156,97 @@ class CredentialFactory(PageFactory):
             return RSA.generate(2048, os.urandom).exportKey('PEM')
 
 
+class InventoryFactory(PageFactory):
+    class Meta:
+        model = Inventories_Page
+        inline_args = ('request',)
+        get_or_create = ('name',)
+        exclude = ('related_org',)
+
+    related_org = factory.SubFactory(
+        OrgFactory, request=factory.SelfAttribute('..request'))
+
+    name = factory.Sequence(lambda n: 'inventory_{}'.format(n))
+    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    organization = factory.SelfAttribute('related_org.id')
+
+
+class HostFactory(PageFactory):
+    class Meta:
+        model = Hosts_Page
+        inline_args = ('request',)
+        get_or_create = ('name',)
+        exclude = ('related_inventory',)
+
+    related_inventory = factory.SubFactory(
+        InventoryFactory, request=factory.SelfAttribute('..request'))
+
+    name = factory.Sequence(lambda n: 'host_{}'.format(n))
+    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    variables = json.dumps({
+        'ansible_ssh_host': '127.0.0.1',
+        'ansible_connection': 'local',
+    })
+    inventory = factory.SelfAttribute('related_inventory.id')
+
+
+class GroupFactory(PageFactory):
+    class Meta:
+        model = Groups_Page
+        inline_args = ('request',)
+        get_or_create = ('name',)
+        exclude = ('related_inventory', 'group_credential',)
+
+    related_inventory = factory.SubFactory(
+        InventoryFactory,
+        request=factory.SelfAttribute('..request'))
+    group_credential = factory.SubFactory(
+        CredentialFactory,
+        request=factory.SelfAttribute('..request'))
+
+    name = factory.Sequence(lambda n: 'group_{}'.format(n))
+    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    inventory = factory.SelfAttribute('related_inventory.id')
+    credential = factory.SelfAttribute('group_credential.id')
+
+
+class JobTemplateFactory(PageFactory):
+    class Meta:
+        model = Job_Templates_Page
+        inline_args = ('request',)
+        get_or_create = ('name',)
+        exclude = ('related_inventory', 'related_project', 'related_credential')
+
+    related_credential = factory.SubFactory(
+        CredentialFactory,
+        request=factory.SelfAttribute('..request'))
+    related_inventory = factory.SubFactory(
+        InventoryFactory,
+        request=factory.SelfAttribute('..request'))
+    related_project= factory.SubFactory(
+        ProjectFactory,
+        wait=True,
+        request=factory.SelfAttribute('..request'))
+
+    name = factory.Sequence(lambda n: 'job_template_{}'.format(n))
+    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    job_type = 'run'
+    playbook = 'site.yml'
+    project = factory.SelfAttribute('related_project.id')
+    credential = factory.SelfAttribute('related_credential.id')
+    inventory = factory.SelfAttribute('related_inventory.id')
+
+
 # register factory fixtures
 org_factory = factory_fixture(OrgFactory)
 user_factory = factory_fixture(UserFactory)
-project_factory = factory_fixture(ProjectFactory)
-hg_project_factory = factory_fixture(ProjectFactory, scm_type='hg')
 credential_factory = factory_fixture(CredentialFactory)
 inventory_factory = factory_fixture(InventoryFactory)
 group_factory = factory_fixture(GroupFactory)
+host_factory = factory_fixture(HostFactory)
+project_factory = factory_fixture(ProjectFactory, scm_type='git')
+hg_project_factory = factory_fixture(ProjectFactory, scm_type='hg')
+job_template_factory = factory_fixture(JobTemplateFactory)
 
 ##############################################################################
 
@@ -215,8 +280,8 @@ def add_role(request, user_factory):
         try:
             role = next(r for r in results if r.name.lower() == role_name)
         except StopIteration:
-            raise ValueError("Role '{0}' not found for {1}".format(
-                role_name, type(model)))
+            msg = "Role '{0}' not found for {1}"
+            raise ValueError(msg.format(role_name, type(model)))
         role_page = Role_Page(testsetup, base_url=role.url)
         with pytest.raises(NoContent_Exception):
             role_page.get().get_related('users').post({'id': user.get().id})
@@ -233,6 +298,7 @@ def test_factory_fixture_defaults(project_factory, hg_project_factory):
     # you can override registered factory fixture defaults
     other_hg = hg_project_factory(scm_type='git')
     assert 'github' in other_hg.scm_url
+
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 def test_access_example_01(auth_user, add_role, user_factory, org_factory, project_factory):
