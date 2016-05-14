@@ -1,12 +1,14 @@
 from contextlib import contextmanager
+import os
 
+from Crypto.PublicKey import RSA
 import factory
 import fauxfactory
 import pytest
 
-from common.api.pages import *
 from common.exceptions import LicenseExceeded_Exception as Forbidden_Exception # TODO: Fix this
 from common.exceptions import NoContent_Exception
+from common.api.pages import *
 
 pytestmark = [pytest.mark.nondestructive, pytest.mark.rbac]
 
@@ -51,18 +53,19 @@ class PageFactory(factory.Factory):
         """
         testsetup = request.getfuncargvalue('testsetup')
         if cls._meta.get_or_create:
-            return cls._get_or_create(model_class, testsetup, **kwargs)
-        return model_class(testsetup).post(kwargs)
+            obj = cls._get_or_create(model_class, testsetup, **kwargs)
+        else:
+            obj = model_class(testsetup).post(kwargs)
+        request.addfinalizer(obj.silent_delete)
+        return obj
 
 
-def factory_fixture(page_factory, **factory_defaults):
+def factory_fixture(page_factory, **fixture_defaults):
     @pytest.fixture
     def _factory(request):
         def _model(**kwargs):
-            kwargs = dict(factory_defaults.items() + kwargs.items())
-            obj = page_factory(request=request, **kwargs)
-            request.addfinalizer(obj.silent_delete)
-            return obj
+            kwargs = dict(fixture_defaults.items() + kwargs.items())
+            return page_factory(request=request, **kwargs).get()
         return _model
     return _factory
 
@@ -74,8 +77,8 @@ class OrgFactory(PageFactory):
         inline_args = ('request',)
         get_or_create = ('name',)
 
-    name = factory.Sequence(lambda n: 'org_{}'.format(n))
-    description = fauxfactory.gen_utf8()
+    name = 'Default'
+    description = factory.LazyFunction(fauxfactory.gen_utf8)
 
 
 class UserFactory(PageFactory):
@@ -90,10 +93,10 @@ class UserFactory(PageFactory):
 
     username = factory.Sequence(lambda n: 'user_{}'.format(n))
     password = 'fo0m4nchU'
-    first_name = fauxfactory.gen_utf8()
-    last_name = fauxfactory.gen_utf8()
-    email = fauxfactory.gen_email()
     is_superuser = False
+    first_name = factory.LazyFunction(fauxfactory.gen_utf8)
+    last_name = factory.LazyFunction(fauxfactory.gen_utf8)
+    email = factory.LazyFunction(fauxfactory.gen_email)
     organization = factory.SelfAttribute('related_org.id')
 
 
@@ -119,11 +122,65 @@ class ProjectFactory(PageFactory):
             return 'https://bitbucket.org/jlaska/ansible-helloworld'
 
 
+class InventoryFactory(PageFactory):
+    class Meta:
+        model = Inventories_Page
+        inline_args = ('request',)
+        get_or_create = ('name',)
+        exclude = ('related_org',)
+
+    related_org = factory.SubFactory(
+        OrgFactory, request=factory.SelfAttribute('..request'))
+
+    name = factory.Sequence(lambda n: 'inventory_{}'.format(n))
+    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    organization = factory.SelfAttribute('related_org.id')
+
+
+class GroupFactory(PageFactory):
+    class Meta:
+        model = Groups_Page
+        inline_args = ('request',)
+        get_or_create = ('name',)
+        exclude = ('related_inventory',)
+
+    related_inventory = factory.SubFactory(
+        InventoryFactory, request=factory.SelfAttribute('..request'))
+
+    name = factory.Sequence(lambda n: 'group_{}'.format(n))
+    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    inventory = factory.SelfAttribute('related_inventory.id')
+
+
+class CredentialFactory(PageFactory):
+    class Meta:
+        model = Credentials_Page
+        inline_args = ('request',)
+        get_or_create = ('name',)
+        exclude = ('owner',)
+
+    owner = factory.SubFactory(
+        UserFactory, request=factory.SelfAttribute('..request'))
+
+    name = factory.Sequence(lambda n: 'credential_{}'.format(n))
+    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    user = factory.SelfAttribute('owner.id')
+    username = factory.SelfAttribute('owner.username')
+    kind = 'ssh'
+
+    @factory.LazyAttribute
+    def ssh_key_data(self):
+        if self.kind == 'ssh':
+            return RSA.generate(2048, os.urandom).exportKey('PEM')
+
+
 # register factory fixtures
 org_factory = factory_fixture(OrgFactory)
 user_factory = factory_fixture(UserFactory)
 project_factory = factory_fixture(ProjectFactory)
-hg_project_factory = factory_fixture(ProjectFactory, scm_type="hg")
+credential_factory = factory_fixture(CredentialFactory)
+inventory_factory = factory_fixture(InventoryFactory)
+group_factory = factory_fixture(GroupFactory)
 
 ##############################################################################
 
@@ -146,29 +203,30 @@ def auth_user(testsetup, api_authtoken_url, default_password):
 # This fixture is temporary and represents role lookup + add capabilities
 # not yet implemented in the page models. I'll solve this problem last.
 @pytest.fixture
-def add_role(request, testsetup, user_factory):
+def add_role(request, user_factory):
     def _add_role(model, role_name, user):
+        testsetup = request.getfuncargvalue('testsetup')
         if isinstance(user, str):
             user = user_factory(username=user)
-        if not role_name.endswith('_role'):
-            role_name += '_role'
-        role_url = model.get().json.summary_fields.roles[role_name].url
-        role = Role_Page(testsetup, base_url=role_url)
+        role_name = role_name.lower()
+        roles_url = model.get().json.related.roles
+        results = Roles_Page(testsetup, base_url=roles_url).get().json.results
+        try:
+            role = next(r for r in results if r.name.lower() == role_name)
+        except StopIteration:
+            raise ValueError("Role '{0}' not found for {1}".format(
+                role_name, type(model)))
+        role_page = Role_Page(testsetup, base_url=role.url)
         with pytest.raises(NoContent_Exception):
-            role.get().get_related('users').post({'id': user.get().id})
+            role_page.get().get_related('users').post({'id': user.get().id})
     return _add_role
 
 ##############################################################################
-
+@pytest.mark.philly
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-def test_factory_fixture_defaults(project_factory, hg_project_factory):
-    project = project_factory(related_org__name='Default')
-    hg_project = hg_project_factory(related_org__name='Default')
-    assert 'github' in project.scm_url
-    assert 'bitbucket' in hg_project.scm_url
-    # you can override registered factory fixture defaults
-    other_hg = hg_project_factory(scm_type='git', related_org__name='Default')
-    assert 'github' in other_hg.scm_url
+def test_blah(api_inventories_pg, inventory, org_factory, inventory_factory, group_factory):
+    import pdb; pdb.set_trace()
+    inventory_factory()
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
@@ -191,7 +249,7 @@ def test_access_example_01(auth_user, add_role, user_factory, org_factory, proje
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-@pytest.mark.parametrize('role', ['admin', 'member', 'scm_update'])
+@pytest.mark.parametrize('role', ['admin', 'member'])
 def test_access_example_02(auth_user, add_role, project_factory, role):
     # add_role and factories are 'get or create' with respect to resource
     # dependencies. You don't need to bring factory fixtures into your
@@ -216,10 +274,10 @@ def test_access_example_02(auth_user, add_role, project_factory, role):
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 def test_example_03(api_users_pg, api_organizations_pg, user_factory):
-    n = 50
+    n = 11
     assert api_users_pg.get(last_name='mac').count == 0
     assert api_organizations_pg.get(name='philly').count == 0
-    for _ in range(n):
+    for _ in xrange(n):
         user_factory(last_name='mac', related_org__name='philly')
     assert api_users_pg.get(last_name='mac').count == n
     assert api_organizations_pg.get(name='philly').count == 1
