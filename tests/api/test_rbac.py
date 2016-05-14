@@ -178,6 +178,7 @@ class CredentialFactory(PageFactory):
 org_factory = factory_fixture(OrgFactory)
 user_factory = factory_fixture(UserFactory)
 project_factory = factory_fixture(ProjectFactory)
+hg_project_factory = factory_fixture(ProjectFactory, scm_type='hg')
 credential_factory = factory_fixture(CredentialFactory)
 inventory_factory = factory_fixture(InventoryFactory)
 group_factory = factory_fixture(GroupFactory)
@@ -222,12 +223,16 @@ def add_role(request, user_factory):
     return _add_role
 
 ##############################################################################
-@pytest.mark.philly
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-def test_blah(api_inventories_pg, inventory, org_factory, inventory_factory, group_factory):
-    import pdb; pdb.set_trace()
-    inventory_factory()
 
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+def test_factory_fixture_defaults(project_factory, hg_project_factory):
+    project = project_factory()
+    hg_project = hg_project_factory()
+    assert 'github' in project.scm_url
+    assert 'bitbucket' in hg_project.scm_url
+    # you can override registered factory fixture defaults
+    other_hg = hg_project_factory(scm_type='git')
+    assert 'github' in other_hg.scm_url
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 def test_access_example_01(auth_user, add_role, user_factory, org_factory, project_factory):
