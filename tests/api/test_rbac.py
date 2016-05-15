@@ -30,7 +30,7 @@ class PageFactory(factory.Factory):
     _options_class = PageFactoryOptions
 
     @classmethod
-    def _get_or_create(cls, model, **kwargs):
+    def _get_or_create(cls, model, request, **kwargs):
         """Create an instance of the model through its associated rest api
         endpoint if it doesn't already exist
         """
@@ -45,18 +45,20 @@ class PageFactory(factory.Factory):
             obj = model.get(**key_fields).results.pop()
         except IndexError:
             obj = model.post(kwargs)
+            request.addfinalizer(obj.silent_delete)
         return obj
 
     @classmethod
     def _create(cls, model_class, request, **kwargs):
         """Create data and post to the associated endpoint
         """
-        model = model_class(request.getfuncargvalue('testsetup'))
+        testsetup = request.getfuncargvalue('testsetup')
+        model = model_class(testsetup)
         if cls._meta.get_or_create:
-            obj = cls._get_or_create(model, **kwargs)
+            obj = cls._get_or_create(model, request, **kwargs)
         else:
             obj = model.post(kwargs)
-        request.addfinalizer(obj.silent_delete)
+            request.addfinalizer(obj.silent_delete)
         return obj
 
 
@@ -68,6 +70,13 @@ def factory_fixture(page_factory, **fixture_defaults):
             return page_factory(request=request, **kwargs).get()
         return _model
     return _factory
+
+
+def model_fixture(page_factory, **fixture_values):
+    @pytest.fixture
+    def _model(request):
+        return page_factory(request=request, **fixture_values).get()
+    return _model
 
 ##############################################################################
 
@@ -104,7 +113,7 @@ class ProjectFactory(PageFactory):
 
     @factory.post_generation
     def wait(self, create, extracted, **kwargs):
-        """When calling this factory, use keyword argument wait=True
+        """When using this factory, provide keyword argument wait=True
         to update the project and wait for it to be completed
         """
         if create and extracted:
@@ -164,12 +173,12 @@ class InventoryFactory(PageFactory):
         exclude = ('related_org',)
 
     related_org = factory.SubFactory(
-        OrgFactory, request=factory.SelfAttribute('..request'))
+        OrgFactory,
+        request=factory.SelfAttribute('..request'))
 
     name = factory.Sequence(lambda n: 'inventory_{}'.format(n))
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     organization = factory.SelfAttribute('related_org.id')
-
 
 class HostFactory(PageFactory):
     class Meta:
@@ -186,7 +195,7 @@ class HostFactory(PageFactory):
     variables = json.dumps({
         'ansible_ssh_host': '127.0.0.1',
         'ansible_connection': 'local',
-    })
+    }),
     inventory = factory.SelfAttribute('related_inventory.id')
 
 
@@ -215,19 +224,27 @@ class JobTemplateFactory(PageFactory):
         model = Job_Templates_Page
         inline_args = ('request',)
         get_or_create = ('name',)
-        exclude = ('related_inventory', 'related_project', 'related_credential')
-
-    related_credential = factory.SubFactory(
-        CredentialFactory,
-        request=factory.SelfAttribute('..request'))
-    related_inventory = factory.SubFactory(
-        InventoryFactory,
-        request=factory.SelfAttribute('..request'))
-    related_project= factory.SubFactory(
-        ProjectFactory,
-        wait=True,
-        request=factory.SelfAttribute('..request'))
-
+    class Params:
+        related_credential = factory.SubFactory(
+            CredentialFactory,
+            request=factory.SelfAttribute('..request'))
+        related_project = factory.SubFactory(
+            ProjectFactory,
+            wait=True,
+            request=factory.SelfAttribute('..request'))
+        related_inventory = factory.SubFactory(
+            InventoryFactory,
+            request=factory.SelfAttribute('..request'))
+        localhost = factory.SubFactory(
+            HostFactory,
+            name='localhost',
+            request=factory.SelfAttribute('..request'),
+            related_inventory=factory.SelfAttribute('..related_inventory'),
+            variables=json.dumps({
+                'ansible_ssh_host': '127.0.0.1',
+                'ansible_connection': 'local',
+            }),
+        )
     name = factory.Sequence(lambda n: 'job_template_{}'.format(n))
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     job_type = 'run'
@@ -244,8 +261,7 @@ credential_factory = factory_fixture(CredentialFactory)
 inventory_factory = factory_fixture(InventoryFactory)
 group_factory = factory_fixture(GroupFactory)
 host_factory = factory_fixture(HostFactory)
-project_factory = factory_fixture(ProjectFactory, scm_type='git')
-hg_project_factory = factory_fixture(ProjectFactory, scm_type='hg')
+project_factory = factory_fixture(ProjectFactory)
 job_template_factory = factory_fixture(JobTemplateFactory)
 
 ##############################################################################
@@ -270,34 +286,46 @@ def auth_user(testsetup, api_authtoken_url, default_password):
 # not yet implemented in the page models. I'll solve this problem last.
 @pytest.fixture
 def add_role(request, user_factory):
-    def _add_role(model, role_name, user):
+    def _add_role(model, role_name, username):
+        user = user_factory(username=username)
         testsetup = request.getfuncargvalue('testsetup')
-        if isinstance(user, str):
-            user = user_factory(username=user)
-        role_name = role_name.lower()
-        roles_url = model.get().json.related.roles
-        results = Roles_Page(testsetup, base_url=roles_url).get().json.results
+        if not role_name.endswith('_role'):
+            role_name += '_role'
         try:
-            role = next(r for r in results if r.name.lower() == role_name)
-        except StopIteration:
+            role = model.get().json.summary_fields.roles[role_name]
+        except IndexError:
             msg = "Role '{0}' not found for {1}"
             raise ValueError(msg.format(role_name, type(model)))
-        role_page = Role_Page(testsetup, base_url=role.url)
+        role_page = Role_Page(testsetup, base_url=role['url'])
         with pytest.raises(NoContent_Exception):
             role_page.get().get_related('users').post({'id': user.get().id})
     return _add_role
 
+
 ##############################################################################
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-def test_factory_fixture_defaults(project_factory, hg_project_factory):
-    project = project_factory()
-    hg_project = hg_project_factory()
-    assert 'github' in project.scm_url
-    assert 'bitbucket' in hg_project.scm_url
-    # you can override registered factory fixture defaults
-    other_hg = hg_project_factory(scm_type='git')
-    assert 'github' in other_hg.scm_url
+def test_access_orphaned_job(auth_user, add_role, job_template_factory):
+    ping_job_template = job_template_factory(playbook='ping.yml')
+    ping_job = ping_job_template.launch().wait_until_completed()
+    parent_project = ping_job_template.get_related('project')
+    parent_org = parent_project.get_related('organization')
+
+    add_role(ping_job_template, 'admin', 'jt_admin')
+    add_role(ping_job_template, 'auditor', 'jt_auditor')
+    add_role(ping_job_template, 'read', 'jt_reader')
+    add_role(parent_project, 'admin', 'project_admin')
+    add_role(parent_org, 'admin', 'org_admin')
+
+    ping_job_template.delete()
+
+    for username in ('jt_admin', 'jt_auditor', 'jt_reader'):
+        with auth_user(username):
+            with pytest.raises(Forbidden_Exception):
+                ping_job.get()
+    for username in ('project_admin', 'org_admin'):
+        with auth_user(username):
+            assert ping_job.get()
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
@@ -309,7 +337,7 @@ def test_access_example_01(auth_user, add_role, user_factory, org_factory, proje
     blu_project = project_factory(name='blu_project', related_org__name='blu')
     # make users and roles
     red_org_admin = user_factory(username='red_org_admin', related_org__name='red')
-    add_role(red, 'admin', red_org_admin)
+    add_role(red, 'admin', 'red_org_admin')
     # check some access
     with auth_user('red_org_admin'):
         # an org admin can run project updates on projects in their org
