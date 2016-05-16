@@ -26,13 +26,14 @@ inventory:
         job_templates: {format: uri, type: string}
         modified_by: {format: uri, type: string}
         organization: {format: uri, type: string}
+        roles: {format: uri, type: string}
         root_groups: {format: uri, type: string}
         scan_job_templates: {format: uri, type: string}
         script: {format: uri, type: string}
         tree: {format: uri, type: string}
         variable_data: {format: uri, type: string}
       required: [created_by, variable_data, root_groups, script, tree, hosts, groups,
-        inventory_sources, activity_stream, job_templates]
+        inventory_sources, activity_stream, roles, job_templates]
       type: object
     summary_fields:
       additionalProperties: false
@@ -49,9 +50,8 @@ inventory:
             adhoc_role: {$ref: '#/definitions/summary_fields_role'}
             update_role: {$ref: '#/definitions/summary_fields_role'}
             read_role: {$ref: '#/definitions/summary_fields_role'}
-            auditor_role: {$ref: '#/definitions/summary_fields_role'}
             use_role: {$ref: '#/definitions/summary_fields_role'}
-          required: [admin_role, execute_role, adhoc_role, update_role, read_role, auditor_role, use_role]
+          required: [admin_role, execute_role, adhoc_role, update_role, read_role, use_role]
           type: object
       required: [active_roles, roles]
       type: object

@@ -29,9 +29,10 @@ group:
         modified_by: {format: uri, type: string}
         potential_children: {format: uri, type: string}
         variable_data: {format: uri, type: string}
+        roles: {format: uri, type: string}
       required: [job_host_summaries, variable_data, inventory_source, job_events,
         potential_children, all_hosts, hosts, inventory, children, activity_stream,
-        inventory_sources]
+        inventory_sources, roles]
       type: object
     summary_fields:
       additionalProperties: false
@@ -49,8 +50,7 @@ group:
             adhoc_role: {$ref: '#/definitions/summary_fields_role'}
             update_role: {$ref: '#/definitions/summary_fields_role'}
             read_role: {$ref: '#/definitions/summary_fields_role'}
-            auditor_role: {$ref: '#/definitions/summary_fields_role'}
-          required: [admin_role, execute_role, adhoc_role, update_role, read_role, auditor_role]
+          required: [admin_role, execute_role, adhoc_role, update_role, read_role]
           type: object
       required: [inventory, inventory_source, roles, active_roles]
       type: object

@@ -56,11 +56,12 @@ job_template:
         notification_templates_error: {format: uri, type: string}
         notification_templates_success: {format: uri, type: string}
         project: {format: uri, type: string}
+        roles: {format: uri, type: string}
         schedule: {format: uri, type: string}
         schedules: {format: uri, type: string}
         survey_spec: {format: uri, type: string}
       required: [created_by, jobs, activity_stream, labels, notification_templates_any,
-        notification_templates_error, notification_templates_success, access_list]
+        notification_templates_error, notification_templates_success, access_list, roles]
       type: object
     skip_tags: {type: string}
     start_at_task: {type: string}
@@ -88,10 +89,9 @@ job_template:
           additionalProperties: false
           properties:
             admin_role: {$ref: '#/definitions/summary_fields_role'}
-            auditor_role: {$ref: '#/definitions/summary_fields_role'}
             execute_role: {$ref: '#/definitions/summary_fields_role'}
             read_role: {$ref: '#/definitions/summary_fields_role'}
-          required: [auditor_role, admin_role, execute_role, read_role]
+          required: [admin_role, execute_role, read_role]
           type: object
         survey: {$ref: '#/definitions/summary_fields_survey'}
       required: [labels, can_copy, can_edit, recent_jobs, roles]
