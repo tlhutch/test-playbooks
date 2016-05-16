@@ -19,7 +19,7 @@ team:
         projects: {$ref: '#/definitions/uri'}
         roles: {$ref: '#/definitions/uri'}
         users: {$ref: '#/definitions/uri'}
-      required: [users, projects, credentials, activity_stream]
+      required: [users, projects, credentials, activity_stream, roles]
       type: object
     summary_fields:
       additionalProperties: false
@@ -32,10 +32,9 @@ team:
           additionalProperties: false
           properties:
             admin_role: {$ref: '#/definitions/summary_fields_role'}
-            auditor_role: {$ref: '#/definitions/summary_fields_role'}
             member_role: {$ref: '#/definitions/summary_fields_role'}
             read_role: {$ref: '#/definitions/summary_fields_role'}
-          required: [auditor_role, admin_role, member_role, read_role]
+          required: [admin_role, member_role, read_role]
           type: object
       required: [active_roles, roles]
       type: object

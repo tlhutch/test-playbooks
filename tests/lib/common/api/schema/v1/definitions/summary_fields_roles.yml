@@ -4,6 +4,5 @@ summary_fields_role:
     description: {type: string}
     id: {$ref: '#/definitions/id'}
     name: {type: string}
-    url: {format: uri, type: string}
-  required: [url, description, id, name]
+  required: [description, id, name]
   type: object
