@@ -1,3 +1,4 @@
+import re
 import sys
 import time
 import random
@@ -154,14 +155,10 @@ def random_loopback_ip():
 
 def random_utf8(*args, **kwargs):
     """This function exists due to a bug in ChromeDriver that throws an
-    exception when a character outside of the BMP is sent to `send_keys`
+    exception when a character outside of the BMP is sent to `send_keys`.
+    Code pulled from http://stackoverflow.com/a/3220210.
     """
-    def remove_non_bmp_chars(text):
-        if text < u'\ud800' or u'\ue000' <= text <= u'\uffff':
-            return text
-        else:
-            return u'\ufffd'
+    pattern = re.compile(u'[^\u0000-\uD7FF\uE000-\uFFFF]', re.UNICODE)
+    scrubbed = pattern.sub(u'\uFFFD', fauxfactory.gen_utf8(*args, **kwargs))
 
-    scrubbed = map(remove_non_bmp_chars, fauxfactory.gen_utf8(*args, **kwargs))
-
-    return str.join('', scrubbed)
+    return scrubbed
