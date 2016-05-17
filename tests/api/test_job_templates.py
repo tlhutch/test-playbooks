@@ -105,11 +105,12 @@ class Test_Job_Template(Base_Api_Test):
         extra_variables are a union of the launch-time variables and the
         job_template variables.
         '''
+        job_template_with_extra_vars.patch(ask_variables_on_launch=True)
         launch_pg = job_template_with_extra_vars.get_related('launch')
 
         # assert values on launch resource
         assert launch_pg.can_start_without_user_input
-        assert not launch_pg.ask_variables_on_launch
+        assert launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
         assert not launch_pg.credential_needed_to_start
@@ -540,7 +541,7 @@ class Test_Job_Template(Base_Api_Test):
         extra_variables are a union of the job_template variables, survey
         variables, and launch-time variables.
         '''
-        job_template_with_extra_vars.patch(survey_enabled=True)
+        job_template_with_extra_vars.patch(survey_enabled=True, ask_variables_on_launch=True)
         survey_spec = job_template_with_extra_vars.get_related('survey_spec').post(required_survey_spec).get()
 
         # find future job variables that come exclusively from the survey
@@ -553,7 +554,7 @@ class Test_Job_Template(Base_Api_Test):
 
         # assert values on launch resource
         assert not launch_pg.can_start_without_user_input
-        assert not launch_pg.ask_variables_on_launch
+        assert launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert launch_pg.variables_needed_to_start
         assert not launch_pg.credential_needed_to_start
