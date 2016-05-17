@@ -4,7 +4,7 @@ import urlparse
 import fauxfactory
 import pytest
 
-from common.utils import random_utf8_string
+from common.utils import random_utf8
 
 
 pytestmark = [
@@ -148,7 +148,7 @@ def test_activity_stream_after_inventory_update(ui_inventories_edit):
     """Verify displayed event details, routing, and page functionality when
     updating a crud page resource and clicking over to the activity stream.
     """
-    new_inventory_name = random_utf8_string()
+    new_inventory_name = random_utf8()
 
     # change the name of the inventory
     ui_inventories_edit.details.name.set_text(new_inventory_name)

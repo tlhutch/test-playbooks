@@ -4,7 +4,7 @@ from math import ceil
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 
-from common.utils import random_utf8_string
+from common.utils import random_utf8
 
 
 @pytest.mark.skipif(True, reason='Needs to be updated with 3.0 page models')
@@ -103,8 +103,8 @@ def many_job_templates(request, api_job_templates_pg, job_template):
     obj_list = list()
     for i in range(55):
         payload = job_template.json
-        payload.update(dict(name="job_template-%s" % random_utf8_string(),
-                            description="Random job_template with machine credentials - %s" % random_utf8_string()))
+        payload.update(dict(name="job_template-%s" % random_utf8(),
+                            description="Random job_template with machine credentials - %s" % random_utf8()))
         obj = api_job_templates_pg.post(payload)
         request.addfinalizer(obj.delete)
         obj_list.append(obj)
@@ -239,7 +239,7 @@ class Test_Portal_Job_Templates(object):
         assert ui_portal_pg.is_the_active_tab
 
         # search for an object that doesn't exist
-        ui_portal_pg.job_templates.search.search_value = random_utf8_string()
+        ui_portal_pg.job_templates.search.search_value = random_utf8()
         ui_portal_pg = ui_portal_pg.job_templates.search.search_btn.click()
 
         # assert expected number of items found
