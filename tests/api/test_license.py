@@ -1236,7 +1236,7 @@ class Test_Basic_License(Base_Api_Test):
         exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template_ping.patch, **payload)
         result = exc_info.value[1]
 
-        assert result == {u'detail': u'Feature surveys is not enabled in the active license'}, \
+        assert result == {u'detail': u'Feature surveys is not enabled in the active license.'}, \
             "Unexpected API response when attempting to create a survey with a " \
             "basic license - %s." % json.dumps(result)
 
