@@ -1,6 +1,8 @@
 import fauxfactory
 import pytest
 
+from common.utils import random_utf8_string
+
 pytestmark = [
     pytest.mark.ui,
     pytest.mark.nondestructive,
@@ -70,8 +72,8 @@ def test_update_user(api_users_pg, ui_users_edit):
     # make some data
     username = fauxfactory.gen_alphanumeric()
     password = 'UI_abc_123_%s' % fauxfactory.gen_alphanumeric()
-    first_name = fauxfactory.gen_utf8()
-    last_name = fauxfactory.gen_utf8()
+    first_name = random_utf8_string()
+    last_name = random_utf8_string()
     email = fauxfactory.gen_email()
 
     # update the user
