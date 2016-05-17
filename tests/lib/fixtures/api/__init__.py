@@ -3,6 +3,7 @@ import pytest
 import common.api
 import common.tower
 from common.api.pages import *  # NOQA
+from common.api.pages.authtoken import AuthToken_Page
 
 
 def navigate(api, url, field):
@@ -79,21 +80,14 @@ def api_authtoken_pg(testsetup, api_authtoken_url):
 
 
 @pytest.fixture(scope="module")
-def authtoken(api, testsetup, api_authtoken_url):
+def authtoken(api, testsetup, api_authtoken_pg):
     '''
     Logs in to the application with default credentials and returns the
     home page
     '''
-
     payload = dict(username=testsetup.credentials['default']['username'],
                    password=testsetup.credentials['default']['password'])
-
-    r = api.post(api_authtoken_url, payload)
-    assert r.status_code == httplib.OK
-    # FIXME - build and return a Authtoken_Page() object
-    json = r.json()
-    testsetup.api.login(token=json['token'])
-    return json
+    return api_authtoken_pg.post(payload)
 
 
 #
