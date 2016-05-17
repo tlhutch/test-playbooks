@@ -29,9 +29,8 @@ inventory_script:
           additionalProperties: false
           properties:
             admin_role: {$ref: '#/definitions/summary_fields_role'}
-            member_role: {$ref: '#/definitions/summary_fields_role'}
             read_role: {$ref: '#/definitions/summary_fields_role'}
-          required: [admin_role, member_role, read_role]
+          required: [admin_role, read_role]
           type: object
       required: [active_roles, roles]
       type: object
