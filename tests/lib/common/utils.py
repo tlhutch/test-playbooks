@@ -152,7 +152,7 @@ def random_loopback_ip():
     return "127.{}.{}.{}".format(random_int(255), random_int(255), random_int(255))
 
 
-def random_utf8_string(**kwargs):
+def random_utf8_string(*args, **kwargs):
     """This function exists due to a bug in ChromeDriver that throws an
     exception when a character outside of the BMP is sent to `send_keys`
     """
@@ -162,5 +162,6 @@ def random_utf8_string(**kwargs):
         else:
             return u'\ufffd'
 
-    scrubbed_chars = map(remove_non_bmp_chars, fauxfactory.gen_utf8(**kwargs))
-    return str.join('', scrubbed_chars)
+    scrubbed = map(remove_non_bmp_chars, fauxfactory.gen_utf8(*args, **kwargs))
+
+    return str.join('', scrubbed)
