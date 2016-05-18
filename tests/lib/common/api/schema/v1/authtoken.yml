@@ -1,10 +1,8 @@
----
 $schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/authtoken/'
-type: object
 additionalProperties: false
+id: /api/v1/authtoken/
 properties:
-    required: [ token, expires ]
-    properties:
-        token: { type: string, }
-        expires:  { type: string, format: date-time, }
+  expires: {format: date-time, type: string}
+  token: {type: string}
+required: [token, expires]
+type: object
