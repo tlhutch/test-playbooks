@@ -87,7 +87,9 @@ def authtoken(api, testsetup, api_authtoken_pg):
     '''
     payload = dict(username=testsetup.credentials['default']['username'],
                    password=testsetup.credentials['default']['password'])
-    return api_authtoken_pg.post(payload)
+    authtoken_pg = api_authtoken_pg.post(payload)
+    testsetup.api.login(token=authtoken_pg.token)
+    return authtoken_pg.json
 
 
 #
