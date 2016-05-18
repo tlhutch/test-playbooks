@@ -44,7 +44,8 @@ class PageFactory(factory.Factory):
         try:
             obj = model.get(**key_fields).results.pop()
         except IndexError:
-            obj = model.post(kwargs)
+            model.post(kwargs)
+            obj = model.get(**key_fields).results.pop()
             request.addfinalizer(obj.silent_delete)
         return obj
 
@@ -267,11 +268,11 @@ job_template_factory = factory_fixture(JobTemplateFactory)
 ##############################################################################
 
 @pytest.fixture
-def auth_user(testsetup, api_authtoken_url, default_password):
+def auth_user(testsetup, api_authtoken_url):
     """Inject a context manager for user authtoken switching on api models
     """
     @contextmanager
-    def _auth_user(username, password=default_password):
+    def _auth_user(username, password='fo0m4nchU'):
         try:
             prev_auth = testsetup.api.session.auth
             data = {'username': username, 'password': password}
@@ -287,16 +288,17 @@ def auth_user(testsetup, api_authtoken_url, default_password):
 @pytest.fixture
 def add_role(request, user_factory):
     def _add_role(model, role_name, username):
-        user = user_factory(username=username)
         testsetup = request.getfuncargvalue('testsetup')
-        if not role_name.endswith('_role'):
-            role_name += '_role'
+        role_name = role_name.lower()
+        user = user_factory(username=username)
+        roles_url = model.get().json.related.roles
+        results = Roles_Page(testsetup, base_url=roles_url).get().json.results
         try:
-            role = model.get().json.summary_fields.roles[role_name]
-        except IndexError:
+            role = next(r for r in results if r.name.lower() == role_name)
+        except StopIteration:
             msg = "Role '{0}' not found for {1}"
             raise ValueError(msg.format(role_name, type(model)))
-        role_page = Role_Page(testsetup, base_url=role['url'])
+        role_page = Role_Page(testsetup, base_url=role.url)
         with pytest.raises(NoContent_Exception):
             role_page.get().get_related('users').post({'id': user.get().id})
     return _add_role
@@ -307,19 +309,18 @@ def add_role(request, user_factory):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 def test_access_orphaned_job(auth_user, add_role, job_template_factory):
     ping_job_template = job_template_factory(playbook='ping.yml')
-    ping_job = ping_job_template.launch().wait_until_completed()
     parent_project = ping_job_template.get_related('project')
     parent_org = parent_project.get_related('organization')
 
     add_role(ping_job_template, 'admin', 'jt_admin')
-    add_role(ping_job_template, 'auditor', 'jt_auditor')
     add_role(ping_job_template, 'read', 'jt_reader')
     add_role(parent_project, 'admin', 'project_admin')
     add_role(parent_org, 'admin', 'org_admin')
 
+    ping_job = ping_job_template.launch().wait_until_completed()
     ping_job_template.delete()
 
-    for username in ('jt_admin', 'jt_auditor', 'jt_reader'):
+    for username in ('jt_admin', 'jt_reader'):
         with auth_user(username):
             with pytest.raises(Forbidden_Exception):
                 ping_job.get()
@@ -329,7 +330,7 @@ def test_access_orphaned_job(auth_user, add_role, job_template_factory):
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-def test_access_example_01(auth_user, add_role, user_factory, org_factory, project_factory):
+def test_org_admin_project_access(auth_user, add_role, user_factory, org_factory, project_factory):
     # make some orgs
     red = org_factory(name='red', description='Reliable Excavation & Demolition')
     blu = org_factory(name='blu', description='Builders League United')
@@ -341,25 +342,22 @@ def test_access_example_01(auth_user, add_role, user_factory, org_factory, proje
     # check some access
     with auth_user('red_org_admin'):
         # an org admin can run project updates on projects in their org
-        assert red_project.get_related('update').can_update
+        assert red_project.get_related('update').post({})
         # but not on projects outside of their org
         with pytest.raises(Forbidden_Exception):
-            blu_project.get_related('update').can_update
+            blu_project.get_related('update').post({})
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-@pytest.mark.parametrize('role', ['admin', 'member'])
-def test_access_example_02(auth_user, add_role, project_factory, role):
-    # add_role and factories are 'get or create' with respect to resource
-    # dependencies. You don't need to bring factory fixtures into your
-    # test context unless you need to explicitly interact with the endpoint.
+@pytest.mark.parametrize('role', ['admin', 'update'])
+def test_project_role_project_access(auth_user, add_role, project_factory, role):
     green_project = project_factory(name='green_project', related_org__name='green')
     other_project = project_factory(name='other_project', related_org__name='green')
     add_role(green_project, 'admin', 'green_project_admin')
     add_role(green_project, role, 'green_project_user')
     with auth_user('green_project_user'):
         # project members can run project updates
-        assert green_project.get_related('update').can_update
+        assert green_project.get_related('update').post({})
         # and see who their project admins are
         access_list = green_project.get_related('access_list')
         assert access_list.get(username="green_project_admin")
@@ -369,14 +367,3 @@ def test_access_example_02(auth_user, add_role, project_factory, role):
         # nor can they see the organization their project belongs to
         with pytest.raises(Forbidden_Exception):
             green_project.get_related('organization')
-
-
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-def test_example_03(api_users_pg, api_organizations_pg, user_factory):
-    n = 11
-    assert api_users_pg.get(last_name='mac').count == 0
-    assert api_organizations_pg.get(name='philly').count == 0
-    for _ in xrange(n):
-        user_factory(last_name='mac', related_org__name='philly')
-    assert api_users_pg.get(last_name='mac').count == n
-    assert api_organizations_pg.get(name='philly').count == 1
