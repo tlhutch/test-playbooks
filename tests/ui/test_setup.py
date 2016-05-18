@@ -4,6 +4,7 @@ pytestmark = [
     pytest.mark.ui,
     pytest.mark.nondestructive,
     pytest.mark.usefixtures(
+        'authtoken',
         'install_basic_license',
         'maximized_window_size'
     )
