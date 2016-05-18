@@ -63,8 +63,8 @@ class PageFactory(factory.Factory):
         return obj
 
 
-def factory_fixture(page_factory, **fixture_defaults):
-    @pytest.fixture
+def factory_fixture(page_factory, scope='function', **fixture_defaults):
+    @pytest.fixture(scope=scope)
     def _factory(request):
         def _model(**kwargs):
             kwargs = dict(fixture_defaults.items() + kwargs.items())
@@ -73,8 +73,8 @@ def factory_fixture(page_factory, **fixture_defaults):
     return _factory
 
 
-def model_fixture(page_factory, **fixture_values):
-    @pytest.fixture
+def model_fixture(page_factory, scope='function', **fixture_values):
+    @pytest.fixture(scope=scope)
     def _model(request):
         return page_factory(request=request, **fixture_values).get()
     return _model
