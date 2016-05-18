@@ -60,10 +60,10 @@ def test_card_visibility_and_ordering(ui_setup, anonymous_user, user_password):
     """Verify that the visibility and ordering of setup menu cards as an admin
     """
     admin_card_titles = [
-        'CREDENTIALS',
+        'ORGANIZATIONS',
         'USERS',
         'TEAMS',
-        'ORGANIZATIONS',
+        'CREDENTIALS',
         'MANAGEMENT JOBS',
         'INVENTORY SCRIPTS',
         'NOTIFICATIONS',
@@ -74,10 +74,10 @@ def test_card_visibility_and_ordering(ui_setup, anonymous_user, user_password):
     check_card_titles(admin_card_titles, ui_setup.displayed_card_titles)
 
     anon_card_titles = [
-        'CREDENTIALS',
+        'ORGANIZATIONS',
         'USERS',
         'TEAMS',
-        'ORGANIZATIONS',
+        'CREDENTIALS',
         'INVENTORY SCRIPTS',
         'NOTIFICATIONS',
         'VIEW YOUR LICENSE',
