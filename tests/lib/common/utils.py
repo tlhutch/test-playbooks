@@ -1,8 +1,10 @@
+import re
 import sys
 import time
 import random
 import logging
 
+import fauxfactory
 
 log = logging.getLogger(__name__)
 
@@ -149,3 +151,14 @@ def random_loopback_ip():
     Generates a random loopback ipv4 address;; useful for testing.
     """
     return "127.{}.{}.{}".format(random_int(255), random_int(255), random_int(255))
+
+
+def random_utf8(*args, **kwargs):
+    """This function exists due to a bug in ChromeDriver that throws an
+    exception when a character outside of the BMP is sent to `send_keys`.
+    Code pulled from http://stackoverflow.com/a/3220210.
+    """
+    pattern = re.compile(u'[^\u0000-\uD7FF\uE000-\uFFFF]', re.UNICODE)
+    scrubbed = pattern.sub(u'\uFFFD', fauxfactory.gen_utf8(*args, **kwargs))
+
+    return scrubbed

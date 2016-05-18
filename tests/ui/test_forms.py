@@ -1,6 +1,8 @@
 import fauxfactory
 import pytest
 
+from common.utils import random_utf8
+
 pytestmark = [
     pytest.mark.ui,
     pytest.mark.nondestructive,
@@ -41,11 +43,11 @@ def test_details_component_visibility(form_page):
 
         # pipe some long string data to any form widget group with a text field
         for name, field in form.get_regions(region_type='lookup'):
-            field.set_text(fauxfactory.gen_utf8(length=120), retry=False)
+            field.set_text(random_utf8(length=120), retry=False)
 
         for field_type in ('text_input', 'password', 'text_area', 'email'):
             for name, field in form.get_regions(region_type=field_type):
-                field.set_text(fauxfactory.gen_utf8(length=120))
+                field.set_text(random_utf8(length=120))
 
         # verify form groups aren't extended breaking panel boundaries
         for name, field in form.get_regions():

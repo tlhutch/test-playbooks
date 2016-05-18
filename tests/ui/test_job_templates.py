@@ -1,7 +1,8 @@
 import random
 
-import fauxfactory
 import pytest
+
+from common.utils import random_utf8
 
 pytestmark = [
     pytest.mark.ui,
@@ -35,9 +36,9 @@ def test_update_job_template(api_job_templates_pg, ui_job_templates_edit):
         'Edited job_template row unexpectedly unselected')
 
     # make some data
-    name = fauxfactory.gen_utf8()
-    description = fauxfactory.gen_utf8()
-    job_tags = fauxfactory.gen_utf8()
+    name = random_utf8()
+    description = random_utf8()
+    job_tags = random_utf8()
 
     # choose a verbosity option to select
     current_verbosity = ui_job_templates_edit.details.verbosity.selected_option
