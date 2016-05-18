@@ -725,6 +725,7 @@ Test supported methods for privileged users
 '''
 
 
+@pytest.mark.skipif(True, reason="Contains tests for deprecated RBAC system")
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive

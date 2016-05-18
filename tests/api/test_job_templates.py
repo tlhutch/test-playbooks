@@ -965,6 +965,7 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
         assert set(job_extra_vars) == set(survey_extra_vars)
 
 
+@pytest.mark.skipif(True, reason="Contains tests for deprecated RBAC system")
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive

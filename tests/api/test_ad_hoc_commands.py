@@ -725,6 +725,7 @@ print json.dumps(inv, indent=2)
             assert result == {u'module_name': [u'"ping" is not a valid choice.']}, errorMsg
 
 
+@pytest.mark.skipif(True, reason="Contains tests for deprecated RBAC system")
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
