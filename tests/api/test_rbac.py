@@ -306,6 +306,7 @@ def add_role(request, user_factory):
 
 ##############################################################################
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1969')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 def test_access_orphaned_job(auth_user, add_role, job_template_factory):
     ping_job_template = job_template_factory(playbook='ping.yml')
@@ -318,12 +319,19 @@ def test_access_orphaned_job(auth_user, add_role, job_template_factory):
     add_role(parent_org, 'admin', 'org_admin')
 
     ping_job = ping_job_template.launch().wait_until_completed()
+    ping_job.get()
+
+    for username in ('project_admin', 'org_admin', 'jt_admin', 'jt_reader'):
+        with auth_user(username):
+            assert ping_job.get()
+
     ping_job_template.delete()
 
     for username in ('jt_admin', 'jt_reader'):
         with auth_user(username):
             with pytest.raises(Forbidden_Exception):
-                ping_job.get()
+                assert ping_job.get()
+
     for username in ('project_admin', 'org_admin'):
         with auth_user(username):
             assert ping_job.get()
