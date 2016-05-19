@@ -6,7 +6,7 @@ from common.ui.pages.page import Region
 from common.ui.pages.regions import Clickable
 
 from common.ui.pages.forms import SelectDropDown
-from common.ui.pages.regions.panels import ListPanel
+from common.ui.pages.regions.panels import ActivityStreamListPanel
 from common.ui.pages.regions.table import Table
 from common.ui.pages.regions.cells import DescriptionCell
 
@@ -81,7 +81,7 @@ class ActivityStream(TowerPage):
 
     @property
     def panel(self):
-        return ListPanel(self)
+        return ActivityStreamListPanel(self)
 
     @property
     def table(self):

@@ -175,7 +175,6 @@ def test_activity_stream_after_inventory_update(ui_inventories_edit):
             '{0} not found in top row action column'.format(text))
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1179')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 def test_event_details_modal_visibility(inventory, ui_activity_stream):
     """Verify component visibility, layout, and responsiveness of the activity
@@ -186,7 +185,7 @@ def test_event_details_modal_visibility(inventory, ui_activity_stream):
 
     # refresh the page and sort the table by event time in ascending order
     ui_activity_stream.refresh()
-    ui_activity_stream.table.set_column_sort_order(('event_time', 'ascending'))
+    ui_activity_stream.table.set_column_sort_order(('time', 'ascending'))
 
     # click open the details modal for the top row
     event_details = ui_activity_stream.table[0]['event_details'].click()

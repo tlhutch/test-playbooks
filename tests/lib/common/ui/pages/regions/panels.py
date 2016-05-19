@@ -50,3 +50,10 @@ class ListPanel(Region):
     def badge_number(self):
         self.wait.until(lambda _: self.badge.text != '')
         return int(self.badge.text)
+
+
+class ActivityStreamListPanel(ListPanel):
+    _root_locator = (
+        (By.CLASS_NAME, 'List-header'),
+        (By.XPATH, '..'),
+        (By.XPATH, '..'))
