@@ -11,6 +11,7 @@ pytestmark = [
 ]
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1763')
 def test_login_logout(ui_login, default_credentials):
     """Verify a successful login and logout with default credentials
     """
