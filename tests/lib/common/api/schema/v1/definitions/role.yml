@@ -9,6 +9,7 @@ role:
       properties:
         created_by: {$ref: '#/definitions/uri'}
         credential: {$ref: '#/definitions/uri'}
+        custom_inventory_script: {$ref: '#/definitions/uri'}
         group: {$ref: '#/definitions/uri'}
         inventory: {$ref: '#/definitions/uri'}
         job_template: {$ref: '#/definitions/uri'}
