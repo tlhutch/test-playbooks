@@ -819,10 +819,9 @@ class Test_System_Job_Template_Schedules(Base_Api_Test):
     '''Tests system job schedules.'''
     @pytest.mark.parametrize("name, count, system_job_template_id, kwargs", [
         ("Cleanup Job Schedule", 1, 1, dict(days='120')),
-        ("Cleanup Deleted Data Schedule", 1, 2, dict(days='30')),
-        ("Cleanup Activity Schedule", 1, 3, dict(days='355')),
-        ("Cleanup Fact Schedule", 0, 4, dict(older_than='120d', granularity='1w')),
-    ], ids=['Cleanup Job Schedule', 'Cleanup Deleted Data Schedule', 'Cleanup Activity Schedule', 'Cleanup Fact Schedule'])
+        ("Cleanup Activity Schedule", 1, 2, dict(days='355')),
+        ("Cleanup Fact Schedule", 0, 3, dict(older_than='120d', granularity='1w')),
+    ], ids=['Cleanup Job Schedule', 'Cleanup Activity Schedule', 'Cleanup Fact Schedule'])
     def test_prepopulated_schedules(self, api_schedules_pg, name, count, system_job_template_id, kwargs):
         '''Tests default system jobs'''
         schedules_pg = api_schedules_pg.get()
@@ -840,7 +839,6 @@ class Test_System_Job_Template_Schedules(Base_Api_Test):
             assert default_schedule_pg.extra_data == kwargs, \
                 "Unexpected extra_data with '%s.'" % name
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     def test_multiple_schedules(self, multiple_management_job_schedules):
         '''Tests that multiple schedules may be created for each system_job_template.'''
         # assert correct number of schedules
