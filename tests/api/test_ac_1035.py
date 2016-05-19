@@ -254,5 +254,5 @@ class Test_AC_1035(Base_Api_Test):
         exc_info = pytest.raises(BadRequest_Exception, job_templates_yaml.patch, **payload)
         result = exc_info.value[1]
 
-        assert result == {u'extra_vars': [u'Must be valid JSON or YAML']}, \
+        assert result == {u'extra_vars': [u'Must be valid JSON or YAML.']}, \
             "Unexpected API response when patching a JT with invalid JSON/YAML extra_vars: %s." % json.dumps(result)
