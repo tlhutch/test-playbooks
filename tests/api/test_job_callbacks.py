@@ -251,10 +251,9 @@ class Test_Job_Template_Callback(Base_Api_Test):
                                ansible_default_ipv4):
         '''
         Assert that launching a callback job against a job_template with an
-        existing 'limit' parameter successfully launches, but the job fails
-        because no matching hosts were found.
+        existing 'limit' parameter successfully launches and that it is launched
+        with a value for "limit" that matches our test host.
         '''
-
         # validate host_config_key
         job_template_with_random_limit.patch(host_config_key=host_config_key)
         assert job_template_with_random_limit.host_config_key == host_config_key
@@ -278,25 +277,19 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # FIXME - assert 'Location' header points to launched job
         # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
 
-        # Wait for job to complete
+        # wait for job to complete
         jobs_pg = job_template_with_random_limit.get_related('jobs', launch_type='callback', order_by='-id')
         assert jobs_pg.count == 1
         job_pg = jobs_pg.results[0].wait_until_completed(timeout=5 * 60)
 
-        # Assert job failed because no hosts were found
+        # assert job succeeds and with expected attributes
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
         assert job_pg.launch_type == "callback"
-        assert job_pg.status == "failed"
-
-        # Assert expected output in result_stdout
-        error_strings = ["Specified --limit does not match any hosts",
-                         "provided hosts list is empty"]
-        assert any([True for errstr in error_strings if errstr in job_pg.result_stdout]), \
-            "Unable to find expected error (%s) in job_pg.result_stdout (%s)" % \
-            (error_strings, job_pg.result_stdout)
+        assert job_pg.limit == host_with_default_ipv4_in_variables.name, \
+            "Unexpected value for job_pg.limit. Expected %s, got %s." % (job_pg.limit, host_with_default_ipv4_in_variables.name)
 
     def test_launch(self, ansible_runner, job_template, host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4):
         '''Assert that launching a callback job against a job_template successfully launches, and the job successfully runs on a single host.'''
-
         # enable host_config_key
         job_template.patch(host_config_key=host_config_key)
         assert job_template.host_config_key == host_config_key
