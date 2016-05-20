@@ -17,6 +17,7 @@ class Credential_Page(base.Base):
     become_password = property(base.json_getter('become_password'), base.json_setter('become_password'))
     ssh_key_unlock = property(base.json_getter('ssh_key_unlock'), base.json_setter('ssh_key_unlock'))
     vault_password = property(base.json_getter('vault_password'), base.json_setter('vault_password'))
+    summary_fields = property(base.json_getter('summary_fields'), base.json_setter('summary_fields'))
 
     @property
     def expected_passwords_needed_to_start(self):
@@ -29,6 +30,20 @@ class Credential_Page(base.Base):
                 else:
                     passwords.append(field)
         return passwords
+
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related'], \
+            "No such related attribute '%s'" % attr
+        if attr in ['created_by', 'modified_by', 'user']:
+            from users import User_Page
+            cls = User_Page
+        elif attr == 'roles':
+            from roles import Roles_Page
+            cls = Roles_Page
+        else:
+            raise NotImplementedError("No related class found for '%s'" % attr)
+
+        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
 
 class Credentials_Page(Credential_Page, base.Base_List):

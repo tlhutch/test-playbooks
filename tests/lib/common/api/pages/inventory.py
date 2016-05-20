@@ -31,6 +31,9 @@ class Inventory_Page(Base):
         elif attr == 'access_list':
             from access_list import Access_List_Page
             related = Access_List_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'roles':
+            from roles import Roles_Page
+            related = Roles_Page(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
