@@ -123,7 +123,6 @@ def ui_job_templates_add(
 @pytest.fixture
 def ui_job_templates_edit(
     authtoken,
-    install_basic_license,
     job_template_with_schedule,
     mozwebqa,
     default_credentials
@@ -137,7 +136,6 @@ def ui_job_templates_edit(
 @pytest.fixture
 def ui_job_templates_schedule(
     authtoken,
-    install_basic_license,
     job_template_with_schedule,
     mozwebqa,
     default_credentials
@@ -272,7 +270,6 @@ def ui_teams_edit(
 @pytest.fixture
 def ui_organizations(
     authtoken,
-    install_enterprise_license_unlimited,
     mozwebqa,
     default_credentials
 ):
@@ -284,7 +281,6 @@ def ui_organizations(
 @pytest.fixture
 def ui_organizations_add(
     authtoken,
-    install_enterprise_license_unlimited,
     mozwebqa,
     default_credentials
 ):
@@ -297,7 +293,6 @@ def ui_organizations_add(
 @pytest.fixture
 def ui_organizations_edit(
     authtoken,
-    install_enterprise_license_unlimited,
     another_organization,
     mozwebqa,
     default_credentials
