@@ -46,12 +46,11 @@ inventory:
           additionalProperties: false
           properties:
             admin_role: {$ref: '#/definitions/summary_fields_role'}
-            execute_role: {$ref: '#/definitions/summary_fields_role'}
             adhoc_role: {$ref: '#/definitions/summary_fields_role'}
             update_role: {$ref: '#/definitions/summary_fields_role'}
             read_role: {$ref: '#/definitions/summary_fields_role'}
             use_role: {$ref: '#/definitions/summary_fields_role'}
-          required: [admin_role, execute_role, adhoc_role, update_role, read_role, use_role]
+          required: [admin_role, adhoc_role, update_role, read_role, use_role]
           type: object
       required: [active_roles, roles]
       type: object
