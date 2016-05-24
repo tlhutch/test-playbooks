@@ -30,6 +30,7 @@ class Job_Template_Page(Unified_Job_Template_Page):
     job_tags = property(json_getter('job_tags'), json_setter('job_tags'))
     verbosity = property(json_getter('verbosity'), json_setter('verbosity'))
     job_type = property(json_getter('job_type'), json_setter('job_type'))
+    summary_fields = property(json_getter('summary_fields'), json_setter('summary_fields'))
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related'], \
@@ -73,6 +74,9 @@ class Job_Template_Page(Unified_Job_Template_Page):
         elif attr == 'access_list':
             from access_list import Access_List_Page
             cls = Access_List_Page
+        elif attr == 'roles':
+            from roles import Roles_Page
+            cls = Roles_Page
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 

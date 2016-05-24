@@ -32,7 +32,6 @@ class Base(Page):
     """
     Base class for global project methods
     """
-
     base_url = None
     id = property(json_getter('id'), json_setter('id'))
 
@@ -177,12 +176,17 @@ class Base(Page):
         assert name in self.json['related']
         return Base(self.testsetup, base_url=self.json['related'][name]).get(**kwargs)
 
+    def get_role(self, name):
+        roles_pg = self.get_related('roles', role_field=name)
+        assert roles_pg.count == 1, \
+            "No role with name '%s' found." % name
+        return roles_pg.results[0]
+
 
 class Base_List(Base):
     '''
     Allow: GET, POST, HEAD, OPTIONS
     '''
-
     base_url = None
 
     # Common properties for list objects

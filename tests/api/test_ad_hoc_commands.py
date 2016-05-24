@@ -204,6 +204,8 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         '''
         Verify that a superuser account is able to post to the ad_hoc_commands endpoint.
         '''
+        use_role_pg = ssh_credential.get_role('use_role')
+
         # create payload
         payload = dict(inventory=host.inventory,
                        credential=ssh_credential.id,
@@ -211,7 +213,9 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
 
         # post payload as privileged user
         for privileged_user in privileged_users:
-            ssh_credential.patch(user=privileged_user.id)
+            # give privileged user 'use_role' permissions
+            with pytest.raises(common.exceptions.NoContent_Exception):
+                use_role_pg.get_related('users').post(dict(id=privileged_user.id))
             with self.current_user(privileged_user.username, user_password):
                 command_pg = api_ad_hoc_commands_pg.post(payload)
 
@@ -463,9 +467,11 @@ print json.dumps(inv, indent=2)
         '''
         Verifies that privileged users can relaunch commands.
         '''
+        use_role_pg = ssh_credential.get_role('use_role')
         for privileged_user in privileged_users:
-            # patch the credential for the current user
-            ssh_credential.patch(user=privileged_user.id)
+            # give privileged user 'use_role' permissions
+            with pytest.raises(common.exceptions.NoContent_Exception):
+                use_role_pg.get_related('users').post(dict(id=privileged_user.id))
 
             # create payload
             payload = dict(inventory=host.inventory,
@@ -606,10 +612,12 @@ print json.dumps(inv, indent=2)
         '''
         Tests that deleting related objects will be reflected in the updated command page.
         '''
+        use_role_pg = ssh_credential.get_role('use_role')
         inventory_pg = host.get_related('inventory')
 
-        # modify credential for org_admin
-        ssh_credential.patch(user=org_admin.id)
+        # associate ssh_credential with org_admin
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            use_role_pg.get_related('users').post(dict(id=org_admin.id))
 
         # create payload
         payload = dict(inventory=inventory_pg.id,

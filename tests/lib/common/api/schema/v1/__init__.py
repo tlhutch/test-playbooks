@@ -133,6 +133,10 @@ class Awx_Schema_Users(Awx_Schema):
         return self.load_file('users/item.yml')
 
 
+class Awx_Schema_Related_Users(Awx_Schema_Users):
+    resource = '/api/v1/\w+/\d+/users/'
+
+
 class Awx_Schema_User(Awx_Schema_Users):
     resource = '/api/v1/users/\d+/'
 
@@ -1460,7 +1464,7 @@ class Awx_Schema_Job_Notifications(Awx_Schema_Notifications):
 #
 # /labels
 #
-class Awx_Labels(Awx_Schema):
+class Awx_Schema_Labels(Awx_Schema):
     resource = '/api/v1/labels/'
 
     @property
@@ -1476,7 +1480,7 @@ class Awx_Labels(Awx_Schema):
         return self.load_file('labels/duplicate.yml')
 
 
-class Awx_Label(Awx_Labels):
+class Awx_Schema_Label(Awx_Schema_Labels):
     resource = '/api/v1/labels/\d+/'
 
     @property
@@ -1492,18 +1496,18 @@ class Awx_Label(Awx_Labels):
         return self.get
 
 
-class Awx_Schema_Job_Template_Labels(Awx_Labels):
+class Awx_Schema_Job_Template_Labels(Awx_Schema_Labels):
     resource = '/api/v1/job_templates/\d+/labels/'
 
 
-class Awx_Schema_Job_Labels(Awx_Labels):
+class Awx_Schema_Job_Labels(Awx_Schema_Labels):
     resource = '/api/v1/jobs/\d+/labels/'
 
 
 #
 # /roles
 #
-class Awx_Roles(Awx_Schema):
+class Awx_Schema_Roles(Awx_Schema):
     resource = '/api/v1/roles/'
 
     @property
@@ -1511,9 +1515,13 @@ class Awx_Roles(Awx_Schema):
         return self.load_file('roles/list.yml')
 
 
-class Awx_Role(Awx_Schema):
+class Awx_Schema_Role(Awx_Schema):
     resource = '/api/v1/roles/\d+/'
 
     @property
     def get(self):
         return self.load_file('roles/item.yml')
+
+
+class Awx_Schema_Related_Roles(Awx_Schema_Roles):
+    resource = '/api/v1/\w+/\d+/roles/'

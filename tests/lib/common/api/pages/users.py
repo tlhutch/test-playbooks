@@ -26,6 +26,8 @@ class User_Page(base.Base):
             from teams import Teams_Page as cls
         elif attr == 'access_list':
             from access_list import Access_List_Page as cls
+        elif attr == 'roles':
+            from roles import Roles_Page as cls
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 
