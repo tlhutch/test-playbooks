@@ -126,6 +126,6 @@ if __name__ == '__main__':
     # Set github info
     cfg['github']['username'] = os.environ.get("GITHUB_USERNAME", "")
     cfg['github']['token'] = os.environ.get("GITHUB_TOKEN", "")
-    cfg['github']['completed'] = os.environ.get("GITHUB_COMPLETED", "").split(',')
+    cfg['github']['completed'] = os.environ.get("GITHUB_COMPLETED", "").split(' ')
 
     yaml.dump(cfg, open(credentials_file, 'w+'))
