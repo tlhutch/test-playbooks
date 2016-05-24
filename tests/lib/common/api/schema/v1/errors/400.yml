@@ -15,6 +15,7 @@ properties:
     playbook: { $ref: '#/definitions/error_required_field' }
     script: { $ref: '#/definitions/error_required_field_script' }
     non_field_errors: { $ref: '#/definitions/error_login_failure' }
+    module_name: { $ref: '#/definitions/error_required_field' }
     module_args: { $ref: '#/definitions/error_module_args' }
     notification_type: { $ref: '#/definitions/error_required_field' }
 definitions:
