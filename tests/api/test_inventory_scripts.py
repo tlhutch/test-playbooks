@@ -74,27 +74,35 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # without name
         payload = dict(script=script_source,
                        organization=organization.id)
-        with pytest.raises(common.exceptions.BadRequest_Exception):
-            api_inventory_scripts_pg.post(payload)
+        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, api_inventory_scripts_pg.post, payload)
+        result = exc_info.value[1]
+        assert result == {u'name': [u'This field is required.']}, \
+            "Unexpected API response when posting an inventory_script with a missing value for 'name': %s." % json.dumps(result)
 
         # without script
         payload = dict(name=fauxfactory.gen_utf8(),
                        organization=organization.id)
-        with pytest.raises(common.exceptions.BadRequest_Exception):
-            api_inventory_scripts_pg.post(payload)
+        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, api_inventory_scripts_pg.post, payload)
+        result = exc_info.value[1]
+        assert result == {u'script': [u'This field is required.']}, \
+            "Unexpected API response when posting an inventory_script with a missing value for 'script': %s." % json.dumps(result)
 
         # without script that includes hashbang
         payload = dict(name=fauxfactory.gen_utf8(),
                        organization=organization.id,
                        script='import json\nprint json.dumps({})')
-        with pytest.raises(common.exceptions.BadRequest_Exception):
-            api_inventory_scripts_pg.post(payload)
+        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, api_inventory_scripts_pg.post, payload)
+        result = exc_info.value[1]
+        assert result == {u'script': [u'Script must begin with a hashbang sequence: i.e.... #!/usr/bin/env python']}, \
+            "Unexpected API response when posting an inventory_script with a script that does not begin with a hashbang sequence: %s." % json.dumps(result)
 
         # without organization
         payload = dict(name=fauxfactory.gen_utf8(),
                        script=script_source)
-        with pytest.raises(common.exceptions.BadRequest_Exception):
-            api_inventory_scripts_pg.post(payload)
+        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, api_inventory_scripts_pg.post, payload)
+        result = exc_info.value[1]
+        assert result == {u'organization': [u'This field is required.']}, \
+            "Unexpected API response when posting an inventory_script with a missing value for 'organization': %s." % json.dumps(result)
 
     def test_post_as_non_superusers(self, non_superusers, user_password, api_inventory_scripts_pg, organization, script_source):
         '''
@@ -174,7 +182,6 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "Filtering by %s returned unexpected number of results (%s != %s)" % \
                 (attr, filter_results.count, 1)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1026')
     def test_put(self, api_inventory_scripts_pg, inventory_script):
         '''
         Verify successful PUT to /inventory_scripts/n
@@ -191,7 +198,6 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "Unexpected value for %s field ('%s' != '%s')" % \
                 (key, getattr(inventory_script, key), val)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1026')
     def test_patch(self, api_inventory_scripts_pg, inventory_script):
         '''
         Verify successful PATCH to /inventory_scripts/n
