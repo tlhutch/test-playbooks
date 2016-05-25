@@ -45,8 +45,8 @@ def role_manager(request, authtoken, user_factory, add_role):
 
 @pytest.fixture(scope='function')
 def param_role_manager(request, role_manager):
-    """Return a role context manager preloaded with a test user associated
-    with roles from an indirect fixture-parametrized role_spec
+    """Inject a role context manager preloaded with a test user associated
+    with roles from a fixture-parametrized role_spec
     """
     # create and populate a role spec
     role_spec = {}
@@ -58,14 +58,14 @@ def param_role_manager(request, role_manager):
     role_manager.add_role_spec(role_spec)
     return role_manager
 
-
 ##############################################################################
 
 from common.api.pages import Role_Page, Roles_Page  # NOQA
-from common.exceptions import NoContent_Exception  # NOQA
+from common.exceptions import NoContent_Exception   # NOQA
 
 # XX - This fixture is temporary and represents role lookup + add capabilities
-# not yet implemented in the page models. I'll solve this problem last.
+# not yet implemented. Instead of scraping the json results, this should use a
+# simple call to 'model.get_role'
 @pytest.fixture
 def add_role(request, user_factory):
     def _add_role(model, role_name, user):

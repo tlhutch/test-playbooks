@@ -18,7 +18,8 @@ from common.factories import (
 pytestmark = [
     pytest.mark.nondestructive,
     pytest.mark.rbac,
-    pytest.mark.usefixtures('install_enterprise_license',)]
+    pytest.mark.usefixtures('install_enterprise_license',)
+]
 
 
 @pytest.fixture(scope='module')
@@ -87,7 +88,7 @@ rbac_job_template = model_fixture(
         },
     ],
     indirect=True,
-    ids=lambda d: json.dumps(d, ident=4)
+    ids=lambda d: json.dumps(d, indent=4)
 )
 def test_modify_job_template_inventory_without_permission(
     param_role_manager,
@@ -113,3 +114,56 @@ def test_modify_job_template_inventory_without_permission(
     with param_role_manager.auth_user():
         with pytest.raises(Forbidden_Exception):
             rbac_job_template.patch(inventory=other_inventory.id)
+        with pytest.raises(Forbidden_Exception):
+            rbac_job_template.patch(project=other_project.id)
+        with pytest.raises(Forbidden_Exception):
+            rbac_job_template.patch(credential=other_credential.id)
+
+
+@pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/1969')
+@pytest.mark.parametrize(
+    'param_role_manager', [
+        {
+            'rbac_organization': ['admin'],
+            'rbac_project': [],
+            'rbac_job_template': [],
+        },
+    ],
+    indirect=True,
+    ids=lambda d: json.dumps(d, indent=4)
+)
+def test_read_orphaned_job_with_permission(param_role_manager, rbac_job_template):
+    """If a job template is removed, organization admins should still be able
+    to see details of past job runs for that job template.
+    """
+    orphan = rbac_job_template.launch().wait_until_completed()
+    rbac_job_template.delete()
+    with param_role_manager.auth_user():
+        assert orphan.get()
+
+
+@pytest.mark.parametrize(
+    'param_role_manager', [
+        {
+            'rbac_organization': ['member'],
+            'rbac_job_template': ['admin'],
+        },
+        {
+            'rbac_organization': ['member'],
+            'rbac_job_template': ['execute'],
+        },
+    ],
+    indirect=True,
+    ids=lambda d: json.dumps(d, indent=4)
+)
+def test_read_orphaned_job_without_permission(param_role_manager, rbac_job_template):
+    """If a job template is removed, users with job template admin and execute
+    roles should no longer be able to see details of past job runs for that
+    job template.
+    """
+    orphan = rbac_job_template.launch().wait_until_completed()
+    rbac_job_template.delete()
+    with param_role_manager.auth_user():
+        with pytest.raises(Forbidden_Exception):
+            orphan.get()

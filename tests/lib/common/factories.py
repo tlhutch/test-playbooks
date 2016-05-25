@@ -8,15 +8,20 @@ import fauxfactory
 from common.api.page_factory import PageFactory
 
 from common.api.pages import (
+    Credentials_Page,
+    Groups_Page,
+    Hosts_Page,
+    Inventories_Page,
+    Job_Templates_Page,
     Organizations_Page,
     Projects_Page,
     Users_Page,
-    Credentials_Page,
-    Inventories_Page,
-    Hosts_Page,
-    Groups_Page,
-    Job_Templates_Page,
 )
+
+
+# TODO: standardize global project configuration for tower-qa
+URL_PROJECT_GIT = 'https://github.com/jlaska/ansible-playbooks.git'
+URL_PROJECT_HG = 'https://bitbucket.org/jlaska/ansible-helloworld'
 
 
 class OrganizationFactory(PageFactory):
@@ -46,9 +51,9 @@ class ProjectFactory(PageFactory):
     @factory.LazyAttribute
     def scm_url(self):
         if self.scm_type == 'git':
-            return 'https://github.com/jlaska/ansible-playbooks.git'
+            return URL_PROJECT_GIT
         elif self.scm_type == 'hg':
-            return 'https://bitbucket.org/jlaska/ansible-helloworld'
+            return URL_PROJECT_HG
 
     @factory.post_generation
     def wait(self, create, extracted, **kwargs):
@@ -144,14 +149,12 @@ class GroupFactory(PageFactory):
         inline_args = ('request',)
         get_or_create = ('name',)
         exclude = ('related_inventory', 'group_credential',)
-
     related_inventory = factory.SubFactory(
         InventoryFactory,
         request=factory.SelfAttribute('..request'))
     group_credential = factory.SubFactory(
         CredentialFactory,
         request=factory.SelfAttribute('..request'))
-
     name = factory.Sequence(lambda n: 'group_{}'.format(n))
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     inventory = factory.SelfAttribute('related_inventory.id')
@@ -185,7 +188,6 @@ class JobTemplateFactory(PageFactory):
             'ansible_connection': 'local',
         }),
     )
-
     name = factory.Sequence(lambda n: 'job_template_{}'.format(n))
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     job_type = 'run'
