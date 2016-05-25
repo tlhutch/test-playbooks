@@ -686,17 +686,17 @@ class Test_Job_Template(Base_Api_Test):
         assert job_pg.status == 'canceled', \
             "Unexpected Job status (%s != 'canceled') after deleting job_template" % (job_pg.status)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2034')
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         '''
         Verify that the job->launch endpoint does not allow launching a
         job_template whose related endpoints have been deleted.
         '''
         (related, job_template_with_deleted_related) = job_template_with_deleted_related
-
         launch_pg = job_template_with_deleted_related.get_related('launch')
 
         # assert values on launch resource
-        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.can_start_without_user_input
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
