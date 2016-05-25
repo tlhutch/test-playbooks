@@ -169,7 +169,20 @@ class Test_Job_Template(Base_Api_Test):
             launch_pg.post()
 
     def test_launch_without_credential_permission(self, job_template, org_user, user_password, current_user):
+        '''
+        Verifies that with JT execute that JTs may be launched successfully without explicit credential
+        ownership.
+        '''
+        # grant org_user JT execute
         launch_pg = job_template.get_related('launch')
+        execute_role_pg = job_template.get_role('execute_role')
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            org_user.get_related('roles').post(dict(id=execute_role_pg.id))
+
+        # verify that our credential owner is admin user
+        credential_user_pg = job_template.get_related('credential').get_related('user')
+        assert credential_user_pg.username == "admin", \
+            "Unexpected credential owner. Expected 'admin', got %s." % credential_user_pg.username
 
         # assert values on launch resource
         assert launch_pg.can_start_without_user_input
@@ -178,20 +191,10 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.variables_needed_to_start
         assert not launch_pg.credential_needed_to_start
 
-        # add inventory read permission
-        org_user.add_permission('read', inventory=job_template.inventory)
-
-        # add job_template run permission
-        org_user.add_permission('run', project=job_template.project, inventory=job_template.inventory)
-
-        # launch the job_template providing the credential in the payload
+        # launch the job_template and assert successful
         with current_user(username=org_user.username, password=user_password):
-            exc_info = pytest.raises(common.exceptions.Forbidden_Exception, launch_pg.post)
-            result = exc_info.value[1]
-
-        assert 'detail' in result and result['detail'] == \
-            'You do not have permission to perform this action.', \
-            "Unexpected 403 response detail - %s" % json.dumps(result, indent=2)
+            job_pg = job_template.launch().wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
     def test_launch_with_credential_in_payload(self, job_template_no_credential, ssh_credential):
         '''
