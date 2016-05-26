@@ -213,6 +213,10 @@ class Awx_Schema_Inventory_Access_List(Awx_Schema):
         return self.load_file('access_list/list.yml')
 
 
+class Awx_Schema_Related_Inventory(Awx_Schema_Inventories):
+    resource = '/api/v1/\w+/\d+/inventories/'
+
+
 class Awx_Schema_Variable_Data(Awx_Schema):
     resource = '/api/v1/.*\/variable_data/'
 
@@ -375,6 +379,10 @@ class Awx_Schema_Credentials(Awx_Schema):
     @property
     def duplicate(self):
         return self.load_file('credentials/duplicate.yml')
+
+
+class Awx_Schema_Related_Credentials(Awx_Schema_Credentials):
+    resource = '/api/v1/\w+/\d+/credentials/'
 
 
 class Awx_Schema_Credential(Awx_Schema_Credentials):
@@ -710,6 +718,10 @@ class Awx_Schema_Job_Template_Survey_Spec(Awx_Schema):
     @property
     def post(self):
         return self.load_file('empty.yml')
+
+
+class Awx_Schema_Related_Job_Templates(Awx_Schema_Job_Templates):
+    resource = '/api/v1/\w+/\d+/job_templates/'
 
 
 class Awx_Schema_Inventory_Scan_Job_Templates(Awx_Schema_Job_Templates):
