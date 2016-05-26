@@ -149,12 +149,14 @@ class GroupFactory(PageFactory):
         inline_args = ('request',)
         get_or_create = ('name',)
         exclude = ('related_inventory', 'group_credential',)
+
     related_inventory = factory.SubFactory(
         InventoryFactory,
         request=factory.SelfAttribute('..request'))
     group_credential = factory.SubFactory(
         CredentialFactory,
         request=factory.SelfAttribute('..request'))
+
     name = factory.Sequence(lambda n: 'group_{}'.format(n))
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     inventory = factory.SelfAttribute('related_inventory.id')

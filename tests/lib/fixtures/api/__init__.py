@@ -2,6 +2,7 @@ import httplib
 import pytest
 import common.api
 import common.tower
+from common.utils import KeyAttrDict
 from common.api.pages import *  # NOQA
 from common.api.pages.authtoken import AuthToken_Page
 

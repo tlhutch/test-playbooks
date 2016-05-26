@@ -13,6 +13,14 @@ class NoReloadError(Exception):
     pass
 
 
+class KeyAttrDict(dict):
+    """Dictionary that lets you access values using attrs
+    """
+    def __init__(self, *args, **kwargs):
+        super(KeyAttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+
 def wait_until(obj, att, desired, callback=None, interval=5, attempts=0, timeout=0, start_time=None, verbose=False, verbose_atts=None):
     '''
     When changing the state of an object, it will commonly be in a transitional
