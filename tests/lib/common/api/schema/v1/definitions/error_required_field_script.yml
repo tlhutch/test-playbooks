@@ -1,9 +1,0 @@
----
-error_required_field_script:
-    type: array
-    minItems: 1
-    uniqueItems: True
-    items:
-        type: string
-        pattern: '^Script must begin with a hashbang sequence: i.e.... #!/usr/bin/env python$'
-
