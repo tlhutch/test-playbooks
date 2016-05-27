@@ -9,6 +9,7 @@ from common.utils import random_utf8
 
 pytestmark = [
     pytest.mark.nondestructive,
+    pytest.mark.skip_selenium,
     pytest.mark.rbac,
     pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 ]
@@ -17,7 +18,16 @@ pytestmark = [
 # request to user/:id/roles
 TOWER_ISSUE_1882 = pytest.mark.github(
     'https://github.com/ansible/ansible-tower/issues/1882')
+# Updating operational fields in a job template must be done by someone who
+# has appropriate access to the resources being used #1981
+TOWER_ISSUE_1981 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/1981')
+# Users should be able to copy job templates they have write/execute
+# access to
+TOWER_ISSUE_1958 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/1958')
 
+@TOWER_ISSUE_1981
 @pytest.mark.parametrize('no_usage', ['project', 'credential', 'inventory'])
 def test_usage_role_required_to_change_other_job_template_related_resources(
         factories, auth_user, add_roles, get_role_page, no_usage):
@@ -62,6 +72,8 @@ def test_usage_role_required_to_change_other_job_template_related_resources(
             job_template.patch(**{obj_name: obj.id})
 
 
+@TOWER_ISSUE_1958
+@TOWER_ISSUE_1981
 def test_makers_of_job_templates_are_added_to_admin_role(
         factories, auth_user, add_roles, get_role_page, api_job_templates_pg):
     """Verify that job template creators are added to the admin role of
@@ -98,7 +110,7 @@ def test_makers_of_job_templates_are_added_to_admin_role(
         'admin role of the created job template')
 
 
-@pytest.mark.parametrize('association_method', [
+@pytest.mark.parametrize('association_path', [
     '[user_id->/role/:id/users]',
     '[role_id->/user/:id/roles]'
 ])
@@ -111,14 +123,14 @@ def test_makers_of_job_templates_are_added_to_admin_role(
     TOWER_ISSUE_1882('job_template'),
 ])
 def test_role_association_and_disassociation(
-        factories, resource_name, association_method, get_role_pages):
+        factories, resource_name, association_path, get_role_pages):
     user = factories.user()
     resource = factories[resource_name]()
     for role_name, role in get_role_pages(resource):
-        if association_method =='[user_id->/role/:id/users]':
+        if association_path =='[user_id->/role/:id/users]':
             data = {'id': user.id}
             endpoint = role.get_related('users')
-        elif association_method == '[role_id->/user/:id/roles]':
+        elif association_path == '[role_id->/user/:id/roles]':
             data = {'id': role.id}
             endpoint = user.get_related('roles')
         else:
