@@ -127,7 +127,7 @@ def test_role_association_and_disassociation(
         factories, resource_name, association_method, get_role_pages):
     user = factories.user()
     resource = getattr(factories, resource_name)()
-    for role_name, role in get_role_pages(resource):
+    for role in get_role_pages(resource):
         if association_method == '[user_id->/role/:id/users]':
             data = {'id': user.id}
             endpoint = role.get_related('users')
@@ -142,7 +142,7 @@ def test_role_association_and_disassociation(
         results = role.get_related('users').get(username=user.username)
         assert results.count == 1, (
             'Could not verify {0} {1} role association'.format(
-                resource_name, role_name))
+                resource_name, role.name))
         # attempt to disassociate the role from the user
         data['disassociate'] = True
         with pytest.raises(NoContent_Exception):
@@ -152,4 +152,4 @@ def test_role_association_and_disassociation(
         results = role.get_related('users').get(username=user.username)
         assert results.count == 0, (
             'Could not verify {0} {1} role disassociation'.format(
-                resource_name, role_name))
+                resource_name, role.name))
