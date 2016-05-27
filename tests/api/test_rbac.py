@@ -10,11 +10,13 @@ from common.utils import random_utf8
 pytestmark = [
     pytest.mark.nondestructive,
     pytest.mark.rbac,
-    pytest.mark.usefixtures(
-        'authtoken',
-        'install_enterprise_license',)
+    pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 ]
 
+# 405 when attempting to associate a job template role to any user via POST
+# request to user/:id/roles
+TOWER_ISSUE_1882 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/1882')
 
 @pytest.mark.parametrize('no_usage', ['project', 'credential', 'inventory'])
 def test_usage_role_required_to_change_other_job_template_related_resources(
@@ -59,7 +61,7 @@ def test_usage_role_required_to_change_other_job_template_related_resources(
         with auth_user(user):
             job_template.patch(**{obj_name: obj.id})
 
-#@pytest.mark.github('')
+
 def test_makers_of_job_templates_are_added_to_admin_role(
         factories, auth_user, add_roles, get_role_page, api_job_templates_pg):
     """Verify that job template creators are added to the admin role of
@@ -92,14 +94,13 @@ def test_makers_of_job_templates_are_added_to_admin_role(
     admin_role = get_role_page(job_template, 'admin')
     results = admin_role.get_related('users').get(username=user.username)
     assert results.count == 1 , (
-        'Could not verify association of job template creator to the'
+        'Could not verify association of job template creator to the '
         'admin role of the created job template')
 
 
-tower_issue_1882 = 'https://github.com/ansible/ansible-tower/issues/1882'
 @pytest.mark.parametrize('association_method', [
-    'user_id->/role/:id/users',
-    'role_id->/user/:id/roles',
+    '[user_id->/role/:id/users]',
+    '[role_id->/user/:id/roles]'
 ])
 @pytest.mark.parametrize('resource_name', [
     'organization',
@@ -107,23 +108,35 @@ tower_issue_1882 = 'https://github.com/ansible/ansible-tower/issues/1882'
     'inventory',
     'credential',
     'group',
-     pytest.mark.github(tower_issue_1882)('job_template'),
+    TOWER_ISSUE_1882('job_template'),
 ])
-def test_user_role_association(
+def test_role_association_and_disassociation(
         factories, resource_name, association_method, get_role_pages):
     user = factories.user()
     resource = factories[resource_name]()
     for role_name, role in get_role_pages(resource):
-        if association_method =='user_id->/role/:id/users':
-            with pytest.raises(NoContent_Exception):
-                role.get_related('users').post({'id': user.id})
-        elif association_method == 'role_id->/user/:id/roles':
-            with pytest.raises(NoContent_Exception):
-                user.get_related('roles').post({'id': role.id})
+        if association_method =='[user_id->/role/:id/users]':
+            data = {'id': user.id}
+            endpoint = role.get_related('users')
+        elif association_method == '[role_id->/user/:id/roles]':
+            data = {'id': role.id}
+            endpoint = user.get_related('roles')
         else:
             raise RuntimeError('Invalid test parametrization')
+        with pytest.raises(NoContent_Exception):
+            endpoint.post(data)
         # check the related users endpoint of the role for the test user
         results = role.get_related('users').get(username=user.username)
         assert results.count == 1 , (
             'Could not verify {0} {1} role association'.format(
+                resource_name, role_name))
+        # attempt to disassociate the role from the user
+        data['disassociate'] = True
+        with pytest.raises(NoContent_Exception):
+            endpoint.post(data)
+        # check the related users endpoint of the role for the absence
+        # of test user
+        results = role.get_related('users').get(username=user.username)
+        assert results.count == 0 , (
+            'Could not verify {0} {1} role disassociation'.format(
                 resource_name, role_name))
