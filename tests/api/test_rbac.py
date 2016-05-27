@@ -4,6 +4,7 @@ import sys
 import pytest
 
 from common.exceptions import LicenseExceeded_Exception as Forbidden_Exception  # TODO: Fix this
+from common.exceptions import NoContent_Exception
 from common.utils import random_utf8
 
 pytestmark = [
@@ -13,6 +14,7 @@ pytestmark = [
         'authtoken',
         'install_enterprise_license',)
 ]
+
 
 @pytest.mark.parametrize('no_usage', ['project', 'credential', 'inventory'])
 def test_usage_role_required_to_change_other_job_template_related_resources(
@@ -92,3 +94,36 @@ def test_makers_of_job_templates_are_added_to_admin_role(
     assert results.count == 1 , (
         'Could not verify association of job template creator to the'
         'admin role of the created job template')
+
+
+tower_issue_1882 = 'https://github.com/ansible/ansible-tower/issues/1882'
+@pytest.mark.parametrize('association_method', [
+    'user_id->/role/:id/users',
+    'role_id->/user/:id/roles',
+])
+@pytest.mark.parametrize('resource_name', [
+    'organization',
+    'project',
+    'inventory',
+    'credential',
+    'group',
+     pytest.mark.github(tower_issue_1882)('job_template'),
+])
+def test_user_role_association(
+        factories, resource_name, association_method, get_role_pages):
+    user = factories.user()
+    resource = factories[resource_name]()
+    for role_name, role in get_role_pages(resource):
+        if association_method =='user_id->/role/:id/users':
+            with pytest.raises(NoContent_Exception):
+                role.get_related('users').post({'id': user.id})
+        elif association_method == 'role_id->/user/:id/roles':
+            with pytest.raises(NoContent_Exception):
+                user.get_related('roles').post({'id': role.id})
+        else:
+            raise RuntimeError('Invalid test parametrization')
+        # check the related users endpoint of the role for the test user
+        results = role.get_related('users').get(username=user.username)
+        assert results.count == 1 , (
+            'Could not verify {0} {1} role association'.format(
+                resource_name, role_name))
