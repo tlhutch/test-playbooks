@@ -1,7 +1,7 @@
 import pytest
 
 from common.api.page_factory import factory_fixture
-from common.utils import KeyAttrDict
+from common.utils import Struct
 
 from common.factories import (
     CredentialFactory,
@@ -40,7 +40,7 @@ def factories(
     """Inject a map of of all factories into your test context
     """
     return \
-        KeyAttrDict(
+        Struct(
             credential=credential_factory,
             group=group_factory,
             host=host_factory,

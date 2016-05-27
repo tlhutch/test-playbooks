@@ -6,6 +6,7 @@ from common.api.pages import Role_Page
 from common.api.pages import Roles_Page
 from common.exceptions import NoContent_Exception
 
+
 @pytest.fixture
 def auth_user(testsetup, api_authtoken_url):
     """Inject a context manager for user authtoken switching on api models

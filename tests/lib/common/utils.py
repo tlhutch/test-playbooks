@@ -13,13 +13,11 @@ class NoReloadError(Exception):
     pass
 
 
-class KeyAttrDict(dict):
-    """Dictionary that lets you access values using attrs
+class Struct(object):
+    """Simple data structure that does kwargs->attr binding on initialization
     """
-    def __init__(self, *args, **kwargs):
-        super(KeyAttrDict, self).__init__(*args, **kwargs)
-        self.__dict__ = self
-
+    def __init__(self, **kwargs):
+        self.__dict__.update(**kwargs)
 
 def wait_until(obj, att, desired, callback=None, interval=5, attempts=0, timeout=0, start_time=None, verbose=False, verbose_atts=None):
     '''

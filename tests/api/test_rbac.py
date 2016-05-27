@@ -27,6 +27,7 @@ TOWER_ISSUE_1981 = pytest.mark.github(
 TOWER_ISSUE_1958 = pytest.mark.github(
     'https://github.com/ansible/ansible-tower/issues/1958')
 
+
 @TOWER_ISSUE_1981
 @pytest.mark.parametrize('no_usage', ['project', 'credential', 'inventory'])
 def test_usage_role_required_to_change_other_job_template_related_resources(
@@ -46,7 +47,7 @@ def test_usage_role_required_to_change_other_job_template_related_resources(
         'credential': factories.credential(),
         'inventory': factories.inventory()
     }
-    related_object_ids = {k:v.id for k,v in related_data.items()}
+    related_object_ids = {k: v.id for k,v in related_data.items()}
     job_template = factories.job_template(**related_object_ids)
     # make user an org member and a job template admin
     user = factories.user()
@@ -105,12 +106,12 @@ def test_makers_of_job_templates_are_added_to_admin_role(
     # role for the test user
     admin_role = get_role_page(job_template, 'admin')
     results = admin_role.get_related('users').get(username=user.username)
-    assert results.count == 1 , (
+    assert results.count == 1, (
         'Could not verify association of job template creator to the '
         'admin role of the created job template')
 
 
-@pytest.mark.parametrize('association_path', [
+@pytest.mark.parametrize('association_method', [
     '[user_id->/role/:id/users]',
     '[role_id->/user/:id/roles]'
 ])
@@ -123,14 +124,14 @@ def test_makers_of_job_templates_are_added_to_admin_role(
     TOWER_ISSUE_1882('job_template'),
 ])
 def test_role_association_and_disassociation(
-        factories, resource_name, association_path, get_role_pages):
+        factories, resource_name, association_method, get_role_pages):
     user = factories.user()
-    resource = factories[resource_name]()
+    resource = getattr(factories, resource_name)()
     for role_name, role in get_role_pages(resource):
-        if association_path =='[user_id->/role/:id/users]':
+        if association_method == '[user_id->/role/:id/users]':
             data = {'id': user.id}
             endpoint = role.get_related('users')
-        elif association_path == '[role_id->/user/:id/roles]':
+        elif association_method == '[role_id->/user/:id/roles]':
             data = {'id': role.id}
             endpoint = user.get_related('roles')
         else:
@@ -139,7 +140,7 @@ def test_role_association_and_disassociation(
             endpoint.post(data)
         # check the related users endpoint of the role for the test user
         results = role.get_related('users').get(username=user.username)
-        assert results.count == 1 , (
+        assert results.count == 1, (
             'Could not verify {0} {1} role association'.format(
                 resource_name, role_name))
         # attempt to disassociate the role from the user
@@ -149,6 +150,6 @@ def test_role_association_and_disassociation(
         # check the related users endpoint of the role for the absence
         # of test user
         results = role.get_related('users').get(username=user.username)
-        assert results.count == 0 , (
+        assert results.count == 0, (
             'Could not verify {0} {1} role disassociation'.format(
                 resource_name, role_name))
