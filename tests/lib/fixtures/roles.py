@@ -24,22 +24,31 @@ def auth_user(testsetup, api_authtoken_url):
 
 
 @pytest.fixture
-def get_role_page(request):
-    def _get_role_page(model, role_name):
+def get_role_pages(request):
+    def _get_role_pages(model):
         testsetup = request.getfuncargvalue('testsetup')
-        role_name = role_name.lower()
-        roles_url = model.get().json.related.roles
-        results = Roles_Page(testsetup, base_url=roles_url).get().json.results
-        try:
-            role = next(r for r in results if r.name.lower() == role_name)
-        except StopIteration:
-            msg = "Role '{0}' not found for {1}"
-            raise ValueError(msg.format(role_name, type(model)))
-        return Role_Page(testsetup, base_url=role.url).get()
+        url = model.get().json.related.roles
+        roles_page = Roles_Page(testsetup, base_url=url)
+        for role in roles_page.get().json.results:
+            role_page = Role_Page(testsetup, base_url=role.url)
+            yield (role.name, role_page.get())
+    return _get_role_pages
+
+
+@pytest.fixture
+def get_role_page(get_role_pages):
+    def _get_role_page(model, role_name):
+        search_name = role_name.lower()
+        for name, role_page in get_role_pages(model):
+            if name.lower() == search_name:
+                return role_page
+        msg = "Role '{0}' not found for {1}"
+        msg = msg.format(role_name, type(model))
+        raise ValueError(msg)
     return _get_role_page
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def add_roles(auth_user, get_role_page):
     def _add_roles(user, model, role_names):
         role_pages = [get_role_page(model, n) for n in role_names]
