@@ -1,6 +1,3 @@
-import json
-import sys
-
 import pytest
 
 from common.exceptions import LicenseExceeded_Exception as Forbidden_Exception  # TODO: Fix this
@@ -47,7 +44,7 @@ def test_usage_role_required_to_change_other_job_template_related_resources(
         'credential': factories.credential(),
         'inventory': factories.inventory()
     }
-    related_object_ids = {k: v.id for k,v in related_data.items()}
+    related_object_ids = {k: v.id for k, v in related_data.items()}
     job_template = factories.job_template(**related_object_ids)
     # make user an org member and a job template admin
     user = factories.user()
