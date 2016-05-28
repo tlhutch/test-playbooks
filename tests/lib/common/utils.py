@@ -13,6 +13,22 @@ class NoReloadError(Exception):
     pass
 
 
+class SimpleNamespace:
+    """Simple namespace data structure that does kwarg->attr binding on
+    initialization
+    """
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+    def __repr__(self):
+        keys = sorted(self.__dict__)
+        items = ("{}={!r}".format(k, self.__dict__[k]) for k in keys)
+        return "{}({})".format(type(self).__name__, ", ".join(items))
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+
 def wait_until(obj, att, desired, callback=None, interval=5, attempts=0, timeout=0, start_time=None, verbose=False, verbose_atts=None):
     '''
     When changing the state of an object, it will commonly be in a transitional

@@ -31,3 +31,4 @@ azure
 boto
 pyrax
 pysphere
+factory_boy

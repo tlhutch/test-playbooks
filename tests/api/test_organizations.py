@@ -61,9 +61,9 @@ class Test_Organizations(Base_Api_Test):
         # note: the API determines the organization of a non-scan JT by looking at the organization of the JT project. For scan JTs, it
         # looks at the organization of the JT inventory instead.
         inventory_pg = organization.get_related('inventories')
-        org_inventory_ids = [inventory_pg.id for inventory_pg in inventory_pg.results]
+        org_inventory_ids = [inv_pg.id for inv_pg in inventory_pg.results]
         project_pg = organization.get_related('projects')
-        org_project_ids = [project_pg.id for project_pg in project_pg.results]
+        org_project_ids = [proj_pg.id for proj_pg in project_pg.results]
 
         params = dict(job_type='scan', inventory__in=-1)
         if org_inventory_ids:

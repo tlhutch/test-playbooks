@@ -16,6 +16,7 @@ class Project_Page(Unified_Job_Template_Page):
     scm_update_on_launch = property(json_getter('scm_update_on_launch'), json_setter('scm_update_on_launch'))
     scm_update_cache_timeout = property(json_getter('scm_update_cache_timeout'), json_setter('scm_update_cache_timeout'))
     has_schedules = property(json_getter('has_schedules'), json_setter('has_schedules'))
+    summary_fields = property(json_getter('summary_fields'), json_setter('summary_fields'))
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related'], \

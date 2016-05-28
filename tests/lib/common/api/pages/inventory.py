@@ -4,7 +4,7 @@ from common.api.pages import Base, Base_List, Unified_Job_Page, Unified_Job_Temp
 
 class Inventory_Page(Base):
     # FIXME - it would be nice for base_url to always return self.json.url.
-    base_url = '/api/v1/inventory/{id}/'
+    base_url = '/api/v1/inventories/{id}/'
     name = property(json_getter('name'), json_setter('name'))
     type = property(json_getter('type'), json_setter('type'))
     description = property(json_getter('description'), json_setter('description'))
@@ -80,7 +80,7 @@ class Inventory_Page(Base):
 
 
 class Inventories_Page(Inventory_Page, Base_List):
-    base_url = '/api/v1/inventory/'
+    base_url = '/api/v1/inventories/'
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related']
