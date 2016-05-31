@@ -12,6 +12,7 @@ from common.factories import (
     OrganizationFactory,
     ProjectFactory,
     UserFactory,
+    TeamFactory,
 )
 
 
@@ -24,6 +25,7 @@ job_template_factory = factory_fixture(JobTemplateFactory)
 organization_factory = factory_fixture(OrganizationFactory)
 project_factory = factory_fixture(ProjectFactory)
 user_factory = factory_fixture(UserFactory)
+team_factory = factory_fixture(TeamFactory)
 
 
 @pytest.fixture
@@ -35,7 +37,8 @@ def factories(
     job_template_factory,
     organization_factory,
     project_factory,
-    user_factory
+    user_factory,
+    team_factory
 ):
     """Inject a map of of all factories into your test context
     """
@@ -48,5 +51,6 @@ def factories(
             job_template=job_template_factory,
             organization=organization_factory,
             project=project_factory,
-            user=user_factory
+            user=user_factory,
+            team=team_factory
         )

@@ -11,7 +11,7 @@ def admin_user(request, authtoken, api_users_pg):
 
 @pytest.fixture(scope="function")
 def user_password(request):
-    return "password"
+    return "fo0m4nchU"
 
 
 @pytest.fixture(scope="function")

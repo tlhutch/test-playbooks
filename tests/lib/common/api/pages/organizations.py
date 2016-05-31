@@ -31,7 +31,7 @@ class Organization_Page(base.Base):
         elif attr == 'activity_stream':
             from activity_stream import Activity_Stream_Page
             cls = Activity_Stream_Page
-        elif attr in ['notification_templates_any', 'notification_templates_error', 'notification_templates_success']:
+        elif attr in ['notification_templates', 'notification_templates_any', 'notification_templates_error', 'notification_templates_success']:
             from notification_templates import Notification_Templates_Page
             cls = Notification_Templates_Page
         elif attr == 'access_list':

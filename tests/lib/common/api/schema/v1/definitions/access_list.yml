@@ -7,8 +7,10 @@ access_list:
     first_name: {type: string}
     id: {$ref: '#/definitions/id'}
     is_superuser: {type: boolean}
+    is_system_auditor: {type: boolean}
     last_name: {type: string}
     ldap_dn: {type: string}
+    external_account: {$ref: '#/definitions/string_or_null'}
     modified: {format: date-time, type: string}
     related:
       additionalProperties: false
@@ -20,31 +22,42 @@ access_list:
         organizations: {$ref: '#/definitions/uri'}
         projects: {$ref: '#/definitions/uri'}
         roles: {$ref: '#/definitions/uri'}
+        object_roles: {$ref: '#/definitions/uri'}
         teams: {$ref: '#/definitions/uri'}
       required: [admin_of_organizations, credentials, organizations, projects, teams,
-        activity_stream, roles, access_list]
+        activity_stream, roles, object_roles, access_list]
       type: object
     summary_fields:
       additionalProperties: false
       properties:
         direct_access:
-          items:
-          - {$ref: '#/definitions/summary_fields_access'}
-          minItems: 0
-          type: array
-          uniqueItems: true
+          additionalProperties: false
+          properties:
+            descendant_roles:
+              items:
+              - {$ref: '#/definitions/summary_fields_access'}
+              minItems: 0
+              type: array
+              uniqueItems: true
+            role: {$ref: '#/definitions/summary_fields_role'}
+          required: [descendant_roles, role]  
         indirect_access:
-          items:
-          - {$ref: '#/definitions/summary_fields_access'}
-          minItems: 0
-          type: array
-          uniqueItems: true
+          additionalProperties: false
+          properties:
+            descendant_roles:
+              items:
+              - {$ref: '#/definitions/summary_fields_access'}
+              minItems: 0
+              type: array
+              uniqueItems: true
+            role: {$ref: '#/definitions/summary_fields_role'}
+          required: [descendant_roles, role]
         active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
       required: [direct_access, indirect_access, active_roles]
       type: object
     type: {pattern: ^user$, type: string}
     url: {format: uri, type: string}
     username: {type: string}
-  required: [created, email, first_name, id, is_superuser, last_name, ldap_dn, related,
-    url, username, type, auth]
+  required: [created, email, first_name, id, is_superuser, is_system_auditor, last_name, ldap_dn, related,
+    url, username, type, auth, external_account]
   type: object

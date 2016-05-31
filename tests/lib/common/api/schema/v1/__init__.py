@@ -108,6 +108,14 @@ class Awx_Schema_Organization(Awx_Schema_Organizations):
     def get(self):
         return self.load_file('organizations/item.yml')
 
+    @property
+    def put(self):
+        return self.get
+
+    @property
+    def patch(self):
+        return self.get
+
 
 class Awx_Schema_Organization_Access_List(Awx_Schema):
     resource = '/api/v1/organizations/\d+/access_list/'
@@ -215,6 +223,14 @@ class Awx_Schema_Inventory_Access_List(Awx_Schema):
     @property
     def get(self):
         return self.load_file('access_list/list.yml')
+
+
+class Awx_Schema_Inventory_Tree(Awx_Schema):
+    resource = '/api/v1/inventories/\d+/tree/'
+
+    @property
+    def get(self):
+        return self.load_file('tree.yml')
 
 
 class Awx_Schema_Related_Inventory(Awx_Schema_Inventories):
@@ -406,7 +422,7 @@ class Awx_Schema_Credential(Awx_Schema_Credentials):
 
 
 class Awx_Schema_Credential_Access_List(Awx_Schema):
-    resource = '/api/v1/credential/\d+/access_list/'
+    resource = '/api/v1/credentials/\d+/access_list/'
 
     @property
     def get(self):
@@ -459,6 +475,10 @@ class Awx_Schema_Project(Awx_Schema_Projects):
     @property
     def put(self):
         return self.get
+
+
+class Awx_Schema_Related_Project(Awx_Schema_Projects):
+    resource = '/api/v1/\w+/\d+/projects/'
 
 
 class Awx_Schema_Project_Access_List(Awx_Schema):
@@ -925,6 +945,10 @@ class Awx_Schema_Inventory_Source(Awx_Schema_Inventory_Sources):
         return self.load_file('inventory_sources/item.yml')
 
 
+class Awx_Schema_Related_Inventory_Sources(Awx_Schema_Inventory_Sources):
+    resource = '/api/v1/\w+/\d+/inventory_sources/'
+
+
 class Awx_Schema_Inventory_Sources_Related_Update(Awx_Schema):
     resource = '/api/v1/inventory_sources/\d+/update/'
 
@@ -1017,6 +1041,22 @@ class Awx_Schema_Teams(Awx_Schema):
     @property
     def duplicate(self):
         return self.load_file('teams/duplicate.yml')
+
+
+class Awx_Schema_Team(Awx_Schema_Teams):
+    resource = '/api/v1/teams/\d+/'
+
+    @property
+    def get(self):
+        return self.load_file('teams/item.yml')
+
+    @property
+    def patch(self):
+        return self.get
+
+    @property
+    def put(self):
+        return self.get
 
 
 class Awx_Schema_Team_Access_List(Awx_Schema):
@@ -1348,6 +1388,10 @@ class Awx_Schema_Notification_Template(Awx_Schema_Notification_Templates):
     @property
     def put(self):
         return self.get
+
+
+class Awx_Schema_Related_Notification_Templates(Awx_Schema_Notification_Templates):
+    resource = '/api/v1/\w+/\d+/notification_templates/'
 
 
 class Awx_Schema_Notification_Template_Test(Awx_Schema):

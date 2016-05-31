@@ -53,6 +53,9 @@ class Job_Template_Page(Unified_Job_Template_Page):
         elif attr == 'jobs':
             from jobs import Jobs_Page
             cls = Jobs_Page
+        elif attr == 'last_job':
+            from jobs import Job_Page
+            cls = Job_Page
         elif attr == 'inventory':
             from inventory import Inventory_Page
             cls = Inventory_Page
@@ -74,9 +77,15 @@ class Job_Template_Page(Unified_Job_Template_Page):
         elif attr == 'access_list':
             from access_list import Access_List_Page
             cls = Access_List_Page
-        elif attr == 'roles':
+        elif attr == 'object_roles':
             from roles import Roles_Page
             cls = Roles_Page
+        elif attr in ['created_by', 'modified_by']:
+            from users import User_Page
+            cls = User_Page
+        elif attr == 'activity_stream':
+            from activity_stream import Activity_Stream_Page
+            cls = Activity_Stream_Page
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 
