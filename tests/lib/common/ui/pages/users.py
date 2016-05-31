@@ -8,7 +8,7 @@ from common.ui.pages.regions.tabs import PanelTab
 from common.ui.pages.forms import FormPanel
 from common.ui.pages.forms import Lookup
 
-from common.ui.pages.regions.cells import *  # NOQA
+from common.ui.pages.regions.cells import (UserNameCell, FirstNameCell, LastNameCell, EditActionCell, DeleteActionCell)
 
 
 class UsersTable(Table):

@@ -3,7 +3,7 @@ from selenium.webdriver.common.by import By
 from common.ui.pages.page import Region, RegionMap
 from common.ui.pages.regions import Clickable
 
-from groups import *  # NOQA
+from groups import (Checkbox, CodeMirror, FormGroup, Password, RadioButtons, SelectDropDown, TextInput, TextArea, Email)
 from lookup import Lookup
 
 

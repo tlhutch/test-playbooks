@@ -1,7 +1,9 @@
 import fauxfactory
 import pytest
 
-from common.ui.pages import *  # NOQA
+from common.ui.pages import (ActivityStream, Credentials, Dashboard, Hosts, Inventories, InventoryScripts,
+                             JobTemplateSchedules, JobTemplates, Jobs, License, Login, ManageInventory, ManagementJobs,
+                             Organizations, ProjectSchedules, Projects, SetupMenu, Teams, Users)
 
 #
 # TODO: Decompose this beast into separate modules

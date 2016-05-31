@@ -5,7 +5,8 @@ from common.ui.pages.regions.tabs import PanelTab
 from common.ui.pages.regions.table import Table
 from common.ui.pages.forms import FormPanel
 
-from common.ui.pages.regions.cells import *  # NOQA
+from common.ui.pages.regions.cells import (NameCell, DeleteActionCell, EditActionCell, DescriptionCell,
+                                           ScheduleActionCell, CopyActionCell, SubmitActionCell)
 
 
 class JobTemplatesTable(Table):

@@ -7,7 +7,9 @@ from common.ui.pages.regions import PanelTab
 from common.ui.pages.regions import FormGeneratorTable
 from common.ui.pages.forms import FormPanel
 
-from common.ui.pages.regions.cells import *  # NOQA
+from common.ui.pages.regions.cells import (DeleteActionCell, DescriptionCell, EditActionCell, FinalRunCell,
+                                           FirstRunCell, JobStatusCell, LastUpdatedCell, NameCell, NextRunCell,
+                                           SCMUpdateActionCell, ScheduleActionCell, TypeCell)
 
 
 class ProjectsTable(Table):
