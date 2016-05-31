@@ -2,7 +2,12 @@ import httplib
 import pytest
 import common.api
 import common.tower
-from common.api.pages import *  # NOQA
+from common.api.pages import (Activity_Stream_Page, Ad_Hoc_Commands_Page, Base, Config_Page, Credentials_Page,
+                              Dashboard_Page, Groups_Page, Hosts_Page, Inventories_Page, Inventory_Scripts_Page,
+                              Inventory_Sources_Page, Job_Templates_Page, Jobs_Page, Labels_Page, Me_Page,
+                              Notification_Templates_Page, Notifications_Page, Organizations_Page, Ping_Page,
+                              Projects_Page, Roles_Page, Schedules_Page, Settings_Page, System_Job_Templates_Page,
+                              Teams_Page, Unified_Job_Templates_Page, Users_Page)
 from common.api.pages.authtoken import AuthToken_Page
 
 
@@ -151,7 +156,9 @@ def tower_version(api_config_pg):
 
 @pytest.fixture(scope="module")
 def tower_version_cmp(request, tower_version):
-    return lambda x: common.tower.version_cmp(tower_version, x)
+    def func(x):
+        return common.tower.version_cmp(tower_version, x)
+    return func
 
 
 @pytest.fixture(scope='module')
@@ -162,7 +169,9 @@ def ansible_version(api_config_pg):
 
 @pytest.fixture(scope="module")
 def ansible_version_cmp(request, ansible_version):
-    return lambda x: common.tower.version_cmp(ansible_version, x)
+    def func(x):
+        return common.tower.version_cmp(ansible_version, x)
+    return func
 
 
 @pytest.fixture(scope="module")

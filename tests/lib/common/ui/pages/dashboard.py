@@ -8,7 +8,7 @@ from common.ui.pages.regions import Clickable
 from common.ui.pages.regions import Link
 from common.ui.pages.regions import Table
 
-from common.ui.pages.regions.cells import *  # NOQA
+from common.ui.pages.regions.cells import (EditActionCell, SubmitActionCell)
 
 
 class Dashboard(TowerPage):
