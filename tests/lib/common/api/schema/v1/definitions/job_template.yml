@@ -1,6 +1,7 @@
 job_template:
   additionalProperties: false
   properties:
+    allow_simultaneous: {type: boolean}
     ask_credential_on_launch: {type: boolean}
     ask_inventory_on_launch: {type: boolean}
     ask_job_type_on_launch: {type: boolean}
@@ -61,7 +62,8 @@ job_template:
         schedules: {format: uri, type: string}
         survey_spec: {format: uri, type: string}
       required: [created_by, jobs, activity_stream, labels, notification_templates_any,
-        notification_templates_error, notification_templates_success, access_list, roles]
+        notification_templates_error, notification_templates_success, access_list,
+        roles]
       type: object
     skip_tags: {type: string}
     start_at_task: {type: string}
@@ -100,9 +102,9 @@ job_template:
     type: {pattern: ^job_template$, type: string}
     url: {format: uri, type: string}
     verbosity: {minimum: 0, type: number}
-  required: [id, cloud_credential, created, credential, description, extra_vars, force_handlers,
-    forks, has_schedules, ask_variables_on_launch, host_config_key, inventory, job_tags,
-    job_type, last_job_failed, last_job_run, limit, modified, name, network_credential,
-    next_job_run, playbook, project, related, skip_tags, start_at_task, status, summary_fields,
-    type, url, verbosity]
+  required: [id, allow_simultaneous, cloud_credential, created, credential, description,
+    extra_vars, force_handlers, forks, has_schedules, ask_variables_on_launch, host_config_key,
+    inventory, job_tags, job_type, last_job_failed, last_job_run, limit, modified,
+    name, network_credential, next_job_run, playbook, project, related, skip_tags,
+    start_at_task, status, summary_fields, type, url, verbosity]
   type: object
