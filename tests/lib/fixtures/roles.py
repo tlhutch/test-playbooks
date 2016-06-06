@@ -70,7 +70,7 @@ def get_role_pages(request):
             [(571, u'Admin'), (572, u'Read'), (573, u'Execute')]
         """
         testsetup = request.getfuncargvalue('testsetup')
-        url = model.get().json.related.roles
+        url = model.get().json.related.object_roles
         roles_page = Roles_Page(testsetup, base_url=url)
         for role in roles_page.get().json.results:
             role_page = Role_Page(testsetup, base_url=role.url)

@@ -176,11 +176,11 @@ class Base(Page):
         assert name in self.json['related']
         return Base(self.testsetup, base_url=self.json['related'][name]).get(**kwargs)
 
-    def get_role(self, name):
-        roles_pg = self.get_related('roles', role_field=name)
-        assert roles_pg.count == 1, \
+    def get_object_role(self, name):
+        object_roles_pg = self.get_related('object_roles', role_field=name)
+        assert object_roles_pg.count == 1, \
             "No role with name '%s' found." % name
-        return roles_pg.results[0]
+        return object_roles_pg.results[0]
 
 
 class Base_List(Base):

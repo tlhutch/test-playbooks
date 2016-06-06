@@ -1541,3 +1541,11 @@ class Awx_Schema_Role(Awx_Schema):
 
 class Awx_Schema_Related_Roles(Awx_Schema_Roles):
     resource = '/api/v1/\w+/\d+/roles/'
+
+
+class Awx_Schema_Related_Object_Roles(Awx_Schema):
+    resource = '/api/v1/\w+/\d+/object_roles/'
+
+    @property
+    def get(self):
+        return self.load_file('roles/list.yml')

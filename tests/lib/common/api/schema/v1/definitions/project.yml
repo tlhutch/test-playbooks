@@ -41,13 +41,13 @@ project:
         organization: {format: uri, type: string}
         playbooks: {format: uri, type: string}
         project_updates: {format: uri, type: string}
-        roles: {format: uri, type: string}
+        object_roles: {format: uri, type: string}
         schedules: {format: uri, type: string}
         teams: {format: uri, type: string}
         update: {format: uri, type: string}
       required: [created_by, organization, project_updates, playbooks, update, teams,
         activity_stream, notification_templates_any, notification_templates_error,
-        notification_templates_success, access_list, roles]
+        notification_templates_success, access_list, object_roles]
       type: object
     scm_branch: {type: string}
     scm_clean: {type: boolean}
@@ -67,7 +67,7 @@ project:
         organization: {$ref: '#/definitions/summary_fields_organization'}
         created_by: {$ref: '#/definitions/summary_fields_user'}
         active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
-        roles:
+        object_roles:
           additionalProperties: false
           properties:
             admin_role: {$ref: '#/definitions/summary_fields_role'}
@@ -76,7 +76,7 @@ project:
             read_role: {$ref: '#/definitions/summary_fields_role'}
           required: [admin_role, update_role, use_role, read_role]
           type: object
-      required: [roles]
+      required: [object_roles]
       type: object
     type: {pattern: ^project$, type: string}
     url: {format: uri, type: string}
