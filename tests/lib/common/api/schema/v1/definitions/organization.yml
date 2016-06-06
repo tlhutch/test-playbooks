@@ -21,12 +21,12 @@ organization:
         notification_templates_error: {$ref: '#/definitions/uri'}
         notification_templates_success: {$ref: '#/definitions/uri'}
         projects: {$ref: '#/definitions/uri'}
-        roles: {$ref: '#/definitions/uri'}
+        object_roles: {$ref: '#/definitions/uri'}
         teams: {$ref: '#/definitions/uri'}
         users: {$ref: '#/definitions/uri'}
       required: [admins, inventories, credentials, users, projects, teams, activity_stream, notification_templates,
                  notification_templates_any, notification_templates_error, notification_templates_success, access_list,
-                 roles]
+                 object_roles]
       type: object
     summary_fields:
       additionalProperties: false
@@ -34,7 +34,7 @@ organization:
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
-        roles:
+        object_roles:
           additionalProperties: false
           properties:
             auditor_role: {$ref: '#/definitions/summary_fields_role'}
@@ -44,7 +44,7 @@ organization:
           required: [auditor_role, admin_role, member_role, read_role]
           type: object
         related_field_counts: {$ref: '#/definitions/summary_fields_related_field_counts'}
-      required: [active_roles, roles, related_field_counts]
+      required: [active_roles, object_roles, related_field_counts]
       type: object
     type:
       enum: [organization]

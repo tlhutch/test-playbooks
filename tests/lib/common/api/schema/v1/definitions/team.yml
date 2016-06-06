@@ -18,8 +18,9 @@ team:
         organization: {$ref: '#/definitions/uri'}
         projects: {$ref: '#/definitions/uri'}
         roles: {$ref: '#/definitions/uri'}
+        object_roles: {$ref: '#/definitions/uri'}
         users: {$ref: '#/definitions/uri'}
-      required: [users, projects, credentials, activity_stream, roles]
+      required: [users, projects, credentials, activity_stream, roles, object_roles]
       type: object
     summary_fields:
       additionalProperties: false
@@ -28,7 +29,7 @@ team:
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         organization: {$ref: '#/definitions/summary_fields_organization'}
         active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
-        roles:
+        object_roles:
           additionalProperties: false
           properties:
             admin_role: {$ref: '#/definitions/summary_fields_role'}
@@ -36,7 +37,7 @@ team:
             read_role: {$ref: '#/definitions/summary_fields_role'}
           required: [admin_role, member_role, read_role]
           type: object
-      required: [active_roles, roles]
+      required: [active_roles, object_roles]
       type: object
     type: {pattern: ^team$, type: string}
     url: {$ref: '#/definitions/uri'}

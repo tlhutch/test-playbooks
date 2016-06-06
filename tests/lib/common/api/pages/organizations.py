@@ -46,6 +46,9 @@ class Organization_Page(base.Base):
         elif attr == 'projects':
             from projects import Projects_Page
             cls = Projects_Page
+        elif attr == 'object_roles':
+            from roles import Roles_Page
+            cls = Roles_Page
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 
