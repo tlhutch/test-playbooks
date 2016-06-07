@@ -39,6 +39,8 @@ def test_active_project_update(project, ui_projects):
     # initiate SCM update
     results[0]['scm_update'].click()
 
+    ui_projects.back()
+
     project.wait_until_completed()
     project.get()
 
@@ -78,7 +80,7 @@ def test_no_pagination(authtoken, api_projects_pg, ui_projects):
         'Pagination unexpectedly displayed')
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/902')
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1844')
 def test_edit_search_region_toggle(ui_projects_edit):
     """Verify search regions are not visible when their associated data tables
     are not populated

@@ -19,7 +19,7 @@ class SearchButton(Clickable):
 
 
 class Search(Region):
-    _root_extension = (By.CSS_SELECTOR, '#search-widget-container')
+    _root_extension = (By.CSS_SELECTOR, '.TagSearch-bar')
 
     @property
     def search_button(self):

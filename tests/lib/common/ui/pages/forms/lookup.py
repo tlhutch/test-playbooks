@@ -63,6 +63,6 @@ class Lookup(TextInputMixin, FormGroup):
         while True:
             self.clear()
             TextInputMixin.set_text(self, text)
-            time.sleep(1)
+            time.sleep(2)
             if not self.errors or time.time() > timeout:
                 break

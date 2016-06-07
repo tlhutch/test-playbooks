@@ -20,7 +20,10 @@ def test_group_search_visibility(ui_manage_inventory):
 
     for _ in xrange(len(ui_manage_inventory.groups_table.rows)):
         row = ui_manage_inventory.groups_table.rows[0]
-        row['delete'].click().delete.click()
+        modal = row['delete'].click()
+        modal.delete_hosts.click()
+        modal.delete()
+        ui_manage_inventory.wait_for_spinny()
 
     assert not ui_manage_inventory.groups_panel.search.is_displayed(), (
         'groups panel search region unexpectedly displayed')

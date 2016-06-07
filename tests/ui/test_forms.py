@@ -8,7 +8,7 @@ pytestmark = [
     pytest.mark.nondestructive,
     pytest.mark.usefixtures(
         'authtoken',
-        'install_basic_license',
+        'install_enterprise_license',
         'maximized_window_size'
     )
 ]
@@ -33,6 +33,9 @@ def test_details_component_visibility(form_page):
     """Verify basic form component visibility and responsiveness
     """
     for form in form_page.forms:
+
+        form_page.wait_for_spinny()
+
         for name, field in form.get_regions():
             # check component visbility
             assert field.is_displayed(), (

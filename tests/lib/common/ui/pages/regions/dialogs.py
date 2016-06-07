@@ -57,7 +57,8 @@ class LegacyDeleteDialog(Region):
     _root_locator = (By.CSS_SELECTOR, '.ui-dialog')
     _title = (By.CSS_SELECTOR, '.ui-dialog-titlebar')
     _close = (By.CLASS_NAME, 'close')
-    _delete = (By.ID, 'group-delete-ok-button')
+    _delete = (By.XPATH, '//a[text()="DELETE"]')
+    _delete_hosts = (By.XPATH, "//*[text()[contains(.,'Delete hosts')]]")
 
     @property
     def close(self):
@@ -66,6 +67,10 @@ class LegacyDeleteDialog(Region):
     @property
     def delete(self):
         return Clickable(self.page, root_locator=self._delete, spinny=True)
+
+    @property
+    def delete_hosts(self):
+        return Clickable(self.page, root_locator=self._delete_hosts)
 
     @property
     def title(self):

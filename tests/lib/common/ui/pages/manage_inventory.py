@@ -54,7 +54,7 @@ class ManageInventoryHostsTable(Table):
 
 
 class ManageInventoryGroupsPanel(ListPanel):
-    _root_locator = (By.CSS_SELECTOR, '#group-list-container')
+    _root_locator = (By.CSS_SELECTOR, '#groups-list')
     _run = (By.CSS_SELECTOR, '[aw-tool-tip*="Run a command"]')
 
     @property

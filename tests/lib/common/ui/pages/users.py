@@ -55,11 +55,10 @@ class UserDetailForm(FormPanel):
                 (By.CSS_SELECTOR, 'label[for=username]'),
                 (By.XPATH, '..'))
         },
-        'superuser': {
-            'region_type': 'checkbox',
+        'playbook': {
+            'region_type': 'select',
             'root_locator': (
-                (By.ID, 'user_is_superuser_chbox'),
-                (By.XPATH, '..'),
+                (By.CSS_SELECTOR, 'label[for=user_type]'),
                 (By.XPATH, '..'))
         },
         'password': {
