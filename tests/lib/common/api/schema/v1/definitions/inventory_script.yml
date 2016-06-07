@@ -13,8 +13,8 @@ inventory_script:
         created_by: {format: uri, type: string}
         modified_by: {format: uri, type: string}
         organization: {format: uri, type: string}
-        roles: {format: uri, type: string}
-      required: [created_by, modified_by, roles]
+        object_roles: {format: uri, type: string}
+      required: [created_by, modified_by, object_roles]
       type: object
     script:
       type: [string, 'null']
@@ -25,14 +25,14 @@ inventory_script:
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         organization: {$ref: '#/definitions/summary_fields_organization'}
         active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
-        roles:
+        object_roles:
           additionalProperties: false
           properties:
             admin_role: {$ref: '#/definitions/summary_fields_role'}
             read_role: {$ref: '#/definitions/summary_fields_role'}
           required: [admin_role, read_role]
           type: object
-      required: [active_roles, roles]
+      required: [active_roles, object_roles]
       type: object
     type: {pattern: ^custom_inventory_script$, type: string}
     url: {format: uri, type: string}
