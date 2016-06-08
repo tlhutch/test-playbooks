@@ -17,50 +17,60 @@ pytestmark = [
 # a user does not have access
 TOWER_ISSUE_2366 = pytest.mark.github(
     'https://github.com/ansible/ansible-tower/issues/2366')
+# User with inventory update can put/patch inventory
+TOWER_ISSUE_2409 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2409')
+# We have improper nesting in our credential get_related
+TOWER_ISSUE_2205 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2205')
+# Project 'admin' and 'update' cannot launch project updates
+TOWER_ISSUE_2489 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2489')
+# 500-level error when navigating to credentials/N/owner_teams
+TOWER_ISSUE_2543 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2543')
 
 
-@pytest.mark.parametrize('no_usage', ['project', 'credential', 'inventory'])
-def test_usage_role_required_to_change_other_job_template_related_resources(
-        factories, auth_user, add_roles, get_role_page, no_usage):
+@TOWER_ISSUE_1981
+@pytest.mark.parametrize('resource_name', ['project', 'credential', 'inventory'])
+def test_usage_role_required_to_patch_job_template_related_resource(
+        factories, auth_user, add_roles, get_role_page, resource_name):
     """Verify that a user cannot change the related project, inventory,
     or credential of a job template unless they have usage permissions
     on all three resources and are admins of the job template
     """
     organization = factories.organization()
-    related_data = {
-        'project': factories.project(),
-        'credential': factories.credential(),
-        'inventory': factories.inventory()
-    }
-    patch_data = {
-        'project': factories.project(),
-        'credential': factories.credential(),
-        'inventory': factories.inventory()
-    }
-    related_object_ids = {k: v.id for k, v in related_data.items()}
-    job_template = factories.job_template(**related_object_ids)
-    # make user an org member and a job template admin
+    project = factories.project(
+        related_organization=organization)
+    inventory = factories.inventory(
+        related_organization=organization)
+    credential = factories.credential(
+        related_organization=organization)
+    job_template = factories.job_template(
+        related_project=project,
+        related_inventory=inventory,
+        related_credential=credential)
+    # make a test user that is an org member and job template admin with
+    # usage permissions on the related resources
     user = factories.user()
     add_roles(user, organization, ['member'])
+    add_roles(user, credential, ['use'])
+    add_roles(user, inventory, ['use'])
+    add_roles(user, project, ['use'])
     add_roles(user, job_template, ['admin'])
-    # associate user with the usage role for all related resources except
-    # the one this test run has been parametrized to skip
-    for obj_name, obj in related_data.iteritems():
-        if obj_name != no_usage:
-            add_roles(user, obj, ['use'])
-    # verify that attempts to patch related resources of the job template
-    # as the test user yield a Forbidden Content Error
-    for obj_name, obj in patch_data.iteritems():
-        add_roles(user, obj, ['use'])
-        with auth_user(user):
-            with pytest.raises(Forbidden_Exception):
-                job_template.patch(**{obj_name: obj.id})
+    # create test data for checking unauthorized resource patching
+    resource = getattr(factories, resource_name)()
+    patch_data = {resource_name: resource.id}
+    # verify that attempts to patch the related resource of the job template
+    # as the test user initially yield a Forbidden Content Error
+    with auth_user(user):
+        with pytest.raises(Forbidden_Exception):
+            job_template.patch(**patch_data)
     # grant usage permissions to the user for the restricted resource
-    add_roles(user, related_data[no_usage], ['use'])
+    add_roles(user, resource, ['use'])
     # verify that related resources can now be changed
-    for obj_name, obj in patch_data.iteritems():
-        with auth_user(user):
-            job_template.patch(**{obj_name: obj.id})
+    with auth_user(user):
+        assert job_template.patch(**patch_data)
 
 
 def test_makers_of_job_templates_are_added_to_admin_role(
