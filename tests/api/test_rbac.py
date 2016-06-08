@@ -13,6 +13,32 @@ pytestmark = [
     pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 ]
 
+# Tower 500's when navigating to projects/N/teams
+TOWER_ISSUE_2114 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2114')
+# 403 when navigating to projects/N/update as user with either project
+# 'use' or project 'read'
+TOWER_ISSUE_2124 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2124')
+# User with credential 'owner' role can't edit and delete credentials
+TOWER_ISSUE_2130 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2130')
+# Users with any of our credential roles gets a 403 when navigating to
+# credentials/N/users
+TOWER_ISSUE_2129 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2129')
+# User with inventory ad_hoc role can edit inventory
+TOWER_ISSUE_2221 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2221')
+# User with JT admin cannot edit JT
+TOWER_ISSUE_2207 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2207')
+# Inventory script admin cannot put/patch/delete inventory script
+TOWER_ISSUE_2186 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2186')
+# Cannot give a user the admin rights of another user
+TOWER_ISSUE_2316 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2316')
 # Tower should return NotFound for all endpoints for which
 # a user does not have access
 TOWER_ISSUE_2366 = pytest.mark.github(
@@ -30,8 +56,6 @@ TOWER_ISSUE_2489 = pytest.mark.github(
 TOWER_ISSUE_2543 = pytest.mark.github(
     'https://github.com/ansible/ansible-tower/issues/2543')
 
-
-@TOWER_ISSUE_1981
 @pytest.mark.parametrize('resource_name', ['project', 'credential', 'inventory'])
 def test_usage_role_required_to_patch_job_template_related_resource(
         factories, auth_user, add_roles, get_role_page, resource_name):
