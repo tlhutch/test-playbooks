@@ -56,6 +56,29 @@ TOWER_ISSUE_2489 = pytest.mark.github(
 TOWER_ISSUE_2543 = pytest.mark.github(
     'https://github.com/ansible/ansible-tower/issues/2543')
 
+@pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2226')
+def test_inventory_reader_cannot_promote_self_to_inventory_admin(
+        factories, auth_user, add_roles, get_role_page):
+    """As an organization member with the 'read' permission on an inventory, 
+    I cannot add the 'admin' role to myself for that inventory
+    """
+    organization = factories.organization()
+    inventory = factories.inventory(related_organization=organization)
+    # make a test user that is an org member with inventory usage permissions
+    user = factories.user()
+    add_roles(user, organization, ['member'])
+    add_roles(user, inventory, ['read'])
+
+    role = get_role_page(inventory, 'admin')
+
+    with auth_user(user):
+        with pytest.raises(Forbidden_Exception):
+            user.get_related('roles').post({'id': role.id})
+        with pytest.raises(Forbidden_Exception):
+            role.get_related('users').post({'id': user.id})
+
+
 @pytest.mark.parametrize('resource_name', ['project', 'credential', 'inventory'])
 def test_usage_role_required_to_patch_job_template_related_resource(
         factories, auth_user, add_roles, get_role_page, resource_name):
