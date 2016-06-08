@@ -4,8 +4,10 @@ import os
 from Crypto.PublicKey import RSA
 import factory
 import fauxfactory
+import pytest
 
 from common.api.page_factory import PageFactory
+from common.exceptions import NoContent_Exception
 
 from common.api.pages import (
     Credentials_Page,
@@ -45,7 +47,7 @@ class ProjectFactory(PageFactory):
     related_organization = factory.SubFactory(
         OrganizationFactory, request=factory.SelfAttribute('..request'))
 
-    name = factory.Sequence(lambda n: 'project_{}'.format(n))
+    name = factory.LazyFunction(fauxfactory.gen_utf8)
     organization = factory.SelfAttribute('related_organization.id')
     scm_type = 'git'
 
@@ -57,16 +59,19 @@ class ProjectFactory(PageFactory):
             return URL_PROJECT_HG
 
     @factory.post_generation
-    def wait(self, create, extracted, **kwargs):
-        """When using this factory, provide keyword argument wait=True
-        to update the project and wait for it to be completed
+    def wait(obj, create, val, **kwargs):
+        """Wait for project update completion after creation. Use keyword
+        argument wait=False when invoking the factory to skip.
         """
-        if create and extracted:
-            update = self.get_related('project_updates', order_by="-id")
-            try:
-                update.results.pop().wait_until_completed()
-            except IndexError:
-                raise IndexError('No project updates found')
+        if create:
+            update = obj.get_related('project_updates', order_by="-id")
+            if val or val is None:
+                # we end up here if keyword argument wait=True was used when
+                # calling the factory or if the wait keyword was not used
+                try:
+                    update.results.pop().wait_until_completed()
+                except IndexError:
+                    raise IndexError('No project updates found')
 
 
 class UserFactory(PageFactory):
@@ -74,18 +79,23 @@ class UserFactory(PageFactory):
         model = Users_Page
         inline_args = ('request',)
         get_or_create = ('username',)
-        exclude = ('related_organization',)
 
-    related_organization = factory.SubFactory(
-        OrganizationFactory, request=factory.SelfAttribute('..request'))
-
-    username = factory.Sequence(lambda n: 'user_{}'.format(n))
+    username = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     password = 'fo0m4nchU'
     is_superuser = False
     first_name = factory.LazyFunction(fauxfactory.gen_utf8)
     last_name = factory.LazyFunction(fauxfactory.gen_utf8)
     email = factory.LazyFunction(fauxfactory.gen_email)
-    organization = factory.SelfAttribute('related_organization.id')
+
+    @factory.post_generation
+    def related_organization(obj, create, org):
+        """When using this factory, provide an organization model
+        using the related_organization keyword to associate the
+        user to the organization after creation.
+        """
+        if create and org is not None:
+            with pytest.raises(NoContent_Exception):
+                org.get_related('users').post({'id': obj.id})
 
 
 class TeamFactory(PageFactory):
@@ -108,15 +118,15 @@ class CredentialFactory(PageFactory):
         model = Credentials_Page
         inline_args = ('request',)
         get_or_create = ('name',)
-        exclude = ('owner',)
+        exclude = ('related_organization',)
 
-    owner = factory.SubFactory(
-        UserFactory, request=factory.SelfAttribute('..request'))
+    related_organization = factory.SubFactory(
+        OrganizationFactory, request=factory.SelfAttribute('..request'))
 
-    name = factory.Sequence(lambda n: 'credential_{}'.format(n))
+    name = factory.LazyFunction(fauxfactory.gen_utf8)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
-    user = factory.SelfAttribute('owner.id')
-    username = factory.SelfAttribute('owner.username')
+    organization = factory.SelfAttribute('related_organization.id')
+    username = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     kind = 'ssh'
 
     @factory.LazyAttribute
@@ -135,7 +145,7 @@ class InventoryFactory(PageFactory):
     related_organization = factory.SubFactory(
         OrganizationFactory, request=factory.SelfAttribute('..request'))
 
-    name = factory.Sequence(lambda n: 'inventory_{}'.format(n))
+    name = factory.LazyFunction(fauxfactory.gen_utf8)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     organization = factory.SelfAttribute('related_organization.id')
 
@@ -150,7 +160,7 @@ class HostFactory(PageFactory):
     related_inventory = factory.SubFactory(
         InventoryFactory, request=factory.SelfAttribute('..request'))
 
-    name = factory.Sequence(lambda n: 'host_{}'.format(n))
+    name = factory.LazyFunction(fauxfactory.gen_utf8)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     variables = json.dumps({
         'ansible_ssh_host': '127.0.0.1',
@@ -173,7 +183,7 @@ class GroupFactory(PageFactory):
         CredentialFactory,
         request=factory.SelfAttribute('..request'))
 
-    name = factory.Sequence(lambda n: 'group_{}'.format(n))
+    name = factory.LazyFunction(fauxfactory.gen_utf8)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     inventory = factory.SelfAttribute('related_inventory.id')
     credential = factory.SelfAttribute('group_credential.id')
@@ -188,7 +198,6 @@ class JobTemplateFactory(PageFactory):
                    'related_inventory', 'related_credential',)
     related_project = factory.SubFactory(
         ProjectFactory,
-        wait=True,
         request=factory.SelfAttribute('..request'))
     related_credential = factory.SubFactory(
         CredentialFactory,
@@ -206,7 +215,7 @@ class JobTemplateFactory(PageFactory):
             'ansible_connection': 'local',
         }),
     )
-    name = factory.Sequence(lambda n: 'job_template_{}'.format(n))
+    name = factory.LazyFunction(fauxfactory.gen_utf8)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     job_type = 'run'
     playbook = 'site.yml'
