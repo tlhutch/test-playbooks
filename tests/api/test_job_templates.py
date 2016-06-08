@@ -168,34 +168,6 @@ class Test_Job_Template(Base_Api_Test):
         with pytest.raises(common.exceptions.BadRequest_Exception):
             launch_pg.post()
 
-    def test_launch_without_credential_permission(self, job_template, org_user, user_password, current_user):
-        '''
-        Verifies that with JT execute that JTs may be launched successfully without explicit credential
-        ownership.
-        '''
-        # grant org_user JT execute
-        launch_pg = job_template.get_related('launch')
-        execute_role_pg = job_template.get_role('execute_role')
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            org_user.get_related('roles').post(dict(id=execute_role_pg.id))
-
-        # verify that our credential owner is admin user
-        credential_user_pg = job_template.get_related('credential').get_related('user')
-        assert credential_user_pg.username == "admin", \
-            "Unexpected credential owner. Expected 'admin', got %s." % credential_user_pg.username
-
-        # assert values on launch resource
-        assert launch_pg.can_start_without_user_input
-        assert not launch_pg.ask_variables_on_launch
-        assert not launch_pg.passwords_needed_to_start
-        assert not launch_pg.variables_needed_to_start
-        assert not launch_pg.credential_needed_to_start
-
-        # launch the job_template and assert successful
-        with current_user(username=org_user.username, password=user_password):
-            job_pg = job_template.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
-
     def test_launch_with_credential_in_payload(self, job_template_no_credential, ssh_credential):
         '''
         Verify the job->launch endpoint behaves as expected
