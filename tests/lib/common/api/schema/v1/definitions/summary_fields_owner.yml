@@ -5,5 +5,6 @@ summary_fields_owner:
     description: {type: string}
     id: {$ref: '#/definitions/id'}
     name: {type: string}
-  required: [url, description, id, name]
+    type: {type: string}
+  required: [url, description, id, name, type]
   type: object
