@@ -1,7 +1,7 @@
 {% for grp in groups %}
 [{{ grp }}]
 {% for host in groups[grp] %}
-{% if host == '127.0.0.1' %}
+{% if host == '127.0.0.1' or host == 'localhost' %}
 {{ host }} ansible_connection=local ansible_python_interpreter=${VIRTUAL_ENV-/usr}/bin/python
 {% else %}
 {{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
