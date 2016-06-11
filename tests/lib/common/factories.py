@@ -23,6 +23,7 @@ from common.api.pages import (
 
 
 # TODO: standardize global project configuration for tower-qa
+DEFAULT_PASSWORD = 'fo0m4nchU'
 URL_PROJECT_GIT = 'https://github.com/jlaska/ansible-playbooks.git'
 URL_PROJECT_HG = 'https://bitbucket.org/jlaska/ansible-helloworld'
 
@@ -47,7 +48,7 @@ class ProjectFactory(PageFactory):
     related_organization = factory.SubFactory(
         OrganizationFactory, request=factory.SelfAttribute('..request'))
 
-    name = factory.LazyFunction(fauxfactory.gen_utf8)
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     organization = factory.SelfAttribute('related_organization.id')
     scm_type = 'git'
 
@@ -81,7 +82,7 @@ class UserFactory(PageFactory):
         get_or_create = ('username',)
 
     username = factory.LazyFunction(fauxfactory.gen_alphanumeric)
-    password = 'fo0m4nchU'
+    password = DEFAULT_PASSWORD
     is_superuser = False
     first_name = factory.LazyFunction(fauxfactory.gen_utf8)
     last_name = factory.LazyFunction(fauxfactory.gen_utf8)
@@ -123,15 +124,20 @@ class CredentialFactory(PageFactory):
     related_organization = factory.SubFactory(
         OrganizationFactory, request=factory.SelfAttribute('..request'))
 
-    name = factory.LazyFunction(fauxfactory.gen_utf8)
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
+    kind = 'ssh'
     organization = factory.SelfAttribute('related_organization.id')
     username = factory.LazyFunction(fauxfactory.gen_alphanumeric)
-    kind = 'ssh'
+
+    @factory.LazyAttribute
+    def password(self):
+        if self.kind == 'net':
+            return DEFAULT_PASSWORD
 
     @factory.LazyAttribute
     def ssh_key_data(self):
-        if self.kind == 'ssh':
+        if self.kind in ('ssh', 'net'):
             return RSA.generate(2048, os.urandom).exportKey('PEM')
 
 
@@ -145,7 +151,7 @@ class InventoryFactory(PageFactory):
     related_organization = factory.SubFactory(
         OrganizationFactory, request=factory.SelfAttribute('..request'))
 
-    name = factory.LazyFunction(fauxfactory.gen_utf8)
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     organization = factory.SelfAttribute('related_organization.id')
 
@@ -160,7 +166,7 @@ class HostFactory(PageFactory):
     related_inventory = factory.SubFactory(
         InventoryFactory, request=factory.SelfAttribute('..request'))
 
-    name = factory.LazyFunction(fauxfactory.gen_utf8)
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     variables = json.dumps({
         'ansible_ssh_host': '127.0.0.1',
@@ -183,7 +189,7 @@ class GroupFactory(PageFactory):
         CredentialFactory,
         request=factory.SelfAttribute('..request'))
 
-    name = factory.LazyFunction(fauxfactory.gen_utf8)
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     inventory = factory.SelfAttribute('related_inventory.id')
     credential = factory.SelfAttribute('group_credential.id')
@@ -215,7 +221,7 @@ class JobTemplateFactory(PageFactory):
             'ansible_connection': 'local',
         }),
     )
-    name = factory.LazyFunction(fauxfactory.gen_utf8)
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
     job_type = 'run'
     playbook = 'site.yml'
