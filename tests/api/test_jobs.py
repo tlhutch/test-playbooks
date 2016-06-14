@@ -148,47 +148,28 @@ def job_template_with_no_log_playbook(job_template, project_ansible_git):
 
 def assess_job_event_pg_for_no_log(job_event_pg):
     '''Convenience function to assess job_event_pg contents in testing no_log.'''
-    # Check job event output for tasks with loops
-    if 'item' in job_event_pg.task:
-        for result in job_event_pg.event_data['res']['results']:
-            # For skipped items
-            if result.get('skipped', None):
-                if result['_ansible_no_log']:
-                    assert result['censored'] == \
-                        "the output has been hidden due to the fact that 'no_log: true' was specified for this result"
-                else:
-                    assert "LOG_ME" in result['item']
-            # For item tasks with no_log
-            elif result['_ansible_no_log']:
-                assert "item" not in result
-                assert "<censored>" in result['cmd']
-                assert result['censored'] == \
-                    "the output has been hidden due to the fact that 'no_log: true' was specified for this result"
-            # For item tasks without no_log
-            else:
-                assert "LOG_ME" in result['item']
-                assert "LOG_ME" in result['cmd']
-                assert "LOG_ME" in result['stdout']
-                assert "LOG_ME" in result['invocation']['module_args']['_raw_params']
-                assert "LOG_ME" in result['stdout_lines'][0]
-
-    # Check job event output for non-loop tasks
-    else:
-        # For skipped tasks
+    result = job_event_pg.event_data.get('res')
+    if not result:
         if "skipped task" in job_event_pg.task:
             return
-        # For tasks with no_log
-        elif job_event_pg.event_data['res']['_ansible_no_log']:
-            assert "item" not in job_event_pg.event_data['res']
-            assert "<censored>" in job_event_pg.event_data['res']['cmd']
-            assert job_event_pg.event_data['res']['censored'] == \
-                "the output has been hidden due to the fact that 'no_log: true' was specified for this result"
-        # For tasks without no_log
-        else:
-            assert "LOG_ME" in job_event_pg.event_data['res']['cmd']
-            assert "LOG_ME" in job_event_pg.event_data['res']['stdout']
-            assert "LOG_ME" in job_event_pg.event_data['res']['invocation']['module_args']['_raw_params']
-            assert "LOG_ME" in job_event_pg.event_data['res']['stdout_lines'][0]
+        raise Exception("Unexpected condition: event_data.res not included in job_event for non-skipped task. "
+                        "Possible integration test or schema change detected.")
+    # For item tasks with no_log
+    elif result.get('_ansible_no_log', None):
+        assert 'item' not in result
+        for item in ['cmd', 'censored']:
+            if item in result:
+                assert result[item] in ["echo <censored>",
+                                        "the output has been hidden due to the fact that "
+                                        "'no_log: true' was specified for this result"]
+    # For item tasks without no_log
+    else:
+        for item in [item for item in ['item', 'cmd', 'stdout'] if item in result and item != 'stdout_lines']:
+            assert 'LOG_ME' in result[item]
+        if 'invocation' in result:
+            assert 'LOG_ME' in result['invocation']['module_args']['_raw_params']
+        if 'stdout_lines' in result:
+            assert 'LOG_ME' in result['stdout_lines'][0]
 
 
 @pytest.mark.api
@@ -776,7 +757,7 @@ print json.dumps(inventory)
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # Check job_events
-        job_events_pg = job_pg.get_related('job_events', event__startswith='runner_on')
+        job_events_pg = job_pg.get_related('job_events', event__startswith='runner')
         for job_event_pg in job_events_pg.results:
             assess_job_event_pg_for_no_log(job_event_pg)
 
