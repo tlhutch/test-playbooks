@@ -194,7 +194,7 @@ def test_unauthorized_privilege_escalation_returns_code_403(
 
 @pytest.mark.parametrize(
     'initially_read_only',
-    ['project', 'inventory', tower_issue('1958')('credential')]
+    ['project', 'inventory', 'credential']
 )
 def test_job_template_patch_request_without_usage_role_returns_code_403(
         factories, auth_user, initially_read_only):
