@@ -453,7 +453,7 @@ print json.dumps(inv, indent=2)
             assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
         else:
             assert job_pg.status == "failed", "Unexpected job_pg.status - %s." % job_pg
-            assert "Specified hosts options do not match any hosts" in job_pg.result_stdout, \
+            assert "--limit does not match any hosts" in job_pg.result_stdout, \
                 "Unexpected job_pg.result_stdout when launching an ad hoc command with an unmatched limit."
 
     def test_relaunch_command_with_privileged_users(
