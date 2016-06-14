@@ -262,7 +262,6 @@ def test_job_template_creators_are_added_to_admin_role(
     check_role_association(user, job_template, 'admin')
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2278')
 def test_job_template_post_request_without_network_credential_access_returns_code_403(
         factories, auth_user, api_job_templates_pg):
     """Verify that job_template post requests with network credentials in
