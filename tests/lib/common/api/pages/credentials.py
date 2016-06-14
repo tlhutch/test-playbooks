@@ -37,9 +37,21 @@ class Credential_Page(base.Base):
         if attr in ['created_by', 'modified_by', 'user']:
             from users import User_Page
             cls = User_Page
-        elif attr == 'roles':
+        elif attr == 'object_roles':
             from roles import Roles_Page
             cls = Roles_Page
+        elif attr == 'access_list':
+            from access_list import Access_List_Page
+            cls = Access_List_Page
+        elif attr == 'activity_stream':
+            from activity_stream import Activity_Stream_Page
+            cls = Activity_Stream_Page
+        elif attr == 'owners_teams':
+            from teams import Teams_Page
+            cls = Teams_Page
+        elif attr == 'owner_users':
+            from users import Users_Page
+            cls = Users_Page
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 

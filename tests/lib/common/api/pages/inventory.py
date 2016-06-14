@@ -16,10 +16,13 @@ class Inventory_Page(Base):
             "No such related attribute '%s'" % attr
         if attr == 'hosts':
             cls = Hosts_Page
+        elif attr in ['created_by', 'modified_by']:
+            from users import User_Page
+            cls = User_Page
         elif attr == 'groups':
             cls = Groups_Page
-        elif attr == 'inventory_source':
-            cls = Inventory_Source_Page
+        elif attr == 'inventory_sources':
+            cls = Inventory_Sources_Page
         elif attr == 'root_groups':
             cls = Groups_Page
         elif attr == 'script':
@@ -33,12 +36,17 @@ class Inventory_Page(Base):
         elif attr == 'access_list':
             from access_list import Access_List_Page
             cls = Access_List_Page
-        elif attr == 'roles':
+        elif attr == 'object_roles':
             from roles import Roles_Page
             cls = Roles_Page
-        elif attr == 'job_templates':
+        elif attr in ['job_templates', 'scan_job_templates']:
             from job_templates import Job_Templates_Page
             cls = Job_Templates_Page
+        elif attr in ['variable_data', 'tree']:
+            cls = Base
+        elif attr == 'activity_stream':
+            from activity_stream import Activity_Stream_Page
+            cls = Activity_Stream_Page
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 
@@ -81,14 +89,6 @@ class Inventory_Page(Base):
 
 class Inventories_Page(Inventory_Page, Base_List):
     base_url = '/api/v1/inventories/'
-
-    def get_related(self, attr, **kwargs):
-        assert attr in self.json['related']
-        if attr == 'variable_data':
-            related = Base(self.testsetup, base_url=self.json['related'][attr])
-        else:
-            raise NotImplementedError
-        return related.get(**kwargs)
 
 
 class Group_Page(Base):
@@ -327,9 +327,21 @@ class Inventory_Script_Page(Base):
     script = property(json_getter('script'), json_setter('script'))
 
     def get_related(self, attr, **kwargs):
-        assert attr in self.json['related']
-        raise NotImplementedError
-        # return related.get(**kwargs)
+        assert attr in self.json['related'], \
+            "No such related attribute '%s'" % attr
+        if attr in ['created_by', 'modified_by']:
+            from users import User_Page
+            cls = User_Page
+        elif attr == 'object_roles':
+            from roles import Roles_Page
+            cls = Roles_Page
+        elif attr == 'organization':
+            from organizations import Organizations_Page
+            cls = Organizations_Page
+        else:
+            raise NotImplementedError("No related class found for '%s'" % attr)
+
+        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
 
 class Inventory_Scripts_Page(Inventory_Script_Page, Base_List):

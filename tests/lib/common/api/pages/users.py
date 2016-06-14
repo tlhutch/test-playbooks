@@ -16,9 +16,7 @@ class User_Page(base.Base):
         assert attr in self.json['related'], \
             "No such related attribute '%s'" % attr
 
-        if attr == 'permissions':
-            from permissions import Permissions_Page as cls
-        elif attr == 'credentials':
+        if attr == 'credentials':
             from credentials import Credentials_Page as cls
         elif attr in ('organizations', 'admin_of_organizations'):
             from organizations import Organizations_Page as cls
@@ -26,8 +24,12 @@ class User_Page(base.Base):
             from teams import Teams_Page as cls
         elif attr == 'access_list':
             from access_list import Access_List_Page as cls
-        elif attr == 'roles':
+        elif attr in ['object_roles', 'roles']:
             from roles import Roles_Page as cls
+        elif attr == 'activity_stream':
+            from activity_stream import Activity_Stream_Page as cls
+        elif attr == 'projects':
+            from projects import Projects_Page as cls
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 

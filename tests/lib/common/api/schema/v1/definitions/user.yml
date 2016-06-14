@@ -30,6 +30,6 @@ user:
     type: {pattern: ^user$, type: string}
     url: {format: uri, type: string}
     username: {type: string}
-  required: [created, email, first_name, id, is_superuser, last_name, ldap_dn, related,
+  required: [created, email, first_name, id, is_superuser, is_system_auditor, last_name, ldap_dn, related,
     url, username, type, auth]
   type: object

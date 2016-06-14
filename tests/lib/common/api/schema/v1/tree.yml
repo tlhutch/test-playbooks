@@ -1,0 +1,5 @@
+tree:
+  items: {#ref: '#/definitions/group'}
+  minItems: 0
+  type: array
+  uniqueItems: true 

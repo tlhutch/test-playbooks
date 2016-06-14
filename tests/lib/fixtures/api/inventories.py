@@ -147,7 +147,7 @@ def hosts_with_name_matching_local_ipv4_addresses(request, authtoken, group, loc
                        description="test host %s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
         obj = group.get_related('hosts').post(payload)
-        request.addfinalizer(obj.delete)
+        request.addfinalizer(obj.silent_delete)
         # Add to group
         with pytest.raises(common.exceptions.NoContent_Exception):
             obj.get_related('groups').post(dict(id=group.id))
@@ -157,7 +157,7 @@ def hosts_with_name_matching_local_ipv4_addresses(request, authtoken, group, loc
 
 @pytest.fixture(scope="function")
 def group(request, authtoken, api_groups_pg, inventory):
-    payload = dict(name="group-%s" % fauxfactory.gen_utf8(),
+    payload = dict(name="group-%s" % fauxfactory.gen_alphanumeric(),
                    description="group description - %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id)
     obj = api_groups_pg.post(payload)
@@ -266,12 +266,12 @@ def inventory_script(request, authtoken, api_inventory_scripts_pg, script_source
 #
 @pytest.fixture(scope="function")
 def aws_group(request, authtoken, api_groups_pg, inventory, aws_credential):
-    payload = dict(name="aws-group-%s" % fauxfactory.gen_utf8(),
+    payload = dict(name="aws-group-%s" % fauxfactory.gen_alphanumeric(),
                    description="AWS group %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=aws_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
 
     # Set the inventory_source.sourc = 'ec2'
     inv_source = obj.get_related('inventory_source')
@@ -289,12 +289,12 @@ def aws_inventory_source(request, authtoken, aws_group):
 #
 @pytest.fixture(scope="function")
 def rax_group(request, authtoken, api_groups_pg, inventory, rax_credential):
-    payload = dict(name="rax-group-%s" % fauxfactory.gen_utf8(),
+    payload = dict(name="rax-group-%s" % fauxfactory.gen_alphanumeric(),
                    description="Rackspace group %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=rax_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
 
     # Set the inventory_source.sourc = 'rax'
     inv_source = obj.get_related('inventory_source')
@@ -312,12 +312,12 @@ def rax_inventory_source(request, authtoken, rax_group):
 #
 @pytest.fixture(scope="function")
 def azure_group(request, authtoken, api_groups_pg, inventory, azure_credential):
-    payload = dict(name="azure-group-%s" % fauxfactory.gen_utf8(),
+    payload = dict(name="azure-group-%s" % fauxfactory.gen_alphanumeric(),
                    description="Microsoft Azure %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=azure_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
 
     # Set the inventory_source.sourc = 'azure'
     inv_source = obj.get_related('inventory_source')
@@ -335,12 +335,12 @@ def azure_inventory_source(request, authtoken, azure_group):
 #
 @pytest.fixture(scope="function")
 def gce_group(request, authtoken, api_groups_pg, inventory, gce_credential):
-    payload = dict(name="gce-group-%s" % fauxfactory.gen_utf8(),
+    payload = dict(name="gce-group-%s" % fauxfactory.gen_alphanumeric(),
                    description="Google Compute Engine %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=gce_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
 
     # Set the inventory_source.sourc = 'gce'
     inv_source = obj.get_related('inventory_source')
@@ -358,12 +358,12 @@ def gce_inventory_source(request, authtoken, gce_group):
 #
 @pytest.fixture(scope="function")
 def vmware_group(request, authtoken, api_groups_pg, inventory, vmware_credential):
-    payload = dict(name="vmware-group-%s" % fauxfactory.gen_utf8(),
+    payload = dict(name="vmware-group-%s" % fauxfactory.gen_alphanumeric(),
                    description="VMware vCenter %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=vmware_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
 
     # Set the inventory_source.sourc = 'vmware'
     inv_source = obj.get_related('inventory_source')
@@ -381,12 +381,12 @@ def vmware_inventory_source(request, authtoken, vmware_group):
 #
 @pytest.fixture(scope="function")
 def openstack_v2_group(request, authtoken, api_groups_pg, inventory, openstack_v2_credential):
-    payload = dict(name="openstack-v2-group-%s" % fauxfactory.gen_utf8(),
+    payload = dict(name="openstack-v2-group-%s" % fauxfactory.gen_alphanumeric(),
                    description="Openstack %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=openstack_v2_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
 
     # Set the inventory_source.sourc = 'openstack'
     inv_source = obj.get_related('inventory_source')
@@ -399,12 +399,12 @@ def openstack_v2_group(request, authtoken, api_groups_pg, inventory, openstack_v
 #
 @pytest.fixture(scope="function")
 def openstack_v3_group(request, authtoken, api_groups_pg, inventory, openstack_v3_credential):
-    payload = dict(name="openstack-v3-group-%s" % fauxfactory.gen_utf8(),
+    payload = dict(name="openstack-v3-group-%s" % fauxfactory.gen_alphanumeric(),
                    description="Openstack %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    credential=openstack_v3_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
 
     # Set the inventory_source.sourc = 'openstack'
     inv_source = obj.get_related('inventory_source')
@@ -435,12 +435,12 @@ def openstack_v3_inventory_source(request, authtoken, openstack_v3_group):
 #
 @pytest.fixture(scope="function")
 def custom_group(request, authtoken, api_groups_pg, inventory, inventory_script):
-    payload = dict(name="custom-group-%s" % fauxfactory.gen_utf8(),
+    payload = dict(name="custom-group-%s" % fauxfactory.gen_alphanumeric(),
                    description="Custom Group %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id,
                    variables=json.dumps(dict(my_group_variable=True)))
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.silent_delete)
 
     # Set the inventory_source
     inv_source = obj.get_related('inventory_source')
@@ -462,7 +462,16 @@ def cloud_group(request):
     return request.getfuncargvalue(request.param + '_group')
 
 
-# Convenience fixture that iterates through cloud groups that support source_regions
+#
+# Convenience fixture that returns all of our cloud_groups as a list
+#
+@pytest.fixture(scope="function")
+def cloud_groups(aws_group, rax_group, azure_group, gce_group, vmware_group, openstack_v2_group, openstack_v3_group):
+    return [aws_group, rax_group, azure_group, gce_group, vmware_group, openstack_v2_group, openstack_v3_group]
+
+
+#
+# Convenience fixture that iterates through cloud_groups that support source_regions
 #
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce'])
 def cloud_group_supporting_source_regions(request):

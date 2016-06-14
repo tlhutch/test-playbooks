@@ -16,6 +16,7 @@ from common.api.pages import (
     Organizations_Page,
     Projects_Page,
     Users_Page,
+    Teams_Page,
 )
 
 
@@ -84,6 +85,21 @@ class UserFactory(PageFactory):
     first_name = factory.LazyFunction(fauxfactory.gen_utf8)
     last_name = factory.LazyFunction(fauxfactory.gen_utf8)
     email = factory.LazyFunction(fauxfactory.gen_email)
+    organization = factory.SelfAttribute('related_organization.id')
+
+
+class TeamFactory(PageFactory):
+    class Meta:
+        model = Teams_Page
+        inline_args = ('request',)
+        get_or_create = ('name',)
+        exclude = ('related_organization',)
+
+    related_organization = factory.SubFactory(
+        OrganizationFactory, request=factory.SelfAttribute('..request'))
+
+    name = factory.Sequence(lambda n: 'team_{}'.format(n))
+    description = factory.LazyFunction(fauxfactory.gen_utf8)
     organization = factory.SelfAttribute('related_organization.id')
 
 

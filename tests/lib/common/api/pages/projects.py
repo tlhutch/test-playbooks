@@ -57,6 +57,12 @@ class Project_Page(Unified_Job_Template_Page):
         elif attr == 'access_list':
             from access_list import Access_List_Page
             cls = Access_List_Page
+        elif attr in ['created_by', 'modified_by']:
+            from users import User_Page
+            cls = User_Page
+        elif attr == 'object_roles':
+            from roles import Roles_Page
+            cls = Roles_Page
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 

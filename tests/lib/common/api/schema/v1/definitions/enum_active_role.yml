@@ -1,3 +1,3 @@
 ---
 enum_active_role:
-  enum: [admin_role, read_role, member_role, scm_update_role, owner_role, user_role, execute_role, adhoc_role, update_role, use_role]
+  enum: [admin_role, read_role, member_role, owner_role, execute_role, adhoc_role, update_role, use_role, auditor_role]
