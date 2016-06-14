@@ -204,7 +204,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         '''
         Verify that a superuser account is able to post to the ad_hoc_commands endpoint.
         '''
-        use_role_pg = ssh_credential.get_role('use_role')
+        use_role_pg = ssh_credential.get_object_role('use_role')
 
         # create payload
         payload = dict(inventory=host.inventory,
@@ -467,7 +467,7 @@ print json.dumps(inv, indent=2)
         '''
         Verifies that privileged users can relaunch commands.
         '''
-        use_role_pg = ssh_credential.get_role('use_role')
+        use_role_pg = ssh_credential.get_object_role('use_role')
         for privileged_user in privileged_users:
             # give privileged user 'use_role' permissions
             with pytest.raises(common.exceptions.NoContent_Exception):
@@ -612,7 +612,7 @@ print json.dumps(inv, indent=2)
         '''
         Tests that deleting related objects will be reflected in the updated command page.
         '''
-        use_role_pg = ssh_credential.get_role('use_role')
+        use_role_pg = ssh_credential.get_object_role('use_role')
         inventory_pg = host.get_related('inventory')
 
         # associate ssh_credential with org_admin
