@@ -22,10 +22,9 @@ user:
         organizations: {$ref: '#/definitions/uri'}
         projects: {$ref: '#/definitions/uri'}
         roles: {$ref: '#/definitions/uri'}
-        object_roles: {$ref: '#/definitions/uri'}
         teams: {$ref: '#/definitions/uri'}
       required: [admin_of_organizations, credentials, organizations, projects, teams,
-        activity_stream, roles, object_roles, access_list]
+        activity_stream, roles, access_list]
       type: object
     type: {pattern: ^user$, type: string}
     url: {format: uri, type: string}
