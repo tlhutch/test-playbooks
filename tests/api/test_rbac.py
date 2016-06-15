@@ -178,7 +178,7 @@ def test_role_association_and_disassociation(factories, resource_name, endpoint)
         ('group', 'read', 'admin'),
     ]
 )
-def test_unauthorized_privilege_escalation_returns_code_403(
+def test_unauthorized_self_privilege_escalation_returns_code_403(
         factories, auth_user,
         endpoint, resource_name, initial_role, unauthorized_target_role):
     """A user with [intial_role] permission on a [resource_name] cannot add
@@ -190,6 +190,54 @@ def test_unauthorized_privilege_escalation_returns_code_403(
     set_roles(user, resource, [initial_role])
     with auth_user(user), pytest.raises(Forbidden_Exception):
         set_roles(user, resource, [unauthorized_target_role], endpoint=endpoint)
+
+
+@pytest.mark.parametrize('related_roles,access', [
+    (
+        {'credential': ['read'], 'inventory': ['use'], 'project': ['use']},
+        {'get': True, 'relaunch': False}
+    ),
+    (
+        {'credential': ['use'], 'inventory': ['read'], 'project': ['use']},
+        {'get': True, 'relaunch': False}
+    ),
+    (
+        {'credential': ['use'], 'inventory': ['use'], 'project': ['read']},
+        {'get': True, 'relaunch': False}
+    ),
+    (
+        {'credential': ['use'], 'inventory': ['use'], 'project': ['use']},
+        {'get': True, 'relaunch': True}
+    ),
+])
+def test_orphaned_job_read_and_relaunch_access(
+        factories, auth_user, related_roles, access):
+    """Verify expected orphaned job read and relaunch access for a set of
+    related resource permissions
+    """
+    organization = factories.organization()
+    user = factories.user(related_organization=organization)
+
+    related_resources = {}
+    for name, roles in related_roles.iteritems():
+        resource = getattr(factories, name)(related_organization=organization)
+        set_roles(user, resource, roles)
+        related_resources['related_' + name] = resource
+
+    job_template = factories.job_template(**related_resources)
+    set_roles(user, organization, ['admin'])
+    set_roles(user, job_template, ['admin'])
+
+    orphan = job_template.launch()
+    job_template.delete()
+
+    for action_name, can_access in access.iteritems():
+        if can_access:
+            with auth_user(user):
+                assert getattr(orphan, action_name)()
+        else:
+            with auth_user(user), pytest.raises(Forbidden_Exception):
+                assert getattr(orphan, action_name)()
 
 
 @pytest.mark.parametrize(
