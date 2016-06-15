@@ -13,7 +13,7 @@
     pkg: apt
     state: latest
     update_cache: yes
-  when: ansible_pkg_mgr = 'apt'
+  when: ansible_pkg_mgr == 'apt'
 
 - name: include variable file
   include_vars: '{{ item }}'
