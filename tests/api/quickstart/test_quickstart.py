@@ -387,23 +387,27 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_hosts_get(self, api_hosts_pg, _hosts):
-        hosts = _hosts
         # Get list of available hosts
-        api_hosts_pg.get(or__name=[o['name'] for o in hosts])
+        api_hosts_pg.get(or__name=[o['name'] for o in _hosts])
 
-        # Validate number of inventories found
-        assert len(hosts) == api_hosts_pg.count
+        # Validate number of hosts found while accounting for Demo inventory's use of localhost 
+        assert len(_hosts) == api_hosts_pg.count - 1
 
     @pytest.mark.destructive
     def test_hosts_add_group(self, api_inventories_pg, api_hosts_pg, api_groups_pg, _host):
-        # Find desired host
-        host_id = api_hosts_pg.get(name=_host['name']).results[0].id
-
         # Find desired inventory
         inventory_id = api_inventories_pg.get(name__iexact=_host['inventory']).results[0].id
 
+        # Find desired host considering Demo inventory's use of localhost
+        hosts = api_hosts_pg.get(name=_host['name']).results
+        host_id = [host for host in hosts if host.inventory == inventory_id][0].id
+
         # Find desired groups
-        groups = api_groups_pg.get(name__in=','.join([grp for grp in _host.get('groups', [])]), inventory=inventory_id).results
+        q_params = dict(inventory=inventory_id)
+        group_names = _host.get('groups', None)
+        if group_names:
+            q_params.update(name__in=','.join([name for name in group_names]))
+        groups = api_groups_pg.get(**q_params).results
 
         if not groups:
             pytest.skip("Not all hosts are associated with a group")
