@@ -24,7 +24,7 @@ class User_Page(base.Base):
             from teams import Teams_Page as cls
         elif attr == 'access_list':
             from access_list import Access_List_Page as cls
-        elif attr in ['object_roles', 'roles']:
+        elif attr == 'roles':
             from roles import Roles_Page as cls
         elif attr == 'activity_stream':
             from activity_stream import Activity_Stream_Page as cls
@@ -34,18 +34,6 @@ class User_Page(base.Base):
             raise NotImplementedError("No related class found for '%s'" % attr)
 
         return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
-
-    def add_permission(self, permission_type, project=None, inventory=None, run_ad_hoc_commands=None):
-        perm_pg = self.get_related('permissions')
-        payload = dict(name=fauxfactory.gen_utf8(),
-                       description=fauxfactory.gen_utf8(),
-                       user=self.id,
-                       permission_type=permission_type,
-                       project=project,
-                       inventory=inventory,
-                       run_ad_hoc_commands=run_ad_hoc_commands)
-        result = perm_pg.post(payload)
-        return result
 
 
 class Users_Page(User_Page, base.Base_List):
