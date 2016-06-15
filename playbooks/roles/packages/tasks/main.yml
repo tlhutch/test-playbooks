@@ -1,6 +1,20 @@
 ---
 # Tasks to install awx-setup package-related dependencies on EL systems
 
+- name: update yum
+  yum:
+    name: yum
+    state: latest
+    update_cache: yes
+  when: ansible_pkg_mgr == 'yum'
+
+- name: update apt
+  apt:
+    pkg: apt
+    state: latest
+    update_cache: yes
+  when: ansible_pkg_mgr = 'apt'
+
 - name: include variable file
   include_vars: '{{ item }}'
   with_first_found:
@@ -20,7 +34,6 @@
   apt:
     pkg: '{{item}}'
     state: latest
-    update_cache: yes
   with_items: '{{ deb_role_dependencies }}'
   when: ansible_pkg_mgr == 'apt'
 
