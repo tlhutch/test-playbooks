@@ -1,4 +1,3 @@
-import fauxfactory
 import base
 
 
