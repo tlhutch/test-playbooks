@@ -8,6 +8,7 @@ from common.exceptions import LicenseExceeded_Exception as Forbidden_Exception  
 import common.exceptions
 from common.utils import random_utf8
 from common.exceptions import NoContent_Exception
+from common.exceptions import Method_Not_Allowed_Exception
 
 
 pytestmark = [
@@ -60,8 +61,11 @@ TOWER_ISSUE_2489 = pytest.mark.github(
 TOWER_ISSUE_2543 = pytest.mark.github(
     'https://github.com/ansible/ansible-tower/issues/2543')
 
-tower_issue = lambda x: pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/{0}'.format(x))
+
+def tower_issue(issue_number, **kwargs):
+    url = 'https://github.com/ansible/ansible-tower/issues/{0}'
+    url = url.format(issue_number)
+    return pytest.mark.github(url, **kwargs)
 
 
 def check_role_association(user, model, role_name):
@@ -179,8 +183,8 @@ def test_role_association_and_disassociation(factories, resource_name, endpoint)
     ]
 )
 def test_unauthorized_self_privilege_escalation_returns_code_403(
-        factories, auth_user,
-        endpoint, resource_name, initial_role, unauthorized_target_role):
+        factories, auth_user, endpoint,
+        resource_name, initial_role, unauthorized_target_role):
     """A user with [intial_role] permission on a [resource_name] cannot add
     the [unauthorized_target_role] for the [resource_name] to themselves
     """
@@ -192,6 +196,7 @@ def test_unauthorized_self_privilege_escalation_returns_code_403(
         set_roles(user, resource, [unauthorized_target_role], endpoint=endpoint)
 
 
+@tower_issue('2413', raises=Method_Not_Allowed_Exception)
 @pytest.mark.parametrize('related_roles,access', [
     (
         {'credential': ['read'], 'inventory': ['use'], 'project': ['use']},
@@ -231,19 +236,16 @@ def test_orphaned_job_read_and_relaunch_access(
     orphan = job_template.launch()
     job_template.delete()
 
-    for action_name, can_access in access.iteritems():
+    for method_name, can_access in access.iteritems():
         if can_access:
             with auth_user(user):
-                assert getattr(orphan, action_name)()
+                assert getattr(orphan, method_name)()
         else:
             with auth_user(user), pytest.raises(Forbidden_Exception):
-                assert getattr(orphan, action_name)()
+                assert getattr(orphan, method_name)()
 
 
-@pytest.mark.parametrize(
-    'initially_read_only',
-    ['project', 'inventory', 'credential']
-)
+@pytest.mark.parametrize('initially_read_only', ['project', 'inventory', 'credential'])
 def test_job_template_patch_request_without_usage_role_returns_code_403(
         factories, auth_user, initially_read_only):
     """Verify that a user cannot change the related project, inventory, or
