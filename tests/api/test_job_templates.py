@@ -220,6 +220,7 @@ class Test_Job_Template(Base_Api_Test):
                 "the launched job does not have the same credential " \
                 "(%s != %s)" % (job_pg.credential, team_ssh_credential.id)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2391')
     def test_launch_with_invalid_credential_in_payload(self, job_template_no_credential):
         '''
         Verify the job->launch endpoint behaves as expected when launched with
