@@ -415,7 +415,7 @@ class Test_Job(Base_Api_Test):
         assert cloud_group.get_related('inventory_source').last_updated is None
 
         # Launch job and check results
-        job_pg = job_template.launch().wait_until_completed()
+        job_pg = job_template.launch().wait_until_completed(timeout=60 * 3)
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
         # Assert that the inventory_update is marked as successful
