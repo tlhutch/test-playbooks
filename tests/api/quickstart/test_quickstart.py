@@ -390,7 +390,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Get list of available hosts
         api_hosts_pg.get(or__name=[o['name'] for o in _hosts])
 
-        # Validate number of hosts found while accounting for Demo inventory's use of localhost 
+        # Validate number of hosts found while accounting for Demo inventory's use of localhost
         assert len(_hosts) == api_hosts_pg.count - 1
 
     @pytest.mark.destructive

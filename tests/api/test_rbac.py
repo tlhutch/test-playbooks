@@ -61,6 +61,9 @@ TOWER_ISSUE_2409 = pytest.mark.github(
 # We have improper nesting in our credential get_related
 TOWER_ISSUE_2205 = pytest.mark.github(
     'https://github.com/ansible/ansible-tower/issues/2205')
+# Project 'admin' and 'update' cannot launch project updates
+TOWER_ISSUE_2489 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2489')
 
 
 @TOWER_ISSUE_1981
@@ -437,6 +440,7 @@ class Test_Project_RBAC(Base_Api_Test):
                 project_pg.delete()
 
     @TOWER_ISSUE_2114
+    @TOWER_ISSUE_2489
     def test_admin_role(self, factories, user_password):
         '''
         A project admin should be able to:
@@ -461,7 +465,12 @@ class Test_Project_RBAC(Base_Api_Test):
             # check GET as test user
             project_pg.get()
             for related in project_pg.json.related:
-                project_pg.get_related(related)
+                # 403 when navigating to projects/N/organization is expected
+                if related == 'organization':
+                    with pytest.raises(common.exceptions.Forbidden_Exception):
+                        project_pg.get_related(related)
+                else:
+                    project_pg.get_related(related)
 
             # check project update
             project_pg.update()
@@ -472,6 +481,7 @@ class Test_Project_RBAC(Base_Api_Test):
             project_pg.delete()
 
     @TOWER_ISSUE_2114
+    @TOWER_ISSUE_2489
     def test_update_role(self, factories, user_password):
         '''
         A user with project update should be able to:
@@ -498,7 +508,12 @@ class Test_Project_RBAC(Base_Api_Test):
             # check GET as test user
             project_pg.get()
             for related in project_pg.json.related:
-                project_pg.get_related(related)
+                # 403 when navigating to projects/N/organization is expected
+                if related == 'organization':
+                    with pytest.raises(common.exceptions.Forbidden_Exception):
+                        project_pg.get_related(related)
+                else:
+                    project_pg.get_related(related)
 
             # check project update
             project_pg.update()
@@ -539,7 +554,12 @@ class Test_Project_RBAC(Base_Api_Test):
             # check GET as test user
             project_pg.get()
             for related in project_pg.json.related:
-                project_pg.get_related(related)
+                # 403 when navigating to projects/N/organization is expected
+                if related == 'organization':
+                    with pytest.raises(common.exceptions.Forbidden_Exception):
+                        project_pg.get_related(related)
+                else:
+                    project_pg.get_related(related)
 
             # check project update
             with pytest.raises(common.exceptions.Forbidden_Exception):
@@ -581,7 +601,12 @@ class Test_Project_RBAC(Base_Api_Test):
             # check GET as test user
             project_pg.get()
             for related in project_pg.json.related:
-                project_pg.get_related(related)
+                # 403 when navigating to projects/N/organization is expected
+                if related == 'organization':
+                    with pytest.raises(common.exceptions.Forbidden_Exception):
+                        project_pg.get_related(related)
+                else:
+                    project_pg.get_related(related)
 
             # check project update
             with pytest.raises(common.exceptions.Forbidden_Exception):
