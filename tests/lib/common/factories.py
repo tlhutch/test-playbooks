@@ -31,7 +31,7 @@ class OrganizationFactory(PageFactory):
         inline_args = ('request',)
         get_or_create = ('name',)
 
-    name = 'Default'
+    name = 'Random organization %s' % fauxfactory.gen_utf8()
     description = factory.LazyFunction(fauxfactory.gen_utf8)
 
 
