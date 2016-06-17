@@ -109,7 +109,7 @@ class Test_Job_Template(Base_Api_Test):
         launch_pg = job_template_with_extra_vars.get_related('launch')
 
         # assert values on launch resource
-        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.can_start_without_user_input
         assert launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
@@ -357,7 +357,7 @@ class Test_Job_Template(Base_Api_Test):
         launch_pg = job_template_ask_variables_on_launch.get_related('launch')
 
         # assert values on launch resource
-        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.can_start_without_user_input
         assert launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
@@ -384,7 +384,7 @@ class Test_Job_Template(Base_Api_Test):
         launch_pg = job_template_ask_variables_on_launch.get_related('launch')
 
         # assert values on launch resource
-        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.can_start_without_user_input
         assert launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
@@ -672,7 +672,7 @@ class Test_Job_Template(Base_Api_Test):
         launch_pg = job_template_with_deleted_related.get_related('launch')
 
         # assert values on launch resource
-        assert not launch_pg.can_start_without_user_input
+        assert launch_pg.can_start_without_user_input
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
