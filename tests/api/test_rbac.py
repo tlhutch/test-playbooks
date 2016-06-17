@@ -1540,39 +1540,3 @@ class Test_Inventory_RBAC(Base_Api_Test):
                 inventory_pg.patch()
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 inventory_pg.delete()
-
-
-@pytest.mark.api
-@pytest.mark.skip_selenium
-@pytest.mark.destructive
-class Test_User_RBAC(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
-
-    @TOWER_ISSUE_2316
-    def test_admin_role(self, factories, user_password):
-        '''
-        A user with a user admin_role should be able to:
-        * Get the user details page
-        * Get all of the user related pages
-        * Edit the user
-        * Delete the user
-        '''
-        user_pg = factories.user()
-        another_user_pg = factories.user()
-
-        # give user admin_role
-        role_pg = another_user_pg.get_object_role('admin_role')
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            user_pg.get_related('roles').post(dict(id=role_pg.id))
-
-        with self.current_user(username=user_pg.username, password=user_password):
-            # check GET as test user
-            another_user_pg.get()
-            for related in another_user_pg.json.related:
-                another_user_pg.get_related(related)
-
-            # check put/patch/delete
-            another_user_pg.put()
-            another_user_pg.patch()
-            another_user_pg.delete()
