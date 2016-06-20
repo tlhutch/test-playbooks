@@ -113,29 +113,6 @@ teams:
       users:
         - ansible_it_user
 
-permissions:
-    - name: '[read] inventory:local,'
-      team: Ansible Users
-      permission_type: read
-      inventory: local,
-
-    - name: '[run] project:ansible-playbooks.git (manual), inventory:local,'
-      team: Ansible Users
-      permission_type: run
-      inventory: local,
-      project: ansible-playbooks.git (manual)
-
-    - name: '[run] project:ansible-playbooks.git (github, ssh_key_data), inventory:local,'
-      team: Ansible Users
-      permission_type: run
-      inventory: local,
-      project: ansible-playbooks.git (github, ssh_key_data)
-
-    - name: '[admin] inventory:local,'
-      team: Ansible IT
-      permission_type: admin
-      inventory: local,
-
 credentials:
     - name: 'SSH (user:bender_eng_user, password:ASK)'
       description: 'user:bender_eng_user, ssh_user:root, password:ASK'

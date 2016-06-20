@@ -390,7 +390,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Get list of available hosts
         api_hosts_pg.get(or__name=[o['name'] for o in _hosts])
 
-        # Validate number of hosts found while accounting for Demo inventory's use of localhost 
+        # Validate number of hosts found while accounting for Demo inventory's use of localhost
         assert len(_hosts) == api_hosts_pg.count - 1
 
     @pytest.mark.destructive
@@ -658,43 +658,6 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             payload = dict(id=project.id)
             with pytest.raises(NoContent_Exception):
                 project_related_pg.post(payload)
-
-    @pytest.mark.destructive
-    def test_permissions_post(self, api_users_pg, api_teams_pg, api_inventories_pg, api_projects_pg, api_job_templates_pg, _permission):
-
-        # locate desired user/team resource
-        if 'user' in _permission:
-            matches = api_users_pg.get(name__iexact=_permission['user']).results
-        elif 'team' in _permission:
-            matches = api_teams_pg.get(name__iexact=_permission['team']).results
-
-        # assert number of matches
-        assert len(matches) == 1
-        obj_pg = matches[0]
-        related_pg = obj_pg.get_related('permissions')
-
-        # build payload
-        payload = _permission
-        if obj_pg.type == 'team':
-            payload['team'] = obj_pg.id
-        elif obj_pg.type == 'user':
-            payload['user'] = obj_pg.id
-
-        for (attr, endpoint) in (('inventory', api_inventories_pg),
-                                 ('project', api_projects_pg),
-                                 ('job_template', api_job_templates_pg)):
-            if attr in payload:
-                matches = endpoint.get(name=payload[attr])
-                assert matches.count == 1, \
-                    "Unexpected number of %s found matching name:%s" % \
-                    (attr, payload[attr])
-                payload[attr] = matches.results[0].id
-
-        # post permission
-        try:
-            related_pg.post(payload)
-        except Duplicate_Exception, e:
-            pytest.xfail(str(e))
 
     # AT ONE POINT RELATED TO JIRA(AC-641)
     @pytest.mark.destructive
