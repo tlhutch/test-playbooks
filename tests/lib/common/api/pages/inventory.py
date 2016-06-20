@@ -226,6 +226,8 @@ class Inventory_Source_Page(Unified_Job_Template_Page):
             cls = Inventory_Update_Page
         elif attr == 'credential':
             cls = Credential_Page
+        elif attr == 'groups':
+            cls = Inventory_Source_Groups_Page
         elif attr == 'inventory_updates':
             cls = Inventory_Updates_Page
         elif attr == 'inventory':
@@ -288,6 +290,10 @@ class Inventory_Source_Page(Unified_Job_Template_Page):
 
 class Inventory_Sources_Page(Inventory_Source_Page, Base_List):
     base_url = '/api/v1/inventory_sources/'
+
+
+class Inventory_Source_Groups_Page(Group_Page, Base_List):
+    base_url = '/api/v1/inventory_sources/{id}/groups'
 
 
 class Inventory_Source_Update_Page(Base):

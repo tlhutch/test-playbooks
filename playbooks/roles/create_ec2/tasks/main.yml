@@ -33,6 +33,7 @@
     instance_tags:
         Name: '{{ec2_name_prefix}}-{{item.name}}'
         ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
+        Test-Flag-2202: 'Replace-Dash-In-Groups'
     group: '{{ item.security_group|default(ec2_security_group) }}'
     key_name: '{{ ec2_key_name }}'
     image: '{{ item.id }}'

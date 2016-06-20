@@ -969,6 +969,10 @@ class Awx_Schema_Inventory_Source_Updates(Awx_Schema):
         return self.load_file('inventory_updates/list.yml')
 
 
+class Awx_Schema_Inventory_Sources_Related_Groups(Awx_Schema_Groups):
+    resource = '/api/v1/inventory_sources/\d+/groups/'
+
+
 class Awx_Schema_Inventory_Source_Update(Awx_Schema_Inventory_Source_Updates):
     resource = '/api/v1/inventory_updates/\d+/'
 
