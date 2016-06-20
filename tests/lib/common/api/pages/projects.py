@@ -22,7 +22,7 @@ class Project_Page(Unified_Job_Template_Page):
         assert attr in self.json['related'], \
             "No such related attribute '%s'" % attr
 
-        if attr in ('last_update', 'last_job', 'current_update'):
+        if attr in ('last_update', 'last_job', 'current_update', 'current_job'):
             cls = Project_Update_Page
         elif attr == 'project_updates':
             cls = Project_Updates_Page
