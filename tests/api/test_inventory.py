@@ -475,6 +475,31 @@ class Test_Inventory_Update(Base_Api_Test):
         else:
             raise NotImplementedError("Unhandled value for only_group_by: %s" % only_group_by)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2202')
+    def test_aws_replace_dash_in_groups_source_variable(self, job_template, aws_group, host_local):
+        '''
+        Tests that AWS inventory groups will be registered with underscores instead of hyphens
+        when using "replace_dash_in_groups" source variable
+        '''
+        job_template.patch(inventory=aws_group.inventory, limit=host_local.name)
+        aws_group.get_related('inventory_source').patch(update_on_launch=True,
+                                                        source_vars=json.dumps(dict(replace_dash_in_groups=True)))
+
+        # Launch job and check results
+        job_pg = job_template.launch().wait_until_completed(timeout=3*60)
+        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+
+        # Assert that the inventory_update is marked as successful
+        inv_source_pg = aws_group.get_related('inventory_source')
+        assert inv_source_pg.is_successful, ("An inventory_update was launched, but the "
+                                             "inventory_source is not successful - %s" % inv_source_pg)
+
+        # Assert that hyphen containing tag groups are registered with underscores
+        for group_name in ['tag_Test_Flag_2202', 'tag_Test_Flag_2202_Replace_Dash_In_Groups']:
+            inv_groups_pg = inv_source_pg.get_related('groups', name__in=group_name)
+            assert inv_groups_pg.count, ('An inventory sync was launched with "replace_dash_in_groups: true", '
+                                         'but desired group with sanitized tag "{0}" not found.'.format(group_name))
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
