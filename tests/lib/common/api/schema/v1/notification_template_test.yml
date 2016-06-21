@@ -2,8 +2,6 @@ $schema: http://json-schema.org/draft-04/schema#
 additionalProperties: false
 id: /api/v1/notification_templates/\d+/test/
 properties:
-  notification: {$ref: '#/definitions/id'}
+  notification: {type: integer}
 required: [notification]
 type: object
-definitions:
-  !include '../definitions/*.yml'

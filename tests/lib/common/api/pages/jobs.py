@@ -158,17 +158,18 @@ class Job_Tasks_Page(Job_Task_Page, Base_List):
 
 
 class Job_Host_Summary_Page(Base):
-    base_url = '/api/v1/jobs/{id}/job_host_summaries/{id}/'
+    base_url = '/api/v1/job_host_summaries/{id}/'
 
-    play = property(json_getter('play'), json_setter('play'))
     job = property(json_getter('job'), json_setter('job'))
     host = property(json_getter('host'), json_setter('host'))
+    host_name = property(json_getter('host_name'), json_setter('host_name'))
     changed = property(json_getter('changed'), json_setter('changed'))
     dark = property(json_getter('dark'), json_setter('dark'))
-    ok = property(json_getter('ok'), json_setter('ok'))
     failures = property(json_getter('failures'), json_setter('failures'))
+    ok = property(json_getter('ok'), json_setter('ok'))
     processed = property(json_getter('processed'), json_setter('processed'))
     skipped = property(json_getter('skipped'), json_setter('skipped'))
+    failed = property(json_getter('failed'), json_setter('failed'))
 
 
 class Job_Host_Summaries_Page(Job_Host_Summary_Page, Base_List):

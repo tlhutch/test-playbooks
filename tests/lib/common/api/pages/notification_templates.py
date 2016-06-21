@@ -13,14 +13,39 @@ class Notification_Template_Page(Base):
     organization = property(json_getter('organization'), json_setter('organization'))
     notification_type = property(json_getter('notification_type'), json_setter('notification_type'))
     notification_configuration = property(json_getter('notification_configuration'), json_setter('notification_configuration'))
+    summary_fields = property(json_getter('summary_fields'), json_setter('summary_fields'))
+
+    def get_related(self, attr, **kwargs):
+        assert attr in self.json['related'], \
+            "No such related attribute '%s'" % attr
+
+        if attr == 'notifications':
+            from notifications import Notifications_Page
+            cls = Notifications_Page
+        elif attr == 'organization':
+            from organizations import Organization_Page
+            cls = Organization_Page
+        else:
+            raise NotImplementedError("No related class found for '%s'" % attr)
+
+        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
     def test(self):
         '''Create test notification'''
         assert 'test' in self.json['related'], \
             "No such related attribute 'test'"
-
+        # get related->test
         test_pg = Notification_Template_Test_Page(self.testsetup, base_url=self.json['related']['test'])
-        return test_pg.post()
+
+        # trigger test notification
+        notification_id = test_pg.post().notification
+
+        # return notification page
+        notifications_pg = self.get_related('notifications', id=notification_id)
+        assert notifications_pg.count == 1, \
+            "test notification triggered (id:%s) but notification not found in response at %s/notifications/" % \
+            (notification_id, self.url)
+        return notifications_pg.results[0]
 
 
 class Notification_Templates_Page(Notification_Template_Page, Base_List):
