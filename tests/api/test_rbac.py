@@ -64,6 +64,9 @@ TOWER_ISSUE_2205 = pytest.mark.github(
 # Project 'admin' and 'update' cannot launch project updates
 TOWER_ISSUE_2489 = pytest.mark.github(
     'https://github.com/ansible/ansible-tower/issues/2489')
+# 500-level error when navigating to credentials/N/owner_teams
+TOWER_ISSUE_2543 = pytest.mark.github(
+    'https://github.com/ansible/ansible-tower/issues/2543')
 
 
 @TOWER_ISSUE_1981
@@ -660,6 +663,7 @@ class Test_Credential_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 credential_pg.delete()
 
+    @TOWER_ISSUE_2543
     @TOWER_ISSUE_2205
     @TOWER_ISSUE_2129
     @TOWER_ISSUE_2130
@@ -693,6 +697,7 @@ class Test_Credential_RBAC(Base_Api_Test):
             credential_pg.patch()
             credential_pg.delete()
 
+    @TOWER_ISSUE_2543
     @TOWER_ISSUE_2205
     @TOWER_ISSUE_2129
     def test_use_role(self, factories, user_password):
@@ -730,6 +735,7 @@ class Test_Credential_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 credential_pg.delete()
 
+    @TOWER_ISSUE_2543
     @TOWER_ISSUE_2205
     @TOWER_ISSUE_2129
     def test_read_role(self, factories, user_password):

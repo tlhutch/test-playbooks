@@ -46,7 +46,7 @@ class Credential_Page(base.Base):
         elif attr == 'activity_stream':
             from activity_stream import Activity_Stream_Page
             cls = Activity_Stream_Page
-        elif attr == 'owners_teams':
+        elif attr == 'owner_teams':
             from teams import Teams_Page
             cls = Teams_Page
         elif attr == 'owner_users':
