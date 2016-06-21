@@ -331,6 +331,7 @@ class Inventory_Script_Page(Base):
     name = property(json_getter('name'), json_setter('name'))
     description = property(json_getter('description'), json_setter('description'))
     script = property(json_getter('script'), json_setter('script'))
+    organization = property(json_getter('organization'), json_setter('organization'))
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related'], \
