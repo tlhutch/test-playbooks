@@ -429,6 +429,26 @@ class Awx_Schema_Credential_Access_List(Awx_Schema):
         return self.load_file('access_list/list.yml')
 
 
+class Awx_Schema_Credential_Owner_Users(Awx_Schema_Users):
+    resource = '/api/v1/credentials/\d+/owner_users/'
+
+
+class Awx_Schema_Credential_Owner_Teams(Awx_Schema):
+    resource = '/api/v1/credentials/\d+/owner_teams/'
+
+    @property
+    def get(self):
+        return self.load_file('teams/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('teams/item.yml')
+
+    @property
+    def duplicate(self):
+        return self.load_file('teams/duplicate.yml')
+
+
 class Awx_Schema_User_Credentials(Awx_Schema_Credentials):
     resource = '/api/v1/users/\d+/credentials/'
 
