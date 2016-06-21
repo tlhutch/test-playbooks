@@ -212,30 +212,28 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "Unexpected value for %s field ('%s' != '%s')" % \
                 (key, getattr(inventory_script, key), val)
 
-    def test_delete_as_superuser(self, api_inventory_scripts_pg, inventory_script):
+    def test_delete_as_privileged_user(self, api_inventory_scripts_pg, inventory_script, privileged_user, user_password):
         '''
-        Verify succesful DELETE to /inventory_scripts/n as a superuser.
+        Verify succesful DELETE to /inventory_scripts/N as a privileged user.
         '''
+        with self.current_user(privileged_user.username, user_password):
+            # delete script
+            inventory_script.delete()
 
-        # delete script
-        inventory_script.delete()
+            # attempt to GET script
+            with pytest.raises(common.exceptions.NotFound_Exception):
+                inventory_script.get()
 
-        # attempt to GET script
-        with pytest.raises(common.exceptions.NotFound_Exception):
-            inventory_script.get()
+            # query /inventory_sources endpoint for matching id
+            assert api_inventory_scripts_pg.get(id=inventory_script.id).count == 0
 
-        # query /inventory_sources endpoint for matching id
-        assert api_inventory_scripts_pg.get(id=inventory_script.id).count == 0
-
-    def test_delete_as_non_superuser(self, non_superusers, user_password, inventory_script):
+    def test_delete_as_unprivileged_user(self, inventory_script, unprivileged_user, user_password):
         '''
-        Verify unsuccesful DELETE to /inventory_scripts/n as an organizational user.
+        Verify unsuccesful DELETE to /inventory_scripts/N as an unprivileged user.
         '''
-
-        for org_user in non_superusers:
-            with self.current_user(org_user.username, user_password):
-                with pytest.raises(common.exceptions.Forbidden_Exception):
-                    inventory_script.delete()
+        with self.current_user(unprivileged_user.username, user_password):
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                inventory_script.delete()
 
     def test_inventory_update_after_delete(self, custom_inventory_source_with_vars, inventory_script):
         '''
