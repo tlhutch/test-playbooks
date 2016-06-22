@@ -5,12 +5,6 @@ import pytest
 @pytest.fixture(scope="function", params=["email", "hipchat", "irc", "pagerduty", "slack", "twilio", "webhook"])
 def notification_template(request, authtoken, api_notification_templates_pg):
     '''All notification templates'''
-
-    # Selectively xfail test for cases known to fail due to
-    # https://github.com/ansible/ansible-tower/issues/2537
-    if request.param == 'pagerduty' and request.node.function.func_name == 'test_notification_inheritance':
-        pytest.xfail('https://github.com/ansible/ansible-tower/issues/2537')
-
     payload = request.getfuncargvalue(request.param + "_notification_template_payload")
     obj = api_notification_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
