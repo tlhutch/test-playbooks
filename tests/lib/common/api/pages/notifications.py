@@ -1,3 +1,5 @@
+import time
+import common.utils
 from common.api.pages import Base, Base_List, json_getter, json_setter
 
 
@@ -23,6 +25,14 @@ class Notification_Page(Base):
              self.error, self.notifications_sent, self.subject, self.recipients)
 
     @property
+    def is_completed(self):
+        '''
+        Return whether the current task has finished.  This does not indicate
+        whether the task completed successfully.
+        '''
+        return self.status.lower() in ['successful', 'failed']
+
+    @property
     def is_successful(self):
         '''
         Return whether the notification was created successfully. This means that:
@@ -30,6 +40,20 @@ class Notification_Page(Base):
          * self.error == False
         '''
         return 'successful' == self.status.lower() and not self.error
+
+    def wait_until_status(self, status, interval=1, verbose=0, timeout=10):
+        if not isinstance(status, (list, tuple)):
+            '''coerce 'status' parameter to a list'''
+            status = [status]
+        return common.utils.wait_until(
+            self, 'status', status,
+            interval=interval, verbose=verbose, timeout=timeout,
+            start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
+
+    def wait_until_completed(self, interval=1, verbose=0, timeout=10 * 2):
+        return self.wait_until_status(
+            ('successful', 'failed',),
+            interval=interval, verbose=verbose, timeout=timeout)
 
 
 class Notifications_Page(Notification_Page, Base_List):

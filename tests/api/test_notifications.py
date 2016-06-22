@@ -132,7 +132,7 @@ class Test_Notifications(Base_Api_Test):
     def test_test_notification(self, request, testsetup, notification_template):
         '''Generate test notifications for each notification type'''
         # Trigger test notification
-        notification_pg = notification_template.test()
+        notification_pg = notification_template.test().wait_until_completed()
         assert notification_pg.is_successful, "Notification was unsuccessful - %s" %\
             notification_pg
 
@@ -179,8 +179,7 @@ class Test_Notifications(Base_Api_Test):
                 (notifications_count + 1, notifications_count_updated)
 
             # Get notification
-            last_notif = notifications.results[0]
-            # FIXME: Wait for notification to complete
+            last_notif = notifications.results[0].wait_until_completed()
 
             tower_msg = expected_job_notification(testsetup.base_url, notification_template, job, job_result, True)
             assert last_notif.is_successful, "Notification was unsuccessful - %s" % last_notif
