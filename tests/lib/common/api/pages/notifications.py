@@ -30,7 +30,7 @@ class Notification_Page(Base):
         Return whether the current task has finished.  This does not indicate
         whether the task completed successfully.
         '''
-        return self.status.lower() in ['successful', 'failed']
+        return self.status in ['successful', 'failed']
 
     @property
     def is_successful(self):
@@ -39,7 +39,7 @@ class Notification_Page(Base):
          * self.status == 'successful'
          * self.error == False
         '''
-        return 'successful' == self.status.lower() and not self.error
+        return 'successful' == self.status and not self.error
 
     def wait_until_status(self, status, interval=1, verbose=0, timeout=10):
         if not isinstance(status, (list, tuple)):
