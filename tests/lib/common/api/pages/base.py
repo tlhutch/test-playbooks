@@ -147,11 +147,17 @@ class Base(Page):
         r = self.api.post(self.base_url, payload)
         return self.handle_request(r)
 
-    def put(self):
-        r = self.api.put(self.base_url.format(**self.json), self.json)
+    def put(self, payload=None):
+        if payload is None:
+            payload = self.json
+        r = self.api.put(self.base_url.format(**self.json), payload)
         return self.handle_request(r)
 
     def patch(self, **payload):
+        r = self.api.patch(self.base_url.format(**self.json), payload)
+        return self.handle_request(r)
+
+    def patch_payload(self, payload):
         r = self.api.patch(self.base_url.format(**self.json), payload)
         return self.handle_request(r)
 

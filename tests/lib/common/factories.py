@@ -34,7 +34,7 @@ class OrganizationFactory(PageFactory):
         inline_args = ('request',)
         get_or_create = ('name',)
 
-    name = 'Random organization %s' % fauxfactory.gen_utf8()
+    name = factory.LazyFunction(fauxfactory.gen_utf8)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
 
 
@@ -124,9 +124,9 @@ class CredentialFactory(PageFactory):
     related_organization = factory.SubFactory(
         OrganizationFactory, request=factory.SelfAttribute('..request'))
 
+    kind = 'ssh'
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
-    kind = 'ssh'
     organization = factory.SelfAttribute('related_organization.id')
     username = factory.LazyFunction(fauxfactory.gen_alphanumeric)
 
@@ -200,17 +200,24 @@ class JobTemplateFactory(PageFactory):
         model = Job_Templates_Page
         inline_args = ('request',)
         get_or_create = ('name',)
-        exclude = ('localhost', 'related_project',
+        exclude = ('localhost', 'shared_organization', 'related_project',
                    'related_inventory', 'related_credential',)
+
+    shared_organization = factory.SubFactory(
+        OrganizationFactory,
+        request=factory.SelfAttribute('..request'))
     related_project = factory.SubFactory(
         ProjectFactory,
-        request=factory.SelfAttribute('..request'))
+        request=factory.SelfAttribute('..request'),
+        related_organization=shared_organization)
     related_credential = factory.SubFactory(
         CredentialFactory,
-        request=factory.SelfAttribute('..request'))
+        request=factory.SelfAttribute('..request'),
+        related_organization=shared_organization)
     related_inventory = factory.SubFactory(
         InventoryFactory,
-        request=factory.SelfAttribute('..request'))
+        request=factory.SelfAttribute('..request'),
+        related_organization=shared_organization)
     localhost = factory.SubFactory(
         HostFactory,
         name='localhost',
