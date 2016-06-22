@@ -284,7 +284,7 @@ class Awx_Schema_Group(Awx_Schema_Groups):
 
     @property
     def put(self):
-        return self.put
+        return self.get
 
     @property
     def patch(self):
@@ -332,7 +332,7 @@ class Awx_Schema_Host(Awx_Schema_Hosts):
 
     @property
     def put(self):
-        return self.put
+        return self.get
 
     @property
     def patch(self):
