@@ -59,34 +59,44 @@ def expected_test_notification(tower_url, notification_template_pg, tower_messag
 def expected_job_notification(tower_url, notification_template_pg, job_pg, job_result, tower_message=False):
     '''
     Returns notification message expected for given job and state.
+    Note that job can be regular job template or system job template.
     By default, returns message as it would be shown in notification service
     (if tower_message is True, returns message shown on notifications endpoint).
     '''
-    job_template_name = job_pg.json['summary_fields']['job_template']['name']
-    job_id = job_pg.id
     nt_type = notification_template_pg.notification_type
+    job_description = ("System " if job_pg.type == 'system_job' else "") + "Job"
 
     if tower_message or nt_type == "hipchat":
-        msg = "Job #%s '%s' succeeded on Ansible Tower: %s/#/jobs/%s" % \
-            (job_id, job_template_name, tower_url, job_id)
+        msg = (job_description + " #%s '%s' succeeded on Ansible Tower: %s/#/" +
+               ("management_" if job_pg.type == 'system_job' else "") + "jobs/%s") % \
+              (job_pg.id, job_pg.name, tower_url, job_pg.id)
     elif nt_type == "slack":
-        msg = "Job #%s '%s' succeeded on Ansible Tower: <%s/#/jobs/%s>" % \
-            (job_id, job_template_name, tower_url, job_id)
+        msg = (job_description + " #%s '%s' succeeded on Ansible Tower: <%s/#/" +
+               ("management_" if job_pg.type == 'system_job' else "") + "jobs/%s>") % \
+              (job_pg.id, job_pg.name, tower_url, job_pg.id)
     elif nt_type == "webhook":
-        msg = _expected_webhook_job_notification(tower_url, notification_template_pg, job_pg, job_result)
+        msg = _expected_webhook_job_notification(tower_url, notification_template_pg, job_pg,
+                                                 job_result, job_pg.type == 'system_job')
     else:
         raise Exception("notification type %s not supported" % nt_type)
     return msg
 
 
 def _expected_webhook_job_notification(tower_url, notification_template_pg, job_pg, job_result):
-    '''Returns job notification message for webhooks.'''
-    job_host_summaries_pg = job_pg.get_related('job_host_summaries')
+    '''
+    Returns job notification message for webhooks.
+    Note that job can be regular job template or system job template.
+    '''
+    # Get job_host_summaries_pg (used in build_host_results())
+    if job_pg.type == 'job':
+        job_host_summaries_pg = job_pg.get_related('job_host_summaries')
 
     def get_friendly_name():
         '''Returns friendly name based on type'''
-        if job_pg.type == "job":
-            return "Job"
+        if job_pg.type == 'job':
+            return 'Job'
+        elif job_pg.type == 'system_job':
+            return 'System Job'
         msg = "Cannot generate notification for Jobs when job type is not 'job'"
         raise Exception(msg)
 
@@ -101,23 +111,27 @@ def _expected_webhook_job_notification(tower_url, notification_template_pg, job_
                 dict((stat, getattr(host_summary_pg, stat)) for stat in host_stats)
         return host_results
 
+    url = tower_url + '/#/' + ('management_' if job_pg.type == 'system_job' else '') + 'jobs/' + str(job_pg.id)
+
+    # All supported job types have these fields
     job_msg = {'status': job_pg.status,
-               'credential': job_pg.get_related('credential').name,
                'name': job_pg.name,
                'started': job_pg.started,
-               'extra_vars': job_pg.extra_vars,
                'traceback': job_pg.result_traceback,
                'friendly_name': get_friendly_name(),
-               'created_by': job_pg.json['summary_fields']['created_by']['username'],
-               'project': job_pg.json['summary_fields']['project']['name'],
-               'url': tower_url + '/#/jobs/' + str(job_pg.id),
+               'created_by': job_pg.summary_fields['created_by']['username'],
+               'url': url,
                'finished': job_pg.finished,
-               'hosts': build_host_results(),
-               'playbook': job_pg.playbook,
-               'limit': job_pg.limit,
-               'id': job_pg.id,
-               'inventory': job_pg.json['summary_fields']['inventory']['name']}
-
+               'id': job_pg.id}
+    # Regular jobs have these fields, too
+    if job_pg.type == 'job':
+        job_msg.update({'credential': job_pg.get_related('credential').name,
+                        'extra_vars': job_pg.extra_vars,
+                        'project': job_pg.summary_fields['project']['name'],
+                        'hosts': build_host_results(),
+                        'playbook': job_pg.playbook,
+                        'limit': job_pg.limit,
+                        'inventory': job_pg.summary_fields['inventory']['name']})
     return job_msg
 
 
@@ -143,6 +157,47 @@ class Test_Notifications(Base_Api_Test):
             assert confirm_notification(testsetup, notification_template, msg), \
                 "Failed to find %s test notification (%s)" %\
                 (notification_type, msg)
+
+    @pytest.mark.destructive
+    @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
+    def test_system_job_notifications(self, request, system_job_template, notification_template, job_result,
+                                      testsetup, api_notifications_pg):
+        '''Test notification templates attached to system job templates'''
+        # Associate notification template
+        associate_notification_template(notification_template, system_job_template, job_result)
+
+        # Launch job
+        job = system_job_template.launch().wait_until_completed()
+        assert job.is_successful, "Job unsuccessful - %s" % job
+
+        # Check notification in job
+        notifications_pg = job.get_related('notifications')
+        if job_result in ('any', 'success'):
+            assert notifications_pg.count == 1, \
+                "Expected job to have 1 notification, found " + notifications_pg.count
+            notification_pg = notifications_pg.results[0].wait_until_completed()
+            tower_msg = expected_job_notification(testsetup.base_url, notification_template, job, job_result, tower_message=True)
+            assert notification_pg.notification_template == notification_template.id, \
+                "Expected notification to be associated with notification template %s, found %s" % \
+                (notification_template.id, notification_pg.notification_template)
+            assert notification_pg.subject == tower_msg, \
+                "Expected most recent notification to be (%s), found (%s)" % (tower_msg, notification_pg.subject)
+            assert notification_pg.is_successful, "Notification was unsuccessful - %s" % notification_pg
+            assert notification_pg.notifications_sent == 1, \
+                "notification reports sending %s notifications (only one actually sent)" % notification_pg.notifications_sent
+            assert notification_pg.notification_type == notification_template.notification_type
+            # TODO: Test recipients field
+        else:
+            assert notifications_pg.count == 0, \
+                "Expected job to have 0 notifications, found " + notifications_pg.count
+
+        # Check notification in notification service
+        if can_confirm_notification(notification_template):
+            notification_expected = (True if job_result in ('any', 'success') else False)
+            msg = expected_job_notification(testsetup.base_url, notification_template, job, job_result)
+            assert confirm_notification(testsetup, notification_template, msg) == notification_expected, \
+                notification_template.notification_type + " notification " + \
+                ("not " if notification_expected else "") + "present (%s)" % msg
 
     @pytest.mark.destructive
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
