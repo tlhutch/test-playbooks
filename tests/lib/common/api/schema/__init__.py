@@ -23,6 +23,7 @@ class SchemaRequestNotFound(Exception):
 class Schema_Collection(object):
     def __init__(self):
         self.schemas = defaultdict(dict)
+        self._schema_cache = {}
 
     def add_schema(self, schema):
         assert issubclass(cls, Schema_Base), 'Unknown schema parameter type: %s' % type(schema)
@@ -35,8 +36,16 @@ class Schema_Collection(object):
     def get_schema(self, version, resource, request='get'):
         # Remove any query string parameters '?...'
         resource = urlparse(resource).path
+        resource_store = resource
         # Lowercase the request string
         request = request.lower()
+
+        if resource_store in self._schema_cache:
+            if request in self._schema_cache[resource_store]:
+                logging.debug("get_schema version:%s, request:%s, resource:%s cache hit" % (version, request, resource))
+                return self._schema_cache[resource_store][request]
+        else:
+            self._schema_cache[resource_store] = {}
 
         logging.debug("get_schema version:%s, request:%s, resource:%s" % (version, request, resource))
 
@@ -72,7 +81,9 @@ class Schema_Collection(object):
                 % (request, properties)
             )
 
-        return getattr(self.schemas[version][resource], request)
+        schema = getattr(self.schemas[version][resource], request)
+        self._schema_cache[resource_store][request] = schema
+        return schema
 
 
 class Schema_Base(object):

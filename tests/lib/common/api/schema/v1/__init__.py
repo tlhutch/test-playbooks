@@ -12,10 +12,16 @@ schema_files = glob.glob(os.path.join(__path__[0], '*.yml'))
 class Awx_Schema(Schema_Base):
     version = 'v1'
     resource = '/api/'
+    _file_cache = {}
 
     def load_file(self, filename):
         try:
-            return common.yaml_file.load_file(os.path.join(__path__[0], filename))
+            if filename in self._file_cache:
+                return self._file_cache[filename]
+
+            loaded_file = common.yaml_file.load_file(os.path.join(__path__[0], filename))
+            self._file_cache[filename] = loaded_file
+            return loaded_file
         except Exception, e:
             logging.debug(e)
             return {}
