@@ -28,7 +28,6 @@ class Test_System_Job_Template(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     def test_get_as_superuser(self, api_system_job_templates_pg):
         '''
         Verify that a superuser account is able to GET the system_job_template
@@ -50,7 +49,6 @@ class Test_System_Job_Template(Base_Api_Test):
                 with pytest.raises(common.exceptions.Forbidden_Exception):
                     api_system_job_templates_pg.get()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     def test_method_not_allowed(self, api_system_job_templates_pg):
         '''
         Verify that PUT, POST and PATCH are unsupported request methods
@@ -65,7 +63,6 @@ class Test_System_Job_Template(Base_Api_Test):
         with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
             system_job_template.patch()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     def test_launch_as_superuser(self, system_job_template):
         '''
         Verify successful launch of a system_job_template
@@ -85,7 +82,6 @@ class Test_System_Job_Template(Base_Api_Test):
         else:
             assert job_pg.is_successful, "System job unexpectedly failed - %s" % job_pg
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     def test_launch_as_non_superuser(self, system_job_template, non_superusers, user_password):
         '''
         Verify launch fails when attempted by a non-superuser
@@ -97,7 +93,6 @@ class Test_System_Job_Template(Base_Api_Test):
                 with pytest.raises(common.exceptions.Forbidden_Exception):
                     launch_pg.post()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1188')
     def test_launch_with_extra_vars(self, system_job_template):
         '''
         Verify successful launch of a system_job_template with extra_vars.

@@ -13,63 +13,12 @@ pytestmark = [
     pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 ]
 
-# 405 when attempting to associate a job template role to any user via POST
-# request to user/:id/roles
-TOWER_ISSUE_1882 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/1882')
-# Updating operational fields in a job template must be done by someone who
-# has appropriate access to the resources being used #1981
-TOWER_ISSUE_1981 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/1981')
-# Users should be able to copy job templates they have write/execute
-# access to
-TOWER_ISSUE_1958 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/1958')
-# Tower 500's when navigating to projects/N/teams
-TOWER_ISSUE_2114 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2114')
-# 403 when navigating to projects/N/update as user with either project
-# 'use' or project 'read'
-TOWER_ISSUE_2124 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2124')
-# User with credential 'owner' role can't edit and delete credentials
-TOWER_ISSUE_2130 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2130')
-# Users with any of our credential roles gets a 403 when navigating to
-# credentials/N/users
-TOWER_ISSUE_2129 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2129')
-# User with inventory ad_hoc role can edit inventory
-TOWER_ISSUE_2221 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2221')
-# User with JT admin cannot edit JT
-TOWER_ISSUE_2207 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2207')
-# Inventory script admin cannot put/patch/delete inventory script
-TOWER_ISSUE_2186 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2186')
-# Cannot give a user the admin rights of another user
-TOWER_ISSUE_2316 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2316')
 # Tower should return NotFound for all endpoints for which
 # a user does not have access
 TOWER_ISSUE_2366 = pytest.mark.github(
     'https://github.com/ansible/ansible-tower/issues/2366')
-# User with inventory update can put/patch inventory
-TOWER_ISSUE_2409 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2409')
-# We have improper nesting in our credential get_related
-TOWER_ISSUE_2205 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2205')
-# Project 'admin' and 'update' cannot launch project updates
-TOWER_ISSUE_2489 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2489')
-# 500-level error when navigating to credentials/N/owner_teams
-TOWER_ISSUE_2543 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2543')
 
 
-@TOWER_ISSUE_1981
 @pytest.mark.parametrize('no_usage', ['project', 'credential', 'inventory'])
 def test_usage_role_required_to_change_other_job_template_related_resources(
         factories, auth_user, add_roles, get_role_page, no_usage):
@@ -114,8 +63,6 @@ def test_usage_role_required_to_change_other_job_template_related_resources(
             job_template.patch(**{obj_name: obj.id})
 
 
-@TOWER_ISSUE_1958
-@TOWER_ISSUE_1981
 def test_makers_of_job_templates_are_added_to_admin_role(
         factories, auth_user, add_roles, get_role_page, api_job_templates_pg):
     """Verify that job template creators are added to the admin role of
@@ -162,7 +109,7 @@ def test_makers_of_job_templates_are_added_to_admin_role(
     'inventory',
     'credential',
     'group',
-    TOWER_ISSUE_1882('job_template'),
+    'job_template',
 ])
 def test_role_association_and_disassociation(
         factories, resource_name, association_method, get_role_pages):
@@ -442,8 +389,6 @@ class Test_Project_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 project_pg.delete()
 
-    @TOWER_ISSUE_2114
-    @TOWER_ISSUE_2489
     def test_admin_role(self, factories, user_password):
         '''
         A project admin should be able to:
@@ -483,8 +428,6 @@ class Test_Project_RBAC(Base_Api_Test):
             project_pg.patch()
             project_pg.delete()
 
-    @TOWER_ISSUE_2114
-    @TOWER_ISSUE_2489
     def test_update_role(self, factories, user_password):
         '''
         A user with project update should be able to:
@@ -529,8 +472,6 @@ class Test_Project_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 project_pg.delete()
 
-    @TOWER_ISSUE_2114
-    @TOWER_ISSUE_2124
     def test_use_role(self, factories, user_password):
         '''
         A user with project update should be able to:
@@ -576,8 +517,6 @@ class Test_Project_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 project_pg.delete()
 
-    @TOWER_ISSUE_2114
-    @TOWER_ISSUE_2124
     def test_read_role(self, factories, user_password):
         '''
         A user with project read should be able to:
@@ -631,7 +570,6 @@ class Test_Credential_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @TOWER_ISSUE_2205
     @TOWER_ISSUE_2366
     def test_unprivileged_user(self, factories, user_password):
         '''
@@ -663,10 +601,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 credential_pg.delete()
 
-    @TOWER_ISSUE_2543
-    @TOWER_ISSUE_2205
-    @TOWER_ISSUE_2129
-    @TOWER_ISSUE_2130
     def test_owner_role(self, factories, user_password):
         '''
         A user with credential 'owner' should be able to:
@@ -697,9 +631,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             credential_pg.patch()
             credential_pg.delete()
 
-    @TOWER_ISSUE_2543
-    @TOWER_ISSUE_2205
-    @TOWER_ISSUE_2129
     def test_use_role(self, factories, user_password):
         '''
         A user with credential 'use' should be able to:
@@ -735,9 +666,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 credential_pg.delete()
 
-    @TOWER_ISSUE_2543
-    @TOWER_ISSUE_2205
-    @TOWER_ISSUE_2129
     def test_read_role(self, factories, user_password):
         '''
         A user with credential 'read' should be able to:
@@ -972,7 +900,6 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 inventory_script.delete()
 
-    @TOWER_ISSUE_2186
     def test_admin_role(self, factories, inventory_script, user_password):
         '''
         A user with inventory_script 'admin' should be able to:
@@ -1096,7 +1023,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 job_template_pg.delete()
 
-    @TOWER_ISSUE_2207
     def test_admin_role(self, factories, user_password):
         '''
         A user with JT admin should be able to:
@@ -1459,8 +1385,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 inventory_pg.delete()
 
-    @TOWER_ISSUE_2221
-    @TOWER_ISSUE_2409
     def test_update_role(self, host_local, cloud_groups, custom_group, user_password, factories):
         '''
         A user with inventory update should be able to:
