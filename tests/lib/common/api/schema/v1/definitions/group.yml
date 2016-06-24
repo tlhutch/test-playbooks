@@ -42,17 +42,7 @@ group:
         inventory_source: {$ref: '#/definitions/summary_fields_source'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
-        object_roles:
-          additionalProperties: false
-          properties:
-            admin_role: {$ref: '#/definitions/summary_fields_role'}
-            use_role: {$ref: '#/definitions/summary_fields_role'}
-            adhoc_role: {$ref: '#/definitions/summary_fields_role'}
-            update_role: {$ref: '#/definitions/summary_fields_role'}
-            read_role: {$ref: '#/definitions/summary_fields_role'}
-          required: [admin_role, use_role, adhoc_role, update_role, read_role]
-          type: object
-      required: [inventory, inventory_source, object_roles, active_roles]
+      required: [inventory, inventory_source, active_roles]
       type: object
     total_groups: {minimum: 0, type: number}
     total_hosts: {minimum: 0, type: number}
