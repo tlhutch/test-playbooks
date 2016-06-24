@@ -59,50 +59,50 @@ if __name__ == '__main__':
     cfg = yaml.load(open(credentials_template, 'r'))
 
     # Set default admin password
-    cfg['default']['password'] = os.environ["AWX_ADMIN_PASSWORD"]
+    cfg['default']['password'] = os.environ.get("AWX_ADMIN_PASSWORD", "")
 
     # Set rackspace info
     for rax in ['rackspace', 'rax']:
-        cfg['cloud'][rax]['username'] = os.environ["RAX_USERNAME"]
-        cfg['cloud'][rax]['password'] = os.environ["RAX_API_KEY"]
+        cfg['cloud'][rax]['username'] = os.environ.get("RAX_USERNAME", "")
+        cfg['cloud'][rax]['password'] = os.environ.get("RAX_API_KEY", "")
 
     # Set aws info
     for ec2 in ['aws', 'ec2']:
-        cfg['cloud'][ec2]['username'] = os.environ["AWS_ACCESS_KEY"]
-        cfg['cloud'][ec2]['password'] = os.environ["AWS_SECRET_KEY"]
+        cfg['cloud'][ec2]['username'] = os.environ.get("AWS_ACCESS_KEY", "")
+        cfg['cloud'][ec2]['password'] = os.environ.get("AWS_SECRET_KEY", "")
 
     # Set gce info
-    cfg['cloud']['gce']['username'] = os.environ["GCE_USERNAME"]
-    cfg['cloud']['gce']['project'] = os.environ["GCE_PROJECT"]
+    cfg['cloud']['gce']['username'] = os.environ.get("GCE_USERNAME", "")
+    cfg['cloud']['gce']['project'] = os.environ.get("GCE_PROJECT", "")
     cfg['cloud']['gce']['ssh_key_data'] = literal(open(os.environ["GCE_KEY_DATA"], 'r').read())
 
     # Set azure info
-    cfg['cloud']['azure']['username'] = os.environ["AZURE_USERNAME"]
+    cfg['cloud']['azure']['username'] = os.environ.get("AZURE_USERNAME", "")
     cfg['cloud']['azure']['ssh_key_data'] = literal(open(os.environ["AZURE_KEY_DATA"], 'r').read())
 
     # Set vmware info
-    cfg['cloud']['vmware']['username'] = os.environ["VMWARE_USERNAME"]
-    cfg['cloud']['vmware']['password'] = os.environ["VMWARE_PASSWORD"]
-    cfg['cloud']['vmware']['host'] = os.environ["VMWARE_HOST"]
+    cfg['cloud']['vmware']['username'] = os.environ.get("VMWARE_USERNAME", "")
+    cfg['cloud']['vmware']['password'] = os.environ.get("VMWARE_PASSWORD", "")
+    cfg['cloud']['vmware']['host'] = os.environ.get("VMWARE_HOST", "")
 
     # Set legacy openstack info
-    cfg['cloud']['openstack']['username'] = os.environ["OPENSTACK_USERNAME"]
-    cfg['cloud']['openstack']['password'] = os.environ["OPENSTACK_PASSWORD"]
-    cfg['cloud']['openstack']['host'] = os.environ["OPENSTACK_HOST"]
-    cfg['cloud']['openstack']['project'] = os.environ["OPENSTACK_PROJECT"]
+    cfg['cloud']['openstack']['username'] = os.environ.get("OPENSTACK_USERNAME", "")
+    cfg['cloud']['openstack']['password'] = os.environ.get("OPENSTACK_PASSWORD", "")
+    cfg['cloud']['openstack']['host'] = os.environ.get("OPENSTACK_HOST", "")
+    cfg['cloud']['openstack']['project'] = os.environ.get("OPENSTACK_PROJECT", "")
 
     # Set openstack_v2 info
-    cfg['cloud']['openstack_v2']['username'] = os.environ["OPENSTACK_V2_USERNAME"]
-    cfg['cloud']['openstack_v2']['password'] = os.environ["OPENSTACK_V2_PASSWORD"]
-    cfg['cloud']['openstack_v2']['host'] = os.environ["OPENSTACK_V2_HOST"]
-    cfg['cloud']['openstack_v2']['project'] = os.environ["OPENSTACK_V2_PROJECT"]
+    cfg['cloud']['openstack_v2']['username'] = os.environ.get("OPENSTACK_V2_USERNAME", "")
+    cfg['cloud']['openstack_v2']['password'] = os.environ.get("OPENSTACK_V2_PASSWORD", "")
+    cfg['cloud']['openstack_v2']['host'] = os.environ.get("OPENSTACK_V2_HOST", "")
+    cfg['cloud']['openstack_v2']['project'] = os.environ.get("OPENSTACK_V2_PROJECT", "")
 
     # Set openstack_v3 info
-    cfg['cloud']['openstack_v3']['username'] = os.environ["OPENSTACK_V3_USERNAME"]
-    cfg['cloud']['openstack_v3']['password'] = os.environ["OPENSTACK_V3_PASSWORD"]
-    cfg['cloud']['openstack_v3']['host'] = os.environ["OPENSTACK_V3_HOST"]
-    cfg['cloud']['openstack_v3']['project'] = os.environ["OPENSTACK_V3_PROJECT"]
-    cfg['cloud']['openstack_v3']['domain'] = os.environ["OPENSTACK_V3_DOMAIN"]
+    cfg['cloud']['openstack_v3']['username'] = os.environ.get("OPENSTACK_V3_USERNAME", "")
+    cfg['cloud']['openstack_v3']['password'] = os.environ.get("OPENSTACK_V3_PASSWORD", "")
+    cfg['cloud']['openstack_v3']['host'] = os.environ.get("OPENSTACK_V3_HOST", "")
+    cfg['cloud']['openstack_v3']['project'] = os.environ.get("OPENSTACK_V3_PROJECT", "")
+    cfg['cloud']['openstack_v3']['domain'] = os.environ.get("OPENSTACK_V3_DOMAIN", "")
 
     # Set SCM info
     cfg['scm']['password'] = os.environ.get("SCM_PASSWORD", "")
