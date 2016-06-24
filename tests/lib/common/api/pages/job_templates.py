@@ -28,6 +28,7 @@ class Job_Template_Page(Unified_Job_Template_Page):
     ask_variables_on_launch = property(json_getter('ask_variables_on_launch'), json_setter('ask_variables_on_launch'))
     limit = property(json_getter('limit'), json_setter('limit'))
     job_tags = property(json_getter('job_tags'), json_setter('job_tags'))
+    skip_tags = property(json_getter('skip_tags'), json_setter('skip_tags'))
     verbosity = property(json_getter('verbosity'), json_setter('verbosity'))
     job_type = property(json_getter('job_type'), json_setter('job_type'))
     summary_fields = property(json_getter('summary_fields'), json_setter('summary_fields'))
@@ -155,6 +156,8 @@ class Job_Template_Launch_Page(Base):
     inventory_needed_to_start = property(json_getter('inventory_needed_to_start'), json_setter('inventory_needed_to_start'))
     variables_needed_to_start = property(json_getter('variables_needed_to_start'), json_setter('variables_needed_to_start'))
     survey_enabled = property(json_getter('survey_enabled'), json_setter('survey_enabled'))
+    job_template_data = property(json_getter('job_template_data'), json_setter('job_template_data'))
+    defaults = property(json_getter('defaults'), json_setter('defaults'))
 
 
 class Job_Template_Survey_Spec(Base):

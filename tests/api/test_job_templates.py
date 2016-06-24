@@ -46,7 +46,7 @@ def job_template_with_deleted_related(request, job_template):
 @pytest.mark.destructive
 class Test_Job_Template(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_launch(self, job_template_ping):
         '''
@@ -149,6 +149,262 @@ class Test_Job_Template(Base_Api_Test):
             # assert that run-time extra_vars take precedence over job template extra_vars
             assert job_extra_vars['intersection'] == u'job', \
                 "A launch-time extra_var did not replace a job_template extra_var as expected."
+
+    def test_launch_with_excluded_variables_in_payload(self, job_template):
+        '''
+        Tests that when 'ask_variables_at_launch' is disabled that variables get ignored
+        at launchtime.
+        '''
+        # check that ask_variables_on_launch is disabled
+        assert not job_template.ask_variables_on_launch
+
+        # launch JT with launchtime variables
+        payload = dict(extra_vars=dict(foo="bar"))
+        job_pg = job_template.launch(payload).wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+
+        # assert launchtime variables excluded
+        assert job_pg.extra_vars == json.dumps({}), \
+            "Unexpected value for job_pg.extra_vars - %s." % job_pg.extra_vars
+
+    def test_launch_with_survey_and_excluded_variables_in_payload(self, job_template, optional_survey_spec_without_defaults):
+        '''
+        Tests that when 'ask_variables_at_launch' is disabled that only non-survey variables get ignored
+        at launchtime.
+        '''
+        # check that ask_variables_on_launch is disabled
+        assert not job_template.ask_variables_on_launch
+
+        # give JT optional survey
+        job_template.patch(survey_enabled=True)
+        survey_spec = job_template.get_related('survey_spec')
+        survey_spec.post(optional_survey_spec_without_defaults)
+
+        # launch JT with non-survey and survey variables
+        # note: 'submitter_email' is a survey variable; 'non_survey_variable' is not
+        payload = dict(extra_vars=dict(submitter_email=fauxfactory.gen_email(), non_survey_variable=False))
+        job_pg = job_template.launch(payload).wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+
+        # coerce job extra_vars into a dictionary
+        try:
+            job_extra_vars = json.loads(job_pg.extra_vars)
+        except ValueError:
+            job_extra_vars = {}
+
+        # assert non-survey variables excluded
+        assert job_extra_vars == dict(submitter_email=payload['extra_vars']['submitter_email']), \
+            "Unexpected job_extra_vars returned. Expected %s, got %s." \
+            % (dict(submitter_email=payload['extra_vars']['submitter_email']), job_extra_vars)
+
+    def test_launch_with_limit_in_payload(self, job_template_with_random_limit):
+        '''
+        Verifies that a value for 'limit' may be passed at launch-time.
+        '''
+        job_template_with_random_limit.patch(ask_limit_on_launch=True)
+        launch_pg = job_template_with_random_limit.get_related('launch')
+
+        # assert values on launch resource
+        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
+        assert launch_pg.ask_limit_on_launch
+
+        # launch JT with limit
+        payload = dict(limit="local")
+        job_pg = job_template_with_random_limit.launch(payload).wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+
+        # assess job results for limit
+        assert job_pg.ask_limit_on_launch
+        assert job_pg.limit == "local", "Unexpected value for job_pg.limit. Expected 'local', got %s." % job_pg.limit
+        assert '"-l", "local"' in job_pg.job_args, "Limit value not passed to job_args."
+
+    def test_launch_with_tags_in_payload(self, job_template):
+        '''
+        Verifies that values for 'job_tags' and 'skip_tags' may be passed at launch-time.
+        '''
+        job_template.patch(ask_tags_on_launch=True)
+        launch_pg = job_template.get_related('launch')
+
+        # assert values on launch resource
+        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
+        assert launch_pg.ask_tags_on_launch
+
+        # launch JT with values for job_tag and skip_tag in payload
+        payload = dict(job_tags="test job_tag", skip_tags="test skip_tag")
+        job_pg = job_template.launch(payload).wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+
+        # assess job results for tag values
+        assert job_pg.ask_tags_on_launch
+
+        assert not job_template.job_tags, "Unexpected value for JT job_tags - %s." % job_template.job_tags
+        assert job_pg.job_tags == "test job_tag", \
+            "Unexpected value for job_pg.job_tags. Expected 'test job_tag', got %s." % job_pg.job_tags
+        assert '\"-t\", \"test job_tag\"' in job_pg.job_args, \
+            "Value for job_tags not represented in job args."
+
+        assert not job_template.skip_tags, "Unexpected value for JT skip_tags - %s." % job_template.skip_tags
+        assert job_pg.skip_tags == "test skip_tag", \
+            "Unexpected value for job_pg.skip_tags. Expected 'test skip_tag', got %s." % job_pg.skip_tags
+        assert '\"--skip-tags=test skip_tag\"' in job_pg.job_args, \
+            "Value for skip_tags not represented in job args."
+
+    @pytest.mark.parametrize("job_type", ["run", "scan", "check"])
+    def test_launch_nonscan_job_template_with_job_type_in_payload(self, nonscan_job_template, job_type):
+        '''
+        Verifies that "job_type" may be given at launch-time with run/check JTs.
+        '''
+        nonscan_job_template.patch(ask_job_type_on_launch=True)
+        launch_pg = nonscan_job_template.get_related('launch')
+        payload = dict(job_type=job_type)
+
+        # assert values on launch resource
+        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
+        assert launch_pg.ask_job_type_on_launch
+
+        # assert that 'run/check' should result in successful jobs
+        if job_type in ['run', 'check']:
+            job_pg = nonscan_job_template.launch(payload).wait_until_completed()
+            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+            assert job_pg.ask_job_type_on_launch
+            assert job_pg.job_type == job_type, "Unexpected value for job_type. Expected %s, got %s." % (job_type, job_pg.job_type)
+
+        # assert 'scan' should raise a 400
+        else:
+            with pytest.raises(common.exceptions.BadRequest_Exception):
+                nonscan_job_template.launch(payload)
+
+    @pytest.mark.parametrize("job_type", ["run", "scan", "check"])
+    def test_launch_scan_job_template_with_job_type_in_payload(self, scan_job_template, job_type):
+        '''
+        Verifies that "job_type" may be given at launch-time with scan JTs.
+        '''
+        scan_job_template.patch(ask_job_type_on_launch=True)
+        launch_pg = scan_job_template.get_related('launch')
+        payload = dict(job_type=job_type)
+
+        # assert values on launch resource
+        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
+        assert launch_pg.ask_job_type_on_launch
+
+        # assert that 'run/check' should raise a 400
+        if job_type in ['run', 'check']:
+            with pytest.raises(common.exceptions.BadRequest_Exception):
+                scan_job_template.launch(payload)
+
+        # assert that 'scan' should result in a regular scan job
+        else:
+            job_pg = scan_job_template.launch(payload).wait_until_completed()
+            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+            assert job_pg.ask_job_type_on_launch
+            assert job_pg.job_type == job_type, "Unexpected value for job_type. Expected %s, got %s." % (job_type, job_pg.job_type)
+
+    def test_launch_with_inventory_in_payload(self, job_template, another_inventory):
+        '''
+        Verifies that 'inventory' may be given at launch-time.
+        '''
+        job_template.patch(ask_inventory_on_launch=True)
+        launch_pg = job_template.get_related('launch')
+
+        # assert values on launch resource
+        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.passwords_needed_to_start
+        assert not launch_pg.variables_needed_to_start
+        assert not launch_pg.credential_needed_to_start
+        assert launch_pg.ask_inventory_on_launch
+        assert not launch_pg.inventory_needed_to_start
+
+        # launch JT with inventory in payload
+        payload = dict(inventory=another_inventory.id)
+        job_pg = job_template.launch(payload).wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+
+        # assess job results for inventory
+        assert job_pg.ask_inventory_on_launch
+        assert job_pg.inventory == another_inventory.id, \
+            "Job ran with incorrect inventory. Expected %s but got %s." % (another_inventory.id, job_template.inventory)
+
+    def test_ask_inventory_on_launch_with_scan_job_template(self, scan_job_template, api_job_templates_pg):
+        '''
+        Verifies scan JTs may not have ask_inventory_on_launch.
+        '''
+        # patch scan JT and assess results
+        payload = dict(ask_inventory_on_launch=True)
+        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, scan_job_template.patch, **payload)
+        result = exc_info.value[1]
+        assert result == {u'inventory': [u'Scan jobs must be assigned a fixed inventory.']}, \
+            "Unexpected API response after attempting to patch a scan JT with ask_inventory_on_launch enabled."
+
+        # FIXME: implement put scan JT check
+
+        # post scan JT and assess results
+        payload = dict(name="scan_job_template-%s" % fauxfactory.gen_utf8(),
+                       description="Random scan job_template with machine credential - %s" % fauxfactory.gen_utf8(),
+                       inventory=scan_job_template.inventory,
+                       job_type='scan',
+                       project=None,
+                       credential=scan_job_template.credential,
+                       playbook='Default',
+                       ask_inventory_on_launch=True, )
+        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, api_job_templates_pg.post, payload)
+        result = exc_info.value[1]
+        assert result == {u'inventory': [u'Scan jobs must be assigned a fixed inventory.']}, \
+            "Unexpected API response after attempting to patch a scan JT with ask_inventory_on_launch enabled."
+
+    def test_launch_with_ignored_payload(self, job_template, another_inventory, another_ssh_credential):
+        '''
+        Verify that launch-time objects are ignored when their ask flag is set to false.
+        '''
+        launch_pg = job_template.get_related('launch')
+
+        # assert ask values on launch resource
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.ask_tags_on_launch
+        assert not launch_pg.ask_job_type_on_launch
+        assert not launch_pg.ask_limit_on_launch
+        assert not launch_pg.ask_inventory_on_launch
+        assert not launch_pg.ask_credential_on_launch
+
+        # launch JT with all possible artifacts in payload
+        payload = dict(extra_vars=dict(foo="bar"),
+                       job_tags="test job_tag",
+                       skip_tags="test skip_tag",
+                       job_type="check",
+                       inventory=another_inventory.id,
+                       credential=another_ssh_credential.id,)
+        job_pg = job_template.launch(payload).wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+
+        # assert that payload ignored
+        assert job_pg.extra_vars == json.dumps({}), \
+            "Unexpected value for job_pg.extra_vars - %s." % job_pg.extra_vars
+        assert job_pg.job_tags == job_template.job_tags, \
+            "JT job_tags overridden. Expected %s, got %s." % (job_template.job_tags, job_pg.job_tags)
+        assert job_pg.skip_tags == job_template.skip_tags, \
+            "JT skip_tags overriden. Expected %s, got %s." % (job_template.skip_tags, job_pg.skip_tags)
+        assert job_pg.job_type == job_template.job_type, \
+            "JT job_type overriden. Expected %s, got %s." % (job_template.job_type, job_pg.job_type)
+        assert job_pg.inventory == job_template.inventory, \
+            "JT inventory overriden. Expected inventory %s, got %s." % (job_template.inventory, job_pg.inventory)
+        assert job_pg.credential == job_template.credential, \
+            "JT credential overriden. Expected credential %s, got %s." % (job_template.credential, job_pg.credential)
 
     def test_launch_without_credential(self, job_template_no_credential):
         '''
@@ -885,22 +1141,22 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
 
     def test_launch_survey_enabled(self, job_template_ping, required_survey_spec):
         '''
-        Assess launch_pg.survey_enabled under various scenarios.
+        Assess launch_pg.survey_enabled behaves as expected.
         '''
-        # check that launch_pg.survey_enabled is False by default
+        # check that survey_enabled is false by default
         launch_pg = job_template_ping.get_related("launch")
         assert not launch_pg.survey_enabled, \
             "launch_pg.survey_enabled is True even though JT survey_enabled is False \
             and no survey given."
 
-        # check that launch_pg.survey_enabled is False when enabled on JT but no survey given
+        # check that survey_enabled is false when enabled on JT but no survey created
         job_template_ping.patch(survey_enabled=True)
         launch_pg = job_template_ping.get_related("launch")
         assert not launch_pg.survey_enabled, \
             "launch_pg.survey_enabled is True with JT survey_enabled as True \
             and no survey given."
 
-        # check that launch_pg survey_enabled is True when enabled on JT and survey given
+        # check that survey_enabled is true when enabled on JT and survey created
         survey_spec = job_template_ping.get_related('survey_spec')
         survey_spec.post(required_survey_spec)
         launch_pg = job_template_ping.get_related("launch")

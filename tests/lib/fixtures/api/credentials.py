@@ -34,6 +34,26 @@ def ssh_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
 
 
 @pytest.fixture(scope="function")
+def another_ssh_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create another ssh credential'''
+    payload = dict(name="another credentials-%s" % fauxfactory.gen_utf8(),
+                   description="machine credential - %s" % fauxfactory.gen_utf8(),
+                   kind='ssh',
+                   user=admin_user.id,
+                   username=testsetup.credentials['ssh']['username'],
+                   password=testsetup.credentials['ssh']['password'],)
+
+    # TODO - support overriding the payload via a pytest marker
+    fixture_args = getattr(request.function, 'ssh_credential', None)
+    if fixture_args and 'kwargs' in fixture_args:
+        payload.update(fixture_args.kwargs)
+
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
 def ssh_credential_ask(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create ssh credential with 'ASK' password'''
     payload = dict(name="credentials-%s" % fauxfactory.gen_utf8(),
