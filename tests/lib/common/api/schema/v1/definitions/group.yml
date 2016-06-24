@@ -14,7 +14,6 @@ group:
     related:
       additionalProperties: false
       properties:
-        access_list: {format: uri, type: string}
         activity_stream: {format: uri, type: string}
         ad_hoc_commands: {format: uri, type: string}
         all_hosts: {format: uri, type: string}
@@ -29,10 +28,9 @@ group:
         modified_by: {format: uri, type: string}
         potential_children: {format: uri, type: string}
         variable_data: {format: uri, type: string}
-        object_roles: {format: uri, type: string}
       required: [job_host_summaries, variable_data, inventory_source, job_events,
         potential_children, all_hosts, hosts, inventory, children, activity_stream,
-        inventory_sources, object_roles]
+        inventory_sources]
       type: object
     summary_fields:
       additionalProperties: false
@@ -41,8 +39,7 @@ group:
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         inventory_source: {$ref: '#/definitions/summary_fields_source'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
-        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
-      required: [inventory, inventory_source, active_roles]
+      required: [inventory, inventory_source]
       type: object
     total_groups: {minimum: 0, type: number}
     total_hosts: {minimum: 0, type: number}
