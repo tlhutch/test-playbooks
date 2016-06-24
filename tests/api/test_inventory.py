@@ -475,7 +475,6 @@ class Test_Inventory_Update(Base_Api_Test):
         else:
             raise NotImplementedError("Unhandled value for only_group_by: %s" % only_group_by)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2202')
     def test_aws_replace_dash_in_groups_source_variable(self, job_template, aws_group, host_local):
         '''
         Tests that AWS inventory groups will be registered with underscores instead of hyphens

@@ -592,7 +592,6 @@ print json.dumps(inventory)
         # Assert second inventory update failed
         assert second_inventory_source.get().status == 'failed', "Secondary inventory update not failed (status:%s)" % second_inventory_source.status
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/749')
     def test_cascade_cancel_with_project_update(self, job_template_with_project_django, api_unified_jobs_pg):
         '''
         Tests that if you cancel a SCM update before it finishes that its dependent job fails.
@@ -629,7 +628,6 @@ print json.dumps(inventory)
         assert project_pg.get().status == 'canceled', \
             "Unexpected project status (expected status:canceled) - %s" % project_pg
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/749')
     def test_cascade_cancel_project_update_with_inventory_and_project_updates(self, job_template_with_project_django, custom_group, api_unified_jobs_pg):
         '''
         Tests that if you cancel a scm update before it finishes that its dependent job

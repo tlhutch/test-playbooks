@@ -98,7 +98,6 @@ class Test_Job_Template(Base_Api_Test):
         # assert extra_vars match job_template extra_vars
         assert job_extra_vars == job_template_extra_vars
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1086')
     def test_launch_with_extra_vars_at_launch(self, job_template_with_extra_vars, job_extra_vars_dict, tower_version_cmp):
         '''
         Verify that when launch-time extra_vars are provided, the job
@@ -220,7 +219,6 @@ class Test_Job_Template(Base_Api_Test):
                 "the launched job does not have the same credential " \
                 "(%s != %s)" % (job_pg.credential, team_ssh_credential.id)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2391')
     def test_launch_with_invalid_credential_in_payload(self, job_template_no_credential):
         '''
         Verify the job->launch endpoint behaves as expected when launched with
@@ -509,7 +507,6 @@ class Test_Job_Template(Base_Api_Test):
         # assert extra_vars contains provided data
         assert set(job_extra_vars) == set(survey_default_vars) | set(payload['extra_vars'])
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1086')
     def test_launch_with_variables_needed_to_start_and_extra_vars_at_launch(self, job_template_with_extra_vars, required_survey_spec,
                                                                             job_extra_vars_dict, tower_version_cmp):
         '''
@@ -662,7 +659,6 @@ class Test_Job_Template(Base_Api_Test):
         assert job_pg.status == 'canceled', \
             "Unexpected Job status (%s != 'canceled') after deleting job_template" % (job_pg.status)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2034')
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         '''
         Verify that the job->launch endpoint does not allow launching a
