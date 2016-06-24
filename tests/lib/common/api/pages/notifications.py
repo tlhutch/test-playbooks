@@ -41,7 +41,7 @@ class Notification_Page(Base):
         '''
         return 'successful' == self.status and not self.error
 
-    def wait_until_status(self, status, interval=1, verbose=0, timeout=10):
+    def wait_until_status(self, status, interval=1, verbose=0, timeout=3):
         if not isinstance(status, (list, tuple)):
             '''coerce 'status' parameter to a list'''
             status = [status]
@@ -50,7 +50,7 @@ class Notification_Page(Base):
             interval=interval, verbose=verbose, timeout=timeout,
             start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
 
-    def wait_until_completed(self, interval=1, verbose=0, timeout=10 * 2):
+    def wait_until_completed(self, interval=1, verbose=0, timeout=3):
         return self.wait_until_status(
             ('successful', 'failed',),
             interval=interval, verbose=verbose, timeout=timeout)
