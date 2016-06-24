@@ -983,6 +983,10 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
         '''
         user_pg = factories.user()
 
+        # assert value for 'script' present
+        assert inventory_script.script
+        script = inventory_script.script
+
         # give user admin_role
         role_pg = inventory_script.get_object_role('admin_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
@@ -998,6 +1002,10 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
                         inventory_script.get_related(related)
                 else:
                     inventory_script.get_related(related)
+
+            # check that value of 'script' viewable
+            assert inventory_script.script == script, \
+                "Unexpected value for 'script'; expected %s but got %s." % (script, inventory_script.script)
 
             # check put/patch/delete
             inventory_script.put()
@@ -1016,6 +1024,9 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
         '''
         user_pg = factories.user()
 
+        # assert value for 'script' present
+        assert inventory_script.script
+
         # give user read_role
         role_pg = inventory_script.get_object_role('read_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
@@ -1031,6 +1042,10 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
                         inventory_script.get_related(related)
                 else:
                     inventory_script.get_related(related)
+
+            # check that value of 'script' not viewable
+            assert not inventory_script.script, \
+                "Unexpected value for 'script'; expected null but got %s." % inventory_script.script
 
             # check put/patch/delete
             with pytest.raises(common.exceptions.Forbidden_Exception):
