@@ -131,7 +131,7 @@ if __name__ == '__main__':
     # Set e-mail service info
     cfg['notification_services']['email']['host'] = os.environ.get("EMAIL_HOST", "")
     cfg['notification_services']['email']['password'] = os.environ.get("EMAIL_PASSWORD", "")
-    cfg['notification_services']['email']['port'] = int(os.environ.get("EMAIL_PORT", -1))
+    cfg['notification_services']['email']['port'] = int(os.environ.get("EMAIL_PORT", 25))
     # FIXME: turn this into proper list
     cfg['notification_services']['email']['recipients'] = [os.environ.get("EMAIL_RECIPIENTS", "")]
     cfg['notification_services']['email']['sender'] = os.environ.get("EMAIL_SENDER", "")
@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
     # Set irc service info
     cfg['notification_services']['irc']['server'] = os.environ.get("IRC_SERVER", "")
-    cfg['notification_services']['irc']['port'] = int(os.environ.get("IRC_PORT", -1))
+    cfg['notification_services']['irc']['port'] = int(os.environ.get("IRC_PORT", 6667))
     cfg['notification_services']['irc']['use_ssl'] = os.environ.get("IRC_USE_SSL", "").lower() == 'true'
     cfg['notification_services']['irc']['password'] = os.environ.get("IRC_PASSWORD", "")
     cfg['notification_services']['irc']['nickname'] = os.environ.get("IRC_NICKNAME", "")
