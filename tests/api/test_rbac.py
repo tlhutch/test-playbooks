@@ -542,8 +542,6 @@ class Test_Project_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 project_pg.delete()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2114')
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2489')
     def test_admin_role(self, factories, user_password):
         '''
         A project admin should be able to:
@@ -583,8 +581,6 @@ class Test_Project_RBAC(Base_Api_Test):
             project_pg.patch()
             project_pg.delete()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2114')
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2489')
     def test_update_role(self, factories, user_password):
         '''
         A user with project update should be able to:
@@ -629,8 +625,6 @@ class Test_Project_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 project_pg.delete()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2114')
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2124')
     def test_use_role(self, factories, user_password):
         '''
         A user with project update should be able to:
@@ -676,8 +670,6 @@ class Test_Project_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 project_pg.delete()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2114')
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2124')
     def test_read_role(self, factories, user_password):
         '''
         A user with project read should be able to:
@@ -731,7 +723,6 @@ class Test_Credential_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2205')
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, user_password):
         '''
@@ -763,9 +754,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 credential_pg.delete()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2205')
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2129')
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2130')
     def test_admin_role(self, factories, user_password):
         '''
         A user with credential 'owner' should be able to:
@@ -796,8 +784,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             credential_pg.patch()
             credential_pg.delete()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2205')
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2129')
     def test_use_role(self, factories, user_password):
         '''
         A user with credential 'use' should be able to:
@@ -833,8 +819,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 credential_pg.delete()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2205')
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2129')
     def test_read_role(self, factories, user_password):
         '''
         A user with credential 'read' should be able to:
@@ -1069,7 +1053,6 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 inventory_script.delete()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2186')
     def test_admin_role(self, factories, inventory_script, user_password):
         '''
         A user with inventory_script 'admin' should be able to:
@@ -1193,7 +1176,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 job_template_pg.delete()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2207')
     def test_admin_role(self, factories, user_password):
         '''
         A user with JT admin should be able to:
@@ -1556,8 +1538,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 inventory_pg.delete()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2221')
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2409')
     def test_update_role(self, host_local, cloud_groups, custom_group, user_password, factories):
         '''
         A user with inventory update should be able to:
