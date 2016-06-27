@@ -147,17 +147,11 @@ class Base(Page):
         r = self.api.post(self.base_url, payload)
         return self.handle_request(r)
 
-    def put(self, payload=None):
-        if payload is None:
-            payload = self.json
-        r = self.api.put(self.base_url.format(**self.json), payload)
+    def put(self):
+        r = self.api.put(self.base_url.format(**self.json), self.json)
         return self.handle_request(r)
 
     def patch(self, **payload):
-        r = self.api.patch(self.base_url.format(**self.json), payload)
-        return self.handle_request(r)
-
-    def patch_payload(self, payload):
         r = self.api.patch(self.base_url.format(**self.json), payload)
         return self.handle_request(r)
 
@@ -192,10 +186,8 @@ class Base(Page):
     def object_roles(self):
         from common.api.pages import Roles_Page, Role_Page
         url = self.get().json.related.object_roles
-        roles_page = Roles_Page(self.testsetup, base_url=url)
-        for role in roles_page.get().json.results:
-            role_page = Role_Page(self.testsetup, base_url=role.url)
-            yield role_page.get()
+        for obj_role in Roles_Page(self.testsetup, base_url=url).get().json.results:
+            yield Role_Page(self.testsetup, base_url=obj_role.url).get()
 
 
 class Base_List(Base):
