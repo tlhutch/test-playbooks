@@ -83,8 +83,8 @@ class UserFactory(PageFactory):
     @factory.post_generation
     def organization(obj, create, org):
         """When using this factory, provide an organization model
-        using the related_organization keyword to associate the
-        user to the organization after creation.
+        using the organization keyword to associate the user with
+        the organization after creation.
         """
         if create and org is not None:
             with pytest.raises(NoContent_Exception):

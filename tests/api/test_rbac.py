@@ -65,7 +65,7 @@ def auth_user(testsetup, authtoken, api_authtoken_url):
 
 
 def get_role(model, role_name):
-    """Return a role page model for an api page model and role name.
+    """Lookup and return a return a role page model by its role name.
 
     :param model: A resource api page model with related roles endpoint
     :role_name: The name of the role (case insensitive)
@@ -73,7 +73,7 @@ def get_role(model, role_name):
     Usage::
         >>> # get the description of the Use role for an inventory
         >>> bar_inventory = factories.inventory()
-        >>> role_page = get_role_page(bar_inventory, 'Use')
+        >>> role_page = get_role(bar_inventory, 'Use')
         >>> role_page.description
         u'Can use the inventory in a job template'
     """
@@ -81,8 +81,7 @@ def get_role(model, role_name):
     for role in model.object_roles:
         if role.name.lower() == search_name:
             return role
-    msg = "Role '{0}' not found for {1}"
-    msg = msg.format(role_name, type(model))
+    msg = "Role '{0}' not found for {1}".format(role_name, type(model))
     raise ValueError(msg)
 
 
@@ -92,9 +91,11 @@ def set_roles(user, model, role_names, endpoint='related_users', disassociate=Fa
     :param user: The api page model for a user
     :param model: A resource api page model with related roles endpoint
     :param role_names: A case insensitive list of role names
-    :param endpoint: The endpoint to use when making the role association
+    :param endpoint: The endpoint to use when making the role association.
+        - 'related_users': use the related users endpoint of the role
+        - 'related_roles': use the related roles endpoint of the user
     :param disassociate: A boolean indicating whether to associate or
-        diassociate the role with the user
+        disassociate the role with the user
 
     Usage::
         >>> # create a user that is an organization admin with use and
@@ -102,8 +103,8 @@ def set_roles(user, model, role_names, endpoint='related_users', disassociate=Fa
         >>> foo_organization = factories.organization(name='foo')
         >>> bar_inventory = factories.inventory(name='bar')
         >>> test_user = factories.user()
-        >>> add_roles(test_user, foo_organization, ['admin'])
-        >>> add_roles(test_user, bar_inventory, ['use', 'update'])
+        >>> set_roles(test_user, foo_organization, ['admin'])
+        >>> set_roles(test_user, bar_inventory, ['use', 'update'])
     """
     object_roles = [get_role(model, name) for name in role_names]
     for role in object_roles:
@@ -126,7 +127,6 @@ def set_roles(user, model, role_names, endpoint='related_users', disassociate=Fa
 
 
 def check_role_association(user, model, role_name):
-    __tracebackhide__ = True
     # check the related users endpoint of the role for user
     role = get_role(model, role_name)
     results = role.get_related('users').get(username=user.username)
@@ -136,12 +136,11 @@ def check_role_association(user, model, role_name):
 
 
 def check_role_disassociation(user, model, role_name):
-    __tracebackhide__ = True
     # check the related users endpoint of the role for absence of user
     role = get_role(model, role_name)
     results = role.get_related('users').get(username=user.username)
     if results.count != 0:
-        msg = 'Unable to {0} {1} role disassociation'
+        msg = 'Unable to verify {0} {1} role disassociation'
         pytest.fail(msg.format(type(model), role_name))
 
 
@@ -149,8 +148,6 @@ def check_request(model, method, code, data=None):
     """Make an HTTP request and check the response payload against the provided
     http response code
     """
-    __tracebackhide__ = True
-
     method = method.lower()
     api = model.api
     url = model.base_url.format(**model.json)
@@ -162,7 +159,7 @@ def check_request(model, method, code, data=None):
     else:
         response = getattr(api, method)(url, data)
     if response.status_code != code:
-        msg = 'Unexpected {0} request response code: {1} not in {2}'
+        msg = 'Unexpected {0} request response code: {1} != {2}'
         pytest.fail(msg.format(method, response.status_code, code))
 
 # -----------------------------------------------------------------------------
