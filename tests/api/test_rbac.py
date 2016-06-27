@@ -601,7 +601,7 @@ class Test_Credential_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 credential_pg.delete()
 
-    def test_owner_role(self, factories, user_password):
+    def test_admin_role(self, factories, user_password):
         '''
         A user with credential 'owner' should be able to:
         * Make GETs to the credential detail page
@@ -615,8 +615,8 @@ class Test_Credential_RBAC(Base_Api_Test):
         credential_pg = factories.credential()
         user_pg = factories.user()
 
-        # give user owner_role
-        role_pg = credential_pg.get_object_role('owner_role')
+        # give user admin_role
+        role_pg = credential_pg.get_object_role('admin_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
@@ -1225,8 +1225,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
-        # give user credential owner_role
-        role_pg = credential_pg.get_object_role('owner_role')
+        # give user credential admin_role
+        role_pg = credential_pg.get_object_role('admin_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
@@ -1287,8 +1287,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
-        # give user credential owner_role
-        role_pg = credential_pg.get_object_role('owner_role')
+        # give user credential admin_role
+        role_pg = credential_pg.get_object_role('admin_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
@@ -1348,8 +1348,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
-        # give user credential owner_role
-        role_pg = credential_pg.get_object_role('owner_role')
+        # give user credential admin_role
+        role_pg = credential_pg.get_object_role('admin_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
@@ -1409,8 +1409,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
-        # give user credential owner_role
-        role_pg = credential_pg.get_object_role('owner_role')
+        # give user credential admin_role
+        role_pg = credential_pg.get_object_role('admin_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
@@ -1474,8 +1474,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
-        # give user credential owner_role
-        role_pg = credential_pg.get_object_role('owner_role')
+        # give user credential admin_role
+        role_pg = credential_pg.get_object_role('admin_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
