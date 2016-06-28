@@ -66,7 +66,6 @@ project:
         last_update: {$ref: '#/definitions/summary_fields_job'}
         organization: {$ref: '#/definitions/summary_fields_organization'}
         created_by: {$ref: '#/definitions/summary_fields_user'}
-        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
         object_roles:
           additionalProperties: false
           properties:
