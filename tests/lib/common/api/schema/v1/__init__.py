@@ -1555,6 +1555,10 @@ class Awx_Schema_Job_Notifications(Awx_Schema_Notifications):
     resource = '/api/v1/jobs/\d+/notifications/'
 
 
+class Awx_Schema_System_Job_Notifications(Awx_Schema_Notifications):
+    resource = '/api/v1/system_jobs/\d+/notifications/'
+
+
 #
 # /labels
 #
