@@ -1,7 +1,6 @@
 summary_fields_access:
   additionalProperties: false
   properties:
-    active_roles: {$ref: '#/definitions/summary_fields_permission'}
     role:
       additionalProperties: false
       properties:
@@ -12,5 +11,10 @@ summary_fields_access:
         resource_name: {type: string}
         resource_type: {type: string}
       required: [description, id, name]
-  required: [role, active_roles]
+    descendant_roles:
+      items: {$ref: '#/definitions/enum_descendant_role'}
+      minItems: 0
+      type: array
+      uniqueItems: true
+  required: [role, descendant_roles]
   type: object
