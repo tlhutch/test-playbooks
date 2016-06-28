@@ -44,7 +44,7 @@ def hosts_with_name_matching_local_ipv4_addresses_but_random_ssh_host(request, g
 @pytest.mark.destructive
 class Test_Job_Template_Callback(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     def test_get_without_matching_hosts(self, job_template, host_config_key):
         '''Assert a GET on the /callback resource returns an empty list of matching hosts'''
