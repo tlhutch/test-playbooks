@@ -161,7 +161,7 @@ class Test_Notifications(Base_Api_Test):
     @pytest.mark.destructive
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
     def test_system_job_notifications(self, request, system_job_template, notification_template, job_result,
-                                      testsetup, api_notifications_pg):
+                                      testsetup):
         '''Test notification templates attached to system job templates'''
         # Associate notification template
         associate_notification_template(notification_template, system_job_template, job_result)
@@ -174,7 +174,7 @@ class Test_Notifications(Base_Api_Test):
         notifications_pg = job.get_related('notifications')
         if job_result in ('any', 'success'):
             assert notifications_pg.count == 1, \
-                "Expected job to have 1 notification, found " + notifications_pg.count
+                "Expected job to have 1 notification, found %s" % notifications_pg.count
             notification_pg = notifications_pg.results[0].wait_until_completed()
             tower_msg = expected_job_notification(testsetup.base_url, notification_template, job, job_result, tower_message=True)
             assert notification_pg.notification_template == notification_template.id, \
@@ -189,7 +189,7 @@ class Test_Notifications(Base_Api_Test):
             # TODO: Test recipients field
         else:
             assert notifications_pg.count == 0, \
-                "Expected job to have 0 notifications, found " + notifications_pg.count
+                "Expected job to have 0 notifications, found %s" % notifications_pg.count
 
         # Check notification in notification service
         if can_confirm_notification(notification_template):
@@ -256,7 +256,7 @@ class Test_Notifications(Base_Api_Test):
         job_notifications = job.get_related('notifications')
         if job_result == 'any' or job_result == 'success':
             assert job_notifications.count == 1, \
-                "Expected job to have 1 notification, found " + job_notifications.count
+                "Expected job to have 1 notification, found %s" % job_notifications.count
             job_notification = job_notifications.results[0]
             assert job_notification.json == last_notif.json, \
                 ("Notification on /notifications endpoint is:\n%s\n\n" +
@@ -264,7 +264,7 @@ class Test_Notifications(Base_Api_Test):
                 % (json.dumps(last_notif.json, indent=2), json.dumps(job_notification.json, indent=2))
         else:
             assert job_notifications.count == 0, \
-                "Expected job to have 0 notifications, found " + job_notifications.count
+                "Expected job to have 0 notifications, found %s" % job_notifications.count
 
         # Check notification in 'recent_notifications' (of notification template)
         assert 'recent_notifications' in notification_template.summary_fields, \
