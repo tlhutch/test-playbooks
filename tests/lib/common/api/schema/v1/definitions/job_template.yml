@@ -71,7 +71,6 @@ job_template:
     summary_fields:
       additionalProperties: false
       properties:
-        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
         can_copy: {type: boolean}
         can_edit: {type: boolean}
         cloud_credential: {$ref: '#/definitions/summary_fields_credential'}

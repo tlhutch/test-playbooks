@@ -33,7 +33,6 @@ organization:
       properties:
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
-        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
         object_roles:
           additionalProperties: false
           properties:
@@ -44,7 +43,7 @@ organization:
           required: [auditor_role, admin_role, member_role, read_role]
           type: object
         related_field_counts: {$ref: '#/definitions/summary_fields_related_field_counts'}
-      required: [active_roles, object_roles, related_field_counts]
+      required: [object_roles, related_field_counts]
       type: object
     type:
       enum: [organization]

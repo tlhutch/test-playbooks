@@ -51,8 +51,7 @@ access_list:
               uniqueItems: true
             role: {$ref: '#/definitions/summary_fields_role'}
           required: [descendant_roles, role]
-        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
-      required: [direct_access, indirect_access, active_roles]
+      required: [direct_access, indirect_access]
       type: object
     type: {pattern: ^user$, type: string}
     url: {format: uri, type: string}

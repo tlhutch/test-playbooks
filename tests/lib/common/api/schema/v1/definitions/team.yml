@@ -28,7 +28,6 @@ team:
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         organization: {$ref: '#/definitions/summary_fields_organization'}
-        active_roles: {$ref: '#/definitions/summary_fields_active_roles'}
         object_roles:
           additionalProperties: false
           properties:
@@ -37,7 +36,7 @@ team:
             read_role: {$ref: '#/definitions/summary_fields_role'}
           required: [admin_role, member_role, read_role]
           type: object
-      required: [active_roles, object_roles]
+      required: [object_roles]
       type: object
     type: {pattern: ^team$, type: string}
     url: {$ref: '#/definitions/uri'}
