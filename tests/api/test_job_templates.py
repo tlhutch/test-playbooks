@@ -204,7 +204,7 @@ class Test_Job_Template(Base_Api_Test):
         launch_pg = job_template_with_random_limit.get_related('launch')
 
         # assert values on launch resource
-        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.can_start_without_user_input
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
@@ -221,7 +221,7 @@ class Test_Job_Template(Base_Api_Test):
         assert job_pg.limit == "local", "Unexpected value for job_pg.limit. Expected 'local', got %s." % job_pg.limit
         assert '"-l", "local"' in job_pg.job_args, "Limit value not passed to job_args."
 
-    def test_launch_with_tags_in_payload(self, job_template):
+    def test_launch_with_tags_in_payload(self, job_template, ansible_version_cmp):
         '''
         Verifies that values for 'job_tags' and 'skip_tags' may be passed at launch-time.
         '''
@@ -229,7 +229,7 @@ class Test_Job_Template(Base_Api_Test):
         launch_pg = job_template.get_related('launch')
 
         # assert values on launch resource
-        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.can_start_without_user_input
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
@@ -239,7 +239,10 @@ class Test_Job_Template(Base_Api_Test):
         # launch JT with values for job_tag and skip_tag in payload
         payload = dict(job_tags="test job_tag", skip_tags="test skip_tag")
         job_pg = job_template.launch(payload).wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        if ansible_version_cmp("2.0.0.0") >= 0:
+            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        else:
+            assert job_pg.status == 'failed', "Job unexpectedly did not fail - %s." % job_pg
 
         # assess job results for tag values
         assert job_pg.ask_tags_on_launch
@@ -266,7 +269,7 @@ class Test_Job_Template(Base_Api_Test):
         payload = dict(job_type=job_type)
 
         # assert values on launch resource
-        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.can_start_without_user_input
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
@@ -295,7 +298,7 @@ class Test_Job_Template(Base_Api_Test):
         payload = dict(job_type=job_type)
 
         # assert values on launch resource
-        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.can_start_without_user_input
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
@@ -322,7 +325,7 @@ class Test_Job_Template(Base_Api_Test):
         launch_pg = job_template.get_related('launch')
 
         # assert values on launch resource
-        assert launch_pg.can_start_without_user_input
+        assert not launch_pg.can_start_without_user_input
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
