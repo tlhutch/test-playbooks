@@ -3,6 +3,11 @@ import pytest
 
 @pytest.fixture(scope="function", params=['cleanup_jobs', 'cleanup_activitystream', 'cleanup_facts'])
 def system_job_template(request, api_system_job_templates_pg):
+    # Selectively xfail test for cases known to fail due to
+    # https://github.com/ansible/ansible-tower/issues/2655
+    if request.param == 'cleanup_facts' and request.node.function.func_name == 'test_system_job_notifications':
+        pytest.xfail('https://github.com/ansible/ansible-tower/issues/2655')
+
     return request.getfuncargvalue(request.param + '_template')
 
 
