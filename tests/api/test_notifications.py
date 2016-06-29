@@ -75,8 +75,7 @@ def expected_job_notification(tower_url, notification_template_pg, job_pg, job_r
                ("management_" if job_pg.type == 'system_job' else "") + "jobs/%s>") % \
               (job_pg.id, job_pg.name, tower_url, job_pg.id)
     elif nt_type == "webhook":
-        msg = _expected_webhook_job_notification(tower_url, notification_template_pg, job_pg,
-                                                 job_result, job_pg.type == 'system_job')
+        msg = _expected_webhook_job_notification(tower_url, notification_template_pg, job_pg, job_result)
     else:
         raise Exception("notification type %s not supported" % nt_type)
     return msg
