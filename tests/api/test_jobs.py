@@ -146,6 +146,18 @@ def job_template_with_no_log_playbook(job_template, project_ansible_git):
     return job_template
 
 
+@pytest.fixture(scope="function")
+def job_template_with_async_playbook(job_template, project_ansible_git):
+    '''JT with test_async test role'''
+    host_pg = job_template.get_related('inventory').get_related('hosts').results[0]
+    host_pg.patch(name='testhost')
+    job_template.patch(project=project_ansible_git.id,
+                       playbook='test/integration/non_destructive.yml',
+                       verbosity=1,
+                       job_tags='test_async')
+    return job_template
+
+
 def assess_job_event_pg_for_no_log(job_event_pg):
     '''Convenience function to assess job_event_pg contents in testing no_log.'''
     result = job_event_pg.event_data.get('res')
@@ -764,6 +776,23 @@ print json.dumps(inventory)
             "Unexpected number of instances of 'LOG_ME' in job_pg.result_stdout: expected 21, got %s." % job_pg.result_stdout.count("LOG_ME")
         assert job_pg.result_stdout.count("censored") == 12, \
             "Unexpected number of instances of 'censored' in job_pg.result_stdout: expected 12, got %s." % job_pg.result_stdout.count("censored")
+
+    def test_job_with_async_events(self, job_template_with_async_playbook):
+        '''Tests that jobs with 'async' report their runner events'''
+        job_pg = job_template_with_async_playbook.launch().wait_until_completed()
+        assert(job_pg.is_successful), "Job unsuccessful - {0}.".format(job_pg)
+
+        # Check job_events
+        job_events_pg = job_pg.get_related('job_events', event__startswith='runner_on')
+        test_events = [event for event in job_events_pg.results if 'test_async' in event.task]
+        assert(test_events), 'No "runner_on" events reported during test_async integration test execution'
+
+        for test_event in test_events:
+            assertion_error = 'Undesired job event for {0.task}: "{0.event}"'.format(test_event)
+            if "skipped" in test_event.task:
+                assert(test_event.event == 'runner_on_skipped'), assertion_error
+            else:
+                assert(test_event.event == 'runner_on_ok'), assertion_error
 
 
 @pytest.mark.api
