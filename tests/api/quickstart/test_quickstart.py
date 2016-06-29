@@ -468,7 +468,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         inv_update_pg.post()
 
     @pytest.mark.nondestructive
-    @pytest.mark.jira('AC-596', run=False)
+    @pytest.mark.skip(reason='JIRA AC-596')
     def test_inventory_sources_update_status(self, api_groups_pg, api_inventory_sources_pg, _inventory_source):
         # Find desired group
         group_id = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0].id
