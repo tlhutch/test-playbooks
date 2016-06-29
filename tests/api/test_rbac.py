@@ -1,146 +1,299 @@
+from contextlib import contextmanager
+import httplib
+import logging
+
 import pytest
+
+import common.exceptions
+from common.exceptions import Forbidden_Exception
+from common.exceptions import NoContent_Exception
 from tests.api import Base_Api_Test
 
-from common.exceptions import LicenseExceeded_Exception as Forbidden_Exception  # TODO: Fix this
-import common.exceptions
-from common.utils import random_utf8
-
+log = logging.getLogger(__name__)
 
 pytestmark = [
     pytest.mark.nondestructive,
     pytest.mark.skip_selenium,
     pytest.mark.rbac,
-    pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+    pytest.mark.usefixtures(
+        'authtoken',
+        'install_enterprise_license'
+    ),
 ]
 
-# Tower should return NotFound for all endpoints for which
-# a user does not have access
-TOWER_ISSUE_2366 = pytest.mark.github(
-    'https://github.com/ansible/ansible-tower/issues/2366')
+# -----------------------------------------------------------------------------
+# Fixtures
+# -----------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize('no_usage', ['project', 'credential', 'inventory'])
-def test_usage_role_required_to_change_other_job_template_related_resources(
-        factories, auth_user, add_roles, get_role_page, no_usage):
-    """Verify that a user cannot change the related project, inventory,
-    or credential of a job template unless they have usage permissions
-    on all three resources and are admins of the job template
+@pytest.fixture
+def auth_user(testsetup, authtoken, api_authtoken_url):
+    """Inject a context manager for user authtoken switching on api models.
+    The context manager is a wrapped function which takes a user api model
+    and optional password.
     """
-    organization = factories.organization()
-    related_data = {
-        'project': factories.project(),
-        'credential': factories.credential(),
-        'inventory': factories.inventory()
-    }
-    patch_data = {
-        'project': factories.project(),
-        'credential': factories.credential(),
-        'inventory': factories.inventory()
-    }
-    related_object_ids = {k: v.id for k, v in related_data.items()}
-    job_template = factories.job_template(**related_object_ids)
-    # make user an org member and a job template admin
-    user = factories.user()
-    add_roles(user, organization, ['member'])
-    add_roles(user, job_template, ['admin'])
-    # associate user with the usage role for all related resources except
-    # the one this test run has been parametrized to skip
-    for obj_name, obj in related_data.iteritems():
-        if obj_name != no_usage:
-            add_roles(user, obj, ['use'])
-    # verify that attempts to patch related resources of the job template
-    # as the test user yield a Forbidden Content Error
-    for obj_name, obj in patch_data.iteritems():
-        add_roles(user, obj, ['use'])
-        with auth_user(user):
-            with pytest.raises(Forbidden_Exception):
-                job_template.patch(**{obj_name: obj.id})
-    # grant usage permissions to the user for the restricted resource
-    add_roles(user, related_data[no_usage], ['use'])
-    # verify that related resources can now be changed
-    for obj_name, obj in patch_data.iteritems():
-        with auth_user(user):
-            job_template.patch(**{obj_name: obj.id})
+    @contextmanager
+    def _auth_user(user, password='fo0m4nchU'):
+        """Switch authorization context to that of a user corresponding to
+        the api model of a user details endpoint.
+
+        :param user: The api page model for a user
+        :param password: (optional[str]): The password of the user
+
+        Usage::
+            >>> # patch a job template as a user with insufficient permissions
+            >>> foo_job_template = factories.job_template(name='foo')
+            >>> bar_inventory = factories.inventory(name='bar')
+            >>> test_user = factories.user(username='phil')
+            >>> with auth_user(test_user):
+            >>>     foo_job_template.patch(inventory=bar_inventory.id)
+            *** Forbidden_Exception
+        """
+        try:
+            prev_auth = testsetup.api.session.auth
+            data = {'username': user.username, 'password': password}
+            response = testsetup.api.post(api_authtoken_url, data)
+            testsetup.api.login(token=response.json()['token'])
+            yield
+        finally:
+            testsetup.api.session.auth = prev_auth
+    return _auth_user
+
+# -----------------------------------------------------------------------------
+# RBAC Utilities
+# -----------------------------------------------------------------------------
 
 
-def test_makers_of_job_templates_are_added_to_admin_role(
-        factories, auth_user, add_roles, get_role_page, api_job_templates_pg):
-    """Verify that job template creators are added to the admin role of
-    the created job template
+def get_role(model, role_name):
+    """Lookup and return a return a role page model by its role name.
+
+    :param model: A resource api page model with related roles endpoint
+    :role_name: The name of the role (case insensitive)
+
+    Usage::
+        >>> # get the description of the Use role for an inventory
+        >>> bar_inventory = factories.inventory()
+        >>> role_page = get_role(bar_inventory, 'Use')
+        >>> role_page.description
+        u'Can use the inventory in a job template'
     """
-    user = factories.user()
-    organization = factories.organization()
-    credential = factories.credential()
-    project = factories.project()
-    inventory = factories.inventory()
-    # make user an org member with use permissions on all items related
-    # to the job template to be created
-    add_roles(user, organization, ['member'])
-    add_roles(user, credential, ['use'])
-    add_roles(user, project, ['use'])
-    add_roles(user, inventory, ['use'])
-    # create a job template as the test user
-    with auth_user(user):
-        job_template = api_job_templates_pg.post({
-            'name': random_utf8(),
-            'description': random_utf8(),
-            'job_type': 'run',
-            'playbook': 'site.yml',
-            'project': project.id,
-            'inventory': inventory.id,
-            'credential': credential.id,
-        })
-    # check the related users endpoint of the job template's admin
-    # role for the test user
-    admin_role = get_role_page(job_template, 'admin')
-    results = admin_role.get_related('users').get(username=user.username)
-    assert results.count == 1, (
-        'Could not verify association of job template creator to the '
-        'admin role of the created job template')
+    search_name = role_name.lower()
+    for role in model.object_roles:
+        if role.name.lower() == search_name:
+            return role
+    msg = "Role '{0}' not found for {1}".format(role_name, type(model))
+    raise ValueError(msg)
 
 
-@pytest.mark.parametrize('association_method', [
-    '[user_id->/role/:id/users]',
-    '[role_id->/user/:id/roles]'
-])
-@pytest.mark.parametrize('resource_name', [
-    'organization',
-    'project',
-    'inventory',
-    'credential',
-    'group',
-    'job_template',
-])
-def test_role_association_and_disassociation(
-        factories, resource_name, association_method, get_role_pages):
+def set_roles(user, model, role_names, endpoint='related_users', disassociate=False):
+    """Associate a list of roles to a user for a given api page model
+
+    :param user: The api page model for a user
+    :param model: A resource api page model with related roles endpoint
+    :param role_names: A case insensitive list of role names
+    :param endpoint: The endpoint to use when making the role association.
+        - 'related_users': use the related users endpoint of the role
+        - 'related_roles': use the related roles endpoint of the user
+    :param disassociate: A boolean indicating whether to associate or
+        disassociate the role with the user
+
+    Usage::
+        >>> # create a user that is an organization admin with use and
+        >>> # update roles on a test inventory
+        >>> foo_organization = factories.organization(name='foo')
+        >>> bar_inventory = factories.inventory(name='bar')
+        >>> test_user = factories.user()
+        >>> set_roles(test_user, foo_organization, ['admin'])
+        >>> set_roles(test_user, bar_inventory, ['use', 'update'])
+    """
+    object_roles = [get_role(model, name) for name in role_names]
+    for role in object_roles:
+        if endpoint == 'related_users':
+            payload = {'id': user.id}
+            endpoint_model = role.get_related('users')
+        elif endpoint == 'related_roles':
+            payload = {'id': role.id}
+            endpoint_model = user.get_related('roles')
+        else:
+            raise RuntimeError('Invalid role association endpoint')
+        if disassociate:
+            payload['disassociate'] = disassociate
+        with pytest.raises(NoContent_Exception):
+            endpoint_model.post(payload)
+
+# -----------------------------------------------------------------------------
+# Integrated Assertion Helpers
+# -----------------------------------------------------------------------------
+
+
+def check_role_association(user, model, role_name):
+    # check the related users endpoint of the role for user
+    role = get_role(model, role_name)
+    results = role.get_related('users').get(username=user.username)
+    if results.count != 1:
+        msg = 'Unable to verify {0} {1} role association'
+        pytest.fail(msg.format(type(model), role_name))
+
+
+def check_role_disassociation(user, model, role_name):
+    # check the related users endpoint of the role for absence of user
+    role = get_role(model, role_name)
+    results = role.get_related('users').get(username=user.username)
+    if results.count != 0:
+        msg = 'Unable to verify {0} {1} role disassociation'
+        pytest.fail(msg.format(type(model), role_name))
+
+
+def check_request(model, method, code, data=None):
+    """Make an HTTP request and check the response payload against the provided
+    http response code
+    """
+    method = method.lower()
+    api = model.api
+    url = model.base_url.format(**model.json)
+
+    if method in ('get', 'head', 'options', 'delete'):
+        if data:
+            log.warning('Unused {0} request data provided'.format(method))
+        response = getattr(api, method)(url)
+    else:
+        response = getattr(api, method)(url, data)
+    if response.status_code != code:
+        msg = 'Unexpected {0} request response code: {1} != {2}'
+        pytest.fail(msg.format(method, response.status_code, code))
+
+# -----------------------------------------------------------------------------
+# Tests
+# -----------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])
+@pytest.mark.parametrize(
+    'resource_name',
+    ['organization', 'project', 'inventory', 'credential', 'job_template']
+)
+def test_role_association_and_disassociation(factories, resource_name, endpoint):
+    """Verify basic role association and disassociation functionality
+    """
     user = factories.user()
     resource = getattr(factories, resource_name)()
-    for role in get_role_pages(resource):
-        if association_method == '[user_id->/role/:id/users]':
-            data = {'id': user.id}
-            endpoint = role.get_related('users')
-        elif association_method == '[role_id->/user/:id/roles]':
-            data = {'id': role.id}
-            endpoint = user.get_related('roles')
-        else:
-            raise RuntimeError('Invalid test parametrization')
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            endpoint.post(data)
-        # check the related users endpoint of the role for the test user
-        results = role.get_related('users').get(username=user.username)
-        assert results.count == 1, (
-            'Could not verify {0} {1} role association'.format(
-                resource_name, role.name))
-        # attempt to disassociate the role from the user
-        data['disassociate'] = True
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            endpoint.post(data)
-        # check the related users endpoint of the role for the absence
-        # of test user
-        results = role.get_related('users').get(username=user.username)
-        assert results.count == 0, (
-            'Could not verify {0} {1} role disassociation'.format(
-                resource_name, role.name))
+    for role in resource.object_roles:
+        role_name = role.name
+        set_roles(user, resource, [role_name], endpoint=endpoint)
+        check_role_association(user, resource, role_name)
+        # disassociate the role from the user
+        set_roles(user, resource, [role_name], endpoint=endpoint, disassociate=True)
+        check_role_disassociation(user, resource, role_name)
+
+
+@pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])
+@pytest.mark.parametrize(
+    'resource_name,initial_role,unauthorized_target_role',
+    [
+        ('organization', 'member', 'admin'),
+        ('project', 'read', 'admin'),
+        ('inventory', 'read', 'admin'),
+        ('job_template', 'read', 'admin'),
+    ]
+)
+def test_unauthorized_self_privilege_escalation_returns_code_403(
+        factories, auth_user, endpoint,
+        resource_name, initial_role, unauthorized_target_role):
+    """A user with [intial_role] permission on a [resource_name] cannot add
+    the [unauthorized_target_role] for the [resource_name] to themselves
+    """
+    resource = getattr(factories, resource_name)()
+    # make a test user and associate it with the initial role
+    user = factories.user()
+    set_roles(user, resource, [initial_role])
+    with auth_user(user), pytest.raises(Forbidden_Exception):
+        set_roles(user, resource, [unauthorized_target_role], endpoint=endpoint)
+
+
+@pytest.mark.parametrize('payload_resource_roles,response_codes', [
+    (
+        {'credential': ['read'], 'inventory': ['use'], 'project': ['use']},
+        {'PATCH': httplib.FORBIDDEN, 'PUT': httplib.FORBIDDEN}
+    ),
+    (
+        {'credential': ['use'], 'inventory': ['read'], 'project': ['use']},
+        {'PATCH': httplib.FORBIDDEN, 'PUT': httplib.FORBIDDEN}
+    ),
+    (
+        {'credential': ['use'], 'inventory': ['use'], 'project': ['read']},
+        {'PATCH': httplib.FORBIDDEN, 'PUT': httplib.FORBIDDEN}
+    ),
+    (
+        {'credential': ['use'], 'inventory': ['use'], 'project': ['use']},
+        {'PATCH': httplib.OK, 'PUT': httplib.OK}
+    ),
+])
+def test_job_template_change_request_without_usage_role_returns_code_403(
+        auth_user, factories, payload_resource_roles, response_codes):
+    """Verify that a user cannot change the related project, inventory, or
+    credential of a job template unless they have usage permissions on all
+    three resources and are admins of the job template
+    """
+    user = factories.user()
+    organization = factories.organization()
+    job_template = factories.job_template(organization=organization)
+    set_roles(user, organization, ['member'])
+    set_roles(user, job_template, ['admin'])
+    # generate test request payload
+    data, resources = factories.job_template.payload(
+        organization=organization)
+    # assign test permissions
+    for name, roles in payload_resource_roles.iteritems():
+        set_roles(user, resources[name], roles)
+    # check access
+    for method, code in response_codes.iteritems():
+        with auth_user(user):
+            check_request(job_template, method, code, data=data)
+
+
+def test_job_template_creators_are_added_to_admin_role(
+        factories, auth_user, api_job_templates_pg):
+    """Verify that job template creators are added to the admin role of the
+    created job template
+    """
+    # make test user
+    user = factories.user()
+    # generate job template test payload
+    data, resources = factories.job_template.payload()
+    # set user resource role associations
+    set_roles(user, resources['organization'], ['admin'])
+    for name in ('credential', 'project', 'inventory'):
+        set_roles(user, resources[name], ['use'])
+    # create a job template as the test user
+    with auth_user(user):
+        job_template = api_job_templates_pg.post(data)
+    # verify succesful job_template admin role association
+    check_role_association(user, job_template, 'admin')
+
+
+def test_job_template_post_request_without_network_credential_access(
+        factories, auth_user, api_job_templates_pg):
+    """Verify that job_template post requests with network credentials in
+    the payload are only permitted if the user making the request has usage
+    permission for the network credential.
+    """
+    # set user resource role associations
+    user = factories.user()
+    data, resources = factories.job_template.payload()
+    for name in ('credential', 'project', 'inventory'):
+        set_roles(user, resources[name], ['use'])
+    # make network credential and add it to payload
+    network_credential = factories.credential(kind='net')
+    data['network_credential'] = network_credential.id
+    # check POST response code with network credential read permissions
+    set_roles(user, network_credential, ['read'])
+    with auth_user(user):
+        check_request(api_job_templates_pg, 'POST', httplib.FORBIDDEN, data)
+    # add network credential usage role permissions to test user
+    set_roles(user, network_credential, ['use'])
+    # verify that the POST request is now permitted
+    with auth_user(user):
+        check_request(api_job_templates_pg, 'POST', httplib.CREATED, data)
 
 
 @pytest.mark.api
@@ -150,7 +303,7 @@ class Test_Organization_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @TOWER_ISSUE_2366
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, user_password):
         '''
         An unprivileged user should not be able to:
@@ -352,7 +505,7 @@ class Test_Project_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @TOWER_ISSUE_2366
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, user_password):
         '''
         An unprivileged user should not be able to:
@@ -570,7 +723,7 @@ class Test_Credential_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @TOWER_ISSUE_2366
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, user_password):
         '''
         An unprivileged user should not be able to:
@@ -709,7 +862,7 @@ class Test_Team_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @TOWER_ISSUE_2366
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, user_password):
         '''
         An unprivileged user may not be able to:
@@ -873,7 +1026,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @TOWER_ISSUE_2366
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, inventory_script, user_password):
         '''
         An unprivileged user may not be able to:
@@ -990,7 +1143,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @TOWER_ISSUE_2366
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, user_password):
         '''
         An unprivileged_user should not be able to:
@@ -1152,7 +1305,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @TOWER_ISSUE_2366
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, host_local, cloud_groups, custom_group, user_password, factories):
         '''
         An unprivileged user should not be able to:

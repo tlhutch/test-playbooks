@@ -1,6 +1,5 @@
 import pytest
 
-from common.api.page_factory import factory_fixture
 from common.utils import SimpleNamespace
 
 from common.factories import (
@@ -16,41 +15,35 @@ from common.factories import (
 )
 
 
-# register factory fixtures
-credential_factory = factory_fixture(CredentialFactory)
-group_factory = factory_fixture(GroupFactory)
-host_factory = factory_fixture(HostFactory)
-inventory_factory = factory_fixture(InventoryFactory)
-job_template_factory = factory_fixture(JobTemplateFactory)
-organization_factory = factory_fixture(OrganizationFactory)
-project_factory = factory_fixture(ProjectFactory)
-user_factory = factory_fixture(UserFactory)
-team_factory = factory_fixture(TeamFactory)
+class FactoryFixture(object):
+    """This class is used within the factory fixture definitions below to wrap
+    up the request fixture with a factory class so we don't need to explicitly
+    bring the request fixture into every test that needs to use a factory.
+    """
+    def __init__(self, request, page_factory):
+        self.request = request
+        self._factory = page_factory
+
+    def __call__(self, **kwargs):
+        return self._factory(request=self.request, **kwargs)
+
+    def payload(self, **kwargs):
+        return self._factory.payload(request=self.request, **kwargs)
 
 
 @pytest.fixture
-def factories(
-    credential_factory,
-    group_factory,
-    host_factory,
-    inventory_factory,
-    job_template_factory,
-    organization_factory,
-    project_factory,
-    user_factory,
-    team_factory
-):
+def factories(request):
     """Inject a map of of all factories into your test context
     """
     return \
         SimpleNamespace(
-            credential=credential_factory,
-            group=group_factory,
-            host=host_factory,
-            inventory=inventory_factory,
-            job_template=job_template_factory,
-            organization=organization_factory,
-            project=project_factory,
-            user=user_factory,
-            team=team_factory
+            credential=FactoryFixture(request, CredentialFactory),
+            group=FactoryFixture(request, GroupFactory),
+            host=FactoryFixture(request, HostFactory),
+            inventory=FactoryFixture(request, InventoryFactory),
+            job_template=FactoryFixture(request, JobTemplateFactory),
+            organization=FactoryFixture(request, OrganizationFactory),
+            project=FactoryFixture(request, ProjectFactory),
+            user=FactoryFixture(request, UserFactory),
+            team=FactoryFixture(request, TeamFactory)
         )

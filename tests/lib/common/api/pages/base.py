@@ -182,6 +182,13 @@ class Base(Page):
             "No role with name '%s' found." % name
         return object_roles_pg.results[0]
 
+    @property
+    def object_roles(self):
+        from common.api.pages import Roles_Page, Role_Page
+        url = self.get().json.related.object_roles
+        for obj_role in Roles_Page(self.testsetup, base_url=url).get().json.results:
+            yield Role_Page(self.testsetup, base_url=obj_role.url).get()
+
 
 class Base_List(Base):
     '''
