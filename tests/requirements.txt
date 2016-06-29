@@ -8,7 +8,7 @@ py
 pytest
 pytest-cov
 pytest-cache
-pytest-mozwebqa
+pytest-selenium
 pytest-capturelog
 pytest-instafail
 pytest-ordering

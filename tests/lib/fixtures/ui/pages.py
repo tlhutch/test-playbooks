@@ -19,37 +19,36 @@ def total_rows():
 
 
 @pytest.fixture
-def ui_login(mozwebqa):
-    return Login(mozwebqa.base_url, mozwebqa.selenium).open()
+def ui_login(selenium, base_url):
+    return Login(base_url, selenium).open()
 
 
 @pytest.fixture
 def ui_dashboard(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Dashboard(mozwebqa.base_url,
-                     mozwebqa.selenium,
-                     **default_credentials).open()
+    return Dashboard(base_url, selenium, **default_credentials).open()
 
 
 @pytest.fixture
 def ui_inventories(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Inventories(mozwebqa.base_url,
-                       mozwebqa.selenium,
-                       **default_credentials).open()
+    return Inventories(base_url, selenium, **default_credentials).open()
 
 
 @pytest.fixture
 def ui_inventories_add(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Inventories(mozwebqa.base_url,
-                       mozwebqa.selenium,
+    return Inventories(base_url,
+                       selenium,
                        index='add',
                        **default_credentials).open()
 
@@ -57,32 +56,35 @@ def ui_inventories_add(
 @pytest.fixture
 def ui_inventories_edit(
     inventory,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Inventories(mozwebqa.base_url,
-                       mozwebqa.selenium,
+    return Inventories(base_url,
+                       selenium,
                        index=inventory.id,
                        **default_credentials).open()
 
 
 @pytest.fixture
 def ui_inventory_scripts(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return InventoryScripts(mozwebqa.base_url,
-                            mozwebqa.selenium,
+    return InventoryScripts(base_url,
+                            selenium,
                             **default_credentials).open()
 
 
 @pytest.fixture
 def ui_inventory_scripts_add(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return InventoryScripts(mozwebqa.base_url,
-                            mozwebqa.selenium,
+    return InventoryScripts(base_url,
+                            selenium,
                             index='add',
                             **default_credentials).open()
 
@@ -90,32 +92,35 @@ def ui_inventory_scripts_add(
 @pytest.fixture
 def ui_inventory_scripts_edit(
     inventory_script,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return InventoryScripts(mozwebqa.base_url,
-                            mozwebqa.selenium,
+    return InventoryScripts(base_url,
+                            selenium,
                             index=inventory_script.id,
                             **default_credentials).open()
 
 
 @pytest.fixture
 def ui_job_templates(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return JobTemplates(mozwebqa.base_url,
-                        mozwebqa.selenium,
+    return JobTemplates(base_url,
+                        selenium,
                         **default_credentials).open()
 
 
 @pytest.fixture
 def ui_job_templates_add(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return JobTemplates(mozwebqa.base_url,
-                        mozwebqa.selenium,
+    return JobTemplates(base_url,
+                        selenium,
                         index='add',
                         **default_credentials).open()
 
@@ -124,11 +129,12 @@ def ui_job_templates_add(
 def ui_job_templates_edit(
     authtoken,
     job_template_with_schedule,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return JobTemplates(mozwebqa.base_url,
-                        mozwebqa.selenium,
+    return JobTemplates(base_url,
+                        selenium,
                         index=job_template_with_schedule.id,
                         **default_credentials).open()
 
@@ -137,32 +143,35 @@ def ui_job_templates_edit(
 def ui_job_templates_schedule(
     authtoken,
     job_template_with_schedule,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return JobTemplateSchedules(mozwebqa.base_url,
-                                mozwebqa.selenium,
+    return JobTemplateSchedules(base_url,
+                                selenium,
                                 index=job_template_with_schedule.id,
                                 **default_credentials).open()
 
 
 @pytest.fixture
 def ui_projects(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Projects(mozwebqa.base_url,
-                    mozwebqa.selenium,
+    return Projects(base_url,
+                    selenium,
                     **default_credentials).open()
 
 
 @pytest.fixture
 def ui_projects_add(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Projects(mozwebqa.base_url,
-                    mozwebqa.selenium,
+    return Projects(base_url,
+                    selenium,
                     index='add',
                     **default_credentials).open()
 
@@ -170,11 +179,12 @@ def ui_projects_add(
 @pytest.fixture
 def ui_projects_edit(
     project_with_schedule,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Projects(mozwebqa.base_url,
-                    mozwebqa.selenium,
+    return Projects(base_url,
+                    selenium,
                     index=project_with_schedule.id,
                     **default_credentials).open()
 
@@ -182,42 +192,46 @@ def ui_projects_edit(
 @pytest.fixture
 def ui_projects_schedule(
     project_with_schedule,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return ProjectSchedules(mozwebqa.base_url,
-                            mozwebqa.selenium,
+    return ProjectSchedules(base_url,
+                            selenium,
                             index=project_with_schedule.id,
                             **default_credentials).open()
 
 
 @pytest.fixture
 def ui_jobs(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Jobs(mozwebqa.base_url,
-                mozwebqa.selenium,
+    return Jobs(base_url,
+                selenium,
                 **default_credentials).open()
 
 
 @pytest.fixture
 def ui_users(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Users(mozwebqa.base_url,
-                 mozwebqa.selenium,
+    return Users(base_url,
+                 selenium,
                  **default_credentials).open()
 
 
 @pytest.fixture
 def ui_users_add(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Users(mozwebqa.base_url,
-                 mozwebqa.selenium,
+    return Users(base_url,
+                 selenium,
                  index='add',
                  **default_credentials).open()
 
@@ -225,32 +239,35 @@ def ui_users_add(
 @pytest.fixture
 def ui_users_edit(
     anonymous_user,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Users(mozwebqa.base_url,
-                 mozwebqa.selenium,
+    return Users(base_url,
+                 selenium,
                  index=anonymous_user.id,
                  **default_credentials).open()
 
 
 @pytest.fixture
 def ui_teams(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Teams(mozwebqa.base_url,
-                 mozwebqa.selenium,
+    return Teams(base_url,
+                 selenium,
                  **default_credentials).open()
 
 
 @pytest.fixture
 def ui_teams_add(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Teams(mozwebqa.base_url,
-                 mozwebqa.selenium,
+    return Teams(base_url,
+                 selenium,
                  index='add',
                  **default_credentials).open()
 
@@ -258,11 +275,12 @@ def ui_teams_add(
 @pytest.fixture
 def ui_teams_edit(
     team,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Teams(mozwebqa.base_url,
-                 mozwebqa.selenium,
+    return Teams(base_url,
+                 selenium,
                  index=team.id,
                  **default_credentials).open()
 
@@ -270,22 +288,24 @@ def ui_teams_edit(
 @pytest.fixture
 def ui_organizations(
     authtoken,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Organizations(mozwebqa.base_url,
-                         mozwebqa.selenium,
+    return Organizations(base_url,
+                         selenium,
                          **default_credentials).open()
 
 
 @pytest.fixture
 def ui_organizations_add(
     authtoken,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Organizations(mozwebqa.base_url,
-                         mozwebqa.selenium,
+    return Organizations(base_url,
+                         selenium,
                          index='add',
                          **default_credentials).open()
 
@@ -294,65 +314,71 @@ def ui_organizations_add(
 def ui_organizations_edit(
     authtoken,
     another_organization,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Organizations(mozwebqa.base_url,
-                         mozwebqa.selenium,
+    return Organizations(base_url,
+                         selenium,
                          index=another_organization.id,
                          **default_credentials).open()
 
 
 @pytest.fixture
 def ui_credentials(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Credentials(mozwebqa.base_url,
-                       mozwebqa.selenium,
+    return Credentials(base_url,
+                       selenium,
                        **default_credentials).open()
 
 
 @pytest.fixture
 def ui_credentials_edit(
     ssh_credential,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Credentials(mozwebqa.base_url,
-                       mozwebqa.selenium,
+    return Credentials(base_url,
+                       selenium,
                        index=ssh_credential.id,
                        **default_credentials).open()
 
 
 @pytest.fixture
 def ui_credentials_add(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Credentials(mozwebqa.base_url,
-                       mozwebqa.selenium,
+    return Credentials(base_url,
+                       selenium,
                        index='add',
                        **default_credentials).open()
 
 
 @pytest.fixture
 def ui_hosts(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return Hosts(mozwebqa.base_url,
-                 mozwebqa.selenium,
+    return Hosts(base_url,
+                 selenium,
                  **default_credentials).open()
 
 
 @pytest.fixture
 def ui_setup(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return SetupMenu(mozwebqa.base_url,
-                     mozwebqa.selenium,
+    return SetupMenu(base_url,
+                     selenium,
                      **default_credentials).open()
 
 
@@ -360,7 +386,8 @@ def ui_setup(
 def ui_manage_inventory(
     request,
     host_local,
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
     inventory = host_local.get_related('inventory')
@@ -371,24 +398,25 @@ def ui_manage_inventory(
         'inventory': inventory.id
     })
 
-    return ManageInventory(mozwebqa.base_url,
-                           mozwebqa.selenium,
+    return ManageInventory(base_url,
+                           selenium,
                            inventory.id,
                            **default_credentials).open()
 
 
 @pytest.fixture
 def ui_activity_stream(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return ActivityStream(mozwebqa.base_url,
-                          mozwebqa.selenium,
+    return ActivityStream(base_url,
+                          selenium,
                           **default_credentials).open()
 
 
 @pytest.fixture
-def ui_management_jobs(request, ansible_runner, mozwebqa, default_credentials):
+def ui_management_jobs(request, ansible_runner, selenium, base_url, default_credentials):
 
     script_setup = '''
 from django.utils.timezone import now
@@ -443,16 +471,17 @@ for jobTemplate in SystemJobTemplate.objects.all():
 
     request.addfinalizer(fin)
 
-    return ManagementJobs(mozwebqa.base_url,
-                          mozwebqa.selenium,
+    return ManagementJobs(base_url,
+                          selenium,
                           **default_credentials).open()
 
 
 @pytest.fixture
 def ui_license(
-    mozwebqa,
+    selenium,
+    base_url,
     default_credentials
 ):
-    return License(mozwebqa.base_url,
-                   mozwebqa.selenium,
+    return License(base_url,
+                   selenium,
                    **default_credentials).open()

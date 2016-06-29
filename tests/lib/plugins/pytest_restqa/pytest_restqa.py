@@ -153,9 +153,11 @@ def pytest_runtest_makereport(__multicall__, item, call):
             if 'skip_restqa' not in item.keywords:
                 if report.skipped and 'xfail' in report.keywords or report.failed and 'xfail' not in report.keywords:
                     url = TestSetup.api.url
-                    url and item.debug['urls'].append(url)
-                    report.sections.append(('pytest-restqa', _debug_summary(item.debug)))
-                report.debug = item.debug
+                    if hasattr(item, 'debug'):
+                        url and item.debug['urls'].append(url)
+                        report.sections.append(('pytest-restqa', _debug_summary(item.debug)))
+                if hasattr(item, 'debug'):
+                    report.debug = item.debug
     return report
 
 
