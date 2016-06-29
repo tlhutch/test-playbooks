@@ -30,27 +30,15 @@ access_list:
       additionalProperties: false
       properties:
         direct_access:
-          additionalProperties: false
-          properties:
-            descendant_roles:
-              items:
-              - {$ref: '#/definitions/summary_fields_access'}
-              minItems: 0
-              type: array
-              uniqueItems: true
-            role: {$ref: '#/definitions/summary_fields_role'}
-          required: [descendant_roles, role]  
+          items: {$ref: '#/definitions/summary_fields_access'}
+          minItems: 0
+          type: array
+          uniqueItems: true
         indirect_access:
-          additionalProperties: false
-          properties:
-            descendant_roles:
-              items:
-              - {$ref: '#/definitions/summary_fields_access'}
-              minItems: 0
-              type: array
-              uniqueItems: true
-            role: {$ref: '#/definitions/summary_fields_role'}
-          required: [descendant_roles, role]
+          items: {$ref: '#/definitions/summary_fields_access'}
+          minItems: 0
+          type: array
+          uniqueItems: true
       required: [direct_access, indirect_access]
       type: object
     type: {pattern: ^user$, type: string}
