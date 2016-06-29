@@ -162,6 +162,10 @@ class Test_Notifications(Base_Api_Test):
     def test_system_job_notifications(self, request, system_job_template, notification_template, job_result,
                                       testsetup):
         '''Test notification templates attached to system job templates'''
+        existing_notifications = system_job_template.get_related('notification_templates_any').count + \
+            system_job_template.get_related('notification_templates_success').count
+        notifications_expected = existing_notifications + (1 if job_result in ('any', 'success') else 0)
+
         # Associate notification template
         associate_notification_template(notification_template, system_job_template, job_result)
 
@@ -170,10 +174,11 @@ class Test_Notifications(Base_Api_Test):
         assert job.is_successful, "Job unsuccessful - %s" % job
 
         # Check notification in job
-        notifications_pg = job.get_related('notifications')
+        notifications_pg = job.get_related('notifications', order_by='-notification_template') \
+            .wait_until_count(notifications_expected)
+        assert notifications_pg.count == notifications_expected, \
+            "Expected job to have %s notifications, found %s" % (notifications_expected, notifications_pg.count)
         if job_result in ('any', 'success'):
-            assert notifications_pg.count == 1, \
-                "Expected job to have 1 notification, found %s" % notifications_pg.count
             notification_pg = notifications_pg.results[0].wait_until_completed()
             tower_msg = expected_job_notification(testsetup.base_url, notification_template, job, job_result, tower_message=True)
             assert notification_pg.notification_template == notification_template.id, \
@@ -186,9 +191,6 @@ class Test_Notifications(Base_Api_Test):
                 "notification reports sending %s notifications (only one actually sent)" % notification_pg.notifications_sent
             assert notification_pg.notification_type == notification_template.notification_type
             # TODO: Test recipients field
-        else:
-            assert notifications_pg.count == 0, \
-                "Expected job to have 0 notifications, found %s" % notifications_pg.count
 
         # Check notification in notification service
         if can_confirm_notification(notification_template):
