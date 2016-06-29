@@ -60,12 +60,29 @@ class Test_Inventory_Scripts(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
 
-    def test_post(self, api_inventory_scripts_pg, inventory_script):
+    def test_post_as_privileged_user(self, request, script_source, organization, api_inventory_scripts_pg, privileged_user, user_password):
         '''
-        Verify succesful POST to /inventory_scripts
+        Verify succesful POST to /inventory_scripts as privileged user.
         '''
-        # if we make it through the fixures, post worked
-        assert True
+        payload = dict(name="random_inventory_script-%s" % fauxfactory.gen_utf8(),
+                       description="Random Inventory Script - %s" % fauxfactory.gen_utf8(),
+                       organization=organization.id,
+                       script=script_source)
+        with self.current_user(privileged_user.username, user_password):
+            obj = api_inventory_scripts_pg.post(payload)
+        request.addfinalizer(obj.silent_delete)
+
+    def test_post_as_unprivileged_user(self, script_source, organization, api_inventory_scripts_pg, unprivileged_user, user_password):
+        '''
+        Verify unsuccesful POST to /inventory_scripts as unprivileged user.
+        '''
+        payload = dict(name=fauxfactory.gen_utf8(),
+                       description="Random inventory script - %s" % fauxfactory.gen_utf8(),
+                       organization=organization.id,
+                       script=script_source)
+        with self.current_user(unprivileged_user.username, user_password):
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                api_inventory_scripts_pg.post(payload)
 
     def test_post_without_required_fields(self, api_inventory_scripts_pg, organization, script_source):
         '''
@@ -104,37 +121,27 @@ class Test_Inventory_Scripts(Base_Api_Test):
         assert result == {u'organization': [u'This field is required.']}, \
             "Unexpected API response when posting an inventory_script with a missing value for 'organization': %s." % json.dumps(result)
 
-    def test_post_as_non_superusers(self, non_superusers, user_password, api_inventory_scripts_pg, organization, script_source):
+    def test_get_as_privileged_user(self, inventory_script, privileged_user, user_password):
         '''
-        Verify POST as an organization user is forbidden.
+        Verify succesful GET to /inventory_scripts as privileged_user and that
+        script contents viewable.
         '''
-        payload = dict(name=fauxfactory.gen_utf8(),
-                       description="Random inventory script - %s" % fauxfactory.gen_utf8(),
-                       organization=organization.id,
-                       script=script_source)
+        with self.current_user(privileged_user.username, user_password):
+            inventory_script.get()
+            assert inventory_script.script, "A privileged user is " \
+                "unable to read the 'script' attribute of an inventory_script (%s)." \
+                % inventory_script.script
 
-        for org_user in non_superusers:
-            with self.current_user(org_user.username, user_password):
-                with pytest.raises(common.exceptions.Forbidden_Exception):
-                    api_inventory_scripts_pg.post(payload)
-
-    def test_get_as_superuser(self, api_inventory_scripts_pg, inventory_script):
-        '''
-        Verify succesful GET to /inventory_scripts
-        '''
-        inventory_script.get()
-
-    def test_get_as_org_users(self, org_users, user_password, inventory_script):
+    def test_get_as_org_user(self, inventory_script, org_user, user_password):
         '''
         Verify that organization user accounts are able to access the
         the inventory_script, but unable to read the contents.
         '''
-        for org_user in org_users:
-            with self.current_user(org_user.username, user_password):
-                inventory_script = inventory_script.get()
-                assert inventory_script.script is None, "An organization user is " \
-                    "able to read the 'script' attribute of an inventory_script " \
-                    "(%s)" % inventory_script.script
+        with self.current_user(org_user.username, user_password):
+            inventory_script.get()
+            assert not inventory_script.script, "An org_user is " \
+                "able to read the 'script' attribute of an inventory_script (%s)" \
+                % inventory_script.script
 
     def test_get_as_anonymous_user(self, anonymous_user, user_password, inventory_script):
         '''
@@ -143,7 +150,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         '''
         with self.current_user(anonymous_user.username, user_password):
             with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_script = inventory_script.get()
+                inventory_script.get()
 
     def test_duplicate(self, api_inventory_scripts_pg, inventory_script):
         '''
