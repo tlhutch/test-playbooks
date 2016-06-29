@@ -52,6 +52,9 @@ class Credential_Page(base.Base):
         elif attr == 'owner_users':
             from users import Users_Page
             cls = Users_Page
+        elif attr == 'organization':
+            from organizations import Organization_Page
+            cls = Organization_Page
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 
