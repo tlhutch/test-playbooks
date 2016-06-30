@@ -41,7 +41,7 @@ class Notification_Template_Page(Base):
         notification_id = test_pg.post().notification
 
         # return notification page
-        notifications_pg = self.get_related('notifications', id=notification_id)
+        notifications_pg = self.get_related('notifications', id=notification_id).wait_until_count(1)
         assert notifications_pg.count == 1, \
             "test notification triggered (id:%s) but notification not found in response at %s/notifications/" % \
             (notification_id, self.url)
