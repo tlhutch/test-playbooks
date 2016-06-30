@@ -278,7 +278,8 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     @pytest.mark.nondestructive
     def test_credentials_get(self, api_credentials_pg, _credentials):
         credential_page = api_credentials_pg.get(or__name=[o['name'] for o in _credentials])
-        assert(credential_page.count and not credential_page.count % len(_credentials))
+        assert(not credential_page.count % len(_credentials)
+            ), "The number of credentials isn't cleanly divisible by the number of those recently added."
 
     @pytest.mark.destructive
     def test_inventory_scripts_post(self, api_inventory_scripts_pg, api_organizations_pg, _inventory_script):
@@ -386,12 +387,13 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             pytest.skip(str(e))
 
     @pytest.mark.nondestructive
-    def test_hosts_get(self, api_hosts_pg, _hosts):
+    def test_hosts_get(self, api_hosts_pg, api_inventories_pg, _hosts):
         # Get list of available hosts
         api_hosts_pg.get(or__name=[o['name'] for o in _hosts])
 
         # Validate number of hosts found while accounting for Demo inventory's use of localhost
-        assert len(_hosts) == api_hosts_pg.count - 1
+        demo_count = api_inventories_pg.get(name__iexact="Demo Inventory").count
+        assert len(_hosts) == api_hosts_pg.count - demo_count
 
     @pytest.mark.destructive
     def test_hosts_add_group(self, api_inventories_pg, api_hosts_pg, api_groups_pg, _host):
