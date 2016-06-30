@@ -10,6 +10,8 @@ summary_fields_access:
         related: {type: object}
         resource_name: {type: string}
         resource_type: {type: string}
+        team_id: {$ref: '#/definitions/id'}
+        team_name: {type: string}
       required: [description, id, name]
     descendant_roles:
       items: {$ref: '#/definitions/enum_descendant_role'}
