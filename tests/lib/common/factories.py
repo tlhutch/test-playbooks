@@ -153,7 +153,7 @@ class HostFactory(PageFactory):
     variables = json.dumps({
         'ansible_ssh_host': '127.0.0.1',
         'ansible_connection': 'local',
-    }),
+    })
 
 
 class GroupFactory(PageFactory):
