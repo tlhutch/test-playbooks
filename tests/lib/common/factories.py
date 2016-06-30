@@ -32,7 +32,6 @@ class OrganizationFactory(PageFactory):
     class Meta:
         model = Organizations_Page
         inline_args = ('request',)
-        get_or_create = ('name',)
 
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
@@ -42,8 +41,7 @@ class ProjectFactory(PageFactory):
     class Meta:
         model = Projects_Page
         inline_args = ('request',)
-        get_or_create = ('name',)
-        related = ('organization',)
+        resources = ('organization',)
 
     organization = factory.SubFactory(
         OrganizationFactory, request=factory.SelfAttribute('..request'))
@@ -71,7 +69,6 @@ class UserFactory(PageFactory):
     class Meta:
         model = Users_Page
         inline_args = ('request',)
-        get_or_create = ('username',)
 
     username = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     password = DEFAULT_PASSWORD
@@ -95,12 +92,11 @@ class TeamFactory(PageFactory):
     class Meta:
         model = Teams_Page
         inline_args = ('request',)
-        get_or_create = ('name',)
-        related = ('organization',)
+        resources = ('organization',)
 
     organization = factory.SubFactory(
         OrganizationFactory, request=factory.SelfAttribute('..request'))
-    name = factory.Sequence(lambda n: 'team_{}'.format(n))
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
 
 
@@ -108,16 +104,16 @@ class CredentialFactory(PageFactory):
     class Meta:
         model = Credentials_Page
         inline_args = ('request',)
-        get_or_create = ('name',)
-        related = ('organization',)
+        resources = ('organization', 'user', 'team')
 
+    user = None
+    team = None
     organization = factory.SubFactory(
         OrganizationFactory, request=factory.SelfAttribute('..request'))
 
     kind = 'ssh'
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
-    username = factory.LazyFunction(fauxfactory.gen_alphanumeric)
 
     @factory.LazyAttribute
     def password(self):
@@ -134,8 +130,7 @@ class InventoryFactory(PageFactory):
     class Meta:
         model = Inventories_Page
         inline_args = ('request',)
-        get_or_create = ('name',)
-        related = ('organization',)
+        resources = ('organization',)
 
     organization = factory.SubFactory(
         OrganizationFactory, request=factory.SelfAttribute('..request'))
@@ -147,8 +142,7 @@ class HostFactory(PageFactory):
     class Meta:
         model = Hosts_Page
         inline_args = ('request',)
-        get_or_create = ('name',)
-        related = ('inventory',)
+        resources = ('inventory',)
 
     inventory = factory.SubFactory(
         InventoryFactory,
@@ -166,8 +160,7 @@ class GroupFactory(PageFactory):
     class Meta:
         model = Groups_Page
         inline_args = ('request',)
-        get_or_create = ('name',)
-        related = ('inventory', 'credential',)
+        resources = ('inventory', 'credential',)
 
     inventory = factory.SubFactory(
         InventoryFactory,
@@ -184,9 +177,8 @@ class JobTemplateFactory(PageFactory):
     class Meta:
         model = Job_Templates_Page
         inline_args = ('request',)
-        get_or_create = ('name',)
         exclude = ('organization', 'localhost')
-        related = ('project', 'inventory', 'credential', 'organization',)
+        resources = ('project', 'inventory', 'credential', 'organization',)
     organization = factory.SubFactory(
         OrganizationFactory,
         request=factory.SelfAttribute('..request'))
