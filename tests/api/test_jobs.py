@@ -147,15 +147,13 @@ def job_template_with_no_log_playbook(job_template, project_ansible_git):
 
 
 @pytest.fixture(scope="function")
-def job_template_with_async_playbook(job_template, project_ansible_git):
+def job_template_with_async_playbook(factories):
     '''JT with test_async test role'''
-    host_pg = job_template.get_related('inventory').get_related('hosts').results[0]
-    host_pg.patch(name='testhost')
-    job_template.patch(project=project_ansible_git.id,
-                       playbook='test/integration/non_destructive.yml',
-                       verbosity=1,
-                       job_tags='test_async')
-    return job_template
+    return factories.job_template(project__scm_url='https://github.com/ansible/ansible.git',
+                                  playbook='test/integration/non_destructive.yml',
+                                  localhost__name='testhost',
+                                  job_tags='test_async',
+                                  verbosity=1)
 
 
 def assess_job_event_pg_for_no_log(job_event_pg):
