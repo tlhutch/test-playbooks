@@ -9,7 +9,7 @@ class PageFactoryOptions(factory.base.FactoryOptions):
         options.append(factory.base.OptionDefault(
             'get_or_create', (), inherit=True))
         options.append(factory.base.OptionDefault(
-            'related', (), inherit=True))
+            'resources', (), inherit=True))
         return options
 
 
@@ -20,9 +20,12 @@ class PageFactory(factory.Factory):
 
     @classmethod
     def _adjust_kwargs(cls, **kwargs):
-        # replace any value marked as a related resource with its id
-        for key in cls._meta.related:
-            kwargs[key] = kwargs[key].id
+        resource_keys = [key for key in kwargs if key in cls._meta.resources]
+        for key in resource_keys:
+            if kwargs[key] is None:
+                del kwargs[key]
+            else:
+                kwargs[key] = kwargs[key].id
         return kwargs
 
     @classmethod
@@ -61,11 +64,12 @@ class PageFactory(factory.Factory):
     @classmethod
     def payload(cls, request, **kwargs):
         kwargs['request'] = request
-
+        # generate dependencies
         attrs = cls.attributes(create=True, extra=kwargs)
         attrs = cls._rename_fields(**attrs)
-
-        related = {key: attrs.get(key) for key in cls._meta.related}
+        # extract resource attributes
+        resources = {key: attrs.get(key) for key in cls._meta.resources}
+        # process resource attributes for payloads
         attrs = cls._adjust_kwargs(**attrs)
         # extract *args
         for key in cls._meta.inline_args:
@@ -76,4 +80,8 @@ class PageFactory(factory.Factory):
         # remove any defined parameters
         for arg in cls._meta.parameters:
             attrs.pop(arg, None)
-        return attrs, related
+        # remove any resource set to None
+        for key, val in resources.items():
+            if val is None:
+                del resources[key]
+        return attrs, resources
