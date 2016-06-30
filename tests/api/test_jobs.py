@@ -137,25 +137,6 @@ def confirm_fact_modules_present(facts, **kwargs):
         assert module_names.count(mod_name) == mod_count, "Unexpected number of facts found (%d) for module %s" % (mod_count, mod_name)
 
 
-@pytest.fixture(scope="function")
-def job_template_with_no_log_playbook(job_template, project_ansible_git):
-    '''JT with no_log_local test playbook'''
-    host_pg = job_template.get_related('inventory').get_related('hosts').results[0]
-    host_pg.patch(name='testhost')
-    job_template.patch(project=project_ansible_git.id, playbook='test/integration/no_log_local.yml', verbosity=1)
-    return job_template
-
-
-@pytest.fixture(scope="function")
-def job_template_with_async_playbook(factories):
-    '''JT with test_async test role'''
-    return factories.job_template(project__scm_url='https://github.com/ansible/ansible.git',
-                                  playbook='test/integration/non_destructive.yml',
-                                  localhost__name='testhost',
-                                  job_tags='test_async',
-                                  verbosity=1)
-
-
 def assess_job_event_pg_for_no_log(job_event_pg):
     '''Convenience function to assess job_event_pg contents in testing no_log.'''
     result = job_event_pg.event_data.get('res')
@@ -750,7 +731,7 @@ print json.dumps(inventory)
         assert inventory_source_pg.get().status == "canceled", \
             "Unexpected inventory_source status after cancelling (expected 'canceled') - %s" % inventory_source_pg
 
-    def test_job_with_no_log(self, job_template_with_no_log_playbook, ansible_version_cmp):
+    def test_job_with_no_log(self, factories, ansible_version_cmp):
         '''
         Tests that jobs with 'no_log' censor the following:
         * jobs/N/job_events
@@ -760,9 +741,13 @@ print json.dumps(inventory)
         if ansible_version_cmp('2.0.0.0') < 0:
             pytest.skip("Only supported on ansible-2.0.0.0 (or newer)")
 
+        job_template = factories.job_template(project__scm_url='https://github.com/ansible/ansible.git',
+                                              playbook='test/integration/no_log_local.yml',
+                                              localhost__name='testhost',
+                                              verbosity=1)
         # Launch test job template
-        job_pg = job_template_with_no_log_playbook.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg = job_template.launch().wait_until_completed()
+        assert(job_pg.is_successful), "Job unsuccessful - %s." % job_pg
 
         # Check job_events
         job_events_pg = job_pg.get_related('job_events', event__startswith='runner')
@@ -770,19 +755,29 @@ print json.dumps(inventory)
             assess_job_event_pg_for_no_log(job_event_pg)
 
         # Check result_stdout
-        assert job_pg.result_stdout.count("LOG_ME") == 21, \
-            "Unexpected number of instances of 'LOG_ME' in job_pg.result_stdout: expected 21, got %s." % job_pg.result_stdout.count("LOG_ME")
-        assert job_pg.result_stdout.count("censored") == 12, \
-            "Unexpected number of instances of 'censored' in job_pg.result_stdout: expected 12, got %s." % job_pg.result_stdout.count("censored")
+        log_count = job_pg.result_stdout.count('LOG_ME')
+        assert(log_count == 21), ('Unexpected number of instances of "LOG_ME" in job_pg.result_stdout: expected 21, '
+                                  'got {}'.format(log_count))
+        censored_count = job_pg.result_stdout.count('censored')
+        assert(censored_count == 12), ('Unexpected number of instances of "censored" in job_pg.result_stdout: expected '
+                                       '12, got {}.'.format(censored_count))
 
-    def test_job_with_async_events(self, job_template_with_async_playbook):
+    def test_job_with_async_events(self, factories, ansible_version_cmp):
         '''Tests that jobs with 'async' report their runner events'''
-        job_pg = job_template_with_async_playbook.launch().wait_until_completed()
-        assert(job_pg.is_successful), "Job unsuccessful - {0}.".format(job_pg)
+        if ansible_version_cmp('2.0.0.0') < 0:
+            pytest.skip("test_async only supported on ansible-2.0.0.0 (or newer)")
+
+        job_template = factories.job_template(project__scm_url='https://github.com/ansible/ansible.git',
+                                              playbook='test/integration/non_destructive.yml',
+                                              localhost__name='testhost',
+                                              job_tags='test_async',
+                                              verbosity=1)
+        job = job_template.launch().wait_until_completed()
+        assert(job.is_successful), "Job unsuccessful - {0}.".format(job)
 
         # Check job_events
-        job_events_pg = job_pg.get_related('job_events', event__startswith='runner_on')
-        test_events = [event for event in job_events_pg.results if 'test_async' in event.task]
+        job_events = job.get_related('job_events', event__startswith='runner_on')
+        test_events = [event for event in job_events.results if 'test_async' in event.task]
         assert(test_events), 'No "runner_on" events reported during test_async integration test execution'
 
         for test_event in test_events:
