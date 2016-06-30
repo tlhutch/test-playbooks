@@ -160,13 +160,10 @@ class GroupFactory(PageFactory):
     class Meta:
         model = Groups_Page
         inline_args = ('request',)
-        resources = ('inventory', 'credential',)
+        resources = ('inventory',)
 
     inventory = factory.SubFactory(
         InventoryFactory,
-        request=factory.SelfAttribute('..request'))
-    credential = factory.SubFactory(
-        CredentialFactory,
         request=factory.SelfAttribute('..request'))
 
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
