@@ -9,7 +9,7 @@ from dateutil.relativedelta import relativedelta
 from inflect import engine
 from common.yaml_file import load_file
 from tests.api import Base_Api_Test
-from common.exceptions import Duplicate_Exception, NoContent_Exception
+from common.exceptions import BadRequest_Exception, Duplicate_Exception, NoContent_Exception
 
 
 # Parameterize tests based on yaml configuration
@@ -571,6 +571,12 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             api_projects_pg.post(payload)
         except Duplicate_Exception, e:
             pytest.xfail(str(e))
+        except BadRequest_Exception, e:
+            # Similar to Duplicate_Exception but occurs when all projects in local
+            # directory are claimed (for repeated manual project runs).
+            if "Invalid path choice" in str(e):
+                pytest.xfail(str(e))
+            raise
 
     @pytest.mark.nondestructive
     def test_projects_get(self, api_projects_pg, _projects):
@@ -692,9 +698,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         for cred in ('credential', 'cloud_credential'):
             if cred in _job_template:
                 matches = api_credentials_pg.get(name__iexact=_job_template[cred])
-                assert matches.count == 1, \
-                    "Unexpected number of matching credentials " \
-                    "found (%d != %d)" % (1, matches.count)
+                assert(matches.count)
                 payload[cred] = matches.results[0].id
 
         try:
