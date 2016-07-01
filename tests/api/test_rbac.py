@@ -854,6 +854,24 @@ class Test_Credential_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 credential_pg.delete()
 
+    def test_autopopulated_admin_role(self, factories):
+        '''
+        Tests that when you create a credential with a value supplied for 'user'
+        that your user is automatically given the admin role of your credential.
+        '''
+        # assert newly created user has no roles
+        user_pg = factories.user()
+        assert not user_pg.get_related('roles').count, \
+            "Newly created user created unexpectedly with roles - %s." % user_pg.get_related('roles')
+
+        # assert user now has admin role after user credential creation
+        credential_pg = factories.credential(user=user_pg, organization=None)
+        admin_role_users_pg = credential_pg.get_object_role('admin_role').get_related('users')
+        assert admin_role_users_pg.count == 1, \
+            "Unexpected number of users with our credential admin role. Expected one, got %s." % admin_role_users_pg.count
+        assert admin_role_users_pg.results[0].id == user_pg.id, \
+            "Unexpected admin role user returned. Expected user with ID %s, but %s." % (user_pg.id, admin_role_users_pg.results[0].id)
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
