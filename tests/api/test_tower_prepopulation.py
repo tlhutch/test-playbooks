@@ -29,14 +29,18 @@ class Test_Tower_Prepopulation(Base_Api_Test):
         projects_pg = default_organization.get_related('projects', name='Demo Project')
         assert projects_pg.count == 1, "'Demo Project' not found."
         project_pg = projects_pg.results[0]
-        assert project_pg.is_successful, "'Demo Project' unsuccessful - %s." % projects_pg.results[0]
+        assert project_pg.scm_update_on_launch
 
-        # check demo job template
         job_templates_pg = inventory_pg.get_related('job_templates', name='Demo Job Template')
         assert job_templates_pg.count == 1, "'Demo Job Template' not found."
         job_template_pg = job_templates_pg.results[0]
+        if job_template_pg.last_job_run:
+            assert project_pg.is_successful, "'Demo Project' unsuccessful - %s." % project_pg
+        else:
+            assert project_pg.status == "never updated", "Unexpected project_pg.status - %s." % projects_pg
+
+        # check demo job template
         assert job_template_pg.playbook == 'hello_world.yml', \
             "JT created with incorrect playbook. Expected 'hello_world.yml', got %s." % job_templates_pg.playbook
-
         job_pg = job_template_pg.launch().wait_until_completed()
         assert job_pg.is_successful, 'Job unsuccessful - %s.' % job_pg
