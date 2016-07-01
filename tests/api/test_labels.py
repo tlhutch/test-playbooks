@@ -110,7 +110,7 @@ class Test_Labels(Base_Api_Test):
         with pytest.raises(common.exceptions.NotFound_Exception):
             label.get()
 
-    def test_job_template_reference_delete(self, job_template, another_job_template, label):
+    def test_reference_delete_with_job_template_deletion(self, job_template, another_job_template, label):
         '''
         Tests that a label attached to JTs get reference deleted when their last associated JT gets deleted
         in the absence of jobs that use this label.
@@ -135,6 +135,36 @@ class Test_Labels(Base_Api_Test):
 
         # label should get reference deleted with final JT deletion
         another_job_template.delete()
+        with pytest.raises(common.exceptions.NotFound_Exception):
+            label.get()
+
+    def test_reference_delete_with_job_template_disassociation(self, job_template, another_job_template, label):
+        '''
+        Tests that a label attached to JTs get reference deleted after getting disassociated with its last JT
+        in the absence of jobs that use this label.
+        '''
+        # associate label with both JTs
+        labels_pg = job_template.get_related('labels')
+        another_labels_pg = another_job_template.get_related('labels')
+
+        payload = dict(associate=True, id=label.id)
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            labels_pg.post(payload)
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            another_labels_pg.post(payload)
+
+        # check that labels associated
+        assert labels_pg.get().count == 1, "Unexpected number of labels found."
+        assert another_labels_pg.get().count == 1, "Unexpected number of labels found."
+
+        # label should not get reference deleted with first JT disassociation
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            labels_pg.post(dict(id=label.id, disassociate=True))
+        label.get()
+
+        # label should get reference deleted with final JT disassociation
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            another_labels_pg.post(dict(id=label.id, disassociate=True))
         with pytest.raises(common.exceptions.NotFound_Exception):
             label.get()
 
