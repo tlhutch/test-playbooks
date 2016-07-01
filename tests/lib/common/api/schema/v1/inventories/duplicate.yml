@@ -2,16 +2,9 @@
 $schema: http://json-schema.org/draft-04/schema#
 type: object
 # Only one of the following properities occurs on 2.1.0-dev
-required: [__all__,]
+required: [name,]
 additionalProperties: false
 properties:
-    __all__:
-        type: array
-        minItems: 1
-        uniqueItems: true
-        items:
-            type: string
-            pattern: '^Inventory with this Name and Organization already exists.$'
     name:
         type: array
         minItems: 1
