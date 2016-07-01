@@ -279,7 +279,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
     def test_credentials_get(self, api_credentials_pg, _credentials):
         credential_page = api_credentials_pg.get(or__name=[o['name'] for o in _credentials])
         assert(not credential_page.count % len(_credentials)
-            ), "The number of credentials isn't cleanly divisible by the number of those recently added."
+               ), "The number of credentials isn't cleanly divisible by the number of those recently added."
 
     @pytest.mark.destructive
     def test_inventory_scripts_post(self, api_inventory_scripts_pg, api_organizations_pg, _inventory_script):
