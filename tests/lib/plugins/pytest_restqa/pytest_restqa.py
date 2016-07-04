@@ -14,18 +14,13 @@ __version__ = '1.0'
 
 def pytest_addoption(parser):
     group = parser.getgroup('rest', 'rest')
-    group.addoption('--api-baseurl',
-                    action='store',
-                    dest='base_url',
-                    default=None,
-                    metavar='url',
-                    help='base url for the application under test.')
     group.addoption('--api-version',
                     action='store',
                     dest='api_version',
                     default='current_version',
                     metavar='API-VERSION',
                     help='Choose the API version')
+
     group.addoption('--api-untrusted',
                     action='store_true',
                     dest='assume_untrusted',
@@ -136,29 +131,32 @@ def testsetup(request):
     return TestSetup(request)
 
 
-def pytest_runtest_makereport(__multicall__, item, call):
-    report = __multicall__.execute()
+@pytest.mark.hookwrapper
+def pytest_runtest_makereport(item, call):
+    if 'skip_restqa' in item.keywords:
+        return
+    if not getattr(TestSetup, 'api', None):
+        return
 
-    # Log the test in the debug_rest_hdlr
     if call.when == 'setup':
-        if hasattr(TestSetup, 'api') and TestSetup.api and hasattr(item.config, '_debug_rest_hdlr'):
-            '''
-            log rest info
-            '''
-            item.config._debug_rest_hdlr.stream.write('==== %s ====\n' % item.nodeid)
+        if hasattr(item.config, '_debug_rest_hdlr'):
+            # log rest info
+            msg = '==== {0} ====\n'
+            item.config._debug_rest_hdlr.stream.write(msg.format(item.nodeid))
 
-    # Display failing API URL with any test failures
+    outcome = yield
+    report = outcome.get_result()
+    extra = getattr(report, 'extra', [])
+    xfail = hasattr(report, 'wasxfail')
+
     if report.when == 'call':
-        if hasattr(TestSetup, 'api') and TestSetup.api:
-            if 'skip_restqa' not in item.keywords:
-                if report.skipped and 'xfail' in report.keywords or report.failed and 'xfail' not in report.keywords:
-                    url = TestSetup.api.url
-                    if hasattr(item, 'debug'):
-                        url and item.debug['urls'].append(url)
-                        report.sections.append(('pytest-restqa', _debug_summary(item.debug)))
-                if hasattr(item, 'debug'):
-                    report.debug = item.debug
-    return report
+        if (report.skipped and xfail) or (report.failed and not xfail):
+            if hasattr(item, 'debug'):
+                extra.append(('pytest-restqa', _debug_summary(item.debug)))
+            report.extra = extra
+        else:
+            # if the test passed, don't display logs on the html report
+            report.sections = []
 
 
 def _debug_summary(debug):
