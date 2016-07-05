@@ -18,7 +18,7 @@ class ActivityStreamActionModal(Region):
     _changes = (By.CLASS_NAME, 'StreamDetail-changes')
     _ok = (By.ID, 'action_cancel_btn')
     _initiated_by = (By.CSS_SELECTOR, '[class="StreamDetail-inlineRow"][ng-show="user"]')
-    _operation = (By.CSS_SELECTOR, '[ng-bind="operation"]')
+    _operation = (By.CSS_SELECTOR, '[ng-bind-html="operation"]')
 
     @property
     def close(self):
