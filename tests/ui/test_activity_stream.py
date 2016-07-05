@@ -55,7 +55,7 @@ def test_navigation_dropdown(ui_activity_stream, anonymous_user, user_password):
         'Inventories',
         'Inventory Scripts',
         'Job Templates',
-        'Management Jobs',
+        'Jobs',
         'Organizations',
         'Projects',
         'Schedules',
@@ -65,19 +65,6 @@ def test_navigation_dropdown(ui_activity_stream, anonymous_user, user_password):
 
     assert ui_activity_stream.nav_dropdown.options == expected_nav_options, (
         'Unexpected activity stream navigation dropdown select options')
-
-    with ui_activity_stream.current_user(
-            anonymous_user.username, user_password):
-
-        # expected_anon_options = expected_nav_options[::]
-        # expected_anon_options.remove('Management Jobs')
-
-        expected_anon_options = expected_nav_options
-
-        nav_options = ui_activity_stream.nav_dropdown.options
-
-        assert nav_options == expected_anon_options, (
-            'Unexpected activity stream navigation dropdown select options')
 
     for option in ui_activity_stream.nav_dropdown.options:
         ui_activity_stream.nav_dropdown.select(option)
