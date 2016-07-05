@@ -60,6 +60,12 @@ class Selector(object):
     def root(self):
         return self.driver
 
+    def _by_is_valid(self, by):
+        for attr in dir(By):
+            if by == getattr(By, attr):
+                return True
+        return False
+
     def _normalize_text(self, text):
         return re.sub('[^0-9a-zA-Z_]+', '', text.replace(' ', '_')).lower()
 
@@ -76,13 +82,13 @@ class Selector(object):
         raise ValueError('page lookup failed for url: {}'.format(url))
 
     def find_element(self, locator):
-        if By.is_valid(locator[0]):
+        if self._by_is_valid(locator[0]):
             return self.root.find_element(*locator)
 
         assert isinstance(locator, tuple) and locator, (
             'must be a valid locator or non-empty tuple of valid locators')
 
-        assert all([By.is_valid(loc[0]) for loc in locator]), (
+        assert all([self._by_is_valid(loc[0]) for loc in locator]), (
             'must be a valid locator or non-empty tuple of valid locators')
 
         element = self.root
