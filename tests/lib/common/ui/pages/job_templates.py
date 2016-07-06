@@ -39,6 +39,12 @@ class JobTemplatesEditDetails(FormPanel):
                 (By.CSS_SELECTOR, 'label[for=credential]'),
                 (By.XPATH, '..'))
         },
+        'network_credential': {
+            'region_type': 'lookup',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=network_credential]'),
+                (By.XPATH, '..'))
+        },
         'inventory': {
             'required': True,
             'spinny': True,
