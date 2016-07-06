@@ -26,6 +26,21 @@ pytestmark = [
 # -----------------------------------------------------------------------------
 
 
+def assert_response_raised(tower_object, response=httplib.OK):
+    exc_dict = {
+        httplib.OK: None,
+        httplib.NOT_FOUND: common.exceptions.NotFound_Exception,
+        httplib.FORBIDDEN: common.exceptions.Forbidden_Exception,
+    }
+    exc = exc_dict[response]
+    for method in ('put', 'patch', 'delete'):
+        if exc is None:
+            getattr(tower_object, method)()
+        else:
+            with pytest.raises(exc):
+                getattr(tower_object, method)()
+
+
 @pytest.fixture
 def auth_user(testsetup, authtoken, api_authtoken_url):
     """Inject a context manager for user authtoken switching on api models.
@@ -324,12 +339,7 @@ class Test_Organization_RBAC(Base_Api_Test):
                     organization_pg.get_related(related)
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                organization_pg.put()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                organization_pg.patch()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                organization_pg.delete()
+            assert_response_raised(organization_pg, httplib.NOT_FOUND)
 
     def test_auditor_role(self, factories, user_password):
         '''
@@ -356,12 +366,7 @@ class Test_Organization_RBAC(Base_Api_Test):
                 organization_pg.get_related(related)
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                organization_pg.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                organization_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                organization_pg.delete()
+            assert_response_raised(organization_pg, httplib.FORBIDDEN)
 
     def test_admin_role(self, factories, user_password):
         '''
@@ -386,9 +391,7 @@ class Test_Organization_RBAC(Base_Api_Test):
                 organization_pg.get_related(related)
 
             # check put/patch/delete
-            organization_pg.put()
-            organization_pg.patch()
-            organization_pg.delete()
+            assert_response_raised(organization_pg, httplib.OK)
 
     def test_member_role(self, factories, user_password):
         '''
@@ -415,12 +418,7 @@ class Test_Organization_RBAC(Base_Api_Test):
                 organization_pg.get_related(related)
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                organization_pg.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                organization_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                organization_pg.delete()
+            assert_response_raised(organization_pg, httplib.FORBIDDEN)
 
     def test_read_role(self, factories, user_password):
         '''
@@ -447,12 +445,7 @@ class Test_Organization_RBAC(Base_Api_Test):
                 organization_pg.get_related(related)
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                organization_pg.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                organization_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                organization_pg.delete()
+            assert_response_raised(organization_pg, httplib.FORBIDDEN)
 
     def test_member_role_association(self, factories, user_password):
         '''
@@ -535,12 +528,7 @@ class Test_Project_RBAC(Base_Api_Test):
                 update_pg.post()
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                project_pg.put()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                project_pg.patch()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                project_pg.delete()
+            assert_response_raised(project_pg, httplib.NOT_FOUND)
 
     def test_admin_role(self, factories, user_password):
         '''
@@ -577,9 +565,7 @@ class Test_Project_RBAC(Base_Api_Test):
             project_pg.update()
 
             # check put/patch/delete
-            project_pg.put()
-            project_pg.patch()
-            project_pg.delete()
+            assert_response_raised(project_pg, httplib.OK)
 
     def test_update_role(self, factories, user_password):
         '''
@@ -618,12 +604,7 @@ class Test_Project_RBAC(Base_Api_Test):
             project_pg.update()
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                project_pg.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                project_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                project_pg.delete()
+            assert_response_raised(project_pg, httplib.FORBIDDEN)
 
     def test_use_role(self, factories, user_password):
         '''
@@ -663,12 +644,7 @@ class Test_Project_RBAC(Base_Api_Test):
                 project_pg.update()
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                project_pg.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                project_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                project_pg.delete()
+            assert_response_raised(project_pg, httplib.FORBIDDEN)
 
     def test_read_role(self, factories, user_password):
         '''
@@ -708,12 +684,7 @@ class Test_Project_RBAC(Base_Api_Test):
                 project_pg.update()
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                project_pg.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                project_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                project_pg.delete()
+            assert_response_raised(project_pg, httplib.FORBIDDEN)
 
 
 @pytest.mark.api
@@ -747,16 +718,12 @@ class Test_Credential_RBAC(Base_Api_Test):
                     credential_pg.get_related(related)
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                credential_pg.put()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                credential_pg.patch()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                credential_pg.delete()
+            assert_response_raised(credential_pg, httplib.NOT_FOUND)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2733')
     def test_admin_role(self, factories, user_password):
         '''
-        A user with credential 'owner' should be able to:
+        A user with credential 'admin' should be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
         # Use this credential in creating a JT
@@ -766,7 +733,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
-        user_pg = factories.user()
+        user_pg = factories.user(organization=credential_pg.get_related('organization'))
 
         # give user admin_role
         role_pg = credential_pg.get_object_role('admin_role')
@@ -780,9 +747,7 @@ class Test_Credential_RBAC(Base_Api_Test):
                 credential_pg.get_related(related)
 
             # check put/patch/delete
-            credential_pg.put()
-            credential_pg.patch()
-            credential_pg.delete()
+            assert_response_raised(credential_pg, httplib.OK)
 
     def test_use_role(self, factories, user_password):
         '''
@@ -798,7 +763,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
-        user_pg = factories.user()
+        user_pg = factories.user(organization=credential_pg.get_related('organization'))
 
         # give user use_role
         role_pg = credential_pg.get_object_role('use_role')
@@ -809,15 +774,15 @@ class Test_Credential_RBAC(Base_Api_Test):
             # check GET as test user
             credential_pg.get()
             for related in credential_pg.json.related:
-                credential_pg.get_related(related)
+                # 403 with 'user' is expected
+                if related == 'user':
+                    with pytest.raises(common.exceptions.Forbidden_Exception):
+                        credential_pg.get_related(related)
+                else:
+                    credential_pg.get_related(related)
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                credential_pg.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                credential_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                credential_pg.delete()
+            assert_response_raised(credential_pg, httplib.FORBIDDEN)
 
     def test_read_role(self, factories, user_password):
         '''
@@ -833,7 +798,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
-        user_pg = factories.user()
+        user_pg = factories.user(organization=credential_pg.get_related('organization'))
 
         # give user read_role
         role_pg = credential_pg.get_object_role('read_role')
@@ -844,15 +809,15 @@ class Test_Credential_RBAC(Base_Api_Test):
             # check GET as test user
             credential_pg.get()
             for related in credential_pg.json.related:
-                credential_pg.get_related(related)
+                # 403 with 'user' is expected
+                if related == 'user':
+                    with pytest.raises(common.exceptions.Forbidden_Exception):
+                        credential_pg.get_related(related)
+                else:
+                    credential_pg.get_related(related)
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                credential_pg.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                credential_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                credential_pg.delete()
+            assert_response_raised(credential_pg, httplib.FORBIDDEN)
 
     def test_autopopulated_admin_role(self, factories):
         '''
@@ -901,12 +866,7 @@ class Test_Team_RBAC(Base_Api_Test):
                     team_pg.get_related(related)
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                team_pg.put()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                team_pg.patch()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                team_pg.delete()
+            assert_response_raised(team_pg, httplib.NOT_FOUND)
 
     def test_admin_role(self, factories, user_password):
         '''
@@ -936,9 +896,7 @@ class Test_Team_RBAC(Base_Api_Test):
                     team_pg.get_related(related)
 
             # check put/patch/delete
-            team_pg.put()
-            team_pg.patch()
-            team_pg.delete()
+            assert_response_raised(team_pg, httplib.OK)
 
     def test_member_role(self, factories, user_password):
         '''
@@ -970,12 +928,7 @@ class Test_Team_RBAC(Base_Api_Test):
                     team_pg.get_related(related)
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                team_pg.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                team_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                team_pg.delete()
+            assert_response_raised(team_pg, httplib.FORBIDDEN)
 
     def test_read_role(self, factories, user_password):
         '''
@@ -1007,12 +960,7 @@ class Test_Team_RBAC(Base_Api_Test):
                     team_pg.get_related(related)
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                team_pg.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                team_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                team_pg.delete()
+            assert_response_raised(team_pg, httplib.FORBIDDEN)
 
     def test_member_role_association(self, factories, user_password):
         '''
@@ -1064,12 +1012,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
                     inventory_script.get_related(related)
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                inventory_script.put()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                inventory_script.patch()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                inventory_script.delete()
+            assert_response_raised(inventory_script, httplib.NOT_FOUND)
 
     def test_admin_role(self, factories, inventory_script, user_password):
         '''
@@ -1106,9 +1049,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
                 "Unexpected value for 'script'; expected %s but got %s." % (script, inventory_script.script)
 
             # check put/patch/delete
-            inventory_script.put()
-            inventory_script.patch()
-            inventory_script.delete()
+            assert_response_raised(inventory_script, httplib.OK)
 
     def test_read_role(self, factories, inventory_script, user_password):
         '''
@@ -1146,12 +1087,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
                 "Unexpected value for 'script'; expected null but got %s." % inventory_script.script
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_script.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_script.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_script.delete()
+            assert_response_raised(inventory_script, httplib.FORBIDDEN)
 
 
 @pytest.mark.api
@@ -1187,12 +1123,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
                 launch_pg.post()
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                job_template_pg.put()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                job_template_pg.patch()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                job_template_pg.delete()
+            assert_response_raised(job_template_pg, httplib.NOT_FOUND)
 
     def test_admin_role(self, factories, user_password):
         '''
@@ -1227,9 +1158,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
             # check put/patch/delete
-            job_template_pg.put()
-            job_template_pg.patch()
-            job_template_pg.delete()
+            assert_response_raised(job_template_pg, httplib.OK)
 
     def test_execute_role(self, factories, user_password):
         '''
@@ -1266,12 +1195,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                job_template_pg.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                job_template_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                job_template_pg.delete()
+            assert_response_raised(job_template_pg, httplib.FORBIDDEN)
 
     def test_read_role(self, factories, user_password):
         '''
@@ -1308,12 +1232,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
                 job_template_pg.launch()
 
             # check put/patch/delete
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                job_template_pg.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                job_template_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                job_template_pg.delete()
+            assert_response_raised(job_template_pg, httplib.FORBIDDEN)
 
 
 @pytest.mark.api
@@ -1332,12 +1251,14 @@ class Test_Inventory_RBAC(Base_Api_Test):
         * Update all groups that the inventory contains
         * Launch ad hoc commands against the inventory
         * Use the inventory in creating a JT
-        * Edit the inventory
-        * Delete the inventory
+        * Edit/delete the inventory
+        * Create/edit/delete inventory groups and hosts
 
         Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
+        groups_pg = inventory_pg.get_related('groups')
+        hosts_pg = inventory_pg.get_related('hosts')
         user_pg = factories.user()
 
         command_pg = inventory_pg.get_related('ad_hoc_commands')
@@ -1366,13 +1287,16 @@ class Test_Inventory_RBAC(Base_Api_Test):
             with pytest.raises(common.exceptions.NotFound_Exception):
                 command_pg.post()
 
-            # check put/patch/delete
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                inventory_pg.put()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                inventory_pg.patch()
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                inventory_pg.delete()
+            # check ability to create group and host
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                groups_pg.post()
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                hosts_pg.post()
+
+            # check put/patch/delete on inventory, custom_group, and host_local
+            assert_response_raised(host_local, httplib.NOT_FOUND)
+            assert_response_raised(custom_group, httplib.NOT_FOUND)
+            assert_response_raised(inventory_pg, httplib.NOT_FOUND)
 
     def test_admin_role(self, host_local, cloud_groups, custom_group, user_password, factories):
         '''
@@ -1382,22 +1306,22 @@ class Test_Inventory_RBAC(Base_Api_Test):
         * Update all groups that the inventory contains
         * Launch ad hoc commands against the inventory
         * Use the inventory in creating a JT
-        * Edit the inventory
-        * Delete the inventory
+        * Edit/delete the inventory
+        * Create/edit/delete inventory groups and hosts
 
         Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
-        credential_pg = factories.credential()
+        groups_pg = inventory_pg.get_related('groups')
+        hosts_pg = inventory_pg.get_related('hosts')
+        group_payload = factories.group.payload(inventory=inventory_pg)[0]
+        host_payload = factories.host.payload(inventory=inventory_pg)[0]
+
         user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give user inventory admin_role
         role_pg = inventory_pg.get_object_role('admin_role')
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            user_pg.get_related('roles').post(dict(id=role_pg.id))
-
-        # give user credential admin_role
-        role_pg = credential_pg.get_object_role('admin_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
@@ -1414,12 +1338,16 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # update all cloud_groups
             for cloud_group in cloud_groups:
-                update_pg = custom_group.get_related('inventory_source').get_related('update')
-                update_pg.post()
+                inventory_source_pg = cloud_group.get_related('inventory_source')
+                inventory_source_pg.get_related('update').post()
+                assert inventory_source_pg.wait_until_completed().is_successful, \
+                    "Inventory update unsuccessful - %s." % inventory_source_pg
 
             # update custom group
-            update_pg = custom_group.get_related('inventory_source').get_related('update')
-            update_pg.post()
+            inventory_source_pg = custom_group.get_related('inventory_source')
+            inventory_source_pg.get_related('update').post()
+            assert inventory_source_pg.wait_until_completed().is_successful, \
+                "Inventory update unsuccessful - %s." % inventory_source_pg
 
             # post command
             payload = dict(inventory=inventory_pg.id,
@@ -1429,10 +1357,14 @@ class Test_Inventory_RBAC(Base_Api_Test):
             command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload).wait_until_completed()
             assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
 
-            # check put/patch/delete
-            inventory_pg.put()
-            inventory_pg.patch()
-            inventory_pg.delete()
+            # check ability to create group and host
+            groups_pg.post(group_payload)
+            hosts_pg.post(host_payload)
+
+            # check put/patch/delete on inventory, custom_group, and host_local
+            assert_response_raised(host_local, httplib.OK)
+            assert_response_raised(custom_group, httplib.OK)
+            assert_response_raised(inventory_pg, httplib.OK)
 
     def test_use_role(self, host_local, custom_group, user_password, factories):
         '''
@@ -1444,22 +1376,22 @@ class Test_Inventory_RBAC(Base_Api_Test):
         A user with inventory use should not be able to:
         * Update all groups that the inventory contains
         * Launch ad hoc commands against the inventory
-        * Edit the inventory
-        * Delete the inventory
+        * Edit/delete the inventory
+        * Create/edit/delete inventory groups and hosts
 
         Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
-        credential_pg = factories.credential()
+        groups_pg = inventory_pg.get_related('groups')
+        hosts_pg = inventory_pg.get_related('hosts')
+        group_payload = factories.group.payload(inventory=inventory_pg)[0]
+        host_payload = factories.host.payload(inventory=inventory_pg)[0]
+
         user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give user inventory use_role
         role_pg = inventory_pg.get_object_role('use_role')
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            user_pg.get_related('roles').post(dict(id=role_pg.id))
-
-        # give user credential admin_role
-        role_pg = credential_pg.get_object_role('admin_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
@@ -1482,18 +1414,20 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # post command
             payload = dict(inventory=inventory_pg.id,
                            credential=credential_pg.id,
-                           module_name="ping",
-                           limit=host_local.name, )
+                           module_name="ping", )
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 inventory_pg.get_related('ad_hoc_commands').post(payload)
 
-            # check put/patch/delete
+            # check ability to create group and host
             with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_pg.put()
+                groups_pg.post(group_payload)
             with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_pg.delete()
+                hosts_pg.post(host_payload)
+
+            # check put/patch/delete on inventory, custom_group, and host_local
+            assert_response_raised(host_local, httplib.FORBIDDEN)
+            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
     def test_adhoc_role(self, host_local, custom_group, user_password, factories):
         '''
@@ -1505,22 +1439,22 @@ class Test_Inventory_RBAC(Base_Api_Test):
         A user with inventory adhoc should not be able to:
         * Update all groups that the inventory contains
         * Use the inventory in creating a JT
-        * Edit the inventory
-        * Delete the inventory
+        * Edit/delete the inventory
+        * Create/edit/delete inventory groups and hosts
 
         Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
-        credential_pg = factories.credential()
+        groups_pg = inventory_pg.get_related('groups')
+        hosts_pg = inventory_pg.get_related('hosts')
+        group_payload = factories.group.payload(inventory=inventory_pg)[0]
+        host_payload = factories.host.payload(inventory=inventory_pg)[0]
+
         user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give user inventory adhoc
         role_pg = inventory_pg.get_object_role('adhoc_role')
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            user_pg.get_related('roles').post(dict(id=role_pg.id))
-
-        # give user credential admin_role
-        role_pg = credential_pg.get_object_role('admin_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
@@ -1548,14 +1482,18 @@ class Test_Inventory_RBAC(Base_Api_Test):
             command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload).wait_until_completed()
             assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
 
-            # check put/patch/delete
+            # check ability to create group and host
             with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_pg.put()
+                groups_pg.post(group_payload)
             with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_pg.delete()
+                hosts_pg.post(host_payload)
 
+            # check put/patch/delete on inventory, custom_group, and host_local
+            assert_response_raised(host_local, httplib.FORBIDDEN)
+            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(inventory_pg, httplib.FORBIDDEN)
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2710')
     def test_update_role(self, host_local, cloud_groups, custom_group, user_password, factories):
         '''
         A user with inventory update should be able to:
@@ -1566,22 +1504,22 @@ class Test_Inventory_RBAC(Base_Api_Test):
         A user with inventory update should not be able to:
         * Launch ad hoc commands against the inventory
         * Use the inventory in creating a JT
-        * Edit the inventory
-        * Delete the inventory
+        * Edit/delete the inventory
+        * Create/edit/delete inventory groups and hosts
 
         Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
-        credential_pg = factories.credential()
+        groups_pg = inventory_pg.get_related('groups')
+        hosts_pg = inventory_pg.get_related('hosts')
+        group_payload = factories.group.payload(inventory=inventory_pg)[0]
+        host_payload = factories.host.payload(inventory=inventory_pg)[0]
+
         user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give user inventory update_role
         role_pg = inventory_pg.get_object_role('update_role')
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            user_pg.get_related('roles').post(dict(id=role_pg.id))
-
-        # give user credential admin_role
-        role_pg = credential_pg.get_object_role('admin_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
@@ -1598,28 +1536,34 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # update all cloud_groups
             for cloud_group in cloud_groups:
-                update_pg = custom_group.get_related('inventory_source').get_related('update')
-                update_pg.post()
+                inventory_source_pg = cloud_group.get_related('inventory_source')
+                inventory_source_pg.get_related('update').post()
+                assert inventory_source_pg.wait_until_completed().is_successful, \
+                    "Inventory update failed - %s." % inventory_source_pg
 
             # update custom group
-            update_pg = custom_group.get_related('inventory_source').get_related('update')
-            update_pg.post()
+            inventory_source_pg = custom_group.get_related('inventory_source')
+            inventory_source_pg.get_related('update').post()
+            assert inventory_source_pg.wait_until_completed(), \
+                "Inventory update failed - %s." % inventory_source_pg
 
             # post command
             payload = dict(inventory=inventory_pg.id,
                            credential=credential_pg.id,
-                           module_name="ping",
-                           limit=host_local.name, )
+                           module_name="ping", )
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 inventory_pg.get_related('ad_hoc_commands').post(payload)
 
-            # check put/patch/delete
+            # check ability to create group and host
             with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_pg.put()
+                groups_pg.post(group_payload)
             with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_pg.delete()
+                hosts_pg.post(host_payload)
+
+            # check put/patch/delete on inventory, custom_group, and host_local
+            assert_response_raised(host_local, httplib.FORBIDDEN)
+            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
     def test_read_role(self, host_local, custom_group, user_password, factories):
         '''
@@ -1631,22 +1575,22 @@ class Test_Inventory_RBAC(Base_Api_Test):
         * Update all groups that the inventory contains
         * Launch ad hoc commands against the inventory
         * Use the inventory in creating a JT
-        * Edit the inventory
-        * Delete the inventory
+        * Edit/delete the inventory
+        * Create/edit/delete inventory groups and hosts
 
         Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
-        credential_pg = factories.credential()
+        groups_pg = inventory_pg.get_related('groups')
+        hosts_pg = inventory_pg.get_related('hosts')
+        group_payload = factories.group.payload(inventory=inventory_pg)[0]
+        host_payload = factories.host.payload(inventory=inventory_pg)[0]
+
         user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give user inventory read_role
         role_pg = inventory_pg.get_object_role('read_role')
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            user_pg.get_related('roles').post(dict(id=role_pg.id))
-
-        # give user credential admin_role
-        role_pg = credential_pg.get_object_role('admin_role')
         with pytest.raises(common.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
@@ -1669,15 +1613,17 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # post command
             payload = dict(inventory=inventory_pg.id,
                            credential=credential_pg.id,
-                           module_name="ping",
-                           limit=host_local.name, )
+                           module_name="ping", )
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 inventory_pg.get_related('ad_hoc_commands').post(payload)
 
-            # check put/patch/delete
+            # check ability to create group and host
             with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_pg.put()
+                groups_pg.post(group_payload)
             with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_pg.patch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
-                inventory_pg.delete()
+                hosts_pg.post(host_payload)
+
+            # check put/patch/delete on inventory, custom_group, and host_local
+            assert_response_raised(host_local, httplib.FORBIDDEN)
+            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(inventory_pg, httplib.FORBIDDEN)

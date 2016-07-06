@@ -19,7 +19,6 @@ class Test_Credential(Base_Api_Test):
         '''
         user_pg = factories.user()
         team_pg = factories.team()
-        organization_pg = team_pg.get_related('organization')
 
         # create duplicate user credentials
         payload = factories.credential.payload(user=user_pg, organization=None)[0]
