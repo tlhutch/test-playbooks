@@ -4,7 +4,8 @@ from clickable import Clickable
 class PanelButton(Clickable):
 
     _bg_enabled = (
-        'rgba(215, 215, 215, 1)', 'rgb(215, 215, 215)')
+        'rgba(215, 215, 215, 1)', 'rgb(215, 215, 215)',
+        'rgba(132, 137, 146, 1)', 'rgb(132, 137, 146)')
 
     _bg_disabled = (
         'rgba(255, 255, 255, 1)', 'rgb(255, 255, 255)',
