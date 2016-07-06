@@ -19,6 +19,7 @@ from common.api.pages import (
     Projects_Page,
     Users_Page,
     Teams_Page,
+    Labels_Page,
 )
 
 
@@ -35,6 +36,18 @@ class OrganizationFactory(PageFactory):
 
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_alphanumeric)
+
+
+class LabelFactory(PageFactory):
+    class Meta:
+        model = Labels_Page
+        inline_args = ('request',)
+        resources = ('organization',)
+
+    organization = factory.SubFactory(
+        OrganizationFactory, request=factory.SelfAttribute('..request'))
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
+    description = factory.LazyFunction(fauxfactory.gen_utf8)
 
 
 class ProjectFactory(PageFactory):
