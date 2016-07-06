@@ -60,11 +60,11 @@ class Login(Page):
             self.driver.refresh()
             self.wait.until(lambda _: self.is_element_displayed(self._backdrop))
 
-    def login(self, username, password):
+    def login(self, username, password, wait=True):
         self.username.send_keys(username)
         self.password.send_keys(password)
 
-        return self.login_button.click()
+        return self.login_button.click(wait=wait)
 
     def open(self):
         super(Login, self).open()

@@ -477,11 +477,10 @@ for jobTemplate in SystemJobTemplate.objects.all():
 
 
 @pytest.fixture
-def ui_license(
-    selenium,
-    base_url,
-    default_credentials
-):
-    return License(base_url,
-                   selenium,
-                   **default_credentials).open()
+def ui_license(selenium, base_url, default_credentials, ui_login):
+    ui_login.login(wait=False, **default_credentials)
+    license_page = License(base_url, selenium, **default_credentials)
+    license_page.driver.get(license_page.url)
+    license_page.wait_for_spinny()
+    license_page.wait_until_loaded()
+    return license_page

@@ -14,7 +14,7 @@ class Link(Clickable):
     def load_page(self):
         return self.kwargs.get('load_page', self._load_page)
 
-    def click(self):
+    def click(self, wait=True):
         if self.load_page:
             new_page = self._get_page(self.load_page)
         else:
@@ -22,4 +22,7 @@ class Link(Clickable):
 
         super(Link, self).click()
 
-        return new_page(self.base_url, self.driver).wait_until_loaded()
+        if wait:
+            return new_page(self.base_url, self.driver).wait_until_loaded()
+        else:
+            return new_page(self.base_url, self.driver)

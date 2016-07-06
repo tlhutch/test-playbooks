@@ -39,7 +39,7 @@ def test_license_upload(ui_license):
     ui_license.get(ui_license.url)
     ui_license.wait_for_spinny()
 
-    assert ui_license.license_status.text == 'Valid'
+    assert ui_license.license_status.text == 'Valid License'
 
 
 @pytest.mark.usefixtures('no_license')
@@ -59,10 +59,12 @@ def test_license_date(api_config_pg, ui_license):
     license_date = int(license_info['license_date'])
     current_date = int(time())
     time_remaining = timedelta(seconds=license_date - current_date).days
-    expires_on = datetime.utcnow() + timedelta(days=time_remaining)
+
+    expires_expected = datetime.utcnow() + timedelta(days=time_remaining)
+    expires_actual = datetime.strptime(ui_license.expires_on.text, "%m/%d/%Y")
 
     assert ui_license.time_remaining.text == "%s Days" % time_remaining
-    assert ui_license.expires_on.text == expires_on.strftime("%m/%d/%Y")
+    assert abs(expires_actual - expires_expected).days <= 1
 
 
 def test_malformed_license(ui_license):
