@@ -337,35 +337,35 @@ class AzureResourceManagerDetails(CredDetails):
         },
         'username': {
             'region_type': 'text_input',
-            'required': True,
+            'required': False,
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=username]'),
                 (By.XPATH, '..'))
         },
         'password': {
             'region_type': 'password',
-            'required': True,
+            'required': False,
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=password]'),
                 (By.XPATH, '..'))
         },
         'client_id': {
             'region_type': 'text_input',
-            'required': True,
+            'required': False,
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=client]'),
                 (By.XPATH, '..'))
         },
         'client_secret': {
             'region_type': 'password',
-            'required': True,
+            'required': False,
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=secret]'),
                 (By.XPATH, '..'))
         },
         'tenant_id': {
             'region_type': 'text_input',
-            'required': True,
+            'required': False,
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=tenant]'),
                 (By.XPATH, '..'))
