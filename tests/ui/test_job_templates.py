@@ -22,60 +22,45 @@ def test_update_job_template(api_job_templates_pg, ui_job_templates_edit):
     # get job_template data api side
     job_template_id = ui_job_templates_edit.kwargs.get('index')
     api_job_template_data = api_job_templates_pg.get(id=job_template_id).results[0]
-
     # query the table for the edited job_template
     results = ui_job_templates_edit.table.query(
         lambda r: r['name'].text == api_job_template_data.name)
-
     # fail informatively if we don't find the row of the job_template we're editing
     assert len(results) == 1, 'Unable to find row of edited resource'
-
     # verify that the row selection indicator is displayed for the row
     # corresponding to the job_template we're editing
     assert ui_job_templates_edit.table.row_is_selected(results[0]), (
         'Edited job_template row unexpectedly unselected')
-
     # make some data
     name = random_utf8()
     description = random_utf8()
     job_tags = random_utf8()
-
     # choose a verbosity option to select
     current_verbosity = ui_job_templates_edit.details.verbosity.selected_option
     verbosity_choices = ui_job_templates_edit.details.verbosity.options
     verbosity_choices.remove(current_verbosity)
     verbosity_choices.remove('Choose a verbosity')
-
     verbosity = random.choice(verbosity_choices)
-
     # update the job_template
     ui_job_templates_edit.details.name.set_text(name)
     ui_job_templates_edit.details.description.set_text(description)
     ui_job_templates_edit.details.job_tags.set_text(job_tags)
     ui_job_templates_edit.details.verbosity.select(verbosity)
-
     ui_job_templates_edit.details.save.click()
-
+    ui_job_templates_edit.wait_for_spinny()
     # get job_template data api side
     api_job_template_data = api_job_templates_pg.get(id=job_template_id).results[0]
-
     # verify the update took place
     assert api_job_template_data.name == name, (
         'Unable to verify successful update of job_template resource')
-
     assert api_job_template_data.description == description, (
         'Unable to verify successful update of job_template resource')
-
     assert api_job_template_data.job_tags == job_tags, (
         'Unable to verify successful update of job_template resource')
-
     assert str(api_job_template_data.verbosity) in verbosity, (
         'Unable to verify successful update of job_template resource')
-
     # query the table for the edited job_template
-    results = ui_job_templates_edit.table.query(
-        lambda r: r['name'].text == api_job_template_data.name)
-
+    results = ui_job_templates_edit.table.query(lambda r: r['name'].text == name)
     # check that we find a row showing the updated job_template name
     assert len(results) == 1, 'Unable to find row of updated job template'
 
