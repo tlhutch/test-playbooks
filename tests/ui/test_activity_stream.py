@@ -9,8 +9,81 @@ from common.utils import random_utf8
 
 pytestmark = [
     pytest.mark.ui,
-    pytest.mark.nondestructive
+    pytest.mark.nondestructive,
+    pytest.mark.usefixtures('maximized_window_size')
 ]
+
+
+# These states are expected to have fully-functional activity stream links
+# when the activity stream feature is enabled
+_pages_with_activity_stream = [
+    'ui_credentials',
+    'ui_credentials_add',
+    'ui_credentials_edit',
+    'ui_dashboard',
+    'ui_hosts',
+    'ui_inventories',
+    'ui_inventories_add',
+    'ui_inventories_edit',
+    'ui_inventory_scripts',
+    'ui_inventory_scripts_add',
+    'ui_inventory_scripts_edit',
+    'ui_job_templates',
+    'ui_job_templates_add',
+    'ui_management_jobs',
+    'ui_organizations',
+    'ui_organizations_add',
+    'ui_organizations_edit',
+    'ui_projects',
+    'ui_projects_add',
+    'ui_projects_edit',
+    'ui_teams',
+    'ui_teams_add',
+    'ui_teams_edit',
+    'ui_users',
+    'ui_users_add',
+    'ui_users_edit',
+    'ui_job_templates_schedule',
+    'ui_projects_schedule',
+    'ui_job_templates_edit'
+]
+
+
+@pytest.fixture(params=_pages_with_activity_stream)
+def page_with_activity_stream(request):
+    if 'ui_organizations' in request.param:
+        if 'install_basic_license' in request.node.fixturenames:
+            pytest.skip('basic license precludes organization page fixtures')
+    return request.getfuncargvalue(request.param)
+
+
+@pytest.mark.usefixtures('authtoken', 'install_basic_license')
+def test_activity_stream_link(request, page_with_activity_stream):
+    """Verify activity stream link visibility and behavior
+    """
+    # verify activity stream link visibility and behavior with a basic license
+    assert not page_with_activity_stream.activity_stream_link.is_displayed(), (
+        'Activity stream link unexpectedly displayed')
+    assert not page_with_activity_stream.activity_stream_link.is_clickable(), (
+        'Activity stream link unexpectedly clickable')
+    # verify activity stream link visibility and behavior with enterprise license
+    request.getfuncargvalue('install_enterprise_license')
+    page_with_activity_stream.refresh()
+    assert page_with_activity_stream.activity_stream_link.is_displayed(), (
+        'Activity stream link unexpectedly not displayed')
+    assert page_with_activity_stream.activity_stream_link.is_clickable(), (
+        'Activity stream link unexpectedly not clickable')
+    # verify expected click-through behavior for the activity stream link
+    crumb = page_with_activity_stream.current_crumb
+    activity_stream = page_with_activity_stream.activity_stream_link.click()
+    assert 'activity_stream' in activity_stream.current_url, (
+        '"activity_stream" unexpectedly not contained in current page url')
+    assert activity_stream.subtitle.is_displayed(), (
+        'activity stream subtitle unexpectedly not displayed')
+    if crumb != 'dashboard':
+        query = urlparse.parse_qs(activity_stream._current_url.query)
+        assert 'target' in query, (
+            'target key unexpectedly not found in url query parameters')
 
 
 @pytest.mark.usefixtures(
@@ -21,19 +94,15 @@ pytestmark = [
 def test_component_visibility_(ui_activity_stream):
     """Verify basic component visibility, page layout, and responsiveness
     """
-    ui = ui_activity_stream
-
-    assert ui.current_crumb == 'activity stream', (
+    assert ui_activity_stream.current_crumb == 'activity stream', (
         'unexpected breadcrumb displayed')
-
-    assert ui.nav_dropdown.is_displayed(), (
+    assert ui_activity_stream.nav_dropdown.is_displayed(), (
         'Navigation dropdown region unexpectedly not displayed')
-
-    assert not ui.panel.badge.is_displayed(), (
+    assert not ui_activity_stream.panel.badge.is_displayed(), (
         'List panel badge unexpectedly displayed')
-
-    assert ui.panel.surrounds(ui.nav_dropdown), (
-        'Navigation dropdown not completely surrounded by list panel')
+    assert ui_activity_stream.panel.surrounds(
+        ui_activity_stream.nav_dropdown), (
+            'Navigation dropdown not completely surrounded by list panel')
 
 
 @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1073')
