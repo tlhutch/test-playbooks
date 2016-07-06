@@ -36,26 +36,14 @@ _pages_with_activity_stream = [
     'ui_teams_edit',
     'ui_users',
     'ui_users_add',
-    'ui_users_edit'
-]
-
-_pages_with_xfails = [
-
-    pytest.mark.xfail(
-        'ui_job_templates_schedule',
-        reason='https://github.com/ansible/ansible-tower/issues/919'),
-
-    pytest.mark.xfail(
-        'ui_projects_schedule',
-        reason='https://github.com/ansible/ansible-tower/issues/919'),
-
-    pytest.mark.xfail(
-        'ui_job_templates_edit',
-        reason='https://github.com/ansible/ansible-tower/issues/919'),
+    'ui_users_edit',
+    'ui_job_templates_schedule',
+    'ui_projects_schedule',
+    'ui_job_templates_edit'
 ]
 
 
-@pytest.fixture(params=_pages_with_activity_stream + _pages_with_xfails)
+@pytest.fixture(params=_pages_with_activity_stream)
 def page_with_activity_stream(request):
     if 'ui_organizations' in request.param:
         if 'install_basic_license' in request.node.fixturenames:
