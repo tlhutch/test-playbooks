@@ -1,7 +1,8 @@
 # Tower 3.0.0 Release Test Plan
 
 ## Resources
-* 3 full-time quality engineers - cwang/jladd/jmcdermott
+* 3 full-time api quality engineers - cwang/jladd/rfitzpat
+* 2 full-time ui quality engineers - jmcdermott/shane
 
 ## Assumptions
 1. UI testing is performed manually.  While basic automated coverage exists, it is insufficient to test customer workflows.
@@ -34,25 +35,25 @@
 [Tracking](https://github.com/ansible/ansible-tower/issues/1153)
 
 1. [X] Manual testing completed - exact steps tracked in tracking issue
-2. [X] Complete integration testing written and passing - tests added logged in tracking issue
-3. [ ] UI testing completed
+1. [X] Complete integration testing written and passing - tests added logged in tracking issue
+1. [ ] UI testing completed
 
 ### RBAC Permission changes
 [Feature](https://drive.google.com/open?id=1n_hLt0vKV5ytyYtA5oj71QLKiWtKQkhVezbUvUj_npA)
 [Tracking](https://github.com/ansible/ansible-tower/issues/1155)
 
 1. [x] Integration tests written and passing for each user-role (user with organization "admin")
-2. [ ] Integration tests written and passing for each team-role (user in team with organization "admin")
-3. [x] Performance testing with our new RBAC system
-4. [x] Upgrade migrations tested
+1. [ ] Integration tests written and passing for each team-role (user in team with organization "admin")
+1. [x] Performance testing with our new RBAC system
+1. [x] Upgrade migrations tested
 
 ### Prompt for all the things
 [Feature](https://drive.google.com/open?id=15iSHWjgCk0oyuHX9soWtClB9dOJ4Qlxm5H8fsTqoTuo)
 [Tracking](https://github.com/ansible/ansible-tower/issues/1136)
 
 1. [x] Base flows (what the UI uses) manually tested
-2. [x] Integration tests written and passing - tests added logged in tracking issue
-3. [ ] RBAC testing completed for prompt for all the things
+1. [x] Integration tests written and passing - tests added logged in tracking issue
+1. [ ] RBAC testing completed for prompt for all the things
  
 ### Tower UX/UI Refresh
 [Feature](https://docs.google.com/document/d/1lvhjtjzKy4Ty9nusob2ZRDX5PpUC-CZ-2vLvnjQzF7k/edit)
