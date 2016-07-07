@@ -58,6 +58,9 @@ class Credential_Page(base.Base):
         elif attr == 'user':
             from users import User_Page
             cls = User_Page
+        elif attr == 'team':
+            from teams import Team_Page
+            cls = Team_Page
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 

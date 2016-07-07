@@ -1621,6 +1621,10 @@ class Awx_Schema_Role(Awx_Schema):
         return self.load_file('roles/item.yml')
 
 
+class Awx_Schema_Roles_Related_Teams(Awx_Schema_Teams):
+    resource = '/api/v1/roles/\d+/teams/'
+
+
 class Awx_Schema_Related_Roles(Awx_Schema_Roles):
     resource = '/api/v1/\w+/\d+/roles/'
 
