@@ -66,7 +66,7 @@
 1. [ ] FIXME
 
 ### RedHat Integrations
-[Feature]()
+[Feature](https://docs.google.com/document/d/1a3_HMixPdCTxvLW8kySjyPKygP2QoYhz6iCcseyM020/edit)
 
 1. [ ] FIXME
 
