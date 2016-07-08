@@ -911,12 +911,12 @@ class Test_Job_Template(Base_Api_Test):
         job_pg = job_template_sleep.launch().wait_until_started()
 
         # delete the job_template
-        job_template_sleep.delete()
+        with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
+            job_template_sleep.delete()
 
         # wait for completion and assert success
         job_pg = job_pg.wait_until_completed()
-        assert job_pg.status == 'canceled', \
-            "Unexpected Job status (%s != 'canceled') after deleting job_template" % (job_pg.status)
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         '''
