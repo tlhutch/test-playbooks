@@ -3,7 +3,7 @@ user:
   properties:
     auth: {minItems: 0, type: array, uniqueItems: true}
     created: {format: date-time, type: string}
-    email: {format: email, type: string}
+    email: {$ref: '#/definitions/email_or_empty'}
     first_name: {type: string}
     id: {$ref: '#/definitions/id'}
     is_superuser: {type: boolean}
