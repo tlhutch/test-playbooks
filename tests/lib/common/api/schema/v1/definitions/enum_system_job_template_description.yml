@@ -1,7 +1,6 @@
 ---
 enum_system_job_template_description:
   enum:
-    - "Remove job history older than X days"
-    - "Remove deleted object history older than X days"
-    - "Remove activity stream history older than X days"
+    - "Remove job history"
+    - "Remove activity stream history"
     - "Remove system tracking history"
