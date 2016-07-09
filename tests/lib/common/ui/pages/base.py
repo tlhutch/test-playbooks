@@ -16,7 +16,7 @@ from common.ui.pages.regions import Spinny
 
 
 class TowerPage(Page):
-
+    _timeout = 60  # sauce is slow
     _crumbs = (By.CLASS_NAME, 'BreadCrumb-item')
     _tab_pane = (By.CLASS_NAME, 'tab-pane')
     _dashboard_button = (By.CSS_SELECTOR, 'i[class="BreadCrumb-menuLinkImage fa fa-tachometer"]')
