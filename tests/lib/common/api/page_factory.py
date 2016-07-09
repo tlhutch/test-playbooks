@@ -22,9 +22,7 @@ class PageFactory(factory.Factory):
     def _adjust_kwargs(cls, **kwargs):
         resource_keys = [key for key in kwargs if key in cls._meta.resources]
         for key in resource_keys:
-            if kwargs[key] is None:
-                del kwargs[key]
-            else:
+            if kwargs.get(key) is not None:
                 kwargs[key] = kwargs[key].id
         return kwargs
 
@@ -68,7 +66,10 @@ class PageFactory(factory.Factory):
         attrs = cls.attributes(create=True, extra=kwargs)
         attrs = cls._rename_fields(**attrs)
         # extract resource attributes
-        resources = {key: attrs.get(key) for key in cls._meta.resources}
+        resources = {}
+        for key in cls._meta.resources:
+            if key in attrs:
+                resources[key] = attrs.get(key)
         # process resource attributes for payloads
         attrs = cls._adjust_kwargs(**attrs)
         # extract *args
@@ -80,8 +81,4 @@ class PageFactory(factory.Factory):
         # remove any defined parameters
         for arg in cls._meta.parameters:
             attrs.pop(arg, None)
-        # remove any resource set to None
-        for key, val in resources.items():
-            if val is None:
-                del resources[key]
         return attrs, resources
