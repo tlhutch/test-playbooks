@@ -1,6 +1,6 @@
 dependencies:
+- { role: auth_keys }
 - { role: remove_pip_modules }
 - { role: fix_rax_resolv_conf }
 - { role: packages }
-- { role: auth_keys }
 - { role: ntp }
