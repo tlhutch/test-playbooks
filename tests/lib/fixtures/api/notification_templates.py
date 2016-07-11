@@ -16,7 +16,63 @@ def notification_template(request, authtoken, api_notification_templates_pg):
 
 
 @pytest.fixture(scope="function")
-def email_notification_template_payload(request, testsetup, default_organization):
+def email_notification_template(request, email_notification_template_payload, api_notification_templates_pg):
+    '''Email notification template'''
+    obj = api_notification_templates_pg.post(email_notification_template_payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def hipchat_notification_template(request, hipchat_notification_template_payload, api_notification_templates_pg):
+    '''Hipchat notification template'''
+    obj = api_notification_templates_pg.post(hipchat_notification_template_payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def irc_notification_template(request, irc_notification_template_payload, api_notification_templates_pg):
+    '''IRC notification template'''
+    obj = api_notification_templates_pg.post(irc_notification_template_payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def pagerduty_notification_template(request, pagerduty_notification_template_payload, api_notification_templates_pg):
+    '''Pagerduty notification template'''
+    obj = api_notification_templates_pg.post(pagerduty_notification_template_payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def slack_notification_template(request, slack_notification_template_payload, api_notification_templates_pg):
+    '''Slack notification template'''
+    obj = api_notification_templates_pg.post(slack_notification_template_payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def twilio_notification_template(request, twilio_notification_template_payload, api_notification_templates_pg):
+    '''Twilio notification template'''
+    obj = api_notification_templates_pg.post(twilio_notification_template_payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def webhook_notification_template(request, webhook_notification_template_payload, api_notification_templates_pg):
+    '''Webhook notification template'''
+    obj = api_notification_templates_pg.post(webhook_notification_template_payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def email_notification_template_payload(request, testsetup, organization):
     '''email payload - requires organization id'''
     host = testsetup.credentials['notification_services']['email']['host']
     username = testsetup.credentials['notification_services']['email']['username']
@@ -39,7 +95,7 @@ def email_notification_template_payload(request, testsetup, default_organization
 
     payload = dict(name="email notification template-%s" % fauxfactory.gen_utf8(),
                    description="Random email notification template - %s" % fauxfactory.gen_utf8(),
-                   organization=default_organization.id,
+                   organization=organization.id,
                    notification_type='email',
                    notification_configuration=email_configuration)
 
@@ -47,7 +103,7 @@ def email_notification_template_payload(request, testsetup, default_organization
 
 
 @pytest.fixture(scope="function")
-def hipchat_notification_template_payload(request, testsetup, default_organization):
+def hipchat_notification_template_payload(request, testsetup, organization):
     '''hipchat payload - requires organization id'''
     message_from = testsetup.credentials['notification_services']['hipchat']['message_from']
     api_url = testsetup.credentials['notification_services']['hipchat']['api_url']
@@ -65,7 +121,7 @@ def hipchat_notification_template_payload(request, testsetup, default_organizati
 
     payload = dict(name="hipchat notification template-%s" % fauxfactory.gen_utf8(),
                    description="Random hipchat notification template - %s" % fauxfactory.gen_utf8(),
-                   organization=default_organization.id,
+                   organization=organization.id,
                    notification_type='hipchat',
                    notification_configuration=hipchat_configuration)
 
@@ -73,7 +129,7 @@ def hipchat_notification_template_payload(request, testsetup, default_organizati
 
 
 @pytest.fixture(scope="function")
-def irc_notification_template_payload(request, testsetup, default_organization):
+def irc_notification_template_payload(request, testsetup, organization):
     '''irc payload - requires organization id'''
     server = testsetup.credentials['notification_services']['irc']['server']
     port = testsetup.credentials['notification_services']['irc']['port']
@@ -91,7 +147,7 @@ def irc_notification_template_payload(request, testsetup, default_organization):
 
     payload = dict(name="irc notification template-%s" % fauxfactory.gen_utf8(),
                    description="Random irc notification template - %s" % fauxfactory.gen_utf8(),
-                   organization=default_organization.id,
+                   organization=organization.id,
                    notification_type='irc',
                    notification_configuration=irc_configuration)
 
@@ -99,7 +155,7 @@ def irc_notification_template_payload(request, testsetup, default_organization):
 
 
 @pytest.fixture(scope="function")
-def pagerduty_notification_template_payload(request, testsetup, default_organization):
+def pagerduty_notification_template_payload(request, testsetup, organization):
     '''pagerduty payload - requires organization id'''
     client_name = testsetup.credentials['notification_services']['pagerduty']['client_name']
     service_key = testsetup.credentials['notification_services']['pagerduty']['service_key']
@@ -113,7 +169,7 @@ def pagerduty_notification_template_payload(request, testsetup, default_organiza
 
     payload = dict(name="pagerduty notification template-%s" % fauxfactory.gen_utf8(),
                    description="Random pagerduty notification template - %s" % fauxfactory.gen_utf8(),
-                   organization=default_organization.id,
+                   organization=organization.id,
                    notification_type='pagerduty',
                    notification_configuration=pagerduty_configuration)
 
@@ -121,7 +177,7 @@ def pagerduty_notification_template_payload(request, testsetup, default_organiza
 
 
 @pytest.fixture(scope="function")
-def slack_notification_template_payload(request, testsetup, default_organization):
+def slack_notification_template_payload(request, testsetup, organization):
     '''slack payload - requires organization id'''
     channels = testsetup.credentials['notification_services']['slack']['channels']
     token = testsetup.credentials['notification_services']['slack']['token']
@@ -131,7 +187,7 @@ def slack_notification_template_payload(request, testsetup, default_organization
 
     payload = dict(name="slack notification template-%s" % fauxfactory.gen_utf8(),
                    description="Random slack notification template - %s" % fauxfactory.gen_utf8(),
-                   organization=default_organization.id,
+                   organization=organization.id,
                    notification_type='slack',
                    notification_configuration=slack_configuration)
 
@@ -139,7 +195,7 @@ def slack_notification_template_payload(request, testsetup, default_organization
 
 
 @pytest.fixture(scope="function")
-def twilio_notification_template_payload(request, testsetup, default_organization):
+def twilio_notification_template_payload(request, testsetup, organization):
     '''twilio payload - requires organization id'''
     account_sid = testsetup.credentials['notification_services']['twilio']['account_sid']
     account_token = testsetup.credentials['notification_services']['twilio']['account_token']
@@ -153,7 +209,7 @@ def twilio_notification_template_payload(request, testsetup, default_organizatio
 
     payload = dict(name="twilio notification template-%s" % fauxfactory.gen_utf8(),
                    description="Random twilio notification template - %s" % fauxfactory.gen_utf8(),
-                   organization=default_organization.id,
+                   organization=organization.id,
                    notification_type='twilio',
                    notification_configuration=twilio_configuration)
 
@@ -161,7 +217,7 @@ def twilio_notification_template_payload(request, testsetup, default_organizatio
 
 
 @pytest.fixture(scope="function")
-def webhook_notification_template_payload(request, testsetup, default_organization):
+def webhook_notification_template_payload(request, testsetup, organization):
     '''webhook payload - requires organization id'''
     url = testsetup.credentials['notification_services']['webhook']['url']
     headers = testsetup.credentials['notification_services']['webhook']['headers']
@@ -170,7 +226,7 @@ def webhook_notification_template_payload(request, testsetup, default_organizati
 
     payload = dict(name="webhook notification template-%s" % fauxfactory.gen_utf8(),
                    description="Random webhook notification template - %s" % fauxfactory.gen_utf8(),
-                   organization=default_organization.id,
+                   organization=organization.id,
                    notification_type='webhook',
                    notification_configuration=webhook_configuration)
 
