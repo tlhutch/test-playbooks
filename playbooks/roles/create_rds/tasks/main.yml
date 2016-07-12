@@ -18,7 +18,7 @@
     password: '{{ rds_password }}'
     # security_groups: postgres
     wait: yes
-    wait_timeout: 600
+    wait_timeout: 900
   with_items: '{{ rds_images }}'
   register: rds
 

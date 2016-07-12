@@ -8,24 +8,16 @@
     - role: save_inventory
       my_inventory_file: '{{inventory_dir}}/inventory.ha'
 
-- name: 'Install mongodb'
-  hosts: 'mongodb'
-  gather_facts: yes
-  become: true
-  become_method: sudo
-  roles:
-    - role: chrismeyersfsu.install_mongod
-      install_mongod_admin_username: 'superuser'
-      install_mongod_admin_password: 'superuser'
-      install_mongod_user_username: '{{ mongo_username }}'
-      install_mongod_user_password: '{{ mongo_password }}'
-      install_mongod_user_database: '{{ mongo_database }}'
-
 - name: 'Group hosts by distribution_major_version'
   hosts: 'primary'
   tasks:
    - name: group hosts by distribution_major_version
      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
+
+- name: 'Add authorized keys on secondaries'
+  hosts: 'secondary'
+  roles:
+    - role: auth_keys
 
 - name: 'Install tower on primary instances'
   hosts: 'primary'
