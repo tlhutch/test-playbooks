@@ -84,18 +84,13 @@ class Unified_Job_Template_Page(Base):
             delete()
         except Method_Not_Allowed_Exception as e:
             if "there are jobs running" in e[1]['error']:
-                jobs = self.get_related('jobs')
-                waiting_for = []
+                jobs = self.get_related('jobs', status__in=','.join(['new', 'pending', 'waiting', 'running']))
                 for job in jobs.results:
-                    if job.status in ('new', 'pending', 'waiting', 'running'):
-                        waiting_for.append(job)
-                        cancel = job.get_related('cancel')
-                        if cancel.can_cancel:
-                            cancel.post()
-                if waiting_for:
-                    for job in waiting_for:
-                        common.utils.wait_until(job, 'status', ('successful', 'failed', 'error', 'canceled'),
-                                                timeout=60)
+                    cancel = job.get_related('cancel')
+                    if cancel.can_cancel:
+                        cancel.post()
+                for job in jobs.results:
+                    job.wait_until_completed()
                 delete()
             else:
                 raise(e)
