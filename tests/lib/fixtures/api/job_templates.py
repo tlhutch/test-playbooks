@@ -25,7 +25,7 @@ def job_template_no_credential(request, authtoken, api_job_templates_pg, project
                    playbook='site.yml',  # This depends on the project selected
                    ask_credential_on_launch='true')
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.cleanup)
     return obj
 
 
@@ -41,7 +41,7 @@ def job_template_with_random_limit(request, authtoken, api_job_templates_pg, pro
                    credential=ssh_credential.id,
                    playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.cleanup)
     return obj
 
 
@@ -57,7 +57,7 @@ def job_template_with_random_tag(request, authtoken, api_job_templates_pg, proje
                    credential=ssh_credential.id,
                    playbook='test/integration/test_tags.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.cleanup)
     return obj
 
 
@@ -72,7 +72,7 @@ def job_template_ask(request, authtoken, api_job_templates_pg, project, host_loc
                    credential=ssh_credential_ask.id,
                    playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.cleanup)
     return obj
 
 
@@ -87,7 +87,7 @@ def job_template_multi_ask(request, authtoken, api_job_templates_pg, project, ho
                    credential=ssh_credential_multi_ask.id,
                    playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.cleanup)
     return obj
 
 
@@ -103,7 +103,7 @@ def job_template_ansible_playbooks_git(request, authtoken, api_job_templates_pg,
                    credential=ssh_credential.id,
                    playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     return obj
 
 
@@ -119,7 +119,7 @@ def job_template(request, authtoken, api_job_templates_pg, project, host_local, 
                    credential=ssh_credential.id,
                    playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     return obj
 
 
@@ -130,7 +130,7 @@ def another_job_template(request, authtoken, api_job_templates_pg, job_template)
     payload = job_template.json
     payload.update(name="Another job template - %s" % fauxfactory.gen_utf8())
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     return obj
 
 
@@ -147,7 +147,7 @@ def job_template_with_extra_vars(request, authtoken, api_job_templates_pg, proje
                    playbook='site.yml',  # This depends on the project selected
                    extra_vars=json.dumps(dict(one=1, two=2, three=3, intersection="job template")))
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.cleanup)
     return obj
 
 
@@ -168,7 +168,7 @@ def scan_job_template(request, authtoken, api_job_templates_pg, ssh_credential, 
                    credential=ssh_credential.id,
                    playbook='Default', )
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.cleanup)
     return obj
 
 
@@ -216,7 +216,7 @@ def job_template_with_ssh_connection(request, testsetup, ansible_facts,
                    verbosity=4,
                    playbook='site.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.cleanup)
     return obj
 
 

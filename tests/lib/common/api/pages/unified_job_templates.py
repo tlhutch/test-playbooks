@@ -1,5 +1,6 @@
-import common.utils
 from common.api.pages import Base, Base_List, json_setter, json_getter
+from common.exceptions import Method_Not_Allowed_Exception
+import common.utils
 
 
 class Unified_Job_Template_Page(Base):
@@ -69,6 +70,35 @@ class Unified_Job_Template_Page(Base):
         return self.status == 'successful' and \
             not self.last_update_failed and \
             self.last_updated is not None
+
+    def cleanup(self):
+        return self._cleanup()
+
+    def silent_cleanup(self):
+        return self._cleanup(silent=True)
+
+    def _cleanup(self, silent=False):
+        delete = {True: self.silent_delete,
+                  False: self.delete}[silent]
+        try:
+            delete()
+        except Method_Not_Allowed_Exception as e:
+            if "there are jobs running" in e[1]['error']:
+                jobs = self.get_related('jobs')
+                waiting_for = []
+                for job in jobs.results:
+                    if job.status in ('new', 'pending', 'waiting', 'running'):
+                        waiting_for.append(job)
+                        cancel = job.get_related('cancel')
+                        if cancel.can_cancel:
+                            cancel.post()
+                if waiting_for:
+                    for job in waiting_for:
+                        common.utils.wait_until(job, 'status', ('successful', 'failed', 'error', 'canceled'),
+                                                timeout=60)
+                delete()
+            else:
+                raise(e)
 
 
 class Unified_Job_Templates_Page(Unified_Job_Template_Page, Base_List):
