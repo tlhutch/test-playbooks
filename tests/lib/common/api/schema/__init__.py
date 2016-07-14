@@ -36,16 +36,8 @@ class Schema_Collection(object):
     def get_schema(self, version, resource, request='get'):
         # Remove any query string parameters '?...'
         resource = urlparse(resource).path
-        resource_store = resource
         # Lowercase the request string
         request = request.lower()
-
-        if resource_store in self._schema_cache:
-            if request in self._schema_cache[resource_store]:
-                logging.debug("get_schema version:%s, request:%s, resource:%s cache hit" % (version, request, resource))
-                return self._schema_cache[resource_store][request]
-        else:
-            self._schema_cache[resource_store] = {}
 
         logging.debug("get_schema version:%s, request:%s, resource:%s" % (version, request, resource))
 
@@ -65,6 +57,13 @@ class Schema_Collection(object):
                     resource = match_re
                     break
 
+        if resource in self._schema_cache:
+            if request in self._schema_cache[resource]:
+                logging.debug("get_schema version:%s, request:%s, resource:%s cache hit" % (version, request, resource))
+                return self._schema_cache[resource][request]
+        else:
+            self._schema_cache[resource] = {}
+
         # Assert the resource exists
         if resource not in self.schemas[version]:
             raise SchemaResourceNotFound(
@@ -82,7 +81,7 @@ class Schema_Collection(object):
             )
 
         schema = getattr(self.schemas[version][resource], request)
-        self._schema_cache[resource_store][request] = schema
+        self._schema_cache[resource][request] = schema
         return schema
 
 
