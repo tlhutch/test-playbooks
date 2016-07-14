@@ -93,18 +93,17 @@
     * [x] ol-7.latest
 1. Installation completes successfully using supported ansible releases
     * [x] ansible-2.1
-    * [ ] ansible-2.0? (Ask Laska)
     * [x] ansible-1.9.x
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed) (Automated)
     * [ ] Vagrant (Jim)
 1. Bundled installation completes successfully on all supported platforms (Automated)
-    * [ ] rhel-6.latest
-    * [ ] rhel-7.latest
-    * [ ] centos-6.latest
-    * [ ] centos-7.latest
-    * [ ] ol-6.latest
-    * [ ] ol-7.latest
+    * [x] rhel-6.latest
+    * [x] rhel-7.latest
+    * [x] centos-6.latest
+    * [x] centos-7.latest
+    * [x] ol-6.latest
+    * [x] ol-7.latest
 
 ### Upgrades
 1. [ ] Upgrade completes on all supported platforms from `2.4.*` (Ryan)
