@@ -83,3 +83,11 @@ class Test_Teams(Base_Api_Test):
         with self.current_user(non_superuser.username, user_password):
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 api_teams_pg.post(team_payload(organization=another_organization.id))
+
+    def test_organization_cascade_delete(self, team):
+        '''
+        Verifies that teams get cascade deleted along with their organization.
+        '''
+        team.get_related("organization").delete()
+        with pytest.raises(common.exceptions.NotFound_Exception):
+            team.get()
