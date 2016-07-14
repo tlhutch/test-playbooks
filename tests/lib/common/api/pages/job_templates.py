@@ -136,6 +136,22 @@ class Job_Template_Page(Unified_Job_Template_Page):
             (result.json['job'], self.url)
         return jobs_pg.results[0]
 
+    def _cleanup(self, delete_method):
+        try:
+            delete_method()
+        except Method_Not_Allowed_Exception as e:
+            if "there are jobs running" in e[1]['error']:
+                jobs = self.get_related('jobs', status__in=','.join(['new', 'pending', 'waiting', 'running']))
+                for job in jobs.results:
+                    cancel = job.get_related('cancel')
+                    if cancel.can_cancel:
+                        cancel.post()
+                for job in jobs.results:
+                    job.wait_until_completed()
+                delete_method()
+            else:
+                raise(e)
+
 
 class Job_Templates_Page(Job_Template_Page, Base_List):
     base_url = '/api/v1/job_templates/'

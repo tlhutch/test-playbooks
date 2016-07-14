@@ -72,28 +72,13 @@ class Unified_Job_Template_Page(Base):
             self.last_updated is not None
 
     def cleanup(self):
-        return self._cleanup()
+        return self._cleanup(self.delete)
 
     def silent_cleanup(self):
-        return self._cleanup(silent=True)
+        return self._cleanup(self.silent_delete)
 
-    def _cleanup(self, silent=False):
-        delete = {True: self.silent_delete,
-                  False: self.delete}[silent]
-        try:
-            delete()
-        except Method_Not_Allowed_Exception as e:
-            if "there are jobs running" in e[1]['error']:
-                jobs = self.get_related('jobs', status__in=','.join(['new', 'pending', 'waiting', 'running']))
-                for job in jobs.results:
-                    cancel = job.get_related('cancel')
-                    if cancel.can_cancel:
-                        cancel.post()
-                for job in jobs.results:
-                    job.wait_until_completed()
-                delete()
-            else:
-                raise(e)
+    def _cleanup(self, delete_method):
+        raise(NotImplementedError)
 
 
 class Unified_Job_Templates_Page(Unified_Job_Template_Page, Base_List):
