@@ -1,4 +1,5 @@
 from common.api.pages import Base, Base_List, Unified_Job_Template_Page, json_setter, json_getter
+from common.exceptions import Method_Not_Allowed_Exception
 
 
 class Job_Template_Callback_Page(Base):
