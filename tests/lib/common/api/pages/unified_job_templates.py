@@ -1,5 +1,5 @@
-import common.utils
 from common.api.pages import Base, Base_List, json_setter, json_getter
+import common.utils
 
 
 class Unified_Job_Template_Page(Base):
@@ -69,6 +69,15 @@ class Unified_Job_Template_Page(Base):
         return self.status == 'successful' and \
             not self.last_update_failed and \
             self.last_updated is not None
+
+    def cleanup(self):
+        return self._cleanup(self.delete)
+
+    def silent_cleanup(self):
+        return self._cleanup(self.silent_delete)
+
+    def _cleanup(self, delete_method):
+        raise(NotImplementedError)
 
 
 class Unified_Job_Templates_Page(Unified_Job_Template_Page, Base_List):

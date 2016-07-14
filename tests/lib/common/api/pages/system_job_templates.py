@@ -51,6 +51,9 @@ class System_Job_Template_Page(Unified_Job_Template_Page):
             "job at %s/jobs/" % (result.json['job'], self.url)
         return jobs_pg.results[0]
 
+    def _cleanup(self, delete_method):
+        delete_method()
+
 
 class System_Job_Templates_Page(System_Job_Template_Page, Base_List):
     base_url = '/api/v1/system_job_templates/'

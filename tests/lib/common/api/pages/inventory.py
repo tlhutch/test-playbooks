@@ -287,6 +287,9 @@ class Inventory_Source_Page(Unified_Job_Template_Page):
         '''
         return self.source != "" and super(Inventory_Source_Page, self).is_successful
 
+    def _cleanup(self, delete_method):
+        delete_method()
+
 
 class Inventory_Sources_Page(Inventory_Source_Page, Base_List):
     base_url = '/api/v1/inventory_sources/'
