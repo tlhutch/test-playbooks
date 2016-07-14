@@ -144,9 +144,7 @@ class Job_Template_Page(Unified_Job_Template_Page):
             if "there are jobs running" in e[1]['error']:
                 jobs = self.get_related('jobs', status__in=','.join(['new', 'pending', 'waiting', 'running']))
                 for job in jobs.results:
-                    cancel = job.get_related('cancel')
-                    if cancel.can_cancel:
-                        cancel.post()
+                    job.cancel()
                 for job in jobs.results:
                     job.wait_until_completed()
                 delete_method()

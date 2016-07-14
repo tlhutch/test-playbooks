@@ -1,6 +1,12 @@
+import logging
 import time
-import common.utils
+
 from common.api.pages import Base, json_getter, json_setter
+from common.exceptions import Method_Not_Allowed_Exception
+import common.utils
+
+
+log = logging.getLogger(__name__)
 
 
 class Unified_Job_Page(Base):
@@ -86,3 +92,16 @@ class Unified_Job_Page(Base):
         return self.wait_until_status(
             ('successful', 'failed', 'error', 'canceled',),
             interval=interval, verbose=verbose, timeout=timeout)
+
+    def cancel(self):
+        cancel = self.get_related('cancel')
+        if not cancel.can_cancel:
+            log.debug('{} not able to be canceled.  No action taken.'.format(self))
+            return
+        try:
+            cancel.post()
+        except Method_Not_Allowed_Exception as e:
+            # Race condition where job finishes between can_cancel
+            # check and post.
+            if "not allowed" not in e[1]['error']:
+                raise(e)
