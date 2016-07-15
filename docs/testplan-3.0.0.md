@@ -92,6 +92,7 @@
     * [x] ol-6.latest
     * [x] ol-7.latest
 1. Installation completes successfully using supported ansible releases
+    * [x] ansible-2.2 (devel branch)
     * [x] ansible-2.1
     * [x] ansible-1.9.x
 1. Installation completes successfully on supported images
