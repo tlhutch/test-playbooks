@@ -1,8 +1,8 @@
 import logging
 import inspect
 import httplib
+
 from common.api.pages import Page
-# from page import Page
 from common.api.schema import validate
 import common.exceptions
 
@@ -68,7 +68,12 @@ class Base(Page):
             data = dict()
 
         exc_str = "%s (%s) received" % (httplib.responses[r.status_code], r.status_code)
-        if r.status_code in (httplib.OK, httplib.CREATED, httplib.ACCEPTED):
+
+        exception = exception_from_status_code(r.status_code)
+        if exception:
+            raise(exception(exc_str, data))
+
+        elif r.status_code in (httplib.OK, httplib.CREATED, httplib.ACCEPTED):
             self.validate_json(json=data, request=r.request.method)
 
             # Not all JSON responses include a URL.  Grab it from the request
@@ -99,10 +104,6 @@ class Base(Page):
             # object.
             else:
                 return self.__item_class__(self.testsetup, base_url=base_url, json=self.json)
-        elif r.status_code == httplib.NO_CONTENT:
-            raise common.exceptions.NoContent_Exception(exc_str)
-        elif r.status_code == httplib.NOT_FOUND:
-            raise common.exceptions.NotFound_Exception(exc_str, data)
         elif r.status_code == httplib.FORBIDDEN:
             try:
                 self.validate_json(json=data, request='license_exceeded')
@@ -126,15 +127,6 @@ class Base(Page):
 
             # No custom 400 exception was raised, raise a generic 400 BAD_REQUEST exception
             raise common.exceptions.BadRequest_Exception(exc_str, data)
-
-        elif r.status_code == httplib.INTERNAL_SERVER_ERROR:
-            raise common.exceptions.InternalServerError_Exception(exc_str, data)
-        elif r.status_code == httplib.METHOD_NOT_ALLOWED:
-            raise common.exceptions.Method_Not_Allowed_Exception(exc_str, data)
-        elif r.status_code == httplib.UNAUTHORIZED:
-            raise common.exceptions.Unauthorized_Exception(exc_str, data)
-        elif r.status_code == httplib.PAYMENT_REQUIRED:
-            raise common.exceptions.PaymentRequired_Exception(exc_str, data)
         else:
             raise common.exceptions.Unknown_Exception(exc_str, data)
 
@@ -188,6 +180,19 @@ class Base(Page):
         url = self.get().json.related.object_roles
         for obj_role in Roles_Page(self.testsetup, base_url=url).get().json.results:
             yield Role_Page(self.testsetup, base_url=obj_role.url).get()
+
+
+_exception_map = {httplib.NO_CONTENT: common.exceptions.NoContent_Exception,
+                  httplib.NOT_FOUND: common.exceptions.NotFound_Exception,
+                  httplib.INTERNAL_SERVER_ERROR: common.exceptions.InternalServerError_Exception,
+                  httplib.METHOD_NOT_ALLOWED: common.exceptions.Method_Not_Allowed_Exception,
+                  httplib.UNAUTHORIZED: common.exceptions.Unauthorized_Exception,
+                  httplib.PAYMENT_REQUIRED: common.exceptions.PaymentRequired_Exception,
+                  httplib.CONFLICT: common.exceptions.Conflict_Exception}
+
+
+def exception_from_status_code(status_code):
+    return _exception_map.get(status_code, None)
 
 
 class Base_List(Base):
