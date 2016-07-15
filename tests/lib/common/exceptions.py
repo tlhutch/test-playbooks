@@ -1,46 +1,57 @@
-class BadRequest_Exception(Exception):
+class Common_Exception(Exception):
+
+    def __init__(self, status_string, data=''):
+        self.message = data
+
+
+class BadRequest_Exception(Common_Exception):
     pass
 
 
-class Duplicate_Exception(Exception):
+class Conflict_Exception(Common_Exception):
     pass
 
 
-class NoContent_Exception(Exception):
+class Duplicate_Exception(Common_Exception):
     pass
 
 
-class Forbidden_Exception(Exception):
+class Forbidden_Exception(Common_Exception):
     pass
 
 
-class LicenseInvalid_Exception(Exception):
+class InternalServerError_Exception(Common_Exception):
     pass
 
 
-class LicenseExceeded_Exception(Exception):
+class LicenseInvalid_Exception(Common_Exception):
     pass
 
 
-class Method_Not_Allowed_Exception(Exception):
+class LicenseExceeded_Exception(Common_Exception):
     pass
 
 
-class InternalServerError_Exception(Exception):
+class Method_Not_Allowed_Exception(Common_Exception):
     pass
 
 
-class NotFound_Exception(Exception):
+class NoContent_Exception(Common_Exception):
+
+    message = ''
+
+
+class NotFound_Exception(Common_Exception):
     pass
 
 
-class Unauthorized_Exception(Exception):
+class PaymentRequired_Exception(Common_Exception):
     pass
 
 
-class Unknown_Exception(Exception):
+class Unauthorized_Exception(Common_Exception):
     pass
 
 
-class PaymentRequired_Exception(Exception):
+class Unknown_Exception(Common_Exception):
     pass
