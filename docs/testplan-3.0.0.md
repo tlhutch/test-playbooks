@@ -96,8 +96,8 @@
     * [x] ansible-2.1
     * [x] ansible-1.9.x
 1. Installation completes successfully on supported images
-    * [ ] AMI (unlicensed) (Automated)
-    * [ ] Vagrant (Jim)
+    * [ ] AMI (unlicensed) (Jim/James L.)
+    * [x] Vagrant (Jim/James L.)
 1. Bundled installation completes successfully on all supported platforms (Automated)
     * [x] rhel-6.latest
     * [x] rhel-7.latest
