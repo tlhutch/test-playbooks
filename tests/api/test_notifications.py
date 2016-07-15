@@ -1,5 +1,3 @@
-import json
-
 import pytest
 import logging
 import common.exceptions
@@ -203,12 +201,8 @@ class Test_Notifications(Base_Api_Test):
     @pytest.mark.destructive
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
     @pytest.mark.parametrize("resource", ['organization', 'project', 'job_template'])
-    def test_notification_inheritance(self, request, resource, job_template, notification_template, job_result,
-                                      testsetup, api_notifications_pg):
+    def test_notification_inheritance(self, request, resource, job_template, notification_template, job_result, testsetup):
         '''Test inheritance of notifications when notification template attached to various tower resources'''
-        # Get initial state
-        notifications_count = api_notifications_pg.get().count
-
         # Get reference to resource
         if resource == "organization":
             resource = job_template.get_related('project').get_related('organization')
@@ -226,60 +220,24 @@ class Test_Notifications(Base_Api_Test):
         job = job_template.launch().wait_until_completed(timeout=60 * 4)
         assert job.is_successful, "Job unsuccessful - %s" % job
 
-        # Check notification in notification stream
-        notifications = api_notifications_pg.get(order_by="-id")
-        notifications_count_updated = notifications.count
-        if job_result in ('any', 'success'):
-            assert notifications_count_updated == notifications_count + 1, \
-                "Expected %s notifications, found %s" % \
-                (notifications_count + 1, notifications_count_updated)
-
-            # Get notification
-            last_notif = notifications.results[0].wait_until_completed()
-
-            tower_msg = expected_job_notification(testsetup.base_url, notification_template, job, job_result, True)
-            assert last_notif.is_successful, "Notification was unsuccessful - %s" % last_notif
-            assert last_notif.subject == tower_msg, \
-                "Expected most recent notification to be (%s), found (%s)" % (tower_msg, last_notif.subject)
-            assert last_notif.notifications_sent == 1, \
-                "notification reports sending %s notifications (only one actually sent)" % last_notif.notifications_sent
-            assert last_notif.notification_type == notification_template.notification_type
-            assert last_notif.notification_template == notification_template.id, \
-                "Expected notification to be associated with notification template %s, found %s" % \
-                (notification_template.id, last_notif.notification_template)
-            # TODO: Test recipients field
-        else:
-            assert notifications_count_updated == notifications_count, \
-                "Expected %s notifications, found %s" % \
-                (notifications_count, notifications_count_updated)
-
         # Check notification in job
-        job_notifications = job.get_related('notifications')
-        if job_result == 'any' or job_result == 'success':
-            assert job_notifications.count == 1, \
-                "Expected job to have 1 notification, found %s" % job_notifications.count
-            job_notification = job_notifications.results[0]
-            assert job_notification.json == last_notif.json, \
-                ("Notification on /notifications endpoint is:\n%s\n\n" +
-                 "Notification on job's notification endpoint is:\n%s\n") \
-                % (json.dumps(last_notif.json, indent=2), json.dumps(job_notification.json, indent=2))
-        else:
-            assert job_notifications.count == 0, \
-                "Expected job to have 0 notifications, found %s" % job_notifications.count
-
-        # Check notification in 'recent_notifications' (of notification template)
-        assert 'recent_notifications' in notification_template.summary_fields, \
-            "Could not find 'recent_notifications' in notification template summary fields"
-        recent_notifications = notification_template.get().summary_fields['recent_notifications']
-        matching_notifications = [notification for notification in recent_notifications if notification['id'] == last_notif.id]
-        if job_result == 'any' or job_result == 'success':
-            assert len(matching_notifications) == 1, \
-                "Expected notification's recent_notifications to list notification once, found it listed %s time(s)." % \
-                len(matching_notifications)
-        else:
-            assert len(matching_notifications) == 0, \
-                "Expected notification's recent_notifications not list any notifications, found it listed %s time(s)." % \
-                len(matching_notifications)
+        notifications_expected = 1 if job_result in ('any', 'success') else 0
+        notifications_pg = job.get_related('notifications').wait_until_count(notifications_expected)
+        assert notifications_pg.count == notifications_expected, \
+            "Expected job to have %s notifications, found %s" % (notifications_expected, notifications_pg.count)
+        if job_result in ('any', 'success'):
+            notification_pg = notifications_pg.results[0].wait_until_completed()
+            tower_msg = expected_job_notification(testsetup.base_url, notification_template, job, job_result, tower_message=True)
+            assert notification_pg.notification_template == notification_template.id, \
+                "Expected notification to be associated with notification template %s, found %s" % \
+                (notification_template.id, notification_pg.notification_template)
+            assert notification_pg.subject == tower_msg, \
+                "Expected most recent notification to be (%s), found (%s)" % (tower_msg, notification_pg.subject)
+            assert notification_pg.is_successful, "Notification was unsuccessful - %s" % notification_pg
+            assert notification_pg.notifications_sent == 1, \
+                "notification reports sending %s notifications (only one actually sent)" % notification_pg.notifications_sent
+            assert notification_pg.notification_type == notification_template.notification_type
+            # TODO: Test recipients field
 
         # Check notification in notification service
         if can_confirm_notification(notification_template):
