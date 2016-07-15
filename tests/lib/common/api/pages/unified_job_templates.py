@@ -70,15 +70,6 @@ class Unified_Job_Template_Page(Base):
             not self.last_update_failed and \
             self.last_updated is not None
 
-    def cleanup(self):
-        return self._cleanup(self.delete)
-
-    def silent_cleanup(self):
-        return self._cleanup(self.silent_delete)
-
-    def _cleanup(self, delete_method):
-        raise(NotImplementedError)
-
 
 class Unified_Job_Templates_Page(Unified_Job_Template_Page, Base_List):
     base_url = '/api/v1/unified_job_templates/'

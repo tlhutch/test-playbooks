@@ -72,7 +72,7 @@ def inventory(request, authtoken, api_inventories_pg, organization):
                    description="Random inventory - %s" % fauxfactory.gen_utf8(),
                    organization=organization.id,)
     obj = api_inventories_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     return obj
 
 
@@ -82,7 +82,7 @@ def another_inventory(request, authtoken, api_inventories_pg, organization):
                    description="Random inventory - %s" % fauxfactory.gen_utf8(),
                    organization=organization.id,)
     obj = api_inventories_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     return obj
 
 
@@ -113,7 +113,7 @@ def host_with_default_ipv4_in_variables(request, authtoken, api_hosts_pg, group,
                    variables=json.dumps(dict(ansible_ssh_host=ansible_default_ipv4, ansible_connection="local")),
                    inventory=group.inventory,)
     obj = api_hosts_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     # Add to group
     with pytest.raises(common.exceptions.NoContent_Exception):
         obj.get_related('groups').post(dict(id=group.id))
@@ -147,7 +147,7 @@ def hosts_with_name_matching_local_ipv4_addresses(request, authtoken, group, loc
                        description="test host %s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
         obj = group.get_related('hosts').post(payload)
-        request.addfinalizer(obj.silent_delete)
+        request.addfinalizer(obj.silent_cleanup)
         # Add to group
         with pytest.raises(common.exceptions.NoContent_Exception):
             obj.get_related('groups').post(dict(id=group.id))
@@ -161,7 +161,7 @@ def group(request, authtoken, api_groups_pg, inventory):
                    description="group description - %s" % fauxfactory.gen_utf8(),
                    inventory=inventory.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     return obj
 
 
@@ -177,7 +177,7 @@ def host_local(request, authtoken, api_hosts_pg, inventory, group):
                    variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
                    inventory=inventory.id,)
     obj = api_hosts_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     # Add host to group
     with pytest.raises(common.exceptions.NoContent_Exception):
         obj.get_related('groups').post(dict(id=group.id))
@@ -190,7 +190,7 @@ def host_with_default_connection(request, authtoken, api_hosts_pg, inventory, gr
                    description="a non-random local host",
                    inventory=inventory.id,)
     obj = api_hosts_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     # Add host to group
     with pytest.raises(common.exceptions.NoContent_Exception):
         obj.get_related('groups').post(dict(id=group.id))
@@ -204,7 +204,7 @@ def host_without_group(request, authtoken, inventory):
                    variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
                    inventory=inventory.id,)
     obj = inventory.get_related('hosts').post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     return obj
 
 
@@ -215,7 +215,7 @@ def host(request, authtoken, api_hosts_pg, inventory, group):
                    variables=json.dumps(dict(ansible_ssh_host="127.0.0.1", ansible_connection="local")),
                    inventory=inventory.id,)
     obj = api_hosts_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     # Add host to group
     with pytest.raises(common.exceptions.NoContent_Exception):
         obj.get_related('groups').post(dict(id=group.id))
@@ -257,7 +257,7 @@ def inventory_script(request, authtoken, api_inventory_scripts_pg, script_source
                    organization=organization.id,
                    script=script_source)
     obj = api_inventory_scripts_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     return obj
 
 
@@ -271,7 +271,7 @@ def aws_group(request, authtoken, api_groups_pg, inventory, aws_credential):
                    inventory=inventory.id,
                    credential=aws_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
 
     # Set the inventory_source.sourc = 'ec2'
     inv_source = obj.get_related('inventory_source')
@@ -294,7 +294,7 @@ def rax_group(request, authtoken, api_groups_pg, inventory, rax_credential):
                    inventory=inventory.id,
                    credential=rax_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
 
     # Set the inventory_source.sourc = 'rax'
     inv_source = obj.get_related('inventory_source')
@@ -317,7 +317,7 @@ def azure_group(request, authtoken, api_groups_pg, inventory, azure_credential):
                    inventory=inventory.id,
                    credential=azure_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
 
     # Set the inventory_source.sourc = 'azure'
     inv_source = obj.get_related('inventory_source')
@@ -340,7 +340,7 @@ def gce_group(request, authtoken, api_groups_pg, inventory, gce_credential):
                    inventory=inventory.id,
                    credential=gce_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
 
     # Set the inventory_source.sourc = 'gce'
     inv_source = obj.get_related('inventory_source')
@@ -363,7 +363,7 @@ def vmware_group(request, authtoken, api_groups_pg, inventory, vmware_credential
                    inventory=inventory.id,
                    credential=vmware_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
 
     # Set the inventory_source.sourc = 'vmware'
     inv_source = obj.get_related('inventory_source')
@@ -386,7 +386,7 @@ def openstack_v2_group(request, authtoken, api_groups_pg, inventory, openstack_v
                    inventory=inventory.id,
                    credential=openstack_v2_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
 
     # Set the inventory_source.sourc = 'openstack'
     inv_source = obj.get_related('inventory_source')
@@ -404,7 +404,7 @@ def openstack_v3_group(request, authtoken, api_groups_pg, inventory, openstack_v
                    inventory=inventory.id,
                    credential=openstack_v3_credential.id)
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
 
     # Set the inventory_source.sourc = 'openstack'
     inv_source = obj.get_related('inventory_source')
@@ -440,7 +440,7 @@ def custom_group(request, authtoken, api_groups_pg, inventory, inventory_script)
                    inventory=inventory.id,
                    variables=json.dumps(dict(my_group_variable=True)))
     obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
 
     # Set the inventory_source
     inv_source = obj.get_related('inventory_source')

@@ -104,9 +104,6 @@ class Project_Page(Unified_Job_Template_Page):
         return self.scm_type != "" and \
             super(Project_Page, self).is_successful
 
-    def _cleanup(self, delete_method):
-        delete_method()
-
 
 class Projects_Page(Project_Page, Base_List):
     base_url = '/api/v1/projects/'

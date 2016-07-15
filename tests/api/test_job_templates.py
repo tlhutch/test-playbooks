@@ -911,7 +911,7 @@ class Test_Job_Template(Base_Api_Test):
         job_pg = job_template_sleep.launch().wait_until_started()
 
         # delete the job_template
-        with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
+        with pytest.raises(common.exceptions.Conflict_Exception):
             job_template_sleep.delete()
 
         # wait for completion and assert success

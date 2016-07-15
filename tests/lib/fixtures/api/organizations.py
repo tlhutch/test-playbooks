@@ -27,7 +27,7 @@ def organization(request, authtoken, api_config_pg, api_organizations_pg):
         payload = dict(name="Random organization %s" % fauxfactory.gen_utf8(),
                        description="Random organization - %s" % fauxfactory.gen_utf8())
         obj = api_organizations_pg.post(payload)
-        request.addfinalizer(obj.silent_delete)
+        request.addfinalizer(obj.silent_cleanup)
         return obj
 
 
@@ -36,5 +36,5 @@ def another_organization(request, authtoken, api_organizations_pg):
     payload = dict(name="org-%s" % fauxfactory.gen_utf8(),
                    description="Another random organization - %s" % fauxfactory.gen_utf8())
     obj = api_organizations_pg.post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     return obj

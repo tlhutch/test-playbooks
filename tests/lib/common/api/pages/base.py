@@ -2,8 +2,8 @@ import logging
 import inspect
 import httplib
 
-from common.api.pages import Page
 from common.api.schema import validate
+from common.api.pages import Page
 import common.exceptions
 
 
@@ -180,6 +180,31 @@ class Base(Page):
         url = self.get().json.related.object_roles
         for obj_role in Roles_Page(self.testsetup, base_url=url).get().json.results:
             yield Role_Page(self.testsetup, base_url=obj_role.url).get()
+
+    def cleanup(self):
+        return self._cleanup(self.delete)
+
+    def silent_cleanup(self):
+        return self._cleanup(self.silent_delete)
+
+    def _cleanup(self, delete_method):
+        try:
+            delete_method()
+        except common.exceptions.Conflict_Exception as e:
+            if "running jobs" in e.message['conflict']:
+                from common.api.pages import Job_Page
+                active_jobs = e.message.get('active_jobs', [])
+                jobs = []
+                for active_job in active_jobs:
+                    if active_job['type'] == 'job':
+                        job = Job_Page(self.testsetup, base_url='/api/v1/jobs/{}/'.format(active_job['id'])).get()
+                        jobs.append(job)
+                        job.cancel()
+                for job in jobs:
+                    job.wait_until_completed(raise_on_timeout=True)
+                delete_method()
+            else:
+                raise(e)
 
 
 _exception_map = {httplib.NO_CONTENT: common.exceptions.NoContent_Exception,
