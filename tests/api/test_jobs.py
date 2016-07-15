@@ -992,7 +992,9 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
 @pytest.fixture(scope="function")
 def cloud_inventory_job_template(request, job_template, cloud_group):
     # PATCH the job_template with the correct inventory and cloud_credential
-    job_template.patch(inventory=cloud_group.inventory)
+    # Also, substitute in no-op playbook that does not attempt to connect to host
+    job_template.patch(inventory=cloud_group.inventory,
+                       playbook='debug.yml')
     return job_template
 
 
