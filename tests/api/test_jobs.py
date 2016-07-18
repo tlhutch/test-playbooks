@@ -1053,9 +1053,10 @@ class Test_Update_On_Launch(Base_Api_Test):
             json.dumps(rax_inventory_source.json, indent=4)
 
         # 2) Update job_template to cloud inventory
+        #    Also, substitute in no-op playbook that does not attempt to connect to host
         assert rax_inventory_source.inventory == aws_inventory_source.inventory, \
             "The inventory differs between the two inventory sources"
-        job_template.patch(inventory=aws_inventory_source.inventory)
+        job_template.patch(inventory=aws_inventory_source.inventory, playbook='debug.yml')
 
         # 3) Launch job_template and wait for completion
         job_template.launch_job().wait_until_completed(timeout=50 * 10)
@@ -1176,7 +1177,8 @@ class Test_Update_On_Launch(Base_Api_Test):
         assert inv_src_pg.update_on_launch
 
         # 3) Update job_template to cloud inventory
-        job_template_ansible_playbooks_git.patch(inventory=cloud_group.inventory)
+        #    Also, substitute in no-op playbook that does not attempt to connect to host
+        job_template_ansible_playbooks_git.patch(inventory=cloud_group.inventory, playbook='debug.yml')
 
         # 4) Launch job_template and wait for completion
         job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
