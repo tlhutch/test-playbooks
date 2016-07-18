@@ -1282,10 +1282,10 @@ job_templates:
       extra_vars:
         who_does_number_two_work_fork: one
 
-    - name: 'helloworld/site.yml (limit:local)'
+    - name: 'helloworld/debug.yml (limit:local)'
       job_type: run
       project: ansible-helloworld.hg (manual)
-      playbook: site.yml
+      playbook: debug.yml
       inventory: inventory-all
       credential: 'SSH (user:bender_eng_user, password:***)'
       limit: local

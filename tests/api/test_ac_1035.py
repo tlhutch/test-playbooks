@@ -99,7 +99,7 @@ def job_templates_json(request, authtoken, api_job_templates_pg, project, ssh_cr
                    inventory=inventory_json.id,
                    job_type='run',
                    project=project.id,
-                   playbook='site.yml',
+                   playbook='debug.yml',
                    credential=ssh_credential.id)
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
@@ -113,7 +113,7 @@ def job_templates_yaml(request, authtoken, api_job_templates_pg, project, ssh_cr
                    inventory=inventory_yaml.id,
                    job_type='run',
                    project=project.id,
-                   playbook='site.yml',
+                   playbook='debug.yml',
                    credential=ssh_credential.id)
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
