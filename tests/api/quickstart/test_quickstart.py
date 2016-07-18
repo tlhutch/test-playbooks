@@ -574,7 +574,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         except BadRequest_Exception, e:
             # Similar to Duplicate_Exception but occurs when all projects in local
             # directory are claimed (for repeated manual project runs).
-            if "Invalid path choice" in str(e):
+            if "Invalid path choice" in e.message.get('local_path', [''])[0]:
                 pytest.xfail(str(e))
             raise
 
