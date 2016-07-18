@@ -2,7 +2,7 @@
 ###############################################################################
 #
 # Description:
-#  * Helper script to contruct a vars.yml and run the site.yml play
+#  * Helper script to contruct a vars.yml and run the playbook specified
 #
 # Author:
 #  * James Laska <jlaska@ansible.com>

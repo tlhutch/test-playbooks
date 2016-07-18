@@ -22,7 +22,7 @@ def job_template_no_credential(request, authtoken, api_job_templates_pg, project
                    inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project.id,
-                   playbook='site.yml',  # This depends on the project selected
+                   playbook='debug.yml',  # This depends on the project selected
                    ask_credential_on_launch='true')
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.cleanup)
@@ -39,7 +39,7 @@ def job_template_with_random_limit(request, authtoken, api_job_templates_pg, pro
                    project=project.id,
                    limit='Random limit - %s' % fauxfactory.gen_utf8(),
                    credential=ssh_credential.id,
-                   playbook='site.yml', )  # This depends on the project selected
+                   playbook='debug.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.cleanup)
     return obj
@@ -70,7 +70,7 @@ def job_template_ask(request, authtoken, api_job_templates_pg, project, host_loc
                    job_type='run',
                    project=project.id,
                    credential=ssh_credential_ask.id,
-                   playbook='site.yml', )  # This depends on the project selected
+                   playbook='debug.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.cleanup)
     return obj
@@ -85,7 +85,7 @@ def job_template_multi_ask(request, authtoken, api_job_templates_pg, project, ho
                    job_type='run',
                    project=project.id,
                    credential=ssh_credential_multi_ask.id,
-                   playbook='site.yml', )  # This depends on the project selected
+                   playbook='debug.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.cleanup)
     return obj
@@ -101,7 +101,7 @@ def job_template_ansible_playbooks_git(request, authtoken, api_job_templates_pg,
                    job_type='run',
                    project=project_ansible_playbooks_git.id,
                    credential=ssh_credential.id,
-                   playbook='site.yml', )  # This depends on the project selected
+                   playbook='debug.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.silent_cleanup)
     return obj
@@ -117,7 +117,7 @@ def job_template(request, authtoken, api_job_templates_pg, project, host_local, 
                    job_type='run',
                    project=project.id,
                    credential=ssh_credential.id,
-                   playbook='site.yml', )  # This depends on the project selected
+                   playbook='debug.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.silent_cleanup)
     return obj
@@ -144,7 +144,7 @@ def job_template_with_extra_vars(request, authtoken, api_job_templates_pg, proje
                    job_type='run',
                    project=project.id,
                    credential=ssh_credential.id,
-                   playbook='site.yml',  # This depends on the project selected
+                   playbook='debug.yml',  # This depends on the project selected
                    extra_vars=json.dumps(dict(one=1, two=2, three=3, intersection="job template")))
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.cleanup)
@@ -214,7 +214,7 @@ def job_template_with_ssh_connection(request, testsetup, ansible_facts,
                    project=project.id,
                    credential=ssh_credential_with_ssh_key_data_and_sudo.id,
                    verbosity=4,
-                   playbook='site.yml', )  # This depends on the project selected
+                   playbook='debug.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.cleanup)
     return obj
