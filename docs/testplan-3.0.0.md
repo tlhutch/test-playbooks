@@ -20,6 +20,7 @@
 1. [x] Installer updated to only install PSQL
 1. [x] Upgrades disable Mongo and future fact data stored to PSQL
 1. [x] Upon upgrade, old fact data migrated to PSQL
+1. [x] Upon upgrade, previous mongo db kept on system for potential reversions
 
 ### Notifications (Jim/Chris)
 [Feature](https://drive.google.com/open?id=14qb12baMp5aYWVpxXGEKxiC_wX3ZpHe3Bf6hwUue9rI)
@@ -60,7 +61,8 @@
 [Feature](https://drive.google.com/open?id=1fJeLZefxSia0-XSS0Gx_jeG5lYXUkU8V1LD9juEnlDc)
 [Issue](https://github.com/ansible/ansible-tower/issues/1194)
 
-1. [ ] FIXME
+1. [x] Single installation command via setup.sh (wrapped ansible-playbook)
+1. [x] HA Installation topology determined by inventory (includes remote datastore)
 
 ### RedHat Integrations (Laska)
 [Feature](https://docs.google.com/document/d/1a3_HMixPdCTxvLW8kySjyPKygP2QoYhz6iCcseyM020/edit)
@@ -77,8 +79,9 @@
 ## Regression
 1. [ ] UI regression completed (Jake/Shane)
 1. [ ] API regression completed (Chris/Jim)
-1. [ ] Tower HA installation regression completed (Ryan)
-1. [ ] Tower LDAP Integration regression completed (Ryan)
+1. [x] Tower HA installation regression completed (Ryan)
+1. [x] Tower LDAP Integration regression completed (Ryan)
+1. [x] Tower RADIUS Integration regression completed (Ryan)
 1. [ ] Social authentication regression completed (Chris)
 
 ### Installation
@@ -107,9 +110,9 @@
     * [x] ol-7.latest
 
 ### Upgrades
-1. [ ] Upgrade completes on all supported platforms from `2.4.*` (Ryan)
+1. [x] Upgrade completes on all supported platforms from `2.4.*` (Ryan)
 1. Verify the following functions work as intended after upgrade
-    * [ ] Launch project_updates for existing projects
-    * [ ] Launch inventory_udpates for existing inventory_source
-    * [ ] Launch, and relaunch, existing job_templates
-    * [ ] Migrations were successful
+    * [x] Launch project_updates for existing projects
+    * [x] Launch inventory_udpates for existing inventory_source
+    * [x] Launch, and relaunch, existing job_templates
+    * [x] Migrations were successful
