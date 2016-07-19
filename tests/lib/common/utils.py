@@ -6,6 +6,9 @@ import logging
 
 import fauxfactory
 
+from common.exceptions import Wait_Until_Timeout
+
+
 log = logging.getLogger(__name__)
 
 
@@ -29,14 +32,16 @@ class SimpleNamespace:
         return self.__dict__ == other.__dict__
 
 
-def wait_until(obj, att, desired, callback=None, interval=5, attempts=0, timeout=0, start_time=None, verbose=False, verbose_atts=None):
+def wait_until(obj, att, desired, callback=None, interval=5, attempts=0, timeout=0, start_time=None, verbose=False,
+               verbose_atts=None, interval_functions=[], raise_on_timeout=False):
     '''
     When changing the state of an object, it will commonly be in a transitional
     state until the change is complete. This will reload the object every
     `interval` seconds, and check its `att` attribute until the `desired` value
     is reached, or until the maximum number of attempts is reached. The updated
     object is returned. It is up to the calling program to check the returned
-    object to make sure that it successfully reached the desired state.
+    object to make sure that it successfully reached the desired state, unless
+    `raise_on_timeout` is specified (will raise `Wait_Until_Timeout`)
 
     Once the desired value of the attribute is reached, the method returns. If
     not, it will re-try until the attribute's value matches one of the
@@ -66,6 +71,10 @@ def wait_until(obj, att, desired, callback=None, interval=5, attempts=0, timeout
     this will loop indefinitely if a build fails, as the server will never
     reach a status of 'ACTIVE'.
 
+    If a list of functions in `interval_functions` is provided, each function in
+    that list will be called whenever the object's `att` attribute doesn't match
+    the `desired` value for each attempt made.
+
     Since this process of waiting can take a potentially long time, and will
     block your program's execution until the desired state of the object is
     reached, you may specify a callback function. The callback can be any
@@ -84,10 +93,12 @@ def wait_until(obj, att, desired, callback=None, interval=5, attempts=0, timeout
     else:
         return _wait_until(obj=obj, att=att, desired=desired, callback=None,
                            interval=interval, attempts=attempts, timeout=timeout,
-                           start_time=start_time, verbose=verbose, verbose_atts=verbose_atts)
+                           start_time=start_time, verbose=verbose, verbose_atts=verbose_atts,
+                           interval_functions=interval_functions, raise_on_timeout=raise_on_timeout)
 
 
-def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_time, verbose, verbose_atts):
+def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_time, verbose, verbose_atts,
+                interval_functions, raise_on_timeout):
     '''
     Loops until either the desired value of the attribute is reached, or the
     number of attempts is exceeded.
@@ -125,12 +136,20 @@ def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_
         if attval in desired:
             return obj
 
+        for function in interval_functions:
+            function()
+
         if timeout and elapsed > timeout:
             _print_state(obj, att, attval, elapsed, verbose_atts)
             break
 
         time.sleep(interval)
         attempt += 1
+
+    if raise_on_timeout:
+        raise(Wait_Until_Timeout(None, '{0} attribute "{1}" ({2}) failed to become "{3}" in {4}.'
+                                       .format(obj, att, attval, desired, timeout)))
+
     return obj
 
 

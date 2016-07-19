@@ -74,34 +74,33 @@ class Unified_Job_Page(Base):
         return 'Traceback' in self.result_traceback or \
                'Traceback' in self.result_stdout
 
-    def wait_until_status(self, status, interval=1, verbose=0, timeout=60):
+    def wait_until_status(self, status, interval=1, verbose=0, timeout=60, **kw):
         if not isinstance(status, (list, tuple)):
             '''coerce 'status' parameter to a list'''
             status = [status]
         return common.utils.wait_until(
             self, 'status', status,
             interval=interval, verbose=verbose, timeout=timeout,
-            start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
+            start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'), **kw)
 
     def wait_until_started(self, interval=1, verbose=0, timeout=60):
         return self.wait_until_status(
             ('pending', 'running', 'successful', 'failed', 'error', 'canceled',),
             interval=interval, verbose=verbose, timeout=timeout)
 
-    def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 2):
+    def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 2, **kw):
         return self.wait_until_status(
             ('successful', 'failed', 'error', 'canceled',),
-            interval=interval, verbose=verbose, timeout=timeout)
+            interval=interval, verbose=verbose, timeout=timeout, **kw)
 
     def cancel(self):
         cancel = self.get_related('cancel')
         if not cancel.can_cancel:
-            log.debug('{} not able to be canceled.  No action taken.'.format(self))
             return
         try:
             cancel.post()
         except Method_Not_Allowed_Exception as e:
             # Race condition where job finishes between can_cancel
             # check and post.
-            if "not allowed" not in e[1]['error']:
+            if "not allowed" not in e.message['error']:
                 raise(e)

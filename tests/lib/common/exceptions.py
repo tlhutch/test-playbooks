@@ -1,7 +1,11 @@
 class Common_Exception(Exception):
 
-    def __init__(self, status_string, data=''):
-        self.message = data
+    def __init__(self, status_string, message=''):
+        self.status_string = status_string
+        self.message = message
+
+    def __getitem__(self, val):
+        return (self.status_string, self.message)[val]
 
 
 class BadRequest_Exception(Common_Exception):
@@ -24,11 +28,11 @@ class InternalServerError_Exception(Common_Exception):
     pass
 
 
-class LicenseInvalid_Exception(Common_Exception):
+class LicenseExceeded_Exception(Common_Exception):
     pass
 
 
-class LicenseExceeded_Exception(Common_Exception):
+class LicenseInvalid_Exception(Common_Exception):
     pass
 
 
@@ -54,4 +58,8 @@ class Unauthorized_Exception(Common_Exception):
 
 
 class Unknown_Exception(Common_Exception):
+    pass
+
+
+class Wait_Until_Timeout(Common_Exception):
     pass

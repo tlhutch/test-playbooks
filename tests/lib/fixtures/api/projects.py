@@ -36,7 +36,7 @@ def project_ansible_helloworld_hg(request, authtoken, organization):
                    scm_update_on_launch=False,)
 
     obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.cleanup)
 
     # Wait for project update to complete
     latest_update_pg = obj.get_related('current_update').wait_until_completed()
@@ -90,7 +90,7 @@ def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_con
         log.debug("POST failed - %s" % json.dumps(payload, indent=2))
         raise
 
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
 
     # manually delete the local_path
     def delete_project():
@@ -115,7 +115,7 @@ def project_ansible_playbooks_git_nowait(request, authtoken, organization):
                    scm_delete_on_update=False,
                    scm_update_on_launch=False,)
     obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     return obj
 
 
@@ -140,7 +140,7 @@ def project_ansible_git_nowait(request, authtoken, organization):
                    scm_delete_on_update=False,
                    scm_update_on_launch=False,)
     obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     return obj
 
 
@@ -166,7 +166,7 @@ def project_ansible_docsite_git_nowait(request, authtoken, encrypted_scm_credent
                    scm_update_on_launch=False,
                    credential=encrypted_scm_credential.id)
     obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.silent_delete)
+    request.addfinalizer(obj.silent_cleanup)
     return obj
 
 
@@ -190,7 +190,7 @@ def project_with_credential_prompt(request, authtoken, organization, scm_credent
                    scm_key_unlock='ASK',
                    credential=scm_credential_key_unlock_ASK.id,)
     obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.cleanup)
     return obj
 
 

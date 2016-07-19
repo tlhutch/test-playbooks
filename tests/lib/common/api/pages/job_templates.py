@@ -1,5 +1,4 @@
 from common.api.pages import Base, Base_List, Unified_Job_Template_Page, json_setter, json_getter
-from common.exceptions import Method_Not_Allowed_Exception
 
 
 class Job_Template_Callback_Page(Base):
@@ -136,20 +135,6 @@ class Job_Template_Page(Unified_Job_Template_Page):
             "job_template launched (id:%s) but job not found in response at %s/jobs/" % \
             (result.json['job'], self.url)
         return jobs_pg.results[0]
-
-    def _cleanup(self, delete_method):
-        try:
-            delete_method()
-        except Method_Not_Allowed_Exception as e:
-            if "there are jobs running" in e[1]['error']:
-                jobs = self.get_related('jobs', status__in=','.join(['new', 'pending', 'waiting', 'running']))
-                for job in jobs.results:
-                    job.cancel()
-                for job in jobs.results:
-                    job.wait_until_completed()
-                delete_method()
-            else:
-                raise(e)
 
 
 class Job_Templates_Page(Job_Template_Page, Base_List):
