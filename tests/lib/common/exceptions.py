@@ -7,6 +7,12 @@ class Common_Exception(Exception):
     def __getitem__(self, val):
         return (self.status_string, self.message)[val]
 
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return self.message
+
 
 class BadRequest_Exception(Common_Exception):
     pass
