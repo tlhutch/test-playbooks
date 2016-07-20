@@ -147,7 +147,7 @@ def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_
         attempt += 1
 
     if raise_on_timeout:
-        raise(Wait_Until_Timeout(None, '{0} attribute "{1}" ({2}) failed to become "{3}" in {4}.'
+        raise(Wait_Until_Timeout(None, u'{0} attribute "{1}" ({2}) failed to become (one of) "{3}" in {4} seconds.'
                                        .format(obj, att, attval, desired, timeout)))
 
     return obj
