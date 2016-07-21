@@ -102,5 +102,5 @@ class Unified_Job_Page(Base):
         except Method_Not_Allowed_Exception as e:
             # Race condition where job finishes between can_cancel
             # check and post.
-            if "not allowed" not in e.message['error']:
+            if "not allowed" not in e.message.get('error', ''):
                 raise(e)
