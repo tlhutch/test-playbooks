@@ -1,4 +1,5 @@
 from common.api.pages import Base, Base_List, json_getter, json_setter
+import common.exceptions
 
 
 class Notification_Template_Page(Base):
@@ -46,6 +47,16 @@ class Notification_Template_Page(Base):
             "test notification triggered (id:%s) but notification not found in response at %s/notifications/" % \
             (notification_id, self.url)
         return notifications_pg.results[0]
+
+    def silent_delete(self):
+        '''
+        Delete the Notification Template, ignoring the exception that is raised
+        if there are notifications pending.
+        '''
+        try:
+            self.delete()
+        except (common.exceptions.Method_Not_Allowed_Exception):
+            pass
 
 
 class Notification_Templates_Page(Notification_Template_Page, Base_List):

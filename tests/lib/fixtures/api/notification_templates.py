@@ -10,7 +10,8 @@ def notification_template(request, authtoken, api_notification_templates_pg):
 
     payload = request.getfuncargvalue(request.param + "_notification_template_payload")
     obj = api_notification_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    # Use silent delete in case notifications still pending
+    request.addfinalizer(obj.silent_delete)
     return obj
 
 
