@@ -8,6 +8,9 @@ from collections import defaultdict
 from urlparse import urlparse
 
 
+log = logging.getLogger(__name__)
+
+
 class SchemaVersionNotFound(Exception):
     pass
 
@@ -30,7 +33,7 @@ class Schema_Collection(object):
         assert hasattr(schema, 'version')
         assert hasattr(schema, 'resource')
 
-        logging.debug("add_schema version:%s, resource:%s" % (schema.version, schema.resource))
+        log.debug("add_schema version:%s, resource:%s" % (schema.version, schema.resource))
         self.schemas[schema.version][schema.resource] = schema()
 
     def get_schema(self, version, resource, request='get'):
@@ -39,7 +42,7 @@ class Schema_Collection(object):
         # Lowercase the request string
         request = request.lower()
 
-        logging.debug("get_schema version:%s, request:%s, resource:%s" % (version, request, resource))
+        log.debug("get_schema version:%s, request:%s, resource:%s" % (version, request, resource))
 
         if version not in self.schemas:
             if len(self.schemas) == 1:
@@ -59,7 +62,7 @@ class Schema_Collection(object):
 
         if resource in self._schema_cache:
             if request in self._schema_cache[resource]:
-                logging.debug("get_schema version:%s, request:%s, resource:%s cache hit" % (version, request, resource))
+                log.debug("get_schema version:%s, request:%s, resource:%s cache hit" % (version, request, resource))
                 return self._schema_cache[resource][request]
         else:
             self._schema_cache[resource] = {}
@@ -119,7 +122,7 @@ def __find_schema_versions(path, prefix):
     FIXME
     '''
     for module_loader, name, ispkg in pkgutil.iter_modules(path, prefix):
-        logging.debug("__find_schema_versions: %s, %s, %s" % (module_loader, name, ispkg))
+        log.debug("__find_schema_versions: %s, %s, %s" % (module_loader, name, ispkg))
         if ispkg:
             yield (module_loader, name, ispkg)
         else:
@@ -137,6 +140,7 @@ def validate(data, resource, request, version=None):
 
     try:
         jsonschema.validate(data, schema, format_checker=jsonschema.FormatChecker())
+        log.debug('Successful validation of resource:{0}, version:{1}, request:{2}'.format(resource, version, request))
     except jsonschema.ValidationError:
         sys.stderr.write("Failure validating resource:%s, version:%s, request:%s\n" % (resource, version, request))
         exc_info = sys.exc_info()
@@ -150,16 +154,16 @@ if __name__ == 'common.api.schema':
 
     for (module_loader, name, ispkg) in schema_versions:
         if name not in sys.modules:
-            logging.debug("__import__(%s, %s)" % (name, [name]))
+            log.debug("__import__(%s, %s)" % (name, [name]))
             loaded_mod = __import__(name, fromlist=[name])
 
             # Load classes from imported module
             if ispkg:
                 for (name, cls) in inspect.getmembers(loaded_mod, inspect.isclass):
                     if issubclass(cls, Schema_Base) and hasattr(cls, 'resource'):
-                        logging.debug("load_commands() - found '%s'" % name)
+                        log.debug("load_commands() - found '%s'" % name)
                         schema_collection.add_schema(cls)
 
             # Import schema from a module
             else:
-                logging.debug("skipping module:%s" % name)
+                log.debug("skipping module:%s" % name)
