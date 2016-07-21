@@ -143,6 +143,7 @@ def _wait_until(obj, att, desired, callback, interval, attempts, timeout, start_
             _print_state(obj, att, attval, elapsed, verbose_atts)
             break
 
+        log.debug("Sleeping for {}".format(interval))
         time.sleep(interval)
         attempt += 1
 
