@@ -1125,6 +1125,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.NOT_FOUND)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3076')
     def test_admin_role(self, factories, user_password):
         '''
         A user with JT admin should be able to:
