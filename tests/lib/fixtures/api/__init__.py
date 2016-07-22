@@ -6,8 +6,8 @@ from common.api.pages import (Activity_Stream_Page, Ad_Hoc_Commands_Page, Base, 
                               Dashboard_Page, Groups_Page, Hosts_Page, Inventories_Page, Inventory_Scripts_Page,
                               Inventory_Sources_Page, Job_Templates_Page, Jobs_Page, Labels_Page, Me_Page,
                               Notification_Templates_Page, Notifications_Page, Organizations_Page, Ping_Page,
-                              Projects_Page, Roles_Page, Schedules_Page, Settings_Page, System_Job_Templates_Page,
-                              Teams_Page, Unified_Job_Templates_Page, Users_Page)
+                              Projects_Page, Roles_Page, Schedules_Page, Settings_Page, System_Jobs_Page,
+                              System_Job_Templates_Page, Teams_Page, Unified_Job_Templates_Page, Users_Page)
 from common.api.pages.authtoken import AuthToken_Page
 
 
@@ -413,8 +413,7 @@ def api_system_jobs_url(api, api_v1_url):
 
 @pytest.fixture(scope="module")
 def api_system_jobs_pg(testsetup, api_system_jobs_url):
-    # FIXME - this should be System_Jobs_Page
-    return Jobs_Page(testsetup, base_url=api_system_jobs_url)
+    return System_Jobs_Page(testsetup, base_url=api_system_jobs_url)
 
 
 #
