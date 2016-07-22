@@ -914,10 +914,6 @@ class Test_Job_Template(Base_Api_Test):
         with pytest.raises(common.exceptions.Conflict_Exception):
             job_template_sleep.delete()
 
-        # wait for completion and assert success
-        job_pg = job_pg.wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
-
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         '''
         Verify that the job->launch endpoint does not allow launching a
