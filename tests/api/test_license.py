@@ -361,25 +361,24 @@ def inventory_no_free_instances(request, authtoken, api_config_pg, api_inventori
     return obj
 
 
-def assert_instance_counts(api_config_pg, license_instance_count, group):
+def assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group):
     '''Verify hosts can be added up to the provided 'license_instance_count' variable'''
 
     # Get API resource /groups/N/hosts
     group_hosts_pg = group.get_related('hosts')
 
-    current_hosts = 0
+    current_hosts = api_config_pg.get().license_info.current_instances
     while current_hosts <= license_instance_count:
         # Get the /config resource
         conf = api_config_pg.get()
 
         # Verify instance counts
         assert conf.license_info.current_instances == current_hosts
-        assert conf.license_info.free_instances == \
-            license_instance_count - current_hosts
+        assert conf.license_info.free_instances == license_instance_count - current_hosts
         assert conf.license_info.available_instances == license_instance_count
-        print "current_instances:%s, free_instances:%s, available_instances:%s" % \
-            (conf.license_info.current_instances, conf.license_info.free_instances,
-             conf.license_info.available_instances)
+        log.debug("current_instances: {0.license_info.current_instances}, free_instances: "
+                  "{0.license_info.free_instances}, available_instances: {0.license_info.available_instances}"
+                  .format(conf))
 
         # Add a host to the inventory group
         payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
@@ -393,6 +392,8 @@ def assert_instance_counts(api_config_pg, license_instance_count, group):
         else:
             with pytest.raises(common.exceptions.LicenseExceeded_Exception):
                 group_hosts_pg.post(payload)
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                api_hosts_pg.post(payload)
             break
 
     # Verify maximum instances
@@ -415,7 +416,7 @@ class Test_No_License(Base_Api_Test):
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=4)
 
-    def test_cannot_add_host(self, inventory, group):
+    def test_cannot_add_host(self, api_hosts_pg, inventory, group):
         '''Verify that no hosts can be added'''
         payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
                        description="host-%s" % fauxfactory.gen_utf8(),
@@ -423,6 +424,8 @@ class Test_No_License(Base_Api_Test):
         group_hosts_pg = group.get_related('hosts')
         with pytest.raises(common.exceptions.Forbidden_Exception):
             group_hosts_pg.post(payload)
+        with pytest.raises(common.exceptions.Forbidden_Exception):
+            api_hosts_pg.post(payload)
 
     def test_can_launch_project_update(self, project_ansible_playbooks_git_nowait):
         '''Verify that project_updates can be launched'''
@@ -544,11 +547,11 @@ class Test_AWS_License(Base_Api_Test):
             assert result['stat']['exists'], "AWS license file was expected, but none was found"
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
-    def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
+    def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        if api_config_pg.get().license_info.current_instances > 0:
-            pytest.skip("Skipping test because current_instances > 0")
-        assert_instance_counts(api_config_pg, license_instance_count, group)
+        if api_config_pg.get().license_info.current_instances > license_instance_count:
+            pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
+        assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
 
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_key_visibility_superuser(self, api_config_pg):
@@ -694,11 +697,11 @@ class Test_Legacy_License(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
-    def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
+    def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        if api_config_pg.get().license_info.current_instances > 0:
-            pytest.skip("Skipping test because current_instances > 0")
-        assert_instance_counts(api_config_pg, license_instance_count, group)
+        if api_config_pg.get().license_info.current_instances > license_instance_count:
+            pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
+        assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
 
     def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
@@ -893,11 +896,11 @@ class Test_Legacy_License_Grace_Period(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
-    def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
+    def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        if api_config_pg.get().license_info.current_instances > 0:
-            pytest.skip("Skipping test because current_instances > 0")
-        assert_instance_counts(api_config_pg, license_instance_count, group)
+        if api_config_pg.get().license_info.current_instances > license_instance_count:
+            pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
+        assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
 
     def test_job_launch(self, api_config_pg, job_template):
         '''Verify that job_templates can be launched while there are remaining free_instances'''
@@ -1073,11 +1076,11 @@ class Test_Legacy_Trial_License(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
-    def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
+    def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        if api_config_pg.get().license_info.current_instances > 0:
-            pytest.skip("Skipping test because current_instances > 0")
-        assert_instance_counts(api_config_pg, license_instance_count, group)
+        if api_config_pg.get().license_info.current_instances > license_instance_count:
+            pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
+        assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
 
     def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
@@ -1181,11 +1184,11 @@ class Test_Basic_License(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
-    def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
+    def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        if api_config_pg.get().license_info.current_instances > 0:
-            pytest.skip("Skipping test because current_instances > 0")
-        assert_instance_counts(api_config_pg, license_instance_count, group)
+        if api_config_pg.get().license_info.current_instances > license_instance_count:
+            pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
+        assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
 
     def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
@@ -1403,11 +1406,11 @@ class Test_Enterprise_License(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
-    def test_instance_counts(self, api_config_pg, license_instance_count, inventory, group):
+    def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
-        if api_config_pg.get().license_info.current_instances > 0:
-            pytest.skip("Skipping test because current_instances > 0")
-        assert_instance_counts(api_config_pg, license_instance_count, group)
+        if api_config_pg.get().license_info.current_instances > license_instance_count:
+            pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
+        assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
 
     def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
