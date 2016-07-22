@@ -16,6 +16,7 @@ from inventory import *  # NOQA
 from system_job_templates import *  # NOQA
 from job_templates import *  # NOQA
 from jobs import *  # NOQA
+from system_jobs import *  # NOQA
 from config import *  # NOQA
 from ping import *  # NOQA
 from dashboard import *  # NOQA

@@ -19,8 +19,8 @@ class System_Job_Template_Page(Unified_Job_Template_Page):
         elif name == 'launch':
             related = Base(self.testsetup, base_url=self.json['related'][name])
         elif name == 'jobs':
-            from jobs import Jobs_Page
-            related = Jobs_Page(self.testsetup, base_url=self.json['related'][name])
+            from system_jobs import System_Jobs_Page
+            related = System_Jobs_Page(self.testsetup, base_url=self.json['related'][name])
         elif name == 'notification_templates_any':
             from notification_templates import Notification_Templates_Page
             related = Notification_Templates_Page(self.testsetup, base_url=self.json['related'][name])

@@ -192,14 +192,31 @@ class Base(Page):
             delete_method()
         except common.exceptions.Conflict_Exception as e:
             if "running jobs" in e.message['conflict']:
-                from common.api.pages import Job_Page
-                active_jobs = e.message.get('active_jobs', [])
+                active_jobs = e.message.get('active_jobs', [])  # [{type: id},], not page containing
                 jobs = []
                 for active_job in active_jobs:
-                    if active_job['type'] == 'job':
-                        job = Job_Page(self.testsetup, base_url='/api/v1/jobs/{}/'.format(active_job['id'])).get()
-                        jobs.append(job)
-                        job.cancel()
+                    job_type = active_job['type']
+                    if job_type == 'ad_hoc_command':
+                        from common.api.pages import Ad_Hoc_Command_Page
+                        job_page = Ad_Hoc_Command_Page
+                    elif job_type == 'inventory_update':
+                        from common.api.pages import Inventory_Update_Page
+                        job_page = Inventory_Update_Page
+                    elif job_type == 'job':
+                        from common.api.pages import Job_Page
+                        job_page = Job_Page
+                    elif job_type == 'project_update':
+                        from common.api.pages import Project_Update_Page
+                        job_page = Project_Update_Page
+                    elif job_type == 'system_job':
+                        from common.api.pages import System_Job_Page
+                        job_page = System_Job_Page
+                    else:
+                        raise(ValueError(u'No Unified_Job_Page subclass for {}'.format(job_type)))
+
+                    job = job_page(self.testsetup, base_url='/api/v1/{}s/{}/'.format(job_type, active_job['id'])).get()
+                    jobs.append(job)
+                    job.cancel()
                 for job in jobs:
                     job.wait_until_completed(raise_on_timeout=True)
                 delete_method()
