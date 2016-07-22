@@ -59,7 +59,7 @@ class Notification_Page(Base):
 class Notifications_Page(Notification_Page, Base_List):
     base_url = '/api/v1/notifications/'
 
-    def wait_until_count(self, count, interval=1, verbose=0, timeout=3):
+    def wait_until_count(self, count, interval=1, verbose=0, timeout=10):
         '''
         Poll notifications page until it is populated with `count` number of notifications.
         '''
