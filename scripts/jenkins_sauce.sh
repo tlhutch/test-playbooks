@@ -18,7 +18,7 @@ PYTEST_TEST_EXPR=$6
 #
 # Determine base url
 #
-BASE_URL="https://$(ansible -i ${INVENTORY} --list-hosts ${HOST} | grep -v 'hosts (\d):' | awk 'NR==1{print $1}')"
+BASE_URL="https://$(ansible -i ${INVENTORY} --list-hosts ${HOST} | tail -n 1 | awk 'NR==1{print $1}')"
 
 #
 # Run tests
