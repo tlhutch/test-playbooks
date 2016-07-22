@@ -10,10 +10,9 @@ PYTEST_TEST_EXPR=$6
 #
 # Example:
 #
-# cp scripts/jenkins_sauce.sh .
 # EXPORT SAUCELABS_USERNAME=jakemcdermott
 # EXPORT SAUCELABS_API_KEY=gjeV4XcHhiaEzqMKeL6L4wjkN2MaOX
-# ./jenkins_sauce.sh playbooks/inventory.log primary linux Chrome "ui" "pagination"
+# ./scripts/jenkins_sauce.sh playbooks/inventory.log primary linux Chrome "ui" "pagination"
 #
 
 #
