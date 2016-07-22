@@ -39,7 +39,7 @@ class PageFactory(factory.Factory):
             obj = cls._get_or_create(model, request, **kwargs)
         else:
             obj = model.post(kwargs)
-            request.addfinalizer(obj.silent_delete)
+            request.addfinalizer(obj.silent_cleanup)
         return obj
 
     @classmethod
@@ -58,7 +58,7 @@ class PageFactory(factory.Factory):
             obj = model.get(**key_fields).results.pop()
         except IndexError:
             obj = model.post(kwargs)
-            request.addfinalizer(obj.silent_delete)
+            request.addfinalizer(obj.silent_cleanup)
         return obj
 
     @classmethod
