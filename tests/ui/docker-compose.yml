@@ -1,0 +1,10 @@
+version: '2'
+services:
+  ui-tests:
+    build:
+      context: ../../
+      dockerfile: tests/ui/Dockerfile
+    environment:
+      SAUCELABS_USERNAME:
+      SAUCELABS_API_KEY:
+    command: ./scripts/jenkins_sauce.sh playbooks/inventory.log primary linux Chrome 'ui'
