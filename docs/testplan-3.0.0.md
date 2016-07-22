@@ -27,13 +27,12 @@
 [Tracking](https://github.com/ansible/ansible-tower/issues/1291)
 <ui ticket> 
 
-###  Job Template Reorganization/Query Persistance/Filtering Improvements (Labels) (Chris/____?)
+###  Job Template Reorganization/Query Persistance/Filtering Improvements (Labels) (Chris)
 [Feature](https://docs.google.com/document/d/15FIaU-guKSfavK_pZ7f4k1Z9z3uXLFsYxXIFr3kzwcA/edit#heading=h.kr1zq13elnh)
 [Tracking](https://github.com/ansible/ansible-tower/issues/1153)
 
 1. [X] Manual testing completed - exact steps tracked in tracking issue
 1. [X] Complete integration testing written and passing - tests added logged in tracking issue
-1. [ ] UI testing completed
 
 ### RBAC Permission changes (Chris/Jake)
 [Feature](https://drive.google.com/open?id=1n_hLt0vKV5ytyYtA5oj71QLKiWtKQkhVezbUvUj_npA)
@@ -50,12 +49,10 @@
 
 1. [x] Base flows (what the UI uses) manually tested
 1. [x] Integration tests written and passing - tests added logged in tracking issue
-1. [ ] RBAC testing completed for prompt for all the things
+1. [x] RBAC testing completed for prompt for all the things
  
 ### Tower UX/UI Refresh (Jake/Shane)
 [Feature](https://docs.google.com/document/d/1lvhjtjzKy4Ty9nusob2ZRDX5PpUC-CZ-2vLvnjQzF7k/edit)
-
-1. [ ] FIXME
 
 ### Installer updates (Ryan)
 [Feature](https://drive.google.com/open?id=1fJeLZefxSia0-XSS0Gx_jeG5lYXUkU8V1LD9juEnlDc)
@@ -67,18 +64,16 @@
 ### RedHat Integrations (Laska)
 [Feature](https://docs.google.com/document/d/1a3_HMixPdCTxvLW8kySjyPKygP2QoYhz6iCcseyM020/edit)
 
-1. [ ] FIXME
-
-### Credential Updates (Chris, ____?)
+### Credential Updates (Chris)
 [Network Credential](https://docs.google.com/document/d/1RqQboCQ3RJLjCuINwEC_AI-tkcN99G8qY91KrRgcsfQ/edit)
 
-1. [ ] Microsoft Azure
+1. [x] Microsoft Azure
 2. [x] OpenStack_v3
 3. [x] Network
 
 ## Regression
-1. [ ] UI regression completed (Jake/Shane)
-1. [ ] API regression completed (Chris/Jim)
+1. [x] UI regression completed (Jake/Shane)
+1. [x] API regression completed (Chris/Jim)
 1. [x] Tower HA installation regression completed (Ryan)
 1. [x] Tower LDAP Integration regression completed (Ryan)
 1. [x] Tower RADIUS Integration regression completed (Ryan)
