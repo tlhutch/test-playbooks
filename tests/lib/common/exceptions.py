@@ -11,7 +11,7 @@ class Common_Exception(Exception):
         return self.__str__()
 
     def __str__(self):
-        return self.message
+        return str(self.message)
 
 
 class BadRequest_Exception(Common_Exception):
