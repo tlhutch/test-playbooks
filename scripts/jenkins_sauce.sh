@@ -34,6 +34,7 @@ py.test \
     --capability browserName "${BROWSER}" \
     --capability recordScreenshots false \
     --capability videoUploadOnPass false \
+    --github-cfg="github.yml" \
     --driver SauceLabs \
     --html ./results/report.html \
     --force-flaky \
