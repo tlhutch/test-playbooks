@@ -31,10 +31,7 @@ class FactoryFixture(object):
         return self._factory.payload(request=self.request, **kwargs)
 
 
-@pytest.fixture
-def factories(request):
-    """Inject a map of of all factories into your test context
-    """
+def factory_namespace(request):
     return \
         SimpleNamespace(
             credential=FactoryFixture(request, CredentialFactory),
@@ -47,3 +44,17 @@ def factories(request):
             user=FactoryFixture(request, UserFactory),
             team=FactoryFixture(request, TeamFactory)
         )
+
+
+@pytest.fixture
+def factories(request):
+    """Inject a function-scoped factory namespace into your test context
+    """
+    return factory_namespace(request)
+
+
+@pytest.fixture(scope='module')
+def module_factories(request):
+    """Inject a module-scoped factory namespace into your test context
+    """
+    return factory_namespace(request)
