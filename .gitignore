@@ -15,4 +15,3 @@ results.xml
 /playbooks/inventory.*
 /tests/credentials.yml
 /tests/credentials.yaml
-/tests/sauce_labs.yaml
