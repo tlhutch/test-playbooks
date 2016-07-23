@@ -51,7 +51,7 @@ class Checkbox(FormGroup):
         if option != element.is_selected():
             element.click()
 
-    def wait_until_region_is_loaded(self):
+    def wait_until_loaded(self):
         self.wait.until(lambda _: self.is_element_displayed(*self._checkbox))
 
 
@@ -100,7 +100,7 @@ class TextInput(FormGroup):
             element.clear()
             element.send_keys(text)
 
-    def wait_until_region_is_loaded(self):
+    def wait_until_loaded(self):
         self.wait.until(lambda _: self.is_element_displayed(*self._text_input))
 
 
