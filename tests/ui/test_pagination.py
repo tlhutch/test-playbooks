@@ -69,12 +69,6 @@ def check_pagination(pagination):
         assert pagination.total_pages == total_pages
 
 
-def check_table_sort(table_header):
-    sort_status_options = table_header.get_sort_status_options()
-    for option in sort_status_options:
-        table_header.set_sort_status(option)
-        assert table_header.get_sort_status() == option
-
 # -----------------------------------------------------------------------------
 # Tests
 # -----------------------------------------------------------------------------

@@ -91,7 +91,7 @@ def test_create_job_template(factories, api_job_templates_pg, ui_job_template_ad
     ui_job_template_add.details.playbook.set_value('ping.yml')
     ui_job_template_add.details.verbosity.set_value('0 (Normal)')
     # save the job template
-    time.sleep(3)
+    time.sleep(5)
     ui_job_template_add.details.save.click()
     ui_job_template_add.list_table.wait_for_table_to_load()
     # verify the update took place api-side

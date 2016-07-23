@@ -14,6 +14,31 @@ pytestmark = [
     )
 ]
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2895')
+def test_api_referential_integrity(factories, api_organizations_pg, ui_organizations):
+    """Peform basic end-to-end read-only verification of displayed page
+    content against data returned by the organizations api
+    """
+    # make some data and reload resources
+    [factories.organization() for _ in xrange(30)]
+    ui_organizations.driver.refresh()
+    ui_organizations.wait_until_loaded()
+    api_organizations = api_organizations_pg.get()
+    # get list of displayed organization cards
+    org_cards = ui_organizations.cards
+    # check the list count badge against the count reported by the API
+    assert str(api_organizations.count) == ui_organizations.list_badge.text
+    # compare the actual number of cards to the item count label
+    count_label = ui_organizations.list_pagination.item_range[1]
+    assert str(len(org_cards)) == count_label, 'item count label differs from number of cards'
+    # get the organization names displayed on each card
+    actual = sorted([c.name.text.lower() for c in org_cards])
+    # get a subset of api organization names corresponding to those we expect
+    # to be displayed on the first page
+    expected = sorted([r.name.lower() for r in api_organizations.results])
+    expected = expected[:len(org_cards)]
+    assert actual == expected, 'Unexpected names: {0} != {1}'.format(actual, expected)
+
 
 def test_edit_organization(api_organizations_pg, ui_organization_edit):
     """Basic end-to-end functional test for updating an existing organization

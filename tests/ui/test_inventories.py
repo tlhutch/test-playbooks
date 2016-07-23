@@ -80,7 +80,7 @@ def test_create_inventory(factories, api_inventories_pg, ui_inventory_add):
     ui_inventory_add.details.name.set_value(name)
     ui_inventory_add.details.organization.set_value(org.name)
     # save the inventory
-    time.sleep(3)
+    time.sleep(5)
     ui_inventory_add.details.save.click()
     ui_inventory_add.list_table.wait_for_table_to_load()
     # verify the update took place api-side

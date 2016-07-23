@@ -84,5 +84,4 @@ def test_cards_route_to_expected_destination(ui_setup):
         title_key = card.title.text.lower()
         expected_url_content = card_destinations[title_key]
         assert expected_url_content in card.href, (
-            'Unexpected {0} link destination: {1}'.format(
-                card.title, card.href))
+            'Unexpected {0} link href: {1}'.format(card.title, card.href))

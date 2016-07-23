@@ -77,7 +77,7 @@ def test_create_credential(factories, api_credentials_pg, ui_credential_add):
     ui_credential_add.details.name.set_value(name)
     ui_credential_add.details.kind.set_value('Machine')
     # save the credential
-    time.sleep(3)
+    time.sleep(5)
     ui_credential_add.details.save.click()
     ui_credential_add.list_table.wait_for_table_to_load()
     # verify the update took place api-side
