@@ -5,6 +5,7 @@ import fauxfactory
 import pytest
 
 from common.ui.models import (
+    ActivityStream,
     Credentials,
     CredentialAdd,
     CredentialEdit,
@@ -113,6 +114,11 @@ def ui_dashboard(default_credentials, ui_login, selenium, base_url):
     ui_login.login_with_enter_key(**default_credentials)
     yield Dashboard(selenium, base_url)
     ui_login.logout()
+
+
+@pytest.fixture
+def ui_activity_stream(ui_dashboard, selenium, base_url):
+    return ActivityStream(selenium, base_url).open()
 
 
 @pytest.fixture

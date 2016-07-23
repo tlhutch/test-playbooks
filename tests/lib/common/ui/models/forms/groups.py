@@ -16,10 +16,10 @@ class SelectDropdown(FormGroup):
 
     @property
     def options(self):
-        return [e.text.lower() for e in self.select.options]
+        return [e.text for e in self.select.options]
 
     def get_value(self):
-        return self.select.first_selected_option.text.lower()
+        return self.select.first_selected_option.text
 
     def set_value(self, option):
         select = self.select

@@ -2,8 +2,10 @@ from contextlib import contextmanager
 
 from selenium.webdriver.common.by import By
 
+from common.ui.page import get_page
 from common.ui.page import Page
 from common.ui.models.login import Login
+
 from common.ui.models.regions import (
     Dialog,
     Header,
@@ -12,13 +14,23 @@ from common.ui.models.regions import (
 
 class TowerPage(Page):
 
+    _activity_stream_link = (By.CSS_SELECTOR, 'i[class="BreadCrumb-menuLinkImage icon-activity-stream"]')
     _breadcrumbs = (By.CLASS_NAME, 'BreadCrumb-item')
-    _refresh = (By.CSS_SELECTOR, 'button[aw-tool-tip="Refresh the page"]')
+    _refresh_button = (By.CSS_SELECTOR, 'button[aw-tool-tip="Refresh the page"]')
+
+    @property
+    def activity_stream_link(self):
+        return self.find_element(*self._activity_stream_link)
 
     @property
     def breadcrumbs(self):
         elements = self.find_elements(*self._breadcrumbs)
         return [e.text.lower() for e in elements]
+
+    @property
+    def current_breadcrumb(self):
+        breadcrumbs = self.breadcrumbs
+        return breadcrumbs[-1] if breadcrumbs else None
 
     @property
     def dialog(self):
@@ -48,9 +60,12 @@ class TowerPage(Page):
             self.driver.refresh()
 
     @property
-    def refresh(self):
-        return self.find_element(*self._refresh)
+    def refresh_button(self):
+        return self.find_element(*self._refresh_button)
 
     def is_refresh_button_displayed(self):
-        return self.is_element_displayed(*self._refresh)
+        return self.is_element_displayed(*self._refresh_button)
 
+    def open_activity_stream(self):
+        self.activity_stream_link.click()
+        return get_page('ActivityStream')(self.driver).wait_until_loaded()

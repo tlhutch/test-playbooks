@@ -1,6 +1,7 @@
-from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.event_firing_webdriver import EventFiringWebElement
 
 from selector import Selector
+
 
 class Region(Selector):
 
@@ -74,9 +75,9 @@ class Region(Selector):
     def overlaps_with(self, other):
         """Determine if this region overlaps the bounding box of another
         Region or WebElement
-        """
-        if isinstance(other, WebElement):
-            other = Region(root=other)
+        """  
+        if isinstance(other, EventFiringWebElement):
+            other = Region(self.page, root=other)
 
         (x1, y1) = self.v1
         (x2, y2) = self.v2
@@ -90,8 +91,8 @@ class Region(Selector):
         """Determine if this region fully surrounds the bounding box of
         another Region or WebElement
         """
-        if isinstance(other, WebElement):
-            other = Region(root=other)
+        if isinstance(other, EventFiringWebElement):
+            other = Region(self.page, root=other)
 
         (x1, y1) = self.v1
         (x2, y2) = self.v2

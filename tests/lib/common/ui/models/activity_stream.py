@@ -2,8 +2,13 @@ from selenium.webdriver.common.by import By
 
 from common.ui.page import Region
 from common.ui.models.base import TowerPage
-from common.ui.models.regions import ListPagination
-from common.ui.models.regions import TagSearch
+from common.ui.models.forms import SelectDropdown
+
+from common.ui.models.regions import (
+    ListPagination,
+    ListTable,
+    TagSearch,
+)
 
 
 __all__ = ['ActivityStream']
@@ -11,8 +16,10 @@ __all__ = ['ActivityStream']
 
 class ActivityStream(TowerPage):
 
-    _url_template = '/#/activity_stream'
-    _list_subtitle = (By.CSS_SELECTOR, '[class="List-titleText"]')
+    url_template = '/#/activity_stream'
+
+    _list_panel = (By.CSS_SELECTOR, '#stream-container')
+    _list_subtitle = (By.CLASS_NAME, 'List-titleText')
 
     @property
     def list_pagination(self):
@@ -23,16 +30,21 @@ class ActivityStream(TowerPage):
         return TagSearch(self)
 
     @property
+    def list_table(self):
+        return ActivityTable(self)
+
+    @property
     def list_subtitle(self):
         return self.find_element(*self._list_subtitle)
 
     @property
-    def navigation_dropdown(self):
-        return ActivityDropdown(self)
+    def list_panel(self):
+        element = self.find_element(*self._list_panel)
+        return Region(self, root=element)
 
     @property
-    def table(self):
-        return ActivityTable(self)
+    def navigation_dropdown(self):
+        return ActivityDropdown(self)
 
     @property
     def id(self):
@@ -41,6 +53,10 @@ class ActivityStream(TowerPage):
     @property
     def target(self):
         return self.kwargs.get('target')
+
+    def wait_until_loaded(self):
+        self.wait.until(lambda _: self.navigation_dropdown.is_displayed())
+        return self
 
 
 class ActivityTable(ListTable):
@@ -61,12 +77,16 @@ class ActivityTable(ListTable):
             return self.find_element(*self._details)
 
         def open_details(self):
+            self.details.click()
             return ActivityEventModal(self.page)
 
 
 class ActivityDropdown(SelectDropdown):
     
     _root_locator = [(By.ID, 'stream-dropdown-nav'), (By.XPATH, '..')]
+
+    def is_displayed(self):
+        return self.page.is_element_displayed(*self._root_locator)
 
 
 class ActivityEventModal(Region):
@@ -76,7 +96,7 @@ class ActivityEventModal(Region):
     _changes = (By.CLASS_NAME, 'StreamDetail-changes')
     _initiated_by = (By.CSS_SELECTOR, '[class="StreamDetail-inlineRow"][ng-show="user"]')
     _ok = (By.ID, 'action_cancel_btn')
-    _operation = (By.CSS_SELECTOR, '[ng-bind="operation"]')
+    _operation = (By.CSS_SELECTOR, '[ng-bind-html="operation"]')
 
     @property
     def close(self):

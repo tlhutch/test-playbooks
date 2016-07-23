@@ -1,3 +1,4 @@
+from activity_stream import ActivityStream
 from credentials import Credentials, CredentialAdd, CredentialEdit
 from dashboard import Dashboard
 from inventories import Inventories, InventoryAdd, InventoryEdit
