@@ -125,20 +125,23 @@ class RegionMap(Region):
         except KeyError:
             raise AttributeError
         else:
-            return self._load_region(spec)
+            return self._load_region(name, spec)
 
-    def _load_region(self, spec):
+    def __init__(self, page, **kwargs):
+        super(RegionMap, self).__init__(page, **kwargs)
+        self._region_cache = {}
+
+    def _load_region(self, name, spec):
         """Lookup and initialize a region from the region registry using the
         provided spec dictionary
         """
-        kwargs = spec.copy()
-        
-        if 'root_locator' not in kwargs and 'root' not in kwargs:
-            kwargs['root'] = self.root
-
-        region_type = kwargs.pop('region_type', 'default')
-
-        return self._region_registry[region_type](self.page, **kwargs)
+        try:
+            return self._region_cache[name]
+        except KeyError:
+            region_cls = self._region_registry[spec.get('region_type', 'default')]
+            element = self.page.find_element(*spec['root_locator'])
+            self._region_cache[name] = region_cls(self.page, root=element, **spec)
+            return self._region_cache[name]
 
     def get_regions(self, **kwargs):
         """Generate (name, region) tuples for regions defined in the
@@ -147,4 +150,4 @@ class RegionMap(Region):
         """
         for name, spec in self._region_spec.iteritems():
             if all(spec.get(k) == v for k, v in kwargs.iteritems()):
-                yield (name, self._load_region(spec))
+                yield (name, self._load_region(name, spec))

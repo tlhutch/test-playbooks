@@ -110,8 +110,8 @@ def ui_login(selenium, base_url):
 
 
 @pytest.yield_fixture
-def ui_dashboard(default_credentials, ui_login, selenium, base_url):
-    ui_login.login_with_enter_key(**default_credentials)
+def ui_dashboard(ui_user_credentials, ui_login, selenium, base_url):
+    ui_login.login_with_enter_key(**ui_user_credentials)
     yield Dashboard(selenium, base_url)
     ui_login.logout()
 

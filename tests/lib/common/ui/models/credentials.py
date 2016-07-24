@@ -521,6 +521,13 @@ class Satellite6Details(CredentialDetails):
                 (By.CSS_SELECTOR, 'label[for=password]'),
                 (By.XPATH, '..'))
         },
+        'host': {
+            'region_type': 'text_input',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=host]'),
+                (By.XPATH, '..'))
+        },
     }
 
     _region_spec = dict(
@@ -542,6 +549,13 @@ class CloudFormsDetails(CredentialDetails):
             'required': True,
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=password]'),
+                (By.XPATH, '..'))
+        },
+        'host': {
+            'region_type': 'text_input',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=host]'),
                 (By.XPATH, '..'))
         },
     }

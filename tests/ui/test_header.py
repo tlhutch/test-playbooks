@@ -14,12 +14,12 @@ pytestmark = [
 
 
 def test_header_shows_correct_username(
-        default_credentials, ui_dashboard, factories):
+        ui_user_credentials, ui_dashboard, factories):
     """Verify correctly displayed username on header
     """
     msg = 'Unable to verify correctly displayed username on header'
 
-    expected = default_credentials['username']
+    expected = ui_user_credentials['username']
     actual = ui_dashboard.header.username
 
     assert expected.lower() == actual.lower(), msg
