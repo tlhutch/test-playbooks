@@ -21,10 +21,10 @@ def check_form_responsiveness(form):
     # pipe some long string data to any form widget group with a text field
     for field_type in ['text_input', 'password', 'text_area', 'email']:
         for name, field in form.get_regions(region_type=field_type):
-            field.set_value(fauxfactory.gen_utf8(length=120))
+            field.set_value(fauxfactory.gen_alphanumeric(length=120))
     # https://github.com/ansible/ansible-tower/issues/1461
     for name, field in form.get_regions(region_type='lookup'):
-        field.set_value(fauxfactory.gen_utf8(length=120), retry=False)
+        field.set_value(fauxfactory.gen_alphanumeric(length=120), retry=False)
     # verify form groups aren't extended breaking panel boundaries
     for name, field in form.get_regions():
         assert form.surrounds(field), (
