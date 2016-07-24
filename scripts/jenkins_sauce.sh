@@ -40,6 +40,7 @@ py.test \
     --force-flaky \
     --max-runs 3 \
     --min-passes 1 \
+    --pdb \
     -m "${PYTEST_MARK_EXPR}" \
     -k "${PYTEST_TEST_EXPR}" \
     tests/ui

@@ -50,25 +50,6 @@ class CredentialEdit(Credentials):
     url_template = '/#/credentials/{id}'
 
     @property
-    def forms(self):
-        subforms = (
-            'machine',
-            'openstack',
-            'aws',
-            'gce',
-            'azure_classic',
-            'azure_resource_manager',
-            'rackspace',
-            'vmware_vcenter',
-            'source_control',
-            'satellite_v6',
-            'cloudforms',
-            'network',)
-
-        for form in subforms:
-            yield getattr(self.details, form)
-
-    @property
     def details(self):
         DetailsTab(self).enable()
         return CredentialDetails(self)

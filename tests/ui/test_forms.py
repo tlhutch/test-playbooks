@@ -5,7 +5,8 @@ pytestmark = [
     pytest.mark.ui,
     pytest.mark.nondestructive,
     pytest.mark.usefixtures(
-        'module_install_enterprise_license',
+        'authtoken',
+        'install_enterprise_license',
     )
 ]
 
@@ -90,9 +91,26 @@ def test_team_form_required_fields(max_window, ui_team_edit):
     check_form_required_fields(ui_team_edit.details)
 
 
-def test_credential_form_required_fields(max_window, ui_credential_edit):
-    for credential_form in ui_credential_edit.forms:
-        check_form_required_fields(credential_form)
+@pytest.mark.parametrize(
+    'credential_type', [
+        'machine',
+        'openstack',
+        'aws',
+        'gce',
+        'azure_classic',
+        'azure_resource_manager',
+        'rackspace',
+        'vmware_vcenter',
+        'source_control',
+        'satellite_v6',
+        'cloudforms',
+        'network',
+    ]
+)
+def test_credential_form_required_fields(
+        max_window, ui_credential_edit, credential_type):
+    credential_form = getattr(ui_credential_edit.details, credential_type)
+    check_form_required_fields(credential_form)
 
 
 def test_organization_form_required_fields(max_window, ui_organization_edit):
@@ -120,12 +138,27 @@ def test_project_form_responsiveness(supported_window_sizes, ui_project_edit):
 def test_team_form_responsiveness(supported_window_sizes, ui_team_edit):
     check_form_responsiveness(ui_team_edit.details)
 
-
+@pytest.mark.parametrize(
+    'credential_type', [
+        'machine',
+        'openstack',
+        'aws',
+        'gce',
+        'azure_classic',
+        'azure_resource_manager',
+        'rackspace',
+        'vmware_vcenter',
+        'source_control',
+        'satellite_v6',
+        'cloudforms',
+        'network',
+    ]
+)
 def test_credential_form_responsiveness(
-        supported_window_sizes, ui_credential_edit):
-    for credential_form in ui_credential_edit.forms:
-        check_form_responsiveness(credential_form)
-
+        max_window, ui_credential_edit, credential_type):
+    credential_form = getattr(ui_credential_edit.details, credential_type)
+    check_form_responsiveness(credential_form)
+        
 
 def test_organization_form_responsiveness(max_window, ui_organization_edit):
     check_form_responsiveness(ui_organization_edit.details)

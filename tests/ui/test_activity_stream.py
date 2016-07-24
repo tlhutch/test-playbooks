@@ -8,8 +8,9 @@ pytestmark = [
     pytest.mark.ui,
     pytest.mark.nondestructive,
     pytest.mark.usefixtures(
-        'module_install_enterprise_license',
-        'max_window'
+        'authtoken',
+        'install_enterprise_license',
+        'max_window',
     )
 ]
 
@@ -44,28 +45,23 @@ def test_navigation_dropdown(factories, ui_activity_stream):
         'Teams',
         'Users',
     ]
-    assert ui_activity_stream.navigation_dropdown.get_value() == 'All Activity', (
-        'Unexpected default value displayed for navigation dropdown')
-    assert ui_activity_stream.navigation_dropdown.options == expected_nav_options, (
-        'Unexpected activity stream navigation dropdown select options')
-    for option in ui_activity_stream.navigation_dropdown.options:
-        ui_activity_stream.navigation_dropdown.set_value(option)
-        selected_option = ui_activity_stream.navigation_dropdown.get_value()
-        assert selected_option == option, (
-            'Navigation option {0} unexpectedly unselected'.format(option))
-        subtitle = ui_activity_stream.list_subtitle.text.lower()
-        assert selected_option.lower() in subtitle, (
-            'Unexpected stream subtitle {0} given selected option {1}'.format(
-                subtitle, selected_option))
+    dropdown = ui_activity_stream.navigation_dropdown
+    assert dropdown.get_value() == 'All Activity'
+    # check nav options
+    options = dropdown.options
+    assert options == expected_nav_options
+    for opt in options:
+        dropdown.set_value(opt)
+        selected = dropdown.get_value()
+        assert selected == opt
+        assert selected.lower() in ui_activity_stream.list_subtitle.text.lower()
     # check that a non-default option remains selected after refreshing
-    non_default = 'Organizations'
-    ui_activity_stream.navigation_dropdown.set_value(non_default)
-    assert ui_activity_stream.navigation_dropdown.get_value() == non_default, (
-        'Navigation option {0} unexpectedly unselected'.format(non_default))
+    nondefault = 'Organizations'
+    dropdown.set_value(nondefault)
+    assert dropdown.get_value() == nondefault
     ui_activity_stream.driver.refresh()
-    assert ui_activity_stream.navigation_dropdown.get_value() == non_default, (
-        'Navigation option {0} unexpectedly unselected'.format(non_default))
-
+    ui_activity_stream.wait_until_loaded()
+    assert ui_activity_stream.navigation_dropdown.get_value() == nondefault
 
 def test_navigation_with_edit_query_params(ui_inventory_edit):
     """Verify expected activity stream functionality with url query parameters

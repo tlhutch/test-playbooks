@@ -4,10 +4,7 @@ from selenium.common.exceptions import TimeoutException
 pytestmark = [
     pytest.mark.ui,
     pytest.mark.nondestructive,
-    pytest.mark.usefixtures(
-        'authtoken',
-        'max_window'
-    )
+    pytest.mark.usefixtures('max_window')
 ]
 
 

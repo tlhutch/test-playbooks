@@ -9,7 +9,8 @@ pytestmark = [
     pytest.mark.ui,
     pytest.mark.nondestructive,
     pytest.mark.usefixtures(
-        'module_install_enterprise_license',
+        'authtoken',
+        'install_enterprise_license',
         'max_window',
     )
 ]
@@ -30,7 +31,7 @@ def test_api_referential_integrity(factories, api_organizations_pg, ui_organizat
     assert str(api_organizations.count) == ui_organizations.list_badge.text
     # compare the actual number of cards to the item count label
     count_label = ui_organizations.list_pagination.item_range[1]
-    assert str(len(org_cards)) == count_label, 'item count label differs from number of cards'
+    assert str(len(org_cards)) == count_label, 'item count label != number of cards'
     # get the organization names displayed on each card
     actual = sorted([c.name.text.lower() for c in org_cards])
     # get a subset of api organization names corresponding to those we expect

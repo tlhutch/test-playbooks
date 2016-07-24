@@ -6,10 +6,8 @@ class PageFactoryOptions(factory.base.FactoryOptions):
     """
     def _build_default_options(self):
         options = super(PageFactoryOptions, self)._build_default_options()
-        options.append(factory.base.OptionDefault(
-            'get_or_create', (), inherit=True))
-        options.append(factory.base.OptionDefault(
-            'resources', (), inherit=True))
+        options.append(factory.base.OptionDefault('get_or_create', (), inherit=True))
+        options.append(factory.base.OptionDefault('resources', (), inherit=True))
         return options
 
 

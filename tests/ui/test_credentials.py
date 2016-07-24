@@ -10,7 +10,7 @@ pytestmark = [
     pytest.mark.nondestructive,
     pytest.mark.usefixtures(
         'authtoken',
-        'module_install_enterprise_license',
+        'install_enterprise_license',
         'max_window',
     )
 ]
