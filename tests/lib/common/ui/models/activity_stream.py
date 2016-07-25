@@ -82,7 +82,7 @@ class ActivityTable(ListTable):
 
 
 class ActivityDropdown(SelectDropdown):
-    
+
     _root_locator = [(By.ID, 'stream-dropdown-nav'), (By.XPATH, '..')]
 
     def is_displayed(self):

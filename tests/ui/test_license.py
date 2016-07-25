@@ -32,7 +32,7 @@ def test_license_upload(authtoken, no_license, ui_license):
 
     ui_license.submit.click()  # redirects to dashboard here
     ui_license.open()
-    
+
     assert ui_license.license_status.text == 'Valid License'
 
 
@@ -69,6 +69,7 @@ def test_malformed_license(authtoken, install_enterprise_license, ui_license):
     ui_license.wait_until_alert_modal_is_displayed()
 
     assert 'invalid' in ui_license.alert_modal.text.lower()
+
 
 @pytest.mark.skip
 def test_missing_license_file(authtoken, ui_license):

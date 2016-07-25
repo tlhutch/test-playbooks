@@ -90,7 +90,7 @@ class CredentialsTable(ListTable):
 
         @property
         def type(self):
-            return self.find_element(*self._type) 
+            return self.find_element(*self._type)
 
 
 class DetailsTab(Tab):

@@ -35,20 +35,19 @@ def test_header_shows_correct_username(
 def test_header_click_through(ui_dashboard):
     """Verify header menu link functionality
     """
-    link_names = (
+    link_names = [
         'inventories',
         'jobs',
         'job_templates',
         'portal',
         'projects',
         'setup',
-        'user'
-    )
-    for link_name in link_names:
-        getattr(ui_dashboard.header, link_name).click()
-        check_url = lambda _: link_name in ui_dashboard.driver.current_url
+        'user',
+    ]
+    for name in link_names:
+        getattr(ui_dashboard.header, name).click()
         try:
-            ui_dashboard.wait.until(check_url)
+            ui_dashboard.wait.until(lambda _: name in ui_dashboard.driver.current_url)
         except TimeoutException:
             pytest.fail('Unexpected destination url content')
         ui_dashboard.header.logo.click()

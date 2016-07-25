@@ -37,7 +37,7 @@ class Projects(TowerPage):
 class ProjectAdd(Projects):
 
     url_template = '/#/projects/add'
-    
+
     @property
     def details(self):
         DetailsTab(self).enable()
@@ -69,7 +69,7 @@ class ProjectsTable(ListTable):
     _root_locator = (By.CSS_SELECTOR, '#projects_table')
 
     class Row(Region):
-        
+
         _name = (By.CLASS_NAME, 'name-column')
         _description = (By.CLASS_NAME, 'description-column')
         _last_updated = (By.CLASS_NAME, 'last_updated-column')
@@ -105,8 +105,10 @@ class ProjectsTable(ListTable):
 class DetailsTab(Tab):
     _root_locator = (By.ID, 'project_tab')
 
+
 class NotificationsTab(Tab):
     _root_locator = (By.ID, 'notifications_tab')
+
 
 class PermissionsTab(Tab):
     _root_locator = (By.ID, 'permissions_tab')

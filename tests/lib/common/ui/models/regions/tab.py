@@ -6,12 +6,12 @@ __all__ = ['Tab', 'ToggleTab']
 class BaseTab(Region):
 
     _bg_enabled = (
-        'rgba(215, 215, 215, 1)', 'rgb(215, 215, 215)',  #  D7D7D7
-        'rgba(132, 137, 146, 1)', 'rgb(132, 137, 146)')  #  848992
+        'rgba(215, 215, 215, 1)', 'rgb(215, 215, 215)',  # D7D7D7
+        'rgba(132, 137, 146, 1)', 'rgb(132, 137, 146)')  # 848992
 
     _bg_disabled = (
-        'rgba(255, 255, 255, 1)', 'rgb(255, 255, 255)',  #  FFFFFF
-        'rgba(250, 250, 250, 1)', 'rgb(250, 250, 250)')  #  FAFAFA
+        'rgba(255, 255, 255, 1)', 'rgb(255, 255, 255)',  # FFFFFF
+        'rgba(250, 250, 250, 1)', 'rgb(250, 250, 250)')  # FAFAFA
 
     @property
     def background_color(self):

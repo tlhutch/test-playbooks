@@ -1,4 +1,4 @@
-import time 
+import time
 
 import fauxfactory
 import pytest
@@ -136,4 +136,3 @@ def test_create_project(factories, api_projects_pg, ui_project_add):
     assert len(results) == 1, 'unable to verify creation of project'
     # check that the row of the newly created resource is the selected row
     assert ui_project_add.list_table.selected_row.name.text == name
-    

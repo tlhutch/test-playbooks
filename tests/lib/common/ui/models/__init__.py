@@ -11,3 +11,33 @@ from projects import Projects, ProjectAdd, ProjectEdit
 from setup_menu import SetupMenu
 from teams import Teams, TeamAdd, TeamEdit
 from users import Users, UserAdd, UserEdit
+
+__all__ = [
+    'ActivityStream',
+    'Credentials',
+    'CredentialAdd',
+    'CredentialEdit',
+    'Dashboard',
+    'Inventories',
+    'InventoryAdd',
+    'InventoryEdit',
+    'Jobs',
+    'JobTemplates',
+    'JobTemplateAdd',
+    'JobTemplateEdit',
+    'License',
+    'Login',
+    'Organizations',
+    'OrganizationAdd',
+    'OrganizationEdit',
+    'Projects',
+    'ProjectAdd',
+    'ProjectEdit',
+    'SetupMenu',
+    'Teams',
+    'TeamAdd',
+    'TeamEdit',
+    'Users',
+    'UserAdd',
+    'UserEdit',
+]

@@ -1,7 +1,5 @@
 import logging
-import time
 
-import fauxfactory
 import pytest
 
 from common.ui.models import (
@@ -209,11 +207,6 @@ def ui_project_add(ui_dashboard, selenium, base_url):
 def ui_project_edit(factories, ui_dashboard, selenium, base_url):
     project = factories.project()
     return ProjectEdit(selenium, base_url, id=project.id).open()
-
-
-@pytest.fixture
-def ui_organizations(ui_dashboard, selenium, base_url):
-    return Organizations(selenium, base_url).open()
 
 
 @pytest.fixture

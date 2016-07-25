@@ -11,7 +11,7 @@ class BaseHeader(Region):
 
     _logo = (By.ID, 'main_menu_logo')
     _socket_status = (By.ID, 'main_menu_socket_status_notification')
-    
+
     @property
     def logo(self):
         return self.find_element(*self._logo)
@@ -39,7 +39,7 @@ class Header(BaseHeader):
     _setup = (By.ID, 'main_menu_setup_link')
     _user = (By.ID, 'main_menu_current_user_link')
     _username = (By.CLASS_NAME, 'MainMenu-item--user')
-    
+
     @property
     def docs(self):
         return self.find_element(*self._docs)
@@ -97,7 +97,7 @@ class MobileHeader(BaseHeader):
     _setup = (By.ID, 'main_menu_setup_mobile_link')
     _toggle = (By.ID, 'main_menu_mobile_toggle_button')
     _user = (By.ID, 'main_menu_current_user_mobile_link')
-    
+
     @property
     def docs(self):
         return self.find_element(*self._docs)
@@ -160,4 +160,3 @@ class MobileHeader(BaseHeader):
 
     def is_displayed(self):
         return self.toggle.is_displayed()
-

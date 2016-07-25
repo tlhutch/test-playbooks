@@ -55,7 +55,7 @@ class InventoryEdit(Inventories):
 
     @property
     def scan_job_templates(self):
-        ScanJobTemplates(self).enable()
+        ScanJobTemplatesTab(self).enable()
         return FormPanel(self)
 
 
@@ -89,6 +89,7 @@ class InventoriesTable(ListTable):
 
 class DetailsTab(Tab):
     _root_locator = (By.ID, 'inventory_tab')
+
 
 class ScanJobTemplatesTab(Tab):
     _root_locator = (By.ID, 'scan_job_templates_tab')
@@ -124,6 +125,3 @@ class InventoryDetails(FormPanel):
                 (By.XPATH, '..'))
         },
     }
-
-
-

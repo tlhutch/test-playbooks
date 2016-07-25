@@ -1,4 +1,3 @@
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 from common.ui.page import Region
@@ -95,4 +94,3 @@ class TableHeader(Region):
 
     def wait_until_loaded(self):
         self.wait.until(lambda _: self.page.is_element_displayed(*self._sorted_column))
-

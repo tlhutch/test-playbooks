@@ -1,4 +1,4 @@
-import time 
+import time
 
 import fauxfactory
 import pytest
@@ -14,6 +14,7 @@ pytestmark = [
         'max_window',
     )
 ]
+
 
 @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2895')
 def test_api_referential_integrity(factories, api_organizations_pg, ui_organizations):
@@ -118,4 +119,3 @@ def test_create_organization(factories, api_organizations_pg, ui_organization_ad
     assert results, 'unable to verify creation of organization'
     # check that the newly created resource has the card selection indicator
     assert ui_organization_add.selected_card.name.text.lower() == name.lower()
-

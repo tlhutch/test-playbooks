@@ -1,4 +1,3 @@
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 from common.ui.page import Region
@@ -15,10 +14,6 @@ class FormGroup(Region):
     _errors = (By.CLASS_NAME, 'error')
 
     options = None
-
-    @property
-    def name(self):
-        return self.kwargs.get(name)
 
     @property
     def required(self):

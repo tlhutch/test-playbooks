@@ -1,5 +1,4 @@
 import pytest
-from selenium.common.exceptions import TimeoutException
 
 PAGINATED_RESOURCE_COUNT = 110
 
@@ -11,6 +10,7 @@ pytestmark = [
         'max_window',
     )
 ]
+
 
 # -----------------------------------------------------------------------------
 # Fixtures
@@ -72,7 +72,6 @@ def check_pagination(pagination):
 # -----------------------------------------------------------------------------
 # Tests
 # -----------------------------------------------------------------------------
-
 
 def test_pagination_inventories(pagination_data, ui_inventories):
     check_pagination(ui_inventories.list_pagination)

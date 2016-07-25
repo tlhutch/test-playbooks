@@ -2,7 +2,7 @@ from selenium.webdriver.common.by import By
 
 from common.ui.page import Region
 from common.ui.models.base import TowerPage
-from common.ui.models.forms import FormPanel 
+from common.ui.models.forms import FormPanel
 from common.ui.models.forms import Lookup
 
 from common.ui.models.regions import (
@@ -10,7 +10,6 @@ from common.ui.models.regions import (
     ListTable,
     Tab,
     TagSearch,
-    StatusIcon,
 )
 
 
@@ -83,7 +82,7 @@ class UsersTable(ListTable):
         _last_name = (By.CLASS_NAME, 'last_name-column')
         _edit = (By.ID, 'edit-action')
         _delete = (By.ID, 'delete-action')
-       
+
         @property
         def username(self):
             return self.find_element(*self._username)
@@ -108,11 +107,14 @@ class UsersTable(ListTable):
 class DetailsTab(Tab):
     _root_locator = (By.ID, 'user_tab')
 
+
 class OrganizationsTab(Tab):
     _root_locator = (By.ID, 'organizations_tab')
 
+
 class GrantedPermissionsTab(Tab):
     _root_locator = (By.ID, 'roles_tab')
+
 
 class TeamsTab(Tab):
     _root_locator = (By.ID, 'teams_tab')

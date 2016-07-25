@@ -75,7 +75,7 @@ class Region(Selector):
     def overlaps_with(self, other):
         """Determine if this region overlaps the bounding box of another
         Region or WebElement
-        """  
+        """
         if isinstance(other, EventFiringWebElement):
             other = Region(self.page, root=other)
 

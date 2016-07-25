@@ -1,7 +1,6 @@
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-
-from common.ui.page import Region
 
 from form_group import FormGroup
 

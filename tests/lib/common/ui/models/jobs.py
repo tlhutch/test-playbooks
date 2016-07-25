@@ -17,7 +17,7 @@ __all__ = ['Jobs']
 class Jobs(TowerPage):
 
     url_template = '/#/jobs'
-    
+
     @property
     def jobs(self):
         JobsTab(self).enable()
@@ -73,11 +73,11 @@ class JobsTable(ListTable):
         @property
         def type(self):
             return self.find_element(*self._type)
-        
+
         @property
         def relaunch(self):
             return self.find_element(*self._relaunch)
-        
+
         @property
         def delete(self):
             return self.find_element(*self._delete)
@@ -88,12 +88,12 @@ class JobsTable(ListTable):
 
 
 class SchedulesTab(Tab):
-    
+
     _root_locator = (By.ID, 'scheduled_jobs_link')
 
 
 class SchedulesPanel(Region):
-  
+
     @property
     def pagination(self):
         return ListPagination(self.page)
@@ -118,23 +118,23 @@ class SchedulesTable(ListTable):
         _schedule = (By.ID, 'schedule-action')
         _edit = (By.CSS_SELECTOR, 'i[class*=fa-pencil]')
         _delete = (By.ID, 'delete-action')
-    
+
         @property
         def name(self):
             return self.find_element(*self._name)
-        
+
         @property
         def job_type(self):
             return self.find_element(*self._job_type)
-        
+
         @property
         def schedule(self):
             return self.find_element(*self._schedule)
-        
+
         @property
         def edit(self):
             return self.find_element(*self._edit)
-        
+
         @property
         def delete(self):
             return self.find_element(*self._delete)

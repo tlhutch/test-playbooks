@@ -63,6 +63,7 @@ def test_navigation_dropdown(factories, ui_activity_stream):
     ui_activity_stream.wait_until_loaded()
     assert ui_activity_stream.navigation_dropdown.get_value() == nondefault
 
+
 def test_navigation_with_edit_query_params(ui_inventory_edit):
     """Verify expected activity stream functionality with url query parameters
     generated when linking from a crud edit page

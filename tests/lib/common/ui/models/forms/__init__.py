@@ -15,6 +15,7 @@ from groups import (
     TextArea,
 )
 
+
 class FormPanel(RegionMap):
 
     _root_locator = [(By.CLASS_NAME, 'Form-header'), (By.XPATH, '..')]

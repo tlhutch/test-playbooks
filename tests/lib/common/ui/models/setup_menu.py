@@ -29,7 +29,7 @@ class SetupCard(Region):
 
     _description = (By.CLASS_NAME, 'SetupItem-description')
     _title = (By.CLASS_NAME, 'SetupItem-title')
-    
+
     @property
     def title(self):
         return self.find_element(*self._title)

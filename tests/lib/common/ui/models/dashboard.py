@@ -131,7 +131,10 @@ class GraphDropdown(Region):
     @contextmanager
     def expand(self):
         elements = self.page.find_elements(*self._items)
-        expanded = lambda _: all([e.is_displayed() for e in elements])
+
+        def expanded(_):
+            return all([e.is_displayed() for e in elements])
+
         if not expanded(self):
             self.root.click()
             self.wait.until(expanded)
@@ -139,7 +142,7 @@ class GraphDropdown(Region):
         if expanded(self):
             self.root.click()
             self.wait.until_not(expanded)
-        
+
     @property
     def options(self):
         with self.expand():

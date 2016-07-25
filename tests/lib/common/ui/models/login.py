@@ -3,6 +3,7 @@ from selenium.webdriver.common.keys import Keys
 
 from common.ui.page import Page
 
+
 class Login(Page):
 
     url_template = '#/login'

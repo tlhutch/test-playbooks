@@ -68,7 +68,7 @@ class Organizations(TowerPage):
 class OrganizationAdd(Organizations):
 
     url_template = '/#/organizations/add'
-    
+
     @property
     def details(self):
         DetailsTab(self).enable()
@@ -96,7 +96,7 @@ class OrganizationEdit(Organizations):
 
 
 class OrganizationCard(Region):
-    
+
     _badges = (By.CLASS_NAME, 'OrgCards-linkBadge')
     _delete = (By.CLASS_NAME, 'List-actionButton--delete')
     _description = (By.CLASS_NAME, 'OrgCards-description')
@@ -126,7 +126,7 @@ class OrganizationCard(Region):
         badge_map = {}
         for element in self.find_elements(*self._badges):
             parent = element.find_element(By.XPATH, '..')
-            link = parent_element.find_element(*self._badges)
+            link = parent.find_element(*self._badges)
             link_text = link.text
             if link_text:
                 badge_map[link_text] = element
@@ -155,8 +155,10 @@ class OrganizationCard(Region):
 class DetailsTab(Tab):
     _root_locator = (By.ID, 'organization_tab')
 
+
 class NotificationsTab(Tab):
     _root_locator = (By.ID, 'notifications_tab')
+
 
 class PermissionsTab(Tab):
     _root_locator = (By.ID, 'permissions_tab')

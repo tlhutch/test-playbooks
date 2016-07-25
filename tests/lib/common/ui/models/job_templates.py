@@ -125,11 +125,14 @@ class JobTemplatesTable(ListTable):
 class CompletedTab(Tab):
     _root_locator = (By.ID, 'completed_jobs_tab')
 
+
 class DetailsTab(Tab):
     _root_locator = (By.ID, 'job_templates_tab')
 
+
 class NotificationsTab(Tab):
     _root_locator = (By.ID, 'notifications_tab')
+
 
 class PermissionsTab(Tab):
     _root_locator = (By.ID, 'permissions_tab')

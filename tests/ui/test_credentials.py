@@ -1,4 +1,4 @@
-import time 
+import time
 
 import fauxfactory
 import pytest
@@ -91,4 +91,3 @@ def test_create_credential(factories, api_credentials_pg, ui_credential_add):
     assert len(results) == 1, 'unable to verify creation of credential'
     # check that the newly created resource has the row selection indicator
     assert ui_credential_add.list_table.selected_row.name.text == name
-

@@ -1,5 +1,5 @@
 import pytest
- 
+
 
 pytestmark = [
     pytest.mark.ui,
@@ -16,7 +16,6 @@ pytestmark = [
 # Assertion Helpers and Utilities
 # -----------------------------------------------------------------------------
 
-
 def check_card_titles(expected_titles, displayed_titles):
     """Check a list of displayed card titles against a list of expected titles
     """
@@ -32,7 +31,6 @@ def check_card_titles(expected_titles, displayed_titles):
 # -----------------------------------------------------------------------------
 # Tests
 # -----------------------------------------------------------------------------
-
 
 def test_displayed_card_titles_and_ordering(factories, ui_setup):
     """Verify that the visibility and ordering of setup menu cards as an admin
@@ -55,9 +53,9 @@ def test_displayed_card_titles_and_ordering(factories, ui_setup):
         'USERS',
         'TEAMS',
         'CREDENTIALS',
-        #'MANAGEMENT JOBS',
+        # 'MANAGEMENT JOBS',
         'INVENTORY SCRIPTS',
-        #'NOTIFICATIONS',
+        # 'NOTIFICATIONS',
         'VIEW YOUR LICENSE',
         'ABOUT TOWER'
     ]

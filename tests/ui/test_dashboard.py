@@ -32,4 +32,3 @@ def test_job_status_toolbar_dropdowns(ui_dashboard):
     check_toolbar_dropdown(ui_dashboard.toolbar.period)
     check_toolbar_dropdown(ui_dashboard.toolbar.job_type)
     check_toolbar_dropdown(ui_dashboard.toolbar.status)
-

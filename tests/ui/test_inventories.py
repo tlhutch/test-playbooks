@@ -1,4 +1,4 @@
-import time 
+import time
 
 import fauxfactory
 import pytest
@@ -96,4 +96,3 @@ def test_create_inventory(factories, api_inventories_pg, ui_inventory_add):
     # check that we find a row showing the updated inventory name
     results = ui_inventory_add.list_table.query(lambda r: r.name.text == name)
     assert len(results) == 1, 'unable to verify creation of inventory'
-

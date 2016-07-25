@@ -2,15 +2,13 @@ from selenium.webdriver.common.by import By
 
 from common.ui.page import Region
 from common.ui.models.base import TowerPage
-from common.ui.models.forms import FormPanel 
-from common.ui.models.forms import Lookup
+from common.ui.models.forms import FormPanel
 
 from common.ui.models.regions import (
     ListPagination,
     ListTable,
     Tab,
     TagSearch,
-    StatusIcon,
 )
 
 
@@ -78,7 +76,7 @@ class TeamsTable(ListTable):
         _organization = (By.CLASS_NAME, 'organization-column')
         _edit = (By.ID, 'edit-action')
         _delete = (By.ID, 'delete-action')
-        
+
         @property
         def name(self):
             return self.find_element(*self._name)
@@ -103,8 +101,10 @@ class TeamsTable(ListTable):
 class DetailsTab(Tab):
     _root_locator = (By.ID, 'team_tab')
 
+
 class GrantedPermissionsTab(Tab):
     _root_locator = (By.ID, 'roles_tab')
+
 
 class UsersTab(Tab):
     _root_locator = (By.ID, 'teams_tab')
@@ -134,6 +134,3 @@ class TeamDetails(FormPanel):
                 (By.XPATH, '..'))
         },
     }
-
-
-

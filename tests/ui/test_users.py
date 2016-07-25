@@ -1,4 +1,4 @@
-import time 
+import time
 
 import fauxfactory
 import pytest

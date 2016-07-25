@@ -1,6 +1,7 @@
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 
+
 class Selector(object):
 
     def __init__(self, driver, timeout):

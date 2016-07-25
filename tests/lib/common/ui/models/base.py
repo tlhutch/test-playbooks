@@ -12,6 +12,7 @@ from common.ui.models.regions import (
     MobileHeader,
 )
 
+
 class TowerPage(Page):
 
     _activity_stream_link = (By.CSS_SELECTOR, 'i[class="BreadCrumb-menuLinkImage icon-activity-stream"]')
@@ -38,7 +39,7 @@ class TowerPage(Page):
 
     @property
     def header(self):
-        mobileHeader = MobileHeader(self) 
+        mobileHeader = MobileHeader(self)
         if mobileHeader.is_displayed():
             return mobileHeader.expand()
         return Header(self)

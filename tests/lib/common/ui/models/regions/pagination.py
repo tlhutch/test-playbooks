@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 
 from common.ui.page import Region
 
+
 class Pagination(Region):
 
     _first = (By.CSS_SELECTOR, '#first-page-set')
@@ -50,7 +51,7 @@ class Pagination(Region):
         if element.text:
             return int(element.text)
         return None
-        
+
     @property
     def total_pages(self):
         # 'PAGE X of Y' -> Y
@@ -71,7 +72,6 @@ class Pagination(Region):
         # 'ITEMS X-Y OF Z' -> (X, Y)
         element = self.page.find_element(*self._total_items)
         return map(int, element.text.split()[1].split(u'\u2013'))
-
 
     def _find_numbered_link(self, text):
         search_text = text.lower()
@@ -121,4 +121,3 @@ class Pagination(Region):
 
 class ListPagination(Pagination):
     _root_locator = (By.CLASS_NAME, 'List-pagination')
-

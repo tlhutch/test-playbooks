@@ -14,4 +14,3 @@ pytestmark = [
 @pytest.mark.ui_debug
 def test_jobs(ui_jobs):
     pass
-

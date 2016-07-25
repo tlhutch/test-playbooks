@@ -62,10 +62,10 @@ def check_form_required_fields(form):
                 'save button unexpectedly disabled after'
                 ' repopulating required {0} field'.format(name))
 
+
 # -----------------------------------------------------------------------------
 # Tests
 # -----------------------------------------------------------------------------
-
 
 CREDENTIAL_TYPES = [
     'machine',
@@ -81,6 +81,7 @@ CREDENTIAL_TYPES = [
     'cloudforms',
     'network',
 ]
+
 
 @pytest.mark.parametrize('credential_type', CREDENTIAL_TYPES)
 def test_credential_form_required_fields(max_window, ui_credential_edit, credential_type):
