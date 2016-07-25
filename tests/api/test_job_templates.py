@@ -908,7 +908,7 @@ class Test_Job_Template(Base_Api_Test):
         corresponding job_template.
         '''
         # launch the job_template
-        job_pg = job_template_sleep.launch().wait_until_started()
+        job_template_sleep.launch().wait_until_started()
 
         # delete the job_template
         with pytest.raises(common.exceptions.Conflict_Exception):
