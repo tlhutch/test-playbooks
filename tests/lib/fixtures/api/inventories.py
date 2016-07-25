@@ -308,6 +308,29 @@ def rax_inventory_source(request, authtoken, rax_group):
 
 
 #
+# Azure group with classic credential
+#
+@pytest.fixture(scope="function")
+def azure_classic_group(request, authtoken, api_groups_pg, inventory, azure_classic_credential):
+    payload = dict(name="azure-classic-group-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Microsoft Azure %s" % fauxfactory.gen_utf8(),
+                   inventory=inventory.id,
+                   credential=azure_classic_credential.id)
+    obj = api_groups_pg.post(payload)
+    request.addfinalizer(obj.silent_cleanup)
+
+    # Set the inventory_source.sourc = 'azure'
+    inv_source = obj.get_related('inventory_source')
+    inv_source.patch(source='azure', credential=azure_classic_credential.id)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def azure_classic_inventory_source(request, authtoken, azure_classic_group):
+    return azure_classic_group.get_related('inventory_source')
+
+
+#
 # Azure group
 #
 @pytest.fixture(scope="function")
@@ -321,13 +344,36 @@ def azure_group(request, authtoken, api_groups_pg, inventory, azure_credential):
 
     # Set the inventory_source.sourc = 'azure'
     inv_source = obj.get_related('inventory_source')
-    inv_source.patch(source='azure', credential=azure_credential.id)
+    inv_source.patch(source='azure_rm', credential=azure_credential.id)
     return obj
 
 
 @pytest.fixture(scope="function")
 def azure_inventory_source(request, authtoken, azure_group):
     return azure_group.get_related('inventory_source')
+
+
+#
+# Azure group with active directory credential
+#
+@pytest.fixture(scope="function")
+def azure_ad_group(request, authtoken, api_groups_pg, inventory, azure_ad_credential):
+    payload = dict(name="azure-ad-group-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Microsoft Azure %s" % fauxfactory.gen_utf8(),
+                   inventory=inventory.id,
+                   credential=azure_ad_credential.id)
+    obj = api_groups_pg.post(payload)
+    request.addfinalizer(obj.silent_cleanup)
+
+    # Set the inventory_source.sourc = 'azure'
+    inv_source = obj.get_related('inventory_source')
+    inv_source.patch(source='azure_rm', credential=azure_ad_credential.id)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def azure_ad_inventory_source(request, authtoken, azure_ad_group):
+    return azure_ad_group.get_related('inventory_source')
 
 
 #
@@ -457,8 +503,11 @@ def custom_inventory_source(request, authtoken, custom_group):
 #
 # Convenience fixture that iterates through supported cloud_groups
 #
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware', 'openstack_v2', 'openstack_v3'])
-def cloud_group(request):
+@pytest.fixture(scope="function", params=['aws', 'rax', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2', 'openstack_v3'])
+def cloud_group(request, ansible_os_family, ansible_distribution_major_version):
+    # new-style azure inventory imports are not supported on EL6 systems
+    if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param in ['azure', 'azure_ad']):
+        pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
     return request.getfuncargvalue(request.param + '_group')
 
 
@@ -466,8 +515,13 @@ def cloud_group(request):
 # Convenience fixture that returns all of our cloud_groups as a list
 #
 @pytest.fixture(scope="function")
-def cloud_groups(aws_group, rax_group, azure_group, gce_group, vmware_group, openstack_v2_group, openstack_v3_group):
-    return [aws_group, rax_group, azure_group, gce_group, vmware_group, openstack_v2_group, openstack_v3_group]
+def cloud_groups(ansible_os_family, ansible_distribution_major_version, aws_group, rax_group,
+                 azure_classic_group, azure_group, azure_ad_group, gce_group, vmware_group,
+                 openstack_v2_group, openstack_v3_group):
+    if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6'):
+        return [aws_group, rax_group, azure_classic_group, gce_group, vmware_group, openstack_v2_group, openstack_v3_group]
+    else:
+        return [aws_group, rax_group, azure_classic_group, azure_group, azure_ad_group, gce_group, vmware_group, openstack_v2_group, openstack_v3_group]
 
 
 #

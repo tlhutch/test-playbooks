@@ -76,9 +76,20 @@ if __name__ == '__main__':
     cfg['cloud']['gce']['project'] = os.environ.get("GCE_PROJECT", "")
     cfg['cloud']['gce']['ssh_key_data'] = literal(open(os.environ["GCE_KEY_DATA"], 'r').read())
 
+    # Set azure classic info
+    cfg['cloud']['azure_classic']['username'] = os.environ.get("AZURE_CLASSIC_USERNAME", "")
+    cfg['cloud']['azure_classic']['ssh_key_data'] = literal(open(os.environ["AZURE_CLASSIC_KEY_DATA"], 'r').read())
+
     # Set azure info
-    cfg['cloud']['azure']['username'] = os.environ.get("AZURE_USERNAME", "")
-    cfg['cloud']['azure']['ssh_key_data'] = literal(open(os.environ["AZURE_KEY_DATA"], 'r').read())
+    cfg['cloud']['azure']['subscription_id'] = os.environ.get("AZURE_SUBSCRIPTION_ID", "")
+    cfg['cloud']['azure']['client_id'] = os.environ.get("AZURE_CLIENT_ID", "")
+    cfg['cloud']['azure']['secret'] = os.environ.get("AZURE_SECRET", "")
+    cfg['cloud']['azure']['tenant'] = os.environ.get("AZURE_TENANT", "")
+
+    # Set azure active directory info
+    cfg['cloud']['azure_ad']['subscription_id'] = os.environ.get("AZURE_SUBSCRIPTION_ID", "")
+    cfg['cloud']['azure_ad']['ad_user'] = os.environ.get("AZURE_AD_USER", "")
+    cfg['cloud']['azure_ad']['password'] = os.environ.get("AZURE_PASSWORD", "")
 
     # Set vmware info
     cfg['cloud']['vmware']['username'] = os.environ.get("VMWARE_USERNAME", "")

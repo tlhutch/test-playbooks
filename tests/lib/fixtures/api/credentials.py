@@ -158,7 +158,7 @@ def encrypted_scm_credential(request, authtoken, api_credentials_pg, admin_user,
 
 @pytest.fixture(scope="function")
 def aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Amazon Cloud credential'''
+    '''Create a randomly named Amazon cloud credential'''
     payload = dict(name="awx-credential-%s" % fauxfactory.gen_utf8(),
                    description="AWS credential %s" % fauxfactory.gen_utf8(),
                    kind='aws',
@@ -172,7 +172,7 @@ def aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
 
 @pytest.fixture(scope="function")
 def rax_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Rackspace Cloud credential'''
+    '''Create a randomly named Rackspace cloud credential'''
     payload = dict(name="rax-credential-%s" % fauxfactory.gen_utf8(),
                    description="Rackspace credential %s" % fauxfactory.gen_utf8(),
                    kind='rax',
@@ -185,14 +185,45 @@ def rax_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
 
 
 @pytest.fixture(scope="function")
-def azure_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Azure Cloud credential'''
-    payload = dict(name="azure-credential-%s" % fauxfactory.gen_utf8(),
+def azure_classic_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create a randomly named Azure classic cloud credential'''
+    payload = dict(name="azure-classic-credential-%s" % fauxfactory.gen_utf8(),
                    description="Microsoft Azure credential %s" % fauxfactory.gen_utf8(),
                    kind='azure',
                    user=admin_user.id,
-                   username=testsetup.credentials['cloud']['azure']['username'],
-                   ssh_key_data=testsetup.credentials['cloud']['azure']['ssh_key_data'],)
+                   username=testsetup.credentials['cloud']['azure_classic']['username'],
+                   ssh_key_data=testsetup.credentials['cloud']['azure_classic']['ssh_key_data'],)
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def azure_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create a randomly named Azure cloud credential'''
+    payload = dict(name="azure-credential-%s" % fauxfactory.gen_utf8(),
+                   description="Microsoft Azure credential %s" % fauxfactory.gen_utf8(),
+                   kind='azure_rm',
+                   user=admin_user.id,
+                   subscription=testsetup.credentials['cloud']['azure']['subscription_id'],
+                   client=testsetup.credentials['cloud']['azure']['client_id'],
+                   secret=testsetup.credentials['cloud']['azure']['secret'],
+                   tenant=testsetup.credentials['cloud']['azure']['tenant'])
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def azure_ad_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create a randomly named Azure active directory cloud credential'''
+    payload = dict(name="azure-ad-credential-%s" % fauxfactory.gen_utf8(),
+                   description="Microsoft Azure credential %s" % fauxfactory.gen_utf8(),
+                   kind='azure_rm',
+                   user=admin_user.id,
+                   subscription=testsetup.credentials['cloud']['azure_ad']['subscription_id'],
+                   username=testsetup.credentials['cloud']['azure_ad']['ad_user'],
+                   password=testsetup.credentials['cloud']['azure_ad']['password'])
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -200,7 +231,7 @@ def azure_credential(request, authtoken, api_credentials_pg, admin_user, testset
 
 @pytest.fixture(scope="function")
 def gce_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Google Compute Engine credential'''
+    '''Create a randomly named Google Compute Engine cloud credential'''
     payload = dict(name="gce-credential-%s" % fauxfactory.gen_utf8(),
                    description="Google Compute Engine credential %s" % fauxfactory.gen_utf8(),
                    kind='gce',
@@ -215,7 +246,7 @@ def gce_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
 
 @pytest.fixture(scope="function")
 def vmware_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named VMware vCenter credential'''
+    '''Create a randomly named VMware vCenter cloud credential'''
     payload = dict(name="vmware-credential-%s" % fauxfactory.gen_utf8(),
                    description="VMware vCenter credential %s" % fauxfactory.gen_utf8(),
                    kind='vmware',
@@ -230,9 +261,9 @@ def vmware_credential(request, authtoken, api_credentials_pg, admin_user, testse
 
 @pytest.fixture(scope="function")
 def openstack_v2_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Openstack_v2 credential'''
+    '''Create a randomly named OpenStack_v2 cloud credential'''
     payload = dict(name="openstack-v2-credential-%s" % fauxfactory.gen_utf8(),
-                   description="Openstack_v2 credential %s" % fauxfactory.gen_utf8(),
+                   description="OpenStack credential %s" % fauxfactory.gen_utf8(),
                    kind='openstack',
                    user=admin_user.id,
                    host=testsetup.credentials['cloud']['openstack_v2']['host'],
@@ -246,9 +277,9 @@ def openstack_v2_credential(request, authtoken, api_credentials_pg, admin_user, 
 
 @pytest.fixture(scope="function")
 def openstack_v3_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Openstack_v3 credential'''
+    '''Create a randomly named OpenStack_v3 cloud credential'''
     payload = dict(name="openstack-v3-credential-%s" % fauxfactory.gen_utf8(),
-                   description="Openstack_v3 credential %s" % fauxfactory.gen_utf8(),
+                   description="OpenStack credential %s" % fauxfactory.gen_utf8(),
                    kind='openstack',
                    user=admin_user.id,
                    host=testsetup.credentials['cloud']['openstack_v3']['host'],
