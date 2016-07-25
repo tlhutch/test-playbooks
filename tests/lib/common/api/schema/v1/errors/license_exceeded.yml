@@ -8,3 +8,5 @@ properties:
         oneOf:
             - {type: string, pattern: '^license range of \d+ instances has been exceeded$'}
             - {type: string, pattern: '^License count of \d+ instances has been reached.$'}
+            - {type: string, pattern: '^License has expired.$'}
+            - {type: string, pattern: '^License is missing.$'}
