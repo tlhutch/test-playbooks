@@ -11,7 +11,7 @@ class Common_Exception(Exception):
         return self.__str__()
 
     def __str__(self):
-        return str(self.message)
+        return self.message
 
 
 class BadRequest_Exception(Common_Exception):
@@ -35,11 +35,15 @@ class InternalServerError_Exception(Common_Exception):
 
 
 class LicenseExceeded_Exception(Common_Exception):
-    pass
+
+    def __str__(self):
+        return str(self.message)
 
 
 class LicenseInvalid_Exception(Common_Exception):
-    pass
+
+    def __str__(self):
+        return str(self.message)
 
 
 class Method_Not_Allowed_Exception(Common_Exception):
