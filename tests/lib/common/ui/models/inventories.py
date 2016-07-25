@@ -39,10 +39,6 @@ class InventoryAdd(Inventories):
     url_template = '/#/inventories/add'
 
     @property
-    def forms(self):
-        return [self.details]
-
-    @property
     def details(self):
         DetailsTab(self).enable()
         return InventoryDetails(self)
@@ -51,10 +47,6 @@ class InventoryAdd(Inventories):
 class InventoryEdit(Inventories):
 
     url_template = '/#/inventories/{id}'
-
-    @property
-    def forms(self):
-        return [self.details]
 
     @property
     def details(self):
@@ -97,7 +89,6 @@ class InventoriesTable(ListTable):
 
 class DetailsTab(Tab):
     _root_locator = (By.ID, 'inventory_tab')
-
 
 class ScanJobTemplatesTab(Tab):
     _root_locator = (By.ID, 'scan_job_templates_tab')

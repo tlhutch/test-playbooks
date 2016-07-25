@@ -21,8 +21,6 @@ class Teams(TowerPage):
 
     url_template = '/#/teams'
 
-    forms = []
-
     @property
     def list_pagination(self):
         return ListPagination(self)
@@ -44,10 +42,6 @@ class TeamAdd(Teams):
     url_template = '/#/teams/add'
 
     @property
-    def forms(self):
-        return [self.details]
-
-    @property
     def details(self):
         DetailsTab(self).enable()
         return TeamDetails(self)
@@ -56,10 +50,6 @@ class TeamAdd(Teams):
 class TeamEdit(Teams):
 
     url_template = '/#/teams/{id}'
-
-    @property
-    def forms(self):
-        return [self.details]
 
     @property
     def details(self):
@@ -75,6 +65,39 @@ class TeamEdit(Teams):
     def users(self):
         UsersTab(self).enable()
         return FormPanel(self)
+
+
+class TeamsTable(ListTable):
+
+    _root_locator = (By.CSS_SELECTOR, '#teams_table')
+
+    class Row(Region):
+
+        _name = (By.CLASS_NAME, 'name-column')
+        _description = (By.CLASS_NAME, 'description-column')
+        _organization = (By.CLASS_NAME, 'organization-column')
+        _edit = (By.ID, 'edit-action')
+        _delete = (By.ID, 'delete-action')
+        
+        @property
+        def name(self):
+            return self.find_element(*self._name)
+
+        @property
+        def description(self):
+            return self.find_element(*self.description)
+
+        @property
+        def organization(self):
+            return self.find_element(*self._organization)
+
+        @property
+        def delete(self):
+            return self.find_element(*self._delete)
+
+        @property
+        def edit(self):
+            return self.find_element(*self._edit)
 
 
 class DetailsTab(Tab):
@@ -113,34 +136,4 @@ class TeamDetails(FormPanel):
     }
 
 
-class TeamsTable(ListTable):
 
-    _root_locator = (By.CSS_SELECTOR, '#teams_table')
-
-    class Row(Region):
-
-        _name = (By.CLASS_NAME, 'name-column')
-        _description = (By.CLASS_NAME, 'description-column')
-        _organization = (By.CLASS_NAME, 'organization-column')
-        _edit = (By.ID, 'edit-action')
-        _delete = (By.ID, 'delete-action')
-        
-        @property
-        def name(self):
-            return self.find_element(*self._name)
-
-        @property
-        def description(self):
-            return self.find_element(*self.description)
-
-        @property
-        def organization(self):
-            return self.find_element(*self._organization)
-
-        @property
-        def delete(self):
-            return self.find_element(*self._delete)
-
-        @property
-        def edit(self):
-            return self.find_element(*self._edit)

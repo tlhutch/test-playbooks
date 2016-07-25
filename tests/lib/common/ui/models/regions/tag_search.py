@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import time
 
 from selenium.webdriver.common.by import By
@@ -42,32 +43,34 @@ class SearchTypeDropdown(Region):
     _click_to_close = (By.CLASS_NAME, 'TagSearch-clickToClose')
     _items = (By.CLASS_NAME, 'TagSearch-dropdownItem')
 
-    def _collapse(self):
-        if self.page.is_element_displayed(*self._click_to_close):
-            self.page.find_element(*self._click_to_close).click()
-
     def _expand(self):
         if not self.page.is_element_displayed(*self._click_to_close):
             self.root.click()
 
+    def _collapse(self):
+        if self.page.is_element_displayed(*self._click_to_close):
+            self.page.find_element(*self._click_to_close).click()
+
+    @contextmanager
+    def expand(self):
+        self._expand()
+        yield
+        self._collapse()
+
     @property
     def options(self):
-        self._expand()
-        elements = self.find_elements(*self._items)
-        options = [e.text.lower() for e in elements if e.text]
-        self._collapse()
-        return options
+        with self.expand():
+            elements = self.find_elements(*self._items)
+            return [e.text.lower() for e in elements if e.text]
 
     def get_value(self):
         return self.root.text.lower()
 
     def set_value(self, text):
-        search_text = text.lower()
-        self._expand()
-        for element in self.find_elements(*self._items):
-            if element.text and element.text.lower() == search_text:
-                element.click()
-                self._collapse()
-                return
-        self._collapse()
+        with self.expand():
+            elements = self.find_elements(*self._items)
+            for e in elements:
+                if e.text and e.text.lower() == text.lower():
+                    e.click()
+                    return
         raise NoSuchElementException

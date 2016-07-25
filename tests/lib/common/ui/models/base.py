@@ -49,15 +49,11 @@ class TowerPage(Page):
         """
         url = self.driver.current_url
         cookies = self.driver.get_cookies()
-        try:
-            loginPage = Login(self.driver, self.base_url)
-            loginPage.logout()
-            loginPage.login(username, password)
-            self.driver.get(url)
-            yield
-        finally:
-            map(self.driver.add_cookie, cookies)
-            self.driver.refresh()
+        Login(self.driver, self.base_url).logout().login(username, password)
+        self.driver.get(url)
+        yield
+        map(self.driver.add_cookie, cookies)
+        self.driver.refresh()
 
     @property
     def refresh_button(self):

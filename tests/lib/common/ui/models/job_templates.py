@@ -40,10 +40,6 @@ class JobTemplateAdd(JobTemplates):
     url_template = '/#/job_templates/add'
 
     @property
-    def forms(self):
-        return [self.details]
-
-    @property
     def details(self):
         DetailsTab(self).enable()
         return JobTemplateDetails(self)
@@ -52,10 +48,6 @@ class JobTemplateAdd(JobTemplates):
 class JobTemplateEdit(JobTemplates):
 
     url_template = '/#/job_templates/{id}'
-
-    @property
-    def forms(self):
-        return [self.details]
 
     @property
     def completed_jobs(self):
@@ -79,6 +71,55 @@ class JobTemplateEdit(JobTemplates):
 
     def wait_until_loaded(self):
         self.wait.until(lambda _: self.details.name.get_value())
+
+
+class JobTemplatesTable(ListTable):
+
+    _root_locator = (By.CSS_SELECTOR, '#job_templates_table')
+
+    class Row(Region):
+
+        _name = (By.CLASS_NAME, 'name-column')
+        _description = (By.CLASS_NAME, 'description-column')
+        _copy = (By.ID, 'copy-action')
+        _delete = (By.ID, 'delete-action')
+        _edit = (By.ID, 'edit-action')
+        _launch = (By.ID, 'submit-action')
+        _schedule = (By.ID, 'schedule-action')
+        _status_icons = (By.CLASS_NAME, 'SmartStatus-iconContainer')
+
+        @property
+        def name(self):
+            return self.find_element(*self._name)
+
+        @property
+        def description(self):
+            return self.find_element(*self._description)
+
+        @property
+        def copy(self):
+            return self.find_element(*self._copy)
+
+        @property
+        def delete(self):
+            return self.find_element(*self._delete)
+
+        @property
+        def edit(self):
+            return self.find_element(*self._edit)
+
+        @property
+        def launch(self):
+            return self.find_element(*self._launch)
+
+        @property
+        def schedule(self):
+            return self.find_element(*self._schedule)
+
+        @property
+        def status_icons(self):
+            elements = self.find_elements(*self._status_icons)
+            return [StatusIcon(self.page, root=e) for e in elements]
 
 
 class CompletedTab(Tab):
@@ -221,52 +262,3 @@ class JobTemplateDetails(FormPanel):
                 (By.XPATH, '..')]
         },
     }
-
-
-class JobTemplatesTable(ListTable):
-
-    _root_locator = (By.CSS_SELECTOR, '#job_templates_table')
-
-    class Row(Region):
-
-        _name = (By.CLASS_NAME, 'name-column')
-        _description = (By.CLASS_NAME, 'description-column')
-        _copy = (By.ID, 'copy-action')
-        _delete = (By.ID, 'delete-action')
-        _edit = (By.ID, 'edit-action')
-        _launch = (By.ID, 'submit-action')
-        _schedule = (By.ID, 'schedule-action')
-        _status_icons = (By.CLASS_NAME, 'SmartStatus-iconContainer')
-
-        @property
-        def name(self):
-            return self.find_element(*self._name)
-
-        @property
-        def description(self):
-            return self.find_element(*self._description)
-
-        @property
-        def copy(self):
-            return self.find_element(*self._copy)
-
-        @property
-        def delete(self):
-            return self.find_element(*self._delete)
-
-        @property
-        def edit(self):
-            return self.find_element(*self._edit)
-
-        @property
-        def launch(self):
-            return self.find_element(*self._launch)
-
-        @property
-        def schedule(self):
-            return self.find_element(*self._schedule)
-
-        @property
-        def status_icons(self):
-            icons = self.find_elements(*self._status_icons)
-            return [StatusIcon(self.page, root=element) for element in icons]

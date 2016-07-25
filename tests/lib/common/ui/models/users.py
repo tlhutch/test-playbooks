@@ -21,8 +21,6 @@ class Users(TowerPage):
 
     url_template = '/#/users'
 
-    forms = []
-
     @property
     def list_pagination(self):
         return ListPagination(self)
@@ -44,10 +42,6 @@ class UserAdd(Users):
     url_template = '/#/users/add'
 
     @property
-    def forms(self):
-        return [self.details]
-
-    @property
     def details(self):
         DetailsTab(self).enable()
         return UserDetails(self)
@@ -56,10 +50,6 @@ class UserAdd(Users):
 class UserEdit(Users):
 
     url_template = '/#/users/{id}'
-
-    @property
-    def forms(self):
-        return [self.details]
 
     @property
     def details(self):
@@ -80,6 +70,39 @@ class UserEdit(Users):
     def teams(self):
         Tab(self).enable()
         return FormPanel(self)
+
+
+class UsersTable(ListTable):
+
+    _root_locator = (By.CSS_SELECTOR, '#users_table')
+
+    class Row(Region):
+
+        _username = (By.CLASS_NAME, 'username-column')
+        _first_name = (By.CLASS_NAME, 'first_name-column')
+        _last_name = (By.CLASS_NAME, 'last_name-column')
+        _edit = (By.ID, 'edit-action')
+        _delete = (By.ID, 'delete-action')
+       
+        @property
+        def username(self):
+            return self.find_element(*self._username)
+
+        @property
+        def first_name(self):
+            return self.find_element(*self._first_name)
+
+        @property
+        def last_name(self):
+            return self.find_element(*self._last_name)
+
+        @property
+        def edit(self):
+            return self.find_element(*self._edit)
+
+        @property
+        def delete(self):
+            return self.find_element(*self._delete)
 
 
 class DetailsTab(Tab):
@@ -153,36 +176,3 @@ class UserDetails(FormPanel):
     @property
     def organization(self):
         return Lookup(self.page, root_locator=self._organization)
-
-
-class UsersTable(ListTable):
-
-    _root_locator = (By.CSS_SELECTOR, '#users_table')
-
-    class Row(Region):
-
-        _username = (By.CLASS_NAME, 'username-column')
-        _first_name = (By.CLASS_NAME, 'first_name-column')
-        _last_name = (By.CLASS_NAME, 'last_name-column')
-        _edit = (By.ID, 'edit-action')
-        _delete = (By.ID, 'delete-action')
-       
-        @property
-        def username(self):
-            return self.find_element(*self._username)
-
-        @property
-        def first_name(self):
-            return self.find_element(*self._first_name)
-
-        @property
-        def last_name(self):
-            return self.find_element(*self._last_name)
-
-        @property
-        def edit(self):
-            return self.find_element(*self._edit)
-
-        @property
-        def delete(self):
-            return self.find_element(*self._delete)

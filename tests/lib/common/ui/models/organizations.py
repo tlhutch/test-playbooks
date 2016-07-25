@@ -155,10 +155,8 @@ class OrganizationCard(Region):
 class DetailsTab(Tab):
     _root_locator = (By.ID, 'organization_tab')
 
-
 class NotificationsTab(Tab):
     _root_locator = (By.ID, 'notifications_tab')
-
 
 class PermissionsTab(Tab):
     _root_locator = (By.ID, 'permissions_tab')

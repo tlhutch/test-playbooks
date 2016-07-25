@@ -43,12 +43,14 @@ class Login(Page):
         self.password.send_keys(password)
         self.login_button.click()
         self.wait.until(lambda _: self.is_logged_in() or self.errors)
+        return self
 
     def login_with_enter_key(self, username, password):
         self.username.send_keys(username)
         self.password.send_keys(password)
         self.login_button.send_keys(Keys.RETURN)
         self.wait.until(lambda _: self.is_logged_in() or self.errors)
+        return self
 
     def logout(self):
         self.driver.get(self.open_url.replace('login', 'logout'))

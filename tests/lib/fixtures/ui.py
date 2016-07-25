@@ -170,6 +170,11 @@ def ui_job_template_edit(factories, ui_dashboard, selenium, base_url):
 
 
 @pytest.fixture
+def ui_jobs(ui_dashboard, selenium, base_url):
+    return Jobs(selenium, base_url).open()
+
+
+@pytest.fixture
 def ui_license(ui_dashboard, selenium, base_url):
     return License(selenium, base_url).open()
 
@@ -246,9 +251,3 @@ def ui_user_add(ui_dashboard, selenium, base_url):
 def ui_user_edit(factories, ui_dashboard, selenium, base_url):
     user = factories.user()
     return UserEdit(selenium, base_url, id=user.id).open()
-
-
-@pytest.fixture
-def ui_jobs(ui_dashboard, selenium, base_url):
-    return Jobs(selenium, base_url).open()
-

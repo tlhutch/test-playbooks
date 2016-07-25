@@ -64,6 +64,44 @@ class ProjectEdit(Projects):
         return FormPanel(self)
 
 
+class ProjectsTable(ListTable):
+
+    _root_locator = (By.CSS_SELECTOR, '#projects_table')
+
+    class Row(Region):
+        
+        _name = (By.CLASS_NAME, 'name-column')
+        _description = (By.CLASS_NAME, 'description-column')
+        _last_updated = (By.CLASS_NAME, 'last_updated-column')
+        _delete = (By.ID, 'delete-action')
+        _edit = (By.ID, 'edit-action')
+        _scm_update = (By.ID, 'scm_update-action')
+
+        @property
+        def name(self):
+            return self.find_element(*self._name)
+
+        @property
+        def description(self):
+            return self.find_element(*self._description)
+
+        @property
+        def edit(self):
+            return self.find_element(*self._edit)
+
+        @property
+        def delete(self):
+            return self.find_element(*self._delete)
+
+        @property
+        def last_updated(self):
+            return self.find_element(*self._last_updated)
+
+        @property
+        def scm_update(self):
+            return self.find_element(*self._scm_update)
+
+
 class DetailsTab(Tab):
     _root_locator = (By.ID, 'project_tab')
 
@@ -124,42 +162,3 @@ class ProjectDetails(FormPanel):
                 (By.XPATH, '..'))
         },
     }
-
-
-class ProjectsTable(ListTable):
-
-    _root_locator = (By.CSS_SELECTOR, '#projects_table')
-
-    class Row(Region):
-        
-        _name = (By.CLASS_NAME, 'name-column')
-        _description = (By.CLASS_NAME, 'description-column')
-        _last_updated = (By.CLASS_NAME, 'last_updated-column')
-        _delete = (By.ID, 'delete-action')
-        _edit = (By.ID, 'edit-action')
-        _scm_update = (By.ID, 'scm_update-action')
-
-        @property
-        def name(self):
-            return self.find_element(*self._name)
-
-        @property
-        def description(self):
-            return self.find_element(*self._description)
-
-        @property
-        def edit(self):
-            return self.find_element(*self._edit)
-
-        @property
-        def delete(self):
-            return self.find_element(*self._delete)
-
-        @property
-        def last_updated(self):
-            return self.find_element(*self._last_updated)
-
-        @property
-        def scm_update(self):
-            return self.find_element(*self._scm_update)
-
