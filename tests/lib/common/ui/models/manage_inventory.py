@@ -1,3 +1,4 @@
+'''
 from selenium.webdriver.common.by import By
 
 from common.ui.pages.base import TowerPage
@@ -90,3 +91,4 @@ class ManageInventory(TowerPage):
 
         super(ManageInventory, self).__init__(
             base_url, driver, index=index, **kwargs)
+'''

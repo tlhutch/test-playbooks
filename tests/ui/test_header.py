@@ -1,100 +1,54 @@
 import pytest
+from selenium.common.exceptions import TimeoutException
+
 
 pytestmark = [
     pytest.mark.ui,
     pytest.mark.nondestructive,
     pytest.mark.usefixtures(
-        'authtoken',
-        'install_basic_license',
-        'maximized_window_size'
+        'module_install_enterprise_license',
+        'supported_window_sizes',
     )
 ]
 
 
-def test_header_displays_correct_username(ui_dashboard, anonymous_user,
-                                          user_password, default_credentials):
+def test_header_shows_correct_username(
+        default_credentials, ui_dashboard, factories):
     """Verify correctly displayed username on header
     """
-    default_un = default_credentials['username']
+    msg = 'Unable to verify correctly displayed username on header'
 
-    assert ui_dashboard.header.username.lower() == default_un.lower(), (
-        'Unable to verify correctly displayed username on header')
+    expected = default_credentials['username']
+    actual = ui_dashboard.header.username
 
-    with ui_dashboard.current_user(anonymous_user.username, user_password):
-        assert ui_dashboard.header.username.lower() == anonymous_user.username.lower(), (
-            'Unable to verify that the header displays the correct username')
+    assert expected.lower() == actual.lower(), msg
+
+    anon_user = factories.user()
+
+    with ui_dashboard.current_user(anon_user.username):
+        expected = anon_user.username
+        actual = ui_dashboard.header.username
+        assert expected.lower() == actual.lower(), msg
 
 
-@pytest.mark.usefixtures('supported_window_sizes')
-def test_header_menu_item_visibility(ui_dashboard):
-    """Verify the visibility of header menu items for a logged in user
+def test_header_click_through(ui_dashboard):
+    """Verify header menu link functionality
     """
-    assert ui_dashboard.header.is_displayed(), (
-        'Expected dashboard header menu to visible')
-
-    assert ui_dashboard.header.logo.is_displayed(), (
-        'Expected header logo link link to be visible')
-
-    assert ui_dashboard.header.projects.is_displayed(), (
-        'Expected header projects link link to be visible')
-
-    assert ui_dashboard.header.inventories.is_displayed(), (
-        'Expected header inventories link link to be visible')
-
-    assert ui_dashboard.header.job_templates.is_displayed(), (
-        'Expected header job_templates link to be visible')
-
-    assert ui_dashboard.header.jobs.is_displayed(), (
-        'Expected header jobs link to be visible')
-
-    assert ui_dashboard.header.user.is_displayed(), (
-        'Expected header user link to be visible')
-
-    assert ui_dashboard.header.setup.is_displayed(), (
-        'Expected header menu setup link to be visible')
-
-    assert ui_dashboard.header.docs.is_displayed(), (
-        'Expected header menu docs link to be visible')
-
-    assert ui_dashboard.header.logout.is_displayed(), (
-        'Expected header menu logout link to be visible')
-
-
-@pytest.mark.usefixtures('supported_window_sizes')
-def test_header_links(ui_dashboard):
-    """Verify header menu links route to the expected page when clicked
-    """
-    header = ui_dashboard.header
-
-    header.jobs.click()
-    assert 'jobs' in ui_dashboard._current_url.path, (
-        'Expected jobs_link in url after clicking header jobs link ')
-    header.logo.click()
-
-    header.user.click()
-    assert 'users' in ui_dashboard._current_url.path, (
-        'Expected users in url after clicking header user link')
-    header.logo.click()
-
-    header.setup.click()
-    assert 'setup' in ui_dashboard._current_url.path, (
-        'Expected setup in url after clicking header setup link')
-    header.logo.click()
-
-    header.job_templates.click()
-    assert 'job_templates' in ui_dashboard._current_url.path, (
-        'Expected job_templates in url after clicking header job templates link')
-    header.logo.click()
-
-    header.projects.click()
-    assert 'projects' in ui_dashboard._current_url.path, (
-        'Expected projects in url after clicking header projects link')
-    header.logo.click()
-
-    header.inventories.click()
-    assert 'inventories' in ui_dashboard._current_url.path, (
-        'Expected inventories in url after clicking header inventories link')
-    header.logo.click()
-
-    assert 'home' in ui_dashboard._current_url.path, (
-        'Expected home in url after clicking header logo link')
+    link_names = (
+        'inventories',
+        'jobs',
+        'job_templates',
+        'portal',
+        'projects',
+        'setup',
+        'user'
+    )
+    for link_name in link_names:
+        getattr(ui_dashboard.header, link_name).click()
+        check_url = lambda _: link_name in ui_dashboard.driver.current_url
+        try:
+            ui_dashboard.wait.until(check_url)
+        except TimeoutException:
+            pytest.fail('Unexpected destination url content')
+        ui_dashboard.header.logo.click()
+        ui_dashboard.wait_until_loaded()

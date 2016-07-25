@@ -1,62 +1,39 @@
 import pytest
+ 
 
 pytestmark = [
     pytest.mark.ui,
     pytest.mark.nondestructive,
     pytest.mark.usefixtures(
-        'authtoken',
-        'install_basic_license',
-        'maximized_window_size'
+        'module_install_enterprise_license',
+        'max_window',
     )
 ]
 
 
-def check_card_titles(expected_card_titles, displayed_card_titles):
+# -----------------------------------------------------------------------------
+# Assertion Helpers and Utilities
+# -----------------------------------------------------------------------------
+
+
+def check_card_titles(expected_titles, displayed_titles):
     """Check a list of displayed card titles against a list of expected titles
     """
-    for expected_title in expected_card_titles:
-        assert expected_title in displayed_card_titles, (
-            'card with title {0} unexpectedly not displayed'.format(
-                expected_title))
-
-    for displayed_title in displayed_card_titles:
-        assert displayed_title in expected_card_titles, (
-            'card with title {0} unexpectedly displayed'.format(
-                displayed_title))
-
-    assert displayed_card_titles == expected_card_titles, (
-        'unexpected card ordering: {0} != {1}'.format(
-            displayed_card_titles, expected_card_titles))
+    msg_fail = '{0} != {1}'.format(expected_titles, displayed_titles)
+    assert all([dt in expected_titles for dt in displayed_titles]), (
+        'card title(s) unexpectedly displayed: ' + msg_fail)
+    assert all([et in displayed_titles for et in expected_titles]), (
+        'card title(s) unexpectedly not displayed: ' + msg_fail)
+    assert expected_titles == displayed_titles, (
+        'unexpected card ordering: ' + msg_fail)
 
 
-def test_cards_route_to_expected_destination(ui_setup):
-    """Verify succesful expected destination page load of setup menu cards
-    """
-    card_destinations = (
-        (ui_setup.credentials_card, '/#/credentials'),
-        (ui_setup.users_card, '/#/users'),
-        (ui_setup.teams_card, '/#/teams'),
-        (ui_setup.inventory_scripts_card, '/#/inventory_scripts'),
-        (ui_setup.management_jobs_card, '/#/management_jobs'),
-        (ui_setup.organizations_card, '/#/organizations'),
-        (ui_setup.license_card, '/#/license'))
-
-    for (card, dest) in card_destinations:
-        assert card.is_displayed(), (
-            'card with expected destination {0} not displayed'.format(dest))
-
-        loaded_page = card.click()
-        current_path = loaded_page._current_url.path
-
-        assert dest in current_path, (
-            '{0} unexpectedly not in current url path {1}'.format(
-                dest, current_path))
-
-        loaded_page.header.setup.click()
+# -----------------------------------------------------------------------------
+# Tests
+# -----------------------------------------------------------------------------
 
 
-@pytest.mark.usefixtures('supported_window_sizes')
-def test_card_visibility_and_ordering(ui_setup, anonymous_user, user_password):
+def test_displayed_card_titles_and_ordering(factories, ui_setup):
     """Verify that the visibility and ordering of setup menu cards as an admin
     """
     admin_card_titles = [
@@ -70,34 +47,42 @@ def test_card_visibility_and_ordering(ui_setup, anonymous_user, user_password):
         'VIEW YOUR LICENSE',
         'ABOUT TOWER'
     ]
-
-    check_card_titles(admin_card_titles, ui_setup.displayed_card_titles)
+    check_card_titles(admin_card_titles, ui_setup.card_titles)
 
     anon_card_titles = [
         'ORGANIZATIONS',
         'USERS',
         'TEAMS',
         'CREDENTIALS',
+        #'MANAGEMENT JOBS',
         'INVENTORY SCRIPTS',
-        'NOTIFICATIONS',
+        #'NOTIFICATIONS',
         'VIEW YOUR LICENSE',
         'ABOUT TOWER'
     ]
+    anon = factories.user()
+    with ui_setup.current_user(anon.username):
+        ui_setup.wait_until_loaded()
+        check_card_titles(anon_card_titles, ui_setup.card_titles)
 
-    with ui_setup.current_user(anonymous_user.username, user_password):
-        check_card_titles(anon_card_titles, ui_setup.displayed_card_titles)
 
-
-def test_dashboard_link(ui_setup):
-    """Verify dashboard link visibility and behavior
+def test_cards_route_to_expected_destination(ui_setup):
+    """Verify succesful expected link destination of setup menu cards
     """
-    assert ui_setup.dashboard_button.is_displayed(), (
-        'Dashboard button unexpectedly not displayed')
-
-    assert ui_setup.dashboard_button.is_clickable(), (
-        'Dashboard button unexpectedly not clickable')
-
-    dashboard = ui_setup.dashboard_button.click()
-
-    assert 'home' in dashboard.current_url.lower(), (
-        'Unexpected url content after clicking dashboard link')
+    card_destinations = {
+        'organizations': '/#/organizations',
+        'users': '/#/users',
+        'teams': '/#/teams',
+        'credentials': '/#/credentials',
+        'management jobs': '/#/management_jobs',
+        'inventory scripts': '/#/inventory_scripts',
+        'notifications': '/#/notification_templates',
+        'view your license': '/#/license',
+        'about tower': '/#/setup/about'
+    }
+    for card in ui_setup.cards:
+        title_key = card.title.text.lower()
+        expected_url_content = card_destinations[title_key]
+        assert expected_url_content in card.href, (
+            'Unexpected {0} link destination: {1}'.format(
+                card.title, card.href))

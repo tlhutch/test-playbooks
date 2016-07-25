@@ -1,16 +1,23 @@
 from selenium.webdriver.common.by import By
 
-from common.ui.pages.page import Region, RegionMap
-from common.ui.pages.regions import Clickable
+from common.ui.page import RegionMap
 
-from groups import (Checkbox, CodeMirror, FormGroup, Password, RadioButtons, SelectDropDown, TextInput, TextArea, Email)
-from groups import FormSearch  # NOQA
 from lookup import Lookup
-
+from groups import (
+    Checkbox,
+    CodeMirror,
+    Email,
+    FormGroup,
+    Password,
+    RadioButtons,
+    SelectDropdown,
+    TextInput,
+    TextArea,
+)
 
 class FormPanel(RegionMap):
 
-    _root_locator = ((By.CLASS_NAME, 'Form-header'), (By.XPATH, '..'))
+    _root_locator = [(By.CLASS_NAME, 'Form-header'), (By.XPATH, '..')]
     _cancel = (By.CSS_SELECTOR, "[id$='_cancel_btn']")
     _exit = (By.CSS_SELECTOR, '.Form-exit')
     _save = (By.CSS_SELECTOR, "[id$='_save_btn']")
@@ -20,44 +27,30 @@ class FormPanel(RegionMap):
     # in their region_spec
     _region_registry = {
         'checkbox': Checkbox,
-        'clickable': Clickable,
+        'default': FormGroup,
         'code_mirror': CodeMirror,
+        'email': Email,
         'form_group': FormGroup,
         'lookup': Lookup,
         'password': Password,
         'radio_buttons': RadioButtons,
-        'select': SelectDropDown,
+        'select': SelectDropdown,
         'text_input': TextInput,
-        'text_area': TextArea,
-        'email': Email,
+        'text_area': TextArea
     }
 
     @property
     def title(self):
-        return Region(
-            self.page,
-            root=self.root,
-            root_extension=self._title)
+        return self.find_element(*self._title)
 
     @property
     def cancel(self):
-        return Clickable(
-            self.page,
-            spinny=True,
-            root=self.root,
-            root_extension=self._cancel)
+        return self.find_element(*self._cancel)
 
     @property
     def save(self):
-        return Clickable(
-            self.page,
-            spinny=True,
-            root=self.root,
-            root_extension=self._save)
+        return self.find_element(*self._save)
 
     @property
     def exit(self):
-        return Clickable(
-            self.page,
-            root=self.root,
-            root_extension=self._exit)
+        return self.find_element(*self._exit)

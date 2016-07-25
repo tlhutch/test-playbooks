@@ -1,3 +1,4 @@
+'''
 from selenium.webdriver.common.by import By
 
 from common.ui.pages.base import TowerPage
@@ -118,3 +119,4 @@ class ManagementJobs(TowerPage):
     def cards(self):
         elements = self.find_elements(self._cards)
         return [ManagementCard(self, root=e) for e in elements]
+'''

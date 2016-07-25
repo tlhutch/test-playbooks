@@ -11,15 +11,11 @@ from common.tower.license import generate_license, generate_license_file
 pytestmark = [
     pytest.mark.ui,
     pytest.mark.nondestructive,
-    pytest.mark.usefixtures(
-        'authtoken',
-        'maximized_window_size'
-    )
+    pytest.mark.usefixtures('max_window')
 ]
 
 
-@pytest.mark.usefixtures('no_license')
-def test_license_upload(ui_license):
+def test_license_upload(authtoken, no_license, ui_license):
     """Basic end-to-end verification for uploading a valid license
     """
     license_path = generate_license_file(
@@ -28,22 +24,19 @@ def test_license_upload(ui_license):
 
     ui_license.upload(license_path)
 
-    assert not ui_license.submit.is_clickable()
+    assert not ui_license.submit.is_enabled()
 
     ui_license.agree_eula.click()
 
-    assert ui_license.submit.is_clickable()
+    assert ui_license.submit.is_enabled()
 
     ui_license.submit.click()  # redirects to dashboard here
-
-    ui_license.get(ui_license.url)
-    ui_license.wait_for_spinny()
-
+    ui_license.open()
+    
     assert ui_license.license_status.text == 'Valid License'
 
 
-@pytest.mark.usefixtures('no_license')
-def test_license_date(api_config_pg, ui_license):
+def test_license_date(authtoken, no_license, api_config_pg, ui_license):
     """Verify the correct time remaining and license expiration date
     """
     license_info = generate_license(
@@ -51,10 +44,8 @@ def test_license_date(api_config_pg, ui_license):
         license_type='enterprise')
 
     api_config_pg.post(license_info)
-
-    ui_license.get(ui_license.url)
-    ui_license.time_remaining.wait_until_displayed()
-    ui_license.wait_for_spinny()
+    ui_license.driver.refresh()
+    ui_license.wait_until_time_remaining_is_displayed()
 
     license_date = int(license_info['license_date'])
     current_date = int(time())
@@ -67,7 +58,7 @@ def test_license_date(api_config_pg, ui_license):
     assert abs(expires_actual - expires_expected).days <= 1
 
 
-def test_malformed_license(ui_license):
+def test_malformed_license(authtoken, install_enterprise_license, ui_license):
     """Verify the alert modal is displayed when an invalid json file is uploaded
     """
     (fd, license_path) = tempfile.mkstemp(suffix='.json')
@@ -75,17 +66,16 @@ def test_malformed_license(ui_license):
     os.close(fd)
 
     ui_license.upload(license_path)
-
-    ui_license.alert_modal.wait_until_displayed()
+    ui_license.wait_until_alert_modal_is_displayed()
 
     assert 'invalid' in ui_license.alert_modal.text.lower()
 
-
-def test_missing_license_file(ui_license):
+@pytest.mark.skip
+def test_missing_license_file(authtoken, ui_license):
     """Verify the submit button is not clickable when a file is attached to
     the upload input but does not exist on disk.
     """
     ui_license.upload('/not_a_real_file.json')
     ui_license.agree_eula.click()
 
-    assert not ui_license.submit.is_clickable()
+    assert not ui_license.submit.is_enabled()

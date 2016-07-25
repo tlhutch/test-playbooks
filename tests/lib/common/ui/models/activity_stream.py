@@ -1,104 +1,99 @@
 from selenium.webdriver.common.by import By
 
-from common.ui.pages.base import TowerPage
-from common.ui.pages.page import Region
-
-from common.ui.pages.regions import Clickable
-
-from common.ui.pages.forms import SelectDropDown
-from common.ui.pages.regions.panels import ActivityStreamListPanel
-from common.ui.pages.regions.table import Table
-from common.ui.pages.regions.cells import DescriptionCell
+from common.ui.page import Region
+from common.ui.models.base import TowerPage
+from common.ui.models.regions import ListPagination
+from common.ui.models.regions import TagSearch
 
 
-class ActivityStreamActionModal(Region):
-    _root_locator = (By.CLASS_NAME, 'modal-content')
-
-    _close = (By.CSS_SELECTOR, 'button[class="close Modal-exit"]')
-    _changes = (By.CLASS_NAME, 'StreamDetail-changes')
-    _ok = (By.ID, 'action_cancel_btn')
-    _initiated_by = (By.CSS_SELECTOR, '[class="StreamDetail-inlineRow"][ng-show="user"]')
-    _operation = (By.CSS_SELECTOR, '[ng-bind-html="operation"]')
-
-    @property
-    def close(self):
-        return Region(self.page, root_locator=self._close)
-
-    @property
-    def changes(self):
-        return Region(self.page, root_locator=self._changes)
-
-    @property
-    def ok(self):
-        return Region(self.page, root_locator=self._ok)
-
-    @property
-    def initiated_by(self):
-        return Region(self.page, root_locator=self._initiated_by)
-
-    @property
-    def operation(self):
-        return Region(self.page, root_locator=self._operation)
-
-
-class EventDetailCell(Clickable):
-    _root_extension = (By.CSS_SELECTOR, "i[class='fa fa-search-plus']")
-
-    def after_click(self):
-        super(EventDetailCell, self).after_click()
-        return ActivityStreamActionModal(self.page)
-
-
-class ActivityTable(Table):
-
-    _root_locator = (By.CSS_SELECTOR, '#activities_table')
-
-    _row_spec = (
-        ('action', DescriptionCell),
-        ('event_details', EventDetailCell)
-    )
-
-
-class ActivityStreamSearch(Region):
-    _root_extension = (By.ID, 'search_value_input')
+__all__ = ['ActivityStream']
 
 
 class ActivityStream(TowerPage):
 
-    _path = '/#/activity_stream'
-
-    _subtitle = (By.CSS_SELECTOR, '[class="List-titleText"]')
-    _related = (By.ID, 'search-widget-container3')
-    _nav_dropdown = ((By.ID, 'stream-dropdown-nav'), (By.XPATH, '..'))
+    _url_template = '/#/activity_stream'
+    _list_subtitle = (By.CSS_SELECTOR, '[class="List-titleText"]')
 
     @property
-    def subtitle(self):
-        return self.find_element(self._subtitle)
+    def list_pagination(self):
+        return ListPagination(self)
 
     @property
-    def nav_dropdown(self):
-        return SelectDropDown(self, root_locator=self._nav_dropdown)
+    def list_search(self):
+        return TagSearch(self)
 
     @property
-    def panel(self):
-        return ActivityStreamListPanel(self)
+    def list_subtitle(self):
+        return self.find_element(*self._list_subtitle)
+
+    @property
+    def navigation_dropdown(self):
+        return ActivityDropdown(self)
 
     @property
     def table(self):
         return ActivityTable(self)
 
     @property
+    def id(self):
+        return self.kwargs.get('id')
+
+    @property
     def target(self):
         return self.kwargs.get('target')
 
+
+class ActivityTable(ListTable):
+
+    _root_locator = (By.CSS_SELECTOR, '#activities_table')
+
+    class Row(Region):
+
+        _action = (By.CLASS_NAME, 'description-column')
+        _details = (By.CSS_SELECTOR, "i[class='fa fa-search-plus']")
+
+        @property
+        def action(self):
+            return self.find_element(*self._action)
+
+        @property
+        def details(self):
+            return self.find_element(*self._details)
+
+        def open_details(self):
+            return ActivityEventModal(self.page)
+
+
+class ActivityDropdown(SelectDropdown):
+    
+    _root_locator = [(By.ID, 'stream-dropdown-nav'), (By.XPATH, '..')]
+
+
+class ActivityEventModal(Region):
+
+    _root_locator = (By.CLASS_NAME, 'modal-content')
+    _close = (By.CSS_SELECTOR, 'button[class="close Modal-exit"]')
+    _changes = (By.CLASS_NAME, 'StreamDetail-changes')
+    _initiated_by = (By.CSS_SELECTOR, '[class="StreamDetail-inlineRow"][ng-show="user"]')
+    _ok = (By.ID, 'action_cancel_btn')
+    _operation = (By.CSS_SELECTOR, '[ng-bind="operation"]')
+
     @property
-    def index(self):
-        return self.kwargs.get('index')
+    def close(self):
+        return self.find_element(*self._close)
 
-    def __init__(self, base_url, driver, **kwargs):
-        super(ActivityStream, self).__init__(base_url, driver, **kwargs)
+    @property
+    def changes(self):
+        return self.find_element(*self._changes)
 
-        if self.target is not None:
-            self._path += '?target={}'.format(self.target)
-        if self.index is not None:
-            self._path += '&id={}'.format(self.index)
+    @property
+    def ok(self):
+        return self.find_element(*self._ok)
+
+    @property
+    def initiated_by(self):
+        return self.find_element(*self._initiated_by)
+
+    @property
+    def operation(self):
+        return self.find_element(*self._operation)

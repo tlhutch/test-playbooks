@@ -1,3 +1,4 @@
+'''
 import pytest
 
 pytestmark = [
@@ -30,3 +31,4 @@ def test_delete_inventory_script(inventory_script, ui_inventory_scripts):
     """Basic end-to-end verification for deleting an inventory script
     """
     pass  # TODO: implement
+'''

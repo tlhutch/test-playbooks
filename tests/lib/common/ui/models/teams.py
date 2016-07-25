@@ -1,28 +1,93 @@
 from selenium.webdriver.common.by import By
 
-from common.ui.pages.base import TowerCrudPage
-from common.ui.pages.regions import Table
-from common.ui.pages.forms import FormPanel
-from common.ui.pages.regions.tabs import PanelTab
+from common.ui.page import Region
+from common.ui.models.base import TowerPage
+from common.ui.models.forms import FormPanel 
+from common.ui.models.forms import Lookup
 
-from common.ui.pages.regions.cells import (NameCell, DescriptionCell, OrganizationCell, EditActionCell,
-                                           DeleteActionCell)
-
-
-class TeamsTable(Table):
-
-    _root_locator = (By.CSS_SELECTOR, '#teams_table')
-
-    _row_spec = (
-        ('name', NameCell),
-        ('description', DescriptionCell),
-        ('organization', OrganizationCell),
-        ('edit', EditActionCell),
-        ('delete', DeleteActionCell)
-    )
+from common.ui.models.regions import (
+    ListPagination,
+    ListTable,
+    Tab,
+    TagSearch,
+    StatusIcon,
+)
 
 
-class TeamsDetails(FormPanel):
+__all__ = ['Teams', 'TeamAdd', 'TeamEdit']
+
+
+class Teams(TowerPage):
+
+    url_template = '/#/teams'
+
+    forms = []
+
+    @property
+    def list_pagination(self):
+        return ListPagination(self)
+
+    @property
+    def list_table(self):
+        return TeamsTable(self)
+
+    @property
+    def list_search(self):
+        return TagSearch(self)
+
+    def wait_until_loaded(self):
+        self.list_table.wait_for_table_to_load()
+
+
+class TeamAdd(Teams):
+
+    url_template = '/#/teams/add'
+
+    @property
+    def forms(self):
+        return [self.details]
+
+    @property
+    def details(self):
+        DetailsTab(self).enable()
+        return TeamDetails(self)
+
+
+class TeamEdit(Teams):
+
+    url_template = '/#/teams/{id}'
+
+    @property
+    def forms(self):
+        return [self.details]
+
+    @property
+    def details(self):
+        DetailsTab(self).enable()
+        return TeamDetails(self)
+
+    @property
+    def granted_permissions(self):
+        GrantedPermissionsTab(self).enable()
+        return FormPanel(self)
+
+    @property
+    def users(self):
+        UsersTab(self).enable()
+        return FormPanel(self)
+
+
+class DetailsTab(Tab):
+    _root_locator = (By.ID, 'team_tab')
+
+class GrantedPermissionsTab(Tab):
+    _root_locator = (By.ID, 'roles_tab')
+
+class UsersTab(Tab):
+    _root_locator = (By.ID, 'teams_tab')
+
+
+class TeamDetails(FormPanel):
 
     _region_spec = {
         'description': {
@@ -48,65 +113,34 @@ class TeamsDetails(FormPanel):
     }
 
 
-class Teams(TowerCrudPage):
+class TeamsTable(ListTable):
 
-    _path = '/#/teams/{index}'
+    _root_locator = (By.CSS_SELECTOR, '#teams_table')
 
-    _details_tab = (By.CSS_SELECTOR, '#team_tab')
-    _credentials_tab = (By.CSS_SELECTOR, '#credentials_tab')
-    _permissions_tab = (By.CSS_SELECTOR, '#permissions_tab')
-    _projects_tab = (By.CSS_SELECTOR, '#team_tab')
-    _users_tab = (By.CSS_SELECTOR, '#users_tab')
+    class Row(Region):
 
-    @property
-    def forms(self):
-        return [self.details]
+        _name = (By.CLASS_NAME, 'name-column')
+        _description = (By.CLASS_NAME, 'description-column')
+        _organization = (By.CLASS_NAME, 'organization-column')
+        _edit = (By.ID, 'edit-action')
+        _delete = (By.ID, 'delete-action')
+        
+        @property
+        def name(self):
+            return self.find_element(*self._name)
 
-    @property
-    def details(self):
-        self.details_tab.enable()
-        return TeamsDetails(self)
+        @property
+        def description(self):
+            return self.find_element(*self.description)
 
-    @property
-    def credentials(self):
-        self.credentials_tab.enable()
-        return FormPanel(self)
+        @property
+        def organization(self):
+            return self.find_element(*self._organization)
 
-    @property
-    def permissions(self):
-        self.permissions_tab.enable()
-        return FormPanel(self)
+        @property
+        def delete(self):
+            return self.find_element(*self._delete)
 
-    @property
-    def projects(self):
-        self.projects_tab.enable()
-        return FormPanel(self)
-
-    @property
-    def users(self):
-        self.users_tab.enable()
-        return FormPanel(self)
-
-    @property
-    def details_tab(self):
-        return PanelTab(self, root_locator=self._details_tab)
-
-    @property
-    def credentials_tab(self):
-        return PanelTab(self, root_locator=self._credentials_tab)
-
-    @property
-    def permissions_tab(self):
-        return PanelTab(self, root_locator=self._permissions_tab)
-
-    @property
-    def projects_tab(self):
-        return PanelTab(self, root_locator=self._projects_tab)
-
-    @property
-    def users_tab(self):
-        return PanelTab(self, root_locator=self._users_tab)
-
-    @property
-    def table(self):
-        return TeamsTable(self)
+        @property
+        def edit(self):
+            return self.find_element(*self._edit)

@@ -1,69 +1,82 @@
 from selenium.webdriver.common.by import By
 
-from common.ui.pages.base import TowerCrudPage
+from common.ui.page import Region
+from common.ui.models.base import TowerPage
+from common.ui.models.forms import FormPanel
 
-from common.ui.pages.regions import Table
-from common.ui.pages.regions import PanelTab
-from common.ui.pages.regions import FormGeneratorTable
-from common.ui.pages.forms import FormPanel
+from common.ui.models.regions import (
+    ListPagination,
+    ListTable,
+    Tab,
+    TagSearch,
+)
 
-from common.ui.pages.regions.cells import (DeleteActionCell, DescriptionCell, EditActionCell, FinalRunCell,
-                                           FirstRunCell, JobStatusCell, LastUpdatedCell, NameCell, NextRunCell,
-                                           SCMUpdateActionCell, ScheduleActionCell, TypeCell)
-
-
-class ProjectsTable(Table):
-
-    _root_locator = (By.CSS_SELECTOR, '#projects_table')
-
-    _row_spec = (
-        ('job_status', JobStatusCell),
-        ('name', NameCell),
-        ('type', TypeCell),
-        ('last_updated', LastUpdatedCell),
-        ('scm_update', SCMUpdateActionCell),
-        ('schedule', ScheduleActionCell),
-        ('edit', EditActionCell),
-        ('delete', DeleteActionCell)
-    )
+__all__ = ['Projects', 'ProjectAdd', 'ProjectEdit']
 
 
-class ProjectsSchedulesTable(FormGeneratorTable):
+class Projects(TowerPage):
 
-    _root_locator = (By.CSS_SELECTOR, '#schedules_table')
+    url_template = '/#/projects'
 
-    _row_spec = (
-        ('name', NameCell),
-        ('first_run', FirstRunCell),
-        ('next_run', NextRunCell),
-        ('final_run', FinalRunCell),
-        ('schedule', ScheduleActionCell),
-        ('edit', EditActionCell),
-        ('delete', DeleteActionCell)
-    )
+    @property
+    def list_pagination(self):
+        return ListPagination(self)
 
+    @property
+    def list_table(self):
+        return ProjectsTable(self)
 
-class ProjectsOrganizationTable(FormGeneratorTable):
+    @property
+    def list_search(self):
+        return TagSearch(self)
 
-    _root_locator = (By.CSS_SELECTOR, '#organizations_table')
-
-    _row_spec = (
-        ('name', NameCell),
-        ('description', DescriptionCell),
-        ('edit', EditActionCell),
-        ('delete', DeleteActionCell)
-    )
+    def wait_until_loaded(self):
+        self.list_table.wait_for_table_to_load()
 
 
-class ProjectsDetails(FormPanel):
+class ProjectAdd(Projects):
+
+    url_template = '/#/projects/add'
+    
+    @property
+    def details(self):
+        DetailsTab(self).enable()
+        return ProjectDetails(self)
+
+
+class ProjectEdit(Projects):
+
+    url_template = '/#/projects/{id}'
+
+    @property
+    def details(self):
+        DetailsTab(self).enable()
+        return ProjectDetails(self)
+
+    @property
+    def notifications(self):
+        NotificationsTab(self).enable()
+        return FormPanel(self)
+
+    @property
+    def permissions(self):
+        PermissionsTab(self).enable()
+        return FormPanel(self)
+
+
+class DetailsTab(Tab):
+    _root_locator = (By.ID, 'project_tab')
+
+class NotificationsTab(Tab):
+    _root_locator = (By.ID, 'notifications_tab')
+
+class PermissionsTab(Tab):
+    _root_locator = (By.ID, 'permissions_tab')
+
+
+class ProjectDetails(FormPanel):
 
     _region_spec = {
-        'description': {
-            'region_type': 'text_input',
-            'root_locator': (
-                (By.CSS_SELECTOR, 'label[for=description]'),
-                (By.XPATH, '..'))
-        },
         'name': {
             'required': True,
             'region_type': 'text_input',
@@ -71,11 +84,31 @@ class ProjectsDetails(FormPanel):
                 (By.CSS_SELECTOR, 'label[for=name]'),
                 (By.XPATH, '..'))
         },
+        'organization': {
+            'required': True,
+            'region_type': 'lookup',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=organization]'),
+                (By.XPATH, '..'))
+        },
+        'scm_type': {
+            'required': True,
+            'region_type': 'select',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=scm_type]'),
+                (By.XPATH, '..'))
+        },
         'scm_url': {
             'required': True,
             'region_type': 'text_input',
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=scm_url]'),
+                (By.XPATH, '..'))
+        },
+        'description': {
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=description]'),
                 (By.XPATH, '..'))
         },
         'scm_branch': {
@@ -93,59 +126,40 @@ class ProjectsDetails(FormPanel):
     }
 
 
-class ProjectsOrganizations(FormPanel):
+class ProjectsTable(ListTable):
 
-    @property
-    def table(self):
-        return ProjectsOrganizationTable(self.page)
+    _root_locator = (By.CSS_SELECTOR, '#projects_table')
 
+    class Row(Region):
+        
+        _name = (By.CLASS_NAME, 'name-column')
+        _description = (By.CLASS_NAME, 'description-column')
+        _last_updated = (By.CLASS_NAME, 'last_updated-column')
+        _delete = (By.ID, 'delete-action')
+        _edit = (By.ID, 'edit-action')
+        _scm_update = (By.ID, 'scm_update-action')
 
-class ProjectsSchedules(FormPanel):
+        @property
+        def name(self):
+            return self.find_element(*self._name)
 
-    @property
-    def table(self):
-        return ProjectsSchedulesTable(self.page)
+        @property
+        def description(self):
+            return self.find_element(*self._description)
 
+        @property
+        def edit(self):
+            return self.find_element(*self._edit)
 
-class Projects(TowerCrudPage):
+        @property
+        def delete(self):
+            return self.find_element(*self._delete)
 
-    _path = '/#/projects/{index}'
+        @property
+        def last_updated(self):
+            return self.find_element(*self._last_updated)
 
-    _details_tab = (By.ID, 'project_tab')
-    _organizations_tab = (By.ID, 'organizations_tab')
-    _schedules_tab = (By.ID, 'schedules_tab')
+        @property
+        def scm_update(self):
+            return self.find_element(*self._scm_update)
 
-    @property
-    def forms(self):
-        return [self.details]
-
-    @property
-    def table(self):
-        return ProjectsTable(self)
-
-    @property
-    def details_tab(self):
-        return PanelTab(self, root_locator=self._details_tab)
-
-    @property
-    def organizations_tab(self):
-        return PanelTab(self, root_locator=self._organizations_tab)
-
-    @property
-    def schedules_tab(self):
-        return PanelTab(self, root_locator=self._schedules_tab)
-
-    @property
-    def details(self):
-        self.details_tab.enable()
-        return ProjectsDetails(self)
-
-    @property
-    def organizations(self):
-        self.organizations_tab.enable()
-        return ProjectsOrganizations(self)
-
-    @property
-    def schedules(self):
-        self.schedules_tab.enable()
-        return ProjectsSchedules(self)

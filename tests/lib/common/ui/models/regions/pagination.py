@@ -1,132 +1,124 @@
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
-from common.ui.pages.page import Region
-from common.ui.pages.regions.clickable import Clickable
-
-
-class NumberedLinks(Clickable):
-
-    _root_locator = (By.CSS_SELECTOR, '#pagination-links')
-    _item_locator = (By.CSS_SELECTOR, 'li.ng-scope > a')
-
-    def __len__(self):
-        return len(self.items())
-
-    @property
-    def options(self):
-        return [element.text for element in self.items()]
-
-    def get(self, option):
-        element = self.lookup_element(self._item_locator, text=option)
-        return Clickable(self.page, root=element, spinny=True)
-
-    def items(self):
-        return self.find_elements(self._item_locator)
-
+from common.ui.page import Region
 
 class Pagination(Region):
 
-    _root_locator = None
-
+    _first = (By.CSS_SELECTOR, '#first-page-set')
+    _previous = (By.CSS_SELECTOR, '#previous-page')
+    _next = (By.CSS_SELECTOR, '#next-page')
+    _last = (By.CSS_SELECTOR, '#last-page-set')
+    _active = (By.CSS_SELECTOR, 'li.active > a')
+    _numbered_links = (By.CSS_SELECTOR, 'li.ng-scope > a')
+    _pager = (By.CSS_SELECTOR, '.List-paginationPager--pageof')
     _total_items = (By.CSS_SELECTOR, '#total-items')
-
-    _first = (
-        (By.CSS_SELECTOR, '#pagination-links'),
-        (By.CSS_SELECTOR, '#first-page-set'))
-
-    _previous = (
-        (By.CSS_SELECTOR, '#pagination-links'),
-        (By.CSS_SELECTOR, '#previous-page'))
-
-    _next = (
-        (By.CSS_SELECTOR, '#pagination-links'),
-        (By.CSS_SELECTOR, '#next-page'))
-
-    _last = (
-        (By.CSS_SELECTOR, '#pagination-links'),
-        (By.CSS_SELECTOR, '#last-page-set'))
-
-    _active = (
-        (By.CSS_SELECTOR, '#pagination-links'),
-        (By.CSS_SELECTOR, 'li.active > a'))
-
-    _total_pages = (
-        (By.CSS_SELECTOR, '.List-paginationPager--pageof'),
-        (By.CSS_SELECTOR, '#total-pages'))
-
-    _current_page = (
-        (By.CSS_SELECTOR, '.List-paginationPager--pageof'),
-        (By.CSS_SELECTOR, '#current-page'))
+    _total_pages = (By.CSS_SELECTOR, '#total-pages')
+    _current_page = (By.CSS_SELECTOR, '#current-page')
+    _pagination_links = (By.CSS_SELECTOR, '#pagination-links')
 
     @property
     def active(self):
-        return Clickable(
-            self.page,
-            root=self.find_element(self._active),
-            spinny=True)
+        links = self.find_element(*self._pagination_links)
+        return links.find_element(*self._active)
 
     @property
     def first(self):
-        return Clickable(
-            self.page,
-            root=self.find_element(self._first),
-            spinny=True)
+        links = self.find_element(*self._pagination_links)
+        return links.find_element(*self._first)
 
     @property
     def previous(self):
-        return Clickable(
-            self.page,
-            root=self.find_element(self._previous),
-            spinny=True)
+        links = self.find_element(*self._pagination_links)
+        return links.find_element(*self._previous)
 
     @property
     def next(self):
-        return Clickable(
-            self.page,
-            root=self.find_element(self._next),
-            spinny=True)
+        links = self.find_element(*self._pagination_links)
+        return links.find_element(*self._next)
 
     @property
     def last(self):
-        return Clickable(
-            self.page,
-            root=self.find_element(self._last),
-            spinny=True)
-
-    @property
-    def numbered_links(self):
-        return NumberedLinks(self.page)
-
-    @property
-    def total_items(self):
-        label = Region(self.page, root=self.find_element(self._total_items))
-        # 'ITEMS X-Y OF Z' -> Z
-        return int(label.text.split()[-1])
-
-    @property
-    def item_range(self):
-        label = Region(self.page, root=self.find_element(self._total_items))
-        # 'ITEMS X-Y OF Z' -> (X, Y)
-        return map(int, label.text.split()[1].split(u'\u2013'))
+        links = self.find_element(*self._pagination_links)
+        return links.find_element(*self._last)
 
     @property
     def current_page(self):
-        label = Region(self.page, root=self.find_element(self._current_page))
-        return int(label.value)
-
+        # 'PAGE X of Y' -> X
+        pager = self.find_element(*self._pager)
+        element = pager.find_element(*self._current_page)
+        if element.text:
+            return int(element.text)
+        return None
+        
     @property
     def total_pages(self):
-        label = Region(self.page, root=self.find_element(self._total_pages))
-        return int(label.value)
+        # 'PAGE X of Y' -> Y
+        pager = self.find_element(*self._pager)
+        element = pager.find_element(*self._total_pages)
+        if element.text:
+            return int(element.text)
+        return None
 
-    def rewind(self):
-        while self.previous.is_displayed():
-            if self.current_page <= 1:
-                break
-            self.previous.click()
+    @property
+    def total_items(self):
+        # 'ITEMS X-Y OF Z' -> Z
+        element = self.page.find_element(*self._total_items)
+        return int(element.text.split()[-1])
 
-    def fast_forward(self):
-        while self.next.is_displayed():
+    @property
+    def item_range(self):
+        # 'ITEMS X-Y OF Z' -> (X, Y)
+        element = self.page.find_element(*self._total_items)
+        return map(int, element.text.split()[1].split(u'\u2013'))
+
+
+    def _find_numbered_link(self, text):
+        search_text = text.lower()
+        links = self.find_element(*self._pagination_links)
+        for element in links.find_elements(*self._numbered_links):
+            if element.text.lower() == search_text:
+                return element
+        raise NoSuchElementException
+
+    def __call__(self, text):
+        if text == '>':
+            return self.next
+        if text == '<':
+            return self.previous
+        if text == '<<':
+            return self.first
+        if text == '>>':
+            return self.last
+        return self._find_numbered_link(text)
+
+    def scan_right(self):
+        while self('>').is_displayed():
             if self.current_page >= self.total_pages:
                 break
-            self.next.click()
+            self('>').click()
+            self.wait_until_loaded()
+            yield
+
+    def scan_left(self):
+        while self('<').is_displayed():
+            if self.current_page <= 1:
+                break
+            self('<').click()
+            self.wait_until_loaded()
+            yield
+
+    def reset(self):
+        if self.current_page == 1:
+            return
+        for _ in self._scan_left():
+            continue
+        assert self.current_page == 1
+
+    def wait_until_loaded(self):
+        self.wait.until(lambda _: self.current_page is not None)
+
+
+class ListPagination(Pagination):
+    _root_locator = (By.CLASS_NAME, 'List-pagination')
+

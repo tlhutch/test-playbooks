@@ -1,100 +1,22 @@
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
-from common.ui.pages.page import Region
-
-from clickable import Clickable
-from cells import NameCell
+from common.ui.page import Region
 
 
-class TableHeader(Region):
-    _root_extension = (By.CLASS_NAME, 'List-tableHeaderRow')
-    _header_columns = (By.CLASS_NAME, 'List-tableHeader')
-    _sorted_column = (By.XPATH, './/th/descendant-or-self::*[contains(@class, "fa-sort-")]/ancestor::th')
-    _sortable_columns = (By.XPATH, './/th/descendant-or-self::*[contains(@class, "fa-sort")]/ancestor::th')
-    _sort_status = {'fa-sort-up': 'descending', 'fa-sort-down': 'ascending'}
-
-    @property
-    def columns(self):
-        return [Region(self.page, root=e) for e in self.find_elements(self._header_columns)]
-
-    @property
-    def sortable_columns(self):
-        elements = self.find_elements(self._sortable_columns)
-        return [Clickable(self.page, root=e, spinny=True) for e in elements]
-
-    @property
-    def column_names(self):
-        text_values = [r.normalized_text for r in self.columns]
-        return [t for t in text_values if t]
-
-    @property
-    def sortable_column_names(self):
-        return [r.normalized_text for r in self.sortable_columns]
-
-    @property
-    def sorted_column(self):
-        element = self.find_element(self._sorted_column)
-        return Clickable(self.page, root=element, spiny=True)
-
-    @property
-    def sorted_column_class(self):
-        element = self.sorted_column.root.find_element_by_css_selector('i')
-        return element.get_attribute('class')
-
-    @property
-    def sorted_column_name(self):
-        return self.sorted_column.normalized_text
-
-    @property
-    def sort_order(self):
-        sorted_column_class_name = self.sorted_column_class
-        for partial_class_name, sort_order in self._sort_status.iteritems():
-            if partial_class_name in sorted_column_class_name:
-                return sort_order
-        raise Exception('Unable to determine colum sort order')
-
-    def get_column_sort_order(self):
-        return (self.sorted_column_name, self.sort_order)
-
-    def set_column_sort_order(self, column_sort_order):
-        (column_name, sort_order) = column_sort_order
-
-        sortable_column = filter(
-            lambda c: c.normalized_text == column_name, self.sortable_columns).pop()
-
-        if self.sorted_column_name != column_name:
-            sortable_column.click()
-            self.wait.until(lambda _: self.sorted_column_name == column_name)
-
-        if self.sort_order != sort_order:
-            sortable_column.click()
-            self.wait.until(lambda _: self.sort_order == sort_order)
-
-    def is_displayed(self):
-        return self.is_present() and len(self.columns) > 0
-
-    def is_clickable(self):
-        return False
+__all__ = ['ListTable']
 
 
-class Table(Region):
+class ListTable(Region):
 
+    class Row(Region):
+        pass
+
+    _root_locator = None
+    _badge = (By.CSS_SELECTOR, '.badge')
+    _noitems = (By.CLASS_NAME, 'List-noItems')
     _rows = (By.CLASS_NAME, 'List-tableRow')
     _selected_row = (By.CLASS_NAME, 'List-tableRow--selected')
-
-    _row_spec = (('name', NameCell))
-
-    def __getitem__(self, key):
-        return self.rows[key]
-
-    @property
-    def row_spec(self):
-        return self.kwargs.get('row_spec', self._row_spec)
-
-    @property
-    def column_names(self):
-        return self.header.column_names
 
     @property
     def header(self):
@@ -102,54 +24,75 @@ class Table(Region):
 
     @property
     def rows(self):
-        self.wait_until_displayed()
-        return map(self._create_row, self.find_elements(self._rows))
+        elements = self.find_elements(*self._rows)
+        return [self.Row(self.page, root=e) for e in elements]
 
     @property
     def selected_row(self):
-        return self._create_row(self.find_element(self._selected_row))
+        element = self.find_element(*self._selected_row)
+        return self.Row(self.page, root=element)
+
+    def query(self, query_filter):
+        return [r for r in self.rows if query_filter(r)]
+
+    def is_table_loaded(self):
+        locators = [self._badge, self._noitems]
+        return any(self.page.is_element_displayed(*loc) for loc in locators)
+
+    def wait_for_table_to_load(self):
+        self.wait.until(lambda _: self.is_table_loaded())
+
+
+class TableHeader(Region):
+
+    _sortable_columns = (By.XPATH, './/th/descendant-or-self::*[contains(@class, "fa-sort")]/ancestor::th')
+    _sorted_column = (By.XPATH, './/th/descendant-or-self::*[contains(@class, "fa-sort-")]/ancestor::th')
 
     @property
-    def sortable_column_names(self):
-        return self.header.sortable_column_names
-
-    def _create_row(self, element):
-        row = {}
-        for (key, region) in self.row_spec:
-            self.wait.until(lambda _: element.is_displayed())
-            row[key] = region(self.page, root=element)
-        return row
-
-    def get_column_sort_order(self):
-        return self.header.get_column_sort_order()
-
-    def set_column_sort_order(self, column_sort_order):
-        return self.header.set_column_sort_order(column_sort_order)
-
-    def row_is_selected(self, row):
-        unique = self._row_spec[0][0]
-        try:
-            return row[unique].text == self.selected_row[unique].text
-        except NoSuchElementException:
-            return False
-
-    def query(self, query_filter=None, sort_keys=None):
-        rows = filter(query_filter, self.rows)
-        if sort_keys is not None:
-            return sorted(rows, key=lambda r: [r[k] for k in sort_keys])
-        else:
-            return rows
-
-
-class FormGeneratorTable(Table):
-
-    # Form generator table rows share the same class as the header row
-    _rows = (By.CLASS_NAME, 'List-tableHeaderRow')
+    def sortable_columns(self):
+        return self.find_elements(*self._sortable_columns)
 
     @property
-    def rows(self):
-        table_rows = super(FormGeneratorTable, self).rows
-        if len(table_rows) < 2:
-            return []
-        else:
-            return table_rows[1:]
+    def sorted_column(self):
+        return self.find_element(*self._sorted_column)
+
+    def _find_sortable_column(self, text):
+        for sortable_column in self.sortable_columns:
+            if sortable_column.text.lower() == text:
+                return sortable_column
+        raise ValueError('Unable to find sortable column: {0}'.format(text))
+
+    def get_sort_status(self):
+        # get sorted column and sorted column name
+        sorted_column = self.sorted_column
+        sorted_column_name = sorted_column.text.lower()
+        # get column status element and class name
+        status_element = sorted_column.find_element_by_css_selector('i')
+        status_class_name = status_element.get_attribute('class')
+        # determine and return sort status tuple
+        if 'fa-sort-up' in status_class_name:
+            return (sorted_column_name, 'descending')
+        if 'fa-sort-down' in status_class_name:
+            return (sorted_column_name, 'ascending')
+        raise ValueError('could not determine sort status')
+
+    def set_sort_status(self, sort_status):
+        assert isinstance(sort_status, tuple) and len(sort_status) == 2
+        assert sort_status[1] in ('ascending', 'descending')
+
+        if sort_status != self.get_sort_status():
+            self._find_sortable_column(sort_status[0]).click()
+            if sort_status != self.get_sort_status():
+                self._find_sortable_column(sort_status[0]).click()
+
+    def get_sort_status_options(self):
+        sortable_column_names = [e.text.lower() for e in self.sortable_columns]
+        sorting_options = []
+        for name in sortable_column_names:
+            sorting_options.append((name, 'ascending'))
+            sorting_options.append((name, 'descending'))
+        return sorting_options
+
+    def wait_until_loaded(self):
+        self.wait.until(lambda _: self.page.is_element_displayed(*self._sorted_column))
+

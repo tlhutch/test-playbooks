@@ -1,3 +1,4 @@
+'''
 from selenium.webdriver.common.by import By
 
 from common.ui.pages.base import TowerCrudPage
@@ -107,3 +108,4 @@ class ManagementJobSchedules(TowerSchedulePage):
 class ProjectSchedules(TowerSchedulePage):
 
     _path = '/#/projects/{index}/schedules'
+'''

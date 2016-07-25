@@ -2,67 +2,35 @@ import time
 
 from selenium.webdriver.common.by import By
 
-from common.ui.pages.page import Region
-from common.ui.pages.regions.clickable import Clickable
-
-from form_group import FormGroup, TextInputMixin
+from groups import TextInput
 
 
-class LookupModal(Region):
-
-    _root_locator = (By.CLASS_NAME, 'ui-dialog')
-
-
-class LookupButton(Clickable):
-
-    def after_click(self):
-        super(LookupButton, self).after_click()
-        return LookupModal(self.page)
-
-
-class Lookup(TextInputMixin, FormGroup):
+class Lookup(TextInput):
 
     _lookup_button = (By.CLASS_NAME, 'Form-lookupButton')
 
     @property
-    def spinny(self):
-        return self.kwargs.get('spinny', False)
-
-    @property
     def lookup_button(self):
-        return LookupButton(
-            self.page,
-            spinny=True,
-            root=self.root,
-            root_extension=self._lookup_button)
-
-    @property
-    def selected_option(self):
-        return self.text
-
-    def select(self, option):
-        if option != self.selected_option:
-            pass
-            # TODO: make modal open, search, and select process opaque
-            # to the test writer by modeling it as a generic form
-            # widget select operation
+        return self.find_element(*self._lookup_button)
 
     #
     # The retry + poll logic in the two methods below are a temporary
     # workaround for https://github.com/ansible/ansible-tower/issues/1461
     # and should be removed when this issue is resolved.
     #
-    def set_text(self, text, retry=True):
+    def set_value(self, value, retry=True):
         if retry:
-            self._set_text_with_retry(text)
+            self._set_value_with_retry(value)
         else:
-            TextInputMixin.set_text(self, text)
+            super(Lookup, self).set_value(value)
 
-    def _set_text_with_retry(self, text):
-        timeout = time.time() + 25
+    def _set_value_with_retry(self, value):
+        timeout = time.time() + 30
         while True:
             self.clear()
-            TextInputMixin.set_text(self, text)
+            super(Lookup, self).set_value(value)
             time.sleep(2)
-            if not self.errors or time.time() > timeout:
+            if not self.errors:
+                break
+            if time.time() > timeout:
                 break

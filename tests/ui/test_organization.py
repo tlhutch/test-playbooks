@@ -1,180 +1,95 @@
+import time 
+
 import fauxfactory
 import pytest
 
-pytestmark = [pytest.mark.ui, pytest.mark.nondestructive]
+from common.exceptions import NotFound_Exception
+
+pytestmark = [
+    pytest.mark.ui,
+    pytest.mark.nondestructive,
+    pytest.mark.usefixtures(
+        'module_install_enterprise_license',
+        'max_window',
+    )
+]
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1466')
-@pytest.mark.usefixtures(
-    'authtoken',
-    'install_enterprise_license_unlimited',
-    'populate_organizations',
-    'maximized_window_size'
-)
-def test_api_referential_integrity(api_organizations_pg, ui_organizations):
-    """Peform basic end-to-end read-only verification of displayed page
-    content against data returned by the organizations api
-    """
-    api_organizations_pg.get()
-
-    assert api_organizations_pg.count == ui_organizations.badge_number, (
-        'organizations api count and displayed badge number '
-        'unexpectedly different')
-
-    # get the actual number of organization cards present on the page
-    card_count = len(ui_organizations.displayed_card_labels)
-    # get the item count indicated by the pagination label
-    count_label = ui_organizations.pagination.item_range[1]
-
-    assert card_count == count_label, (
-        'The number of displayed organization cards differs '
-        'from the list panel item count label')
-
-    # get the organization names displayed on each card
-    displayed_names = ui_organizations.displayed_card_labels
-    displayed_names = sorted(map(ui_organizations._normalize_text, displayed_names))
-
-    # retrieve organization names from the associated api endpoint
-    expected_names = [r.name for r in api_organizations_pg.results]
-    expected_names = sorted(map(ui_organizations._normalize_text, expected_names))
-
-    # get a subset of api organization names corresponding to those we expect
-    # to be displayed on the first page
-    expected_names = expected_names[:card_count]
-
-    assert displayed_names == expected_names, (
-        'Unexpected card names: {0} != {1}'.format(
-            displayed_names, expected_names))
-
-
-@pytest.mark.usefixtures(
-    'authtoken',
-    'install_enterprise_license_unlimited',
-    'another_organization',
-    'supported_window_sizes'
-)
-def test_component_visibility(ui_organizations):
-    """Verify basic page component visibility
-    """
-    default_card = ui_organizations.get_card('default')
-
-    assert default_card.is_displayed(), (
-        'Default organization card unexpectedly not displayed')
-
-    assert default_card.edit.is_displayed(), (
-        'Edit action button unexpectedly not displayed')
-
-    assert default_card.edit.is_clickable(), (
-        'Edit action button unexpectedly not clickable')
-
-    assert default_card.delete.is_displayed(), (
-        'Delete action button unexpectedly not displayed')
-
-    assert default_card.delete.is_clickable(), (
-        'Delete action button unexpectedly not clickable')
-
-    assert ui_organizations.add_button.is_displayed(), (
-        'Add button unexpectedly not displayed')
-
-    assert ui_organizations.add_button.is_clickable(), (
-        'Add button unexpectedly not displayed')
-
-    expected_links = [
-        'users',
-        'teams',
-        'inventories',
-        'projects',
-        'job templates',
-        'admins'
-    ]
-
-    displayed_links = [n.lower() for n in default_card.displayed_link_names]
-
-    for expected_name in expected_links:
-        assert expected_name in displayed_links, (
-            'Card link with name {0} unexpectedly not displayed'.format(
-                expected_name))
-
-    for displayed_name in displayed_links:
-        assert displayed_name in expected_links, (
-            'Card link with name {0} unexpectedly displayed'.format(
-                displayed_name))
-
-    assert displayed_links == expected_links, (
-        'Unexpected card link ordering: {0} != {1}'.format(
-            displayed_links, expected_links))
-
-    for link_name in displayed_links:
-        assert default_card.get_link(link_name).is_clickable(), (
-            'Card link with name {0} unexpectedly not clickable'.format(
-                link_name))
-
-
-@pytest.mark.usefixtures(
-    'authtoken',
-    'install_enterprise_license_unlimited',
-)
-def test_create_organization(api_organizations_pg, ui_organizations_add):
-    """Basic end-to-end verification for creating an organization
+def test_edit_organization(api_organizations_pg, ui_organization_edit):
+    """Basic end-to-end functional test for updating an existing organization
     """
     # make some data
     name = fauxfactory.gen_alphanumeric()
     description = fauxfactory.gen_alphanumeric()
+    # update the organization
+    ui_organization_edit.details.name.set_value(name)
+    ui_organization_edit.details.description.set_value(description)
+    # save the organization
+    ui_organization_edit.details.save.click()
+    ui_organization_edit.wait_until_loaded()
+    # get organization data api side
+    api_organization = api_organizations_pg.get(
+        id=ui_organization_edit.kwargs['id']).results[0]
+    # verify the update took place
+    assert api_organization.name.lower() == name.lower(), (
+        'Unable to verify successful update of organization')
+    assert api_organization.description.lower() == description.lower(), (
+        'Unable to verify successful update of organization')
+    # query the table for the edited organization
+    results = ui_organization_edit.query_cards(
+        lambda c: c.name.text.lower() == name.lower())
+    # check that we find a row showing the updated organization name
+    assert len(results) == 1, 'Unable to find row of updated organization'
 
-    # add organization
-    ui_organizations_add.details.name.set_text(name)
-    ui_organizations_add.details.description.set_text(description)
-    ui_organizations_add.details.save.click()
 
-    # verify organization data api side
-    assert api_organizations_pg.get(name=name).count == 1, (
-        'Unable to verify successful creation of organization resource')
-
-    # verify the newly created organization card data is displayed on the page
-    displayed_names = ui_organizations_add.displayed_card_labels
-    displayed_names = map(ui_organizations_add._normalize_text, displayed_names)
-
-    assert ui_organizations_add._normalize_text(name) in displayed_names, (
-        'Unable to verify successful creation of organization resource')
-
-    # verify the new organization card is selected
-    assert ui_organizations_add.get_card(name).is_selected, (
-        'Card for new organization unexpectedly not selected')
-
-
-@pytest.mark.skipif(True, reason='not implemented')
-@pytest.mark.usefixtures('authtoken')
-def test_update_organization(organization,
-                             api_organizations_pg, ui_organizations):
-    """Basic end-to-end verification for updating an organization
+def test_delete_organization(factories, ui_organizations):
+    """Basic end-to-end verification for deleting a organization
     """
-    pass  # TODO: implement
+    organization = factories.organization()
+    search_name = organization.name.lower()
+    # add a search filter for the organization
+    ui_organizations.driver.refresh()
+    ui_organizations.wait_until_loaded()
+    ui_organizations.list_search.add_filter('name', search_name)
+    # query the list for the newly created organization
+    results = ui_organizations.query_cards(
+        lambda c: c.name.text.lower() == search_name)
+    assert results, 'unable to locate organization'
+    # delete the organization
+    results.pop().delete.click()
+    # confirm deletion
+    ui_organizations.dialog.confirm.click()
+    ui_organizations.wait_until_loaded()
+    # verify deletion api-side
+    with pytest.raises(NotFound_Exception):
+        organization.get()
+    # verify that the deleted resource is no longer displayed
+    results = ui_organizations.query_cards(
+        lambda c: c.name.text.lower() == search_name)
+    assert not results
 
 
-@pytest.mark.skipif(True, reason='not implemented')
-@pytest.mark.usefixtures(
-    'authtoken',
-    'install_enterprise_license_unlimited',
-)
-def test_delete_organization(organization,
-                             api_organizations_pg, ui_organizations):
-    """Basic end-to-end verification for deleting an organization
+def test_create_organization(factories, api_organizations_pg, ui_organization_add):
+    """Basic end-to-end verification for creating a organization
     """
-    pass  # TODO: implement
+    # make some data
+    name = fauxfactory.gen_alphanumeric()
+    # populate the form
+    ui_organization_add.details.name.set_value(name)
+    ui_organization_add.details.description.set_value(fauxfactory.gen_alphanumeric())
+    # save the organization
+    ui_organization_add.details.save.click()
+    ui_organization_add.wait_until_loaded()
+    # verify the update took place api-side
+    time.sleep(5)
+    api_results = api_organizations_pg.get(name=name).results
+    assert api_results, 'unable to verify creation of organization'
+    # check for expected url content
+    expected_url_content = '/#/organizations/{0}'.format(api_results[0].id)
+    assert expected_url_content in ui_organization_add.driver.current_url
+    # check that we find a row showing the updated organization name
+    results = ui_organization_add.query_cards(lambda c: c.name.text.lower() == name.lower())
+    assert results, 'unable to verify creation of organization'
+    # check that the newly created resource has the card selection indicator
+    assert ui_organization_add.selected_card.name.text.lower() == name.lower()
 
-
-@pytest.mark.skipif(True, reason='not implemented')
-@pytest.mark.usefixtures('authtoken')
-def test_associate_user(organization, anonymous_user, ui_organizations):
-    """Verify basic operation of associating users
-    """
-    pass  # TODO: implement
-
-
-@pytest.mark.skipif(True, reason='not implemented')
-@pytest.mark.usefixtures('authtoken')
-def test_associate_admin(organization,
-                         anonymous_user, org_user, ui_organizations):
-    """Verify basic operation of associating administrators
-    """
-    pass  # TODO: implement

@@ -1,15 +1,17 @@
-from clickable import Clickable
+from common.ui.page import Region
+
+__all__ = ['Tab', 'ToggleTab']
 
 
-class PanelButton(Clickable):
+class BaseTab(Region):
 
     _bg_enabled = (
-        'rgba(215, 215, 215, 1)', 'rgb(215, 215, 215)',
-        'rgba(132, 137, 146, 1)', 'rgb(132, 137, 146)')
+        'rgba(215, 215, 215, 1)', 'rgb(215, 215, 215)',  #  D7D7D7
+        'rgba(132, 137, 146, 1)', 'rgb(132, 137, 146)')  #  848992
 
     _bg_disabled = (
-        'rgba(255, 255, 255, 1)', 'rgb(255, 255, 255)',
-        'rgba(250, 250, 250, 1)', 'rgb(250, 250, 250)')
+        'rgba(255, 255, 255, 1)', 'rgb(255, 255, 255)',  #  FFFFFF
+        'rgba(250, 250, 250, 1)', 'rgb(250, 250, 250)')  #  FAFAFA
 
     @property
     def background_color(self):
@@ -21,40 +23,27 @@ class PanelButton(Clickable):
     def is_disabled(self):
         return self.background_color in self._bg_disabled
 
-    def wait_until_enabled(self):
-        self.wait.until(lambda _: self.is_enabled())
-
-    def wait_until_disabled(self):
-        self.wait.until(lambda _: self.is_disabled())
+    def wait_until_loaded(self):
+        if self._root is None and self._root_locator is not None:
+            self.wait.until(lambda _: self.page.is_element_displayed(*self._root_locator))
 
 
-class PanelToggleTab(PanelButton):
+class Tab(BaseTab):
 
     def enable(self):
         if self.is_disabled():
-            self.click()
-            self.wait_until_enabled()
+            self.root.click()
+            self.wait.until(lambda _: self.is_enabled())
 
-        return self.page
+
+class ToggleTab(BaseTab):
+
+    def enable(self):
+        if self.is_disabled():
+            self.root.click()
+            self.wait.until(lambda _: self.is_enabled())
 
     def disable(self):
         if self.is_enabled():
-            self.click()
-            self.wait_until_disabled()
-
-        return self.page
-
-
-class PanelTab(PanelButton):
-
-    def enable(self):
-        if self.is_disabled():
-            self.click()
-            self.wait_until_enabled()
-
-        return self.page
-
-    def click(self):
-        super(PanelTab, self).click()
-        self.wait_until_enabled()
-        return self.page
+            self.root.click()
+            self.wait.until(lambda _: self.is_disabled())

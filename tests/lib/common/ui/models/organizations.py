@@ -1,17 +1,167 @@
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
-from base import TowerCrudPage
-from page import Region
+from common.ui.page import Region
+from common.ui.models.base import TowerPage
+from common.ui.models.forms import FormPanel
 
-from common.ui.pages.regions import Clickable
-from common.ui.pages.forms import FormPanel
-from common.ui.pages.regions.tabs import PanelTab
-
-from common.ui.pages.regions.cells import (
-    DeleteActionCell,
-    EditActionCell,
+from common.ui.models.regions import (
+    ListPagination,
+    Tab,
+    TagSearch,
 )
+
+__all__ = ['Organizations', 'OrganizationAdd', 'OrganizationEdit']
+
+
+class Organizations(TowerPage):
+
+    url_template = '/#/organizations'
+
+    _add = (By.CSS_SELECTOR, '.List-buttonSubmit')
+    _badge = (By.CLASS_NAME, 'List-titleBadge')
+    _cards = (By.CLASS_NAME, 'OrgCards-card')
+    _noitems = (By.CLASS_NAME, 'List-noItems')
+    _selected_card = (By.CLASS_NAME, 'OrgCards-card--selected')
+
+    @property
+    def add(self):
+        return self.find_element(*self._add)
+
+    @property
+    def cards(self):
+        elements = self.find_elements(*self._cards)
+        return [OrganizationCard(self, root=e) for e in elements]
+
+    @property
+    def list_badge(self):
+        return self.find_element(*self._badge)
+
+    @property
+    def list_pagination(self):
+        return ListPagination(self)
+
+    @property
+    def list_search(self):
+        return TagSearch(self)
+
+    @property
+    def selected_card(self):
+        elements = self.find_elements(*self._selected_card)
+        assert len(elements) <= 1, 'multiple results found'
+        if not elements:
+            return None
+        return OrganizationCard(self, root=elements.pop())
+
+    def is_loaded(self):
+        if not self.is_element_displayed(*self._badge):
+            return False
+        locators = [self._cards, self._noitems]
+        return any(self.is_element_displayed(*loc) for loc in locators)
+
+    def query_cards(self, query_filter):
+        return [c for c in self.cards if query_filter(c)]
+
+    def wait_until_loaded(self):
+        self.wait.until(lambda _: self.is_loaded())
+
+
+class OrganizationAdd(Organizations):
+
+    url_template = '/#/organizations/add'
+    
+    @property
+    def details(self):
+        DetailsTab(self).enable()
+        return OrganizationDetails(self)
+
+
+class OrganizationEdit(Organizations):
+
+    url_template = '/#/organizations/{id}'
+
+    @property
+    def details(self):
+        DetailsTab(self).enable()
+        return OrganizationDetails(self)
+
+    @property
+    def notifications(self):
+        NotificationsTab(self).enable()
+        return FormPanel(self)
+
+    @property
+    def permissions(self):
+        PermissionsTab(self).enable()
+        return FormPanel(self)
+
+
+class OrganizationCard(Region):
+    
+    _badges = (By.CLASS_NAME, 'OrgCards-linkBadge')
+    _delete = (By.CLASS_NAME, 'List-actionButton--delete')
+    _description = (By.CLASS_NAME, 'OrgCards-description')
+    _edit = (By.CSS_SELECTOR, 'i[class*=fa-pencil]')
+    _label = (By.CLASS_NAME, 'OrgCards-label')
+    _links = (By.CLASS_NAME, 'OrgCards-linkName')
+    _selected_card = (By.CLASS_NAME, 'OrgCards-card--selected')
+
+    @property
+    def delete(self):
+        return self.find_element(*self._delete)
+
+    @property
+    def description(self):
+        return self.find_element(*self._description)
+
+    @property
+    def edit(self):
+        return self.find_element(*self._edit)
+
+    @property
+    def name(self):
+        return self.find_element(*self._label)
+
+    @property
+    def badges(self):
+        badge_map = {}
+        for element in self.find_elements(*self._badges):
+            parent = element.find_element(By.XPATH, '..')
+            link = parent_element.find_element(*self._badges)
+            link_text = link.text
+            if link_text:
+                badge_map[link_text] = element
+        return badge_map
+
+    @property
+    def links(self):
+        link_map = {}
+        for element in self.find_elements(*self._links):
+            link_text = element.text
+            if link_text:
+                link_map[link_text] = element
+        return link_map
+
+    def is_selected(self):
+        # find the currently selected card
+        elements = self.page.find_elements(*self._selected_card)
+        # if no cards are selected, stop here
+        if not elements:
+            return False
+        selected_card = OrganizationCard(root=elements.pop())
+        # compare label of selected card to that of this card
+        return self.label.text == selected_card.label.text
+
+
+class DetailsTab(Tab):
+    _root_locator = (By.ID, 'organization_tab')
+
+
+class NotificationsTab(Tab):
+    _root_locator = (By.ID, 'notifications_tab')
+
+
+class PermissionsTab(Tab):
+    _root_locator = (By.ID, 'permissions_tab')
 
 
 class OrganizationDetails(FormPanel):
@@ -31,130 +181,3 @@ class OrganizationDetails(FormPanel):
                 (By.XPATH, '..'))
         }
     }
-
-
-class Organizations(TowerCrudPage):
-
-    _path = '/#/organizations/{index}'
-
-    _add_button = (By.CSS_SELECTOR, '.List-buttonSubmit')
-    _badge = (By.CLASS_NAME, 'List-titleBadge')
-    _cards = (By.CLASS_NAME, 'OrgCards-card')
-    _details_tab = (By.ID, 'organization_tab')
-
-    @property
-    def forms(self):
-        return [self.details]
-
-    @property
-    def details_tab(self):
-        return PanelTab(self, root_locator=self._details_tab)
-
-    @property
-    def details(self):
-        self.details_tab.enable()
-        return OrganizationDetails(self)
-
-    @property
-    def add_button(self):
-        return Clickable(self, root_locator=self._add_button)
-
-    @property
-    def badge_number(self):
-        return int(self.find_element(self._badge).text)
-
-    @property
-    def cards(self):
-        elements = self.find_elements(self._cards)
-        return [OrganizationCard(self, root=element) for element in elements]
-
-    @property
-    def displayed_card_labels(self):
-        return [card.label.text for card in self.cards if card.is_displayed()]
-
-    def get_card(self, label_text):
-        label_text = self._normalize_text(label_text)
-        for card in self.cards:
-            if card.label.normalized_text == label_text:
-                return card
-        raise NoSuchElementException
-
-    def refresh(self):
-        self.driver.refresh()
-        self.wait_until_loaded()
-        return self
-
-
-class OrganizationCard(Region):
-    _description = (By.CLASS_NAME, 'OrgCards-description')
-    _badges = (By.CLASS_NAME, 'OrgCards-linkBadge')
-    _label = (By.CLASS_NAME, 'OrgCards-label')
-    _links = (By.CLASS_NAME, 'OrgCards-linkName')
-    _selected_card = (By.CLASS_NAME, 'OrgCards-card--selected')
-
-    @property
-    def delete(self):
-        return DeleteActionCell(self.page, root=self.root)
-
-    @property
-    def edit(self):
-        return EditActionCell(self.page, root=self.root)
-
-    @property
-    def description(self):
-        return Region(self.page, root=self.find_element(self._description))
-
-    @property
-    def label(self):
-        return Region(self.page, root=self.find_element(self._label))
-
-    @property
-    def badges(self):
-        elements = self.find_elements(self._badges)
-        return [Region(self.page, root=e) for e in elements]
-
-    @property
-    def links(self):
-        elements = self.find_elements(self._links)
-        return [Clickable(self.page, root=e) for e in elements]
-
-    @property
-    def displayed_link_names(self):
-        return [k.text for k in self.links if k.is_displayed()]
-
-    @property
-    def displayed_link_badges(self):
-        return [badge.text for badge in self.badges]
-
-    @property
-    def is_selected(self):
-        # get the currently selected card
-        results = self.page.find_elements(self._selected_card)
-
-        # if no cards are selected, stop here
-        if not results:
-            return False
-
-        # get the label text of the selected card and compare it to the
-        # label text of this card
-        selected_label = results[0].find_element(*self._label).text
-        selected_label = self._normalize_text(selected_label)
-
-        return selected_label == self.label.normalized_text
-
-    def get_badge(self, name):
-        name = self._normalize_text(name)
-        for n, link in enumerate(self.links):
-            if link.normalized_text == name:
-                return self.badges[n]
-        raise NoSuchElementException
-
-    def get_badge_number(self, name):
-        return int(self.get_badge(name).text)
-
-    def get_link(self, name):
-        name = self._normalize_text(name)
-        for link in self.links:
-            if link.normalized_text == name:
-                return link
-        raise NoSuchElementException

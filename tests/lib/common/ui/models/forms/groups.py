@@ -1,30 +1,30 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
-from common.ui.pages.page import Region
-from common.ui.pages.regions.clickable import Clickable
+from common.ui.page import Region
 
-from form_group import FormGroup, TextInputMixin
+from form_group import FormGroup
 
 
-class SelectDropDown(FormGroup):
+class SelectDropdown(FormGroup):
 
     _select = (By.CSS_SELECTOR, 'select')
 
     @property
-    def options(self):
-        select_model = Select(self.find_element(self._select))
-        return [e.text for e in select_model.options]
+    def select(self):
+        return Select(self.find_element(*self._select))
 
     @property
-    def selected_option(self):
-        select_model = Select(self.find_element(self._select))
-        return select_model.first_selected_option.text
+    def options(self):
+        return [e.text.lower() for e in self.select.options]
 
-    def select(self, option):
-        if option != self.selected_option:
-            select_model = Select(self.find_element(self._select))
-            select_model.select_by_visible_text(option)
+    def get_value(self):
+        return self.select.first_selected_option.text.lower()
+
+    def set_value(self, option):
+        select = self.select
+        if option.lower() != select.first_selected_option.text.lower():
+            select.select_by_visible_text(option)
 
 
 class Checkbox(FormGroup):
@@ -37,38 +37,22 @@ class Checkbox(FormGroup):
 
     @property
     def label(self):
-        """Get the formGroup label region
-        """
-        return Region(self.page, root=self.root)
+        return self
 
-    @property
-    def selected_option(self):
+    def get_value(self):
+        return self.find_element(*self._checkbox).is_selected()
 
-        checkbox = Clickable(
-            self.page,
-            root=self.root,
-            root_extension=self._checkbox)
-
-        checkbox.wait_until_displayed()
-
-        return checkbox.root.is_selected()
-
-    def select(self, option):
-
+    def set_value(self, option):
         if option not in self.options:
             raise ValueError('Invalid selection')
 
-        checkbox = Clickable(
-            self.page,
-            root=self.root,
-            root_extension=self._checkbox)
+        element = self.find_element(*self._checkbox)
 
-        checkbox.wait_until_displayed()
+        if option != element.is_selected():
+            element.click()
 
-        if option != checkbox.root.is_selected():
-            checkbox.click()
-
-        return self
+    def wait_until_region_is_loaded(self):
+        self.wait.until(lambda _: self.is_element_displayed(*self._checkbox))
 
 
 class RadioButtons(FormGroup):
@@ -80,68 +64,75 @@ class RadioButtons(FormGroup):
         elements = self.find_elements(self._item_locator)
         return [e.get_attribute('value') for e in elements]
 
-    @property
-    def selected_option(self):
-        selected = self.lookup_element(self._item_locator, selected='true')
-        return selected.get_attribute('value')
+    def get_value(self):
+        for element in self.find_elements(*self._item_locator):
+            if element.get_attribute('selected'):
+                return element.get_attribute('value')
+        raise NoSuchElementException
 
-    def select(self, option):
-        self.lookup_element(self._item_locator, value=option).click()
+    def set_value(self, option):
+        for element in self.find_elements(*self._item_locator):
+            if option == element.get_attribute('value'):
+                element.click()
+                return
+        raise NoSuchElementException
 
 
-class Password(TextInputMixin, FormGroup):
+class TextInput(FormGroup):
+
+    _text_input = (By.CLASS_NAME, 'Form-textInput')
+
+    def clear(self):
+        element = self.find_element(*self._text_input)
+        element.clear()
+
+    def get_value(self):
+        element = self.find_element(*self._text_input)
+        return element.get_attribute('value')
+
+    def is_hidden(self):
+        element = self.find_element(*self._text_input)
+        return element.get_attribute('type') == 'password'
+
+    def set_value(self, text):
+        element = self.find_element(*self._text_input)
+        if element.get_attribute('value') != text:
+            element.clear()
+            element.send_keys(text)
+
+    def wait_until_region_is_loaded(self):
+        self.wait.until(lambda _: self.is_element_displayed(*self._text_input))
+
+
+class Password(TextInput):
 
     _password_button = (By.CLASS_NAME, 'Form-passwordButton')
 
     @property
-    def options(self):
-        return ['show', 'hide']
+    def password_button(self):
+        return self.find_element(*self._password_button)
 
-    @property
-    def selected_option(self):
-        password_button = Clickable(
-            self.page,
-            root=self.root,
-            root_extension=self._password_button)
+    def show(self):
+        if self.is_hidden():
+            self.password_button.click()
 
-        return password_button.normalized_text
-
-    def select(self, option):
-
-        if option not in self.options:
-            raise ValueError('Invalid selection')
-
-        password_button = Clickable(
-            self.page,
-            root=self.root,
-            root_extension=self._password_button)
-
-        if option != password_button.normalized_text:
-            password_button.click()
-
-        return self
+    def hide(self):
+        if not self.is_hidden():
+            self.password_button.click()
 
 
-class TextArea(TextInputMixin, FormGroup):
+class TextArea(TextInput):
 
     _text_input = (By.TAG_NAME, 'textarea')
 
-    @property
-    def _text_input_region(self):
-        return Region(self.page, root=self.find_element(self._text_input))
 
-
-class TextInput(TextInputMixin, FormGroup):
+class Email(TextInput):
     pass
 
 
-class Email(TextInputMixin, FormGroup):
+class CodeMirror(TextInput):
     pass
 
 
-class CodeMirror(TextInputMixin, FormGroup):
-    pass
-
-
-class FormSearch(TextInputMixin, FormGroup):
+class FormSearch(TextInput):
     pass
