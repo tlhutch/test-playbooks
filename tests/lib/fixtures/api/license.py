@@ -10,12 +10,11 @@ from common.tower.license import generate_license
 log = logging.getLogger(__name__)
 
 
-def install_license(request, api_config_pg, **kwargs):
+def install_license(api_config_pg, **kwargs):
     # generate license
     license_info = generate_license(**kwargs)
     # install license
     api_config_pg.post(license_info)
-    request.addfinalizer(api_config_pg.delete)
     # Confirm that license is present
     conf = api_config_pg.get()
     assert conf.is_valid_license, 'Invalid license found'
@@ -30,74 +29,80 @@ def install_license(request, api_config_pg, **kwargs):
         'License found differs from license applied')
 
 
-@pytest.fixture
-def no_license(request, api_config_pg):
+@pytest.yield_fixture
+def no_license(api_config_pg):
     """Remove an active license
     """
     log.debug('deleting any active license')
     api_config_pg.delete()
-    request.addfinalizer(api_config_pg.delete)
+    yield
+    api_config_pg.delete()
 
 
-@pytest.fixture
-def install_legacy_license(request, api_config_pg):
+@pytest.yield_fixture
+def install_legacy_license(api_config_pg):
     """Install legacy license
     """
     log.debug('calling fixture install_legacy_license_unlimited')
-    install_license(request,
-                    api_config_pg,
+    install_license(api_config_pg,
                     days=365,
                     instance_count=sys.maxint,
                     license_type='legacy')
+    yield
+    api_config_pg.delete()
 
 
-@pytest.fixture
-def install_basic_license(request, api_config_pg):
+@pytest.yield_fixture
+def install_basic_license(api_config_pg):
     """Install basic license
     """
     log.debug('calling fixture install_basic_license_unlimited')
-    install_license(request,
-                    api_config_pg,
+    install_license(api_config_pg,
                     days=365,
                     instance_count=sys.maxint,
                     license_type='basic')
+    yield
+    api_config_pg.delete()
 
 
-@pytest.fixture
-def install_enterprise_license(request, api_config_pg):
+@pytest.yield_fixture
+def install_enterprise_license(api_config_pg):
     """Install enterprise license
     """
     log.debug('calling fixture install_enterprise_license')
-    install_license(request,
-                    api_config_pg,
+    install_license(api_config_pg,
                     days=365,
                     instance_count=sys.maxint,
                     license_type='enterprise')
+    yield
+    api_config_pg.delete()
 
 
-@pytest.fixture(scope='class')
-def install_enterprise_license_unlimited(request, api_config_pg):
+@pytest.yield_fixture(scope='class')
+def install_enterprise_license_unlimited(api_config_pg):
     """Install enterprise license at the class fixture scope
     """
     log.debug('calling fixture install_enterprise_license_unlimited')
-    install_license(request,
-                    api_config_pg,
+    install_license(api_config_pg,
                     days=365,
                     instance_count=sys.maxint,
                     license_type='enterprise')
+    yield
+    api_config_pg.delete()
     # Pause to allow tower to do it's thing
-    request.addfinalizer(lambda: time.sleep(15))
+    time.sleep(15)
 
 
-@pytest.fixture(scope='module')
-def module_install_enterprise_license(authtoken, request, api_config_pg):
+@pytest.yield_fixture(scope='module')
+def module_install_enterprise_license(authtoken, api_config_pg):
     """Install enterprise license at the module fixture scope
     """
     log.debug('calling fixture module_install_enterprise_license')
-    install_license(request,
-                    api_config_pg,
+    install_license(api_config_pg,
                     days=365,
                     instance_count=sys.maxint,
                     license_type='enterprise')
+    yield
+    api_config_pg.delete()
     # Pause to allow tower to do it's thing
-    request.addfinalizer(lambda: time.sleep(15))
+    time.sleep(15)
