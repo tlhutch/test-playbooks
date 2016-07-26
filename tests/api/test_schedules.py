@@ -440,7 +440,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedules_pg.count == 3
 
         # delete the project
-        project_pg.delete()
+        project_pg.wait_until_completed().delete()
 
         # assert the project schedules are gone
         remaining_schedules = api_schedules_pg.get(id__in=','.join([str(sid) for sid in schedule_ids]))
@@ -820,7 +820,7 @@ class Test_System_Job_Template_Schedules(Base_Api_Test):
     @pytest.mark.parametrize("name, count, system_job_template_id, kwargs", [
         ("Cleanup Job Schedule", 1, 1, dict(days='120')),
         ("Cleanup Activity Schedule", 1, 2, dict(days='355')),
-        ("Cleanup Fact Schedule", 0, 3, dict(older_than='120d', granularity='1w')),
+        ("Cleanup Fact Schedule", 1, 3, dict(older_than='120d', granularity='1w')),
     ], ids=['Cleanup Job Schedule', 'Cleanup Activity Schedule', 'Cleanup Fact Schedule'])
     def test_prepopulated_schedules(self, api_schedules_pg, name, count, system_job_template_id, kwargs):
         '''Tests default system jobs'''
@@ -836,8 +836,7 @@ class Test_System_Job_Template_Schedules(Base_Api_Test):
             assert default_schedule_pg.unified_job_template == system_job_template_id, \
                 "Schedule '%s' is of wrong unified_job_template. Expected %s, got %s." \
                 % (name, system_job_template_id, default_schedule_pg.unified_job_template)
-            assert default_schedule_pg.extra_data == kwargs, \
-                "Unexpected extra_data with '%s.'" % name
+            assert default_schedule_pg.enabled, "System job schedule not enabled by default."
 
     def test_multiple_schedules(self, multiple_management_job_schedules):
         '''Tests that multiple schedules may be created for each system_job_template.'''
