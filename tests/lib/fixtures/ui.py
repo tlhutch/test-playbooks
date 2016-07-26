@@ -1,6 +1,9 @@
 import logging
 
+import fauxfactory
 import pytest
+
+from common.rrule import RRule
 
 from common.ui.models import (
     ActivityStream,
@@ -15,6 +18,9 @@ from common.ui.models import (
     JobTemplates,
     JobTemplateAdd,
     JobTemplateEdit,
+    JobTemplateSchedules,
+    JobTemplateScheduleAdd,
+    JobTemplateScheduleEdit,
     License,
     Login,
     Organizations,
@@ -23,6 +29,9 @@ from common.ui.models import (
     Projects,
     ProjectAdd,
     ProjectEdit,
+    ProjectSchedules,
+    ProjectScheduleAdd,
+    ProjectScheduleEdit,
     SetupMenu,
     Teams,
     TeamAdd,
@@ -168,6 +177,33 @@ def ui_job_template_edit(factories, ui_dashboard, selenium, base_url):
 
 
 @pytest.fixture
+def ui_job_template_schedules(ui_dashboard, selenium, base_url):
+    return JobTemplateSchedules(selenium, base_url).open()
+
+
+@pytest.fixture
+def ui_job_template_schedule_add(ui_dashboard, selenium, base_url):
+    return JobTemplateScheduleAdd(selenium, base_url).open()
+
+
+@pytest.fixture
+def ui_job_template_schedule_edit(factories, ui_dashboard, selenium, base_url):
+
+    rr = RRule(3, count=1, byminute='', bysecond='', byhour='')
+    payload = {'name': fauxfactory.gen_alphanumeric(), 'rrule': str(rr)}
+
+    job_template = factories.job_template()
+    schedule = job_template.get_related('schedules').post(payload)
+
+    return \
+        JobTemplateScheduleEdit(
+            selenium,
+            base_url,
+            id=job_template.id,
+            schedule_id=schedule.id).open()
+
+
+@pytest.fixture
 def ui_jobs(ui_dashboard, selenium, base_url):
     return Jobs(selenium, base_url).open()
 
@@ -207,6 +243,33 @@ def ui_project_add(ui_dashboard, selenium, base_url):
 def ui_project_edit(factories, ui_dashboard, selenium, base_url):
     project = factories.project()
     return ProjectEdit(selenium, base_url, id=project.id).open()
+
+
+@pytest.fixture
+def ui_job_project_schedules(ui_dashboard, selenium, base_url):
+    return ProjectSchedules(selenium, base_url).open()
+
+
+@pytest.fixture
+def ui_project_schedule_add(ui_dashboard, selenium, base_url):
+    return ProjectScheduleAdd(selenium, base_url).open()
+
+
+@pytest.fixture
+def ui_project_schedule_edit(factories, ui_dashboard, selenium, base_url):
+
+    rr = RRule(3, count=1, byminute='', bysecond='', byhour='')
+    payload = {'name': fauxfactory.gen_alphanumeric(), 'rrule': str(rr)}
+
+    project = factories.project()
+    schedule = project.get_related('schedules').post(payload)
+
+    return \
+        ProjectScheduleEdit(
+            selenium,
+            base_url,
+            id=project.id,
+            schedule_id=schedule.id).open()
 
 
 @pytest.fixture

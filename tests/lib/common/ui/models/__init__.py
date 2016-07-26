@@ -9,6 +9,9 @@ from login import Login
 from organizations import Organizations, OrganizationAdd, OrganizationEdit
 from projects import Projects, ProjectAdd, ProjectEdit
 from setup_menu import SetupMenu
+from schedules import JobTemplateSchedules, JobTemplateScheduleAdd, JobTemplateScheduleEdit
+from schedules import ManagementJobSchedules, ManagementJobScheduleAdd, ManagementJobScheduleEdit
+from schedules import ProjectSchedules, ProjectScheduleAdd, ProjectScheduleEdit
 from teams import Teams, TeamAdd, TeamEdit
 from users import Users, UserAdd, UserEdit
 
@@ -25,14 +28,23 @@ __all__ = [
     'JobTemplates',
     'JobTemplateAdd',
     'JobTemplateEdit',
+    'JobTemplateSchedules',
+    'JobTemplateScheduleAdd',
+    'JobTemplateScheduleEdit',
     'License',
     'Login',
+    'ManagementJobSchedules',
+    'ManagementJobScheduleAdd',
+    'ManagementJobScheduleEdit',
     'Organizations',
     'OrganizationAdd',
     'OrganizationEdit',
     'Projects',
     'ProjectAdd',
     'ProjectEdit',
+    'ProjectSchedules',
+    'ProjectScheduleAdd',
+    'ProjectScheduleEdit',
     'SetupMenu',
     'Teams',
     'TeamAdd',

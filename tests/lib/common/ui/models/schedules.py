@@ -1,111 +1,194 @@
-'''
 from selenium.webdriver.common.by import By
 
-from common.ui.pages.base import TowerCrudPage
-from common.ui.pages.regions.table import Table
+from common.ui.page import Region
 
-from common.ui.pages.forms import (
-    FormPanel,
-    FormSearch,
-    TextInput,
-    SelectDropDown,
-    RadioButtons
-)
+from common.ui.models.base import TowerPage
+from common.ui.models.forms import FormPanel
 
-from common.ui.pages.regions.cells import (
-    NameCell,
-    DeleteActionCell,
-    EditActionCell,
-    NextRunCell,
-    FirstRunCell,
-    FinalRunCell
+from common.ui.models.regions import (
+    ListPagination,
+    ListTable,
+    TagSearch,
 )
 
 
-class ScheduleTable(Table):
+__all__ = [
+    'JobTemplateSchedules',
+    'JobTemplateScheduleAdd',
+    'JobTemplateScheduleEdit',
+    'ManagementJobSchedules',
+    'ManagementJobScheduleAdd',
+    'ManagementJobScheduleEdit',
+    'ProjectSchedules',
+    'ProjectScheduleAdd',
+    'ProjectScheduleEdit',
+]
+
+
+class Schedules(TowerPage):
+
+    @property
+    def list_pagination(self):
+        return ListPagination(self)
+
+    @property
+    def list_table(self):
+        return SchedulesTable(self)
+
+    @property
+    def list_search(self):
+        return TagSearch(self)
+
+    def wait_until_loaded(self):
+        self.list_table.wait_for_table_to_load()
+
+
+class ScheduleAdd(Schedules):
+
+    @property
+    def details(self):
+        return ScheduleDetails(self)
+
+
+class ScheduleEdit(Schedules):
+
+    @property
+    def details(self):
+        return ScheduleDetails(self)
+
+
+class SchedulesTable(ListTable):
 
     _root_locator = (By.CSS_SELECTOR, '#schedules_table')
 
-    _row_spec = (
-        ('name', NameCell),
-        ('first_run', FirstRunCell),
-        ('next_run', NextRunCell),
-        ('final_run', FinalRunCell),
-        ('edit', EditActionCell),
-        ('delete', DeleteActionCell)
-    )
+    class Row(Region):
+
+        _name = (By.CLASS_NAME, 'name-column')
+        _first_run = (By.CLASS_NAME, 'dtstart-column')
+        _next_run = (By.CLASS_NAME, 'next_run-column')
+        _final_run = (By.CLASS_NAME, 'dtend-column')
+        _edit = (By.CSS_SELECTOR, 'i[class*=fa-pencil]')
+        _delete = (By.ID, 'delete-action')
+
+        @property
+        def name(self):
+            return self.find_element(*self._name)
+
+        @property
+        def first_run(self):
+            return self.find_element(*self._first_run)
+
+        @property
+        def next_run(self):
+            return self.find_element(*self._next_run)
+
+        @property
+        def final_run(self):
+            return self.find_element(*self._final_run)
+
+        @property
+        def edit(self):
+            return self.find_element(*self._edit)
+
+        @property
+        def delete(self):
+            return self.find_element(*self._delete)
 
 
-class ScheduleFormPanel(FormPanel):
+class ScheduleDetails(FormPanel):
 
-    _name = ((By.ID, 'schedulerName'), (By.XPATH, '..'))
-    _start_date = ((By.ID, 'schedulerStartDt'), (By.XPATH, '..'))
-    _time_zone = ((By.ID, 'schedulerTimeZone'), (By.XPATH, '..'))
-    _frequency = ((By.ID, 'schedulerFrequency'), (By.XPATH, '..'))
-    _date_format = ((By.ID, 'date-choice'), (By.XPATH, '..'))
+    _region_spec = {
+        'name': {
+            'required': True,
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.ID, 'schedulerName'),
+                (By.XPATH, '..'))
+        },
+        'start_date': {
+            'required': True,
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.ID, 'schedulerStartDt'),
+                (By.XPATH, '..'))
+        },
+        'time_zone': {
+            'required': True,
+            'region_type': 'select',
+            'root_locator': (
+                (By.ID, 'schedulerTimeZone'),
+                (By.XPATH, '..'))
+        },
+        'frequency': {
+            'required': True,
+            'region_type': 'select',
+            'root_locator': (
+                (By.ID, 'schedulerFrequency'),
+                (By.XPATH, '..'))
+        },
+        'date_format': {
+            'region_type': 'radio_buttons',
+            'root_locator': (
+                (By.ID, 'date-choice'),
+                (By.XPATH, '..'))
+        },
+    }
+
+
+class JobTemplateSchedules(Schedules):
+    url_template = '/#/job_templates/{id}/schedules'
+
+
+class JobTemplateScheduleAdd(ScheduleAdd):
+    url_template = '/#/job_templates/{id}/schedules/add'
+
+
+class JobTemplateScheduleEdit(ScheduleEdit):
+    url_template = '/#/job_templates/{id}/schedules/{schedule_id}'
+
+
+class ProjectSchedules(Schedules):
+    url_template = '/#/projects/{id}/schedules'
+
+
+class ProjectScheduleAdd(ScheduleAdd):
+    url_template = '/#/projects/{id}/schedules/add'
+
+
+class ProjectScheduleEdit(ScheduleEdit):
+    url_template = '/#/projects/{id}/schedules/{schedule_id}'
+
+
+class ManagementJobSchedules(Schedules):
+    url_template = '/#/management_jobs/{id}/schedules'
+
+
+class ManagementDetails(ScheduleDetails):
+
+    _region_spec = ScheduleDetails._region_spec.copy()
+
+    _region_spec['days_to_keep'] = {
+        'required': True,
+        'region_type': 'text_input',
+        'root_locator': (
+            (By.ID, 'schedulerPurgeDays'),
+            (By.XPATH, '..'))
+    }
+
+
+class ManagementJobScheduleAdd(ScheduleAdd):
+
+    url_template = '/#/management_jobs/{id}/schedules/add'
 
     @property
-    def search(self):
-        return FormSearch(self.page, root=self.root)
+    def details(self):
+        return ManagementDetails(self)
+
+
+class ManagementJobScheduleEdit(ScheduleEdit):
+
+    url_template = '/#/management_jobs/{id}/schedules/edit/{schedule_id}'
 
     @property
-    def frequency(self):
-        return SelectDropDown(
-            self.page,
-            root=self.root,
-            root_extension=self._frequency)
-
-    @property
-    def date_format(self):
-        return RadioButtons(
-            self.page,
-            root=self.root,
-            root_extension=self._date_format)
-
-    @property
-    def name(self):
-        return TextInput(
-            self.page,
-            root=self.root,
-            root_extension=self._name)
-
-    @property
-    def time_zone(self):
-        return SelectDropDown(
-            self.page,
-            root=self.root,
-            root_extension=self._time_zone)
-
-    @property
-    def start_date(self):
-        return TextInput(
-            self.page,
-            root=self.root,
-            root_extension=self._start_date)
-
-
-class TowerSchedulePage(TowerCrudPage):
-
-    @property
-    def form(self):
-        return ScheduleFormPanel(self)
-
-    @property
-    def table(self):
-        return ScheduleTable(self)
-
-
-class JobTemplateSchedules(TowerSchedulePage):
-
-    _path = '/#/job_templates/{index}/schedules'
-
-
-class ManagementJobSchedules(TowerSchedulePage):
-
-    _path = '/#/management_jobs/{index}/schedules'
-
-
-class ProjectSchedules(TowerSchedulePage):
-
-    _path = '/#/projects/{index}/schedules'
-'''
+    def details(self):
+        return ManagementDetails(self)
