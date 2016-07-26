@@ -276,14 +276,17 @@ def install_legacy_license_warning(request, api_config_pg, license_instance_coun
     request.addfinalizer(api_config_pg.delete)
 
 
-@pytest.fixture(scope='function')
-def install_legacy_license_expired(request, api_config_pg, license_instance_count):
+@pytest.yield_fixture(scope='function')
+def install_legacy_license_expired(api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_expired")
 
-    # Apply license
-    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=-61)
-    api_config_pg.post(license_info)
-    request.addfinalizer(api_config_pg.delete)
+    def apply_license():
+        license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=-61)
+        api_config_pg.post(license_info)
+
+    apply_license()
+    yield apply_license
+    api_config_pg.delete()
 
 
 @pytest.fixture(scope='function')
@@ -392,7 +395,7 @@ def assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, 
         else:
             with pytest.raises(common.exceptions.LicenseExceeded_Exception):
                 group_hosts_pg.post(payload)
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(common.exceptions.LicenseExceeded_Exception):
                 api_hosts_pg.post(payload)
             break
 
@@ -422,9 +425,9 @@ class Test_No_License(Base_Api_Test):
                        description="host-%s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
         group_hosts_pg = group.get_related('hosts')
-        with pytest.raises(common.exceptions.Forbidden_Exception):
+        with pytest.raises(common.exceptions.LicenseExceeded_Exception):
             group_hosts_pg.post(payload)
-        with pytest.raises(common.exceptions.Forbidden_Exception):
+        with pytest.raises(common.exceptions.LicenseExceeded_Exception):
             api_hosts_pg.post(payload)
 
     def test_can_launch_project_update(self, project_ansible_playbooks_git_nowait):
@@ -439,9 +442,10 @@ class Test_No_License(Base_Api_Test):
         assert job_pg.status == 'failed', "inventory_update was unexpectedly successful - %s" % job_pg
         assert 'CommandError: No Tower license found!' in job_pg.result_stdout
 
-    def test_cannot_launch_job(self, job_template):
+    def test_cannot_launch_job(self, install_basic_license, api_config_pg, job_template):
         '''Verify that job_templates cannot be launched'''
-        with pytest.raises(common.exceptions.Forbidden_Exception):
+        api_config_pg.delete()
+        with pytest.raises(common.exceptions.LicenseExceeded_Exception):
             job_template.launch_job()
 
     def test_post_invalid_license(self, api_config_pg, ansible_runner, tower_license_path, invalid_license_json):
@@ -961,12 +965,13 @@ class Test_Legacy_License_Expired(Base_Api_Test):
                        description="host-%s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
         group_hosts_pg = group.get_related('hosts')
-        with pytest.raises(common.exceptions.Forbidden_Exception):
+        with pytest.raises(common.exceptions.LicenseExceeded_Exception):
             group_hosts_pg.post(payload)
 
-    def test_job_launch(self, job_template):
+    def test_job_launch(self, request, install_basic_license, job_template):
         '''Verify that job_templates cannot be launched'''
-        with pytest.raises(common.exceptions.Forbidden_Exception):
+        request.getfuncargvalue('install_legacy_license_expired')()
+        with pytest.raises(common.exceptions.LicenseExceeded_Exception):
             job_template.launch_job().wait_until_completed()
 
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
@@ -983,8 +988,10 @@ class Test_Legacy_License_Expired(Base_Api_Test):
         else:
             assert system_job.is_successful, "System job unexpectedly failed - %s" % system_job
 
-    def test_unable_to_launch_ad_hoc_command(self, api_ad_hoc_commands_pg, host_local, ssh_credential):
+    def test_unable_to_launch_ad_hoc_command(self, request, api_ad_hoc_commands_pg, install_basic_license, host_local, ssh_credential):
         '''Verify that ad hoc commands cannot be launched from all four ad hoc endpoints.'''
+        request.getfuncargvalue('install_legacy_license_expired')()
+
         ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
         inventory_pg = host_local.get_related('inventory')
         groups_pg = host_local.get_related('groups')
@@ -998,7 +1005,7 @@ class Test_Legacy_License_Expired(Base_Api_Test):
 
         for endpoint in [inventory_pg, group_pg, host_local]:
             ad_hoc_commands_pg = endpoint.get_related('ad_hoc_commands')
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(common.exceptions.LicenseExceeded_Exception):
                 ad_hoc_commands_pg.post(payload), \
                     "Unexpectedly launched an ad_hoc_command with an expired license from %s." % ad_hoc_commands_pg.base_url
 
