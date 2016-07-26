@@ -1441,7 +1441,7 @@ class Awx_Schema_Notification_Templates_Any(Awx_Schema):
 
     @property
     def post(self):
-        return self.load_file('empty.yml')
+        return self.load_file('notification_templates/notification_templates_any.yml')
 
     @property
     def duplicate(self):
@@ -1473,7 +1473,7 @@ class Awx_Schema_Notification_Templates_Error(Awx_Schema):
 
     @property
     def post(self):
-        return self.load_file('empty.yml')
+        return self.load_file('notification_templates/notification_templates_error.yml')
 
     @property
     def duplicate(self):
@@ -1505,7 +1505,7 @@ class Awx_Schema_Notification_Templates_Success(Awx_Schema):
 
     @property
     def post(self):
-        return self.load_file('empty.yml')
+        return self.load_file('notification_templates/notification_templates_success.yml')
 
     @property
     def duplicate(self):
