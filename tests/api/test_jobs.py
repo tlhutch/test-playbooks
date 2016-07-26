@@ -766,12 +766,18 @@ print json.dumps(inventory)
         '''Tests that jobs with 'async' report their runner events'''
         if ansible_version_cmp('2.0.0.0') < 0:
             pytest.skip("test_async only supported on ansible-2.0.0.0 (or newer)")
+        elif ansible_version_cmp('2.2.0.0') < 0:
+            scm_branch = 'stable-2.1'
+        else:
+            scm_branch = 'devel'
 
         job_template = factories.job_template(project__scm_url='https://github.com/ansible/ansible.git',
+                                              project__scm_branch=scm_branch,
                                               playbook='test/integration/non_destructive.yml',
                                               localhost__name='testhost',
                                               job_tags='test_async',
                                               verbosity=1)
+
         job = job_template.launch().wait_until_completed()
         assert(job.is_successful), "Job unsuccessful - {0}.".format(job)
 
