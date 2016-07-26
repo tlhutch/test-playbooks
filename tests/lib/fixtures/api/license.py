@@ -44,11 +44,14 @@ def install_legacy_license(api_config_pg):
     """Install legacy license
     """
     log.debug('calling fixture install_legacy_license_unlimited')
-    install_license(api_config_pg,
-                    days=365,
-                    instance_count=sys.maxint,
-                    license_type='legacy')
-    yield
+
+    def apply_license():
+        install_license(api_config_pg,
+                        days=365,
+                        instance_count=sys.maxint,
+                        license_type='legacy')
+    apply_license()
+    yield apply_license
     api_config_pg.delete()
 
 
@@ -57,11 +60,14 @@ def install_basic_license(api_config_pg):
     """Install basic license
     """
     log.debug('calling fixture install_basic_license_unlimited')
-    install_license(api_config_pg,
-                    days=365,
-                    instance_count=sys.maxint,
-                    license_type='basic')
-    yield
+
+    def apply_license():
+        install_license(api_config_pg,
+                        days=365,
+                        instance_count=sys.maxint,
+                        license_type='basic')
+    apply_license()
+    yield apply_license
     api_config_pg.delete()
 
 
@@ -70,11 +76,14 @@ def install_enterprise_license(api_config_pg):
     """Install enterprise license
     """
     log.debug('calling fixture install_enterprise_license')
-    install_license(api_config_pg,
-                    days=365,
-                    instance_count=sys.maxint,
-                    license_type='enterprise')
-    yield
+
+    def apply_license():
+        install_license(api_config_pg,
+                        days=365,
+                        instance_count=sys.maxint,
+                        license_type='enterprise')
+    apply_license()
+    yield apply_license
     api_config_pg.delete()
 
 
@@ -83,11 +92,14 @@ def install_enterprise_license_unlimited(api_config_pg):
     """Install enterprise license at the class fixture scope
     """
     log.debug('calling fixture install_enterprise_license_unlimited')
-    install_license(api_config_pg,
-                    days=365,
-                    instance_count=sys.maxint,
-                    license_type='enterprise')
-    yield
+
+    def apply_license():
+        install_license(api_config_pg,
+                        days=365,
+                        instance_count=sys.maxint,
+                        license_type='enterprise')
+    apply_license()
+    yield apply_license
     api_config_pg.delete()
     # Pause to allow tower to do it's thing
     time.sleep(15)
@@ -98,11 +110,14 @@ def module_install_enterprise_license(authtoken, api_config_pg):
     """Install enterprise license at the module fixture scope
     """
     log.debug('calling fixture module_install_enterprise_license')
-    install_license(api_config_pg,
-                    days=365,
-                    instance_count=sys.maxint,
-                    license_type='enterprise')
-    yield
+
+    def apply_license():
+        install_license(api_config_pg,
+                        days=365,
+                        instance_count=sys.maxint,
+                        license_type='enterprise')
+    apply_license()
+    yield apply_license
     api_config_pg.delete()
     # Pause to allow tower to do it's thing
     time.sleep(15)
