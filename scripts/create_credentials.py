@@ -176,11 +176,10 @@ if __name__ == '__main__':
 
     # Set webhook service info
     cfg['notification_services']['webhook']['url'] = os.environ.get("WEBHOOK_URL", "")
-    # FIXME: (Hack) Turn into dictionary
-    cfg['notification_services']['webhook']['headers'] = {}
     # FIXME: Update with new fields
     cfg['notification_services']['webhook']['gce_project'] = os.environ.get("WEBHOOK_PROJECT", "")
     cfg['notification_services']['webhook']['gce_parent_key'] = os.environ.get("WEBHOOK_PARENT_KEY", "")
     cfg['notification_services']['webhook']['gce_body_field'] = os.environ.get("WEBHOOK_BODY_FIELD", "")
+    cfg['notification_services']['webhook']['gce_headers_field'] = os.environ.get("WEBHOOK_HEADERS_FIELD", "")
 
     yaml.dump(cfg, open(credentials_file, 'w+'))
