@@ -78,6 +78,7 @@
 1. [x] Tower LDAP Integration regression completed (Ryan)
 1. [x] Tower RADIUS Integration regression completed (Ryan)
 1. [ ] Social authentication regression completed (Chris)
+1. [ ] Backup/restore playbook
 
 ### Installation
 1. Installation completes successfully on all supported platforms
