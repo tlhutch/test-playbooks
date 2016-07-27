@@ -109,7 +109,8 @@ class CredentialFactory(PageFactory):
     user = None
     team = None
     organization = factory.SubFactory(
-        OrganizationFactory, request=factory.SelfAttribute('..request'))
+        OrganizationFactory,
+        request=factory.SelfAttribute('..request'))
 
     kind = 'ssh'
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
@@ -131,9 +132,14 @@ class InventoryFactory(PageFactory):
         model = Inventories_Page
         inline_args = ('request',)
         resources = ('organization',)
-
+    localhost = factory.RelatedFactory(
+        'common.factories.HostFactory',
+        factory_related_name='inventory',
+        request=factory.SelfAttribute('inventory.testsetup.request'),
+        name='localhost')
     organization = factory.SubFactory(
-        OrganizationFactory, request=factory.SelfAttribute('..request'))
+        OrganizationFactory,
+        request=factory.SelfAttribute('..request'))
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
 
@@ -143,17 +149,15 @@ class HostFactory(PageFactory):
         model = Hosts_Page
         inline_args = ('request',)
         resources = ('inventory',)
-
     inventory = factory.SubFactory(
         InventoryFactory,
         request=factory.SelfAttribute('..request'))
-
-    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
-    description = factory.LazyFunction(fauxfactory.gen_utf8)
     variables = json.dumps({
         'ansible_ssh_host': '127.0.0.1',
-        'ansible_connection': 'local',
+        'ansible_connection': 'local'
     })
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
+    description = factory.LazyFunction(fauxfactory.gen_utf8)
 
 
 class GroupFactory(PageFactory):
@@ -161,11 +165,9 @@ class GroupFactory(PageFactory):
         model = Groups_Page
         inline_args = ('request',)
         resources = ('inventory',)
-
     inventory = factory.SubFactory(
         InventoryFactory,
         request=factory.SelfAttribute('..request'))
-
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_utf8)
 
@@ -174,7 +176,7 @@ class JobTemplateFactory(PageFactory):
     class Meta:
         model = Job_Templates_Page
         inline_args = ('request',)
-        exclude = ('organization', 'localhost')
+        exclude = ('organization',)
         resources = ('project', 'inventory', 'credential', 'organization',)
     organization = factory.SubFactory(
         OrganizationFactory,
@@ -192,16 +194,6 @@ class JobTemplateFactory(PageFactory):
         InventoryFactory,
         request=factory.SelfAttribute('..request'),
         organization=factory.SelfAttribute('..organization'))
-    localhost = factory.SubFactory(
-        HostFactory,
-        name='localhost',
-        request=factory.SelfAttribute('..request'),
-        inventory=factory.SelfAttribute('..inventory'),
-        variables=json.dumps({
-            'ansible_ssh_host': '127.0.0.1',
-            'ansible_connection': 'local',
-        }),
-    )
     job_type = 'run'
     playbook = 'ping.yml'
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)

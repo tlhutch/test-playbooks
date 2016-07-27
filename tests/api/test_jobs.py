@@ -731,6 +731,7 @@ print json.dumps(inventory)
         assert inventory_source_pg.get().status == "canceled", \
             "Unexpected inventory_source status after cancelling (expected 'canceled') - %s" % inventory_source_pg
 
+
     def test_job_with_no_log(self, factories, ansible_version_cmp):
         '''
         Tests that jobs with 'no_log' censor the following:
@@ -743,7 +744,7 @@ print json.dumps(inventory)
 
         job_template = factories.job_template(project__scm_url='https://github.com/ansible/ansible.git',
                                               playbook='test/integration/no_log_local.yml',
-                                              localhost__name='testhost',
+                                              inventory__localhost__name='testhost',
                                               verbosity=1)
         # Launch test job template
         job_pg = job_template.launch().wait_until_completed()
@@ -774,7 +775,7 @@ print json.dumps(inventory)
         job_template = factories.job_template(project__scm_url='https://github.com/ansible/ansible.git',
                                               project__scm_branch=scm_branch,
                                               playbook='test/integration/non_destructive.yml',
-                                              localhost__name='testhost',
+                                              inventory__localhost__name='testhost',
                                               job_tags='test_async',
                                               verbosity=1)
 
