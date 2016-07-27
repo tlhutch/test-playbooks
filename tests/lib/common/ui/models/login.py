@@ -55,7 +55,7 @@ class Login(Page):
 
     def logout(self):
         self.driver.get(self.open_url.replace('login', 'logout'))
-        self.wait.until_not(lambda _: self.is_logged_in())
+        self.wait_until_loaded()
         return self
 
     def wait_until_loaded(self):

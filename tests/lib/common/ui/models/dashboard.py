@@ -13,7 +13,7 @@ __all__ = ['Dashboard']
 
 class Dashboard(TowerPage):
 
-    url_template = '#/home'
+    url_template = '/#/home'
 
     _count_buttons = (By.CLASS_NAME, 'DashboardCounts-buttonStyle')
 
@@ -130,6 +130,7 @@ class GraphDropdown(Region):
 
     @contextmanager
     def expand(self):
+
         elements = self.page.find_elements(*self._items)
 
         def expanded(_):

@@ -100,7 +100,7 @@ def default_credentials(testsetup):
 
 
 @pytest.fixture
-def ui_user_credentials(factories, default_credentials):
+def ui_user_credentials(authtoken, factories, default_credentials):
     default_password = default_credentials['password']
     user = factories.user(password=default_password, is_superuser=True)
     return {'username': user.username, 'password': default_password}
@@ -110,17 +110,15 @@ def ui_user_credentials(factories, default_credentials):
 # Application Models
 # -----------------------------------------------------------------------------
 
-
 @pytest.fixture
 def ui_login(selenium, base_url):
     return Login(selenium, base_url).open()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def ui_dashboard(ui_user_credentials, ui_login, selenium, base_url):
-    ui_login.login_with_enter_key(**ui_user_credentials)
-    yield Dashboard(selenium, base_url)
-    ui_login.logout()
+    ui_login.login(**ui_user_credentials)
+    return Dashboard(selenium, base_url)
 
 
 @pytest.fixture
