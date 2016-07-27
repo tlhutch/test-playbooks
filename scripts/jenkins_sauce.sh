@@ -37,9 +37,6 @@ py.test \
     --github-cfg="github.yml" \
     --driver SauceLabs \
     --html ./results/report.html \
-    --force-flaky \
-    --max-runs 3 \
-    --min-passes 1 \
     -m "${PYTEST_MARK_EXPR}" \
     -k "${PYTEST_TEST_EXPR}" \
     tests/ui
