@@ -112,7 +112,7 @@ def confirm_webhook_message(testsetup, msg):
     for result in db_results:
         # Sanity check: db record should include
         # field that holds request body
-        if not (body_field in result):
+        if body_field not in result or len(result[body_field]) == 0:
             continue
 
         # Convert request body to dictionary
