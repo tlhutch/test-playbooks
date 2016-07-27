@@ -89,7 +89,7 @@ def test_credential_form_required_fields(max_window, ui_credential_edit, credent
     check_form_required_fields(credential_form)
 
 
-def test_credential_form_responsiveness(max_window, ui_credential_edit, credential_type):
+def test_credential_form_responsiveness(max_window, ui_credential_edit):
     for credential_type in CREDENTIAL_TYPES:
         credential_form = getattr(ui_credential_edit.details, credential_type)
         check_form_responsiveness(credential_form)
