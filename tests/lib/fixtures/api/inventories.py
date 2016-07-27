@@ -475,4 +475,8 @@ def cloud_groups(aws_group, rax_group, azure_group, gce_group, vmware_group, ope
 #
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce'])
 def cloud_group_supporting_source_regions(request):
+    # Skip cited test until we have a fixture to provision a rackspace instance
+    if request.param == 'rax' and request.function.__name__ == 'test_inventory_update_with_populated_source_region':
+        pytest.skip(msg='https://github.com/ansible/tower-qa/issues/649')
+
     return request.getfuncargvalue(request.param + '_group')
