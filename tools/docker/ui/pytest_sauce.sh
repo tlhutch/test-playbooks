@@ -4,15 +4,14 @@ INVENTORY=$1
 HOST=$2
 PLATFORM=$3
 BROWSER=$4
-PYTEST_MARK_EXPR=$5
-PYTEST_TEST_EXPR=$6
 
 #
 # Example:
 #
-# EXPORT SAUCELABS_USERNAME=jakemcdermott
-# EXPORT SAUCELABS_API_KEY=gjeV4XcHhiaEzqMKeL6L4wjkN2MaOX
-# ./scripts/jenkins_sauce.sh playbooks/inventory.log primary linux Chrome "ui" "pagination"
+# export SAUCELABS_USERNAME=jakemcdermott
+# export SAUCELABS_API_KEY=gjeV4XcHhiaEzqMKeL6L4wjkN2MaOX
+# export PYTEST_ADDOPTS='-m ui -k not test_pagination'
+# ./pytest_sauce.sh playbooks/inventory.log primary mac chrome
 #
 
 #
@@ -23,20 +22,12 @@ BASE_URL="https://$(ansible -i ${INVENTORY} --list-hosts ${HOST} | tail -n 1 | a
 #
 # Run tests
 #
-
 py.test \
-    --supported-window-sizes 'maximized,800x600' \
     --ansible-sudo \
     --ansible-host-pattern "${HOST}" \
     --ansible-inventory "${INVENTORY}" \
     --base-url "${BASE_URL}" \
     --capability platform "${PLATFORM}" \
     --capability browserName "${BROWSER}" \
-    --capability recordScreenshots false \
-    --capability videoUploadOnPass false \
-    --github-cfg="github.yml" \
     --driver SauceLabs \
-    --html ./results/report.html \
-    -m "${PYTEST_MARK_EXPR}" \
-    -k "${PYTEST_TEST_EXPR}" \
     tests/ui

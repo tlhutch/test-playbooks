@@ -7,5 +7,7 @@ RUN pip install -r requirements.txt
 ADD . /tower-qa
 WORKDIR /tower-qa
 
+RUN chmod a+x tools/docker/ui/pytest_sauce.sh
+
 # https://github.com/docker/docker-py/issues/1117
 RUN python setup.py clean
