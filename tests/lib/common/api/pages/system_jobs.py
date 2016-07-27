@@ -1,5 +1,6 @@
-from common.api.pages import (Base_List, Job_Cancel_Page, Job_Template_Page, Users_Page, Unified_Job_Page,
-                              Unified_Job_Template_Page, System_Job_Template_Page, json_setter, json_getter)
+from common.api.pages import (Base_List, Job_Cancel_Page, Users_Page, Unified_Job_Page,
+                              Unified_Job_Template_Page, System_Job_Template_Page, Notifications_Page,
+                              json_setter, json_getter)
 
 
 class System_Job_Page(Unified_Job_Page, System_Job_Template_Page):
@@ -17,7 +18,7 @@ class System_Job_Page(Unified_Job_Page, System_Job_Template_Page):
         elif attr == 'system_job_template':
             cls = System_Job_Template_Page
         elif attr == 'notifications':
-            cls = Job_Template_Page
+            cls = Notifications_Page
         elif attr == 'cancel':
             cls = Job_Cancel_Page
         else:
