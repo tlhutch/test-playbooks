@@ -633,7 +633,7 @@ class Test_Project_RBAC(Base_Api_Test):
                     project_pg.get_related(related)
 
             # check project update
-            project_pg.update()
+            project_pg.update().wait_until_completed()
 
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.OK)
