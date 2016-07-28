@@ -30,4 +30,5 @@ py.test \
     --capability platform "${PLATFORM}" \
     --capability browserName "${BROWSER}" \
     --driver SauceLabs \
+    --nocapturelog \
     tests/ui
