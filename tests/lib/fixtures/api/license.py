@@ -1,6 +1,5 @@
 import logging
 import sys
-import time
 
 import pytest
 
@@ -101,8 +100,6 @@ def install_enterprise_license_unlimited(api_config_pg):
     apply_license()
     yield apply_license
     api_config_pg.delete()
-    # Pause to allow tower to do it's thing
-    time.sleep(15)
 
 
 @pytest.yield_fixture(scope='module')
@@ -119,5 +116,3 @@ def module_install_enterprise_license(authtoken, api_config_pg):
     apply_license()
     yield apply_license
     api_config_pg.delete()
-    # Pause to allow tower to do it's thing
-    time.sleep(15)
