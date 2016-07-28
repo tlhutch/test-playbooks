@@ -339,9 +339,10 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # enable host_config_key, use playbook with delay
         # (so that first job is running while second/third jobs are requested)
-        job_template.patch(host_config_key=host_config_key, playbook='pause.yml')
+        job_template.patch(host_config_key=host_config_key, playbook='sleep.yml', extra_vars='{"sleep_interval": 10}')
         assert job_template.host_config_key == host_config_key
-        assert job_template.playbook == 'pause.yml'
+        assert job_template.playbook == 'sleep.yml'
+        assert job_template.extra_vars == '{"sleep_interval": 10}'
 
         # issue multiple callbacks, only the first should succeed
         for attempt in range(3):
