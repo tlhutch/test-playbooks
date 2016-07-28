@@ -140,9 +140,9 @@ def validate(data, resource, request, version=None):
 
     try:
         jsonschema.validate(data, schema, format_checker=jsonschema.FormatChecker())
-        log.debug('Successful validation of resource:{0}, version:{1}, request:{2}'.format(resource, version, request))
+        log.debug('Successful validation of version:{0}, request:{1}, resource:{2}'.format(version, request, resource))
     except jsonschema.ValidationError:
-        sys.stderr.write("Failure validating resource:%s, version:%s, request:%s\n" % (resource, version, request))
+        sys.stderr.write('Failure validating version:{0}, request:{1}, resource:{2}\n'.format(version, request, resource))
         exc_info = sys.exc_info()
         raise exc_info[1], None, exc_info[2]
 
