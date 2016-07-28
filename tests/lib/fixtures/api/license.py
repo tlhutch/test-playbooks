@@ -62,7 +62,7 @@ def apply_license(api_config_pg):
             >>> *** PaymentRequired_Exception
         """
         if license_type is None and kwargs:
-            raise ValueError('No additional data may be provided for delete')
+            raise ValueError('No additional data may be provided for deletions')
 
         initial_info = getattr(api_config_pg.get(), 'license_info', None)
 
