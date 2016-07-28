@@ -38,7 +38,7 @@
     - name: 'Find latest Tower AMI.'
       ec2_ami_find:
         ami_id: '{{ tower_ami_id }}'
-        region: 'us-east-1'
+        region: '{{ ec2_region | default("us-east-1") }}'
         no_result_action: fail
       register: tower_ami
 
