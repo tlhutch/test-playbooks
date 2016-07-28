@@ -26,7 +26,7 @@ def dynamic_inventory(request, authtoken, api_job_templates_pg, project_ansible_
                    extra_vars=json.dumps(dict(num_hosts=num_hosts)),
                    playbook='dynamic_inventory.yml',)
     obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
+    request.addfinalizer(obj.cleanup)
     return obj
 
 
