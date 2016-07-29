@@ -2,6 +2,7 @@ import time
 
 import fauxfactory
 import pytest
+from selenium.common.exceptions import TimeoutException
 
 from common.exceptions import NotFound_Exception
 
@@ -47,7 +48,7 @@ def test_edit_job_template(api_job_templates_pg, ui_job_template_edit):
     assert len(results) == 1, 'Unable to find row of updated job template'
 
 
-def test_delete_template(factories, ui_job_templates):
+def test_delete_job_template(factories, ui_job_templates):
     """Basic end-to-end verification for deleting a job template
     """
     job_template = factories.job_template()
@@ -96,9 +97,12 @@ def test_create_job_template(factories, api_job_templates_pg, ui_job_template_ad
     ui_job_template_add.details.save.click()
     ui_job_template_add.list_table.wait_for_table_to_load()
     # verify the update took place api-side
-    api_results = api_job_templates_pg.get(name=name).results
-    assert api_results, 'unable to verify creation of job template'
+    try:
+        ui_job_template_add.wait.until(lambda _: api_job_templates_pg.get(name=name).results)
+    except TimeoutException:
+        pytest.fail('unable to verify creation of job template')
     # check for expected url content
+    api_results = api_job_templates_pg.get(name=name).results
     expected_url_content = '/#/job_templates/{0}'.format(api_results[0].id)
     assert expected_url_content in ui_job_template_add.driver.current_url
     # check that we find a row showing the updated job_template name

@@ -1,6 +1,6 @@
 import pytest
 
-PAGINATED_RESOURCE_COUNT = 110
+TEST_PAGINATION_RESOURCE_COUNT = 110
 
 pytestmark = [
     pytest.mark.ui,
@@ -21,7 +21,7 @@ def pagination_data(authtoken,  module_factories):
     synced_project = module_factories.project()
     module_factories.user()
     module_factories.job_template(project=synced_project)
-    for _ in xrange(PAGINATED_RESOURCE_COUNT - 1):
+    for _ in xrange(TEST_PAGINATION_RESOURCE_COUNT - 1):
         module_factories.job_template(project=synced_project)
         # handle projects separately without scm updating
         module_factories.project(wait=False)
