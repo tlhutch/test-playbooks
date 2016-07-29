@@ -46,6 +46,9 @@ class License(TowerPage):
         return self.find_element(*self._alert_modal)
 
     def upload(self, file_path):
+        if self.driver.name == 'firefox':
+            self.driver.execute_script(
+                "document.getElementById('License-file').style.display='inline'")
         self.license_upload.send_keys(file_path)
 
     def wait_until_alert_modal_is_displayed(self):
