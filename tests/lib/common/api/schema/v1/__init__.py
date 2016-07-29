@@ -63,6 +63,10 @@ class Awx_Schema(Schema_Base):
         return self.load_file('errors/402.yml')
 
     @property
+    def forbidden(self):
+        return self.load_file('errors/403.yml')
+
+    @property
     def method_not_allowed(self):
         return self.load_file('errors/405.yml')
 
