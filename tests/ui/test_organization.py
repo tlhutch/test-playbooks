@@ -16,7 +16,10 @@ pytestmark = [
 ]
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2895')
+# UnicodeEncodeError: 'ascii' codec can't encode character u'\u2013'
+# when using github markers
+# @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2895')
+@pytest.mark.xfail(reason='https://github.com/ansible/ansible-tower/issues/2895')
 def test_api_referential_integrity(factories, api_organizations_pg, ui_organizations):
     """Peform basic end-to-end read-only verification of displayed page
     content against data returned by the organizations api
