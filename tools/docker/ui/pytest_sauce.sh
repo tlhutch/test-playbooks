@@ -29,6 +29,7 @@ py.test \
     --base-url "${BASE_URL}" \
     --capability platform "${PLATFORM}" \
     --capability browserName "${BROWSER}" \
+    --capability idleTimeout 240 \
     --driver SauceLabs \
     --nocapturelog \
     tests/ui
