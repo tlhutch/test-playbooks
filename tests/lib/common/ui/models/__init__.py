@@ -6,6 +6,7 @@ from jobs import Jobs
 from job_templates import JobTemplates, JobTemplateAdd, JobTemplateEdit
 from license import License
 from login import Login
+from manage_inventory import ManageInventory
 from organizations import Organizations, OrganizationAdd, OrganizationEdit
 from projects import Projects, ProjectAdd, ProjectEdit
 from setup_menu import SetupMenu
@@ -33,6 +34,7 @@ __all__ = [
     'JobTemplateScheduleEdit',
     'License',
     'Login',
+    'ManageInventory',
     'ManagementJobSchedules',
     'ManagementJobScheduleAdd',
     'ManagementJobScheduleEdit',

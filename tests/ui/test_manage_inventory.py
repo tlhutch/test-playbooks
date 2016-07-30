@@ -10,3 +10,6 @@ pytestmark = [
     )
 ]
 
+
+def test_manage_inventory(ui_manage_inventory):
+    pass

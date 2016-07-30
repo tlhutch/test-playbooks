@@ -23,6 +23,7 @@ from common.ui.models import (
     JobTemplateScheduleEdit,
     License,
     Login,
+    ManageInventory,
     Organizations,
     OrganizationAdd,
     OrganizationEdit,
@@ -227,6 +228,12 @@ def ui_jobs(ui_dashboard, selenium, base_url):
 @pytest.fixture
 def ui_license(ui_dashboard, selenium, base_url):
     return License(selenium, base_url).open()
+
+
+@pytest.fixture
+def ui_manage_inventory(factories, ui_dashboard, selenium, base_url):
+    inventory = factories.inventory()
+    return ManageInventory(selenium, base_url, id=inventory.id).open()
 
 
 @pytest.fixture
