@@ -14,7 +14,7 @@ def install_license(api_config_pg, **license_info):
     """Install a Tower license
 
     :param api_config_pg: A Tower API configuration endpoint model
-    :param kwargs: key-value pairs for the configuration endpoint request
+    :param license_info: key-value pairs for the configuration endpoint request
 
     Usage::
         >>> # install a basic license with 100 days remaining
@@ -93,7 +93,7 @@ def no_license(api_config_pg):
 def install_legacy_license(api_config_pg):
     """Install legacy license
     """
-    log.debug('calling fixture install_legacy_license_unlimited')
+    log.debug('calling fixture install_legacy_license')
     license_info = generate_license(
         days=365,
         instance_count=sys.maxint,
@@ -107,7 +107,7 @@ def install_legacy_license(api_config_pg):
 def install_basic_license(api_config_pg):
     """Install basic license
     """
-    log.debug('calling fixture install_basic_license_unlimited')
+    log.debug('calling fixture install_basic_license')
     license_info = generate_license(
         days=365,
         instance_count=sys.maxint,
