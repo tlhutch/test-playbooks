@@ -136,30 +136,37 @@ class ScheduleDetails(FormPanel):
 
 
 class JobTemplateSchedules(Schedules):
+
     url_template = '/#/job_templates/{id}/schedules'
 
 
 class JobTemplateScheduleAdd(ScheduleAdd):
+
     url_template = '/#/job_templates/{id}/schedules/add'
 
 
 class JobTemplateScheduleEdit(ScheduleEdit):
+
     url_template = '/#/job_templates/{id}/schedules/{schedule_id}'
 
 
 class ProjectSchedules(Schedules):
+
     url_template = '/#/projects/{id}/schedules'
 
 
 class ProjectScheduleAdd(ScheduleAdd):
+
     url_template = '/#/projects/{id}/schedules/add'
 
 
 class ProjectScheduleEdit(ScheduleEdit):
+
     url_template = '/#/projects/{id}/schedules/{schedule_id}'
 
 
 class ManagementJobSchedules(Schedules):
+
     url_template = '/#/management_jobs/{id}/schedules'
 
 

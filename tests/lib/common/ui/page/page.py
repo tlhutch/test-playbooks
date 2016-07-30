@@ -41,7 +41,9 @@ class MetaPage(type):
 
     def __new__(meta, name, bases, class_dict):
         cls = type.__new__(meta, name, bases, class_dict)
+
         register_page(cls.__name__, cls)
+
         return cls
 
 

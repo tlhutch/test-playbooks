@@ -126,7 +126,7 @@ class OrganizationCard(Region):
         badge_map = {}
         for element in self.find_elements(*self._badges):
             parent = element.find_element(By.XPATH, '..')
-            link = parent.find_element(*self._badges)
+            link = parent.find_element(*self._links)
             link_text = link.text
             if link_text:
                 badge_map[link_text] = element
