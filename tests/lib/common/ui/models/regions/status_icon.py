@@ -16,10 +16,14 @@ class StatusIcon(Region):
         return self.root.get_attribute('href')
 
     @property
-    def tooltip(self):
-        # hover over status icon
+    def tooltip_text(self):
+        # move mouse to neutral location to ensure no tooltip is displayed
+        footer = self.page.find_element(By.CLASS_NAME, 'Footer')
+        ActionChains(self.driver).move_to_element(footer).perform()
+        self.wait.until_not(lambda _: self.page.is_element_displayed(*self._tooltip))
+        # move to directly over the status icon
         ActionChains(self.driver).move_to_element(self.root).perform()
         # wait for tooltip to appear
         self.wait.until(lambda _: self.page.is_element_displayed(*self._tooltip))
-        # grab the tooltip element
-        return self.page.find_element(*self._tooltip)
+        # grab the icon tooltip text
+        return self.page.find_element(*self._tooltip).text

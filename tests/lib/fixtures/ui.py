@@ -106,6 +106,24 @@ def ui_user_credentials(authtoken, factories, default_credentials):
     return {'username': user.username, 'password': default_password}
 
 
+@pytest.fixture(scope='module')
+def batch_job_template(authtoken, module_factories):
+    """Create a factory for job templates that share the same set of
+    resource dependencies
+    """
+    org = module_factories.organization()
+    inv = module_factories.inventory(organization=org)
+    pj = module_factories.project(organization=org)
+    cred = module_factories.credential(organization=org)
+
+    def _batch_job_template(**kwargs):
+        params = {'inventory': inv, 'project': pj, 'credential': cred}
+        params.update(kwargs)
+        return module_factories.job_template(**params)
+
+    return _batch_job_template
+
+
 # -----------------------------------------------------------------------------
 # Application Models
 # -----------------------------------------------------------------------------

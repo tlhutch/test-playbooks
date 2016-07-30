@@ -41,24 +41,6 @@ class Dashboard(TowerPage):
         raise NoSuchElementException
 
 
-class RecentJobsTable(ListTable):
-
-    _root_locator = (By.CLASS_NAME, 'Dashboard-list--jobs')
-
-    class Row(Region):
-
-        _name = (By.CLASS_NAME, 'DashboardList-nameCell')
-        _time = (By.CLASS_NAME, 'DashboardList-timeCell')
-
-        @property
-        def name(self):
-            return self.find_element(*self._name)
-
-        @property
-        def time(self):
-            return self.find_element(*self._time)
-
-
 class RecentJobTemplatesTable(ListTable):
 
     _root_locator = (By.CLASS_NAME, 'Dashboard-list--jobTemplates')
@@ -86,6 +68,27 @@ class RecentJobTemplatesTable(ListTable):
         def status_icons(self):
             elements = self.find_elements(*self._status_icons)
             return [StatusIcon(self.page, root=e) for e in elements]
+
+
+class RecentJobsTable(ListTable):
+
+    _root_locator = (By.CLASS_NAME, 'Dashboard-list--jobs')
+
+    class Row(Region):
+
+        _name = (By.CLASS_NAME, 'DashboardList-nameCell')
+        _time = (By.CLASS_NAME, 'DashboardList-timeCell')
+
+        @property
+        def name(self):
+            return self.find_element(*self._name)
+
+        @property
+        def time(self):
+            return self.find_element(*self._time)
+
+    def is_displayed(self):
+        return self.page.is_element_displayed(*self._root_locator)
 
 
 class CountButton(Region):
@@ -130,7 +133,6 @@ class GraphDropdown(Region):
 
     @contextmanager
     def expand(self):
-
         elements = self.page.find_elements(*self._items)
 
         def expanded(_):
