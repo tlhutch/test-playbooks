@@ -18,17 +18,18 @@ class Lookup(TextInput):
     # workaround for https://github.com/ansible/ansible-tower/issues/1461
     # and should be removed when this issue is resolved.
     #
-    def set_value(self, value, retry=True):
+    def set_value(self, text, retry=True):
         if retry:
-            self._set_value_with_retry(value)
+            self._set_value_with_retry(text)
         else:
-            super(Lookup, self).set_value(value)
+            super(Lookup, self).set_value(text)
 
-    def _set_value_with_retry(self, value):
+    def _set_value_with_retry(self, text):
         timeout = time.time() + 30
         while True:
-            self.clear()
-            super(Lookup, self).set_value(value)
+            element = self.find_element(*self._text_input)
+            element.clear()
+            element.send_keys(text)
             time.sleep(2)
             if not self.errors:
                 break
