@@ -1,4 +1,5 @@
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.support.ui import WebDriverWait
 
 
@@ -37,7 +38,7 @@ class Selector(object):
         try:
             element = self.find_element(*locator)
             return element.is_displayed()
-        except NoSuchElementException:
+        except (NoSuchElementException, StaleElementReferenceException):
             return False
 
     def is_element_present(self, *locator):
