@@ -54,7 +54,7 @@ def factories(request):
 
 
 @pytest.fixture(scope='module')
-def module_factories(request):
+def module_factories(module_install_enterprise_license, request):
     """Inject a module-scoped factory namespace into your test context
     """
     return factory_namespace(request)
