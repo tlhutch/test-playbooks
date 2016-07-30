@@ -9,4 +9,3 @@ pytestmark = [
         'max_window',
     )
 ]
-

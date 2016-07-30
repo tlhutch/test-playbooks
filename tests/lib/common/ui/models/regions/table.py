@@ -82,10 +82,10 @@ class TableHeader(Region):
         if sort_status != self.get_sort_status():
             self._find_sortable_column(sort_status[0]).click()
             if sort_status != self.get_sort_status():
-                self._find_sortable_column(sort_status[0]).click()
+                self.sorted_column.click()
 
     def get_sort_status_options(self):
-        sortable_column_names = [e.text.lower() for e in self.sortable_columns]
+        sortable_column_names = [e.text.lower() for e in self.sortable_columns if e.text]
         sorting_options = []
         for name in sortable_column_names:
             sorting_options.append((name, 'ascending'))
