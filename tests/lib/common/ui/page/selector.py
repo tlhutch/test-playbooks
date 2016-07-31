@@ -45,7 +45,6 @@ class Selector(object):
         """Checks if an element is present.
         """
         try:
-            element = self.find_element(*locator)
-            return element
+            return self.find_element(*locator)
         except NoSuchElementException:
             return False

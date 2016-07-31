@@ -6,7 +6,7 @@ pytestmark = [
     pytest.mark.nondestructive,
     pytest.mark.usefixtures(
         'authtoken',
-        'install_enterprise_license',
+        'module_install_enterprise_license',
     )
 ]
 

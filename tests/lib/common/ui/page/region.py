@@ -1,6 +1,7 @@
 from selenium.webdriver.support.event_firing_webdriver import EventFiringWebElement
 
 from selector import Selector
+from utils import cache
 
 
 class Region(Selector):
@@ -120,28 +121,19 @@ class RegionMap(Region):
     _region_spec = {}
 
     def __getattr__(self, name):
-        try:
-            spec = self._region_spec[name]
-        except KeyError:
-            raise AttributeError
-        else:
-            return self._load_region(name, spec)
+        if name in self._region_spec:
+            return self._load_region(name)
+        raise AttributeError
 
-    def __init__(self, page, **kwargs):
-        super(RegionMap, self).__init__(page, **kwargs)
-        self._region_cache = {}
-
-    def _load_region(self, name, spec):
-        """Lookup and initialize a region from the region registry using the
-        provided spec dictionary
+    @cache
+    def _load_region(self, name):
+        """Lookup and initialize a region from the region registry using
+        spec dictionary name
         """
-        try:
-            return self._region_cache[name]
-        except KeyError:
-            region_cls = self._region_registry[spec.get('region_type', 'default')]
-            element = self.page.find_element(*spec['root_locator'])
-            self._region_cache[name] = region_cls(self.page, root=element, **spec)
-            return self._region_cache[name]
+        spec = self._region_spec[name]
+        region_cls = self._region_registry[spec.get('region_type', 'default')]
+        element = self.page.find_element(*spec['root_locator'])
+        return region_cls(self.page, root=element, **spec)
 
     def get_regions(self, **kwargs):
         """Generate (name, region) tuples for regions defined in the
@@ -150,4 +142,4 @@ class RegionMap(Region):
         """
         for name, spec in self._region_spec.iteritems():
             if all(spec.get(k) == v for k, v in kwargs.iteritems()):
-                yield (name, self._load_region(name, spec))
+                yield (name, self._load_region(name))
