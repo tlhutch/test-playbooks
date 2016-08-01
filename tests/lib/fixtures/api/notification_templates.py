@@ -220,7 +220,7 @@ def twilio_notification_template_payload(request, testsetup, organization):
 def webhook_notification_template_payload(request, testsetup, organization):
     '''webhook payload - requires organization id'''
     url = testsetup.credentials['notification_services']['webhook']['url']
-    headers = testsetup.credentials['notification_services']['webhook']['headers']
+    headers = {'key1': 'value1', 'key2': 'value2'}   # TODO: Use fauxfactory to generate keys / values
 
     webhook_configuration = dict(url=url, headers=headers)
 

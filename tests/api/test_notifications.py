@@ -48,7 +48,9 @@ def expected_test_notification(tower_url, notification_template_pg, tower_messag
     elif nt_type == "slack":
         msg = "Tower Notification Test %s <%s>" % (nt_id, tower_url)
     elif nt_type == "webhook":
-        msg = {"body": "Ansible Tower Test Notification %s %s" % (nt_id, tower_url)}
+        headers = notification_template_pg.notification_configuration['headers']
+        body = {"body": "Ansible Tower Test Notification %s %s" % (nt_id, tower_url)}
+        msg = (headers, body)
     else:
         raise Exception("notification type %s not supported" % nt_type)
     return msg
@@ -73,7 +75,9 @@ def expected_job_notification(tower_url, notification_template_pg, job_pg, job_r
                ("management_" if job_pg.type == 'system_job' else "") + "jobs/%s>") % \
               (job_pg.id, job_pg.name, tower_url, job_pg.id)
     elif nt_type == "webhook":
-        msg = _expected_webhook_job_notification(tower_url, notification_template_pg, job_pg, job_result)
+        headers = notification_template_pg.notification_configuration['headers']
+        body = _expected_webhook_job_notification(tower_url, notification_template_pg, job_pg, job_result)
+        msg = (headers, body)
     else:
         raise Exception("notification type %s not supported" % nt_type)
     return msg
