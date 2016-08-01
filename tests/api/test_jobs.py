@@ -170,10 +170,15 @@ class Test_Job(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    def test_utf8(self, utf8_template):
+    def test_utf8(self, utf8_template, ansible_version):
         '''
         Verify that a playbook full of UTF-8 successfully works through Tower
         '''
+        # skip if test is running under ansible-1.9.6
+        # Note: fix pushed to stable-1.9 but there are no current plans for a 1.9.7 release.
+        if ansible_version == '1.9.6':
+            pytest.skip("Test fails under ansible-1.9.6 because of https://github.com/ansible/ansible/issues/16373.")
+
         # launch job
         job_pg = utf8_template.launch_job()
 
