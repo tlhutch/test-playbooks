@@ -1,11 +1,43 @@
 version: '2'
 services:
-  pytest_sauce:
+  pytest:
     build:
       context: ../../../
       dockerfile: tools/docker/ui/Dockerfile
     environment:
+      PYTEST_ADDOPTS:
+    entrypoint: tools/docker/ui/pytest_local.sh
+  pytest_sauce:
+    extends:
+      service: pytest
+    environment:
       SAUCELABS_USERNAME:
       SAUCELABS_API_KEY:
-      PYTEST_ADDOPTS: '-m ui -k test'
     entrypoint: tools/docker/ui/pytest_sauce.sh
+  pytest_local:
+    extends:
+      service: pytest
+    environment:
+      PYTEST_ADDOPTS: '--driver Remote --capability browserName chrome --port 4444 --host chrome_local'
+    links:
+      - chrome_local
+  pytest_local_debug:
+    extends:
+      service: pytest
+    environment:
+      PYTEST_ADDOPTS: '--pdb --driver Remote --capability browserName chrome --port 4444 --host chrome_local_debug'
+    links:
+      - chrome_local_debug
+  chrome_local:
+    image: selenium/standalone-chrome:2.53.0
+    volumes:
+      - /dev/shm:/dev/shm
+    ports:
+      - 4444:4444
+  chrome_local_debug:
+    image: selenium/standalone-chrome-debug:2.53.0
+    volumes:
+      - /dev/shm:/dev/shm
+    ports:
+      - 4444:4444
+      - 5900:5900

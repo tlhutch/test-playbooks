@@ -8,6 +8,7 @@ ADD . /tower-qa
 WORKDIR /tower-qa
 
 RUN chmod a+x tools/docker/ui/pytest_sauce.sh
+RUN chmod a+x tools/docker/ui/pytest_local.sh
 
 # https://github.com/docker/docker-py/issues/1117
 RUN python setup.py clean
