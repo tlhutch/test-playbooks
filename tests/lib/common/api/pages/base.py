@@ -2,7 +2,6 @@ import logging
 import inspect
 import httplib
 from common.api.pages import Page
-from common.api.pages.labels import Label_Page
 from common.api.schema import validate
 import common.exceptions
 
@@ -159,6 +158,7 @@ class Base(Page):
         Delete the object. If it's already deleted, ignore the error
         '''
         # Label pages do not support delete
+        from common.api.pages.labels import Label_Page
         if isinstance(self, Label_Page):
             return
 

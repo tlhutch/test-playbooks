@@ -1974,7 +1974,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         # assert that delete is accepted
         with self.current_user(username=org_admin.username, password=user_password):
             email_notification_template.delete()
-                inventory_pg.delete()
+            inventory_pg.delete()
 
 
 @pytest.mark.api
