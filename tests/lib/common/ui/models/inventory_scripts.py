@@ -1,17 +1,14 @@
-'''
 from selenium.webdriver.common.by import By
 
-from common.ui.pages.base import TowerCrudPage
-from common.ui.pages.forms import FormPanel
+from common.ui.models.base import TowerPage
+from common.ui.models.forms import FormPanel
+
+__all__ = ['InventoryScripts']
 
 
-class InventoryScripts(TowerCrudPage):
+class InventoryScripts(TowerPage):
 
-    _path = '/#/inventory_scripts/{index}'
-
-    @property
-    def forms(self):
-        return [self.details]
+    _path = '/#/inventory_scripts/{id}'
 
     @property
     def details(self):
@@ -49,4 +46,3 @@ class InventoryScriptsDetails(FormPanel):
                 (By.XPATH, '..'))
         },
     }
-'''
