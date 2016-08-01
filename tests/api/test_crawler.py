@@ -133,7 +133,7 @@ def test_unauthenticated(api, resource, method, no_license):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
-def test_authenticated(api, resource, method, no_license):
+def test_authenticated(api, resource, method, authtoken, no_license):
 
     expected_response = {
         'HEAD': (httplib.OK, 'head'),
@@ -166,6 +166,9 @@ def test_authenticated(api, resource, method, no_license):
         },
         '/api/v1/me/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
+        '/api/v1/hosts/': {
+            'POST': (httplib.FORBIDDEN, 'forbidden'),
         },
         '/api/v1/inventory_sources/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
