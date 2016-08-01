@@ -1,8 +1,9 @@
-import pytest
 import json
-import fauxfactory
-import common.exceptions
+
 from dateutil.parser import parse as du_parse
+import fauxfactory
+import pytest
+
 from tests.api import Base_Api_Test
 
 
@@ -19,32 +20,27 @@ def job_template_proot_1(request, job_template_ansible_playbooks_git, host_local
 
 
 @pytest.fixture(scope="function")
-def job_template_proot_2(request, organization, api_inventories_pg, api_job_templates_pg, job_template_proot_1):
+def job_template_proot_2(request, factories, api_job_templates_pg, job_template_proot_1):
     '''
     Create a job_template that uses the same playbook as job_template_proot_1,
     but runs against a different inventory. By using a different inventory,
     Tower will run job_template_proot_1 and job_template_proot_2 to run at the
     same time.
     '''
-    # copy inventory
-    inventory_json = job_template_proot_1.get_related('inventory').json
-    inventory_json['name'] = "inventory-%s" % fauxfactory.gen_alphanumeric()
-    inventory = api_inventories_pg.post(inventory_json)
-    request.addfinalizer(inventory.delete)
 
-    # copy host
-    host_json = job_template_proot_1.get_related('inventory').get_related('hosts').results[0].json
-    host_json['name'] = fauxfactory.gen_ipaddr()
-    with pytest.raises(common.exceptions.NoContent_Exception):
-        inventory.get_related('hosts').post(host_json)
+    inventory = factories.inventory()
+    factories.host(inventory=inventory)
 
     # create duplicate job_template
-    payload = job_template_proot_1.json
+    payload = job_template_proot_1.json.copy()
+    for key in ('created', 'id', 'modified', 'related', 'summary_fields', 'url'):
+        payload.pop(key, None)
     payload.update(dict(name="playbook:test_proot.yml, random:%s" % (fauxfactory.gen_utf8()),
                         description="test_proot.yml - %s" % (fauxfactory.gen_utf8()),
                         inventory=inventory.id))
+
     job_template_proot_2 = api_job_templates_pg.post(payload)
-    request.addfinalizer(job_template_proot_2.delete)
+    request.addfinalizer(job_template_proot_2.cleanup)
     return job_template_proot_2
 
 
@@ -79,8 +75,6 @@ class Test_Proot(Base_Api_Test):
 
         # wait for completion
         job_proot_1 = job_proot_1.wait_until_completed(timeout=60 * 2)
-
-        # wait for completion
         job_proot_2 = job_proot_2.wait_until_completed(timeout=60 * 2)
 
         # assert successful completion of job
