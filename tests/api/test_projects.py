@@ -4,9 +4,7 @@
 # 2) project appears under config['project_local_paths']
 '''
 
-import re
 import os
-import time
 import pytest
 import fauxfactory
 import common.exceptions

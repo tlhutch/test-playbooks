@@ -54,7 +54,7 @@ class Notification_Template_Page(Base):
         if there are notifications pending.
         '''
         try:
-            super(Notification_Template_Page,self).silent_delete()
+            super(Notification_Template_Page, self).silent_delete()
         except (common.exceptions.Method_Not_Allowed_Exception):
             pass
 

@@ -736,7 +736,6 @@ print json.dumps(inventory)
         assert inventory_source_pg.get().status == "canceled", \
             "Unexpected inventory_source status after cancelling (expected 'canceled') - %s" % inventory_source_pg
 
-
     def test_job_with_no_log(self, factories, ansible_version_cmp):
         '''
         Tests that jobs with 'no_log' censor the following:
