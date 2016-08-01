@@ -23,5 +23,6 @@ docker-compose -f tools/docker/ui/docker-compose.yml \
 ```shell
 docker-compose -f tools/docker/ui/docker-compose.yml \
   run pytest_local_debug [INVENTORY] [HOST_PATTERN] tests/ui
+# VNC password == 'secret'
 open vnc://$(docker-machine ip):5900
 ```
