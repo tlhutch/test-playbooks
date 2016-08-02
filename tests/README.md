@@ -55,7 +55,8 @@ directory of the repository.
             --ansible-inventory=playbooks/inventory.tower \
             --ansible-host-pattern=tower.example.com \
             --base-url 'https://tower.example.com' \
-            --destructive \
+            --api-destructive \
+            --sensitive_url=never_match \
             tests
 
 ## Recommended Reading
