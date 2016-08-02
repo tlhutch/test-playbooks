@@ -12,7 +12,7 @@ def num_hosts(request):
     The number of hosts to dynamically create.  The value is used by the
     dynamic_inventory playbook.
     '''
-    return 100
+    return 50
 
 
 @pytest.fixture()
@@ -24,6 +24,7 @@ def dynamic_inventory(request, authtoken, api_job_templates_pg, project_ansible_
                    project=project_ansible_playbooks_git.id,
                    credential=ssh_credential.id,
                    extra_vars=json.dumps(dict(num_hosts=num_hosts)),
+                   forks=10,
                    playbook='dynamic_inventory.yml',)
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.cleanup)
