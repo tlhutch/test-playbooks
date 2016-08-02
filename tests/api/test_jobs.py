@@ -187,7 +187,6 @@ class Test_Job(Base_Api_Test):
         '''
         Verify a superuser is able to create a job by POSTing to the /api/v1/jobs endpoint.
         '''
-
         # post a job
         job_pg = api_jobs_pg.post(job_template.json)
 
@@ -198,7 +197,6 @@ class Test_Job(Base_Api_Test):
         '''
         Verify a non-superuser is unable to create a job by POSTing to the /api/v1/jobs endpoint.
         '''
-
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
                 with pytest.raises(common.exceptions.Forbidden_Exception):
@@ -407,7 +405,7 @@ class Test_Job(Base_Api_Test):
 
         # Launch job and check results
         job_pg = job_template.launch().wait_until_completed(timeout=60 * 3)
-        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # Assert that the inventory_update is marked as successful
         inv_source_pg = cloud_group.get_related('inventory_source')
@@ -452,7 +450,7 @@ print json.dumps(inventory)
         inventory_source_pg = custom_group.get_related('inventory_source')
         inventory_source_pg.patch(update_on_launch=True)
 
-        # Assert that the cloud_group has not updated
+        # Assert that the custom_group has not updated
         assert inventory_source_pg.last_updated is None, "inventory_source_pg unexpectedly updated."
 
         # Launch job
@@ -629,7 +627,7 @@ print json.dumps(inventory)
         inventory_source_pg = custom_group.get_related('inventory_source')
         inventory_source_pg.patch(update_on_launch=True)
 
-        # Assert that the cloud_group has not updated
+        # Assert that the custom_group has not updated
         assert inventory_source_pg.last_updated is None, "inventory_source_pg unexpectedly updated."
 
         # Launch job
@@ -688,7 +686,7 @@ print json.dumps(inventory)
         inventory_source_pg = custom_group.get_related('inventory_source')
         inventory_source_pg.patch(update_on_launch=True)
 
-        # Assert that the cloud_group has not updated
+        # Assert that the custom_group has not updated
         assert inventory_source_pg.last_updated is None, "inventory_source_pg unexpectedly updated."
 
         # Launch job
@@ -901,10 +899,8 @@ class Test_Scan_Job(Base_Api_Test):
 
 
 @pytest.fixture(scope="function")
-def job_template_with_cloud_credential(request, job_template, cloud_credential, host):
-    # PATCH the job_template with the correct inventory and cloud_credential
-    job_template.patch(inventory=host.inventory,
-                       cloud_credential=cloud_credential.id)
+def job_template_with_cloud_credential(request, job_template, cloud_credential):
+    job_template.patch(cloud_credential=cloud_credential.id)
     return job_template
 
 
@@ -920,8 +916,9 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
     def test_job_env(self, job_template_with_cloud_credential):
-        '''Verify that job_env has the expected cloud_credential variables'''
-
+        '''
+        Verify that job_env has the expected cloud_credential variables
+        '''
         # get cloud_credential
         cloud_credential = job_template_with_cloud_credential.get_related('cloud_credential')
 
@@ -997,10 +994,8 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
 
 @pytest.fixture(scope="function")
 def cloud_inventory_job_template(request, job_template, cloud_group):
-    # PATCH the job_template with the correct inventory and cloud_credential
-    # Also, substitute in no-op playbook that does not attempt to connect to host
-    job_template.patch(inventory=cloud_group.inventory,
-                       playbook='debug.yml')
+    # Substitute in no-op playbook that does not attempt to connect to host
+    job_template.patch(playbook='debug.yml')
     return job_template
 
 
@@ -1189,17 +1184,17 @@ class Test_Update_On_Launch(Base_Api_Test):
         # 4) Launch job_template and wait for completion
         job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
 
-        # 5) Ensure inventory_update was triggered and successful
+        # 5) Ensure project_update was triggered and is successful
+        project_ansible_playbooks_git.get()
+        assert project_ansible_playbooks_git.last_updated != last_updated, \
+            "project_update was not triggered - %s" % json.dumps(project_ansible_playbooks_git.json, indent=4)
+        assert project_ansible_playbooks_git.is_successful, "project unsuccessful - %s" % \
+            json.dumps(project_ansible_playbooks_git.json, indent=4)
+
+        # 6) Ensure inventory_update was triggered and is successful
         inv_src_pg.get()
         assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % \
             json.dumps(inv_src_pg.json, indent=4)
         assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s" % \
             json.dumps(inv_src_pg.json, indent=4)
         assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
-
-        # 6) Ensure project_update was triggered
-        project_ansible_playbooks_git.get()
-        assert project_ansible_playbooks_git.last_updated != last_updated, \
-            "project_update was not triggered - %s" % json.dumps(project_ansible_playbooks_git.json, indent=4)
-        assert project_ansible_playbooks_git.is_successful, "project unsuccessful - %s" % \
-            json.dumps(project_ansible_playbooks_git.json, indent=4)

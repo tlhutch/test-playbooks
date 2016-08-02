@@ -99,6 +99,7 @@ class Group_Page(Base):
     inventory = property(json_getter('inventory'), json_setter('inventory'))
     variables = property(json_getter('variables'), json_setter('variables'))
     total_hosts = property(json_getter('total_hosts'), json_setter('total_hosts'))
+    summary_fields = property(json_getter('summary_fields'), json_setter('summary_fields'))
 
     def get_related(self, attr, **kwargs):
         assert attr in self.json['related']
