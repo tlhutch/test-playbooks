@@ -2003,6 +2003,9 @@ class Test_Notifications_RBAC(Base_Api_Test):
             notification_pg.get()
 
 
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
 class Test_Label_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
