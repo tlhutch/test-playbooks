@@ -27,6 +27,9 @@ RUN pip install --upgrade cffi ansible boto docker-py
 RUN curl -L https://github.com/docker/compose/releases/download/1.7.1/docker-compose-Linux-x86_64 > /usr/local/bin/docker-compose
 RUN chmod +x /usr/local/bin/docker-compose
 
+RUN curl -L https://storage.googleapis.com/kubernetes-release/release/v1.2.4/bin/linux/amd64/kubectl > /usr/local/bin/kubectl
+RUN chmod +x /usr/local/bin/kubectl
+
 ADD jenkins.pub /home/jenkins/.ssh/id_rsa.pub
 
 ENV HOME /home/jenkins
