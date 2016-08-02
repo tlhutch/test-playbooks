@@ -1,5 +1,7 @@
 import base
 
+import common.exceptions
+
 
 class Organization_Page(base.Base):
     # FIXME - it would be nice for base_url to always return self.json.url.
@@ -53,6 +55,22 @@ class Organization_Page(base.Base):
             raise NotImplementedError("No related class found for '%s'" % attr)
 
         return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
+
+    def add_admin(self, user):
+        if isinstance(user, base.Base):
+            user = user.json
+        try:
+            self.get_related('admins').post(user)
+        except common.exceptions.NoContent_Exception:
+            pass
+
+    def add_user(self, user):
+        if isinstance(user, base.Base):
+            user = user.json
+        try:
+            self.get_related('users').post(user)
+        except common.exceptions.NoContent_Exception:
+            pass
 
 
 class Organizations_Page(Organization_Page, base.Base_List):

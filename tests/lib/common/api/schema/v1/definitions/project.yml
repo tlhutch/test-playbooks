@@ -45,7 +45,7 @@ project:
         schedules: {format: uri, type: string}
         teams: {format: uri, type: string}
         update: {format: uri, type: string}
-      required: [created_by, organization, project_updates, playbooks, update, teams,
+      required: [created_by, project_updates, playbooks, update, teams,
         activity_stream, notification_templates_any, notification_templates_error,
         notification_templates_success, access_list, object_roles]
       type: object
@@ -82,5 +82,5 @@ project:
   required: [id, name, url, created, modified, last_job_run, description, last_job_failed,
     status, summary_fields, local_path, scm_type, scm_update_cache_timeout, scm_url,
     scm_branch, scm_clean, scm_delete_on_update, scm_delete_on_next_update, scm_update_on_launch,
-    credential, type, has_schedules, next_job_run, organization]
+    credential, type, has_schedules, next_job_run]
   type: object
