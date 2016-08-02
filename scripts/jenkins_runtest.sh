@@ -67,7 +67,8 @@ PY_ARGS+=(--ansible-host-pattern=${INVENTORY_HOST})
 PY_ARGS+=(--ansible-sudo)
 PY_ARGS+=(--base-url "https://${INVENTORY_HOST}")
 PY_ARGS+=(--api-debug)
-PY_ARGS+=(--destructive)
+PY_ARGS+=(--api-destructive)
+PY_ARGS+=(--sensitive_url=never_match)
 
 # Run the tests ...
 py.test -v \
