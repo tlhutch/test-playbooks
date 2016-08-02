@@ -7,7 +7,6 @@ The differences are:
 - Remove the `VOLUME /home/jenkins` declaration so that we can store public keys in `/home/jenkins`. More info:
     - [https://github.com/docker/docker/issues/3465](https://github.com/docker/docker/issues/3465)
     - [https://docs.docker.com/engine/reference/builder/#volume](https://docs.docker.com/engine/reference/builder/#volume) ("Note: If any build steps change the data within the volume after it has been declared, those changes will be discarded.")
-- Uses a newer version of `remoting.jar`.
 
 ----
 
