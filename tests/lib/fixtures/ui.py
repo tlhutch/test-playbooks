@@ -103,9 +103,9 @@ def default_credentials(testsetup):
 
 @pytest.fixture
 def ui_user_credentials(authtoken, factories, default_credentials):
+    default_username = default_credentials['username']
     default_password = default_credentials['password']
-    user = factories.user(password=default_password, is_superuser=True)
-    return {'username': user.username, 'password': default_password}
+    return {'username': default_username, 'password': default_password}
 
 
 @pytest.fixture(scope='module')

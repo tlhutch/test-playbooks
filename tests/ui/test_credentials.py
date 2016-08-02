@@ -2,6 +2,7 @@ import time
 
 import fauxfactory
 import pytest
+from selenium.common.exceptions import TimeoutException
 
 from common.exceptions import NotFound_Exception
 
@@ -81,8 +82,11 @@ def test_create_credential(factories, api_credentials_pg, ui_credential_add):
     ui_credential_add.details.save.click()
     ui_credential_add.list_table.wait_for_table_to_load()
     # verify the update took place api-side
+    try:
+        ui_credential_add.wait.until(lambda _: api_credentials_pg.get(name=name).results)
+    except TimeoutException:
+        pytest.fail('unable to verify creation of credential')
     api_results = api_credentials_pg.get(name=name).results
-    assert api_results, 'unable to verify creation of credential'
     # check for expected url content
     expected_url_content = '/#/credentials/{0}'.format(api_results[0].id)
     assert expected_url_content in ui_credential_add.driver.current_url
