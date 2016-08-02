@@ -4,58 +4,66 @@ pytestmark = [
     pytest.mark.ui,
     pytest.mark.nondestructive,
     pytest.mark.usefixtures(
-        'install_enterprise_license_unlimited',
-        'maximized_window_size'
+        'module_install_enterprise_license',
+        'max_window',
     )
 ]
 
 
-def check_table_sort(table):
-    """Verify table column sort order
-    """
-    assert table.header.is_displayed(), 'Expected table header to be visible'
-
-    for column_name in table.sortable_column_names:
-        for sort_order in table.header._sort_status.values():
-            column_sort_order = (column_name, sort_order)
-
-            table.set_column_sort_order(column_sort_order)
-            actual_column_sort_order = table.get_column_sort_order()
-
-            assert actual_column_sort_order == column_sort_order, (
-                'Unexpected column sort order {0} != {1}'.format(
-                    actual_column_sort_order, column_sort_order))
+TEST_SORT_RESOURCE_COUNT = 10
 
 
-@pytest.mark.usefixtures('inventory')
-def test_inventories_table_sort(ui_inventories):
-    check_table_sort(ui_inventories.table)
+# -----------------------------------------------------------------------------
+# Fixtures
+# -----------------------------------------------------------------------------
+
+@pytest.fixture(scope='module')
+def table_sort_data(authtoken,  module_factories):
+    synced_project = module_factories.project()
+    module_factories.user()
+    module_factories.job_template(project=synced_project)
+    for _ in xrange(TEST_SORT_RESOURCE_COUNT - 1):
+        module_factories.job_template(project=synced_project)
+        # handle projects separately without scm updating
+        module_factories.project(wait=False)
+        # handle users
+        module_factories.user()
 
 
-@pytest.mark.usefixtures('project')
-def test_projects_table_sort(ui_projects):
-    check_table_sort(ui_projects.table)
+# -----------------------------------------------------------------------------
+# Assertion Helpers and Utilities
+# -----------------------------------------------------------------------------
+
+def check_table_sort(table_header):
+    sort_status_options = table_header.get_sort_status_options()
+    for option in sort_status_options:
+        table_header.set_sort_status(option)
+        assert table_header.get_sort_status() == option
 
 
-@pytest.mark.usefixtures('job_template')
-def test_job_templates_table_sort(ui_job_templates):
-    check_table_sort(ui_job_templates.table)
+# -----------------------------------------------------------------------------
+# Tests
+# -----------------------------------------------------------------------------
+
+def test_table_sort_inventories(table_sort_data, ui_inventories):
+    check_table_sort(ui_inventories.list_table.header)
 
 
-@pytest.mark.usefixtures(
-    'authtoken',
-    'install_enterprise_license_unlimited',
-    'job_with_status_completed'
-)
-def test_jobs_table_sort(ui_jobs):
-    check_table_sort(ui_jobs.jobs.table)
+def test_table_sort_job_templates(table_sort_data, ui_job_templates):
+    check_table_sort(ui_job_templates.list_table.header)
 
 
-@pytest.mark.usefixtures('anonymous_user')
-def test_users_table_sort(ui_users):
-    check_table_sort(ui_users.table)
+def test_table_sort_projects(table_sort_data, ui_projects):
+    check_table_sort(ui_projects.list_table.header)
 
 
-@pytest.mark.usefixtures('team')
-def test_teams_table_sort(ui_teams):
-    check_table_sort(ui_teams.table)
+def test_table_sort_users(table_sort_data, ui_users):
+    check_table_sort(ui_users.list_table.header)
+
+
+def test_table_sort_credentials(table_sort_data, ui_credentials):
+    check_table_sort(ui_credentials.list_table.header)
+
+
+def test_table_sort_jobs(table_sort_data, ui_jobs):
+    check_table_sort(ui_jobs.jobs.table.header)

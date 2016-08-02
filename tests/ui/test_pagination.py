@@ -1,109 +1,101 @@
 import pytest
 
+TEST_PAGINATION_RESOURCE_COUNT = 110
+
 pytestmark = [
     pytest.mark.ui,
     pytest.mark.pagination,
     pytest.mark.usefixtures(
-        'install_enterprise_license_unlimited',
-        'maximized_window_size'
+        'module_install_enterprise_license',
+        'max_window',
     )
 ]
 
 
+# -----------------------------------------------------------------------------
+# Fixtures
+# -----------------------------------------------------------------------------
+
+@pytest.fixture(scope='module')
+def pagination_data(authtoken,  module_factories):
+    synced_project = module_factories.project()
+    module_factories.user()
+    module_factories.job_template(project=synced_project)
+    for _ in xrange(TEST_PAGINATION_RESOURCE_COUNT - 1):
+        module_factories.job_template(project=synced_project)
+        # handle projects separately without scm updating
+        module_factories.project(wait=False)
+        # handle users
+        module_factories.user()
+
+
+# -----------------------------------------------------------------------------
+# Assertion Helpers and Utilities
+# -----------------------------------------------------------------------------
+
 def check_pagination(pagination):
-    """Check a pagination region against an expected total number of pages
-    """
-    pagination.rewind()
-
-    width = len(pagination.numbered_links)
+    pagination.reset()
     total_pages = pagination.total_pages
-
-    for page_number in xrange(1, total_pages):
-        check_pagination_links(pagination, total_pages, page_number, width)
-        pagination.next.click()
-
-    check_pagination_links(pagination, total_pages, total_pages, width)
-
-    for page_number in reversed(xrange(1, total_pages)):
-        pagination.previous.click()
-        check_pagination_links(pagination, total_pages, page_number, width)
-
-
-def check_pagination_links(pagination, total_pages, page_number, width):
-    """Check the state of a pagination region for a given page number against
-    an expected total number of pages
-    """
-    current_page = pagination.current_page
-
-    assert current_page == page_number, (
-        'Unexpected current page: {0} != {1}'.format(current_page, page_number))
-
-    if page_number == 1:
-        assert pagination.previous.is_displayed(), (
-            'expected link "<" not to be displayed on first page')
-    else:
-        assert pagination.previous.is_displayed(), (
-            'expected link "<" to be displayed when not on first page')
-
-    if current_page == total_pages:
-        assert not pagination.next.is_displayed(), (
-            'expected link ">" not to be displayed on last page')
-    else:
-        assert pagination.next.is_displayed(), (
-            'expected link ">" to be displayed when not on last page')
-
-    num_links = len(pagination.numbered_links)
-
-    assert True, (  # assert num_links == width, (
-        'Unexpected number of links: {0} != {1}'.format(num_links, width))
+    # check the currently displayed active link
+    assert int(pagination.active.text) == 1
+    assert pagination.current_page == 1
+    for n, _ in enumerate(pagination.scan_right()):
+        expected_page = n + 2
+        # check that that currently displayed page number corresponds
+        # to the number of pages we've clicked through
+        assert pagination.current_page == expected_page
+        # check the currently displayed active link
+        assert int(pagination.active.text) == expected_page
+        # check that "<" is visible
+        assert pagination('<').is_displayed()
+        # check that the displayed total number of pages does not change
+        assert pagination.total_pages == total_pages
+    # check the currently displayed active link
+    assert int(pagination.active.text) == total_pages
+    # check that ">" isn't visible on the last page
+    assert not pagination('>').is_displayed()
+    # check "ITEMS X-Y OF Z" label
+    assert pagination.item_range[1] == pagination.total_items
+    for n, _ in enumerate(pagination.scan_left()):
+        expected_page = total_pages - (n + 1)
+        # check that that currently displayed page number corresponds
+        # to the number of pages we've clicked through
+        assert pagination.current_page == expected_page
+        # check the currently displayed active link
+        assert int(pagination.active.text) == expected_page
+        # check that ">" is visible
+        assert pagination('>').is_displayed()
+        # check that the displayed total number of pages does not change
+        assert pagination.total_pages == total_pages
 
 
-@pytest.mark.usefixtures('populate_job_templates')
-def test_job_templates_pagination(ui_job_templates):
-    """Verify job templates table pagination
-    """
-    check_pagination(ui_job_templates.pagination)
+# -----------------------------------------------------------------------------
+# Tests
+# -----------------------------------------------------------------------------
+
+def test_pagination_inventories(pagination_data, ui_inventories):
+    check_pagination(ui_inventories.list_pagination)
 
 
-@pytest.mark.usefixtures('populate_projects')
-def test_projects_pagination(ui_projects):
-    """Verify projects table pagination
-    """
-    check_pagination(ui_projects.pagination)
+def test_pagination_job_templates(pagination_data, ui_job_templates):
+    check_pagination(ui_job_templates.list_pagination)
 
 
-@pytest.mark.usefixtures('populate_jobs')
-def test_jobs_pagination(ui_jobs):
-    """Verify jobs table pagination
-    """
-    check_pagination(ui_jobs.pagination)
+def test_pagination_projects(pagination_data, ui_projects):
+    check_pagination(ui_projects.list_pagination)
 
 
-@pytest.mark.usefixtures('populate_inventories')
-def test_inventories_pagination(ui_inventories):
-    """Verify inventories table pagination
-    """
-    check_pagination(ui_inventories.pagination)
+def test_pagination_organizations(pagination_data, ui_organizations):
+    check_pagination(ui_organizations.list_pagination)
 
 
-@pytest.mark.usefixtures('populate_users')
-def test_users_pagination(ui_users):
-    """Verify users table pagination
-    """
-    check_pagination(ui_users.pagination)
+def test_pagination_users(pagination_data, ui_users):
+    check_pagination(ui_users.list_pagination)
 
 
-@pytest.mark.usefixtures('populate_teams')
-def test_teams_pagination(ui_teams):
-    """Verify teams table pagination
-    """
-    check_pagination(ui_teams.pagination)
+def test_pagination_credentials(pagination_data, ui_credentials):
+    check_pagination(ui_credentials.list_pagination)
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/1021')
-@pytest.mark.nondestructive
-@pytest.mark.usefixtures('populate_organizations')
-def test_organizations_pagination(ui_organizations):
-    """Verify organizations table pagination
-    """
-    check_pagination(ui_organizations.pagination)
+def test_pagination_jobs(pagination_data, ui_jobs):
+    check_pagination(ui_jobs.list_pagination)

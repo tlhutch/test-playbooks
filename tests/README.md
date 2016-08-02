@@ -54,7 +54,7 @@ directory of the repository.
         py.test \
             --ansible-inventory=playbooks/inventory.tower \
             --ansible-host-pattern=tower.example.com \
-            --baseurl https://tower.example.com \
+            --base-url 'https://tower.example.com' \
             --destructive \
             tests
 
@@ -64,7 +64,7 @@ directory of the repository.
 * [Automated Test Hell](http://www.slideshare.net/wseliga/escaping-testhellxpdaysukraine2013) - presentation on automation best practices and learning experiences.
 * [pytest](http://pytest.org/latest/) - The python test framework used by tower-qa.
 * [pytest usage and invocations](http://pytest.org/latest/usage.html) - Learn how to run `py.test` from the command-line.
-* [pytest MozwebQA plugin](https://github.com/mozilla/pytest-mozwebqa) -  The pytest selenium plugin used by browser UI auotmation.
+* [pytest selenium plugin](https://github.com/pytest-dev/pytest-selenium) -  The pytest selenium plugin used by browser UI automation.
 
 ## TODO
 

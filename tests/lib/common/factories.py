@@ -34,7 +34,7 @@ class OrganizationFactory(PageFactory):
         inline_args = ('request',)
 
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
-    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    description = factory.LazyFunction(fauxfactory.gen_alphanumeric)
 
 
 class ProjectFactory(PageFactory):
@@ -73,8 +73,8 @@ class UserFactory(PageFactory):
     username = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     password = DEFAULT_PASSWORD
     is_superuser = False
-    first_name = factory.LazyFunction(fauxfactory.gen_utf8)
-    last_name = factory.LazyFunction(fauxfactory.gen_utf8)
+    first_name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
+    last_name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     email = factory.LazyFunction(fauxfactory.gen_email)
 
     @factory.post_generation
@@ -97,7 +97,7 @@ class TeamFactory(PageFactory):
     organization = factory.SubFactory(
         OrganizationFactory, request=factory.SelfAttribute('..request'))
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
-    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    description = factory.LazyFunction(fauxfactory.gen_alphanumeric)
 
 
 class CredentialFactory(PageFactory):
@@ -114,7 +114,7 @@ class CredentialFactory(PageFactory):
 
     kind = 'ssh'
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
-    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    description = factory.LazyFunction(fauxfactory.gen_alphanumeric)
 
     @factory.LazyAttribute
     def password(self):
@@ -141,7 +141,7 @@ class InventoryFactory(PageFactory):
         OrganizationFactory,
         request=factory.SelfAttribute('..request'))
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
-    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    description = factory.LazyFunction(fauxfactory.gen_alphanumeric)
 
 
 class HostFactory(PageFactory):
@@ -157,7 +157,7 @@ class HostFactory(PageFactory):
         'ansible_connection': 'local'
     })
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
-    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    description = factory.LazyFunction(fauxfactory.gen_alphanumeric)
 
 
 class GroupFactory(PageFactory):
@@ -169,7 +169,7 @@ class GroupFactory(PageFactory):
         InventoryFactory,
         request=factory.SelfAttribute('..request'))
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
-    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    description = factory.LazyFunction(fauxfactory.gen_alphanumeric)
 
 
 class JobTemplateFactory(PageFactory):
@@ -197,4 +197,4 @@ class JobTemplateFactory(PageFactory):
     job_type = 'run'
     playbook = 'ping.yml'
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
-    description = factory.LazyFunction(fauxfactory.gen_utf8)
+    description = factory.LazyFunction(fauxfactory.gen_alphanumeric)

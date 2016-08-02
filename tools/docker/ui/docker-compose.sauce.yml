@@ -1,0 +1,11 @@
+---
+version: '2'
+services:
+  pytest_sauce:
+    extends:
+      file: docker-compose.yml
+      service: pytest
+    environment:
+      SAUCELABS_USERNAME:
+      SAUCELABS_API_KEY:
+    entrypoint: tools/docker/ui/pytest_sauce.sh

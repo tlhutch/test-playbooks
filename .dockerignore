@@ -1,0 +1,5 @@
+.git
+results
+chromedriver
+chrome_driver.zip
+**/*.pyc
