@@ -791,6 +791,24 @@ print json.dumps(inventory)
             else:
                 assert(test_event.event == 'runner_on_ok'), assertion_error
 
+    def test_delete_running_job_with_orphaned_project(self, factories, set_roles, user_password):
+        """Confirms that JT w/ cross org inventory and orphaned project deletion attempt triggers Forbidden"""
+        org = factories.organization()
+        operator = factories.user(organization=org)
+        org.add_admin(operator)
+
+        orphaned_project = factories.project(organization=None)
+        cross_inventory = factories.inventory(organization=factories.organization())
+        job_template = factories.job_template(organization=org,
+                                              project=orphaned_project,
+                                              inventory=cross_inventory)
+
+        set_roles(operator, job_template, ['execute'])
+        with self.current_user(operator.username, user_password):
+            job = job_template.launch()
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                job.delete()
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
