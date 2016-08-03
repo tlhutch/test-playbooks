@@ -9,6 +9,7 @@ properties:
   ask_inventory_on_launch: {type: boolean}
   ask_job_type_on_launch: {type: boolean}
   ask_limit_on_launch: {type: boolean}
+  ask_skip_tags_on_launch: {type: boolean}
   ask_tags_on_launch: {type: boolean}
   ask_variables_on_launch: {type: boolean}
   can_start_without_user_input: {type: boolean}
