@@ -157,11 +157,6 @@ class Base(Page):
         '''
         Delete the object. If it's already deleted, ignore the error
         '''
-        # Label pages do not support delete
-        from common.api.pages.labels import Label_Page
-        if isinstance(self, Label_Page):
-            return
-
         r = self.api.delete(self.base_url.format(**self.json))
         try:
             return self.handle_request(r)
