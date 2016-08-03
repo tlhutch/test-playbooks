@@ -7,5 +7,6 @@ oneOf:
     - $ref: '#/definitions/job_template'
     - $ref: '#/definitions/project'
     - $ref: '#/definitions/inventory_source'
+    - $ref: '#/definitions/system_job_template'
 definitions:
   !include '../definitions/*.yml'
