@@ -49,11 +49,11 @@ if __name__ == '__main__':
     if "SSH_KEY_DATA_ENCRYPTED" not in os.environ:
         os.environ["SSH_KEY_DATA_ENCRYPTED"] = os.path.expandvars("$HOME/.ssh/id_rsa.jenkins-passphrase")
 
-    # Gather GCE and Azure KEY_DATA
+    # Gather GCE and Azure Classic KEY_DATA
     if "GCE_KEY_DATA" not in os.environ:
         os.environ["GCE_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/google_compute_engine-3fab726444ae.pem")
-    if "AZURE_KEY_DATA" not in os.environ:
-        os.environ["AZURE_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/id_rsa.azure.pem")
+    if "AZURE_CLASSIC_KEY_DATA" not in os.environ:
+        os.environ["AZURE_CLASSIC_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/id_rsa.azure_classic.pem")
 
     # Import credentials.template
     cfg = yaml.load(open(credentials_template, 'r'))
