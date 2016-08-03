@@ -2,7 +2,7 @@
 
 This page describes the `credentials.yml` file.
 
-## Azure
+## Azure Classic
 
 You 
 ```
@@ -14,7 +14,7 @@ Upload your azure.cer file at https://manage.windowsazure.com/AnsibleWorks.onmic
 
 Update credentials.yml file with the azure.pem file data. username is the subscription id listed at the url you uploaded the certificate at.
 ```
-  azure:
+  azure_classic:
     ssh_key_data: |
       -----BEGIN RSA PRIVATE KEY-----
       ...
