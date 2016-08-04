@@ -237,7 +237,7 @@ class Test_Inventory_Update(Base_Api_Test):
             source_regions = region_choices['ec2']
         elif cloud_provider == 'rax':
             source_regions = region_choices['rax']
-        elif cloud_provider == 'azure':
+        elif cloud_provider == 'azure_rm':
             source_regions = region_choices['azure']
         elif cloud_provider == 'gce':
             source_regions = region_choices['gce']
@@ -281,7 +281,7 @@ class Test_Inventory_Update(Base_Api_Test):
             source_region = "us-east-1"
         elif cloud_provider == 'rax':
             source_region = "DFW"
-        elif cloud_provider == 'azure':
+        elif cloud_provider == 'azure_rm':
             source_region = "East_US_1"
         elif cloud_provider == 'gce':
             source_region = "us-central1-f"
