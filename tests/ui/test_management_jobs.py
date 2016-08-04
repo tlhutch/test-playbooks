@@ -4,7 +4,6 @@ import pytest
 
 pytestmark = [
     pytest.mark.ui,
-    pytest.mark.ui_debug,
     pytest.mark.nondestructive,
     pytest.mark.usefixtures(
         'authtoken',
