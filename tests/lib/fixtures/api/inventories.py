@@ -528,9 +528,10 @@ def cloud_groups(ansible_os_family, ansible_distribution_major_version, aws_grou
 # Convenience fixture that iterates through cloud_groups that support source_regions
 #
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce'])
-def cloud_group_supporting_source_regions(request):
+def cloud_group_supporting_source_regions(ansible_os_family, ansible_distribution_major_version, request):
     # Skip cited test until we have a fixture to provision a rackspace instance
     if request.param == 'rax' and request.function.__name__ == 'test_inventory_update_with_populated_source_region':
         pytest.skip(msg='https://github.com/ansible/tower-qa/issues/649')
-
+    if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param == 'azure'):
+        pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
     return request.getfuncargvalue(request.param + '_group')
