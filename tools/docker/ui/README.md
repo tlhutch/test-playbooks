@@ -3,6 +3,9 @@
 ```shell
 export SAUCELABS_USERNAME=shanemcd
 export SAUCELABS_API_KEY=ytqOJraG3T29zIwYge0StAksUbmaKg
+export GITHUB_USERNAME=alan
+export GITHUB_TOKEN=steve
+
 export PYTEST_ADDOPTS="--nocapturelog -m ui -k test_activity_stream"
 
 docker-compose -f tools/docker/ui/docker-compose.sauce.yml build --no-cache

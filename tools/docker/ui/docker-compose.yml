@@ -3,6 +3,9 @@ version: '2'
 services:
   pytest:
     build:
+      args:
+        GITHUB_USERNAME:
+        GITHUB_TOKEN:
       context: ../../../
       dockerfile: tools/docker/ui/Dockerfile
     environment:
