@@ -3,7 +3,7 @@ from itertools import combinations
 import pytest
 
 pytestmark = [
-    pytest.mark.ui_debug,
+    pytest.mark.ui,
     pytest.mark.nondestructive,
     pytest.mark.usefixtures(
         'authtoken',
