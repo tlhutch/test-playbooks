@@ -303,8 +303,10 @@ def openstack_credential(request):
 #
 # Convenience fixture that iterates through supported cloud_credential types
 #
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce', 'vmware', 'openstack_v2', 'openstack_v3'])
-def cloud_credential(request):
+@pytest.fixture(scope="function", params=['aws', 'rax', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2', 'openstack_v3'])
+def cloud_credential(request, ansible_os_family, ansible_distribution_major_version):
+    if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param in ['azure', 'azure_ad']):
+        pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
     return request.getfuncargvalue(request.param + '_credential')
 
 
