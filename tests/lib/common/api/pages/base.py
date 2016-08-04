@@ -43,6 +43,19 @@ class Base(Page):
         if kwargs.get('base_url', False):
             self.base_url = kwargs.get('base_url')
 
+    def __getattr__(self, name):
+        if 'json' in self.__dict__ and name in self.json:
+            return self.json[name]
+        raise AttributeError("{!r} object has no attribute {!r}"
+                             .format(self.__class__.__name__, name))
+
+    def __setattr__(self, name, value):
+        if 'json' in self.__dict__ and name in self.json:
+            # Update field only.  For new field use explicit patch
+            self.patch(**{name: value})
+        else:
+            self.__dict__[name] = value
+
     @property
     def __item_class__(self):
         '''Returns the class representing a single 'Base' item'''
