@@ -25,6 +25,7 @@ class Job_Template_Page(Unified_Job_Template_Page):
     ask_job_type_on_launch = property(json_getter('ask_job_type_on_launch'), json_setter('ask_job_type_on_launch'))
     ask_limit_on_launch = property(json_getter('ask_limit_on_launch'), json_setter('ask_limit_on_launch'))
     ask_tags_on_launch = property(json_getter('ask_tags_on_launch'), json_setter('ask_tags_on_launch'))
+    ask_skip_tags_on_launch = property(json_getter('ask_skip_tags_on_launch'), json_setter('ask_skip_tags_on_launch'))
     ask_variables_on_launch = property(json_getter('ask_variables_on_launch'), json_setter('ask_variables_on_launch'))
     limit = property(json_getter('limit'), json_setter('limit'))
     job_tags = property(json_getter('job_tags'), json_setter('job_tags'))
@@ -145,11 +146,12 @@ class Job_Template_Launch_Page(Base):
     base_url = '/api/v1/job_templates/{id}/launch'
 
     can_start_without_user_input = property(json_getter('can_start_without_user_input'), json_setter('can_start_without_user_input'))
-    ask_credential_on_launch = property(json_getter('ask_tags_on_launch'), json_setter('ask_tags_on_launch'))
+    ask_credential_on_launch = property(json_getter('ask_credential_on_launch'), json_setter('ask_credential_on_launch'))
     ask_inventory_on_launch = property(json_getter('ask_inventory_on_launch'), json_setter('ask_inventory_on_launch'))
     ask_job_type_on_launch = property(json_getter('ask_job_type_on_launch'), json_setter('ask_job_type_on_launch'))
     ask_limit_on_launch = property(json_getter('ask_limit_on_launch'), json_setter('ask_limit_on_launch'))
     ask_tags_on_launch = property(json_getter('ask_tags_on_launch'), json_setter('ask_tags_on_launch'))
+    ask_skip_tags_on_launch = property(json_getter('ask_skip_tags_on_launch'), json_setter('ask_skip_tags_on_launch'))
     ask_variables_on_launch = property(json_getter('ask_variables_on_launch'), json_setter('ask_variables_on_launch'))
     passwords_needed_to_start = property(json_getter('passwords_needed_to_start'), json_setter('passwords_needed_to_start'))
     credential_needed_to_start = property(json_getter('credential_needed_to_start'), json_setter('credential_needed_to_start'))

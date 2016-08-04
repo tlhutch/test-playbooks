@@ -221,11 +221,21 @@ class Test_Job_Template(Base_Api_Test):
         assert job_pg.limit == "local", "Unexpected value for job_pg.limit. Expected 'local', got %s." % job_pg.limit
         assert '"-l", "local"' in job_pg.job_args, "Limit value not passed to job_args."
 
-    def test_launch_with_tags_in_payload(self, job_template, ansible_version_cmp):
+    @pytest.mark.parametrize("patch_payload, launch_payload", [
+        (
+            {"ask_tags_on_launch": True, "ask_skip_tags_on_launch": False},
+            {"job_tags": "test job_tag", "skip_tags": ""},
+        ),
+        (
+            {"ask_tags_on_launch": False, "ask_skip_tags_on_launch": True},
+            {"job_tags": "", "skip_tags": "test skip_tag"},
+        ),
+    ], ids=["job_tags", "skip_tags"])
+    def test_launch_with_tags_in_payload(self, job_template, ansible_version_cmp, patch_payload, launch_payload):
         '''
         Verifies that values for 'job_tags' and 'skip_tags' may be passed at launch-time.
         '''
-        job_template.patch(ask_tags_on_launch=True)
+        job_template.patch(**patch_payload)
         launch_pg = job_template.get_related('launch')
 
         # assert values on launch resource
@@ -234,30 +244,35 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
         assert not launch_pg.credential_needed_to_start
-        assert launch_pg.ask_tags_on_launch
+        for key in patch_payload:
+            assert getattr(launch_pg, key) == patch_payload[key]
 
         # launch JT with values for job_tag and skip_tag in payload
-        payload = dict(job_tags="test job_tag", skip_tags="test skip_tag")
-        job_pg = job_template.launch(payload).wait_until_completed()
+        job_pg = job_template.launch(launch_payload).wait_until_completed()
         if ansible_version_cmp("2.0.0.0") >= 0:
             assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
         else:
             assert job_pg.status == 'failed', "Job unexpectedly did not fail - %s." % job_pg
 
-        # assess job results for tag values
-        assert job_pg.ask_tags_on_launch
+        # check job_pg job_tags
+        assert job_pg.ask_tags_on_launch == job_template.ask_tags_on_launch, \
+            "Job and JT have different value for `ask_tags_on_launch'."
+        assert job_pg.job_tags == launch_payload["job_tags"], \
+            "Unexpected value for job_pg.job_tags. Expected '%s', got '%s'." % (launch_payload["job_tags"], job_pg.job_tags)
 
-        assert not job_template.job_tags, "Unexpected value for JT job_tags - %s." % job_template.job_tags
-        assert job_pg.job_tags == "test job_tag", \
-            "Unexpected value for job_pg.job_tags. Expected 'test job_tag', got %s." % job_pg.job_tags
-        assert '\"-t\", \"test job_tag\"' in job_pg.job_args, \
-            "Value for job_tags not represented in job args."
+        # check job_pg skip_tags
+        assert job_pg.ask_skip_tags_on_launch == job_template.ask_skip_tags_on_launch, \
+            "Job and JT have different value for 'ask_skip_tags_on_launch'."
+        assert job_pg.skip_tags == launch_payload["skip_tags"], \
+            "Unexpected value for job_pg.skip_tags. Expected '%s', got '%s'." % (launch_payload["skip_tags"], job_pg.skip_tags)
 
-        assert not job_template.skip_tags, "Unexpected value for JT skip_tags - %s." % job_template.skip_tags
-        assert job_pg.skip_tags == "test skip_tag", \
-            "Unexpected value for job_pg.skip_tags. Expected 'test skip_tag', got %s." % job_pg.skip_tags
-        assert '\"--skip-tags=test skip_tag\"' in job_pg.job_args, \
-            "Value for skip_tags not represented in job args."
+        # check job_args
+        if launch_payload["job_tags"]:
+            assert '\"-t\", \"%s\"' % launch_payload['job_tags'] in job_pg.job_args, \
+                "Value for job_tags not represented in job args."
+        if launch_payload["skip_tags"]:
+            assert '\"--skip-tags=%s\"' % launch_payload['skip_tags'] in job_pg.job_args, \
+                "Value for skip_tags not represented in job args."
 
     @pytest.mark.parametrize("job_type", ["run", "scan", "check"])
     def test_launch_nonscan_job_template_with_job_type_in_payload(self, nonscan_job_template, job_type):
@@ -379,6 +394,7 @@ class Test_Job_Template(Base_Api_Test):
         # assert ask values on launch resource
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.ask_tags_on_launch
+        assert not launch_pg.ask_skip_tags_on_launch
         assert not launch_pg.ask_job_type_on_launch
         assert not launch_pg.ask_limit_on_launch
         assert not launch_pg.ask_inventory_on_launch
