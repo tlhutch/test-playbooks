@@ -3,6 +3,7 @@ import logging
 import pytest
 
 from tests.api import Base_Api_Test
+import common.exceptions
 
 
 log = logging.getLogger(__name__)
@@ -35,3 +36,25 @@ class TestActivityStream(Base_Api_Test):
             except AttributeError:
                 # roll JSON_Wrapper Attribute errors in here too
                 raise(Exception("Unprivileged user has access to unexpected activity stream content."))
+
+    def test_inventory_id_in_group_activity_stream(self, factories):
+        """Confirms that inventory_id is included in the group summary_fields for all non-delete operations"""
+        inventory = factories.inventory()
+        group = factories.group(inventory=inventory)
+        host = factories.host(inventory=inventory)
+
+        group.name = "UpdatedGroupName"
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            group.get_related('hosts').post(dict(associate=True, id=host.id))
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            group.get_related('hosts').post(dict(disassociate=True, id=host.id))
+
+        operations = ['create', 'update', 'associate', 'disassociate']
+
+        activity = group.get_related('activity_stream')
+        for result in activity.results:
+            assert 'inventory_id' in result.summary_fields.group[0]
+            operations.remove(result.operation)
+
+        assert(not operations
+               ), "Failed to find activity for all operations.  Missing: {}".format(operations)
