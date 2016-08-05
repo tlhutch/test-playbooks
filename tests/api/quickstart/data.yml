@@ -340,9 +340,9 @@ credentials:
       password: '{password}' # Gathered from credentials.yaml
 
     #
-    # Microsoft Azure Cloud Credential
+    # Microsoft Azure Classic Cloud Credential
     #
-    - name: 'Microsoft Azure (team:IT)'
+    - name: 'Microsoft Azure Classic (team:IT)'
       description: 'Microsoft Azure for team:IT'
       kind: azure
       user: null

@@ -265,10 +265,13 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 fields = ['username', 'project', 'host', 'password']
             else:
                 fields = ['username', 'password']
-            assert self.has_credentials('cloud', _credential['kind'], fields=fields)
             for field in fields:
-                payload[field] = _credential[field].format(**self.credentials['cloud'][_credential['kind']])
-
+                if _credential['kind'] == 'azure':
+                    assert self.has_credentials('cloud', 'azure_classic', fields=fields)
+                    payload[field] = _credential[field].format(**self.credentials['cloud']['azure_classic'])
+                else:
+                    assert self.has_credentials('cloud', _credential['kind'], fields=fields)
+                    payload[field] = _credential[field].format(**self.credentials['cloud'][_credential['kind']])
         try:
             print json.dumps(payload, indent=4)
             api_credentials_pg.post(payload)
