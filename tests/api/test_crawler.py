@@ -168,7 +168,7 @@ def test_authenticated(api, resource, method, authtoken, no_license):
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },
         '/api/v1/hosts/': {
-            'POST': (httplib.FORBIDDEN, 'forbidden'),
+            'POST': (httplib.BAD_REQUEST, 'bad_request'),
         },
         '/api/v1/inventory_sources/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
