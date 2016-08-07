@@ -12,6 +12,7 @@ from common.factories import (
     ProjectFactory,
     UserFactory,
     TeamFactory,
+    LabelFactory,
 )
 
 
@@ -42,7 +43,8 @@ def factory_namespace(request):
             organization=FactoryFixture(request, OrganizationFactory),
             project=FactoryFixture(request, ProjectFactory),
             user=FactoryFixture(request, UserFactory),
-            team=FactoryFixture(request, TeamFactory)
+            team=FactoryFixture(request, TeamFactory),
+            label=FactoryFixture(request, LabelFactory),
         )
 
 

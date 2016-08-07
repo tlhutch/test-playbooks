@@ -1409,6 +1409,36 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
 
+    @pytest.mark.parametrize("role", ["admin_role", "execute_role", "read_role"])
+    def test_job_template_can_edit(self, factories, user_password, role):
+        '''
+        Test that when users with JT 'admin' navigate to a JT details
+        page that can_edit is True. can_edit should be False with
+        all other users.
+        '''
+        ALLOWED_ROLES = ['admin_role']
+        REJECTED_ROLES = ['execute_role', 'read_role']
+
+        user_pg = factories.user()
+        job_template_pg = factories.job_template()
+
+        # give user target role
+        role_pg = job_template_pg.get_object_role(role)
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            user_pg.get_related('roles').post(dict(id=role_pg.id))
+
+        # check can_edit as our test user
+        with self.current_user(username=user_pg.username, password=user_password):
+            job_template_pg.get()
+            if role in ALLOWED_ROLES:
+                assert job_template_pg.summary_fields['can_edit'], \
+                    "Expected JT can_edit to be True with a user with JT %s." % role
+            elif role in REJECTED_ROLES:
+                assert not job_template_pg.summary_fields['can_edit'], \
+                    "Expected JT can_edit to be False with a user with JT %s." % role
+            else:
+                raise ValueError("Received unhandled JT role.")
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -1971,3 +2001,74 @@ class Test_Notifications_RBAC(Base_Api_Test):
 
         with self.current_user(username=org_admin.username, password=user_password):
             notification_pg.get()
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+class Test_Label_RBAC(Base_Api_Test):
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+
+    @pytest.mark.parametrize('role', ['admin_role', 'auditor_role', 'read_role', 'member_role'])
+    def test_organization_label_post(self, factories, user_password, api_labels_pg, role):
+        '''
+        Users with organization 'admin' and 'member' should be able to create a label with their role
+        organization. Users with organization 'auditor' and 'read' should receive a 403 forbidden.
+        '''
+        ALLOWED_ROLES = ['admin_role', 'member_role']
+        REJECTED_ROLES = ['read_role', 'auditor_role']
+
+        user_pg = factories.user()
+        organization_pg = factories.organization()
+        payload = factories.label.payload(organization=organization_pg)[0]
+
+        # assert initial label post raises 403
+        with self.current_user(username=user_pg.username, password=user_password):
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                api_labels_pg.post(payload)
+
+        # grant user target organization permission
+        role_pg = organization_pg.get_object_role(role)
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            user_pg.get_related('roles').post(dict(id=role_pg.id))
+
+        # assert label post accepted
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                api_labels_pg.post(payload)
+            elif role in REJECTED_ROLES:
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    api_labels_pg.post(payload)
+            else:
+                raise ValueError("Received unhandled organization role.")
+
+    @pytest.mark.parametrize("role", ["admin_role", "read_role"])
+    def test_job_template_label_association(self, factories, user_password, role):
+        '''
+        Tests that when JT can_edit is true that our test user may associate a label with
+        a JT. Note: our test iterates through "admin_role" and "read_role" since these two
+        roles should unlock can_edit as true and false respectively.
+        '''
+        job_template_pg = factories.job_template()
+        labels_pg = job_template_pg.get_related('labels')
+        organization_pg = job_template_pg.get_related('inventory').get_related('organization')
+        user_pg = factories.user(organization=organization_pg)
+        label_pg = factories.label(organization=organization_pg)
+
+        payload = dict(id=label_pg.id)
+
+        # grant user target JT permission
+        role_pg = job_template_pg.get_object_role(role)
+        with pytest.raises(common.exceptions.NoContent_Exception):
+            user_pg.get_related('roles').post(dict(id=role_pg.id))
+
+        # test label association
+        with self.current_user(username=user_pg.username, password=user_password):
+            job_template_pg.get()
+            if job_template_pg.summary_fields['can_edit']:
+                with pytest.raises(common.exceptions.NoContent_Exception):
+                    labels_pg.post(payload)
+            else:
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    labels_pg.post(payload)

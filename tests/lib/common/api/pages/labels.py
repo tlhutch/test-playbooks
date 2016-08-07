@@ -27,6 +27,13 @@ class Label_Page(Base):
 
         return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
+    def silent_delete(self):
+        '''
+        Label pages do not support DELETE requests. Here, we override the base page object
+        silent_delete method to account for this.
+        '''
+        pass
+
 
 class Labels_Page(Label_Page, Base_List):
     base_url = '/api/v1/labels/'

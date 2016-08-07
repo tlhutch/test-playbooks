@@ -1,9 +1,8 @@
 import logging
 import inspect
 import httplib
-
-from common.api.schema import validate
 from common.api.pages import Page
+from common.api.schema import validate
 import common.exceptions
 
 
@@ -169,7 +168,7 @@ class Base(Page):
 
     def silent_delete(self):
         '''
-        Delete the object.  If it's already deleted, ignore the error
+        Delete the object. If it's already deleted, ignore the error
         '''
         r = self.api.delete(self.base_url.format(**self.json))
         try:
