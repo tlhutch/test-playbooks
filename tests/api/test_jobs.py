@@ -163,6 +163,18 @@ def assess_job_event_pg_for_no_log(job_event_pg):
             assert 'LOG_ME' in result['stdout_lines'][0]
 
 
+def azure_type(azure_credential):
+    '''Convenience function that returns our type of new-style Azure credential'''
+    azure_attrs = ['subscription', 'tenant', 'secret', 'client']
+    azure_ad_attrs = ['subscription', 'username', 'password']
+    if all([getattr(azure_credential, attr, None) for attr in azure_attrs]):
+        return 'azure'
+    elif all([getattr(azure_credential, attr, None) for attr in azure_ad_attrs]):
+        return 'azure_ad'
+    else:
+        raise ValueError("Unhandled credential received - %s." % azure_credential)
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -970,10 +982,25 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
                 GCE_PEM_FILE_PATH=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
             )
         elif cloud_credential.kind == 'azure':
-            self.has_credentials('cloud', cloud_credential.kind, ['username'])
+            self.has_credentials('cloud', 'azure_classic', ['username'])
             expected_env_vars = dict(
-                AZURE_SUBSCRIPTION_ID=self.credentials['cloud'][cloud_credential.kind]['username'],
+                AZURE_SUBSCRIPTION_ID=self.credentials['cloud']['azure_classic']['username'],
                 AZURE_CERT_PATH=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
+            )
+        elif cloud_credential.kind == 'azure_rm' and azure_type(cloud_credential) == 'azure':
+            self.has_credentials('cloud', 'azure', ['subscription_id', 'client_id', 'secret', 'tenant'])
+            expected_env_vars = dict(
+                AZURE_CLIENT_ID=self.credentials['cloud']['azure']['client_id'],
+                AZURE_TENANT=self.credentials['cloud']['azure']['tenant'],
+                AZURE_SUBSCRIPTION_ID=self.credentials['cloud']['azure']['subscription_id'],
+                AZURE_SECRET=u'**********',
+            )
+        elif cloud_credential.kind == 'azure_rm' and azure_type(cloud_credential) == 'azure_ad':
+            self.has_credentials('cloud', 'azure_ad', ['subscription_id', 'ad_user', 'password'])
+            expected_env_vars = dict(
+                AZURE_SUBSCRIPTION_ID=self.credentials['cloud']['azure']['subscription_id'],
+                AZURE_AD_USER=self.credentials['cloud']['azure_ad']['ad_user'],
+                AZURE_PASSWORD=u'**********',
             )
         elif cloud_credential.kind == 'vmware':
             self.has_credentials('cloud', cloud_credential.kind, ['username', 'host'])
