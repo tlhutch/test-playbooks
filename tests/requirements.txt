@@ -4,7 +4,7 @@ boto
 factory_boy
 fauxfactory
 flake8
-gcloud
+gcloud==0.17.0 # https://github.com/GoogleCloudPlatform/gcloud-python/issues/2066
 hypchat
 inflect
 jsonschema
