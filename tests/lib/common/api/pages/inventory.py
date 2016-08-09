@@ -118,6 +118,9 @@ class Group_Page(Base):
         elif attr == 'ad_hoc_commands':
             from ad_hoc_commands import Ad_Hoc_Commands_Page
             related = Ad_Hoc_Commands_Page(self.testsetup, base_url=self.json['related'][attr])
+        elif attr == 'activity_stream':
+            from activity_stream import Activity_Stream_Page
+            related = Activity_Stream_Page(self.testsetup, base_url=self.json['related'][attr])
         else:
             raise NotImplementedError
         return related.get(**kwargs)
