@@ -257,6 +257,7 @@ class Test_Inventory_Update(Base_Api_Test):
             if source_region not in unsupported_source_regions:
                 assert update_pg.is_successful, "inventory_update %s failed with supported region %s." % (update_pg, source_region)
                 assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+
             # assert that update fails if used with unsupported source region
             else:
                 assert update_pg.status == "failed", \
@@ -355,7 +356,6 @@ class Test_Inventory_Update(Base_Api_Test):
         # patch the inv_source_pg and launch the update
         inv_source_pg = aws_group.get_related('inventory_source')
         inv_source_pg.patch(instance_filters=instance_filter)
-        assert inv_source_pg.instance_filters == instance_filter
         update_pg = inv_source_pg.update().wait_until_completed()
 
         # assert that the update was successful
@@ -378,7 +378,6 @@ class Test_Inventory_Update(Base_Api_Test):
         # patch the inv_source_pg and launch the update
         inv_source_pg = aws_group.get_related('inventory_source')
         inv_source_pg.patch(instance_filters=instance_filter)
-        assert inv_source_pg.instance_filters == instance_filter
         update_pg = inv_source_pg.update().wait_until_completed()
 
         # assert that the update was successful
@@ -388,11 +387,22 @@ class Test_Inventory_Update(Base_Api_Test):
         # assert whether hosts were imported
         assert aws_group.get().total_hosts == 0, "Unexpected number of hosts returned (%s != 0)." % aws_group.total_hosts
 
-    @pytest.mark.parametrize("only_group_by", [
-        "", "availability_zone", "ami_id", "instance_id", "instance_type", "key_pair", "region", "security_group", "availability_zone,ami_id"
-    ], ids=["\"\"", "availability_zone", "ami_id", "instance_id", "instance_type", "key_pair", "region", "security_group", "availability_zone,ami_id"])
-    def test_aws_only_group_by(self, aws_group, only_group_by):
-        '''Tests AWS only_group_by'''
+    @pytest.mark.parametrize(
+        "only_group_by, expected_group_names",
+        [
+            ("", ["ec2", "images", "keys", "regions", "security_groups", "tags", "types", "vpcs", "zones"],),
+            ("availability_zone", ["ec2", "zones"],),
+            ("ami_id", ["ec2", "images"],),
+            ("instance_id", ["ec2", "instances"],),
+            ("instance_type", ["ec2", "types"],),
+            ("key_pair", ["ec2", "keys"],),
+            ("region", ["ec2", "regions"],),
+            ("security_group", ["ec2", "security_groups"],),
+            ("availability_zone,ami_id", ["ec2", "zones", "images"],),
+        ], ids=["\"\"", "availability_zone", "ami_id", "instance_id", "instance_type", "key_pair", "region", "security_group", "availability_zone,ami_id"])
+    def test_aws_only_group_by(self, aws_group, only_group_by, expected_group_names):
+        """Tests that expected groups are created when supplying value for 'only_group_by'
+        """
         # update the inv_source_pg and launch the inventory update
         inv_source_pg = aws_group.get_related('inventory_source')
         inv_source_pg.patch(group_by=only_group_by)
@@ -402,78 +412,11 @@ class Test_Inventory_Update(Base_Api_Test):
         assert update_pg.is_successful, "inventory_update failed - %s" % update_pg
         assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
 
-        # get updated groups_pg
+        # assess spawned groups
         groups_pg = aws_group.get_related('children')
-
-        # TODO: Assert specific cloud instance is listed in group
-        # assess spawned groups, given each value for only_group_by
-        if only_group_by == "":
-            assert inv_source_pg.group_by == ""
-            assert len(groups_pg.results) == 9
-            expected_group_names = ["ec2", "images", "keys", "regions", "security_groups", "tags", "types", "vpcs", "zones"]
-            for group_name in expected_group_names:
-                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
-                # TODO: Assert specific cloud instance is now listed in group
-
-        elif only_group_by == "availability_zone":
-            assert inv_source_pg.group_by == "availability_zone"
-            assert len(groups_pg.results) == 2
-            expected_group_names = ["ec2", "zones"]
-            for group_name in expected_group_names:
-                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
-
-        elif only_group_by == "ami_id":
-            assert inv_source_pg.group_by == "ami_id"
-            assert len(groups_pg.results) == 2
-            expected_group_names = ["ec2", "images"]
-            for group_name in expected_group_names:
-                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
-
-        elif only_group_by == "instance_id":
-            assert inv_source_pg.group_by == "instance_id"
-            assert len(groups_pg.results) == 2
-            expected_group_names = ["ec2", "instances"]
-            for group_name in expected_group_names:
-                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
-
-        elif only_group_by == "instance_type":
-            assert inv_source_pg.group_by == "instance_type"
-            assert len(groups_pg.results) == 2
-            expected_group_names = ["ec2", "types"]
-            for group_name in expected_group_names:
-                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
-
-        elif only_group_by == "key_pair":
-            assert inv_source_pg.group_by == "key_pair"
-            assert len(groups_pg.results) == 2
-            expected_group_names = ["ec2", "keys"]
-            for group_name in expected_group_names:
-                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
-
-        elif only_group_by == "region":
-            assert inv_source_pg.group_by == "region"
-            assert len(groups_pg.results) == 2
-            expected_group_names = ["ec2", "regions"]
-            for group_name in expected_group_names:
-                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
-            assert len([group for group in groups_pg.results if group.name == 'regions']) == 1
-
-        elif only_group_by == "security_group":
-            assert inv_source_pg.group_by == "security_group"
-            assert len(groups_pg.results) == 2
-            expected_group_names = ["ec2", "security_groups"]
-            for group_name in expected_group_names:
-                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
-
-        elif only_group_by == "availability_zone,ami_id":
-            assert inv_source_pg.group_by == "availability_zone,ami_id"
-            assert len(groups_pg.results) == 3
-            expected_group_names = ["ec2", "zones", "images"]
-            for group_name in expected_group_names:
-                assert len([group for group in groups_pg.results if group.name == group_name]) == 1
-
-        else:
-            raise NotImplementedError("Unhandled value for only_group_by: %s" % only_group_by)
+        actual_group_names = [group_pg.name for group_pg in groups_pg.results]
+        assert set(actual_group_names) == set(expected_group_names), \
+            "Unexpected groups created.\n\nExpected group names: %s\nActual group names: %s\n" % (expected_group_names, actual_group_names)
 
     def test_aws_replace_dash_in_groups_source_variable(self, job_template, aws_group, host_local):
         '''
