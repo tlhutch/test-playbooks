@@ -11,42 +11,46 @@ class Common_Exception(Exception):
         return self.__str__()
 
     def __str__(self):
-        return self.message
+        return str(self.message)
 
 
 class BadRequest_Exception(Common_Exception):
+
     pass
 
 
 class Conflict_Exception(Common_Exception):
+
     pass
 
 
 class Duplicate_Exception(Common_Exception):
+
     pass
 
 
 class Forbidden_Exception(Common_Exception):
+
     pass
 
 
 class InternalServerError_Exception(Common_Exception):
+
     pass
 
 
 class LicenseExceeded_Exception(Common_Exception):
 
-    def __str__(self):
-        return str(self.message)
+    pass
 
 
 class LicenseInvalid_Exception(Common_Exception):
 
-    def __str__(self):
-        return str(self.message)
+    pass
 
 
 class Method_Not_Allowed_Exception(Common_Exception):
+
     pass
 
 
@@ -56,20 +60,25 @@ class NoContent_Exception(Common_Exception):
 
 
 class NotFound_Exception(Common_Exception):
+
     pass
 
 
 class PaymentRequired_Exception(Common_Exception):
+
     pass
 
 
 class Unauthorized_Exception(Common_Exception):
+
     pass
 
 
 class Unknown_Exception(Common_Exception):
+
     pass
 
 
 class Wait_Until_Timeout(Common_Exception):
+
     pass
