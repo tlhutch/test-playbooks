@@ -119,6 +119,14 @@
   become: yes
 
   tasks:
+    - name: Wait for db to be reconfigured
+      wait_for:
+        path: '/etc/tower/reset/.reconfigured'
+        state: 'present'
+
+    - name: Change admin password
+      shell: tower-manage update_password --username=admin --password=fo0m4nchU
+
     - name: Tell Tower not to use IP address or host in API tokens
       lineinfile:
         dest: /etc/tower/conf.d/remote_host_headers.py
@@ -128,9 +136,3 @@
 
     - name: Restart Tower
       shell: ansible-tower-service restart
-
-    - pause:
-        seconds: 30
-
-    - name: Change admin password
-      shell: tower-manage update_password --username=admin --password=fo0m4nchU
