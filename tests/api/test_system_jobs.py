@@ -157,27 +157,17 @@ class Test_System_Jobs(Base_Api_Test):
 
     def test_cleanup_activitystream(self, cleanup_activitystream_template, multiple_jobs_with_status_completed, api_activity_stream_pg):
         '''
-        Launch jobs of different types, run cleanup activitystreams, and verify that the activitystream is cleared.
+        Launch jobs of different types, run cleanup_activitystreams, and verify that the activitystream clears.
         '''
-        # pretest
-        activity_stream_pg = api_activity_stream_pg.get()
-        assert activity_stream_pg.count != 0, "Activity stream empty (%s == 0)." % activity_stream_pg.count
-
-        # launch job
+        # launch job and assert job successful
         payload = dict(extra_vars=dict(days=0))
-        system_jobs_pg = cleanup_activitystream_template.launch(payload)
+        system_job_pg = cleanup_activitystream_template.launch(payload).wait_until_completed(timeout=60 * 25)
+        assert system_job_pg.is_successful, "Job unsuccessful - %s" % system_job_pg
 
-        # wait 25 minutes for cleanup to finish
-        system_jobs_pg.wait_until_completed(timeout=60 * 25)
-
-        # assess success
-        assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
-
-        # assert that activity_stream is cleared
+        # assert that activity_stream cleared
         activity_stream_pg = api_activity_stream_pg.get()
-        assert activity_stream_pg.count == 0, "After running cleanup_activitystream, " \
-            "activity_stream data is still present (count == %s)" \
-            % activity_stream_pg.count
+        assert activity_stream_pg.count == 0, \
+            "After running cleanup_activitystream, activity_stream items still present (%s items found)" % activity_stream_pg.count
 
     def test_cleanup_facts(self, files_scan_job_with_status_completed, cleanup_facts_template):
         '''
