@@ -130,6 +130,8 @@
 
     - name: Change admin password
       shell: tower-manage update_password --username=admin --password=fo0m4nchU
+      register: update_password
+      changed_when: update_password.stdout != 'Password not updated'
 
     - name: Tell Tower not to use IP address or host in API tokens
       lineinfile:
@@ -137,6 +139,8 @@
         line: 'REMOTE_HOST_HEADERS = []'
         backrefs: yes
         regexp: '^REMOTE_'
+      register: remote_host_headers
 
     - name: Restart Tower
       shell: ansible-tower-service restart
+      when: remote_host_headers.changed
