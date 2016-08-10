@@ -1,22 +1,45 @@
 ---
-# This playbook allows for launching an EC2 instance from the latest AMI
-# for a specific version of Tower.
 #
-# To launch instance:
+# To launch instance(s):
 #
-# ansible-playbook -i playbooks/inventory -e "tower_ami_id=ami-xxx" playbooks/deploy-tower-ami.yml
+# ansible-playbook -i playbooks/inventory playbooks/deploy-tower-ami.yml
 #
-# To terminate instance:
+# To terminate instance(s):
 #
-# ansible-playbook -i playbooks/inventory -e "tower_ami_id=ami-xxx" -e "instance_state=stopped" playbooks/deploy-tower-ami.yml
+# ansible-playbook -i playbooks/inventory -e 'instance_count=0' playbooks/deploy-tower-ami.yml
 #
 - hosts: local
   vars:
-    ami_user: 'centos'
-    instance_state: 'running'
-    ec2_security_groups:
-      - name: Tower
+    instance_count: 1
+    ec2_region: 'us-east-1'
+    instance_type: 'm3.large'
+    public_key_path: '~/.ssh/id_rsa.pub'
+    ec2_key_pair_name: 'jenkins'
+    ec2_name_prefix: 'jenkins'
+
+  tasks:
+    - name: Lookup latest AMI if not explicitly passed in
+      ec2_ami_find:
+        ami_tags:
+          Name: 'Ansible Tower *'
+        sort: creationDate
+        sort_order: descending
+        sort_end: 1
+        region: '{{ ec2_region }}'
+        no_result_action: fail
+      register: tower_ami
+      when: tower_ami_id is not defined
+
+    - name: Set tower_ami_id
+      set_fact:
+        tower_ami_id: '{{ tower_ami.results[0].ami_id }}'
+      when: tower_ami_id is not defined
+
+    - name: Create security groups for Tower
+      ec2_group:
+        name: Tower
         description: Security group for Tower instances
+        region: '{{ ec2_region }}'
         rules:
           - proto: tcp
             from_port: 80
@@ -34,35 +57,90 @@
             from_port: 8080
             to_port: 8080
             cidr_ip: 0.0.0.0/0
-  pre_tasks:
-    - name: 'Find latest Tower AMI.'
-      ec2_ami_find:
-        ami_id: '{{ tower_ami_id }}'
-        region: '{{ ec2_region | default("us-east-1") }}'
-        no_result_action: fail
-      register: tower_ami
 
-    - name: 'Set ec2_images variable based on ec2_ami_find results'
-      set_fact:
-        ec2_images:
-          - name: '{{ tower_ami.results[0].tags.Name | non_alphanumeric_to_underscores | lower }}_ami'
-            groups: primary
-            security_group: Tower
-            type: 'm3.large'
-            id: '{{ tower_ami.results[0].ami_id }}'
-            user: '{{ ami_user }}'
+    - name: ensure keypair exists
+      ec2_key:
+        region: '{{ ec2_region }}'
+        name: '{{ ec2_key_pair_name }}'
+        key_material: "{{ item }}"
+      with_file: '{{ public_key_path }}'
 
-    - name: 'Set fact to conditionally trigger terminate_ec2 role.'
-      set_fact:
-        skip_delete: false
-      when: instance_state == 'stopped'
+    - name: Launch or terminate instance(s)
+      ec2:
+        instance_tags:
+          Name: '{{ ec2_name_prefix }}-{{ tower_ami_id }}'
+        count_tag:
+          Name: '{{ ec2_name_prefix }}-{{ tower_ami_id }}'
+        exact_count: '{{ instance_count }}'
+        image: '{{ tower_ami_id }}'
+        key_name: '{{ ec2_key_pair_name }}'
+        region: '{{ ec2_region }}'
+        instance_type: '{{ instance_type }}'
+        group: Tower
+        wait: yes
+      register: tower_instance
 
+    - name: Add launched instance(s) to `tower` group.
+      add_host:
+        name: '{{ item.dns_name }}'
+        group: tower
+        ansible_ssh_user: 'centos'
+        ansible_ssh_host: '{{ item.dns_name }}'
+      with_items: '{{ tower_instance.tagged_instances }}'
+
+    - name: Wait for SSH
+      wait_for:
+        port: 22
+        host: '{{ item.dns_name }}'
+        state: 'started'
+      with_items: '{{ tower_instance.tagged_instances }}'
+
+    # HACK: While sshd may be listening, it may not fully accept connections
+    # immediately
+    - pause:
+        seconds: 30
+      when: instance_count | int != 0
+
+- hosts: local
   roles:
-    - role: create_ec2
-      when: instance_state == 'running'
+    - save_inventory
 
-    - role: save_inventory
-      when: instance_state == 'running'
+#
+# In order to run the UI tests, we need to:
+#
+# - Change the admin password which is randomized on boot.
+#   This is easier than pulling it out of /etc/motd.
+#
+# - Tell the API not to use the client's IP address or hostname as part of the
+#   token it grants the front end. This is because Sauce Labs' IP address
+#   changes throughout the test run on Windows.
+#
+- hosts: tower
+  become: yes
 
-    - role: destroy_cloud
-      when: instance_state == 'stopped'
+  tasks:
+    - name: Wait for db to be reconfigured
+      wait_for:
+        path: '/etc/tower/reset/.reconfigured'
+        state: 'present'
+
+    - name: Wait for PG to come back up
+      wait_for:
+        port: 5432
+
+    - name: Change admin password
+      shell: tower-manage update_password --username=admin --password=fo0m4nchU
+      register: update_password
+      changed_when: update_password.stdout != 'Password not updated'
+
+    - name: Tell Tower not to use IP address or host in API tokens
+      lineinfile:
+        dest: /etc/tower/conf.d/remote_host_headers.py
+        line: 'REMOTE_HOST_HEADERS = []'
+        backrefs: yes
+        regexp: '^REMOTE_'
+      register: remote_host_headers
+
+    - name: Restart Tower
+      shell: ansible-tower-service restart
+      when: remote_host_headers.changed
