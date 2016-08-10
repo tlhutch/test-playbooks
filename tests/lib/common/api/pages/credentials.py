@@ -11,7 +11,6 @@ class Credential_Page(base.Base):
     kind = property(base.json_getter('kind'), base.json_setter('kind'))
     user = property(base.json_getter('user'), base.json_setter('user'))
     team = property(base.json_getter('team'), base.json_setter('team'))
-    username = property(base.json_getter('username'), base.json_setter('username'))
     password = property(base.json_getter('password'), base.json_setter('password'))
     become_method = property(base.json_getter('become_method'), base.json_setter('become_method'))
     become_username = property(base.json_getter('become_username'), base.json_setter('become_username'))
@@ -19,10 +18,6 @@ class Credential_Page(base.Base):
     ssh_key_unlock = property(base.json_getter('ssh_key_unlock'), base.json_setter('ssh_key_unlock'))
     vault_password = property(base.json_getter('vault_password'), base.json_setter('vault_password'))
     summary_fields = property(base.json_getter('summary_fields'), base.json_setter('summary_fields'))
-    subscription = property(base.json_getter('subscription'), base.json_setter('subscription'))
-    tenant = property(base.json_getter('tenant'), base.json_setter('tenant'))
-    secret = property(base.json_getter('secret'), base.json_setter('secret'))
-    client = property(base.json_getter('client'), base.json_setter('client'))
 
     @property
     def expected_passwords_needed_to_start(self):
