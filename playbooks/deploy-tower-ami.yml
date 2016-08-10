@@ -124,6 +124,10 @@
         path: '/etc/tower/reset/.reconfigured'
         state: 'present'
 
+    - name: Wait for PG to come back up
+      wait_for:
+        port: 5432
+
     - name: Change admin password
       shell: tower-manage update_password --username=admin --password=fo0m4nchU
 
