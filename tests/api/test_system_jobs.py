@@ -171,27 +171,23 @@ class Test_System_Jobs(Base_Api_Test):
 
     def test_cleanup_facts(self, files_scan_job_with_status_completed, cleanup_facts_template):
         '''
-        Launch a cleanup_facts job and assert facts have been deleted.
+        Run a scan job, launch a cleanup_facts job, and assert that facts are deleted.
         '''
         # navigate to fact_versions
         host_pg = files_scan_job_with_status_completed.get_related('inventory').get_related('hosts').results[0]
         fact_versions_pg = host_pg.get_related('fact_versions')
 
         # assert facts in fact_versions
-        assert fact_versions_pg.count > 0, "Even though scan job was run, facts do not exist: %s." % fact_versions_pg.count
+        assert fact_versions_pg.count > 0, "Even though scan job was run, facts do not exist (got %s)." % fact_versions_pg.count
 
-        # launch job
+        # launch job and assert job successful
         payload = dict(extra_vars=dict(granularity='0d', older_than='0d'))
-        system_jobs_pg = cleanup_facts_template.launch(payload)
-
-        # wait 2 minutes for cleanup to finish
-        system_jobs_pg.wait_until_completed(timeout=60 * 2)
-
-        # assess success
+        system_jobs_pg = cleanup_facts_template.launch(payload).wait_until_completed(timeout=60 * 2)
         assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
 
         # assert no facts in fact_versions
-        assert fact_versions_pg.get().count == 0, "Even though cleanup_facts was run, facts still exist: %s." % fact_versions_pg.count
+        assert fact_versions_pg.get().count == 0, \
+            "Even though cleanup_facts was run, facts still exist (got %s)." % fact_versions_pg.count
 
     def test_cancel_system_job(self, system_job_with_status_pending):
         '''
