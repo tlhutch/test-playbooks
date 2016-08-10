@@ -74,13 +74,11 @@ def test_create_credential(factories, api_credentials_pg, ui_credential_add):
     """
     # make some data
     name = fauxfactory.gen_alphanumeric()
-    # populate the form
-    ui_credential_add.details.name.set_value(name)
-    ui_credential_add.details.kind.set_value('Machine')
-    # save the credential
-    time.sleep(5)
-    ui_credential_add.details.save.click()
+    # populate the form and save
     ui_credential_add.list_table.wait_for_table_to_load()
+    ui_credential_add.details.kind.set_value('Machine')
+    ui_credential_add.details.name.set_value(name)
+    ui_credential_add.details.scroll_save_into_view().click()
     # verify the update took place api-side
     try:
         ui_credential_add.wait.until(lambda _: api_credentials_pg.get(name=name).results)

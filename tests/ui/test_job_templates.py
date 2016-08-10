@@ -85,16 +85,16 @@ def test_create_job_template(factories, api_job_templates_pg, ui_job_template_ad
     # populate the form
     ui_job_template_add.driver.refresh()
     ui_job_template_add.list_table.wait_for_table_to_load()
-    ui_job_template_add.details.name.set_value(name)
     ui_job_template_add.details.project.set_value(project.name)
     ui_job_template_add.details.credential.set_value(credential.name)
     ui_job_template_add.details.inventory.set_value(inventory.name)
     ui_job_template_add.details.job_type.set_value('Run')
     ui_job_template_add.details.playbook.set_value('ping.yml')
     ui_job_template_add.details.verbosity.set_value('0 (Normal)')
+    ui_job_template_add.details.name.set_value(name)
     # save the job template
     time.sleep(5)
-    ui_job_template_add.details.save.click()
+    ui_job_template_add.details.scroll_save_into_view().click()
     ui_job_template_add.list_table.wait_for_table_to_load()
     # verify the update took place api-side
     try:

@@ -55,3 +55,11 @@ class FormPanel(RegionMap):
     @property
     def exit(self):
         return self.find_element(*self._exit)
+
+    def scroll_save_into_view(self):
+        element = self.find_element(*self._save)
+        # scroll to the element and then up another few pixels so it is
+        # not obstructed by the menu at the top of the tower page
+        js = "arguments[0].scrollIntoView(true);window.scrollBy(0,-120)"
+        self.driver.execute_script(js, element)
+        return element
