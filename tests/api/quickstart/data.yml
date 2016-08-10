@@ -730,7 +730,7 @@ inventory_sources:
       group: azure
       inventory: inventory-all
       source: azure
-      credential: 'Microsoft Azure (team:IT)'
+      credential: 'Microsoft Azure Classic (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
       source_vars: ''
@@ -817,7 +817,7 @@ inventory_sources:
       group: Microsoft Azure
       inventory: inventory-azure
       source: azure
-      credential: 'Microsoft Azure (team:IT)'
+      credential: 'Microsoft Azure Classic (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
       source_vars: ''
