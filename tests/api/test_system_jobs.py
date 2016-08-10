@@ -133,17 +133,17 @@ class Test_System_Jobs(Base_Api_Test):
 
         # launch cleanup job and assert job successful
         payload = dict(extra_vars=dict(days=0))
-        cleanup_jobs_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
-        assert cleanup_jobs_pg.is_successful, "Job unsuccessful - %s" % cleanup_jobs_pg
+        system_job_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
+        assert system_job_pg.is_successful, "Job unsuccessful - %s" % system_job_pg
 
         # assert jobs_pg is empty
         assert jobs_pg.get().count == 0, "jobs_pg.count not zero (%s != 0)" % jobs_pg.count
 
         # assert that the cleanup_jobs job is the only job listed in system jobs
-        system_jobs_pg = api_system_jobs_pg.get()
-        assert system_jobs_pg.count == 1, "An unexpected number of system_jobs were found after running cleanup_jobs (%s != 1)" % system_jobs_pg.count
-        assert system_jobs_pg.results[0].id == cleanup_jobs_pg.id, "After running cleanup_jobs, an unexpected system_job.id was found (%s != %s)" \
-            % (system_jobs_pg.results[0].id, cleanup_jobs_pg.id)
+        assert system_jobs_pg.get().count == 1, \
+            "An unexpected number of system_jobs were found after running cleanup_jobs (%s != 1)" % system_jobs_pg.count
+        assert system_jobs_pg.results[0].id == system_job_pg.id, \
+            "After running cleanup_jobs, an unexpected system_job was found (%s != %s)" % (system_jobs_pg.results[0].id, system_job_pg.id)
 
         # calculate expected number of remaining unified jobs
         # Note: cleanup_jobs does not clean up project and inventory updates
@@ -161,7 +161,7 @@ class Test_System_Jobs(Base_Api_Test):
         '''
         # launch job and assert job successful
         payload = dict(extra_vars=dict(days=0))
-        system_job_pg = cleanup_activitystream_template.launch(payload).wait_until_completed(timeout=60 * 25)
+        system_job_pg = cleanup_activitystream_template.launch(payload).wait_until_completed()
         assert system_job_pg.is_successful, "Job unsuccessful - %s" % system_job_pg
 
         # assert that activity_stream cleared
@@ -171,7 +171,7 @@ class Test_System_Jobs(Base_Api_Test):
 
     def test_cleanup_facts(self, files_scan_job_with_status_completed, cleanup_facts_template):
         '''
-        Run a scan job, launch a cleanup_facts job, and assert that facts are deleted.
+        Run a scan job, launch a cleanup_facts job, and assert that facts get deleted.
         '''
         # navigate to fact_versions
         host_pg = files_scan_job_with_status_completed.get_related('inventory').get_related('hosts').results[0]
@@ -182,7 +182,7 @@ class Test_System_Jobs(Base_Api_Test):
 
         # launch job and assert job successful
         payload = dict(extra_vars=dict(granularity='0d', older_than='0d'))
-        system_jobs_pg = cleanup_facts_template.launch(payload).wait_until_completed(timeout=60 * 2)
+        system_jobs_pg = cleanup_facts_template.launch(payload).wait_until_completed()
         assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
 
         # assert no facts in fact_versions
