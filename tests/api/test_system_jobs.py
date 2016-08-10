@@ -88,34 +88,27 @@ class Test_System_Jobs(Base_Api_Test):
         with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
             system_job.patch()
 
-    def test_cleanup_jobs(self, cleanup_jobs_template, unified_job_with_status_completed, api_jobs_pg, api_system_jobs_pg, api_unified_jobs_pg):
+    def test_cleanup_jobs(self, cleanup_jobs_template, unified_job_with_status_completed, api_unified_jobs_pg):
         '''
-        Run jobs of different types sequentially and check that cleanup jobs deletes all of them.
+        Run jobs of different types sequentially and check that cleanup jobs deletes all of our jobs that are
+        not project/inventory updates.
         '''
         # launch cleanup job
         payload = dict(extra_vars=dict(days=0))
-        cleanup_jobs_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
-
-        # check cleanup job status
-        assert cleanup_jobs_pg.is_successful, "Job unsuccessful - %s" % cleanup_jobs_pg
+        system_job_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
+        assert system_job_pg.is_successful, "Job unsuccessful - %s" % system_job_pg
 
         # assert provided job has been deleted
         if unified_job_with_status_completed.type not in ['inventory_update', 'project_update']:
             with pytest.raises(common.exceptions.NotFound_Exception):
                 unified_job_with_status_completed.get()
-
-        # query for unified_jobs matching the provided job id
-        results = api_unified_jobs_pg.get(id=unified_job_with_status_completed.id)
-
-        # calculate expected count
-        if unified_job_with_status_completed.type in ['inventory_update', 'project_update']:
-            expected_count = 1
         else:
-            expected_count = 0
+            unified_job_with_status_completed.get()
 
-        # assert no matching jobs found
-        assert results.count == expected_count, "An unexpected number of unified jobs were found (%s != %s)" \
-            % (results.count, expected_count)
+        # assert expected unified_jobs
+        expected_count = 1 if unified_job_with_status_completed.type in ['inventory_update', 'project_update'] else 0
+        assert api_unified_jobs_pg.get(id=unified_job_with_status_completed.id).count == expected_count, \
+            "An unexpected number of unified jobs were found (expected %s)." % expected_count
 
     def test_cleanup_jobs_on_multiple_jobs(self, cleanup_jobs_template, multiple_jobs_with_status_completed, api_jobs_pg, api_system_jobs_pg,
                                            api_unified_jobs_pg):
