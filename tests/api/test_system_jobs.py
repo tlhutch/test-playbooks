@@ -131,7 +131,7 @@ class Test_System_Jobs(Base_Api_Test):
             "An unexpected number of system_jobs were found after running cleanup_jobs (%s != 1)." % system_jobs_pg.count
         assert system_jobs_pg.results[0].id == system_job_pg.id, \
             "Unidentified system_job remaining after running cleanup_jobs. Expected one with ID %s but received %s." % \
-            (system_job.id, system_jobs_pg.results[0])
+            (system_job_pg.id, system_jobs_pg.results[0])
 
         # our cleanup_job and inventory/project updates should remain under /api/v1/unified_jobs/
         unified_jobs_pg = api_unified_jobs_pg.get()
