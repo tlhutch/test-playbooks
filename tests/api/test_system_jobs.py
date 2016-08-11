@@ -98,7 +98,7 @@ class Test_System_Jobs(Base_Api_Test):
         system_job_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
         assert system_job_pg.is_successful, "Job unsuccessful - %s." % system_job_pg
 
-        # assert provided job has been deleted
+        # assert provided job has been deleted if not project/inventory update
         if unified_job_with_status_completed.type not in ['inventory_update', 'project_update']:
             with pytest.raises(common.exceptions.NotFound_Exception):
                 unified_job_with_status_completed.get()
@@ -114,7 +114,7 @@ class Test_System_Jobs(Base_Api_Test):
                                            api_unified_jobs_pg):
         '''
         Run jobs of different types and check that cleanup_jobs deletes expected jobs.
-        Our cleanup_job shouldn't delete, the cleanup_job and any inventory/project
+        Our cleanup_job shouldn't delete the cleanup_job and any inventory/project
         updates.
         '''
         # launch cleanup job and assert job successful
@@ -123,9 +123,9 @@ class Test_System_Jobs(Base_Api_Test):
         assert system_job_pg.is_successful, "Job unsuccessful - %s" % system_job_pg
 
         # assert no jobs under /api/v1/jobs/
-        assert api_jobs_pg.get().count == 0, "Jobs remain after cleanup_job run (received %s)." % api_jobs_pg.get().count
+        assert api_jobs_pg.get().count == 0, "Jobs remain after cleanup_job run (received %s jobs)." % api_jobs_pg.get().count
 
-        # assert that that our cleanup_jobs job is the only job remaining under /api/v1/system_jobs/
+        # assert that our cleanup_jobs job is the only job remaining under /api/v1/system_jobs/
         system_jobs_pg = api_system_jobs_pg.get()
         assert system_jobs_pg.get().count == 1, \
             "An unexpected number of system_jobs were found after running cleanup_jobs (%s != 1)." % system_jobs_pg.count
@@ -133,14 +133,16 @@ class Test_System_Jobs(Base_Api_Test):
             "Unidentified system_job remaining after running cleanup_jobs. Expected one with ID %s but received %s." % \
             (system_job_pg.id, system_jobs_pg.results[0])
 
-        # our cleanup_job and inventory/project updates should remain under /api/v1/unified_jobs/
+        # assert that our cleanup_job and inventory/project updates remain under /api/v1/unified_jobs/
         unified_jobs_pg = api_unified_jobs_pg.get()
-        update_jobs = [job_pg for job_pg in unified_jobs_pg.results if job_pg.type in ['inventory_update', 'project_update']]
-        #update_jobs = [job_pg if job_pg.type in ['inventory_update', 'project_update'] for unified_job_pg in unified_jobs_pg.results]
+        update_job_ids = [job_pg.id for job_pg in unified_jobs_pg.results if job_pg.type in ['inventory_update', 'project_update']]
+        unified_job_ids = [job_pg.id for job_pg in unified_jobs_pg.results]
+        assert set(unified_job_ids) == set(update_job_ids) | set([system_job_pg.id]), \
+            "Unexpected unified_jobs returned. Expected only project/inventory updates and our system job."
 
     def test_cleanup_activitystream(self, cleanup_activitystream_template, multiple_jobs_with_status_completed, api_activity_stream_pg):
         '''
-        Launch jobs of different types, run cleanup_activitystreams, and verify that the activitystream clears.
+        Launch jobs of different types, run cleanup_activitystreams, and verify that the activity_stream clears.
         '''
         # launch job and assert job successful
         payload = dict(extra_vars=dict(days=0))
