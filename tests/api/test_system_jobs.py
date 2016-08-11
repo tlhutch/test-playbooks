@@ -146,7 +146,7 @@ class Test_System_Jobs(Base_Api_Test):
         '''
         # launch job and assert job successful
         payload = dict(extra_vars=dict(days=0))
-        system_job_pg = cleanup_activitystream_template.launch(payload).wait_until_completed()
+        system_job_pg = cleanup_activitystream_template.launch(payload).wait_until_completed(timeout=60 * 5)
         assert system_job_pg.is_successful, "Job unsuccessful - %s" % system_job_pg
 
         # assert that activity_stream cleared
