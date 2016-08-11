@@ -261,7 +261,7 @@ def test_role_association_and_disassociation(factories, resource_name, endpoint)
 
 @pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])
 @pytest.mark.parametrize(
-    'resource_name,initial_role,unauthorized_target_role',
+    'resource_name, initial_role, unauthorized_target_role',
     [
         ('organization', 'member', 'admin'),
         ('project', 'read', 'admin'),
