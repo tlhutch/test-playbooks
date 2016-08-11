@@ -114,46 +114,29 @@ class Test_System_Jobs(Base_Api_Test):
                                            api_unified_jobs_pg):
         '''
         Run jobs of different types and check that cleanup_jobs deletes expected jobs.
+        Our cleanup_job shouldn't delete, the cleanup_job and any inventory/project
+        updates.
         '''
-        # pretest
-        job_types = [uj.type for uj in multiple_jobs_with_status_completed]
-
-        # assert expected jobs are present
-        jobs_pg = api_jobs_pg.get()
-        assert jobs_pg.count >= job_types.count('job'), "An unexpected number of jobs were found (%s < %s)" \
-            % (jobs_pg.count, job_types.count('job'))
-
-        system_jobs_pg = api_system_jobs_pg.get()
-        assert system_jobs_pg.count >= job_types.count('system_job'), "An unexpected number of system jobs were found (%s < %s)" \
-            % (system_jobs_pg.count, job_types.count('system_job'))
-
-        unified_jobs_pg = api_unified_jobs_pg.get()
-        assert unified_jobs_pg.count >= len(job_types), "An unexpected number of unified jobs were found were found (%s < %s)" \
-            % (unified_jobs_pg.count, len(job_types))
-
         # launch cleanup job and assert job successful
         payload = dict(extra_vars=dict(days=0))
         system_job_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
         assert system_job_pg.is_successful, "Job unsuccessful - %s" % system_job_pg
 
-        # assert jobs_pg is empty
-        assert jobs_pg.get().count == 0, "jobs_pg.count not zero (%s != 0)" % jobs_pg.count
+        # assert no jobs under /api/v1/jobs/
+        assert api_jobs_pg.get().count == 0, "Jobs remain after cleanup_job run (received %s)." % api_jobs_pg.get().count
 
-        # assert that the cleanup_jobs job is the only job listed in system jobs
+        # assert that that our cleanup_jobs job is the only job remaining under /api/v1/system_jobs/
+        system_jobs_pg = api_system_jobs_pg.get()
         assert system_jobs_pg.get().count == 1, \
-            "An unexpected number of system_jobs were found after running cleanup_jobs (%s != 1)" % system_jobs_pg.count
+            "An unexpected number of system_jobs were found after running cleanup_jobs (%s != 1)." % system_jobs_pg.count
         assert system_jobs_pg.results[0].id == system_job_pg.id, \
-            "After running cleanup_jobs, an unexpected system_job was found (%s != %s)" % (system_jobs_pg.results[0].id, system_job_pg.id)
+            "Unidentified system_job remaining after running cleanup_jobs. Expected one with ID %s but received %s." % \
+            (system_job.id, system_jobs_pg.results[0])
 
-        # calculate expected number of remaining unified jobs
-        # Note: cleanup_jobs does not clean up project and inventory updates
+        # our cleanup_job and inventory/project updates should remain under /api/v1/unified_jobs/
         unified_jobs_pg = api_unified_jobs_pg.get()
-        number_special_cases = len(filter(lambda x: x.type in ('project_update', 'inventory_update'), unified_jobs_pg.results))
-        expected_number_remaining_jobs = number_special_cases + system_jobs_pg.count
-
-        # check actual remaining jobs
-        assert unified_jobs_pg.count == expected_number_remaining_jobs, "Unexpected number of unified_jobs returned \
-            (unified_jobs_pg.count: %s != expected_number_remaining_jobs: %s)" % (unified_jobs_pg.count, expected_number_remaining_jobs)
+        update_jobs = [job_pg for job_pg in unified_jobs_pg.results if job_pg.type in ['inventory_update', 'project_update']]
+        #update_jobs = [job_pg if job_pg.type in ['inventory_update', 'project_update'] for unified_job_pg in unified_jobs_pg.results]
 
     def test_cleanup_activitystream(self, cleanup_activitystream_template, multiple_jobs_with_status_completed, api_activity_stream_pg):
         '''
