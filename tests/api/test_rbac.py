@@ -63,6 +63,28 @@ def auth_user(testsetup, authtoken, api_authtoken_url):
     return _auth_user
 
 
+@pytest.fixture
+def set_test_roles(factories):
+    """Helper fixture used in creating the roles used in our RBAC tests.
+    """
+    def func(user_pg, tower_object, agent, role):
+        """
+        :param user_pg: The api page model for a user
+        :param tower_object: Test Tower resource (a job template for example)
+        :param agent: Either "user" or "team"; used for test parametrization
+        :param role: Test role to give to our user_pg
+        """
+        if agent == "user":
+            set_roles(user_pg, tower_object, [role])
+        elif agent == "team":
+            team_pg = factories.team()
+            set_roles(user_pg, team_pg, ['member'])
+            set_roles(team_pg, tower_object, [role])
+        else:
+            raise ValueError("Unhandled 'agent' value.")
+    return func
+
+
 @pytest.fixture(scope="function", params=['organization', 'job_template', 'custom_inventory_source', 'project'])
 def notifiable_resource(request):
     '''Iterates through the Tower objects that support notifications.'''
@@ -192,6 +214,8 @@ def check_request(model, method, code, data=None):
 
 
 def assert_response_raised(tower_object, response=httplib.OK):
+    """Check PUT, PATCH, and DELETE against a Tower resource.
+    """
     exc_dict = {
         httplib.OK: None,
         httplib.NOT_FOUND: common.exceptions.NotFound_Exception,
@@ -204,6 +228,27 @@ def assert_response_raised(tower_object, response=httplib.OK):
         else:
             with pytest.raises(exc):
                 getattr(tower_object, method)()
+
+
+def check_read_access(tower_object, expected_forbidden=[], unprivileged=False):
+    """Check GET against a Tower resource.
+    """
+    # for test scenarios involving unprivileged users
+    if unprivileged:
+        with pytest.raises(common.exceptions.NotFound_Exception):
+            tower_object.get()
+        for related in tower_object.related:
+            with pytest.raises(common.exceptions.NotFound_Exception):
+                tower_object.get_related(related)
+    # for test scenarios involving privileged users
+    else:
+        tower_object.get()
+        for related in tower_object.related:
+            if related in expected_forbidden:
+                with pytest.raises(common.exceptions.Forbidden_Exception):
+                    tower_object.get_related(related)
+            else:
+                tower_object.get_related(related)
 
 
 # -----------------------------------------------------------------------------
@@ -390,11 +435,7 @@ class Test_Organization_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                organization_pg.get()
-            for related in organization_pg.json.related:
-                with pytest.raises(common.exceptions.NotFound_Exception):
-                    organization_pg.get_related(related)
+            check_read_access(organization_pg, unprivileged=True)
 
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.NOT_FOUND)
@@ -417,9 +458,7 @@ class Test_Organization_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            organization_pg.get()
-            for related in organization_pg.json.related:
-                organization_pg.get_related(related)
+            check_read_access(organization_pg)
 
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
@@ -440,9 +479,7 @@ class Test_Organization_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            organization_pg.get()
-            for related in organization_pg.json.related:
-                organization_pg.get_related(related)
+            check_read_access(organization_pg)
 
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.OK)
@@ -465,9 +502,7 @@ class Test_Organization_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            organization_pg.get()
-            for related in organization_pg.json.related:
-                organization_pg.get_related(related)
+            check_read_access(organization_pg)
 
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
@@ -490,9 +525,7 @@ class Test_Organization_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            organization_pg.get()
-            for related in organization_pg.json.related:
-                organization_pg.get_related(related)
+            check_read_access(organization_pg)
 
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
@@ -582,11 +615,7 @@ class Test_Project_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                project_pg.get()
-            for related in project_pg.json.related:
-                with pytest.raises(common.exceptions.NotFound_Exception):
-                    project_pg.get_related(related)
+            check_read_access(project_pg, unprivileged=True)
 
             # check project update
             with pytest.raises(common.exceptions.NotFound_Exception):
@@ -596,7 +625,7 @@ class Test_Project_RBAC(Base_Api_Test):
             assert_response_raised(project_pg, httplib.NOT_FOUND)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_admin_role(self, factories, agent, user_password):
+    def test_admin_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with project 'admin' should be able to:
         * GET our project detail page
@@ -612,25 +641,11 @@ class Test_Project_RBAC(Base_Api_Test):
         user_pg = factories.user()
 
         # give agent admin_role
-        if agent == "user":
-            set_roles(user_pg, project_pg, ['admin'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, project_pg, ['admin'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, project_pg, agent, "admin")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            project_pg.get()
-            for related in project_pg.json.related:
-                # 403 when navigating to projects/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        project_pg.get_related(related)
-                else:
-                    project_pg.get_related(related)
+            check_read_access(project_pg, ["organization"])
 
             # check project update
             project_pg.update().wait_until_completed()
@@ -639,7 +654,7 @@ class Test_Project_RBAC(Base_Api_Test):
             assert_response_raised(project_pg, httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_update_role(self, factories, agent, user_password):
+    def test_update_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with project 'update' should be able to:
         * GET our project detail page
@@ -657,25 +672,11 @@ class Test_Project_RBAC(Base_Api_Test):
         user_pg = factories.user()
 
         # give agent update_role
-        if agent == "user":
-            set_roles(user_pg, project_pg, ['update'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, project_pg, ['update'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, project_pg, agent, "update")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            project_pg.get()
-            for related in project_pg.json.related:
-                # 403 when navigating to projects/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        project_pg.get_related(related)
-                else:
-                    project_pg.get_related(related)
+            check_read_access(project_pg, ["organization"])
 
             # check project update
             project_pg.update()
@@ -684,7 +685,7 @@ class Test_Project_RBAC(Base_Api_Test):
             assert_response_raised(project_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_use_role(self, factories, agent, user_password):
+    def test_use_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with project 'use' should be able to:
         * GET our project detail page
@@ -702,25 +703,11 @@ class Test_Project_RBAC(Base_Api_Test):
         user_pg = factories.user()
 
         # give agent use_role
-        if agent == "user":
-            set_roles(user_pg, project_pg, ['use'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, project_pg, ['use'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, project_pg, agent, "use")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            project_pg.get()
-            for related in project_pg.json.related:
-                # 403 when navigating to projects/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        project_pg.get_related(related)
-                else:
-                    project_pg.get_related(related)
+            check_read_access(project_pg, ["organization"])
 
             # check project update
             with pytest.raises(common.exceptions.Forbidden_Exception):
@@ -730,7 +717,7 @@ class Test_Project_RBAC(Base_Api_Test):
             assert_response_raised(project_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_read_role(self, factories, agent, user_password):
+    def test_read_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with project 'read' should be able to:
         * GET our project detail page
@@ -748,25 +735,11 @@ class Test_Project_RBAC(Base_Api_Test):
         user_pg = factories.user()
 
         # give agent read_role
-        if agent == "user":
-            set_roles(user_pg, project_pg, ['read'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, project_pg, ['read'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, project_pg, agent, "read")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            project_pg.get()
-            for related in project_pg.json.related:
-                # 403 when navigating to projects/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        project_pg.get_related(related)
-                else:
-                    project_pg.get_related(related)
+            check_read_access(project_pg, ["organization"])
 
             # check project update
             with pytest.raises(common.exceptions.Forbidden_Exception):
@@ -800,17 +773,13 @@ class Test_Credential_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                credential_pg.get()
-            for related in credential_pg.json.related:
-                with pytest.raises(common.exceptions.NotFound_Exception):
-                    credential_pg.get_related(related)
+            check_read_access(credential_pg, unprivileged=True)
 
             # check put/patch/delete
             assert_response_raised(credential_pg, httplib.NOT_FOUND)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_admin_role(self, factories, agent, user_password):
+    def test_admin_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with credential 'admin' should be able to:
         * Make GETs to the credential detail page
@@ -825,26 +794,17 @@ class Test_Credential_RBAC(Base_Api_Test):
         user_pg = factories.user(organization=credential_pg.get_related('organization'))
 
         # give agent admin_role
-        if agent == "user":
-            set_roles(user_pg, credential_pg, ['admin'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, credential_pg, ['admin'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, credential_pg, agent, "admin")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            credential_pg.get()
-            for related in credential_pg.json.related:
-                credential_pg.get_related(related)
+            check_read_access(credential_pg)
 
             # check put/patch/delete
             assert_response_raised(credential_pg, httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_use_role(self, factories, agent, user_password):
+    def test_use_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with credential 'use' should be able to:
         * Make GETs to the credential detail page
@@ -861,31 +821,17 @@ class Test_Credential_RBAC(Base_Api_Test):
         user_pg = factories.user(organization=credential_pg.get_related('organization'))
 
         # give agent use_role
-        if agent == "user":
-            set_roles(user_pg, credential_pg, ['use'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, credential_pg, ['use'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, credential_pg, agent, "use")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            credential_pg.get()
-            for related in credential_pg.json.related:
-                # 403 with 'user' is expected
-                if related == 'user':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        credential_pg.get_related(related)
-                else:
-                    credential_pg.get_related(related)
+            check_read_access(credential_pg, ['user'])
 
             # check put/patch/delete
             assert_response_raised(credential_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_read_role(self, factories, agent, user_password):
+    def test_read_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with credential 'read' should be able to:
         * Make GETs to the credential detail page
@@ -902,25 +848,11 @@ class Test_Credential_RBAC(Base_Api_Test):
         user_pg = factories.user(organization=credential_pg.get_related('organization'))
 
         # give agent read_role
-        if agent == "user":
-            set_roles(user_pg, credential_pg, ['read'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, credential_pg, ['read'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, credential_pg, agent, "read")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            credential_pg.get()
-            for related in credential_pg.json.related:
-                # 403 with 'user' is expected
-                if related == 'user':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        credential_pg.get_related(related)
-                else:
-                    credential_pg.get_related(related)
+            check_read_access(credential_pg, ['user'])
 
             # check put/patch/delete
             assert_response_raised(credential_pg, httplib.FORBIDDEN)
@@ -985,17 +917,13 @@ class Test_Team_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                team_pg.get()
-            for related in team_pg.json.related:
-                with pytest.raises(common.exceptions.NotFound_Exception):
-                    team_pg.get_related(related)
+            check_read_access(team_pg, unprivileged=True)
 
             # check put/patch/delete
             assert_response_raised(team_pg, httplib.NOT_FOUND)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_admin_role(self, factories, agent, user_password):
+    def test_admin_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with team 'admin_role' should be able to:
         * Get the team details page
@@ -1007,31 +935,17 @@ class Test_Team_RBAC(Base_Api_Test):
         user_pg = factories.user()
 
         # give agent admin_role
-        if agent == "user":
-            set_roles(user_pg, team_pg, ['admin'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, team_pg, ['admin'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, team_pg, agent, "admin")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            team_pg.get()
-            for related in team_pg.json.related:
-                # 403 when navigating to teams/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        team_pg.get_related(related)
-                else:
-                    team_pg.get_related(related)
+            check_read_access(team_pg, ['organization'])
 
             # check put/patch/delete
             assert_response_raised(team_pg, httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_member_role(self, factories, agent, user_password):
+    def test_member_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with team 'member_role' should be able to:
         * Get the team details page
@@ -1045,31 +959,17 @@ class Test_Team_RBAC(Base_Api_Test):
         user_pg = factories.user()
 
         # give agent member_role
-        if agent == "user":
-            set_roles(user_pg, team_pg, ['member'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, team_pg, ['member'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, team_pg, agent, "member")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            team_pg.get()
-            for related in team_pg.json.related:
-                # 403 when navigating to teams/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        team_pg.get_related(related)
-                else:
-                    team_pg.get_related(related)
+            check_read_access(team_pg, ['organization'])
 
             # check put/patch/delete
             assert_response_raised(team_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_read_role(self, factories, agent, user_password):
+    def test_read_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with team 'read_role' should be able to:
         * Get the team details page
@@ -1083,25 +983,11 @@ class Test_Team_RBAC(Base_Api_Test):
         user_pg = factories.user()
 
         # give agent read_role
-        if agent == "user":
-            set_roles(user_pg, team_pg, ['read'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, team_pg, ['read'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, team_pg, agent, "read")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            team_pg.get()
-            for related in team_pg.json.related:
-                # 403 when navigating to teams/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        team_pg.get_related(related)
-                else:
-                    team_pg.get_related(related)
+            check_read_access(team_pg, ['organization'])
 
             # check put/patch/delete
             assert_response_raised(team_pg, httplib.FORBIDDEN)
@@ -1149,17 +1035,13 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                inventory_script.get()
-            for related in inventory_script.json.related:
-                with pytest.raises(common.exceptions.NotFound_Exception):
-                    inventory_script.get_related(related)
+            check_read_access(inventory_script, unprivileged=True)
 
             # check put/patch/delete
             assert_response_raised(inventory_script, httplib.NOT_FOUND)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_admin_role(self, factories, inventory_script, agent, user_password):
+    def test_admin_role(self, factories, inventory_script, set_test_roles, agent, user_password):
         '''
         A user/team with inventory_script 'admin' should be able to:
         * Get your inventory_script detail page
@@ -1174,25 +1056,11 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
         script = inventory_script.script
 
         # give agent admin_role
-        if agent == "user":
-            set_roles(user_pg, inventory_script, ['admin'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, inventory_script, ['admin'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, inventory_script, agent, "admin")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            inventory_script.get()
-            for related in inventory_script.json.related:
-                # 403 when navigating to inventory_scripts/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        inventory_script.get_related(related)
-                else:
-                    inventory_script.get_related(related)
+            check_read_access(inventory_script, ["organization"])
 
             # check that value of 'script' viewable
             assert inventory_script.script == script, \
@@ -1202,7 +1070,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             assert_response_raised(inventory_script, httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_read_role(self, factories, inventory_script, agent, user_password):
+    def test_read_role(self, factories, inventory_script, set_test_roles, agent, user_password):
         '''
         A user/team with inventory_script 'read' should be able to:
         * Get your inventory_script detail page
@@ -1218,25 +1086,11 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
         assert inventory_script.script
 
         # give agent read_role
-        if agent == "user":
-            set_roles(user_pg, inventory_script, ['read'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, inventory_script, ['read'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, inventory_script, agent, "read")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            inventory_script.get()
-            for related in inventory_script.json.related:
-                # 403 when navigating to inventory_scripts/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        inventory_script.get_related(related)
-                else:
-                    inventory_script.get_related(related)
+            check_read_access(inventory_script, ["organization"])
 
             # check that value of 'script' not viewable
             assert not inventory_script.script, \
@@ -1268,11 +1122,8 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         launch_pg = job_template_pg.get_related('launch')
 
         with self.current_user(username=user_pg.username, password=user_password):
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                job_template_pg.get()
-            for related in job_template_pg.json.related:
-                with pytest.raises(common.exceptions.NotFound_Exception):
-                    job_template_pg.get_related(related)
+            # check GET as test user
+            check_read_access(job_template_pg, unprivileged=True)
 
             # check JT launch
             with pytest.raises(common.exceptions.NotFound_Exception):
@@ -1283,7 +1134,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3076')
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_admin_role(self, factories, agent, user_password):
+    def test_admin_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with JT 'admin' should be able to:
         * Get the JT details page
@@ -1296,25 +1147,11 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         user_pg = factories.user()
 
         # give agent admin_role
-        if agent == "user":
-            set_roles(user_pg, job_template_pg, ['admin'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, job_template_pg, ['admin'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, job_template_pg, agent, "admin")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            job_template_pg.get()
-            for related in job_template_pg.json.related:
-                # 403 when navigating to the following related is expected
-                if related in ['credential', 'inventory', 'project']:
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        job_template_pg.get_related(related)
-                else:
-                    job_template_pg.get_related(related)
+            check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
             # check JT launch
             job_pg = job_template_pg.launch().wait_until_completed()
@@ -1324,7 +1161,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             assert_response_raised(job_template_pg, httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_execute_role(self, factories, agent, user_password):
+    def test_execute_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with JT 'execute' should be able to:
         * Get the JT details page
@@ -1339,25 +1176,11 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         user_pg = factories.user()
 
         # give agent execute_role
-        if agent == "user":
-            set_roles(user_pg, job_template_pg, ['execute'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, job_template_pg, ['execute'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, job_template_pg, agent, "execute")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            job_template_pg.get()
-            for related in job_template_pg.json.related:
-                # 403 when navigating to the following related is expected
-                if related in ['credential', 'inventory', 'project']:
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        job_template_pg.get_related(related)
-                else:
-                    job_template_pg.get_related(related)
+            check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
             # check JT launch
             job_pg = job_template_pg.launch().wait_until_completed()
@@ -1367,7 +1190,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_read_role(self, factories, agent, user_password):
+    def test_read_role(self, factories, set_test_roles, agent, user_password):
         '''
         A user/team with JT 'admin' should be able to:
         * Get the JT details page
@@ -1382,25 +1205,11 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         user_pg = factories.user()
 
         # give agent read_role
-        if agent == "user":
-            set_roles(user_pg, job_template_pg, ['read'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, job_template_pg, ['read'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, job_template_pg, agent, "read")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            job_template_pg.get()
-            for related in job_template_pg.json.related:
-                # 403 when navigating to the following related is expected
-                if related in ['credential', 'inventory', 'project']:
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        job_template_pg.get_related(related)
-                else:
-                    job_template_pg.get_related(related)
+            check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
             # check JT launch
             with pytest.raises(common.exceptions.Forbidden_Exception):
@@ -1409,23 +1218,21 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
 
-    @pytest.mark.parametrize("role", ["admin_role", "execute_role", "read_role"])
+    @pytest.mark.parametrize("role", ["admin", "execute", "read"])
     def test_job_template_can_edit(self, factories, user_password, role):
         '''
         Test that when users with JT 'admin' navigate to a JT details
         page that can_edit is True. can_edit should be False with
         all other users.
         '''
-        ALLOWED_ROLES = ['admin_role']
-        REJECTED_ROLES = ['execute_role', 'read_role']
+        ALLOWED_ROLES = ['admin']
+        REJECTED_ROLES = ['execute', 'read']
 
         user_pg = factories.user()
         job_template_pg = factories.job_template()
 
         # give user target role
-        role_pg = job_template_pg.get_object_role(role)
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            user_pg.get_related('roles').post(dict(id=role_pg.id))
+        set_roles(user_pg, job_template_pg, [role])
 
         # check can_edit as our test user
         with self.current_user(username=user_pg.username, password=user_password):
@@ -1473,11 +1280,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                inventory_pg.get()
-            for related in inventory_pg.json.related:
-                with pytest.raises(common.exceptions.NotFound_Exception):
-                    inventory_pg.get_related(related)
+            check_read_access(inventory_pg, unprivileged=True)
 
             # update all cloud_groups
             for inventory_source_update_pg in inventory_source_update_pgs:
@@ -1504,7 +1307,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(inventory_pg, httplib.NOT_FOUND)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_admin_role(self, host_local, cloud_groups, custom_group, agent, user_password, factories):
+    def test_admin_role(self, host_local, cloud_groups, custom_group, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'admin' should be able to:
         * Get the inventory detail
@@ -1527,25 +1330,11 @@ class Test_Inventory_RBAC(Base_Api_Test):
         credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent admin_role
-        if agent == "user":
-            set_roles(user_pg, inventory_pg, ['admin'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, inventory_pg, ['admin'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, inventory_pg, agent, "admin")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            inventory_pg.get()
-            for related in inventory_pg.json.related:
-                # 403 when navigating to inventories/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        inventory_pg.get_related(related)
-                else:
-                    inventory_pg.get_related(related)
+            check_read_access(inventory_pg, ["organization"])
 
             # update all cloud_groups
             for cloud_group in cloud_groups:
@@ -1578,7 +1367,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(inventory_pg, httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_use_role(self, host_local, custom_group, agent, user_password, factories):
+    def test_use_role(self, host_local, custom_group, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'use' should be able to:
         * Get the inventory detail
@@ -1603,25 +1392,11 @@ class Test_Inventory_RBAC(Base_Api_Test):
         credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent use_role
-        if agent == "user":
-            set_roles(user_pg, inventory_pg, ['use'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, inventory_pg, ['use'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, inventory_pg, agent, "use")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            inventory_pg.get()
-            for related in inventory_pg.json.related:
-                # 403 when navigating to inventories/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        inventory_pg.get_related(related)
-                else:
-                    inventory_pg.get_related(related)
+            check_read_access(inventory_pg, ["organization"])
 
             # update custom group
             update_pg = custom_group.get_related('inventory_source').get_related('update')
@@ -1647,7 +1422,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_adhoc_role(self, host_local, custom_group, agent, user_password, factories):
+    def test_adhoc_role(self, host_local, custom_group, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'adhoc' should be able to:
         * Get the inventory detail
@@ -1672,25 +1447,11 @@ class Test_Inventory_RBAC(Base_Api_Test):
         credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent adhoc_role
-        if agent == "user":
-            set_roles(user_pg, inventory_pg, ['ad hoc'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, inventory_pg, ['ad hoc'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, inventory_pg, agent, "ad hoc")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            inventory_pg.get()
-            for related in inventory_pg.json.related:
-                # 403 when navigating to inventories/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        inventory_pg.get_related(related)
-                else:
-                    inventory_pg.get_related(related)
+            check_read_access(inventory_pg, ["organization"])
 
             # update custom group
             update_pg = custom_group.get_related('inventory_source').get_related('update')
@@ -1718,7 +1479,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2710')
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_update_role(self, host_local, cloud_groups, custom_group, agent, user_password, factories):
+    def test_update_role(self, host_local, cloud_groups, custom_group, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'update' should be able to:
         * Get the inventory detail
@@ -1743,25 +1504,11 @@ class Test_Inventory_RBAC(Base_Api_Test):
         credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent update_role
-        if agent == "user":
-            set_roles(user_pg, inventory_pg, ['update'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, inventory_pg, ['update'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, inventory_pg, agent, "update")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            inventory_pg.get()
-            for related in inventory_pg.json.related:
-                # 403 when navigating to inventories/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        inventory_pg.get_related(related)
-                else:
-                    inventory_pg.get_related(related)
+            check_read_access(inventory_pg, ["organization"])
 
             # update all cloud_groups
             for cloud_group in cloud_groups:
@@ -1795,7 +1542,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_read_role(self, host_local, custom_group, agent, user_password, factories):
+    def test_read_role(self, host_local, custom_group, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'read' should be able to:
         * Get the inventory detail
@@ -1820,25 +1567,11 @@ class Test_Inventory_RBAC(Base_Api_Test):
         credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent read_role
-        if agent == "user":
-            set_roles(user_pg, inventory_pg, ['read'])
-        elif agent == "team":
-            team_pg = factories.team()
-            set_roles(user_pg, team_pg, ['member'])
-            set_roles(team_pg, inventory_pg, ['read'])
-        else:
-            raise ValueError("Unhandled 'agent' value.")
+        set_test_roles(user_pg, inventory_pg, agent, "read")
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
-            inventory_pg.get()
-            for related in inventory_pg.json.related:
-                # 403 when navigating to inventories/N/organization is expected
-                if related == 'organization':
-                    with pytest.raises(common.exceptions.Forbidden_Exception):
-                        inventory_pg.get_related(related)
-                else:
-                    inventory_pg.get_related(related)
+            check_read_access(inventory_pg, ["organization"])
 
             # update custom group
             update_pg = custom_group.get_related('inventory_source').get_related('update')
@@ -2010,14 +1743,14 @@ class Test_Label_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @pytest.mark.parametrize('role', ['admin_role', 'auditor_role', 'read_role', 'member_role'])
+    @pytest.mark.parametrize('role', ['admin', 'auditor', 'read', 'member'])
     def test_organization_label_post(self, factories, user_password, api_labels_pg, role):
         '''
         Users with organization 'admin' and 'member' should be able to create a label with their role
         organization. Users with organization 'auditor' and 'read' should receive a 403 forbidden.
         '''
-        ALLOWED_ROLES = ['admin_role', 'member_role']
-        REJECTED_ROLES = ['read_role', 'auditor_role']
+        ALLOWED_ROLES = ['admin', 'member']
+        REJECTED_ROLES = ['read', 'auditor']
 
         user_pg = factories.user()
         organization_pg = factories.organization()
@@ -2029,9 +1762,7 @@ class Test_Label_RBAC(Base_Api_Test):
                 api_labels_pg.post(payload)
 
         # grant user target organization permission
-        role_pg = organization_pg.get_object_role(role)
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            user_pg.get_related('roles').post(dict(id=role_pg.id))
+        set_roles(user_pg, organization_pg, [role])
 
         # assert label post accepted
         with self.current_user(username=user_pg.username, password=user_password):
@@ -2043,7 +1774,7 @@ class Test_Label_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled organization role.")
 
-    @pytest.mark.parametrize("role", ["admin_role", "read_role"])
+    @pytest.mark.parametrize("role", ["admin", "read"])
     def test_job_template_label_association(self, factories, user_password, role):
         '''
         Tests that when JT can_edit is true that our test user may associate a label with
@@ -2056,14 +1787,11 @@ class Test_Label_RBAC(Base_Api_Test):
         user_pg = factories.user(organization=organization_pg)
         label_pg = factories.label(organization=organization_pg)
 
-        payload = dict(id=label_pg.id)
-
         # grant user target JT permission
-        role_pg = job_template_pg.get_object_role(role)
-        with pytest.raises(common.exceptions.NoContent_Exception):
-            user_pg.get_related('roles').post(dict(id=role_pg.id))
+        set_roles(user_pg, job_template_pg, [role])
 
         # test label association
+        payload = dict(id=label_pg.id)
         with self.current_user(username=user_pg.username, password=user_password):
             job_template_pg.get()
             if job_template_pg.summary_fields['can_edit']:
