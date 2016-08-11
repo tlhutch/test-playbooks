@@ -280,7 +280,12 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_credentials_get(self, api_credentials_pg, _credentials):
-        credential_page = api_credentials_pg.get(or__name=[o['name'] for o in _credentials])
+        cred_names = [cred['name'] for cred in _credentials]
+        # take 2.4 -> 3.0 azure credential rename into consideration
+        azure_name = filter(lambda name: 'Azure' in name, cred_names).pop()
+        cred_names.append(azure_name.replace(' Classic', ''))
+
+        credential_page = api_credentials_pg.get(or__name=cred_names)
         assert(not credential_page.count % len(_credentials)
                ), "The number of credentials isn't cleanly divisible by the number of those recently added."
 
