@@ -576,7 +576,6 @@ class NetworkDetails(CredentialDetails):
         },
         'password': {
             'region_type': 'password',
-            'required': True,
             'root_locator': (
                 (By.CSS_SELECTOR, 'label[for=password]'),
                 (By.XPATH, '..'))
