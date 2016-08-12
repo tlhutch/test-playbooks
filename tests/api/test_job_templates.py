@@ -44,7 +44,7 @@ def job_template_with_deleted_related(request, job_template):
 @pytest.fixture(params=["job_template_sleep", "inventory", "project_ansible_playbooks_git"])
 def conflict_exception_resource(request):
     '''
-    Returns resources that when deleted, will raise a conflict exception while a job is
+    Returns resources that when deleted, will raise a conflict exception when a job is
     still running.
     '''
     return request.getfuncargvalue(request.param)
