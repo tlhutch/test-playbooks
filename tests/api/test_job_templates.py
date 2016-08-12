@@ -936,7 +936,7 @@ class Test_Job_Template(Base_Api_Test):
         job_pg = job_template_sleep.launch().wait_until_started()
 
         # delete the job_template
-        exc_info = pytest.raises(common.exceptions.Conflict_Exception, job_template_sleep.delete)
+        exc_info = pytest.raises(common.exceptions.Conflict_Exception, conflict_exception_resource.delete)
         result = exc_info.value[1]
         assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'job', u'id': job_pg.id}]}
 
