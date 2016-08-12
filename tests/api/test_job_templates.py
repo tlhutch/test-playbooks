@@ -41,6 +41,15 @@ def job_template_with_deleted_related(request, job_template):
     return (request.param, job_template)
 
 
+@pytest.fixture(params=["job_template_sleep", "inventory", "project_ansible_playbooks_git"])
+def conflict_exception_resource(request):
+    '''
+    Returns resources that when deleted, will raise a conflict exception while a job is
+    still running.
+    '''
+    return request.getfuncargvalue(request.param)
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -918,17 +927,17 @@ class Test_Job_Template(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    def test_delete_template_while_job_is_running(self, job_template_sleep):
+    def test_conflict_exception_with_running_job(self, job_template_sleep, conflict_exception_resource):
         '''
-        Verify that tower properly cancels queued jobs when deleting the
-        corresponding job_template.
+        Verify that a conflict exception is raised when deleting either the JT
+        or some of the JT's underlying resources when a job is still running.
         '''
         # launch the job_template
         job_template_sleep.launch().wait_until_started()
 
         # delete the job_template
         with pytest.raises(common.exceptions.Conflict_Exception):
-            job_template_sleep.delete()
+            conflict_exception_resource.delete()
 
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         '''
