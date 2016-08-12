@@ -70,7 +70,7 @@ def test_create_user(factories, api_users_pg, ui_user_add):
     # make some data
     organization = factories.organization()
     username = fauxfactory.gen_alphanumeric()
-    password = fauxfactory.gen_alphanumeric().title()
+    password = fauxfactory.gen_alphanumeric().title() + '1'
     # populate the form
     ui_user_add.details.organization.set_value(organization.name)
     ui_user_add.details.first_name.set_value(fauxfactory.gen_alphanumeric())
