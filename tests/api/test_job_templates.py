@@ -938,7 +938,7 @@ class Test_Job_Template(Base_Api_Test):
         # delete the job_template
         exc_info = pytest.raises(common.exceptions.Conflict_Exception, conflict_exception_resource.delete)
         result = exc_info.value[1]
-        assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'job', u'id': job_pg.id}]}
+        assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'%s' % job_pg.type, u'id': job_pg.id}]}
 
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         '''
