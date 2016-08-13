@@ -13,7 +13,7 @@
     instance_count: 1
     ec2_region: 'us-east-1'
     instance_type: 'm3.large'
-    public_key_path: '~/.ssh/id_rsa.pub'
+    public_key_material: "{{ lookup('env','PUBLIC_KEY_MATERIAL') if lookup('env','PUBLIC_KEY_MATERIAL') else lookup('file', '~/.ssh/id_rsa.pub') }}"
     ec2_key_pair_name: "{{ 'jenkins' if lookup('env','JENKINS_HOME') else lookup('env','USER') }}"
     ec2_name_prefix: "{{ 'jenkins' if lookup('env','JENKINS_HOME') else lookup('env','USER') }}"
 
@@ -62,8 +62,7 @@
       ec2_key:
         region: '{{ ec2_region }}'
         name: '{{ ec2_key_pair_name }}'
-        key_material: "{{ item }}"
-      with_file: '{{ public_key_path }}'
+        key_material: "{{ public_key_material }}"
 
     - name: Launch or terminate instance(s)
       ec2:
