@@ -248,6 +248,16 @@ class Test_Projects(Base_Api_Test):
             "project status after cancelling project update (expected " \
             "status:canceled) - %s" % project_ansible_git_nowait
 
+    def test_conflict_exception_with_running_update(self, project_ansible_git_nowait):
+        """Verify that deleting a project with a running update will
+        raise a 409 exception"""
+        update_pg = project_ansible_git_nowait.get_related("current_update")
+
+        # delete the job_template
+        exc_info = pytest.raises(common.exceptions.Conflict_Exception, project_ansible_git_nowait.delete)
+        result = exc_info.value[1]
+        assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'%s' % update_pg.type, u'id': update_pg.id}]}
+
     def test_delete_related_fields(self, install_enterprise_license_unlimited, project_ansible_playbooks_git):
         '''Verify that related fields on a deleted resource respond as expected'''
 
