@@ -46,6 +46,14 @@ from common.ui.models import (
 log = logging.getLogger(__name__)
 
 
+@pytest.fixture(scope='session')
+def session_capabilities(session_capabilities):
+    if session_capabilities['browserName'] == 'firefox':
+        session_capabilities['version'] = '47'
+
+    return session_capabilities
+
+
 # -----------------------------------------------------------------------------
 # Window Size and Position
 # -----------------------------------------------------------------------------
