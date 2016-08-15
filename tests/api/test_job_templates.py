@@ -41,15 +41,6 @@ def job_template_with_deleted_related(request, job_template):
     return (request.param, job_template)
 
 
-@pytest.fixture(params=["job_template_sleep", "inventory", "project_ansible_playbooks_git"])
-def conflict_exception_resource(request):
-    '''
-    Returns resources that when deleted, will raise a conflict exception when a job is
-    still running.
-    '''
-    return request.getfuncargvalue(request.param)
-
-
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -927,18 +918,22 @@ class Test_Job_Template(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    def test_conflict_exception_with_running_job(self, job_template_sleep, conflict_exception_resource):
+    def test_conflict_exception_with_running_job(self, job_template_sleep):
         '''
         Verify that a conflict exception is raised when deleting either the JT
         or some of the JT's underlying resources when a job is still running.
         '''
+        inventory_pg = job_template_sleep.get_related("inventory")
+        project_pg = job_template_sleep.get_related("project")
+
         # launch the job_template
         job_pg = job_template_sleep.launch().wait_until_started()
 
-        # delete the job_template
-        exc_info = pytest.raises(common.exceptions.Conflict_Exception, conflict_exception_resource.delete)
-        result = exc_info.value[1]
-        assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'%s' % job_pg.type, u'id': job_pg.id}]}
+        # delete target object and assert 409 raised
+        for tower_resource in [job_template_sleep, inventory_pg, project_pg]:
+            exc_info = pytest.raises(common.exceptions.Conflict_Exception, tower_resource.delete)
+            result = exc_info.value[1]
+            assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'%s' % job_pg.type, u'id': job_pg.id}]}
 
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         '''
