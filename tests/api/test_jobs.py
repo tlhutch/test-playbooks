@@ -997,6 +997,12 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
             expected_env_vars = dict(
                 OS_CLIENT_CONFIG_FILE=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
             )
+        elif cloud_credential.kind == 'cloudforms':
+            self.has_credentials('cloud', cloud_credential.kind, ['host', 'username', 'password'])
+            expected_env_vars = dict()
+        elif cloud_credential.kind == 'satellite6':
+            self.has_credentials('cloud', cloud_credential.kind, ['host', 'username', 'password'])
+            expected_env_vars = dict()
         else:
             raise ValueError("Unhandled cloud type: %s" % cloud_credential.kind)
 
