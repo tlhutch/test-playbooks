@@ -250,12 +250,6 @@ class Inventory_Source_Page(Unified_Job_Template_Page):
         elif attr == 'notification_templates_success':
             from notification_templates import Notification_Templates_Page
             cls = Notification_Templates_Page
-        elif attr == 'group':
-            cls = Group_Page
-        elif attr == 'groups':
-            cls = Groups_Page
-        elif attr == 'hosts':
-            cls == Hosts_Page
         else:
             raise NotImplementedError("No related class found for '%s'" % attr)
 
