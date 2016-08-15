@@ -328,7 +328,7 @@ def test_unauthorized_self_privilege_escalation_returns_code_403(
         set_roles(user, resource, [unauthorized_target_role], endpoint=endpoint)
 
 
-@pytest.mark.parametrize('payload_resource_roles,response_codes', [
+@pytest.mark.parametrize('payload_resource_roles, response_codes', [
     (
         {'credential': ['read'], 'inventory': ['use'], 'project': ['use']},
         {'PATCH': httplib.FORBIDDEN, 'PUT': httplib.FORBIDDEN}

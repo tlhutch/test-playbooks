@@ -918,17 +918,22 @@ class Test_Job_Template(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    def test_delete_template_while_job_is_running(self, job_template_sleep):
+    def test_conflict_exception_with_running_job(self, job_template_sleep):
         '''
-        Verify that tower properly cancels queued jobs when deleting the
-        corresponding job_template.
+        Verify that a conflict exception is raised when deleting either the JT
+        or some of the JT's underlying resources when a job is still running.
         '''
-        # launch the job_template
-        job_template_sleep.launch().wait_until_started()
+        inventory_pg = job_template_sleep.get_related("inventory")
+        project_pg = job_template_sleep.get_related("project")
 
-        # delete the job_template
-        with pytest.raises(common.exceptions.Conflict_Exception):
-            job_template_sleep.delete()
+        # launch the job_template
+        job_pg = job_template_sleep.launch().wait_until_started()
+
+        # delete target object and assert 409 raised
+        for tower_resource in [job_template_sleep, inventory_pg, project_pg]:
+            exc_info = pytest.raises(common.exceptions.Conflict_Exception, tower_resource.delete)
+            result = exc_info.value[1]
+            assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'%s' % job_pg.type, u'id': job_pg.id}]}
 
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         '''
