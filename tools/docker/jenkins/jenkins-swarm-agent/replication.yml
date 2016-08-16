@@ -15,6 +15,7 @@ spec:
       containers:
         - name: jenkins-gke-agent
           image: gcr.io/ansible-tower-engineering/jenkins-swarm-agent
+          imagePullPolicy: Always
           command: ["/bin/bash","-c"]
           args:
             - 'java -jar swarm-client-jar-with-dependencies.jar -master=http://jenkins.testing.ansible.com -username=${JENKINS_USER} -password=${JENKINS_TOKEN} -executors=1 -mode=exclusive -labels=gke-swarm'
