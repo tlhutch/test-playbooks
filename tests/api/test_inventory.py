@@ -154,7 +154,7 @@ class Test_Inventory(Base_Api_Test):
         # delete the job_template
         exc_info = pytest.raises(common.exceptions.Conflict_Exception, inventory_pg.delete)
         result = exc_info.value[1]
-        assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'%s' % update_pg.type, u'id': update_pg.id}]}
+        assert result == {'conflict': 'Resource is being used by running jobs', 'active_jobs': [{'type': '%s' % update_pg.type, 'id': update_pg.id}]}
 
     def test_cascade_delete(self, inventory, host_local, host_without_group, group, api_groups_pg, api_hosts_pg):
         '''Verify DELETE removes associated groups and hosts'''

@@ -256,7 +256,7 @@ class Test_Projects(Base_Api_Test):
         # delete the job_template
         exc_info = pytest.raises(common.exceptions.Conflict_Exception, project_ansible_git_nowait.delete)
         result = exc_info.value[1]
-        assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'%s' % update_pg.type, u'id': update_pg.id}]}
+        assert result == {'conflict': 'Resource is being used by running jobs', 'active_jobs': [{'type': '%s' % update_pg.type, 'id': update_pg.id}]}
 
     def test_delete_related_fields(self, install_enterprise_license_unlimited, project_ansible_playbooks_git):
         '''Verify that related fields on a deleted resource respond as expected'''

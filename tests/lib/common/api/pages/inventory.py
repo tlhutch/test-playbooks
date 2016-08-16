@@ -250,7 +250,7 @@ class Inventory_Source_Page(Unified_Job_Template_Page):
         elif attr == 'notification_templates_success':
             from notification_templates import Notification_Templates_Page
             cls = Notification_Templates_Page
-        else:
+        if cls is None:
             raise NotImplementedError("No related class found for '%s'" % attr)
 
         return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
