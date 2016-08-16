@@ -163,6 +163,13 @@ def ui_credential_edit(factories, ui_dashboard, selenium, base_url):
 
 
 @pytest.fixture
+def ui_private_credential(factories, ui_dashboard, selenium, base_url):
+    user = factories.user()
+    private_credential = factories.credential(user=user, organization=None, team=None)
+    return CredentialEdit(selenium, base_url, id=private_credential.id).open()
+
+
+@pytest.fixture
 def ui_inventories(ui_dashboard, selenium, base_url):
     return Inventories(selenium, base_url).open()
 
