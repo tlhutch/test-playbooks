@@ -129,6 +129,12 @@ def another_custom_group(request, authtoken, api_groups_pg, inventory, inventory
     return obj
 
 
+@pytest.fixture(scope="function")
+def job_template_with_cloud_credential(request, job_template, cloud_credential):
+    job_template.patch(cloud_credential=cloud_credential.id)
+    return job_template
+
+
 def confirm_fact_modules_present(facts, **kwargs):
     '''Convenience function to assess fact module contents.'''
     assert len(facts) == len(kwargs), "Unexpected number of new facts found ..."
@@ -906,12 +912,6 @@ class Test_Scan_Job(Base_Api_Test):
         confirm_fact_modules_present(new_facts, foo=1)
 
 
-@pytest.fixture(scope="function")
-def job_template_with_cloud_credential(request, job_template, cloud_credential):
-    job_template.patch(cloud_credential=cloud_credential.id)
-    return job_template
-
-
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -926,6 +926,8 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
     def test_job_env(self, job_template_with_cloud_credential):
         '''
         Verify that job_env has the expected cloud_credential variables
+
+        Note: Tower doesn't set environmental variables for CloudForms and Satellite6.
         '''
         # get cloud_credential
         cloud_credential = job_template_with_cloud_credential.get_related('cloud_credential')
