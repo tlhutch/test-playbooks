@@ -18,7 +18,7 @@ class BaseTab(Region):
         return self.root.value_of_css_property('background-color')
 
     def is_enabled(self):
-        return self.background_color in self._bg_enabled
+        return self.root.is_enabled() and self.background_color in self._bg_enabled
 
     def is_disabled(self):
         return self.background_color in self._bg_disabled

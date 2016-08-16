@@ -56,8 +56,12 @@ class CredentialEdit(Credentials):
 
     @property
     def permissions(self):
-        PermissionsTab(self).enable()
+        self.permissions_tab.enable()
         return FormPanel(self)
+
+    @property
+    def permissions_tab(self):
+        return PermissionsTab(self)
 
 
 class CredentialsTable(ListTable):
