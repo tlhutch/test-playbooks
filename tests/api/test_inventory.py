@@ -144,6 +144,18 @@ class Test_Inventory(Base_Api_Test):
             "The number of inventory hosts differs between endpoints " \
             "/hosts (%s) and /script (%s)" % (all_hosts.count, script_all_hosts)
 
+    def test_conflict_exception_with_running_update(self, custom_inventory_source):
+        """Verify that deleting an inventory with a running update will
+        raise a 409 exception"""
+        inventory_pg = custom_inventory_source.get_related("inventory")
+        custom_inventory_source.get_related("update").post()
+        update_pg = custom_inventory_source.get().get_related("current_update")
+
+        # delete the job_template
+        exc_info = pytest.raises(common.exceptions.Conflict_Exception, inventory_pg.delete)
+        result = exc_info.value[1]
+        assert result == {'conflict': 'Resource is being used by running jobs', 'active_jobs': [{'type': '%s' % update_pg.type, 'id': update_pg.id}]}
+
     def test_cascade_delete(self, inventory, host_local, host_without_group, group, api_groups_pg, api_hosts_pg):
         '''Verify DELETE removes associated groups and hosts'''
 
