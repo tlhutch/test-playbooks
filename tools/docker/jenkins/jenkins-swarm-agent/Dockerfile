@@ -26,4 +26,7 @@ RUN pip install --upgrade cffi ansible boto docker-py
 RUN curl -L https://github.com/docker/compose/releases/download/1.7.1/docker-compose-Linux-x86_64 > /usr/local/bin/docker-compose
 RUN chmod +x /usr/local/bin/docker-compose
 
+RUN curl -L https://storage.googleapis.com/kubernetes-release/release/v1.2.4/bin/linux/amd64/kubectl > /usr/local/bin/kubectl
+RUN chmod +x /usr/local/bin/kubectl
+
 RUN curl -L http://repo.jenkins-ci.org/releases/org/jenkins-ci/plugins/swarm-client/2.2/swarm-client-2.2-jar-with-dependencies.jar > swarm-client-jar-with-dependencies.jar
