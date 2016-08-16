@@ -3,7 +3,7 @@ kind: ReplicationController
 metadata:
   name: jenkins-gke-agent
 spec:
-  replicas: 1
+  replicas: 5
   selector:
     app: jenkins-gke-agent
   template:
