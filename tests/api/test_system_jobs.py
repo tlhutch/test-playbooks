@@ -114,7 +114,7 @@ class Test_System_Jobs(Base_Api_Test):
                                            api_unified_jobs_pg):
         '''
         Run jobs of different types and check that cleanup_jobs deletes expected jobs.
-        Our cleanup_job shouldn't delete the cleanup_job and any inventory/project
+        Our cleanup_job shouldn't delete the cleanup job and any inventory/project
         updates.
         '''
         # launch cleanup job and assert job successful
