@@ -37,7 +37,6 @@ class Base_Api_Test(object):
         '''
         assert whether requested credentials are present
         '''
-
         # Make sure credentials.yaml has ctype we need
         assert ctype in self.testsetup.credentials, \
             "No '%s' credentials defined in credentals.yaml" % ctype

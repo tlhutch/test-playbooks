@@ -306,6 +306,56 @@ def encrypted_ssh_credential_with_ssh_key_data(request):
 
 
 #
+# Network credentials
+#
+@pytest.fixture(scope="function")
+def network_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create network credential'''
+    payload = dict(name="network credentials-%s" % fauxfactory.gen_utf8(),
+                   description="network credential - %s" % fauxfactory.gen_utf8(),
+                   kind='net',
+                   user=admin_user.id,
+                   username=testsetup.credentials['network']['username'],
+                   password=testsetup.credentials['network']['password'])
+
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def network_credential_with_authorize(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create network credential'''
+    payload = dict(name="network credentials-%s" % fauxfactory.gen_utf8(),
+                   description="network credential - %s" % fauxfactory.gen_utf8(),
+                   kind='net',
+                   user=admin_user.id,
+                   username=testsetup.credentials['network']['username'],
+                   password=testsetup.credentials['network']['password'],
+                   authorize=True,
+                   authorize_password=testsetup.credentials['network']['authorize'])
+
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def network_credential_with_ssh_key_data(request, authtoken, api_credentials_pg, admin_user, testsetup):
+    '''Create network credential'''
+    payload = dict(name="network credentials-%s" % fauxfactory.gen_utf8(),
+                   description="network credential - %s" % fauxfactory.gen_utf8(),
+                   kind='net',
+                   user=admin_user.id,
+                   username=testsetup.credentials['network']['username'],
+                   ssh_key_data=testsetup.credentials['network']['ssh_key_data'])
+
+    obj = api_credentials_pg.post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+#
 # SCM credentials
 #
 @pytest.fixture(scope="function")
