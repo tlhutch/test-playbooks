@@ -576,7 +576,7 @@ def cloudforms_credential(request, authtoken, api_credentials_pg, admin_user, te
 
 @pytest.fixture(scope="function")
 def satellite6_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create CloudForms credential'''
+    '''Create Satellite6 credential'''
     payload = dict(name="satellite6-credentials-%s" % fauxfactory.gen_utf8(),
                    description="Satellite6 credential - %s" % fauxfactory.gen_utf8(),
                    kind='satellite6',
