@@ -592,7 +592,8 @@ def satellite6_credential(request, authtoken, api_credentials_pg, admin_user, te
 #
 # Convenience fixture that iterates through supported cloud_credential types
 #
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2', 'openstack_v3', 'cloudforms', 'satellite6'])
+@pytest.fixture(scope="function", params=['aws', 'rax', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2',
+                                          'openstack_v3', 'cloudforms', 'satellite6'])
 def cloud_credential(request, ansible_os_family, ansible_distribution_major_version):
     if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param in ['azure', 'azure_ad']):
         pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
