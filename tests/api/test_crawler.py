@@ -83,7 +83,7 @@ def login(api, testsetup):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
-def test_unauthenticated(api, resource, method, no_license):
+def test_unauthenticated(api, resource, method, authtoken, no_license):
 
     expected_response = {
         'HEAD': (httplib.UNAUTHORIZED, 'head'),

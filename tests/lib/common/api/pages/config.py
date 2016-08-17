@@ -1,13 +1,8 @@
+from common.api import resources
 import base
 
 
 class Config_Page(base.Base):
-    base_url = '/api/v1/config/'
-    version = property(base.json_getter('version'), base.json_setter('version'))
-    license_info = property(base.json_getter('license_info'), base.json_setter('license_info'))
-    ansible_version = property(base.json_getter('ansible_version'), base.json_setter('ansible_version'))
-    time_zone = property(base.json_getter('time_zone'), base.json_setter('time_zone'))
-    project_base_dir = property(base.json_getter('project_base_dir'), base.json_setter('project_base_dir'))
 
     @property
     def is_aws_license(self):
@@ -50,3 +45,5 @@ class Config_Page(base.Base):
     def features(self):
         '''returns a list of enabled license features'''
         return [k for k, v in self.license_info.get('features', {}).items() if v]
+
+base.register_page(resources.v1_config, Config_Page)

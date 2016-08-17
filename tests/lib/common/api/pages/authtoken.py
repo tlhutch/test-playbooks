@@ -1,7 +1,9 @@
-from common.api.pages import Base, json_getter, json_setter
+from common.api import resources
+import base
 
 
-class AuthToken_Page(Base):
-    base_url = '/api/v1/authtoken/'
-    token = property(json_getter('token'), json_setter('token'))
-    expires = property(json_getter('expires'), json_setter('expires'))
+class AuthToken_Page(base.Base):
+
+    pass
+
+base.register_page(resources.v1_authtoken, AuthToken_Page)

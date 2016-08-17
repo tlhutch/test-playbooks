@@ -1,3 +1,4 @@
+
 class Page(object):
     """Base class for all API Pages"""
 

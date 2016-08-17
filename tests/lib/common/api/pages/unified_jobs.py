@@ -1,39 +1,19 @@
 import logging
 import time
 
-from common.api.pages import Base, json_getter, json_setter
 from common.exceptions import Method_Not_Allowed_Exception
 import common.utils
+import base
 
 
 log = logging.getLogger(__name__)
 
 
-class Unified_Job_Page(Base):
+class Unified_Job_Page(base.Base):
     '''
     Base class for unified job pages (e.g. project_updates, inventory_updates
     and jobs).
     '''
-
-    id = property(json_getter('id'), json_setter('id'))
-    name = property(json_getter('name'), json_setter('name'))
-    type = property(json_getter('type'), json_setter('type'))
-    status = property(json_getter('status'), json_setter('status'))
-    failed = property(json_getter('failed'), json_setter('failed'))
-    result_traceback = property(json_getter('result_traceback'), json_setter('result_traceback'))
-    result_stdout = property(json_getter('result_stdout'), json_setter('result_stdout'))
-    job_explanation = property(json_getter('job_explanation'), json_setter('job_explanation'))
-    created = property(json_getter('created'), json_setter('created'))
-    modified = property(json_getter('modified'), json_setter('modified'))
-    started = property(json_getter('started'), json_setter('started'))
-    finished = property(json_getter('finished'), json_setter('finished'))
-    launch_type = property(json_getter('launch_type'), json_setter('launch_type'))
-    job_type = property(json_getter('job_type'), json_setter('job_type'))
-    job_env = property(json_getter('job_env'), json_setter('job_env'))
-    job_args = property(json_getter('job_args'), json_setter('job_args'))
-    limit = property(json_getter('limit'), json_setter('limit'))
-    summary_fields = property(json_getter('summary_fields'), json_setter('summary_fields'))
-    extra_vars = property(json_getter('extra_vars'), json_setter('extra_vars'))
 
     def __str__(self):
         # NOTE: I use .replace('%', '%%') to workaround an odd string

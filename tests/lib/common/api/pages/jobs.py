@@ -1,55 +1,9 @@
-from common.api.pages import (
-    json_setter, json_getter, Base, Base_List,
-    Unified_Job_Page, Job_Template_Page, Notifications_Page
-)
+from common.api.pages import Unified_Job_Page, Job_Template_Page
+from common.api import resources
+import base
 
 
 class Job_Page(Unified_Job_Page, Job_Template_Page):
-    base_url = '/api/v1/jobs/{id}/'
-
-    def get_related(self, attr, **kwargs):
-        assert attr in self.json['related'], \
-            "No such related attribute '%s'" % attr
-
-        if attr == 'job_events':
-            cls = Job_Events_Page
-        elif attr == 'job_plays':
-            cls = Job_Plays_Page
-        elif attr == 'job_tasks':
-            cls = Job_Tasks_Page
-        elif attr == 'job_template':
-            cls = Job_Template_Page
-        elif attr == 'job_host_summaries':
-            cls = Job_Host_Summaries_Page
-        elif attr == 'start':
-            cls = Base
-        elif attr == 'cancel':
-            cls = Job_Cancel_Page
-        elif attr == 'project':
-            from projects import Project_Page
-            cls = Project_Page
-        elif attr == 'inventory':
-            from inventory import Inventory_Page
-            cls = Inventory_Page
-        elif attr == 'credential':
-            from credentials import Credential_Page
-            cls = Credential_Page
-        elif attr == 'cloud_credential':
-            from credentials import Credential_Page
-            cls = Credential_Page
-        elif attr == 'relaunch':
-            cls = Job_Relaunch_Page
-        elif attr == 'stdout':
-            cls = Job_Stdout_Page
-        elif attr == 'notifications':
-            cls = Notifications_Page
-        elif attr == 'labels':
-            from labels import Labels_Page
-            cls = Labels_Page
-        else:
-            raise NotImplementedError("No related class found for '%s'" % attr)
-
-        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
     # TODO: Other types of jobs support relaunch (system_job_templates), but
     # not all types (project_update, inventory_update).  As written, this
@@ -73,114 +27,93 @@ class Job_Page(Unified_Job_Page, Job_Template_Page):
         # return job_pg
         return jobs_pg.results[0]
 
+base.register_page(resources.v1_job, Job_Page)
 
-class Jobs_Page(Job_Page, Base_List):
-    base_url = '/api/v1/jobs/'
+
+class Jobs_Page(Job_Page, base.Base_List):
+
+    pass
+
+base.register_page([resources.v1_jobs,
+                    resources.v1_job_template_jobs,
+                    resources.v1_system_job_template_jobs], Jobs_Page)
 
 
 class Job_Cancel_Page(Unified_Job_Page, Job_Template_Page):
-    base_url = '/api/v1/jobs/{id}/cancel'
-    can_cancel = property(json_getter('can_cancel'), json_setter('can_cancel'))
+
+    pass
+
+base.register_page(resources.v1_job_cancel, Job_Cancel_Page)
 
 
-class Job_Event_Page(Base):
-    base_url = '/api/v1/jobs/{id}/job_events/{id}/'
+class Job_Event_Page(base.Base):
 
-    created = property(json_getter('created'), json_setter('created'))
-    modified = property(json_getter('modified'), json_setter('modified'))
-    job = property(json_getter('job'), json_setter('job'))
-    event = property(json_getter('event'), json_setter('event'))
-    event_display = property(json_getter('event_display'), json_setter('event_display'))
-    failed = property(json_getter('failed'), json_setter('failed'))
-    changed = property(json_getter('changed'), json_setter('changed'))
-    host = property(json_getter('host'), json_setter('host'))
-    parent = property(json_getter('parent'), json_setter('parent'))
-    play = property(json_getter('play'), json_setter('play'))
-    task = property(json_getter('task'), json_setter('task'))
-    event_level = property(json_getter('event_level'), json_setter('event_level'))
-    event_data = property(json_getter('event_data'), json_setter('event_data'))
+    pass
 
-    def get_related(self, attr, **kwargs):
-        assert attr in self.json['related'], \
-            "No such related attribute '%s'" % attr
-
-        if attr == 'children':
-            cls = Job_Events_Page
-        else:
-            raise NotImplementedError("No related class found for '%s'" % attr)
-
-        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
+base.register_page([resources.v1_job_event,
+                    '/api/v1/jobs/\d+/job_events/\d+/'], Job_Event_Page)
 
 
-class Job_Events_Page(Job_Event_Page, Base_List):
-    base_url = '/api/v1/jobs/{id}/job_events/'
+class Job_Events_Page(Job_Event_Page, base.Base_List):
+
+    pass
+
+base.register_page([resources.v1_job_events,
+                    resources.v1_job_job_events,
+                    resources.v1_job_event_children], Job_Events_Page)
 
 
-class Job_Play_Page(Base):
-    base_url = '/api/v1/jobs/{id}/job_plays/{id}/'
+class Job_Play_Page(base.Base):
 
-    id = property(json_getter('id'), json_setter('id'))
-    play = property(json_getter('play'), json_setter('play'))
-    started = property(json_getter('started'), json_setter('started'))
-    changed = property(json_getter('changed'), json_setter('changed'))
-    failed = property(json_getter('failed'), json_setter('failed'))
-    ok_count = property(json_getter('ok_count'), json_setter('ok_count'))
-    failed_count = property(json_getter('failed_count'), json_setter('failed_count'))
-    changed_count = property(json_getter('changed_count'), json_setter('changed_count'))
-    skipped_count = property(json_getter('skipped_count'), json_setter('skipped_count'))
-    unreachable_count = property(json_getter('unreachable_count'), json_setter('unreachable_count'))
+    pass
+
+base.register_page(resources.v1_job_play, Job_Play_Page)
 
 
-class Job_Plays_Page(Job_Play_Page, Base_List):
-    base_url = '/api/v1/jobs/{id}/job_plays/'
+class Job_Plays_Page(Job_Play_Page, base.Base_List):
+
+    pass
+
+base.register_page(resources.v1_job_plays, Job_Plays_Page)
 
 
-class Job_Task_Page(Base):
-    base_url = '/api/v1/jobs/{id}/job_tasks/{id}/'
+class Job_Task_Page(base.Base):
 
-    id = property(json_getter('id'), json_setter('id'))
-    name = property(json_getter('name'), json_setter('name'))
-    failed = property(json_getter('failed'), json_setter('failed'))
-    changed = property(json_getter('changed'), json_setter('changed'))
-    created = property(json_getter('created'), json_setter('created'))
-    modified = property(json_getter('modified'), json_setter('modified'))
-    reported_hosts = property(json_getter('reported_hosts'), json_setter('reported_hosts'))
-    host_count = property(json_getter('host_count'), json_setter('host_count'))
-    failed_count = property(json_getter('failed_count'), json_setter('failed_count'))
-    unreachable_count = property(json_getter('unreachable_count'), json_setter('unreachable_count'))
-    successful_count = property(json_getter('successful_count'), json_setter('successful_count'))
-    changed_count = property(json_getter('changed_count'), json_setter('changed_count'))
-    skipped_count = property(json_getter('skipped_count'), json_setter('skipped_count'))
+    pass
+
+base.register_page(resources.v1_job_task, Job_Task_Page)
 
 
-class Job_Tasks_Page(Job_Task_Page, Base_List):
-    base_url = '/api/v1/jobs/{id}/job_tasks/'
+class Job_Tasks_Page(Job_Task_Page, base.Base_List):
+
+    pass
+
+base.register_page(resources.v1_job_tasks, Job_Tasks_Page)
 
 
-class Job_Host_Summary_Page(Base):
-    base_url = '/api/v1/job_host_summaries/{id}/'
+class Job_Host_Summary_Page(base.Base):
 
-    job = property(json_getter('job'), json_setter('job'))
-    host = property(json_getter('host'), json_setter('host'))
-    host_name = property(json_getter('host_name'), json_setter('host_name'))
-    changed = property(json_getter('changed'), json_setter('changed'))
-    dark = property(json_getter('dark'), json_setter('dark'))
-    failures = property(json_getter('failures'), json_setter('failures'))
-    ok = property(json_getter('ok'), json_setter('ok'))
-    processed = property(json_getter('processed'), json_setter('processed'))
-    skipped = property(json_getter('skipped'), json_setter('skipped'))
-    failed = property(json_getter('failed'), json_setter('failed'))
+    pass
+
+base.register_page(resources.v1_job_host_summary, Job_Host_Summary_Page)
 
 
-class Job_Host_Summaries_Page(Job_Host_Summary_Page, Base_List):
-    base_url = '/api/v1/jobs/{id}/job_host_summaries/'
+class Job_Host_Summaries_Page(Job_Host_Summary_Page, base.Base_List):
+
+    pass
+
+base.register_page(resources.v1_job_host_summaries, Job_Host_Summaries_Page)
 
 
-class Job_Relaunch_Page(Base):
-    base_url = '/api/v1/jobs/{id}/relaunch/'
+class Job_Relaunch_Page(base.Base):
 
-    passwords_needed_to_start = property(json_getter('passwords_needed_to_start'), json_setter('passwords_needed_to_start'))
+    pass
+
+base.register_page(resources.v1_job_relaunch, Job_Relaunch_Page)
 
 
-class Job_Stdout_Page(Base):
-    base_url = '/api/v1/jobs/{id}/stdout/'
+class Job_Stdout_Page(base.Base):
+
+    pass
+
+base.register_page(resources.v1_job_stdout, Job_Stdout_Page)

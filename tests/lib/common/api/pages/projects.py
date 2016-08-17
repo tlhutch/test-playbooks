@@ -1,72 +1,11 @@
 import json
-from common.api.pages import json_getter, json_setter
-from common.api.pages import Base, Base_List, Unified_Job_Page, Unified_Job_Template_Page
+
+from common.api.pages import Unified_Job_Page, Unified_Job_Template_Page
+from common.api import resources
+import base
 
 
 class Project_Page(Unified_Job_Template_Page):
-    base_url = '/api/v1/projects/{id}/'
-    type = property(json_getter('type'), json_setter('type'))
-    local_path = property(json_getter('local_path'), json_setter('local_path'))
-    scm_type = property(json_getter('scm_type'), json_setter('scm_type'))
-    scm_url = property(json_getter('scm_url'), json_setter('scm_url'))
-    scm_branch = property(json_getter('scm_branch'), json_setter('scm_branch'))
-    scm_clean = property(json_getter('scm_clean'), json_setter('scm_clean'))
-    scm_delete_on_update = property(json_getter('scm_delete_on_update'), json_setter('scm_delete_on_update'))
-    scm_delete_on_next_update = property(json_getter('scm_delete_on_next_update'), json_setter('scm_delete_on_next_update'))
-    scm_update_on_launch = property(json_getter('scm_update_on_launch'), json_setter('scm_update_on_launch'))
-    scm_update_cache_timeout = property(json_getter('scm_update_cache_timeout'), json_setter('scm_update_cache_timeout'))
-    has_schedules = property(json_getter('has_schedules'), json_setter('has_schedules'))
-    summary_fields = property(json_getter('summary_fields'), json_setter('summary_fields'))
-
-    def get_related(self, attr, **kwargs):
-        assert attr in self.json['related'], \
-            "No such related attribute '%s'" % attr
-
-        if attr in ('last_update', 'last_job', 'current_update', 'current_job'):
-            cls = Project_Update_Page
-        elif attr == 'project_updates':
-            cls = Project_Updates_Page
-        elif attr == 'update':
-            cls = Project_Update_Launch_Page
-        elif attr == 'playbooks':
-            cls = Playbooks_Page
-        elif attr == 'organization':
-            from organizations import Organization_Page
-            cls = Organization_Page
-        elif attr == 'teams':
-            from teams import Teams_Page
-            cls = Teams_Page
-        elif attr == 'schedules':
-            from schedules import Schedules_Page
-            cls = Schedules_Page
-        elif attr == 'next_schedule':
-            from schedules import Schedule_Page
-            cls = Schedule_Page
-        elif attr == 'activity_stream':
-            from activity_stream import Activity_Stream_Page
-            cls = Activity_Stream_Page
-        elif attr == 'notification_templates_any':
-            from notification_templates import Notification_Templates_Page
-            cls = Notification_Templates_Page
-        elif attr == 'notification_templates_error':
-            from notification_templates import Notification_Templates_Page
-            cls = Notification_Templates_Page
-        elif attr == 'notification_templates_success':
-            from notification_templates import Notification_Templates_Page
-            cls = Notification_Templates_Page
-        elif attr == 'access_list':
-            from access_list import Access_List_Page
-            cls = Access_List_Page
-        elif attr in ['created_by', 'modified_by']:
-            from users import User_Page
-            cls = User_Page
-        elif attr == 'object_roles':
-            from roles import Roles_Page
-            cls = Roles_Page
-        else:
-            raise NotImplementedError("No related class found for '%s'" % attr)
-
-        return cls(self.testsetup, base_url=self.json['related'][attr]).get(**kwargs)
 
     def update(self):
         '''
@@ -104,37 +43,47 @@ class Project_Page(Unified_Job_Template_Page):
         return self.scm_type != "" and \
             super(Project_Page, self).is_successful
 
-
-class Projects_Page(Project_Page, Base_List):
-    base_url = '/api/v1/projects/'
+base.register_page(resources.v1_project, Project_Page)
 
 
-class Project_Update_Launch_Page(Base):
-    base_url = '/api/v1/projects/{id}/update/'
-    can_update = property(json_getter('can_update'), json_setter('can_update'))
+class Projects_Page(Project_Page, base.Base_List):
+
+    pass
+
+base.register_page([resources.v1_projects,
+                    resources.v1_related_project], Projects_Page)
 
 
 class Project_Update_Page(Unified_Job_Page):
-    base_url = '/api/v1/project_updates/{id}/'
-    local_path = property(json_getter('local_path'), json_setter('local_path'))
 
-    def get_related(self, name, **kwargs):
-        assert name in self.json['related']
-        if name == 'cancel':
-            related = Project_Update_Cancel_Page(self.testsetup, base_url=self.json['related'][name])
-        else:
-            raise NotImplementedError
-        return related.get(**kwargs)
+    pass
+
+base.register_page(resources.v1_project_updates, Project_Update_Page)
 
 
-class Project_Update_Cancel_Page(Base):
-    base_url = '/api/v1/project_updates/{id}/cancel'
-    can_cancel = property(json_getter('can_cancel'), json_setter('can_cancel'))
+class Project_Updates_Page(Project_Update_Page, base.Base_List):
+
+    pass
+
+base.register_page(resources.v1_projects_project_updates, Project_Updates_Page)
 
 
-class Project_Updates_Page(Project_Update_Page, Base_List):
-    base_url = '/api/v1/projects/{id}/project_updates/'
+class Project_Update_Launch_Page(base.Base):
+
+    pass
+
+base.register_page(resources.v1_project_update, Project_Update_Launch_Page)
 
 
-class Playbooks_Page(Base):
-    base_url = '/api/v1/projects/{id}/playbooks/'
+class Project_Update_Cancel_Page(base.Base):
+
+    pass
+
+base.register_page(resources.v1_project_update_cancel, Project_Update_Cancel_Page)
+
+
+class Playbooks_Page(base.Base):
+
+    pass
+
+base.register_page(resources.v1_project_playbooks, Playbooks_Page)

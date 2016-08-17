@@ -1,38 +1,58 @@
 import logging
 import inspect
 import httplib
-from common.api.pages import Page
+import re
+
 from common.api.schema import validate
+from common.api.pages import Page
 import common.exceptions
 
 
 log = logging.getLogger(__name__)
 
 
-def json_getter(var):
-    '''
-    Generic property fget method
-    '''
-    def get_json(self):
-        return getattr(self.json, var)
-    return get_json
+# Page Class Registration utilities.
+_page_registry = {}
 
 
-def json_setter(var):
-    '''
-    Generic property fset method
-    '''
-    def set_json(self, value):
-        setattr(self.json, var, value)
-    return set_json
+def register_page(urls, page_cls):
+    """Registers a `Base` subclass by a (list of) re-friendly url(s) for retrieval
+       through `get_registered_page`. The first, or only, url provided will be that
+       page class's default `base_url`.
+
+       ex:
+       register_page('/api/v1/resource/', ResourcesPageClass)
+       register_page(['/api/v1/resource/\d+/',
+                      '/api/v1/other_resource/\d+/resource/\d+/'], ResourcePageClass)
+       >>> ResourcesPageClass().base_url
+       '/api/v1/resource/'
+    """
+    if not isinstance(urls, list):
+        urls = [urls]
+    page_cls.base_url = urls[0]
+    for url in urls:
+        # should account for any relative endpoint w/ query parameters
+        pattern = '\A' + url + '(\?.*)*\Z'
+        re_key = re.compile(pattern)
+        _page_registry[re_key] = page_cls
+
+
+def get_registered_page(url):
+    """Matches api provided urls to a registered Base subclass."""
+    log.debug('Querying page class by url: {}'.format(url))
+    page_cls = Base
+    for re_key in _page_registry:
+        if re_key.match(url):
+            page_cls = _page_registry[re_key]
+            break
+    log.debug('Retrieved {} by url: {}'.format(page_cls, url))
+    return page_cls
 
 
 class Base(Page):
-    """
-    Base class for global project methods
-    """
+    """Base class for global project methods"""
+
     base_url = None
-    id = property(json_getter('id'), json_setter('id'))
 
     def __init__(self, *args, **kwargs):
         super(Base, self).__init__(*args)
@@ -65,11 +85,11 @@ class Base(Page):
         Perform JSON validation on JSON response
         '''
         if json is None:
-            validate(self.json, self.base_url, request.lower(), version=self.testsetup.request.config.getvalue('api_version'))
-            # validate(self.json, self.base_url, request.lower(), version=self.testsetup.api.version)
+            validate(self.json, self.base_url, request.lower(),
+                     version=self.testsetup.request.config.getvalue('api_version'))
         else:
-            validate(json, self.base_url, request.lower(), version=self.testsetup.request.config.getvalue('api_version'))
-            # validate(json, self.base_url, request.lower(), version=self.testsetup.api.version)
+            validate(json, self.base_url, request.lower(),
+                     version=self.testsetup.request.config.getvalue('api_version'))
 
     def handle_request(self, r):
         try:
@@ -176,9 +196,11 @@ class Base(Page):
         except (common.exceptions.NoContent_Exception, common.exceptions.NotFound_Exception):
             pass
 
-    def get_related(self, name, **kwargs):
-        assert name in self.json['related']
-        return Base(self.testsetup, base_url=self.json['related'][name]).get(**kwargs)
+    def get_related(self, related_name, **kwargs):
+        assert related_name in self.json['related']
+        base_url = self.json['related'][related_name]
+        page_cls = get_registered_page(base_url)
+        return page_cls(self.testsetup, base_url=base_url).get(**kwargs)
 
     def get_object_role(self, name):
         object_roles_pg = self.get_related('object_roles', role_field=name)
@@ -208,25 +230,9 @@ class Base(Page):
                 jobs = []
                 for active_job in active_jobs:
                     job_type = active_job['type']
-                    if job_type == 'ad_hoc_command':
-                        from common.api.pages import Ad_Hoc_Command_Page
-                        job_page = Ad_Hoc_Command_Page
-                    elif job_type == 'inventory_update':
-                        from common.api.pages import Inventory_Update_Page
-                        job_page = Inventory_Update_Page
-                    elif job_type == 'job':
-                        from common.api.pages import Job_Page
-                        job_page = Job_Page
-                    elif job_type == 'project_update':
-                        from common.api.pages import Project_Update_Page
-                        job_page = Project_Update_Page
-                    elif job_type == 'system_job':
-                        from common.api.pages import System_Job_Page
-                        job_page = System_Job_Page
-                    else:
-                        raise(ValueError(u'No Unified_Job_Page subclass for {}'.format(job_type)))
-
-                    job = job_page(self.testsetup, base_url='/api/v1/{}s/{}/'.format(job_type, active_job['id'])).get()
+                    base_url = '/api/v1/{}s/{}/'.format(job_type, active_job['id'])
+                    job_class = get_registered_page(base_url)
+                    job = job_class(self.testsetup, base_url=base_url).get()
                     jobs.append(job)
                     job.cancel()
                 for job in jobs:
@@ -250,16 +256,7 @@ def exception_from_status_code(status_code):
 
 
 class Base_List(Base):
-    '''
-    Allow: GET, POST, HEAD, OPTIONS
-    '''
-    base_url = None
-
-    # Common properties for list objects
-    count = property(json_getter('count'), json_setter('count'))
-    next = property(json_getter('next'), json_setter('next'))
-    previous = property(json_getter('previous'), json_setter('previous'))
-
+    '''Allow: GET, POST, HEAD, OPTIONS'''
     @property
     def __item_class__(self):
         '''Returns the class representing a single 'Base' item'''

@@ -1,10 +1,17 @@
+from common.api import resources
 import base
 
 
 class Activity_Page(base.Base):
-    base_url = '/api/v1/activity_stream/{id}/'
-    operation = property(base.json_getter('operation'), base.json_setter('operation'))
+
+    pass
+
+base.register_page(resources.v1_activity, Activity_Page)
 
 
 class Activity_Stream_Page(Activity_Page, base.Base_List):
-    base_url = '/api/v1/activity_stream/'
+
+    pass
+
+base.register_page([resources.v1_activity_stream,
+                    resources.v1_object_activity_stream], Activity_Stream_Page)

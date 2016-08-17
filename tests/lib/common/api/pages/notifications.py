@@ -1,22 +1,11 @@
 import time
+
+from common.api import resources
 import common.utils
-from common.api.pages import Base, Base_List, json_getter, json_setter
+import base
 
 
-class Notification_Page(Base):
-    base_url = '/api/v1/notifications/{id}/'
-    id = property(json_getter('id'), json_setter('id'))
-    type = property(json_getter('type'), json_setter('type'))
-    url = property(json_getter('url'), json_setter('url'))
-    created = property(json_getter('created'), json_setter('created'))
-    modified = property(json_getter('modified'), json_setter('modified'))
-    notification_template = property(json_getter('notification_template'), json_setter('notification_template'))
-    error = property(json_getter('error'), json_setter('error'))
-    status = property(json_getter('status'), json_setter('status'))
-    notifications_sent = property(json_getter('notifications_sent'), json_setter('notifications_sent'))
-    notification_type = property(json_getter('notification_type'), json_setter('notification_type'))
-    recipients = property(json_getter('recipients'), json_setter('recipients'))
-    subject = property(json_getter('subject'), json_setter('subject'))
+class Notification_Page(base.Base):
 
     def __str__(self):
         return "<%s id:%s, notification_type:%s, status:%s, error:%s, " \
@@ -55,9 +44,10 @@ class Notification_Page(Base):
             ('successful', 'failed',),
             interval=interval, verbose=verbose, timeout=timeout)
 
+base.register_page(resources.v1_notification, Notification_Page)
 
-class Notifications_Page(Notification_Page, Base_List):
-    base_url = '/api/v1/notifications/'
+
+class Notifications_Page(Notification_Page, base.Base_List):
 
     def wait_until_count(self, count, interval=1, verbose=0, timeout=60):
         '''
@@ -66,3 +56,8 @@ class Notifications_Page(Notification_Page, Base_List):
         return common.utils.wait_until(
             self, 'count', count,
             interval=interval, verbose=verbose, timeout=timeout)
+
+base.register_page([resources.v1_notifications,
+                    resources.v1_job_notifications,
+                    resources.v1_notification_template_notifications,
+                    resources.v1_system_job_notifications], Notifications_Page)

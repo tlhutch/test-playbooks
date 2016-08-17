@@ -6,7 +6,7 @@ from common.api.pages import (Activity_Stream_Page, Ad_Hoc_Commands_Page, Base, 
                               Dashboard_Page, Groups_Page, Hosts_Page, Inventories_Page, Inventory_Scripts_Page,
                               Inventory_Sources_Page, Job_Templates_Page, Jobs_Page, Labels_Page, Me_Page,
                               Notification_Templates_Page, Notifications_Page, Organizations_Page, Ping_Page,
-                              Projects_Page, Roles_Page, Schedules_Page, Settings_Page, System_Jobs_Page,
+                              Projects_Page, Roles_Page, Schedules_Page, System_Jobs_Page,
                               System_Job_Templates_Page, Teams_Page, Unified_Job_Templates_Page, Users_Page)
 from common.api.pages.authtoken import AuthToken_Page
 
@@ -95,19 +95,6 @@ def authtoken(api, testsetup, api_authtoken_pg):
     authtoken_pg = api_authtoken_pg.post(payload)
     testsetup.api.login(token=authtoken_pg.token)
     return authtoken_pg.json
-
-
-#
-# /api/v1/settings
-#
-@pytest.fixture(scope="module")
-def api_settings_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'settings')
-
-
-@pytest.fixture(scope="module")
-def api_settings_pg(testsetup, api_settings_url):
-    return Settings_Page(testsetup, base_url=api_settings_url)
 
 
 #
