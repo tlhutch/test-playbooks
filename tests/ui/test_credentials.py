@@ -18,8 +18,9 @@ pytestmark = [
 ]
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3265')
 def test_permissions_tab_is_disabled_for_private_credentials(ui_private_credential):
-    assert not ui_private_credential.permissions_tab.is_enabled()
+    assert not ui_private_credential.permissions_tab.root.is_enabled()
 
 def test_edit_credential(api_credentials_pg, ui_credential_edit):
     """Basic end-to-end functional test for updating an existing credential
