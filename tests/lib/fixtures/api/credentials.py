@@ -309,7 +309,7 @@ def encrypted_ssh_credential_with_ssh_key_data(request):
 # Network credentials
 #
 @pytest.fixture(scope="function")
-def network_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
+def network_credential_with_basic_auth(request, authtoken, api_credentials_pg, admin_user, testsetup):
     '''Create network credential'''
     payload = dict(name="network credentials-%s" % fauxfactory.gen_utf8(),
                    description="network credential - %s" % fauxfactory.gen_utf8(),
@@ -353,6 +353,16 @@ def network_credential_with_ssh_key_data(request, authtoken, api_credentials_pg,
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj
+
+
+#
+# Convenience fixture that iterates through network credentials
+#
+@pytest.fixture(scope="function", params=['network_credential_with_basic_auth',
+                                          'network_credential_with_authorize',
+                                          'network_credential_with_ssh_key_data'])
+def network_credential(request):
+    return request.getfuncargvalue(request.param)
 
 
 #
