@@ -153,27 +153,19 @@ def expected_net_env_vars(testsetup):
     """Returns a list of our expected network job env variables.
     """
     def func(network_credential):
-        # determine which credential attrs have values
-        potential_fields = ["username", "password", "ssh_key_data", "authorize", "authorize_password"]
-        actual_fields = list()
-        for field in potential_fields:
-            if getattr(network_credential, field, None):
-                actual_fields.append(field)
-        # find expected env variables
         expected_env_vars = dict()
-        for field in actual_fields:
-            if field == "username":
-                expected_env_vars["ANSIBLE_NET_USERNAME"] = testsetup.credentials['network']['username']
-            if field == "password":
-                expected_env_vars["ANSIBLE_NET_PASSWORD"] = testsetup.credentials['network']['password']
-            if field == "ssh_key_data":
-                pass
-            if field == "authorize":
-                expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "1"
-            if field == "authorize_password":
-                expected_env_vars["ANSIBLE_NET_AUTHORIZE_PASSWORD"] = testsetup.credentials['network']['authorize']
-        if "authorize" not in actual_fields:
+        if getattr(network_credential, "username", None):
+            expected_env_vars["ANSIBLE_NET_USERNAME"] = testsetup.credentials['network']['username']
+        if getattr(network_credential, "password", None):
+            expected_env_vars["ANSIBLE_NET_PASSWORD"] = testsetup.credentials['network']['password']
+        if getattr(network_credential, "ssh_key_data", None):
+            pass
+        if getattr(network_credential, "authorize", None):
+            expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "1"
+        else:
             expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "0"
+        if getattr(network_credential, "authorize_password", None):
+            expected_env_vars["ANSIBLE_NET_AUTHORIZE_PASSWORD"] = testsetup.credentials['network']['authorize']
         return expected_env_vars
     return func
 
