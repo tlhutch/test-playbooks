@@ -77,7 +77,8 @@ def set_test_roles(factories):
         if agent == "user":
             set_roles(user_pg, tower_object, [role])
         elif agent == "team":
-            team_pg = factories.team()
+            organization_pg = user_pg.get_related("organizations").results[0]
+            team_pg = factories.team(organization=organization_pg)
             set_roles(user_pg, team_pg, ['member'])
             set_roles(team_pg, tower_object, [role])
         else:
@@ -293,10 +294,11 @@ def set_read_role(user_pg, notifiable_resource):
 def test_role_association_and_disassociation(factories, resource_name, endpoint):
     """Verify basic role association and disassociation functionality
     """
-    user = factories.user()
+    user = factories.user(organization=organization)
     resource = getattr(factories, resource_name)()
     for role in resource.object_roles:
         role_name = role.name
+        # associate the role with the user
         set_roles(user, resource, [role_name], endpoint=endpoint)
         check_role_association(user, resource, role_name)
         # disassociate the role from the user
@@ -396,12 +398,13 @@ def test_job_template_post_request_without_network_credential_access(
     permission for the network credential.
     """
     # set user resource role associations
-    user = factories.user()
     data, resources = factories.job_template.payload()
+    organization = resources['organization']
+    user = factories.user(organization=organization)
     for name in ('credential', 'project', 'inventory'):
         set_roles(user, resources[name], ['use'])
     # make network credential and add it to payload
-    network_credential = factories.credential(kind='net')
+    network_credential = factories.credential(kind='net', organization=organization)
     data['network_credential'] = network_credential.id
     # check POST response code with network credential read permissions
     set_roles(user, network_credential, ['read'])
