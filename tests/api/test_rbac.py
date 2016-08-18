@@ -296,13 +296,17 @@ def set_read_role(user_pg, notifiable_resource):
 @pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])
 @pytest.mark.parametrize(
     'resource_name',
-    ['organization', 'project', 'inventory', 'credential', 'job_template']
+    ['organization', 'team', 'project', 'inventory', 'credential', 'job_template']
 )
 def test_role_association_and_disassociation(factories, resource_name, endpoint):
-    """Verify basic role association and disassociation functionality
+    """Verify basic role association and disassociation functionality.
     """
-    user = factories.user()
     resource = getattr(factories, resource_name)()
+    # make credential and user organization align in testing credentials
+    if resource.type == 'credential':
+        user = factories.user(organization=resource.get_related('organization'))
+    else:
+        user = factories.user()
     for role in resource.object_roles:
         role_name = role.name
         # associate the role with the user
