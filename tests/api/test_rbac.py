@@ -294,7 +294,7 @@ def set_read_role(user_pg, notifiable_resource):
 def test_role_association_and_disassociation(factories, resource_name, endpoint):
     """Verify basic role association and disassociation functionality
     """
-    user = factories.user(organization=organization)
+    user = factories.user()
     resource = getattr(factories, resource_name)()
     for role in resource.object_roles:
         role_name = role.name
