@@ -18,9 +18,9 @@ class Test_Credential(Base_Api_Test):
         As of Tower-3.0, we allow for duplicate credentials when a value is supplied
         for user or team but not for organization.
 
-        Note: in Tower-3.0.2, we effectively no longer have pure team credentials. Team
-        credentials now act like organization credentials and have their value for
-        organization inherited through their team.
+        Note: in Tower-3.0.2, we effectively no longer have pure team credentials.
+        Team credentials now act like organization credentials and have their value
+        for organization inherited through their team.
         '''
         user_pg = factories.user()
         team_pg = factories.team()
@@ -31,7 +31,7 @@ class Test_Credential(Base_Api_Test):
             obj = api_credentials_pg.post(payload)
             request.addfinalizer(obj.silent_delete)
 
-        # attempt to create duplicate team organization credentials
+        # attempt to create duplicate team-organization credentials
         payload = factories.credential.payload(team=team_pg, organization=None)[0]
         obj = api_credentials_pg.post(payload)
         request.addfinalizer(obj.silent_delete)
