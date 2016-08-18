@@ -19,7 +19,7 @@ class Test_Credential(Base_Api_Test):
         for user or team but not for organization.
 
         Note: in Tower-3.0.2, we effectively no longer have pure team credentials. Team
-        credentials now act like organization credentials since they have their value for
+        credentials now act like organization credentials and have their value for
         organization inherited through their team.
         '''
         user_pg = factories.user()
