@@ -36,7 +36,8 @@ class Jobs_Page(Job_Page, base.Base_List):
 
 base.register_page([resources.v1_jobs,
                     resources.v1_job_template_jobs,
-                    resources.v1_system_job_template_jobs], Jobs_Page)
+                    resources.v1_system_job_template_jobs,
+                    resources.v1_schedules_jobs], Jobs_Page)
 
 
 class Job_Cancel_Page(Unified_Job_Page, Job_Template_Page):

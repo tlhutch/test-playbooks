@@ -11,7 +11,10 @@ class Common_Exception(Exception):
         return self.__str__()
 
     def __str__(self):
-        return str(self.message)
+        try:
+            return str(self.message)
+        except UnicodeEncodeError:
+            return unicode(self.message)
 
 
 class BadRequest_Exception(Common_Exception):
