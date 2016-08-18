@@ -73,12 +73,19 @@ def set_test_roles(factories):
         :param tower_object: Test Tower resource (a job template for example)
         :param agent: Either "user" or "team"; used for test parametrization
         :param role: Test role to give to our user_pg
+
+        Note: the organization of our team matters when we're testing
+        credentials.
         """
         if agent == "user":
             set_roles(user_pg, tower_object, [role])
         elif agent == "team":
-            organization_pg = user_pg.get_related("organizations").results[0]
-            team_pg = factories.team(organization=organization_pg)
+            # create our team in our user organization if applicable
+            organizations_pg = user_pg.get_related("organizations")
+            if organizations_pg.results:
+                team_pg = factories.team(organization=organizations_pg.results[0])
+            else:
+                team_pg = factories.team()
             set_roles(user_pg, team_pg, ['member'])
             set_roles(team_pg, tower_object, [role])
         else:
