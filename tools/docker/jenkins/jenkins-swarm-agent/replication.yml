@@ -20,6 +20,9 @@ spec:
           args:
             - 'java -jar swarm-client-jar-with-dependencies.jar -master=http://jenkins.testing.ansible.com -username=${JENKINS_USER} -password=${JENKINS_TOKEN} -executors=1 -mode=exclusive -labels=gke-swarm'
           env:
+            - name: DOCKER_HOST
+              value: 'tcp://localhost:2375'
+
             - name: ANSIBLE_HOST_KEY_CHECKING
               value: 'False'
 
@@ -41,10 +44,10 @@ spec:
                   name: jenkins-credentials
                   key: jenkins-token
 
-          volumeMounts:
-              - mountPath: /var/run/docker.sock
-                name: docker-socket
-      volumes:
-      - name: docker-socket
-        hostPath:
-          path: /var/run/docker.sock
+        - name: docker-daemon
+          image: docker:1.12-dind
+          resources:
+            limits:
+              memory: 2.5Gi
+          securityContext:
+            privileged: true
