@@ -773,7 +773,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
-        user_pg = factories.user()
+        user_pg = factories.user(organization=credential_pg.get_related('organization'))
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
