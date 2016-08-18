@@ -73,11 +73,19 @@ def set_test_roles(factories):
         :param tower_object: Test Tower resource (a job template for example)
         :param agent: Either "user" or "team"; used for test parametrization
         :param role: Test role to give to our user_pg
+
+        Note: the organization of our team matters when we're testing
+        credentials.
         """
         if agent == "user":
             set_roles(user_pg, tower_object, [role])
         elif agent == "team":
-            team_pg = factories.team()
+            # create our team in our user organization if applicable
+            organizations_pg = user_pg.get_related("organizations")
+            if organizations_pg.results:
+                team_pg = factories.team(organization=organizations_pg.results[0])
+            else:
+                team_pg = factories.team()
             set_roles(user_pg, team_pg, ['member'])
             set_roles(team_pg, tower_object, [role])
         else:
@@ -297,6 +305,7 @@ def test_role_association_and_disassociation(factories, resource_name, endpoint)
     resource = getattr(factories, resource_name)()
     for role in resource.object_roles:
         role_name = role.name
+        # associate the role with the user
         set_roles(user, resource, [role_name], endpoint=endpoint)
         check_role_association(user, resource, role_name)
         # disassociate the role from the user
@@ -396,12 +405,13 @@ def test_job_template_post_request_without_network_credential_access(
     permission for the network credential.
     """
     # set user resource role associations
-    user = factories.user()
     data, resources = factories.job_template.payload()
+    organization = resources['organization']
+    user = factories.user(organization=organization)
     for name in ('credential', 'project', 'inventory'):
         set_roles(user, resources[name], ['use'])
     # make network credential and add it to payload
-    network_credential = factories.credential(kind='net')
+    network_credential = factories.credential(kind='net', organization=organization)
     data['network_credential'] = network_credential.id
     # check POST response code with network credential read permissions
     set_roles(user, network_credential, ['read'])

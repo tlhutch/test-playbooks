@@ -12,10 +12,15 @@ class Test_Credential(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3303")
     def test_duplicate(self, request, factories, api_credentials_pg):
         '''
         As of Tower-3.0, we allow for duplicate credentials when a value is supplied
         for user or team but not for organization.
+
+        Note: in Tower-3.0.2, we effectively no longer have pure team credentials.
+        Team credentials now act like organization credentials and have their value
+        for organization inherited through their team.
         '''
         user_pg = factories.user()
         team_pg = factories.team()
@@ -26,11 +31,12 @@ class Test_Credential(Base_Api_Test):
             obj = api_credentials_pg.post(payload)
             request.addfinalizer(obj.silent_delete)
 
-        # create duplicate team credentials
+        # attempt to create duplicate team-organization credentials
         payload = factories.credential.payload(team=team_pg, organization=None)[0]
-        for _ in range(2):
-            obj = api_credentials_pg.post(payload)
-            request.addfinalizer(obj.silent_delete)
+        obj = api_credentials_pg.post(payload)
+        request.addfinalizer(obj.silent_delete)
+        with pytest.raises(common.exceptions.Duplicate_Exception):
+            api_credentials_pg.post(payload)
 
         # attempt to create duplicate organization credentials
         payload = factories.credential.payload()[0]
