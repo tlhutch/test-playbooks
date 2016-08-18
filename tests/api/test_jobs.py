@@ -158,8 +158,6 @@ def expected_net_env_vars(testsetup):
             expected_env_vars["ANSIBLE_NET_USERNAME"] = testsetup.credentials['network']['username']
         if getattr(network_credential, "password", None):
             expected_env_vars["ANSIBLE_NET_PASSWORD"] = testsetup.credentials['network']['password']
-        if getattr(network_credential, "ssh_key_data", None):
-            pass
         if getattr(network_credential, "authorize", None):
             expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "1"
         else:
