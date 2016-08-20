@@ -17,8 +17,11 @@ class BaseTab(Region):
     def background_color(self):
         return self.root.value_of_css_property('background-color')
 
+    def click(self):
+        self.root.click()
+
     def is_enabled(self):
-        return self.root.is_enabled() and self.background_color in self._bg_enabled
+        self.background_color in self._bg_enabled
 
     def is_disabled(self):
         return self.background_color in self._bg_disabled
@@ -32,7 +35,7 @@ class Tab(BaseTab):
 
     def enable(self):
         if self.is_disabled():
-            self.root.click()
+            self.click()
             self.wait.until(lambda _: self.is_enabled())
 
 
@@ -40,10 +43,10 @@ class ToggleTab(BaseTab):
 
     def enable(self):
         if self.is_disabled():
-            self.root.click()
+            self.click()
             self.wait.until(lambda _: self.is_enabled())
 
     def disable(self):
         if self.is_enabled():
-            self.root.click()
+            self.click()
             self.wait.until(lambda _: self.is_disabled())
