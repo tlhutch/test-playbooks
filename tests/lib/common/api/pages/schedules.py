@@ -1,19 +1,23 @@
-from common.api.pages import Unified_Job_Page
+from common.api.pages import UnifiedJob
 from common.api import resources
 import base
 
 
-class Schedule_Page(Unified_Job_Page):
+class Schedule(UnifiedJob):
 
     pass
 
 base.register_page([resources.v1_schedule,
-                    resources.v1_related_schedule], Schedule_Page)
+                    resources.v1_related_schedule], Schedule)
 
 
-class Schedules_Page(Schedule_Page, base.Base_List):
+class Schedules(Schedule, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_schedules,
-                    resources.v1_related_schedules], Schedules_Page)
+                    resources.v1_related_schedules], Schedules)
+
+# backwards compatibility
+Schedule_Page = Schedule
+Schedules_Page = Schedules

@@ -2,8 +2,11 @@ from common.api import resources
 import base
 
 
-class Ping_Page(base.Base):
+class Ping(base.Base):
 
     pass
 
-base.register_page(resources.v1_ping, Ping_Page)
+base.register_page(resources.v1_ping, Ping)
+
+# backwards compatibility
+Ping_Page = Ping

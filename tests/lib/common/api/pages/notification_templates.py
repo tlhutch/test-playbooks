@@ -3,7 +3,7 @@ import common.exceptions
 import base
 
 
-class Notification_Template_Page(base.Base):
+class NotificationTemplate(base.Base):
 
     def test(self):
         '''Create test notification'''
@@ -35,21 +35,26 @@ class Notification_Template_Page(base.Base):
 base.register_page([resources.v1_notification_template,
                     resources.v1_notification_template_any,
                     resources.v1_notification_template_error,
-                    resources.v1_notification_template_success], Notification_Template_Page)
+                    resources.v1_notification_template_success], NotificationTemplate)
 
 
-class Notification_Templates_Page(Notification_Template_Page, base.Base_List):
+class NotificationTemplates(NotificationTemplate, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_notification_templates,
                     resources.v1_notification_templates_any,
                     resources.v1_notification_templates_error,
-                    resources.v1_notification_templates_success], Notification_Templates_Page)
+                    resources.v1_notification_templates_success], NotificationTemplates)
 
 
-class Notification_Template_Test_Page(base.Base):
+class NotificationTemplateTest(base.Base):
 
     pass
 
-base.register_page(resources.v1_notification_template_test, Notification_Template_Test_Page)
+base.register_page(resources.v1_notification_template_test, NotificationTemplateTest)
+
+# backwards compatibility
+Notification_Template_Page = NotificationTemplate
+Notification_Templates_Page = NotificationTemplates
+Notification_Template_Test_Page = NotificationTemplateTest

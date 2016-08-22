@@ -2,16 +2,20 @@ from common.api import resources
 import base
 
 
-class Activity_Page(base.Base):
+class ActivityStream(base.Base):
 
     pass
 
-base.register_page(resources.v1_activity, Activity_Page)
+base.register_page(resources.v1_activity, ActivityStream)
 
 
-class Activity_Stream_Page(Activity_Page, base.Base_List):
+class ActivityStreams(ActivityStream, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_activity_stream,
-                    resources.v1_object_activity_stream], Activity_Stream_Page)
+                    resources.v1_object_activity_stream], ActivityStreams)
+
+# backwards compatibility
+Activity_Page = ActivityStream
+Activity_Stream_Page = ActivityStreams

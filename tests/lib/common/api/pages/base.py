@@ -1,11 +1,16 @@
 import logging
 import inspect
 import httplib
+import types
 import re
 
+from plugins.pytest_restqa.rest_client import Connection
+from common.utils import PseudoNamespace, is_relative_endpoint
 from common.api.schema import validate
 from common.api.pages import Page
+from common.api import resources
 import common.exceptions
+import common
 
 
 log = logging.getLogger(__name__)
@@ -52,19 +57,35 @@ def get_registered_page(url):
 class Base(Page):
     """Base class for global project methods"""
 
-    base_url = None
+    base_url = ''
 
-    def __init__(self, *args, **kwargs):
-        super(Base, self).__init__(*args)
+    def __init__(self, testsetup=None, base_url=None, **kwargs):
+        if not testsetup:  # Create a mock testsetup w/ pytest_restqa-like content
+            testsetup = PseudoNamespace()
+            testsetup.request = PseudoNamespace()
+            testsetup.request.config = common.config
+            testsetup.api = Connection(common.config.base_url,
+                                       version=common.config.api_version,
+                                       verify=not common.config.assume_untrusted)
+            testsetup.base_url = common.config.base_url
+
+        super(Base, self).__init__(testsetup)
         self.json = kwargs.get('json', {})
         self.objectify = kwargs.get('objectify', True)
 
-        if kwargs.get('base_url', False):
-            self.base_url = kwargs.get('base_url')
+        if base_url:
+            self.base_url = base_url
 
     def __getattr__(self, name):
         if 'json' in self.__dict__ and name in self.json:
-            return self.json[name]
+            value = self.json[name]
+            if is_relative_endpoint(value):
+                value = TentativeBase(value, self.testsetup)
+            elif isinstance(value, types.DictType):
+                for key, item in value.items():
+                    if is_relative_endpoint(item):
+                        value[key] = TentativeBase(item, self.testsetup)
+            return value
         raise AttributeError("{!r} object has no attribute {!r}"
                              .format(self.__class__.__name__, name))
 
@@ -199,8 +220,11 @@ class Base(Page):
     def get_related(self, related_name, **kwargs):
         assert related_name in self.json['related']
         base_url = self.json['related'][related_name]
+        return self.walk(base_url, **kwargs)
+
+    def walk(self, base_url, **kw):
         page_cls = get_registered_page(base_url)
-        return page_cls(self.testsetup, base_url=base_url).get(**kwargs)
+        return page_cls(self.testsetup, base_url=base_url).get(**kw)
 
     def get_object_role(self, name):
         object_roles_pg = self.get_related('object_roles', role_field=name)
@@ -241,6 +265,15 @@ class Base(Page):
             else:
                 raise(e)
 
+    def load_default_authtoken(self):
+        default_cred = common.config.credentials['default']
+        payload = dict(username=default_cred['username'],
+                       password=default_cred['password'])
+        auth_url = resources.v1_authtoken
+        auth = get_registered_page(auth_url)(self.testsetup, base_url=auth_url).post(payload)
+        self.testsetup.api.login(token=auth.token)
+        return self
+
 
 _exception_map = {httplib.NO_CONTENT: common.exceptions.NoContent_Exception,
                   httplib.NOT_FOUND: common.exceptions.NotFound_Exception,
@@ -255,7 +288,7 @@ def exception_from_status_code(status_code):
     return _exception_map.get(status_code, None)
 
 
-class Base_List(Base):
+class BaseList(Base):
     '''Allow: GET, POST, HEAD, OPTIONS'''
     @property
     def __item_class__(self):
@@ -292,3 +325,40 @@ class Base_List(Base):
         if self.previous:
             prev_page = self.__class__(self.testsetup, base_url=self.previous)
             return prev_page.get()
+
+
+class TentativeBase:
+
+    def __init__(self, endpoint, testsetup):
+        self.endpoint = endpoint
+        self.testsetup = testsetup
+
+    def create(self):
+        return get_registered_page(self.endpoint)(self.testsetup, base_url=self.endpoint)
+
+    def get(self, **params):
+        return self.create().get(**params)
+
+    def post(self, payload={}):
+        return self.create().post(payload)
+
+    def put(self):
+        return self.create().put()
+
+    def patch(self, **payload):
+        return self.create().patch(**payload)
+
+    def delete(self):
+        return self.create().delete()
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return self.endpoint
+
+    def __eq__(self, other):
+        return self.endpoint == other
+
+    def __ne__(self, other):
+        return self.endpoint != other

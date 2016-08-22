@@ -2,7 +2,7 @@ import httplib
 import pytest
 import common.api
 import common.tower
-from common.api.pages import (Activity_Stream_Page, Ad_Hoc_Commands_Page, Base, Config_Page, Credentials_Page,
+from common.api.pages import (Activity_Stream_Page, Ad_Hoc_Commands_Page, ApiV1, Base, Config_Page, Credentials_Page,
                               Dashboard_Page, Groups_Page, Hosts_Page, Inventories_Page, Inventory_Scripts_Page,
                               Inventory_Sources_Page, Job_Templates_Page, Jobs_Page, Labels_Page, Me_Page,
                               Notification_Templates_Page, Notifications_Page, Organizations_Page, Ping_Page,
@@ -69,6 +69,11 @@ def api_v1_url(request, api):
 @pytest.fixture(scope="module")
 def api_v1_pg(testsetup, api_v1_url):
     return Base(testsetup, base_url=api_v1_url).get()
+
+
+@pytest.fixture
+def v1(testsetup):
+    return ApiV1(testsetup).get()
 
 
 #

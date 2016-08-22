@@ -2,7 +2,7 @@ from common.api import resources
 import base
 
 
-class Label_Page(base.Base):
+class Label(base.Base):
 
     def silent_delete(self):
         '''
@@ -11,13 +11,17 @@ class Label_Page(base.Base):
         '''
         pass
 
-base.register_page(resources.v1_label, Label_Page)
+base.register_page(resources.v1_label, Label)
 
 
-class Labels_Page(Label_Page, base.Base_List):
+class Labels(Label, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_labels,
                     resources.v1_job_labels,
-                    resources.v1_job_template_labels], Labels_Page)
+                    resources.v1_job_template_labels], Labels)
+
+# backwards compatibility
+Label_Page = Label
+Labels_Page = Labels

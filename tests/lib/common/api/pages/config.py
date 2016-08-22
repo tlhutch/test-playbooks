@@ -2,7 +2,7 @@ from common.api import resources
 import base
 
 
-class Config_Page(base.Base):
+class Config(base.Base):
 
     @property
     def is_aws_license(self):
@@ -46,4 +46,7 @@ class Config_Page(base.Base):
         '''returns a list of enabled license features'''
         return [k for k, v in self.license_info.get('features', {}).items() if v]
 
-base.register_page(resources.v1_config, Config_Page)
+base.register_page(resources.v1_config, Config)
+
+# backwards compatibility
+Config_Page = Config

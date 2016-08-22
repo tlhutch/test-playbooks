@@ -4,7 +4,7 @@ from common.api import resources
 import base
 
 
-class Team_Page(base.Base):
+class Team(base.Base):
 
     def add_permission(self, permission_type, project=None, inventory=None, run_ad_hoc_commands=None):
         perm_pg = self.get_related('permissions')
@@ -18,12 +18,16 @@ class Team_Page(base.Base):
         result = perm_pg.post(payload)
         return result
 
-base.register_page(resources.v1_team, Team_Page)
+base.register_page(resources.v1_team, Team)
 
 
-class Teams_Page(Team_Page, base.Base_List):
+class Teams(Team, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_teams,
-                    resources.v1_related_teams], Teams_Page)
+                    resources.v1_related_teams], Teams)
+
+# backwards compatibility
+Team_Page = Team
+Teams_Page = Teams

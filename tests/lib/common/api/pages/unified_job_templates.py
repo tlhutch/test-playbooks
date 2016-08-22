@@ -3,7 +3,7 @@ import common.utils
 import base
 
 
-class Unified_Job_Template_Page(base.Base):
+class UnifiedJobTemplate(base.Base):
     '''
     Base class for unified job template pages (e.g. project, inventory_source,
     and job_template).
@@ -45,11 +45,15 @@ class Unified_Job_Template_Page(base.Base):
             not self.last_update_failed and \
             self.last_updated is not None
 
-base.register_page(resources.v1_unified_job_template, Unified_Job_Template_Page)
+base.register_page(resources.v1_unified_job_template, UnifiedJobTemplate)
 
 
-class Unified_Job_Templates_Page(Unified_Job_Template_Page, base.Base_List):
+class UnifiedJobTemplates(UnifiedJobTemplate, base.BaseList):
 
     pass
 
-base.register_page(resources.v1_unified_job_templates, Unified_Job_Templates_Page)
+base.register_page(resources.v1_unified_job_templates, UnifiedJobTemplates)
+
+# backwards compatibility
+Unified_Job_Template_Page = UnifiedJobTemplate
+Unified_Job_Templates_Page = UnifiedJobTemplates

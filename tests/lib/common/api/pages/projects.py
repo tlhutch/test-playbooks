@@ -1,11 +1,11 @@
 import json
 
-from common.api.pages import Unified_Job_Page, Unified_Job_Template_Page
+from common.api.pages import UnifiedJob, UnifiedJobTemplate
 from common.api import resources
 import base
 
 
-class Project_Page(Unified_Job_Template_Page):
+class Project(UnifiedJobTemplate):
 
     def update(self):
         '''
@@ -43,47 +43,56 @@ class Project_Page(Unified_Job_Template_Page):
         return self.scm_type != "" and \
             super(Project_Page, self).is_successful
 
-base.register_page(resources.v1_project, Project_Page)
+base.register_page(resources.v1_project, Project)
 
 
-class Projects_Page(Project_Page, base.Base_List):
+class Projects(Project, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_projects,
-                    resources.v1_related_project], Projects_Page)
+                    resources.v1_related_project], Projects)
 
 
-class Project_Update_Page(Unified_Job_Page):
-
-    pass
-
-base.register_page(resources.v1_project_updates, Project_Update_Page)
-
-
-class Project_Updates_Page(Project_Update_Page, base.Base_List):
+class ProjectUpdate(UnifiedJob):
 
     pass
 
-base.register_page(resources.v1_projects_project_updates, Project_Updates_Page)
+base.register_page(resources.v1_project_updates, ProjectUpdate)
 
 
-class Project_Update_Launch_Page(base.Base):
-
-    pass
-
-base.register_page(resources.v1_project_update, Project_Update_Launch_Page)
-
-
-class Project_Update_Cancel_Page(base.Base):
+class ProjectUpdates(ProjectUpdate, base.BaseList):
 
     pass
 
-base.register_page(resources.v1_project_update_cancel, Project_Update_Cancel_Page)
+base.register_page(resources.v1_projects_project_updates, ProjectUpdates)
 
 
-class Playbooks_Page(base.Base):
+class ProjectUpdateLaunch(base.Base):
 
     pass
 
-base.register_page(resources.v1_project_playbooks, Playbooks_Page)
+base.register_page(resources.v1_project_update, ProjectUpdateLaunch)
+
+
+class ProjectUpdateCancel(base.Base):
+
+    pass
+
+base.register_page(resources.v1_project_update_cancel, ProjectUpdateCancel)
+
+
+class Playbooks(base.Base):
+
+    pass
+
+base.register_page(resources.v1_project_playbooks, Playbooks)
+
+# backwards compatibility
+Project_Page = Project
+Projects_Page = Projects
+Project_Update_Page = ProjectUpdate
+Project_Updates_Page = ProjectUpdates
+Project_Update_Launch_Page = ProjectUpdateLaunch
+Project_Update_Cancel_Page = ProjectUpdateCancel
+Playbooks_Page = Playbooks

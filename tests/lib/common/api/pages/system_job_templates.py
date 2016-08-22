@@ -1,9 +1,9 @@
-from common.api.pages import Unified_Job_Template_Page
+from common.api.pages import UnifiedJobTemplate
 from common.api import resources
 import base
 
 
-class System_Job_Template_Page(Unified_Job_Template_Page):
+class SystemJobTemplate(UnifiedJobTemplate):
 
     def launch(self, payload={}):
         '''
@@ -22,11 +22,15 @@ class System_Job_Template_Page(Unified_Job_Template_Page):
             "job at %s/jobs/" % (result.json['job'], self.url)
         return jobs_pg.results[0]
 
-base.register_page(resources.v1_system_job_template, System_Job_Template_Page)
+base.register_page(resources.v1_system_job_template, SystemJobTemplate)
 
 
-class System_Job_Templates_Page(System_Job_Template_Page, base.Base_List):
+class SystemJobTemplates(SystemJobTemplate, base.BaseList):
 
     pass
 
-base.register_page(resources.v1_system_job_templates, System_Job_Templates_Page)
+base.register_page(resources.v1_system_job_templates, SystemJobTemplates)
+
+# backwards compatibility
+System_Job_Template_Page = SystemJobTemplate
+System_Job_Templates_Page = SystemJobTemplates

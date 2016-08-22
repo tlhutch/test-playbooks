@@ -2,7 +2,7 @@ from common.api import resources
 import base
 
 
-class Credential_Page(base.Base):
+class Credential(base.Base):
 
     @property
     def expected_passwords_needed_to_start(self):
@@ -16,12 +16,16 @@ class Credential_Page(base.Base):
                     passwords.append(field)
         return passwords
 
-base.register_page(resources.v1_credential, Credential_Page)
+base.register_page(resources.v1_credential, Credential)
 
 
-class Credentials_Page(Credential_Page, base.Base_List):
+class Credentials(Credential, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_credentials,
-                    resources.v1_related_credentials], Credentials_Page)
+                    resources.v1_related_credentials], Credentials)
+
+# backwards compatibility
+Credential_Page = Credential
+Credentials_Page = Credentials

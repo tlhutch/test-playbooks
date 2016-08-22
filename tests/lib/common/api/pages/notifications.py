@@ -5,7 +5,7 @@ import common.utils
 import base
 
 
-class Notification_Page(base.Base):
+class Notification(base.Base):
 
     def __str__(self):
         return "<%s id:%s, notification_type:%s, status:%s, error:%s, " \
@@ -44,10 +44,10 @@ class Notification_Page(base.Base):
             ('successful', 'failed',),
             interval=interval, verbose=verbose, timeout=timeout)
 
-base.register_page(resources.v1_notification, Notification_Page)
+base.register_page(resources.v1_notification, Notification)
 
 
-class Notifications_Page(Notification_Page, base.Base_List):
+class Notifications(Notification, base.BaseList):
 
     def wait_until_count(self, count, interval=1, verbose=0, timeout=60):
         '''
@@ -60,4 +60,8 @@ class Notifications_Page(Notification_Page, base.Base_List):
 base.register_page([resources.v1_notifications,
                     resources.v1_job_notifications,
                     resources.v1_notification_template_notifications,
-                    resources.v1_system_job_notifications], Notifications_Page)
+                    resources.v1_system_job_notifications], Notifications)
+
+# backwards compatibility
+Notification_Page = Notification
+Notifications_Page = Notifications

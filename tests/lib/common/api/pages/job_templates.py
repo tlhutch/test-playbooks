@@ -1,9 +1,9 @@
-from common.api.pages import Unified_Job_Template_Page
+from common.api.pages import UnifiedJobTemplate
 from common.api import resources
 import base
 
 
-class Job_Template_Page(Unified_Job_Template_Page):
+class JobTemplate(UnifiedJobTemplate):
 
     def post_job(self, **kwargs):
         '''
@@ -49,33 +49,40 @@ class Job_Template_Page(Unified_Job_Template_Page):
             (result.json['job'], self.url)
         return jobs_pg.results[0]
 
-base.register_page(resources.v1_job_template, Job_Template_Page)
+base.register_page(resources.v1_job_template, JobTemplate)
 
 
-class Job_Templates_Page(Job_Template_Page, base.Base_List):
+class JobTemplates(JobTemplate, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_job_templates,
-                    resources.v1_related_job_templates], Job_Templates_Page)
+                    resources.v1_related_job_templates], JobTemplates)
 
 
-class Job_Template_Callback_Page(base.Base):
-
-    pass
-
-base.register_page(resources.v1_job_template_callback, Job_Template_Callback_Page)
-
-
-class Job_Template_Launch_Page(base.Base):
+class JobTemplateCallback(base.Base):
 
     pass
 
-base.register_page(resources.v1_job_template_launch, Job_Template_Launch_Page)
+base.register_page(resources.v1_job_template_callback, JobTemplateCallback)
 
 
-class Job_Template_Survey_Spec(base.Base):
+class JobTemplateLaunch(base.Base):
 
     pass
 
-base.register_page(resources.v1_job_template_survey_spec, Job_Template_Survey_Spec)
+base.register_page(resources.v1_job_template_launch, JobTemplateLaunch)
+
+
+class JobTemplateSurveySpec(base.Base):
+
+    pass
+
+base.register_page(resources.v1_job_template_survey_spec, JobTemplateSurveySpec)
+
+# backwards compatibility
+Job_Template_Page = JobTemplate
+Job_Templates_Page = JobTemplates
+Job_Template_Callback_Page = JobTemplateCallback
+Job_Template_Launch_Page = JobTemplateLaunch
+Job_Template_Survey_Spec = JobTemplateSurveySpec

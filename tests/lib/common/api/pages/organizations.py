@@ -3,7 +3,7 @@ import common.exceptions
 import base
 
 
-class Organization_Page(base.Base):
+class Organization(base.Base):
 
     def add_admin(self, user):
         if isinstance(user, base.Base):
@@ -21,13 +21,17 @@ class Organization_Page(base.Base):
         except common.exceptions.NoContent_Exception:
             pass
 
-base.register_page(resources.v1_organization, Organization_Page)
+base.register_page(resources.v1_organization, Organization)
 
 
-class Organizations_Page(Organization_Page, base.Base_List):
+class Organizations(Organization, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_organizations,
                     resources.v1_user_organizations,
-                    resources.v1_project_organizations], Organizations_Page)
+                    resources.v1_project_organizations], Organizations)
+
+# backwards compatibility
+Organization_Page = Organization
+Organizations_Page = Organizations

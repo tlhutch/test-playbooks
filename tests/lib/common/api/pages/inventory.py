@@ -1,11 +1,11 @@
 from common.api import resources
 import json
 
-from common.api.pages import Unified_Job_Page, Unified_Job_Template_Page
+from common.api.pages import UnifiedJob, UnifiedJobTemplate
 import base
 
 
-class Inventory_Page(base.Base):
+class Inventory(base.Base):
 
     def print_ini(self):
         '''Print an ini version of the inventory'''
@@ -39,18 +39,18 @@ class Inventory_Page(base.Base):
 
         print '\n'.join(output)
 
-base.register_page(resources.v1_inventory, Inventory_Page)
+base.register_page(resources.v1_inventory, Inventory)
 
 
-class Inventories_Page(Inventory_Page, base.Base_List):
+class Inventories(Inventory, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_inventories,
-                    resources.v1_related_inventories], Inventories_Page)
+                    resources.v1_related_inventories], Inventories)
 
 
-class Group_Page(base.Base):
+class Group(base.Base):
 
     @property
     def is_root_group(self):
@@ -70,59 +70,59 @@ class Group_Page(base.Base):
                 parents.append(candidate.id)
         return parents
 
-base.register_page(resources.v1_group, Group_Page)
+base.register_page(resources.v1_group, Group)
 
 
-class Groups_Page(Group_Page, base.Base_List):
+class Groups(Group, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_groups,
                     resources.v1_host_groups,
                     resources.v1_inventory_related_groups,
-                    resources.v1_group_children], Groups_Page)
+                    resources.v1_group_children], Groups)
 
 
-class Host_Page(base.Base):
+class Host(base.Base):
 
     pass
 
-base.register_page(resources.v1_host, Host_Page)
+base.register_page(resources.v1_host, Host)
 
 
-class Hosts_Page(Host_Page, base.Base_List):
+class Hosts(Host, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_hosts,
                     resources.v1_group_related_hosts,
-                    resources.v1_inventory_related_hosts], Hosts_Page)
+                    resources.v1_inventory_related_hosts], Hosts)
 
 
-class Fact_Version_Page(base.Base):
+class FactVersion(base.Base):
 
     pass
 
-base.register_page(resources.v1_host_related_fact_version, Fact_Version_Page)
+base.register_page(resources.v1_host_related_fact_version, FactVersion)
 
 
-class Fact_Versions_Page(Fact_Version_Page, base.Base_List):
+class FactVersions(FactVersion, base.BaseList):
 
     @property
     def count(self):
         return len(self.results)
 
-base.register_page(resources.v1_host_related_fact_versions, Fact_Versions_Page)
+base.register_page(resources.v1_host_related_fact_versions, FactVersions)
 
 
-class Fact_View_Page(base.Base):
+class FactView(base.Base):
 
     pass
 
-base.register_page(resources.v1_fact_view, Fact_View_Page)
+base.register_page(resources.v1_fact_view, FactView)
 
 
-class Inventory_Source_Page(Unified_Job_Template_Page):
+class InventorySource(UnifiedJobTemplate):
 
     def update(self):
         '''
@@ -157,63 +157,83 @@ class Inventory_Source_Page(Unified_Job_Template_Page):
             0) source != ""
             1) super().is_successful
         '''
-        return self.source != "" and super(Inventory_Source_Page, self).is_successful
+        return self.source != "" and super(InventorySource, self).is_successful
 
-base.register_page(resources.v1_inventory_source, Inventory_Source_Page)
+base.register_page(resources.v1_inventory_source, InventorySource)
 
 
-class Inventory_Sources_Page(Inventory_Source_Page, base.Base_List):
+class InventorySources(InventorySource, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_inventory_sources,
-                    resources.v1_related_inventory_sources], Inventory_Sources_Page)
+                    resources.v1_related_inventory_sources], InventorySources)
 
 
-class Inventory_Source_Groups_Page(Group_Page, base.Base_List):
-
-    pass
-
-base.register_page(resources.v1_inventory_sources_related_groups, Inventory_Source_Groups_Page)
-
-
-class Inventory_Source_Update_Page(base.Base):
+class InventorySourceGroups(Group, base.BaseList):
 
     pass
 
-base.register_page(resources.v1_inventory_sources_related_update, Inventory_Source_Update_Page)
+base.register_page(resources.v1_inventory_sources_related_groups, InventorySourceGroups)
 
 
-class Inventory_Update_Page(Unified_Job_Page):
-
-    pass
-
-base.register_page(resources.v1_inventory_source_update, Inventory_Update_Page)
-
-
-class Inventory_Updates_Page(Inventory_Update_Page, base.Base_List):
+class InventorySourceUpdate(base.Base):
 
     pass
 
-base.register_page(resources.v1_inventory_source_updates, Inventory_Updates_Page)
+base.register_page(resources.v1_inventory_sources_related_update, InventorySourceUpdate)
 
 
-class Inventory_Update_Cancel_Page(base.Base):
-
-    pass
-
-base.register_page(resources.v1_inventory_source_update_cancel, Inventory_Update_Cancel_Page)
-
-
-class Inventory_Script_Page(base.Base):
+class InventoryUpdate(UnifiedJob):
 
     pass
 
-base.register_page(resources.v1_inventory_script, Inventory_Script_Page)
+base.register_page(resources.v1_inventory_source_update, InventoryUpdate)
 
 
-class Inventory_Scripts_Page(Inventory_Script_Page, base.Base_List):
+class InventoryUpdates(InventoryUpdate, base.BaseList):
 
     pass
 
-base.register_page(resources.v1_inventory_scripts, Inventory_Scripts_Page)
+base.register_page(resources.v1_inventory_source_updates, InventoryUpdates)
+
+
+class InventoryUpdateCancel(base.Base):
+
+    pass
+
+base.register_page(resources.v1_inventory_source_update_cancel, InventoryUpdateCancel)
+
+
+class InventoryScript(base.Base):
+
+    pass
+
+base.register_page(resources.v1_inventory_script, InventoryScript)
+
+
+class InventoryScripts(InventoryScript, base.BaseList):
+
+    pass
+
+base.register_page(resources.v1_inventory_scripts, InventoryScripts)
+
+# backwards compatibility
+Inventory_Page = Inventory
+Inventories_Page = Inventories
+Group_Page = Group
+Groups_Page = Groups
+Host_Page = Host
+Hosts_Page = Hosts
+Fact_Version_Page = FactVersion
+Fact_Versions_Page = FactVersions
+Fact_View_Page = FactView
+Inventory_Source_Page = InventorySource
+Inventory_Sources_Page = InventorySources
+Inventory_Source_Groups_Page = InventorySourceGroups
+Inventory_Source_Update_Page = InventorySourceUpdate
+Inventory_Update_Page = InventoryUpdate
+Inventory_Updates_Page = InventoryUpdates
+Inventory_Update_Cancel_Page = InventoryUpdateCancel
+Inventory_Script_Page = InventoryScript
+Inventory_Scripts_Page = InventoryScripts

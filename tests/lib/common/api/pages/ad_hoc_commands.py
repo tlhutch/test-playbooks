@@ -1,20 +1,24 @@
-from jobs import Unified_Job_Page
 from common.api import resources
+from jobs import UnifiedJob
 import base
 
 
-class Ad_Hoc_Command_Page(Unified_Job_Page):
+class AdHocCommand(UnifiedJob):
 
     pass
 
-base.register_page(resources.v1_ad_hoc_commmand, Ad_Hoc_Command_Page)
+base.register_page(resources.v1_ad_hoc_commmand, AdHocCommand)
 
 
-class Ad_Hoc_Commands_Page(Ad_Hoc_Command_Page, base.Base_List):
+class AdHocCommands(AdHocCommand, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_ad_hoc_commmands,
                     resources.v1_inventory_related_ad_hoc_commands,
                     resources.v1_group_related_ad_hoc_commands,
-                    resources.v1_host_related_ad_hoc_commands], Ad_Hoc_Commands_Page)
+                    resources.v1_host_related_ad_hoc_commands], AdHocCommands)
+
+# backwards compatibility
+Ad_Hoc_Command_Page = AdHocCommand
+Ad_Hoc_Commands_Page = AdHocCommands

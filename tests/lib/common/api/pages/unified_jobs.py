@@ -9,7 +9,7 @@ import base
 log = logging.getLogger(__name__)
 
 
-class Unified_Job_Page(base.Base):
+class UnifiedJob(base.Base):
     '''
     Base class for unified job pages (e.g. project_updates, inventory_updates
     and jobs).
@@ -84,3 +84,6 @@ class Unified_Job_Page(base.Base):
             # check and post.
             if "not allowed" not in e.message.get('error', ''):
                 raise(e)
+
+# backwards compatibility
+Unified_Job_Page = UnifiedJob

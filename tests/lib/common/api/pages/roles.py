@@ -2,17 +2,21 @@ from common.api import resources
 import base
 
 
-class Role_Page(base.Base):
+class Role(base.Base):
 
     pass
 
-base.register_page(resources.v1_role, Role_Page)
+base.register_page(resources.v1_role, Role)
 
 
-class Roles_Page(Role_Page, base.Base_List):
+class Roles(Role, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_roles,
                     resources.v1_related_roles,
-                    resources.v1_related_object_roles], Roles_Page)
+                    resources.v1_related_object_roles], Roles)
+
+# backwards compatibility
+Role_Page = Role
+Roles_Page = Roles

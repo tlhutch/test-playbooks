@@ -1,6 +1,7 @@
 import re
 import sys
 import time
+import types
 import random
 import logging
 
@@ -30,6 +31,52 @@ class SimpleNamespace:
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
+
+
+class PseudoNamespace(dict):
+
+    def __init__(self, loaded={}):
+        super(PseudoNamespace, self).__init__(loaded)
+
+        # Convert nested structures into PseudoNamespaces
+        for k, v in loaded.iteritems():
+            tuple_converted = False
+            if isinstance(v, tuple):
+                self[k] = v = list(v)
+                tuple_converted = True
+
+            if isinstance(v, list):
+                for i, item in enumerate(v):
+                    if isinstance(item, dict):
+                        self[k][i] = PseudoNamespace(item)
+                if tuple_converted:
+                    self[k] = tuple(self[k])
+            elif isinstance(v, dict):
+                self[k] = PseudoNamespace(v)
+
+    def __getattr__(self, attr):
+        if attr in self.__dict__:
+            return self.__dict__[attr]
+        try:
+            return self.__getitem__(attr)
+        except KeyError:
+            raise AttributeError("{!r} has no attribute {!r}".format(self.__class__.__name__, attr))
+
+    def __setattr__(self, attr, value):
+        if attr in self.__dict__:
+            self.__dict__[attr] = value
+        else:
+            self.__setitem__(attr, value)
+
+    def __delattr__(self, attr):
+        if attr in self.__dict__:
+            del self.__dict__[attr]
+        else:
+            self.__delitem__(attr)
+
+
+def is_relative_endpoint(candidate):
+    return isinstance(candidate, types.StringTypes) and candidate.startswith('/api/') and candidate.endswith('/')
 
 
 def wait_until(obj, att, desired, callback=None, interval=5, attempts=0, timeout=0, start_time=None, verbose=False,

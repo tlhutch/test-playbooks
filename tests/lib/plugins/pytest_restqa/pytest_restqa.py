@@ -1,12 +1,14 @@
-import os
-import sys
-import yaml
 import requests
 import httplib
-import py
-import pytest
 import logging
-from rest_client import Connection
+import pytest
+import yaml
+import sys
+import os
+import py
+
+from common.api.client import Connection
+import common
 
 
 __version__ = '1.0'
@@ -87,15 +89,19 @@ def pytest_configure(config):
                 "Base URL did not return status code %s. (URL: %s, Response: %s)" % \
                 (httplib.OK, config.option.base_url, r.status_code)
 
-            TestSetup.base_url = config.option.base_url
+            common.config.base_url = TestSetup.base_url = config.option.base_url
 
             # Load credentials.yaml
             if config.option.credentials_file:
-                TestSetup.credentials = load_credentials(config.option.credentials_file)
+                common.config.credentials = load_credentials(config.option.credentials_file)
+                TestSetup.credentials = common.config.credentials
 
-            TestSetup.api = Connection(config.getvalue('base_url'),
-                                       version=config.getvalue('api_version'),
-                                       verify=not config.getvalue('assume_untrusted'))
+            common.config.api_version = config.getvalue('api_version')
+            common.config.assume_untrusted = config.getvalue('assume_untrusted')
+
+            TestSetup.api = Connection(common.config.base_url,
+                                       version=common.config.api_version,
+                                       verify=not common.config.assume_untrusted)
             if config.option.debug_rest and hasattr(config, '_debug_rest_hdlr'):
                 TestSetup.api.setup_logging(config._debug_rest_hdlr)
 

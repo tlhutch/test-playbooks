@@ -2,6 +2,7 @@
 from page import *  # NOQA
 from base import *  # NOQA
 from access_list import *  # NOQA
+from api import * # NOQA
 from roles import *  # NOQA
 from notifications import *  # NOQA
 from notification_templates import *  # NOQA

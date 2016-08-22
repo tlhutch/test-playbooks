@@ -2,7 +2,7 @@
 class Page(object):
     """Base class for all API Pages"""
 
-    def __init__(self, testsetup):
+    def __init__(self, testsetup, *a, **kw):
         """Constructor"""
         self.testsetup = testsetup
 
@@ -46,11 +46,3 @@ class Page(object):
     @property
     def delete(self):
         return self.api.delete
-
-
-class PageRegion(Page):
-    """Base class for a page region (generally an element in a list of elements)."""
-
-    def __init__(self, testsetup, element):
-        self._root_element = element
-        Page.__init__(self, testsetup)

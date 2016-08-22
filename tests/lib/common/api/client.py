@@ -1,73 +1,17 @@
-import logging
-import json
 import requests
-import warnings
+import logging
 import types
+import json
+
+from common.utils import PseudoNamespace
 
 
 log = logging.getLogger(__name__)
 
 
-# Adapted from
-# http://code.activestate.com/recipes/389916-example-setattr-getattr-overloading/
-class JSON_Wrapper(dict):
-    '''
-    Provide object interface to json dictionary structure.  This class
-    overloads the __getattr__ and __setattr__ methods to allow accessing
-    dictionary items as class attributes.
-    '''
-    def __init__(self, json={}):
-        self.merge_json(json)
-
-    def merge_json(self, json):
-        # If the json parameter doesn't support iteritems(), move on.  This
-        # addresses the scenario when:
-        #   json = {u'name': [u'Organization with this Name already exists.']}
-        #   json = [u'setfact_50.yml']
-        if not hasattr(json, 'iteritems'):
-            warnings.warn("Attempting to wrap non-dict object: %s" % json)
-            return
-
-        super(JSON_Wrapper, self).__init__(json)
-
-        # Convert nested structures into JSON_Wrappers
-        for k, v in json.iteritems():
-            if isinstance(v, list):
-                # If every item in the list is a dict ... wrap it
-                if all([isinstance(item, dict) for item in v]):
-                    setattr(self, k, [JSON_Wrapper(item) for item in v])
-            elif isinstance(v, tuple):
-                # If every item in the tuple is a dict ... wrap it
-                if all([isinstance(item, dict) for item in v]):
-                    setattr(self, k, (JSON_Wrapper(item) for item in v))
-            elif isinstance(v, dict):
-                setattr(self, k, JSON_Wrapper(v))
-            # else:
-            #     setattr(self, k, v)
-
-    def __getattr__(self, item):
-        """Maps values to attributes.
-        Only called if there *isn't* an attribute with this name
-        """
-        try:
-            return self.__getitem__(item)
-        except KeyError:
-            raise AttributeError(item)
-
-    def __setattr__(self, item, value):
-        """Maps attributes to values.
-        Only if we are initialised
-        """
-        # any normal attributes are handled normally
-        if item in self.__dict__:
-            super(JSON_Wrapper, self).__setattr__(item, value)
-        else:
-            self.__setitem__(item, value)
-
-
 def objectify(self):
     '''
-    Returns an initialized JSON_Wrapper object.  Used by the Connection class
+    Returns an initialized PseudoNamespace object.  Used by the Connection class
     for monkey patching the request response.
     '''
     # If the JSON response fails to parse (typically for an empty dict), return
@@ -77,7 +21,7 @@ def objectify(self):
     except ValueError:
         json = dict()
 
-    return JSON_Wrapper(json=json)
+    return PseudoNamespace(json)
 
 
 class Token_Auth(requests.auth.AuthBase):

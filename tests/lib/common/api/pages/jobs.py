@@ -1,9 +1,9 @@
-from common.api.pages import Unified_Job_Page, Job_Template_Page
+from common.api.pages import UnifiedJob, JobTemplate
 from common.api import resources
 import base
 
 
-class Job_Page(Unified_Job_Page, Job_Template_Page):
+class Job(UnifiedJob, JobTemplate):
 
     # TODO: Other types of jobs support relaunch (system_job_templates), but
     # not all types (project_update, inventory_update).  As written, this
@@ -27,94 +27,109 @@ class Job_Page(Unified_Job_Page, Job_Template_Page):
         # return job_pg
         return jobs_pg.results[0]
 
-base.register_page(resources.v1_job, Job_Page)
+base.register_page(resources.v1_job, Job)
 
 
-class Jobs_Page(Job_Page, base.Base_List):
+class Jobs(Job, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_jobs,
                     resources.v1_job_template_jobs,
                     resources.v1_system_job_template_jobs,
-                    resources.v1_schedules_jobs], Jobs_Page)
+                    resources.v1_schedules_jobs], Jobs)
 
 
-class Job_Cancel_Page(Unified_Job_Page, Job_Template_Page):
+class JobCancel(UnifiedJob, JobTemplate):
 
     pass
 
-base.register_page(resources.v1_job_cancel, Job_Cancel_Page)
+base.register_page(resources.v1_job_cancel, JobCancel)
 
 
-class Job_Event_Page(base.Base):
+class JobEvent(base.Base):
 
     pass
 
 base.register_page([resources.v1_job_event,
-                    '/api/v1/jobs/\d+/job_events/\d+/'], Job_Event_Page)
+                    '/api/v1/jobs/\d+/job_events/\d+/'], JobEvent)
 
 
-class Job_Events_Page(Job_Event_Page, base.Base_List):
+class JobEvents(JobEvent, base.BaseList):
 
     pass
 
 base.register_page([resources.v1_job_events,
                     resources.v1_job_job_events,
-                    resources.v1_job_event_children], Job_Events_Page)
+                    resources.v1_job_event_children], JobEvents)
 
 
-class Job_Play_Page(base.Base):
-
-    pass
-
-base.register_page(resources.v1_job_play, Job_Play_Page)
-
-
-class Job_Plays_Page(Job_Play_Page, base.Base_List):
+class JobPlay(base.Base):
 
     pass
 
-base.register_page(resources.v1_job_plays, Job_Plays_Page)
+base.register_page(resources.v1_job_play, JobPlay)
 
 
-class Job_Task_Page(base.Base):
-
-    pass
-
-base.register_page(resources.v1_job_task, Job_Task_Page)
-
-
-class Job_Tasks_Page(Job_Task_Page, base.Base_List):
+class JobPlays(JobPlay, base.BaseList):
 
     pass
 
-base.register_page(resources.v1_job_tasks, Job_Tasks_Page)
+base.register_page(resources.v1_job_plays, JobPlays)
 
 
-class Job_Host_Summary_Page(base.Base):
-
-    pass
-
-base.register_page(resources.v1_job_host_summary, Job_Host_Summary_Page)
-
-
-class Job_Host_Summaries_Page(Job_Host_Summary_Page, base.Base_List):
+class JobTask(base.Base):
 
     pass
 
-base.register_page(resources.v1_job_host_summaries, Job_Host_Summaries_Page)
+base.register_page(resources.v1_job_task, JobTask)
 
 
-class Job_Relaunch_Page(base.Base):
-
-    pass
-
-base.register_page(resources.v1_job_relaunch, Job_Relaunch_Page)
-
-
-class Job_Stdout_Page(base.Base):
+class JobTasks(JobTask, base.BaseList):
 
     pass
 
-base.register_page(resources.v1_job_stdout, Job_Stdout_Page)
+base.register_page(resources.v1_job_tasks, JobTasks)
+
+
+class JobHostSummary(base.Base):
+
+    pass
+
+base.register_page(resources.v1_job_host_summary, JobHostSummary)
+
+
+class JobHostSummaries(JobHostSummary, base.BaseList):
+
+    pass
+
+base.register_page(resources.v1_job_host_summaries, JobHostSummaries)
+
+
+class JobRelaunch(base.Base):
+
+    pass
+
+base.register_page(resources.v1_job_relaunch, JobRelaunch)
+
+
+class JobStdout(base.Base):
+
+    pass
+
+base.register_page(resources.v1_job_stdout, JobStdout)
+
+# backwards compatibility
+Job_Page = Job
+Jobs_Page = Jobs
+Job_Cancel_Page = JobCancel
+Job_Event_Page = JobEvent
+Job_Events_Page = JobEvents
+Job_Play_Page = JobPlay
+Job_Plays_Page = JobPlays
+Job_Task_Page = JobTask
+Job_Tasks_Page = JobTasks
+Job_Host_Summary_Page = JobHostSummary
+Job_Host_Summaries_Page = JobHostSummaries
+Job_Relaunch_Page = JobRelaunch
+Job_Stdout_Page = JobStdout
