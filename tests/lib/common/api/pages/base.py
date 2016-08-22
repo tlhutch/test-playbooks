@@ -192,7 +192,8 @@ class Base(Page):
         r = self.api.post(self.base_url, payload)
         return self.handle_request(r)
 
-    def put(self):
+    def put(self, **payload):
+        self.json.update(payload)
         r = self.api.put(self.base_url.format(**self.json), self.json)
         return self.handle_request(r)
 
