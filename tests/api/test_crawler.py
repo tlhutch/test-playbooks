@@ -1,7 +1,7 @@
 import pytest
 import httplib
 from common.api.schema import validate
-from plugins.pytest_restqa.rest_client import Connection
+from common.api.client import Connection
 
 
 # Generate fixture values for 'method' and 'resource'
