@@ -1,7 +1,7 @@
 from selenium.webdriver.support.event_firing_webdriver import EventFiringWebElement
 
 from selector import Selector
-from utils import cache
+from cache import cache
 
 
 class Region(Selector):
