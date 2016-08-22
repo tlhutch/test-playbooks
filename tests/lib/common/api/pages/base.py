@@ -4,8 +4,8 @@ import httplib
 import types
 import re
 
-from plugins.pytest_restqa.rest_client import Connection
 from common.utils import PseudoNamespace, is_relative_endpoint
+from common.api.client import Connection
 from common.api.schema import validate
 from common.api.pages import Page
 from common.api import resources
