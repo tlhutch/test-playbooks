@@ -243,11 +243,8 @@ def check_read_access(tower_object, expected_forbidden=[], unprivileged=False):
     """
     # for test scenarios involving unprivileged users
     if unprivileged:
-        with pytest.raises(common.exceptions.NotFound_Exception):
+        with pytest.raises(common.exceptions.Forbidden_Exception):
             tower_object.get()
-        for related in tower_object.related:
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                tower_object.get_related(related)
     # for test scenarios involving privileged users
     else:
         tower_object.get()
@@ -435,7 +432,6 @@ class Test_Organization_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, user_password):
         '''
         An unprivileged user should not be able to:
@@ -452,7 +448,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             check_read_access(organization_pg, unprivileged=True)
 
             # check put/patch/delete
-            assert_response_raised(organization_pg, httplib.NOT_FOUND)
+            assert_response_raised(organization_pg, httplib.FORBIDDEN)
 
     def test_auditor_role(self, factories, user_password):
         '''
@@ -610,7 +606,6 @@ class Test_Project_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, user_password):
         '''
         An unprivileged user/team should not be able to:
@@ -632,11 +627,11 @@ class Test_Project_RBAC(Base_Api_Test):
             check_read_access(project_pg, unprivileged=True)
 
             # check project update
-            with pytest.raises(common.exceptions.NotFound_Exception):
+            with pytest.raises(common.exceptions.Forbidden_Exception):
                 update_pg.post()
 
             # check put/patch/delete
-            assert_response_raised(project_pg, httplib.NOT_FOUND)
+            assert_response_raised(project_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent, user_password):
@@ -770,7 +765,6 @@ class Test_Credential_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, user_password):
         '''
         An unprivileged user/team should not be able to:
@@ -783,14 +777,14 @@ class Test_Credential_RBAC(Base_Api_Test):
         Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
-        user_pg = factories.user()
+        user_pg = factories.user(organization=credential_pg.get_related('organization'))
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(credential_pg, unprivileged=True)
 
             # check put/patch/delete
-            assert_response_raised(credential_pg, httplib.NOT_FOUND)
+            assert_response_raised(credential_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent, user_password):
@@ -917,7 +911,6 @@ class Test_Team_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, user_password):
         '''
         An unprivileged user/team may not be able to:
@@ -934,7 +927,7 @@ class Test_Team_RBAC(Base_Api_Test):
             check_read_access(team_pg, unprivileged=True)
 
             # check put/patch/delete
-            assert_response_raised(team_pg, httplib.NOT_FOUND)
+            assert_response_raised(team_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent, user_password):
@@ -1036,7 +1029,6 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, inventory_script, user_password):
         '''
         An unprivileged user/team may not be able to:
@@ -1052,7 +1044,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             check_read_access(inventory_script, unprivileged=True)
 
             # check put/patch/delete
-            assert_response_raised(inventory_script, httplib.NOT_FOUND)
+            assert_response_raised(inventory_script, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, inventory_script, set_test_roles, agent, user_password):
@@ -1121,7 +1113,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, factories, user_password):
         '''
         An unprivileged user/team should not be able to:
@@ -1140,11 +1131,11 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             check_read_access(job_template_pg, unprivileged=True)
 
             # check JT launch
-            with pytest.raises(common.exceptions.NotFound_Exception):
+            with pytest.raises(common.exceptions.Forbidden_Exception):
                 launch_pg.post()
 
             # check put/patch/delete
-            assert_response_raised(job_template_pg, httplib.NOT_FOUND)
+            assert_response_raised(job_template_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent, user_password):
@@ -1267,7 +1258,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2366')
     def test_unprivileged_user(self, host_local, cloud_groups, custom_group, user_password, factories):
         '''
         An unprivileged user should not be able to:
@@ -1286,10 +1276,10 @@ class Test_Inventory_RBAC(Base_Api_Test):
         hosts_pg = inventory_pg.get_related('hosts')
         user_pg = factories.user()
 
-        command_pg = inventory_pg.get_related('ad_hoc_commands')
+        commands_pg = inventory_pg.get_related('ad_hoc_commands')
         inventory_source_pgs = [cloud_group.get_related('inventory_source') for cloud_group in cloud_groups]
         inventory_source_update_pgs = [inventory_source_pg.get_related('update') for inventory_source_pg in inventory_source_pgs]
-        custom_group_update_pg = custom_group.get_related('inventory_source')
+        custom_group_update_pg = custom_group.get_related('inventory_source').get_related('update')
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
@@ -1297,16 +1287,16 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # update all cloud_groups
             for inventory_source_update_pg in inventory_source_update_pgs:
-                with pytest.raises(common.exceptions.NotFound_Exception):
+                with pytest.raises(common.exceptions.Forbidden_Exception):
                     inventory_source_update_pg.post()
 
             # update custom group
-            with pytest.raises(common.exceptions.NotFound_Exception):
+            with pytest.raises(common.exceptions.Forbidden_Exception):
                 custom_group_update_pg.post()
 
             # post command
-            with pytest.raises(common.exceptions.NotFound_Exception):
-                command_pg.post()
+            with pytest.raises(common.exceptions.Forbidden_Exception):
+                commands_pg.post()
 
             # check ability to create group and host
             with pytest.raises(common.exceptions.Forbidden_Exception):
@@ -1315,9 +1305,9 @@ class Test_Inventory_RBAC(Base_Api_Test):
                 hosts_pg.post()
 
             # check put/patch/delete on inventory, custom_group, and host_local
-            assert_response_raised(host_local, httplib.NOT_FOUND)
-            assert_response_raised(custom_group, httplib.NOT_FOUND)
-            assert_response_raised(inventory_pg, httplib.NOT_FOUND)
+            assert_response_raised(host_local, httplib.FORBIDDEN)
+            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, host_local, cloud_groups, custom_group, set_test_roles, agent, user_password, factories):
@@ -1490,7 +1480,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(custom_group, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/2710')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_update_role(self, host_local, cloud_groups, custom_group, set_test_roles, agent, user_password, factories):
         '''
