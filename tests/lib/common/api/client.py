@@ -21,7 +21,10 @@ def objectify(self):
     except ValueError:
         json = dict()
 
-    return PseudoNamespace(json)
+    # PseudoNamespace arg must be a dict, and json can be an array.
+    if isinstance(json, types.DictType):
+        return PseudoNamespace(json)
+    return json
 
 
 class Token_Auth(requests.auth.AuthBase):

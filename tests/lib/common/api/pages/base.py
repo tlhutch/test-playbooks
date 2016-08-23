@@ -327,7 +327,10 @@ class BaseList(Base):
             return prev_page.get()
 
 
-class TentativeBase:
+class TentativeBase(str):
+
+    def __new__(cls, endpoint, testsetup):
+        return super(TentativeBase, cls).__new__(cls, endpoint)
 
     def __init__(self, endpoint, testsetup):
         self.endpoint = endpoint
