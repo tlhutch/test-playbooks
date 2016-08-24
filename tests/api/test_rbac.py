@@ -884,25 +884,6 @@ class Test_Credential_RBAC(Base_Api_Test):
         assert admin_role_users_pg.results[0].id == user_pg.id, \
             "Unexpected admin role user returned. Expected user with ID %s, but %s." % (user_pg.id, admin_role_users_pg.results[0].id)
 
-    def test_autopopulated_admin_role_with_teams(self, factories):
-        '''
-        Tests that when you create a credential with a value supplied for 'team'
-        that your team is automatically given the admin role of your credential.
-        '''
-        team_pg = factories.team()
-
-        # assert newly created team has no roles
-        assert not team_pg.get_related('roles').count, \
-            "Newly created team created unexpectedly with roles - %s." % team_pg.get_related('roles')
-
-        # assert team now has admin role after team credential creation
-        credential_pg = factories.credential(team=team_pg, organization=None)
-        admin_role_teams_pg = credential_pg.get_object_role('admin_role').get_related('teams')
-        assert admin_role_teams_pg.count == 1, \
-            "Unexpected number of teams with our credential admin role. Expected one, got %s." % admin_role_teams_pg.count
-        assert admin_role_teams_pg.results[0].id == team_pg.id, \
-            "Unexpected admin role team returned. Expected team with ID %s, but %s." % (team_pg.id, admin_role_teams_pg.results[0].id)
-
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
