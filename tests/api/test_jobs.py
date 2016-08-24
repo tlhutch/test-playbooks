@@ -1026,10 +1026,7 @@ class Test_Job_Env(Base_Api_Test):
             expected_env_vars = dict(
                 OS_CLIENT_CONFIG_FILE=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
             )
-        elif cloud_credential.kind == 'cloudforms':
-            self.has_credentials('cloud', cloud_credential.kind, ['host', 'username', 'password'])
-            expected_env_vars = dict()
-        elif cloud_credential.kind == 'satellite6':
+        elif cloud_credential.kind in ('cloudforms', 'satellite6'):
             self.has_credentials('cloud', cloud_credential.kind, ['host', 'username', 'password'])
             expected_env_vars = dict()
         else:
@@ -1066,11 +1063,7 @@ class Test_Job_Env(Base_Api_Test):
             assert env_var in job_pg.job_env, \
                 "Missing expected network environment variable %s in job_env.\n%s" % \
                 (env_var, json.dumps(job_pg.job_env, indent=2))
-            if isinstance(env_val, types.FunctionType):
-                is_correct = env_val(job_pg.job_env[env_var])
-            else:
-                is_correct = job_pg.job_env[env_var] == env_val
-
+            is_correct = job_pg.job_env[env_var] == env_val
             assert is_correct, "Unexpected value for %s environment variable %s " \
                 "in job_env ('%s')" % (network_credential.kind, env_var,
                                        job_pg.job_env[env_var])
