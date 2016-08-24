@@ -192,12 +192,12 @@ class Base(Page):
         r = self.api.post(self.base_url, payload)
         return self.handle_request(r)
 
-    def put(self, payload={}):
+    def put(self, payload=None):
         '''
         If a payload is supplied, PUT the payload. If not, submit our
         existing page JSON as our payload.
         '''
-        if not payload:
+        if payload is None:
             payload = self.json
         r = self.api.put(self.base_url.format(**payload), payload)
         return self.handle_request(r)
