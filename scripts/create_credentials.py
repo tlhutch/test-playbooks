@@ -49,6 +49,10 @@ if __name__ == '__main__':
     if "SSH_KEY_DATA_ENCRYPTED" not in os.environ:
         os.environ["SSH_KEY_DATA_ENCRYPTED"] = os.path.expandvars("$HOME/.ssh/id_rsa.jenkins-passphrase")
 
+    # Gather NET private key credentials
+    if "NET_KEY_DATA" not in os.environ:
+        os.environ["NET_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/id_rsa.network-nopassphrase")
+
     # Gather GCE and Azure Classic KEY_DATA
     if "GCE_KEY_DATA" not in os.environ:
         os.environ["GCE_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/google_compute_engine-3fab726444ae.pem")
@@ -133,6 +137,11 @@ if __name__ == '__main__':
     cfg['ssh']['su_password'] = os.environ.get("SU_PASSWORD", "")
     cfg['ssh']['become_username'] = os.environ.get("BECOME_USERNAME", "")
     cfg['ssh']['become_password'] = os.environ.get("BECOME_PASSWORD", "")
+
+    # Set network info
+    cfg['network']['password'] = os.environ.get("NET_PASSWORD", "")
+    cfg['network']['authorize'] = os.environ.get("NET_AUTHORIZE", "")
+    cfg['network']['ssh_key_data'] = literal(open(os.environ["NET_KEY_DATA"], 'r').read())
 
     # Set github info
     cfg['github']['username'] = os.environ.get("GITHUB_USERNAME", "")

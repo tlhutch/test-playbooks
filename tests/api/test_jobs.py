@@ -129,6 +129,45 @@ def another_custom_group(request, authtoken, api_groups_pg, inventory, inventory
     return obj
 
 
+@pytest.fixture(scope="function")
+def job_template_with_cloud_credential(request, job_template, cloud_credential):
+    job_template.patch(cloud_credential=cloud_credential.id)
+    return job_template
+
+
+@pytest.fixture(scope="function")
+def job_template_with_network_credential(request, job_template, network_credential):
+    job_template.patch(network_credential=network_credential.id)
+    return job_template
+
+
+@pytest.fixture(scope="function")
+def cloud_inventory_job_template(request, job_template, cloud_group):
+    # Substitute in no-op playbook that does not attempt to connect to host
+    job_template.patch(playbook='debug.yml')
+    return job_template
+
+
+@pytest.fixture(scope="function")
+def expected_net_env_vars(testsetup):
+    """Returns a list of our expected network job env variables.
+    """
+    def func(network_credential):
+        expected_env_vars = dict()
+        if getattr(network_credential, "username", None):
+            expected_env_vars["ANSIBLE_NET_USERNAME"] = testsetup.credentials['network']['username']
+        if getattr(network_credential, "password", None):
+            expected_env_vars["ANSIBLE_NET_PASSWORD"] = testsetup.credentials['network']['password']
+        if getattr(network_credential, "authorize", None):
+            expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "1"
+        else:
+            expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "0"
+        if getattr(network_credential, "authorize_password", None):
+            expected_env_vars["ANSIBLE_NET_AUTHORIZE_PASSWORD"] = testsetup.credentials['network']['authorize']
+        return expected_env_vars
+    return func
+
+
 def confirm_fact_modules_present(facts, **kwargs):
     '''Convenience function to assess fact module contents.'''
     assert len(facts) == len(kwargs), "Unexpected number of new facts found ..."
@@ -906,40 +945,30 @@ class Test_Scan_Job(Base_Api_Test):
         confirm_fact_modules_present(new_facts, foo=1)
 
 
-@pytest.fixture(scope="function")
-def job_template_with_cloud_credential(request, job_template, cloud_credential):
-    job_template.patch(cloud_credential=cloud_credential.id)
-    return job_template
-
-
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Cloud_Credential_Job(Base_Api_Test):
+class Test_Job_Env(Base_Api_Test):
     '''
-    Verify that cloud credentials are properly passed to playbooks as
-    environment variables ('job_env')
+    Verify that credentials are properly passed to playbooks as
+    environment variables ('job_env').
     '''
-
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
 
-    def test_job_env(self, job_template_with_cloud_credential):
+    def test_job_env_with_cloud_credential(self, job_template_with_cloud_credential):
         '''
-        Verify that job_env has the expected cloud_credential variables
+        Verify that job_env has the expected cloud_credential variables.
+
+        Note: Tower doesn't set environmental variables for CloudForms and Satellite6.
         '''
         # get cloud_credential
         cloud_credential = job_template_with_cloud_credential.get_related('cloud_credential')
 
-        # launch job
-        job_pg = job_template_with_cloud_credential.launch()
-
-        # wait for completion
-        job_pg = job_pg.wait_until_completed()
-
-        # assert successful completion of job
+        # launch job and assert successful
+        job_pg = job_template_with_cloud_credential.launch().wait_until_completed()
         assert job_pg.is_successful, "Job unsuccessful - %s " % job_pg
 
-        # Assert expected environment variables and their values
+        # assert expected environment variables and their values
         if cloud_credential.kind == 'aws':
             self.has_credentials('cloud', cloud_credential.kind, ['username'])
             expected_env_vars = dict(
@@ -997,6 +1026,9 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
             expected_env_vars = dict(
                 OS_CLIENT_CONFIG_FILE=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
             )
+        elif cloud_credential.kind in ('cloudforms', 'satellite6'):
+            self.has_credentials('cloud', cloud_credential.kind, ['host', 'username', 'password'])
+            expected_env_vars = dict()
         else:
             raise ValueError("Unhandled cloud type: %s" % cloud_credential.kind)
 
@@ -1010,16 +1042,30 @@ class Test_Cloud_Credential_Job(Base_Api_Test):
             else:
                 is_correct = job_pg.job_env[env_var] == env_val
 
-            assert is_correct, "Unexpected value for %s environment variable %s" \
+            assert is_correct, "Unexpected value for %s environment variable %s " \
                 "in job_env ('%s')" % (cloud_credential.kind, env_var,
                                        job_pg.job_env[env_var])
 
+    def test_job_env_with_network_credential(self, job_template_with_network_credential, expected_net_env_vars):
+        '''
+        Verify that job_env has the expected network_credential variables.
+        '''
+        # get cloud_credential
+        network_credential = job_template_with_network_credential.get_related('network_credential')
 
-@pytest.fixture(scope="function")
-def cloud_inventory_job_template(request, job_template, cloud_group):
-    # Substitute in no-op playbook that does not attempt to connect to host
-    job_template.patch(playbook='debug.yml')
-    return job_template
+        # launch job and assert successful
+        job_pg = job_template_with_network_credential.launch().wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+
+        # assert the expected job_env variables are present
+        expected_env_vars = expected_net_env_vars(network_credential)
+        for env_var, env_val in expected_env_vars.items():
+            assert env_var in job_pg.job_env, \
+                "Missing expected network environment variable %s in job_env.\n%s" % \
+                (env_var, json.dumps(job_pg.job_env, indent=2))
+            assert job_pg.job_env[env_var] == env_val, \
+                "Unexpected value for %s environment variable %s in job_env ('%s')" \
+                % (network_credential.kind, env_var, job_pg.job_env[env_var])
 
 
 @pytest.mark.api
