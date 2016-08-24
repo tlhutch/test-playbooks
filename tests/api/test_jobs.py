@@ -1055,7 +1055,7 @@ class Test_Job_Env(Base_Api_Test):
 
         # launch job and assert successful
         job_pg = job_template_with_network_credential.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s " % job_pg
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # assert the expected job_env variables are present
         expected_env_vars = expected_net_env_vars(network_credential)
