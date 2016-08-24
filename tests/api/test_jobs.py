@@ -1063,10 +1063,9 @@ class Test_Job_Env(Base_Api_Test):
             assert env_var in job_pg.job_env, \
                 "Missing expected network environment variable %s in job_env.\n%s" % \
                 (env_var, json.dumps(job_pg.job_env, indent=2))
-            is_correct = job_pg.job_env[env_var] == env_val
-            assert is_correct, "Unexpected value for %s environment variable %s " \
-                "in job_env ('%s')" % (network_credential.kind, env_var,
-                                       job_pg.job_env[env_var])
+            assert job_pg.job_env[env_var] == env_val, \
+                "Unexpected value for %s environment variable %s in job_env ('%s')" \
+                % (network_credential.kind, env_var, job_pg.job_env[env_var])
 
 
 @pytest.mark.api
