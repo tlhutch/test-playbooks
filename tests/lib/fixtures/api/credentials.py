@@ -260,31 +260,31 @@ def encrypted_open_ssh_credential(request, authtoken, api_credentials_pg, admin_
 #
 # Convenience fixture that iterates through ssh credentials
 #
-ssh_credential_with_ssh_key_data_params = ['unencrypted_rsa', 'unencrypted_dsa', 'unencrypted_ecdsa', 'unencrypted_open',
-                                           'encrypted_rsa', 'encrypted_dsa', 'encrypted_ecdsa', 'encrypted_open']
+ssh_credential_params = ['unencrypted_rsa', 'unencrypted_dsa', 'unencrypted_ecdsa', 'unencrypted_open',
+                         'encrypted_rsa', 'encrypted_dsa', 'encrypted_ecdsa', 'encrypted_open']
 
 
 @pytest.fixture(
     scope="function",
-    params=ssh_credential_with_ssh_key_data_params,
-    ids=ssh_credential_with_ssh_key_data_params,
+    params=ssh_credential_params,
+    ids=ssh_credential_params,
 )
-def ssh_credential_with_ssh_key_data(request):
+def ssh_credential_with_ssh_key_data(request, params=ssh_credential_params):
     return (request.param, request.getfuncargvalue(request.param + '_ssh_credential'))
 
 
 #
 # Convenience fixture that iterates through unencrypted ssh credentials
 #
-ssh_credential_with_ssh_key_data_params = ['unencrypted_rsa', 'unencrypted_dsa', 'unencrypted_ecdsa', 'unencrypted_open']
+unencrypted_ssh_credential_params = ['unencrypted_rsa', 'unencrypted_dsa', 'unencrypted_ecdsa', 'unencrypted_open']
 
 
 @pytest.fixture(
     scope="function",
-    params=ssh_credential_with_ssh_key_data_params,
-    ids=ssh_credential_with_ssh_key_data_params,
+    params=unencrypted_ssh_credential_params,
+    ids=unencrypted_ssh_credential_params,
 )
-@pytest.fixture(scope="function", params=['unencrypted_rsa', 'unencrypted_dsa', 'unencrypted_ecdsa', 'unencrypted_open'])
+@pytest.fixture(scope="function", params=unencrypted_ssh_credential_params)
 def unencrypted_ssh_credential_with_ssh_key_data(request):
     return (request.param, request.getfuncargvalue(request.param + '_ssh_credential'))
 
@@ -292,15 +292,15 @@ def unencrypted_ssh_credential_with_ssh_key_data(request):
 #
 # Convenience fixture that iterates through encrypted ssh credentials
 #
-ssh_credential_with_ssh_key_data_params = ['encrypted_rsa', 'encrypted_dsa', 'encrypted_ecdsa', 'encrypted_open']
+encrypted_ssh_credential_params = ['encrypted_rsa', 'encrypted_dsa', 'encrypted_ecdsa', 'encrypted_open']
 
 
 @pytest.fixture(
     scope="function",
-    params=ssh_credential_with_ssh_key_data_params,
-    ids=ssh_credential_with_ssh_key_data_params,
+    params=encrypted_ssh_credential_params,
+    ids=encrypted_ssh_credential_params,
 )
-@pytest.fixture(scope="function", params=['encrypted_rsa', 'encrypted_dsa', 'encrypted_ecdsa', 'encrypted_open'])
+@pytest.fixture(scope="function", params=encrypted_ssh_credential_params)
 def encrypted_ssh_credential_with_ssh_key_data(request):
     return (request.param, request.getfuncargvalue(request.param + '_ssh_credential'))
 
