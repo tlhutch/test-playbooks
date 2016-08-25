@@ -8,10 +8,14 @@ import base
 class Notification(base.Base):
 
     def __str__(self):
-        return "<%s id:%s, notification_type:%s, status:%s, error:%s, " \
-            "notifications_sent:%s, subject:%s, recipients:%s>" % \
-            (self.__class__.__name__, self.id, self.notification_type, self.status,
-             self.error, self.notifications_sent, self.subject, self.recipients)
+        output = "<%s id:%s, notification_type:%s, status:%s, error:%s, " \
+                 "notifications_sent:%s, subject:%s, recipients:%s>" % \
+                 (self.__class__.__name__, self.id, self.notification_type, self.status,
+                  self.error, self.notifications_sent, self.subject, self.recipients)
+        return output.replace('%', '%%').encode("ascii", "backslashreplace")
+
+    def __repr__(self):
+        return self.__str__()
 
     @property
     def is_completed(self):

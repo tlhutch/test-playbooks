@@ -24,7 +24,10 @@ class UnifiedJob(base.Base):
             (self.__class__.__name__, self.id, self.name, self.status, self.failed,
              self.result_stdout, self.result_traceback,
              self.job_explanation, self.job_args)
-        return output.replace('%', '%%')
+        return output.replace('%', '%%').encode("ascii", "backslashreplace")
+
+    def __repr__(self):
+        return self.__str__()
 
     @property
     def is_completed(self):

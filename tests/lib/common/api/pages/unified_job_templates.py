@@ -18,7 +18,10 @@ class UnifiedJobTemplate(base.Base):
         # formatting issue where result_stdout contained '%s'.  This later caused
         # a python traceback when attempting to display output from this method.
         output = "<%s>" % ", ".join(output_fields)
-        return output.replace('%', '%%')
+        return output.replace('%', '%%').encode("ascii", "backslashreplace")
+
+    def __repr__(self):
+        return self.__str__()
 
     def wait_until_started(self, interval=1, verbose=0, timeout=60):
         '''Wait until a unified_job_template has started.'''
