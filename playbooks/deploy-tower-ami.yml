@@ -64,7 +64,8 @@
         name: '{{ ec2_key_pair_name }}'
         key_material: "{{ public_key_material }}"
       register: key_pair
-      failed_when: "{{ (key_pair.exception is defined and key_pair.exception.find('InvalidKeyPair.Duplicate') != -1) or key_pair.msg is defined }}"
+      failed_when: "{{ (key_pair.module_stderr is defined and key_pair.module_stderr.find('InvalidKeyPair.Duplicate') == -1) or key_pair.msg is defined }}"
+      ignore_errors: true
       # This `failed_when` condion is here because our CI sometimes has issues
       # when 2 different builds check for / attempt to create the key pair
       # at the same exact time.
