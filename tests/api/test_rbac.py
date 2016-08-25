@@ -293,7 +293,7 @@ def set_read_role(user_pg, notifiable_resource):
 @pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])
 @pytest.mark.parametrize(
     'resource_name',
-    ['organization', 'team', 'project', 'inventory', 'credential', 'job_template']
+    ['inventory_script', 'organization', 'team', 'project', 'inventory', 'credential', 'job_template']
 )
 def test_role_association_and_disassociation(factories, resource_name, endpoint):
     """Verify basic role association and disassociation functionality.

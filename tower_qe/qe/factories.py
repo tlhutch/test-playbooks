@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 from Crypto.PublicKey import RSA
 import factory
@@ -20,6 +21,7 @@ from qe.api.pages import (
     Users_Page,
     Teams_Page,
     Labels_Page,
+    Inventory_Scripts_Page,
 )
 
 
@@ -183,6 +185,31 @@ class GroupFactory(PageFactory):
         request=factory.SelfAttribute('..request'))
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_alphanumeric)
+
+
+class InventoryScriptFactory(PageFactory):
+    class Meta:
+        model = Inventory_Scripts_Page
+        inline_args = ('request',)
+        resources = ('organization',)
+    organization = factory.SubFactory(
+        OrganizationFactory,
+        request=factory.SelfAttribute('..request'))
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
+    description = factory.LazyFunction(fauxfactory.gen_alphanumeric)
+
+    # create script to generate inventory
+    group_name = re.sub(r"[\']", "", u"group-%s" % fauxfactory.gen_utf8())
+    script = u'''#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json
+inventory = dict()
+inventory['{0}'] = list()
+'''.format(group_name)
+    for i in range(5):
+        host_name = re.sub(r"[\':]", "", u"host-%s" % fauxfactory.gen_utf8())
+        script += u"inventory['{0}'].append('{1}')\n".format(group_name, host_name)
+    script += u"print json.dumps(inventory)\n"
 
 
 class JobTemplateFactory(PageFactory):
