@@ -11,7 +11,7 @@ class Common_Exception(Exception):
         return self.__str__()
 
     def __str__(self):
-        return self.message.encode("ascii", "backslashreplace")
+        return unicode(self.message).encode("ascii", "backslashreplace")
 
 
 class BadRequest_Exception(Common_Exception):
