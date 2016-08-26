@@ -333,14 +333,13 @@ def test_unauthorized_self_privilege_escalation_returns_code_403(
     """A user with [intial_role] permission on a [resource_name] cannot add
     the [unauthorized_target_role] for the [resource_name] to themselves
     """
-
-    if resource_name != 'credential':
-        user = factories.user()
-        resource = getattr(factories, resource_name)()
-    else:
+    if resource_name == 'credential':
         organization = factories.organization()
         user = factories.user(organization=organization)
         resource = getattr(factories, resource_name)(organization=organization)
+    else:
+        user = factories.user()
+        resource = getattr(factories, resource_name)()
     # make a test user and associate it with the initial role
     set_roles(user, resource, [initial_role])
     with auth_user(user), pytest.raises(Forbidden_Exception):
