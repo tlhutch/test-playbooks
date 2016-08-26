@@ -332,7 +332,8 @@ def test_unauthorized_self_privilege_escalation_returns_code_403(
         resource_name, initial_role, unauthorized_target_role):
     """A user with [intial_role] permission on a [resource_name] cannot add
     the [unauthorized_target_role] for the [resource_name] to themselves
-    """
+        """
+    # make credential and user organization align in testing credentials
     if resource_name == 'credential':
         organization = factories.organization()
         user = factories.user(organization=organization)
