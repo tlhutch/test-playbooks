@@ -82,7 +82,7 @@ class Test_Users(Base_Api_Test):
 
         Note: 'superuser' creation upon test setup is performed by admin user.
         '''
-        assert superuser.is_superuser, "Failed to create a superuser"
+        assert superuser.is_superuser, "Failed to create a superuser."
 
     def test_org_admin_cannot_create_a_superuser(self, request, org_admin, user_password):
         '''
@@ -97,7 +97,7 @@ class Test_Users(Base_Api_Test):
                 print json.dumps(payload, indent=2)
                 obj = users_pg.post(payload)
                 request.addfinalizer(obj.delete)
-                assert not obj.is_superuser, "Unexpectedly created a superuser with the following payload\n%s" % json.dumps(obj.json, indent=2)
+                assert not obj.is_superuser, "Unexpectedly created a superuser with the following payload\n%s." % json.dumps(obj.json, indent=2)
 
     def test_non_superuser_cannot_elevate_themselves_to_superuser(self, non_superuser, user_password):
         '''
@@ -105,24 +105,23 @@ class Test_Users(Base_Api_Test):
         PATCH or PUT request with is_superuser=True.
         '''
         with self.current_user(non_superuser.username, user_password):
-            # assert a non-superuser cannot elevate to a superuser with patch
+            # assert a non-superuser cannot elevate themselves to superuser with patch
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 non_superuser.patch(is_superuser=True)
 
-            # assert a non-superuser cannot elevate to a superuser with put
+            # assert a non-superuser cannot elevate themselves to superuser with put
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 non_superuser.json['is_superuser'] = True
                 non_superuser.put(non_superuser.json)
 
     def test_org_member_cannot_elevate_themselves_to_org_admin(self, org_user, user_password):
         '''
-        Verifies that an org_member cannot elevate himself to an org_admin by /api/v1/organizations/N/admins/
-        association.
+        Verifies that an org_member cannot elevate himself to an org_admin by associating himself
+        via /api/v1/organizations/N/admins/.
         '''
         org_admin_pg = org_user.get_related('organizations').results[0].get_related('admins')
 
         with self.current_user(org_user.username, user_password):
-            # admin elevation via /organizations/N/admins/ should raise 403
             with pytest.raises(common.exceptions.Forbidden_Exception):
                 payload = dict(id=org_user.id)
                 org_admin_pg.post(payload)
