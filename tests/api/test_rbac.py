@@ -319,8 +319,11 @@ def test_role_association_and_disassociation(factories, resource_name, endpoint)
     'resource_name, initial_role, unauthorized_target_role',
     [
         ('organization', 'member', 'admin'),
+        ('team', 'read', 'admin'),
         ('project', 'read', 'admin'),
         ('inventory', 'read', 'admin'),
+        ('inventory_script', 'read', 'admin'),
+        ('credential', 'read', 'admin'),
         ('job_template', 'read', 'admin'),
     ]
 )
@@ -330,9 +333,15 @@ def test_unauthorized_self_privilege_escalation_returns_code_403(
     """A user with [intial_role] permission on a [resource_name] cannot add
     the [unauthorized_target_role] for the [resource_name] to themselves
     """
-    resource = getattr(factories, resource_name)()
+
+    if resource_name != 'credential':
+        user = factories.user()
+        resource = getattr(factories, resource_name)()
+    else:
+        organization = factories.organization()
+        user = factories.user(organization=organization)
+        resource = getattr(factories, resource_name)(organization=organization)
     # make a test user and associate it with the initial role
-    user = factories.user()
     set_roles(user, resource, [initial_role])
     with auth_user(user), pytest.raises(Forbidden_Exception):
         set_roles(user, resource, [unauthorized_target_role], endpoint=endpoint)
