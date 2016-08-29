@@ -1,0 +1,3 @@
+recursive-include qe *.py *.yml *.md
+recursive-include qe/api/schema *
+recursive-include test *.py *.yml *.md

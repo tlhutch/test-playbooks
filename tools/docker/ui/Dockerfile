@@ -15,12 +15,11 @@ RUN apk add --update \
     python \
     python-dev
 
-ADD tests/requirements.txt /requirements.txt
-
-RUN pip install -r requirements.txt
-
 ADD . /tower-qa
 WORKDIR /tower-qa
+
+RUN pip install -r tower_qe/requirements.txt
+RUN pip install tower_qe/
 
 RUN chmod a+x tools/docker/ui/credentials.sh
 RUN tools/docker/ui/credentials.sh

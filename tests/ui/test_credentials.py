@@ -4,7 +4,7 @@ import fauxfactory
 import pytest
 from selenium.common.exceptions import TimeoutException
 
-from common.exceptions import NotFound_Exception
+from qe.exceptions import NotFound_Exception
 
 
 pytestmark = [

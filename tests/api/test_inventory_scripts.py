@@ -1,8 +1,8 @@
 import json
 import pytest
 import fauxfactory
-import common.tower.inventory
-import common.exceptions
+import qe.tower.inventory
+import qe.exceptions
 from tests.api import Base_Api_Test
 
 
@@ -81,7 +81,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                        organization=organization.id,
                        script=script_source)
         with self.current_user(unprivileged_user.username, user_password):
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 api_inventory_scripts_pg.post(payload)
 
     def test_post_without_required_fields(self, api_inventory_scripts_pg, organization, script_source):
@@ -91,7 +91,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # without name
         payload = dict(script=script_source,
                        organization=organization.id)
-        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, api_inventory_scripts_pg.post, payload)
+        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
         assert result == {u'name': [u'This field is required.']}, \
             "Unexpected API response when posting an inventory_script with a missing value for 'name': %s." % json.dumps(result)
@@ -99,7 +99,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # without script
         payload = dict(name=fauxfactory.gen_utf8(),
                        organization=organization.id)
-        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, api_inventory_scripts_pg.post, payload)
+        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
         assert result == {u'script': [u'This field is required.']}, \
             "Unexpected API response when posting an inventory_script with a missing value for 'script': %s." % json.dumps(result)
@@ -108,7 +108,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         payload = dict(name=fauxfactory.gen_utf8(),
                        organization=organization.id,
                        script='import json\nprint json.dumps({})')
-        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, api_inventory_scripts_pg.post, payload)
+        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
         assert result == {u'script': [u'Script must begin with a hashbang sequence: i.e.... #!/usr/bin/env python']}, \
             "Unexpected API response when posting an inventory_script with a script that does not begin with a hashbang sequence: %s." % json.dumps(result)
@@ -116,7 +116,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # without organization
         payload = dict(name=fauxfactory.gen_utf8(),
                        script=script_source)
-        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, api_inventory_scripts_pg.post, payload)
+        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
         assert result == {u'organization': [u'This field is required.']}, \
             "Unexpected API response when posting an inventory_script with a missing value for 'organization': %s." % json.dumps(result)
@@ -149,7 +149,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         inventory_scripts associated with an organization.
         '''
         with self.current_user(anonymous_user.username, user_password):
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 inventory_script.get()
 
     def test_duplicate(self, api_inventory_scripts_pg, inventory_script):
@@ -157,7 +157,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         Verify response when POSTing a duplicate to /inventory_scripts
         '''
         # assert duplicate error
-        with pytest.raises(common.exceptions.Duplicate_Exception):
+        with pytest.raises(qe.exceptions.Duplicate_Exception):
             api_inventory_scripts_pg.post(inventory_script.json)
 
     def test_unique(self, request, api_inventory_scripts_pg, inventory_script, another_organization):
@@ -228,7 +228,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
             inventory_script.delete()
 
             # attempt to GET script
-            with pytest.raises(common.exceptions.NotFound_Exception):
+            with pytest.raises(qe.exceptions.NotFound_Exception):
                 inventory_script.get()
 
             # query /inventory_sources endpoint for matching id
@@ -239,7 +239,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         Verify unsuccesful DELETE to /inventory_scripts/N as an unprivileged user.
         '''
         with self.current_user(unprivileged_user.username, user_password):
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 inventory_script.delete()
 
     def test_inventory_update_after_delete(self, custom_inventory_source_with_vars, inventory_script):
@@ -256,7 +256,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         inventory_script.delete()
 
         # POST inventory_update
-        with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
+        with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
             update_pg.post()
 
         # reload the update_pg

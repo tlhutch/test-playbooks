@@ -3,9 +3,9 @@ import logging
 import fauxfactory
 import pytest
 
-from common.rrule import RRule
+from qe.rrule import RRule
 
-from common.ui.models import (
+from qe.ui.models import (
     ActivityStream,
     Credentials,
     CredentialAdd,

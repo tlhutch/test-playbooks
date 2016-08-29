@@ -1,7 +1,7 @@
 import json
 import pytest
 import fauxfactory
-import common.exceptions
+import qe.exceptions
 from tests.api import Base_Api_Test
 
 
@@ -239,7 +239,7 @@ class Test_Group(Base_Api_Test):
 
         # disassociate top-level group
         payload = dict(id=group.id, disassociate=True)
-        with pytest.raises(common.exceptions.NoContent_Exception):
+        with pytest.raises(qe.exceptions.NoContent_Exception):
             # POST to /inventories/N/groups
             root_variation.get_related('groups').post(payload)
 
@@ -282,7 +282,7 @@ class Test_Group(Base_Api_Test):
 
         # delete group, and promote it's children
         payload = dict(disassociate=True)
-        with pytest.raises(common.exceptions.NoContent_Exception):
+        with pytest.raises(qe.exceptions.NoContent_Exception):
             # 1) FIXME - disassociate all matching groups - /inventories/N/groups
             # Would need to add variations to verify the above scenario
             # non_root_variation.get_related('groups').post(payload)
@@ -411,7 +411,7 @@ class Test_Group(Base_Api_Test):
 
         # To associate a root_group, dissociate the group from the parent_group
         payload = dict(id=group.id, disassociate=True)
-        with pytest.raises(common.exceptions.NoContent_Exception):
+        with pytest.raises(qe.exceptions.NoContent_Exception):
             parent_group.get_related('children').post(payload)
 
         # Verify root_groups adjusts appropriately
@@ -477,7 +477,7 @@ class Test_Group(Base_Api_Test):
 
         # Associate group with dest_group
         payload = dict(id=group.id)
-        with pytest.raises(common.exceptions.NoContent_Exception):
+        with pytest.raises(qe.exceptions.NoContent_Exception):
             dest_group.get_related('children').post(payload)
 
         # Verify root_groups adjusts appropriately
@@ -553,13 +553,13 @@ class Test_Group(Base_Api_Test):
 
         # Associate group with dest_group
         payload = dict(id=group.id)
-        with pytest.raises(common.exceptions.NoContent_Exception):
+        with pytest.raises(qe.exceptions.NoContent_Exception):
             dest_group.get_related('children').post(payload)
 
         # Disassociate group from parent_group
         if parent_group:
             payload = dict(id=group.id, disassociate=True)
-            with pytest.raises(common.exceptions.NoContent_Exception):
+            with pytest.raises(qe.exceptions.NoContent_Exception):
                 parent_group.get_related('children').post(payload)
 
         # Verify root_groups adjusts appropriately
@@ -607,7 +607,7 @@ class Test_Group(Base_Api_Test):
 
         # Attempt to associate circular dependency
         payload = dict(id=parent_group.id)
-        with pytest.raises(common.exceptions.Forbidden_Exception):
+        with pytest.raises(qe.exceptions.Forbidden_Exception):
             grandchild_group.get_related('children').post(payload)
 
     def test_unique(self, inventory, another_inventory):
@@ -643,12 +643,12 @@ class Test_Group(Base_Api_Test):
 
         # Attempt to create duplicate group as a root_group
         payload = dict(name=child_group.name, inventory=inventory.id)
-        with pytest.raises(common.exceptions.Duplicate_Exception):
+        with pytest.raises(qe.exceptions.Duplicate_Exception):
             inventory.get_related('groups').post(payload)
 
         # Attempt to create duplicate group as a child_group
         payload = dict(name=parent_group.name, inventory=inventory.id)
-        with pytest.raises(common.exceptions.Duplicate_Exception):
+        with pytest.raises(qe.exceptions.Duplicate_Exception):
             parent_group.get_related('children').post(payload)
 
     def test_name_reuse(self, some_group):
@@ -660,7 +660,7 @@ class Test_Group(Base_Api_Test):
         some_group.delete()
 
         # The group should immediately be marked as inactive (aka deleted) by Tower
-        with pytest.raises(common.exceptions.NotFound_Exception):
+        with pytest.raises(qe.exceptions.NotFound_Exception):
             some_group.get()
 
         # Create a new group, with the same name
@@ -673,7 +673,7 @@ class Test_Group(Base_Api_Test):
         while True:
             try:
                 groups_pg.post(payload)
-            except common.exceptions.Duplicate_Exception:
+            except qe.exceptions.Duplicate_Exception:
                 if tries > max_tries:
                     raise Exception("The group '%s' (id: %s) wasn't cleaned up after %d attempts" % (some_group.name, some_group.id, tries))
                 tries += 1

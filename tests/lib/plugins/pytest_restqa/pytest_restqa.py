@@ -1,14 +1,14 @@
-import requests
 import httplib
 import logging
-import pytest
-import yaml
 import sys
-import os
+
+import requests
+import pytest
 import py
 
-from common.api.client import Connection
-import common
+from qe.utils import load_credentials
+from qe.api.client import Connection
+from qe import config as qe_config
 
 
 __version__ = '1.0'
@@ -89,19 +89,19 @@ def pytest_configure(config):
                 "Base URL did not return status code %s. (URL: %s, Response: %s)" % \
                 (httplib.OK, config.option.base_url, r.status_code)
 
-            common.config.base_url = TestSetup.base_url = config.option.base_url
+            qe_config.base_url = TestSetup.base_url = config.option.base_url
 
             # Load credentials.yaml
             if config.option.credentials_file:
-                common.config.credentials = load_credentials(config.option.credentials_file)
-                TestSetup.credentials = common.config.credentials
+                qe_config.credentials = load_credentials(config.option.credentials_file)
+                TestSetup.credentials = qe_config.credentials
 
-            common.config.api_version = config.getvalue('api_version')
-            common.config.assume_untrusted = config.getvalue('assume_untrusted')
+            qe_config.api_version = config.getvalue('api_version')
+            qe_config.assume_untrusted = config.getvalue('assume_untrusted')
 
-            TestSetup.api = Connection(common.config.base_url,
-                                       version=common.config.api_version,
-                                       verify=not common.config.assume_untrusted)
+            TestSetup.api = Connection(qe_config.base_url,
+                                       version=qe_config.api_version,
+                                       verify=not qe_config.assume_untrusted)
             if config.option.debug_rest and hasattr(config, '_debug_rest_hdlr'):
                 TestSetup.api.setup_logging(config._debug_rest_hdlr)
 
@@ -111,22 +111,6 @@ def pytest_unconfigure(config):
     # Print reminder about pytestdebug-rest.log
     if hasattr(config, '_debug_rest_hdlr'):
         sys.stderr.write("Wrote pytest-rest information to %s\n" % config._debug_rest_hdlr.baseFilename)
-
-
-def load_credentials(filename=None):
-    if filename is None:
-        this_file = os.path.abspath(__file__)
-        path = py.path.local(this_file).new(basename='credentials.yaml')
-    else:
-        path = py.path.local(filename)
-
-    if path.check():
-        credentials_fh = path.open()
-        credentials_dict = yaml.load(credentials_fh)
-        return credentials_dict
-    else:
-        msg = 'Unable to load credentials file at %s' % path
-        raise Exception(msg)
 
 
 @pytest.fixture(scope="session")

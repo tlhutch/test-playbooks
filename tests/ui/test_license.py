@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from common.tower.license import generate_license, generate_license_file
+from qe.tower.license import generate_license, generate_license_file
 
 pytestmark = [
     pytest.mark.ui,

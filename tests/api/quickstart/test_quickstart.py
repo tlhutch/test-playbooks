@@ -3,13 +3,13 @@ import re
 import pytest
 import json
 import logging
-import common.tower.license
+import qe.tower.license
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from inflect import engine
-from common.yaml_file import load_file
+from qe.yaml_file import load_file
 from tests.api import Base_Api_Test
-from common.exceptions import BadRequest_Exception, Duplicate_Exception, NoContent_Exception
+from qe.exceptions import BadRequest_Exception, Duplicate_Exception, NoContent_Exception
 
 
 # Parameterize tests based on yaml configuration
@@ -64,7 +64,7 @@ def install_integration_license(authtoken, api_config_pg, awx_config, tower_lice
 
         # Install/replace license
         logging.debug("installing license {0}".format(tower_license_path))
-        license_json = common.tower.license.generate_license(instance_count=10000, days=60, license_type='enterprise')
+        license_json = qe.tower.license.generate_license(instance_count=10000, days=60, license_type='enterprise')
         api_config_pg.post(license_json)
 
 

@@ -2,7 +2,7 @@ import os.path
 import sys
 import logging
 import pytest
-import common.tower.license
+import qe.tower.license
 
 
 log = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ def install_license_1000(request, ansible_runner, tower_license_path):
     '''
 
     log.debug("calling fixture install_license_1000")
-    fname = common.tower.license.generate_license_file(instance_count=1000, days=365)
+    fname = qe.tower.license.generate_license_file(instance_count=1000, days=365)
     ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
 
     def teardown():
@@ -54,7 +54,7 @@ def install_license_10000(request, ansible_runner, tower_license_path):
     '''
 
     log.debug("calling fixture install_license_10000")
-    fname = common.tower.license.generate_license_file(instance_count=10000, days=365)
+    fname = qe.tower.license.generate_license_file(instance_count=10000, days=365)
     ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
 
     def teardown():
@@ -69,7 +69,7 @@ def install_license_unlimited(request, ansible_runner, tower_license_path):
     '''
 
     log.debug("calling fixture install_license_unlimited")
-    fname = common.tower.license.generate_license_file(instance_count=sys.maxint, days=365)
+    fname = qe.tower.license.generate_license_file(instance_count=sys.maxint, days=365)
     ansible_runner.copy(src=fname, dest=tower_license_path, owner='awx', group='awx', mode='0600')
 
     def teardown():

@@ -1,7 +1,7 @@
 import pytest
 
-from common.api.pages import Role_Page, Roles_Page, Team_Page, User_Page
-from common.exceptions import NoContent_Exception
+from qe.api.pages import Role_Page, Roles_Page, Team_Page, User_Page
+from qe.exceptions import NoContent_Exception
 
 
 @pytest.fixture(scope='session')

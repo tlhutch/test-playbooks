@@ -2,7 +2,7 @@ import pytest
 import httplib
 import fauxfactory
 from tests.api import Base_Api_Test
-from common.api.schema import validate
+from qe.api.schema import validate
 
 
 @pytest.mark.api

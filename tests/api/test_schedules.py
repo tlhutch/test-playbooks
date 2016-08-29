@@ -1,9 +1,9 @@
 import pytest
 import fauxfactory
-import common.exceptions
+import qe.exceptions
 import dateutil.rrule
 
-from common.rrule import RRule
+from qe.rrule import RRule
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse
@@ -186,7 +186,7 @@ class Test_Project_Schedules(Base_Api_Test):
                            description="%s" % fauxfactory.gen_utf8(),
                            enabled=True,
                            rrule=str(unsupported_rrule))
-            with pytest.raises(common.exceptions.BadRequest_Exception):
+            with pytest.raises(qe.exceptions.BadRequest_Exception):
                 schedules_pg.post(payload)
 
     def test_post_duplicate(self, project, disabled_project_schedule):
@@ -195,7 +195,7 @@ class Test_Project_Schedules(Base_Api_Test):
 
         payload = dict(name=disabled_project_schedule.name,
                        rrule=disabled_project_schedule.rrule)
-        with pytest.raises(common.exceptions.Duplicate_Exception):
+        with pytest.raises(qe.exceptions.Duplicate_Exception):
             schedules_pg.post(payload)
 
     def test_post_disabled(self, project, disabled_project_schedule):
@@ -316,14 +316,14 @@ class Test_Project_Schedules(Base_Api_Test):
 
         # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
+        unified_jobs_pg = qe.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
 
         # Ensure correct number of scheduled launches occurred
         assert unified_jobs_pg.count == 1
 
         # Ensure the job status is failed
         job_pg = unified_jobs_pg.results[0]
-        job_pg = common.utils.wait_until(job_pg, 'status', 'failed', interval=15, verbose=True, timeout=60 * 5)
+        job_pg = qe.utils.wait_until(job_pg, 'status', 'failed', interval=15, verbose=True, timeout=60 * 5)
         assert job_pg.status == 'failed', "Unexpected job status (%s != %s) - %s" % \
             (job_pg.status, 'failed', job_pg)
 
@@ -375,7 +375,7 @@ class Test_Project_Schedules(Base_Api_Test):
 
         # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
+        unified_jobs_pg = qe.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
 
         # Ensure correct number of scheduled launches occured
         assert unified_jobs_pg.count == 1
@@ -402,7 +402,7 @@ class Test_Project_Schedules(Base_Api_Test):
 
         # wait 5 minutes for scheduled updates to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', rrule.count(), interval=15, verbose=True, timeout=60 * 5)
+        unified_jobs_pg = qe.utils.wait_until(unified_jobs_pg, 'count', rrule.count(), interval=15, verbose=True, timeout=60 * 5)
 
         # ensure scheduled project updates ran
         assert unified_jobs_pg.count == rrule.count()
@@ -493,7 +493,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
                        description="%s" % fauxfactory.gen_utf8(),
                        enabled=True,
                        rrule=str(rrule))
-        with pytest.raises(common.exceptions.BadRequest_Exception):
+        with pytest.raises(qe.exceptions.BadRequest_Exception):
             schedules_pg.post(payload)
 
     def test_post_invalid(self, aws_inventory_source, unsupported_rrules):
@@ -505,7 +505,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
                            description="%s" % fauxfactory.gen_utf8(),
                            enabled=True,
                            rrule=str(unsupported_rrule))
-            with pytest.raises(common.exceptions.BadRequest_Exception):
+            with pytest.raises(qe.exceptions.BadRequest_Exception):
                 schedules_pg.post(payload)
 
     def test_post_duplicate(self, aws_inventory_source, disabled_inventory_schedule):
@@ -514,7 +514,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
         payload = dict(name=disabled_inventory_schedule.name,
                        rrule=disabled_inventory_schedule.rrule)
-        with pytest.raises(common.exceptions.Duplicate_Exception):
+        with pytest.raises(qe.exceptions.Duplicate_Exception):
             schedules_pg.post(payload)
 
     def test_post_disabled(self, aws_inventory_source, disabled_inventory_schedule):
@@ -677,7 +677,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
         # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
+        unified_jobs_pg = qe.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
 
         # Ensure correct number of scheduled launches occured
         assert unified_jobs_pg.count == 1
@@ -704,7 +704,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
         # wait 5 minutes for scheduled updates to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', rrule.count(), interval=15, verbose=True, timeout=60 * 5)
+        unified_jobs_pg = qe.utils.wait_until(unified_jobs_pg, 'count', rrule.count(), interval=15, verbose=True, timeout=60 * 5)
 
         # ensure scheduled updates ran
         assert unified_jobs_pg.count == rrule.count()
@@ -751,7 +751,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         # assert the group schedules are gone
         # Group deletes take much longer than project deletes.  Wait 2 minutes for
         # cascade schedule deletion.
-        remaining_schedules = common.utils.wait_until(
+        remaining_schedules = qe.utils.wait_until(
             api_schedules_pg.get(id__in=','.join([str(sid) for sid in schedule_ids])),
             'count', 0, interval=5, verbose=True, timeout=60 * 2)
         assert remaining_schedules.count == 0
@@ -788,7 +788,7 @@ class Test_Job_Template_Schedules(Base_Api_Test):
 
         # wait for a scheduled job to launch
         unified_jobs_pg = schedule_pg.get_related('unified_jobs', launch_type='scheduled')
-        unified_jobs_pg = common.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 1)
+        unified_jobs_pg = qe.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 1)
 
         # Assert expected number of launched jobs
         assert unified_jobs_pg.count == 1

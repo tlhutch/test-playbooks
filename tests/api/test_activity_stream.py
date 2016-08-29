@@ -3,7 +3,7 @@ import logging
 import pytest
 
 from tests.api import Base_Api_Test
-import common.exceptions
+import qe.exceptions
 
 
 log = logging.getLogger(__name__)
@@ -44,9 +44,9 @@ class TestActivityStream(Base_Api_Test):
         host = factories.host(inventory=inventory)
 
         group.name = "UpdatedGroupName"
-        with pytest.raises(common.exceptions.NoContent_Exception):
+        with pytest.raises(qe.exceptions.NoContent_Exception):
             group.get_related('hosts').post(dict(associate=True, id=host.id))
-        with pytest.raises(common.exceptions.NoContent_Exception):
+        with pytest.raises(qe.exceptions.NoContent_Exception):
             group.get_related('hosts').post(dict(disassociate=True, id=host.id))
 
         operations = ['create', 'update', 'associate', 'disassociate']

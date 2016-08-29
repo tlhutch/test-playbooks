@@ -2,7 +2,7 @@ import pytest
 import json
 import yaml
 import fauxfactory
-from common.exceptions import BadRequest_Exception
+from qe.exceptions import BadRequest_Exception
 from tests.api import Base_Api_Test
 
 

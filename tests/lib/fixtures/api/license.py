@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from common.tower.license import generate_license
+from qe.tower.license import generate_license
 
 
 log = logging.getLogger(__name__)

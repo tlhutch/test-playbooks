@@ -3,7 +3,7 @@ import time
 import fauxfactory
 import pytest
 
-from common.exceptions import NotFound_Exception
+from qe.exceptions import NotFound_Exception
 
 pytestmark = [
     pytest.mark.ui,

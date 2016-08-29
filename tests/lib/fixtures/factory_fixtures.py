@@ -1,8 +1,8 @@
 import pytest
 
-from common.utils import SimpleNamespace
+from qe.utils import SimpleNamespace
 
-from common.factories import (
+from qe.factories import (
     CredentialFactory,
     GroupFactory,
     HostFactory,

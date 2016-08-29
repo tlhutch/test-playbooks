@@ -4,11 +4,11 @@ import logging
 
 import pytest
 
-import common.exceptions
-from common.exceptions import Forbidden_Exception
-from common.exceptions import NoContent_Exception
-from common.api.pages.users import User_Page
-from common.api.pages.teams import Team_Page
+import qe.exceptions
+from qe.exceptions import Forbidden_Exception
+from qe.exceptions import NoContent_Exception
+from qe.api.pages.users import User_Page
+from qe.api.pages.teams import Team_Page
 from tests.api import Base_Api_Test
 
 log = logging.getLogger(__name__)
@@ -226,8 +226,8 @@ def assert_response_raised(tower_object, response=httplib.OK):
     """
     exc_dict = {
         httplib.OK: None,
-        httplib.NOT_FOUND: common.exceptions.NotFound_Exception,
-        httplib.FORBIDDEN: common.exceptions.Forbidden_Exception,
+        httplib.NOT_FOUND: qe.exceptions.NotFound_Exception,
+        httplib.FORBIDDEN: qe.exceptions.Forbidden_Exception,
     }
     exc = exc_dict[response]
     for method in ('put', 'patch', 'delete'):
@@ -243,14 +243,14 @@ def check_read_access(tower_object, expected_forbidden=[], unprivileged=False):
     """
     # for test scenarios involving unprivileged users
     if unprivileged:
-        with pytest.raises(common.exceptions.Forbidden_Exception):
+        with pytest.raises(qe.exceptions.Forbidden_Exception):
             tower_object.get()
     # for test scenarios involving privileged users
     else:
         tower_object.get()
         for related in tower_object.related:
             if related in expected_forbidden:
-                with pytest.raises(common.exceptions.Forbidden_Exception):
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
                     tower_object.get_related(related)
             else:
                 tower_object.get_related(related)
@@ -602,7 +602,7 @@ class Test_Organization_RBAC(Base_Api_Test):
         role_pg = organization_pg.get_object_role(organization_role)
         payload = dict(id=role_pg.id)
 
-        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, team_pg.get_related('roles').post, payload)
+        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, team_pg.get_related('roles').post, payload)
         result = exc_info.value[1]
         assert result == {u'msg': u'You cannot assign an Organization role as a child role for a Team.'}, \
             "Unexpected error message received when attempting to assign an organization role to a team."
@@ -636,7 +636,7 @@ class Test_Project_RBAC(Base_Api_Test):
             check_read_access(project_pg, unprivileged=True)
 
             # check project update
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 update_pg.post()
 
             # check put/patch/delete
@@ -728,7 +728,7 @@ class Test_Project_RBAC(Base_Api_Test):
             check_read_access(project_pg, ["organization"])
 
             # check project update
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 project_pg.update()
 
             # check put/patch/delete
@@ -760,7 +760,7 @@ class Test_Project_RBAC(Base_Api_Test):
             check_read_access(project_pg, ["organization"])
 
             # check project update
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 project_pg.update()
 
             # check put/patch/delete
@@ -1003,7 +1003,7 @@ class Test_Team_RBAC(Base_Api_Test):
 
         # give test user member role privileges
         role_pg = team_pg.get_object_role('member_role')
-        with pytest.raises(common.exceptions.NoContent_Exception):
+        with pytest.raises(qe.exceptions.NoContent_Exception):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
         # assert that teams/N/users now shows test user
@@ -1121,7 +1121,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             check_read_access(job_template_pg, unprivileged=True)
 
             # check JT launch
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 launch_pg.post()
 
             # check put/patch/delete
@@ -1206,7 +1206,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
             # check JT launch
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 job_template_pg.launch()
 
             # check put/patch/delete
@@ -1277,21 +1277,21 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # update all cloud_groups
             for inventory_source_update_pg in inventory_source_update_pgs:
-                with pytest.raises(common.exceptions.Forbidden_Exception):
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
                     inventory_source_update_pg.post()
 
             # update custom group
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 custom_group_update_pg.post()
 
             # post command
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 commands_pg.post()
 
             # check ability to create group and host
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 hosts_pg.post()
 
             # check put/patch/delete on inventory, custom_group, and host_local
@@ -1393,20 +1393,20 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # update custom group
             update_pg = custom_group.get_related('inventory_source').get_related('update')
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 update_pg.post()
 
             # post command
             payload = dict(inventory=inventory_pg.id,
                            credential=credential_pg.id,
                            module_name="ping", )
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 inventory_pg.get_related('ad_hoc_commands').post(payload)
 
             # check ability to create group and host
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 hosts_pg.post(host_payload)
 
             # check put/patch/delete on inventory, custom_group, and host_local
@@ -1448,7 +1448,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # update custom group
             update_pg = custom_group.get_related('inventory_source').get_related('update')
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 update_pg.post()
 
             # post command
@@ -1460,9 +1460,9 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
 
             # check ability to create group and host
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 hosts_pg.post(host_payload)
 
             # check put/patch/delete on inventory, custom_group, and host_local
@@ -1519,13 +1519,13 @@ class Test_Inventory_RBAC(Base_Api_Test):
             payload = dict(inventory=inventory_pg.id,
                            credential=credential_pg.id,
                            module_name="ping", )
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 inventory_pg.get_related('ad_hoc_commands').post(payload)
 
             # check ability to create group and host
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 hosts_pg.post(host_payload)
 
             # check put/patch/delete on inventory, custom_group, and host_local
@@ -1567,20 +1567,20 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # update custom group
             update_pg = custom_group.get_related('inventory_source').get_related('update')
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 update_pg.post()
 
             # post command
             payload = dict(inventory=inventory_pg.id,
                            credential=credential_pg.id,
                            module_name="ping", )
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 inventory_pg.get_related('ad_hoc_commands').post(payload)
 
             # check ability to create group and host
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 hosts_pg.post(host_payload)
 
             # check put/patch/delete on inventory, custom_group, and host_local
@@ -1603,7 +1603,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         '''
         # test notification template create as unprivileged user
         with self.current_user(username=unprivileged_user.username, password=user_password):
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 api_notification_templates_pg.post(email_notification_template_payload)
 
     def test_notification_template_create_as_org_admin(self, email_notification_template_payload, api_notification_templates_pg, org_admin, user_password):
@@ -1629,7 +1629,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         payload = dict(id=email_notification_template.id)
         with self.current_user(username=unprivileged_user.username, password=user_password):
             for endpoint in endpoints:
-                with pytest.raises(common.exceptions.Forbidden_Exception):
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
                     endpoint.post(payload)
 
     def test_notification_template_associate_as_org_admin(self, email_notification_template, notifiable_resource, org_admin, user_password):
@@ -1643,7 +1643,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         payload = dict(id=email_notification_template.id)
         with self.current_user(username=org_admin.username, password=user_password):
             for endpoint in endpoints:
-                with pytest.raises(common.exceptions.NoContent_Exception):
+                with pytest.raises(qe.exceptions.NoContent_Exception):
                     endpoint.post(payload)
 
     def test_notification_template_read_as_unprivileged_user(self, email_notification_template, unprivileged_user, user_password):
@@ -1652,7 +1652,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         '''
         # assert that we cannot access api/v1/notification_templates
         with self.current_user(username=unprivileged_user.username, password=user_password):
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 email_notification_template.get()
 
     def test_notification_template_read_as_org_admin(self, email_notification_template, org_admin, user_password):
@@ -1669,9 +1669,9 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         '''
         # assert that put/patch is forbidden
         with self.current_user(username=unprivileged_user.username, password=user_password):
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 email_notification_template.put()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 email_notification_template.patch()
 
     def test_notification_template_edit_as_org_admin(self, email_notification_template, org_admin, user_password):
@@ -1689,7 +1689,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         '''
         # assert that delete is forbidden
         with self.current_user(username=unprivileged_user.username, password=user_password):
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 email_notification_template.delete()
 
     def test_notification_template_delete_as_org_admin(self, email_notification_template, org_admin, user_password):
@@ -1715,7 +1715,7 @@ class Test_Notifications_RBAC(Base_Api_Test):
         notification_pg = email_notification_template.test().wait_until_completed()
 
         with self.current_user(username=unprivileged_user.username, password=user_password):
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 notification_pg.get()
 
     def test_notification_read_as_org_admin(self, email_notification_template, org_admin, user_password):
@@ -1750,7 +1750,7 @@ class Test_Label_RBAC(Base_Api_Test):
 
         # assert initial label post raises 403
         with self.current_user(username=user_pg.username, password=user_password):
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 api_labels_pg.post(payload)
 
         # grant user target organization permission
@@ -1761,7 +1761,7 @@ class Test_Label_RBAC(Base_Api_Test):
             if role in ALLOWED_ROLES:
                 api_labels_pg.post(payload)
             elif role in REJECTED_ROLES:
-                with pytest.raises(common.exceptions.Forbidden_Exception):
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
                     api_labels_pg.post(payload)
             else:
                 raise ValueError("Received unhandled organization role.")
@@ -1787,10 +1787,10 @@ class Test_Label_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             job_template_pg.get()
             if job_template_pg.summary_fields['can_edit']:
-                with pytest.raises(common.exceptions.NoContent_Exception):
+                with pytest.raises(qe.exceptions.NoContent_Exception):
                     labels_pg.post(payload)
             else:
-                with pytest.raises(common.exceptions.Forbidden_Exception):
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
                     labels_pg.post(payload)
 
 
@@ -1809,6 +1809,6 @@ class TestUsersRBAC(Base_Api_Test):
 
         for user in [user_one, user_two]:
             for disassociate in [True, False]:
-                with pytest.raises(common.exceptions.Forbidden_Exception):
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
                     user.get_related('roles').post(dict(id=user_one_admin_role.id,
                                                         disassociate=disassociate))

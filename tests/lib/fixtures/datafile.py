@@ -29,12 +29,12 @@ def datafile(request):
     Given a filename with a leading slash, it will attempt to load the file
     relative to the root of the data dir. For example, this:
 
-        datafile('/common/testfile') # in tests/subdir/test_module_name.py
+        datafile('/qe/testfile') # in tests/subdir/test_module_name.py
 
     Would return a file object representing this file:
 
-        data/common/testfile
-        common/testfile
+        data/qe/testfile
+        qe/testfile
 
     """
     return FixtureDataFile(request)

@@ -1,5 +1,5 @@
 import pytest
-from common.yaml_file import load_file
+from qe.yaml_file import load_file
 
 
 def pytest_addoption(parser):

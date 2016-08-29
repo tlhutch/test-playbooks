@@ -1,6 +1,6 @@
 import pytest
 import fauxfactory
-import common.exceptions
+import qe.exceptions
 
 
 @pytest.fixture(scope="function")
@@ -18,6 +18,6 @@ def team_with_org_admin(request, team, org_admin):
     '''A team with an org_admin as a member'''
     users_pg = team.get_related('users')
     payload = dict(id=org_admin.id)
-    with pytest.raises(common.exceptions.NoContent_Exception):
+    with pytest.raises(qe.exceptions.NoContent_Exception):
         users_pg.post(payload)
     return team

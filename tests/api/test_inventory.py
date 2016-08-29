@@ -1,8 +1,8 @@
 import json
 import pytest
 import fauxfactory
-import common.tower.inventory
-import common.exceptions
+import qe.tower.inventory
+import qe.exceptions
 from tests.api import Base_Api_Test
 
 
@@ -92,7 +92,7 @@ def json_inventory_ipv6(request):
 
     # Add 10 random ipv6 hosts
     for i in range(10):
-        my_inventory['ipv6 hosts'].append(common.utils.random_ipv6())
+        my_inventory['ipv6 hosts'].append(qe.utils.random_ipv6())
     return my_inventory
 
 
@@ -152,7 +152,7 @@ class Test_Inventory(Base_Api_Test):
         update_pg = custom_inventory_source.get().get_related("current_update")
 
         # delete the job_template
-        exc_info = pytest.raises(common.exceptions.Conflict_Exception, inventory_pg.delete)
+        exc_info = pytest.raises(qe.exceptions.Conflict_Exception, inventory_pg.delete)
         result = exc_info.value[1]
         assert result == {'conflict': 'Resource is being used by running jobs', 'active_jobs': [{'type': '%s' % update_pg.type, 'id': update_pg.id}]}
 
@@ -167,7 +167,7 @@ class Test_Inventory(Base_Api_Test):
         inventory.delete()
 
         # Related resources should be forbidden
-        with pytest.raises(common.exceptions.NotFound_Exception):
+        with pytest.raises(qe.exceptions.NotFound_Exception):
             inventory.get_related('groups')
 
         # Using main endpoint, find any matching groups
@@ -177,7 +177,7 @@ class Test_Inventory(Base_Api_Test):
         assert groups_pg.count == 0, "ERROR: not All inventory groups were deleted"
 
         # Related resources should be forbidden
-        with pytest.raises(common.exceptions.NotFound_Exception):
+        with pytest.raises(qe.exceptions.NotFound_Exception):
             inventory.get_related('hosts')
 
         # Using main endpoint, find any matching hosts
@@ -471,9 +471,9 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         '''Verify that importing inventory using a bogus --inventory-id=<ID> fails'''
 
         # find an inventory_id that doesn't exist
-        bad_id = common.utils.random_int()
+        bad_id = qe.utils.random_int()
         while api_inventories_pg.get(id=bad_id).count != 0:
-            bad_id = common.utils.random_int()
+            bad_id = qe.utils.random_int()
 
         # Run awx-manage inventory_import
         contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source /etc/fstab' % bad_id)
@@ -498,7 +498,7 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         '''Verify that importing inventory using --inventory-id=<ID> succeeds'''
 
         # Upload inventory script
-        dest = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
+        dest = qe.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
 
         # Run awx-manage inventory_import
         contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (import_inventory.id, dest))
@@ -516,7 +516,7 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         '''Verify that importing inventory using --inventory-name=<NAME> succeeds'''
 
         # Upload inventory script
-        dest = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
+        dest = qe.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
 
         # Run awx-manage inventory_import
         contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
@@ -535,7 +535,7 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         '''Verify that importing inventory from a .INI file succeeds'''
 
         # Upload inventory script
-        dest = common.tower.inventory.upload_inventory(ansible_runner, nhosts=10, ini=True)
+        dest = qe.tower.inventory.upload_inventory(ansible_runner, nhosts=10, ini=True)
 
         # Run awx-manage inventory_import
         contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
@@ -556,7 +556,7 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
     def FIXME_test_import_multiple(self, ansible_runner, import_inventory):
         '''Verify that multiple imports of the same inventory are subsequently are faster'''
         # Upload inventory script
-        dest = common.tower.inventory.upload_inventory(ansible_runner, nhosts=100, ini=True)
+        dest = qe.tower.inventory.upload_inventory(ansible_runner, nhosts=100, ini=True)
 
         # Run first awx-manage inventory_import
         contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
@@ -607,7 +607,7 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         '''Verify inventory_import fails if the number of imported hosts will exceed licensed amount'''
 
         # Upload inventory script
-        dest = common.tower.inventory.upload_inventory(ansible_runner, nhosts=2000)
+        dest = qe.tower.inventory.upload_inventory(ansible_runner, nhosts=2000)
 
         # Run awx-manage inventory_import
         contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (import_inventory.id, dest))

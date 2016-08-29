@@ -1,5 +1,5 @@
 import pytest
-import common.exceptions
+import qe.exceptions
 from tests.api import Base_Api_Test
 
 
@@ -38,7 +38,7 @@ class Test_Organizations(Base_Api_Test):
         Verify that organization names are unique.
         '''
         payload = dict(name=organization.name)
-        with pytest.raises(common.exceptions.Duplicate_Exception):
+        with pytest.raises(qe.exceptions.Duplicate_Exception):
             api_organizations_pg.post(payload)
 
     def test_delete(self, api_organizations_pg, organization):

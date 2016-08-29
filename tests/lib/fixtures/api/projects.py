@@ -6,8 +6,8 @@ import os.path
 import fauxfactory
 import pytest
 
-import common.exceptions
-import common.rrule
+import qe.exceptions
+import qe.rrule
 
 
 log = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_con
 
     try:
         obj = organization.get_related('projects').post(payload)
-    except common.exceptions.Duplicate_Exception:
+    except qe.exceptions.Duplicate_Exception:
         log.debug("POST failed - %s" % json.dumps(payload, indent=2))
         raise
 
@@ -201,7 +201,7 @@ def project_with_schedule(request, authtoken, project_ansible_playbooks_git_nowa
     project = project_ansible_playbooks_git_nowait
     project.wait_until_completed()
 
-    schedule_rrule = common.rrule.RRule(
+    schedule_rrule = qe.rrule.RRule(
         dateutil.rrule.DAILY, count=1, byminute='', bysecond='', byhour='')
 
     schedule_data = {

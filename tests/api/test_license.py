@@ -90,8 +90,8 @@ import json
 import pytest
 import logging
 import fauxfactory
-import common.tower.license
-import common.exceptions
+import qe.tower.license
+import qe.exceptions
 from tests.api import Base_Api_Test
 
 
@@ -106,31 +106,31 @@ def license_instance_count(request):
 
 @pytest.fixture(scope='function')
 def legacy_license_json(request, license_instance_count):
-    return common.tower.license.generate_license(instance_count=license_instance_count,
-                                                 days=31,
-                                                 company_name=fauxfactory.gen_utf8(),
-                                                 contact_name=fauxfactory.gen_utf8(),
-                                                 contact_email=fauxfactory.gen_email())
+    return qe.tower.license.generate_license(instance_count=license_instance_count,
+                                             days=31,
+                                             company_name=fauxfactory.gen_utf8(),
+                                             contact_name=fauxfactory.gen_utf8(),
+                                             contact_email=fauxfactory.gen_email())
 
 
 @pytest.fixture(scope='function')
 def basic_license_json(request, license_instance_count):
-    return common.tower.license.generate_license(instance_count=license_instance_count,
-                                                 days=31,
-                                                 company_name=fauxfactory.gen_utf8(),
-                                                 contact_name=fauxfactory.gen_utf8(),
-                                                 contact_email=fauxfactory.gen_email(),
-                                                 license_type="basic")
+    return qe.tower.license.generate_license(instance_count=license_instance_count,
+                                             days=31,
+                                             company_name=fauxfactory.gen_utf8(),
+                                             contact_name=fauxfactory.gen_utf8(),
+                                             contact_email=fauxfactory.gen_email(),
+                                             license_type="basic")
 
 
 @pytest.fixture(scope='function')
 def enterprise_license_json(request, license_instance_count):
-    return common.tower.license.generate_license(instance_count=license_instance_count,
-                                                 days=31,
-                                                 company_name=fauxfactory.gen_utf8(),
-                                                 contact_name=fauxfactory.gen_utf8(),
-                                                 contact_email=fauxfactory.gen_email(),
-                                                 license_type="enterprise")
+    return qe.tower.license.generate_license(instance_count=license_instance_count,
+                                             days=31,
+                                             company_name=fauxfactory.gen_utf8(),
+                                             contact_name=fauxfactory.gen_utf8(),
+                                             contact_email=fauxfactory.gen_email(),
+                                             license_type="enterprise")
 
 
 @pytest.fixture(
@@ -155,18 +155,18 @@ def eula_rejected_legacy_license_json(request, legacy_license_json):
 
 @pytest.fixture(scope='function')
 def trial_legacy_license_json(request, license_instance_count):
-    return common.tower.license.generate_license(instance_count=license_instance_count,
-                                                 days=31,
-                                                 trial=True,
-                                                 company_name=fauxfactory.gen_utf8(),
-                                                 contact_name=fauxfactory.gen_utf8(),
-                                                 contact_email=fauxfactory.gen_email())
+    return qe.tower.license.generate_license(instance_count=license_instance_count,
+                                             days=31,
+                                             trial=True,
+                                             company_name=fauxfactory.gen_utf8(),
+                                             contact_name=fauxfactory.gen_utf8(),
+                                             contact_email=fauxfactory.gen_email())
 
 
 @pytest.fixture(scope='function')
 def install_trial_legacy_license(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_trial_legacy_license")
-    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, trial=True)
+    license_info = qe.tower.license.generate_license(instance_count=license_instance_count, days=31, trial=True)
     api_config_pg.post(license_info)
     request.addfinalizer(api_config_pg.delete)
 
@@ -204,7 +204,7 @@ def install_legacy_license(request, api_config_pg, legacy_license_json):
 @pytest.fixture(scope='function')
 def install_basic_license(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_basic_license")
-    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=31, license_type="basic")
+    license_info = qe.tower.license.generate_license(instance_count=license_instance_count, days=31, license_type="basic")
     api_config_pg.post(license_info)
     request.addfinalizer(api_config_pg.delete)
 
@@ -252,7 +252,7 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
 def install_enterprise_license_expired(request, ansible_runner, api_config_pg, license_instance_count):
     log.debug("calling fixture install_enterprise_license_expired")
 
-    license_info = common.tower.license.generate_license(license_type='enterprise', instance_count=license_instance_count, days=-61)
+    license_info = qe.tower.license.generate_license(license_type='enterprise', instance_count=license_instance_count, days=-61)
     api_config_pg.post(license_info)
 
     def teardown():
@@ -271,7 +271,7 @@ def install_legacy_license_warning(request, api_config_pg, license_instance_coun
     log.debug("calling fixture install_legacy_license_warning")
 
     # Post license
-    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=1)
+    license_info = qe.tower.license.generate_license(instance_count=license_instance_count, days=1)
     api_config_pg.post(license_info)
     request.addfinalizer(api_config_pg.delete)
 
@@ -281,7 +281,7 @@ def install_legacy_license_expired(api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_expired")
 
     def apply_license():
-        license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=-61)
+        license_info = qe.tower.license.generate_license(instance_count=license_instance_count, days=-61)
         api_config_pg.post(license_info)
 
     apply_license()
@@ -294,7 +294,7 @@ def install_legacy_license_grace_period(request, api_config_pg, license_instance
     log.debug("calling fixture install_legacy_license_grace_period")
 
     # Apply license
-    license_info = common.tower.license.generate_license(instance_count=license_instance_count, days=-1)
+    license_info = qe.tower.license.generate_license(instance_count=license_instance_count, days=-1)
     api_config_pg.post(license_info)
     request.addfinalizer(api_config_pg.delete)
 
@@ -323,7 +323,7 @@ def instance_id(ansible_ec2_facts):
 @pytest.fixture(scope='function')
 def install_legacy_license_aws(request, ansible_runner, license_instance_count, ami_id, instance_id, tower_aws_path):
     log.debug("calling fixture install_legacy_license_aws")
-    fname = common.tower.license.generate_aws_file(instance_count=license_instance_count, ami_id=ami_id, instance_id=instance_id)
+    fname = qe.tower.license.generate_aws_file(instance_count=license_instance_count, ami_id=ami_id, instance_id=instance_id)
     contacted = ansible_runner.copy(src=fname, dest=tower_aws_path, owner='awx', group='awx', mode='0600')
     for result in contacted.values():
         assert 'failed' not in result, "Failure installing aws license\n%s" % json.dumps(result, indent=2)
@@ -352,12 +352,12 @@ def inventory_no_free_instances(request, authtoken, api_config_pg, api_inventori
         hosts_pg.post(payload)
 
     # Install a license with instance_count=3
-    json = common.tower.license.generate_license(instance_count=3,
-                                                 days=-1,
-                                                 trial=False,
-                                                 company_name=fauxfactory.gen_utf8(),
-                                                 contact_name=fauxfactory.gen_utf8(),
-                                                 contact_email=fauxfactory.gen_email())
+    json = qe.tower.license.generate_license(instance_count=3,
+                                             days=-1,
+                                             trial=False,
+                                             company_name=fauxfactory.gen_utf8(),
+                                             contact_name=fauxfactory.gen_utf8(),
+                                             contact_email=fauxfactory.gen_email())
     api_config_pg.post(json)
     request.addfinalizer(api_config_pg.delete)
 
@@ -393,9 +393,9 @@ def assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, 
             current_hosts += 1
         # Anything more than 'license_instance_count' will raise a 403
         else:
-            with pytest.raises(common.exceptions.LicenseExceeded_Exception):
+            with pytest.raises(qe.exceptions.LicenseExceeded_Exception):
                 group_hosts_pg.post(payload)
-            with pytest.raises(common.exceptions.LicenseExceeded_Exception):
+            with pytest.raises(qe.exceptions.LicenseExceeded_Exception):
                 api_hosts_pg.post(payload)
             break
 
@@ -425,9 +425,9 @@ class Test_No_License(Base_Api_Test):
                        description="host-%s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
         group_hosts_pg = group.get_related('hosts')
-        with pytest.raises(common.exceptions.LicenseExceeded_Exception):
+        with pytest.raises(qe.exceptions.LicenseExceeded_Exception):
             group_hosts_pg.post(payload)
-        with pytest.raises(common.exceptions.LicenseExceeded_Exception):
+        with pytest.raises(qe.exceptions.LicenseExceeded_Exception):
             api_hosts_pg.post(payload)
 
     def test_can_launch_project_update(self, project_ansible_playbooks_git_nowait):
@@ -445,14 +445,14 @@ class Test_No_License(Base_Api_Test):
     def test_cannot_launch_job(self, install_basic_license, api_config_pg, job_template):
         '''Verify that job_templates cannot be launched'''
         api_config_pg.delete()
-        with pytest.raises(common.exceptions.LicenseExceeded_Exception):
+        with pytest.raises(qe.exceptions.LicenseExceeded_Exception):
             job_template.launch_job()
 
     def test_post_invalid_license(self, api_config_pg, ansible_runner, tower_license_path, invalid_license_json):
         '''Verify that various bogus license formats fail to successfully install'''
 
         # Assert expected error when issuing a POST with an invalid license
-        with pytest.raises(common.exceptions.LicenseInvalid_Exception):
+        with pytest.raises(qe.exceptions.LicenseInvalid_Exception):
             api_config_pg.post(invalid_license_json)
 
         # Confirm license file not present
@@ -467,13 +467,13 @@ class Test_No_License(Base_Api_Test):
     def test_post_legacy_license_without_eula_accepted(self, api_config_pg, missing_eula_legacy_license_json):
         '''Verify failure while POSTing a license with no `eula_accepted` attribute.'''
 
-        with pytest.raises(common.exceptions.LicenseInvalid_Exception):
+        with pytest.raises(qe.exceptions.LicenseInvalid_Exception):
             api_config_pg.post(missing_eula_legacy_license_json)
 
     def test_post_legacy_license_with_rejected_eula(self, api_config_pg, eula_rejected_legacy_license_json):
         '''Verify failure while POSTing a license with `eula_accepted:false` attribute.'''
 
-        with pytest.raises(common.exceptions.LicenseInvalid_Exception):
+        with pytest.raises(qe.exceptions.LicenseInvalid_Exception):
             api_config_pg.post(eula_rejected_legacy_license_json)
 
     def test_post_legacy_license(self, api_config_pg, legacy_license_json, ansible_runner, tower_license_path, tower_version_cmp):
@@ -734,7 +734,7 @@ class Test_Legacy_License(Base_Api_Test):
                        playbook='Default', )
 
         # post the scan job template and assess response
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, api_job_templates_pg.post, payload)
+        exc_info = pytest.raises(qe.exceptions.PaymentRequired_Exception, api_job_templates_pg.post, payload)
         result = exc_info.value[1]
 
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license.'}, \
@@ -742,7 +742,7 @@ class Test_Legacy_License(Base_Api_Test):
 
         # attempt to patch job template into scan job template
         payload = dict(job_type='scan', project=None)
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
+        exc_info = pytest.raises(qe.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
         result = exc_info.value[1]
 
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license.'}, \
@@ -766,7 +766,7 @@ class Test_Legacy_License(Base_Api_Test):
 
     def test_unable_to_get_fact_versions(self, host_local):
         '''Verify that GET requests are rejected from fact_versions.'''
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, host_local.get_related, 'fact_versions')
+        exc_info = pytest.raises(qe.exceptions.PaymentRequired_Exception, host_local.get_related, 'fact_versions')
         result = exc_info.value[1]
 
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
@@ -965,13 +965,13 @@ class Test_Legacy_License_Expired(Base_Api_Test):
                        description="host-%s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
         group_hosts_pg = group.get_related('hosts')
-        with pytest.raises(common.exceptions.LicenseExceeded_Exception):
+        with pytest.raises(qe.exceptions.LicenseExceeded_Exception):
             group_hosts_pg.post(payload)
 
     def test_job_launch(self, request, install_basic_license, job_template):
         '''Verify that job_templates cannot be launched'''
         request.getfuncargvalue('install_legacy_license_expired')()
-        with pytest.raises(common.exceptions.LicenseExceeded_Exception):
+        with pytest.raises(qe.exceptions.LicenseExceeded_Exception):
             job_template.launch_job().wait_until_completed()
 
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
@@ -1005,7 +1005,7 @@ class Test_Legacy_License_Expired(Base_Api_Test):
 
         for endpoint in [inventory_pg, group_pg, host_local]:
             ad_hoc_commands_pg = endpoint.get_related('ad_hoc_commands')
-            with pytest.raises(common.exceptions.LicenseExceeded_Exception):
+            with pytest.raises(qe.exceptions.LicenseExceeded_Exception):
                 ad_hoc_commands_pg.post(payload), \
                     "Unexpectedly launched an ad_hoc_command with an expired license from %s." % ad_hoc_commands_pg.base_url
 
@@ -1227,7 +1227,7 @@ class Test_Basic_License(Base_Api_Test):
         payload = dict(name="org-%s" % fauxfactory.gen_utf8(),
                        description="Random organization - %s" % fauxfactory.gen_utf8())
 
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, api_organizations_pg.post, payload)
+        exc_info = pytest.raises(qe.exceptions.PaymentRequired_Exception, api_organizations_pg.post, payload)
         result = exc_info.value[1]
 
         assert result == {u'detail': u'Your Tower license only permits a single organization to exist.'}, \
@@ -1241,7 +1241,7 @@ class Test_Basic_License(Base_Api_Test):
             pytest.skip("Unable to test because there are no free_instances remaining")
 
         payload = dict(survey_enabled=True)
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template_ping.patch, **payload)
+        exc_info = pytest.raises(qe.exceptions.PaymentRequired_Exception, job_template_ping.patch, **payload)
         result = exc_info.value[1]
 
         assert result == {u'detail': u'Feature surveys is not enabled in the active license.'}, \
@@ -1250,7 +1250,7 @@ class Test_Basic_License(Base_Api_Test):
 
     def test_unable_to_access_activity_stream(self, api_activity_stream_pg):
         '''Verify that GET requests to api/v1/activity_streams raise 402s.'''
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, api_activity_stream_pg.get)
+        exc_info = pytest.raises(qe.exceptions.PaymentRequired_Exception, api_activity_stream_pg.get)
         result = exc_info.value[1]
 
         result == {u'detail': u'Your license does not allow use of the activity stream.'}, \
@@ -1272,7 +1272,7 @@ class Test_Basic_License(Base_Api_Test):
                        playbook='Default', )
 
         # post the scan job template and assess response
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, api_job_templates_pg.post, payload)
+        exc_info = pytest.raises(qe.exceptions.PaymentRequired_Exception, api_job_templates_pg.post, payload)
         result = exc_info.value[1]
 
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license.'}, \
@@ -1280,7 +1280,7 @@ class Test_Basic_License(Base_Api_Test):
 
         # attempt to patch job template into scan job template
         payload = dict(job_type='scan', project=None)
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
+        exc_info = pytest.raises(qe.exceptions.PaymentRequired_Exception, job_template.patch, **payload)
         result = exc_info.value[1]
 
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license.'}, \
@@ -1304,7 +1304,7 @@ class Test_Basic_License(Base_Api_Test):
 
     def test_unable_to_get_fact_versions(self, host_local):
         '''Verify that GET requests are rejected from fact_versions.'''
-        exc_info = pytest.raises(common.exceptions.PaymentRequired_Exception, host_local.get_related, 'fact_versions')
+        exc_info = pytest.raises(qe.exceptions.PaymentRequired_Exception, host_local.get_related, 'fact_versions')
         result = exc_info.value[1]
 
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \

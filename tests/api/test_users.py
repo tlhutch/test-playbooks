@@ -1,7 +1,7 @@
 import json
 import pytest
 import fauxfactory
-import common.exceptions
+import qe.exceptions
 from tests.api import Base_Api_Test
 
 
@@ -46,7 +46,7 @@ class Test_Users(Base_Api_Test):
                        last_name="User (%s)" % fauxfactory.gen_utf8(),
                        email=fauxfactory.gen_email(),
                        password=fauxfactory.gen_utf8())
-        with pytest.raises(common.exceptions.Duplicate_Exception):
+        with pytest.raises(qe.exceptions.Duplicate_Exception):
             api_users_pg.post(payload)
 
     def test_org_admins_can_see_all_users(self, org_admin, user_password, org_users, non_org_users, api_users_pg):
@@ -106,11 +106,11 @@ class Test_Users(Base_Api_Test):
         '''
         with self.current_user(non_superuser.username, user_password):
             # assert a non-superuser cannot elevate themselves to superuser with patch
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 non_superuser.patch(is_superuser=True)
 
             # assert a non-superuser cannot elevate themselves to superuser with put
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 non_superuser.json['is_superuser'] = True
                 non_superuser.put(non_superuser.json)
 
@@ -122,7 +122,7 @@ class Test_Users(Base_Api_Test):
         org_admin_pg = org_user.get_related('organizations').results[0].get_related('admins')
 
         with self.current_user(org_user.username, user_password):
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 payload = dict(id=org_user.id)
                 org_admin_pg.post(payload)
 
@@ -143,7 +143,7 @@ class Test_Users(Base_Api_Test):
         users_pg = org_user.get_related('organizations').results[0].get_related('users')
 
         with self.current_user(org_user.username, user_password):
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 users_pg.post(user_payload())
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3351")
@@ -152,7 +152,7 @@ class Test_Users(Base_Api_Test):
         Verify that a non_superuser cannot create users via /api/v1/users/.
         '''
         with self.current_user(non_superuser.username, user_password):
-            with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
+            with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
                 api_users_pg.post(user_payload())
 
 

@@ -1,6 +1,6 @@
 import pytest
-import common.tower.inventory
-import common.exceptions
+import qe.tower.inventory
+import qe.exceptions
 from tests.api import Base_Api_Test
 
 
@@ -71,7 +71,7 @@ class Test_System_Jobs(Base_Api_Test):
         '''
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
-                with pytest.raises(common.exceptions.Forbidden_Exception):
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
                     api_system_jobs_pg.get(id=system_job.id)
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
@@ -79,13 +79,13 @@ class Test_System_Jobs(Base_Api_Test):
         '''
         Verify that PUT, POST and PATCH are unsupported request methods
         '''
-        with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
+        with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
             system_job.post()
 
-        with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
+        with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
             system_job.put()
 
-        with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
+        with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
             system_job.patch()
 
     def test_cleanup_jobs(self, cleanup_jobs_template, unified_job_with_status_completed, api_unified_jobs_pg):
@@ -100,7 +100,7 @@ class Test_System_Jobs(Base_Api_Test):
 
         # assert provided job has been deleted if not project/inventory update
         if unified_job_with_status_completed.type not in ['inventory_update', 'project_update']:
-            with pytest.raises(common.exceptions.NotFound_Exception):
+            with pytest.raises(qe.exceptions.NotFound_Exception):
                 unified_job_with_status_completed.get()
         else:
             unified_job_with_status_completed.get()

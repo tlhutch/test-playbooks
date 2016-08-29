@@ -4,7 +4,7 @@ import json
 import fauxfactory
 import pytest
 
-import common.rrule
+import qe.rrule
 
 
 @pytest.fixture(scope="function", params=['job_template', 'check_job_template'])
@@ -307,7 +307,7 @@ def job_template_with_schedule(request, authtoken, job_template):
     '''
     A job template with an associated schedule.
     '''
-    schedule_rrule = common.rrule.RRule(
+    schedule_rrule = qe.rrule.RRule(
         dateutil.rrule.DAILY, count=1, byminute='', bysecond='', byhour='')
 
     obj = job_template.get_related('schedules').post({
@@ -328,7 +328,7 @@ def job_template_with_label(request, authtoken, job_template, label):
     '''
     Job template with a randomly named label.
     '''
-    with pytest.raises(common.exceptions.NoContent_Exception):
+    with pytest.raises(qe.exceptions.NoContent_Exception):
         job_template.get_related('labels').post(dict(id=label.id))
     return job_template.get()
 

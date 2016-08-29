@@ -1,7 +1,7 @@
 import argparse
 import pytest_mozwebqa.credentials
 import pytest_mozwebqa.selenium_client
-from common.ui.pages import Login_Page
+from qe.ui.pages import Login_Page
 from selenium.webdriver.common.by import By  # NOQA
 from IPython.frontend.terminal.embed import InteractiveShellEmbed
 

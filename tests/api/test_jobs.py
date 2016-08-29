@@ -6,7 +6,7 @@ import json
 import logging
 import pytest
 import fauxfactory
-import common.tower.inventory
+import qe.tower.inventory
 from dateutil.parser import parse
 from tests.api import Base_Api_Test
 
@@ -250,7 +250,7 @@ class Test_Job(Base_Api_Test):
         '''
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
-                with pytest.raises(common.exceptions.Forbidden_Exception):
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
                     api_jobs_pg.post(job_template.json)
 
     def test_relaunch_with_credential(self, job_with_status_completed):
@@ -279,7 +279,7 @@ class Test_Job(Base_Api_Test):
         assert not relaunch_pg.passwords_needed_to_start
 
         # attempt to relaunch the job, should raise exception
-        with pytest.raises(common.exceptions.BadRequest_Exception):
+        with pytest.raises(qe.exceptions.BadRequest_Exception):
             relaunch_pg.post()
 
     def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload, testsetup):  # NOQA
@@ -320,7 +320,7 @@ class Test_Job(Base_Api_Test):
         assert credential.expected_passwords_needed_to_start == relaunch_pg.passwords_needed_to_start
 
         # relaunch the job
-        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, relaunch_pg.post, {})
+        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, relaunch_pg.post, {})
         result = exc_info.value[1]
 
         # assert expected error responses
@@ -441,7 +441,7 @@ class Test_Job(Base_Api_Test):
             cancel_pg.can_cancel
 
         # assert Method_Not_Allowed when attempting to cancel
-        with pytest.raises(common.exceptions.Method_Not_Allowed_Exception):
+        with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
             cancel_pg.post()
 
     def test_launch_with_inventory_update(self, job_template, cloud_group, host_local):
@@ -835,7 +835,7 @@ print json.dumps(inventory)
         set_roles(operator, job_template, ['execute'])
         with self.current_user(operator.username, user_password):
             job = job_template.launch()
-            with pytest.raises(common.exceptions.Forbidden_Exception):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 job.delete()
 
 

@@ -2,7 +2,7 @@ import json
 import pytest
 import fauxfactory
 import logging
-import common.tower.inventory
+import qe.tower.inventory
 from tests.api import Base_Api_Test
 from distutils.version import LooseVersion
 
@@ -300,7 +300,7 @@ class Test_Job_Template(Base_Api_Test):
 
         # assert 'scan' should raise a 400
         else:
-            with pytest.raises(common.exceptions.BadRequest_Exception):
+            with pytest.raises(qe.exceptions.BadRequest_Exception):
                 nonscan_job_template.launch(payload)
 
     @pytest.mark.parametrize("job_type", ["run", "scan", "check"])
@@ -322,7 +322,7 @@ class Test_Job_Template(Base_Api_Test):
 
         # assert that 'run/check' should raise a 400
         if job_type in ['run', 'check']:
-            with pytest.raises(common.exceptions.BadRequest_Exception):
+            with pytest.raises(qe.exceptions.BadRequest_Exception):
                 scan_job_template.launch(payload)
 
         # assert that 'scan' should result in a regular scan job
@@ -364,7 +364,7 @@ class Test_Job_Template(Base_Api_Test):
         '''
         # patch scan JT and assess results
         payload = dict(ask_inventory_on_launch=True)
-        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, scan_job_template.patch, **payload)
+        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, scan_job_template.patch, **payload)
         result = exc_info.value[1]
         assert result == {u'inventory': [u'Scan jobs must be assigned a fixed inventory.']}, \
             "Unexpected API response after attempting to patch a scan JT with ask_inventory_on_launch enabled."
@@ -380,7 +380,7 @@ class Test_Job_Template(Base_Api_Test):
                        credential=scan_job_template.credential,
                        playbook='Default',
                        ask_inventory_on_launch=True, )
-        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, api_job_templates_pg.post, payload)
+        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, api_job_templates_pg.post, payload)
         result = exc_info.value[1]
         assert result == {u'inventory': [u'Scan jobs must be assigned a fixed inventory.']}, \
             "Unexpected API response after attempting to patch a scan JT with ask_inventory_on_launch enabled."
@@ -439,7 +439,7 @@ class Test_Job_Template(Base_Api_Test):
         assert launch_pg.credential_needed_to_start
 
         # launch the job_template without providing a credential
-        with pytest.raises(common.exceptions.BadRequest_Exception):
+        with pytest.raises(qe.exceptions.BadRequest_Exception):
             launch_pg.post()
 
     def test_launch_with_credential_in_payload(self, job_template_no_credential, ssh_credential):
@@ -511,7 +511,7 @@ class Test_Job_Template(Base_Api_Test):
         # launch the job_template providing a bogus credential in payload
         for bogus in ['', 'one', 0, False, [], {}]:
             payload = dict(credential=bogus)
-            with pytest.raises(common.exceptions.BadRequest_Exception):
+            with pytest.raises(qe.exceptions.BadRequest_Exception):
                 job_template_no_credential.launch(payload).wait_until_completed()
 
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_no_credential,
@@ -533,7 +533,7 @@ class Test_Job_Template(Base_Api_Test):
 
         # launch the job_template providing the credential in the payload, but no passwords_needed_to_start
         payload = dict(credential=ssh_credential_multi_ask.id)
-        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, launch_pg.post, payload)
+        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, launch_pg.post, payload)
         result = exc_info.value[1]
 
         # assert response includes field: passwords_needed_to_start
@@ -708,7 +708,7 @@ class Test_Job_Template(Base_Api_Test):
                 "Missing required variable: %s" % variable
 
         # launch the job without provided required variables
-        exc_info = pytest.raises(common.exceptions.BadRequest_Exception, launch_pg.post)
+        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, launch_pg.post)
         result = exc_info.value[1]
 
         # assert response includes field: passwords_needed_to_start
@@ -877,14 +877,14 @@ class Test_Job_Template(Base_Api_Test):
         assert credential.expected_passwords_needed_to_start == launch_pg.passwords_needed_to_start
 
         # launch the job_template without passwords
-        with pytest.raises(common.exceptions.BadRequest_Exception):
+        with pytest.raises(qe.exceptions.BadRequest_Exception):
             launch_pg.post()
 
         # prepare payload with empty passwords
         payload = dict(ssh_password='', ssh_key_unlock='', become_password='')
 
         # launch the job_template
-        with pytest.raises(common.exceptions.BadRequest_Exception):
+        with pytest.raises(qe.exceptions.BadRequest_Exception):
             launch_pg.post(payload)
 
     def test_launch_with_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
@@ -931,7 +931,7 @@ class Test_Job_Template(Base_Api_Test):
 
         # delete target object and assert 409 raised
         for tower_resource in [job_template_sleep, inventory_pg, project_pg]:
-            exc_info = pytest.raises(common.exceptions.Conflict_Exception, tower_resource.delete)
+            exc_info = pytest.raises(qe.exceptions.Conflict_Exception, tower_resource.delete)
             result = exc_info.value[1]
             assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'%s' % job_pg.type, u'id': job_pg.id}]}
 
@@ -956,7 +956,7 @@ class Test_Job_Template(Base_Api_Test):
             assert not launch_pg.credential_needed_to_start
 
         # assert launch failure
-        with pytest.raises(common.exceptions.BadRequest_Exception):
+        with pytest.raises(qe.exceptions.BadRequest_Exception):
             launch_pg.post()
 
     def test_launch_check_job_template(self, job_template):
@@ -1116,7 +1116,7 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
 
         # assert failure on post
         for payload in missing_field_survey_specs:
-            with pytest.raises(common.exceptions.BadRequest_Exception):
+            with pytest.raises(qe.exceptions.BadRequest_Exception):
                 job_template_ping.get_related('survey_spec').post(payload)
 
     def test_post_with_empty_name(self, job_template_ping):

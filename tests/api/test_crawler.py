@@ -1,7 +1,7 @@
 import pytest
 import httplib
-from common.api.schema import validate
-from common.api.client import Connection
+from qe.api.schema import validate
+from qe.api.client import Connection
 
 
 # Generate fixture values for 'method' and 'resource'
