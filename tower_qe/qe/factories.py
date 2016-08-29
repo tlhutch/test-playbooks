@@ -75,7 +75,7 @@ class ProjectFactory(PageFactory):
         argument wait=False when invoking the factory to skip.
         """
         if create and val in (True, None):
-            obj.update().wait_until_completed()
+            obj.get_related('current_update').wait_until_completed()
 
 
 class UserFactory(PageFactory):
