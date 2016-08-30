@@ -24,7 +24,7 @@ directory of the repository.
 
 2. Install test requirements using `pip`.
 
-        pip install -r tests/requirements.txt
+        pip install -r tower_qe/requirements.txt
 
 3. Create a credentials file named `tests/credentials.yml` using the template `tests/credentials.template` as a guide.
 
