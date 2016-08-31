@@ -59,6 +59,14 @@ class Test_Credential(Base_Api_Test):
         credential = api_credentials_pg.post(payload)
         credential.delete()
 
+    def test_team_credentials_are_organization_credentials(self, factories):
+        '''Create a team credential and assert that the created credential
+        is also an organization credential.
+        '''
+        team = factories.team()
+        credential = factories.credential(team=team, organization=None)
+        import pdb; pdb.set_trace()
+
     @pytest.mark.parametrize("payload, expected_result", [
         (dict(password="foo", username="foo", host="foo"), {"project": ["Project name required for OpenStack credential."]}),
         (dict(project="foo", username="foo", host="foo"), {"password": ["Password or API key required for OpenStack credential."]}),
