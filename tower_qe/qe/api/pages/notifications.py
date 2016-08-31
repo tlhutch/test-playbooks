@@ -53,7 +53,7 @@ base.register_page(resources.v1_notification, Notification)
 
 class Notifications(Notification, base.BaseList):
 
-    def wait_until_count(self, count, interval=1, verbose=0, timeout=60):
+    def wait_until_count(self, count, interval=1, verbose=0, timeout=5*60):
         '''
         Poll notifications page until it is populated with `count` number of notifications.
         '''
