@@ -13,6 +13,8 @@ class License(TowerPage):
     _submit = (By.CSS_SELECTOR, '[class="btn btn-success pull-right"]')
     _expires_on = (By.XPATH, '//*[text()="Expires On"]/following::div')
     _time_remaining = (By.XPATH, '//*[text()="Time Remaining"]/following::div')
+    _hosts_used = (By.XPATH, '//*[text()="Hosts Used"]/following::div')
+
     _agree_eula = (
         (By.CSS_SELECTOR, '[class="License-details--label"]'),
         (By.CSS_SELECTOR, '[type="checkbox'))
@@ -44,6 +46,10 @@ class License(TowerPage):
     @property
     def alert_modal(self):
         return self.find_element(*self._alert_modal)
+
+    @property
+    def hosts_used(self):
+        return self.find_element(*self._hosts_used)
 
     def upload(self, file_path):
         if self.driver.name == 'firefox':
