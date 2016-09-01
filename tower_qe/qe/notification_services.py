@@ -1,8 +1,12 @@
 import json
+import time
+import logging
 
 from slacker import Slacker
 from hypchat import HypChat
 from gcloud import datastore
+
+log = logging.getLogger(__name__)
 
 # FIXME: General issue - methods may return true if they find
 #        test notification from previous test run.
@@ -164,11 +168,21 @@ def can_confirm_notification(notification_template_pg):
     return notification_template_pg.notification_type in CONFIRM_METHOD
 
 
-def confirm_notification(testsetup, notification_template_pg, msg):
-    '''Determine if given message is present in appropriate notification service'''
+def confirm_notification(testsetup, notification_template_pg, msg, is_present=True, interval=5, min_polls=2, max_polls=12):
+    '''Confirms presence (or absence) of given message in appropriate notification service. Returns True if message is in expected state.'''
     nt_type = notification_template_pg.notification_type
-
     if not can_confirm_notification(notification_template_pg):
         raise Exception("notification type %s not supported" % nt_type)
 
-    return CONFIRM_METHOD[nt_type](testsetup, msg)
+    # Poll notification service
+    i = 0
+    while i < max_polls:
+        present = CONFIRM_METHOD[nt_type](testsetup, msg)
+        if present:
+            break
+        i += 1
+        if not is_present and i > min_polls:
+            break
+        log.debug("Sleeping for {}".format(interval))
+        time.sleep(interval)
+    return present == is_present

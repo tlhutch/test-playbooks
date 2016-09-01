@@ -198,7 +198,7 @@ class Test_Notifications(Base_Api_Test):
         if can_confirm_notification(notification_template):
             notification_expected = (True if job_result in ('any', 'success') else False)
             msg = expected_job_notification(testsetup.base_url, notification_template, job, job_result)
-            assert confirm_notification(testsetup, notification_template, msg) == notification_expected, \
+            assert confirm_notification(testsetup, notification_template, msg, is_present=notification_expected), \
                 notification_template.notification_type + " notification " + \
                 ("not " if notification_expected else "") + "present (%s)" % msg
 
