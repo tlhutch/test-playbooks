@@ -912,40 +912,14 @@ class Test_Credential_RBAC(Base_Api_Test):
             with pytest.raises(qe.exceptions.BadRequest_Exception):
                 set_roles(team, credential, [role_name])
 
-    def test_user_organization_credential_role_assignment(self, factories, set_roles):
+    def test_organization_credential_role_assignment(self, factories, set_roles):
         '''
-        Tests that user-organization credentials may only have their roles assigned to users
+        Tests that organization credentials may only have their roles assigned to users
         and teams who exist within the same organization.
         '''
-        # create user-organization credential
+        # create an organization credential
         organization = factories.organization()
-        user = factories.user(organization=organization)
-        credential = factories.credential(user=user, organization=organization)
-
-        # user from another organization may not be assigned any of our credential roles
-        another_organization = factories.organization()
-        another_user = factories.user(organization=another_organization)
-        role_names = [role.replace("_role", "") for role in credential.summary_fields.object_roles.keys()]
-        for role_name in role_names:
-            with pytest.raises(qe.exceptions.BadRequest_Exception):
-                set_roles(another_user, credential, [role_name])
-
-        # team from another organization may not be assigned any of our credential roles
-        team = factories.team(organization=another_organization)
-        for role_name in role_names:
-            with pytest.raises(qe.exceptions.BadRequest_Exception):
-                set_roles(team, credential, [role_name])
-
-    def test_team_organization_credential_role_assignment(self, factories, set_roles):
-        '''
-        Tests that team-organization credentials may only have their roles assigned to users
-        and teams who exist within the same organization.
-        '''
-        # create user-organization credential
-        organization = factories.organization()
-        team = factories.team(organization=organization)
-        credential = factories.credential(team=team, organization=organization)
-
+        credential = factories.credential(organization=organization)
         # user from another organization may not be assigned any of our credential roles
         another_organization = factories.organization()
         user = factories.user(organization=another_organization)
@@ -953,12 +927,11 @@ class Test_Credential_RBAC(Base_Api_Test):
         for role_name in role_names:
             with pytest.raises(qe.exceptions.BadRequest_Exception):
                 set_roles(user, credential, [role_name])
-
         # team from another organization may not be assigned any of our credential roles
-        another_team = factories.team(organization=another_organization)
+        team = factories.team(organization=another_organization)
         for role_name in role_names:
             with pytest.raises(qe.exceptions.BadRequest_Exception):
-                set_roles(another_team, credential, [role_name])
+                set_roles(team, credential, [role_name])
 
 
 @pytest.mark.api
