@@ -6,7 +6,7 @@ The following guide will show you how to create a test app in Google and to use 
 * First we want to go to the Google Developer's Console and create a project. The GDC is located [here](https://console.developers.google.com/).
 * Now you want to enable the Google+ API. Do this by selecting "Google+ API" under the "Library" section. Click "Enable."
 * Now go to the "Credentials" screen and under "Create credentials," select "OAuth client ID." Now select "Web application."
-* Before you hit "Create," fill put the address of your Tower instance in for "Authorized redirect URIs" with `/sso/complete/google-oauth2/` at the end. So for instance, something like `https://ec2-something.compute-1.amazonaws.com/sso/complete/google-oauth2/`.
+* Before you hit "Create," put the address of your Tower instance in for "Authorized redirect URIs" with `/sso/complete/google-oauth2/` at the end. So for instance, something like `https://ec2-something.compute-1.amazonaws.com/sso/complete/google-oauth2/`.
 * On the "OAuth Consent Screen," we need to fill in the following fields:
   * For "Product name shown to users," you can put whatever you want. I had `Testing - Ansible Tower` just as an example.
   * For "Product logo URL," put your Tower host address. So for me, I had: `https://ec2-something.compute-1.amazonaws.com`.
@@ -20,6 +20,6 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = 'FIXME'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'FIXME'
 ```
 * Restart Tower services with `ansible-tower-service restart`.
-* You are now ready to authenticate via Google. You may need to force-refresh your browser several times to get the Github to appear in the login modal.
+* You are now ready to authenticate via Google. You may need to force-refresh your browser several times to get the Google icon to appear in the login modal.
 
 Written by [Christopher Wang](mailto:chrwang@redhat.com) (Github: simfarm) September 1, 2016.
