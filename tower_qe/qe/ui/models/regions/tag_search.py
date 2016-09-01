@@ -24,6 +24,11 @@ class TagSearch(Region):
         return self.find_element(*self._search_input)
 
     @property
+    def search_type(self):
+        """Return the currently selected search filter type"""
+        return self.search_type_dropdown.get_value()
+
+    @property
     def search_type_dropdown(self):
         self.wait.until(lambda _: self.is_element_displayed(*self._type_dropdown))
         element = self.find_element(*self._type_dropdown)

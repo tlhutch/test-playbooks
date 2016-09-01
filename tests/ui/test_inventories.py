@@ -16,6 +16,26 @@ pytestmark = [
 ]
 
 
+def test_inventory_search_persists_after_sorting_table(factories, ui_inventories):
+    # create inventories that can be filtered / excluded by adding a search filter
+    # for a specific organization
+    org = factories.organization()
+    factories.inventory(organization=org)
+    factories.inventory(organization=org)
+    factories.inventory()
+    # filter the inventory list by organization name
+    ui_inventories.list_search.add_filter('organization', org.name)
+    # verify expected results count from filtering
+    assert len(ui_inventories.list_table.rows) == 2
+    # change the table sorting
+    ui_inventories.list_table.header.set_sort_status(('name', 'ascending'))
+    ui_inventories.list_table.header.set_sort_status(('name', 'descending'))
+    # verify expected results count from filtering
+    assert len(ui_inventories.list_table.rows) == 2
+    # verify current search filter type is still organization
+    assert ui_inventories.list_search.search_type == 'organization'
+
+
 def test_edit_inventory(api_inventories_pg, ui_inventory_edit):
     """Basic end-to-end functional test for updating an existing inventory
     """
