@@ -1,12 +1,13 @@
 ## Quickstarts: Google Authentication in Tower
 
-The following guide will show you how to create a test app in Google and use it to authenticate to a running Tower instance. This guide is current as of Tower-3.0.2.
+The following guide will show you how to create a test app in Google and to use it to authenticate to a running Tower instance. This guide is current as of Tower-3.0.2.
 
 ### Step One: Create An Application in Google
 * First we want to go to the Google Developer's Console and create a project. The GDC is located [here](https://console.developers.google.com/).
 * Now you want to enable the Google+ API. Do this by selecting "Google+ API" under the "Library" section. Click "Enable."
-* Now go to the "Credentials" screen and under "Create credentials," select "OAuth client ID." Now click "Configure consent screen."
-* Here we need to fill the following fields:
+* Now go to the "Credentials" screen and under "Create credentials," select "OAuth client ID." Now select "Web application."
+* Before you hit "Create," fill put the address of your Tower instance in for "Authorized redirect URIs" with `/sso/complete/google-oauth2/` at the end. So for instance, something like `https://ec2-something.compute-1.amazonaws.com/sso/complete/google-oauth2/`.
+* On the "OAuth Consent Screen," we need to fill in the following fields:
   * For "Product name shown to users," you can put whatever you want. I had `Testing - Ansible Tower` just as an example.
   * For "Product logo URL," put your Tower host address. So for me, I had: `https://ec2-something.compute-1.amazonaws.com`.
 * On the resulting modal, select "Web Application." Your screen should now look as follows. The values here will be used Tower-side.
