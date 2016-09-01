@@ -896,26 +896,26 @@ class Test_Credential_RBAC(Base_Api_Test):
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3392')
     def test_user_credential_role_assignment(self, factories, set_roles):
         '''
-        Tests that user credential roles may not be given to teams.
+        Tests that user credential roles may not be given to other users and teams.
         '''
         # create user credential
         user = factories.user()
         credential = factories.credential(user=user, organization=None)
         # create another user and team
-        other_user = factories.user()
+        another_user = factories.user()
         team = factories.team()
         # assert that credential roles may not be assigned to these agents
         role_names = [role.replace("_role", "") for role in credential.summary_fields.object_roles.keys()]
         for role_name in role_names:
             with pytest.raises(qe.exceptions.BadRequest_Exception):
-                set_roles(other_user, credential, [role_name])
+                set_roles(another_user, credential, [role_name])
             with pytest.raises(qe.exceptions.BadRequest_Exception):
                 set_roles(team, credential, [role_name])
 
-    def test_organization_credential_role_assignment(self, factories, set_roles):
+    def test_invalid_organization_credential_role_assignment(self, factories, set_roles):
         '''
-        Tests that organization credentials may only have their roles assigned to users
-        and teams who exist within the same organization.
+        Tests that organization credentials may not have their roles assigned to users
+        and teams who exist outside of their organization.
         '''
         # create an organization credential
         organization = factories.organization()
@@ -932,6 +932,24 @@ class Test_Credential_RBAC(Base_Api_Test):
         for role_name in role_names:
             with pytest.raises(qe.exceptions.BadRequest_Exception):
                 set_roles(team, credential, [role_name])
+
+    def test_valid_organization_credential_role_assignment(self, factories, set_roles):
+        '''
+        Tests that organization credentials may have their roles assigned to users
+        and teams who exist within their own organization.
+        '''
+        # create an organization credential
+        organization = factories.organization()
+        credential = factories.credential(organization=organization)
+        # user from another organization may be assigned our credential roles
+        user = factories.user(organization=organization)
+        role_names = [role.replace("_role", "") for role in credential.summary_fields.object_roles.keys()]
+        for role_name in role_names:
+            set_roles(user, credential, [role_name])
+        # team from another organization may be assigned our credential roles
+        team = factories.team(organization=organization)
+        for role_name in role_names:
+            set_roles(team, credential, [role_name])
 
 
 @pytest.mark.api
