@@ -70,12 +70,13 @@ class Test_Credential(Base_Api_Test):
         credential = factories.credential(team=team, organization=None)
 
         # assert that our credential is both a team and organization credential
-        assert any(item for item in credential.summary_fields.owners if item.get("type", None) == "organization")
-        assert any(item for item in credential.summary_fields.owners if item.get("type", None) == "team")
+        owner_organizations = [item for item in credential.summary_fields.owners if item.get("type", None) == "organization"]
+        owner_teams = [item for item in credential.summary_fields.owners if item.get("type", None) == "team"]
+        assert(owner_organizations), "Expected to find an organization under 'owner' summary_fields."
+        assert(owner_teams), "Expected to find a team under 'owner' summary_fields."
 
         # assert that our credential organization is our team organization
-        owner_organization = [item for item in credential.summary_fields.owners if item.get("type", None) == "organization"][0]
-        assert owner_organization.get("id", None) == team.organization, \
+        assert owner_organizations[0].get("id", None) == team.organization, \
             "Credential organization and team organization do not align."
 
     @pytest.mark.parametrize("payload, expected_result", [
