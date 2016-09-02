@@ -895,9 +895,7 @@ class Test_Credential_RBAC(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3392')
     def test_user_credential_role_assignment(self, factories, set_roles):
-        '''
-        Tests that user credential roles may not be given to other users and teams.
-        '''
+        '''Tests that user credential roles may not be given to other users and teams.'''
         # create user credential
         user = factories.user()
         credential = factories.credential(user=user, organization=None)
