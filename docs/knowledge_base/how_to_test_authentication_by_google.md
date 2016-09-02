@@ -2,6 +2,9 @@
 
 The following guide will show you how to create a test app in Google and to use it to authenticate to a running Tower instance. This guide is current as of Tower-3.0.2.
 
+NOTE: guide needs to be updated. Additional steps needed that aren't mentioned in this doc:
+"You need to set up the letsencrypt certs after commenting out the tower uwsgi info the apache config."
+
 ### Step One: Create An Application in Google
 * First we want to go to the Google Developer's Console and create a project. The GDC is located [here](https://console.developers.google.com/).
 * Now you want to enable the Google+ API. Do this by selecting "Google+ API" under the "Library" section. Click "Enable."
