@@ -692,7 +692,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             job_tags=_job_template.get('job_tags', ''),
             limit=_job_template.get('limit', ''),
             inventory=inventory_id,
-            project=project_id,
+            project=_job_template.get(project_id, None),
             allow_callbacks=_job_template.get('allow_callbacks', False),
             verbosity=_job_template.get('verbosity', 0),
             forks=_job_template.get('forks', 0)

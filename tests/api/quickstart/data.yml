@@ -1302,6 +1302,13 @@ job_templates:
       job_tags: foo
       limit: unresolvable-name.example.com
 
+    - name: 'scan job_template - default'
+      job_type: scan
+      playbook: Default
+      inventory: inventory-all
+      credential: 'SSH (user:bender_eng_user, password:***)' 
+      limit: local
+
     - name: ansible-tower.git/setup/install.yml
       _launch: false
       job_type: run
@@ -1351,6 +1358,7 @@ job_templates:
       playbook: sleep.yml
       inventory: local,
       credential: 'SSH (team:Ansible Users, sudo_password:***)'
+
 
 schedules:
     - name: Update ansible-playbooks.git every 30 minutes
