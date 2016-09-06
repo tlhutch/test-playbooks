@@ -1302,12 +1302,11 @@ job_templates:
       job_tags: foo
       limit: unresolvable-name.example.com
 
-    - name: 'scan job_template/scan_facts.yml (limit:local)'
+    - name: 'scan job_template/scan_facts.yml'
       job_type: scan
       playbook: Default
-      inventory: inventory-all
+      inventory: local,
       credential: 'SSH (user:bender_eng_user, password:***)'
-      limit: local
       extra_vars:
         scan_file_paths: "/tmp,/bin"
 
@@ -1360,7 +1359,6 @@ job_templates:
       playbook: sleep.yml
       inventory: local,
       credential: 'SSH (team:Ansible Users, sudo_password:***)'
-
 
 schedules:
     - name: Update ansible-playbooks.git every 30 minutes
