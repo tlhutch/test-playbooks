@@ -680,7 +680,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                                 api_job_templates_pg, _job_template, ansible_facts, ansible_runner):
         # Find desired object identifiers
         inventory_id = api_inventories_pg.get(name__iexact=_job_template['inventory']).results[0].id
-        if _job_template['project']:
+        if _job_template.get('project', None):
             project_id = api_projects_pg.get(name__iexact=_job_template['project']).results[0].id
         else:
             project_id = None
