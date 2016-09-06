@@ -5,6 +5,7 @@ import pytest
 from selenium.common.exceptions import TimeoutException
 
 from qe.exceptions import NotFound_Exception
+from qe.ui.models import JobTemplateEdit
 
 pytestmark = [
     pytest.mark.ui,
@@ -15,6 +16,13 @@ pytestmark = [
         'max_window',
     )
 ]
+
+
+def test_job_template_verbosity_selection(factories, ui_dashboard, selenium, base_url):
+    """Verify that the loaded verbosity setting is correct"""
+    template = factories.job_template(verbosity=2)
+    editPage = JobTemplateEdit(selenium, base_url, id=template.id).open()
+    assert str(template.verbosity) in editPage.details.verbosity.get_value()
 
 
 def test_edit_job_template(api_job_templates_pg, ui_job_template_edit):
