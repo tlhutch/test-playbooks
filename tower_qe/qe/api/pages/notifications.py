@@ -51,7 +51,7 @@ class Notification(base.Base):
 base.register_page(resources.v1_notification, Notification)
 
 
-class Notifications(Notification, base.BaseList):
+class Notifications(base.BaseList, Notification):
 
     def wait_until_count(self, count, interval=1, verbose=0, timeout=5*60):
         '''

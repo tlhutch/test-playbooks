@@ -30,7 +30,7 @@ class Job(UnifiedJob, JobTemplate):
 base.register_page(resources.v1_job, Job)
 
 
-class Jobs(Job, base.BaseList):
+class Jobs(base.BaseList, Job):
 
     pass
 
@@ -55,7 +55,7 @@ base.register_page([resources.v1_job_event,
                     '/api/v1/jobs/\d+/job_events/\d+/'], JobEvent)
 
 
-class JobEvents(JobEvent, base.BaseList):
+class JobEvents(base.BaseList, JobEvent):
 
     pass
 
@@ -71,7 +71,7 @@ class JobPlay(base.Base):
 base.register_page(resources.v1_job_play, JobPlay)
 
 
-class JobPlays(JobPlay, base.BaseList):
+class JobPlays(base.BaseList, JobPlay):
 
     pass
 
@@ -85,7 +85,7 @@ class JobTask(base.Base):
 base.register_page(resources.v1_job_task, JobTask)
 
 
-class JobTasks(JobTask, base.BaseList):
+class JobTasks(base.BaseList, JobTask):
 
     pass
 
@@ -99,7 +99,7 @@ class JobHostSummary(base.Base):
 base.register_page(resources.v1_job_host_summary, JobHostSummary)
 
 
-class JobHostSummaries(JobHostSummary, base.BaseList):
+class JobHostSummaries(base.BaseList, JobHostSummary):
 
     pass
 

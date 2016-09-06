@@ -10,7 +10,7 @@ class AdHocCommand(UnifiedJob):
 base.register_page(resources.v1_ad_hoc_commmand, AdHocCommand)
 
 
-class AdHocCommands(AdHocCommand, base.BaseList):
+class AdHocCommands(base.BaseList, AdHocCommand):
 
     pass
 

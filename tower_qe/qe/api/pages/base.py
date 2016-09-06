@@ -5,6 +5,8 @@ import types
 import json
 import re
 
+from toposort import toposort
+
 from qe.utils import PseudoNamespace, is_relative_endpoint
 from qe.api.client import Connection
 from qe.api.schema import validate
@@ -46,7 +48,6 @@ def register_page(urls, page_cls):
 
 def get_registered_page(url):
     """Matches api provided urls to a registered Base subclass."""
-    log.debug('Querying page class by url: {}'.format(url))
     page_cls = Base
     for re_key in _page_registry:
         if re_key.match(url):
@@ -56,10 +57,54 @@ def get_registered_page(url):
     return page_cls
 
 
+def dependency_graph(page):
+    """Creates a dependency graph of the form
+       {page: set(page.dependencies[0:i]),
+        page.dependencies[0]: set(page.dependencies[0][0:j]
+        ...
+        page.dependencies[i][j][...][n]: set(page.dependencies[i][j][...][n][0:z]),
+        ...}
+    """
+    graph = {}
+    dependencies = set(page.dependencies)
+    graph[page] = dependencies
+    for dependency in page.dependencies:
+        graph.update(dependency_graph(dependency))
+    return graph
+
+
+def creation_order(graph):
+    """returns a list of sets representing the order of page creation that will resolve the dependencies
+       of subsequent pages for any non-cyclic dependency_graph
+    """
+    return list(toposort(graph))
+
+
+def page_creation_order(page):
+    """returns the `creation_order()` for any desired page"""
+    return creation_order(dependency_graph(page))
+
+
+def all_instantiated_dependencies(pages):
+    """returns a list of all instantiated dependencies including pages themselves"""
+    scope_provided_dependencies = []
+    pages = [page for page in pages if hasattr(page, 'dependency_store')]
+    for provided in pages:
+        for dependency in provided.dependency_store.values():
+            if dependency and dependency not in scope_provided_dependencies:
+                scope_provided_dependencies.extend(all_instantiated_dependencies([dependency]))
+                scope_provided_dependencies = list(set(scope_provided_dependencies))
+
+    scope_provided_dependencies.extend(pages)
+    scope_provided_dependencies = list(set(scope_provided_dependencies))
+    return scope_provided_dependencies
+
+
 class Base(Page):
     """Base class for global project methods"""
 
     base_url = ''
+    dependencies = []  # For reference only.  Use self.dependency_store as an instance variable
 
     def __init__(self, testsetup=None, base_url=None, **kwargs):
         if not testsetup:  # Create a mock testsetup w/ pytest_restqa-like content
@@ -77,6 +122,8 @@ class Base(Page):
 
         if base_url:
             self.base_url = base_url
+
+        self.dependency_store = {base_subclass: None for base_subclass in self.dependencies}
 
     def __getattr__(self, name):
         if 'json' in self.__dict__ and name in self.json:
@@ -110,9 +157,7 @@ class Base(Page):
         return self.__class__
 
     def validate_json(self, json=None, request='GET'):
-        '''
-        Perform JSON validation on JSON response
-        '''
+        '''Perform JSON validation on JSON response'''
         if json is None:
             validate(self.json, self.base_url, request.lower(),
                      version=config.api_version)
@@ -201,9 +246,8 @@ class Base(Page):
         return self.handle_request(r)
 
     def put(self, payload=None):
-        '''
-        If a payload is supplied, PUT the payload. If not, submit our
-        existing page JSON as our payload.
+        '''If a payload is supplied, PUT the payload. If not, submit our
+           existing page JSON as our payload.
         '''
         if payload is None:
             payload = self.json
@@ -222,9 +266,7 @@ class Base(Page):
             pass
 
     def silent_delete(self):
-        '''
-        Delete the object. If it's already deleted, ignore the error
-        '''
+        '''Delete the object. If it's already deleted, ignore the error'''
         r = self.api.delete(self.base_url.format(**self.json))
         try:
             return self.handle_request(r)
@@ -279,6 +321,59 @@ class Base(Page):
             else:
                 raise(e)
 
+    def create(self, *a, **kw):
+        """Actual tower resource creation.  Override in `Base` subclasses.
+           If `Base` subclass has any dependenices, `self.create_necessary_dependencies(provided_dependencies)` should be called before
+           resource creation logic.  Should never require arguments at call time (use defaults) and should always return `self`.
+        """
+        raise(NotImplementedError())
+
+    def update_identity(self, obj):
+        """Takes a `Base` and updates attributes to reflect its content"""
+        self.base_url = obj.base_url
+        self.json = obj.json
+        return self
+
+    def _update_dependencies(self, dependency_candidates):
+        """updates self._dependency_cache to reflect instantiated dependencies, if any"""
+        if self.dependencies:
+            for potential in dependency_candidates:
+                if potential.__class__ in self.dependency_store:
+                    self.dependency_store[potential.__class__] = potential
+
+    def create_and_update_dependencies(self, *provided_dependencies):
+        """in order creation of dependencies and updating of self.dependency_store
+           to include instances, indexed by page class:
+           ```
+           self.dependencies = [qe.api.pages.Inventory]
+           self.create_and_update_dependencies()
+           inventory = self.dependency_store[qe.api.pages.Inventory]
+           ```
+        """
+        def _create_uninitialized_dependencies(instantiated_dependencies):
+            """calls default `create()` for all uninitialized dependencies in order"""
+            dependency_list = list(instantiated_dependencies)
+            if not self.dependencies:
+                return dependency_list
+
+            scoped_dependencies = {d.__class__.__name__.lower(): d for d in dependency_list}
+
+            for group in page_creation_order(self):
+                for to_create in [page for page in group if page != self]:
+                    create = True
+                    for dependency in dependency_list:
+                        # provided dependency already created
+                        if isinstance(dependency, to_create):
+                            create = False
+                            break
+                    if create:
+                        obj = to_create(self.testsetup).create(**scoped_dependencies)
+                        dependency_list.append(obj)
+                        scoped_dependencies[obj.__class__.__name__.lower()] = obj
+            return dependency_list
+
+        self._update_dependencies(_create_uninitialized_dependencies(all_instantiated_dependencies(provided_dependencies)))
+
     def load_default_authtoken(self):
         default_cred = config.credentials.default
         payload = dict(username=default_cred.username,
@@ -302,14 +397,14 @@ def exception_from_status_code(status_code):
     return _exception_map.get(status_code, None)
 
 
-class BaseList(Base):
+class BaseList(object):
     '''Allow: GET, POST, HEAD, OPTIONS'''
     @property
     def __item_class__(self):
         '''Returns the class representing a single 'Base' item'''
         # With an inheritence of Org_List -> Org -> Base -> Page, the following
         # will return the parent class of the current object (e.g. 'Org').
-        return inspect.getmro(self.__class__)[1]
+        return inspect.getmro(self.__class__)[2]
 
     @property
     def results(self):
@@ -326,10 +421,6 @@ class BaseList(Base):
         r = self.api.get(self.base_url.format(**self.json), params=params)
         return self.handle_request(r)
 
-    def post(self, payload={}):
-        r = self.api.post(self.base_url, payload)
-        return self.handle_request(r)
-
     def go_to_next(self):
         if self.next:
             next_page = self.__class__(self.testsetup, base_url=self.next)
@@ -339,6 +430,9 @@ class BaseList(Base):
         if self.previous:
             prev_page = self.__class__(self.testsetup, base_url=self.previous)
             return prev_page.get()
+
+    def create(self, *a, **kw):
+        return self.__item_class__(self.testsetup).create(*a, **kw)
 
 
 class TentativeBase(str):
@@ -350,23 +444,26 @@ class TentativeBase(str):
         self.endpoint = endpoint
         self.testsetup = testsetup
 
-    def create(self):
+    def _create(self):
         return get_registered_page(self.endpoint)(self.testsetup, base_url=self.endpoint)
 
     def get(self, **params):
-        return self.create().get(**params)
+        return self._create().get(**params)
 
     def post(self, payload={}):
-        return self.create().post(payload)
+        return self._create().post(payload)
 
     def put(self):
-        return self.create().put()
+        return self._create().put()
 
     def patch(self, **payload):
-        return self.create().patch(**payload)
+        return self._create().patch(**payload)
 
     def delete(self):
-        return self.create().delete()
+        return self._create().delete()
+
+    def create(self, *a, **kw):
+        return self._create().create(*a, **kw)
 
     def __repr__(self):
         return self.__str__()

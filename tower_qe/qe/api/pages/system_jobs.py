@@ -10,7 +10,7 @@ class SystemJob(UnifiedJob, SystemJobTemplate):
 base.register_page(resources.v1_system_job, SystemJob)
 
 
-class SystemJobs(SystemJob, base.BaseList):
+class SystemJobs(base.BaseList, SystemJob):
 
     pass
 

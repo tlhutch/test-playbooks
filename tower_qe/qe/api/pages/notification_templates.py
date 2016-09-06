@@ -38,7 +38,7 @@ base.register_page([resources.v1_notification_template,
                     resources.v1_notification_template_success], NotificationTemplate)
 
 
-class NotificationTemplates(NotificationTemplate, base.BaseList):
+class NotificationTemplates(base.BaseList, NotificationTemplate):
 
     pass
 

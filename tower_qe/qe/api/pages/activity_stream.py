@@ -9,7 +9,7 @@ class ActivityStream(base.Base):
 base.register_page(resources.v1_activity, ActivityStream)
 
 
-class ActivityStreams(ActivityStream, base.BaseList):
+class ActivityStreams(base.BaseList, ActivityStream):
 
     pass
 

@@ -1,9 +1,13 @@
-from qe.api.pages import UnifiedJobTemplate
+import fauxfactory
+
+from qe.api.pages import Organization, Project, Credential, Inventory, UnifiedJobTemplate
 from qe.api import resources
 import base
 
 
 class JobTemplate(UnifiedJobTemplate):
+
+    dependencies = [Credential, Inventory]
 
     def post_job(self, **kwargs):
         '''
@@ -49,10 +53,27 @@ class JobTemplate(UnifiedJobTemplate):
             (result.json['job'], self.url)
         return jobs_pg.results[0]
 
+    def create(self, name='', description='', job_type='run', playbook='ping.yml',
+               project=None, credential=Credential, inventory=Inventory, **kw):
+        self.create_and_update_dependencies(credential, inventory)
+
+        payload = dict(name=name or 'JobTemplate - {}'.format(fauxfactory.gen_alphanumeric()),
+                       description=description or fauxfactory.gen_alphanumeric(),
+                       job_type=job_type,
+                       inventory=self.dependency_store[Inventory].id,
+                       credential=self.dependency_store[Credential].id)
+
+        if job_type != 'scan':
+            org = self.dependency_store[Inventory].dependency_store[Organization]
+            project = project or Project(self.testsetup).create(organization=org)
+            payload.update(project=project.id, playbook=playbook)
+
+        return self.update_identity(JobTemplates(self.testsetup).post(payload))
+
 base.register_page(resources.v1_job_template, JobTemplate)
 
 
-class JobTemplates(JobTemplate, base.BaseList):
+class JobTemplates(base.BaseList, JobTemplate):
 
     pass
 

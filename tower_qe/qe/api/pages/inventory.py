@@ -1,11 +1,15 @@
 import json
 
-from qe.api.pages import UnifiedJob, UnifiedJobTemplate
+import fauxfactory
+
+from qe.api.pages import Organization, UnifiedJob, UnifiedJobTemplate
 from qe.api import resources
 import base
 
 
 class Inventory(base.Base):
+
+    dependencies = [Organization]
 
     def print_ini(self):
         '''Print an ini version of the inventory'''
@@ -39,10 +43,22 @@ class Inventory(base.Base):
 
         print '\n'.join(output)
 
+    def create(self, name='', description='', localhost=True, organization=Organization, **kw):
+        self.create_and_update_dependencies(organization)
+        org_id = self.dependency_store[Organization].id
+        payload = dict(name=name or 'Inventory - {}'.format(fauxfactory.gen_alphanumeric()),
+                       description=description or fauxfactory.gen_alphanumeric(),
+                       organization=org_id)
+        self.update_identity(Inventories(self.testsetup).post(payload))
+        if localhost:
+            Host(self.testsetup).create(inventory=self)
+            self.get()
+        return self
+
 base.register_page(resources.v1_inventory, Inventory)
 
 
-class Inventories(Inventory, base.BaseList):
+class Inventories(base.BaseList, Inventory):
 
     pass
 
@@ -51,6 +67,8 @@ base.register_page([resources.v1_inventories,
 
 
 class Group(base.Base):
+
+    dependencies = [Inventory]
 
     @property
     def is_root_group(self):
@@ -70,10 +88,18 @@ class Group(base.Base):
                 parents.append(candidate.id)
         return parents
 
+    def create(self, name='', description='', inventory=Inventory, **kw):
+        self.create_and_update_dependencies(inventory)
+        inv_id = self.dependency_store[Inventory].id
+        payload = dict(name=name if name else fauxfactory.gen_alphanumeric(),
+                       description=description if description else fauxfactory.gen_alphanumeric(),
+                       inventory=inv_id)
+        return self.update_identity(Groups(self.testsetup).post(payload))
+
 base.register_page(resources.v1_group, Group)
 
 
-class Groups(Group, base.BaseList):
+class Groups(base.BaseList, Group):
 
     pass
 
@@ -85,12 +111,22 @@ base.register_page([resources.v1_groups,
 
 class Host(base.Base):
 
-    pass
+    dependencies = [Inventory]
+
+    def create(self, name='', description='', variables=None, inventory=Inventory, **kw):
+        self.create_and_update_dependencies(inventory)
+        inv_id = self.dependency_store[Inventory].id
+        payload = dict(name=name or 'Host - {}'.format(fauxfactory.gen_alphanumeric()),
+                       description=description or fauxfactory.gen_alphanumeric(),
+                       variables=variables or json.dumps(dict(ansible_ssh_host='127.0.0.1',
+                                                              ansible_connection='local')),
+                       inventory=inv_id)
+        return self.update_identity(Hosts(self.testsetup).post(payload))
 
 base.register_page(resources.v1_host, Host)
 
 
-class Hosts(Host, base.BaseList):
+class Hosts(base.BaseList, Host):
 
     pass
 
@@ -106,7 +142,7 @@ class FactVersion(base.Base):
 base.register_page(resources.v1_host_related_fact_version, FactVersion)
 
 
-class FactVersions(FactVersion, base.BaseList):
+class FactVersions(base.BaseList, FactVersion):
 
     @property
     def count(self):
@@ -162,7 +198,7 @@ class InventorySource(UnifiedJobTemplate):
 base.register_page(resources.v1_inventory_source, InventorySource)
 
 
-class InventorySources(InventorySource, base.BaseList):
+class InventorySources(base.BaseList, InventorySource):
 
     pass
 
@@ -170,7 +206,7 @@ base.register_page([resources.v1_inventory_sources,
                     resources.v1_related_inventory_sources], InventorySources)
 
 
-class InventorySourceGroups(Group, base.BaseList):
+class InventorySourceGroups(base.BaseList, Group):
 
     pass
 
@@ -191,7 +227,7 @@ class InventoryUpdate(UnifiedJob):
 base.register_page(resources.v1_inventory_source_update, InventoryUpdate)
 
 
-class InventoryUpdates(InventoryUpdate, base.BaseList):
+class InventoryUpdates(base.BaseList, InventoryUpdate):
 
     pass
 
@@ -212,7 +248,7 @@ class InventoryScript(base.Base):
 base.register_page(resources.v1_inventory_script, InventoryScript)
 
 
-class InventoryScripts(InventoryScript, base.BaseList):
+class InventoryScripts(base.BaseList, InventoryScript):
 
     pass
 

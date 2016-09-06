@@ -1,11 +1,15 @@
+import fauxfactory
 import json
 
-from qe.api.pages import UnifiedJob, UnifiedJobTemplate
+from qe.api.pages import Organization, UnifiedJob, UnifiedJobTemplate
+from qe.config import config
 from qe.api import resources
 import base
 
 
 class Project(UnifiedJobTemplate):
+
+    dependencies = [Organization]
 
     def update(self):
         '''
@@ -43,10 +47,20 @@ class Project(UnifiedJobTemplate):
         return self.scm_type != "" and \
             super(Project_Page, self).is_successful
 
+    def create(self, name='', scm_type='git', scm_url='', organization=Organization, **kw):
+        name = name or 'Project - {}'.format(fauxfactory.gen_alphanumeric())
+        scm_url = scm_url or config.project_urls[scm_type]
+        self.create_and_update_dependencies(organization)
+        org_id = self.dependency_store[Organization].id
+        self.update_identity(Projects(self.testsetup).post(dict(name=name, scm_type=scm_type,
+                                                                scm_url=scm_url, organization=org_id)))
+        self.related.current_update.get().wait_until_completed()
+        return self
+
 base.register_page(resources.v1_project, Project)
 
 
-class Projects(Project, base.BaseList):
+class Projects(base.BaseList, Project):
 
     pass
 
@@ -61,7 +75,7 @@ class ProjectUpdate(UnifiedJob):
 base.register_page(resources.v1_project_updates, ProjectUpdate)
 
 
-class ProjectUpdates(ProjectUpdate, base.BaseList):
+class ProjectUpdates(base.BaseList, ProjectUpdate):
 
     pass
 

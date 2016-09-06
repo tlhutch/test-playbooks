@@ -51,7 +51,7 @@ class UnifiedJobTemplate(base.Base):
 base.register_page(resources.v1_unified_job_template, UnifiedJobTemplate)
 
 
-class UnifiedJobTemplates(UnifiedJobTemplate, base.BaseList):
+class UnifiedJobTemplates(base.BaseList, UnifiedJobTemplate):
 
     pass
 

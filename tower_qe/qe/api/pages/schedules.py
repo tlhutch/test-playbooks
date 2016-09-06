@@ -11,7 +11,7 @@ base.register_page([resources.v1_schedule,
                     resources.v1_related_schedule], Schedule)
 
 
-class Schedules(Schedule, base.BaseList):
+class Schedules(base.BaseList, Schedule):
 
     pass
 

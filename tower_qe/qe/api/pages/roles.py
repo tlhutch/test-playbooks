@@ -9,7 +9,7 @@ class Role(base.Base):
 base.register_page(resources.v1_role, Role)
 
 
-class Roles(Role, base.BaseList):
+class Roles(base.BaseList, Role):
 
     pass
 

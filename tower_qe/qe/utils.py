@@ -275,3 +275,13 @@ def random_utf8(*args, **kwargs):
     scrubbed = pattern.sub(u'\uFFFD', fauxfactory.gen_utf8(*args, **kwargs))
 
     return scrubbed
+
+
+def update_payload(payload, fields, kwargs):
+    """takes a list of fields and adds their kwargs value to payload if defined"""
+    not_provided = 'xx__NOT_PROVIDED__xx'
+    for field in fields:
+        field_val = kwargs.get(field, not_provided)
+        if field_val != not_provided:
+            payload[field] = field_val
+    return payload

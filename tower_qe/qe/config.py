@@ -13,3 +13,6 @@ config.getvalue = types.MethodType(getvalue, config)
 
 config.api_version = config.get('api_version', 'v1')
 config.assume_untrusted = config.get('assume_untrusted', True)
+
+config.project_urls = dict(git='https://github.com/jlaska/ansible-playbooks.git',
+                           hg='https://bitbucket.org/jlaska/ansible-helloworld')

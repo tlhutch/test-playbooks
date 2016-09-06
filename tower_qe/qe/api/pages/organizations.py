@@ -1,3 +1,5 @@
+import fauxfactory
+
 from qe.api import resources
 import qe.exceptions
 import base
@@ -21,10 +23,15 @@ class Organization(base.Base):
         except qe.exceptions.NoContent_Exception:
             pass
 
+    def create(self, name='', description='', **kw):
+        name = name or 'Organization - {}'.format(fauxfactory.gen_alphanumeric())
+        description = description or fauxfactory.gen_alphanumeric()
+        return self.update_identity(Organizations(self.testsetup).post(dict(name=name, description=description)))
+
 base.register_page(resources.v1_organization, Organization)
 
 
-class Organizations(Organization, base.BaseList):
+class Organizations(base.BaseList, Organization):
 
     pass
 

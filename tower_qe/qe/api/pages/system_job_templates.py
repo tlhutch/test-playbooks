@@ -25,7 +25,7 @@ class SystemJobTemplate(UnifiedJobTemplate):
 base.register_page(resources.v1_system_job_template, SystemJobTemplate)
 
 
-class SystemJobTemplates(SystemJobTemplate, base.BaseList):
+class SystemJobTemplates(base.BaseList, SystemJobTemplate):
 
     pass
 
