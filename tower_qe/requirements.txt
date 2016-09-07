@@ -12,6 +12,7 @@ junit-xml
 pep8
 pip
 py
+pyflakes>=1.3.0 # https://gitlab.com/pycqa/flake8/issues/220
 pylama
 pylama_pylint
 pyrax

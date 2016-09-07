@@ -18,8 +18,8 @@ RUN apk add --update \
 ADD . /tower-qa
 WORKDIR /tower-qa
 
-RUN pip install -r tower_qe/requirements.txt
 RUN pip install tower_qe/
+RUN pip install -r tests/requirements.txt
 
 RUN chmod a+x tools/docker/ui/credentials.sh
 RUN tools/docker/ui/credentials.sh
