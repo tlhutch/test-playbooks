@@ -59,6 +59,26 @@ class Test_Credential(Base_Api_Test):
         credential = api_credentials_pg.post(payload)
         credential.delete()
 
+    def test_team_credentials_are_organization_credentials(self, factories):
+        '''Create a team credential and assert that the created credential
+        is also an organization credential.
+
+        Note: we use summary_fields here because of a number of issues regarding
+        credential_pg JSON. Please update this test once #3304 and #3089 are resolved.
+        '''
+        team = factories.team()
+        credential = factories.credential(team=team, organization=None)
+
+        # assert that our credential is both a team and organization credential
+        owner_organizations = [item for item in credential.summary_fields.owners if item.get("type", None) == "organization"]
+        owner_teams = [item for item in credential.summary_fields.owners if item.get("type", None) == "team"]
+        assert(owner_organizations), "Expected to find an organization under 'owner' summary_fields."
+        assert(owner_teams), "Expected to find a team under 'owner' summary_fields."
+
+        # assert that our credential organization is our team organization
+        assert owner_organizations[0].get("id", None) == team.organization, \
+            "Credential organization and team organization do not align."
+
     @pytest.mark.parametrize("payload, expected_result", [
         (dict(password="foo", username="foo", host="foo"), {"project": ["Project name required for OpenStack credential."]}),
         (dict(project="foo", username="foo", host="foo"), {"password": ["Password or API key required for OpenStack credential."]}),
