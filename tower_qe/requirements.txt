@@ -23,3 +23,4 @@ selenium
 setuptools>=18.4
 slacker
 toposort
+websocket-client
