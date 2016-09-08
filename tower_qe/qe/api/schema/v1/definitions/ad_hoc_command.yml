@@ -37,9 +37,10 @@ ad_hoc_command:
         events: {format: uri, type: string}
         inventory: {format: uri, type: string}
         modified_by: {format: uri, type: string}
+        notifications: {format: url, type: string}
         relaunch: {format: uri, type: string}
         stdout: {format: uri, type: string}
-      required: [stdout, activity_stream, events, cancel, relaunch]
+      required: [stdout, activity_stream, events, cancel, relaunch, notifications]
       type: object
     result_stdout: {type: string}
     result_traceback: {type: string}
