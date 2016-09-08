@@ -231,7 +231,8 @@ class InventoryUpdates(base.BaseList, InventoryUpdate):
 
     pass
 
-base.register_page(resources.v1_inventory_updates, InventoryUpdates)
+base.register_page([resources.v1_inventory_updates,
+                    resources.v1_inventory_source_updates], InventoryUpdates)
 
 
 class InventoryUpdateCancel(base.Base):
