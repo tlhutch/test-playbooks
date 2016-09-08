@@ -87,7 +87,7 @@ class ProjectUpdateLaunch(base.Base):
 
     pass
 
-base.register_page(resources.v1_project_update, ProjectUpdateLaunch)
+base.register_page(resources.v1_project_related_update, ProjectUpdateLaunch)
 
 
 class ProjectUpdateCancel(base.Base):
