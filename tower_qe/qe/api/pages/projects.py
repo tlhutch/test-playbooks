@@ -72,14 +72,15 @@ class ProjectUpdate(UnifiedJob):
 
     pass
 
-base.register_page(resources.v1_project_updates, ProjectUpdate)
+base.register_page(resources.v1_project_update, ProjectUpdate)
 
 
 class ProjectUpdates(base.BaseList, ProjectUpdate):
 
     pass
 
-base.register_page(resources.v1_projects_project_updates, ProjectUpdates)
+base.register_page([resources.v1_project_updates,
+                    resources.v1_project_project_updates], ProjectUpdates)
 
 
 class ProjectUpdateLaunch(base.Base):

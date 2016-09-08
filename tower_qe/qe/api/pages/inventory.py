@@ -224,21 +224,21 @@ class InventoryUpdate(UnifiedJob):
 
     pass
 
-base.register_page(resources.v1_inventory_source_update, InventoryUpdate)
+base.register_page(resources.v1_inventory_update, InventoryUpdate)
 
 
 class InventoryUpdates(base.BaseList, InventoryUpdate):
 
     pass
 
-base.register_page(resources.v1_inventory_source_updates, InventoryUpdates)
+base.register_page(resources.v1_inventory_updates, InventoryUpdates)
 
 
 class InventoryUpdateCancel(base.Base):
 
     pass
 
-base.register_page(resources.v1_inventory_source_update_cancel, InventoryUpdateCancel)
+base.register_page(resources.v1_inventory_update_cancel, InventoryUpdateCancel)
 
 
 class InventoryScript(base.Base):

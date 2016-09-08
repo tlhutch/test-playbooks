@@ -173,6 +173,12 @@ def test_authenticated(api, resource, method, authtoken, no_license):
         '/api/v1/inventory_sources/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },
+        '/api/v1/inventory_updates/': {
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
+        '/api/v1/project_updates/': {
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
         '/api/v1/unified_jobs/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },
@@ -183,6 +189,9 @@ def test_authenticated(api, resource, method, authtoken, no_license):
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },
         '/api/v1/schedules/': {  # Doesn't yet support POST
+            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
+        '/api/v1/settings/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
         },
         '/api/v1/ping/': {

@@ -537,8 +537,8 @@ class Awx_Schema_Project_Organizations(Awx_Schema_Organizations):
     resource = resources.v1_project_organizations
 
 
-class Awx_Schema_Projects_Project_Updates(Awx_Schema):
-    resource = resources.v1_projects_project_updates
+class Awx_Schema_Project_Project_Updates(Awx_Schema):
+    resource = resources.v1_project_project_updates
 
     @property
     def get(self):
@@ -553,8 +553,24 @@ class Awx_Schema_Project_Playbooks(Awx_Schema):
         return self.load_file('list.yml')
 
 
-class Awx_Schema_Project_Update(Awx_Schema):
+class Awx_Schema_Project_Updates(Awx_Schema):
+    resource = resources.v1_project_updates
+
+    @property
+    def get(self):
+        return self.load_file('project_updates/list.yml')
+
+
+class Awx_Schema_Project_Update(Awx_Schema_Project_Updates):
     resource = resources.v1_project_update
+
+    @property
+    def get(self):
+        return self.load_file('project_updates/item.yml')
+
+
+class Awx_Schema_Project_Related_Update(Awx_Schema):
+    resource = resources.v1_project_related_update
 
     @property
     def get(self):
@@ -563,14 +579,6 @@ class Awx_Schema_Project_Update(Awx_Schema):
     @property
     def post(self):
         return self.load_file('projects/updated.yml')
-
-
-class Awx_Schema_Project_Updates(Awx_Schema_Projects_Project_Updates):
-    resource = resources.v1_project_updates
-
-    @property
-    def get(self):
-        return self.load_file('project_updates/item.yml')
 
 
 class Awx_Schema_Project_Update_Cancel(Awx_Schema):
@@ -993,6 +1001,14 @@ class Awx_Schema_Inventory_Sources_Related_Update(Awx_Schema):
         return self.load_file('inventory_sources/updated.yml')
 
 
+class Awx_Schema_Inventory_Updates(Awx_Schema):
+    resource = resources.v1_inventory_updates
+
+    @property
+    def get(self):
+        return self.load_file('inventory_updates/list.yml')
+
+
 class Awx_Schema_Inventory_Source_Updates(Awx_Schema):
     resource = resources.v1_inventory_source_updates
 
@@ -1005,16 +1021,16 @@ class Awx_Schema_Inventory_Sources_Related_Groups(Awx_Schema_Groups):
     resource = resources.v1_inventory_sources_related_groups
 
 
-class Awx_Schema_Inventory_Source_Update(Awx_Schema_Inventory_Source_Updates):
-    resource = resources.v1_inventory_source_update
+class Awx_Schema_Inventory_Update(Awx_Schema_Inventory_Updates):
+    resource = resources.v1_inventory_update
 
     @property
     def get(self):
         return self.load_file('inventory_updates/item.yml')
 
 
-class Awx_Schema_Inventory_Source_Update_Cancel(Awx_Schema):
-    resource = resources.v1_inventory_source_update_cancel
+class Awx_Schema_Inventory_Update_Cancel(Awx_Schema):
+    resource = resources.v1_inventory_update_cancel
 
     @property
     def get(self):
