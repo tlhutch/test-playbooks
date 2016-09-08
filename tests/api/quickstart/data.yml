@@ -1302,6 +1302,14 @@ job_templates:
       job_tags: foo
       limit: unresolvable-name.example.com
 
+    - name: 'scan job_template/scan_facts.yml'
+      job_type: scan
+      playbook: Default
+      inventory: local,
+      credential: 'SSH (user:bender_eng_user, password:***)'
+      extra_vars:
+        scan_file_paths: "/tmp,/bin"
+
     - name: ansible-tower.git/setup/install.yml
       _launch: false
       job_type: run

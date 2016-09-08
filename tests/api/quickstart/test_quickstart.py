@@ -675,13 +675,15 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             with pytest.raises(NoContent_Exception):
                 project_related_pg.post(payload)
 
-    # AT ONE POINT RELATED TO JIRA(AC-641)
     @pytest.mark.destructive
     def test_job_templates_post(self, api_inventories_pg, api_credentials_pg, api_projects_pg,
                                 api_job_templates_pg, _job_template, ansible_facts, ansible_runner):
         # Find desired object identifiers
         inventory_id = api_inventories_pg.get(name__iexact=_job_template['inventory']).results[0].id
-        project_id = api_projects_pg.get(name__iexact=_job_template['project']).results[0].id
+        if _job_template.get('project', None):
+            project_id = api_projects_pg.get(name__iexact=_job_template['project']).results[0].id
+        else:
+            project_id = None
 
         # Create a new job_template
         payload = dict(
