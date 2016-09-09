@@ -26,13 +26,13 @@ services:
     links:
       - chrome_local_debug
   chrome_local:
-    image: selenium/standalone-chrome:2.53.0
+    image: selenium/standalone-chrome:latest
     volumes:
       - /dev/shm:/dev/shm
     ports:
       - 4444:4444
   chrome_local_debug:
-    image: selenium/standalone-chrome-debug:2.53.0
+    image: selenium/standalone-chrome-debug:latest
     volumes:
       - /dev/shm:/dev/shm
     ports:
