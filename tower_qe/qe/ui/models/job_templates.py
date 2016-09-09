@@ -179,6 +179,12 @@ class JobTemplateDetails(FormPanel):
                 (By.CSS_SELECTOR, 'label[for=cloud_credential]'),
                 (By.XPATH, '..')]
         },
+        'network_credential': {
+            'region_type': 'lookup',
+            'root_locator': [
+                (By.CSS_SELECTOR, 'label[for=network_credential]'),
+                (By.XPATH, '..')]
+        },
         'name': {
             'required': True,
             'region_type': 'text_input',

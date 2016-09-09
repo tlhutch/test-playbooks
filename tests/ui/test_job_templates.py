@@ -18,6 +18,45 @@ pytestmark = [
 ]
 
 
+def test_machine_credential_association(factories, ui_dashboard, selenium, base_url):
+    """Verify machine credential association using an existing job template"""
+    template = factories.job_template()
+    editPage = JobTemplateEdit(selenium, base_url, id=template.id).open()
+
+    machine_credential = factories.credential(kind='ssh')
+
+    editPage.details.credential.set_value(machine_credential.name)
+    editPage.details.save.click()
+
+    assert template.get().credential == machine_credential.id
+
+
+def test_cloud_credential_association(factories, ui_dashboard, selenium, base_url):
+    """Verify cloud credential association using an existing job template"""
+    template = factories.job_template()
+    editPage = JobTemplateEdit(selenium, base_url, id=template.id).open()
+
+    cloud_credential = factories.credential(kind='aws', username='foo', password='bar')
+
+    editPage.details.cloud_credential.set_value(cloud_credential.name)
+    editPage.details.save.click()
+
+    assert template.get().cloud_credential == cloud_credential.id
+
+
+def test_network_credential_association(factories, ui_dashboard, selenium, base_url):
+    """Verify network credential association using an existing job template"""
+    template = factories.job_template()
+    editPage = JobTemplateEdit(selenium, base_url, id=template.id).open()
+
+    network_credential = factories.credential(kind='net')
+
+    editPage.details.network_credential.set_value(network_credential.name)
+    editPage.details.save.click()
+
+    assert template.get().network_credential == network_credential.id
+
+
 def test_job_template_verbosity_selection(factories, ui_dashboard, selenium, base_url):
     """Verify that the loaded verbosity setting is correct"""
     template = factories.job_template(verbosity=2)
