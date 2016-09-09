@@ -52,14 +52,12 @@ def auth_user(testsetup, authtoken, api_authtoken_url):
             >>>     foo_job_template.patch(inventory=bar_inventory.id)
             *** Forbidden_Exception
         """
-        try:
-            prev_auth = testsetup.api.session.auth
-            data = {'username': user.username, 'password': password}
-            response = testsetup.api.post(api_authtoken_url, data)
-            testsetup.api.login(token=response.json()['token'])
-            yield
-        finally:
-            testsetup.api.session.auth = prev_auth
+        prev_auth = testsetup.api.session.auth
+        data = {'username': user.username, 'password': password}
+        response = testsetup.api.post(api_authtoken_url, data)
+        testsetup.api.login(token=response.json()['token'])
+        yield
+        testsetup.api.session.auth = prev_auth
     return _auth_user
 
 
