@@ -1,0 +1,12 @@
+---
+# Inspircd user
+inspircd_user: "irc"
+
+# Path where inspircd is installed
+inspircd_install_dir: "/usr/local/src/inspircd"
+
+# Path where inspircd config files are created (do not edit)
+inspircd_conf_dir: "{{ inspircd_install_dir }}/run/conf"
+
+# inspircd branch to install from (insp20 => latest stable)
+inspircd_branch: insp20

@@ -1,0 +1,2 @@
+[irc_servers]
+localhost ansible_user=root

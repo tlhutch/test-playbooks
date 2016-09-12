@@ -1,0 +1,40 @@
+---
+- name: Create irc user
+  user:
+    name: "{{ inspircd_user }}"
+    state: present
+
+- name: Clear install directory
+  file:
+     path: "{{ inspircd_install_dir }}"
+     state: absent
+
+- name: Create install directory
+  file:
+     path: "{{ inspircd_install_dir }}"
+     state: directory
+     owner: "{{ inspircd_user }}"
+     group: "{{ inspircd_user }}"
+
+- name: Download inspircd
+  become: true
+  become_user: "{{ inspircd_user }}"
+  git:
+    repo: https://github.com/inspircd/inspircd.git
+    version: "{{ inspircd_branch }}"
+    dest: "{{ inspircd_install_dir }}"
+
+- name: Configure inspircd
+  become: true
+  become_user: "{{ inspircd_user }}"
+  command: ./configure --disable-interactive chdir="{{ inspircd_install_dir }}"
+
+- name: Build inspircd
+  become: true
+  become_user: "{{ inspircd_user }}"
+  command: make chdir="{{ inspircd_install_dir }}"
+
+- name: Install inspircd
+  become: true
+  become_user: "{{ inspircd_user }}"
+  command: make install chdir="{{ inspircd_install_dir }}"
