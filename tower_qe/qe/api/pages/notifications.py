@@ -34,7 +34,7 @@ class Notification(base.Base):
         '''
         return 'successful' == self.status and not self.error
 
-    def wait_until_status(self, status, interval=1, verbose=0, timeout=30):
+    def wait_until_status(self, status, interval=5, verbose=0, timeout=30):
         if not isinstance(status, (list, tuple)):
             '''coerce 'status' parameter to a list'''
             status = [status]
@@ -43,7 +43,7 @@ class Notification(base.Base):
             interval=interval, verbose=verbose, timeout=timeout,
             start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
 
-    def wait_until_completed(self, interval=1, verbose=0, timeout=30):
+    def wait_until_completed(self, interval=5, verbose=0, timeout=30):
         return self.wait_until_status(
             ('successful', 'failed',),
             interval=interval, verbose=verbose, timeout=timeout)
@@ -53,7 +53,7 @@ base.register_page(resources.v1_notification, Notification)
 
 class Notifications(base.BaseList, Notification):
 
-    def wait_until_count(self, count, interval=1, verbose=0, timeout=5*60):
+    def wait_until_count(self, count, interval=10, verbose=0, timeout=3*60):
         '''
         Poll notifications page until it is populated with `count` number of notifications.
         '''
