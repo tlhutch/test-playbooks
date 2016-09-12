@@ -46,6 +46,7 @@ NzAeFw0xNTA1MTIxNTU2NTBaFw0yMDA1MTMxNTU2NTBaMF0xCzAJBgNVBAYTAlVT
     },
 
 ```
+* Install an enterprise license since SAML is an enterprise-only feature.
 * Restart Tower with `ansible-tower-service restart` and you should be good to go.
 
 Written by [Christopher Wang](mailto:chrwang@redhat.com) (Github: simfarm) September 1, 2016.
