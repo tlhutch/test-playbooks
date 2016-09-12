@@ -968,6 +968,7 @@ class Test_Legacy_License_Expired(Base_Api_Test):
         with pytest.raises(qe.exceptions.LicenseExceeded_Exception):
             group_hosts_pg.post(payload)
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3483")
     def test_job_launch(self, request, install_basic_license, job_template):
         '''Verify that job_templates cannot be launched'''
         request.getfuncargvalue('install_legacy_license_expired')()
