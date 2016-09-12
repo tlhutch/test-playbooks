@@ -61,3 +61,34 @@ class Login(Page):
     def wait_until_loaded(self):
         self.wait.until(lambda _: self.is_login_button_displayed())
         return self
+
+
+class GithubLogin(Page):
+
+    open_url = 'https://github.com/login/'
+
+    _login_field = (By.CSS_SELECTOR, '#login_field')
+    _password_field = (By.CSS_SELECTOR, '#password')
+    _login_button = (By.CSS_SELECTOR, '.btn')
+
+    @property
+    def username(self):
+        return self.find_element(self._login_field)
+
+    @property
+    def password(self):
+        return self.find_element(self._password_field)
+
+    @property
+    def login_button(self):
+        return self.find_element(self._login_button)
+
+    def login(self, username, password):
+        self.username.clear()
+        self.username.send_keys(username)
+
+        self.password.clear()
+        self.password.send_keys(password)
+
+        self.wait.until(lambda _: self.login_button.is_enabled())
+        self.login_button.click()
