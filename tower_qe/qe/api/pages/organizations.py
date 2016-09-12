@@ -11,7 +11,7 @@ class Organization(base.Base):
         if isinstance(user, base.Base):
             user = user.json
         try:
-            self.get_related('admins').post(user)
+            self.related.admins.post(user)
         except qe.exceptions.NoContent_Exception:
             pass
 
@@ -19,7 +19,7 @@ class Organization(base.Base):
         if isinstance(user, base.Base):
             user = user.json
         try:
-            self.get_related('users').post(user)
+            self.related.users.post(user)
         except qe.exceptions.NoContent_Exception:
             pass
 
