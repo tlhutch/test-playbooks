@@ -442,6 +442,7 @@ class Test_No_License(Base_Api_Test):
         assert job_pg.status == 'failed', "inventory_update was unexpectedly successful - %s" % job_pg
         assert 'CommandError: No Tower license found!' in job_pg.result_stdout
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3481")
     def test_cannot_launch_job(self, install_basic_license, api_config_pg, job_template):
         '''Verify that job_templates cannot be launched'''
         api_config_pg.delete()
