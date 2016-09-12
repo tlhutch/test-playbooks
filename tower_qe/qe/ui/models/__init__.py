@@ -5,7 +5,7 @@ from inventories import Inventories, InventoryAdd, InventoryEdit
 from jobs import Jobs
 from job_templates import JobTemplates, JobTemplateAdd, JobTemplateEdit
 from license import License
-from login import Login
+from login import Login, GithubLogin
 from manage_inventory import ManageInventory
 from management_jobs import ManagementJobs
 from organizations import Organizations, OrganizationAdd, OrganizationEdit
@@ -23,6 +23,7 @@ __all__ = [
     'CredentialAdd',
     'CredentialEdit',
     'Dashboard',
+    'GithubLogin',
     'Inventories',
     'InventoryAdd',
     'InventoryEdit',
