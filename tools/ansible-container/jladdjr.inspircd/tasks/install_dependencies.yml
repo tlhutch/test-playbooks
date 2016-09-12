@@ -1,0 +1,36 @@
+---
+- name: Install development tools
+  yum:
+    name: '@Development Tools'
+    state: present
+
+- name: Install required (perl) packages
+  yum:
+    name: 'perl-libwww-perl,perl-Crypt-SSLeay'
+    state: present
+
+- name: Install git
+  yum:
+    name: 'git'
+    state: present
+
+- name: Install sudo
+  yum:
+    name: 'sudo'
+    state: present
+
+- name: (HACK) Change permissions for sudoers file
+  file:
+    path: /etc/sudoers
+    mode: 0660
+
+- name: Sudo should not requiretty
+  lineinfile:
+    dest: /etc/sudoers
+    regexp: '^Defaults\s*requiretty'
+    line: '#Defaults requiretty'
+
+- name: (HACK) Restore permissions for sudoers file
+  file:
+    path: /etc/sudoers
+    mode: 0440

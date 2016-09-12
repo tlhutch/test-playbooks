@@ -1,0 +1,11 @@
+---
+- include: "install_dependencies.yml"
+
+- name: Determine if inspircd already installed
+  stat: path="{{ inspircd_install_dir }}/run/inspircd"
+  register: st
+
+- include: "install_inspircd.yml"
+  when: not st.stat.exists
+
+- include: "configure_inspircd.yml"
