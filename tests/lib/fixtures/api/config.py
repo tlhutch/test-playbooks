@@ -255,7 +255,7 @@ def CUSTOM_CONSOLE_LOGO(request, ansible_runner):
     # install custom_console_logo.png
     contacted = ansible_runner.copy(
         src='tests/lib/fixtures/api/static/custom_console_logo.png',
-        dest='/var/lib/awx/public/static/assets/',
+        dest='/var/lib/awx/public/static/assets/custom_console_logo.png',
         owner='awx',
         group='awx',
         mode='0755'
@@ -269,7 +269,7 @@ def CUSTOM_CONSOLE_LOGO(request, ansible_runner):
     # install local_settings.json
     contacted = ansible_runner.copy(
         src='tests/lib/fixtures/api/static/local_settings.json',
-        dest='/var/lib/awx/public/static/',
+        dest='/var/lib/awx/public/static/local_settings.json',
         owner='awx',
         group='awx',
         mode='0755'
