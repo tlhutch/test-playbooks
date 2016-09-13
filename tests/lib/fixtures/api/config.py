@@ -250,7 +250,7 @@ AD_HOC_COMMANDS = %s
 @pytest.fixture
 def CUSTOM_CONSOLE_LOGO(request, ansible_runner):
     """Installs a custom console logo on our target host. Files transferred include the image itself
-    and a settings file. Files is removed upon teardown.
+    and a settings file. Files are removed upon teardown.
     """
     # install custom_console_logo.png
     contacted = ansible_runner.copy(
@@ -260,6 +260,12 @@ def CUSTOM_CONSOLE_LOGO(request, ansible_runner):
         group='awx',
         mode='0755'
     )
+
+    # assert success
+    for result in contacted.values():
+        assert 'failed' not in result, \
+            "Failure installing custom_console_logo.png.\n%s" % json.dumps(result, indent=2)
+
     # install local_settings.json
     contacted = ansible_runner.copy(
         src='tests/lib/fixtures/api/static/local_settings.json',
@@ -268,16 +274,32 @@ def CUSTOM_CONSOLE_LOGO(request, ansible_runner):
         group='awx',
         mode='0755'
     )
-    import pdb; pdb.set_trace()
+
+    # assert success
+    for result in contacted.values():
+        assert 'failed' not in result, \
+            "Failure installing local_settings.json.\n%s" % json.dumps(result, indent=2)
+
     def fin():
         # remove custom_console_logo.png
         contacted = ansible_runner.file(
             path='/var/lib/awx/public/static/assets/custom_console_logo.png',
             state='absent'
         )
+
+        # assert success
+        for result in contacted.values():
+            assert 'failed' not in result, \
+                "Failure removing custom_console_logo.png.\n%s" % json.dumps(result, indent=2)
+
+        # remove local_settings.json
         contacted = ansible_runner.file(
             path='/var/lib/awx/public/static/local_settings.json',
             state='absent'
         )
-        import pdb; pdb.set_trace()
+
+        # assert success
+        for result in contacted.values():
+            assert 'failed' not in result, \
+                "Failure removing local_settings.json.\n%s" % json.dumps(result, indent=2)
     request.addfinalizer(fin)
