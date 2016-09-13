@@ -40,3 +40,14 @@ def test_login_invalid_credentials(ui_login, username, password):
         'Login unexpectedly succesful with invalid credentials')
     assert ui_login.errors, (
         'Expected login failure alert error(s) to be displayed')
+
+
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+def test_console_logo(CUSTOM_CONSOLE_LOGO, ui_login):
+    """Verify that our custom console logo and its accompanying
+    text display
+    """
+
+    assert ui.is_modal_notice_displayed, (
+        'Expected modal notice to be displayed')
+    import pdb; pdb.set_trace()
