@@ -508,6 +508,9 @@ def cloud_group(request, ansible_os_family, ansible_distribution_major_version):
     # new-style azure inventory imports are not supported on EL6 systems
     if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param in ['azure', 'azure_ad']):
         pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
+    # add in temporary pytest marker
+    if request.param in ['azure', 'azure_ad']:
+        pytest.skip(msg='https://github.com/ansible/ansible-tower/issues/3493')
     return request.getfuncargvalue(request.param + '_group')
 
 
