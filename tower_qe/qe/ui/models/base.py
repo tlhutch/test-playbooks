@@ -31,7 +31,6 @@ class TowerPage(Page):
     @property
     def current_breadcrumb(self):
         breadcrumbs = self.breadcrumbs
-        import pdb; pdb.set_trace()
         return breadcrumbs[-1] if breadcrumbs else None
 
     @property

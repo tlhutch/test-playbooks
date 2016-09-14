@@ -43,11 +43,23 @@ def test_login_invalid_credentials(ui_login, username, password):
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-def test_console_logo(CUSTOM_CONSOLE_LOGO, ui_login):
-    """Verify that our custom console logo and its accompanying
-    text display
+def test_stock_branding(ui_login):
+    """Verify our stock login modal branding and notice
     """
+    image_src = ui_login.modal_image.get_attribute('src')
+    assert image_src.endswith('/static/assets/tower-logo-login.svg'), \
+        "Unexpected console_logo path."
+    assert not ui_login.is_modal_notice_displayed(), (
+        'Expected modal notice to not be displayed')
 
-    assert ui.is_modal_notice_displayed, (
+
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+def test_custom_rebranding(CUSTOM_CONSOLE_LOGO, ui_login):
+    """Verify that our login modal may be rebranded with a custom
+    image and notice
+    """
+    image_src = ui_login.modal_image.get_attribute('src')
+    assert image_src.endswith('/static/assets/custom_console_logo.png'), \
+        "Unexpected console_logo path."
+    assert ui_login.is_modal_notice_displayed(), (
         'Expected modal notice to be displayed')
-    import pdb; pdb.set_trace()
