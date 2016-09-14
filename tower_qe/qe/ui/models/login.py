@@ -13,6 +13,7 @@ class Login(Page):
     _login_username = (By.ID, 'login-username')
     _login_password = (By.ID, 'login-password')
     _login_button = (By.ID, 'login-button')
+    _github_icon = (By.CSS_SELECTOR, "i[class*='fa-github']")
     _main_menu_logo = (By.CSS_SELECTOR, '#main_menu_logo > img')
 
     @property
@@ -28,6 +29,10 @@ class Login(Page):
         return self.find_element(*self._login_button)
 
     @property
+    def github_icon(self):
+        return self.find_element(*self._github_icon)
+
+    @property
     def errors(self):
         alert_errors = self.find_elements(*self._alert_errors)
         field_errors = self.find_elements(*self._field_errors)
@@ -38,6 +43,9 @@ class Login(Page):
 
     def is_logged_in(self):
         return self.is_element_displayed(*self._main_menu_logo)
+
+    def is_github_icon_present(self):
+        return self.is_element_present(*self._github_icon)
 
     def login(self, username, password):
         self.username.send_keys(username)
@@ -51,6 +59,14 @@ class Login(Page):
         self.password.send_keys(password)
         self.login_button.send_keys(Keys.RETURN)
         self.wait.until(lambda _: self.is_logged_in() or self.errors)
+        return self
+
+    def login_with_github(self, github_username, github_password):
+        github_icon = self.is_github_icon_present()
+        assert github_icon, 'unable to locate github icon'
+        github_icon.click()
+        githubPage = GithubLogin(self.driver)
+        githubPage.login(github_username, github_password)
         return self
 
     def logout(self):
