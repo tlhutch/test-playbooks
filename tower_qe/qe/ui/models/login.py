@@ -15,6 +15,8 @@ class Login(Page):
     _login_button = (By.ID, 'login-button')
     _github_icon = (By.CSS_SELECTOR, "i[class*='fa-github']")
     _main_menu_logo = (By.CSS_SELECTOR, '#main_menu_logo > img')
+    _login_modal_image = (By.CLASS_NAME, 'LoginModal-logoImage')
+    _login_modal_notice = (By.CLASS_NAME, 'LoginModalNotice-title')
 
     @property
     def username(self):
@@ -37,6 +39,14 @@ class Login(Page):
         alert_errors = self.find_elements(*self._alert_errors)
         field_errors = self.find_elements(*self._field_errors)
         return [e for e in alert_errors + field_errors if e.is_displayed()]
+
+    @property
+    def modal_image(self):
+        return self.find_element(*self._login_modal_image)
+
+    @property
+    def modal_notice(self):
+        return self.find_element(*self._login_modal_notice)
 
     def is_login_button_displayed(self):
         return self.is_element_displayed(*self._login_button)
@@ -77,6 +87,9 @@ class Login(Page):
     def wait_until_loaded(self):
         self.wait.until(lambda _: self.is_login_button_displayed())
         return self
+
+    def is_modal_notice_displayed(self):
+        return self.is_element_displayed(*self._login_modal_notice)
 
 
 class GithubLogin(Page):
