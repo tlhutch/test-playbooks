@@ -65,7 +65,7 @@ class Login(Page):
         github_icon = self.is_github_icon_present()
         assert github_icon, 'unable to locate github icon'
         github_icon.click()
-        githubPage = GithubLogin(self.driver)
+        githubPage = GithubLogin(self.driver).wait_until_loaded()
         githubPage.login(github_username, github_password)
         return self
 
@@ -89,15 +89,15 @@ class GithubLogin(Page):
 
     @property
     def username(self):
-        return self.find_element(self._login_field)
+        return self.find_element(*self._login_field)
 
     @property
     def password(self):
-        return self.find_element(self._password_field)
+        return self.find_element(*self._password_field)
 
     @property
     def login_button(self):
-        return self.find_element(self._login_button)
+        return self.find_element(*self._login_button)
 
     def login(self, username, password):
         self.username.clear()
@@ -108,3 +108,7 @@ class GithubLogin(Page):
 
         self.wait.until(lambda _: self.login_button.is_enabled())
         self.login_button.click()
+
+    def wait_until_loaded(self):
+        self.wait.until(lambda _: self.is_element_displayed(*self._login_button))
+        return self
