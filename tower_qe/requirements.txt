@@ -1,6 +1,8 @@
 ansible
 azure
 boto
+boto3
+botocore
 factory_boy
 fauxfactory
 flake8
