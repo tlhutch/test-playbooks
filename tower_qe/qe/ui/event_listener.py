@@ -1,3 +1,4 @@
+from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import UnexpectedAlertPresentException
 from selenium.common.exceptions import WebDriverException
@@ -14,11 +15,20 @@ class TowerEventListener(AbstractEventListener):
         except WebDriverException:
             return False
 
+    def _handle_alert(self, driver):
+        try:
+            driver.switch_to_alert().accept()
+        except NoAlertPresentException:
+            return
+
     def _is_spinny_displayed(self, driver):
         try:
             return driver.find_element_by_css_selector('div.spinny').is_displayed()
         except NoSuchElementException:
             return False
+        except UnexpectedAlertPresentException:
+            self._handle_alert(driver)
+            return self._is_spinny_displayed(driver)
 
     def _check_for_spinny(self, driver):
         if self._is_spinny_displayed(driver):
@@ -71,4 +81,4 @@ class TowerEventListener(AbstractEventListener):
 
     def on_exception(self, exception, driver):
         if isinstance(exception, UnexpectedAlertPresentException):
-            driver.switch_to_alert().accept()
+            self._handle_alert()
