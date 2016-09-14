@@ -402,9 +402,11 @@ class BaseList(object):
     @property
     def __item_class__(self):
         '''Returns the class representing a single 'Base' item'''
-        # With an inheritence of Org_List -> Org -> Base -> Page, the following
+        # With an inheritence of OrgListSubClass -> OrgList -> BaseList -> Org -> Base -> Page, the following
         # will return the parent class of the current object (e.g. 'Org').
-        return inspect.getmro(self.__class__)[2]
+        mro = inspect.getmro(self.__class__)
+        bl_index = mro.index(BaseList)
+        return mro[bl_index + 1]
 
     @property
     def results(self):
