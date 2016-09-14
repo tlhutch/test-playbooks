@@ -42,7 +42,7 @@ def test_login_invalid_credentials(ui_login, username, password):
         'Expected login failure alert error(s) to be displayed')
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+@pytest.mark.usefixtures('authtoken')
 def test_stock_branding(ui_login):
     """Verify our stock login modal branding and notice
     """
