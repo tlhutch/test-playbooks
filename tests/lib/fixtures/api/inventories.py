@@ -505,6 +505,9 @@ def custom_inventory_source(request, authtoken, custom_group):
 #
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2', 'openstack_v3'])
 def cloud_group(request, ansible_os_family, ansible_distribution_major_version):
+    # add in temporary pytest marker
+    if request.param in ['azure', 'azure_ad']:
+        pytest.skip(msg='https://github.com/ansible/ansible-tower/issues/3493')
     # new-style azure inventory imports are not supported on EL6 systems
     if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param in ['azure', 'azure_ad']):
         pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
