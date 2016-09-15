@@ -20,7 +20,7 @@ class StatusIcon(Region):
         # native mouse hover events aren't supported for windows + FF so we pull the
         # tooltip data directly from the element
         if self.driver.capabilities['platform'] == 'WINDOWS':
-            if self.driver.capabilities['browserName'] == 'firefox':
+            if self.driver.capabilities['browserName'] in ('firefox', 'internet explorer'):
                 return self.root.find_element_by_css_selector('a').get_attribute('aw-tool-tip')
         # move mouse to neutral location to ensure no tooltip is displayed
         footer = self.page.find_element(By.CLASS_NAME, 'Footer')
