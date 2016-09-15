@@ -1,17 +1,21 @@
 FROM java:8-jdk-alpine
 
 RUN apk add --update \
+    bash \
     curl \
+    expect \
     gcc \
     git \
     libffi-dev \
     linux-headers \
+    make \
     musl-dev \
     openssh-client \
     openssl-dev \
     py-pip \
     python \
-    python-dev
+    python-dev \
+    rsync
 
 ENV DOCKER_BUCKET get.docker.com
 ENV DOCKER_VERSION 1.11.2
