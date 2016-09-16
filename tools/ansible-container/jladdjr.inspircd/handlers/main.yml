@@ -1,0 +1,29 @@
+---
+- name: Restart inspircd
+  debug: msg="Determining if inspircd running first.."
+  changed_when: True
+  notify:
+    - Check if inspircd running
+    - Stop inspircd after check
+    - Start inspircd
+    - Test connection
+
+- name: Check if inspircd running
+  shell: ps aux | grep inspircd
+  changed_when: "'bin/inspircd' in cmd.stdout"
+  register: cmd
+
+- name: Stop inspircd after check
+  command: "{{ inspircd_install_dir }}/run/inspircd stop"
+  when: "'bin/inspircd' in cmd.stdout"
+
+- name: Start inspircd
+  command: "{{ inspircd_install_dir }}/run/inspircd start"
+
+- name: Test connection
+  irc:
+     server: localhost
+     port: "{{ inspircd_bind_port }}"
+     channel: "#does_not_exist"
+     nick: "ansible_test"
+     msg: "Testing.."

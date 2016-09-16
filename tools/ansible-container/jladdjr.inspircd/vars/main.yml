@@ -1,0 +1,19 @@
+---
+# Admin user
+inspircd_admin_real_name: "IRC Admin"
+inspircd_admin_nick: "admin"
+inspircd_admin_email: "admin@domain.com"
+
+# IRC Server Bind Information
+inspircd_bind_address: "*"
+inspircd_bind_port: "6667"
+
+# Power passwords (for halting / restarting server)
+inspircd_power_die_password: "FIXME"
+inspircd_power_restart_password: "FIXME"
+
+# Message of the Day
+inspircd_motd: "-- Welcome! ---"
+
+# Operator Privileges
+inspircd_operator_password: "FIXME"

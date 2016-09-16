@@ -20,6 +20,7 @@ The `tower-qa` repository uses [git subtree](https://blogs.atlassian.com/2013/05
 * chrismeyersfsu.iptables - [git@github.com:chrismeyersfsu/role-iptables.git](https://github.com/chrismeyersfsu/role-iptables) (fetch)
 * chrismeyersfsu.required_vars - [git@github.com:chrismeyersfsu/role-required_vars.git](https://github.com/chrismeyersfsu/role-required_vars) (push)
 * jlaska.ntp - [git@github.com:jlaska/ntp.git](https://github.com/jlaska/ntp) (push)
+* jladdjr.inspircd - [git@github.com:jladdjr/inspircd.git](https://github.com/jladdjr/inspircd)
 
 Consult git subtree [documentation](https://blogs.atlassian.com/2013/05/alternatives-to-git-submodule-git-subtree/) for guidance on usage.  However, some examples are included below:
 

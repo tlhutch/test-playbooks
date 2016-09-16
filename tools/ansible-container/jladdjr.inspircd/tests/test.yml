@@ -1,0 +1,4 @@
+---
+- hosts: irc_servers
+  roles:
+    - local_inspircd
