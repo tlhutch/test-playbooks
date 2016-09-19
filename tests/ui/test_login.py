@@ -42,6 +42,7 @@ def test_login_invalid_credentials(ui_login, username, password):
         'Expected login failure alert error(s) to be displayed')
 
 
+@pytest.mark.github('https://github.com/ansible/tower-qa/issues/782')
 @pytest.mark.usefixtures('authtoken')
 def test_stock_branding(ui_login):
     """Verify our stock login modal branding and notice
@@ -53,6 +54,7 @@ def test_stock_branding(ui_login):
         'Expected modal notice to not be displayed')
 
 
+@pytest.mark.github('https://github.com/ansible/tower-qa/issues/782')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 def test_custom_rebranding(CUSTOM_CONSOLE_LOGO, ui_login):
     """Verify that our login modal may be rebranded with a custom
