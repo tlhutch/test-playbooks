@@ -288,6 +288,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         assert job_pg.limit == host_with_default_ipv4_in_variables.name, \
             "Unexpected value for job_pg.limit. Expected %s, got %s." % (job_pg.limit, host_with_default_ipv4_in_variables.name)
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3534")
     def test_launch(self, ansible_runner, job_template, host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4):
         '''Assert that launching a callback job against a job_template successfully launches, and the job successfully runs on a single host.'''
         # enable host_config_key
@@ -331,6 +332,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # Assert the affected host matches expected
         assert host_summaries_pg.results[0].host == host_with_default_ipv4_in_variables.id
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3534")
     def test_launch_multiple(self, api_jobs_url, ansible_runner, job_template, host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4):
         '''
         Verify that issuing a callback, while a callback job from the same host
