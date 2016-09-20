@@ -949,6 +949,59 @@ class Awx_Schema_Job_Stdout(Awx_Schema):
     def get(self):
         return self.load_file('job_stdout/item.yml')
 
+#
+# /workflow_job_templates
+#
+class Awx_Schema_Workflow_Job_Templates(Awx_Schema):
+    resource = resources.v1_workflow_job_templates
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_templates/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('workflow_job_templates/item.yml')
+
+    @property
+    def duplicate(self):
+        return self.load_file('workflow_job_templates/duplicate.yml')
+
+
+class Awx_Schema_Workflow_Job_Template(Awx_Schema_Workflow_Job_Templates):
+    resource = resources.v1_workflow_job_template
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_templates/item.yml')
+
+    @property
+    def patch(self):
+        return self.get
+
+    @property
+    def put(self):
+        return self.get
+
+
+#
+# /workflow_jobs
+#
+class Awx_Schema_Workflow_Jobs(Awx_Schema):
+    resource = resources.v1_workflow_jobs
+
+    @property
+    def get(self):
+        return self.load_file('workflow_jobs/list.yml')
+
+
+class Awx_Schema_Workflow_Job(Awx_Schema_Workflow_Jobs):
+    resource = resources.v1_workflow_job
+
+    @property
+    def get(self):
+        return self.load_file('workflow_jobs/item.yml')
+
 
 #
 # /inventory_sources

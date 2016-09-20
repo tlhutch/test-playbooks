@@ -1,0 +1,48 @@
+workflow_job_template:
+  additionalProperties: false
+  properties:
+    created: {format: date-time, type: string}
+    description: {type: string}
+    has_schedules: {type: boolean}
+    id: {$ref: '#/definitions/id'}
+    last_job_failed: {type: boolean}
+    last_job_run:
+      format: date-time
+      type: [string, 'null']
+    modified: {format: date-time, type: string}
+    name: {type: string}
+    next_job_run:
+      format: date-time
+      type: [string, 'null']
+    related:
+      additionalProperties: false
+      properties:
+        created_by: {format: uri, type: string}
+        jobs: {format: uri, type: string}
+        last_job: {format: uri, type: string}
+        launch: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
+        workflow_nodes: {format: uri, type: string}
+      required: [jobs, workflow_nodes, launch]
+      type: object
+    status: {$ref: '#/definitions/enum_workflow_job_template_status'}
+    summary_fields:
+      additionalProperties: false
+      properties:
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        last_job: {$ref: '#/definitions/summary_fields_job'}
+        last_update: {$ref: '#/definitions/summary_fields_job'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
+        object_roles:
+          additionalProperties: false
+          properties:
+            admin_role: {$ref: '#/definitions/summary_fields_role'}
+          required: [admin_role]
+          type: object
+      required: [object_roles]
+      type: object
+    type: {pattern: ^workflow_job_template$, type: string}
+    url: {format: uri, type: string}
+  required: [id, created, description, has_schedules, last_job_failed, last_job_run,
+    modified, name, next_job_run, related, status, summary_fields, type, url]
+  type: object
