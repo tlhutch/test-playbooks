@@ -1,3 +1,2 @@
----
 enum_job_type:
-    enum: [inventory_update, project_update, job, system_job]
+  enum: [inventory_update, project_update, job, system_job, workflow_job]

@@ -1,0 +1,2 @@
+enum_workflow_launch_type:
+  enum: ['', manual, scheduled, relaunch]

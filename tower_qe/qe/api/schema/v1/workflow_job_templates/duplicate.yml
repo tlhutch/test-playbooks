@@ -2,7 +2,7 @@ $schema: http://json-schema.org/draft-04/schema#
 additionalProperties: false
 properties:
   name:
-    items: {pattern: ^Job template with this Name already exists.$, type: string}
+    items: {pattern: ^Workflow job template with this Name already exists.$, type: string}
     minItems: 0
     type: array
     uniqueItems: true

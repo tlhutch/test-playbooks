@@ -1,0 +1,50 @@
+workflow_job:
+  additionalProperties: false
+  properties:
+    created: {format: date-time, type: string}
+    description: {type: string}
+    elapsed: {type: number}
+    extra_vars: {type: string}
+    failed: {type: boolean}
+    finished:
+      format: date-time
+      type: [string, 'null']
+    id: {$ref: '#/definitions/id'}
+    job_args: {type: string}
+    job_cwd: {type: string}
+    job_env: {$ref: '#/definitions/job_env'}
+    job_explanation: {type: string}
+    launch_type: {$ref: '#/definitions/enum_workflow_launch_type'}
+    modified: {format: date-time, type: string}
+    name: {type: string}
+    related:
+      additionalProperties: false
+      properties:
+        created_by: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
+        unified_job_template: {format: uri, type: string}
+        workflow_job_template: {format: uri, type: string}
+        workflow_nodes: {format: uri, type: string}
+      type: object
+      # (no required fields)
+    result_stdout: {type: string}
+    result_traceback: {type: string}
+    started:
+      format: date-time
+      type: [string, 'null']
+    status: {$ref: '#/definitions/enum_workflow_task_status'}
+    summary_fields:
+      additionalProperties: false
+      properties:
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
+        unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
+      type: object
+      # (no required fields)
+    type: {pattern: ^workflow_job$, type: string}
+    unified_job_template: {$ref: '#/definitions/id_or_null'}
+    url: {format: uri, type: string}
+    workflow_job_template: {$ref: '#/definitions/id_or_null'}
+  required: [id, url, created, modified, extra_vars, launch_type, started, elapsed,
+    finished, status, failed, related, summary_fields, type, name, description, job_explanation]
+  type: object
