@@ -66,5 +66,6 @@ BSD
 Author Information
 ------------------
 
+James Laska
 Benno Joy
 
