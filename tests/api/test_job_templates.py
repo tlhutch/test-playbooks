@@ -980,6 +980,7 @@ class Test_Job_Template(Base_Api_Test):
         assert matching_job_events.count == 1, \
             "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3534")
     @pytest.mark.parametrize("limit_value, expected_count", [
         ("", 12),
         ("all", 12),
