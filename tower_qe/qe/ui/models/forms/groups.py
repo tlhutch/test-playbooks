@@ -99,7 +99,7 @@ class CodeMirror(FormGroup):
         return json.loads(self.get_value())
 
     def get_yaml(self):
-        return yaml.loads(self.get_value())
+        return yaml.load(self.get_value())
 
     def is_json(self):
         """Check if content is JSON formatted.
