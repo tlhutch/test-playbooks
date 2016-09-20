@@ -246,6 +246,12 @@ class JobTemplateDetails(FormPanel):
                 (By.CSS_SELECTOR, 'label[for=playbook]'),
                 (By.XPATH, '..')]
         },
+        'variables': {
+            'region_type': 'code_mirror',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=variables]'),
+                (By.XPATH, '..'))
+        },
         'variables_parse_type': {
             'region_type': 'radio_buttons',
             'root_locator': [
