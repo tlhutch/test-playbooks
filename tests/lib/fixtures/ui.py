@@ -48,8 +48,12 @@ log = logging.getLogger(__name__)
 
 @pytest.fixture(scope='session')
 def session_capabilities(session_capabilities):
-    if session_capabilities.get('browserName') == 'firefox':
-        session_capabilities['version'] = '47'
+    browser_name = session_capabilities.get('browserName', '').lower()
+    platform = session_capabilities.get('platform', '').lower()
+
+    if browser_name == 'firefox':
+        if 'windows' in platform or 'mac' in platform:
+            session_capabilities['version'] = '47'
 
     return session_capabilities
 
