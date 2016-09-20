@@ -2,6 +2,7 @@ from selenium.webdriver.common.by import By
 
 from qe.ui.page import Region
 from qe.ui.models.base import TowerPage
+from qe.ui.models.forms import FormPanel
 
 from qe.ui.models.regions import (
     ListTable,
@@ -23,6 +24,23 @@ class ManageInventory(TowerPage):
     @property
     def hosts(self):
         return HostsList(self)
+
+
+class ManageInventoryEditHost(TowerPage):
+
+    url_template = '/#/inventories/{id}/manage/edit-host?host_id={host_id}'
+
+    @property
+    def groups(self):
+        return GroupsList(self)
+
+    @property
+    def hosts(self):
+        return HostsList(self)
+
+    @property
+    def details(self):
+        return HostDetails(self)
 
 
 class GroupsList(Region):
@@ -159,3 +177,34 @@ class HostsTable(ListTable):
         @property
         def job_status(self):
             return self.find_element(*self._job_status)
+
+
+class HostDetails(FormPanel):
+
+    _region_spec = {
+        'name': {
+            'region_type': 'text_input',
+            'required': True,
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=name]'),
+                (By.XPATH, '..'))
+        },
+        'description': {
+            'region_type': 'text_input',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=description]'),
+                (By.XPATH, '..'))
+        },
+        'variables': {
+            'region_type': 'code_mirror',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=variables]'),
+                (By.XPATH, '..'))
+        },
+        'variables_parse_type': {
+            'region_type': 'radio_buttons',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=variables]'),
+                (By.XPATH, '..'))
+        },
+    }

@@ -132,6 +132,18 @@ class ScheduleDetails(FormPanel):
                 (By.ID, 'date-choice'),
                 (By.XPATH, '..'))
         },
+        'extra_variables': {
+            'region_type': 'code_mirror',
+            'root_locator': (
+                (By.CSS_SELECTOR, 'label[for=Scheduler-extraVars]'),
+                (By.XPATH, '..'))
+        },
+        'extra_variables_parse_type': {
+            'region_type': 'radio_buttons',
+            'root_locator': [
+                (By.CSS_SELECTOR, 'label[for=Scheduler-extraVars]'),
+                (By.XPATH, '..')]
+        },
     }
 
 

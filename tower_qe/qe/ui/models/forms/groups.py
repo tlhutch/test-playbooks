@@ -1,3 +1,7 @@
+import json
+
+import yaml
+
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
@@ -77,6 +81,58 @@ class RadioButtons(FormGroup):
         raise NoSuchElementException
 
 
+class CodeMirror(FormGroup):
+
+    _lines = (By.CLASS_NAME, 'CodeMirror-line')
+
+    @property
+    def lines(self):
+        return self.find_elements(*self._lines)
+
+    def clear(self):
+        raise NotImplementedError
+
+    def get_value(self):
+        return '\n'.join([e.text for e in self.lines])
+
+    def get_json(self):
+        return json.loads(self.get_value())
+
+    def get_yaml(self):
+        return yaml.loads(self.get_value())
+
+    def is_json(self):
+        """Check if content is JSON formatted.
+        """
+        try:
+            json.loads(self.get_value())
+            return True
+        except ValueError:
+            return False
+
+    def is_yaml(self):
+        """Check if content is YAML formatted.
+        """
+        content = self.get_value()
+
+        try:
+            json_vars = json.loads(content)
+        except ValueError:
+            json_vars = None
+
+        try:
+            yaml_vars = yaml.load(content)
+        except ValueError:
+            yaml_vars = None
+
+        # the content is "yaml formatted" if we cannot parse as json but can
+        # parse it as yaml
+        return json_vars is None and yaml_vars is not None
+
+    def set_value(self, text):
+        raise NotImplementedError
+
+
 class TextInput(FormGroup):
 
     _text_input = (By.CLASS_NAME, 'Form-textInput')
@@ -126,10 +182,6 @@ class TextArea(TextInput):
 
 
 class Email(TextInput):
-    pass
-
-
-class CodeMirror(TextInput):
     pass
 
 

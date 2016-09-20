@@ -24,6 +24,7 @@ from qe.ui.models import (
     License,
     Login,
     ManageInventory,
+    ManageInventoryEditHost,
     ManagementJobs,
     Organizations,
     OrganizationAdd,
@@ -179,6 +180,17 @@ def ui_private_credential(factories, ui_dashboard, selenium, base_url):
     user = factories.user()
     private_credential = factories.credential(user=user, organization=None, team=None)
     return CredentialEdit(selenium, base_url, id=private_credential.id).open()
+
+
+@pytest.fixture
+def ui_host_edit(factories, ui_dashboard, selenium, base_url):
+    host = factories.host()
+    return \
+        ManageInventoryEditHost(
+            selenium,
+            base_url,
+            id=host.inventory,
+            host_id=host.id).open()
 
 
 @pytest.fixture
