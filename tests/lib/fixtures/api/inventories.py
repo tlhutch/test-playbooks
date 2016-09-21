@@ -535,6 +535,8 @@ def cloud_group_supporting_source_regions(ansible_os_family, ansible_distributio
     # Skip cited test until we have a fixture to provision a rackspace instance
     if request.param == 'rax' and request.function.__name__ == 'test_inventory_update_with_populated_source_region':
         pytest.skip(msg='https://github.com/ansible/tower-qa/issues/649')
+    if request.param == 'azure':
+        pytest.skip(msg='https://github.com/ansible/ansible-tower/issues/3493')
     if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param == 'azure'):
         pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
     return request.getfuncargvalue(request.param + '_group')
