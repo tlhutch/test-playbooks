@@ -407,7 +407,7 @@ for grp, hosts in inv.items():
 
 print json.dumps(inv, indent=2)
 ''')
-    def test_launch_with_matched_limit_value2(
+    def test_launch_with_matched_limit_value(
             self, limit_value,
             expected_count,
             custom_inventory_update_with_status_completed,
