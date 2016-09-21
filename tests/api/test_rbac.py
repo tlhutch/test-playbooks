@@ -1353,6 +1353,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(custom_group, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3493')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, host_local, cloud_groups, custom_group, set_test_roles, agent, user_password, factories):
         '''
@@ -1524,6 +1525,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(custom_group, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3493')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_update_role(self, host_local, cloud_groups, custom_group, set_test_roles, agent, user_password, factories):
         '''
