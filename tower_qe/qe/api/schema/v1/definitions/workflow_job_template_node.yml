@@ -1,0 +1,37 @@
+workflow_job_template_node:
+  additionalProperties: false
+  properties:
+    always_nodes:
+      items: {minimum: 0, type: integer}
+      minItems: 0
+      type: array
+      uniqueItems: true
+    failure_nodes:
+      items: {minimum: 0, type: integer}
+      minItems: 0
+      type: array
+      uniqueItems: true
+    id: {$ref: '#/definitions/id'}
+    related:
+      additionalProperties: false
+      properties:
+        always_nodes: {format: uri, type: string}
+        failure_nodes: {format: uri, type: string}
+        success_nodes: {format: uri, type: string}
+        unified_job_template: {format: uri, type: string}
+        workflow_job_template: {format: uri, type: string}
+      required: [success_nodes, failure_nodes, always_nodes]
+      type: object
+    # summary_fields currently missing
+    # Will be implemented in https://github.com/ansible/ansible-tower/issues/3514
+    success_nodes:
+      items: {minimum: 0, type: integer}
+      minItems: 0
+      type: array
+      uniqueItems: true
+    unified_job_template: {$ref: '#/definitions/id_or_null'}
+    url: {format: uri, type: string}
+    workflow_job_template: {$ref: '#/definitions/id_or_null'}
+  required: [id, related, url, success_nodes, failure_nodes, always_nodes, unified_job_template,
+    workflow_job_template]
+  type: object

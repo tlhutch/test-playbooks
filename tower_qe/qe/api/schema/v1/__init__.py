@@ -76,6 +76,12 @@ class Awx_Schema(Schema_Base):
     def license_exceeded(self):
         return self.load_file('errors/license_exceeded.yml')
 
+    @property
+    # Posting {} to workflow_job_template_nodes creates a resource
+    # Behavior is being evaluated in https://github.com/ansible/ansible-tower/issues/3552
+    def workflow_job_template_node_created(self):
+        return self.load_file('workflow_job_template_nodes/item.yml')
+
 
 class Awx_Schema_v1(Awx_Schema):
     resource = resources.v1
@@ -949,6 +955,7 @@ class Awx_Schema_Job_Stdout(Awx_Schema):
     def get(self):
         return self.load_file('job_stdout/item.yml')
 
+
 #
 # /workflow_job_templates
 #
@@ -984,6 +991,95 @@ class Awx_Schema_Workflow_Job_Template(Awx_Schema_Workflow_Job_Templates):
         return self.get
 
 
+class Awx_Schema_Workflow_Job_Template_Workflow_Nodes(Awx_Schema):
+    resource = resources.v1_workflow_job_template_workflow_nodes
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_template_nodes/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('workflow_job_template_nodes/item.yml')
+
+    # Note: Duplicate payloads are actually accepted
+
+
+#
+# /workflow_job_template_nodes
+#
+class Awx_Schema_Workflow_Job_Template_Nodes(Awx_Schema):
+    resource = resources.v1_workflow_job_template_nodes
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_template_nodes/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('workflow_job_template_nodes/item.yml')
+
+    # Note: Duplicate payloads are actually accepted
+
+
+class Awx_Schema_Workflow_Job_Template_Node(Awx_Schema_Workflow_Job_Template_Nodes):
+    resource = resources.v1_workflow_job_template_node
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_template_nodes/item.yml')
+
+    @property
+    def patch(self):
+        return self.get
+
+    @property
+    def put(self):
+        return self.get
+
+
+class Awx_Schema_Workflow_Job_Template_Nodes_Success_Nodes(Awx_Schema):
+    resource = resources.v1_workflow_job_template_nodes_success_nodes
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_template_nodes/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('workflow_job_template_nodes/item.yml')
+
+    # Note: Duplicate payloads are actually accepted
+
+
+class Awx_Schema_Workflow_Job_Template_Nodes_Failure_Nodes(Awx_Schema):
+    resource = resources.v1_workflow_job_template_nodes_failure_nodes
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_template_nodes/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('workflow_job_template_nodes/item.yml')
+
+    # Note: Duplicate payloads are actually accepted
+
+
+class Awx_Schema_Workflow_Job_Template_Nodes_Always_Nodes(Awx_Schema):
+    resource = resources.v1_workflow_job_template_nodes_always_nodes
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_template_nodes/list.yml')
+
+    @property
+    def post(self):
+        return self.load_file('workflow_job_template_nodes/item.yml')
+
+    # Note: Duplicate payloads are actually accepted
+
+
 #
 # /workflow_jobs
 #
@@ -1001,6 +1097,9 @@ class Awx_Schema_Workflow_Job(Awx_Schema_Workflow_Jobs):
     @property
     def get(self):
         return self.load_file('workflow_jobs/item.yml')
+
+# TODO: Add /workflow_jobs/\d+/workflow_nodes/
+# (Currently get ISE when visiting this endpoint)
 
 
 #

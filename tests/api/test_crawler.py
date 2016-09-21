@@ -134,7 +134,10 @@ def test_unauthenticated(api, resource, method, authtoken, no_license):
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 def test_authenticated(api, resource, method, authtoken, no_license):
-
+    '''
+    Schema validation methods (e.g. 'head', 'get', 'method_not_allowed')
+    are found in schema/SCHEMA_VERSION/__init__.py::Awx_Schema
+    '''
     expected_response = {
         'HEAD': (httplib.OK, 'head'),
         'GET': (httplib.OK, 'get'),
@@ -205,6 +208,11 @@ def test_authenticated(api, resource, method, authtoken, no_license):
         },
         '/api/v1/job_events/': {
             'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
+        },
+        # Posting {} to workflow_job_template_nodes creates a resource
+        # Behavior is being evaluated in https://github.com/ansible/ansible-tower/issues/3552
+        '/api/v1/workflow_job_template_nodes/': {
+            'POST': (httplib.CREATED, 'workflow_job_template_node_created'),
         }
     }
 
