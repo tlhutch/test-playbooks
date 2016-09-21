@@ -300,6 +300,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.dtend == ro_schedule.dtend
         assert schedule_pg.next_run == ro_schedule.next_run
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_update_with_credential_prompt(self, project_with_credential_prompt):
         '''assert projects with credential prompts launch, but fail'''
         schedules_pg = project_with_credential_prompt.get_related('schedules')
@@ -359,6 +360,7 @@ class Test_Project_Schedules(Base_Api_Test):
         schedules_pg.get()
         assert schedules_pg.count == 0
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_update_count1(self, project, rrule_frequency):
         '''assert a schedule launches at the proper interval'''
         schedules_pg = project.get_related('schedules')
@@ -384,6 +386,7 @@ class Test_Project_Schedules(Base_Api_Test):
         schedule_pg.get()
         assert schedule_pg.next_run == rrule_frequency.after(datetime.utcnow()).isoformat() + 'Z'
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_update_minutely_count3(self, project):
         '''assert a minutely schedule launches properly'''
         schedules_pg = project.get_related('schedules')
@@ -661,6 +664,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedules_pg.get()
         assert schedules_pg.count == 0
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_update_count1(self, aws_inventory_source, rrule_frequency):
         '''assert a schedule launches at the proper interval'''
         schedules_pg = aws_inventory_source.get_related('schedules')
@@ -686,6 +690,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         schedule_pg.get()
         assert schedule_pg.next_run == rrule_frequency.after(datetime.utcnow()).isoformat() + 'Z'
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_update_minutely_count3(self, aws_inventory_source):
         '''assert a minutely schedule launches properly'''
         schedules_pg = aws_inventory_source.get_related('schedules')
@@ -771,6 +776,7 @@ class Test_Job_Template_Schedules(Base_Api_Test):
     * Verify related fields map correctly (schedule->job_template and job_templates->schedules)
     * Verify extra_vars handling
     '''
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_schedule_with_no_credential(self, job_template_no_credential):
         '''Verify that a job_template with no credential launches jobs that fail.'''
 
