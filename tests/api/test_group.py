@@ -256,6 +256,7 @@ class Test_Group(Base_Api_Test):
         # Verify no hosts were removed
         assert root_variation.get_related('hosts').count == total_inv_hosts
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3551')
     def test_disassociate_non_root_group(self, non_root_variation):
         '''verify behavior of disassociate of a child group
            POST {disassociate=True} /groups/N/children
