@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 class Test_Ansible_Tower_Service(Base_Api_Test):
     '''
     Executes ansible-tower-service commands and checks process statuses.
-    Note: we check process output with systemd on EL7 systems and with
+    Note: we check process output with systemctl on EL7 systems and with
     service on EL6 systems. Did not implement with Ubuntu because of the
     following:
     * On Ubuntu systems, ansible-tower-service status sometimes incorrectly
