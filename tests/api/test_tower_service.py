@@ -52,7 +52,7 @@ class Test_Ansible_Tower_Service(Base_Api_Test):
 
         # assess process statuses
         for process in processes:
-            contacted = ansible_runner.command('service %s status' % process)
+            contacted = ansible_runner.command('systemctl status %s' % process)
             result = contacted.values()[0]
             assert expected_process_status in result['stdout'], \
                 "Unexpected process status for process %s after executing ansible-tower-service %s" % (process, command)
