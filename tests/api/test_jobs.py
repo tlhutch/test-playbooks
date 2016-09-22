@@ -366,6 +366,27 @@ class Test_Job(Base_Api_Test):
             "The extra_vars on a relaunched job should match the extra_vars on the job being relaunched (%s != %s)" % \
             (relaunch_extra_vars, job_extra_vars)
 
+    def test_password_survey_launched_with_empty_extra_vars(self, factories):
+        """
+        Confirms that password surveys with defaults are displayed (and encrypted) when
+        job template is launched with empty extra_vars, and those without defaults are not.
+        """
+        survey = [dict(required=False,
+                       question_name="{} - What's the password?".format(i),
+                       variable='secret{}'.format(i),
+                       type='password',
+                       default='visible' if i % 2 else '') for i in range(10)]
+        jt = factories.job_template().add_survey(spec=survey)
+        job = jt.launch(dict(extra_vars={}))
+        assert(job.wait_until_completed().is_successful)
+        extra_vars = json.loads(job.extra_vars)
+
+        # only half of passwords had default values
+        assert(len(extra_vars) == 5), "extra_vars found to be undesired length: {0}".format(extra_vars)
+
+        assert(all([val == "$encrypted$" for val in extra_vars.values()])
+               ), "Undesired values for extra_vars detected: {0}".format(extra_vars)
+
     def test_cancel_pending_job(self, job_with_status_pending):
         '''
         Verify the job->cancel endpoint behaves as expected when canceling a
