@@ -90,7 +90,7 @@ class Awx_Schema_Settings(Awx_Schema):
 
     @property
     def get(self):
-        return self.load_file('settings/item.yml')
+        return self.load_file('settings/main.yml')
 
 
 class Awx_Schema_Settings_All(Awx_Schema):
