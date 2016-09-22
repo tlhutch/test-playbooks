@@ -84,7 +84,7 @@ def max_window(selenium):
     log.debug('Calling fixture max_window')
     selenium.maximize_window()
     WebDriverWait(selenium, 60).until(
-        lambda d: d.get_window_position()['x'] == 0)
+        lambda d: d.get_window_position()['x'] <= 0)
 
 
 @pytest.fixture
