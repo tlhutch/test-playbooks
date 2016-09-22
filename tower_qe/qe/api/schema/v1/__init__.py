@@ -76,12 +76,6 @@ class Awx_Schema(Schema_Base):
     def license_exceeded(self):
         return self.load_file('errors/license_exceeded.yml')
 
-    @property
-    # Posting {} to workflow_job_template_nodes creates a resource
-    # Behavior is being evaluated in https://github.com/ansible/ansible-tower/issues/3552
-    def workflow_job_template_node_created(self):
-        return self.load_file('workflow_job_template_nodes/item.yml')
-
 
 class Awx_Schema_v1(Awx_Schema):
     resource = resources.v1
@@ -1020,6 +1014,13 @@ class Awx_Schema_Workflow_Job_Template_Nodes(Awx_Schema):
         return self.load_file('workflow_job_template_nodes/item.yml')
 
     # Note: Duplicate payloads are actually accepted
+
+    @property
+    # Posting {} to workflow_job_template_nodes creates a resource
+    # Behavior is being evaluated in https://github.com/ansible/ansible-tower/issues/3552
+    def workflow_job_template_node_created(self):
+        return self.load_file('workflow_job_template_nodes/item.yml')
+
 
 
 class Awx_Schema_Workflow_Job_Template_Node(Awx_Schema_Workflow_Job_Template_Nodes):
