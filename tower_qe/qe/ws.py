@@ -21,7 +21,7 @@ class WSClient(object):
         self._use_ssl = secure
         if not hostname:
             pref = 'https://' if secure else 'http://'
-            hostname = config.base_url.split(pref)[1]
+            hostname = config.base_url.split(pref)[1].split(':')[0]
         self.hostname = hostname
         self.token = token
         self.sid = self._get_session_id()
