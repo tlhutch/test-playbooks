@@ -42,6 +42,7 @@
         Name: '{{ec2_name_prefix}}-{{item.name}}'
         ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
     wait: yes
+    wait_timeout: '600'
 #    volumes:
 #        - device_type: gp2
 #          device_name: /dev/sda1
