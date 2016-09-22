@@ -70,6 +70,18 @@ class JobTemplate(UnifiedJobTemplate):
 
         return self.update_identity(JobTemplates(self.testsetup).post(payload))
 
+    def add_survey(self, name=None, description=None, spec=None, required=False):
+        payload = dict(name=name or 'Survey - {}'.format(fauxfactory.gen_alphanumeric()),
+                       description=description or fauxfactory.gen_utf8(),
+                       spec=spec or [dict(required=required,
+                                          question_name="What's the password?",
+                                          variable="secret",
+                                          type="password",
+                                          default="foo")])
+        self.patch(survey_enabled=True)
+        self.related.survey_spec.post(payload)
+        return self
+
 base.register_page(resources.v1_job_template, JobTemplate)
 
 
