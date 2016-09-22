@@ -999,6 +999,26 @@ class Awx_Schema_Workflow_Job_Template_Workflow_Nodes(Awx_Schema):
     # Note: Duplicate payloads are actually accepted
 
 
+class Awx_Schema_Workflow_Job_Template_Launch(Awx_Schema):
+    resource = resources.v1_workflow_job_template_launch
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_templates/launch.yml')
+
+    @property
+    def post(self):
+        return self.load_file('workflow_job_templates/launched.yml')
+
+
+class Awx_Schema_Workflow_Job_Template_Jobs(Awx_Schema):
+    resource = resources.v1_workflow_job_template_jobs
+
+    @property
+    def get(self):
+        return self.load_file('workflow_jobs/list.yml')
+
+
 #
 # /workflow_job_template_nodes
 #
@@ -1020,7 +1040,6 @@ class Awx_Schema_Workflow_Job_Template_Nodes(Awx_Schema):
     # Behavior is being evaluated in https://github.com/ansible/ansible-tower/issues/3552
     def workflow_job_template_node_created(self):
         return self.load_file('workflow_job_template_nodes/item.yml')
-
 
 
 class Awx_Schema_Workflow_Job_Template_Node(Awx_Schema_Workflow_Job_Template_Nodes):
