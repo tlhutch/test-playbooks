@@ -43,7 +43,8 @@ organization:
           required: [auditor_role, admin_role, member_role, read_role]
           type: object
         related_field_counts: {$ref: '#/definitions/summary_fields_related_field_counts'}
-      required: [object_roles, related_field_counts]
+        user_capabilities: {$ref: '#/definitions/summary_fields_user_capabilities'}
+      required: [object_roles, related_field_counts, user_capabilities]
       type: object
     type:
       enum: [organization]

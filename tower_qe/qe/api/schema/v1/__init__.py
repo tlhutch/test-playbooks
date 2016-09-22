@@ -949,6 +949,7 @@ class Awx_Schema_Job_Stdout(Awx_Schema):
     def get(self):
         return self.load_file('job_stdout/item.yml')
 
+
 #
 # /workflow_job_templates
 #

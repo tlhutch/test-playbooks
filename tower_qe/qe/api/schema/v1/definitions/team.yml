@@ -36,7 +36,8 @@ team:
             read_role: {$ref: '#/definitions/summary_fields_role'}
           required: [admin_role, member_role, read_role]
           type: object
-      required: [object_roles]
+        user_capabilities: {$ref: '#/definitions/summary_fields_user_capabilities'}
+      required: [object_roles, user_capabilities]
       type: object
     type: {pattern: ^team$, type: string}
     url: {$ref: '#/definitions/uri'}

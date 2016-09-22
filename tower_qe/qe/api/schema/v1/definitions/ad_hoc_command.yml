@@ -55,7 +55,9 @@ ad_hoc_command:
         credential: {$ref: '#/definitions/summary_fields_credential'}
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
+        user_capabilities: {$ref: '#/definitions/summary_fields_user_capabilities'}
       type: object
+      required: [user_capabilities]
     type: {pattern: ^ad_hoc_command$, type: string}
     url: {format: uri, type: string}
     verbosity: {minimum: 0, type: number}

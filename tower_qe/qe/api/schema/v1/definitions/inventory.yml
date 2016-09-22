@@ -51,7 +51,8 @@ inventory:
             use_role: {$ref: '#/definitions/summary_fields_role'}
           required: [admin_role, adhoc_role, update_role, read_role, use_role]
           type: object
-      required: [object_roles]
+        user_capabilities: {$ref: '#/definitions/summary_fields_user_capabilities'}
+      required: [object_roles, user_capabilities]
       type: object
     total_groups: {minimum: 0, type: number}
     total_hosts: {minimum: 0, type: number}

@@ -26,6 +26,12 @@ user:
       required: [admin_of_organizations, credentials, organizations, projects, teams,
         activity_stream, roles, access_list]
       type: object
+    summary_fields:
+      additionalProperties: false
+      properties:
+        user_capabilities: {$ref: '#/definitions/summary_fields_user_capabilities'}
+      required: [user_capabilities]
+      type: object
     type: {pattern: ^user$, type: string}
     url: {format: uri, type: string}
     username: {type: string}

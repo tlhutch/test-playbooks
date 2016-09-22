@@ -1,0 +1,11 @@
+---
+summary_fields_user_capabilities:
+  additionalProperties: false
+  properties:
+    start: {type: boolean}
+    delete: {type: boolean}
+    edit: {type: boolean}
+    adhoc: {type: boolean}
+    copy: {type: boolean}
+    schedule: {type: boolean}
+  type: object

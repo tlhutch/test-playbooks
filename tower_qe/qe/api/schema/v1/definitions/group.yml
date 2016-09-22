@@ -39,7 +39,8 @@ group:
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         inventory_source: {$ref: '#/definitions/summary_fields_source'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
-      required: [inventory, inventory_source]
+        user_capabilities: {$ref: '#/definitions/summary_fields_user_capabilities'}
+      required: [inventory, inventory_source, user_capabilities]
       type: object
     total_groups: {minimum: 0, type: number}
     total_hosts: {minimum: 0, type: number}

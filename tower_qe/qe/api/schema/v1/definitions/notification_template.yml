@@ -28,7 +28,8 @@ notification_template:
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         organization: {$ref: '#/definitions/summary_fields_organization'}
         recent_notifications: {minItems: 0, type: array, uniqueItems: true}
-      required: [created_by, modified_by, recent_notifications]
+        user_capabilities: {$ref: '#/definitions/summary_fields_user_capabilities'}
+      required: [created_by, modified_by, recent_notifications, user_capabilities]
       type: object
     type: {pattern: ^notification_template$, type: string}
     url: {format: uri, type: string}

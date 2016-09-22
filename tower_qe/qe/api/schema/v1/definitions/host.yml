@@ -47,7 +47,8 @@ host:
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         recent_jobs: {$ref: '#/definitions/summary_fields_recent_jobs'}
-      required: [inventory, recent_jobs]
+        user_capabilities: {$ref: '#/definitions/summary_fields_user_capabilities'}
+      required: [inventory, recent_jobs, user_capabilities]
       type: object
     url: {format: uri, type: string}
     variables: {type: string}
