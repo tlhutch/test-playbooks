@@ -2,6 +2,7 @@ import logging
 
 import fauxfactory
 import pytest
+from selenium.webdriver.support.ui import WebDriverWait
 
 from qe.rrule import RRule
 
@@ -78,31 +79,21 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize('window_size', params)
 
 
-def _max_window(driver):
-    if driver.name == 'chrome':
-        script = 'return [screen.width, screen.height];'
-        (width, height) = driver.execute_script(script)
-        driver.set_window_position(0, 0)
-        driver.set_window_size(width, height)
-    else:
-        driver.maximize_window()
-    return True
-
-
 @pytest.fixture
 def max_window(selenium):
-    log.debug('Calling fixture maximized')
-    return _max_window(selenium)
+    log.debug('Calling fixture max_window')
+    selenium.maximize_window()
+    WebDriverWait(selenium, 60).until(
+        lambda d: d.get_window_position()['x'] == 0)
 
 
 @pytest.fixture
-def supported_window_sizes(window_size, selenium):
+def supported_window_sizes(selenium, max_window, window_size):
     if window_size.lower() in 'maximized':
-        return _max_window(selenium)
+        return max_window
     (width, height) = map(int, window_size.split('x'))
-    selenium.set_window_position(0, 0)
     selenium.set_window_size(width, height)
-    return True
+
 
 # -----------------------------------------------------------------------------
 # Data
