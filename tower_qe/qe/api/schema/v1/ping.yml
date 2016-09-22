@@ -3,11 +3,14 @@ $schema: 'http://json-schema.org/draft-04/schema#'
 id: '/api/v1/ping/'
 type: object
 additionalAttributes: false
-required: [instances, ha, role, version]
+required: [instances, ha, version]
 properties:
-    # FIXME - define what type of object
-    instances: {type: object}
-    ha: { type: boolean }
+    instances:
+      type: array
+      items:
+        type: string
+    ha:
+      type: boolean
     role:
         enum: [primary, secondary]
     version:
