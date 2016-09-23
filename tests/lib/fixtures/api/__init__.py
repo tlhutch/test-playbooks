@@ -506,6 +506,6 @@ def api_settings_url(api, api_v1_url):
     return navigate(api, api_v1_url, 'settings')
 
 
-@pytest.fixtures(scope="module")
+@pytest.fixture(scope="module")
 def api_settings_pg(testsetup, api_settings_url):
     return Settings_Page(testsetup, base_url=api_settings_url)

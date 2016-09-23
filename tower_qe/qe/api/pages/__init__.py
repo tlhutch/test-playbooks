@@ -28,3 +28,4 @@ from labels import *  # NOQA
 from workflow_job_templates import *  # NOQA
 from workflow_job_template_nodes import *  # NOQA
 from workflow_jobs import *  # NOQA
+from settings import *  # NOQA
