@@ -1,8 +1,8 @@
 ---
 $schema: http://json-schema.org/draft-04/schema#
 id: '/api/v1/settings/ui/'
-additional_properties: false
+type: object
+additionalProperties: false
 properties:
   PENDO_TRACKING_STATE: {type: string}
 required: [PENDO_TRACKING_STATE]
-type: object
