@@ -52,7 +52,13 @@ project_update:
         schedule: {$ref: '#/definitions/summary_fields_schedule'}
         created_by: {$ref: '#/definitions/summary_fields_user'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
-        user_capabilities: {$ref: '#/definitions/summary_fields_user_capabilities'}
+        user_capabilities:
+          additionalProperties: false
+          properties:
+            start: {type: boolean}
+            delete: {type: boolean}
+          required: [start, delete]
+          type: object
       required: [user_capabilities]
       type: object
     url: {format: uri, type: string}

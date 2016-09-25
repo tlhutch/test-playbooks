@@ -94,7 +94,16 @@ job_template:
           required: [admin_role, execute_role, read_role]
           type: object
         survey: {$ref: '#/definitions/summary_fields_survey'}
-        user_capabilities: {$ref: '#/definitions/summary_fields_user_capabilities'}
+        user_capabilities:
+          additionalProperties: false
+          properties:
+            edit: {type: boolean}
+            start: {type: boolean}
+            copy: {type: boolean}
+            schedule: {type: boolean}
+            delete: {type: boolean}
+          required: [edit, start, copy, schedule, delete]
+          type: object
       required: [labels, recent_jobs, object_roles, user_capabilities]
       type: object
     survey_enabled: {type: boolean}

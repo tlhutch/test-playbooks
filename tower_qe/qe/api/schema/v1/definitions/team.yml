@@ -36,7 +36,13 @@ team:
             read_role: {$ref: '#/definitions/summary_fields_role'}
           required: [admin_role, member_role, read_role]
           type: object
-        user_capabilities: {$ref: '#/definitions/summary_fields_user_capabilities'}
+        user_capabilities:
+          additionalProperties: false
+          properties:
+            edit: {type: boolean}
+            delete: {type: boolean}
+          required: [edit, delete]
+          type: object
       required: [object_roles, user_capabilities]
       type: object
     type: {pattern: ^team$, type: string}
