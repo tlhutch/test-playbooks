@@ -56,3 +56,8 @@ RUN apk del --purge \
     musl-dev \
     openssl-dev \
     python-dev
+
+# Populate known_hosts file with both nightly and official release servers
+RUN mkdir -p /root/.ssh
+RUN ssh-keyscan -t rsa -p 27701 jenkins.testing.ansible.com > /root/.ssh/known_hosts
+RUN ssh-keyscan -t rsa -p 5150 74.207.229.77 >> /root/.ssh/known_hosts
