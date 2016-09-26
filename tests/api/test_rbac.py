@@ -287,15 +287,9 @@ def set_read_role(user_pg, notifiable_resource):
 def check_user_capabilities(resource, role):
     """Helper function used in checking the values of summary_fields flag, user_capabilities."""
     # for Tower resources with roles
-    if resource.type not in ['notification_template', 'notification']:
-        assert resource.summary_fields['user_capabilities'] == user_capabilities[resource.type][role], \
-            "Unexpected response for 'user_capabilities' when testing with a user with %s-%s." \
-            % (role, resource.type)
-    # for Tower resources without roles
-    else:
-        assert resource.summary_fields['user_capabilities'] == user_capabilities[resource.type], \
-            "Unexpected response for 'user_capabilities' when testing against a %s resource." \
-            % resource.type
+    assert resource.summary_fields['user_capabilities'] == user_capabilities[resource.type][role], \
+        "Unexpected response for 'user_capabilities' when testing with a user with %s-%s." \
+        % (role, resource.type)
     # if given an inventory, additionally check child groups and hosts
     # child groups/hosts should have the same value for 'user_capabilities' as their inventory
     if resource.type == 'inventory':
@@ -312,7 +306,7 @@ def check_user_capabilities(resource, role):
 
 
 # -----------------------------------------------------------------------------
-#
+# Expected values for 'user_capabilities' given specific resource and role
 # -----------------------------------------------------------------------------
 
 user_capabilities = {
@@ -449,13 +443,29 @@ user_capabilities = {
                 }
                  },
     "notification_template": {
-        "edit": True,
-        "delete": True
+        "superuser": {
+            "edit": True,
+            "delete": True
+                     },
+        "org_admin": {
+            "edit": True,
+            "delete": True
+                     },
                              },
     "notifications": {
         "edit": True,
         "delete": True
+                     },
+    "user": {
+        "superuser": {
+            "edit": True,
+            "delete": True
+                     },
+        "org_admin": {
+            "edit": True,
+            "delete": True
                      }
+            }
                 }
 
 
@@ -2025,6 +2035,19 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         with self.current_user(username=org_admin.username, password=user_password):
             email_notification_template.delete()
 
+    def test_user_capabilities_as_superuser(self, email_notification_template):
+        '''
+        Tests NT 'user_capabilities' as superuser.
+        '''
+        check_user_capabilities(email_notification_template, "superuser")
+
+    def test_user_capabilities_as_org_admin(self, email_notification_template, org_admin, user_password):
+        '''
+        Tests NT 'user_capabilities' as an org_admin.
+        '''
+        with self.current_user(username=org_admin.username, password=user_password):
+            check_user_capabilities(email_notification_template, "org_admin")
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -2152,3 +2175,17 @@ class TestUsersRBAC(Base_Api_Test):
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     user.get_related('roles').post(dict(id=user_one_admin_role.id,
                                                         disassociate=disassociate))
+
+    def test_user_capabilities_as_superuser(self, factories):
+        """Tests 'user_capabilities' with a superuser."""
+        user = factories.user()
+        check_user_capabilities(user, "superuser")
+
+    def test_user_capabilities_as_org_admin(self, factories, user_password):
+        """Tests 'user_capabilities' with an org_admin."""
+        organization = factories.organization()
+        user = factories.user(organization=organization)
+        set_roles(user, organization, ["admin"])
+
+        with self.current_user(username=user.username, password=user_password):
+            check_user_capabilities(user, "org_admin")
