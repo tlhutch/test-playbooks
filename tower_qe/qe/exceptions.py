@@ -83,3 +83,8 @@ class Unknown_Exception(Common_Exception):
 class Wait_Until_Timeout(Common_Exception):
 
     pass
+
+
+class UnexpectedTowerState_Exception(Common_Exception):
+
+    pass

@@ -2,7 +2,7 @@
 from page import *  # NOQA
 from base import *  # NOQA
 from access_list import *  # NOQA
-from api import * # NOQA
+from api import *  # NOQA
 from roles import *  # NOQA
 from notifications import *  # NOQA
 from notification_templates import *  # NOQA
@@ -25,3 +25,6 @@ from activity_stream import *  # NOQA
 from schedules import *  # NOQA
 from ad_hoc_commands import *  # NOQA
 from labels import *  # NOQA
+from workflow_job_templates import *  # NOQA
+from workflow_job_template_nodes import *  # NOQA
+from workflow_jobs import *  # NOQA
