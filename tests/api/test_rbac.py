@@ -429,9 +429,9 @@ user_capabilities = {
             "delete": False
                   },
         "read": {
-            "edit": True,
-            "adhoc": True,
-            "delete": True
+            "edit": False,
+            "adhoc": False,
+            "delete": False
                 }
                 },
     "notification_template": {
