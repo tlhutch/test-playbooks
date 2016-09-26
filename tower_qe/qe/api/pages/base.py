@@ -258,6 +258,10 @@ class Base(Page):
         r = self.api.patch(self.base_url.format(**self.json), payload)
         return self.handle_request(r)
 
+    def options(self):
+        r = self.api.options(self.base_url.format(**self.json))
+        return self.handle_request(r)
+
     def delete(self):
         r = self.api.delete(self.base_url.format(**self.json))
         try:
@@ -463,6 +467,9 @@ class TentativeBase(str):
 
     def delete(self):
         return self._create().delete()
+
+    def options(self):
+        return self._create().options()
 
     def create(self, *a, **kw):
         return self._create().create(*a, **kw)
