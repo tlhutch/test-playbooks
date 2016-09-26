@@ -284,17 +284,31 @@ def set_read_role(user_pg, notifiable_resource):
         set_roles(user_pg, notifiable_resource, ['read'])
 
 
-def checkuser_capabilities(resource, role):
-    """Helper function used in checking the values of summary_fields
-    user_capabilities."""
-    # NTs and notifications do not have associated roles
+def check_user_capabilities(resource, role):
+    """Helper function used in checking the values of summary_fields flag, user_capabilities."""
+    # for Tower resources with roles
     if resource.type not in ['notification_template', 'notification']:
-        assert resource.summary_fields.get('user_capabilities', None) == user_capabilities.get(resource.type, None).get(role, None), \
-            "Unexpected response for 'user_capabilities' when testing with a user with %s %s on a[n] %s resource." % (role, resource.type, resource.type)
+        assert resource.summary_fields['user_capabilities'] == user_capabilities[resource.type][role], \
+            "Unexpected response for 'user_capabilities' when testing with a user with %s-%s." \
+            % (role, resource.type)
+    # for Tower resources without roles
     else:
-        assert resource.summary_fields.get('user_capabilities', None) == user_capabilities.get(resource.type, None), \
-            "Unexpected response for 'user_capabilities' when testing with a user with %s %s on a[n] %s resource." % (role, resource.type, resource.type)
-    # FIXME: get_related for inventory/group/host inheritance
+        assert resource.summary_fields['user_capabilities'] == user_capabilities[resource.type], \
+            "Unexpected response for 'user_capabilities' when testing against a %s resource." \
+            % resource.type
+    # if given an inventory, additionally check child groups and hosts
+    # child groups/hosts should have the same value for 'user_capabilities' as their inventory
+    if resource.type == 'inventory':
+        groups_pg = resource.get_related('groups')
+        for group in groups_pg.results:
+            assert resource.summary_fields['user_capabilities'] == user_capabilities['inventory'][role], \
+                "Unexpected response for 'user_capabilities' when testing inventory groups with a user with %s-%s." \
+                % (role, resource.type)
+        hosts_pg = resource.get_related('hosts')
+        for host in hosts_pg.results:
+            assert resource.summary_fields['user_capabilities'] == user_capabilities['inventory'][role], \
+                "Unexpected response for 'user_capabilities' when testing inventory hosts with a user with %s-%s." \
+                % (role, resource.type)
 
 
 # -----------------------------------------------------------------------------
@@ -310,15 +324,15 @@ user_capabilities = {
         "auditor": {
             "edit": False,
             "delete": False
-                 },
+                   },
         "member": {
             "edit": False,
             "delete": False
-                 },
+                  },
         "read": {
             "edit": False,
             "delete": False
-                 },
+                },
                     },
     "project": {
         "admin": {
@@ -354,7 +368,7 @@ user_capabilities = {
         "use": {
             "edit": False,
             "delete": False
-                 },
+               },
         "read": {
             "edit": False,
             "delete": False
@@ -383,7 +397,7 @@ user_capabilities = {
             "edit": False,
             "delete": False
                 },
-                        },
+                               },
     "job_template": {
         "admin": {
             "edit": True,
@@ -422,7 +436,7 @@ user_capabilities = {
             "edit": False,
             "adhoc": True,
             "delete": False
-                 },
+                  },
         "update": {
             "edit": False,
             "adhoc": False,
@@ -433,7 +447,7 @@ user_capabilities = {
             "adhoc": False,
             "delete": False
                 }
-                },
+                 },
     "notification_template": {
         "edit": True,
         "delete": True
@@ -639,7 +653,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             check_read_access(organization_pg)
 
             # check user_capabilities
-            checkuser_capabilities(organization_pg, 'auditor')
+            check_user_capabilities(organization_pg, 'auditor')
 
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
@@ -663,7 +677,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             check_read_access(organization_pg)
 
             # check user_capabilities
-            checkuser_capabilities(organization_pg, 'admin')
+            check_user_capabilities(organization_pg, 'admin')
 
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.OK)
@@ -689,7 +703,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             check_read_access(organization_pg)
 
             # check user_capabilities
-            checkuser_capabilities(organization_pg, 'member')
+            check_user_capabilities(organization_pg, 'member')
 
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
@@ -715,7 +729,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             check_read_access(organization_pg)
 
             # check user_capabilities
-            checkuser_capabilities(organization_pg, 'read')
+            check_user_capabilities(organization_pg, 'read')
 
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
@@ -837,7 +851,7 @@ class Test_Project_RBAC(Base_Api_Test):
             check_read_access(project_pg, ["organization"])
 
             # check user_capabilities
-            checkuser_capabilities(project_pg, 'admin')
+            check_user_capabilities(project_pg, 'admin')
 
             # check project update
             project_pg.update().wait_until_completed()
@@ -871,7 +885,7 @@ class Test_Project_RBAC(Base_Api_Test):
             check_read_access(project_pg, ["organization"])
 
             # check user_capabilities
-            checkuser_capabilities(project_pg, 'update')
+            check_user_capabilities(project_pg, 'update')
 
             # check project update
             project_pg.update()
@@ -905,7 +919,7 @@ class Test_Project_RBAC(Base_Api_Test):
             check_read_access(project_pg, ["organization"])
 
             # check user_capabilities
-            checkuser_capabilities(project_pg, 'use')
+            check_user_capabilities(project_pg, 'use')
 
             # check project update
             with pytest.raises(qe.exceptions.Forbidden_Exception):
@@ -940,7 +954,7 @@ class Test_Project_RBAC(Base_Api_Test):
             check_read_access(project_pg, ["organization"])
 
             # check user_capabilities
-            checkuser_capabilities(project_pg, 'read')
+            check_user_capabilities(project_pg, 'read')
 
             # check project update
             with pytest.raises(qe.exceptions.Forbidden_Exception):
@@ -1001,7 +1015,7 @@ class Test_Credential_RBAC(Base_Api_Test):
             check_read_access(credential_pg)
 
             # check user_capabilities
-            checkuser_capabilities(credential_pg, 'admin')
+            check_user_capabilities(credential_pg, 'admin')
 
             # check put/patch/delete
             assert_response_raised(credential_pg, httplib.OK)
@@ -1031,7 +1045,7 @@ class Test_Credential_RBAC(Base_Api_Test):
             check_read_access(credential_pg, ['user'])
 
             # check user_capabilities
-            checkuser_capabilities(credential_pg, 'use')
+            check_user_capabilities(credential_pg, 'use')
 
             # check put/patch/delete
             assert_response_raised(credential_pg, httplib.FORBIDDEN)
@@ -1061,7 +1075,7 @@ class Test_Credential_RBAC(Base_Api_Test):
             check_read_access(credential_pg, ['user'])
 
             # check user_capabilities
-            checkuser_capabilities(credential_pg, 'read')
+            check_user_capabilities(credential_pg, 'read')
 
             # check put/patch/delete
             assert_response_raised(credential_pg, httplib.FORBIDDEN)
@@ -1187,7 +1201,7 @@ class Test_Team_RBAC(Base_Api_Test):
             check_read_access(team_pg, ['organization'])
 
             # check user_capabilities
-            checkuser_capabilities(team_pg, 'admin')
+            check_user_capabilities(team_pg, 'admin')
 
             # check put/patch/delete
             assert_response_raised(team_pg, httplib.OK)
@@ -1214,7 +1228,7 @@ class Test_Team_RBAC(Base_Api_Test):
             check_read_access(team_pg, ['organization'])
 
             # check user_capabilities
-            checkuser_capabilities(team_pg, 'member')
+            check_user_capabilities(team_pg, 'member')
 
             # check put/patch/delete
             assert_response_raised(team_pg, httplib.FORBIDDEN)
@@ -1241,7 +1255,7 @@ class Test_Team_RBAC(Base_Api_Test):
             check_read_access(team_pg, ['organization'])
 
             # check user_capabilities
-            checkuser_capabilities(team_pg, 'read')
+            check_user_capabilities(team_pg, 'read')
 
             # check put/patch/delete
             assert_response_raised(team_pg, httplib.FORBIDDEN)
@@ -1316,7 +1330,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             check_read_access(inventory_script, ["organization"])
 
             # check user_capabilities
-            checkuser_capabilities(inventory_script, 'admin')
+            check_user_capabilities(inventory_script, 'admin')
 
             # check that value of 'script' viewable
             assert inventory_script.script == script, \
@@ -1349,7 +1363,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             check_read_access(inventory_script, ["organization"])
 
             # check user_capabilities
-            checkuser_capabilities(inventory_script, 'read')
+            check_user_capabilities(inventory_script, 'read')
 
             # check that value of 'script' not viewable
             assert not inventory_script.script, \
@@ -1411,7 +1425,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
             # check user_capabilities
-            checkuser_capabilities(job_template_pg, 'admin')
+            check_user_capabilities(job_template_pg, 'admin')
 
             # check JT launch
             job_pg = job_template_pg.launch().wait_until_completed()
@@ -1443,7 +1457,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
             # check user_capabilities
-            checkuser_capabilities(job_template_pg, 'execute')
+            check_user_capabilities(job_template_pg, 'execute')
 
             # check JT launch
             job_pg = job_template_pg.launch().wait_until_completed()
@@ -1475,7 +1489,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
             # check user_capabilities
-            checkuser_capabilities(job_template_pg, 'read')
+            check_user_capabilities(job_template_pg, 'read')
 
             # check JT launch
             with pytest.raises(qe.exceptions.Forbidden_Exception):
@@ -1625,7 +1639,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_read_access(inventory_pg, ["organization"])
 
             # check user_capabilities
-            checkuser_capabilities(inventory_pg, 'admin')
+            check_user_capabilities(inventory_pg, 'admin')
 
             # update all cloud_groups
             for cloud_group in cloud_groups:
@@ -1690,7 +1704,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_read_access(inventory_pg, ["organization"])
 
             # check user_capabilities
-            checkuser_capabilities(inventory_pg, 'use')
+            check_user_capabilities(inventory_pg, 'use')
 
             # update custom group
             update_pg = custom_group.get_related('inventory_source').get_related('update')
@@ -1748,7 +1762,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_read_access(inventory_pg, ["organization"])
 
             # check user_capabilities
-            checkuser_capabilities(inventory_pg, 'ad hoc')
+            check_user_capabilities(inventory_pg, 'ad hoc')
 
             # update custom group
             update_pg = custom_group.get_related('inventory_source').get_related('update')
@@ -1808,7 +1822,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_read_access(inventory_pg, ["organization"])
 
             # check user_capabilities
-            checkuser_capabilities(inventory_pg, 'update')
+            check_user_capabilities(inventory_pg, 'update')
 
             # update all cloud_groups
             for cloud_group in cloud_groups:
@@ -1874,7 +1888,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_read_access(inventory_pg, ["organization"])
 
             # check user_capabilities
-            checkuser_capabilities(inventory_pg, 'read')
+            check_user_capabilities(inventory_pg, 'read')
 
             # update custom group
             update_pg = custom_group.get_related('inventory_source').get_related('update')
