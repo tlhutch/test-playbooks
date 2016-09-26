@@ -418,7 +418,7 @@ user_capabilities = {
             "adhoc": False,
             "delete": False
                },
-        "adhoc": {
+        "ad hoc": {
             "edit": False,
             "adhoc": True,
             "delete": False
