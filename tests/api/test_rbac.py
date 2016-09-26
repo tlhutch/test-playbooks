@@ -465,7 +465,13 @@ user_capabilities = {
             "edit": True,
             "delete": True
                      }
-            }
+            },
+    "system_job": {
+        "superuser": {
+            "edit": True,
+            "delete": True
+                     }
+                  }
                 }
 
 
@@ -2159,6 +2165,7 @@ class Test_Label_RBAC(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.destructive
 class TestUsersRBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
@@ -2189,3 +2196,35 @@ class TestUsersRBAC(Base_Api_Test):
 
         with self.current_user(username=user.username, password=user_password):
             check_user_capabilities(user, "org_admin")
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+class Test_System_Jobs_RBAC(Base_Api_Test):
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+
+    @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
+    def test_get_as_superuser(self, system_job):
+        '''
+        Verify that a superuser account is able to GET a system_job resource.
+        '''
+        system_job.get()
+
+    @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
+    def test_get_as_non_superuser(self, non_superusers, user_password, api_system_jobs_pg, system_job):
+        '''
+        Verify that non-superuser accounts are unable to access a system_job.
+        '''
+        for non_superuser in non_superusers:
+            with self.current_user(non_superuser.username, user_password):
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    api_system_jobs_pg.get(id=system_job.id)
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3576')
+    def test_user_capabilities_as_superuser(self, cleanup_jobs):
+        '''
+        Verify 'user_capabilities' with a superuser.
+        '''
+        check_user_capabilities(cleanup_jobs, "superuser")
