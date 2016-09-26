@@ -1,36 +1,49 @@
----
 schedule:
-  type: object
   additionalProperties: false
-  required: [ type, id, url, created, modified, name, description, dtstart,
-  dtend, rrule, unified_job_template, related, summary_fields, ]
   properties:
-    type: {type: string, pattern: ^schedule$}
-    id: { $ref: '#/definitions/id' }
-    url: {format: uri, type: string}
     created: {format: date-time, type: string}
-    modified: {format: date-time, type: string}
-    name: {type: string}
+    description: {type: string}
+    dtend:
+      format: date-time
+      type: ['null', string]
+    dtstart:
+      format: date-time
+      type: ['null', string]
     enabled: {type: boolean}
     extra_data: {type: object}
-    description: {type: string}
-    dtstart: {format: date-time, type: ['null', string]}
-    dtend: {format: date-time, type: ['null', string]}
-    next_run: {format: date-time, type: ['null', string]}
-    rrule: {type: string}
-    unified_job_template: { $ref: '#/definitions/id_or_null' }
+    id: {$ref: '#/definitions/id'}
+    modified: {format: date-time, type: string}
+    name: {type: string}
+    next_run:
+      format: date-time
+      type: ['null', string]
     related:
-      type: object
       additionalProperties: false
       properties:
-          unified_job_template: {format: uri, type: string}
-          unified_jobs: {format: uri, type: string}
-          created_by: {format: uri, type: string}
-          modified_by: {format: uri, type: string}
+        created_by: {format: uri, type: string}
+        modified_by: {format: uri, type: string}
+        unified_job_template: {format: uri, type: string}
+        unified_jobs: {format: uri, type: string}
+      type: object
+    rrule: {type: string}
     summary_fields:
-      type: object
       additionalProperties: false
       properties:
-          unified_job_template: {$ref: '#/definitions/summary_fields_job_template' }
-          created_by: {$ref: '#/definitions/summary_fields_user' }
-          modified_by: {$ref: '#/definitions/summary_fields_user' }
+        created_by: {$ref: '#/definitions/summary_fields_user'}
+        modified_by: {$ref: '#/definitions/summary_fields_user'}
+        unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
+        user_capabilities:
+          additionalProperties: false
+          properties:
+            edit: {type: boolean}
+            delete: {type: boolean}
+          required: [edit, delete]
+          type: object
+      required: [user_capabilities]
+      type: object
+    type: {pattern: ^schedule$, type: string}
+    unified_job_template: {$ref: '#/definitions/id_or_null'}
+    url: {format: uri, type: string}
+  required: [type, id, url, created, modified, name, description, dtstart, dtend,
+    rrule, unified_job_template, related, summary_fields]
+  type: object

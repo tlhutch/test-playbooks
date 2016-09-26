@@ -72,8 +72,6 @@ job_template:
     summary_fields:
       additionalProperties: false
       properties:
-        can_copy: {type: boolean}
-        can_edit: {type: boolean}
         cloud_credential: {$ref: '#/definitions/summary_fields_credential'}
         created_by: {$ref: '#/definitions/summary_fields_user'}
         credential: {$ref: '#/definitions/summary_fields_credential'}
@@ -96,7 +94,17 @@ job_template:
           required: [admin_role, execute_role, read_role]
           type: object
         survey: {$ref: '#/definitions/summary_fields_survey'}
-      required: [labels, can_copy, can_edit, recent_jobs, object_roles]
+        user_capabilities:
+          additionalProperties: false
+          properties:
+            edit: {type: boolean}
+            start: {type: boolean}
+            copy: {type: boolean}
+            schedule: {type: boolean}
+            delete: {type: boolean}
+          required: [edit, start, copy, schedule, delete]
+          type: object
+      required: [labels, recent_jobs, object_roles, user_capabilities]
       type: object
     survey_enabled: {type: boolean}
     type: {pattern: ^job_template$, type: string}

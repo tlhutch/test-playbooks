@@ -39,7 +39,17 @@ group:
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         inventory_source: {$ref: '#/definitions/summary_fields_source'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
-      required: [inventory, inventory_source]
+        user_capabilities:
+          additionalProperties: false
+          properties:
+            edit: {type: boolean}
+            start: {type: boolean}
+            copy: {type: boolean}
+            schedule: {type: boolean}
+            delete: {type: boolean}
+          required: [edit, start, copy, schedule, delete]
+          type: object
+      required: [inventory, inventory_source, user_capabilities]
       type: object
     total_groups: {minimum: 0, type: number}
     total_hosts: {minimum: 0, type: number}
