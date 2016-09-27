@@ -1041,6 +1041,31 @@ class Test_Project_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(update_pg.get(), role)
 
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_cancel_update(self, factories, project_ansible_git_nowait, user_password, role):
+        """Tests that the same roles that allow for project updates also allow for
+        project update cancellation."""
+        ALLOWED_ROLES = ['admin', 'update']
+        REJECTED_ROLES = ['use', 'read']
+
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, project_ansible_git_nowait, [role])
+
+        # launch project update
+        project_ansible_git_nowait.update()
+        update_pg = project_ansible_git_nowait.get_related('current_update')
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                update_pg.cancel()
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    update_pg.cancel()
+            else:
+                raise ValueError("Received unhandled project role.")
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium

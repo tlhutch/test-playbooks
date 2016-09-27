@@ -198,7 +198,6 @@ class Test_Inventory_Update(Base_Api_Test):
         '''
         Verify successful inventory_update for various cloud providers.
         '''
-
         # Assert that the cloud_group has not updated
         inv_source_pg = cloud_group.get_related('inventory_source')
         assert not inv_source_pg.is_successful, \

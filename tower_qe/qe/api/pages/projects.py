@@ -70,7 +70,17 @@ base.register_page([resources.v1_projects,
 
 class ProjectUpdate(UnifiedJob):
 
-    pass
+    def cancel(self):
+        # navigate to cancel_pg
+        cancel_pg = self.get_related('cancel')
+
+        # assert that project can get cancelled
+        assert cancel_pg.can_cancel, \
+            "cancel_pg 'can_cancel' is false - project update may have already completed."
+
+        # cancel the project_update
+        cancel_pg.post()
+
 
 base.register_page(resources.v1_project_update, ProjectUpdate)
 
