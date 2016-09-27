@@ -5,24 +5,11 @@ import re
 from Crypto.PublicKey import RSA
 import factory
 import fauxfactory
-import pytest
 
 from qe.api.page_factory import PageFactory
-from qe.exceptions import NoContent_Exception
 
-from qe.api.pages import (
-    Credentials_Page,
-    Groups_Page,
-    Hosts_Page,
-    Inventories_Page,
-    Job_Templates_Page,
-    Organizations_Page,
-    Projects_Page,
-    Users_Page,
-    Teams_Page,
-    Labels_Page,
-    Inventory_Scripts_Page,
-)
+from qe.api.pages import (Credential, Group, Host, Inventory, JobTemplate, Organization, Project,
+                          User, Team, Label, InventoryScript)
 
 
 # TODO: standardize global project configuration for tower-qa
@@ -33,7 +20,7 @@ URL_PROJECT_HG = 'https://bitbucket.org/jlaska/ansible-helloworld'
 
 class OrganizationFactory(PageFactory):
     class Meta:
-        model = Organizations_Page
+        model = Organization
         inline_args = ('request',)
 
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
@@ -42,7 +29,7 @@ class OrganizationFactory(PageFactory):
 
 class LabelFactory(PageFactory):
     class Meta:
-        model = Labels_Page
+        model = Label
         inline_args = ('request',)
         resources = ('organization',)
 
@@ -54,7 +41,7 @@ class LabelFactory(PageFactory):
 
 class ProjectFactory(PageFactory):
     class Meta:
-        model = Projects_Page
+        model = Project
         inline_args = ('request',)
         resources = ('organization',)
 
@@ -82,7 +69,7 @@ class ProjectFactory(PageFactory):
 
 class UserFactory(PageFactory):
     class Meta:
-        model = Users_Page
+        model = User
         inline_args = ('request',)
 
     username = factory.LazyFunction(fauxfactory.gen_alphanumeric)
@@ -99,13 +86,12 @@ class UserFactory(PageFactory):
         the organization after creation.
         """
         if create and org is not None:
-            with pytest.raises(NoContent_Exception):
-                org.get_related('users').post({'id': obj.id})
+            org.add_user(obj)
 
 
 class TeamFactory(PageFactory):
     class Meta:
-        model = Teams_Page
+        model = Team
         inline_args = ('request',)
         resources = ('organization',)
 
@@ -117,7 +103,7 @@ class TeamFactory(PageFactory):
 
 class CredentialFactory(PageFactory):
     class Meta:
-        model = Credentials_Page
+        model = Credential
         inline_args = ('request',)
         resources = ('organization', 'user', 'team')
 
@@ -144,7 +130,7 @@ class CredentialFactory(PageFactory):
 
 class InventoryFactory(PageFactory):
     class Meta:
-        model = Inventories_Page
+        model = Inventory
         inline_args = ('request',)
         resources = ('organization',)
     localhost = factory.RelatedFactory(
@@ -161,7 +147,7 @@ class InventoryFactory(PageFactory):
 
 class HostFactory(PageFactory):
     class Meta:
-        model = Hosts_Page
+        model = Host
         inline_args = ('request',)
         resources = ('inventory',)
     inventory = factory.SubFactory(
@@ -177,7 +163,7 @@ class HostFactory(PageFactory):
 
 class GroupFactory(PageFactory):
     class Meta:
-        model = Groups_Page
+        model = Group
         inline_args = ('request',)
         resources = ('inventory',)
     inventory = factory.SubFactory(
@@ -189,7 +175,7 @@ class GroupFactory(PageFactory):
 
 class InventoryScriptFactory(PageFactory):
     class Meta:
-        model = Inventory_Scripts_Page
+        model = InventoryScript
         inline_args = ('request',)
         resources = ('organization',)
     organization = factory.SubFactory(
@@ -214,7 +200,7 @@ inventory['{0}'] = list()
 
 class JobTemplateFactory(PageFactory):
     class Meta:
-        model = Job_Templates_Page
+        model = JobTemplate
         inline_args = ('request',)
         exclude = ('organization',)
         resources = ('project', 'inventory', 'credential', 'organization',)

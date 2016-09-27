@@ -43,17 +43,13 @@ class Inventory(base.Base):
 
         print '\n'.join(output)
 
-    def create(self, name='', description='', localhost=True, organization=Organization, **kw):
+    def create(self, name='', description='', organization=Organization, **kw):
         self.create_and_update_dependencies(organization)
         org_id = self.dependency_store[Organization].id
         payload = dict(name=name or 'Inventory - {}'.format(fauxfactory.gen_alphanumeric()),
                        description=description or fauxfactory.gen_alphanumeric(),
                        organization=org_id)
-        self.update_identity(Inventories(self.testsetup).post(payload))
-        if localhost:
-            Host(self.testsetup).create(inventory=self)
-            self.get()
-        return self
+        return self.update_identity(Inventories(self.testsetup).post(payload))
 
 base.register_page(resources.v1_inventory, Inventory)
 

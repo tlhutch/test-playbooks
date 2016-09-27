@@ -18,24 +18,23 @@ class PageFactory(factory.Factory):
 
     @classmethod
     def _adjust_kwargs(cls, **kwargs):
-        resource_keys = [key for key in kwargs if key in cls._meta.resources]
-        for key in resource_keys:
-            if kwargs.get(key) is not None:
-                kwargs[key] = kwargs[key].id
+        if 'request' not in kwargs:
+            kwargs['request'] = False
         return kwargs
 
     @classmethod
     def _create(cls, model_class, request, **kwargs):
         """Create data and post to the associated endpoint
         """
-        testsetup = request.getfuncargvalue('testsetup')
-        model = model_class(testsetup)
+        testsetup = request.getfuncargvalue('testsetup') if request else None
+        model = model_class(testsetup)  # TODO: determine desired authentication behavior out of pytest context.
         # get or create the requested resource
         if cls._meta.get_or_create:
             obj = cls._get_or_create(model, request, **kwargs)
         else:
-            obj = model.post(kwargs)
-            request.addfinalizer(obj.silent_cleanup)
+            obj = model.create(**kwargs)
+            if request:
+                request.addfinalizer(obj.silent_cleanup)
         return obj
 
     @classmethod
@@ -53,8 +52,9 @@ class PageFactory(factory.Factory):
         try:
             obj = model.get(**key_fields).results.pop()
         except IndexError:
-            obj = model.post(kwargs)
-            request.addfinalizer(obj.silent_cleanup)
+            obj = model.create(**kwargs)
+            if request:
+                request.addfinalizer(obj.silent_cleanup)
         return obj
 
     @classmethod
