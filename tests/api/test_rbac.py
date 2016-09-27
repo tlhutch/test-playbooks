@@ -470,8 +470,18 @@ user_capabilities = {
             "edit": True,
             "delete": True
                      }
-                  }
+                  },
+    "schedule": {
+        "superuser": {
+            "edit": True,
+            "delete": True
+                     },
+        "org_admin": {
+            "edit": True,
+            "delete": True
+                     }
                 }
+            }
 
 
 # -----------------------------------------------------------------------------
@@ -2311,3 +2321,15 @@ class Test_Schedules_RBAC(Base_Api_Test):
             # test delete
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 schedule_pg.delete()
+
+    def test_user_capabilities_as_superuser(self, resource_with_schedule):
+        """Tests 'user_capabilities' against schedules of all types of UJT
+        as superuser."""
+        schedule_pg = resource_with_schedule.get_related('schedules').results[0]
+        check_user_capabilities(schedule_pg, 'superuser')
+
+    def test_user_capabilities_as_org_admin(self, organization_resource_with_schedule):
+        """Tests 'user_capabilities' against schedules of all types of UJT
+        as an org_admin."""
+        schedule_pg = organization_resource_with_schedule.get_related('schedules').results[0]
+        check_user_capabilities(schedule_pg, 'org_admin')
