@@ -71,7 +71,7 @@ class UnifiedJob(base.Base):
             ('pending', 'running', 'successful', 'failed', 'error', 'canceled',),
             interval=interval, verbose=verbose, timeout=timeout)
 
-    def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 2, **kw):
+    def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 3, **kw):
         return self.wait_until_status(
             ('successful', 'failed', 'error', 'canceled',),
             interval=interval, verbose=verbose, timeout=timeout, **kw)
