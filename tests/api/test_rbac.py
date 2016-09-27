@@ -1660,7 +1660,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         * Get the inventory detail
         * Get all of the inventory get_related
         * Update all groups that the inventory contains
-        * Launch ad hoc commands against the inventory
         * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
@@ -1672,7 +1671,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         hosts_pg = inventory_pg.get_related('hosts')
         user_pg = factories.user()
 
-        commands_pg = inventory_pg.get_related('ad_hoc_commands')
         inventory_source_pgs = [cloud_group.get_related('inventory_source') for cloud_group in cloud_groups]
         inventory_source_update_pgs = [inventory_source_pg.get_related('update') for inventory_source_pg in inventory_source_pgs]
         custom_group_update_pg = custom_group.get_related('inventory_source').get_related('update')
@@ -1689,10 +1687,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # update custom group
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 custom_group_update_pg.post()
-
-            # post command
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                commands_pg.post()
 
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
@@ -1713,7 +1707,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         * Get the inventory detail
         * Get all of the inventory get_related
         * Update all groups that the inventory contains
-        * Launch ad hoc commands against the inventory
         * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
@@ -1727,7 +1720,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
         user_pg = factories.user()
-        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent admin_role
         set_test_roles(user_pg, inventory_pg, agent, "admin")
@@ -1749,14 +1741,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert inventory_source_pg.wait_until_completed().is_successful, \
                 "Inventory update unsuccessful - %s." % inventory_source_pg
 
-            # post command
-            payload = dict(inventory=inventory_pg.id,
-                           credential=credential_pg.id,
-                           module_name="ping",
-                           limit=host_local.name, )
-            command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload).wait_until_completed()
-            assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
-
             # check ability to create group and host
             groups_pg.post(group_payload)
             hosts_pg.post(host_payload)
@@ -1776,7 +1760,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         A user/team with inventory 'use' should not be able to:
         * Update all groups that the inventory contains
-        * Launch ad hoc commands against the inventory
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
 
@@ -1789,7 +1772,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
         user_pg = factories.user()
-        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent use_role
         set_test_roles(user_pg, inventory_pg, agent, "use")
@@ -1802,13 +1784,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             update_pg = custom_group.get_related('inventory_source').get_related('update')
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 update_pg.post()
-
-            # post command
-            payload = dict(inventory=inventory_pg.id,
-                           credential=credential_pg.id,
-                           module_name="ping", )
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                inventory_pg.get_related('ad_hoc_commands').post(payload)
 
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
@@ -1827,7 +1802,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         A user/team with inventory 'adhoc' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
-        * Launch ad hoc commands against the inventory
 
         A user/team with inventory 'adhoc' should not be able to:
         * Update all groups that the inventory contains
@@ -1844,7 +1818,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
         user_pg = factories.user()
-        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent adhoc_role
         set_test_roles(user_pg, inventory_pg, agent, "ad hoc")
@@ -1857,14 +1830,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             update_pg = custom_group.get_related('inventory_source').get_related('update')
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 update_pg.post()
-
-            # post command
-            payload = dict(inventory=inventory_pg.id,
-                           credential=credential_pg.id,
-                           module_name="ping",
-                           limit=host_local.name, )
-            command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload).wait_until_completed()
-            assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
 
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
@@ -1887,7 +1852,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         * Update all groups that the inventory contains
 
         A user/team with inventory 'update' should not be able to:
-        * Launch ad hoc commands against the inventory
         * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
@@ -1901,7 +1865,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
         user_pg = factories.user()
-        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent update_role
         set_test_roles(user_pg, inventory_pg, agent, "update")
@@ -1923,13 +1886,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert inventory_source_pg.wait_until_completed(), \
                 "Inventory update failed - %s." % inventory_source_pg
 
-            # post command
-            payload = dict(inventory=inventory_pg.id,
-                           credential=credential_pg.id,
-                           module_name="ping", )
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                inventory_pg.get_related('ad_hoc_commands').post(payload)
-
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
@@ -1950,7 +1906,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         A user/team with inventory 'read' should not be able to:
         * Update all groups that the inventory contains
-        * Launch ad hoc commands against the inventory
         * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
@@ -1964,7 +1919,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
         user_pg = factories.user()
-        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent read_role
         set_test_roles(user_pg, inventory_pg, agent, "read")
@@ -1977,13 +1931,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             update_pg = custom_group.get_related('inventory_source').get_related('update')
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 update_pg.post()
-
-            # post command
-            payload = dict(inventory=inventory_pg.id,
-                           credential=credential_pg.id,
-                           module_name="ping", )
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                inventory_pg.get_related('ad_hoc_commands').post(payload)
 
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
@@ -2008,6 +1955,37 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(inventory_pg.get(), role)
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_launch_command(self, factories, user_password, role):
+        """Test ability to launch a command."""
+        ALLOWED_ROLES = ['admin', 'ad hoc']
+        REJECTED_ROLES = ['use', 'update', 'read']
+
+        inventory_pg = factories.inventory()
+        host_pg = inventory_pg.get_related('hosts').results[0]
+        user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
+
+        # create command fixtures
+        ad_hoc_commands_pg = inventory_pg.get_related('ad_hoc_commands')
+        payload = dict(inventory=inventory_pg.id,
+                       credential=credential_pg.id,
+                       module_name="ping",
+                       limit=host_pg.name)
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                command_pg = ad_hoc_commands_pg.post(payload).wait_until_completed()
+                assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    ad_hoc_commands_pg.post(payload)
+            else:
+                raise ValueError("Received unhandled inventory role.")
 
 
 @pytest.mark.api
