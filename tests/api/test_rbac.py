@@ -1266,34 +1266,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
 
-    @pytest.mark.parametrize("role", ["admin", "execute", "read"])
-    def test_job_template_can_edit(self, factories, user_password, role):
-        '''
-        Test that when users with JT 'admin' navigate to a JT details
-        page that can_edit is True. can_edit should be False with
-        all other users.
-        '''
-        ALLOWED_ROLES = ['admin']
-        REJECTED_ROLES = ['execute', 'read']
-
-        user_pg = factories.user()
-        job_template_pg = factories.job_template()
-
-        # give user target role
-        set_roles(user_pg, job_template_pg, [role])
-
-        # check can_edit as our test user
-        with self.current_user(username=user_pg.username, password=user_password):
-            job_template_pg.get()
-            if role in ALLOWED_ROLES:
-                assert job_template_pg.summary_fields['can_edit'], \
-                    "Expected JT can_edit to be True with a user with JT %s." % role
-            elif role in REJECTED_ROLES:
-                assert not job_template_pg.summary_fields['can_edit'], \
-                    "Expected JT can_edit to be False with a user with JT %s." % role
-            else:
-                raise ValueError("Received unhandled JT role.")
-
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -1836,6 +1808,7 @@ class Test_Label_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled organization role.")
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3592')
     @pytest.mark.parametrize("role", ["admin", "read"])
     def test_job_template_label_association(self, factories, user_password, role):
         '''
@@ -1856,7 +1829,7 @@ class Test_Label_RBAC(Base_Api_Test):
         payload = dict(id=label_pg.id)
         with self.current_user(username=user_pg.username, password=user_password):
             job_template_pg.get()
-            if job_template_pg.summary_fields['can_edit']:
+            if job_template_pg.summary_fields.user_capabilities.edit:
                 with pytest.raises(qe.exceptions.NoContent_Exception):
                     labels_pg.post(payload)
             else:

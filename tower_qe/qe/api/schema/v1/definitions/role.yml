@@ -29,6 +29,12 @@ role:
         resource_name: {format: string}
         resource_type: {format: string}
         resource_type_display_name: {format: string}
+        user_capabilities:
+           additionalProperties: false
+           properties:
+             unattach: {type: boolean}
+           required: [unattach]
+           type: object
       type: object
     type: {pattern: ^role$, type: string}
     url: {format: uri, type: string}

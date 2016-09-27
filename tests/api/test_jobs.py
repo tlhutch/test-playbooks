@@ -253,6 +253,7 @@ class Test_Job(Base_Api_Test):
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     api_jobs_pg.post(job_template.json)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3590')
     def test_relaunch_with_credential(self, job_with_status_completed):
         '''
         Verify relaunching a job with a valid credential no-ask credential.
@@ -282,6 +283,7 @@ class Test_Job(Base_Api_Test):
         with pytest.raises(qe.exceptions.BadRequest_Exception):
             relaunch_pg.post()
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3590')
     def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload, testsetup):  # NOQA
         '''
         Verify that relaunching a job with a credential that includes ASK passwords, behaves as expected when
@@ -332,6 +334,7 @@ class Test_Job(Base_Api_Test):
         # assert expected values in response
         assert credential.expected_passwords_needed_to_start == result['passwords_needed_to_start']
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3590')
     def test_relaunch_uses_extra_vars_from_job(self, job_with_extra_vars):
         '''
         Verify that when you relaunch a job containing extra_vars in the

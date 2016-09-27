@@ -12,7 +12,13 @@ summary_fields_access:
         resource_type: {type: string}
         team_id: {$ref: '#/definitions/id'}
         team_name: {type: string}
-      required: [description, id, name]
+        user_capabilities:
+           additionalProperties: false
+           properties:
+             unattach: {type: boolean}
+           required: [unattach]
+           type: object
+      required: [description, id, name, user_capabilities]
     descendant_roles:
       items: {$ref: '#/definitions/enum_descendant_role'}
       minItems: 0
