@@ -677,9 +677,6 @@ class Test_Organization_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(organization_pg)
 
-            # check user_capabilities
-            check_user_capabilities(organization_pg, 'auditor')
-
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
 
@@ -700,9 +697,6 @@ class Test_Organization_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(organization_pg)
-
-            # check user_capabilities
-            check_user_capabilities(organization_pg, 'admin')
 
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.OK)
@@ -727,9 +721,6 @@ class Test_Organization_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(organization_pg)
 
-            # check user_capabilities
-            check_user_capabilities(organization_pg, 'member')
-
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
 
@@ -753,11 +744,20 @@ class Test_Organization_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(organization_pg)
 
-            # check user_capabilities
-            check_user_capabilities(organization_pg, 'read')
-
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
+
+    @pytest.mark.parametrize('role', ['admin', 'auditor', 'member', 'read'])
+    def test_user_capabilities(self, factories, user_password, role):
+        """Test user_capabilities given each organization role."""
+        organization_pg = factories.organization()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, organization_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(organization_pg.get(), role)
 
     def test_member_role_association(self, factories, user_password):
         '''
@@ -875,9 +875,6 @@ class Test_Project_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(project_pg, ["organization"])
 
-            # check user_capabilities
-            check_user_capabilities(project_pg, 'admin')
-
             # check project update
             project_pg.update().wait_until_completed()
 
@@ -909,9 +906,6 @@ class Test_Project_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(project_pg, ["organization"])
 
-            # check user_capabilities
-            check_user_capabilities(project_pg, 'update')
-
             # check project update
             project_pg.update()
 
@@ -942,9 +936,6 @@ class Test_Project_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(project_pg, ["organization"])
-
-            # check user_capabilities
-            check_user_capabilities(project_pg, 'use')
 
             # check project update
             with pytest.raises(qe.exceptions.Forbidden_Exception):
@@ -978,15 +969,24 @@ class Test_Project_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(project_pg, ["organization"])
 
-            # check user_capabilities
-            check_user_capabilities(project_pg, 'read')
-
             # check project update
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 project_pg.update()
 
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.FORBIDDEN)
+
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_user_capabilities(self, factories, user_password, role):
+        """Test user_capabilities given each project role."""
+        project_pg = factories.project()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, project_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(project_pg.get(), role)
 
 
 @pytest.mark.api
@@ -1039,9 +1039,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(credential_pg)
 
-            # check user_capabilities
-            check_user_capabilities(credential_pg, 'admin')
-
             # check put/patch/delete
             assert_response_raised(credential_pg, httplib.OK)
 
@@ -1068,9 +1065,6 @@ class Test_Credential_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(credential_pg, ['user'])
-
-            # check user_capabilities
-            check_user_capabilities(credential_pg, 'use')
 
             # check put/patch/delete
             assert_response_raised(credential_pg, httplib.FORBIDDEN)
@@ -1099,11 +1093,20 @@ class Test_Credential_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(credential_pg, ['user'])
 
-            # check user_capabilities
-            check_user_capabilities(credential_pg, 'read')
-
             # check put/patch/delete
             assert_response_raised(credential_pg, httplib.FORBIDDEN)
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'read'])
+    def test_user_capabilities(self, factories, user_password, role):
+        """Test user_capabilities given each credential role."""
+        credential_pg = factories.credential()
+        user_pg = factories.user(organization=credential_pg.get_related('organization'))
+
+        # give test user target role privileges
+        set_roles(user_pg, credential_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(credential_pg.get(), role)
 
     def test_autopopulated_admin_role_with_users(self, factories):
         '''
@@ -1225,9 +1228,6 @@ class Test_Team_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(team_pg, ['organization'])
 
-            # check user_capabilities
-            check_user_capabilities(team_pg, 'admin')
-
             # check put/patch/delete
             assert_response_raised(team_pg, httplib.OK)
 
@@ -1251,9 +1251,6 @@ class Test_Team_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(team_pg, ['organization'])
-
-            # check user_capabilities
-            check_user_capabilities(team_pg, 'member')
 
             # check put/patch/delete
             assert_response_raised(team_pg, httplib.FORBIDDEN)
@@ -1279,11 +1276,20 @@ class Test_Team_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(team_pg, ['organization'])
 
-            # check user_capabilities
-            check_user_capabilities(team_pg, 'read')
-
             # check put/patch/delete
             assert_response_raised(team_pg, httplib.FORBIDDEN)
+
+    @pytest.mark.parametrize('role', ['admin', 'member', 'read'])
+    def test_user_capabilities(self, factories, user_password, role):
+        """Test user_capabilities given each team role."""
+        team_pg = factories.team()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, team_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(team_pg.get(), role)
 
     def test_member_role_association(self, factories, user_password):
         '''
@@ -1354,9 +1360,6 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_script, ["organization"])
 
-            # check user_capabilities
-            check_user_capabilities(inventory_script, 'admin')
-
             # check that value of 'script' viewable
             assert inventory_script.script == script, \
                 "Unexpected value for 'script'; expected %s but got %s." % (script, inventory_script.script)
@@ -1387,15 +1390,24 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_script, ["organization"])
 
-            # check user_capabilities
-            check_user_capabilities(inventory_script, 'read')
-
             # check that value of 'script' not viewable
             assert not inventory_script.script, \
                 "Unexpected value for 'script'; expected null but got %s." % inventory_script.script
 
             # check put/patch/delete
             assert_response_raised(inventory_script, httplib.FORBIDDEN)
+
+    @pytest.mark.parametrize('role', ['admin', 'read'])
+    def test_user_capabilities(self, factories, user_password, role):
+        """Test user_capabilities given each inventory_script role."""
+        inventory_script_pg = factories.inventory_script()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_script_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(inventory_script_pg.get(), role)
 
 
 @pytest.mark.api
@@ -1449,9 +1461,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
-            # check user_capabilities
-            check_user_capabilities(job_template_pg, 'admin')
-
             # check JT launch
             job_pg = job_template_pg.launch().wait_until_completed()
             assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
@@ -1480,9 +1489,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
-
-            # check user_capabilities
-            check_user_capabilities(job_template_pg, 'execute')
 
             # check JT launch
             job_pg = job_template_pg.launch().wait_until_completed()
@@ -1513,15 +1519,24 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
-            # check user_capabilities
-            check_user_capabilities(job_template_pg, 'read')
-
             # check JT launch
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 job_template_pg.launch()
 
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
+
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_user_capabilities(self, factories, user_password, role):
+        """Test user_capabilities given each job_template role."""
+        job_template_pg = factories.job_template()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, job_template_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(job_template_pg.get(), role)
 
     def test_relaunch_with_ask_inventory(self, factories, job_template, user_password):
         '''Tests relaunch RBAC when ask_inventory_on_launch is true.'''
@@ -1663,9 +1678,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # check user_capabilities
-            check_user_capabilities(inventory_pg, 'admin')
-
             # update all cloud_groups
             for cloud_group in cloud_groups:
                 inventory_source_pg = cloud_group.get_related('inventory_source')
@@ -1728,9 +1740,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # check user_capabilities
-            check_user_capabilities(inventory_pg, 'use')
-
             # update custom group
             update_pg = custom_group.get_related('inventory_source').get_related('update')
             with pytest.raises(qe.exceptions.Forbidden_Exception):
@@ -1785,9 +1794,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
-
-            # check user_capabilities
-            check_user_capabilities(inventory_pg, 'ad hoc')
 
             # update custom group
             update_pg = custom_group.get_related('inventory_source').get_related('update')
@@ -1845,9 +1851,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
-
-            # check user_capabilities
-            check_user_capabilities(inventory_pg, 'update')
 
             # update all cloud_groups
             for cloud_group in cloud_groups:
@@ -1912,9 +1915,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # check user_capabilities
-            check_user_capabilities(inventory_pg, 'read')
-
             # update custom group
             update_pg = custom_group.get_related('inventory_source').get_related('update')
             with pytest.raises(qe.exceptions.Forbidden_Exception):
@@ -1937,6 +1937,19 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(host_local, httplib.FORBIDDEN)
             assert_response_raised(custom_group, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_user_capabilities(self, factories, user_password, role):
+        """Test user_capabilities given each inventory role."""
+        inventory_pg = factories.inventory()
+        factories.group(inventory=inventory_pg)
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(inventory_pg.get(), role)
 
 
 @pytest.mark.api
