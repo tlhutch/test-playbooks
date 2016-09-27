@@ -94,7 +94,6 @@ job:
             delete: {type: boolean}
           required: [start, delete]
           type: object
-      required: [user_capabilities]
       type: object
     type: {$ref: '#/definitions/enum_job_type'}
     unified_job_template: {$ref: '#/definitions/id_or_null'}

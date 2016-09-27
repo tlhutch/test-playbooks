@@ -432,6 +432,20 @@ user_capabilities = {
             "delete": False
                 },
                     },
+    "job": {
+        "admin": {
+            "start": True,
+            "delete": False
+                 },
+        "execute": {
+            "start": True,
+            "delete": False
+                   },
+        "read": {
+            "start": False,
+            "delete": False
+                },
+           },
     "inventory": {
         "admin": {
             "edit": True,
@@ -981,7 +995,8 @@ class Test_Project_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             if role in ALLOWED_ROLES:
-                project_pg.update().wait_until_completed()
+                update_pg = project_pg.update().wait_until_completed()
+                assert update_pg.is_successful, "Project update unsuccessful - %s." % update_pg
             elif role in REJECTED_ROLES:
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     project_pg.update()
@@ -1017,11 +1032,8 @@ class Test_Credential_RBAC(Base_Api_Test):
         An unprivileged user/team should not be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
-        # Use this credential in creating a JT
         * Edit the credential
         * Delete the credential
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
         user_pg = factories.user(organization=credential_pg.get_related('organization'))
@@ -1039,11 +1051,8 @@ class Test_Credential_RBAC(Base_Api_Test):
         A user/team with credential 'admin' should be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
-        # Use this credential in creating a JT
         * Edit the credential
         * Delete the credential
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
         user_pg = factories.user(organization=credential_pg.get_related('organization'))
@@ -1064,13 +1073,10 @@ class Test_Credential_RBAC(Base_Api_Test):
         A user/team with credential 'use' should be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
-        * Use this credential in creating a JT
 
         A user/team with credential 'use' should not be able to:
         * Edit the credential
         * Delete the credential
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
         user_pg = factories.user(organization=credential_pg.get_related('organization'))
@@ -1093,11 +1099,8 @@ class Test_Credential_RBAC(Base_Api_Test):
         * Make GETs to all of the credential get_related
 
         A user/team with credential 'read' should not be able to:
-        * Use this credential in creating a JT
         * Edit the credential
         * Delete the credential
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
         user_pg = factories.user(organization=credential_pg.get_related('organization'))
@@ -1438,21 +1441,15 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         An unprivileged user/team should not be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
-        * Launch the JT
         * Edit the JT
         * Delete the JT
         '''
         job_template_pg = factories.job_template()
         user_pg = factories.user()
-        launch_pg = job_template_pg.get_related('launch')
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(job_template_pg, unprivileged=True)
-
-            # check JT launch
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                launch_pg.post()
 
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
@@ -1463,7 +1460,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         A user/team with JT 'admin' should be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
-        * Launch the JT
         * Edit the JT
         * Delete the JT
         '''
@@ -1477,10 +1473,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
-            # check JT launch
-            job_pg = job_template_pg.launch().wait_until_completed()
-            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
-
             # check put/patch/delete
             assert_response_raised(job_template_pg.get(), httplib.OK)
 
@@ -1490,7 +1482,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         A user/team with JT 'execute' should be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
-        * Launch the JT
 
         A user/team with JT 'execute' should not be able to:
         * Edit the JT
@@ -1506,10 +1497,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
-            # check JT launch
-            job_pg = job_template_pg.launch().wait_until_completed()
-            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
-
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
 
@@ -1521,7 +1508,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         * Get all of the JT get_related pages
 
         A user/team with JT 'admin' should not be able to:
-        * Launch the JT
         * Edit the JT
         * Delete the JT
         '''
@@ -1534,10 +1520,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
-
-            # check JT launch
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                job_template_pg.launch()
 
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
@@ -1553,6 +1535,51 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(job_template_pg.get(), role)
+
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_launch_job(self, factories, user_password, role):
+        """Tests ability to launch a job."""
+        ALLOWED_ROLES = ['admin', 'execute']
+        REJECTED_ROLES = ['read']
+
+        job_template_pg = factories.job_template()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, job_template_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                job_pg = job_template_pg.launch().wait_until_completed()
+                assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    job_template_pg.launch()
+            else:
+                raise ValueError("Received unhandled job_template role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_relaunch_job(self, factories, user_password, role):
+        """Tests ability to relaunch a job."""
+        ALLOWED_ROLES = ['admin', 'execute']
+        REJECTED_ROLES = ['read']
+
+        job_template_pg = factories.job_template()
+        user_pg = factories.user()
+        job_pg = job_template_pg.launch().wait_until_completed()
+
+        # give test user target role privileges
+        set_roles(user_pg, job_template_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                relaunched_job_pg = job_pg.relaunch().wait_until_completed()
+                assert relaunched_job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    job_pg.relaunch()
+            else:
+                raise ValueError("Received unhandled job_template role.")
 
     def test_relaunch_with_ask_inventory(self, factories, job_template, user_password):
         '''Tests relaunch RBAC when ask_inventory_on_launch is true.'''
@@ -1603,6 +1630,21 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         with self.current_user(username=user2.username, password=user_password):
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 job_pg.get_related('relaunch').post()
+
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_job_user_capabilities(self, factories, user_password, role):
+        """Test user_capabilities given each JT role on spawned jobs."""
+        job_template_pg = factories.job_template()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, job_template_pg, [role])
+
+        # launch job_template
+        job_pg = job_template_pg.launch().wait_until_completed()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(job_pg.get(), role)
 
 
 @pytest.mark.api
