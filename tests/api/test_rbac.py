@@ -1829,7 +1829,7 @@ class Test_Label_RBAC(Base_Api_Test):
         payload = dict(id=label_pg.id)
         with self.current_user(username=user_pg.username, password=user_password):
             job_template_pg.get()
-            if job_template_pg.summary_fields['user_capabilities']['edit']:
+            if job_template_pg.summary_fields.user_capabilities.edit:
                 with pytest.raises(qe.exceptions.NoContent_Exception):
                     labels_pg.post(payload)
             else:
