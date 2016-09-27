@@ -1,30 +1,24 @@
 ---
 version: '2'
 services:
-  pytest:
-    build:
-      args:
-        GITHUB_USERNAME:
-        GITHUB_TOKEN:
-      context: ../../../
-      dockerfile: tools/docker/ui/Dockerfile
-    environment:
-      PYTEST_ADDOPTS:
-    entrypoint: tools/docker/ui/pytest_local.sh
   pytest_local:
     extends:
+      file: docker-compose.sauce.yml
       service: pytest
     environment:
       PYTEST_ADDOPTS: '--driver Remote --capability browserName chrome --port 4444 --host chrome_local'
     links:
-      - chrome_local
+      - 'chrome_local'
+    entrypoint: tools/docker/ui/pytest_local.sh
   pytest_local_debug:
     extends:
+      file: docker-compose.sauce.yml
       service: pytest
     environment:
-      PYTEST_ADDOPTS: '--pdb --driver Remote --capability browserName chrome --port 4444 --host chrome_local_debug'
+      PYTEST_ADDOPTS: '--driver Remote --capability browserName chrome --port 4444 --host chrome_local_debug'
     links:
-      - chrome_local_debug
+      - 'chrome_local_debug'
+    entrypoint: tools/docker/ui/pytest_local.sh
   chrome_local:
     image: selenium/standalone-chrome:latest
     volumes:
