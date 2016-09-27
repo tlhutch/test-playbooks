@@ -1,0 +1,24 @@
+FROM frolvlad/alpine-glibc
+
+RUN apk add --update \
+    bash \
+    ca-certificates \
+    gcc \
+    libffi-dev \
+    linux-headers \
+    musl-dev \
+    openssl-dev \
+    py-pip \
+    python \
+    python-dev
+
+ADD ./tower_qe /tower-qa/tower_qe
+
+RUN pip install /tower-qa/tower_qe
+
+RUN apk del --purge \
+    gcc \
+    linux-headers \
+    musl-dev \
+    openssl-dev \
+    python-dev

@@ -17,7 +17,7 @@ docker-compose -f tools/docker/ui/docker-compose.sauce.yml \
 ## Running Locally
 
 ```shell
-docker-compose -f tools/docker/ui/docker-compose.yml \
+docker-compose -f tools/docker/ui/docker-compose.local.yml \
   run pytest_local [INVENTORY] [HOST_PATTERN] tests/ui
 ```
 
@@ -25,7 +25,7 @@ docker-compose -f tools/docker/ui/docker-compose.yml \
 ## Debugging
 
 ```shell
-docker-compose -f tools/docker/ui/docker-compose.yml \
+docker-compose -f tools/docker/ui/docker-compose.local.yml \
   run pytest_local_debug [INVENTORY] [HOST_PATTERN] tests/ui
 # VNC password == 'secret'
 open vnc://localhost:5900

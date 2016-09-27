@@ -1,11 +1,19 @@
 ---
 version: '2'
 services:
-  pytest_sauce:
-    extends:
-      file: docker-compose.yml
-      service: pytest
+  pytest:
+    build:
+      args:
+        GITHUB_USERNAME:
+        GITHUB_TOKEN:
+      context: ../../../
+      dockerfile: tools/docker/ui/Dockerfile
     environment:
+      PYTEST_ADDOPTS:
       SAUCELABS_USERNAME:
       SAUCELABS_API_KEY:
+    entrypoint: py.test
+  pytest_sauce:
+    extends:
+      service: pytest
     entrypoint: tools/docker/ui/pytest_sauce.sh
