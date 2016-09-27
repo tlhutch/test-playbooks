@@ -473,6 +473,28 @@ user_capabilities = {
             "delete": False
                 }
                  },
+    "ad_hoc_command": {
+        "admin": {
+            "start": True,
+            "delete": False
+                 },
+        "use": {
+            "start": False,
+            "delete": False
+                 },
+        "ad hoc": {
+            "start": True,
+            "delete": False
+                  },
+        "update": {
+            "start": False,
+            "delete": False
+                  },
+        "read": {
+            "start": False,
+            "delete": False
+                  }
+                      },
     "notification_template": {
         "superuser": {
             "edit": True,
@@ -1986,6 +2008,28 @@ class Test_Inventory_RBAC(Base_Api_Test):
                     ad_hoc_commands_pg.post(payload)
             else:
                 raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_command_user_capabilities(self, factories, user_password, role):
+        """Test user_capabilities given each inventory role on spawned
+        ad hoc commands."""
+        inventory_pg = factories.inventory()
+        host_pg = inventory_pg.get_related('hosts').results[0]
+        user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_pg, [role])
+
+        # launch command
+        payload = dict(inventory=inventory_pg.id,
+                       credential=credential_pg.id,
+                       module_name="ping",
+                       limit=host_pg.name)
+        command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload)
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(command_pg.get(), role)
 
 
 @pytest.mark.api
