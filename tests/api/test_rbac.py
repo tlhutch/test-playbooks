@@ -353,6 +353,24 @@ user_capabilities = {
             "delete": False
                 },
                },
+    "project_update": {
+        "admin": {
+            "start": True,
+            "delete": True
+                 },
+        "update": {
+            "start": True,
+            "delete": False
+                  },
+        "use": {
+            "start": False,
+            "delete": False
+               },
+        "read": {
+            "start": False,
+            "delete": False
+                }
+                      },
     "credential": {
         "admin": {
             "edit": True,
@@ -830,24 +848,15 @@ class Test_Project_RBAC(Base_Api_Test):
         An unprivileged user/team should not be able to:
         * GET our project detail page
         * GET all project related pages
-        * Launch project updates
-        * Use our project in a JT
         * Edit our project
         * Delete our project
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         project_pg = factories.project()
         user_pg = factories.user()
-        update_pg = project_pg.get_related('update')
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(project_pg, unprivileged=True)
-
-            # check project update
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                update_pg.post()
 
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.FORBIDDEN)
@@ -858,12 +867,8 @@ class Test_Project_RBAC(Base_Api_Test):
         A user/team with project 'admin' should be able to:
         * GET our project detail page
         * GET all project related pages
-        * Launch project updates
-        * Use our project in a JT
         * Edit our project
         * Delete our project
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         project_pg = factories.project()
         user_pg = factories.user()
@@ -875,9 +880,6 @@ class Test_Project_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(project_pg, ["organization"])
 
-            # check project update
-            project_pg.update().wait_until_completed()
-
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.OK)
 
@@ -887,14 +889,10 @@ class Test_Project_RBAC(Base_Api_Test):
         A user/team with project 'update' should be able to:
         * GET our project detail page
         * GET all project related pages
-        * Launch project updates
 
         A user/team with project 'update' should not be able to:
-        * Use our project in a JT
         * Edit our project
         * Delete our project
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         project_pg = factories.project()
         user_pg = factories.user()
@@ -906,9 +904,6 @@ class Test_Project_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(project_pg, ["organization"])
 
-            # check project update
-            project_pg.update()
-
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.FORBIDDEN)
 
@@ -918,14 +913,10 @@ class Test_Project_RBAC(Base_Api_Test):
         A user/team with project 'use' should be able to:
         * GET our project detail page
         * GET all project related pages
-        * Use our project in a JT
 
         A user/team with project 'use' should not be able to:
-        * Launch project updates
         * Edit our project
         * Delete our project
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         project_pg = factories.project()
         user_pg = factories.user()
@@ -936,10 +927,6 @@ class Test_Project_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(project_pg, ["organization"])
-
-            # check project update
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                project_pg.update()
 
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.FORBIDDEN)
@@ -952,12 +939,8 @@ class Test_Project_RBAC(Base_Api_Test):
         * GET all project related pages
 
         A user/team with project 'read' should not be able to:
-        * Launch project updates
-        * Use our project in a JT
         * Edit our project
         * Delete our project
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         project_pg = factories.project()
         user_pg = factories.user()
@@ -968,10 +951,6 @@ class Test_Project_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(project_pg, ["organization"])
-
-            # check project update
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                project_pg.update()
 
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.FORBIDDEN)
@@ -987,6 +966,43 @@ class Test_Project_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(project_pg.get(), role)
+
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_launch_update(self, factories, user_password, role):
+        """Tests ability to launch a project update."""
+        ALLOWED_ROLES = ['admin', 'update']
+        REJECTED_ROLES = ['use', 'read']
+
+        project_pg = factories.project()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, project_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                project_pg.update().wait_until_completed()
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    project_pg.update()
+            else:
+                raise ValueError("Received unhandled project role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_update_user_capabilities(self, factories, user_password, role):
+        """Test user_capabilities given each project role on spawned
+        project_updates."""
+        project_pg = factories.project()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, project_pg, [role])
+
+        # launch project_update
+        update_pg = project_pg.update().wait_until_completed()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(update_pg.get(), role)
 
 
 @pytest.mark.api
