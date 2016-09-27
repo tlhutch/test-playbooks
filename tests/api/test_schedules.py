@@ -164,12 +164,6 @@ class Test_Project_Schedules(Base_Api_Test):
     Create multiple schedules (rrules), verify ...
       1. project.next_update is expected
       2. project is updated at desired time
-
-    RBAC
-      - admin can view/create/update/delete schedules
-      - org_admin can view/create/update/delete schedules
-      - user can *only* view schedules
-      - user w/ update perm can *only* view/create/update schedules
     '''
 
     def test_empty(self, project):
@@ -472,12 +466,6 @@ class Test_Inventory_Schedules(Base_Api_Test):
       1. inventory_source.next_update is expected
       2. inventory_source is updated at desired time
 
-    RBAC
-      - admin can view/create/update/delete schedules
-      - org_admin can view/create/update/delete schedules
-      - user can *only* view schedules
-      - user w/ update perm can *only* view/create/update schedules
-
     FIXME
       - Verify interaction between schedule and cache_timeout
     '''
@@ -779,7 +767,6 @@ class Test_Job_Template_Schedules(Base_Api_Test):
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_schedule_with_no_credential(self, job_template_no_credential):
         '''Verify that a job_template with no credential launches jobs that fail.'''
-
         schedules_pg = job_template_no_credential.get_related('schedules')
 
         # Create a schedule

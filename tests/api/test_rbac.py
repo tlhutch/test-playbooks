@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import httplib
 import logging
+import fauxfactory
 
 import pytest
 
@@ -285,24 +286,22 @@ def set_read_role(user_pg, notifiable_resource):
 
 
 def check_user_capabilities(resource, role):
-    """Helper function used in checking the values of summary_fields flag, user_capabilities."""
-    # for Tower resources with roles
+    """Helper function used in checking the values of summary_fields flag, 'user_capabilities'
+    """
     assert resource.summary_fields['user_capabilities'] == user_capabilities[resource.type][role], \
-        "Unexpected response for 'user_capabilities' when testing with a user with %s-%s." \
-        % (role, resource.type)
+        "Unexpected response for 'user_capabilities' when testing against a[n] %s resource with a user with %s permissions." \
+        % (resource.type, role)
     # if given an inventory, additionally check child groups and hosts
     # child groups/hosts should have the same value for 'user_capabilities' as their inventory
     if resource.type == 'inventory':
         groups_pg = resource.get_related('groups')
         for group in groups_pg.results:
             assert resource.summary_fields['user_capabilities'] == user_capabilities['inventory'][role], \
-                "Unexpected response for 'user_capabilities' when testing inventory groups with a user with %s-%s." \
-                % (role, resource.type)
+                "Unexpected response for 'user_capabilities' when testing groups with a user with inventory-%s." % role
         hosts_pg = resource.get_related('hosts')
         for host in hosts_pg.results:
             assert resource.summary_fields['user_capabilities'] == user_capabilities['inventory'][role], \
-                "Unexpected response for 'user_capabilities' when testing inventory hosts with a user with %s-%s." \
-                % (role, resource.type)
+                "Unexpected response for 'user_capabilities' when testing hosts with a user with inventory-%s." % role
 
 
 # -----------------------------------------------------------------------------
@@ -2166,7 +2165,7 @@ class Test_Label_RBAC(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class TestUsersRBAC(Base_Api_Test):
+class Test_User_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
@@ -2228,3 +2227,87 @@ class Test_System_Jobs_RBAC(Base_Api_Test):
         Verify 'user_capabilities' with a superuser.
         '''
         check_user_capabilities(cleanup_jobs, "superuser")
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+class Test_Schedules_RBAC(Base_Api_Test):
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+
+    def test_crud_as_superuser(self, resource_with_schedule):
+        """Tests schedule CRUD as superuser against all UJTs that support schedules.
+        Create is tested upon fixture instantiation."""
+        # test get
+        schedule_pg = resource_with_schedule.get_related('schedules').results[0]
+        # test put/patch
+        schedule_pg.put()
+        schedule_pg.patch()
+        # test delete
+        schedule_pg.delete()
+
+    def test_crud_as_org_admin(self, org_admin, user_password, schedulable_resource_as_org_admin):
+        """Tests schedules CRUD as an org_admin against an inventory_source, project, and JT."""
+        schedules_pg = schedulable_resource_as_org_admin.get_related('schedules')
+        payload = dict(name="Schedule - %s" % fauxfactory.gen_utf8(),
+                       rrule="DTSTART:20160926T040000Z RRULE:FREQ=HOURLY;INTERVAL=1")
+
+        with self.current_user(org_admin.username, user_password):
+            # test create
+            schedule_pg = schedules_pg.post(payload)
+            # test get
+            schedule_pg.get()
+            # test put/patch
+            schedule_pg.put()
+            schedule_pg.patch()
+            # test delete
+            schedule_pg.delete()
+
+    def test_system_job_template_schedule_crud_as_org_admin(self, request, org_admin, user_password, cleanup_jobs_template):
+        """Tests schedules CRUD as an org_admin against a test system job template."""
+        schedules_pg = cleanup_jobs_template.get_related('schedules')
+        payload = dict(name="Schedule - %s" % fauxfactory.gen_utf8(),
+                       rrule="DTSTART:20160926T040000Z RRULE:FREQ=HOURLY;INTERVAL=1")
+        schedule_pg = schedules_pg.post(payload)
+        request.addfinalizer(schedule_pg.silent_delete)
+
+        with self.current_user(org_admin.username, user_password):
+            # test create
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedules_pg.post()
+            # test get
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.get()
+            # test put/patch
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.put()
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.patch()
+            # test delete
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.delete()
+
+    def test_crud_as_org_user(self, request, org_user, user_password, resource_with_schedule):
+        """Test schedules CRUD as an org_user against an inventory_source, project, and JT."""
+        schedules_pg = resource_with_schedule.get_related('schedules')
+        payload = dict(name="Schedule - %s" % fauxfactory.gen_utf8(),
+                       rrule="DTSTART:20160926T040000Z RRULE:FREQ=HOURLY;INTERVAL=1")
+        schedule_pg = schedules_pg.post(payload)
+        request.addfinalizer(schedule_pg.silent_delete)
+
+        with self.current_user(org_user.username, user_password):
+            # test create
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedules_pg.post()
+            # test get
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.get()
+            # test put/patch
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.put()
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.patch()
+            # test delete
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.delete()

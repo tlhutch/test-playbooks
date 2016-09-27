@@ -22,10 +22,7 @@ def cleanup_jobs_template(request, api_system_job_templates_pg):
 class Test_System_Job_Template(Base_Api_Test):
     '''
     Verify actions with system_job_templates
-
-    TODO - verify schedules
     '''
-
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get_as_superuser(self, api_system_job_templates_pg):
@@ -67,7 +64,6 @@ class Test_System_Job_Template(Base_Api_Test):
         '''
         Verify successful launch of a system_job_template
         '''
-
         result = system_job_template.get_related('launch').post()
         assert 'system_job' in result.json, "Unexpected JSON response when " \
             "launching system_job_template\n%s" % json.dumps(result.json, indent=2)
@@ -86,7 +82,6 @@ class Test_System_Job_Template(Base_Api_Test):
         '''
         Verify launch fails when attempted by a non-superuser
         '''
-
         launch_pg = system_job_template.get_related('launch')
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
@@ -97,7 +92,6 @@ class Test_System_Job_Template(Base_Api_Test):
         '''
         Verify successful launch of a system_job_template with extra_vars.
         '''
-
         launch_pg = system_job_template.get_related('launch')
         payload = dict(extra_vars=dict(days='365', older_than='1y', granularity='1y'))
         result = launch_pg.post(payload)
