@@ -418,7 +418,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         assert cloud_group.get_related('inventory_source').last_updated is None
 
         # issue callback (expected to return 400)
-        # note: timeout is set to 3 minutes because we will not get a response
+        # note: timeout is set to 4 minutes because we will not get a response
         # until the inventory update job is finished. Tower cannot send back
         # a response until the inventory is updated because it needs
         # to determine whether or not the calling host is listed in the
@@ -427,7 +427,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # recently created, it may not be listed in the dynamic inventory until
         # it is updated.
         args = dict(method="POST",
-                    timeout=180,
+                    timeout=240,
                     status_code=[httplib.CREATED, httplib.BAD_REQUEST],
                     url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     body="host_config_key=%s" % host_config_key,)
