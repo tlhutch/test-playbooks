@@ -13,7 +13,7 @@ summary_fields_access:
         team_id: {$ref: '#/definitions/id'}
         team_name: {type: string}
         user_capabilities:
-           additionalPropertie: false
+           additionalProperties: false
            properties:
              unattach: {type: boolean}
            required: [unattach]
