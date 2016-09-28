@@ -1,10 +1,12 @@
 from contextlib import contextmanager
+import os
 import httplib
 import logging
 import fauxfactory
 
 import pytest
 
+from qe.yaml_file import load_file
 import qe.exceptions
 from qe.exceptions import Forbidden_Exception
 from qe.exceptions import NoContent_Exception
@@ -13,6 +15,9 @@ from qe.api.pages.teams import Team_Page
 from tests.api import Base_Api_Test
 
 log = logging.getLogger(__name__)
+
+# load expected values for summary_fields user_capabilities
+user_capabilities = load_file(os.path.join(os.path.dirname(__file__), 'user_capabilities.yml'))
 
 pytestmark = [
     pytest.mark.nondestructive,
@@ -302,262 +307,6 @@ def check_user_capabilities(resource, role):
         for host in hosts_pg.results:
             assert resource.summary_fields['user_capabilities'] == user_capabilities['inventory'][role], \
                 "Unexpected response for 'user_capabilities' when testing hosts with a user with inventory-%s." % role
-
-
-# -----------------------------------------------------------------------------
-# Expected values for 'user_capabilities' given specific resource and role
-# -----------------------------------------------------------------------------
-
-user_capabilities = {
-    "organization": {
-        "admin": {
-            "edit": True,
-            "delete": True,
-                 },
-        "auditor": {
-            "edit": False,
-            "delete": False
-                   },
-        "member": {
-            "edit": False,
-            "delete": False
-                  },
-        "read": {
-            "edit": False,
-            "delete": False
-                },
-                    },
-    "project": {
-        "admin": {
-            "edit": True,
-            "start": True,
-            "schedule": True,
-            "delete": True
-                 },
-        "update": {
-            "edit": False,
-            "start": True,
-            "schedule": False,
-            "delete": False
-                  },
-        "use": {
-            "edit": False,
-            "start": False,
-            "schedule": False,
-            "delete": False
-               },
-        "read": {
-            "edit": False,
-            "start": False,
-            "schedule": False,
-            "delete": False
-                },
-               },
-    "project_update": {
-        "admin": {
-            "start": True,
-            "delete": True
-                 },
-        "update": {
-            "start": True,
-            "delete": False
-                  },
-        "use": {
-            "start": False,
-            "delete": False
-               },
-        "read": {
-            "start": False,
-            "delete": False
-                }
-                      },
-    "credential": {
-        "admin": {
-            "edit": True,
-            "delete": True
-                 },
-        "use": {
-            "edit": False,
-            "delete": False
-               },
-        "read": {
-            "edit": False,
-            "delete": False
-                },
-                  },
-    "team": {
-        "admin": {
-            "edit": True,
-            "delete": True
-                 },
-        "member": {
-            "edit": False,
-            "delete": False
-                  },
-        "read": {
-            "edit": False,
-            "delete": False
-                },
-            },
-    "custom_inventory_script": {
-        "admin": {
-            "edit": True,
-            "delete": True
-                 },
-        "read": {
-            "edit": False,
-            "delete": False
-                },
-                               },
-    "job_template": {
-        "admin": {
-            "edit": True,
-            "start": True,
-            "copy": True,
-            "schedule": True,
-            "delete": True
-                 },
-        "execute": {
-            "edit": False,
-            "start": True,
-            "copy": False,
-            "schedule": False,
-            "delete": False
-                   },
-        "read": {
-            "edit": False,
-            "start": False,
-            "copy": False,
-            "schedule":  False,
-            "delete": False
-                },
-                    },
-    "job": {
-        "admin": {
-            "start": True,
-            "delete": False
-                 },
-        "execute": {
-            "start": True,
-            "delete": False
-                   },
-        "read": {
-            "start": False,
-            "delete": False
-                },
-           },
-    "inventory": {
-        "admin": {
-            "edit": True,
-            "adhoc": True,
-            "delete": True
-                 },
-        "use": {
-            "edit": False,
-            "adhoc": False,
-            "delete": False
-               },
-        "ad hoc": {
-            "edit": False,
-            "adhoc": True,
-            "delete": False
-                  },
-        "update": {
-            "edit": False,
-            "adhoc": False,
-            "delete": False
-                  },
-        "read": {
-            "edit": False,
-            "adhoc": False,
-            "delete": False
-                }
-                 },
-    "inventory_update": {
-        "admin": {
-            "start": True,
-            "delete": True
-                 },
-        "use": {
-            "start": False,
-            "delete": False
-               },
-        "ad hoc": {
-            "start": False,
-            "delete": False
-                  },
-        "update": {
-            "start": True,
-            "delete": False
-                  },
-        "read": {
-            "start": False,
-            "delete": False
-                },
-                        },
-    "ad_hoc_command": {
-        "admin": {
-            "start": True,
-            "delete": False
-                 },
-        "use": {
-            "start": False,
-            "delete": False
-               },
-        "ad hoc": {
-            "start": True,
-            "delete": False
-                  },
-        "update": {
-            "start": False,
-            "delete": False
-                  },
-        "read": {
-            "start": False,
-            "delete": False
-                  }
-                      },
-    "notification_template": {
-        "superuser": {
-            "edit": True,
-            "delete": True
-                     },
-        "org_admin": {
-            "edit": True,
-            "delete": True
-                     },
-                             },
-    "notifications": {
-        "edit": True,
-        "delete": True
-                     },
-    "user": {
-        "superuser": {
-            "edit": True,
-            "delete": True
-                     },
-        "org_admin": {
-            "edit": True,
-            "delete": True
-                     }
-            },
-    "system_job": {
-        "superuser": {
-            "edit": True,
-            "delete": True
-                     }
-                  },
-    "schedule": {
-        "superuser": {
-            "edit": True,
-            "delete": True
-                     },
-        "org_admin": {
-            "edit": True,
-            "delete": True
-                     }
-                }
-            }
 
 
 # -----------------------------------------------------------------------------
