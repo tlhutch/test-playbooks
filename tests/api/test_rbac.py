@@ -2035,6 +2035,38 @@ class Test_Inventory_RBAC(Base_Api_Test):
                 raise ValueError("Received unhandled inventory role.")
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_cancel_command(self, factories, user_password, role):
+        """Tests that the same roles that allow for command launch also allow for command
+        cancellation."""
+        ALLOWED_ROLES = ['admin', 'ad hoc']
+        REJECTED_ROLES = ['use', 'update', 'read']
+
+        inventory_pg = factories.inventory()
+        host_pg = inventory_pg.get_related('hosts').results[0]
+        user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_pg, [role])
+
+        # launch command
+        payload = dict(inventory=inventory_pg.id,
+                       credential=credential_pg.id,
+                       module_name="ping",
+                       module_args="sleep 30s",
+                       limit=host_pg.name)
+        command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload)
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                command_pg.cancel()
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    command_pg.cancel()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_command_user_capabilities(self, factories, user_password, role):
         """Test user_capabilities given each inventory role on spawned
         ad hoc commands."""
