@@ -5,7 +5,18 @@ import base
 
 class AdHocCommand(UnifiedJob):
 
-    pass
+    def relaunch(self, payload={}):
+        '''
+        Relaunch the command using the related->relaunch endpoint
+        '''
+        # navigate to relaunch_pg
+        relaunch_pg = self.get_related('relaunch')
+
+        # relaunch the command
+        result = relaunch_pg.post(payload)
+
+        # return the corresponding command_pg
+        return self.walk(result.url)
 
 base.register_page(resources.v1_ad_hoc_commmand, AdHocCommand)
 

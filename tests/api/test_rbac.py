@@ -1715,6 +1715,31 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(job_pg.get(), role)
 
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_cancel_job(self, factories, user_password, role):
+        """Test that the same roles that allow for job launch also allow for job
+        cancellation."""
+        ALLOWED_ROLES = ['admin', 'execute']
+        REJECTED_ROLES = ['read']
+
+        job_template_pg = factories.job_template(playbook='sleep.yml')
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, job_template_pg, [role])
+
+        # launch job_template
+        job_pg = job_template_pg.launch()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                job_pg.cancel()
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    job_pg.cancel()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -2061,6 +2086,38 @@ class Test_Inventory_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     ad_hoc_commands_pg.post(payload)
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_relaunch_command(self, factories, user_password, role):
+        """Tests ability to relaunch a command."""
+        ALLOWED_ROLES = ['admin', 'ad hoc']
+        REJECTED_ROLES = ['use', 'update', 'read']
+
+        inventory_pg = factories.inventory()
+        host_pg = inventory_pg.get_related('hosts').results[0]
+        user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
+
+        # launch command
+        payload = dict(inventory=inventory_pg.id,
+                       credential=credential_pg.id,
+                       module_name="ping",
+                       limit=host_pg.name)
+        command_pg = host_pg.get_related('ad_hoc_commands').post(payload).wait_until_completed()
+        assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                relaunched_command_pg = command_pg.relaunch()
+                assert relaunched_command_pg.is_successful, "Command unsuccessful - %s." % command_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    command_pg.relaunch()
             else:
                 raise ValueError("Received unhandled inventory role.")
 
