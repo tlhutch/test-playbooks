@@ -540,3 +540,14 @@ def cloud_group_supporting_source_regions(ansible_os_family, ansible_distributio
     if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param == 'azure'):
         pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
     return request.getfuncargvalue(request.param + '_group')
+
+
+#
+# Convenience fixture that iterates through supported cloud_groups and custom_group
+#
+@pytest.fixture(scope="function", params=['aws', 'rax', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2', 'openstack_v3', 'custom'])
+def cloud_or_custom_group(request, ansible_os_family, ansible_distribution_major_version):
+    # new-style azure inventory imports are not supported on EL6 systems
+    if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param in ['azure', 'azure_ad']):
+        pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
+    return request.getfuncargvalue(request.param + '_group')

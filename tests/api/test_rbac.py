@@ -1748,17 +1748,13 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3493')
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_admin_role(self, host_local, cloud_groups, custom_group, set_test_roles, agent, user_password, factories):
+    def test_admin_role(self, host_local, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'admin' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
-        * Update all groups that the inventory contains
-        * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
         groups_pg = inventory_pg.get_related('groups')
@@ -1766,6 +1762,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group_payload = factories.group.payload(inventory=inventory_pg)[0]
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
+        group_pg = factories.group(inventory=inventory_pg)
         user_pg = factories.user()
 
         # give agent admin_role
@@ -1775,42 +1772,25 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # update all cloud_groups
-            for cloud_group in cloud_groups:
-                inventory_source_pg = cloud_group.get_related('inventory_source')
-                inventory_source_pg.get_related('update').post()
-                assert inventory_source_pg.wait_until_completed().is_successful, \
-                    "Inventory update unsuccessful - %s." % inventory_source_pg
-
-            # update custom group
-            inventory_source_pg = custom_group.get_related('inventory_source')
-            inventory_source_pg.get_related('update').post()
-            assert inventory_source_pg.wait_until_completed().is_successful, \
-                "Inventory update unsuccessful - %s." % inventory_source_pg
-
             # check ability to create group and host
             groups_pg.post(group_payload)
             hosts_pg.post(host_payload)
 
             # check put/patch/delete on inventory, custom_group, and host_local
             assert_response_raised(host_local, httplib.OK)
-            assert_response_raised(custom_group, httplib.OK)
+            assert_response_raised(group_pg, httplib.OK)
             assert_response_raised(inventory_pg, httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_use_role(self, host_local, custom_group, set_test_roles, agent, user_password, factories):
+    def test_use_role(self, host_local, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'use' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
-        * Use the inventory in creating a JT
 
         A user/team with inventory 'use' should not be able to:
-        * Update all groups that the inventory contains
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
         groups_pg = inventory_pg.get_related('groups')
@@ -1818,6 +1798,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group_payload = factories.group.payload(inventory=inventory_pg)[0]
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
+        group_pg = factories.group(inventory=inventory_pg)
         user_pg = factories.user()
 
         # give agent use_role
@@ -1827,11 +1808,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # update custom group
-            update_pg = custom_group.get_related('inventory_source').get_related('update')
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                update_pg.post()
-
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
@@ -1840,23 +1816,19 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # check put/patch/delete on inventory, custom_group, and host_local
             assert_response_raised(host_local, httplib.FORBIDDEN)
-            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(group_pg, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_adhoc_role(self, host_local, custom_group, set_test_roles, agent, user_password, factories):
+    def test_adhoc_role(self, host_local, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'adhoc' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
 
         A user/team with inventory 'adhoc' should not be able to:
-        * Update all groups that the inventory contains
-        * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
         groups_pg = inventory_pg.get_related('groups')
@@ -1864,6 +1836,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group_payload = factories.group.payload(inventory=inventory_pg)[0]
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
+        group_pg = factories.group(inventory=inventory_pg)
         user_pg = factories.user()
 
         # give agent adhoc_role
@@ -1873,11 +1846,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # update custom group
-            update_pg = custom_group.get_related('inventory_source').get_related('update')
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                update_pg.post()
-
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
@@ -1886,24 +1854,20 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # check put/patch/delete on inventory, custom_group, and host_local
             assert_response_raised(host_local, httplib.FORBIDDEN)
-            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(group_pg, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3493')
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_update_role(self, host_local, cloud_groups, custom_group, set_test_roles, agent, user_password, factories):
+    def test_update_role(self, host_local, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'update' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
-        * Update all groups that the inventory contains
 
         A user/team with inventory 'update' should not be able to:
-        * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
         groups_pg = inventory_pg.get_related('groups')
@@ -1911,6 +1875,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group_payload = factories.group.payload(inventory=inventory_pg)[0]
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
+        group_pg = factories.group(inventory=inventory_pg)
         user_pg = factories.user()
 
         # give agent update_role
@@ -1920,19 +1885,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # update all cloud_groups
-            for cloud_group in cloud_groups:
-                inventory_source_pg = cloud_group.get_related('inventory_source')
-                inventory_source_pg.get_related('update').post()
-                assert inventory_source_pg.wait_until_completed().is_successful, \
-                    "Inventory update failed - %s." % inventory_source_pg
-
-            # update custom group
-            inventory_source_pg = custom_group.get_related('inventory_source')
-            inventory_source_pg.get_related('update').post()
-            assert inventory_source_pg.wait_until_completed(), \
-                "Inventory update failed - %s." % inventory_source_pg
-
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
@@ -1941,23 +1893,19 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # check put/patch/delete on inventory, custom_group, and host_local
             assert_response_raised(host_local, httplib.FORBIDDEN)
-            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(group_pg, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_read_role(self, host_local, custom_group, set_test_roles, agent, user_password, factories):
+    def test_read_role(self, host_local, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'read' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
 
         A user/team with inventory 'read' should not be able to:
-        * Update all groups that the inventory contains
-        * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
         groups_pg = inventory_pg.get_related('groups')
@@ -1965,6 +1913,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group_payload = factories.group.payload(inventory=inventory_pg)[0]
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
+        group_pg = factories.group(inventory=inventory_pg)
         user_pg = factories.user()
 
         # give agent read_role
@@ -1974,11 +1923,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # update custom group
-            update_pg = custom_group.get_related('inventory_source').get_related('update')
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                update_pg.post()
-
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
@@ -1987,7 +1931,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # check put/patch/delete on inventory, custom_group, and host_local
             assert_response_raised(host_local, httplib.FORBIDDEN)
-            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(group_pg, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
@@ -2002,6 +1946,53 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(inventory_pg.get(), role)
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_update_custom_group(self, factories, custom_inventory_source, user_password, role):
+        """Test ability to update a custom group."""
+        ALLOWED_ROLES = ['admin', 'update']
+        REJECTED_ROLES = ['use', 'ad hoc', 'read']
+
+        user_pg = factories.user()
+
+        # give agent target role privileges
+        inventory_pg = custom_inventory_source.get_related('inventory')
+        set_roles(user_pg, inventory_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                update_pg = custom_inventory_source.update().wait_until_completed()
+                assert update_pg.is_successful, "Update unsuccessful - %s." % update_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    custom_inventory_source.update()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_update_cloud_group(self, factories, aws_inventory_source, user_password, role):
+        """Test ability to update a cloud group. Note: only tested on AWS to save time.
+        Also, user should be able launch update even though cloud_credential is under
+        admin user.
+        """
+        ALLOWED_ROLES = ['admin', 'update']
+        REJECTED_ROLES = ['use', 'ad hoc', 'read']
+
+        user_pg = factories.user()
+
+        # give agent target role privileges
+        inventory_pg = aws_inventory_source.get_related('inventory')
+        set_roles(user_pg, inventory_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                update_pg = aws_inventory_source.update().wait_until_completed()
+                assert update_pg.is_successful, "Update unsuccessful - %s." % update_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    aws_inventory_source.update()
+            else:
+                raise ValueError("Received unhandled inventory role.")
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_launch_command(self, factories, user_password, role):
