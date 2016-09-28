@@ -473,6 +473,28 @@ user_capabilities = {
             "delete": False
                 }
                  },
+    "inventory_update": {
+        "admin": {
+            "start": True,
+            "delete": True
+                 },
+        "use": {
+            "start": False,
+            "delete": False
+               },
+        "ad hoc": {
+            "start": False,
+            "delete": False
+                  },
+        "update": {
+            "start": True,
+            "delete": False
+                  },
+        "read": {
+            "start": False,
+            "delete": False
+                },
+                        },
     "ad_hoc_command": {
         "admin": {
             "start": True,
@@ -481,7 +503,7 @@ user_capabilities = {
         "use": {
             "start": False,
             "delete": False
-                 },
+               },
         "ad hoc": {
             "start": True,
             "delete": False
@@ -1993,6 +2015,23 @@ class Test_Inventory_RBAC(Base_Api_Test):
                     aws_inventory_source.update()
             else:
                 raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_update_user_capabilities(self, factories, custom_group, user_password, role):
+        """Test user_capabilities given each inventory role on spawned
+        inventory_updates."""
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        inventory_pg = custom_group.get_related('inventory')
+        set_roles(user_pg, inventory_pg, [role])
+
+        # launch inventory_update
+        custom_inv_source_pg = custom_group.get_related('inventory_source')
+        update_pg = custom_inv_source_pg.update().wait_until_completed()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(update_pg.get(), role)
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_launch_command(self, factories, user_password, role):
