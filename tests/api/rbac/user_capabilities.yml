@@ -22,7 +22,7 @@ inventory_update:
   ad hoc: {delete: false, start: false}
   admin: {delete: true, start: true}
   read: {delete: false, start: false}
-  update: {delete: false, start: true}
+  update: {delete: false, start: true} # delete?
   use: {delete: false, start: false}
 job:
   admin: {delete: false, start: true}
@@ -35,7 +35,6 @@ job_template:
 notification_template:
   org_admin: {delete: true, edit: true}
   superuser: {delete: true, edit: true}
-notifications: {delete: true, edit: true}
 organization:
   admin: {delete: true, edit: true}
   auditor: {delete: false, edit: false}

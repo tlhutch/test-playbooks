@@ -26,7 +26,7 @@ def resource_with_schedule(request):
 
 @pytest.fixture(scope="function", params=["project", "custom_inventory_source", "job_template"])
 def organization_resource_with_schedule(request):
-    """Includes Tower resources that support schedules that fall under an organization."""
+    """Includes all organization-scoped Tower resources that support schedules."""
     payload = dict(name="Schedule - %s" % fauxfactory.gen_utf8(),
                    rrule="DTSTART:20160926T040000Z RRULE:FREQ=HOURLY;INTERVAL=1")
     resource = request.getfuncargvalue(request.param)

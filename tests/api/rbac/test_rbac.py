@@ -655,15 +655,21 @@ class Test_Project_RBAC(Base_Api_Test):
         An unprivileged user/team should not be able to:
         * GET our project detail page
         * GET all project related pages
+        * Use our project in a JT
         * Edit our project
         * Delete our project
         '''
         project_pg = factories.project()
         user_pg = factories.user()
+        update_pg = project_pg.get_related('update')
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(project_pg, unprivileged=True)
+
+            # check project update
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                update_pg.post()
 
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.FORBIDDEN)
@@ -1259,15 +1265,21 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         An unprivileged user/team should not be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
+        * Launch the JT
         * Edit the JT
         * Delete the JT
         '''
         job_template_pg = factories.job_template()
         user_pg = factories.user()
+        launch_pg = job_template_pg.get_related('launch')
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(job_template_pg, unprivileged=True)
+
+            # check JT launch
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                launch_pg.post()
 
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
@@ -1385,6 +1397,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         job_template_pg = factories.job_template()
         user_pg = factories.user()
         job_pg = job_template_pg.launch().wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # give test user target role privileges
         set_roles(user_pg, job_template_pg, [role])
@@ -1497,39 +1510,42 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_unprivileged_user(self, host_local, cloud_groups, custom_group, user_password, factories):
+    def test_unprivileged_user(self, host_local, aws_group, custom_group, user_password, factories):
         '''
         An unprivileged user should not be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
         * Update all groups that the inventory contains
+        * Launch ad hoc commands against the inventory
         * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
         groups_pg = inventory_pg.get_related('groups')
         hosts_pg = inventory_pg.get_related('hosts')
         user_pg = factories.user()
 
-        inventory_source_pgs = [cloud_group.get_related('inventory_source') for cloud_group in cloud_groups]
-        inventory_source_update_pgs = [inventory_source_pg.get_related('update') for inventory_source_pg in inventory_source_pgs]
+        commands_pg = inventory_pg.get_related('ad_hoc_commands')
+        inv_source_pg = aws_group.get_related('inventory_source')
+        inv_source_update_pg = inv_source_pg.get_related('update')
         custom_group_update_pg = custom_group.get_related('inventory_source').get_related('update')
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(inventory_pg, unprivileged=True)
 
-            # update all cloud_groups
-            for inventory_source_update_pg in inventory_source_update_pgs:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
-                    inventory_source_update_pg.post()
+            # update aws_group
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                inv_source_update_pg.post()
 
             # update custom group
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 custom_group_update_pg.post()
+
+            # post command
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                commands_pg.post()
 
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
@@ -1791,18 +1807,17 @@ class Test_Inventory_RBAC(Base_Api_Test):
                 raise ValueError("Received unhandled inventory role.")
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-    def test_update_user_capabilities(self, factories, custom_group, user_password, role):
+    def test_update_user_capabilities(self, factories, custom_inventory_source, user_password, role):
         """Test user_capabilities given each inventory role on spawned
         inventory_updates."""
         user_pg = factories.user()
 
         # give test user target role privileges
-        inventory_pg = custom_group.get_related('inventory')
+        inventory_pg = custom_inventory_source.get_related('inventory')
         set_roles(user_pg, inventory_pg, [role])
 
         # launch inventory_update
-        custom_inv_source_pg = custom_group.get_related('inventory_source')
-        update_pg = custom_inv_source_pg.update().wait_until_completed()
+        update_pg = custom_inventory_source.update().wait_until_completed()
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(update_pg.get(), role)
@@ -1814,7 +1829,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         REJECTED_ROLES = ['use', 'update', 'read']
 
         inventory_pg = factories.inventory()
-        host_pg = inventory_pg.get_related('hosts').results[0]
         user_pg = factories.user()
         credential_pg = factories.credential(user=user_pg, organization=None)
 
@@ -1822,8 +1836,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         ad_hoc_commands_pg = inventory_pg.get_related('ad_hoc_commands')
         payload = dict(inventory=inventory_pg.id,
                        credential=credential_pg.id,
-                       module_name="ping",
-                       limit=host_pg.name)
+                       module_name="ping")
 
         # give test user target role privileges
         set_roles(user_pg, inventory_pg, [role])
@@ -1845,16 +1858,14 @@ class Test_Inventory_RBAC(Base_Api_Test):
         REJECTED_ROLES = ['use', 'update', 'read']
 
         inventory_pg = factories.inventory()
-        host_pg = inventory_pg.get_related('hosts').results[0]
         user_pg = factories.user()
         credential_pg = factories.credential(user=user_pg, organization=None)
 
         # launch command
         payload = dict(inventory=inventory_pg.id,
                        credential=credential_pg.id,
-                       module_name="ping",
-                       limit=host_pg.name)
-        command_pg = host_pg.get_related('ad_hoc_commands').post(payload).wait_until_completed()
+                       module_name="ping")
+        command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload).wait_until_completed()
         assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
 
         # give test user target role privileges
@@ -1878,7 +1889,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         REJECTED_ROLES = ['use', 'update', 'read']
 
         inventory_pg = factories.inventory()
-        host_pg = inventory_pg.get_related('hosts').results[0]
         user_pg = factories.user()
         credential_pg = factories.credential(user=user_pg, organization=None)
 
@@ -1888,9 +1898,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         # launch command
         payload = dict(inventory=inventory_pg.id,
                        credential=credential_pg.id,
-                       module_name="ping",
-                       module_args="sleep 30s",
-                       limit=host_pg.name)
+                       module_args="sleep 30")
         command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload)
 
         with self.current_user(username=user_pg.username, password=user_password):
@@ -1907,7 +1915,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         """Test user_capabilities given each inventory role on spawned
         ad hoc commands."""
         inventory_pg = factories.inventory()
-        host_pg = inventory_pg.get_related('hosts').results[0]
         user_pg = factories.user()
         credential_pg = factories.credential(user=user_pg, organization=None)
 
@@ -1917,8 +1924,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         # launch command
         payload = dict(inventory=inventory_pg.id,
                        credential=credential_pg.id,
-                       module_name="ping",
-                       limit=host_pg.name)
+                       module_name="ping")
         command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload)
 
         with self.current_user(username=user_pg.username, password=user_password):
@@ -2263,15 +2269,9 @@ class Test_Schedules_RBAC(Base_Api_Test):
     def test_system_job_template_schedule_crud_as_org_admin(self, request, org_admin, user_password, cleanup_jobs_template):
         """Tests schedules CRUD as an org_admin against a test system job template."""
         schedules_pg = cleanup_jobs_template.get_related('schedules')
-        payload = dict(name="Schedule - %s" % fauxfactory.gen_utf8(),
-                       rrule="DTSTART:20160926T040000Z RRULE:FREQ=HOURLY;INTERVAL=1")
-        schedule_pg = schedules_pg.post(payload)
-        request.addfinalizer(schedule_pg.silent_delete)
+        schedule_pg = cleanup_jobs_template.get_related('schedules').results[0]
 
         with self.current_user(org_admin.username, user_password):
-            # test create
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                schedules_pg.post()
             # test get
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 schedule_pg.get()
@@ -2280,6 +2280,9 @@ class Test_Schedules_RBAC(Base_Api_Test):
                 schedule_pg.put()
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 schedule_pg.patch()
+            # test post
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedules_pg.post()
             # test delete
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 schedule_pg.delete()
@@ -2287,15 +2290,9 @@ class Test_Schedules_RBAC(Base_Api_Test):
     def test_crud_as_org_user(self, request, org_user, user_password, resource_with_schedule):
         """Test schedules CRUD as an org_user against an inventory_source, project, and JT."""
         schedules_pg = resource_with_schedule.get_related('schedules')
-        payload = dict(name="Schedule - %s" % fauxfactory.gen_utf8(),
-                       rrule="DTSTART:20160926T040000Z RRULE:FREQ=HOURLY;INTERVAL=1")
-        schedule_pg = schedules_pg.post(payload)
-        request.addfinalizer(schedule_pg.silent_delete)
+        schedule_pg = resource_with_schedule.get_related('schedules').results[0]
 
         with self.current_user(org_user.username, user_password):
-            # test create
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                schedules_pg.post()
             # test get
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 schedule_pg.get()
@@ -2304,6 +2301,9 @@ class Test_Schedules_RBAC(Base_Api_Test):
                 schedule_pg.put()
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 schedule_pg.patch()
+            # test create
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedules_pg.post()
             # test delete
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 schedule_pg.delete()
