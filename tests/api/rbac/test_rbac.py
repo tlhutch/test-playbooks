@@ -825,7 +825,7 @@ class Test_Project_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     update_pg.cancel()
-                # wait for project to finish for ensure clean teardown
+                # wait for project to finish to ensure clean teardown
                 update_pg.wait_until_completed()
             else:
                 raise ValueError("Received unhandled project role.")
@@ -851,7 +851,7 @@ class Test_Project_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     update_pg.delete()
-                # wait for project to finish for ensure clean teardown
+                # wait for project to finish to ensure clean teardown
                 update_pg.wait_until_completed()
             else:
                 raise ValueError("Received unhandled project role.")
@@ -1513,10 +1513,10 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     job_pg.cancel()
-                # wait for job to finish for ensure clean teardown
+                # wait for job to finish to ensure clean teardown
                 job_pg.wait_until_completed()
             else:
-                raise ValueError("Received unhandled inventory role.")
+                raise ValueError("Received unhandled job_template role.")
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_delete_job(self, factories, user_password, role):
@@ -1539,10 +1539,10 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     job_pg.delete()
-                # wait for project to finish for ensure clean teardown
+                # wait for project to finish to ensure clean teardown
                 job_pg.wait_until_completed()
             else:
-                raise ValueError("Received unhandled project role.")
+                raise ValueError("Received unhandled job template role.")
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_job_user_capabilities(self, factories, user_password, role):
@@ -1862,7 +1862,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled inventory role.")
 
-    #FIXME: test cancel update
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_cancel_update(self, factories, aws_inventory_source, user_password, role):
         """Tests that the same roles that allow for inventory updates also allow for
@@ -1885,10 +1884,10 @@ class Test_Inventory_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     update_pg.cancel()
-                # wait for inventory update to finish for ensure clean teardown
+                # wait for inventory update to finish to ensure clean teardown
                 update_pg.wait_until_completed()
             else:
-                raise ValueError("Received unhandled project role.")
+                raise ValueError("Received unhandled inventory role.")
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_delete_update(self, factories, custom_inventory_source, user_password, role):
@@ -1902,7 +1901,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         inventory_pg = custom_inventory_source.get_related('inventory')
         set_roles(user_pg, inventory_pg, [role])
 
-        # launch cloud update
+        # launch inventory update
         update_pg = custom_inventory_source.update()
 
         with self.current_user(username=user_pg.username, password=user_password):
@@ -1911,10 +1910,10 @@ class Test_Inventory_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     update_pg.delete()
-                # wait for inventory update to finish for ensure clean teardown
+                # wait for inventory update to finish to ensure clean teardown
                 update_pg.wait_until_completed()
             else:
-                raise ValueError("Received unhandled project role.")
+                raise ValueError("Received unhandled inventory role.")
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_update_user_capabilities(self, factories, custom_inventory_source, user_password, role):
@@ -2045,7 +2044,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     command_pg.delete()
-                # wait for ad hoc command to finish for ensure clean teardown
+                # wait for ad hoc command to finish to ensure clean teardown
                 command_pg.wait_until_completed()
             else:
                 raise ValueError("Received unhandled inventory role.")
