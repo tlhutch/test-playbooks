@@ -22,7 +22,7 @@ inventory_update:
   ad hoc: {delete: false, start: false}
   admin: {delete: true, start: true}
   read: {delete: false, start: false}
-  update: {delete: false, start: true} # delete?
+  update: {delete: false, start: true}
   use: {delete: false, start: false}
 job:
   admin: {delete: false, start: true}
