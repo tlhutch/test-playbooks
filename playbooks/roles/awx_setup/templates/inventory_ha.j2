@@ -18,12 +18,6 @@ localhost ansible_connection=local
 {% if admin_password is defined %}
 admin_password='{{admin_password}}'
 {% endif %}
-{% if munin_password is defined %}
-munin_password='{{munin_password}}'
-{% endif %}
-{% if redis_password is defined %}
-redis_password='{{redis_password}}'
-{% endif %}
 
 
 pg_host="{{ groups['database'][0] }}"
