@@ -462,7 +462,11 @@ def test_job_template_post_request_without_network_credential_access(
 @pytest.mark.destructive
 class Test_Organization_RBAC(Base_Api_Test):
 
+<<<<<<< HEAD
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+=======
+    pytestmark = pytest.mark.usefixtures('authtoken')
+>>>>>>> 41d8072... Created org_admin job and command deletion tests
 
     def test_unprivileged_user(self, factories, user_password):
         '''
@@ -648,7 +652,11 @@ class Test_Organization_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Project_RBAC(Base_Api_Test):
 
+<<<<<<< HEAD
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+=======
+    pytestmark = pytest.mark.usefixtures('authtoken')
+>>>>>>> 41d8072... Created org_admin job and command deletion tests
 
     def test_unprivileged_user(self, factories, user_password):
         '''
@@ -878,7 +886,11 @@ class Test_Project_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Credential_RBAC(Base_Api_Test):
 
+<<<<<<< HEAD
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+=======
+    pytestmark = pytest.mark.usefixtures('authtoken')
+>>>>>>> 41d8072... Created org_admin job and command deletion tests
 
     def test_unprivileged_user(self, factories, user_password):
         '''
@@ -1061,7 +1073,11 @@ class Test_Credential_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Team_RBAC(Base_Api_Test):
 
+<<<<<<< HEAD
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+=======
+    pytestmark = pytest.mark.usefixtures('authtoken')
+>>>>>>> 41d8072... Created org_admin job and command deletion tests
 
     def test_unprivileged_user(self, factories, user_password):
         '''
@@ -1191,7 +1207,11 @@ class Test_Team_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Inventory_Script_RBAC(Base_Api_Test):
 
+<<<<<<< HEAD
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+=======
+    pytestmark = pytest.mark.usefixtures('authtoken')
+>>>>>>> 41d8072... Created org_admin job and command deletion tests
 
     def test_unprivileged_user(self, factories, inventory_script, user_password):
         '''
@@ -1287,7 +1307,11 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Job_Template_RBAC(Base_Api_Test):
 
+<<<<<<< HEAD
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+=======
+    pytestmark = pytest.mark.usefixtures('authtoken')
+>>>>>>> 41d8072... Created org_admin job and command deletion tests
 
     def test_unprivileged_user(self, factories, user_password):
         '''
@@ -1518,31 +1542,64 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled job_template role.")
 
-    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
-    def test_delete_job(self, factories, user_password, role):
-        """Tests ability to delete a job."""
-        ALLOWED_ROLES = []
-        REJECTED_ROLES = ['admin', 'execute', 'read']
+    def test_delete_job_as_org_admin(self, factories, user_password):
+        """Create a run and a scan JT and an org_admin for each of these JTs. Then check
+        that each org_admin may only delete his org's job.
 
+        Note: job deletion RBAC is organization scoped. A run JT's project determines its
+        organization and a scan JT's inventory determines its organization.
+        """
+        # create two JTs
+        run_job_template = factories.job_template()
+        scan_job_template = factories.job_template(job_type="scan", project=None)
+
+        # set test orgs
+        run_jt_org = run_job_template.get_related('project').get_related('organization')
+        scan_jt_org = scan_job_template.get_related('inventory').get_related('organization')
+
+        # sanity check
+        assert run_jt_org.id != scan_jt_org.id, "Test JTs unexpectedly in the same organization."
+
+        # create org_admins
+        org_admin1 = factories.user(organization=run_jt_org)
+        org_admin2 = factories.user(organization=scan_jt_org)
+        set_roles(org_admin1, run_jt_org, ['admin'])
+        set_roles(org_admin2, scan_jt_org, ['admin'])
+
+        # launch JTs
+        run_job = run_job_template.launch()
+        scan_job = scan_job_template.launch()
+
+        # assert that each org_admin cannot delete other organization's job
+        with self.current_user(username=org_admin1.username, password=user_password):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                scan_job.delete()
+        with self.current_user(username=org_admin2.username, password=user_password):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                run_job.delete()
+
+        # assert that each org_admin can delete his own organization's job
+        with self.current_user(username=org_admin1.username, password=user_password):
+            run_job.delete()
+        with self.current_user(username=org_admin2.username, password=user_password):
+            scan_job.delete()
+
+    def test_delete_job_as_org_user(self, factories, user_password):
+        """Tests ability to delete a job as a privileged org_user."""
         job_template_pg = factories.job_template()
         user_pg = factories.user()
 
         # give test user target role privileges
-        set_roles(user_pg, job_template_pg, [role])
+        set_roles(user_pg, job_template_pg, ['admin'])
 
         # launch job_template
         job_pg = job_template_pg.launch()
 
         with self.current_user(username=user_pg.username, password=user_password):
-            if role in ALLOWED_ROLES:
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 job_pg.delete()
-            elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
-                    job_pg.delete()
-                # wait for project to finish to ensure clean teardown
-                job_pg.wait_until_completed()
-            else:
-                raise ValueError("Received unhandled job template role.")
+            # wait for project to finish to ensure clean teardown
+            job_pg.wait_until_completed()
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_job_user_capabilities(self, factories, user_password, role):
@@ -1565,7 +1622,11 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Inventory_RBAC(Base_Api_Test):
 
+<<<<<<< HEAD
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+=======
+    pytestmark = pytest.mark.usefixtures('authtoken')
+>>>>>>> 41d8072... Created org_admin job and command deletion tests
 
     def test_unprivileged_user(self, host_local, aws_inventory_source, custom_group, user_password, factories):
         '''
@@ -2019,18 +2080,62 @@ class Test_Inventory_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled inventory role.")
 
-    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_delete_command(self, factories, user_password, role):
-        """Tests ability to delete an ad hoc command."""
-        ALLOWED_ROLES = []
-        REJECTED_ROLES = ['admin', 'use', 'ad hoc', 'update', 'read']
+    def test_delete_command_as_org_admin(self, factories, user_password):
+        """Create and run two ad hoc commands and an org_admin for each of these commands.
+        Then check that each org_admin may only delete his org's command.
 
+        Note: command deletion RBAC is organization scoped. A command's inventory determines
+        its organization.
+        """
+        # create items for command payloads
+        inventory1 = factories.inventory()
+        inventory2 = factories.inventory()
+        inv_org1 = inventory1.get_related('organization')
+        inv_org2 = inventory2.get_related('organization')
+        credential1 = factories.credential(organization=inv_org1)
+        credential2 = factories.credential(organization=inv_org2)
+
+        # sanity check
+        assert inv_org1.id != inv_org2, "Test inventories unexpectedly in the same organization."
+
+        # create org_admins
+        org_admin1 = factories.user()
+        org_admin2 = factories.user()
+        set_roles(org_admin1, inv_org1, ['admin'])
+        set_roles(org_admin2, inv_org2, ['admin'])
+
+        # launch both commands
+        payload = dict(inventory=inventory1.id,
+                       credential=credential1.id,
+                       module_name="ping")
+        command1_pg = inventory1.get_related('ad_hoc_commands').post(payload)
+        payload = dict(inventory=inventory2.id,
+                       credential=credential2.id,
+                       module_name="ping")
+        command2_pg = inventory2.get_related('ad_hoc_commands').post(payload)
+
+        # assert that each org_admin cannot delete other organization's command
+        with self.current_user(username=org_admin1.username, password=user_password):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                command2_pg.delete()
+        with self.current_user(username=org_admin2.username, password=user_password):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                command1_pg.delete()
+
+        # assert that each org_admin can delete his own organization's command
+        with self.current_user(username=org_admin1.username, password=user_password):
+            command1_pg.delete()
+        with self.current_user(username=org_admin2.username, password=user_password):
+            command2_pg.delete()
+
+    def test_delete_command_as_org_user(self, factories, user_password):
+        """Tests ability to delete an ad hoc command as a privileged org_user."""
         inventory_pg = factories.inventory()
         user_pg = factories.user()
         credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give test user target role privileges
-        set_roles(user_pg, inventory_pg, [role])
+        set_roles(user_pg, inventory_pg, ['admin'])
 
         # launch command
         payload = dict(inventory=inventory_pg.id,
@@ -2039,15 +2144,10 @@ class Test_Inventory_RBAC(Base_Api_Test):
         command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload)
 
         with self.current_user(username=user_pg.username, password=user_password):
-            if role in ALLOWED_ROLES:
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
                 command_pg.delete()
-            elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
-                    command_pg.delete()
-                # wait for ad hoc command to finish to ensure clean teardown
-                command_pg.wait_until_completed()
-            else:
-                raise ValueError("Received unhandled inventory role.")
+            # wait for ad hoc command to finish to ensure clean teardown
+            command_pg.wait_until_completed()
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_command_user_capabilities(self, factories, user_password, role):
@@ -2075,7 +2175,11 @@ class Test_Inventory_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Notification_Template_RBAC(Base_Api_Test):
 
+<<<<<<< HEAD
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+=======
+    pytestmark = pytest.mark.usefixtures('authtoken')
+>>>>>>> 41d8072... Created org_admin job and command deletion tests
 
     def test_notification_template_create_as_unprivileged_user(self, email_notification_template_payload, api_notification_templates_pg,
                                                                unprivileged_user, user_password):
@@ -2200,7 +2304,11 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Notifications_RBAC(Base_Api_Test):
 
+<<<<<<< HEAD
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+=======
+    pytestmark = pytest.mark.usefixtures('authtoken')
+>>>>>>> 41d8072... Created org_admin job and command deletion tests
 
     def test_notification_read_as_unprivileged_user(self, email_notification_template, unprivileged_user, user_password):
         '''
@@ -2241,7 +2349,11 @@ class Test_Notifications_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Label_RBAC(Base_Api_Test):
 
+<<<<<<< HEAD
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+=======
+    pytestmark = pytest.mark.usefixtures('authtoken')
+>>>>>>> 41d8072... Created org_admin job and command deletion tests
 
     @pytest.mark.parametrize('role', ['admin', 'auditor', 'read', 'member'])
     def test_organization_label_post(self, factories, user_password, api_labels_pg, role):
@@ -2343,7 +2455,7 @@ class Test_User_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_System_Jobs_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken')
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_get_as_superuser(self, system_job):
@@ -2376,7 +2488,7 @@ class Test_System_Jobs_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Schedules_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken')
 
     def test_crud_as_superuser(self, resource_with_schedule):
         """Tests schedule CRUD as superuser against all UJTs that support schedules.
