@@ -1,0 +1,45 @@
+{% if 'ha_installer' in groups %}
+[tower]
+{% for host in groups['tower'] %}
+{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
+{% endfor %}
+
+[database]
+{% for host in groups['database'] %}
+{% if host == '127.0.0.1' %}
+{{ host }} ansible_python_interpreter=${VIRTUAL_ENV-/usr}/bin/python
+{% else %}
+{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
+{% endif %}
+{% endfor %}
+{% else %}
+[tower]
+localhost ansible_connection=local
+{# {{ inventory_hostname }} ansible_ssh_user={{ hostvars[inventory_hostname]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[inventory_hostname]['ansible_ssh_host'] }} #}
+{% endif %}
+
+[all:vars]
+{% if admin_password is defined %}
+admin_password='{{admin_password}}'
+{% endif %}
+{% if munin_password is defined %}
+munin_password='{{munin_password}}'
+{% endif %}
+{% if redis_password is defined %}
+redis_password='{{redis_password}}'
+{% endif %}
+
+
+pg_host="{{ groups['database'][0] }}"
+pg_port="{{ pg_port | default('5432') }}"
+pg_database="{{ pg_database }}"
+pg_username="{{ pg_username }}"
+pg_password="{{ pg_password }}"
+
+rabbitmq_port={{ rabbitmq_port | default(5672) }}
+rabbitmq_vhost="{{ rabbitmq_vhost | default('tower') }}"
+rabbitmq_username="{{ rabbitmq_username | default('tower') }}"
+rabbitmq_password="{{ rabbitmq_password | default('tower') }}"
+rabbitmq_cookie=cookiemonster
+rabbitmq_use_long_name=true
+rabbitmq_enable_manager=true
