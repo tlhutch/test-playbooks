@@ -655,7 +655,7 @@ class Test_Project_RBAC(Base_Api_Test):
         An unprivileged user/team should not be able to:
         * GET our project detail page
         * GET all project related pages
-        * Use our project in a JT
+        * Launch project updates
         * Edit our project
         * Delete our project
         '''
@@ -1498,7 +1498,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         ALLOWED_ROLES = ['admin', 'execute']
         REJECTED_ROLES = ['read']
 
-        job_template_pg = factories.job_template(playbook='sleep.yml')
+        job_template_pg = factories.job_template(playbook='sleep.yml', extra_vars=dict(sleep_interval=10))
         user_pg = factories.user()
 
         # give test user target role privileges
@@ -1522,7 +1522,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         """Create a run and a scan JT and an org_admin for each of these JTs. Then check
         that each org_admin may only delete his org's job.
 
-        Note: job deletion permissions are organization scoped. A run JT's project determines its
+        Note: job deletion is organization scoped. A run JT's project determines its
         organization and a scan JT's inventory determines its organization.
         """
         # create two JTs
@@ -1605,7 +1605,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
         * Get all of the inventory get_related
         * Update all groups that the inventory contains
         * Launch ad hoc commands against the inventory
-        * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
         '''
@@ -1645,7 +1644,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(custom_group, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3493')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, host_local, set_test_roles, agent, user_password, factories):
         '''
@@ -1756,7 +1754,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(group_pg, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3493')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_update_role(self, host_local, set_test_roles, agent, user_password, factories):
         '''
@@ -2013,8 +2010,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             if role in ALLOWED_ROLES:
-                relaunched_command_pg = command_pg.relaunch()
-                assert relaunched_command_pg.is_successful, "Command unsuccessful - %s." % command_pg
+                relaunched_command = command_pg.relaunch().wait_until_completed()
+                assert relaunched_command.is_successful, "Command unsuccessful - %s." % command_pg
             elif role in REJECTED_ROLES:
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     command_pg.relaunch()
@@ -2038,7 +2035,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         # launch command
         payload = dict(inventory=inventory_pg.id,
                        credential=credential_pg.id,
-                       module_args="sleep 30")
+                       module_args="sleep 10")
         command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload)
 
         with self.current_user(username=user_pg.username, password=user_password):
@@ -2051,11 +2048,11 @@ class Test_Inventory_RBAC(Base_Api_Test):
                 raise ValueError("Received unhandled inventory role.")
 
     def test_delete_command_as_org_admin(self, factories, user_password):
-        """Create run two ad hoc commands and an org_admin for each of these commands.
+        """Create two ad hoc commands and an org_admin for each of these commands.
         Then check that each org_admin may only delete his org's command.
 
-        Note: command deletion permissions are organization scoped. A command's inventory
-        determines its organization.
+        Note: command deletion is organization scoped. A command's inventory determines
+        its organization.
         """
         # create items for command payloads
         inventory1 = factories.inventory()
@@ -2078,25 +2075,25 @@ class Test_Inventory_RBAC(Base_Api_Test):
         payload = dict(inventory=inventory1.id,
                        credential=credential1.id,
                        module_name="ping")
-        command1_pg = inventory1.get_related('ad_hoc_commands').post(payload)
+        command1 = inventory1.get_related('ad_hoc_commands').post(payload)
         payload = dict(inventory=inventory2.id,
                        credential=credential2.id,
                        module_name="ping")
-        command2_pg = inventory2.get_related('ad_hoc_commands').post(payload)
+        command2 = inventory2.get_related('ad_hoc_commands').post(payload)
 
         # assert that each org_admin cannot delete other organization's command
         with self.current_user(username=org_admin1.username, password=user_password):
             with pytest.raises(qe.exceptions.Forbidden_Exception):
-                command2_pg.delete()
+                command2.delete()
         with self.current_user(username=org_admin2.username, password=user_password):
             with pytest.raises(qe.exceptions.Forbidden_Exception):
-                command1_pg.delete()
+                command1.delete()
 
         # assert that each org_admin can delete his own organization's command
         with self.current_user(username=org_admin1.username, password=user_password):
-            command1_pg.delete()
+            command1.delete()
         with self.current_user(username=org_admin2.username, password=user_password):
-            command2_pg.delete()
+            command2.delete()
 
     def test_delete_command_as_org_user(self, factories, user_password):
         """Tests ability to delete an ad hoc command as a privileged org_user."""
@@ -2432,7 +2429,6 @@ class Test_System_Jobs_RBAC(Base_Api_Test):
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     api_system_jobs_pg.get(id=system_job.id)
 
-    #FIXME: does this actually clean up anything?
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3576')
     def test_user_capabilities_as_superuser(self, cleanup_jobs_with_status_completed):
         '''

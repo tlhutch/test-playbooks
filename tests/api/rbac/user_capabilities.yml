@@ -29,7 +29,7 @@ job:
   execute: {delete: false, start: true}
   read: {delete: false, start: false}
 job_template:
-  admin: {copy: true, delete: true, edit: true, schedule: true, start: true}
+  admin: {copy: false, delete: true, edit: true, schedule: true, start: true}
   execute: {copy: false, delete: false, edit: false, schedule: false, start: true}
   read: {copy: false, delete: false, edit: false, schedule: false, start: false}
 notification_template:
