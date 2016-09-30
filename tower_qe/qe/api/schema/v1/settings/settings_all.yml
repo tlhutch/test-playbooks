@@ -4,6 +4,7 @@ id: '/api/v1/settings/all/'
 type: object
 additionalProperties: false
 properties:
+  foo
   ACTIVITY_STREAM_ENABLED: {type: boolean}
   ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC: {type: boolean}
   ORG_ADMINS_CAN_SEE_ALL_USERS: {type: boolean}

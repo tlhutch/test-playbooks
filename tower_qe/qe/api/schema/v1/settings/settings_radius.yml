@@ -1,1 +1,18 @@
 ---
+schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/settings/radius/'
+additionalProperties: false
+properties:
+  RADIUS_SERVER: {type: string}
+  RADIUS_PORT: 
+  RADIUS_SECRET: {type: string}
+required: [RADIUS_SERVER, RADIUS_PORT, RADIUS_SECRET]
+type: object
+
+'''
+{
+    "RADIUS_SERVER": "",
+    "RADIUS_PORT": 1812,
+    "RADIUS_SECRET": ""
+}
+'''

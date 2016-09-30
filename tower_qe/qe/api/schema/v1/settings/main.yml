@@ -16,9 +16,9 @@ properties:
     uniqueItems: true
     items:
       additionalProperties: false
+      properties:
         url: {format: uri, type: string}
         slug: {type: string}
         name: {type: string} 
       required: [url, slug, name]
-definitions:
-  !include '../definitions/*.yml'
+      type: object

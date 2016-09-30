@@ -110,7 +110,7 @@ class Awx_Schema_Settings_All(Awx_Schema):
 
 
 class Awx_Schema_Settings_Authentication(Awx_Schema):
-    resources = resources.v1_settings_authentication
+    resource = resources.v1_settings_authentication
 
     @property
     def get(self):
@@ -126,7 +126,7 @@ class Awx_Schema_Settings_Authentication(Awx_Schema):
 
 
 class Awx_Schema_Settings_Changed(Awx_Schema):
-    resources = resources.v1_settings_changed
+    resource = resources.v1_settings_changed
 
     @property
     def get(self):
@@ -142,7 +142,7 @@ class Awx_Schema_Settings_Changed(Awx_Schema):
 
 
 class Awx_Schema_Settings_Github(Awx_Schema):
-    resources = resources.v1_settings_github
+    resource = resources.v1_settings_github
 
     @property
     def get(self):
@@ -158,7 +158,7 @@ class Awx_Schema_Settings_Github(Awx_Schema):
 
 
 class Awx_Schema_Settings_Github_Org(Awx_Schema):
-    resources = resources.v1_settings_github_org
+    resource = resources.v1_settings_github_org
 
     @property
     def get(self):
@@ -174,7 +174,7 @@ class Awx_Schema_Settings_Github_Org(Awx_Schema):
 
 
 class Awx_Schema_Settings_Github_Team(Awx_Schema):
-    resources = resources.v1_settings_github_team
+    resource = resources.v1_settings_github_team
 
     @property
     def get(self):
@@ -189,8 +189,8 @@ class Awx_Schema_Settings_Github_Team(Awx_Schema):
         return self.load_file('settings/settings_github_team.yml')
 
 
-class Awx_Schema_Settings_Google_Oauth2(Awx_Schema):
-    resources = resources.v1_settings_google_oauth2
+class Awx_Schema_Settings_Google_OAuth2(Awx_Schema):
+    resource = resources.v1_settings_google_oauth2
 
     @property
     def get(self):
@@ -206,7 +206,7 @@ class Awx_Schema_Settings_Google_Oauth2(Awx_Schema):
 
 
 class Awx_Schema_Settings_Jobs(Awx_Schema):
-    resources = resources.v1_settings_jobs
+    resource = resources.v1_settings_jobs
 
     @property
     def get(self):
@@ -221,8 +221,8 @@ class Awx_Schema_Settings_Jobs(Awx_Schema):
         return self.load_file('settings/settings_jobs.yml')
 
 
-class Awx_Schema_Settings_Ldap(Awx_Schema):
-    resources = resources.v1_settings_ldap
+class Awx_Schema_Settings_LDAP(Awx_Schema):
+    resource = resources.v1_settings_ldap
 
     @property
     def get(self):
@@ -237,8 +237,8 @@ class Awx_Schema_Settings_Ldap(Awx_Schema):
         return self.load_file('settings/settings_ldap.yml')
 
 
-class Awx_Schema_Settings_Radius(Awx_Schema):
-    resources = resources.v1_settings_radius
+class Awx_Schema_Settings_RADIUS(Awx_Schema):
+    resource = resources.v1_settings_radius
 
     @property
     def get(self):
@@ -253,8 +253,8 @@ class Awx_Schema_Settings_Radius(Awx_Schema):
         return self.load_file('settings/settings_radius.yml')
 
 
-class Awx_Schema_Settings_Saml(Awx_Schema):
-    resources = resources.v1_settings_saml
+class Awx_Schema_Settings_SAML(Awx_Schema):
+    resource = resources.v1_settings_saml
 
     @property
     def get(self):
@@ -270,7 +270,7 @@ class Awx_Schema_Settings_Saml(Awx_Schema):
 
 
 class Awx_Schema_Settings_System(Awx_Schema):
-    resources = resources.v1_settings_system
+    resource = resources.v1_settings_system
 
     @property
     def get(self):
@@ -285,8 +285,8 @@ class Awx_Schema_Settings_System(Awx_Schema):
         return self.load_file('settings/settings_system.yml')
 
 
-class Awx_Schema_Settings_Ui(Awx_Schema):
-    resources = resources.v1_settings_ui
+class Awx_Schema_Settings_UI(Awx_Schema):
+    resource = resources.v1_settings_ui
 
     @property
     def get(self):
@@ -302,7 +302,7 @@ class Awx_Schema_Settings_Ui(Awx_Schema):
 
 
 class Awx_Schema_Settings_User(Awx_Schema):
-    resources = resources.v1_settings_user
+    resource = resources.v1_settings_user
 
     @property
     def get(self):
@@ -318,7 +318,7 @@ class Awx_Schema_Settings_User(Awx_Schema):
 
 
 class Awx_Schema_Settings_User_Defaults(Awx_Schema):
-    resources = resources.v1_settings_user_defaults
+    resource = resources.v1_settings_user_defaults
 
     @property
     def get(self):
