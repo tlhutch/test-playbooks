@@ -1,5 +1,7 @@
 ---
-
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/settings/ldap/'
+type: object
 additionalProperties: false
 properties:
   AUTH_LDAP_SERVER_URI: {type: string}
@@ -7,41 +9,25 @@ properties:
   AUTH_LDAP_BIND_PASSWORD: {type: string}
   AUTH_LDAP_START_TLS: {type: boolean}
   AUTH_LDAP_CONNECTION_OPTIONS:
-    additionalProperties:
     properties:
-      OPT_REFERRALS:
+      OPT_REFERRALS: {minimum: 0, type: number}
     required: [OPT_REFERRALS]
     type: object
   AUTH_LDAP_USER_SEARCH:
+    type: array
+    minItems: 0
+    uniqueItems: true
   AUTH_LDAP_USER_DN_TEMPLATE: {type: string}
   AUTH_LDAP_USER_ATTR_MAP: {type: object}
   AUTH_LDAP_GROUP_SEARCH:
-  AUTH_LDAP_GROUP_TYPE:
+    type: array
+    minItems: 0
+    uniqueItems: true
+  AUTH_LDAP_GROUP_TYPE: {type: 'null'}
   AUTH_LDAP_REQUIRE_GROUP: {type: string}
   AUTH_LDAP_DENY_GROUP: {type: string}
   AUTH_LDAP_USER_FLAGS_BY_GROUP: {type: object}
   AUTH_LDAP_ORGANIZATION_MAP: {type: object}
   AUTH_LDAP_TEAM_MAP: {type: object}
-required: []
+required: [AUTH_LDAP_SERVER_URI, AUTH_LDAP_BIND_DN, AUTH_LDAP_BIND_PASSWORD, AUTH_LDAP_START_TLS, AUTH_LDAP_CONNECTION_OPTIONS, AUTH_LDAP_USER_SEARCH, AUTH_LDAP_USER_DN_TEMPLATE, AUTH_LDAP_USER_ATTR_MAP, AUTH_LDAP_GROUP_SEARCH, AUTH_LDAP_GROUP_TYPE, AUTH_LDAP_REQUIRE_GROUP, AUTH_LDAP_DENY_GROUP, AUTH_LDAP_USER_FLAGS_BY_GROUP, AUTH_LDAP_ORGANIZATION_MAP, AUTH_LDAP_TEAM_MAP]
 type: object
-'''
-{
-    "AUTH_LDAP_SERVER_URI": "None",
-    "AUTH_LDAP_BIND_DN": "",
-    "AUTH_LDAP_BIND_PASSWORD": "",
-    "AUTH_LDAP_START_TLS": false,
-    "AUTH_LDAP_CONNECTION_OPTIONS": {
-        "OPT_REFERRALS": 0
-    },
-    "AUTH_LDAP_USER_SEARCH": [],
-    "AUTH_LDAP_USER_DN_TEMPLATE": "",
-    "AUTH_LDAP_USER_ATTR_MAP": {},
-    "AUTH_LDAP_GROUP_SEARCH": [],
-    "AUTH_LDAP_GROUP_TYPE": null,
-    "AUTH_LDAP_REQUIRE_GROUP": "",
-    "AUTH_LDAP_DENY_GROUP": "",
-    "AUTH_LDAP_USER_FLAGS_BY_GROUP": {},
-    "AUTH_LDAP_ORGANIZATION_MAP": {},
-    "AUTH_LDAP_TEAM_MAP": {}
-}
-'''

@@ -5,44 +5,25 @@ type: object
 additionalProperties: false
 properties:
   AD_HOC_COMMANDS:
+    type: array
+    minItems: 0
+    uniqueItems: true
+    items:
+      type: string  
   AWX_PROOT_ENABLED: {type: boolean}
   AWX_PROOT_BASE_PATH: {type: string}
   AWX_PROOT_HIDE_PATHS:
+    type: array
+    minItems: 0
+    uniqueItems: true
   AWX_PROOT_SHOW_PATHS:
-  STDOUT_MAX_BYTES_DISPLAY:
-  SCHEDULE_MAX_JOBS:
+    type: array
+    minItems: 0
+    uniqueItems: true
+  STDOUT_MAX_BYTES_DISPLAY: {type: number, minimum: 0}
+  SCHEDULE_MAX_JOBS: {type: number, minimum: 1}
   AWX_ANSIBLE_CALLBACK_PLUGINS:
+    type: array
+    minItems: 0
+    uniqueItems: true
 required: [AD_HOC_COMMANDS, AWX_PROOT_ENABLED, AWX_PROOT_BASE_PATH, AWX_PROOT_HIDE_PATHS, AWX_PROOT_SHOW_PATHS, STDOUT_MAX_BYTES_DISPLAY, SCHEDULE_MAX_JOBS, AWX_ANSIBLE_CALLBACK_PLUGINS]
-
-'''
-{
-    "AD_HOC_COMMANDS": [
-        "command",
-        "shell",
-        "yum",
-        "apt",
-        "apt_key",
-        "apt_repository",
-        "apt_rpm",
-        "service",
-        "group",
-        "user",
-        "mount",
-        "ping",
-        "selinux",
-        "setup",
-        "win_ping",
-        "win_service",
-        "win_updates",
-        "win_group",
-        "win_user"
-    ],
-    "AWX_PROOT_ENABLED": true,
-    "AWX_PROOT_BASE_PATH": "/tmp",
-    "AWX_PROOT_HIDE_PATHS": [],
-    "AWX_PROOT_SHOW_PATHS": [],
-    "STDOUT_MAX_BYTES_DISPLAY": 1048576,
-    "SCHEDULE_MAX_JOBS": 10,
-    "AWX_ANSIBLE_CALLBACK_PLUGINS": []
-}
-'''

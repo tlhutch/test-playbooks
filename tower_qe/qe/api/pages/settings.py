@@ -10,4 +10,4 @@ class Settings_Page(base.Base):
         base_url = '/api/v1/settings/%s/' % endpoint
         return self.walk(base_url)
 
-base.register_page([resources.v1_settings, Settings_Page)
+base.register_page(resources.v1_settings, Settings_Page)

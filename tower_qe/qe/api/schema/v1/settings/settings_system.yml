@@ -1,19 +1,21 @@
 ---
-
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/settings/'
+type: object
 additionalProperties: false
 properties:
   ACTIVITY_STREAM_ENABLED: {type: boolean}
   ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC: {type: boolean}
   ORG_ADMINS_CAN_SEE_ALL_USERS: {type: boolean}
   TOWER_ADMIN_ALERTS: {type: boolean}
-  TOWER_URL_BASE:
+  TOWER_URL_BASE: {format: uri, type: string}
   REMOTE_HOST_HEADERS:
-  LICENSE:
-    additionalProperties: false
-    properties:
-     
-    required: []
-    type: object
+    type: array
+    minItems: 0
+    uniqueItems: true
+    items:
+      type: string
+  LICENSE: {type: object}
 required: [ACTIVITY_STREAM_ENABLED, ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC, ORG_ADMINS_CAN_SEE_ALL_USERS, TOWER_ADMIN_ALERTS, TOWER_URL_BASE, REMOTE_HOST_HEADERS, LICENSE]
 type: object  
 
