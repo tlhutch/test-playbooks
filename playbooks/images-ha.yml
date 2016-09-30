@@ -1,7 +1,7 @@
 ---
 instance_name_prefix: "{{ lookup('env','USER') }}-tower-ha"
-
 my_inventory_file: '{{inventory_dir}}/inventory.ha'
+ha_install: true
 
 #
 # Images used for HA testing
