@@ -1,6 +1,9 @@
 # Whether to upgrade an existing awx installation
 awx_upgrade: false
 
+# Whether to run an HA installation
+ha_install: false
+
 # Choose location for ansible-tower package repository
 aw_repo_url: 'http://jenkins.testing.ansible.com/ansible-tower_nightlies_RTYUIOPOIUYTYU'
 # aw_repo_url: 'http://releases.ansible.com/ansible-tower'

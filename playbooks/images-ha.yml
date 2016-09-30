@@ -8,16 +8,15 @@ my_inventory_file: '{{inventory_dir}}/inventory.ha'
 #
 
 ec2_images:
-    - {'name': 'ha-primary-centos-6.latest-x86_64', 'user': 'centos',   'id': 'ami-57cd8732', 'type': 'm3.large', 'groups': 'primary',   'security_group': 'Tower'}
-    - {'name': 'ha-secondary-rhel-6.7-x86_64',      'user': 'ec2-user', 'id': 'ami-0d28fe66', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
-    - {'name': 'ha-secondary-rhel-7.2-x86_64',      'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
-    - {'name': 'ha-secondary-ubuntu-12.04-x86_64',  'user': 'ubuntu',   'id': 'ami-c3f1d4a9', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
-    - {'name': 'ha-secondary-ubuntu-14.04-x86_64',  'user': 'ubuntu',   'id': 'ami-20d3fc4a', 'type': 'm3.large', 'groups': 'secondary', 'security_group': 'Tower'}
-    - {'name': 'ha-mongo-centos-7.latest-x86_64',   'user': 'centos',   'id': 'ami-61bbf104', 'type': 'm3.large', 'groups': 'mongodb',   'security_group': 'MongoDB'}
+    - {'name': 'ha-1-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'ha_installer,tower', 'security_group': 'tower-ha'}
+    - {'name': 'ha-2-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'tower-ha'}
+    - {'name': 'ha-3-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'tower-ha'}
+    #- {'name': 'ha-4-ubuntu-14.04-x86_64',  'user': 'ubuntu',   'id': 'ami-20d3fc4a', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'tower-ha'}
+    - {'name': 'ha-pg-rhel-7.2.-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'database',   'security_group': 'tower-ha'}
 
 ec2_security_groups:
-    - name: Tower
-      description: Security group for Tower instances
+    - name: tower-ha
+      description: Security group for Tower HA instances
       rules:
         - proto: tcp
           from_port: 80
@@ -28,31 +27,40 @@ ec2_security_groups:
           to_port: 22
           cidr_ip: 0.0.0.0/0
         - proto: tcp
+          from_port: 389
+          to_port: 389
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
           from_port: 443
           to_port: 443
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 4369
+          to_port: 4369
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 5432
+          to_port: 5432
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 5672
+          to_port: 5672
           cidr_ip: 0.0.0.0/0
         - proto: tcp
           from_port: 8080
           to_port: 8080
           cidr_ip: 0.0.0.0/0
-
-    - name: MongoDB
-      description: Security group for MongoDB instances
-      rules:
         - proto: tcp
-          from_port: 22
-          to_port: 22
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 27017
-          to_port: 27017
+          from_port: 25672
+          to_port: 25672
           cidr_ip: 0.0.0.0/0
 
-rds_images:
-    - name: 'tower'
-      db_name: 'awx'
-      db_engine: '{{rds_db_engine}}'
-      engine_version: '{{rds_engine_version}}'
-      instance_type: '{{rds_instance_type}}'
-      size: '{{rds_size}}'
-      groups: 'postgres'
+# HA installer installs postgres so this should be done manually atm
+# rds_images:
+#     - name: 'tower'
+#       db_name: 'awx'
+#       db_engine: '{{rds_db_engine}}'
+#       engine_version: '{{rds_engine_version}}'
+#       instance_type: '{{rds_instance_type}}'
+#       size: '{{rds_size}}'
+#       groups: 'postgres'

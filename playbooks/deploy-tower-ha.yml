@@ -9,18 +9,18 @@
       my_inventory_file: '{{inventory_dir}}/inventory.ha'
 
 - name: 'Group hosts by distribution_major_version'
-  hosts: 'primary'
+  hosts: 'tower'
   tasks:
    - name: group hosts by distribution_major_version
      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
-- name: 'Add authorized keys on secondaries'
-  hosts: 'secondary'
+- name: 'Add authorized keys on all instances'
+  hosts: 'tower,database'
   roles:
     - role: auth_keys
 
-- name: 'Install tower on primary instances'
-  hosts: 'primary'
+- name: 'Install ha tower on ha_installer instance'
+  hosts: 'ha_installer'
   gather_facts: no
   become: true
   become_method: sudo

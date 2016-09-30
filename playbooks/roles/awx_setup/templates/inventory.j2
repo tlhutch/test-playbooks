@@ -1,32 +1,10 @@
-{% if 'secondary' in groups %}
-[primary]
-{% for host in groups['primary'] %}
-{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
-{% endfor %}
-
-[secondary]
-{% for host in groups['secondary'] %}
-{% if host == '127.0.0.1' %}
-{{ host }} ansible_python_interpreter=${VIRTUAL_ENV-/usr}/bin/python
-{% else %}
-{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
-{% endif %}
-{% endfor %}
-{% else %}
-[primary]
+[tower]
 localhost ansible_connection=local
 {# {{ inventory_hostname }} ansible_ssh_user={{ hostvars[inventory_hostname]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[inventory_hostname]['ansible_ssh_host'] }} #}
-{% endif %}
 
 [all:vars]
 {% if admin_password is defined %}
 admin_password='{{admin_password}}'
-{% endif %}
-{% if munin_password is defined %}
-munin_password='{{munin_password}}'
-{% endif %}
-{% if redis_password is defined %}
-redis_password='{{redis_password}}'
 {% endif %}
 
 ## Determine if using a remote postgres instance
@@ -42,21 +20,10 @@ pg_username="{{pg_username}}"
 pg_password="{{pg_password}}"
 {% endif %}
 
-## Determine if using a remote mongo instance
-{% if 'mongodb' in groups and groups['mongodb']|length > 0 %}
-{% set mongo_host =groups['mongodb'][0] %}
-mongo_host="{{ mongo_host }}"
-mongo_port="{{ hostvars[mongo_host]['mongo_port'] }}"
-mongo_database="{{ hostvars[mongo_host]['mongo_database'] }}"
-mongo_username="{{ hostvars[mongo_host]['mongo_username'] }}"
-mongo_password="{{ hostvars[mongo_host]['mongo_password'] }}"
-{% else %}
-mongo_database="{{ mongo_database }}"
-mongo_username="{{ mongo_username }}"
-mongo_password="{{ mongo_password }}"
-{% endif %}
-
 rabbitmq_port=5672
 rabbitmq_vhost=tower
 rabbitmq_username=tower
 rabbitmq_password=tower
+rabbitmq_use_long_name=false
+rabbitmq_cookie=cookiemonster
+rabbitmq_enable_manager=false
