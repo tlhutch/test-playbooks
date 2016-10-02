@@ -1,6 +1,6 @@
 ---
 $schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/settings/github-org/'
+id: '/api/v1/settings/github-team/'
 type: object
 additionalProperties: false
 properties:

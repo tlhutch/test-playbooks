@@ -1,6 +1,6 @@
 ---
 $schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/settings/'
+id: '/api/v1/settings/system/'
 type: object
 additionalProperties: false
 properties:

@@ -10,8 +10,7 @@ properties:
   AUTH_LDAP_START_TLS: {type: boolean}
   AUTH_LDAP_CONNECTION_OPTIONS:
     properties:
-      OPT_REFERRALS: {minimum: 0, type: number}
-    required: [OPT_REFERRALS]
+      OPT_REFERRALS: {type: number}
     type: object
   AUTH_LDAP_USER_SEARCH:
     type: array
