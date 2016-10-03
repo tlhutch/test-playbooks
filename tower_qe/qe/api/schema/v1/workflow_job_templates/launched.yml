@@ -5,6 +5,6 @@ type: object
 additionalProperties: false
 required: [workflow_job]
 properties:
-  system_job:
+  workflow_job:
     type: integer
     minimum: 0
