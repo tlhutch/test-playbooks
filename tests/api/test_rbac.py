@@ -1266,6 +1266,32 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
 
+    def test_relaunch_with_ask_inventory(self, factories, user_password):
+        '''Tests relaunch RBAC when ask_inventory_on_launch is true.'''
+        job_template = factories.job_template(inventory=None, ask_inventory_on_launch=True)
+        job_template.get_related('inventory').delete()
+        credential = job_template.get_related('credential')
+        inventory = factories.inventory()
+
+        user1 = factories.user(organization=credential.get_related('organization'))
+        user2 = factories.user()
+
+        # set test permissions
+        set_roles(user1, job_template, ['execute'])
+        set_roles(user1, inventory, ['admin'])
+        set_roles(user1, credential, ['admin'])
+        set_roles(user2, job_template, ['execute'])
+
+        # launch job as user1
+        with self.current_user(username=user1.username, password=user_password):
+            payload = dict(inventory=inventory.id)
+            job_pg = job_template.launch(payload)
+
+        # relaunch as user2
+        with self.current_user(username=user2.username, password=user_password):
+            relaunch = job_pg.get_related('relaunch').post()
+            assert relaunch.inventory == inventory.id
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
