@@ -142,8 +142,7 @@
       lineinfile:
         dest: /etc/tower/conf.d/remote_host_headers.py
         line: 'REMOTE_HOST_HEADERS = []'
-        backrefs: yes
-        regexp: '^REMOTE_'
+        create: yes
       register: remote_host_headers
 
     - name: Restart Tower
