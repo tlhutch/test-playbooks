@@ -11,6 +11,8 @@ properties:
     type: array
     minItems: 0
     uniqueItems: true
+    items:
+      type: string
   SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS: {type: object}
   SOCIAL_AUTH_GOOGLE_OAUTH2_ORGANIZATION_MAP: {type: 'null'}
   SOCIAL_AUTH_GOOGLE_OAUTH2_TEAM_MAP: {type: 'null'}

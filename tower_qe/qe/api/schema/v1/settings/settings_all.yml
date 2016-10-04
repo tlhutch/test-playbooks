@@ -28,16 +28,22 @@ properties:
     type: array
     minItems: 0
     uniqueItems: true
+    items:
+      type: string
   AWX_PROOT_SHOW_PATHS:
     type: array
     minItems: 0
     uniqueItems: true
+    items:
+      type: string
   STDOUT_MAX_BYTES_DISPLAY: {type: number, minimum: 0}
   SCHEDULE_MAX_JOBS: {type: number, minimum: 1}
   AWX_ANSIBLE_CALLBACK_PLUGINS:
     type: array
     minItems: 0
     uniqueItems: true
+    items:
+      type: string
   AUTH_TOKEN_EXPIRATION: {type: number, minimum: 60}
   AUTH_TOKEN_PER_USER: {type: number, minimum: -1}
   AUTH_BASIC_ENABLED: {type: boolean}
@@ -82,6 +88,8 @@ properties:
     type: array
     minItems: 0
     uniqueItems: true
+    items:
+      type: string
   SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS: {type: object}
   SOCIAL_AUTH_GOOGLE_OAUTH2_ORGANIZATION_MAP: {type: 'null'}
   SOCIAL_AUTH_GOOGLE_OAUTH2_TEAM_MAP: {type: 'null'}
