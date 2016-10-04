@@ -2,18 +2,19 @@
 version: '2'
 services:
   pytest:
+    image: gcr.io/ansible-tower-engineering/tower-qe
     build:
-      args:
-        GITHUB_USERNAME:
-        GITHUB_TOKEN:
       context: ../../../
       dockerfile: tools/docker/ui/Dockerfile
     environment:
       PYTEST_ADDOPTS:
-      SAUCELABS_USERNAME:
-      SAUCELABS_API_KEY:
+    volumes:
+      - '../../..:/tower-qa'
     entrypoint: py.test
   pytest_sauce:
     extends:
       service: pytest
+    environment:
+      SAUCELABS_USERNAME:
+      SAUCELABS_API_KEY:
     entrypoint: tools/docker/ui/pytest_sauce.sh

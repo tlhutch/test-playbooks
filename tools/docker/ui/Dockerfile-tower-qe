@@ -1,4 +1,0 @@
-FROM gcr.io/ansible-tower-engineering/tower-qe-lib
-
-ADD tests/requirements.txt /tower-qa/tests/
-RUN pip install -r /tower-qa/tests/requirements.txt

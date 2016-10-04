@@ -13,13 +13,12 @@ BASE_URL="https://$(ansible -i ${INVENTORY} --list-hosts ${HOST} | tail -n 1 | a
 #
 # Run tests
 #
-py.test \
-    --ansible-host-pattern "${HOST}" \
-    --ansible-inventory "${INVENTORY}" \
-    --ansible-sudo \
-    --base-url "${BASE_URL}" \
-    --capability platform "${PLATFORM}" \
-    --capability browserName "${BROWSER}" \
-    --capability idleTimeout 240 \
-    --driver SauceLabs \
-    ${@:5}
+py.test --ansible-host-pattern "${HOST}" \
+        --ansible-inventory "${INVENTORY}" \
+        --ansible-sudo \
+        --base-url "${BASE_URL}" \
+        --capability platform "${PLATFORM}" \
+        --capability browserName "${BROWSER}" \
+        --capability idleTimeout 240 \
+        --driver SauceLabs \
+        ${@:5}
