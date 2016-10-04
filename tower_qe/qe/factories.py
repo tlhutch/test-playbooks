@@ -238,12 +238,6 @@ class WorkflowJobTemplateNodeFactory(PageFactory):
         JobTemplateFactory,
         request=factory.SelfAttribute('..request'))
 
-    class Params:
-        project = factory.Trait(
-            unified_job_template=factory.SubFactory(ProjectFactory,
-                                                    request=factory.SelfAttribute('..request'))
-        )
-
 
 class WorkflowJobTemplateFactory(PageFactory):
     class Meta:
