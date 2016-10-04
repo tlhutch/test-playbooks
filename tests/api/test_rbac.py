@@ -1266,14 +1266,15 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
 
-    def test_relaunch_with_ask_inventory(self, factories, user_password):
+    def test_relaunch_with_ask_inventory(self, factories, job_template, user_password):
         '''Tests relaunch RBAC when ask_inventory_on_launch is true.'''
-        job_template = factories.job_template(inventory=None, ask_inventory_on_launch=True)
+        # FIXME: update for when factories get fixed for #821
         job_template.get_related('inventory').delete()
+        job_template.patch(ask_inventory_on_launch=True)
+
         credential = job_template.get_related('credential')
         inventory = factories.inventory()
-
-        user1 = factories.user(organization=credential.get_related('organization'))
+        user1 = factories.user()
         user2 = factories.user()
 
         # set test permissions
@@ -1287,10 +1288,33 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             payload = dict(inventory=inventory.id)
             job_pg = job_template.launch(payload)
 
-        # relaunch as user2
+        # relaunch as user2 should raise 403
         with self.current_user(username=user2.username, password=user_password):
-            relaunch = job_pg.get_related('relaunch').post()
-            assert relaunch.inventory == inventory.id
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                job_pg.get_related('relaunch').post()
+
+    def test_relaunch_with_ask_credential(self, factories, job_template_no_credential, user_password):
+        '''Tests relaunch RBAC when ask_credential_on_launch is true.'''
+        job_template_no_credential.patch(ask_credential_on_launch=True)
+
+        credential = factories.credential()
+        user1 = factories.user(organization=credential.get_related('organization'))
+        user2 = factories.user()
+
+        # set test permissions
+        set_roles(user1, job_template_no_credential, ['execute'])
+        set_roles(user1, credential, ['admin'])
+        set_roles(user2, job_template_no_credential, ['execute'])
+
+        # launch job as user1
+        with self.current_user(username=user1.username, password=user_password):
+            payload = dict(credential=credential.id)
+            job_pg = job_template_no_credential.launch(payload)
+
+        # relaunch as user2 should raise 403
+        with self.current_user(username=user2.username, password=user_password):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                job_pg.get_related('relaunch').post()
 
 
 @pytest.mark.api
