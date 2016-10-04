@@ -9,7 +9,7 @@ import fauxfactory
 from qe.api.page_factory import PageFactory
 
 from qe.api.pages import (Credential, Group, Host, Inventory, JobTemplate, Organization, Project,
-                          User, Team, Label, InventoryScript)
+                          User, Team, Label, InventoryScript, WorkflowJobTemplateNodes, WorkflowJobTemplates)
 
 
 # TODO: standardize global project configuration for tower-qa
@@ -222,5 +222,27 @@ class JobTemplateFactory(PageFactory):
         organization=factory.SelfAttribute('..organization'))
     job_type = 'run'
     playbook = 'ping.yml'
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
+    description = factory.LazyFunction(fauxfactory.gen_alphanumeric)
+
+
+class WorkflowJobTemplateNodeFactory(PageFactory):
+    class Meta:
+        model = WorkflowJobTemplateNodes
+        inline_args = ('request',)
+        resources = ('unified_job_template',)
+
+    # Note: By default, not instantiating node with reference to workflow job template
+
+    unified_job_template = factory.SubFactory(
+        JobTemplateFactory,
+        request=factory.SelfAttribute('..request'))
+
+
+class WorkflowJobTemplateFactory(PageFactory):
+    class Meta:
+        model = WorkflowJobTemplates
+        inline_args = ('request',)
+
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_alphanumeric)

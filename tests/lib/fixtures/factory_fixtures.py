@@ -14,6 +14,8 @@ from qe.factories import (
     UserFactory,
     TeamFactory,
     LabelFactory,
+    WorkflowJobTemplateNodeFactory,
+    WorkflowJobTemplateFactory,
 )
 
 
@@ -47,6 +49,8 @@ def factory_namespace(request):
             user=FactoryFixture(request, UserFactory),
             team=FactoryFixture(request, TeamFactory),
             label=FactoryFixture(request, LabelFactory),
+            workflow_job_template_node=FactoryFixture(request, WorkflowJobTemplateNodeFactory),
+            workflow_job_template=FactoryFixture(request, WorkflowJobTemplateFactory),
         )
 
 
