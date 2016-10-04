@@ -106,7 +106,7 @@ class Awx_Schema_Settings_All(Awx_Schema):
 
     @property
     def patch(self):
-        return self.load_file('settings/settings_all/yml')
+        return self.load_file('settings/settings_all.yml')
 
 
 class Awx_Schema_Settings_Authentication(Awx_Schema):
