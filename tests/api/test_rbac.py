@@ -1286,7 +1286,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         # launch job as user1
         with self.current_user(username=user1.username, password=user_password):
             payload = dict(inventory=inventory.id)
-            job_pg = job_template.launch(payload)
+            job_pg = job_template.launch(payload).wait_until_completed()
 
         # relaunch as user2 should raise 403
         with self.current_user(username=user2.username, password=user_password):
@@ -1309,7 +1309,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         # launch job as user1
         with self.current_user(username=user1.username, password=user_password):
             payload = dict(credential=credential.id)
-            job_pg = job_template_no_credential.launch(payload)
+            job_pg = job_template_no_credential.launch(payload).wait_until_completed()
 
         # relaunch as user2 should raise 403
         with self.current_user(username=user2.username, password=user_password):
