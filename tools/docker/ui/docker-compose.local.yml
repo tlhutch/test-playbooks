@@ -3,7 +3,7 @@ version: '2'
 services:
   pytest_local:
     extends:
-      file: docker-compose.sauce.yml
+      file: docker-compose.yml
       service: pytest
     environment:
       PYTEST_ADDOPTS: '--driver Remote --capability browserName chrome --port 4444 --host chrome_local'
@@ -12,7 +12,7 @@ services:
     entrypoint: tools/docker/ui/pytest_local.sh
   pytest_local_debug:
     extends:
-      file: docker-compose.sauce.yml
+      file: docker-compose.yml
       service: pytest
     environment:
       PYTEST_ADDOPTS: '--driver Remote --capability browserName chrome --port 4444 --host chrome_local_debug'

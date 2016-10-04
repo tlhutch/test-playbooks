@@ -1,13 +1,29 @@
-FROM gcr.io/ansible-tower-engineering/tower-qe
+FROM frolvlad/alpine-glibc
 
-ARG GITHUB_USERNAME
-ARG GITHUB_TOKEN
+RUN apk add --update \
+    bash \
+    ca-certificates \
+    gcc \
+    libffi-dev \
+    linux-headers \
+    musl-dev \
+    openssh-client \
+    openssl-dev \
+    py-pip \
+    python \
+    python-dev
 
-ADD . /tower-qa
+COPY ./tower_qe /tower_qe
+RUN pip install /tower_qe
+
+COPY ./tests/requirements.txt /tower-qa/tests/requirements.txt
+RUN pip install -r /tower-qa/tests/requirements.txt
+
 WORKDIR /tower-qa
 
-RUN chmod a+x tools/docker/ui/credentials.sh
-RUN tools/docker/ui/credentials.sh
-
-RUN chmod a+x tools/docker/ui/pytest_sauce.sh
-RUN chmod a+x tools/docker/ui/pytest_local.sh
+RUN apk del --purge \
+    gcc \
+    linux-headers \
+    musl-dev \
+    openssl-dev \
+    python-dev
