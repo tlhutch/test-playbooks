@@ -1279,8 +1279,8 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
         # set test permissions
         set_roles(user1, job_template, ['execute'])
-        set_roles(user1, inventory, ['admin'])
-        set_roles(user1, credential, ['admin'])
+        set_roles(user1, inventory, ['use'])
+        set_roles(user1, credential, ['use'])
         set_roles(user2, job_template, ['execute'])
 
         # launch job as user1
@@ -1303,7 +1303,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
         # set test permissions
         set_roles(user1, job_template_no_credential, ['execute'])
-        set_roles(user1, credential, ['admin'])
+        set_roles(user1, credential, ['use'])
         set_roles(user2, job_template_no_credential, ['execute'])
 
         # launch job as user1
