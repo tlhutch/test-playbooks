@@ -2,3 +2,4 @@
 $schema: http://json-schema.org/draft-04/schema#
 id: '/api/v1/settings/defaults/'
 type: object
+additionalProperties: true
