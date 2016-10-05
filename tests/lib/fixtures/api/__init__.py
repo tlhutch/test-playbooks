@@ -7,7 +7,8 @@ from qe.api.pages import (Activity_Stream_Page, Ad_Hoc_Commands_Page, ApiV1, Bas
                           Inventory_Sources_Page, Job_Templates_Page, Jobs_Page, Labels_Page, Me_Page,
                           Notification_Templates_Page, Notifications_Page, Organizations_Page, Ping_Page,
                           Projects_Page, Roles_Page, Schedules_Page, System_Jobs_Page,
-                          System_Job_Templates_Page, Teams_Page, Unified_Job_Templates_Page, Users_Page)
+                          System_Job_Templates_Page, Teams_Page, Unified_Job_Templates_Page, Users_Page,
+                          Settings)
 from qe.api.pages.authtoken import AuthToken_Page
 
 
@@ -495,3 +496,16 @@ def api_roles_url(api, api_v1_url):
 @pytest.fixture(scope="module")
 def api_roles_pg(testsetup, api_roles_url):
     return Roles_Page(testsetup, base_url=api_roles_url)
+
+
+#
+# /api/v1/settings
+#
+@pytest.fixture(scope="module")
+def api_settings_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'settings')
+
+
+@pytest.fixture(scope="module")
+def api_settings_pg(testsetup, api_settings_url):
+    return Settings(testsetup, base_url=api_settings_url)

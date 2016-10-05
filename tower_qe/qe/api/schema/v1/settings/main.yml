@@ -15,6 +15,12 @@ properties:
     minItems: 0
     uniqueItems: true
     items:
-        $ref: '#/definitions/setting'
+      additionalProperties: false
+      properties:
+        url: {format: uri, type: string}
+        slug: {type: string}
+        name: {$ref: '#/definitions/enum_setting_name'}
+      required: [url, slug, name]
+      type: object
 definitions:
-  !include '../definitions/*.yml'
+    !include '../definitions/*.yml'

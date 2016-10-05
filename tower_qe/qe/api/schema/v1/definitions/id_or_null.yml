@@ -1,4 +1,4 @@
 ---
 id_or_null:
-    minimum: 1
-    type: [number, 'null']
+  minimum: 1
+  type: [number, 'null']

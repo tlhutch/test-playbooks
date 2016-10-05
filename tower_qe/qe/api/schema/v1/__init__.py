@@ -90,11 +90,247 @@ class Awx_Schema_Settings(Awx_Schema):
 
     @property
     def get(self):
-        return self.load_file('settings/list.yml')
+        return self.load_file('settings/main.yml')
+
+
+class Awx_Schema_Settings_All(Awx_Schema):
+    resource = resources.v1_settings_all
 
     @property
-    def post(self):
-        return self.load_file('settings/item.yml')
+    def get(self):
+        return self.load_file('settings/settings_all.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_all.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_all.yml')
+
+
+class Awx_Schema_Settings_Authentication(Awx_Schema):
+    resource = resources.v1_settings_authentication
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_authentication.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_authentication.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_authentication.yml')
+
+
+class Awx_Schema_Settings_Changed(Awx_Schema):
+    resource = resources.v1_settings_changed
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_changed.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_changed.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_changed.yml')
+
+
+class Awx_Schema_Settings_Github(Awx_Schema):
+    resource = resources.v1_settings_github
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_github.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_github.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_github.yml')
+
+
+class Awx_Schema_Settings_Github_Org(Awx_Schema):
+    resource = resources.v1_settings_github_org
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_github_org.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_github_org.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_github_org.yml')
+
+
+class Awx_Schema_Settings_Github_Team(Awx_Schema):
+    resource = resources.v1_settings_github_team
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_github_team.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_github_team.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_github_team.yml')
+
+
+class Awx_Schema_Settings_Google_OAuth2(Awx_Schema):
+    resource = resources.v1_settings_google_oauth2
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_google_oauth2.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_google_oauth2.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_google_oauth2.yml')
+
+
+class Awx_Schema_Settings_Jobs(Awx_Schema):
+    resource = resources.v1_settings_jobs
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_jobs.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_jobs.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_jobs.yml')
+
+
+class Awx_Schema_Settings_LDAP(Awx_Schema):
+    resource = resources.v1_settings_ldap
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_ldap.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_ldap.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_ldap.yml')
+
+
+class Awx_Schema_Settings_RADIUS(Awx_Schema):
+    resource = resources.v1_settings_radius
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_radius.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_radius.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_radius.yml')
+
+
+class Awx_Schema_Settings_SAML(Awx_Schema):
+    resource = resources.v1_settings_saml
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_saml.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_saml.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_saml.yml')
+
+
+class Awx_Schema_Settings_System(Awx_Schema):
+    resource = resources.v1_settings_system
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_system.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_system.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_system.yml')
+
+
+class Awx_Schema_Settings_UI(Awx_Schema):
+    resource = resources.v1_settings_ui
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_ui.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_ui.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_ui.yml')
+
+
+class Awx_Schema_Settings_User(Awx_Schema):
+    resource = resources.v1_settings_user
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_user.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_user.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_user.yml')
+
+
+class Awx_Schema_Settings_User_Defaults(Awx_Schema):
+    resource = resources.v1_settings_user_defaults
+
+    @property
+    def get(self):
+        return self.load_file('settings/settings_user_defaults.yml')
+
+    @property
+    def put(self):
+        return self.load_file('settings/settings_user_defaults.yml')
+
+    @property
+    def patch(self):
+        return self.load_file('settings/settings_user_defaults.yml')
 
 
 class Awx_Schema_Organizations(Awx_Schema):

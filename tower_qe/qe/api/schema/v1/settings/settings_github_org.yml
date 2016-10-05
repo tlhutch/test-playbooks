@@ -1,0 +1,13 @@
+---
+$schema: http://json-schema.org/draft-04/schema#
+id: '/api/v1/settings/github-org/'
+type: object
+additionalProperties: false
+properties:
+  SOCIAL_AUTH_GITHUB_ORG_CALLBACK_URL: {format: uri, type: string}
+  SOCIAL_AUTH_GITHUB_ORG_KEY: {type: string}
+  SOCIAL_AUTH_GITHUB_ORG_SECRET: {type: string}
+  SOCIAL_AUTH_GITHUB_ORG_NAME: {type: string}
+  SOCIAL_AUTH_GITHUB_ORG_ORGANIZATION_MAP: {type: 'null'}
+  SOCIAL_AUTH_GITHUB_ORG_TEAM_MAP: {type: 'null'
+required: [SOCIAL_AUTH_GITHUB_ORG_CALLBACK_URL, SOCIAL_AUTH_GITHUB_ORG_KEY, SOCIAL_AUTH_GITHUB_ORG_SECRET, SOCIAL_AUTH_GITHUB_ORG_NAME, SOCIAL_AUTH_GITHUB_ORG_ORGANIZATION_MAP, SOCIAL_AUTH_GITHUB_ORG_TEAM_MAP]
