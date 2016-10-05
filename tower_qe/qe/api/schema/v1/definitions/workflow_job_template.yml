@@ -3,6 +3,7 @@ workflow_job_template:
   properties:
     created: {format: date-time, type: string}
     description: {type: string}
+    extra_vars: {type: string}
     has_schedules: {type: boolean}
     id: {$ref: '#/definitions/id'}
     last_job_failed: {type: boolean}
@@ -14,10 +15,12 @@ workflow_job_template:
     next_job_run:
       format: date-time
       type: [string, 'null']
+    organization: {$ref: '#/definitions/id_or_null'} # TODO: In future, can this be null?
     related:
       additionalProperties: false
       properties:
         created_by: {format: uri, type: string}
+        current_job: {format: uri, type: string}
         jobs: {format: uri, type: string}
         last_job: {format: uri, type: string}
         launch: {format: uri, type: string}
@@ -30,6 +33,8 @@ workflow_job_template:
       additionalProperties: false
       properties:
         created_by: {$ref: '#/definitions/summary_fields_user'}
+        current_job: {$ref: '#/definitions/summary_fields_workflow_job'}
+        current_update: {$ref: '#/definitions/summary_fields_workflow_job'}
         last_job: {$ref: '#/definitions/summary_fields_job'}
         last_update: {$ref: '#/definitions/summary_fields_job'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
@@ -37,12 +42,22 @@ workflow_job_template:
           additionalProperties: false
           properties:
             admin_role: {$ref: '#/definitions/summary_fields_role'}
-          required: [admin_role]
+            execute_role: {$ref: '#/definitions/summary_fields_role'}
+            read_role: {$ref: '#/definitions/summary_fields_role'}
+          required: [admin_role, execute_role, read_role]
           type: object
-      required: [object_roles]
+        user_capabilities:
+          additionalProperties: false
+          properties:
+            delete: {type: boolean}
+            edit: {type: boolean}
+            start: {type: boolean}
+          required: [delete, edit, start]
+          type: object
+      required: [object_roles, user_capabilities]
       type: object
     type: {pattern: ^workflow_job_template$, type: string}
     url: {format: uri, type: string}
-  required: [id, created, description, has_schedules, last_job_failed, last_job_run,
-    modified, name, next_job_run, related, status, summary_fields, type, url]
+  required: [id, created, description, extra_vars, has_schedules, last_job_failed, last_job_run,
+    modified, name, next_job_run, organization, related, status, summary_fields, type, url]
   type: object

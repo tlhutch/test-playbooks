@@ -4,9 +4,10 @@ id: '/api/v1/unified_job_templates/\d'
 type: object
 additionalProperties: false
 oneOf:
+    - $ref: '#/definitions/inventory_source'
     - $ref: '#/definitions/job_template'
     - $ref: '#/definitions/project'
-    - $ref: '#/definitions/inventory_source'
     - $ref: '#/definitions/system_job_template'
+    - $ref: '#/definitions/workflow_job_template'
 definitions:
   !include '../definitions/*.yml'

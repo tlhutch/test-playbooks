@@ -1,3 +1,4 @@
+# TODO: Update fields set to 'null'
 workflow_job_template_node:
   additionalProperties: false
   properties:
@@ -6,12 +7,17 @@ workflow_job_template_node:
       minItems: 0
       type: array
       uniqueItems: true
+    credential: {type: 'null'}
     failure_nodes:
       items: {minimum: 0, type: integer}
       minItems: 0
       type: array
       uniqueItems: true
     id: {$ref: '#/definitions/id'}
+    inventory: {type: 'null'}
+    job_tags: {type: 'null'}
+    job_type: {type: 'null'}
+    limit: {type: 'null'}
     related:
       additionalProperties: false
       properties:
@@ -20,10 +26,11 @@ workflow_job_template_node:
         success_nodes: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
         workflow_job_template: {format: uri, type: string}
-      required: [success_nodes, failure_nodes, always_nodes]
+      required: [always_nodes, failure_nodes, success_nodes]
       type: object
     # summary_fields currently missing
     # Will be implemented in https://github.com/ansible/ansible-tower/issues/3514
+    skip_tags: {type: 'null'}
     success_nodes:
       items: {minimum: 0, type: integer}
       minItems: 0
@@ -32,6 +39,6 @@ workflow_job_template_node:
     unified_job_template: {$ref: '#/definitions/id_or_null'}
     url: {format: uri, type: string}
     workflow_job_template: {$ref: '#/definitions/id_or_null'}
-  required: [id, related, url, success_nodes, failure_nodes, always_nodes, unified_job_template,
-    workflow_job_template]
+  required: [credential, id, inventory, job_type, job_tags, limit, related, url, skip_tags,
+    unified_job_template, workflow_job_template]
   type: object
