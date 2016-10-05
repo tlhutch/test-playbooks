@@ -61,7 +61,11 @@ properties:
   AUTH_LDAP_BIND_DN: {type: string}
   AUTH_LDAP_BIND_PASSWORD: {type: string}
   AUTH_LDAP_START_TLS: {type: boolean}
-  AUTH_LDAP_CONNECTION_OPTIONS: {type: object}
+  AUTH_LDAP_CONNECTION_OPTIONS:
+    additionalProperties: true
+    properties:
+      OPT_REFERRALS: {type: number}
+    type: object
   AUTH_LDAP_USER_SEARCH: 
     type: array
     minItems: 0
