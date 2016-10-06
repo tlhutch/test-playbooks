@@ -100,17 +100,25 @@ properties:
       project: {$ref: '#/definitions/summary_fields_project'}
       schedule: {$ref: '#/definitions/summary_fields_schedule'}
       unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
+      user_capabilities:
+        additionalProperties: false
+        properties:
+          start: {type: boolean}
+          delete: {type: boolean}
+        required: [start, delete]
+        type: object
     type: object
   type: {$ref: '#/definitions/enum_job_type'}
   unified_job_template: {$ref: '#/definitions/id_or_null'}
   url: {format: uri, type: string}
   verbosity: {minimum: 0, type: number}
+  allow_simultaneous: {type: boolean}
 required: [id, url, created, modified, job_type, inventory, project, playbook, credential,
   cloud_credential, forks, verbosity, limit, extra_vars, job_template, launch_type,
   started, elapsed, finished, status, failed, passwords_needed_to_start, ask_credential_on_launch, 
   ask_inventory_on_launch, ask_job_type_on_launch, ask_limit_on_launch, ask_tags_on_launch, 
   ask_variables_on_launch, related, summary_fields, type, force_handlers, skip_tags, start_at_task, name,
-  description, job_explanation, network_credential]
+  description, job_explanation, network_credential, allow_simultaneous]
 type: object
 definitions:
     !include '../definitions/*.yml'
