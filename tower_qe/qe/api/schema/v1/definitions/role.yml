@@ -20,6 +20,7 @@ role:
         teams: {$ref: '#/definitions/uri'}
         user: {$ref: '#/definitions/uri'}
         users: {$ref: '#/definitions/uri'}
+        workflow_job_template: {$ref: '#/definitions/uri'}
       type: object
     summary_fields:
       additionalProperties: false

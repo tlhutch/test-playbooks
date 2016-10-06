@@ -1,6 +1,7 @@
 from qe.api.pages import base, JobTemplate
 from qe.api import resources
 
+
 class WorkflowJobTemplateNode(base.Base):
 
     dependencies = [JobTemplate]
@@ -21,5 +22,5 @@ class WorkflowJobTemplateNodes(base.BaseList, WorkflowJobTemplateNode):
     pass
 
 base.register_page([resources.v1_workflow_job_template_nodes, resources.v1_workflow_job_template_workflow_nodes,
-                    resources.v1_workflow_job_template_nodes_always_nodes, resources.v1_workflow_job_template_nodes_failure_nodes,
-                    resources.v1_workflow_job_template_nodes_success_nodes], WorkflowJobTemplateNodes)
+                    resources.v1_workflow_job_template_node_always_nodes, resources.v1_workflow_job_template_node_failure_nodes,
+                    resources.v1_workflow_job_template_node_success_nodes], WorkflowJobTemplateNodes)

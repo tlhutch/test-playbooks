@@ -1,0 +1,13 @@
+---
+summary_fields_workflow_job:
+    additionalProperties: false
+    properties:
+      id: {$ref: '#/definitions/id'}
+      description: {type: string}
+      name: {type: string}
+      failed: {type: boolean}
+      status: {$ref: '#/definitions/enum_workflow_task_status'}
+      finished: {format: date-time, type: string}
+    # FIXME: required: [id, name, description]
+    required: [name, description]
+    type: object

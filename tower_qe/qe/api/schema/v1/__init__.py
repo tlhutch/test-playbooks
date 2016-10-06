@@ -1294,8 +1294,8 @@ class Awx_Schema_Workflow_Job_Template_Node(Awx_Schema_Workflow_Job_Template_Nod
         return self.get
 
 
-class Awx_Schema_Workflow_Job_Template_Nodes_Success_Nodes(Awx_Schema):
-    resource = resources.v1_workflow_job_template_nodes_success_nodes
+class Awx_Schema_Workflow_Job_Template_Node_Success_Nodes(Awx_Schema):
+    resource = resources.v1_workflow_job_template_node_success_nodes
 
     @property
     def get(self):
@@ -1308,8 +1308,8 @@ class Awx_Schema_Workflow_Job_Template_Nodes_Success_Nodes(Awx_Schema):
     # Note: Duplicate payloads are actually accepted
 
 
-class Awx_Schema_Workflow_Job_Template_Nodes_Failure_Nodes(Awx_Schema):
-    resource = resources.v1_workflow_job_template_nodes_failure_nodes
+class Awx_Schema_Workflow_Job_Template_Node_Failure_Nodes(Awx_Schema):
+    resource = resources.v1_workflow_job_template_node_failure_nodes
 
     @property
     def get(self):
@@ -1322,8 +1322,8 @@ class Awx_Schema_Workflow_Job_Template_Nodes_Failure_Nodes(Awx_Schema):
     # Note: Duplicate payloads are actually accepted
 
 
-class Awx_Schema_Workflow_Job_Template_Nodes_Always_Nodes(Awx_Schema):
-    resource = resources.v1_workflow_job_template_nodes_always_nodes
+class Awx_Schema_Workflow_Job_Template_Node_Always_Nodes(Awx_Schema):
+    resource = resources.v1_workflow_job_template_node_always_nodes
 
     @property
     def get(self):
@@ -1356,6 +1356,49 @@ class Awx_Schema_Workflow_Job(Awx_Schema_Workflow_Jobs):
 
 # TODO: Add /workflow_jobs/\d+/workflow_nodes/
 # (Currently get ISE when visiting this endpoint)
+
+
+#
+# /workflow_job_nodes
+#
+class Awx_Schema_Workflow_Job_Nodes(Awx_Schema):
+    resource = resources.v1_workflow_job_nodes
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_nodes/list.yml')
+
+
+class Awx_Schema_Workflow_Job_Node(Awx_Schema_Workflow_Job_Nodes):
+    resource = resources.v1_workflow_job_node
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_nodes/item.yml')
+
+
+class Awx_Schema_Workflow_Job_Node_Success_Nodes(Awx_Schema):
+    resource = resources.v1_workflow_job_node_success_nodes
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_nodes/list.yml')
+
+
+class Awx_Schema_Workflow_Job_Node_Failure_Nodes(Awx_Schema):
+    resource = resources.v1_workflow_job_node_failure_nodes
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_nodes/list.yml')
+
+
+class Awx_Schema_Workflow_Job_Node_Always_Nodes(Awx_Schema):
+    resource = resources.v1_workflow_job_node_always_nodes
+
+    @property
+    def get(self):
+        return self.load_file('workflow_job_nodes/list.yml')
 
 
 #

@@ -1,0 +1,29 @@
+# TODO: Update fields set to 'null'
+workflow_job_node:
+  additionalProperties: false
+  properties:
+    credential: {type: 'null'}
+    id: {$ref: '#/definitions/id'}
+    inventory: {type: 'null'}
+    job: {$ref: '#/definitions/id_or_null'}
+    job_tags: {type: 'null'}
+    job_type: {type: 'null'}
+    limit: {type: 'null'}
+    related:
+      additionalProperties: false
+      properties:
+        always_nodes: {format: uri, type: string}
+        failure_nodes: {format: uri, type: string}
+        job: {format: uri, type: string}
+        success_nodes: {format: uri, type: string}
+        unified_job_template: {format: uri, type: string}
+        workflow_job: {format: uri, type: string}
+      required: [always_nodes, failure_nodes, success_nodes, workflow_job]
+      type: object
+    skip_tags: {type: 'null'}
+    unified_job_template: {$ref: '#/definitions/id_or_null'}
+    url: {format: uri, type: string}
+    workflow_job: {$ref: '#/definitions/id_or_null'}
+  required: [id, url, related, unified_job_template, inventory, credential, job_type,
+    job_tags, skip_tags, limit, job, workflow_job]
+  type: object

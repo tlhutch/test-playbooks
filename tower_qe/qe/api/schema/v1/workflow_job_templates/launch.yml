@@ -5,4 +5,5 @@ type: object
 additionalProperties: false
 # TODO: Expect this to have fields for prompting, and 
 # likely other features too, later on
-properties: {}
+properties:
+  warnings: {type: object} # TODO: revisit

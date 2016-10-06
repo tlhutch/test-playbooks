@@ -1,6 +1,6 @@
 ---
 $schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/unified_jobs/'
+id: '/api/v1/workflow_job_nodes/'
 type: object
 additionalProperties: false
 required: [count, next, previous, results]
@@ -15,12 +15,6 @@ properties:
     minItems: 0
     uniqueItems: true
     items:
-        oneOf:
-            - $ref: '#/definitions/ad_hoc_command'
-            - $ref: '#/definitions/inventory_update'
-            - $ref: '#/definitions/job'
-            - $ref: '#/definitions/project_update'
-            - $ref: '#/definitions/system_job'
-            - $ref: '#/definitions/workflow_job'
+        $ref: '#/definitions/workflow_job_node'
 definitions:
   !include '../definitions/*.yml'
