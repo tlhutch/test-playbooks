@@ -1490,6 +1490,7 @@ class Test_Enterprise_License(Base_Api_Test):
         # post scan_job template
         api_job_templates_pg.post(payload)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3661')
     def test_launch_scan_job(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
         '''Verifies that scan jobs may be launched with an enterprise license.'''
         conf = api_config_pg.get()

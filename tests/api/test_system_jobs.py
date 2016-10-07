@@ -154,6 +154,7 @@ class Test_System_Jobs(Base_Api_Test):
         assert activity_stream_pg.count == 0, \
             "After running cleanup_activitystream, activity_stream items still present (%s items found)." % activity_stream_pg.count
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3661')
     def test_cleanup_facts(self, files_scan_job_with_status_completed, cleanup_facts_template):
         '''
         Run a scan job, launch a cleanup_facts job, and assert that facts get deleted.
