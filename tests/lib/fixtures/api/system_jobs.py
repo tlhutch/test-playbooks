@@ -7,11 +7,6 @@ def system_job(request):
 
 
 @pytest.fixture(scope="function")
-def system_job_with_status_pending(pause_awx_task_system, system_job_template):
-    return system_job_template.launch().wait_until_started()
-
-
-@pytest.fixture(scope="function")
 def cleanup_jobs(request, cleanup_jobs_template):
     payload = dict()
 

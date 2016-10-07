@@ -6,6 +6,8 @@ import pytest
 log = logging.getLogger(__name__)
 
 
+# WARNING awx-task-system has been obsoleted and this will halt pytest.
+# TODO: Establish alternative w/ celery?
 @pytest.fixture(scope="function")
 def pause_awx_task_system(request, ansible_runner):
     '''Stops awx-task-system and restarts it upon teardown. Aids our cancel tests.'''

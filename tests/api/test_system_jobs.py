@@ -175,20 +175,26 @@ class Test_System_Jobs(Base_Api_Test):
         assert fact_versions_pg.get().count == 0, \
             "Even though cleanup_facts was run, facts still exist (got %s)." % fact_versions_pg.count
 
-    def test_cancel_system_job(self, system_job_with_status_pending):
-        '''
-        Test that system_jobs may be cancelled.
-        '''
-        cancel_pg = system_job_with_status_pending.get_related('cancel')
-        assert cancel_pg.can_cancel, "Unable to cancel job (can_cancel:%s)" % cancel_pg.can_cancel
+    @pytest.mark.parametrize('job_type, extra_vars', [('cleanup_jobs', '{"days":"1000"}'),
+                                                      ('cleanup_activitystream', '{"days":"1000"}'),
+                                                      ('cleanup_facts', '{"older_than":"1000d","granularity":"1000w"}')])
+    def test_cancel_system_job(self, v1, job_type, extra_vars):
+        '''Test that pending system_jobs may be canceled.'''
+        system_job_template = v1.system_job_templates.get(job_type=job_type).results.pop()
 
-        # cancel job
-        cancel_pg.post()
+        # create a queue of jobs to ensure tested job is pending
+        loaded_jobs = [system_job_template.launch(payload=dict(extra_vars=extra_vars)) for _ in range(5)]
+        system_job_with_status_pending = system_job_template.launch()
 
-        # wait for job to complete
-        system_job_with_status_pending = system_job_with_status_pending.wait_until_completed()
+        cancel = system_job_with_status_pending.related.cancel.get()
+        assert cancel.can_cancel, "Unable to cancel job (can_cancel:%s)" % cancel.can_cancel
+        cancel.post()  # cancel job
 
         # assert that the system job was cancelled
-        assert system_job_with_status_pending.status == 'canceled', \
+        assert system_job_with_status_pending.wait_until_completed().status == 'canceled', \
             "Unexpected job status after cancelling system job (status:%s)" % \
             system_job_with_status_pending.status
+
+        # wait for other system jobs to complete
+        for job in loaded_jobs:
+            job.wait_until_completed()

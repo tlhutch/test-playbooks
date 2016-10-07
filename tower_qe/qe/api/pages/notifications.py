@@ -8,10 +8,10 @@ import base
 class Notification(base.Base):
 
     def __str__(self):
-        output = "<%s id:%s, notification_type:%s, status:%s, error:%s, " \
-                 "notifications_sent:%s, subject:%s, recipients:%s>" % \
-                 (self.__class__.__name__, self.id, self.notification_type, self.status,
-                  self.error, self.notifications_sent, self.subject, self.recipients)
+        items = ['id', 'notification_type', 'status', 'error', 'notifications_sent',
+                 'subject', 'recipients']
+        info = ', '.join(['{0}:{1}'.format(item, getattr(self, item)) for item in items if hasattr(self, item)])
+        output = '<{0.__class__.__name__} {1}>'.format(self, info)
         return output.replace('%', '%%').encode("ascii", "backslashreplace")
 
     def __repr__(self):

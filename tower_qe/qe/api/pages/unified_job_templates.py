@@ -9,15 +9,13 @@ class UnifiedJobTemplate(base.Base):
     and job_template).
     '''
     def __str__(self):
-        output_fields = [self.__class__.__name__]
-        for attr in ('id', 'name', 'status', 'source', 'last_update_failed',
-                     'last_updated', 'result_traceback', 'job_explanation', 'job_args'):
-            if hasattr(self, attr):
-                output_fields.append("%s:%s" % (attr, getattr(self, attr)))
         # NOTE: I use .replace('%', '%%') to workaround an odd string
         # formatting issue where result_stdout contained '%s'.  This later caused
         # a python traceback when attempting to display output from this method.
-        output = "<%s>" % ", ".join(output_fields)
+        items = ['id', 'name', 'status', 'source', 'last_update_failed', 'last_updated',
+                 'result_traceback', 'job_explanation', 'job_args']
+        info = ', '.join(['{0}:{1}'.format(item, getattr(self, item)) for item in items if hasattr(self, item)])
+        output = '<{0.__class__.__name__} {1}>'.format(self, info)
         return output.replace('%', '%%').encode("ascii", "backslashreplace")
 
     def __repr__(self):
