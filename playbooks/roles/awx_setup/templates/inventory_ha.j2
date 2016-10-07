@@ -15,11 +15,7 @@ localhost ansible_connection=local
 {% endif %}
 
 [all:vars]
-{% if admin_password is defined %}
-admin_password='{{admin_password}}'
-{% endif %}
-
-
+admin_password='{{admin_password | default('fo0m4nchU')}}'
 pg_host="{{ groups['database'][0] }}"
 pg_port="{{ pg_port | default('5432') }}"
 pg_database="{{ pg_database }}"

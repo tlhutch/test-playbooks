@@ -1,0 +1,35 @@
+global
+    debug
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock
+    stats timeout 30s
+    user haproxy
+    group haproxy
+
+defaults
+    log global
+    option tcplog
+    option dontlognull
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+
+frontend tower_ha
+    bind *:80
+    bind *:443
+    mode tcp
+    default_backend tower_ha
+
+backend tower_ha
+    mode tcp
+    balance roundrobin
+    option ssl-hello-chk
+{% for host in groups['tower'] %}
+    server tower_{{ loop.index }} {{ host }}:443 check
+{% endfor %}
+
+listen stats
+    bind *:1936
+    mode http
+    stats enable
+    stats uri /stats

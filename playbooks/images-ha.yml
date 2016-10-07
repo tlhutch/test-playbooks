@@ -8,6 +8,7 @@ ha_install: true
 #
 
 ec2_images:
+    - {'name': 'haproxy-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'haproxy', 'security_group': 'tower-ha'}
     - {'name': 'ha-1-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'ha_installer,tower', 'security_group': 'tower-ha'}
     - {'name': 'ha-2-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'tower-ha'}
     - {'name': 'ha-3-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'tower-ha'}
@@ -19,12 +20,12 @@ ec2_security_groups:
       description: Security group for Tower HA instances
       rules:
         - proto: tcp
-          from_port: 80
-          to_port: 80
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
           from_port: 22
           to_port: 22
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 80
+          to_port: 80
           cidr_ip: 0.0.0.0/0
         - proto: tcp
           from_port: 389
@@ -33,6 +34,10 @@ ec2_security_groups:
         - proto: tcp
           from_port: 443
           to_port: 443
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 1936
+          to_port: 1936
           cidr_ip: 0.0.0.0/0
         - proto: tcp
           from_port: 4369

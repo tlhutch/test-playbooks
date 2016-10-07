@@ -1,0 +1,7 @@
+Host *amazonaws.com
+  IdentityFile ~/.ssh/cloud
+  ForwardAgent yes
+  StrictHostKeyChecking no
+  UserKnownHostsFile=/dev/null
+  TCPKeepAlive yes
+  ServerAliveInterval 120

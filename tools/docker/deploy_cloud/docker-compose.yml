@@ -1,0 +1,13 @@
+---
+version: '2'
+services:
+  deploy_cloud:
+    build:
+      context: ../../../
+      dockerfile: tools/docker/deploy_cloud/Dockerfile
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AW_REPO_URL
+      - AWX_SETUP_PATH
+    entrypoint: tools/docker/deploy_cloud/deploy.sh

@@ -1,0 +1,54 @@
+---
+
+- name: update yum
+  yum:
+    name: yum
+    state: latest
+    update_cache: yes
+  when: ansible_pkg_mgr == 'yum'
+
+- name: update apt
+  apt:
+    pkg: apt
+    state: latest
+    update_cache: yes
+  when: ansible_pkg_mgr == 'apt'
+
+- name: install haproxy
+  apt:
+    pkg: haproxy
+    state: latest
+  when: ansible_pkg_mgr == 'apt'
+
+- name: install haproxy
+  yum:
+    name: haproxy
+    state: latest
+  when: ansible_pkg_mgr == 'yum'
+
+- name: upload haproxy cfg
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+
+- name: create stat socket directory
+  file:
+    path: /run/haproxy/
+    state: directory
+    mode: 777
+
+- name: allow nonlocal bind
+  sysctl:
+    name: net.ipv4.ip_nonlocal_bind
+    value: 1
+    state: present
+
+- name: allow haproxy bind any selinux policy
+  seboolean:
+    name: haproxy_connect_any
+    state: yes
+
+- name: start haproxy
+  service:
+    name: haproxy
+    state: started

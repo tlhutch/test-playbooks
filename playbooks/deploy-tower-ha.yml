@@ -1,12 +1,15 @@
 ---
 - name: create instance(s)
   hosts: local
-
   roles:
     - role: create_ec2
-    - role: create_rds
     - role: save_inventory
       my_inventory_file: '{{inventory_dir}}/inventory.ha'
+
+- name: 'Add authorized keys on non-installer instances'
+  hosts: 'tower:database:haproxy:!ha_installer'
+  roles:
+    - role: auth_keys
 
 - name: 'Group hosts by distribution_major_version'
   hosts: 'tower'
@@ -14,15 +17,18 @@
    - name: group hosts by distribution_major_version
      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
-- name: 'Add authorized keys on all instances'
-  hosts: 'tower,database'
-  roles:
-    - role: auth_keys
-
-- name: 'Install ha tower on ha_installer instance'
+- name: 'Install ha tower on installer instance'
   hosts: 'ha_installer'
   gather_facts: no
   become: true
   become_method: sudo
   roles:
     - role: awx_setup
+
+- name: 'install and configure haproxy'
+  hosts: 'haproxy'
+  roles:
+    - role: haproxy
+  gather_facts: no
+  become: true
+  become_method: sudo

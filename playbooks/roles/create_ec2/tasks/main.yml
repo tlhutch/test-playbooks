@@ -59,6 +59,7 @@
     state=started
     host={{ item.tagged_instances[0].public_dns_name }}
     port=22
+    timeout=600
   with_items: '{{ (ec2|default({})).results|default([]) }}'
   when: ec2_images and ec2 is defined
 
@@ -75,5 +76,5 @@
 # HACK: While sshd may be listening, it may not fully accept connections
 # immediately
 - pause:
-    seconds: 30
+    seconds: 60 
   when: ec2_images and ec2 is defined and ec2.changed
