@@ -437,7 +437,7 @@ def test_job_template_post_request_without_network_credential_access(
 @pytest.mark.destructive
 class Test_Organization_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, factories, user_password):
         '''
@@ -611,7 +611,7 @@ class Test_Organization_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Project_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, factories, user_password):
         '''
@@ -770,7 +770,7 @@ class Test_Project_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Credential_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, factories, user_password):
         '''
@@ -953,7 +953,7 @@ class Test_Credential_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Team_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, factories, user_password):
         '''
@@ -1071,7 +1071,7 @@ class Test_Team_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Inventory_Script_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, factories, inventory_script, user_password):
         '''
@@ -1155,7 +1155,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Job_Template_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, factories, user_password):
         '''
@@ -1322,7 +1322,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Inventory_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, host_local, cloud_groups, custom_group, user_password, factories):
         '''
@@ -1672,7 +1672,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Notification_Template_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_notification_template_create_as_unprivileged_user(self, email_notification_template_payload, api_notification_templates_pg,
                                                                unprivileged_user, user_password):
@@ -1784,7 +1784,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Notifications_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_notification_read_as_unprivileged_user(self, email_notification_template, unprivileged_user, user_password):
         '''
@@ -1825,7 +1825,7 @@ class Test_Notifications_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Label_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.parametrize('role', ['admin', 'auditor', 'read', 'member'])
     def test_organization_label_post(self, factories, user_password, api_labels_pg, role):
@@ -1891,7 +1891,7 @@ class Test_Label_RBAC(Base_Api_Test):
 @pytest.mark.skip_selenium
 class TestUsersRBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_user_admin_role_application_forbidden(self, factories, api_roles_pg):
         """Confirms that users are not able to have any admin role (dis)associated with themselves."""

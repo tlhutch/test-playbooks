@@ -219,7 +219,7 @@ def azure_type(azure_credential):
 @pytest.mark.destructive
 class Test_Job(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_utf8(self, utf8_template):
         '''
@@ -978,7 +978,7 @@ class Test_Job_Env(Base_Api_Test):
     Verify that credentials are properly passed to playbooks as
     environment variables ('job_env').
     '''
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_job_env_with_cloud_credential(self, job_template_with_cloud_credential):
         '''
@@ -1102,7 +1102,7 @@ class Test_Update_On_Launch(Base_Api_Test):
     initiated on job launch
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_inventory(self, cloud_inventory_job_template, cloud_group):
         '''Verify that an inventory_update is triggered by job launch'''

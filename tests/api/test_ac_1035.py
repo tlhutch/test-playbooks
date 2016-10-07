@@ -123,7 +123,7 @@ def job_templates_yaml(request, authtoken, api_job_templates_pg, project, ssh_cr
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
-@pytest.mark.usefixtures('authtoken', 'install_license_1000')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_AC_1035(Base_Api_Test):
     '''
     For API objects that support a 'variables' (or 'extra_vars') attribute,

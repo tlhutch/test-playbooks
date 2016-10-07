@@ -7,7 +7,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.destructive
 class Test_Tower_Prepopulation(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_success(self, default_organization):
         '''

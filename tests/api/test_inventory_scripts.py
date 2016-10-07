@@ -58,7 +58,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
     Verifies basic CRUD operations against the /inventory_scripts endpoint
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_post_as_privileged_user(self, request, script_source, organization, api_inventory_scripts_pg, privileged_user, user_password):
         '''

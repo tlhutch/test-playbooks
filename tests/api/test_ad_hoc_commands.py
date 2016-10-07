@@ -84,7 +84,7 @@ class Test_Ad_Hoc_Commands_Inventory(Base_Api_Test):
     '''
     From /api/v1/inventories/{id}
     '''
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get_as_superuser(self, inventory):
         '''
@@ -120,7 +120,7 @@ class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
     '''
     From /api/v1/groups/{id}
     '''
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get_as_superuser(self, group):
         '''
@@ -155,7 +155,7 @@ class Test_Ad_Hoc_Commands_Host(Base_Api_Test):
     '''
     From /api/v1/hosts/{id}/
     '''
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get_as_superuser(self, host):
         '''
@@ -190,7 +190,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
     '''
     For the api/v1/ad_hoc_commands endpoint.
     '''
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get(self, api_ad_hoc_commands_pg, all_users, user_password):
         '''

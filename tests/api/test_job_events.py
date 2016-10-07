@@ -77,7 +77,7 @@ def setfact_50(request, authtoken, api_job_templates_pg, project_ansible_playboo
 @pytest.mark.destructive
 class Test_Job_Events(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_dynamic_inventory(self, dynamic_inventory, num_hosts, tower_version_cmp):
         '''

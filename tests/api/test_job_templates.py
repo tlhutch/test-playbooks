@@ -1107,7 +1107,7 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
     '''
     Test job_template surveys
     '''
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_post_with_missing_fields(self, job_template_ping, missing_field_survey_specs):
         '''

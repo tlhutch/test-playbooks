@@ -111,7 +111,7 @@ def import_inventory(request, authtoken, api_inventories_pg, organization):
 @pytest.mark.destructive
 class Test_Inventory(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_host_without_group(self, host_without_group, tower_version_cmp):
         '''
@@ -192,7 +192,7 @@ class Test_Inventory(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Inventory_Update(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_success(self, cloud_group):
         '''
@@ -465,7 +465,7 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
     with, and without, available licenses is also confirmed.
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_using_bad_id(self, ansible_runner, api_inventories_pg, import_inventory):
         '''Verify that importing inventory using a bogus --inventory-id=<ID> fails'''

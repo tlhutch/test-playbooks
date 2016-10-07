@@ -166,7 +166,7 @@ class Test_Org_Admin(Base_Api_Test):
 
     > ORG_ADMINS_CANNOT_SEE_ALL_USERS = False
     '''
-    pytestmark = pytest.mark.usefixtures('authtoken', 'ORG_ADMINS_CANNOT_SEE_ALL_USERS', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'ORG_ADMINS_CANNOT_SEE_ALL_USERS', 'install_enterprise_license_unlimited')
 
     def test_org_admins_cannot_see_all_users(self, user_password, api_users_pg, org_admin, org_users, non_org_users):
         '''

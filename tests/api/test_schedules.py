@@ -453,7 +453,7 @@ class Test_Project_Schedules(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-@pytest.mark.usefixtures('authtoken', 'install_license_1000')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Inventory_Schedules(Base_Api_Test):
     '''
     Test basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]

@@ -10,7 +10,7 @@ import fauxfactory
 @pytest.mark.destructive
 class Test_Labels(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_duplicate(self, label, api_labels_pg):
         '''

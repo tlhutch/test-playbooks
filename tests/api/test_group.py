@@ -217,7 +217,7 @@ class Test_Group(Base_Api_Test):
         verify child group with children:N, hosts:M -> group deleted, children and hosts promote to parent
     '''
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_1000')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_disassociate_root_group(self, root_variation):
         '''verify behavior of disassociate of a top-level group.

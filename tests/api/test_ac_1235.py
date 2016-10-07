@@ -22156,7 +22156,7 @@ inventory_dict = {
 @pytest.mark.nondestructive
 class Test_AC_1235(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_10000')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_import(self, ansible_runner, tmpdir, inventory):
         '''Invoke an inventory import for a *large* dataset.  Verify the
