@@ -1,7 +1,8 @@
-import pytest
 import httplib
-from qe.api.schema import validate
+import pytest
+
 from qe.api.client import Connection
+from qe.api.schema import validate
 
 
 # Generate fixture values for 'method' and 'resource'
@@ -13,16 +14,14 @@ def pytest_generate_tests(metafunc):
     if for_reals:
         for fixture in metafunc.fixturenames:
             test_set = list()
-            id_list = list()
 
             # Skip if running with --help or --collectonly
             if pytest.config.option.help or pytest.config.option.collectonly:
                 return
 
             if fixture == 'method':
-                request_methods = ['HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', ]
+                request_methods = ['HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'OPTIONS']
                 test_set.extend(request_methods)
-                id_list.extend(request_methods)
 
             if fixture == 'resource':
                 # Discover available API resources
@@ -34,10 +33,9 @@ def pytest_generate_tests(metafunc):
                 api_resources = r.json().values()
 
                 test_set.extend(api_resources)
-                id_list.extend(api_resources)
 
-            if test_set and id_list:
-                metafunc.parametrize(fixture, test_set, ids=id_list)
+            if test_set:
+                metafunc.parametrize(fixture, test_set, ids=list(test_set))
 
 
 def assert_response(api, resource, method, response_code=httplib.OK, response_schema='unauthorized', data={}):
@@ -64,20 +62,17 @@ def assert_response(api, resource, method, response_code=httplib.OK, response_sc
     except ValueError:
         json = dict()
 
-    # Validate API JSON response
+    # Validate API JSON response:
+    # Schema validation methods (e.g. 'head', 'get', 'method_not_allowed')
+    # are found in schema/SCHEMA_VERSION/__init__.py::Awx_Schema
     validate(json, resource, response_schema)
 
 
-@pytest.fixture(scope="function")
-def logout(api):
-    '''Logout of the API on each function call'''
-    api.logout()
-
-
-@pytest.fixture(scope="function")
-def login(api, testsetup):
-    '''Login to the API on each function call'''
-    api.login(*testsetup.credentials['default'].values())
+bad_request = (httplib.BAD_REQUEST, 'bad_request')
+forbidden = (httplib.FORBIDDEN, 'forbidden')
+method_not_allowed = (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed')
+payment_required = (httplib.PAYMENT_REQUIRED, 'payment_required')
+unauthorized = (httplib.UNAUTHORIZED, 'unauthorized')
 
 
 @pytest.mark.api
@@ -85,41 +80,32 @@ def login(api, testsetup):
 @pytest.mark.nondestructive
 def test_unauthenticated(api, resource, method, authtoken, no_license):
 
-    expected_response = {
-        'HEAD': (httplib.UNAUTHORIZED, 'head'),
-        'GET': (httplib.UNAUTHORIZED, 'unauthorized'),
-        'POST': (httplib.UNAUTHORIZED, 'unauthorized'),
-        'PUT': (httplib.UNAUTHORIZED, 'unauthorized'),
-        'PATCH': (httplib.UNAUTHORIZED, 'unauthorized'),
-        'OPTIONS': (httplib.UNAUTHORIZED, 'unauthorized'),
-    }
+    expected = {'HEAD': (httplib.UNAUTHORIZED, 'head'),
+                'GET': unauthorized,
+                'OPTIONS': unauthorized,
+                'PATCH': unauthorized,
+                'POST': unauthorized,
+                'PUT': unauthorized}
 
-    exception_matrix = {
-        '/api/v1/ping/': {
-            'HEAD': (httplib.OK, 'head'),
-            'GET': (httplib.OK, 'get'),
-            'PUT': (httplib.METHOD_NOT_ALLOWED, 'put'),
-            'PATCH': (httplib.METHOD_NOT_ALLOWED, 'patch'),
-            'OPTIONS': (httplib.OK, 'options'),
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'post'),
-        },
-        '/api/v1/authtoken/': {
-            'HEAD': (httplib.METHOD_NOT_ALLOWED, 'head'),
-            'GET': (httplib.METHOD_NOT_ALLOWED, 'get'),
-            'PUT': (httplib.METHOD_NOT_ALLOWED, 'put'),
-            'PATCH': (httplib.METHOD_NOT_ALLOWED, 'patch'),
-            'OPTIONS': (httplib.OK, 'options'),
-            'POST': (httplib.BAD_REQUEST, 'bad_request'),
-        },
-    }
+    exceptions = {'/api/v1/authtoken/': {'HEAD': (httplib.METHOD_NOT_ALLOWED, 'head'),
+                                         'GET': (httplib.METHOD_NOT_ALLOWED, 'get'),
+                                         'OPTIONS': (httplib.OK, 'options'),
+                                         'PATCH': (httplib.METHOD_NOT_ALLOWED, 'patch'),
+                                         'POST': bad_request,
+                                         'PUT': (httplib.METHOD_NOT_ALLOWED, 'put')},
+                  '/api/v1/ping/': {'HEAD': (httplib.OK, 'head'),
+                                    'GET': (httplib.OK, 'get'),
+                                    'OPTIONS': (httplib.OK, 'options'),
+                                    'PATCH': (httplib.METHOD_NOT_ALLOWED, 'patch'),
+                                    'POST': (httplib.METHOD_NOT_ALLOWED, 'post'),
+                                    'PUT': (httplib.METHOD_NOT_ALLOWED, 'put')}}
 
     # Generic response
-    (expected_response_code, expected_response_schema) = expected_response[method]
+    (expected_response_code, expected_response_schema) = expected[method]
 
     # Check if any api link requires special handling
-    if resource in exception_matrix:
-        if method in exception_matrix[resource]:
-            (expected_response_code, expected_response_schema) = exception_matrix[resource][method]
+    if resource in exceptions and method in exceptions[resource]:
+        expected_response_code, expected_response_schema = exceptions[resource][method]
 
     # Query API with no auth credentials
     try:
@@ -134,94 +120,44 @@ def test_unauthenticated(api, resource, method, authtoken, no_license):
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 def test_authenticated(api, resource, method, authtoken, no_license):
-    '''
-    Schema validation methods (e.g. 'head', 'get', 'method_not_allowed')
-    are found in schema/SCHEMA_VERSION/__init__.py::Awx_Schema
-    '''
-    expected_response = {
-        'HEAD': (httplib.OK, 'head'),
-        'GET': (httplib.OK, 'get'),
-        'POST': (httplib.BAD_REQUEST, 'bad_request'),
-        'PUT': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        'PATCH': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        'OPTIONS': (httplib.OK, 'options'),
-    }
 
-    exception_matrix = {
-        '/api/v1/organizations/': {
-            'POST': (httplib.PAYMENT_REQUIRED, 'payment_required'),
-        },
-        '/api/v1/activity_stream/': {
-            'GET': (httplib.PAYMENT_REQUIRED, 'payment_required'),
-            'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/authtoken/': {
-            'HEAD': (httplib.METHOD_NOT_ALLOWED, 'head'),
-            'GET': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-            'POST': (httplib.BAD_REQUEST, 'bad_request'),
-        },
-        '/api/v1/dashboard/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/config/': {
-            'POST': (httplib.BAD_REQUEST, 'license_invalid'),
-        },
-        '/api/v1/me/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/hosts/': {
-            'POST': (httplib.BAD_REQUEST, 'bad_request'),
-        },
-        '/api/v1/inventory_sources/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/inventory_updates/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/project_updates/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/unified_jobs/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/unified_job_templates/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/system_job_templates/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/schedules/': {  # Doesn't yet support POST
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/settings/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/ping/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/notifications/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/roles/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        '/api/v1/job_events/': {
-            'POST': (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed'),
-        },
-        # Posting {} to workflow_job_template_nodes creates a resource
-        # Behavior is being evaluated in https://github.com/ansible/ansible-tower/issues/3552
-        '/api/v1/workflow_job_template_nodes/': {
-            'POST': (httplib.CREATED, 'workflow_job_template_node_created'),
-        }
-    }
+    expected = {'HEAD': (httplib.OK, 'head'),
+                'GET': (httplib.OK, 'get'),
+                'POST': bad_request,
+                'PUT': method_not_allowed,
+                'PATCH': method_not_allowed,
+                'OPTIONS': (httplib.OK, 'options')}
+
+    exceptions = {'/api/v1/activity_stream/': {'GET': payment_required,
+                                               'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
+                                               'POST': method_not_allowed},
+                  '/api/v1/authtoken/': {'HEAD': (httplib.METHOD_NOT_ALLOWED, 'head'),
+                                         'GET': method_not_allowed},
+                  '/api/v1/config/': {'POST': (httplib.BAD_REQUEST, 'license_invalid')},
+                  '/api/v1/dashboard/': {'POST': method_not_allowed},
+                  '/api/v1/hosts/': {'POST': forbidden},
+                  '/api/v1/inventory_sources/': {'POST': method_not_allowed},
+                  '/api/v1/inventory_updates/': {'POST': method_not_allowed},
+                  '/api/v1/job_events/': {'POST': method_not_allowed},
+                  '/api/v1/job_templates/': {'POST': forbidden},
+                  '/api/v1/me/': {'POST': method_not_allowed},
+                  '/api/v1/notifications/': {'POST': method_not_allowed},
+                  '/api/v1/ping/': {'POST': method_not_allowed},
+                  '/api/v1/project_updates/': {'POST': method_not_allowed},
+                  '/api/v1/roles/': {'POST': method_not_allowed},
+                  '/api/v1/schedules/': {'POST': method_not_allowed},
+                  '/api/v1/settings/': {'POST': method_not_allowed},
+                  '/api/v1/system_job_templates/': {'POST': method_not_allowed},
+                  '/api/v1/unified_job_templates/': {'POST': method_not_allowed},
+                  '/api/v1/unified_jobs/': {'POST': method_not_allowed},
+                  '/api/v1/workflow_job_nodes/': {'POST': method_not_allowed},
+                  '/api/v1/workflow_job_templates/': {'POST': forbidden}}
 
     # Generic response
-    (expected_response_code, expected_response_schema) = expected_response[method]
+    (expected_response_code, expected_response_schema) = expected[method]
 
     # Check if any api link requires special handling
-    if resource in exception_matrix:
-        if method in exception_matrix[resource]:
-            (expected_response_code, expected_response_schema) = exception_matrix[resource][method]
+    if resource in exceptions and method in exceptions[resource]:
+        expected_response_code, expected_response_schema = exceptions[resource][method]
 
     assert_response(api, resource, method, expected_response_code, expected_response_schema)
