@@ -1896,8 +1896,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_cancel_update(self, factories, aws_inventory_source, user_password, role):
         """Tests inventory update cancellation. Inventory admins can cancel other people's updates."""
-        ALLOWED_ROLES = ['admin', 'update']
-        REJECTED_ROLES = ['use', 'ad hoc', 'read']
+        ALLOWED_ROLES = ['admin']
+        REJECTED_ROLES = ['update', 'use', 'ad hoc', 'read']
 
         user_pg = factories.user()
 
