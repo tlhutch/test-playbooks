@@ -74,5 +74,6 @@ team:
   member: {delete: false, edit: false}
   read: {delete: false, edit: false}
 user:
-  org_admin: {delete: false, edit: true}  # org_admins cannot delete org_users within their own organization
+  # org_admins cannot delete org_users within their own organization
+  org_admin: {delete: false, edit: true}
   superuser: {delete: true, edit: true}
