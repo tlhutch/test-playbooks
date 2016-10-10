@@ -390,7 +390,7 @@ class Test_Job(Base_Api_Test):
         assert(all([val == "$encrypted$" for val in extra_vars.values()])
                ), "Undesired values for extra_vars detected: {0}".format(extra_vars)
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/838')
+    @pytest.mark.skip('https://github.com/ansible/tower-qa/issues/838')
     def test_cancel_pending_job(self, job_with_status_pending):
         '''
         Verify the job->cancel endpoint behaves as expected when canceling a

@@ -294,7 +294,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
             "Unexpected response upon launching ad hoc command 'command' without " \
             "specifying module_args. %s" % json.dumps(result)
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/838')
+    @pytest.mark.skip('https://github.com/ansible/tower-qa/issues/838')
     @pytest.mark.fixture_args(module_name='command', module_args='sleep 60s')
     def test_cancel_command(self, ad_hoc_with_status_pending):
         '''
