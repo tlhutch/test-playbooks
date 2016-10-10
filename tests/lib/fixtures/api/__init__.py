@@ -8,7 +8,7 @@ from qe.api.pages import (Activity_Stream_Page, Ad_Hoc_Commands_Page, ApiV1, Bas
                           Notification_Templates_Page, Notifications_Page, Organizations_Page, Ping_Page,
                           Projects_Page, Roles_Page, Schedules_Page, System_Jobs_Page,
                           System_Job_Templates_Page, Teams_Page, Unified_Job_Templates_Page, Users_Page,
-                          Settings)
+                          Settings, ProjectUpdates, InventoryUpdate)
 from qe.api.pages.authtoken import AuthToken_Page
 
 
@@ -241,6 +241,19 @@ def api_projects_pg(testsetup, api_projects_url):
 
 
 #
+# /api/v1/project_updates
+#
+@pytest.fixture(scope="module")
+def api_project_updates_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'project_updates')
+
+
+@pytest.fixture(scope="module")
+def api_project_updates_pg(testsetup, api_project_updates_url):
+    return ProjectUpdates(testsetup, base_url=api_project_updates_url)
+
+
+#
 # /api/v1/activity_stream
 #
 @pytest.fixture(scope="module")
@@ -277,6 +290,19 @@ def api_inventories_url(api, api_v1_url):
 @pytest.fixture(scope="module")
 def api_inventories_pg(testsetup, api_inventories_url):
     return Inventories_Page(testsetup, base_url=api_inventories_url)
+
+
+#
+# /api/v1/inventory_updates
+#
+@pytest.fixture(scope="module")
+def api_inventory_updates_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'inventory_updates')
+
+
+@pytest.fixture(scope="module")
+def api_inventory_updates_pg(testsetup, api_inventory_updates_url):
+    return InventoryUpdate(testsetup, base_url=api_inventory_updates_url)
 
 
 #

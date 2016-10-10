@@ -301,11 +301,11 @@ def check_user_capabilities(resource, role):
     if resource.type == 'inventory':
         groups_pg = resource.get_related('groups')
         for group in groups_pg.results:
-            assert group.summary_fields['user_capabilities'] == user_capabilities['inventory'][role], \
+            assert group.summary_fields['user_capabilities'] == user_capabilities['group'][role], \
                 "Unexpected response for 'user_capabilities' when testing groups with a user with inventory-%s." % role
         hosts_pg = resource.get_related('hosts')
         for host in hosts_pg.results:
-            assert host.summary_fields['user_capabilities'] == user_capabilities['inventory'][role], \
+            assert host.summary_fields['user_capabilities'] == user_capabilities['host'][role], \
                 "Unexpected response for 'user_capabilities' when testing hosts with a user with inventory-%s." % role
 
 
@@ -573,7 +573,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'auditor', 'member', 'read'])
-    def test_user_capabilities(self, factories, user_password, role):
+    def test_user_capabilities(self, factories, user_password, api_organizations_pg, role):
         """Test user_capabilities given each organization role."""
         organization_pg = factories.organization()
         user_pg = factories.user()
@@ -583,6 +583,7 @@ class Test_Organization_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(organization_pg.get(), role)
+            check_user_capabilities(api_organizations_pg.get(id=organization_pg.id).results.pop().get(), role)
 
     def test_member_role_association(self, factories, user_password):
         '''
@@ -769,7 +770,7 @@ class Test_Project_RBAC(Base_Api_Test):
             assert_response_raised(project_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-    def test_user_capabilities(self, factories, user_password, role):
+    def test_user_capabilities(self, factories, user_password, api_projects_pg, role):
         """Test user_capabilities given each project role."""
         project_pg = factories.project()
         user_pg = factories.user()
@@ -779,6 +780,7 @@ class Test_Project_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(project_pg.get(), role)
+            check_user_capabilities(api_projects_pg.get(id=project_pg.id).results.pop().get(), role)
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_launch_update(self, factories, user_password, role):
@@ -802,22 +804,17 @@ class Test_Project_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled project role.")
 
-    # FIXME: two project updates?
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_cancel_update(self, factories, project_ansible_git_nowait, user_password, role):
-        """Tests that the same roles that allow for project updates also allow for
-        project update cancellation."""
-        ALLOWED_ROLES = ['admin', 'update']
-        REJECTED_ROLES = ['use', 'read']
+        """Tests project update cancellation. Project admins can cancel other people's projects."""
+        ALLOWED_ROLES = ['admin']
+        REJECTED_ROLES = ['update', 'use', 'read']
 
         user_pg = factories.user()
+        update_pg = project_ansible_git_nowait.related.current_update.get()
 
         # give test user target role privileges
         set_roles(user_pg, project_ansible_git_nowait, [role])
-
-        # launch project update
-        project_ansible_git_nowait.update()
-        update_pg = project_ansible_git_nowait.get_related('current_update')
 
         with self.current_user(username=user_pg.username, password=user_password):
             if role in ALLOWED_ROLES:
@@ -857,7 +854,7 @@ class Test_Project_RBAC(Base_Api_Test):
                 raise ValueError("Received unhandled project role.")
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-    def test_update_user_capabilities(self, factories, user_password, role):
+    def test_update_user_capabilities(self, factories, user_password, api_project_updates_pg, role):
         """Test user_capabilities given each project role on spawned
         project_updates."""
         project_pg = factories.project()
@@ -871,6 +868,7 @@ class Test_Project_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(update_pg.get(), role)
+            check_user_capabilities(api_project_updates_pg.get(id=update_pg.id).results.pop().get(), role)
 
 
 @pytest.mark.api
@@ -969,7 +967,7 @@ class Test_Credential_RBAC(Base_Api_Test):
             assert_response_raised(credential_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'read'])
-    def test_user_capabilities(self, factories, user_password, role):
+    def test_user_capabilities(self, factories, user_password, api_credentials_pg, role):
         """Test user_capabilities given each credential role."""
         credential_pg = factories.credential()
         user_pg = factories.user(organization=credential_pg.get_related('organization'))
@@ -979,6 +977,7 @@ class Test_Credential_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(credential_pg.get(), role)
+            check_user_capabilities(api_credentials_pg.get(id=credential_pg.id).results.pop().get(), role)
 
     def test_autopopulated_admin_role_with_users(self, factories):
         '''
@@ -1152,7 +1151,7 @@ class Test_Team_RBAC(Base_Api_Test):
             assert_response_raised(team_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'member', 'read'])
-    def test_user_capabilities(self, factories, user_password, role):
+    def test_user_capabilities(self, factories, user_password, api_teams_pg, role):
         """Test user_capabilities given each team role."""
         team_pg = factories.team()
         user_pg = factories.user()
@@ -1162,6 +1161,7 @@ class Test_Team_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(team_pg.get(), role)
+            check_user_capabilities(api_teams_pg.get(id=team_pg.id).results.pop().get(), role)
 
     def test_member_role_association(self, factories, user_password):
         '''
@@ -1270,7 +1270,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             assert_response_raised(inventory_script, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'read'])
-    def test_user_capabilities(self, factories, user_password, role):
+    def test_user_capabilities(self, factories, user_password, api_inventory_scripts_pg, role):
         """Test user_capabilities given each inventory_script role."""
         inventory_script_pg = factories.inventory_script()
         user_pg = factories.user()
@@ -1280,6 +1280,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(inventory_script_pg.get(), role)
+            check_user_capabilities(api_inventory_scripts_pg.get(id=inventory_script_pg.id).results.pop().get(), role)
 
 
 @pytest.mark.api
@@ -1384,7 +1385,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
-    def test_user_capabilities(self, factories, user_password, role):
+    def test_user_capabilities(self, factories, user_password, api_job_templates_pg, role):
         """Test user_capabilities given each job_template role."""
         job_template_pg = factories.job_template()
         user_pg = factories.user()
@@ -1394,6 +1395,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(job_template_pg.get(), role)
+            check_user_capabilities(api_job_templates_pg.get(id=job_template_pg.id).results.pop().get(), role)
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_launch_job(self, factories, user_password, role):
@@ -1493,10 +1495,9 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_cancel_job(self, factories, user_password, role):
-        """Test that the same roles that allow for job launch also allow for job
-        cancellation."""
-        ALLOWED_ROLES = ['admin', 'execute']
-        REJECTED_ROLES = ['read']
+        """Tests job cancellation. JT admins can cancel other people's jobs."""
+        ALLOWED_ROLES = ['admin']
+        REJECTED_ROLES = ['execute', 'read']
 
         job_template_pg = factories.job_template(playbook='sleep.yml', extra_vars=dict(sleep_interval=10))
         user_pg = factories.user()
@@ -1576,7 +1577,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             job_pg.wait_until_completed()
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
-    def test_job_user_capabilities(self, factories, user_password, role):
+    def test_job_user_capabilities(self, factories, user_password, api_jobs_pg, role):
         """Test user_capabilities given each JT role on spawned jobs."""
         job_template_pg = factories.job_template()
         user_pg = factories.user()
@@ -1589,6 +1590,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(job_pg.get(), role)
+            check_user_capabilities(api_jobs_pg.get(id=job_pg.id).results.pop().get(), role)
 
 
 @pytest.mark.api
@@ -1831,7 +1833,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_user_capabilities(self, factories, user_password, role):
+    def test_user_capabilities(self, factories, user_password, api_inventories_pg, role):
         """Test user_capabilities given each inventory role."""
         inventory_pg = factories.inventory()
         factories.group(inventory=inventory_pg)
@@ -1842,6 +1844,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(inventory_pg.get(), role)
+            check_user_capabilities(api_inventories_pg.get(id=inventory_pg.id).results.pop().get(), role)
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_update_custom_group(self, factories, custom_inventory_source, user_password, role):
@@ -1892,8 +1895,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_cancel_update(self, factories, aws_inventory_source, user_password, role):
-        """Tests that the same roles that allow for inventory updates also allow for
-        inventory update cancellation."""
+        """Tests inventory update cancellation. Inventory admins can cancel other people's updates."""
         ALLOWED_ROLES = ['admin', 'update']
         REJECTED_ROLES = ['use', 'ad hoc', 'read']
 
@@ -1944,7 +1946,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
                 raise ValueError("Received unhandled inventory role.")
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-    def test_update_user_capabilities(self, factories, custom_inventory_source, user_password, role):
+    def test_update_user_capabilities(self, factories, custom_inventory_source, user_password, api_inventory_updates_pg, role):
         """Test user_capabilities given each inventory role on spawned
         inventory_updates."""
         user_pg = factories.user()
@@ -1958,6 +1960,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(update_pg.get(), role)
+            check_user_capabilities(api_inventory_updates_pg.get(id=update_pg.id).results.pop().get(), role)
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_launch_command(self, factories, user_password, role):
@@ -2020,10 +2023,9 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_cancel_command(self, factories, user_password, role):
-        """Tests that the same roles that allow for command launch also allow for command
-        cancellation."""
-        ALLOWED_ROLES = ['admin', 'ad hoc']
-        REJECTED_ROLES = ['use', 'update', 'read']
+        """Tests command cancellation. Inventory admins can cancel other people's commands."""
+        ALLOWED_ROLES = ['admin']
+        REJECTED_ROLES = ['ad hoc', 'use', 'update', 'read']
 
         inventory_pg = factories.inventory()
         user_pg = factories.user()
@@ -2117,7 +2119,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             command_pg.wait_until_completed()
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_command_user_capabilities(self, factories, user_password, role):
+    def test_command_user_capabilities(self, factories, user_password, api_ad_hoc_commands_pg, role):
         """Test user_capabilities given each inventory role on spawned
         ad hoc commands."""
         inventory_pg = factories.inventory()
@@ -2135,6 +2137,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(command_pg.get(), role)
+            check_user_capabilities(api_ad_hoc_commands_pg.get(id=command_pg.id).results.pop().get(), role)
 
 
 @pytest.mark.api
@@ -2248,18 +2251,20 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         with self.current_user(username=org_admin.username, password=user_password):
             email_notification_template.delete()
 
-    def test_user_capabilities_as_superuser(self, email_notification_template):
+    def test_user_capabilities_as_superuser(self, email_notification_template, api_notification_templates_pg):
         '''
         Tests NT 'user_capabilities' as superuser.
         '''
-        check_user_capabilities(email_notification_template, "superuser")
+        check_user_capabilities(email_notification_template.get(), "superuser")
+        check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop().get(), "superuser")
 
-    def test_user_capabilities_as_org_admin(self, email_notification_template, org_admin, user_password):
+    def test_user_capabilities_as_org_admin(self, email_notification_template, org_admin, user_password, api_notification_templates_pg):
         '''
         Tests NT 'user_capabilities' as an org_admin.
         '''
         with self.current_user(username=org_admin.username, password=user_password):
-            check_user_capabilities(email_notification_template, "org_admin")
+            check_user_capabilities(email_notification_template.get(), "org_admin")
+            check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop().get(), "org_admin")
 
 
 @pytest.mark.api
@@ -2390,19 +2395,24 @@ class Test_User_RBAC(Base_Api_Test):
                     user.get_related('roles').post(dict(id=user_one_admin_role.id,
                                                         disassociate=disassociate))
 
-    def test_user_capabilities_as_superuser(self, factories):
+    def test_user_capabilities_as_superuser(self, factories, api_users_pg):
         """Tests 'user_capabilities' with a superuser."""
-        user = factories.user()
-        check_user_capabilities(user, "superuser")
+        superuser = factories.user(is_superuser=True)
 
-    def test_user_capabilities_as_org_admin(self, factories, user_password):
+        check_user_capabilities(superuser.get(), "superuser")
+        check_user_capabilities(api_users_pg.get(id=superuser.id).results.pop().get(), "superuser")
+
+    def test_user_capabilities_as_org_admin(self, factories, user_password, api_users_pg):
         """Tests 'user_capabilities' with an org_admin."""
         organization = factories.organization()
-        user = factories.user(organization=organization)
-        set_roles(user, organization, ["admin"])
+        org_user = factories.user()
+        org_admin = factories.user()
+        set_roles(org_user, organization, ["member"])
+        set_roles(org_admin, organization, ["admin"])
 
-        with self.current_user(username=user.username, password=user_password):
-            check_user_capabilities(user, "org_admin")
+        with self.current_user(username=org_admin.username, password=user_password):
+            check_user_capabilities(org_user.get(), "org_admin")
+            check_user_capabilities(api_users_pg.get(id=org_user.id).results.pop().get(), "org_admin")
 
 
 @pytest.mark.api
@@ -2430,11 +2440,12 @@ class Test_System_Jobs_RBAC(Base_Api_Test):
                     api_system_jobs_pg.get(id=system_job.id)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3576')
-    def test_user_capabilities_as_superuser(self, cleanup_jobs_with_status_completed):
+    def test_user_capabilities_as_superuser(self, cleanup_jobs_with_status_completed, api_system_jobs_pg):
         '''
         Verify 'user_capabilities' with a superuser.
         '''
-        check_user_capabilities(cleanup_jobs_with_status_completed, "superuser")
+        check_user_capabilities(cleanup_jobs_with_status_completed.get(), "superuser")
+        check_user_capabilities(api_system_jobs_pg.get(id=cleanup_jobs_with_status_completed.id).results.pop().get(), "superuser")
 
 
 @pytest.mark.api
@@ -2515,16 +2526,18 @@ class Test_Schedules_RBAC(Base_Api_Test):
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 schedule_pg.delete()
 
-    def test_user_capabilities_as_superuser(self, resource_with_schedule):
+    def test_user_capabilities_as_superuser(self, resource_with_schedule, api_schedules_pg):
         """Tests 'user_capabilities' against schedules of all types of UJT
         as superuser."""
         schedule_pg = resource_with_schedule.get_related('schedules').results[0]
-        check_user_capabilities(schedule_pg, 'superuser')
+        check_user_capabilities(schedule_pg.get(), 'superuser')
+        check_user_capabilities(api_schedules_pg.get(id=schedule_pg.id).results.pop().get(), "superuser")
 
-    def test_user_capabilities_as_org_admin(self, org_admin, user_password, organization_resource_with_schedule):
+    def test_user_capabilities_as_org_admin(self, org_admin, user_password, organization_resource_with_schedule, api_schedules_pg):
         """Tests 'user_capabilities' against schedules of all types of UJT
         as an org_admin."""
         schedule_pg = organization_resource_with_schedule.get_related('schedules').results[0]
 
         with self.current_user(org_admin.username, user_password):
-            check_user_capabilities(schedule_pg, 'org_admin')
+            check_user_capabilities(schedule_pg.get(), 'org_admin')
+            check_user_capabilities(api_schedules_pg.get(id=schedule_pg.id).results.pop().get(), "org_admin")
