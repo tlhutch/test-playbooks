@@ -82,7 +82,7 @@ class ProjectUpdate(UnifiedJob):
         cancel.post()
 
         # wait until project update is cancelled
-        self.wait_until_status('running', timeout=30)
+        self.wait_until_status('canceled', timeout=30)
 
 base.register_page(resources.v1_project_update, ProjectUpdate)
 
