@@ -10,10 +10,10 @@ class AdHocCommand(UnifiedJob):
         Relaunch the command using the related->relaunch endpoint
         '''
         # navigate to relaunch_pg
-        relaunch_pg = self.get_related('relaunch')
+        relaunch = self.related.relaunch.get()
 
         # relaunch the command
-        result = relaunch_pg.post(payload)
+        result = relaunch.post(payload)
 
         # return the corresponding command_pg
         return self.walk(result.url)

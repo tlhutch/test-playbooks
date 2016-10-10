@@ -301,11 +301,11 @@ def check_user_capabilities(resource, role):
     if resource.type == 'inventory':
         groups_pg = resource.get_related('groups')
         for group in groups_pg.results:
-            assert resource.summary_fields['user_capabilities'] == user_capabilities['inventory'][role], \
+            assert group.summary_fields['user_capabilities'] == user_capabilities['inventory'][role], \
                 "Unexpected response for 'user_capabilities' when testing groups with a user with inventory-%s." % role
         hosts_pg = resource.get_related('hosts')
         for host in hosts_pg.results:
-            assert resource.summary_fields['user_capabilities'] == user_capabilities['inventory'][role], \
+            assert host.summary_fields['user_capabilities'] == user_capabilities['inventory'][role], \
                 "Unexpected response for 'user_capabilities' when testing hosts with a user with inventory-%s." % role
 
 
@@ -2410,7 +2410,7 @@ class Test_User_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_System_Jobs_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_get_as_superuser(self, system_job):
@@ -2442,7 +2442,7 @@ class Test_System_Jobs_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Schedules_RBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_crud_as_superuser(self, resource_with_schedule):
         """Tests schedule CRUD as superuser against all UJTs that support schedules.

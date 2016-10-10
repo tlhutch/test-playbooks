@@ -72,14 +72,14 @@ class ProjectUpdate(UnifiedJob):
 
     def cancel(self):
         # navigate to cancel_pg
-        cancel_pg = self.get_related('cancel')
+        cancel = self.related.cancel.get()
 
         # assert that project can get cancelled
-        assert cancel_pg.can_cancel, \
+        assert cancel.can_cancel, \
             "cancel_pg 'can_cancel' is false - project update may have already completed."
 
         # cancel the project_update
-        cancel_pg.post()
+        cancel.post()
 
         # wait until project update is cancelled
         self.wait_until_status('running', timeout=30)
