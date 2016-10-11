@@ -829,9 +829,11 @@ print json.dumps(inventory)
                                               inventory__localhost__name='testhost',
                                               job_tags='test_async',
                                               verbosity=1)
-
         job = job_template.launch().wait_until_completed()
-        assert(job.is_successful), "Job unsuccessful - {0}.".format(job)
+        # Async playbook includes task ('test exception module failure') which intentionally throws
+        # an exception (which is ignored). Instead of using job.is_successful (which checks for exceptions
+        # in the jobs stdout), check job status and failed field explicitly
+        assert(job.status.lower() == 'successful' and not job.failed), "Job unsuccessful - {0}.".format(job)
 
         # Check job_events
         job_events = job.get_related('job_events', event__startswith='runner_on')
