@@ -13,11 +13,11 @@ summary_fields_access:
         team_id: {$ref: '#/definitions/id'}
         team_name: {type: string}
         user_capabilities:
-           additionalProperties: false
-           properties:
-             unattach: {type: boolean}
-           required: [unattach]
-           type: object
+          additionalProperties: false
+          properties:
+            unattach: {type: boolean}
+          required: [unattach]
+          type: object
       required: [description, id, name, user_capabilities]
     descendant_roles:
       items: {$ref: '#/definitions/enum_descendant_role'}

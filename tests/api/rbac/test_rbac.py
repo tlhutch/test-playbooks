@@ -1,9 +1,12 @@
 from contextlib import contextmanager
+import os
 import httplib
 import logging
+import fauxfactory
 
 import pytest
 
+from qe.yaml_file import load_file
 import qe.exceptions
 from qe.exceptions import Forbidden_Exception
 from qe.exceptions import NoContent_Exception
@@ -12,6 +15,9 @@ from qe.api.pages.teams import Team_Page
 from tests.api import Base_Api_Test
 
 log = logging.getLogger(__name__)
+
+# load expected values for summary_fields user_capabilities
+user_capabilities = load_file(os.path.join(os.path.dirname(__file__), 'user_capabilities.yml'))
 
 pytestmark = [
     pytest.mark.nondestructive,
@@ -284,6 +290,25 @@ def set_read_role(user_pg, notifiable_resource):
         set_roles(user_pg, notifiable_resource, ['read'])
 
 
+def check_user_capabilities(resource, role):
+    """Helper function used in checking the values of summary_fields flag, 'user_capabilities'
+    """
+    assert resource.summary_fields['user_capabilities'] == user_capabilities[resource.type][role], \
+        "Unexpected response for 'user_capabilities' when testing against a[n] %s resource with a user with %s permissions." \
+        % (resource.type, role)
+    # if given an inventory, additionally check child groups and hosts
+    # child groups/hosts should have the same value for 'user_capabilities' as their inventory
+    if resource.type == 'inventory':
+        groups_pg = resource.get_related('groups')
+        for group in groups_pg.results:
+            assert group.summary_fields['user_capabilities'] == user_capabilities['group'][role], \
+                "Unexpected response for 'user_capabilities' when testing groups with a user with inventory-%s." % role
+        hosts_pg = resource.get_related('hosts')
+        for host in hosts_pg.results:
+            assert host.summary_fields['user_capabilities'] == user_capabilities['host'][role], \
+                "Unexpected response for 'user_capabilities' when testing hosts with a user with inventory-%s." % role
+
+
 # -----------------------------------------------------------------------------
 # Tests
 # -----------------------------------------------------------------------------
@@ -547,6 +572,19 @@ class Test_Organization_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
 
+    @pytest.mark.parametrize('role', ['admin', 'auditor', 'member', 'read'])
+    def test_user_capabilities(self, factories, user_password, api_organizations_pg, role):
+        """Test user_capabilities given each organization role."""
+        organization_pg = factories.organization()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, organization_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(organization_pg.get(), role)
+            check_user_capabilities(api_organizations_pg.get(id=organization_pg.id).results.pop().get(), role)
+
     def test_member_role_association(self, factories, user_password):
         '''
         Tests that after a user is granted member_role that he now shows
@@ -619,11 +657,8 @@ class Test_Project_RBAC(Base_Api_Test):
         * GET our project detail page
         * GET all project related pages
         * Launch project updates
-        * Use our project in a JT
         * Edit our project
         * Delete our project
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         project_pg = factories.project()
         user_pg = factories.user()
@@ -646,12 +681,8 @@ class Test_Project_RBAC(Base_Api_Test):
         A user/team with project 'admin' should be able to:
         * GET our project detail page
         * GET all project related pages
-        * Launch project updates
-        * Use our project in a JT
         * Edit our project
         * Delete our project
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         project_pg = factories.project()
         user_pg = factories.user()
@@ -663,9 +694,6 @@ class Test_Project_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(project_pg, ["organization"])
 
-            # check project update
-            project_pg.update().wait_until_completed()
-
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.OK)
 
@@ -675,14 +703,10 @@ class Test_Project_RBAC(Base_Api_Test):
         A user/team with project 'update' should be able to:
         * GET our project detail page
         * GET all project related pages
-        * Launch project updates
 
         A user/team with project 'update' should not be able to:
-        * Use our project in a JT
         * Edit our project
         * Delete our project
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         project_pg = factories.project()
         user_pg = factories.user()
@@ -694,9 +718,6 @@ class Test_Project_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(project_pg, ["organization"])
 
-            # check project update
-            project_pg.update()
-
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.FORBIDDEN)
 
@@ -706,14 +727,10 @@ class Test_Project_RBAC(Base_Api_Test):
         A user/team with project 'use' should be able to:
         * GET our project detail page
         * GET all project related pages
-        * Use our project in a JT
 
         A user/team with project 'use' should not be able to:
-        * Launch project updates
         * Edit our project
         * Delete our project
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         project_pg = factories.project()
         user_pg = factories.user()
@@ -724,10 +741,6 @@ class Test_Project_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(project_pg, ["organization"])
-
-            # check project update
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                project_pg.update()
 
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.FORBIDDEN)
@@ -740,12 +753,8 @@ class Test_Project_RBAC(Base_Api_Test):
         * GET all project related pages
 
         A user/team with project 'read' should not be able to:
-        * Launch project updates
-        * Use our project in a JT
         * Edit our project
         * Delete our project
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         project_pg = factories.project()
         user_pg = factories.user()
@@ -757,12 +766,109 @@ class Test_Project_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(project_pg, ["organization"])
 
-            # check project update
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                project_pg.update()
-
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.FORBIDDEN)
+
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_user_capabilities(self, factories, user_password, api_projects_pg, role):
+        """Test user_capabilities given each project role."""
+        project_pg = factories.project()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, project_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(project_pg.get(), role)
+            check_user_capabilities(api_projects_pg.get(id=project_pg.id).results.pop().get(), role)
+
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_launch_update(self, factories, user_password, role):
+        """Tests ability to launch a project update."""
+        ALLOWED_ROLES = ['admin', 'update']
+        REJECTED_ROLES = ['use', 'read']
+
+        project_pg = factories.project()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, project_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                update_pg = project_pg.update().wait_until_completed()
+                assert update_pg.is_successful, "Project update unsuccessful - %s." % update_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    project_pg.update()
+            else:
+                raise ValueError("Received unhandled project role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_cancel_update(self, factories, project_ansible_git_nowait, user_password, role):
+        """Tests project update cancellation. Project admins can cancel other people's projects."""
+        ALLOWED_ROLES = ['admin']
+        REJECTED_ROLES = ['update', 'use', 'read']
+
+        user_pg = factories.user()
+        update_pg = project_ansible_git_nowait.related.current_update.get()
+
+        # give test user target role privileges
+        set_roles(user_pg, project_ansible_git_nowait, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                update_pg.cancel()
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    update_pg.cancel()
+                # wait for project to finish to ensure clean teardown
+                update_pg.wait_until_completed()
+            else:
+                raise ValueError("Received unhandled project role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_delete_update(self, factories, user_password, role):
+        """Tests ability to delete a project update."""
+        ALLOWED_ROLES = ['admin']
+        REJECTED_ROLES = ['update', 'use', 'read']
+
+        project_pg = factories.project()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, project_pg, [role])
+
+        # launch project update
+        update_pg = project_pg.update()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                update_pg.delete()
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    update_pg.delete()
+                # wait for project to finish to ensure clean teardown
+                update_pg.wait_until_completed()
+            else:
+                raise ValueError("Received unhandled project role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_update_user_capabilities(self, factories, user_password, api_project_updates_pg, role):
+        """Test user_capabilities given each project role on spawned
+        project_updates."""
+        project_pg = factories.project()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, project_pg, [role])
+
+        # launch project_update
+        update_pg = project_pg.update().wait_until_completed()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(update_pg.get(), role)
+            check_user_capabilities(api_project_updates_pg.get(id=update_pg.id).results.pop().get(), role)
 
 
 @pytest.mark.api
@@ -777,11 +883,8 @@ class Test_Credential_RBAC(Base_Api_Test):
         An unprivileged user/team should not be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
-        # Use this credential in creating a JT
         * Edit the credential
         * Delete the credential
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
         user_pg = factories.user(organization=credential_pg.get_related('organization'))
@@ -799,11 +902,8 @@ class Test_Credential_RBAC(Base_Api_Test):
         A user/team with credential 'admin' should be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
-        # Use this credential in creating a JT
         * Edit the credential
         * Delete the credential
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
         user_pg = factories.user(organization=credential_pg.get_related('organization'))
@@ -824,13 +924,10 @@ class Test_Credential_RBAC(Base_Api_Test):
         A user/team with credential 'use' should be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
-        * Use this credential in creating a JT
 
         A user/team with credential 'use' should not be able to:
         * Edit the credential
         * Delete the credential
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
         user_pg = factories.user(organization=credential_pg.get_related('organization'))
@@ -853,11 +950,8 @@ class Test_Credential_RBAC(Base_Api_Test):
         * Make GETs to all of the credential get_related
 
         A user/team with credential 'read' should not be able to:
-        * Use this credential in creating a JT
         * Edit the credential
         * Delete the credential
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         credential_pg = factories.credential()
         user_pg = factories.user(organization=credential_pg.get_related('organization'))
@@ -871,6 +965,19 @@ class Test_Credential_RBAC(Base_Api_Test):
 
             # check put/patch/delete
             assert_response_raised(credential_pg, httplib.FORBIDDEN)
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'read'])
+    def test_user_capabilities(self, factories, user_password, api_credentials_pg, role):
+        """Test user_capabilities given each credential role."""
+        credential_pg = factories.credential()
+        user_pg = factories.user(organization=credential_pg.get_related('organization'))
+
+        # give test user target role privileges
+        set_roles(user_pg, credential_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(credential_pg.get(), role)
+            check_user_capabilities(api_credentials_pg.get(id=credential_pg.id).results.pop().get(), role)
 
     def test_autopopulated_admin_role_with_users(self, factories):
         '''
@@ -1043,6 +1150,19 @@ class Test_Team_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(team_pg, httplib.FORBIDDEN)
 
+    @pytest.mark.parametrize('role', ['admin', 'member', 'read'])
+    def test_user_capabilities(self, factories, user_password, api_teams_pg, role):
+        """Test user_capabilities given each team role."""
+        team_pg = factories.team()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, team_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(team_pg.get(), role)
+            check_user_capabilities(api_teams_pg.get(id=team_pg.id).results.pop().get(), role)
+
     def test_member_role_association(self, factories, user_password):
         '''
         Tests that after a user is granted member_role that he now shows
@@ -1149,6 +1269,18 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(inventory_script, httplib.FORBIDDEN)
 
+    @pytest.mark.parametrize('role', ['admin', 'read'])
+    def test_user_capabilities(self, factories, inventory_script, user_password, api_inventory_scripts_pg, role):
+        """Test user_capabilities given each inventory_script role."""
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_script, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(inventory_script.get(), role)
+            check_user_capabilities(api_inventory_scripts_pg.get(id=inventory_script.id).results.pop().get(), role)
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -1187,7 +1319,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         A user/team with JT 'admin' should be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
-        * Launch the JT
         * Edit the JT
         * Delete the JT
         '''
@@ -1201,10 +1332,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
-            # check JT launch
-            job_pg = job_template_pg.launch().wait_until_completed()
-            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
-
             # check put/patch/delete
             assert_response_raised(job_template_pg.get(), httplib.OK)
 
@@ -1214,7 +1341,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         A user/team with JT 'execute' should be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
-        * Launch the JT
 
         A user/team with JT 'execute' should not be able to:
         * Edit the JT
@@ -1230,10 +1356,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
-            # check JT launch
-            job_pg = job_template_pg.launch().wait_until_completed()
-            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
-
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
 
@@ -1245,7 +1367,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         * Get all of the JT get_related pages
 
         A user/team with JT 'admin' should not be able to:
-        * Launch the JT
         * Edit the JT
         * Delete the JT
         '''
@@ -1259,12 +1380,67 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(job_template_pg, ["credential", "inventory", "project"])
 
-            # check JT launch
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                job_template_pg.launch()
-
             # check put/patch/delete
             assert_response_raised(job_template_pg, httplib.FORBIDDEN)
+
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_user_capabilities(self, factories, user_password, api_job_templates_pg, role):
+        """Test user_capabilities given each job_template role."""
+        job_template_pg = factories.job_template()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, job_template_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(job_template_pg.get(), role)
+            check_user_capabilities(api_job_templates_pg.get(id=job_template_pg.id).results.pop().get(), role)
+
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_launch_job(self, factories, user_password, role):
+        """Tests ability to launch a job."""
+        ALLOWED_ROLES = ['admin', 'execute']
+        REJECTED_ROLES = ['read']
+
+        job_template_pg = factories.job_template()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, job_template_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                job_pg = job_template_pg.launch().wait_until_completed()
+                assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    job_template_pg.launch()
+            else:
+                raise ValueError("Received unhandled job_template role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_relaunch_job(self, factories, user_password, role):
+        """Tests ability to relaunch a job."""
+        ALLOWED_ROLES = ['admin', 'execute']
+        REJECTED_ROLES = ['read']
+
+        job_template_pg = factories.job_template()
+        user_pg = factories.user()
+        job_pg = job_template_pg.launch().wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+
+        # give test user target role privileges
+        set_roles(user_pg, job_template_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                relaunched_job_pg = job_pg.relaunch().wait_until_completed()
+                assert relaunched_job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    job_pg.relaunch()
+            else:
+                raise ValueError("Received unhandled job_template role.")
 
     def test_relaunch_with_ask_inventory(self, factories, job_template, user_password):
         '''Tests relaunch RBAC when ask_inventory_on_launch is true.'''
@@ -1316,6 +1492,105 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 job_pg.get_related('relaunch').post()
 
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_cancel_job(self, factories, user_password, role):
+        """Tests job cancellation. JT admins can cancel other people's jobs."""
+        ALLOWED_ROLES = ['admin']
+        REJECTED_ROLES = ['execute', 'read']
+
+        job_template_pg = factories.job_template(playbook='sleep.yml', extra_vars=dict(sleep_interval=10))
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, job_template_pg, [role])
+
+        # launch job_template
+        job_pg = job_template_pg.launch()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                job_pg.cancel()
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    job_pg.cancel()
+                # wait for job to finish to ensure clean teardown
+                job_pg.wait_until_completed()
+            else:
+                raise ValueError("Received unhandled job_template role.")
+
+    def test_delete_job_as_org_admin(self, factories, user_password):
+        """Create a run and a scan JT and an org_admin for each of these JTs. Then check
+        that each org_admin may only delete his org's job.
+
+        Note: job deletion is organization scoped. A run JT's project determines its
+        organization and a scan JT's inventory determines its organization.
+        """
+        # create two JTs
+        run_job_template = factories.job_template()
+        scan_job_template = factories.job_template(job_type="scan", project=None)
+
+        # sanity check
+        run_jt_org = run_job_template.get_related('project').get_related('organization')
+        scan_jt_org = scan_job_template.get_related('inventory').get_related('organization')
+        assert run_jt_org.id != scan_jt_org.id, "Test JTs unexpectedly in the same organization."
+
+        # create org_admins
+        org_admin1 = factories.user(organization=run_jt_org)
+        org_admin2 = factories.user(organization=scan_jt_org)
+        set_roles(org_admin1, run_jt_org, ['admin'])
+        set_roles(org_admin2, scan_jt_org, ['admin'])
+
+        # launch JTs
+        run_job = run_job_template.launch()
+        scan_job = scan_job_template.launch()
+
+        # assert that each org_admin cannot delete other organization's job
+        with self.current_user(username=org_admin1.username, password=user_password):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                scan_job.delete()
+        with self.current_user(username=org_admin2.username, password=user_password):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                run_job.delete()
+
+        # assert that each org_admin can delete his own organization's job
+        with self.current_user(username=org_admin1.username, password=user_password):
+            run_job.delete()
+        with self.current_user(username=org_admin2.username, password=user_password):
+            scan_job.delete()
+
+    def test_delete_job_as_org_user(self, factories, user_password):
+        """Tests ability to delete a job as a privileged org_user."""
+        job_template_pg = factories.job_template()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, job_template_pg, ['admin'])
+
+        # launch job_template
+        job_pg = job_template_pg.launch()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                job_pg.delete()
+            # wait for project to finish to ensure clean teardown
+            job_pg.wait_until_completed()
+
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_job_user_capabilities(self, factories, user_password, api_jobs_pg, role):
+        """Test user_capabilities given each JT role on spawned jobs."""
+        job_template_pg = factories.job_template()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, job_template_pg, [role])
+
+        # launch job_template
+        job_pg = job_template_pg.launch().wait_until_completed()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(job_pg.get(), role)
+            check_user_capabilities(api_jobs_pg.get(id=job_pg.id).results.pop().get(), role)
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -1324,18 +1599,15 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_unprivileged_user(self, host_local, cloud_groups, custom_group, user_password, factories):
+    def test_unprivileged_user(self, host_local, aws_inventory_source, custom_group, user_password, factories):
         '''
         An unprivileged user should not be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
         * Update all groups that the inventory contains
         * Launch ad hoc commands against the inventory
-        * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
         groups_pg = inventory_pg.get_related('groups')
@@ -1343,18 +1615,16 @@ class Test_Inventory_RBAC(Base_Api_Test):
         user_pg = factories.user()
 
         commands_pg = inventory_pg.get_related('ad_hoc_commands')
-        inventory_source_pgs = [cloud_group.get_related('inventory_source') for cloud_group in cloud_groups]
-        inventory_source_update_pgs = [inventory_source_pg.get_related('update') for inventory_source_pg in inventory_source_pgs]
+        inv_source_update_pg = aws_inventory_source.get_related('update')
         custom_group_update_pg = custom_group.get_related('inventory_source').get_related('update')
 
         with self.current_user(username=user_pg.username, password=user_password):
             # check GET as test user
             check_read_access(inventory_pg, unprivileged=True)
 
-            # update all cloud_groups
-            for inventory_source_update_pg in inventory_source_update_pgs:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
-                    inventory_source_update_pg.post()
+            # update aws_group
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                inv_source_update_pg.post()
 
             # update custom group
             with pytest.raises(qe.exceptions.Forbidden_Exception):
@@ -1375,20 +1645,14 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(custom_group, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3493')
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_admin_role(self, host_local, cloud_groups, custom_group, set_test_roles, agent, user_password, factories):
+    def test_admin_role(self, host_local, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'admin' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
-        * Update all groups that the inventory contains
-        * Launch ad hoc commands against the inventory
-        * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
         groups_pg = inventory_pg.get_related('groups')
@@ -1396,8 +1660,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group_payload = factories.group.payload(inventory=inventory_pg)[0]
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
+        group_pg = factories.group(inventory=inventory_pg)
         user_pg = factories.user()
-        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent admin_role
         set_test_roles(user_pg, inventory_pg, agent, "admin")
@@ -1406,51 +1670,25 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # update all cloud_groups
-            for cloud_group in cloud_groups:
-                inventory_source_pg = cloud_group.get_related('inventory_source')
-                inventory_source_pg.get_related('update').post()
-                assert inventory_source_pg.wait_until_completed().is_successful, \
-                    "Inventory update unsuccessful - %s." % inventory_source_pg
-
-            # update custom group
-            inventory_source_pg = custom_group.get_related('inventory_source')
-            inventory_source_pg.get_related('update').post()
-            assert inventory_source_pg.wait_until_completed().is_successful, \
-                "Inventory update unsuccessful - %s." % inventory_source_pg
-
-            # post command
-            payload = dict(inventory=inventory_pg.id,
-                           credential=credential_pg.id,
-                           module_name="ping",
-                           limit=host_local.name, )
-            command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload).wait_until_completed()
-            assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
-
             # check ability to create group and host
             groups_pg.post(group_payload)
             hosts_pg.post(host_payload)
 
             # check put/patch/delete on inventory, custom_group, and host_local
             assert_response_raised(host_local, httplib.OK)
-            assert_response_raised(custom_group, httplib.OK)
+            assert_response_raised(group_pg, httplib.OK)
             assert_response_raised(inventory_pg, httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_use_role(self, host_local, custom_group, set_test_roles, agent, user_password, factories):
+    def test_use_role(self, host_local, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'use' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
-        * Use the inventory in creating a JT
 
         A user/team with inventory 'use' should not be able to:
-        * Update all groups that the inventory contains
-        * Launch ad hoc commands against the inventory
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
         groups_pg = inventory_pg.get_related('groups')
@@ -1458,8 +1696,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group_payload = factories.group.payload(inventory=inventory_pg)[0]
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
+        group_pg = factories.group(inventory=inventory_pg)
         user_pg = factories.user()
-        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent use_role
         set_test_roles(user_pg, inventory_pg, agent, "use")
@@ -1468,18 +1706,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # update custom group
-            update_pg = custom_group.get_related('inventory_source').get_related('update')
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                update_pg.post()
-
-            # post command
-            payload = dict(inventory=inventory_pg.id,
-                           credential=credential_pg.id,
-                           module_name="ping", )
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                inventory_pg.get_related('ad_hoc_commands').post(payload)
-
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
@@ -1488,24 +1714,19 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # check put/patch/delete on inventory, custom_group, and host_local
             assert_response_raised(host_local, httplib.FORBIDDEN)
-            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(group_pg, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_adhoc_role(self, host_local, custom_group, set_test_roles, agent, user_password, factories):
+    def test_adhoc_role(self, host_local, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'adhoc' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
-        * Launch ad hoc commands against the inventory
 
         A user/team with inventory 'adhoc' should not be able to:
-        * Update all groups that the inventory contains
-        * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
         groups_pg = inventory_pg.get_related('groups')
@@ -1513,8 +1734,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group_payload = factories.group.payload(inventory=inventory_pg)[0]
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
+        group_pg = factories.group(inventory=inventory_pg)
         user_pg = factories.user()
-        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent adhoc_role
         set_test_roles(user_pg, inventory_pg, agent, "ad hoc")
@@ -1523,19 +1744,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # update custom group
-            update_pg = custom_group.get_related('inventory_source').get_related('update')
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                update_pg.post()
-
-            # post command
-            payload = dict(inventory=inventory_pg.id,
-                           credential=credential_pg.id,
-                           module_name="ping",
-                           limit=host_local.name, )
-            command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload).wait_until_completed()
-            assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
-
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
@@ -1544,25 +1752,19 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # check put/patch/delete on inventory, custom_group, and host_local
             assert_response_raised(host_local, httplib.FORBIDDEN)
-            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(group_pg, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3493')
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_update_role(self, host_local, cloud_groups, custom_group, set_test_roles, agent, user_password, factories):
+    def test_update_role(self, host_local, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'update' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
-        * Update all groups that the inventory contains
 
         A user/team with inventory 'update' should not be able to:
-        * Launch ad hoc commands against the inventory
-        * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
         groups_pg = inventory_pg.get_related('groups')
@@ -1570,8 +1772,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group_payload = factories.group.payload(inventory=inventory_pg)[0]
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
+        group_pg = factories.group(inventory=inventory_pg)
         user_pg = factories.user()
-        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent update_role
         set_test_roles(user_pg, inventory_pg, agent, "update")
@@ -1580,26 +1782,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # update all cloud_groups
-            for cloud_group in cloud_groups:
-                inventory_source_pg = cloud_group.get_related('inventory_source')
-                inventory_source_pg.get_related('update').post()
-                assert inventory_source_pg.wait_until_completed().is_successful, \
-                    "Inventory update failed - %s." % inventory_source_pg
-
-            # update custom group
-            inventory_source_pg = custom_group.get_related('inventory_source')
-            inventory_source_pg.get_related('update').post()
-            assert inventory_source_pg.wait_until_completed(), \
-                "Inventory update failed - %s." % inventory_source_pg
-
-            # post command
-            payload = dict(inventory=inventory_pg.id,
-                           credential=credential_pg.id,
-                           module_name="ping", )
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                inventory_pg.get_related('ad_hoc_commands').post(payload)
-
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
@@ -1608,24 +1790,19 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # check put/patch/delete on inventory, custom_group, and host_local
             assert_response_raised(host_local, httplib.FORBIDDEN)
-            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(group_pg, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_read_role(self, host_local, custom_group, set_test_roles, agent, user_password, factories):
+    def test_read_role(self, host_local, set_test_roles, agent, user_password, factories):
         '''
         A user/team with inventory 'read' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
 
         A user/team with inventory 'read' should not be able to:
-        * Update all groups that the inventory contains
-        * Launch ad hoc commands against the inventory
-        * Use the inventory in creating a JT
         * Edit/delete the inventory
         * Create/edit/delete inventory groups and hosts
-
-        Use tested already in test_usage_role_required_to_change_other_job_template_related_resources.
         '''
         inventory_pg = host_local.get_related('inventory')
         groups_pg = inventory_pg.get_related('groups')
@@ -1633,8 +1810,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group_payload = factories.group.payload(inventory=inventory_pg)[0]
         host_payload = factories.host.payload(inventory=inventory_pg)[0]
 
+        group_pg = factories.group(inventory=inventory_pg)
         user_pg = factories.user()
-        credential_pg = factories.credential(user=user_pg, organization=None)
 
         # give agent read_role
         set_test_roles(user_pg, inventory_pg, agent, "read")
@@ -1643,18 +1820,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             # check GET as test user
             check_read_access(inventory_pg, ["organization"])
 
-            # update custom group
-            update_pg = custom_group.get_related('inventory_source').get_related('update')
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                update_pg.post()
-
-            # post command
-            payload = dict(inventory=inventory_pg.id,
-                           credential=credential_pg.id,
-                           module_name="ping", )
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
-                inventory_pg.get_related('ad_hoc_commands').post(payload)
-
             # check ability to create group and host
             with pytest.raises(qe.exceptions.Forbidden_Exception):
                 groups_pg.post(group_payload)
@@ -1663,8 +1828,315 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # check put/patch/delete on inventory, custom_group, and host_local
             assert_response_raised(host_local, httplib.FORBIDDEN)
-            assert_response_raised(custom_group, httplib.FORBIDDEN)
+            assert_response_raised(group_pg, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_user_capabilities(self, factories, user_password, api_inventories_pg, role):
+        """Test user_capabilities given each inventory role."""
+        inventory_pg = factories.inventory()
+        factories.group(inventory=inventory_pg)
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(inventory_pg.get(), role)
+            check_user_capabilities(api_inventories_pg.get(id=inventory_pg.id).results.pop().get(), role)
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_update_custom_group(self, factories, custom_inventory_source, user_password, role):
+        """Test ability to update a custom group."""
+        ALLOWED_ROLES = ['admin', 'update']
+        REJECTED_ROLES = ['use', 'ad hoc', 'read']
+
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        inventory_pg = custom_inventory_source.get_related('inventory')
+        set_roles(user_pg, inventory_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                update_pg = custom_inventory_source.update().wait_until_completed()
+                assert update_pg.is_successful, "Update unsuccessful - %s." % update_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    custom_inventory_source.update()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_update_cloud_group(self, factories, aws_inventory_source, user_password, role):
+        """Test ability to update a cloud group. Note: only tested on AWS to save time.
+        Also, user should be able launch update even though cloud_credential is under
+        admin user.
+        """
+        ALLOWED_ROLES = ['admin', 'update']
+        REJECTED_ROLES = ['use', 'ad hoc', 'read']
+
+        user_pg = factories.user()
+
+        # give agent target role privileges
+        inventory_pg = aws_inventory_source.get_related('inventory')
+        set_roles(user_pg, inventory_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                update_pg = aws_inventory_source.update().wait_until_completed()
+                assert update_pg.is_successful, "Update unsuccessful - %s." % update_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    aws_inventory_source.update()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_cancel_update(self, factories, aws_inventory_source, user_password, role):
+        """Tests inventory update cancellation. Inventory admins can cancel other people's updates."""
+        ALLOWED_ROLES = ['admin']
+        REJECTED_ROLES = ['update', 'use', 'ad hoc', 'read']
+
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        inventory_pg = aws_inventory_source.get_related('inventory')
+        set_roles(user_pg, inventory_pg, [role])
+
+        # launch inventory update
+        update_pg = aws_inventory_source.update()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                update_pg.cancel()
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    update_pg.cancel()
+                # wait for inventory update to finish to ensure clean teardown
+                update_pg.wait_until_completed()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_delete_update(self, factories, custom_inventory_source, user_password, role):
+        """Tests ability to delete an inventory update."""
+        ALLOWED_ROLES = ['admin']
+        REJECTED_ROLES = ['use', 'ad hoc', 'update', 'read']
+
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        inventory_pg = custom_inventory_source.get_related('inventory')
+        set_roles(user_pg, inventory_pg, [role])
+
+        # launch inventory update
+        update_pg = custom_inventory_source.update()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                update_pg.delete()
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    update_pg.delete()
+                # wait for inventory update to finish to ensure clean teardown
+                update_pg.wait_until_completed()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_update_user_capabilities(self, factories, custom_inventory_source, user_password, api_inventory_updates_pg, role):
+        """Test user_capabilities given each inventory role on spawned
+        inventory_updates."""
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        inventory_pg = custom_inventory_source.get_related('inventory')
+        set_roles(user_pg, inventory_pg, [role])
+
+        # launch inventory_update
+        update_pg = custom_inventory_source.update().wait_until_completed()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(update_pg.get(), role)
+            check_user_capabilities(api_inventory_updates_pg.get(id=update_pg.id).results.pop().get(), role)
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_launch_command(self, factories, user_password, role):
+        """Test ability to launch a command."""
+        ALLOWED_ROLES = ['admin', 'ad hoc']
+        REJECTED_ROLES = ['use', 'update', 'read']
+
+        inventory_pg = factories.inventory()
+        user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
+
+        # create command fixtures
+        ad_hoc_commands_pg = inventory_pg.get_related('ad_hoc_commands')
+        payload = dict(inventory=inventory_pg.id,
+                       credential=credential_pg.id,
+                       module_name="ping")
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                command_pg = ad_hoc_commands_pg.post(payload).wait_until_completed()
+                assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    ad_hoc_commands_pg.post(payload)
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_relaunch_command(self, factories, user_password, role):
+        """Tests ability to relaunch a command."""
+        ALLOWED_ROLES = ['admin', 'ad hoc']
+        REJECTED_ROLES = ['use', 'update', 'read']
+
+        inventory_pg = factories.inventory()
+        user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
+
+        # launch command
+        payload = dict(inventory=inventory_pg.id,
+                       credential=credential_pg.id,
+                       module_name="ping")
+        command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload).wait_until_completed()
+        assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                relaunched_command = command_pg.relaunch().wait_until_completed()
+                assert relaunched_command.is_successful, "Command unsuccessful - %s." % command_pg
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    command_pg.relaunch()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_cancel_command(self, factories, user_password, role):
+        """Tests command cancellation. Inventory admins can cancel other people's commands."""
+        ALLOWED_ROLES = ['admin']
+        REJECTED_ROLES = ['ad hoc', 'use', 'update', 'read']
+
+        inventory_pg = factories.inventory()
+        user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_pg, [role])
+
+        # launch command
+        payload = dict(inventory=inventory_pg.id,
+                       credential=credential_pg.id,
+                       module_args="sleep 10")
+        command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload)
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            if role in ALLOWED_ROLES:
+                command_pg.cancel()
+            elif role in REJECTED_ROLES:
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    command_pg.cancel()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    def test_delete_command_as_org_admin(self, factories, user_password):
+        """Create two ad hoc commands and an org_admin for each of these commands.
+        Then check that each org_admin may only delete his org's command.
+
+        Note: command deletion is organization scoped. A command's inventory determines
+        its organization.
+        """
+        # create items for command payloads
+        inventory1 = factories.inventory()
+        inventory2 = factories.inventory()
+        inv_org1 = inventory1.get_related('organization')
+        inv_org2 = inventory2.get_related('organization')
+        credential1 = factories.credential(organization=inv_org1)
+        credential2 = factories.credential(organization=inv_org2)
+
+        # sanity check
+        assert inv_org1.id != inv_org2, "Test inventories unexpectedly in the same organization."
+
+        # create org_admins
+        org_admin1 = factories.user()
+        org_admin2 = factories.user()
+        set_roles(org_admin1, inv_org1, ['admin'])
+        set_roles(org_admin2, inv_org2, ['admin'])
+
+        # launch both commands
+        payload = dict(inventory=inventory1.id,
+                       credential=credential1.id,
+                       module_name="ping")
+        command1 = inventory1.get_related('ad_hoc_commands').post(payload)
+        payload = dict(inventory=inventory2.id,
+                       credential=credential2.id,
+                       module_name="ping")
+        command2 = inventory2.get_related('ad_hoc_commands').post(payload)
+
+        # assert that each org_admin cannot delete other organization's command
+        with self.current_user(username=org_admin1.username, password=user_password):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                command2.delete()
+        with self.current_user(username=org_admin2.username, password=user_password):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                command1.delete()
+
+        # assert that each org_admin can delete his own organization's command
+        with self.current_user(username=org_admin1.username, password=user_password):
+            command1.delete()
+        with self.current_user(username=org_admin2.username, password=user_password):
+            command2.delete()
+
+    def test_delete_command_as_org_user(self, factories, user_password):
+        """Tests ability to delete an ad hoc command as a privileged org_user."""
+        inventory_pg = factories.inventory()
+        user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_pg, ['admin'])
+
+        # launch command
+        payload = dict(inventory=inventory_pg.id,
+                       credential=credential_pg.id,
+                       module_name="ping")
+        command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload)
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                command_pg.delete()
+            # wait for ad hoc command to finish to ensure clean teardown
+            command_pg.wait_until_completed()
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_command_user_capabilities(self, factories, user_password, api_ad_hoc_commands_pg, role):
+        """Test user_capabilities given each inventory role on spawned
+        ad hoc commands."""
+        inventory_pg = factories.inventory()
+        user_pg = factories.user()
+        credential_pg = factories.credential(user=user_pg, organization=None)
+
+        # give test user target role privileges
+        set_roles(user_pg, inventory_pg, [role])
+
+        # launch command
+        payload = dict(inventory=inventory_pg.id,
+                       credential=credential_pg.id,
+                       module_name="ping")
+        command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload).wait_until_completed()
+
+        with self.current_user(username=user_pg.username, password=user_password):
+            check_user_capabilities(command_pg.get(), role)
+            check_user_capabilities(api_ad_hoc_commands_pg.get(id=command_pg.id).results.pop().get(), role)
 
 
 @pytest.mark.api
@@ -1778,6 +2250,21 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         with self.current_user(username=org_admin.username, password=user_password):
             email_notification_template.delete()
 
+    def test_user_capabilities_as_superuser(self, email_notification_template, api_notification_templates_pg):
+        '''
+        Tests NT 'user_capabilities' as superuser.
+        '''
+        check_user_capabilities(email_notification_template.get(), "superuser")
+        check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop().get(), "superuser")
+
+    def test_user_capabilities_as_org_admin(self, email_notification_template, org_admin, user_password, api_notification_templates_pg):
+        '''
+        Tests NT 'user_capabilities' as an org_admin.
+        '''
+        with self.current_user(username=org_admin.username, password=user_password):
+            check_user_capabilities(email_notification_template.get(), "org_admin")
+            check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop().get(), "org_admin")
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -1889,7 +2376,8 @@ class Test_Label_RBAC(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-class TestUsersRBAC(Base_Api_Test):
+@pytest.mark.destructive
+class Test_User_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
@@ -1905,3 +2393,150 @@ class TestUsersRBAC(Base_Api_Test):
                 with pytest.raises(qe.exceptions.Forbidden_Exception):
                     user.get_related('roles').post(dict(id=user_one_admin_role.id,
                                                         disassociate=disassociate))
+
+    def test_user_capabilities_as_superuser(self, factories, api_users_pg):
+        """Tests 'user_capabilities' with a superuser."""
+        superuser = factories.user(is_superuser=True)
+
+        check_user_capabilities(superuser.get(), "superuser")
+        check_user_capabilities(api_users_pg.get(id=superuser.id).results.pop().get(), "superuser")
+
+    def test_user_capabilities_as_org_admin(self, factories, user_password, api_users_pg):
+        """Tests 'user_capabilities' with an org_admin."""
+        organization = factories.organization()
+        org_user = factories.user()
+        org_admin = factories.user()
+        set_roles(org_user, organization, ["member"])
+        set_roles(org_admin, organization, ["admin"])
+
+        with self.current_user(username=org_admin.username, password=user_password):
+            check_user_capabilities(org_user.get(), "org_admin")
+            check_user_capabilities(api_users_pg.get(id=org_user.id).results.pop().get(), "org_admin")
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+class Test_System_Jobs_RBAC(Base_Api_Test):
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+
+    @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
+    def test_get_as_superuser(self, system_job):
+        '''
+        Verify that a superuser account is able to GET a system_job resource.
+        '''
+        system_job.get()
+
+    @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
+    def test_get_as_non_superuser(self, non_superusers, user_password, api_system_jobs_pg, system_job):
+        '''
+        Verify that non-superuser accounts are unable to access a system_job.
+        '''
+        for non_superuser in non_superusers:
+            with self.current_user(non_superuser.username, user_password):
+                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                    api_system_jobs_pg.get(id=system_job.id)
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3576')
+    def test_user_capabilities_as_superuser(self, cleanup_jobs_with_status_completed, api_system_jobs_pg):
+        '''
+        Verify 'user_capabilities' with a superuser.
+        '''
+        check_user_capabilities(cleanup_jobs_with_status_completed.get(), "superuser")
+        check_user_capabilities(api_system_jobs_pg.get(id=cleanup_jobs_with_status_completed.id).results.pop().get(), "superuser")
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+class Test_Schedules_RBAC(Base_Api_Test):
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+
+    def test_crud_as_superuser(self, resource_with_schedule):
+        """Tests schedule CRUD as superuser against all UJTs that support schedules.
+        Create is tested upon fixture instantiation."""
+        # test get
+        schedule_pg = resource_with_schedule.get_related('schedules').results[0]
+        # test put/patch
+        schedule_pg.put()
+        schedule_pg.patch()
+        # test delete
+        schedule_pg.delete()
+
+    def test_crud_as_org_admin(self, org_admin, user_password, schedulable_resource_as_org_admin):
+        """Tests schedules CRUD as an org_admin against an inventory_source, project, and JT."""
+        schedules_pg = schedulable_resource_as_org_admin.get_related('schedules')
+        payload = dict(name="Schedule - %s" % fauxfactory.gen_utf8(),
+                       rrule="DTSTART:20160926T040000Z RRULE:FREQ=HOURLY;INTERVAL=1")
+
+        with self.current_user(org_admin.username, user_password):
+            # test create
+            schedule_pg = schedules_pg.post(payload)
+            # test get
+            schedule_pg.get()
+            # test put/patch
+            schedule_pg.put()
+            schedule_pg.patch()
+            # test delete
+            schedule_pg.delete()
+
+    def test_system_job_template_schedule_crud_as_org_admin(self, request, org_admin, user_password, cleanup_jobs_template):
+        """Tests schedules CRUD as an org_admin against a system job template."""
+        schedules_pg = cleanup_jobs_template.get_related('schedules')
+        # Tower-3.0 comes with a prestocked cleanup_jobs schedule
+        schedule_pg = cleanup_jobs_template.get_related('schedules').results[0]
+
+        with self.current_user(org_admin.username, user_password):
+            # test get
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.get()
+            # test put/patch
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.put()
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.patch()
+            # test post
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedules_pg.post()
+            # test delete
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.delete()
+
+    def test_crud_as_org_user(self, request, org_user, user_password, resource_with_schedule):
+        """Test schedules CRUD as an org_user against an inventory_source, project, and JT."""
+        schedules_pg = resource_with_schedule.get_related('schedules')
+        schedule_pg = resource_with_schedule.get_related('schedules').results[0]
+
+        with self.current_user(org_user.username, user_password):
+            # test get
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.get()
+            # test put/patch
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.put()
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.patch()
+            # test create
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedules_pg.post()
+            # test delete
+            with pytest.raises(qe.exceptions.Forbidden_Exception):
+                schedule_pg.delete()
+
+    def test_user_capabilities_as_superuser(self, resource_with_schedule, api_schedules_pg):
+        """Tests 'user_capabilities' against schedules of all types of UJT
+        as superuser."""
+        schedule_pg = resource_with_schedule.get_related('schedules').results[0]
+        check_user_capabilities(schedule_pg.get(), 'superuser')
+        check_user_capabilities(api_schedules_pg.get(id=schedule_pg.id).results.pop().get(), "superuser")
+
+    def test_user_capabilities_as_org_admin(self, org_admin, user_password, organization_resource_with_schedule, api_schedules_pg):
+        """Tests 'user_capabilities' against schedules of all types of UJT
+        as an org_admin."""
+        schedule_pg = organization_resource_with_schedule.get_related('schedules').results[0]
+
+        with self.current_user(org_admin.username, user_password):
+            check_user_capabilities(schedule_pg.get(), 'org_admin')
+            check_user_capabilities(api_schedules_pg.get(id=schedule_pg.id).results.pop().get(), "org_admin")
