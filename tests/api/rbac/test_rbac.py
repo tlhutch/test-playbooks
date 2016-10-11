@@ -1270,17 +1270,16 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             assert_response_raised(inventory_script, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'read'])
-    def test_user_capabilities(self, factories, user_password, api_inventory_scripts_pg, role):
+    def test_user_capabilities(self, factories, inventory_script, user_password, api_inventory_scripts_pg, role):
         """Test user_capabilities given each inventory_script role."""
-        inventory_script_pg = factories.inventory_script()
         user_pg = factories.user()
 
         # give test user target role privileges
-        set_roles(user_pg, inventory_script_pg, [role])
+        set_roles(user_pg, inventory_script, [role])
 
         with self.current_user(username=user_pg.username, password=user_password):
-            check_user_capabilities(inventory_script_pg.get(), role)
-            check_user_capabilities(api_inventory_scripts_pg.get(id=inventory_script_pg.id).results.pop().get(), role)
+            check_user_capabilities(inventory_script.get(), role)
+            check_user_capabilities(api_inventory_scripts_pg.get(id=inventory_script.id).results.pop().get(), role)
 
 
 @pytest.mark.api

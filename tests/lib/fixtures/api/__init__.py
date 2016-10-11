@@ -8,7 +8,7 @@ from qe.api.pages import (Activity_Stream_Page, Ad_Hoc_Commands_Page, ApiV1, Bas
                           Notification_Templates_Page, Notifications_Page, Organizations_Page, Ping_Page,
                           Projects_Page, Roles_Page, Schedules_Page, System_Jobs_Page,
                           System_Job_Templates_Page, Teams_Page, Unified_Job_Templates_Page, Users_Page,
-                          Settings, ProjectUpdates, InventoryUpdate)
+                          Settings, ProjectUpdates, InventoryUpdates)
 from qe.api.pages.authtoken import AuthToken_Page
 
 
@@ -302,7 +302,7 @@ def api_inventory_updates_url(api, api_v1_url):
 
 @pytest.fixture(scope="module")
 def api_inventory_updates_pg(testsetup, api_inventory_updates_url):
-    return InventoryUpdate(testsetup, base_url=api_inventory_updates_url)
+    return InventoryUpdates(testsetup, base_url=api_inventory_updates_url)
 
 
 #
