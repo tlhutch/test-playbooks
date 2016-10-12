@@ -655,6 +655,7 @@ print json.dumps(inv, indent=2)
         assert "credential" not in ad_hoc_command_pg.json['related']
         assert "created_by" not in ad_hoc_command_pg.json['related']
 
+    @pytest.mark.skip
     @pytest.mark.fixture_args(ad_hoc_commands=['shell'])
     def test_included_modules(self, host, ssh_credential, api_ad_hoc_commands_pg, AD_HOC_COMMANDS, ad_hoc_module_name_choices):
         '''
@@ -680,6 +681,7 @@ print json.dumps(inv, indent=2)
         # check that correct module run
         assert command_pg.module_name == "shell", "Incorrect module run. Expected 'shell' but got %s." % command_pg.module_name
 
+    @pytest.mark.skip
     @pytest.mark.fixture_args(ad_hoc_commands=[])
     def test_excluded_modules(self, inventory, ssh_credential, api_ad_hoc_commands_pg, AD_HOC_COMMANDS, ad_hoc_module_name_choices, tower_version_cmp):
         '''
@@ -714,6 +716,7 @@ print json.dumps(inv, indent=2)
             else:
                 assert result == {u'module_name': [u'"%s" is not a valid choice.' % module_name]}, errorMsg
 
+    @pytest.mark.skip
     @pytest.mark.fixture_args(ad_hoc_commands=[])
     def test_relaunch_with_excluded_module(self, ad_hoc_with_status_completed, api_ad_hoc_commands_pg, AD_HOC_COMMANDS,
                                            tower_version_cmp):
