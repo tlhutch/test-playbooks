@@ -2458,7 +2458,8 @@ class Test_Schedules_RBAC(Base_Api_Test):
         """Tests schedule CRUD as superuser against all UJTs that support schedules.
         Create is tested upon fixture instantiation."""
         # test get
-        schedule_pg = resource_with_schedule.get_related('schedules').results[0]
+        # NOTE: additional filter so that we do not delete our prestocked system job schedule
+        schedule_pg = resource_with_schedule.get_related('schedules', not__name='Cleanup Job Schedule').results[0]
         # test put/patch
         schedule_pg.put()
         schedule_pg.patch()
