@@ -80,11 +80,11 @@ def pytest_generate_tests(metafunc):
 
 
 @pytest.fixture
-def max_window(selenium):
+def max_window(request, selenium):
     log.debug('Calling fixture max_window')
     selenium.maximize_window()
-    WebDriverWait(selenium, 60).until(
-        lambda d: d.get_window_position()['x'] <= 0)
+    if 'sauce' in request.config.option.driver.lower():
+        WebDriverWait(selenium, 60).until(lambda d: d.get_window_position()['x'] <= 0)
 
 
 @pytest.fixture
