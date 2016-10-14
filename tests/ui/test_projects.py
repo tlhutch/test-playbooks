@@ -16,6 +16,7 @@ pytestmark = [
 ]
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3685')
 def test_active_project_update(factories, ui_projects):
     """Verify that the project update button is active for a scm project
     """
