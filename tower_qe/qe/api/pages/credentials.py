@@ -58,9 +58,19 @@ class Credential(base.Base):
         if organization:
             payload['organization'] = self.dependency_store[Organization].id
 
-        config_cred_key = "network" if kind == 'net' else kind
-        payload['username'] = kw.get('username', config.credentials[config_cred_key].username)
-        payload['password'] = kw.get('password', config.credentials[config_cred_key].password)
+        cloud_choices = ('aws', 'rax', 'vmware', 'satellite6',
+                         'cloudforms', 'gce', 'azure', 'azure_rm', 'openstack')
+
+        # extract credential username / password dict from tower-qe credentials
+        if kind == 'net':
+            config_cred = config.credentials['network']
+        elif kind in cloud_choices:
+            config_cred = config.credentials['cloud'][kind]
+        else:
+            config_cred = config.credentials[kind]
+
+        payload['username'] = kw.get('username', config_cred.username)
+        payload['password'] = kw.get('password', config_cred.password)
 
         if kind in ('ssh', 'net'):
             payload['ssh_key_data'] = kw.get('ssh_key_data', RSA.generate(2048, os.urandom).exportKey('PEM'))
