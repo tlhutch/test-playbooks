@@ -41,6 +41,7 @@
     count_tag:
         Name: '{{ec2_name_prefix}}-{{item.name}}'
         ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
+    user_data: '{{ item.user_data|default(omit) }}'
     wait: yes
     wait_timeout: '600'
 #    volumes:
@@ -73,8 +74,9 @@
   with_items: '{{ (ec2|default({})).results|default([]) }}'
   when: ec2_images and ec2 is defined
 
+
 # HACK: While sshd may be listening, it may not fully accept connections
 # immediately
 - pause:
-    seconds: 60 
+    seconds: 60
   when: ec2_images and ec2 is defined and ec2.changed
