@@ -1,19 +1,22 @@
----
-$schema: 'http://json-schema.org/draft-04/schema#'
-id: '/api/v1/ping/'
-type: object
+$schema: http://json-schema.org/draft-04/schema#
 additionalAttributes: false
-required: [instances, ha, version]
+definitions: null
+id: /api/v1/ping/
 properties:
-    instances:
-      type: array
-      items:
-        type: string
-    ha:
-      type: boolean
-    role:
-        enum: [primary, secondary]
-    version:
-        $ref: '#/definitions/version_string'
+  active_node: {type: string}
+  ha: {type: boolean}
+  instances:
+    items:
+      additionalPropeties: false
+      properties:
+        heartbeat: {format: date-time, type: string}
+        node: {type: string}
+      type: object
+    type: array
+    minItems: 1
+    uniqueItems: true
+  version: {$ref: '#/definitions/version_string'}
+required: [instances, ha, version, active_node]
+type: object
 definitions:
   !include 'definitions/*.yml'
