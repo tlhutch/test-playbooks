@@ -68,7 +68,7 @@ schedule:
   org_admin: {delete: true, edit: true}
   superuser: {delete: true, edit: true}
 system_job:
-  superuser: {delete: true, edit: true}
+  superuser: {delete: true, start: false}
 team:
   admin: {delete: true, edit: true}
   member: {delete: false, edit: false}
