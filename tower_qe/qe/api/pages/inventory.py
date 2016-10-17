@@ -1,4 +1,5 @@
 import json
+import re
 
 import fauxfactory
 
@@ -240,7 +241,43 @@ base.register_page(resources.v1_inventory_update_cancel, InventoryUpdateCancel)
 
 class InventoryScript(base.Base):
 
-    pass
+    dependencies = [Organization]
+
+    def create(self, organization=Organization, **kw):
+        self.create_and_update_dependencies(organization)
+
+        kw['organization'] = self.dependency_store[Organization].id
+
+        if 'name' not in kw:
+            kw['name'] = 'Inventory Script - {}'.format(fauxfactory.gen_alphanumeric())
+
+        if 'description' not in kw:
+            kw['description'] = 'Description - {}'.format(fauxfactory.gen_alphanumeric())
+
+        if 'script' not in kw:
+            kw['script'] = self._generate_script()
+
+        return self.update_identity(InventoryScripts(self.testsetup).post(kw))
+
+    def _generate_script(self):
+            script = '\n'.join([
+                u'#!/usr/bin/env python',
+                u'# -*- coding: utf-8 -*-',
+                u'import json',
+                u'inventory = dict()',
+                u'inventory["{0}"] = list()',
+                u'inventory["{0}"].append("{1}")',
+                u'inventory["{0}"].append("{2}")',
+                u'inventory["{0}"].append("{3}")',
+                u'inventory["{0}"].append("{4}")',
+                u'inventory["{0}"].append("{5}")',
+                u'print json.dumps(inventory)'
+            ])
+            group_name = re.sub(r"[\']", "", u"group-%s" % fauxfactory.gen_utf8())
+            host_names = [re.sub(r"[\':]", "", u"host-%s" % fauxfactory.gen_utf8()) for _ in xrange(5)]
+
+            return script.format(group_name, *host_names)
+
 
 base.register_page(resources.v1_inventory_script, InventoryScript)
 
