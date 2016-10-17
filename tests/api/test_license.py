@@ -414,6 +414,7 @@ class Test_No_License(Base_Api_Test):
     '''
     pytestmark = pytest.mark.usefixtures('authtoken', 'no_license')
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_empty_license_info(self, api_config_pg):
         '''Verify the license_info field is empty'''
         conf = api_config_pg.get()
@@ -435,6 +436,7 @@ class Test_No_License(Base_Api_Test):
         job_pg = project_ansible_playbooks_git_nowait.update().wait_until_completed()
         assert job_pg.is_successful, "project_update was unsuccessful - %s" % job_pg
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_can_launch_inventory_update_but_it_should_fail(self, custom_inventory_source):
         '''Verify that inventory_updates can be launched, but they fail because
         no license is installed.'''
@@ -449,6 +451,7 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(qe.exceptions.LicenseExceeded_Exception):
             job_template.launch_job()
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_post_invalid_license(self, api_config_pg, ansible_runner, tower_license_path, invalid_license_json):
         '''Verify that various bogus license formats fail to successfully install'''
 
@@ -477,6 +480,7 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(qe.exceptions.LicenseInvalid_Exception):
             api_config_pg.post(eula_rejected_legacy_license_json)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_post_legacy_license(self, api_config_pg, legacy_license_json, ansible_runner, tower_license_path, tower_version_cmp):
         '''Verify that a license can be installed by issuing a POST to the /config endpoint'''
         # Assert that /etc/tower/license does not exist
@@ -636,6 +640,7 @@ class Test_AWS_License(Base_Api_Test):
         for result in contacted.values():
             assert not result['stat']['exists'], "No license file was expected, but one was found"
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg, ansible_runner, tower_license_path):
         '''Verify the license_info field is empty after deleting the license'''
         api_config_pg.delete()
@@ -773,6 +778,7 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected API response upon attempting to navigate to fact_versions with a legacy license - %s." % json.dumps(result)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg, ansible_runner, tower_license_path):
         '''Verify the license_info field is empty after deleting the license'''
         api_config_pg.delete()
@@ -1349,6 +1355,7 @@ class Test_Basic_License(Base_Api_Test):
             "Incorrect license_type returned. Expected 'enterprise,' " \
             "returned %s." % conf.license_info['license_type']
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg, ansible_runner, tower_license_path):
         '''Verify the license_info field is empty after deleting the license'''
         api_config_pg.delete()
@@ -1571,6 +1578,7 @@ class Test_Enterprise_License(Base_Api_Test):
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg, ansible_runner, tower_license_path):
         '''Verify the license_info field is empty after deleting the license'''
         api_config_pg.delete()
