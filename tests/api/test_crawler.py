@@ -135,7 +135,6 @@ def test_authenticated(api, resource, method, authtoken, no_license):
                                          'GET': method_not_allowed},
                   '/api/v1/config/': {'POST': (httplib.BAD_REQUEST, 'license_invalid')},
                   '/api/v1/dashboard/': {'POST': method_not_allowed},
-                  '/api/v1/hosts/': {'POST': forbidden},
                   '/api/v1/inventory_sources/': {'POST': method_not_allowed},
                   '/api/v1/inventory_updates/': {'POST': method_not_allowed},
                   '/api/v1/job_events/': {'POST': method_not_allowed},
