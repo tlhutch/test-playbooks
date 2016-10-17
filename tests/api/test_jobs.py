@@ -794,7 +794,7 @@ print json.dumps(inventory)
             pytest.skip("Only supported on ansible-2.0.0.0 (or newer)")
 
         job_template = factories.job_template(project__scm_url='https://github.com/ansible/ansible.git',
-                                              playbook='test/integration/no_log_local.yml',
+                                              playbook='test/integration/targets/no_log/no_log_local.yml',
                                               inventory__localhost__name='testhost',
                                               verbosity=1)
         # Launch test job template
