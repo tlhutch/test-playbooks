@@ -148,8 +148,7 @@ def test_authenticated(api, resource, method, authtoken, no_license):
                   '/api/v1/system_job_templates/': {'POST': method_not_allowed},
                   '/api/v1/unified_job_templates/': {'POST': method_not_allowed},
                   '/api/v1/unified_jobs/': {'POST': method_not_allowed},
-                  '/api/v1/workflow_job_nodes/': {'POST': method_not_allowed},
-                  '/api/v1/workflow_job_templates/': {'POST': forbidden}}
+                  '/api/v1/workflow_job_nodes/': {'POST': method_not_allowed}}
 
     # Generic response
     (expected_response_code, expected_response_schema) = expected[method]
