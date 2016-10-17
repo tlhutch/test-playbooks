@@ -142,6 +142,7 @@ def test_authenticated(api, resource, method, authtoken, no_license):
                   '/api/v1/job_templates/': {'POST': forbidden},
                   '/api/v1/me/': {'POST': method_not_allowed},
                   '/api/v1/notifications/': {'POST': method_not_allowed},
+                  '/api/v1/organizations/': {'POST': payment_required},
                   '/api/v1/ping/': {'POST': method_not_allowed},
                   '/api/v1/project_updates/': {'POST': method_not_allowed},
                   '/api/v1/roles/': {'POST': method_not_allowed},
