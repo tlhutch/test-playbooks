@@ -521,6 +521,7 @@ class Test_No_License(Base_Api_Test):
 class Test_AWS_License(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license_aws')
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3733')
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -551,6 +552,7 @@ class Test_AWS_License(Base_Api_Test):
         for result in contacted.values():
             assert result['stat']['exists'], "AWS license file was expected, but none was found"
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3733')
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
@@ -571,6 +573,7 @@ class Test_AWS_License(Base_Api_Test):
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3733')
     @pytest.mark.skipif("'ec2' not in pytest.config.getvalue('base_url')")
     def test_update_license(self, api_config_pg, legacy_license_json, ansible_runner, tower_license_path, tower_aws_path, tower_version_cmp):
         '''Verify that a regular license can be installed by issuing a POST to
