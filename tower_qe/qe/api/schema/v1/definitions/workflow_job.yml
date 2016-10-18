@@ -21,12 +21,13 @@ workflow_job:
       additionalProperties: false 
       properties:
         created_by: {format: uri, type: string}
+        labels: {format: uri, type: string}
         modified_by: {format: uri, type: string}
         unified_job_template: {format: uri, type: string}
         workflow_job_template: {format: uri, type: string}
         workflow_nodes: {format: uri, type: string}
       type: object
-      # (no required fields)
+      required: [labels]
     result_stdout: {type: string}
     result_traceback: {type: string}
     started:
@@ -37,6 +38,7 @@ workflow_job:
       additionalProperties: false
       properties:
         created_by: {$ref: '#/definitions/summary_fields_user'}
+        labels: {$ref: '#/definitions/summary_fields_labels'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
         unified_job_template: {$ref: '#/definitions/summary_fields_job_template'}
         user_capabilities:
@@ -46,7 +48,7 @@ workflow_job:
             start: {type: boolean}
           required: [start, delete]
           type: object
-      required: [user_capabilities]
+      required: [labels, user_capabilities]
       type: object
     type: {pattern: ^workflow_job$, type: string}
     unified_job_template: {$ref: '#/definitions/id_or_null'}
