@@ -243,7 +243,7 @@ class InventoryScript(base.Base):
 
     dependencies = [Organization]
 
-    def create(self, organization=Organization, name='', description='', script='', **kw):
+    def create(self, name='', description='', organization=Organization, script='', **kw):
         self.create_and_update_dependencies(organization)
 
         payload = dict()

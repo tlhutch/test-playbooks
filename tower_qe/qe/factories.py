@@ -184,18 +184,25 @@ class InventoryScriptFactory(PageFactory):
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     description = factory.LazyFunction(fauxfactory.gen_alphanumeric)
 
-    # create script to generate inventory
-    group_name = re.sub(r"[\']", "", u"group-%s" % fauxfactory.gen_utf8())
-    script = u'''#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-import json
-inventory = dict()
-inventory['{0}'] = list()
-'''.format(group_name)
-    for i in range(5):
-        host_name = re.sub(r"[\':]", "", u"host-%s" % fauxfactory.gen_utf8())
-        script += u"inventory['{0}'].append('{1}')\n".format(group_name, host_name)
-    script += u"print json.dumps(inventory)\n"
+    @factory.LazyAttribute
+    def script(self):
+        script = '\n'.join([
+            u'#!/usr/bin/env python',
+            u'# -*- coding: utf-8 -*-',
+            u'import json',
+            u'inventory = dict()',
+            u'inventory["{0}"] = list()',
+            u'inventory["{0}"].append("{1}")',
+            u'inventory["{0}"].append("{2}")',
+            u'inventory["{0}"].append("{3}")',
+            u'inventory["{0}"].append("{4}")',
+            u'inventory["{0}"].append("{5}")',
+            u'print json.dumps(inventory)'
+        ])
+        group_name = re.sub(r"[\']", "", u"group-%s" % fauxfactory.gen_utf8())
+        host_names = [re.sub(r"[\':]", "", u"host-%s" % fauxfactory.gen_utf8()) for _ in xrange(5)]
+
+        return script.format(group_name, *host_names)
 
 
 class JobTemplateFactory(PageFactory):
