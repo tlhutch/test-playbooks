@@ -243,21 +243,16 @@ class InventoryScript(base.Base):
 
     dependencies = [Organization]
 
-    def create(self, organization=Organization, **kw):
+    def create(self, organization=Organization, name='', description='', script='', **kw):
         self.create_and_update_dependencies(organization)
 
-        kw['organization'] = self.dependency_store[Organization].id
+        payload = dict()
+        payload['organization'] = self.dependency_store[Organization].id
+        payload['name'] = name or 'Inventory Script - {}'.format(fauxfactory.gen_alphanumeric())
+        payload['description'] = description or 'Description - {}'.format(fauxfactory.gen_alphanumeric())
+        payload['script'] = script or self._generate_script()
 
-        if 'name' not in kw:
-            kw['name'] = 'Inventory Script - {}'.format(fauxfactory.gen_alphanumeric())
-
-        if 'description' not in kw:
-            kw['description'] = 'Description - {}'.format(fauxfactory.gen_alphanumeric())
-
-        if 'script' not in kw:
-            kw['script'] = self._generate_script()
-
-        return self.update_identity(InventoryScripts(self.testsetup).post(kw))
+        return self.update_identity(InventoryScripts(self.testsetup).post(payload))
 
     def _generate_script(self):
             script = '\n'.join([
