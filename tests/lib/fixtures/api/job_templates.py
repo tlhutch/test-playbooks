@@ -55,7 +55,7 @@ def job_template_with_random_tag(request, authtoken, api_job_templates_pg, proje
                    project=project_ansible_git.id,
                    job_tags=fauxfactory.gen_utf8(),
                    credential=ssh_credential.id,
-                   playbook='test/integration/test_tags.yml', )  # This depends on the project selected
+                   playbook='test/integration/targets/tags/test_tags.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.cleanup)
     return obj
