@@ -22,11 +22,12 @@ workflow_job_template:
         created_by: {format: uri, type: string}
         current_job: {format: uri, type: string}
         jobs: {format: uri, type: string}
+        labels: {format: uri, type: string}
         last_job: {format: uri, type: string}
         launch: {format: uri, type: string}
         modified_by: {format: uri, type: string}
         workflow_nodes: {format: uri, type: string}
-      required: [jobs, workflow_nodes, launch]
+      required: [jobs, workflow_nodes, labels, launch]
       type: object
     status: {$ref: '#/definitions/enum_workflow_job_template_status'}
     summary_fields:
@@ -35,6 +36,7 @@ workflow_job_template:
         created_by: {$ref: '#/definitions/summary_fields_user'}
         current_job: {$ref: '#/definitions/summary_fields_workflow_job'}
         current_update: {$ref: '#/definitions/summary_fields_workflow_job'}
+        labels: {$ref: '#/definitions/summary_fields_labels'}
         last_job: {$ref: '#/definitions/summary_fields_job'}
         last_update: {$ref: '#/definitions/summary_fields_job'}
         modified_by: {$ref: '#/definitions/summary_fields_user'}
@@ -54,7 +56,7 @@ workflow_job_template:
             start: {type: boolean}
           required: [delete, edit, start]
           type: object
-      required: [object_roles, user_capabilities]
+      required: [object_roles, labels, user_capabilities]
       type: object
     type: {pattern: ^workflow_job_template$, type: string}
     url: {format: uri, type: string}
