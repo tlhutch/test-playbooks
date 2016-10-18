@@ -1,0 +1,161 @@
+---
+
+# set up Tower with a custom logo so we have something to back up
+- name: create custom logo file
+  copy:
+    src: custom_console_logo.png
+    dest: '{{ custom_console_logo_path }}'
+    mode: 0755
+- name: create ui settings file
+  copy:
+    src: local_settings.json
+    dest: '{{ local_settings_path }}'
+    mode: 0755
+
+# set up Tower with a manual project so we have something to back up
+- name: create manual project directory and playbook
+  copy:
+    src: test.manual
+    dest: /var/lib/awx/projects/
+    mode: 0755
+- name: create manual project with project files
+  uri:
+    url: 'https://localhost/api/v1/projects/'
+    validate_certs: false
+    status_code: '201'
+    user: 'admin'
+    password: '{{ admin_password }}'
+    force_basic_auth: yes
+    method: POST
+    body: "{{ lookup('file', 'manual_project_payload.json') }}"
+    body_format: json
+
+# manually back up files for base comparison
+- name: create backup directory
+  file:
+    path: /tmp/setup/backup
+    state: directory
+    mode: 0644
+- name: manually back up projects directory
+  command: rsync -a /var/lib/awx/projects/ /tmp/setup/backup/projects/
+- name: manually back up job status directory
+  command: rsync -a /var/lib/awx/job_status/ /tmp/setup/backup/job_status/
+- name: manually back up tower settings
+  command: rsync -a /etc/tower/ /tmp/setup/backup/conf/
+- name: manually copy ui files
+  command: rsync -a /var/lib/awx/public/static/ /tmp/setup/backup/ui/
+
+# store pre-restore stock inventory_pg
+- name: store stock inventory_pg
+  uri:
+    url: 'https://localhost/api/v1/inventories/1/'
+    validate_certs: false
+    status_code: '200'
+    user: 'admin'
+    password: '{{ admin_password }}'
+    force_basic_auth: yes
+  register: old_inventory_pg
+
+# perform Tower backup 
+- name: invoke backup script 
+  command: ./setup.sh -b
+  args:
+    chdir: /tmp/setup/
+
+# delete select Tower files to change system state
+- name: register project paths
+  command: ls /var/lib/awx/projects
+  register: result
+- name: delete manual projects
+  file:
+    path: /var/lib/awx/projects/{{item}}
+    state: absent
+  with_items: '{{ result.stdout_lines }}'
+  when: "'.manual' in '{{item}}'"
+- name: register job_status paths
+  command: ls /var/lib/awx/job_status
+  register: result
+- name: delete job status
+  file:
+    path: /var/lib/awx/job_status/{{item}}
+    state: absent
+  with_items: '{{ result.stdout_lines }}'
+- name: register /etc/tower/ files
+  command: ls /etc/tower
+  register: result
+- name: delete select /etc/tower/ files
+  file:
+    path: /etc/tower/{{item}}
+    state: absent
+  with_items: '{{ result.stdout_lines }}'
+  when: "'{{item}}' not in ['settings.py', 'SECRET_KEY', 'conf.d']"
+- name: register /etc/tower/conf.d files
+  command: ls /etc/tower/conf.d
+  register: result
+- name: delete select /etc/tower/conf.d/ files
+  file:
+    path: /etc/tower/conf.d/{{item}}
+    state: absent
+  with_items: '{{ result.stdout_lines }}'
+  when: "'{{item}}' not in ['postgres.py', 'celeryd.py']"
+- name: delete custom_console_logo.png
+  file:
+    path: '{{ custom_console_logo_path }}'
+    state: absent
+- name: delete local_settings.json
+  file:
+    path: '{{ local_settings_path }}'
+    state: absent
+
+# delete stock inventory
+- name: delete stock inventory
+  uri:
+    url: 'https://localhost/api/v1/inventories/1/'
+    validate_certs: false
+    status_code: '204'
+    user: 'admin'
+    password: '{{ admin_password }}'
+    force_basic_auth: yes
+    method: DELETE
+
+# perform Tower restore job
+- name: invoke restore script
+  command: ./setup.sh -r tower-backup-latest.tar.gz
+  args:
+    chdir: /tmp/setup/
+
+# assert that files restored
+# ignore_errors here because if there is a difference in our directories, 'diff' has a RC of 1: 'partial success'
+- name: find diff of current and manual backup projects
+  command: diff -r /tmp/setup/backup/projects /var/lib/awx/projects
+  register: result
+  ignore_errors: True
+- assert: { that: "'Only in' not in result.stdout" }
+- name: find diff of our current and manual backup job stdout
+  command: diff /tmp/setup/backup/job_status /var/lib/awx/job_status
+  register: result
+  ignore_errors: True
+- assert: { that: "'Only in' not in result.stdout" }
+- name: find diff of current and manual backup conf files
+  command: diff -r /tmp/setup/backup/conf /etc/tower
+  register: result
+  ignore_errors: True
+- assert: { that: "'Only in' not in result.stdout" }
+- name: find diff of current and manual ui files
+  command: diff -r /tmp/setup/backup/ui /var/lib/awx/public/static/
+  register: result
+  ignore_errors: True
+- assert: { that: "'Only in' not in result.stdout" }
+
+# store post-restore stock inventory_pg
+- name: store stock inventory_pg
+  uri:
+    url: 'https://localhost/api/v1/inventories/1/'
+    validate_certs: false
+    status_code: '200'
+    user: 'admin'
+    password: '{{ admin_password }}'
+    force_basic_auth: yes
+  register: new_inventory_pg
+# assert that our stock inventory has been restored
+- assert: { that: old_inventory_pg.json == new_inventory_pg.json }
