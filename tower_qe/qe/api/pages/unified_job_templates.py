@@ -1,5 +1,5 @@
 from qe.api import resources
-import qe.utils
+from qe.utils import to_str, wait_until
 import base
 
 
@@ -14,26 +14,21 @@ class UnifiedJobTemplate(base.Base):
         # a python traceback when attempting to display output from this method.
         items = ['id', 'name', 'status', 'source', 'last_update_failed', 'last_updated',
                  'result_traceback', 'job_explanation', 'job_args']
-        info = ', '.join(['{0}:{1}'.format(item, getattr(self, item)) for item in items if hasattr(self, item)])
-        output = '<{0.__class__.__name__} {1}>'.format(self, info)
-        return output.replace('%', '%%').encode("ascii", "backslashreplace")
-
-    def __repr__(self):
-        return self.__str__()
+        info = []
+        for item in filter(lambda x: hasattr(self, x), items):
+            info.append('{0}:{1}'.format(item, to_str(getattr(self, item))))
+        output = '<{0.__class__.__name__} {1}>'.format(self, ', '.join(info))
+        return output.replace('%', '%%')
 
     def wait_until_started(self, interval=1, verbose=0, timeout=60):
         '''Wait until a unified_job_template has started.'''
-        return qe.utils.wait_until(
-            self, 'status',
-            ('new', 'pending', 'waiting', 'running',),
-            interval=interval, verbose=verbose, timeout=timeout)
+        return wait_until(self, 'status', ('new', 'pending', 'waiting', 'running',),
+                          interval=interval, verbose=verbose, timeout=timeout)
 
     def wait_until_completed(self, interval=5, verbose=0, timeout=60 * 8):
         '''Wait until a unified_job_template has completed.'''
-        return qe.utils.wait_until(
-            self, 'status',
-            ('successful', 'failed', 'error', 'canceled',),
-            interval=interval, verbose=verbose, timeout=timeout)
+        return wait_until(self, 'status', ('successful', 'failed', 'error', 'canceled',),
+                          interval=interval, verbose=verbose, timeout=timeout)
 
     @property
     def is_successful(self):

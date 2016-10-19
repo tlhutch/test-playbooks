@@ -2,7 +2,7 @@ import logging
 import time
 
 from qe.exceptions import Method_Not_Allowed_Exception
-import qe.utils
+from qe.utils import to_str, wait_until
 import base
 
 
@@ -21,12 +21,11 @@ class UnifiedJob(base.Base):
         # a python traceback when attempting to display output from this method.
         items = ['id', 'name', 'status', 'failed', 'result_stdout', 'result_traceback',
                  'job_explanation', 'job_args']
-        info = ', '.join(['{0}:{1}'.format(item, getattr(self, item)) for item in items if hasattr(self, item)])
-        output = '<{0.__class__.__name__} {1}>'.format(self, info)
-        return output.replace('%', '%%').encode("ascii", "backslashreplace")
-
-    def __repr__(self):
-        return self.__str__()
+        info = []
+        for item in filter(lambda x: hasattr(self, x), items):
+            info.append('{0}:{1}'.format(item, to_str(getattr(self, item))))
+        output = '<{0.__class__.__name__} {1}>'.format(self, ', '.join(info))
+        return output.replace('%', '%%')
 
     @property
     def is_completed(self):
@@ -60,10 +59,8 @@ class UnifiedJob(base.Base):
         if not isinstance(status, (list, tuple)):
             '''coerce 'status' parameter to a list'''
             status = [status]
-        return qe.utils.wait_until(
-            self, 'status', status,
-            interval=interval, verbose=verbose, timeout=timeout,
-            start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'), **kw)
+        return wait_until(self, 'status', status, interval=interval, verbose=verbose, timeout=timeout,
+                          start_time=time.strptime(self.created, '%Y-%m-%dT%H:%M:%S.%fZ'), **kw)
 
     def wait_until_started(self, interval=1, verbose=0, timeout=60):
         return self.wait_until_status(

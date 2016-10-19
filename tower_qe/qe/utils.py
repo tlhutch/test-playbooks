@@ -285,3 +285,12 @@ def update_payload(payload, fields, kwargs):
         if field_val != not_provided:
             payload[field] = field_val
     return payload
+
+
+def to_str(obj):
+    if not isinstance(obj, unicode):
+        try:
+            return str(obj)
+        except UnicodeDecodeError:
+            obj = unicode(obj, 'utf8')
+    return obj.encode("ascii", "backslashreplace")
