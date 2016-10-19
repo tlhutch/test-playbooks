@@ -13,11 +13,6 @@ def tower_license_path(request, tower_config_dir):
     return os.path.join(tower_config_dir, 'license')
 
 
-@pytest.fixture(scope='session')
-def tower_aws_path(request, tower_config_dir):
-    return os.path.join(tower_config_dir, 'aws')
-
-
 @pytest.fixture(scope='class')
 def backup_license(request, ansible_runner, tower_license_path, tower_aws_path):
     '''Backup and existing license files. The files will be restored upon teardown.
