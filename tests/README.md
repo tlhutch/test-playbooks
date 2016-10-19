@@ -24,7 +24,8 @@ directory of the repository.
 
 2. Install test requirements using `pip`.
 
-        pip install -r tower_qe/requirements.txt
+        pip install -r tests/requirements.txt
+        pip install tower_qe/
 
 3. Create a credentials file named `tests/credentials.yml` using the template `tests/credentials.template` as a guide.
 
@@ -46,6 +47,10 @@ directory of the repository.
 7. Disable ansible host key checking
 
         export ANSIBLE_HOST_KEY_CHECKING=False
+        
+Or you can specify it as a host variable in the inventory file.
+
+        ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
 
 8. From the root directory of the repository, run all the tests with the
    following command.  Note, it's more common to limit test execution with
@@ -56,7 +61,7 @@ directory of the repository.
             --ansible-host-pattern=tower.example.com \
             --base-url 'https://tower.example.com' \
             --api-destructive \
-            --sensitive_url=never_match \
+            --sensitive-url=never_match \
             tests
 
 ## Recommended Reading
