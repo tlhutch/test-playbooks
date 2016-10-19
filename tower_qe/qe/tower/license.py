@@ -52,16 +52,6 @@ def generate_license_file(**kwargs):
     return fname
 
 
-def generate_aws_file(**kwargs):
-    meta = generate_aws(**kwargs)
-
-    (fd, fname) = tempfile.mkstemp(suffix='.json')
-    os.write(fd, json.dumps(meta))
-    os.close(fd)
-
-    return fname
-
-
 def generate_license(instance_count=20, contact_email="art@vandelay.com",
                      company_name="Vandelay Industries", contact_name="Art Vandelay",
                      license_date=None, days=None, trial=None, eula_accepted=True,
