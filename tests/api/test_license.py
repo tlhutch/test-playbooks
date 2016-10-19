@@ -310,11 +310,6 @@ def ansible_ec2_facts(ansible_runner):
     return ec2_facts['ansible_facts']
 
 
-@pytest.fixture(scope='class')
-def instance_id(ansible_ec2_facts):
-    return ansible_ec2_facts['ansible_ec2_instance_id']
-
-
 @pytest.fixture(scope="function")
 def inventory_no_free_instances(request, authtoken, api_config_pg, api_inventories_pg, organization):
     payload = dict(name="inventory-%s" % fauxfactory.gen_alphanumeric(),

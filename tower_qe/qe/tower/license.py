@@ -122,23 +122,3 @@ def generate_license(instance_count=20, contact_email="art@vandelay.com",
 
     meta['license_key'] = sha.hexdigest()
     return meta
-
-
-def generate_aws(instance_count=30, ami_id="ami-eb81b182",
-                 instance_id="i-fd64c1d3", license_type='legacy'):
-    # Generate license key (see ansible-commander/private/license_writer.py)
-    meta = dict(instance_count=instance_count)
-
-    sha = hashlib.sha256()
-    sha.update("ansibleworks.license.000")
-    sha.update(str(meta['instance_count']))
-    sha.update(str(ami_id))
-    sha.update(str(instance_id))
-
-    # Set license type
-    if license_type != 'legacy':
-        sha.update('{license_type:%s}' % license_type)
-
-    meta['license_key'] = sha.hexdigest()
-
-    return meta
