@@ -451,12 +451,21 @@ print json.dumps(inv, indent=2)
         # launch the job template and check the results
         # unmatched commands fail starting with ansible-2.0.1.0
         job_pg = api_ad_hoc_commands_pg.post(payload).wait_until_completed()
+        # Before 2.0.1.0, we expect job to be successful
         if ansible_version_cmp('2.0.1.0') < 0:
             assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
-        else:
+        # Between 2.0.1.0 and 2.2.0.0 we expect job to fail
+        elif ansible_version_cmp('2.2.0.0') < 0:
             assert job_pg.status == "failed", "Unexpected job_pg.status - %s." % job_pg
             assert "--limit does not match any hosts" in job_pg.result_stdout, \
                 "Unexpected job_pg.result_stdout when launching an ad hoc command with an unmatched limit."
+        # After 2.2.0.0 we expect job to be successful
+        # See https://github.com/ansible/ansible/issues/17762
+        else:
+            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+            assert "[WARNING]: No hosts matched, nothing to do" in job_pg.result_stdout, \
+                "Unexpected job_pg.result_stdout when launching an ad hoc command with an unmatched limit."
+
 
     def test_relaunch_command_with_privileged_users(
         self, host,
