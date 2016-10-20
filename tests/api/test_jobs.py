@@ -814,6 +814,7 @@ print json.dumps(inventory)
         assert(censored_count == 12), ('Unexpected number of instances of "censored" in job_pg.result_stdout: expected '
                                        '12, got {}.'.format(censored_count))
 
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/872')
     def test_job_with_async_events(self, factories, ansible_version_cmp):
         '''Tests that jobs with 'async' report their runner events'''
         if ansible_version_cmp('2.0.0.0') < 0:
