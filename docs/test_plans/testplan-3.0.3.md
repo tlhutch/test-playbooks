@@ -43,6 +43,9 @@
 
 ### Upgrades
 1. [ ] Upgrade completes on all supported platforms from `2.4.*`
+1. [ ] Upgrade completes on all supported platforms from `3.0.0`
+1. [ ] Upgrade completes on all supported platforms from `3.0.1`
+1. [ ] Upgrade completes on all supported platforms from `3.0.2*`
 1. Verify the following functions work as intended after upgrade
     * [ ] Launch project_updates for existing projects
     * [ ] Launch inventory_udpates for existing inventory_source
