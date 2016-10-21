@@ -21,14 +21,13 @@ if has_ansible_v2:
 
 job_path = '/job/Test_Tower_Install/ANSIBLE_NIGHTLY_BRANCH={ansible_nightly_branch},PLATFORM={platform},label={label}/lastBuild'
 artifact_path = '/artifact/playbooks/inventory.log/*view*/'
-ansible_nightly_branches = ['devel', 'stable-2.1', 'stable-1.9']
-supported_platforms = ['rhel-6.7-x86_64', 'centos-6.latest-x86_64',
-                       'rhel-7.2-x86_64', 'centos-7.latest-x86_64',
-                       'ubuntu-12.04-x86_64', 'ubuntu-14.04-x86_64',
-                       'ol-6.7-x86_64', 'ol-7.2-x86_64']
+ansible_nightly_branches = ['devel', 'stable-2.2', 'stable-1.9']
+supported_platforms = ['rhel-7.2-x86_64', 'centos-7.latest-x86_64', 'ol-7.2-x86_64',
+                       'ubuntu-14.04-x86_64', 'ubuntu-16.04-x86_64', ]
 
 
 class AnsibleInventory(ConfigParser.SafeConfigParser):
+
     def write_ini(self, fp):
         """Write an .ini-format representation of the configuration state."""
         if self._defaults:
