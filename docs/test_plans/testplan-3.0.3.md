@@ -1,4 +1,4 @@
-# Tower 3.0.0 Release Test Plan
+# Tower 3.0.3 Release Test Plan
 
 ## Resources
 * 5 full-time quality engineers - cwang/jladd/rfitzpat/jmcdermott/shane
