@@ -44,5 +44,5 @@
     1. Launch inventory_udpates for existing inventory_source
     1. Launch, and relaunch, existing job_templates
     1. Migrations were successful
-    * [x] Upgrade completes on all supported platforms from `2.4.*`
+    * [x] Upgrade completes on all supported platforms from `2.4.5`
     * [x] Upgrade completes on all supported platforms from `3.0.2`
