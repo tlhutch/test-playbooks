@@ -14,7 +14,7 @@
 * [ ] Tower LDAP Integration regression completed
 * [ ] Tower RADIUS Integration regression completed
 * [ ] Social authentication regression completed
-* [ ] Backup/restore playbook
+* [x] Backup/restore playbook
 
 ### Installation
 1. Installation completes successfully on all supported platforms
@@ -31,8 +31,8 @@
     * [ ] ansible-2.2
     * [ ] ansible-1.9
 1. Installation completes successfully on supported images
-    * [ ] AMI (unlicensed)
-    * [ ] Vagrant
+    * [x] AMI (unlicensed)
+    * [x] Vagrant
 1. Bundled installation completes successfully on all supported platforms (Automated)
     * [ ] rhel-6.latest
     * [ ] rhel-7.latest
