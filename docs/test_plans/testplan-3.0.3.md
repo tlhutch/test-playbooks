@@ -18,18 +18,18 @@
 
 ### Installation
 1. Installation completes successfully on all supported platforms
-    * [ ] ubuntu-12.04
-    * [ ] ubuntu-14.04
-    * [ ] rhel-6.latest
-    * [ ] rhel-7.latest
-    * [ ] centos-6.latest
-    * [ ] centos-7.latest
-    * [ ] ol-6.latest
-    * [ ] ol-7.latest
+    * [x] ubuntu-12.04
+    * [x] ubuntu-14.04
+    * [x] rhel-6.latest
+    * [x] rhel-7.latest
+    * [x] centos-6.latest
+    * [x] centos-7.latest
+    * [x] ol-6.latest
+    * [x] ol-7.latest
 1. Installation completes successfully using supported ansible releases
-    * [ ] ansible-2.3 (devel branch)
+    * [x] ansible-2.3 (devel branch)
     * [ ] ansible-2.2
-    * [ ] ansible-1.9
+    * [x] ansible-1.9
 1. Installation completes successfully on supported images
     * [x] AMI (unlicensed)
     * [x] Vagrant
