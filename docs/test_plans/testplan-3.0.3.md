@@ -45,6 +45,4 @@
     1. Launch, and relaunch, existing job_templates
     1. Migrations were successful
     * [x] Upgrade completes on all supported platforms from `2.4.*`
-    * [ ] Upgrade completes on all supported platforms from `3.0.0`
-    * [ ] Upgrade completes on all supported platforms from `3.0.1`
-    * [ ] Upgrade completes on all supported platforms from `3.0.2`
+    * [x] Upgrade completes on all supported platforms from `3.0.2`
