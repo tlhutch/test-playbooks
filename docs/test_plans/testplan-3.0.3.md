@@ -11,9 +11,6 @@
 * [ ] UI regression completed
 * [x] API regression completed
 * [ ] Tower HA installation regression completed
-* [ ] Tower LDAP Integration regression completed
-* [ ] Tower RADIUS Integration regression completed
-* [ ] Social authentication regression completed
 * [x] Backup/restore playbook
 
 ### Installation
