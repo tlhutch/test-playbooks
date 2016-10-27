@@ -8,13 +8,13 @@
 ## Features Tested
 
 ## Regression
-1. [ ] UI regression completed
-1. [ ] API regression completed
-1. [ ] Tower HA installation regression completed
-1. [ ] Tower LDAP Integration regression completed
-1. [ ] Tower RADIUS Integration regression completed
-1. [ ] Social authentication regression completed
-1. [ ] Backup/restore playbook
+* [ ] UI regression completed
+* [x] API regression completed
+* [ ] Tower HA installation regression completed
+* [ ] Tower LDAP Integration regression completed
+* [ ] Tower RADIUS Integration regression completed
+* [ ] Social authentication regression completed
+* [ ] Backup/restore playbook
 
 ### Installation
 1. Installation completes successfully on all supported platforms
@@ -42,12 +42,12 @@
     * [ ] ol-7.latest
 
 ### Upgrades
-1. [ ] Upgrade completes on all supported platforms from `2.4.*`
-1. [ ] Upgrade completes on all supported platforms from `3.0.0`
-1. [ ] Upgrade completes on all supported platforms from `3.0.1`
-1. [ ] Upgrade completes on all supported platforms from `3.0.2`
 1. Verify the following functions work as intended after upgrade
-    * [ ] Launch project_updates for existing projects
-    * [ ] Launch inventory_udpates for existing inventory_source
-    * [ ] Launch, and relaunch, existing job_templates
-    * [ ] Migrations were successful
+    1. Launch project_updates for existing projects
+    1. Launch inventory_udpates for existing inventory_source
+    1. Launch, and relaunch, existing job_templates
+    1. Migrations were successful
+    * [x] Upgrade completes on all supported platforms from `2.4.*`
+    * [ ] Upgrade completes on all supported platforms from `3.0.0`
+    * [ ] Upgrade completes on all supported platforms from `3.0.1`
+    * [ ] Upgrade completes on all supported platforms from `3.0.2`
