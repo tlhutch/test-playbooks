@@ -103,7 +103,7 @@
     # HACK: While sshd may be listening, it may not fully accept connections
     # immediately
     - pause:
-        seconds: 45
+        seconds: '{{ ec2_pause_time|default(45) }}'
       when: instance_count | int != 0
 
 - hosts: local
