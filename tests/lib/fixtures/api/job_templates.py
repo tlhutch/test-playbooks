@@ -46,14 +46,21 @@ def job_template_with_random_limit(request, authtoken, api_job_templates_pg, pro
 
 
 @pytest.fixture(scope="function")
-def job_template_with_random_tag(request, authtoken, api_job_templates_pg, project_ansible_git, host_local, ssh_credential):
+def job_template_with_random_tag(request, authtoken, api_job_templates_pg, project_ansible_git, host_local, ssh_credential, ansible_version_cmp):
     '''Create a job template with a valid machine credential, but a tag parameter that matches nothing'''
+
+    # Ansible 1.9.x cannot handle unicode tags (and is EOL)
+    if ansible_version_cmp('2.0.0.0') > 0:
+        job_tag = fauxfactory.gen_utf8()
+    else:
+        job_tag = fauxfactory.gen_alphanumeric()
+
     payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
                    description="Random job_template with tag - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
                    job_type='run',
                    project=project_ansible_git.id,
-                   job_tags=fauxfactory.gen_utf8(),
+                   job_tags=job_tag,
                    credential=ssh_credential.id,
                    playbook='test/integration/targets/tags/test_tags.yml', )  # This depends on the project selected
     obj = api_job_templates_pg.post(payload)
