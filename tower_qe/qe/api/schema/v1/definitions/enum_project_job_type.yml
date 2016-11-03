@@ -1,0 +1,3 @@
+---
+enum_project_job_type:
+    enum: [run, check]

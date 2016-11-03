@@ -5,6 +5,7 @@ inventory_update:
     credential: {$ref: '#/definitions/id_or_null'}
     description: {type: string}
     elapsed: {type: number}
+    execution_node: {type: string}
     failed: {type: boolean}
     finished:
       format: date-time
@@ -68,11 +69,12 @@ inventory_update:
           type: object
       required: [inventory_source, user_capabilities]
       type: object
+    timeout: {minimum: 0, type: integer}
     type: {pattern: ^inventory_update$, type: string}
     unified_job_template: {$ref: '#/definitions/id_or_null'}
     url: {format: uri, type: string}
   required: [id, url, created, modified, inventory_source, status, failed, related,
     summary_fields, license_error, type, credential, name, description, source, source_path,
     source_regions, source_script, source_vars, overwrite, overwrite_vars, started,
-    finished, elapsed, instance_filters, group_by, job_explanation]
+    finished, elapsed, instance_filters, group_by, job_explanation, execution_node, timeout]
   type: object

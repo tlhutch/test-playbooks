@@ -4,6 +4,7 @@ project_update:
   properties:
     credential: {$ref: '#/definitions/id_or_null'}
     description: {type: string}
+    execution_node: {type: string}
     local_path: {format: uri, type: string}
     name: {type: string}
     scm_branch: {type: string}
@@ -21,6 +22,7 @@ project_update:
     job_cwd: {type: string}
     job_env: {$ref: '#/definitions/job_env'}
     job_explanation: {type: string}
+    job_type: {$ref: '#/definitions/enum_project_job_type'}
     modified: {format: date-time, type: string}
     started: {format: date-time, type: [string, 'null']}
     finished: {format: date-time, type: [string, 'null']}
@@ -65,5 +67,5 @@ project_update:
   required: [id, url, created, modified, project, status, failed, related,
   summary_fields, type, started, finished, elapsed, launch_type, credential,
   description, local_path, name, scm_branch, scm_clean, scm_delete_on_update,
-  scm_type, scm_url, job_explanation ]
+  scm_type, scm_url, job_explanation, execution_node, job_type]
   type: object

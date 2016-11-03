@@ -13,6 +13,7 @@ job:
     credential: {$ref: '#/definitions/id_or_null'}
     description: {type: string}
     elapsed: {type: number}
+    execution_node: {type: string}
     extra_vars: {type: string}
     failed: {type: boolean}
     finished:
@@ -67,6 +68,7 @@ job:
       type: object
     result_stdout: {type: string}
     result_traceback: {type: string}
+    scm_revision: {type: string}
     skip_tags: {type: string}
     start_at_task: {type: string}
     started:
@@ -96,6 +98,7 @@ job:
           type: object
       required: [user_capabilities]
       type: object
+    timeout: {minimum: 0, type: integer}
     type: {$ref: '#/definitions/enum_job_type'}
     unified_job_template: {$ref: '#/definitions/id_or_null'}
     url: {format: uri, type: string}
@@ -108,5 +111,5 @@ job:
     ask_credential_on_launch, ask_inventory_on_launch, ask_job_type_on_launch, ask_limit_on_launch,
     ask_tags_on_launch, related, summary_fields, type, force_handlers, skip_tags,
     start_at_task, name, description, job_explanation, network_credential, allow_simultaneous,
-    artifacts]
+    artifacts, execution_node, scm_revision, timeout]
   type: object

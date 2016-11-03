@@ -53,6 +53,7 @@ project:
     scm_clean: {type: boolean}
     scm_delete_on_next_update: {type: boolean}
     scm_delete_on_update: {type: boolean}
+    scm_revision: {type: string}
     scm_type:
       type: [string, 'null']
     scm_update_cache_timeout: {minimum: 0, type: integer}
@@ -77,10 +78,11 @@ project:
           type: object
       required: [object_roles]
       type: object
+    timeout: {minimum: 0, type: integer}
     type: {pattern: ^project$, type: string}
     url: {format: uri, type: string}
   required: [id, name, url, created, modified, last_job_run, description, last_job_failed,
     status, summary_fields, local_path, scm_type, scm_update_cache_timeout, scm_url,
     scm_branch, scm_clean, scm_delete_on_update, scm_delete_on_next_update, scm_update_on_launch,
-    credential, type, has_schedules, next_job_run]
+    credential, type, has_schedules, next_job_run, scm_revision, timeout]
   type: object

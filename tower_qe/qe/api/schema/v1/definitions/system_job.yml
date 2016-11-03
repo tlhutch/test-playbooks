@@ -4,6 +4,7 @@ system_job:
     created: {format: date-time, type: string}
     description: {type: string}
     elapsed: {type: number}
+    execution_node: {type: string}
     extra_vars: {type: string}
     failed: {type: boolean}
     finished:
@@ -59,5 +60,5 @@ system_job:
     url: {format: uri, type: string}
   required: [id, url, created, modified, job_type, extra_vars, launch_type, started,
     elapsed, finished, status, failed, related, summary_fields,
-    system_job_template, type, name, description, job_explanation]
+    system_job_template, type, name, description, job_explanation, execution_node]
   type: object

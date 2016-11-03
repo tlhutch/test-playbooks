@@ -65,6 +65,7 @@ inventory_source:
         inventory: {$ref: '#/definitions/summary_fields_inventory'}
         source_script: {$ref: '#/definitions/summary_fields_source_script'}
       type: object
+    timeout: {minimum: 0, type: integer}
     type: {pattern: ^inventory_source$, type: string}
     update_cache_timeout: {minimum: 0, type: number}
     update_on_launch: {type: boolean}
@@ -73,5 +74,5 @@ inventory_source:
     update_on_launch, last_job_run, last_job_failed, status, source, source_path,
     source_script, source_vars, credential, source_regions, related, summary_fields,
     type, next_job_run, has_schedules, description, name, update_cache_timeout, group_by,
-    instance_filters]
+    instance_filters, timeout]
   type: object

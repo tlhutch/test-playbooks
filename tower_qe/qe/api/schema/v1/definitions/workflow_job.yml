@@ -1,9 +1,10 @@
 workflow_job:
-  additionalProperties: true  # TODO: Set to false after 'finished' no longer None
+  additionalProperties: false
   properties:
     created: {format: date-time, type: string}
     description: {type: string}
     elapsed: {type: number}
+    execution_node: {type: string}
     extra_vars: {type: string}
     failed: {type: boolean}
     #finished:
@@ -55,5 +56,5 @@ workflow_job:
     url: {format: uri, type: string}
     workflow_job_template: {$ref: '#/definitions/id_or_null'}
   required: [id, url, created, modified, extra_vars, launch_type, started, elapsed,
-    status, failed, related, summary_fields, type, name, description, job_explanation]  # TODO: Add 'finished' when fixed
+    status, failed, related, summary_fields, type, name, description, job_explanation, finished, execution_node]
   type: object

@@ -107,6 +107,7 @@ job_template:
       required: [labels, recent_jobs, object_roles, user_capabilities]
       type: object
     survey_enabled: {type: boolean}
+    timeout: {minimum: 0, type: integer}
     type: {pattern: ^job_template$, type: string}
     url: {format: uri, type: string}
     verbosity: {minimum: 0, type: number}
@@ -114,5 +115,5 @@ job_template:
     extra_vars, force_handlers, forks, has_schedules, ask_variables_on_launch, host_config_key,
     inventory, job_tags, job_type, last_job_failed, last_job_run, limit, modified,
     name, network_credential, next_job_run, playbook, project, related, skip_tags,
-    start_at_task, status, summary_fields, type, url, verbosity]
+    start_at_task, status, summary_fields, type, url, verbosity, timeout]
   type: object

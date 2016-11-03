@@ -1,12 +1,18 @@
 ---
 job_event:
     type: object
-    required: [ id, url, created, modified, job, event, event_display, event_level, failed, changed, host, parent, play, task, event_data, related, summary_fields, counter, type]
+    required: [ id, url, created, modified, job, event, event_display, event_level, failed, changed, host, parent, play, task, event_data, related, summary_fields, counter, type, uuid, stdout, verbosity, end_line, playbook, start_line]
     additionalProperties: False
     properties:
         type: { type: string, pattern: ^job_event$ }
         id: { type: number, minimum: 1, }
         url: { type: string, format: uri}
+        uuid: { type: string }
+        stdout: { type: string }
+        verbosity: { minimum: 0, type: integer }
+        end_line: { minimum: 0, type: integer }
+        start_line: { minimum: 0, type: integer }
+        playbook: { type: string }
         created:  { type: string, format: date-time, }
         modified: { type: string, format: date-time, }
         job: { type: number, minimum: 1, }
