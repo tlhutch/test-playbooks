@@ -138,6 +138,7 @@ class Test_Projects(Base_Api_Test):
             assert result['stat']['exists'], "The expected galaxy role requirement was not found (%s)." % \
                 expected_role_path
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3874')
     @pytest.mark.parametrize('timeout, expected_status, job_explanation', [
         (0, 'successful', ''),
         (60, 'successful', ''),
