@@ -151,12 +151,14 @@ class Test_Projects(Base_Api_Test):
         project = factories.project()
         project.patch(timeout=timeout)
 
-        # launch project update and assert update of expected status
+        # launch project update and assess spawned update
         update_pg = project.update().wait_until_completed()
         assert update_pg.status == expected_status, \
             "Unexpected project update status. Expected {0} but received {1}.".format(expected_status, update_pg.status)
         assert update_pg.job_explanation == job_explanation, \
             "Unexpected project job_explanation. Expected {0} but received {1}.".format(job_explanation, update_pg.job_explanation)
+        assert update_pg.timeout == project.timeout, \
+            "Update_pg has a different timeout value ({0}) than its project ({1}).".format(update_pg.timeout, project.timeout)
 
     @pytest.mark.parametrize(
         "attr,value",

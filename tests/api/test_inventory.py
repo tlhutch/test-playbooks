@@ -480,12 +480,14 @@ class Test_Inventory_Update(Base_Api_Test):
         # FIXME: update factories such that timeout value can be supplied upon inv_source creation
         custom_inventory_source.patch(timeout=timeout)
 
-        # launch inventory update and assert update of expected status
+        # launch inventory update and spawned update
         update_pg = custom_inventory_source.update().wait_until_completed()
         assert update_pg.status == expected_status, \
             "Unexpected inventory update status. Expected {0} but received {1}.".format(expected_status, update_pg.status)
         assert update_pg.job_explanation == job_explanation, \
             "Unexpected inventory job_explanation. Expected {0} but received {1}.".format(job_explanation, update_pg.job_explanation)
+        assert update_pg.timeout == custom_inventory_source.timeout, \
+            "Update_pg has a different timeout value ({0}) than its inv_source ({1}).".format(update_pg.timeout, custom_inventory_source.timeout)
 
 
 @pytest.mark.api
