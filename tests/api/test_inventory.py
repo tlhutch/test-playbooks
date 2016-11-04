@@ -480,7 +480,7 @@ class Test_Inventory_Update(Base_Api_Test):
         # FIXME: update factories such that timeout value can be supplied upon inv_source creation
         custom_inventory_source.patch(timeout=timeout)
 
-        # launch inventory update and spawned update
+        # launch inventory update and assess spawned update
         update_pg = custom_inventory_source.update().wait_until_completed()
         assert update_pg.status == expected_status, \
             "Unexpected inventory update status. Expected {0} but received {1}.".format(expected_status, update_pg.status)

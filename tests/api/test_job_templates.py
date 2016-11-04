@@ -1064,6 +1064,24 @@ print json.dumps(inv, indent=2)
             assert job_pg.job_tags == job_template_with_random_tag.job_tags, \
                 "Value for job_tags inconsistent with job_template value."
 
+    @pytest.mark.parametrize('timeout, expected_status, job_explanation', [
+        (0, 'successful', ''),
+        (60, 'successful', ''),
+        (1, 'failed', 'Job terminated due to timeout'),
+    ], ids=['no timeout', 'under timeout', 'over timeout'])
+    def test_launch_with_timeout(self, job_template, timeout, expected_status, job_explanation):
+        """Tests JTs with timeouts."""
+        job_template.patch(timeout=timeout)
+
+        # launch JT and assess spawned job
+        job_pg = job_template.launch().wait_until_completed()
+        assert job_pg.status == expected_status, \
+            "Unexpected job status. Expected {0} but received {1}.".format(expected_status, job_pg.status)
+        assert job_pg.job_explanation == job_explanation, \
+            "Unexpected job job_explanation. Expected {0} but received {1}.".format(job_explanation, job_pg.job_explanation)
+        assert job_pg.timeout == job_template.timeout, \
+            "Job_pg has a different timeout value ({0}) than its JT ({1}).".format(job_pg.timeout, job_template.timeout)
+
     def test_conflict_exception_with_running_job(self, job_template_sleep):
         '''
         Verify that a conflict exception is raised when deleting either the JT
