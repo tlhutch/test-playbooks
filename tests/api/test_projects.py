@@ -156,7 +156,7 @@ class Test_Projects(Base_Api_Test):
         assert update_pg.status == expected_status, \
             "Unexpected project update status. Expected {0} but received {1}.".format(expected_status, update_pg.status)
         assert update_pg.job_explanation == job_explanation, \
-            "Unexpected project job_explanation. Expected {0} but received {1}.".format(job_explanation, update_pg.job_explanation)
+            "Unexpected update job_explanation. Expected {0} but received {1}.".format(job_explanation, update_pg.job_explanation)
         assert update_pg.timeout == project.timeout, \
             "Update_pg has a different timeout value ({0}) than its project ({1}).".format(update_pg.timeout, project.timeout)
 
