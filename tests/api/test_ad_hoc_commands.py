@@ -466,7 +466,6 @@ print json.dumps(inv, indent=2)
             assert "[WARNING]: No hosts matched, nothing to do" in job_pg.result_stdout, \
                 "Unexpected job_pg.result_stdout when launching an ad hoc command with an unmatched limit."
 
-
     def test_relaunch_command_with_privileged_users(
         self, host,
         ssh_credential,
