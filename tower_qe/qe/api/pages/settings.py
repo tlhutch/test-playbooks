@@ -3,6 +3,7 @@ import base
 
 
 class Setting(base.Base):
+
     pass
 
 base.register_page([resources.v1_setting,

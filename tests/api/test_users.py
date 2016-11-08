@@ -5,16 +5,6 @@ import qe.exceptions
 from tests.api import Base_Api_Test
 
 
-@pytest.fixture(scope="function")
-def org_users(request, org_admin, org_user):
-    return (org_admin, org_user)
-
-
-@pytest.fixture(scope="function")
-def non_org_users(request, anonymous_user, another_org_admin, another_org_user):
-    return (anonymous_user, another_org_admin, another_org_user)
-
-
 def user_payload(**kwargs):
     '''
     Convenience function to return a API payload for use with posting to
@@ -48,33 +38,6 @@ class Test_Users(Base_Api_Test):
                        password=fauxfactory.gen_utf8())
         with pytest.raises(qe.exceptions.Duplicate_Exception):
             api_users_pg.post(payload)
-
-    def test_org_admins_can_see_all_users(self, org_admin, user_password, org_users, non_org_users, api_users_pg):
-        '''
-        Verify the default behavior where a Tower org admin can see users
-        outside their organization.
-        '''
-        with self.current_user(org_admin.username, user_password):
-            # find users within current organization
-            matching_org_users = api_users_pg.get(
-                username__in=','.join([u.username for u in org_users]))
-
-            # assert user visibility
-            assert matching_org_users.count == len(org_users), \
-                "An Org Admin is unable to see users (%s) within the " \
-                "same organization." % \
-                (matching_org_users.count,)
-
-            # find users outside current organization
-            matching_non_org_users = api_users_pg.get(
-                username__in=','.join([u.username for u in non_org_users]))
-
-            # assert user visibility
-            assert matching_non_org_users.count == len(non_org_users), \
-                "An Org Admin is unable to see users (%s) outside the " \
-                "organization, despite the default setting " \
-                "ORG_ADMINS_CAN_SEE_ALL_USERS:True" % \
-                (matching_non_org_users.count,)
 
     def test_superuser_can_create_superuser(self, superuser):
         '''
@@ -154,42 +117,3 @@ class Test_Users(Base_Api_Test):
         with self.current_user(non_superuser.username, user_password):
             with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
                 api_users_pg.post(user_payload())
-
-
-@pytest.mark.api
-@pytest.mark.destructive
-@pytest.mark.skip_selenium
-class Test_Org_Admin(Base_Api_Test):
-    '''
-    Verify the behavior where a Tower org admin cannot see users outside their
-    organization.  Requires setting the following tower variable:
-
-    > ORG_ADMINS_CANNOT_SEE_ALL_USERS = False
-    '''
-    pytestmark = pytest.mark.usefixtures('authtoken', 'ORG_ADMINS_CANNOT_SEE_ALL_USERS', 'install_enterprise_license_unlimited')
-
-    def test_org_admins_cannot_see_all_users(self, user_password, api_users_pg, org_admin, org_users, non_org_users):
-        '''
-        Verify that an organization admin can only see users within the organization.
-        '''
-        with self.current_user(org_admin.username, user_password):
-            # find users within current organization
-            matching_org_users = api_users_pg.get(
-                username__in=','.join([u.username for u in org_users]))
-
-            # assert user visibility
-            assert matching_org_users.count == len(org_users), \
-                "An Org Admin is unable to see users (%s) within the " \
-                "same organization." % \
-                (matching_org_users.count,)
-
-            # find users outside current organization
-            matching_non_org_users = api_users_pg.get(
-                username__in=','.join([u.username for u in non_org_users]))
-
-            # assert user visibility
-            assert matching_non_org_users.count == 0, \
-                "An Org Admin is able to see users (%s) outside the " \
-                "organization, despite the setting " \
-                "ORG_ADMINS_CAN_SEE_ALL_USERS:False" % \
-                (matching_non_org_users.count,)

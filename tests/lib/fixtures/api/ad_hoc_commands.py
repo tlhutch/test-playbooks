@@ -44,16 +44,11 @@ def ad_hoc_with_status_completed(ad_hoc_ping):
 
 
 @pytest.fixture(scope="function")
-def ad_hoc_options_json(request, authtoken, api_ad_hoc_commands_pg):
-    '''
-    Returns api/v1/ad_hoc_commands OPTIONS.
-    '''
-    return api_ad_hoc_commands_pg.options().json
-
-
-@pytest.fixture(scope="function")
-def ad_hoc_module_name_choices(ad_hoc_options_json):
+def ad_hoc_module_name_choices(api_ad_hoc_commands_pg):
     '''
     Returns the list of module_names from api/v1/ad_hoc_commands OPTIONS.
     '''
-    return dict(ad_hoc_options_json["actions"]["POST"]["module_name"]['choices'])
+    def func():
+        options_json = api_ad_hoc_commands_pg.options().json
+        return options_json["actions"]["POST"]["module_name"]['choices']
+    return func

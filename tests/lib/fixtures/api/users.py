@@ -139,6 +139,14 @@ def org_users(request, org_admin, org_user):
 
 
 @pytest.fixture(scope="function")
+def non_org_users(request, anonymous_user, another_org_admin, another_org_user):
+    '''
+    Return a list of organization users outside of 'Default' organization.
+    '''
+    return (anonymous_user, another_org_admin, another_org_user)
+
+
+@pytest.fixture(scope="function")
 def privileged_users(request, superuser, org_admin):
     '''
     Return a list of privileged_users
