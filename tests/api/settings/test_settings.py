@@ -117,6 +117,7 @@ class Test_Setting(Base_Api_Test):
             "Unexpected response when relaunching ad hoc command whose module " \
             "has been removed from AD_HOC_COMMANDS: %s." % json.dumps(result)
 
+    @pytest.mark.skip(reason="Test flakiness detailed here: https://github.com/ansible/tower-qa/issues/882")
     def test_schedule_max_jobs(self, factories, update_setting_pg):
         '''
         Verifies that number of spawned schedule jobs is capped by SCHEDULE_MAX_JOBS.
