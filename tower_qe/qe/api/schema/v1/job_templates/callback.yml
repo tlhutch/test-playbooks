@@ -1,6 +1,0 @@
----
-$schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/job_templates/\d+/'
-$ref: '#/definitions/callback'
-definitions:
-  !include '../definitions/callback.yml'

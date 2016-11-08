@@ -13,8 +13,7 @@ pytestmark = [
 ]
 
 
-def test_header_shows_correct_username(
-        ui_user_credentials, ui_dashboard, factories):
+def test_header_shows_correct_username(ui_user_credentials, ui_dashboard, factories):
     """Verify correctly displayed username on header
     """
     msg = 'Unable to verify correctly displayed username on header'

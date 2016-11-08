@@ -5,8 +5,9 @@ import fauxfactory
 import pytest
 from tests.api import Base_Api_Test
 
-import qe
-from qe.tower.license import generate_license
+from towerkit.tower.license import generate_license
+from towerkit.exceptions import BadRequest
+import towerkit.utils
 
 
 log = logging.getLogger(__name__)
@@ -89,7 +90,7 @@ class Test_Setting(Base_Api_Test):
                            module_args="true", )
 
             # post the command
-            exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, api_ad_hoc_commands_pg.post, payload)
+            exc_info = pytest.raises(BadRequest, api_ad_hoc_commands_pg.post, payload)
             result = exc_info.value[1]
 
             # assess result
@@ -109,7 +110,7 @@ class Test_Setting(Base_Api_Test):
         relaunch_pg = ad_hoc_with_status_completed.get_related('relaunch')
 
         # relaunch ad hoc command
-        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, relaunch_pg.post)
+        exc_info = pytest.raises(BadRequest, relaunch_pg.post)
         result = exc_info.value[1]
 
         # assess result
@@ -146,7 +147,7 @@ class Test_Setting(Base_Api_Test):
         # Note: since our schedules spawn jobs minutely, we should only have one set of
         # spawned jobs within our timeout window
         jobs_pg = job_template.get_related('jobs')
-        jobs_pg = qe.utils.wait_until(jobs_pg, 'count', 2, interval=5, verbose=True, timeout=60 * 1.5)
+        jobs_pg = towerkit.utils.wait_until(jobs_pg, 'count', 2, interval=5, verbose=True, timeout=60 * 1.5)
         assert jobs_pg.count == 2, "Unexpected number of jobs spawned. Expected two, got {0}.".format(jobs_pg.count)
 
         # wait for jobs to finish for clean test teardown
@@ -330,7 +331,7 @@ class Test_Setting(Base_Api_Test):
         '''
         Verifies that our exact license contents gets displayed under /api/v1/settings/system/.
 
-        Note: the tower-qe license generator auto-appends a 'eula_accepted' field which is not
+        Note: the towerkit license generator auto-appends a 'eula_accepted' field which is not
         actually part of the license so we remove that manually below.
         '''
         # install test license

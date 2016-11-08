@@ -1,2 +1,0 @@
-enum_privilege_escalation:
-  enum: ['', su, sudo]

@@ -4,9 +4,9 @@ import fauxfactory
 import pytest
 from selenium.webdriver.support.ui import WebDriverWait
 
-from qe.rrule import RRule
+from towerkit.rrule import RRule
 
-from qe.ui.models import (
+from towerkit.ui.models import (
     ActivityStream,
     Credentials,
     CredentialAdd,

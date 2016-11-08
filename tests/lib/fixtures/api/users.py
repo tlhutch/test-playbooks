@@ -1,7 +1,7 @@
 import pytest
 import fauxfactory
 import contextlib
-import qe.exceptions
+import towerkit.exceptions
 
 
 @pytest.fixture(scope="class")
@@ -26,7 +26,7 @@ def org_admin(request, authtoken, organization, user_password):
     obj = organization.get_related('admins').post(payload)
     request.addfinalizer(obj.silent_delete)
     # Add as organization user
-    with pytest.raises(qe.exceptions.NoContent_Exception):
+    with pytest.raises(towerkit.exceptions.NoContent):
         organization.get_related('users').post(dict(id=obj.id))
     return obj
 
@@ -42,7 +42,7 @@ def another_org_admin(request, authtoken, another_organization, user_password):
     obj = another_organization.get_related('admins').post(payload)
     request.addfinalizer(obj.delete)
     # Add as organization user
-    with pytest.raises(qe.exceptions.NoContent_Exception):
+    with pytest.raises(towerkit.exceptions.NoContent):
         another_organization.get_related('users').post(dict(id=obj.id))
     return obj
 

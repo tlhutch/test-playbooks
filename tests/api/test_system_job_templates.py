@@ -1,6 +1,9 @@
 import json
+
+import towerkit.tower.inventory
+import towerkit.exceptions
 import pytest
-import qe.tower.inventory
+
 from tests.api import Base_Api_Test
 
 
@@ -43,21 +46,21 @@ class Test_System_Job_Template(Base_Api_Test):
         '''
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     api_system_job_templates_pg.get()
 
     def test_method_not_allowed(self, api_system_job_templates_pg):
         '''
         Verify that PUT, POST and PATCH are unsupported request methods
         '''
-        with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
+        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             api_system_job_templates_pg.post()
 
         system_job_template = api_system_job_templates_pg.get(id=1)
-        with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
+        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             system_job_template.put()
 
-        with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
+        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             system_job_template.patch()
 
     def test_launch_as_superuser(self, system_job_template):
@@ -85,7 +88,7 @@ class Test_System_Job_Template(Base_Api_Test):
         launch_pg = system_job_template.get_related('launch')
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     launch_pg.post()
 
     def test_launch_with_extra_vars(self, system_job_template):

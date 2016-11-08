@@ -1,8 +1,8 @@
 import pytest
 
-from qe.utils import SimpleNamespace
+from towerkit.utils import SimpleNamespace
 
-from qe.factories import (
+from towerkit.factories import (
     CredentialFactory,
     GroupFactory,
     HostFactory,

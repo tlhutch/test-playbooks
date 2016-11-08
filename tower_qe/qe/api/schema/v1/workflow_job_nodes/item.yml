@@ -1,6 +1,0 @@
----
-$schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/workflow_job_nodes/\d+/'
-$ref: '#/definitions/workflow_job_node'
-definitions:
-  !include '../definitions/*.yml'

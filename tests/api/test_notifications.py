@@ -1,10 +1,11 @@
-import pytest
 import logging
-import qe.exceptions
+
+from towerkit.notification_services import (confirm_notification, can_confirm_notification)
+import towerkit.exceptions
+import pytest
 
 from tests.api import Base_Api_Test
 
-from qe.notification_services import (confirm_notification, can_confirm_notification)
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ def associate_notification_template(notification_template_pg, resource_pg, job_r
     nt_count = resource_nt_pg.get().count
 
     # Associate notification template
-    with pytest.raises(qe.exceptions.NoContent_Exception):
+    with pytest.raises(towerkit.exceptions.NoContent):
         payload = dict(id=nt_id)
         resource_nt_pg.post(payload)
 

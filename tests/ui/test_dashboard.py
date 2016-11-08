@@ -40,8 +40,8 @@ def recent_jobs(batch_job_template):
 
 def check_toolbar_dropdown(dropdown):
     for option in dropdown.options:
-        dropdown.set_value(option)
-        selected = dropdown.get_value()
+        dropdown.value = option
+        selected = dropdown.value
         assert selected == option, (
             'unexpected value: {1} != {2}'.format(selected, option))
 
@@ -57,8 +57,7 @@ def test_recent_job_template_status_icons(recent_jobs, ui_dashboard):
     ui_dashboard.wait.until(lambda _: ui_dashboard.recent_jobs.is_displayed())
     ui_dashboard.wait.until(lambda _: len(ui_dashboard.recent_jobs.rows) == 5)
     for jt_name, jobs in recent_jobs.iteritems():
-        results = ui_dashboard.recent_job_templates.query(
-            lambda r: r.name.text == jt_name)
+        results = ui_dashboard.recent_job_templates.query(lambda r: r.name.text == jt_name)
         assert len(results) == 1, 'job template not found in table'
         # get displayed tooltip data for each status icon in the row
         icon_data = [icon.tooltip_text for icon in results.pop().status_icons]

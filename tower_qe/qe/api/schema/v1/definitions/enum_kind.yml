@@ -1,3 +1,0 @@
----
-enum_kind:
-    enum: [ssh, scm, aws, rax, azure, gce, vmware, openstack, net, satellite6, cloudforms, azure_rm]

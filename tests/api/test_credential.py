@@ -1,8 +1,10 @@
-import pytest
-import fauxfactory
 import json
+
+import towerkit.exceptions
+import fauxfactory
+import pytest
+
 from tests.api import Base_Api_Test
-import qe.exceptions
 
 
 @pytest.mark.api
@@ -35,14 +37,14 @@ class Test_Credential(Base_Api_Test):
         payload = factories.credential.payload(team=team_pg, organization=None)[0]
         obj = api_credentials_pg.post(payload)
         request.addfinalizer(obj.silent_delete)
-        with pytest.raises(qe.exceptions.Duplicate_Exception):
+        with pytest.raises(towerkit.exceptions.Duplicate):
             api_credentials_pg.post(payload)
 
         # attempt to create duplicate organization credentials
         payload = factories.credential.payload()[0]
         obj = api_credentials_pg.post(payload)
         request.addfinalizer(obj.silent_delete)
-        with pytest.raises(qe.exceptions.Duplicate_Exception):
+        with pytest.raises(towerkit.exceptions.Duplicate):
             api_credentials_pg.post(payload)
 
     def test_unicode(self, admin_user, api_credentials_pg):
@@ -97,7 +99,7 @@ class Test_Credential(Base_Api_Test):
                        user=admin_user.id, ))
 
         # post payload and verify that exception raised
-        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, api_credentials_pg.post, payload)
+        exc_info = pytest.raises(towerkit.exceptions.BadRequest, api_credentials_pg.post, payload)
         result = exc_info.value[1]
         assert result == expected_result, "Unexpected response when posting a credential " \
             "with a missing param. %s" % json.dumps(result)

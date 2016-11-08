@@ -9,3 +9,4 @@ pytest-instafail
 pytest-ordering
 pytest-selenium
 python-dateutil
+git+ssh://git@github.com/ansible/towerkit.git

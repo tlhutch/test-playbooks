@@ -1,4 +1,0 @@
-enum_workflow_job_template_status:
-  # TODO: Update after https://github.com/ansible/ansible-tower/issues/3512
-  enum: [completed, new, none, never updated, pending, waiting, updating, running, failed, successful,
-    ok, missing, canceled, error]

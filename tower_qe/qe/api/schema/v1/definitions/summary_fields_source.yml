@@ -1,9 +1,0 @@
----
-summary_fields_source:
-    additionalProperties: false
-    properties:
-      last_updated: {format: date-time, type: string}
-      source: {type: string}
-      status: {$ref: '#/definitions/enum_source_status'}
-    required: [source, status]
-    type: object

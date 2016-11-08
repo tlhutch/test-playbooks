@@ -1,7 +1,7 @@
 import pytest
 
-from qe.api import ApiV1
-from qe.ui.models import License
+from towerkit.api import ApiV1
+from towerkit.ui.models import License
 
 
 pytestmark = [pytest.mark.ui, pytest.mark.nondestructive]

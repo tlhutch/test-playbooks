@@ -3,7 +3,7 @@ import time
 import fauxfactory
 import pytest
 
-from qe.exceptions import NotFound_Exception
+from towerkit.exceptions import NotFound
 
 pytestmark = [
     pytest.mark.ui,
@@ -37,7 +37,7 @@ def test_api_referential_integrity(factories, api_organizations_pg, ui_organizat
     count_label = ui_organizations.list_pagination.item_range[1]
     assert str(len(org_cards)) == count_label, 'item count label != number of cards'
     # get the organization names displayed on each card
-    actual = sorted([c.name.text.lower() for c in org_cards])
+    actual = sorted([c.label.text.lower() for c in org_cards])
     # get a subset of api organization names corresponding to those we expect
     # to be displayed on the first page
     expected = sorted([r.name.lower() for r in api_organizations.results])
@@ -52,22 +52,21 @@ def test_edit_organization(api_organizations_pg, ui_organization_edit):
     name = fauxfactory.gen_alphanumeric()
     description = fauxfactory.gen_alphanumeric()
     # update the organization
-    ui_organization_edit.details.name.set_value(name)
-    ui_organization_edit.details.description.set_value(description)
+    ui_organization_edit.details.name.value = name
+    ui_organization_edit.details.description.value = description
     # save the organization
     ui_organization_edit.details.save.click()
     ui_organization_edit.wait_until_loaded()
     # get organization data api side
     api_organization = api_organizations_pg.get(
-        id=ui_organization_edit.kwargs['id']).results[0]
+        id=ui_organization_edit.kw['id']).results[0]
     # verify the update took place
     assert api_organization.name.lower() == name.lower(), (
         'Unable to verify successful update of organization')
     assert api_organization.description.lower() == description.lower(), (
         'Unable to verify successful update of organization')
     # query the table for the edited organization
-    results = ui_organization_edit.query_cards(
-        lambda c: c.name.text.lower() == name.lower())
+    results = ui_organization_edit.query_cards(lambda c: c.label.text.lower() == name.lower())
     # check that we find a row showing the updated organization name
     assert len(results) == 1, 'Unable to find row of updated organization'
 
@@ -82,20 +81,18 @@ def test_delete_organization(factories, ui_organizations):
     ui_organizations.wait_until_loaded()
     ui_organizations.list_search.add_filter('name', search_name)
     # query the list for the newly created organization
-    results = ui_organizations.query_cards(
-        lambda c: c.name.text.lower() == search_name)
+    results = ui_organizations.query_cards(lambda c: c.label.text.lower() == search_name)
     assert results, 'unable to locate organization'
     # delete the organization
     results.pop().delete.click()
     # confirm deletion
-    ui_organizations.dialog.confirm.click()
+    ui_organizations.dialog.action.click()
     ui_organizations.wait_until_loaded()
     # verify deletion api-side
-    with pytest.raises(NotFound_Exception):
+    with pytest.raises(NotFound):
         organization.get()
     # verify that the deleted resource is no longer displayed
-    results = ui_organizations.query_cards(
-        lambda c: c.name.text.lower() == search_name)
+    results = ui_organizations.query_cards(lambda c: c.label.text.lower() == search_name)
     assert not results
 
 
@@ -105,8 +102,8 @@ def test_create_organization(factories, api_organizations_pg, ui_organization_ad
     # make some data
     name = fauxfactory.gen_alphanumeric()
     # populate the form
-    ui_organization_add.details.name.set_value(name)
-    ui_organization_add.details.description.set_value(fauxfactory.gen_alphanumeric())
+    ui_organization_add.details.name.value = name
+    ui_organization_add.details.description.value = fauxfactory.gen_alphanumeric()
     # save the organization
     ui_organization_add.details.save.click()
     ui_organization_add.wait_until_loaded()
@@ -118,7 +115,7 @@ def test_create_organization(factories, api_organizations_pg, ui_organization_ad
     expected_url_content = '/#/organizations/{0}'.format(api_results[0].id)
     assert expected_url_content in ui_organization_add.driver.current_url
     # check that we find a row showing the updated organization name
-    results = ui_organization_add.query_cards(lambda c: c.name.text.lower() == name.lower())
+    results = ui_organization_add.query_cards(lambda c: c.label.text.lower() == name.lower())
     assert results, 'unable to verify creation of organization'
     # check that the newly created resource has the card selection indicator
-    assert ui_organization_add.selected_card.name.text.lower() == name.lower()
+    assert ui_organization_add.selected_card.label.text.lower() == name.lower()

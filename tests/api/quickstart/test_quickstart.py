@@ -1,15 +1,17 @@
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
+import logging
+import json
 import os
 import re
-import pytest
-import json
-import logging
-import qe.tower.license
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
+
+from towerkit.exceptions import BadRequest, Duplicate, NoContent
+from towerkit.yaml_file import load_file
+import towerkit.tower.license
 from inflect import engine
-from qe.yaml_file import load_file
+import pytest
+
 from tests.api import Base_Api_Test
-from qe.exceptions import BadRequest_Exception, Duplicate_Exception, NoContent_Exception
 
 
 # Parameterize tests based on yaml configuration
@@ -64,7 +66,7 @@ def install_integration_license(authtoken, api_config_pg, awx_config, tower_lice
 
         # Install/replace license
         logging.debug("installing license {0}".format(tower_license_path))
-        license_json = qe.tower.license.generate_license(instance_count=10000, days=60, license_type='enterprise')
+        license_json = towerkit.tower.license.generate_license(instance_count=10000, days=60, license_type='enterprise')
         api_config_pg.post(license_json)
 
 
@@ -117,7 +119,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                        description=_organization['description'])
         try:
             api_organizations_pg.post(payload)
-        except Duplicate_Exception, e:
+        except Duplicate, e:
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
@@ -136,7 +138,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         try:
             api_users_pg.post(payload)
-        except Duplicate_Exception, e:
+        except Duplicate, e:
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
@@ -157,7 +159,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
             # Add user to org
             payload = dict(id=user.id)
-            with pytest.raises(NoContent_Exception):
+            with pytest.raises(NoContent):
                 org_related_pg.post(payload)
 
     @pytest.mark.destructive
@@ -173,7 +175,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
             # Add user to org
             payload = dict(id=user.id)
-            with pytest.raises(NoContent_Exception):
+            with pytest.raises(NoContent):
                 org_related_pg.post(payload)
 
     @pytest.mark.destructive
@@ -186,7 +188,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                        organization=org_pg.id)
         try:
             api_teams_pg.post(payload)
-        except Duplicate_Exception, e:
+        except Duplicate, e:
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
@@ -208,7 +210,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
             # Add user to org
             payload = dict(id=user.id)
-            with pytest.raises(NoContent_Exception):
+            with pytest.raises(NoContent):
                 team_related_pg.post(payload)
 
     @pytest.mark.destructive
@@ -275,7 +277,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         try:
             print json.dumps(payload, indent=4)
             api_credentials_pg.post(payload)
-        except Duplicate_Exception, e:
+        except Duplicate, e:
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
@@ -304,7 +306,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         try:
             api_inventory_scripts_pg.post(payload)
-        except Duplicate_Exception, e:
+        except Duplicate, e:
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
@@ -331,7 +333,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         try:
             api_inventories_pg.post(payload)
-        except Duplicate_Exception, e:
+        except Duplicate, e:
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
@@ -363,7 +365,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         try:
             new_group_pg.post(payload)
-        except Duplicate_Exception, e:
+        except Duplicate, e:
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
@@ -391,7 +393,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         try:
             api_hosts_pg.post(payload)
-        except Duplicate_Exception, e:
+        except Duplicate, e:
             pytest.skip(str(e))
 
     @pytest.mark.nondestructive
@@ -426,7 +428,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         payload = dict(id=host_id)
         for group in groups:
             groups_host_pg = group.get_related('hosts')
-            with pytest.raises(NoContent_Exception):
+            with pytest.raises(NoContent):
                 groups_host_pg.post(payload)
 
     @pytest.mark.destructive
@@ -577,10 +579,10 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         # Create project
         try:
             api_projects_pg.post(payload)
-        except Duplicate_Exception, e:
+        except Duplicate, e:
             pytest.xfail(str(e))
-        except BadRequest_Exception, e:
-            # Similar to Duplicate_Exception but occurs when all projects in local
+        except BadRequest, e:
+            # Similar to Duplicate but occurs when all projects in local
             # directory are claimed (for repeated manual project runs).
             if "Invalid path choice" in e.message.get('local_path', [''])[0]:
                 pytest.xfail(str(e))
@@ -672,7 +674,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
             project = api_projects_pg.get(name__iexact=name).results.pop()
 
             payload = dict(id=project.id)
-            with pytest.raises(NoContent_Exception):
+            with pytest.raises(NoContent):
                 project_related_pg.post(payload)
 
     @pytest.mark.destructive
@@ -713,7 +715,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
         try:
             api_job_templates_pg.post(payload)
-        except Duplicate_Exception, e:
+        except Duplicate, e:
             pytest.xfail(str(e))
 
     @pytest.mark.nondestructive
@@ -814,5 +816,5 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                        rrule=_schedule['rrule'].format(utcnow=utcnow, dtstart=dtstart.strftime("%Y%m%dT%H%M%SZ")))
         try:
             schedules_pg.post(payload)
-        except Duplicate_Exception, e:
+        except Duplicate, e:
             pytest.xfail(str(e))

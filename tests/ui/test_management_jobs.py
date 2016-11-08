@@ -39,7 +39,7 @@ def test_component_visibility(ui_management_jobs):
     # Take up to the first four cards displayed and verify that none
     # of them overlap or touch for any of the supported window sizes
     for (card, other_card) in combinations(management_cards[:4], 2):
-        assert not card.overlaps_with(other_card), (
+        assert not card.overlaps(other_card), (
             'management card regions unexpectedly overlapping')
 
 

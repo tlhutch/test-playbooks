@@ -1,6 +1,0 @@
----
-$schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/notification_templates/\d+/'
-$ref: '#/definitions/notification_template'
-definitions:
-  !include '../definitions/*.yml'

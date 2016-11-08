@@ -1,6 +1,0 @@
----
-$schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/activity_stream/\d+/'
-$ref: '#/definitions/activity_stream'
-definitions:
-  !include '../definitions/*.yml'

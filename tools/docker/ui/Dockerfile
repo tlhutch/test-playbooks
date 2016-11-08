@@ -13,9 +13,6 @@ RUN apk add --update \
     python \
     python-dev
 
-COPY ./tower_qe /tower_qe
-RUN pip install /tower_qe
-
 COPY ./tests/requirements.txt /tower-qa/tests/requirements.txt
 RUN pip install -r /tower-qa/tests/requirements.txt
 

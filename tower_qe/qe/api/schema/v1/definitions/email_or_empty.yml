@@ -1,4 +1,0 @@
-email_or_empty:
-  oneOf:
-  - {format: email, type: string}
-  - {enum: [''], type: string}

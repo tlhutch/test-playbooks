@@ -1,3 +1,0 @@
----
-enum_job_job_type:
-    enum: [run, check, scan]

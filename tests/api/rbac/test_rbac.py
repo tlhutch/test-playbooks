@@ -1,20 +1,20 @@
 from contextlib import contextmanager
-import os
 import httplib
 import logging
-import fauxfactory
+import os
 
+from towerkit.api.pages.users import User_Page
+from towerkit.api.pages.teams import Team_Page
+from towerkit.yaml_file import load_file
+import towerkit.exceptions
+import fauxfactory
 import pytest
 
-from qe.yaml_file import load_file
-import qe.exceptions
-from qe.exceptions import Forbidden_Exception
-from qe.exceptions import NoContent_Exception
-from qe.api.pages.users import User_Page
-from qe.api.pages.teams import Team_Page
 from tests.api import Base_Api_Test
 
+
 log = logging.getLogger(__name__)
+
 
 # load expected values for summary_fields user_capabilities
 user_capabilities = load_file(os.path.join(os.path.dirname(__file__), 'user_capabilities.yml'))
@@ -56,7 +56,7 @@ def auth_user(testsetup, authtoken, api_authtoken_url):
             >>> test_user = factories.user(username='phil')
             >>> with auth_user(test_user):
             >>>     foo_job_template.patch(inventory=bar_inventory.id)
-            *** Forbidden_Exception
+            *** Forbidden
         """
         prev_auth = testsetup.api.session.auth
         data = {'username': user.username, 'password': password}
@@ -112,7 +112,7 @@ def resource_with_notification(request, email_notification_template):
     payload = dict(id=email_notification_template.id)
     endpoints = ['notification_templates_any', 'notification_templates_success', 'notification_templates_error']
     for endpoint in endpoints:
-        with pytest.raises(NoContent_Exception):
+        with pytest.raises(towerkit.execeptions.NoContent):
             resource.get_related(endpoint).post(payload)
     return resource
 
@@ -180,7 +180,7 @@ def set_roles(agent, model, role_names, endpoint='related_users', disassociate=F
             raise RuntimeError('Invalid role association endpoint')
         if disassociate:
             payload['disassociate'] = disassociate
-        with pytest.raises(NoContent_Exception):
+        with pytest.raises(towerkit.exceptions.NoContent):
             endpoint_model.post(payload)
 
 
@@ -230,8 +230,8 @@ def assert_response_raised(tower_object, response=httplib.OK):
     """
     exc_dict = {
         httplib.OK: None,
-        httplib.NOT_FOUND: qe.exceptions.NotFound_Exception,
-        httplib.FORBIDDEN: qe.exceptions.Forbidden_Exception,
+        httplib.NOT_FOUND: towerkit.exceptions.NotFound,
+        httplib.FORBIDDEN: towerkit.exceptions.Forbidden,
     }
     exc = exc_dict[response]
     for method in ('put', 'patch', 'delete'):
@@ -247,14 +247,14 @@ def check_read_access(tower_object, expected_forbidden=[], unprivileged=False):
     """
     # for test scenarios involving unprivileged users
     if unprivileged:
-        with pytest.raises(qe.exceptions.Forbidden_Exception):
+        with pytest.raises(towerkit.exceptions.Forbidden):
             tower_object.get()
     # for test scenarios involving privileged users
     else:
         tower_object.get()
         for related in tower_object.related:
             if related in expected_forbidden:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     tower_object.get_related(related)
             else:
                 tower_object.get_related(related)
@@ -366,7 +366,7 @@ def test_unauthorized_self_privilege_escalation_returns_code_403(
         resource = getattr(factories, resource_name)()
     # make a test user and associate it with the initial role
     set_roles(user, resource, [initial_role])
-    with auth_user(user), pytest.raises(Forbidden_Exception):
+    with auth_user(user), pytest.raises(towerkit.exceptions.Forbidden):
         set_roles(user, resource, [unauthorized_target_role], endpoint=endpoint)
 
 
@@ -638,7 +638,7 @@ class Test_Organization_RBAC(Base_Api_Test):
         role_pg = organization_pg.get_object_role(organization_role)
         payload = dict(id=role_pg.id)
 
-        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, team_pg.get_related('roles').post, payload)
+        exc_info = pytest.raises(towerkit.exceptions.BadRequest, team_pg.get_related('roles').post, payload)
         result = exc_info.value[1]
         assert result == {u'msg': u'You cannot assign an Organization role as a child role for a Team.'}, \
             "Unexpected error message received when attempting to assign an organization role to a team."
@@ -669,7 +669,7 @@ class Test_Project_RBAC(Base_Api_Test):
             check_read_access(project_pg, unprivileged=True)
 
             # check project update
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 update_pg.post()
 
             # check put/patch/delete
@@ -799,7 +799,7 @@ class Test_Project_RBAC(Base_Api_Test):
                 update_pg = project_pg.update().wait_until_completed()
                 assert update_pg.is_successful, "Project update unsuccessful - %s." % update_pg
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     project_pg.update()
             else:
                 raise ValueError("Received unhandled project role.")
@@ -820,7 +820,7 @@ class Test_Project_RBAC(Base_Api_Test):
             if role in ALLOWED_ROLES:
                 update_pg.cancel()
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     update_pg.cancel()
                 # wait for project to finish to ensure clean teardown
                 update_pg.wait_until_completed()
@@ -846,7 +846,7 @@ class Test_Project_RBAC(Base_Api_Test):
             if role in ALLOWED_ROLES:
                 update_pg.delete()
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     update_pg.delete()
                 # wait for project to finish to ensure clean teardown
                 update_pg.wait_until_completed()
@@ -1010,9 +1010,9 @@ class Test_Credential_RBAC(Base_Api_Test):
         # assert that credential roles may not be assigned to these agents
         role_names = [role.replace("_role", "") for role in credential.summary_fields.object_roles.keys()]
         for role_name in role_names:
-            with pytest.raises(qe.exceptions.BadRequest_Exception):
+            with pytest.raises(towerkit.exceptions.BadRequest):
                 set_roles(another_user, credential, [role_name])
-            with pytest.raises(qe.exceptions.BadRequest_Exception):
+            with pytest.raises(towerkit.exceptions.BadRequest):
                 set_roles(team, credential, [role_name])
 
     def test_invalid_organization_credential_role_assignment(self, factories, set_roles):
@@ -1028,12 +1028,12 @@ class Test_Credential_RBAC(Base_Api_Test):
         user = factories.user(organization=another_organization)
         role_names = [role.replace("_role", "") for role in credential.summary_fields.object_roles.keys()]
         for role_name in role_names:
-            with pytest.raises(qe.exceptions.BadRequest_Exception):
+            with pytest.raises(towerkit.exceptions.BadRequest):
                 set_roles(user, credential, [role_name])
         # team from another organization may not be assigned any of our credential roles
         team = factories.team(organization=another_organization)
         for role_name in role_names:
-            with pytest.raises(qe.exceptions.BadRequest_Exception):
+            with pytest.raises(towerkit.exceptions.BadRequest):
                 set_roles(team, credential, [role_name])
 
     def test_valid_organization_credential_role_assignment(self, factories, set_roles):
@@ -1177,7 +1177,7 @@ class Test_Team_RBAC(Base_Api_Test):
 
         # give test user member role privileges
         role_pg = team_pg.get_object_role('member_role')
-        with pytest.raises(qe.exceptions.NoContent_Exception):
+        with pytest.raises(towerkit.exceptions.NoContent):
             user_pg.get_related('roles').post(dict(id=role_pg.id))
 
         # assert that teams/N/users now shows test user
@@ -1307,7 +1307,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             check_read_access(job_template_pg, unprivileged=True)
 
             # check JT launch
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 launch_pg.post()
 
             # check put/patch/delete
@@ -1413,7 +1413,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
                 job_pg = job_template_pg.launch().wait_until_completed()
                 assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     job_template_pg.launch()
             else:
                 raise ValueError("Received unhandled job_template role.")
@@ -1437,7 +1437,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
                 relaunched_job_pg = job_pg.relaunch().wait_until_completed()
                 assert relaunched_job_pg.is_successful, "Job unsuccessful - %s." % job_pg
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     job_pg.relaunch()
             else:
                 raise ValueError("Received unhandled job_template role.")
@@ -1466,7 +1466,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
         # relaunch as user2 should raise 403
         with self.current_user(username=user2.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 job_pg.get_related('relaunch').post()
 
     def test_relaunch_with_ask_credential(self, factories, job_template_no_credential, user_password):
@@ -1489,7 +1489,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
         # relaunch as user2 should raise 403
         with self.current_user(username=user2.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 job_pg.get_related('relaunch').post()
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
@@ -1511,7 +1511,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             if role in ALLOWED_ROLES:
                 job_pg.cancel()
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     job_pg.cancel()
                 # wait for job to finish to ensure clean teardown
                 job_pg.wait_until_completed()
@@ -1546,10 +1546,10 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
         # assert that each org_admin cannot delete other organization's job
         with self.current_user(username=org_admin1.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 scan_job.delete()
         with self.current_user(username=org_admin2.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 run_job.delete()
 
         # assert that each org_admin can delete his own organization's job
@@ -1570,7 +1570,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         job_pg = job_template_pg.launch()
 
         with self.current_user(username=user_pg.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 job_pg.delete()
             # wait for project to finish to ensure clean teardown
             job_pg.wait_until_completed()
@@ -1623,21 +1623,21 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_read_access(inventory_pg, unprivileged=True)
 
             # update aws_group
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 inv_source_update_pg.post()
 
             # update custom group
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 custom_group_update_pg.post()
 
             # post command
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 commands_pg.post()
 
             # check ability to create group and host
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 groups_pg.post()
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 hosts_pg.post()
 
             # check put/patch/delete on inventory, custom_group, and host_local
@@ -1707,9 +1707,9 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_read_access(inventory_pg, ["organization"])
 
             # check ability to create group and host
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 groups_pg.post(group_payload)
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 hosts_pg.post(host_payload)
 
             # check put/patch/delete on inventory, custom_group, and host_local
@@ -1745,9 +1745,9 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_read_access(inventory_pg, ["organization"])
 
             # check ability to create group and host
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 groups_pg.post(group_payload)
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 hosts_pg.post(host_payload)
 
             # check put/patch/delete on inventory, custom_group, and host_local
@@ -1783,9 +1783,9 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_read_access(inventory_pg, ["organization"])
 
             # check ability to create group and host
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 groups_pg.post(group_payload)
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 hosts_pg.post(host_payload)
 
             # check put/patch/delete on inventory, custom_group, and host_local
@@ -1821,9 +1821,9 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_read_access(inventory_pg, ["organization"])
 
             # check ability to create group and host
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 groups_pg.post(group_payload)
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 hosts_pg.post(host_payload)
 
             # check put/patch/delete on inventory, custom_group, and host_local
@@ -1862,7 +1862,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
                 update_pg = custom_inventory_source.update().wait_until_completed()
                 assert update_pg.is_successful, "Update unsuccessful - %s." % update_pg
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     custom_inventory_source.update()
             else:
                 raise ValueError("Received unhandled inventory role.")
@@ -1887,7 +1887,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
                 update_pg = aws_inventory_source.update().wait_until_completed()
                 assert update_pg.is_successful, "Update unsuccessful - %s." % update_pg
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     aws_inventory_source.update()
             else:
                 raise ValueError("Received unhandled inventory role.")
@@ -1911,7 +1911,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             if role in ALLOWED_ROLES:
                 update_pg.cancel()
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     update_pg.cancel()
                 # wait for inventory update to finish to ensure clean teardown
                 update_pg.wait_until_completed()
@@ -1937,7 +1937,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             if role in ALLOWED_ROLES:
                 update_pg.delete()
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     update_pg.delete()
                 # wait for inventory update to finish to ensure clean teardown
                 update_pg.wait_until_completed()
@@ -1985,7 +1985,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
                 command_pg = ad_hoc_commands_pg.post(payload).wait_until_completed()
                 assert command_pg.is_successful, "Command unsuccessful - %s." % command_pg
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     ad_hoc_commands_pg.post(payload)
             else:
                 raise ValueError("Received unhandled inventory role.")
@@ -2015,7 +2015,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
                 relaunched_command = command_pg.relaunch().wait_until_completed()
                 assert relaunched_command.is_successful, "Command unsuccessful - %s." % command_pg
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     command_pg.relaunch()
             else:
                 raise ValueError("Received unhandled inventory role.")
@@ -2043,7 +2043,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             if role in ALLOWED_ROLES:
                 command_pg.cancel()
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     command_pg.cancel()
             else:
                 raise ValueError("Received unhandled inventory role.")
@@ -2084,10 +2084,10 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         # assert that each org_admin cannot delete other organization's command
         with self.current_user(username=org_admin1.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 command2.delete()
         with self.current_user(username=org_admin2.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 command1.delete()
 
         # assert that each org_admin can delete his own organization's command
@@ -2112,7 +2112,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         command_pg = inventory_pg.get_related('ad_hoc_commands').post(payload)
 
         with self.current_user(username=user_pg.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 command_pg.delete()
             # wait for ad hoc command to finish to ensure clean teardown
             command_pg.wait_until_completed()
@@ -2153,7 +2153,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         '''
         # test notification template create as unprivileged user
         with self.current_user(username=unprivileged_user.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 api_notification_templates_pg.post(email_notification_template_payload)
 
     def test_notification_template_create_as_org_admin(self, email_notification_template_payload, api_notification_templates_pg, org_admin, user_password):
@@ -2179,7 +2179,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         payload = dict(id=email_notification_template.id)
         with self.current_user(username=unprivileged_user.username, password=user_password):
             for endpoint in endpoints:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     endpoint.post(payload)
 
     def test_notification_template_associate_as_org_admin(self, email_notification_template, notifiable_resource, org_admin, user_password):
@@ -2193,7 +2193,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         payload = dict(id=email_notification_template.id)
         with self.current_user(username=org_admin.username, password=user_password):
             for endpoint in endpoints:
-                with pytest.raises(qe.exceptions.NoContent_Exception):
+                with pytest.raises(towerkit.exceptions.NoContent):
                     endpoint.post(payload)
 
     def test_notification_template_read_as_unprivileged_user(self, email_notification_template, unprivileged_user, user_password):
@@ -2202,7 +2202,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         '''
         # assert that we cannot access api/v1/notification_templates
         with self.current_user(username=unprivileged_user.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.get()
 
     def test_notification_template_read_as_org_admin(self, email_notification_template, org_admin, user_password):
@@ -2219,9 +2219,9 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         '''
         # assert that put/patch is forbidden
         with self.current_user(username=unprivileged_user.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.put()
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.patch()
 
     def test_notification_template_edit_as_org_admin(self, email_notification_template, org_admin, user_password):
@@ -2239,7 +2239,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         '''
         # assert that delete is forbidden
         with self.current_user(username=unprivileged_user.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.delete()
 
     def test_notification_template_delete_as_org_admin(self, email_notification_template, org_admin, user_password):
@@ -2280,7 +2280,7 @@ class Test_Notifications_RBAC(Base_Api_Test):
         notification_pg = email_notification_template.test().wait_until_completed()
 
         with self.current_user(username=unprivileged_user.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 notification_pg.get()
 
     def test_notification_read_as_org_admin(self, email_notification_template, org_admin, user_password):
@@ -2296,14 +2296,14 @@ class Test_Notifications_RBAC(Base_Api_Test):
                                                     user_password):
         '''Confirms that unprivileged users cannot test notifications.'''
         with self.current_user(username=unprivileged_user.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.test().wait_until_completed()
 
     def test_notification_test_as_another_org_admin(self, email_notification_template, another_org_admin,
                                                     user_password):
         """Confirms that admins of other orgs cannot test notifcations outside their organization"""
         with self.current_user(username=another_org_admin.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.test().wait_until_completed()
 
 
@@ -2329,7 +2329,7 @@ class Test_Label_RBAC(Base_Api_Test):
 
         # assert initial label post raises 403
         with self.current_user(username=user_pg.username, password=user_password):
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 api_labels_pg.post(payload)
 
         # grant user target organization permission
@@ -2340,7 +2340,7 @@ class Test_Label_RBAC(Base_Api_Test):
             if role in ALLOWED_ROLES:
                 api_labels_pg.post(payload)
             elif role in REJECTED_ROLES:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     api_labels_pg.post(payload)
             else:
                 raise ValueError("Received unhandled organization role.")
@@ -2367,10 +2367,10 @@ class Test_Label_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             job_template_pg.get()
             if job_template_pg.summary_fields.user_capabilities.edit:
-                with pytest.raises(qe.exceptions.NoContent_Exception):
+                with pytest.raises(towerkit.exceptions.NoContent):
                     labels_pg.post(payload)
             else:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     labels_pg.post(payload)
 
 
@@ -2390,7 +2390,7 @@ class Test_User_RBAC(Base_Api_Test):
 
         for user in [user_one, user_two]:
             for disassociate in [True, False]:
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     user.get_related('roles').post(dict(id=user_one_admin_role.id,
                                                         disassociate=disassociate))
 
@@ -2435,7 +2435,7 @@ class Test_System_Jobs_RBAC(Base_Api_Test):
         '''
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     api_system_jobs_pg.get(id=system_job.id)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3576')
@@ -2491,18 +2491,18 @@ class Test_Schedules_RBAC(Base_Api_Test):
 
         with self.current_user(org_admin.username, user_password):
             # test get
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 schedule_pg.get()
             # test put/patch
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 schedule_pg.put()
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 schedule_pg.patch()
             # test post
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 schedules_pg.post()
             # test delete
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 schedule_pg.delete()
 
     def test_crud_as_org_user(self, request, org_user, user_password, resource_with_schedule):
@@ -2512,18 +2512,18 @@ class Test_Schedules_RBAC(Base_Api_Test):
 
         with self.current_user(org_user.username, user_password):
             # test get
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 schedule_pg.get()
             # test put/patch
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 schedule_pg.put()
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 schedule_pg.patch()
             # test create
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 schedules_pg.post()
             # test delete
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 schedule_pg.delete()
 
     def test_user_capabilities_as_superuser(self, resource_with_schedule, api_schedules_pg):

@@ -7,14 +7,14 @@ pytestmark = [pytest.mark.ui, pytest.mark.nondestructive]
 def test_host_vars_formatting(ui_host_edit):
     details = ui_host_edit.details
     # check that the default parse type is yaml
-    assert details.variables_parse_type.get_value() == 'yaml'
+    assert details.variables_parse_type.value == 'yaml'
     assert details.variables.is_yaml()
     # fiddle with parse types and check formatting
-    details.variables_parse_type.set_value('json')
-    assert details.variables_parse_type.get_value() == 'json'
+    details.variables_parse_type.value = 'json'
+    assert details.variables_parse_type.value == 'json'
     assert details.variables.is_json()
-    details.extra_variables_parse_type.set_value('yaml')
-    assert details.variables_parse_type.get_value() == 'yaml'
+    details.extra_variables_parse_type.value = 'yaml'
+    assert details.variables_parse_type.value == 'yaml'
     assert details.variables.is_yaml()
 
 
@@ -27,12 +27,12 @@ def test_schedule_extra_vars_formatting(request, schedule_page_fixture_name):
     schedule_page = request.getfixturevalue(schedule_page_fixture_name)
     details = schedule_page.details
     # check that the default parse type is yaml
-    assert details.extra_variables_parse_type.get_value() == 'yaml'
+    assert details.extra_variables_parse_type.value == 'yaml'
     assert details.extra_variables.is_yaml()
     # fiddle with parse types and check formatting
-    details.extra_variables_parse_type.set_value('json')
-    assert details.extra_variables_parse_type.get_value() == 'json'
+    details.extra_variables_parse_type.value = 'json'
+    assert details.extra_variables_parse_type.value == 'json'
     assert details.extra_variables.is_json()
-    details.extra_variables_parse_type.set_value('yaml')
-    assert details.extra_variables_parse_type.get_value() == 'yaml'
+    details.extra_variables_parse_type.value = 'yaml'
+    assert details.extra_variables_parse_type.value == 'yaml'
     assert details.extra_variables.is_yaml()

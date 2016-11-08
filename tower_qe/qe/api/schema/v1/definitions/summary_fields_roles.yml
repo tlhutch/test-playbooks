@@ -1,8 +1,0 @@
-summary_fields_role:
-  additionalProperties: false
-  properties:
-    description: {type: string}
-    id: {$ref: '#/definitions/id'}
-    name: {type: string}
-  required: [description, id, name]
-  type: object

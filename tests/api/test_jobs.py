@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-
-import re
+from dateutil.parser import parse
+import logging
 import types
 import json
-import logging
-import pytest
+import re
+
+import towerkit.tower.inventory
+import towerkit.exceptions
 import fauxfactory
-import qe.tower.inventory
-from dateutil.parser import parse
+import pytest
+
 from tests.api import Base_Api_Test
 
 
@@ -250,7 +252,7 @@ class Test_Job(Base_Api_Test):
         '''
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     api_jobs_pg.post(job_template.json)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3590')
@@ -280,7 +282,7 @@ class Test_Job(Base_Api_Test):
         assert not relaunch_pg.passwords_needed_to_start
 
         # attempt to relaunch the job, should raise exception
-        with pytest.raises(qe.exceptions.BadRequest_Exception):
+        with pytest.raises(towerkit.exceptions.BadRequest):
             relaunch_pg.post()
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3590')
@@ -322,7 +324,7 @@ class Test_Job(Base_Api_Test):
         assert credential.expected_passwords_needed_to_start == relaunch_pg.passwords_needed_to_start
 
         # relaunch the job
-        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, relaunch_pg.post, {})
+        exc_info = pytest.raises(towerkit.exceptions.BadRequest, relaunch_pg.post, {})
         result = exc_info.value[1]
 
         # assert expected error responses
@@ -465,8 +467,8 @@ class Test_Job(Base_Api_Test):
             "Unexpectedly able to cancel a completed job (can_cancel:%s)" % \
             cancel_pg.can_cancel
 
-        # assert Method_Not_Allowed when attempting to cancel
-        with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
+        # assert MethodNotAllowed when attempting to cancel
+        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             cancel_pg.post()
 
     def test_launch_with_inventory_update(self, job_template, cloud_group, host_local):
@@ -863,7 +865,7 @@ print json.dumps(inventory)
         set_roles(operator, job_template, ['execute'])
         with self.current_user(operator.username, user_password):
             job = job_template.launch()
-            with pytest.raises(qe.exceptions.Forbidden_Exception):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 job.delete()
 
 

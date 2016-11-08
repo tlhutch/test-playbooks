@@ -1,7 +1,0 @@
----
-enum_system_job_template_name:
-  enum:
-    - "Cleanup Job Details"
-    - "Cleanup Deleted Data"
-    - "Cleanup Activity Stream"
-    - "Cleanup Fact Details"

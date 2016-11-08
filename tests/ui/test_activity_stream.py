@@ -46,22 +46,22 @@ def test_navigation_dropdown(factories, ui_activity_stream):
         'Users',
     ]
     dropdown = ui_activity_stream.navigation_dropdown
-    assert dropdown.get_value() == 'All Activity'
+    assert dropdown.value == 'All Activity'
     # check nav options
     options = dropdown.options
     assert options == expected_nav_options
     for opt in options:
-        dropdown.set_value(opt)
-        selected = dropdown.get_value()
+        dropdown.value = opt
+        selected = dropdown.value
         assert selected == opt
         assert selected.lower() in ui_activity_stream.list_subtitle.text.lower()
     # check that a non-default option remains selected after refreshing
     nondefault = 'Organizations'
-    dropdown.set_value(nondefault)
-    assert dropdown.get_value() == nondefault
+    dropdown.value = nondefault
+    assert dropdown.value == nondefault
     ui_activity_stream.driver.refresh()
     ui_activity_stream.wait_until_loaded()
-    assert ui_activity_stream.navigation_dropdown.get_value() == nondefault
+    assert ui_activity_stream.navigation_dropdown.value == nondefault
 
 
 def test_navigation_with_edit_query_params(ui_inventory_edit):
@@ -70,9 +70,9 @@ def test_navigation_with_edit_query_params(ui_inventory_edit):
     """
     expected_subtitle = ui_inventory_edit.details.title.text.lower()
     expected_url_content = 'target=inventory&id={0}'.format(
-        ui_inventory_edit.kwargs.get('id'))
+        ui_inventory_edit.kw.get('id'))
     activity_stream = ui_inventory_edit.open_activity_stream()
-    assert activity_stream.navigation_dropdown.get_value() == 'Inventories', (
+    assert activity_stream.navigation_dropdown.value == 'Inventories', (
         'Unexpected default value displayed for navigation dropdown')
     assert activity_stream.list_subtitle.is_displayed(), (
         'Activity stream subtitle unexpectedly not displayed')
@@ -80,7 +80,7 @@ def test_navigation_with_edit_query_params(ui_inventory_edit):
         'Unexpected activity stream subtitle text')
     assert expected_url_content in activity_stream.driver.current_url, (
         'Unexpected activity stream url query parameters after page load')
-    activity_stream.navigation_dropdown.set_value('Job Templates')
+    activity_stream.navigation_dropdown.value = 'Job Templates'
     assert 'target=job_template' in activity_stream.driver.current_url, (
         'Unexpected activity stream url query parameters after nav select')
 
@@ -91,7 +91,7 @@ def test_activity_stream_after_inventory_update(ui_inventory_edit):
     """
     new_inventory_name = fauxfactory.gen_alphanumeric()
     # change the name of the inventory
-    ui_inventory_edit.details.name.set_value(new_inventory_name)
+    ui_inventory_edit.details.name.value = new_inventory_name
     ui_inventory_edit.details.save.click()
     # navigate to the activity stream page
     activity_stream = ui_inventory_edit.open_activity_stream()

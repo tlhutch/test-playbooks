@@ -1,3 +1,0 @@
----
-enum_launch_type:
-    enum: ['', manual, callback, scheduled, dependency, relaunch]

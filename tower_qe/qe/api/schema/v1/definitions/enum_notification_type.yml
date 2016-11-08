@@ -1,3 +1,0 @@
----
-enum_notification_type:
-    enum: [email, slack, twilio, pagerduty, hipchat, webhook, irc]

@@ -1,6 +1,0 @@
----
-summary_fields_recent_jobs:
-    items: {$ref: '#/definitions/summary_fields_recent_job'}
-    minItems: 0
-    type: array
-    uniqueItems: true

@@ -1,3 +1,0 @@
----
-enum_descendant_role:
-  enum: [admin_role, read_role, member_role, execute_role, adhoc_role, update_role, use_role, auditor_role]

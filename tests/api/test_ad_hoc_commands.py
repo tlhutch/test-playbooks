@@ -1,8 +1,11 @@
-import pytest
-import fauxfactory
 import json
-import qe.exceptions
+
+import towerkit.exceptions
+import fauxfactory
+import pytest
+
 from tests.api import Base_Api_Test
+
 
 '''
 Tests that span all four endpoints
@@ -214,7 +217,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         # post payload as privileged user
         for privileged_user in privileged_users:
             # give privileged user 'use_role' permissions
-            with pytest.raises(qe.exceptions.NoContent_Exception):
+            with pytest.raises(towerkit.exceptions.NoContent):
                 use_role_pg.get_related('users').post(dict(id=privileged_user.id))
             with self.current_user(privileged_user.username, user_password):
                 command_pg = api_ad_hoc_commands_pg.post(payload)
@@ -236,7 +239,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         for unprivileged_user in unprivileged_users:
             ssh_credential.patch(user=unprivileged_user.id)
             with self.current_user(unprivileged_user.username, user_password):
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     api_ad_hoc_commands_pg.post(payload)
 
     def test_launch_without_module_name(self, host, ssh_credential, api_ad_hoc_commands_pg):
@@ -272,7 +275,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                            module_name=invalid_module_name, )
 
             # post the command
-            with pytest.raises(qe.exceptions.BadRequest_Exception):
+            with pytest.raises(towerkit.exceptions.BadRequest):
                 api_ad_hoc_commands_pg.post(payload)
 
     def test_launch_without_module_args(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
@@ -286,7 +289,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                        module_name="command", )
 
         # post the command
-        exc_info = pytest.raises(qe.exceptions.BadRequest_Exception, api_ad_hoc_commands_pg.post, payload)
+        exc_info = pytest.raises(towerkit.exceptions.BadRequest, api_ad_hoc_commands_pg.post, payload)
         result = exc_info.value[1]
 
         # assess result
@@ -344,7 +347,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                        module_name="ping", )
 
         # post the command
-        with pytest.raises(qe.exceptions.BadRequest_Exception):
+        with pytest.raises(towerkit.exceptions.BadRequest):
             api_ad_hoc_commands_pg.post(payload)
 
     def test_launch_with_ask_credential_and_invalid_passwords_in_payload(self, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
@@ -480,7 +483,7 @@ print json.dumps(inv, indent=2)
         use_role_pg = ssh_credential.get_object_role('use_role')
         for privileged_user in privileged_users:
             # give privileged user 'use_role' permissions
-            with pytest.raises(qe.exceptions.NoContent_Exception):
+            with pytest.raises(towerkit.exceptions.NoContent):
                 use_role_pg.get_related('users').post(dict(id=privileged_user.id))
 
             # create payload
@@ -521,7 +524,7 @@ print json.dumps(inv, indent=2)
         # relaunch the job and assert success
         for unprivileged_user in unprivileged_users:
             with self.current_user(unprivileged_user.username, user_password):
-                with pytest.raises(qe.exceptions.Forbidden_Exception):
+                with pytest.raises(towerkit.exceptions.Forbidden):
                     relaunch_pg.post()
 
     def test_relaunch_command_with_ask_credential_and_passwords(
@@ -568,7 +571,7 @@ print json.dumps(inv, indent=2)
         payload = dict(extra_vars={}, )
 
         # post to relaunch_pg
-        with pytest.raises(qe.exceptions.BadRequest_Exception):
+        with pytest.raises(towerkit.exceptions.BadRequest):
             relaunch_pg.post(payload)
 
     def test_relaunch_with_deleted_related(self, ad_hoc_with_status_completed, deleted_object):
@@ -583,7 +586,7 @@ print json.dumps(inv, indent=2)
         assert not relaunch_pg.passwords_needed_to_start
 
         # relaunch the command
-        with pytest.raises(qe.exceptions.BadRequest_Exception):
+        with pytest.raises(towerkit.exceptions.BadRequest):
             relaunch_pg.post()
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3544')
@@ -627,7 +630,7 @@ print json.dumps(inv, indent=2)
         inventory_pg = host.get_related('inventory')
 
         # associate ssh_credential with org_admin
-        with pytest.raises(qe.exceptions.NoContent_Exception):
+        with pytest.raises(towerkit.exceptions.NoContent):
             use_role_pg.get_related('users').post(dict(id=org_admin.id))
 
         # create payload

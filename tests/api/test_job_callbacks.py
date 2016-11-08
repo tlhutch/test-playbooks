@@ -1,9 +1,12 @@
-import re
-import pytest
 import httplib
 import json
+import re
+
+import towerkit.exceptions
+import towerkit.utils
 import fauxfactory
-import qe.exceptions
+import pytest
+
 from tests.api import Base_Api_Test
 
 
@@ -16,7 +19,7 @@ def another_host_with_default_ipv4_in_variables(request, authtoken, api_hosts_pg
     request.addfinalizer(obj.delete)
     # Add to group(s)
     for group in host_with_default_ipv4_in_variables.get_related('groups').results:
-        with pytest.raises(qe.exceptions.NoContent_Exception):
+        with pytest.raises(towerkit.exceptions.NoContent):
             obj.get_related('groups').post(dict(id=group.id))
     return obj
 
@@ -28,12 +31,12 @@ def hosts_with_name_matching_local_ipv4_addresses_but_random_ssh_host(request, g
         payload = dict(name=ipv4_addr,
                        description="test host %s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory,
-                       variables=json.dumps(dict(ansible_ssh_host=qe.utils.random_ipv4(),
+                       variables=json.dumps(dict(ansible_ssh_host=towerkit.utils.random_ipv4(),
                                                  ansible_connection="local")),)
         obj = group.get_related('hosts').post(payload)
         request.addfinalizer(obj.delete)
         # Add to group
-        with pytest.raises(qe.exceptions.NoContent_Exception):
+        with pytest.raises(towerkit.exceptions.NoContent):
             obj.get_related('groups').post(dict(id=group.id))
 
     return group.get_related('hosts', name__in=','.join(local_ipv4_addresses))

@@ -3,7 +3,7 @@ import time
 import fauxfactory
 import pytest
 
-from qe.exceptions import NotFound_Exception
+from towerkit.exceptions import NotFound
 
 pytestmark = [
     pytest.mark.ui,
@@ -21,20 +21,18 @@ def test_edit_user(api_users_pg, ui_user_edit):
     """
     # make some data and update the user
     username = fauxfactory.gen_alphanumeric()
-    ui_user_edit.details.username.set_value(username)
+    ui_user_edit.details.username.value = username
     # save the user
     time.sleep(5)
     ui_user_edit.details.save.click()
     ui_user_edit.list_table.wait_for_table_to_load()
     # get user data api side
     time.sleep(5)
-    api_user = api_users_pg.get(id=ui_user_edit.kwargs['id']).results[0]
+    api_user = api_users_pg.get(id=ui_user_edit.kw['id']).results[0]
     # verify the update took place
-    assert api_user.username == username, (
-        'Unable to verify successful update of user')
+    assert api_user.username == username, 'Unable to verify successful update of user'
     # query the table for the edited user
-    results = ui_user_edit.list_table.query(
-        lambda r: r.username.text == username)
+    results = ui_user_edit.list_table.query(lambda r: r.username.text == username)
     # check that we find a row showing the updated username
     assert len(results) == 1, 'Unable to find row of updated user'
 
@@ -48,19 +46,17 @@ def test_delete_user(factories, ui_users):
     ui_users.list_table.wait_for_table_to_load()
     ui_users.list_search.add_filter('username', user.username)
     # query the list for the newly created user
-    results = ui_users.list_table.query(
-        lambda r: r.username.text == user.username)
+    results = ui_users.list_table.query(lambda r: r.username.text == user.username)
     # delete the user
     results.pop().delete.click()
     # confirm deletion
-    ui_users.dialog.confirm.click()
+    ui_users.dialog.action.click()
     ui_users.list_table.wait_for_table_to_load()
     # verify deletion api-side
-    with pytest.raises(NotFound_Exception):
+    with pytest.raises(NotFound):
         user.get()
     # verify that the deleted resource is no longer displayed
-    results = ui_users.list_table.query(
-        lambda r: r.username.text == user.username)
+    results = ui_users.list_table.query(lambda r: r.username.text == user.username)
     assert not results
 
 
@@ -72,13 +68,13 @@ def test_create_user(factories, api_users_pg, ui_user_add):
     username = fauxfactory.gen_alphanumeric()
     password = fauxfactory.gen_alphanumeric().title() + '1'
     # populate the form
-    ui_user_add.details.organization.set_value(organization.name)
-    ui_user_add.details.first_name.set_value(fauxfactory.gen_alphanumeric())
-    ui_user_add.details.last_name.set_value(fauxfactory.gen_alphanumeric())
-    ui_user_add.details.email.set_value(fauxfactory.gen_email())
-    ui_user_add.details.username.set_value(username)
-    ui_user_add.details.password.set_value(password)
-    ui_user_add.details.password_confirm.set_value(password)
+    ui_user_add.details.organization.value = organization.name
+    ui_user_add.details.first_name.value = fauxfactory.gen_alphanumeric()
+    ui_user_add.details.last_name.value = fauxfactory.gen_alphanumeric()
+    ui_user_add.details.email.value = fauxfactory.gen_email()
+    ui_user_add.details.username.value = username
+    ui_user_add.details.password.value = password
+    ui_user_add.details.password_confirm.value = password
     # save the user
     time.sleep(5)
     ui_user_add.details.save.click()

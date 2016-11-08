@@ -1,6 +1,0 @@
----
-$schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/config/'
-$ref: '#/definitions/license_info'
-definitions:
-  !include '../definitions/*.yml'

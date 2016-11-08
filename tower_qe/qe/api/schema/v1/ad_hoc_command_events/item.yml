@@ -1,6 +1,0 @@
----
-$schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/ad_hoc_commands/\d+/'
-$ref: '#/definitions/ad_hoc_command_event'
-definitions:
-  !include '../definitions/*.yml'

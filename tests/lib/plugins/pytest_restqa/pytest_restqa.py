@@ -6,9 +6,9 @@ import requests
 import pytest
 import py
 
-from qe.utils import load_credentials
-from qe.api.client import Connection
-from qe import config as qe_config
+from towerkit.utils import load_credentials
+from towerkit.api.client import Connection
+from towerkit import config as qe_config
 
 
 __version__ = '1.0'

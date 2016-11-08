@@ -7,7 +7,7 @@
 import os
 import pytest
 import fauxfactory
-import qe.exceptions
+import towerkit.exceptions
 from tests.api import Base_Api_Test
 
 
@@ -254,7 +254,7 @@ class Test_Projects(Base_Api_Test):
         update_pg = project_ansible_git_nowait.get_related("current_update")
 
         # delete the job_template
-        exc_info = pytest.raises(qe.exceptions.Conflict_Exception, project_ansible_git_nowait.delete)
+        exc_info = pytest.raises(towerkit.exceptions.Conflict, project_ansible_git_nowait.delete)
         result = exc_info.value[1]
         assert result == {'conflict': 'Resource is being used by running jobs', 'active_jobs': [{'type': '%s' % update_pg.type, 'id': update_pg.id}]}
 
@@ -266,7 +266,7 @@ class Test_Projects(Base_Api_Test):
 
         # assert related resources are notfound (404)
         for related in ('last_job', 'last_update', 'schedules', 'activity_stream', 'project_updates', 'teams', 'playbooks', 'update'):
-            with pytest.raises(qe.exceptions.NotFound_Exception):
+            with pytest.raises(towerkit.exceptions.NotFound):
                 assert project_ansible_playbooks_git.get_related(related)
 
     @pytest.mark.github('https://github.com/ansible/galaxy-issues/issues/191')

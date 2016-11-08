@@ -1,2 +1,0 @@
-enum_workflow_task_status:
-  enum: [completed, new, pending, waiting, running, successful, failed, error, canceled]

@@ -1,3 +1,0 @@
----
-enum_become_method:
-    enum: ['', sudo, su, pbrun]

@@ -1,8 +1,0 @@
----
-summary_fields_labels:
-  additionalProperties: false
-  properties:
-    count: {minimum: 0, type: number}
-    results: {$ref: '#/definitions/summary_fields_labels_results'}
-  required: [count, results]
-  type: object

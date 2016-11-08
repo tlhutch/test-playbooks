@@ -1,8 +1,0 @@
----
-summary_fields_source_script:
-    additionalProperties: false
-    properties:
-      name: {type: string}
-      description: {type: string}
-    required: [name, description]
-    type: object

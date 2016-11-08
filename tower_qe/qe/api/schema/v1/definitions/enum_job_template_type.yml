@@ -1,3 +1,0 @@
----
-enum_job_template_type:
-    enum: [inventory_source, project, job_template]

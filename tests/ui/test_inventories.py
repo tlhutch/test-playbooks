@@ -3,7 +3,7 @@ import time
 import fauxfactory
 import pytest
 
-from qe.exceptions import NotFound_Exception
+from towerkit.exceptions import NotFound
 
 pytestmark = [
     pytest.mark.ui,
@@ -43,8 +43,8 @@ def test_edit_inventory(api_inventories_pg, ui_inventory_edit):
     name = fauxfactory.gen_alphanumeric()
     description = fauxfactory.gen_alphanumeric()
     # update the inventory
-    ui_inventory_edit.details.name.set_value(name)
-    ui_inventory_edit.details.description.set_value(description)
+    ui_inventory_edit.details.name.value = name
+    ui_inventory_edit.details.description.value = description
     # save the inventory
     time.sleep(5)
     ui_inventory_edit.details.save.click()
@@ -52,7 +52,7 @@ def test_edit_inventory(api_inventories_pg, ui_inventory_edit):
     # get inventory data api-side
     time.sleep(5)
     api_inventory = api_inventories_pg.get(
-        id=ui_inventory_edit.kwargs['id']).results[0]
+        id=ui_inventory_edit.kw['id']).results[0]
     # verify the update took place
     assert api_inventory.name == name, (
         'Unable to verify successful update of inventory')
@@ -78,10 +78,10 @@ def test_delete_inventory(factories, ui_inventories):
     # delete the inventory
     results.pop().delete.click()
     # confirm deletion
-    ui_inventories.dialog.confirm.click()
+    ui_inventories.dialog.action.click()
     ui_inventories.list_table.wait_for_table_to_load()
     # verify deletion api-side
-    with pytest.raises(NotFound_Exception):
+    with pytest.raises(NotFound):
         inventory.get()
     # verify that the deleted resource is no longer displayed
     results = ui_inventories.list_table.query(
@@ -97,8 +97,8 @@ def test_create_inventory(factories, api_inventories_pg, ui_inventory_add):
     name = fauxfactory.gen_alphanumeric()
     # populate the form
     ui_inventory_add.driver.refresh()
-    ui_inventory_add.details.name.set_value(name)
-    ui_inventory_add.details.organization.set_value(org.name)
+    ui_inventory_add.details.name.value = name
+    ui_inventory_add.details.organization.value = org.name
     # save the inventory
     time.sleep(5)
     ui_inventory_add.details.save.click()

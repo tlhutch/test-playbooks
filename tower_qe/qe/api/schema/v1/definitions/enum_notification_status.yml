@@ -1,3 +1,0 @@
----
-enum_notification_status:
-    enum: [pending, successful, failed]

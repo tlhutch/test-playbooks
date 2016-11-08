@@ -1,8 +1,10 @@
-import pytest
 import json
 import yaml
+
+from towerkit.exceptions import BadRequest
 import fauxfactory
-from qe.exceptions import BadRequest_Exception
+import pytest
+
 from tests.api import Base_Api_Test
 
 
@@ -186,7 +188,7 @@ class Test_AC_1035(Base_Api_Test):
 
     def test_inventory_variables_attr_invalid(self, inventory_yaml):
         '''Assert that storing invalid YAML/JSON in inventory.variables fails'''
-        with pytest.raises(BadRequest_Exception):
+        with pytest.raises(BadRequest):
             inventory_yaml.patch(variables="{")
 
     #
@@ -208,7 +210,7 @@ class Test_AC_1035(Base_Api_Test):
 
     def test_groups_variables_attr_invalid(self, groups_yaml):
         '''Assert that storing invalid YAML/JSON in groups.variables fails'''
-        with pytest.raises(BadRequest_Exception):
+        with pytest.raises(BadRequest):
             groups_yaml.patch(variables="{")
 
     #
@@ -228,7 +230,7 @@ class Test_AC_1035(Base_Api_Test):
 
     def test_hosts_variables_attr_invalid(self, hosts_yaml):
         '''Assert that storing invalid YAML/JSON in hosts.variables fails'''
-        with pytest.raises(BadRequest_Exception):
+        with pytest.raises(BadRequest):
             hosts_yaml.patch(variables="{")
 
     #
@@ -251,7 +253,7 @@ class Test_AC_1035(Base_Api_Test):
     def test_job_templates_extra_var_attr_invalid(self, job_templates_yaml):
         '''Assert that no data validation happens updating extra_vars with invalid JSON/YAML'''
         payload = dict(extra_vars="{")
-        exc_info = pytest.raises(BadRequest_Exception, job_templates_yaml.patch, **payload)
+        exc_info = pytest.raises(BadRequest, job_templates_yaml.patch, **payload)
         result = exc_info.value[1]
 
         assert result == {u'extra_vars': [u'Must be valid JSON or YAML.']}, \

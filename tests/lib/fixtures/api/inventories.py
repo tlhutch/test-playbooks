@@ -6,7 +6,7 @@ import uuid
 import urllib2
 import socket
 import fauxfactory
-import qe.exceptions
+import towerkit.exceptions
 
 
 log = logging.getLogger(__name__)
@@ -115,7 +115,7 @@ def host_with_default_ipv4_in_variables(request, authtoken, api_hosts_pg, group,
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.silent_cleanup)
     # Add to group
-    with pytest.raises(qe.exceptions.NoContent_Exception):
+    with pytest.raises(towerkit.exceptions.NoContent):
         obj.get_related('groups').post(dict(id=group.id))
     return obj
 
@@ -149,7 +149,7 @@ def hosts_with_name_matching_local_ipv4_addresses(request, authtoken, group, loc
         obj = group.get_related('hosts').post(payload)
         request.addfinalizer(obj.silent_cleanup)
         # Add to group
-        with pytest.raises(qe.exceptions.NoContent_Exception):
+        with pytest.raises(towerkit.exceptions.NoContent):
             obj.get_related('groups').post(dict(id=group.id))
 
     return group.get_related('hosts', name__in=','.join(local_ipv4_addresses))
@@ -179,7 +179,7 @@ def host_local(request, authtoken, api_hosts_pg, inventory, group):
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.silent_cleanup)
     # Add host to group
-    with pytest.raises(qe.exceptions.NoContent_Exception):
+    with pytest.raises(towerkit.exceptions.NoContent):
         obj.get_related('groups').post(dict(id=group.id))
     return obj
 
@@ -192,7 +192,7 @@ def host_with_default_connection(request, authtoken, api_hosts_pg, inventory, gr
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.silent_cleanup)
     # Add host to group
-    with pytest.raises(qe.exceptions.NoContent_Exception):
+    with pytest.raises(towerkit.exceptions.NoContent):
         obj.get_related('groups').post(dict(id=group.id))
     return obj
 
@@ -217,7 +217,7 @@ def host(request, authtoken, api_hosts_pg, inventory, group):
     obj = api_hosts_pg.post(payload)
     request.addfinalizer(obj.silent_cleanup)
     # Add host to group
-    with pytest.raises(qe.exceptions.NoContent_Exception):
+    with pytest.raises(towerkit.exceptions.NoContent):
         obj.get_related('groups').post(dict(id=group.id))
     return obj
 

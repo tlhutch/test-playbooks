@@ -1,8 +1,8 @@
 import httplib
-import pytest
 
-from qe.api.client import Connection
-from qe.api.schema import validate
+from towerkit.api.client import Connection
+from towerkit.api.schema import validate
+import pytest
 
 
 # Generate fixture values for 'method' and 'resource'

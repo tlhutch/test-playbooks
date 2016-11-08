@@ -1,6 +1,0 @@
----
-enum_system_job_template_description:
-  enum:
-    - "Remove job history"
-    - "Remove activity stream history"
-    - "Remove system tracking history"

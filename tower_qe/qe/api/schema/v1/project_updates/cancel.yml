@@ -1,9 +1,0 @@
----
-$schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/project_updates/\d+/cancel/'
-type: object
-additionalProperties: false
-required: [can_cancel]
-properties:
-  can_cancel:
-    type: boolean

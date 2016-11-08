@@ -3,7 +3,7 @@ import time
 import fauxfactory
 import pytest
 
-from qe.exceptions import NotFound_Exception
+from towerkit.exceptions import NotFound
 
 pytestmark = [
     pytest.mark.ui,
@@ -63,15 +63,15 @@ def test_edit_project(api_projects_pg, ui_project_edit):
     name = fauxfactory.gen_alphanumeric()
     description = fauxfactory.gen_alphanumeric()
     # update the project
-    ui_project_edit.details.name.set_value(name)
-    ui_project_edit.details.description.set_value(description)
+    ui_project_edit.details.name.value = name
+    ui_project_edit.details.description.value = description
     # save the project
     time.sleep(5)
     ui_project_edit.details.save.click()
     ui_project_edit.list_table.wait_for_table_to_load()
     # get project data api-side
     api_project = api_projects_pg.get(
-        id=ui_project_edit.kwargs['id']).results[0]
+        id=ui_project_edit.kw['id']).results[0]
     # verify the update took place
     assert api_project.name == name, (
         'Unable to verify successful update of project')
@@ -96,10 +96,10 @@ def test_delete_project(factories, ui_projects):
     # delete the project
     results.pop().delete.click()
     # confirm deletion
-    ui_projects.dialog.confirm.click()
+    ui_projects.dialog.action.click()
     ui_projects.list_table.wait_for_table_to_load()
     # verify deletion api-side
-    with pytest.raises(NotFound_Exception):
+    with pytest.raises(NotFound):
         project.get()
     # verify that the deleted resource is no longer displayed
     results = ui_projects.list_table.query(
@@ -116,10 +116,10 @@ def test_create_project(factories, api_projects_pg, ui_project_add):
     name = fauxfactory.gen_alphanumeric()
     # populate the form
     ui_project_add.driver.refresh()
-    ui_project_add.details.name.set_value(name)
-    ui_project_add.details.scm_type.set_value(data['scm_type'].title())
-    ui_project_add.details.scm_url.set_value(data['scm_url'])
-    ui_project_add.details.organization.set_value(org.name)
+    ui_project_add.details.name.value = name
+    ui_project_add.details.scm_type.value = data['scm_type'].title()
+    ui_project_add.details.scm_url.value = data['scm_url']
+    ui_project_add.details.organization.value = org.name
     # save the project
     time.sleep(5)
     ui_project_add.details.save.click()

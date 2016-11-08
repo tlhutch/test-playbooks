@@ -1,4 +1,0 @@
----
-enum_dashboard_scm_types_label:
-    enum: [Subversion, Git, Mercurial]
-    type: string

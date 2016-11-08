@@ -1,8 +1,0 @@
----
-summary_fields_groups:
-    additionalProperties: false
-    properties:
-      id: {minimum: 1, type: number}
-      name: {type: string}
-    required: [id, name]
-    type: object

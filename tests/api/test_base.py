@@ -1,8 +1,10 @@
-import pytest
 import httplib
+
+from towerkit.api.schema import validate
 import fauxfactory
+import pytest
+
 from tests.api import Base_Api_Test
-from qe.api.schema import validate
 
 
 @pytest.mark.api

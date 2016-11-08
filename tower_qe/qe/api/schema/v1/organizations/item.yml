@@ -1,6 +1,0 @@
----
-$schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/organizations/\d+/'
-$ref: '#/definitions/organization'
-definitions:
-  !include '../definitions/*.yml'

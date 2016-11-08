@@ -1,7 +1,7 @@
 import pytest
 
-from qe.api.pages import Role_Page, Roles_Page, Team_Page, User_Page
-from qe.exceptions import NoContent_Exception
+from towerkit.api.pages import Role_Page, Roles_Page, Team_Page, User_Page
+from towerkit.exceptions import NoContent
 
 
 @pytest.fixture(scope='session')
@@ -71,6 +71,6 @@ def set_roles(get_role):
                 raise RuntimeError('Invalid role association endpoint')
             if disassociate:
                 payload['disassociate'] = disassociate
-            with pytest.raises(NoContent_Exception):
+            with pytest.raises(NoContent):
                 endpoint_model.post(payload)
     return _set_roles

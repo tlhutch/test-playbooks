@@ -1,5 +1,6 @@
+import towerkit.exceptions
 import pytest
-import qe.exceptions
+
 from tests.api import Base_Api_Test
 
 
@@ -82,6 +83,6 @@ class Test_LDAP(Base_Api_Test):
     def test_license_disables_ldap_authentication(self, api_users_pg, user_password, ldap_disabled_license, current_user):
         '''Verified Tower disables LDAP authentication with an unsupported
         license.'''
-        with pytest.raises(qe.exceptions.Unauthorized_Exception):
+        with pytest.raises(towerkit.exceptions.Unauthorized):
             with current_user(username='sales_user1', password=user_password):
                 api_users_pg.get(username='sales_user1')

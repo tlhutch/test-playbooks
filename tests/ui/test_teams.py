@@ -3,7 +3,7 @@ import time
 import fauxfactory
 import pytest
 
-from qe.exceptions import NotFound_Exception
+from towerkit.exceptions import NotFound
 
 pytestmark = [
     pytest.mark.ui,
@@ -23,15 +23,15 @@ def test_edit_team(api_teams_pg, ui_team_edit):
     name = fauxfactory.gen_alphanumeric()
     description = fauxfactory.gen_alphanumeric()
     # update the team
-    ui_team_edit.details.name.set_value(name)
-    ui_team_edit.details.description.set_value(description)
+    ui_team_edit.details.name.value = name
+    ui_team_edit.details.description.value = description
     # save the team
     time.sleep(5)
     ui_team_edit.details.save.click()
     ui_team_edit.list_table.wait_for_table_to_load()
     # get team data api-side
     time.sleep(5)
-    api_team = api_teams_pg.get(id=ui_team_edit.kwargs['id']).results[0]
+    api_team = api_teams_pg.get(id=ui_team_edit.kw['id']).results[0]
     # verify the update took place
     assert api_team.name == name, (
         'Unable to verify successful update of team')
@@ -56,10 +56,10 @@ def test_delete_team(factories, ui_teams):
     # delete the team
     results.pop().delete.click()
     # confirm deletion
-    ui_teams.dialog.confirm.click()
+    ui_teams.dialog.action.click()
     ui_teams.list_table.wait_for_table_to_load()
     # verify deletion api-side
-    with pytest.raises(NotFound_Exception):
+    with pytest.raises(NotFound):
         team.get()
     # verify that the deleted resource is no longer displayed
     results = ui_teams.list_table.query(lambda r: r.name.text == team.name)
@@ -74,8 +74,8 @@ def test_create_team(factories, api_teams_pg, ui_team_add):
     name = fauxfactory.gen_alphanumeric()
     # populate the form
     ui_team_add.driver.refresh()
-    ui_team_add.details.name.set_value(name)
-    ui_team_add.details.organization.set_value(organization.name)
+    ui_team_add.details.name.value = name
+    ui_team_add.details.organization.value = organization.name
     # save the team
     time.sleep(5)
     ui_team_add.details.save.click()

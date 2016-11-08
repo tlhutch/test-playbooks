@@ -1,8 +1,9 @@
-import pytest
 import json
+
+import towerkit.tower
 import fauxfactory
-import qe.tower
-import qe.tower.inventory
+import pytest
+
 from tests.api import Base_Api_Test
 
 
@@ -43,7 +44,7 @@ def import_inventory(request, authtoken, api_inventories_pg, organization, ansib
     request.addfinalizer(obj.delete)
 
     # Upload inventory script
-    dest = qe.tower.inventory.upload_inventory(ansible_runner, nhosts=request.param)
+    dest = towerkit.tower.inventory.upload_inventory(ansible_runner, nhosts=request.param)
 
     # Run awx-manage inventory_import
     contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (obj.id, dest))

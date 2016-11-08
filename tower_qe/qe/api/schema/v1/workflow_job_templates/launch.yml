@@ -1,9 +1,0 @@
----
-$schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/workflow_job_templates/\d+/launch/'
-type: object
-additionalProperties: false
-# TODO: Expect this to have fields for prompting, and 
-# likely other features too, later on
-properties:
-  warnings: {type: object} # TODO: revisit

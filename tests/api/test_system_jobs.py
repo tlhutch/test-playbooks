@@ -1,6 +1,6 @@
 import pytest
-import qe.tower.inventory
-import qe.exceptions
+import towerkit.tower.inventory
+import towerkit.exceptions
 from tests.api import Base_Api_Test
 
 
@@ -62,13 +62,13 @@ class Test_System_Jobs(Base_Api_Test):
         '''
         Verify that PUT, POST and PATCH are unsupported request methods
         '''
-        with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
+        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             system_job.post()
 
-        with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
+        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             system_job.put()
 
-        with pytest.raises(qe.exceptions.Method_Not_Allowed_Exception):
+        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             system_job.patch()
 
     def test_cleanup_jobs(self, cleanup_jobs_template, unified_job_with_status_completed, api_unified_jobs_pg):
@@ -83,7 +83,7 @@ class Test_System_Jobs(Base_Api_Test):
 
         # assert provided job has been deleted if not project/inventory update
         if unified_job_with_status_completed.type not in ['inventory_update', 'project_update']:
-            with pytest.raises(qe.exceptions.NotFound_Exception):
+            with pytest.raises(towerkit.exceptions.NotFound):
                 unified_job_with_status_completed.get()
         else:
             unified_job_with_status_completed.get()

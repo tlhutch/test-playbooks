@@ -1,7 +1,0 @@
----
-$schema: http://json-schema.org/draft-04/schema#
-id: '/api/v1/project_updates/\d+/'
-$ref: '#/definitions/project_update'
-
-definitions:
-  !include '../definitions/*.yml'
