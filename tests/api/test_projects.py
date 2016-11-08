@@ -138,26 +138,21 @@ class Test_Projects(Base_Api_Test):
             assert result['stat']['exists'], "The expected galaxy role requirement was not found (%s)." % \
                 expected_role_path
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3874')
     @pytest.mark.parametrize('timeout, status, job_explanation', [
         (0, 'successful', ''),
         (60, 'successful', ''),
         (1, 'failed', 'Job terminated due to timeout'),
     ], ids=['no timeout', 'under timeout', 'over timeout'])
-    def test_update_with_timeout(self, factories, timeout, status, job_explanation):
+    def test_update_with_timeout(self, project, timeout, status, job_explanation):
         """Tests project updates with timeouts."""
-        # FIXME: update factories such that timeout value can be supplied upon project creation
-        # Note: there is an initial update spawned with the project POST that we are not checking
-        # right now
-        project = factories.project()
         project.patch(timeout=timeout)
 
         # launch project update and assess spawned update
         update_pg = project.update().wait_until_completed()
         assert update_pg.status == status, \
-            "Unexpected project update status. Expected {0} but received {1}.".format(status, update_pg.status)
+            "Unexpected project update status. Expected '{0}' but received '{1}.'".format(status, update_pg.status)
         assert update_pg.job_explanation == job_explanation, \
-            "Unexpected update job_explanation. Expected {0} but received {1}.".format(job_explanation, update_pg.job_explanation)
+            "Unexpected update job_explanation. Expected '{0}' but received '{1}.'".format(job_explanation, update_pg.job_explanation)
         assert update_pg.timeout == project.timeout, \
             "Update_pg has a different timeout value ({0}) than its project ({1}).".format(update_pg.timeout, project.timeout)
 

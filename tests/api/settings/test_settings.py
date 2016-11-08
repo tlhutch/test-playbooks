@@ -154,6 +154,77 @@ class Test_Setting(Base_Api_Test):
         for job in jobs_pg.results:
             job.wait_until_completed()
 
+    @pytest.mark.parametrize('timeout, default_job_timeout, status, job_explanation', [
+        (0, 1, 'failed', 'Job terminated due to timeout'),
+        (60, 1, 'successful', ''),
+    ], ids=['without JT timeout - with global timeout', 'with JT timeout - with global timeout'])
+    def test_default_job_timeout(self, job_template, update_setting_pg, timeout, default_job_timeout, status, job_explanation):
+        """Tests DEFAULT_JOB_TIMEOUT. JT timeout value should override DEFAULT_JOB_TIMEOUT
+        in instances where both timeout values are supplied.
+        """
+        job_template.patch(timeout=timeout)
+
+        # update job timeout flag
+        payload = dict(DEFAULT_JOB_TIMEOUT=default_job_timeout)
+        update_setting_pg('api_settings_jobs_pg', payload)
+
+        # launch JT and assess spawned job
+        job_pg = job_template.launch().wait_until_completed()
+        assert job_pg.status == status, \
+            "Unexpected job status. Expected '{0}' but received '{1}.'".format(status, job_pg.status)
+        assert job_pg.job_explanation == job_explanation, \
+            "Unexpected job job_explanation. Expected '{0}' but received '{1}.'".format(job_explanation, job_pg.job_explanation)
+        assert job_pg.timeout == job_template.timeout, \
+            "Job_pg has a different timeout value ({0}) than its JT ({1}).".format(job_pg.timeout, job_template.timeout)
+
+    @pytest.mark.parametrize('timeout, default_update_timeout, status, job_explanation', [
+        (0, 1, 'failed', 'Job terminated due to timeout'),
+        (60, 1, 'successful', ''),
+    ], ids=['without inv_source timeout - with global timeout', 'with inv_source timeout - with global timeout'])
+    def test_default_inventory_update_timeout(self, custom_inventory_source, update_setting_pg, timeout, default_update_timeout,
+                                              status, job_explanation):
+        """Tests DEFAULT_INVENTORY_UPDATE_TIMEOUT. Inventory source timeout value should override
+        DEFAULT_INVENTORY_SOURCE_TIMEOUT in instances where both timeout values are supplied.
+        """
+        custom_inventory_source.patch(timeout=timeout)
+
+        # update job timeout flag
+        payload = dict(DEFAULT_INVENTORY_UPDATE_TIMEOUT=default_update_timeout)
+        update_setting_pg('api_settings_jobs_pg', payload)
+
+        # launch inventory update and assess spawned update
+        update_pg = custom_inventory_source.update().wait_until_completed()
+        assert update_pg.status == status, \
+            "Unexpected inventory update status. Expected '{0}' but received '{1}.'".format(status, update_pg.status)
+        assert update_pg.job_explanation == job_explanation, \
+            "Unexpected update job_explanation. Expected '{0}' but received '{1}.'".format(job_explanation, update_pg.job_explanation)
+        assert update_pg.timeout == custom_inventory_source.timeout, \
+            "Update_pg has a different timeout value ({0}) than its inv_source ({1}).".format(update_pg.timeout, custom_inventory_source.timeout)
+
+    @pytest.mark.parametrize('timeout, default_update_timeout, status, job_explanation', [
+        (0, 1, 'failed', 'Job terminated due to timeout'),
+        (60, 1, 'successful', ''),
+    ], ids=['without project timeout - with global timeout', 'with project timeout - with global timeout'])
+    def test_default_project_update_with_timeout(self, project, update_setting_pg, timeout, default_update_timeout, status,
+                                                 job_explanation):
+        """Tests DEFAULT_PROJECT_UPDATE_TIMEOUT. Project timeout value should override
+        DEFAULT_PROJECT_UPDATE_TIMEOUT in instances where both timeout values are supplied.
+        """
+        project.patch(timeout=timeout)
+
+        # update job timeout flag
+        payload = dict(DEFAULT_PROJECT_UPDATE_TIMEOUT=default_update_timeout)
+        update_setting_pg('api_settings_jobs_pg', payload)
+
+        # launch project update and assess spawned update
+        update_pg = project.update().wait_until_completed()
+        assert update_pg.status == status, \
+            "Unexpected project update status. Expected '{0}' but received '{1}.'".format(status, update_pg.status)
+        assert update_pg.job_explanation == job_explanation, \
+            "Unexpected update job_explanation. Expected '{0}' but received '{1}.'".format(job_explanation, update_pg.job_explanation)
+        assert update_pg.timeout == project.timeout, \
+            "Update_pg has a different timeout value ({0}) than its project ({1}).".format(update_pg.timeout, project.timeout)
+
     def test_activity_stream_enabled(self, factories, api_activity_stream_pg, update_setting_pg):
         '''
         Verifies that if ACTIVITY_STREAM_ENABLED is enabled that Tower activity gets logged.

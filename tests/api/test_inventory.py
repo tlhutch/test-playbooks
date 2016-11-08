@@ -482,9 +482,9 @@ class Test_Inventory_Update(Base_Api_Test):
         # launch inventory update and assess spawned update
         update_pg = custom_inventory_source.update().wait_until_completed()
         assert update_pg.status == status, \
-            "Unexpected inventory update status. Expected {0} but received {1}.".format(status, update_pg.status)
+            "Unexpected inventory update status. Expected '{0}' but received '{1}.'".format(status, update_pg.status)
         assert update_pg.job_explanation == job_explanation, \
-            "Unexpected update job_explanation. Expected {0} but received {1}.".format(job_explanation, update_pg.job_explanation)
+            "Unexpected update job_explanation. Expected '{0}' but received '{1}.'".format(job_explanation, update_pg.job_explanation)
         assert update_pg.timeout == custom_inventory_source.timeout, \
             "Update_pg has a different timeout value ({0}) than its inv_source ({1}).".format(update_pg.timeout, custom_inventory_source.timeout)
 

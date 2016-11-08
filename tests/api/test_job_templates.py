@@ -1076,9 +1076,9 @@ print json.dumps(inv, indent=2)
         # launch JT and assess spawned job
         job_pg = job_template.launch().wait_until_completed()
         assert job_pg.status == status, \
-            "Unexpected job status. Expected {0} but received {1}.".format(status, job_pg.status)
+            "Unexpected job status. Expected '{0}' but received '{1}.'".format(status, job_pg.status)
         assert job_pg.job_explanation == job_explanation, \
-            "Unexpected job job_explanation. Expected {0} but received {1}.".format(job_explanation, job_pg.job_explanation)
+            "Unexpected job job_explanation. Expected '{0}' but received '{1}.'".format(job_explanation, job_pg.job_explanation)
         assert job_pg.timeout == job_template.timeout, \
             "Job_pg has a different timeout value ({0}) than its JT ({1}).".format(job_pg.timeout, job_template.timeout)
 
