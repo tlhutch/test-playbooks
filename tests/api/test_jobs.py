@@ -1244,6 +1244,7 @@ class Test_Update_On_Launch(Base_Api_Test):
         assert project_ansible_playbooks_git.is_successful, "project unsuccessful - %s" % \
             json.dumps(project_ansible_playbooks_git.json, indent=4)
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3926")
     def test_project_cache_timeout(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
         '''Verify that a project_update is not triggered when the cache_timeout has not exceeded'''
 
