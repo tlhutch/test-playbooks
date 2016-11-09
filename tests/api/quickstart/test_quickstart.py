@@ -604,7 +604,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         update_pg = project_pg.get_related('update')
         if _project['scm_type'] in [None, 'manual']:
             assert not update_pg.json['can_update'], "Manual projects should not be updateable"
-            pytest.skip("Manual projects can not be updated")
+            pytest.skip("Manual projects cannot be updated")
         else:
             assert update_pg.json['can_update'], "SCM projects must be updateable"
 
