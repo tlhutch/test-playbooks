@@ -269,7 +269,7 @@ class Test_Projects(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.NotFound):
                 assert project_ansible_playbooks_git.get_related(related)
 
-    @pytest.mark.github('https://github.com/ansible/galaxy-issues/issues/191')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3936')
     def test_project_with_galaxy_requirements(self, ansible_runner, project_with_galaxy_requirements, api_config_pg):
         '''Verify that project requirements are downloaded when specified in a requirements file.'''
         last_update_pg = project_with_galaxy_requirements.wait_until_completed().get_related('last_update')
