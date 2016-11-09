@@ -272,6 +272,7 @@ class Test_Labels(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Unauthorized):
                 label.patch(organization=another_organization.id)
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3929")
     def test_able_to_assign_label_to_different_org(self, org_admin, user_password, label, another_organization):
         '''
         Tests that org_admins may reassign a label to an organization for which they
