@@ -436,8 +436,8 @@ class Test_Job(Base_Api_Test):
         # wait for job to complete
         job_with_status_running = job_with_status_running.wait_until_completed()
 
-        assert job_with_status_running.status == 'canceled', "Unexpected job" \
-            "status after cancelling job (expected status:canceled) - %s" % \
+        assert job_with_status_running.status == 'canceled', \
+            "Unexpected job status after cancelling job (expected status: canceled) - %s" % \
             job_with_status_running
 
         # Make sure the ansible-playbook did not complete
