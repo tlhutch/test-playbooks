@@ -675,6 +675,7 @@ class Test_Project_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.FORBIDDEN)
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3930")
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent, user_password):
         '''
