@@ -236,6 +236,8 @@ class Test_Inventory_Scripts(Base_Api_Test):
             # query /inventory_sources endpoint for matching id
             assert api_inventory_scripts_pg.get(id=inventory_script.id).count == 0
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3928")
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3927")
     def test_delete_as_unprivileged_user(self, inventory_script, unprivileged_user, user_password):
         '''
         Verify unsuccesful DELETE to /inventory_scripts/N as an unprivileged user.
