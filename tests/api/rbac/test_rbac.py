@@ -1284,7 +1284,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
     def test_able_to_assign_inventory_script_to_different_org(self, factories, user_password, inventory_script, organization,
                                                               another_organization):
         '''
-        Tests that org_admins may reassign an inventory_script to an organization for which they
+        Tests that org_admins can reassign an inventory_script to an organization for which they
         are an admin.
         '''
         user_pg = factories.user()
@@ -1298,7 +1298,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
     def test_unable_to_assign_inventory_script_to_different_org(self, factories, user_password, inventory_script, organization,
                                                                 another_organization):
         '''
-        Tests that org_admins may not reassign an inventory_script to an organization for which they
+        Tests that org_admins cannot reassign an inventory_script to an organization for which they
         are only a member.
         '''
         user_pg = factories.user()
