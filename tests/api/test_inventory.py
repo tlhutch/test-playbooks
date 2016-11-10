@@ -159,9 +159,23 @@ class Test_Inventory(Base_Api_Test):
         result = exc_info.value[1]
         assert result == {'conflict': 'Resource is being used by running jobs', 'active_jobs': [{'type': '%s' % update_pg.type, 'id': update_pg.id}]}
 
-    def test_cascade_delete(self, inventory, host_local, host_without_group, group, api_groups_pg, api_hosts_pg):
-        '''Verify DELETE removes associated groups and hosts'''
+    def test_update_cascade_delete(self, custom_inventory_source, api_inventory_updates_pg):
+        """Verify that associated inventory updates get cascade deleted with custom group
+        deletion."""
+        inv_source_id = custom_inventory_source.id
+        custom_inventory_source.update().wait_until_completed()
 
+        # assert that we have an inventory update
+        assert api_inventory_updates_pg.get(inventory_source=inv_source_id).count == 1, \
+            "Unexpected number of inventory updates. Expected one update."
+
+        # delete custom group and assert that inventory updates deleted
+        custom_inventory_source.get_related('group').delete()
+        assert api_inventory_updates_pg.get(inventory_source=inv_source_id).count == 0, \
+            "Unexpected number of inventory updates after deleting custom group. Expected zero updates."
+
+    def test_child_cascade_delete(self, inventory, host_local, host_without_group, group, api_groups_pg, api_hosts_pg):
+        '''Verify DELETE removes associated groups and hosts'''
         # Verify inventory group/host counts
         assert inventory.get_related('groups').count == 1
         assert inventory.get_related('hosts').count == 2

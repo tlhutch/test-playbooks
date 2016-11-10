@@ -49,7 +49,6 @@ class Test_Projects(Base_Api_Test):
         Verify tower can successfully creates a manual project (scm_type='').
         This includes verifying UTF-8 local-path.
         '''
-
         # if we make it through the fixure, post worked
         # assert various project attributes are empty ('')
         for attr in ('scm_type', 'scm_url', 'scm_branch'):
@@ -92,7 +91,6 @@ class Test_Projects(Base_Api_Test):
         Verify tower can successfully convert a manual project, into a scm
         managed project.
         '''
-
         # change the scm_type to 'git'
         project_pg = project_ansible_playbooks_manual.patch(
             scm_type='git',
@@ -141,7 +139,6 @@ class Test_Projects(Base_Api_Test):
         Also assert that after subsequently updating the project, the field
         scm_delete_on_next_update is disabled.
         '''
-
         # assert scm_delete_on_update == False
         assert not project_ansible_playbooks_git.scm_delete_on_update, \
             "Unable to test scm_delete_on_next_update when scm_delete_on_update==True"
@@ -220,7 +217,6 @@ class Test_Projects(Base_Api_Test):
         repo is used because the repo is large enough that the git-clone should
         take enough time to trigger a project_update cancel.
         '''
-
         update_pg = project_ansible_git_nowait.get_related('current_update')
         cancel_pg = update_pg.get_related('cancel')
         assert cancel_pg.can_cancel, "Unable to cancel project_update (can_cancel:%s)" % cancel_pg.can_cancel
@@ -248,6 +244,20 @@ class Test_Projects(Base_Api_Test):
             "project status after cancelling project update (expected " \
             "status:canceled) - %s" % project_ansible_git_nowait
 
+    def test_update_cascade_delete(self, project_ansible_playbooks_git, api_project_updates_pg):
+        """Verify that associated project updates get cascade deleted with project
+        deletion."""
+        project_id = project_ansible_playbooks_git.id
+
+        # assert that we have a project update
+        assert api_project_updates_pg.get(project=project_id).count == 1, \
+            "Unexpected number of project updates. Expected one update."
+
+        # delete project and assert that project updates deleted
+        project_ansible_playbooks_git.delete()
+        assert api_project_updates_pg.get(project=project_id).count == 0, \
+            "Unexpected number of project updates after deleting project. Expected zero updates."
+
     def test_conflict_exception_with_running_update(self, project_ansible_git_nowait):
         """Verify that deleting a project with a running update will
         raise a 409 exception"""
@@ -260,7 +270,6 @@ class Test_Projects(Base_Api_Test):
 
     def test_delete_related_fields(self, install_enterprise_license_unlimited, project_ansible_playbooks_git):
         '''Verify that related fields on a deleted resource respond as expected'''
-
         # delete all the projects
         project_ansible_playbooks_git.delete()
 
