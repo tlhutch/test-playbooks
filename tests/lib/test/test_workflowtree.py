@@ -368,7 +368,7 @@ def test_map_simple_trees():
     tree1, tree2 = fixture_for_simple_mapping_tests()
     mapping = WorkflowTreeMapper(tree1, tree2).map()
 
-    assert mapping == [(1, 11), (2, 12), (3, 13)]
+    assert mapping == {1: 11, 2: 12, 3: 13}
 
 
 def test_map_simple_trees_differing_by_single_node():
@@ -424,5 +424,5 @@ def test_map_trees_with_similar_root_nodes():
 
     mapping = WorkflowTreeMapper(tree1, tree2).map()
 
-    assert mapping == [(1, 11), (2, 12), (3, 13), (4, 14),
-                       (5, 15), (6, 16), (7, 17), (8, 18)]
+    assert mapping == {1: 11, 2: 12, 3: 13, 4: 14,
+                       5: 15, 6: 16, 7: 17, 8: 18}
