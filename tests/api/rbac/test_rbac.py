@@ -1281,17 +1281,34 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             check_user_capabilities(inventory_script.get(), role)
             check_user_capabilities(api_inventory_scripts_pg.get(id=inventory_script.id).results.pop().get(), role)
 
-    def test_able_to_assign_inventory_script_to_different_org(self, org_admin, user_password, inventory_script, another_organization):
+    def test_able_to_assign_inventory_script_to_different_org(self, factories, user_password, inventory_script, organization,
+                                                              another_organization):
         '''
         Tests that org_admins may reassign an inventory_script to an organization for which they
         are an admin.
         '''
-        # make org_admin an admin of another_organization
-        set_roles(org_admin, another_organization, ['admin'])
+        user_pg = factories.user()
+        set_roles(user_pg, organization, ['admin'])
+        set_roles(user_pg, another_organization, ['admin'])
 
         # assert that org_admin can reassign label
-        with self.current_user(org_admin.username, user_password):
+        with self.current_user(user_pg.username, user_password):
             inventory_script.patch(organization=another_organization.id)
+
+    def test_unable_to_assign_inventory_script_to_different_org(self, factories, user_password, inventory_script, organization,
+                                                                another_organization):
+        '''
+        Tests that org_admins may not reassign an inventory_script to an organization for which they
+        are only a member.
+        '''
+        user_pg = factories.user()
+        set_roles(user_pg, organization, ['admin'])
+        set_roles(user_pg, another_organization, ['member'])
+
+        # assert that org_admin cannot reassign label
+        with self.current_user(user_pg.username, user_password):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                inventory_script.patch(organization=another_organization.id)
 
 
 @pytest.mark.api
