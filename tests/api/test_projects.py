@@ -248,7 +248,6 @@ class Test_Projects(Base_Api_Test):
         """Verify that associated project updates get cascade deleted with project
         deletion."""
         project_id = project_ansible_playbooks_git.id
-        project_ansible_playbooks_git.wait_until_completed()
 
         # assert that we have a project update
         assert api_project_updates_pg.get(project=project_id).count == 1, \
