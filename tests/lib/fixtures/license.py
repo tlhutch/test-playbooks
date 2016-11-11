@@ -15,15 +15,14 @@ def tower_license_path(request, tower_config_dir):
 
 @pytest.fixture(scope='class')
 def backup_license(request, ansible_runner, tower_license_path):
-    '''Backup and existing license files. The files will be restored upon teardown.
+    '''Backup any existing license files. The files will be restored upon teardown.
     '''
     log.debug("calling fixture backup_license")
-    ansible_runner.shell('mv {0} {0}.bak'.format(tower_license_path, removes=license_file))
-    import pdb; pdb.set_trace()
+    ansible_runner.shell('mv {0} {0}.bak'.format(tower_license_path, removes=tower_license_path))
 
     def teardown():
         log.debug("calling teardown backup_license")
-        ansible_runner.shell('mv {0}.bak {0}'.format(tower_license_path, removes=license_file + '.bak'))
+        ansible_runner.shell('mv {0}.bak {0}'.format(tower_license_path, removes=tower_license_path + '.bak'))
     request.addfinalizer(teardown)
 
 
