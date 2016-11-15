@@ -182,6 +182,13 @@ class Test_Setting(Base_Api_Test):
 
     def test_stdout_max_bytes_display(self, unified_job_with_stdout, update_setting_pg, ansible_runner):
         '''
+        Assert that all of our unified jobs include result_stdout by default. Then assert that
+        result_stdout gets truncated once 'STDOUT_MAX_BYTES_DISPLAY' gets set to zero upon
+        unified job relaunch.
+
+        Note: job stdout gets stored under /var/lib/awx/job_status as entries of the form:
+        98-814e638a-ab4a-11e6-8ea5-22000b9345d0.out. The number that starts our file name
+        (98 here) is our unified job ID.
         '''
         # check that by default that our unified jobs include stdout
         assert unified_job_with_stdout.result_stdout, \
