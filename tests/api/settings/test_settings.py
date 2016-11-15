@@ -190,7 +190,7 @@ class Test_Setting(Base_Api_Test):
         98-814e638a-ab4a-11e6-8ea5-22000b9345d0.out. The number that starts our file name
         (98 here) is our unified job ID.
         '''
-        # check that by default that our unified jobs include stdout
+        # check that by default that our unified job includes stdout
         assert unified_job_with_stdout.result_stdout, \
             "Unified job did not include result_stdout - %s." % unified_job_with_stdout
 
@@ -198,7 +198,7 @@ class Test_Setting(Base_Api_Test):
         payload = dict(STDOUT_MAX_BYTES_DISPLAY=0)
         update_setting_pg('api_settings_jobs_pg', payload)
 
-        # relaunch unified job and assert successful
+        # relaunch unified job and assert relaunched job successful
         if unified_job_with_stdout.type in ['job', 'ad_hoc_command']:
             uj = unified_job_with_stdout.relaunch().wait_until_completed()
         elif unified_job_with_stdout.type in ['project_update', 'inventory_update']:
@@ -211,7 +211,7 @@ class Test_Setting(Base_Api_Test):
             raise ValueError("Received unhandled unified job.")
         assert uj.is_successful, "Unified job unsuccessful - %s." % uj
 
-        # assert that job stdout gets truncated and instead stored on Tower server
+        # assert that job stdout gets truncated and stored on Tower server
         match = re.search('^Standard Output too large to display \(\d+ bytes\), only download supported for sizes over 0 bytes$', uj.result_stdout)
         assert match.group(0), "No matching job stdout found."
 
