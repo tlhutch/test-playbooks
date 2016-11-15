@@ -1,5 +1,6 @@
 import logging
 import sys
+import re
 import json
 import fauxfactory
 import pytest
@@ -11,6 +12,18 @@ import towerkit.utils
 
 
 log = logging.getLogger(__name__)
+
+
+@pytest.fixture(scope="function", params=['cleanup_jobs_with_status_completed',
+                                          'custom_inventory_update_with_status_completed',
+                                          'project_update_with_status_completed',
+                                          'job_with_status_completed',
+                                          'ad_hoc_with_status_completed'])
+def unified_job_with_stdout(request):
+    '''
+    Returns a completed unified job with job stdout.
+    '''
+    return request.getfuncargvalue(request.param)
 
 
 def assess_created_elements(elements, criteria, expected_count):
@@ -166,6 +179,37 @@ class Test_Setting(Base_Api_Test):
         assert result == {u'module_name': [u'"ping" is not a valid choice.']}, \
             "Unexpected response when relaunching ad hoc command whose module " \
             "has been removed from AD_HOC_COMMANDS: %s." % json.dumps(result)
+
+    def test_stdout_max_bytes_display(self, unified_job_with_stdout, update_setting_pg, ansible_runner):
+        '''
+        '''
+        # check that by default that our unified jobs include stdout
+        assert unified_job_with_stdout.result_stdout, \
+            "Unified job did not include result_stdout - %s." % unified_job_with_stdout
+
+        # update stdout max bytes flag
+        payload = dict(STDOUT_MAX_BYTES_DISPLAY=0)
+        update_setting_pg('api_settings_jobs_pg', payload)
+
+        # relaunch unified job and assert successful
+        if unified_job_with_stdout.type in ['job', 'ad_hoc_command']:
+            uj = unified_job_with_stdout.relaunch().wait_until_completed()
+        elif unified_job_with_stdout.type in ['project_update', 'inventory_update']:
+            ujt = unified_job_with_stdout.get_related('unified_job_template')
+            uj = ujt.update().wait_until_completed()
+        elif unified_job_with_stdout.type == 'system_job':
+            uj = unified_job_with_stdout.get_related('unified_job_template')
+            uj = uj.launch().wait_until_completed()
+        else:
+            raise ValueError("Received unhandled unified job.")
+        assert uj.is_successful, "Unified job unsuccessful - %s." % uj
+
+        # assert that job stdout gets truncated and instead stored on Tower server
+        match = re.search('^Standard Output too large to display \(\d+ bytes\), only download supported for sizes over 0 bytes$', uj.result_stdout)
+        assert match.group(0), "No matching job stdout found."
+
+        contacted = ansible_runner.command("find /var/lib/awx/job_status -name '{0}-*.out'".format(uj.id))
+        assert contacted.values()[0]['stdout'], "No matching job stdout entry found."
 
     @pytest.mark.skip(reason="Test flakiness detailed here: https://github.com/ansible/tower-qa/issues/882")
     def test_schedule_max_jobs(self, factories, update_setting_pg):
