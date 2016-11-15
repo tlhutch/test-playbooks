@@ -466,7 +466,7 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
     tests import using both --inventory-id and --inventory-name.  Importing
     with, and without, available licenses is also confirmed.
     '''
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_limited')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_using_bad_id(self, ansible_runner, api_inventories_pg, import_inventory):
         '''Verify that importing inventory using a bogus --inventory-id=<ID> fails'''
@@ -605,8 +605,10 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
             (first_import, second_import, third_import)
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3957")
-    def test_import_license_exceeded(self, ansible_runner, import_inventory):
+    def test_import_license_exceeded(self, api_config_pg, ansible_runner, import_inventory):
         '''Verify inventory_import fails if the number of imported hosts will exceed licensed amount'''
+        # update test license
+        api_config_pg.install_license(1000)
 
         # Upload inventory script
         dest = towerkit.tower.inventory.upload_inventory(ansible_runner, nhosts=2000)

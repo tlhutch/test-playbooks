@@ -132,20 +132,6 @@ def install_enterprise_license(api_config_pg):
 
 
 @pytest.yield_fixture(scope='class')
-def install_enterprise_license_limited(api_config_pg):
-    """Install enterprise license at the class fixture scope
-    """
-    log.debug('calling fixture install_enterprise_license_unlimited')
-    license_info = generate_license(
-        days=365,
-        instance_count=1000,
-        license_type='enterprise')
-    install_license(api_config_pg, **license_info)
-    yield
-    api_config_pg.delete()
-
-
-@pytest.yield_fixture(scope='class')
 def install_enterprise_license_unlimited(api_config_pg):
     """Install enterprise license at the class fixture scope
     """
