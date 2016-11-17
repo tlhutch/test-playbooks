@@ -15,7 +15,6 @@ import plugins.pytest_restqa  # NOQA
 import markers  # NOQA
 import fixtures  # NOQA
 import fixtures.api  # NOQA
-import fixtures.ui  # NOQA
 
 
 # Load any plugins, fixtures and markers
