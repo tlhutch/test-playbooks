@@ -6,44 +6,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from towerkit.rrule import RRule
 
-from towerkit.ui.models import (
-    ActivityStream,
-    Credentials,
-    CredentialAdd,
-    CredentialEdit,
-    Dashboard,
-    Inventories,
-    InventoryAdd,
-    InventoryEdit,
-    Jobs,
-    JobTemplates,
-    JobTemplateAdd,
-    JobTemplateEdit,
-    JobTemplateSchedules,
-    JobTemplateScheduleAdd,
-    JobTemplateScheduleEdit,
-    License,
-    Login,
-    ManageInventory,
-    ManageInventoryEditHost,
-    ManagementJobs,
-    Organizations,
-    OrganizationAdd,
-    OrganizationEdit,
-    Projects,
-    ProjectAdd,
-    ProjectEdit,
-    ProjectSchedules,
-    ProjectScheduleAdd,
-    ProjectScheduleEdit,
-    SetupMenu,
-    Teams,
-    TeamAdd,
-    TeamEdit,
-    Users,
-    UserAdd,
-    UserEdit,
-)
+from towerkit.ui.models import * # NOQA
+
 
 log = logging.getLogger(__name__)
 
