@@ -27,26 +27,24 @@ NzAeFw0xNTA1MTIxNTU2NTBaFw0yMDA1MTMxNTU2NTBaMF0xCzAJBgNVBAYTAlVT
 ```
 
 #### Step 2: Set Up Tower to talk to OneLogin
-* Now hop on to your Tower machine and open `/etc/tower/conf.d/social_auth.py` in your favorite editor.
+* Navigate to `/api/v1/settings/saml/`.
 * For `SOCIAL_AUTH_SAML_SP_ENTITY_ID` put the address of your Tower server. So for instance, `https://ec2-something.compute-1.amazonaws.com`.
 * `SOCIAL_AUTH_SAML_SP_PUBLIC_CERT` and `SOCIAL_AUTH_SAML_SP_PRIVATE_KEY` can be any certificate pair. You may use `tower.cert` and `tower.key` under `/etc/tower/`.
 * The only other thing to think about is filling out the following section with our metadata from OneLogin:
 ```
-    'onelogin': {
-        'entity_id': 'https://app.onelogin.com/saml/metadata/FIXME',
-        'url': 'https://example.onelogin.com/trust/saml2/http-post/sso/FIXME',
-        'x509cert': '''
-         FIXME
-         ''',
-        'attr_user_permanent_id': 'name_id',
-        'attr_first_name': 'User.FirstName',
-        'attr_last_name': 'User.LastName',
-        'attr_username': 'User.email',
-        'attr_email': 'User.email',
+    "SOCIAL_AUTH_SAML_ENABLED_IDPS": {
+        "onelogin": {
+            "attr_last_name": "User.LastName",
+            "attr_username": "User.email",
+            "entity_id": "https://app.onelogin.com/saml/metadata/FIXME",
+            "attr_user_permanent_id": "name_id",
+            "url": "https://ansible.onelogin.com/trust/saml2/http-post/sso/FIXME",
+            "attr_email": "User.email",
+            "x509cert": "FIXME",
+            "attr_first_name": "User.FirstName"
+        }
     },
-
 ```
 * Install an enterprise license since SAML is an enterprise-only feature.
-* Restart Tower with `ansible-tower-service restart` and you should be good to go.
 
 Written by [Christopher Wang](mailto:chrwang@redhat.com) (Github: simfarm) September 1, 2016.
