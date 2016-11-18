@@ -11,7 +11,7 @@ The following is a quickstarts guide to getting SAML and Tower working together.
   * "ACS (Consumer) URL Validator" is the trickiest part. Here we want to supply a regex that will validate the value of the "ACS (Consumer) URL" field. So for me, I had `^http:\/\/ec2-54-80-240-189.compute-1.amazonaws.com\/sso\/complete\/saml\/$`.
 * Go to the “Parameters” tab next. Click "Add parameter" and call it `username`. For its value, select “Username” from the dropdown.
 * Now we want to generate metadata (basically information that we are now going to supply Tower-side). To get this from OneLogin, select “More Actions” => “SAML Metadata”. These buttons should be in the top-right corner.
-* You should now have a big blob of XML. You will output these XML values to our `/etc/tower/conf.d/social_auth.py` file. Example XML below:
+* You should now have a big blob of XML. You will output these XML values to our `/api/v1/settings/saml/` endpoint. Example XML below:
 ```
 <?xml version="1.0"?>
 <EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://app.onelogin.com/saml/metadata/581465">
