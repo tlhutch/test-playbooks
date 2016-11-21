@@ -582,6 +582,20 @@ def api_settings_auth_pg(testsetup, api_settings_auth_url):
 
 
 #
+# /api/v1/settings/azuread-oauth2
+#
+@pytest.fixture(scope="module")
+def api_settings_azuread_url(api, api_v1_url):
+    settings_url = navigate(api, api_v1_url, 'settings')
+    return navigate_to_setting(api, settings_url, 'azuread-oauth2')
+
+
+@pytest.fixture(scope="module")
+def api_settings_azuread_pg(testsetup, api_settings_azuread_url):
+    return Setting(testsetup, base_url=api_settings_azuread_url)
+
+
+#
 # /api/v1/settings/changed
 #
 @pytest.fixture(scope="module")
