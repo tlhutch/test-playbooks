@@ -8,7 +8,7 @@
       my_inventory_file: '{{inventory_dir}}/inventory.ldap'
 
 - name: 'Install tower'
-  hosts: 'primary'
+  hosts: 'tower,primary'
   gather_facts: yes
   become: true
   become_method: sudo
@@ -27,7 +27,7 @@
       openldap_server_enable_ssl: false
 
 - name: 'Configure Tower to authenticate using LDAP'
-  hosts: 'primary'
+  hosts: 'tower,primary'
   gather_facts: no
   become: true
   become_method: sudo
