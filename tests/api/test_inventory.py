@@ -116,6 +116,14 @@ class Test_Inventory(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    def test_inventory_names(self, factories):
+        """Test that we can have inventories with the same name in different organizations."""
+        org1 = factories.organization()
+        org2 = factories.organization()
+
+        inv1 = factories.inventory(name="test-org", organization=org1)
+        inv2 = factories.inventory(name="test-org", organization=org2)
+
     def test_host_without_group(self, host_without_group, tower_version_cmp):
         '''
         Verify that /inventory/N/script includes hosts that are not a member of
