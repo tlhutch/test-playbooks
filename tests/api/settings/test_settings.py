@@ -213,8 +213,8 @@ class Test_Setting(Base_Api_Test):
         assert uj.is_successful, "Unified job unsuccessful - %s." % uj
 
         # assert that job stdout gets truncated and stored on Tower server
-        match = re.search('^Standard Output too large to display \(\d+ bytes\), only download supported for sizes over 0 bytes$', uj.result_stdout)
-        assert match.group(0), "No matching job stdout found."
+        assert re.search('^Standard Output too large to display \(\d+ bytes\), only download supported for sizes over 0 bytes$', uj.result_stdout), \
+            "No matching job stdout found."
 
         contacted = ansible_runner.command("find /var/lib/awx/job_status -name '{0}-*.out'".format(uj.id))
         assert contacted.values()[0]['stdout'], "No matching job stdout entry found."
