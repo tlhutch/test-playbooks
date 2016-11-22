@@ -922,23 +922,6 @@ class Test_Job_Template(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    def test_conflict_exception_with_running_job(self, job_template_sleep):
-        '''
-        Verify that a conflict exception is raised when deleting either the JT
-        or some of the JT's underlying resources when a job is still running.
-        '''
-        inventory_pg = job_template_sleep.get_related("inventory")
-        project_pg = job_template_sleep.get_related("project")
-
-        # launch the job_template
-        job_pg = job_template_sleep.launch().wait_until_started()
-
-        # delete target object and assert 409 raised
-        for tower_resource in [job_template_sleep, inventory_pg, project_pg]:
-            exc_info = pytest.raises(towerkit.exceptions.Conflict, tower_resource.delete)
-            result = exc_info.value[1]
-            assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'%s' % job_pg.type, u'id': job_pg.id}]}
-
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         '''
         Verify that the job->launch endpoint does not allow launching a
@@ -962,27 +945,6 @@ class Test_Job_Template(Base_Api_Test):
         # assert launch failure
         with pytest.raises(towerkit.exceptions.BadRequest):
             launch_pg.post()
-
-    def test_launch_check_job_template(self, job_template):
-        '''
-        Launch check job template and assess results.
-        '''
-        # patch job template
-        job_template.patch(job_type='check', playbook='check.yml')
-        assert job_template.job_type == 'check'
-        assert job_template.playbook == 'check.yml'
-
-        # launch JT and assess results
-        job_pg = job_template.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
-        assert job_pg.job_type == "check", "Unexpected job_type after launching check JT."
-        assert "\"--check\"" in job_pg.job_args, \
-            "Launched a check JT but '--check' not present in job_args."
-
-        # check that target task skipped
-        matching_job_events = job_pg.get_related('job_events', event='runner_on_skipped')
-        assert matching_job_events.count == 1, \
-            "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3534")
     @pytest.mark.parametrize("limit_value, expected_count", [
@@ -1101,6 +1063,62 @@ print json.dumps(inv, indent=2)
             assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
             assert job_pg.job_tags == job_template_with_random_tag.job_tags, \
                 "Value for job_tags inconsistent with job_template value."
+
+    @pytest.mark.parametrize('timeout, status, job_explanation', [
+        (0, 'successful', ''),
+        (60, 'successful', ''),
+        (1, 'failed', 'Job terminated due to timeout'),
+    ], ids=['no timeout', 'under timeout', 'over timeout'])
+    def test_launch_with_timeout(self, job_template, timeout, status, job_explanation):
+        """Tests JTs with timeouts."""
+        job_template.patch(timeout=timeout)
+
+        # launch JT and assess spawned job
+        job_pg = job_template.launch().wait_until_completed()
+        assert job_pg.status == status, \
+            "Unexpected job status. Expected '{0}' but received '{1}.'".format(status, job_pg.status)
+        assert job_pg.job_explanation == job_explanation, \
+            "Unexpected job job_explanation. Expected '{0}' but received '{1}.'".format(job_explanation, job_pg.job_explanation)
+        assert job_pg.timeout == job_template.timeout, \
+            "Job_pg has a different timeout value ({0}) than its JT ({1}).".format(job_pg.timeout, job_template.timeout)
+
+    def test_conflict_exception_with_running_job(self, job_template_sleep):
+        '''
+        Verify that a conflict exception is raised when deleting either the JT
+        or some of the JT's underlying resources when a job is still running.
+        '''
+        inventory_pg = job_template_sleep.get_related("inventory")
+        project_pg = job_template_sleep.get_related("project")
+
+        # launch the job_template
+        job_pg = job_template_sleep.launch().wait_until_started()
+
+        # delete target object and assert 409 raised
+        for tower_resource in [job_template_sleep, inventory_pg, project_pg]:
+            exc_info = pytest.raises(qe.exceptions.Conflict_Exception, tower_resource.delete)
+            result = exc_info.value[1]
+            assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'%s' % job_pg.type, u'id': job_pg.id}]}
+
+    def test_launch_check_job_template(self, job_template):
+        '''
+        Launch check job template and assess results.
+        '''
+        # patch job template
+        job_template.patch(job_type='check', playbook='check.yml')
+        assert job_template.job_type == 'check'
+        assert job_template.playbook == 'check.yml'
+
+        # launch JT and assess results
+        job_pg = job_template.launch().wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        assert job_pg.job_type == "check", "Unexpected job_type after launching check JT."
+        assert "\"--check\"" in job_pg.job_args, \
+            "Launched a check JT but '--check' not present in job_args."
+
+        # check that target task skipped
+        matching_job_events = job_pg.get_related('job_events', event='runner_on_skipped')
+        assert matching_job_events.count == 1, \
+            "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
 
 
 @pytest.mark.api

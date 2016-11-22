@@ -470,6 +470,24 @@ class Test_Inventory_Update(Base_Api_Test):
             assert inv_groups_pg.count, ('An inventory sync was launched with "replace_dash_in_groups: true", '
                                          'but desired group with sanitized tag "{0}" not found.'.format(group_name))
 
+    @pytest.mark.parametrize('timeout, status, job_explanation', [
+        (0, 'successful', ''),
+        (60, 'successful', ''),
+        (1, 'failed', 'Job terminated due to timeout'),
+    ], ids=['no timeout', 'under timeout', 'over timeout'])
+    def test_update_with_timeout(self, custom_inventory_source, timeout, status, job_explanation):
+        """Tests inventory updates with timeouts."""
+        custom_inventory_source.patch(timeout=timeout)
+
+        # launch inventory update and assess spawned update
+        update_pg = custom_inventory_source.update().wait_until_completed()
+        assert update_pg.status == status, \
+            "Unexpected inventory update status. Expected '{0}' but received '{1}.'".format(status, update_pg.status)
+        assert update_pg.job_explanation == job_explanation, \
+            "Unexpected update job_explanation. Expected '{0}' but received '{1}.'".format(job_explanation, update_pg.job_explanation)
+        assert update_pg.timeout == custom_inventory_source.timeout, \
+            "Update_pg has a different timeout value ({0}) than its inv_source ({1}).".format(update_pg.timeout, custom_inventory_source.timeout)
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
