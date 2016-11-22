@@ -117,7 +117,7 @@ class Test_Inventory(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_inventory_names(self, factories):
-        '''Test that we can have inventories with the same name in different organizations.'''
+        """Test that we can have inventories with the same name in different organizations."""
         org1 = factories.organization()
         org2 = factories.organization()
 
