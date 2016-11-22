@@ -48,7 +48,7 @@
 # define tower_db variable for potential use by roles/awx_install
 - set_fact:
     tower_db:
-        pg_database: '{{item.instance.username}}'
+        pg_database: '{{ item.item.db_name }}'
         pg_username: '{{rds_username}}'
         pg_password: '{{rds_password}}'
         pg_host: '{{item.instance.endpoint}}'

@@ -62,7 +62,7 @@ for LINE in $(env) ; do
         DELETE_ON_START|MINIMUM_VAR_SPACE)
             echo "${VARNAME,,}: ${!VARNAME}" >> ${PLAYBOOK_DIR}/vars.yml
             ;;
-        AWX*|AW_*|GALAXY*|ANSIBLE*|AWS*|EC2*|RAX*|GCE*|AZURE*|INSTANCE*)
+        AWX*|AW_*|GALAXY*|ANSIBLE*|AWS*|EC2*|RAX*|GCE*|AZURE*|INSTANCE*|CREATE_EC2*|TERMINATE_EC2*)
             echo "${VARNAME,,}: '${!VARNAME}'" >> ${PLAYBOOK_DIR}/vars.yml
             ;;
         *)

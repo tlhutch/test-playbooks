@@ -24,6 +24,15 @@ mongo_database: 'system_tracking'
 mongo_username: 'awx'
 mongo_password: 'password'
 
+# Defaults for rabbitmq
+rabbitmq_port: 5672
+rabbitmq_vhost: 'tower'
+rabbitmq_username: 'tower'
+rabbitmq_password: 'tower'
+rabbitmq_use_long_name: '{{ ha_install }}'
+rabbitmq_cookie: 'cookiemonster'
+rabbitmq_enable_manager: '{{ ha_install }}'
+
 # Optionally customize the default awx passwords
 # admin_password: fo0m4nchU
 # pg_password: 9CJCSUtePvE

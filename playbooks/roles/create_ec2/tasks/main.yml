@@ -1,6 +1,4 @@
 ---
-# Tasks to delete (optionally) and create rax instances
-
 - name: Ensure security groups exist
   ec2_group:
     aws_access_key: '{{ aws_access_key }}'
@@ -10,8 +8,9 @@
     description: '{{ item.description }}'
     region: '{{ ec2_region }}'
     rules: '{{ item.rules }}'
+    vpc_id: '{{ create_ec2_vpc_id|default(omit) }}'
   when: ec2_security_groups and ec2_images
-  with_items: '{{ ec2_security_groups }}'
+  with_items: '{{ ec2_security_groups|default([]) }}'
 
 - name: ensure keypair exists
   ec2_key:
@@ -19,9 +18,8 @@
     aws_secret_key: '{{ aws_secret_key }}'
     region: '{{ ec2_region }}'
     name: '{{ ec2_key_name }}'
-    key_material: "{{ item }}"
-  with_file: '{{ ec2_public_key }}'
-  register: keypair
+    key_material: '{{ item }}'
+  with_file: "{{ ec2_public_key|default('') }}"
   when: ec2_images
 
 - name: create/locate ec2 instance(s)
@@ -32,51 +30,91 @@
     instance_type: '{{ item.type|default(ec2_instance_type) }}'
     instance_tags:
         Name: '{{ec2_name_prefix}}-{{item.name}}'
-        ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
+        ANSIBLE_INSTALL_METHOD: '{{ ansible_install_method|default("nightly") }}'
         Test-Flag-2202: 'Replace-Dash-In-Groups'
     group: '{{ item.security_group|default(ec2_security_group) }}'
     key_name: '{{ ec2_key_name }}'
     image: '{{ item.id }}'
     exact_count: 1
+    vpc_subnet_id: '{{ create_ec2_vpc_subnet_id|default(omit) }}'
+    assign_public_ip: '{{ create_ec2_assign_public_ip|default(omit) }}'
     count_tag:
         Name: '{{ec2_name_prefix}}-{{item.name}}'
-        ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
+        ANSIBLE_INSTALL_METHOD: "{{ ansible_install_method|default('nightly') }}"
     user_data: '{{ item.user_data|default(omit) }}'
-    wait: yes
-    wait_timeout: '600'
-#    volumes:
-#        - device_type: gp2
-#          device_name: /dev/sda1
-#          volume_size: 10
-#          delete_on_termination: true
+    wait: '{{ create_ec2_wait_upon_creation|default(true) }}'
+    wait_timeout: '{{ create_ec2_wait_upon_creation_timeout|default(600) }}'
   with_items: '{{ ec2_images }}'
-  register: ec2
+  register: ec2_create_vars
+
+- name: map name to instance-id and Name tag
+  set_fact:
+    name_to_instance_id: '{{ name_to_instance_id|default({}) | combine({item.item.name: item.tagged_instances[0].id}) }}'
+    name_to_tagged_name: "{{ name_to_tagged_name|default({}) | combine({item.item.name: item.tagged_instances[0].tags['Name']}) }}"
+  with_items: '{{ ec2_create_vars.results }}'
+
+- name: assign elastic ips
+  ec2_eip:
+    aws_access_key: '{{ aws_access_key }}'
+    aws_secret_key: '{{ aws_secret_key }}'
+    ec2_region: "{{ ec2_region }}"
+    device_id: '{{ name_to_instance_id[item.name] }}'
+    public_ip: '{{ item.eip }}'
+  when: item.eip is defined
+  with_items: '{{ ec2_images }}'
+
+- name: ensure public dns name provided by aws
+  ec2_remote_facts:
+    aws_access_key: '{{ aws_access_key }}'
+    aws_secret_key: '{{ aws_secret_key }}'
+    region: '{{ ec2_region }}'
+    filters:
+      'tag:Name': '{{ name_to_tagged_name.values()|list }}'
+      instance-state-name: ['pending', 'running']
+  register: ec2_instance_vars
+  until: "{{ ec2_images|length }} == {{ ec2_instance_vars.instances|length }} and {{ ec2_instance_vars.instances|selectattr('public_dns_name', 'match', '^.+$')|list|length }} == {{ ec2_instance_vars.instances|length }}"
+  retries: 6
+  delay: 10
+
+- name: extract helpful ec2_create_vars
+  set_fact:
+    instance_id_to_public_dns: '{{ instance_id_to_public_dns|default({}) | combine({item.tagged_instances[0].id: item.tagged_instances[0].public_dns_name}) }}'
+    ec2_host_vars: "{{  ec2_host_vars|default([]) + [{'id': item.tagged_instances[0].id,
+                                                      'name': item.item.name,
+                                                      'groups': item.item.groups,
+                                                      'user': item.item.user}] }}"
+  with_items: '{{ ec2_create_vars.results }}'
+
+- name: store public dns for all created instances
+  set_fact:
+    instance_id_to_public_dns: '{{ instance_id_to_public_dns | combine({item.id: item.public_dns_name}) }}'
+  with_items: '{{ ec2_instance_vars.instances|default([]) }}'
+
+- name: debug instance_id_to_public_dns
+  debug: msg='{{ instance_id_to_public_dns }}'
 
 # Despite using `wait` on the ec2 module, instances aren't accepting ssh
 # connections immediately.  The following will ensure systems are ready for use
 # before proceeding.
 - name: wait for instances to listen on port:22
   wait_for:
-    state=started
-    host={{ item.tagged_instances[0].public_dns_name }}
-    port=22
-    timeout=600
-  with_items: '{{ (ec2|default({})).results|default([]) }}'
-  when: ec2_images and ec2 is defined
+    state: started
+    host: '{{ instance_id_to_public_dns[item.id] }}'
+    port: 22
+    timeout: '{{ create_ec2_wait_for_22_timeout|default(600) }}'
+  with_items: '{{ ec2_host_vars|default([]) }}'
 
 - name: add_host
   add_host:
-    name: '{{ item.tagged_instances[0].public_dns_name }}'
-    groups: 'cloud,ec2,{{ item.item.name }},{{item.item.groups|default("")}}'
-    ansible_ssh_user: '{{ item.item.user }}'
-    ansible_ssh_host: '{{ item.tagged_instances[0].public_dns_name }}'
+    name: '{{ instance_id_to_public_dns[item.id] }}'
+    groups: 'cloud,ec2,{{ item.name }},{{item.groups|default("")}}'
+    ansible_ssh_user: '{{ item.user }}'
+    ansible_ssh_host: '{{ instance_id_to_public_dns[item.id] }}'
     # ansible_ssh_private_key_file: '{{ ec2_keypair_private }}'
-  with_items: '{{ (ec2|default({})).results|default([]) }}'
-  when: ec2_images and ec2 is defined
+  with_items: '{{ ec2_host_vars|default([]) }}'
 
-
-# HACK: While sshd may be listening, it may not fully accept connections
-# immediately
-- pause:
+# HACK While sshd may be listening, it may not fully accept connections immediately
+- name: wait for instances to accept connections
+  pause:
     seconds: 60
-  when: ec2_images and ec2 is defined and ec2.changed
+  when: ec2_create_vars.changed
