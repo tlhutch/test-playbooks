@@ -1095,7 +1095,7 @@ print json.dumps(inv, indent=2)
 
         # delete target object and assert 409 raised
         for tower_resource in [job_template_sleep, inventory_pg, project_pg]:
-            exc_info = pytest.raises(qe.exceptions.Conflict_Exception, tower_resource.delete)
+            exc_info = pytest.raises(towerkit.exceptions.Conflict_Exception, tower_resource.delete)
             result = exc_info.value[1]
             assert result == {u'conflict': u'Resource is being used by running jobs', u'active_jobs': [{u'type': u'%s' % job_pg.type, u'id': job_pg.id}]}
 
