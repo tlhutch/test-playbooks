@@ -869,7 +869,7 @@ print json.dumps(inventory)
                 job.delete()
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3661')
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4157')
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive

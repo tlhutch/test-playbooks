@@ -306,7 +306,7 @@ class Test_Job_Template(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.BadRequest):
                 nonscan_job_template.launch(payload)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3661')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4157')
     @pytest.mark.parametrize("job_type", ["run", "scan", "check"])
     def test_launch_scan_job_template_with_job_type_in_payload(self, scan_job_template, job_type):
         '''
