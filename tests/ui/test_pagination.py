@@ -1,37 +1,16 @@
 import pytest
 
+
 TEST_PAGINATION_RESOURCE_COUNT = 110
 
-pytestmark = [
-    pytest.mark.ui,
-    pytest.mark.pagination,
-    pytest.mark.usefixtures(
-        'module_install_enterprise_license',
-        'max_window',
-    )
-]
-
-
-# -----------------------------------------------------------------------------
-# Fixtures
-# -----------------------------------------------------------------------------
 
 @pytest.fixture(scope='module')
-def pagination_data(authtoken,  module_factories):
-    synced_project = module_factories.project()
-    module_factories.user()
-    module_factories.job_template(project=synced_project)
-    for _ in xrange(TEST_PAGINATION_RESOURCE_COUNT - 1):
-        module_factories.job_template(project=synced_project)
-        # handle projects separately without scm updating
-        module_factories.project(wait=False)
-        # handle users
-        module_factories.user()
+def pagination_data(v1):
+    # This fixture needs to populate tower with enough data to sufficiently
+    # exercise ui pagination on all pages. The method used should be as fast
+    # as possible.
+    return NotImplemented
 
-
-# -----------------------------------------------------------------------------
-# Assertion Helpers and Utilities
-# -----------------------------------------------------------------------------
 
 def check_pagination(pagination):
     pagination.reset()
@@ -69,33 +48,39 @@ def check_pagination(pagination):
         assert pagination.total_pages == total_pages
 
 
-# -----------------------------------------------------------------------------
-# Tests
-# -----------------------------------------------------------------------------
-
-def test_pagination_inventories(pagination_data, ui_inventories):
-    check_pagination(ui_inventories.list_pagination)
+skip_reason = 'Need to implement data fixtures and redo pagination models in response to 3.1 changes'
 
 
-def test_pagination_job_templates(pagination_data, ui_job_templates):
-    check_pagination(ui_job_templates.list_pagination)
+@pytest.mark.skip(reason=skip_reason)
+def test_pagination_inventories(ui, pagination_data):
+    pass
 
 
-def test_pagination_projects(pagination_data, ui_projects):
-    check_pagination(ui_projects.list_pagination)
+@pytest.mark.skip(reason=skip_reason)
+def test_pagination_job_templates(ui, pagination_data):
+    pass
 
 
-def test_pagination_organizations(pagination_data, ui_organizations):
-    check_pagination(ui_organizations.list_pagination)
+@pytest.mark.skip(reason=skip_reason)
+def test_pagination_projects(ui, pagination_data):
+    pass
 
 
-def test_pagination_users(pagination_data, ui_users):
-    check_pagination(ui_users.list_pagination)
+@pytest.mark.skip(reason=skip_reason)
+def test_pagination_organizations(ui, pagination_data):
+    pass
 
 
-def test_pagination_credentials(pagination_data, ui_credentials):
-    check_pagination(ui_credentials.list_pagination)
+@pytest.mark.skip(reason=skip_reason)
+def test_pagination_users(ui, pagination_data):
+    pass
 
 
-def test_pagination_jobs(pagination_data, ui_jobs):
-    check_pagination(ui_jobs.list_pagination)
+@pytest.mark.skip(reason=skip_reason)
+def test_pagination_credentials(ui, pagination_data):
+    pass
+
+
+@pytest.mark.skip(reason=skip_reason)
+def test_pagination_jobs(ui, pagination_data):
+    pass

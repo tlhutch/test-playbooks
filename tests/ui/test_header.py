@@ -2,52 +2,43 @@ import pytest
 from selenium.common.exceptions import TimeoutException
 
 
-pytestmark = [
-    pytest.mark.ui,
-    pytest.mark.nondestructive,
-    pytest.mark.usefixtures(
-        'authtoken',
-        'install_enterprise_license',
-        'supported_window_sizes',
-    )
-]
-
-
-def test_header_shows_correct_username(ui_user_credentials, ui_dashboard, factories):
+@pytest.mark.usefixtures('supported_window_sizes')
+def test_header_shows_correct_username(v1, ui, rando):
     """Verify correctly displayed username on header
     """
+    dashboard = ui.dashboard
     msg = 'Unable to verify correctly displayed username on header'
 
-    expected = ui_user_credentials['username']
-    actual = ui_dashboard.header.username
+    expected = v1.me.get().results.pop().username
+    actual = dashboard.header.username
 
     assert expected.lower() == actual.lower(), msg
-
-    anon_user = factories.user()
-
-    with ui_dashboard.current_user(anon_user.username):
-        expected = anon_user.username
-        actual = ui_dashboard.header.username
+    with dashboard.current_user(rando.username, refresh=False):
+        expected = rando.username
+        actual = dashboard.header.username
         assert expected.lower() == actual.lower(), msg
 
 
-def test_header_click_through(ui_dashboard):
+@pytest.mark.usefixtures('supported_window_sizes')
+def test_header_click_through(ui):
     """Verify header menu link functionality
     """
+    dashboard = ui.dashboard
+
     link_names = [
         'inventories',
         'jobs',
-        'job_templates',
+        'templates',
         'portal',
         'projects',
         'setup',
         'user',
     ]
     for name in link_names:
-        getattr(ui_dashboard.header, name).click()
+        getattr(dashboard.header, name).click()
         try:
-            ui_dashboard.wait.until(lambda _: name in ui_dashboard.driver.current_url)
+            dashboard.wait.until(lambda _: name in dashboard.driver.current_url)
         except TimeoutException:
             pytest.fail('Unexpected destination url content')
-        ui_dashboard.header.logo.click()
-        ui_dashboard.wait_until_loaded()
+        dashboard.header.logo.click()
+        dashboard.wait_until_loaded()

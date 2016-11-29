@@ -4,31 +4,17 @@ import fauxfactory
 import pytest
 
 
-pytestmark = [
-    pytest.mark.ui,
-    pytest.mark.nondestructive,
-    pytest.mark.usefixtures(
-        'authtoken',
-        'install_enterprise_license',
-        'max_window',
-    )
-]
-
-
 @pytest.mark.usefixtures('supported_window_sizes')
-def test_component_visibility_(ui_activity_stream):
+def test_component_visibility(ui):
     """Verify basic component visibility, page layout, and responsiveness
     """
-    assert ui_activity_stream.current_breadcrumb == 'activity stream', (
-        'unexpected breadcrumb displayed')
-    assert ui_activity_stream.navigation_dropdown.is_displayed(), (
-        'Navigation dropdown region unexpectedly not displayed')
-    assert ui_activity_stream.list_panel.surrounds(
-        ui_activity_stream.navigation_dropdown), (
-            'Navigation dropdown not completely surrounded by list panel')
+    activity = ui.activity_stream.get()
+    assert activity.current_breadcrumb == 'activity stream'
+    assert activity.navigation_dropdown.is_displayed()
+    assert activity.list_panel.surrounds(activity.navigation_dropdown)
 
 
-def test_navigation_dropdown(factories, ui_activity_stream):
+def test_navigation_dropdown(ui):
     """Verify expected functionality of the navigation dropdown widget
     """
     expected_nav_options = [
@@ -45,84 +31,85 @@ def test_navigation_dropdown(factories, ui_activity_stream):
         'Teams',
         'Users',
     ]
-    dropdown = ui_activity_stream.navigation_dropdown
-    assert dropdown.value == 'All Activity'
+    activity = ui.activity_stream.get()
+    assert activity.navigation_dropdown.value == 'All Activity', (
+        'Unexpected default nav option')
     # check nav options
-    options = dropdown.options
+    options = activity.navigation_dropdown.options
     assert options == expected_nav_options
     for opt in options:
-        dropdown.value = opt
-        selected = dropdown.value
+        activity.navigation_dropdown.value = opt
+        selected = activity.navigation_dropdown.value
         assert selected == opt
-        assert selected.lower() in ui_activity_stream.list_subtitle.text.lower()
+        assert activity.subtitle_text_eventually_contains(selected)
     # check that a non-default option remains selected after refreshing
     nondefault = 'Organizations'
-    dropdown.value = nondefault
-    assert dropdown.value == nondefault
-    ui_activity_stream.driver.refresh()
-    ui_activity_stream.wait_until_loaded()
-    assert ui_activity_stream.navigation_dropdown.value == nondefault
+    activity.navigation_dropdown.value = nondefault
+    assert activity.navigation_dropdown.value == nondefault
+    ui.activity_stream.driver.refresh()
+    ui.activity_stream.wait_until_loaded()
+    assert activity.navigation_dropdown.value == nondefault
 
 
-def test_navigation_with_edit_query_params(ui_inventory_edit):
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4185')
+def test_navigation_with_edit_query_params(ui, inventory):
     """Verify expected activity stream functionality with url query parameters
     generated when linking from a crud edit page
     """
-    expected_subtitle = ui_inventory_edit.details.title.text.lower()
-    expected_url_content = 'target=inventory&id={0}'.format(
-        ui_inventory_edit.kw.get('id'))
-    activity_stream = ui_inventory_edit.open_activity_stream()
+    inventory_edit = ui.inventory_edit.get(id=inventory.id)
+    expected_subtitle = inventory_edit.details.title.text.lower()
+
+    activity_stream = inventory_edit.open_activity_stream()
+
     assert activity_stream.navigation_dropdown.value == 'Inventories', (
         'Unexpected default value displayed for navigation dropdown')
-    assert activity_stream.list_subtitle.is_displayed(), (
-        'Activity stream subtitle unexpectedly not displayed')
     assert expected_subtitle in activity_stream.list_subtitle.text.lower(), (
         'Unexpected activity stream subtitle text')
-    assert expected_url_content in activity_stream.driver.current_url, (
-        'Unexpected activity stream url query parameters after page load')
+    assert 'target=inventory' in activity_stream.driver.current_url, (
+        'Unexpected activity stream url content after page load')
+
     activity_stream.navigation_dropdown.value = 'Job Templates'
     assert 'target=job_template' in activity_stream.driver.current_url, (
-        'Unexpected activity stream url query parameters after nav select')
+        'Unexpected activity stream url query content after nav select')
 
 
-def test_activity_stream_after_inventory_update(ui_inventory_edit):
+def test_activity_stream_after_inventory_update(ui, inventory):
     """Verify displayed event details, routing, and page functionality when
     updating a crud page resource and clicking over to the activity stream.
     """
-    new_inventory_name = fauxfactory.gen_alphanumeric()
+    inventory_edit = ui.inventory_edit.get(id=inventory.id)
+    new_name = fauxfactory.gen_alphanumeric()
     # change the name of the inventory
-    ui_inventory_edit.details.name.value = new_inventory_name
-    ui_inventory_edit.details.save.click()
+    inventory_edit.details.name.value = new_name
+    inventory_edit.details.save.click()
+    inventory_edit.table.wait_for_table_to_load()
     # navigate to the activity stream page
-    activity_stream = ui_inventory_edit.open_activity_stream()
+    inventory_edit.details.scroll_save_into_view()
+    activity_stream = inventory_edit.open_activity_stream()
     # verify we have at least one event in our activity stream
-    assert len(activity_stream.list_table.rows) > 0, (
+    assert len(activity_stream.table.rows) > 0, (
         'Activity stream table unexpectedly not populated')
     # sort the table by event time in ascending order
-    activity_stream.list_table.header.set_sort_status(('time', 'ascending'))
-    # get the top row
-    top_row = activity_stream.list_table.rows[0]
+    activity_stream.table.header.set_sort_status(('time', 'ascending'))
     # verify the top row mentions an inventory update and the inventory name
-    expected_text = ('inventory', 'update', new_inventory_name)
-    for text in expected_text:
-        assert text.lower() in top_row.action.text.lower(), (
-            '{0} not found in top row action column'.format(text))
+    action_text = activity_stream.table.rows[0].action.text
+    assert 'inventory' in action_text
+    assert 'update' in action_text
+    assert new_name in action_text
 
 
-def test_event_details_modal(factories, ui_activity_stream):
+def test_event_details_modal(ui, inventory):
     """Verify component visibility, layout, and responsiveness of the activity
     stream event details modal
     """
-    # make some test data
-    inventory = factories.inventory()
     # update the inventory
     inventory.patch(name=fauxfactory.gen_alphanumeric(length=100))
-    # refresh the page and sort the table by event time in ascending order
-    ui_activity_stream.driver.refresh()
-    ui_activity_stream.wait_until_loaded()
-    ui_activity_stream.list_table.header.set_sort_status(('time', 'ascending'))
+    # open the activity stream and sort the table by event time in ascending order
+    activity_stream = ui.activity_stream.get()
+    activity_stream.navigation_dropdown.value = 'Inventories'
+    activity_stream.table.header.set_sort_status(('time', 'ascending'))
     # click open the details modal for the top row
-    event_details = ui_activity_stream.list_table.rows[0].open_details()
+    event_details = activity_stream.table.rows[0].open_details()
     assert event_details.close.is_enabled(), (
         'Event details close button unexpectedly not clickable')
     assert event_details.ok.is_enabled(), (

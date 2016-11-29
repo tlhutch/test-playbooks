@@ -1,104 +1,103 @@
-import time
-
 import fauxfactory
 import pytest
-from selenium.common.exceptions import TimeoutException
 
 from towerkit.exceptions import NotFound
 
 
-pytestmark = [
-    pytest.mark.ui,
-    pytest.mark.nondestructive,
-    pytest.mark.usefixtures(
-        'authtoken',
-        'install_enterprise_license',
-        'max_window',
-    )
-]
+@pytest.fixture(scope='module')
+def org_cred(api_v1, session_org):
+    cred = api_v1.credentials.create(user=None, organization=session_org, team=None)
+    yield cred
+    cred.silent_cleanup()
 
 
-def test_permissions_tab_is_disabled_for_private_credentials(ui_private_credential):
+@pytest.fixture(scope='module')
+def private_cred(api_v1, session_user):
+    cred = api_v1.credentials.create(user=session_user, organization=None, team=None)
+    yield cred
+    cred.silent_cleanup()
+
+
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4184')
+def test_permissions_tab_is_disabled_for_private_credentials(ui, private_cred):
+    edit = ui.credential_edit.get(id=private_cred.id)
     # check that the tab is disabled initially
-    assert not ui_private_credential.permissions_tab.is_enabled()
+    assert not edit.permissions_tab.is_enabled()
     # check that clicking the tab does not enable it
-    ui_private_credential.permissions_tab.click()
-    assert not ui_private_credential.permissions_tab.is_enabled()
+    edit.permissions_tab.click()
+    assert not edit.permissions_tab.is_enabled()
+    assert 'permission' not in edit.driver.current_url
 
 
-def test_edit_credential(api_credentials_pg, ui_credential_edit):
+def test_edit_credential(ui, org_cred):
     """Basic end-to-end functional test for updating an existing credential
     """
+    edit = ui.credential_edit.get(id=org_cred.id)
     # make some data
     name = fauxfactory.gen_alphanumeric()
     description = fauxfactory.gen_alphanumeric()
     # update the credential
-    ui_credential_edit.details.name.value = name
-    ui_credential_edit.details.description.value = description
+    edit.details.name.value = name
+    edit.details.description.value = description
     # save the credential
-    time.sleep(5)
-    ui_credential_edit.details.save.click()
-    ui_credential_edit.list_table.wait_for_table_to_load()
-    # get credential data api side
-    api_credential = api_credentials_pg.get(id=ui_credential_edit.kw['id']).results[0]
+    edit.details.scroll_save_into_view().click()
+    edit.table.wait_for_table_to_load()
     # verify the update took place
-    assert api_credential.name == name, (
+    assert edit.passively_wait_until(lambda: org_cred.get().name == name), (
         'Unable to verify successful update of credential')
-    assert api_credential.description == description, (
+    assert org_cred.description == description, (
         'Unable to verify successful update of credential')
     # query the table for the edited credential
-    results = ui_credential_edit.list_table.query(lambda r: r.name.text == name)
+    edit.details.scroll_save_into_view()
+    edit.search(name)
+    results = edit.table.query(lambda r: r.name.text == name)
     # check that we find a row showing the updated credential name
     assert len(results) == 1, 'Unable to find row of updated credential'
 
 
-def test_delete_credential(factories, ui_credentials):
-    """Basic end-to-end verification for deleting a credential
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3816')
+def test_delete_credential(v1, ui, org_cred):
+    """End-to-end functional test for deleting a credential
     """
-    credential = factories.credential()
+    cred_name = org_cred.name
+    cred_page = ui.credentials.get()
     # add a search filter for the credential
-    ui_credentials.driver.refresh()
-    ui_credentials.list_table.wait_for_table_to_load()
-    ui_credentials.list_search.add_filter('name', credential.name)
+    cred_page.search(cred_name)
     # query the list for the newly created credential
-    results = ui_credentials.list_table.query(lambda r: r.name.text == credential.name)
+    results = cred_page.table.query(lambda r: r.name.text == cred_name)
     # delete the credential
-    results.pop().delete.click()
-    # confirm deletion
-    ui_credentials.dialog.action.click()
-    ui_credentials.list_table.wait_for_table_to_load()
+    with cred_page.handle_dialog(lambda d: d.action.click()):
+        results.pop().delete.click()
+    # verify deletion
+    cred_page.table.wait_for_table_to_load()
     # verify deletion api-side
     with pytest.raises(NotFound):
-        credential.get()
+        org_cred.get()
     # verify that the deleted resource is no longer displayed
-    results = ui_credentials.list_table.query(lambda r: r.name.text == credential.name)
+    cred_page.search.clear()
+    cred_page.search(cred_name)
+    cred_page.table.wait_for_table_to_load()
+    results = cred_page.table.query(lambda r: r.name.text == cred_name)
     assert not results
 
 
-def test_create_credential(factories, api_credentials_pg, ui_credential_add):
-    """Basic end-to-end verification for creating a credential
+def test_create_credential(v1, ui, session_org):
+    """End-to-end functional test for creating a credential
     """
-    ui_credential_add.list_table.wait_for_table_to_load()
+    add = ui.credential_add.get()
+    add.table.wait_for_table_to_load()
     # make some data
     name = fauxfactory.gen_alphanumeric()
     # populate the form and save
-    machine_details = ui_credential_add.details.machine
+    machine_details = add.details.machine
     machine_details.name.value = name
-    time.sleep(5)
     machine_details.scroll_save_into_view().click()
     # verify the update took place api-side
-    try:
-        ui_credential_add.wait.until(lambda _: api_credentials_pg.get(name=name).results)
-    except TimeoutException:
-        pytest.fail('unable to verify creation of credential')
-    api_results = api_credentials_pg.get(name=name).results
-    # check for expected url content
-    expected_url_content = '/#/credentials/{0}'.format(api_results[0].id)
-    assert expected_url_content in ui_credential_add.driver.current_url
+    add.passively_wait_until(lambda: v1.credentials.get(name=name).results)
+    api_results = v1.credentials.get(name=name).results
+    assert len(api_results) == 1, 'unable to verify creation of credential'
     # add a search filter for the credential
-    machine_details.cancel.click()
-    ui_credential_add.driver.refresh()
-    ui_credential_add.wait_until_loaded().list_search.add_filter('name', name)
+    add.search(name)
     # check that we find a row showing the updated credential name
-    results = ui_credential_add.list_table.query(lambda r: r.name.text == name)
+    results = add.table.query(lambda r: r.name.text == name)
     assert len(results) == 1, 'unable to verify creation of credential'
