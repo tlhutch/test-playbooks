@@ -33,7 +33,7 @@ class TestChannels(Base_Api_Test):
             for message in messages:
                 filtered_messages.append({k: message[k] for k in set(message.keys()) - not_of_interest})
 
-            base_status_change = dict(group_name='jobs', unified_job_id=ahc.id, workflow_job_id=None)
+            base_status_change = dict(group_name='jobs', unified_job_id=ahc.id)
             statuses = ('pending', 'waiting', 'running', 'successful')
             expected_status_changes = [dict(status=status, **base_status_change) for status in statuses]
             for expected in expected_status_changes:
@@ -99,7 +99,7 @@ class TestChannels(Base_Api_Test):
             for message in messages:
                 filtered_messages.append({k: message[k] for k in set(message.keys()) - not_of_interest})
 
-            base_status_change = dict(group_name='jobs', unified_job_id=job.id, workflow_job_id=None)
+            base_status_change = dict(group_name='jobs', unified_job_id=job.id)
             statuses = ('pending', 'waiting', 'running', 'successful')
             expected_status_changes = [dict(status=status, **base_status_change) for status in statuses]
             for expected in expected_status_changes:
