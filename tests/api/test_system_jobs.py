@@ -142,11 +142,13 @@ class Test_System_Jobs(Base_Api_Test):
         '''
         Run a scan job, launch a cleanup_facts job, and assert that facts get deleted.
         '''
-        # navigate to fact_versions
-        host_pg = files_scan_job_with_status_completed.get_related('inventory').get_related('hosts').results[0]
-        fact_versions_pg = host_pg.get_related('fact_versions')
+        # assert scan job successful
+        assert files_scan_job_with_status_completed.is_successful, \
+            "Job unsuccessful - %s." % files_scan_job_with_status_completed
 
         # assert facts in fact_versions
+        host_pg = files_scan_job_with_status_completed.get_related('inventory').get_related('hosts').results[0]
+        fact_versions_pg = host_pg.get_related('fact_versions')
         assert fact_versions_pg.count > 0, "Even though scan job was run, facts do not exist (got %s)." % fact_versions_pg.count
 
         # launch job and assert job successful
