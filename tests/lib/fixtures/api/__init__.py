@@ -9,7 +9,8 @@ from towerkit.api.pages import (Activity_Stream_Page, Ad_Hoc_Commands_Page, ApiV
                                 Notification_Templates_Page, Notifications_Page, Organizations_Page, Ping_Page,
                                 Projects_Page, Roles_Page, Schedules_Page, System_Jobs_Page,
                                 System_Job_Templates_Page, Teams_Page, Unified_Job_Templates_Page, Users_Page,
-                                Setting, Settings, ProjectUpdates, InventoryUpdates)
+                                Setting, Settings, ProjectUpdates, InventoryUpdates, WorkflowJobNodes, WorkflowJobs,
+                                WorkflowJobTemplateNodes, WorkflowJobTemplates)
 from towerkit.api.pages.authtoken import AuthToken_Page
 
 
@@ -551,6 +552,58 @@ def api_settings_url(api, api_v1_url):
 @pytest.fixture(scope="module")
 def api_settings_pg(testsetup, api_settings_url):
     return Settings(testsetup, base_url=api_settings_url)
+
+
+#
+# /api/v1/workflow_job_templates
+#
+@pytest.fixture(scope="module")
+def api_workflow_job_templates_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'workflow_job_templates')
+
+
+@pytest.fixture(scope="module")
+def api_workflow_job_templates_pg(testsetup, api_workflow_job_templates_url):
+    return WorkflowJobTemplates(testsetup, base_url=api_workflow_job_templates_url)
+
+
+#
+# /api/v1/workflow_job_template_nodes
+#
+@pytest.fixture(scope="module")
+def api_workflow_job_template_nodes_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'workflow_job_template_nodes')
+
+
+@pytest.fixture(scope="module")
+def api_workflow_job_template_nodes_pg(testsetup, api_workflow_job_template_nodes_url):
+    return WorkflowJobTemplateNodes(testsetup, base_url=api_workflow_job_template_nodes_url)
+
+
+#
+# /api/v1/workflow_jobs
+#
+@pytest.fixture(scope="module")
+def api_workflow_jobs_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'workflow_jobs')
+
+
+@pytest.fixture(scope="module")
+def api_workflow_jobs_pg(testsetup, api_workflow_jobs_url):
+    return WorkflowJobs(testsetup, base_url=api_workflow_jobs_url)
+
+
+#
+# /api/v1/workflow_job_nodes
+#
+@pytest.fixture(scope="module")
+def api_workflow_job_nodes_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'workflow_job_nodes')
+
+
+@pytest.fixture(scope="module")
+def api_workflow_job_nodes_pg(testsetup, api_workflow_job_nodes_url):
+    return WorkflowJobNodes(testsetup, base_url=api_workflow_job_nodes_url)
 
 
 #

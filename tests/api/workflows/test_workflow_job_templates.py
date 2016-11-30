@@ -1,13 +1,15 @@
 import pytest
 import logging
 
+from towerkit.exceptions import BadRequest, NotFound
+
 from tests.api import Base_Api_Test
-from towerkit.exceptions import BadRequest
+from tests.lib.helpers.workflow_utils import WorkflowTree
 
 log = logging.getLogger(__name__)
 
 # Variations in structure
-# [ ] Single node
+# [x] Single node
 # [x] Multiple root nodes
 # [x] Node Depth > 1
 # [x] (-) Circular graph
@@ -30,11 +32,10 @@ log = logging.getLogger(__name__)
 # [ ]
 
 # Deleting
-# [ ] Delete workflow with single node
-# [ ] Delete intermediate node (with node(s) before/after)
-# [ ] Delete leaf node
-# [ ] Deleting root node when depth > 1
-# [ ]
+# [x] Delete workflow with single node
+# [x] Delete intermediate node (with node(s) before/after)
+# [x] Delete leaf node
+# [x] Deleting root node when depth > 1
 
 
 @pytest.mark.api
@@ -124,3 +125,166 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
             triggered_nodes = n1.get_related(condition + '_nodes').results
             assert not len(triggered_nodes), \
                 'Found nodes listed, expected none. (Creates triggers that should be mutually exclusive):\n{0}'.format(triggered_nodes)
+
+    # Deleting workflow job templates
+
+    def test_delete_workflow_job_template_with_single_node(self, factories):
+        '''When a workflow job template with a single node is deleted,
+           expect node to be deleted. Job template referenced by node should
+           *not* be deleted.'''
+        # Build workflow
+        wfjt = factories.workflow_job_template()
+        node = factories.workflow_job_template_node(workflow_job_template=wfjt)
+        jt = node.related.unified_job_template.get()  # Reuse job template from first node
+
+        # Delete WFJT
+        wfjt.delete()
+        with pytest.raises(NotFound, message='Expected WFJT to be deleted'):
+            wfjt.get()
+        with pytest.raises(NotFound, message='Expected WFJT node to be deleted'):
+            node.get()
+        try:
+            jt.get()
+        except NotFound:
+            pytest.fail('Job template should still exist after deleting WFJT')
+
+    def test_delete_workflow_job_template_with_complex_tree(self, factories):
+        '''When a workflow job template with a a complex tree is deleted,
+           expect all nodes in tree to be deleted. Job template referenced
+           by nodes should *not* be deleted.
+
+           Workflow:
+            n1
+             - (always) n2
+            n3
+             - (success) n4
+             - (failure) n5
+               - (always) n6
+                 - (success) n7
+           '''
+        # Build workflow
+        wfjt = factories.workflow_job_template()
+        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
+        jt = n1.related.unified_job_template.get()  # Reuse job template from first node
+        n2 = n1.related.always_nodes.post(dict(unified_job_template=jt.id))
+        n3 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        n4 = n3.related.success_nodes.post(dict(unified_job_template=jt.id))
+        n5 = n3.related.failure_nodes.post(dict(unified_job_template=jt.id))
+        n6 = n5.related.always_nodes.post(dict(unified_job_template=jt.id))
+        n7 = n6.related.success_nodes.post(dict(unified_job_template=jt.id))
+        nodes = [n1, n2, n3, n4, n5, n6, n7]
+
+        # Delete WFJT
+        wfjt.delete()
+        with pytest.raises(NotFound, message='Expected WFJT to be deleted:\n{}'.format(wfjt)):
+            wfjt.get()
+        for node in nodes:
+            with pytest.raises(NotFound, message='Expected WFJT node to be deleted:\n{}'.format(node)):
+                node.get()
+        try:
+            jt.get()
+        except NotFound:
+            pytest.fail('Job template should still exist after deleting WFJT')
+
+    # Deleting WFJT nodes
+
+    def test_delete_root_node(self, factories):
+        '''Confirm that when a noot node is deleted, the subsequent nodes become root nodes.
+
+           Workflow:
+            n1                  <----- Delete
+             - (failure) n2         <--- Should become root node
+               - (failure) n3
+                 - (always) n4
+               - (success) n5
+                 - (always) n6
+             - (success) n7        <--- Should become root node
+            n8
+        '''
+        # Build workflow
+        wfjt = factories.workflow_job_template()
+        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
+        jt = n1.related.unified_job_template.get()  # Reuse job template from first node
+        n2 = n1.related.failure_nodes.post(dict(unified_job_template=jt.id))
+        n3 = n2.related.failure_nodes.post(dict(unified_job_template=jt.id))
+        n4 = n3.related.always_nodes.post(dict(unified_job_template=jt.id))
+        n5 = n2.related.success_nodes.post(dict(unified_job_template=jt.id))
+        n6 = n5.related.always_nodes.post(dict(unified_job_template=jt.id))
+        n7 = n1.related.success_nodes.post(dict(unified_job_template=jt.id))
+        n8 = factories.workflow_job_template_node(workflow_job_template=wfjt)
+
+        # Delete node
+        n1.delete()
+        with pytest.raises(NotFound, message='Expected WFJT node to be deleted:\n{}'.format(n2)):
+            n1.get()
+
+        # Get tree for workflow
+        tree = WorkflowTree(workflow=wfjt)
+
+        # Build expected tree
+        expected_tree = WorkflowTree()
+        expected_tree.add_nodes(*[node.id for node in [n2, n3, n4, n5, n6, n7, n8]])
+        expected_tree.add_edge(n2.id, n3.id, 'failure')
+        expected_tree.add_edge(n3.id, n4.id, 'always')
+        expected_tree.add_edge(n2.id, n5.id, 'success')
+        expected_tree.add_edge(n5.id, n6.id, 'always')
+
+        assert tree == expected_tree, 'Expected tree:\n\n{0}\n\nBut found:\n\n{1}'.format(tree, expected_tree)
+
+    def test_delete_intermediate_node(self, factories):
+        '''Confirm that when an intermediate leaf node is deleted, the subsequent node becomes a root node.
+
+           Workflow:
+            n1
+             - (always) n2      <----- Delete
+               - (always) n3      <--- Should become root node
+                 - (always) n4
+        '''
+        # Build workflow
+        wfjt = factories.workflow_job_template()
+        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
+        jt = n1.related.unified_job_template.get()  # Reuse job template from first node
+        n2 = n1.related.always_nodes.post(dict(unified_job_template=jt.id))
+        n3 = n2.related.always_nodes.post(dict(unified_job_template=jt.id))
+        n4 = n3.related.always_nodes.post(dict(unified_job_template=jt.id))
+
+        # Delete node
+        n2.delete()
+        with pytest.raises(NotFound, message='Expected WFJT node to be deleted:\n{}'.format(n2)):
+            n2.get()
+
+        # Get tree for workflow
+        tree = WorkflowTree(workflow=wfjt)
+
+        # Build expected tree
+        expected_tree = WorkflowTree()
+        expected_tree.add_nodes(n1.id, n4.id)
+        expected_tree.add_node(n3.id, always_nodes=[n4.id])
+
+        assert tree == expected_tree, 'Expected tree:\n\n{0}\n\nBut found:\n\n{1}'.format(tree, expected_tree)
+
+    def test_delete_leaf_node(self, factories):
+        '''Confirm that when a leaf node is deleted, the rest of the tree is not affected
+
+           Workflow:
+            n1
+             - (always) n2
+           '''
+        # Build workflow
+        wfjt = factories.workflow_job_template()
+        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
+        jt = n1.related.unified_job_template.get()  # Reuse job template from first node
+        n2 = n1.related.always_nodes.post(dict(unified_job_template=jt.id))
+
+        # Delete node
+        n2.delete()
+        with pytest.raises(NotFound, message='Expected WFJT node to be deleted:\n{}'.format(n2)):
+            n2.get()
+
+        # Confirm intermediate node updated
+        try:
+            n1 = n1.get()
+        except NotFound:
+            pytest.fail('Intermediate node should still exist after deleting leaf node')
+        n1_always_nodes = n1.get_related('always_nodes').results
+        assert len(n1_always_nodes) == 0, 'Intermediate node should no longer point to leaf node:\n{0}'.format(n1_always_nodes)
