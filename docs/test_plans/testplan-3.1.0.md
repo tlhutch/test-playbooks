@@ -11,8 +11,34 @@
 ### RBAC Copy/Edit Rework (Chris)
 [Feature](https://docs.google.com/document/d/19qwq-6nAMAZcYonQjKERgVhK_dXJ3oLDNTmx5_rNZHU/edit)
 
-1. [x] Integration for all new user_capabilities endpoints
-2. [ ] Smokescreen testing for team permissions
+1. [x] Tests for all main user_capabilities endpoints.
+1. [x] Tests roles and access_list user_capabilities endpoints for "unattach" (covered in unittests).
+1. [ ] Smokescreen testing of user_capabilities with team permissions.
+
+### Timeouts (Chris)
+[Feature](https://github.com/ansible/ansible-tower/issues/2363)
+
+1. [x] Tests for timeouts with project updates, inventory updates, and jobs.
+1. [x] Tests for universal /api/v1/settings/jobs/ timeout flags.
+1. [x] Test that local timeout values override global timeout values.
+
+### Configure Tower in Tower (Chris)
+[Feature](https://drive.google.com/open?id=1Oc84TUnV2eh2Cy29vVfUfdJmV_qyg7NnTAEhuqoYdiQ)
+
+1. [ ] Test basic functionality of all /api/v1/settings/ endpoints.
+1. [ ] Test that that enterprise_auth enforced.
+1. [ ] Test that DELETE resets an endpoint.
+1. [ ] Test /api/v1/settings/ RBAC.
+1. [ ] Test that settings get migrated upon upgrade.
+
+### Tower Module (Chris)
+[Feature](https://docs.google.com/document/d/1OzgMmV3kM9CDnp1bymSc3gVIMndTZ2v2hKTqk6q4r9Q/edit#heading=h.9fzgd7wtce8c)
+
+1. [ ] Test that modules posts correct payloads to Tower upon create request.
+1. [ ] Test editing existing Tower resources.
+1. [ ] Test that Tower resources deleted upon delete request.
+1. [ ] Test non-standard config.
+1. [ ] Test that modules are idempotent.
 
 ## Regression
 1. [ ] UI regression completed
