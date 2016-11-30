@@ -124,20 +124,6 @@ class Test_Projects(Base_Api_Test):
             assert result['stat']['exists'], "The expected project directory was not found (%s)." % \
                 expected_project_path
 
-    @pytest.mark.github('https://github.com/ansible/galaxy-issues/issues/191')
-    def test_update_with_galaxy_requirements(self, ansible_runner, project_with_galaxy_requirements, api_config_pg):
-        '''Verify that project requirements are downloaded when specified in a requirements file.'''
-        last_update_pg = project_with_galaxy_requirements.wait_until_completed().get_related('last_update')
-        assert last_update_pg.is_successful, "Project update unsuccessful - %s" % last_update_pg
-
-        # assert that expected galaxy requirements were downloaded
-        expected_role_path = os.path.join(api_config_pg.project_base_dir,
-                                          last_update_pg.local_path, "roles/yatesr.timezone")
-        contacted = ansible_runner.stat(path=expected_role_path)
-        for result in contacted.values():
-            assert result['stat']['exists'], "The expected galaxy role requirement was not found (%s)." % \
-                expected_role_path
-
     @pytest.mark.parametrize('timeout, status, job_explanation', [
         (0, 'successful', ''),
         (60, 'successful', ''),
