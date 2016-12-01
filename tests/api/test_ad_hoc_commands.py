@@ -535,8 +535,6 @@ print json.dumps(inv, indent=2)
         '''
         Tests that command relaunches work when supplied with the right passwords.
         '''
-        relaunch_pg = ad_hoc_command_with_multi_ask_credential_and_password_in_payload.get_related('relaunch')
-
         # create payload
         payload = dict(ssh_password=self.credentials['ssh']['password'],
                        ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
