@@ -526,8 +526,6 @@ print json.dumps(inv, indent=2)
         '''
         Tests that command relaunches work when supplied with the right passwords.
         '''
-        relaunch_pg = ad_hoc_command_with_multi_ask_credential_and_password_in_payload.get_related('relaunch')
-
         # create payload
         payload = dict(ssh_password=self.credentials['ssh']['password'],
                        ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
@@ -535,18 +533,9 @@ print json.dumps(inv, indent=2)
                        become_password=self.credentials['ssh']['become_password'],
                        extra_vars={}, )
 
-        # post to relaunch_pg
-        relaunch_pg.post(payload)
-
-        # navigate to command and assert success
-        command_pgs = api_unified_jobs_pg.get(id=relaunch_pg.id)
-        assert command_pgs.count == 1, \
-            "command relaunched (id:%s) but unable to find matching " \
-            "job." % relaunch_pg.id
-        command_pg = command_pgs.results[0]
-
-        command_pg.wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+        # relaunch command and assert successful
+        relaunched_command = ad_hoc_command_with_multi_ask_credential_and_password_in_payload.relaunch(payload).wait_until_completed()
+        assert relaunched_command.is_successful, "Command unsuccessful - %s " % relaunched_command
 
     def test_relaunch_command_with_ask_credential_and_without_passwords(
         self, request,
