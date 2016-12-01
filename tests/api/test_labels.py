@@ -170,6 +170,7 @@ class Test_Labels(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.NotFound):
             label.get()
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4191')
     def test_job_reference_delete(self, job_template_with_label, api_labels_pg):
         '''
         Labels should get reference deleted when their last remaining job gets deleted
