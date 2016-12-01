@@ -504,15 +504,7 @@ print json.dumps(inv, indent=2)
                 assert not relaunch_pg.passwords_needed_to_start
 
                 # relaunch the job and assert success
-                relaunch_pg.post()
-
-                command_pgs = api_unified_jobs_pg.get(id=relaunch_pg.id)
-                assert command_pgs.count == 1, \
-                    "command relaunched (id:%s) but unable to find matching " \
-                    "job." % relaunch_pg.id
-                command_pg = command_pgs.results[0]
-
-                command_pg.wait_until_completed()
+                command_pg = ad_hoc_command_pg.relaunch().wait_until_completed()
                 assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
 
     def test_relaunch_command_with_unprivileged_users(self, ad_hoc_with_status_completed, unprivileged_users, user_password):
