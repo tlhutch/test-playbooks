@@ -32,7 +32,13 @@ def _pytest_plugins_generator(*extension_pkgs):
 pytest_plugins = tuple(_pytest_plugins_generator(fixtures, markers, plugins, fixtures.api))
 
 
+def pytest_addoption(parser):
+    parser.addoption('--base-url',
+                     action='store',
+                     dest='base_url',
+                     help='base url of tower instance under test')
+
+
 # Manually add other plugins
-# TODO: this should be magically imported
 pytest_plugins += (plugins.pytest_restqa.pytest_restqa.__name__,)
 pytest_plugins += (fixtures.api.__name__,)
