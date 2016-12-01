@@ -493,27 +493,18 @@ print json.dumps(inv, indent=2)
 
             with self.current_user(privileged_user.username, user_password):
                 # post payload to ad_hoc_commands endpoint
-                ad_hoc_command_pg = api_ad_hoc_commands_pg.post(payload)
+                command = api_ad_hoc_commands_pg.post(payload).wait_until_completed()
 
                 # verify that the first ad hoc command ran successfully
-                ad_hoc_command_pg.wait_until_completed()
-                assert ad_hoc_command_pg.is_successful, "Ad hoc command unsuccessful - %s" % ad_hoc_command_pg
+                assert command.is_successful, "Ad hoc command unsuccessful - %s" % command
 
                 # navigate to relaunch_pg and assert on relaunch_pg value
-                relaunch_pg = ad_hoc_command_pg.get_related('relaunch')
+                relaunch_pg = command.get_related('relaunch')
                 assert not relaunch_pg.passwords_needed_to_start
 
                 # relaunch the job and assert success
-                relaunch_pg.post()
-
-                command_pgs = api_unified_jobs_pg.get(id=relaunch_pg.id)
-                assert command_pgs.count == 1, \
-                    "command relaunched (id:%s) but unable to find matching " \
-                    "job." % relaunch_pg.id
-                command_pg = command_pgs.results[0]
-
-                command_pg.wait_until_completed()
-                assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+                relaunched_command = command.relaunch().wait_until_completed()
+                assert relaunched_command.is_successful, "Command unsuccessful - %s " % relaunched_command
 
     def test_relaunch_command_with_unprivileged_users(self, ad_hoc_with_status_completed, unprivileged_users, user_password):
         '''
