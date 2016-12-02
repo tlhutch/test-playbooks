@@ -273,6 +273,7 @@ class Test_Setting(Base_Api_Test):
         assert old_activity_stream_count == new_activity_stream_count, \
             "New activity stream entry[ies] found after creating test organization with ACTIVITY_STREAM_ENABLED disabled."
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     def test_activity_stream_enabled_for_inventory_sync(self, factories, custom_inventory_source, api_activity_stream_pg, update_setting_pg):
         '''
         Verifies that if ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC is enabled that:

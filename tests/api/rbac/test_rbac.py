@@ -1877,6 +1877,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_user_capabilities(inventory_pg.get(), role)
             check_user_capabilities(api_inventories_pg.get(id=inventory_pg.id).results.pop().get(), role)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_update_custom_group(self, factories, custom_inventory_source, user_password, role):
         """Test ability to update a custom group."""
