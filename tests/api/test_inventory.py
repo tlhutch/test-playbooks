@@ -478,7 +478,7 @@ class Test_Inventory_Update(Base_Api_Test):
             assert inv_groups_pg.count, ('An inventory sync was launched with "replace_dash_in_groups: true", '
                                          'but desired group with sanitized tag "{0}" not found.'.format(group_name))
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4227')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     @pytest.mark.parametrize('timeout, status, job_explanation', [
         (0, 'successful', ''),
         (60, 'successful', ''),
