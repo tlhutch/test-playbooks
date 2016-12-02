@@ -1009,6 +1009,7 @@ print json.dumps(inv, indent=2)
         job_host_summaries_pg = job_pg.get_related('job_host_summaries')
         assert job_host_summaries_pg.count == expected_count
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4233')
     def test_launch_with_unmatched_limit_value(self, job_template_with_random_limit):
         '''
         Verify that launching a job template without matching hosts fails appropriately.
