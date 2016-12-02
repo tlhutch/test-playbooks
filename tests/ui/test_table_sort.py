@@ -1,38 +1,18 @@
 import pytest
 
-pytestmark = [
-    pytest.mark.ui,
-    pytest.mark.nondestructive,
-    pytest.mark.usefixtures(
-        'module_install_enterprise_license',
-        'max_window',
-    )
-]
 
+pytestmark = [pytest.mark.ui]
 
 TEST_SORT_RESOURCE_COUNT = 10
 
 
-# -----------------------------------------------------------------------------
-# Fixtures
-# -----------------------------------------------------------------------------
-
 @pytest.fixture(scope='module')
-def table_sort_data(authtoken,  module_factories):
-    synced_project = module_factories.project()
-    module_factories.user()
-    module_factories.job_template(project=synced_project)
-    for _ in xrange(TEST_SORT_RESOURCE_COUNT - 1):
-        module_factories.job_template(project=synced_project)
-        # handle projects separately without scm updating
-        module_factories.project(wait=False)
-        # handle users
-        module_factories.user()
+def table_sort_data(v1):
+    # This fixture needs to populate tower with enough data to sufficiently
+    # exercise ui table sorting on all pages. The method used should be as fast
+    # as possible.
+    return NotImplemented
 
-
-# -----------------------------------------------------------------------------
-# Assertion Helpers and Utilities
-# -----------------------------------------------------------------------------
 
 def check_table_sort(table_header):
     sort_status_options = table_header.get_sort_status_options()
@@ -41,29 +21,34 @@ def check_table_sort(table_header):
         assert table_header.get_sort_status() == option
 
 
-# -----------------------------------------------------------------------------
-# Tests
-# -----------------------------------------------------------------------------
-
-def test_table_sort_inventories(table_sort_data, ui_inventories):
-    check_table_sort(ui_inventories.list_table.header)
+skip_reason = 'faster data fixtures need to be implemented'
 
 
-def test_table_sort_job_templates(table_sort_data, ui_job_templates):
-    check_table_sort(ui_job_templates.list_table.header)
+@pytest.mark.skip(reason=skip_reason)
+def test_table_sort_inventories(ui, table_sort_data):
+    pass
 
 
-def test_table_sort_projects(table_sort_data, ui_projects):
-    check_table_sort(ui_projects.list_table.header)
+@pytest.mark.skip(reason=skip_reason)
+def test_table_sort_job_templates(ui, table_sort_data):
+    pass
 
 
-def test_table_sort_users(table_sort_data, ui_users):
-    check_table_sort(ui_users.list_table.header)
+@pytest.mark.skip(reason=skip_reason)
+def test_table_sort_projects(ui, table_sort_data):
+    pass
 
 
-def test_table_sort_credentials(table_sort_data, ui_credentials):
-    check_table_sort(ui_credentials.list_table.header)
+@pytest.mark.skip(reason=skip_reason)
+def test_table_sort_users(ui, table_sort_data):
+    pass
 
 
-def test_table_sort_jobs(table_sort_data, ui_jobs):
-    check_table_sort(ui_jobs.jobs.table.header)
+@pytest.mark.skip(reason=skip_reason)
+def test_table_sort_credentials(ui, table_sort_data):
+    pass
+
+
+@pytest.mark.skip(reason=skip_reason)
+def test_table_sort_jobs(ui, table_sort_data):
+    pass

@@ -1,26 +1,27 @@
 import pytest
 from selenium.common.exceptions import TimeoutException
 
-pytestmark = [
-    pytest.mark.ui,
-    pytest.mark.nondestructive,
-    pytest.mark.usefixtures('max_window')
-]
+
+pytestmark = [pytest.mark.ui]
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-def test_login_logout(ui_login, default_credentials):
+@pytest.fixture(scope='class')
+def login_page(request, ui_client):
+    yield ui_client.ui.login.get()
+    ui_client.browser.quit()
+
+
+def test_login_logout(login_page, default_tower_credentials):
     """Verify a successful login and logout with default credentials
     """
-    username = default_credentials['username']
-    password = default_credentials['password']
-
+    username = default_tower_credentials['username']
+    password = default_tower_credentials['password']
     try:
-        ui_login.login_with_enter_key(username, password)
+        login_page.login_with_enter_key(username, password)
     except TimeoutException:
         pytest.fail('Unable to verify a successful login')
     try:
-        ui_login.logout()
+        login_page.logout()
     except TimeoutException:
         pytest.fail('Unable to verify a successful logout')
 
@@ -31,37 +32,35 @@ def test_login_logout(ui_login, default_credentials):
     ('', 'quintus'),
     ('', '')
 ])
-def test_login_invalid_credentials(ui_login, username, password):
+def test_login_invalid_credentials(login_page, username, password):
     """Verify that after a successful login and logout, valid credentials
     are still required
     """
-    ui_login.login(username, password)
-    assert not ui_login.is_logged_in(), (
+    login_page.login(username, password)
+    assert not login_page.is_logged_in(), (
         'Login unexpectedly succesful with invalid credentials')
-    assert ui_login.errors, (
+    assert login_page.errors, (
         'Expected login failure alert error(s) to be displayed')
 
 
 @pytest.mark.github('https://github.com/ansible/tower-qa/issues/782')
-@pytest.mark.usefixtures('authtoken')
-def test_stock_branding(ui_login):
+def test_stock_branding(login_page):
     """Verify our stock login modal branding and notice
     """
-    image_src = ui_login.modal_image.get_attribute('src')
+    image_src = login_page.modal_image.get_attribute('src')
     assert image_src.endswith('/static/assets/tower-logo-login.svg'), \
         "Unexpected console_logo path."
-    assert not ui_login.is_modal_notice_displayed(), (
+    assert not login_page.is_modal_notice_displayed(), (
         'Expected modal notice to not be displayed')
 
 
 @pytest.mark.github('https://github.com/ansible/tower-qa/issues/782')
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-def test_custom_rebranding(CUSTOM_CONSOLE_LOGO, ui_login):
+def test_custom_rebranding(login_page, CUSTOM_CONSOLE_LOGO):
     """Verify that our login modal may be rebranded with a custom
     image and notice
     """
-    image_src = ui_login.modal_image.get_attribute('src')
+    image_src = login_page.modal_image.get_attribute('src')
     assert image_src.endswith('/static/assets/custom_console_logo.png'), \
         "Unexpected console_logo path."
-    assert ui_login.is_modal_notice_displayed(), (
+    assert login_page.is_modal_notice_displayed(), (
         'Expected modal notice to be displayed')
