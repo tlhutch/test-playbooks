@@ -3,6 +3,9 @@ from itertools import combinations
 import pytest
 
 
+pytestmark = [pytest.mark.ui]
+
+
 @pytest.mark.usefixtures('supported_window_sizes')
 def test_component_visibility(ui):
     """Verify basic component visibility, page layout, and responsiveness

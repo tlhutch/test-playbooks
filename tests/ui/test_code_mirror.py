@@ -1,6 +1,9 @@
 import pytest
 
 
+pytestmark = [pytest.mark.ui]
+
+
 @pytest.fixture(scope='class')
 def manage_host(v1, ui, inventory):
     host = v1.hosts.create(inventory=inventory)

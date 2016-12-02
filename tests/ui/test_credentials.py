@@ -4,6 +4,9 @@ import pytest
 from towerkit.exceptions import NotFound
 
 
+pytestmark = [pytest.mark.ui]
+
+
 @pytest.fixture(scope='module')
 def org_cred(api_v1, session_org):
     cred = api_v1.credentials.create(user=None, organization=session_org, team=None)

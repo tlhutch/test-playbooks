@@ -1,6 +1,8 @@
 import pytest
 
 
+pytestmark = [pytest.mark.ui]
+
 TEST_SORT_RESOURCE_COUNT = 10
 
 

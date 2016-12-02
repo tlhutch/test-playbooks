@@ -1,6 +1,9 @@
 import pytest
 
 
+pytestmark = [pytest.mark.ui]
+
+
 @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3896')
 def test_displayed_card_titles_and_ordering(ui, rando):
     """Verify that the visibility and ordering of setup menu cards

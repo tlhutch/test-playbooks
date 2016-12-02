@@ -1,6 +1,9 @@
 import pytest
 
 
+pytestmark = [pytest.mark.ui]
+
+
 class RequiredFields(object):
 
     def test_clearing_required_fields_disables_save(self, form):

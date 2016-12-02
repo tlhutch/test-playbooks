@@ -9,6 +9,9 @@ import pytest
 from towerkit.tower.license import generate_license, generate_license_file
 
 
+pytestmark = [pytest.mark.ui]
+
+
 @pytest.fixture
 def unlicensed(v1, ui, default_tower_credentials):
     un = default_tower_credentials['username']

@@ -6,6 +6,9 @@ import pytest
 from towerkit.exceptions import NotFound
 
 
+pytestmark = [pytest.mark.ui]
+
+
 @pytest.fixture(scope='module')
 def team(api_v1, session_org):
     obj = api_v1.teams.create(organization=session_org)

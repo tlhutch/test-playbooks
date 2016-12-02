@@ -1,6 +1,9 @@
 import pytest
 
 
+pytestmark = [pytest.mark.ui]
+
+
 @pytest.fixture(scope='module')
 def hosts(api_v1, inventory):
     host_objs = [api_v1.hosts.create(inventory=inventory) for _ in xrange(5)]

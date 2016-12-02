@@ -2,6 +2,9 @@ import pytest
 from selenium.common.exceptions import TimeoutException
 
 
+pytestmark = [pytest.mark.ui]
+
+
 @pytest.fixture(scope='class')
 def login_page(request, ui_client):
     yield ui_client.ui.login.get()

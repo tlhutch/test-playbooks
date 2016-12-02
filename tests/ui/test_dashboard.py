@@ -4,6 +4,9 @@ import json
 import pytest
 
 
+pytestmark = [pytest.mark.ui]
+
+
 @pytest.fixture(scope='module')
 def create_batch_template(api_v1, session_org):
     """Create a factory for job templates that share the same set of

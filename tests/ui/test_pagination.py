@@ -1,6 +1,9 @@
 import pytest
 
 
+pytestmark = [pytest.mark.ui]
+
+
 TEST_PAGINATION_RESOURCE_COUNT = 110
 
 

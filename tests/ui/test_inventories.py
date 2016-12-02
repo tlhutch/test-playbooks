@@ -4,6 +4,9 @@ import pytest
 from towerkit.exceptions import NotFound
 
 
+pytestmark = [pytest.mark.ui]
+
+
 @pytest.fixture(scope='module')
 def shared_org(api_v1):
     org = api_v1.organizations.create(name=fauxfactory.gen_alphanumeric())

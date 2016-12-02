@@ -2,6 +2,9 @@ import pytest
 from selenium.common.exceptions import TimeoutException
 
 
+pytestmark = [pytest.mark.ui]
+
+
 @pytest.mark.usefixtures('supported_window_sizes')
 def test_header_shows_correct_username(v1, ui, rando):
     """Verify correctly displayed username on header

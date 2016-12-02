@@ -7,6 +7,9 @@ from selenium.common.exceptions import TimeoutException
 from towerkit.exceptions import NotFound
 
 
+pytestmark = [pytest.mark.ui]
+
+
 def test_machine_credential_association(v1, ui, job_template, session_machine_credential):
     """Verify machine credential association using an existing job template
     """

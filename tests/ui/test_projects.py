@@ -6,6 +6,9 @@ import pytest
 from towerkit.exceptions import NotFound
 
 
+pytestmark = [pytest.mark.ui]
+
+
 def test_active_project_update(ui, session_project):
     """Verify that the project update button is active for a scm project
     """

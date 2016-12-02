@@ -1,6 +1,10 @@
 import json
 
 import fauxfactory
+import pytest
+
+
+pytestmark = [pytest.mark.ui]
 
 
 def test_toggle_all_users_visble_to_org_admin(v1, ui, org_admin, rando):
