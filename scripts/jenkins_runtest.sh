@@ -68,7 +68,6 @@ PY_ARGS+=(--ansible-sudo)
 PY_ARGS+=(--base-url "https://${INVENTORY_HOST}")
 PY_ARGS+=(--api-debug)
 PY_ARGS+=(--api-destructive)
-PY_ARGS+=(--sensitive-url=never_match)
 
 # Run the tests ...
 py.test -v \

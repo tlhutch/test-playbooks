@@ -60,7 +60,6 @@ Or you can specify it as a host variable in the inventory file.
             --ansible-host-pattern=tower.example.com \
             --base-url 'https://tower.example.com' \
             --api-destructive \
-            --sensitive-url=never_match \
             tests
 
 ## Recommended Reading
