@@ -22,6 +22,11 @@ def parse_args():
     parser.add_option("--filter", action="append", dest="filters",
                       default=[],
                       help="Instance filters")
+    parser.add_option("--include-protected",
+                     action="store_true",
+                     dest="include_protected",
+                     default=False,
+                     help="Include instances with termination protection in match results (default: %default)")
 
     actions = ['stop', 'terminate']
     parser.add_option("--action", action="store", dest="action",
@@ -70,7 +75,20 @@ if __name__ == '__main__':
             continue
 
         reservations = conn.get_all_instances(filters=opts.filters)
-        instances = [i for r in reservations for i in r.instances]
+
+        instances = []
+        protected = []
+
+        for r in reservations:
+            for i in r.instances:
+                if i.get_attribute('disableApiTermination')['disableApiTermination']:
+                    protected.append(i)
+                else:
+                    instances.append(i)
+
+        if opts.include_protected:
+            instances += protected
+
         if instances:
             print "== Instances [region:%s] ==" % region.name
             for i in instances:
