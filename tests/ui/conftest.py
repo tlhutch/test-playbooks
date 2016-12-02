@@ -15,10 +15,10 @@ from towerkit import TowerUI
 # -----------------------------------------------------------------------------
 
 def pytest_addoption(parser):
-    parser.addoption('--base-url',
-                     action='store',
-                     dest='base_url',
-                     help='base url of tower instance under test')
+    # parser.addoption('--base-url',
+    #                 action='store',
+    #                 dest='base_url',
+    #                 help='base url of tower instance under test')
     parser.addoption('--browser',
                      action='store',
                      dest='browser_name',
