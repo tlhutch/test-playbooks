@@ -435,6 +435,7 @@ print json.dumps(inv, indent=2)
         events_pg = command_pg.get_related('events')
         assert events_pg.count == expected_count
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4233')
     def test_launch_with_unmatched_limit_value(self, host, ssh_credential, api_ad_hoc_commands_pg, ansible_version_cmp):
         '''
         Verify that launching an ad hoc command without matching host fails appropriately.
