@@ -422,6 +422,7 @@ class Test_Job(Base_Api_Test):
             "canceled, but a 'playbook_on_start' host_event was received. " \
             "It appears that the job was not cancelled while in pending."
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4225')
     def test_cancel_running_job(self, job_with_status_running):
         '''
         Verify the job->cancel endpoint behaves as expected when canceling a
@@ -561,6 +562,7 @@ print json.dumps(inventory)
         assert inv_source_pg.get().status == 'canceled', \
             "Unexpected inventory_source status after cancelling (expected 'canceled') - %s." % inv_source_pg.status
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4225')
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
 
@@ -682,6 +684,7 @@ print json.dumps(inventory)
         assert project_pg.get().status == 'canceled', \
             "Unexpected project status (expected status:canceled) - %s." % project_pg
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4225')
     def test_cascade_cancel_project_update_with_inventory_and_project_updates(self, job_template_with_project_django, custom_group):
         '''
         Tests that if you cancel a scm update before it finishes that its dependent job
