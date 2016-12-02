@@ -1048,6 +1048,7 @@ print json.dumps(inv, indent=2)
             assert host_events.count == 1, \
                 "Unexpected number of host_events returned (%s != 1)." % host_events.count
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4233')
     def test_launch_with_unmatched_tag_value(self, job_template_with_random_tag, ansible_version_cmp):
         '''
         Tests launching jobs with an unmatched tag value.
