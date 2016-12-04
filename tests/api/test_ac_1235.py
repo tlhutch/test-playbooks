@@ -22158,6 +22158,7 @@ class Test_AC_1235(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3861')
     def test_import(self, ansible_runner, tmpdir, inventory):
         '''Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner
