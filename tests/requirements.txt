@@ -1,7 +1,7 @@
 pytest
 pytest-ansible
 pytest-cache
-pytest-capturelog
+pytest-catchlog
 pytest-cov
 pytest-github
 pytest-html
