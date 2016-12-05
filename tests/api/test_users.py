@@ -109,7 +109,7 @@ class Test_Users(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 users_pg.post(user_payload())
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3351")
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/4293", raises=towerkit.exceptions.Forbidden)
     def test_nonsuperusers_cannot_create_orphaned_user(self, api_users_pg, non_superuser, user_password):
         '''
         Verify that a non_superuser cannot create users via /api/v1/users/.
