@@ -26,7 +26,7 @@ def pytest_addoption(parser):
     parser.addoption('--driver-capabilities',
                      action='store',
                      dest='driver_capabilities',
-                     default='',
+                     default='platform:windows 10',
                      metavar='key1:value2,key2:value2',
                      help='remote webdriver capabilities')
     parser.addoption('--driver-type',
