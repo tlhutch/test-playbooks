@@ -15,14 +15,20 @@ from towerkit import TowerUI
 # -----------------------------------------------------------------------------
 
 def pytest_addoption(parser):
-    # parser.addoption('--base-url',
-    #                 action='store',
-    #                 dest='base_url',
-    #                 help='base url of tower instance under test')
+    #parser.addoption('--base-url',
+                     #action='store',
+                     #dest='base_url',
+                     #help='base url of tower instance under test')
     parser.addoption('--browser',
                      action='store',
                      dest='browser_name',
                      help='name of browser to use')
+    parser.addoption('--driver-capabilities',
+                     action='store',
+                     dest='driver_capabilities',
+                     default='',
+                     metavar='key1:value2,key2:value2',
+                     help='remote webdriver capabilities')
     parser.addoption('--driver-type',
                      action='store',
                      dest='driver_type',
@@ -31,17 +37,10 @@ def pytest_addoption(parser):
                      action='store',
                      dest='driver_location',
                      help='remote webdriver url or file path to a webdriver binary')
-    parser.addoption('--driver-capability',
-                     action='append',
-                     dest='driver_capabilities',
-                     nargs=2,
-                     default=[],
-                     metavar=('key', 'value'),
-                     help='remote webdriver capabilities')
-    parser.addoption('--credentials',
-                     action='store',
-                     dest='credentials',
-                     help='path to towerkit credentials file')
+    #parser.addoption('--credentials',
+                     #action='store',
+                     #dest='credentials',
+                     #help='path to towerkit credentials file')
     parser.addoption('--validate-schema',
                      action='store',
                      dest='validate_schema',
@@ -53,7 +52,6 @@ def pytest_addoption(parser):
 # Session Fixtures
 # -----------------------------------------------------------------------------
 
-
 @pytest.fixture(scope='session')
 def supported_window_sizes(request):
     yield NotImplemented
@@ -61,7 +59,7 @@ def supported_window_sizes(request):
 
 @pytest.fixture(scope='session')
 def config_credentials(request):
-    yield utils.load_credentials(request.config.getoption('credentials'))
+    yield utils.load_credentials(request.config.getoption('credentials_file'))
 
 
 @pytest.fixture(scope='session')
@@ -252,12 +250,17 @@ def session_fixtures(request,
 
 @pytest.fixture(scope='class')
 def ui_client(request, v1, default_tower_credentials):
+
+    # 'action=append' for pytest parser hook doesn't appear to be working
+    driver_capabilities_str = request.config.getoption('driver_capabilities')
+    driver_capabilities = dict([v.split(':') for v in driver_capabilities_str.split(',')])
+
     client = TowerUI(
         base_url=request.config.getoption('base_url'),
         browser_name=request.config.getoption('browser_name'),
         driver_type=request.config.getoption('driver_type'),
         driver_location=request.config.getoption('driver_location'),
-        driver_capabilities=dict(request.config.getoption('driver_capabilities')),
+        driver_capabilities=driver_capabilities,
         username=default_tower_credentials['username'],
         password=default_tower_credentials['password'])
     if request.cls:
