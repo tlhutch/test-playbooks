@@ -269,8 +269,8 @@ class Test_Labels(Base_Api_Test):
         Tests that org_admins may not reassign a label to an organization for which they
         are not a member.
         '''
-        with self.current_user(org_admin, user_password):
-            with pytest.raises(towerkit.exceptions.Unauthorized):
+        with self.current_user(org_admin.username, user_password):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 label.patch(organization=another_organization.id)
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3929")
