@@ -534,7 +534,8 @@ class Test_Legacy_License(Base_Api_Test):
                             u'ha': True,
                             u'system_tracking': False,
                             u'enterprise_auth': False,
-                            u'rebranding': False}
+                            u'rebranding': False,
+                            u'workflows': False}
 
         # Assess default features
         assert conf.license_info['features'] == default_features, \
@@ -1026,7 +1027,8 @@ class Test_Basic_License(Base_Api_Test):
                             u'ha': False,
                             u'system_tracking': False,
                             u'enterprise_auth': False,
-                            u'rebranding': False}
+                            u'rebranding': False,
+                            u'workflows': False}
 
         # assess default features
         assert conf.license_info['features'] == default_features, \
@@ -1249,7 +1251,8 @@ class Test_Enterprise_License(Base_Api_Test):
                             u'ha': True,
                             u'system_tracking': True,
                             u'enterprise_auth': True,
-                            u'rebranding': True}
+                            u'rebranding': True,
+                            u'workflows': True}
 
         # assess default features
         assert conf.license_info['features'] == default_features, \
