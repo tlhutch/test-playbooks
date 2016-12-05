@@ -412,7 +412,7 @@ class Test_No_License(Base_Api_Test):
         job_pg = project_ansible_playbooks_git_nowait.update().wait_until_completed()
         assert job_pg.is_successful, "project_update was unsuccessful - %s" % job_pg
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3937')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3954', raises=AssertionError)
     def test_can_launch_inventory_update_but_it_should_fail(self, custom_inventory_source):
         '''Verify that inventory_updates can be launched, but they fail because
         no license is installed.'''
