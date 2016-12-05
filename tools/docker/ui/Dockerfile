@@ -1,5 +1,8 @@
 FROM frolvlad/alpine-glibc
 
+ARG towerkit_dir='./tools/docker/ui/.build/towerkit'
+ARG tower_qa_dir='.'
+
 RUN apk add --update \
     bash \
     ca-certificates \
@@ -13,8 +16,18 @@ RUN apk add --update \
     python \
     python-dev
 
-COPY ./tests/requirements.txt /tower-qa/tests/requirements.txt
-RUN pip install -r /tower-qa/tests/requirements.txt
+RUN pip install --upgrade pip
+
+COPY ${tower_qa_dir}/tests/requirements.txt /tower-qa/tests/requirements.txt
+RUN pip install $(cat /tower-qa/tests/requirements.txt | grep -v towerkit)
+
+COPY ${towerkit_dir}/requirements.txt /towerkit/requirements.txt
+RUN pip install -r /towerkit/requirements.txt
+
+COPY ${towerkit_dir} /towerkit
+RUN pip install /towerkit
+
+COPY ${tower_qa_dir} /tower-qa
 
 WORKDIR /tower-qa
 
