@@ -242,13 +242,11 @@ class WorkflowTreeMapper(object):
         return True
 
     def map(self):
-        """If mapping exists, returns list of tuples
-        representing mapping of nodes from first graph
-        to second graph.
+        """Returns a dictionary containing a one-to-one
+        mapping of nodes from `self.tree1` to nodes from `self.tree2`
+        if a mapping exists. Returns None if mapping does not exist.
 
-        If no mapping exists, returns None.
-
-        Note that function does not guarantee that
+        Note that method does not guarantee that
         mapping is unique.
         """
         root_nodes1 = self._get_root_nodes(self._tree1)
@@ -256,9 +254,13 @@ class WorkflowTreeMapper(object):
         return self._map(root_nodes1, root_nodes2)
 
     def _map(self, root_nodes1, root_nodes2):
-        """If mapping exists, returns list of tuples.
-        Otherwise, returns None."""
+        """Returns a dictionary containing a one-to-one
+        mapping of nodes from `root_nodes1` to nodes from `root_nodes2`
+        if a mapping exists. Returns None if mapping does not exist.
 
+        Note that method does not guarantee that
+        mapping is unique.
+        """
         # If number of root nodes differ on each side,
         # then no mapping exists
         if len(root_nodes1) != len(root_nodes2):
@@ -266,18 +268,18 @@ class WorkflowTreeMapper(object):
 
         # If there are no nodes, nothing to be done
         if not len(root_nodes1):
-            return []
+            return {}
 
         # Map first root node
         node1 = root_nodes1[0]
 
         # ..to one of the root nodes in second graph
         for node2 in root_nodes2:
-            temp_mapping = []
+            temp_mapping = {}
 
             # If the two nodes are a match..
             if self._match(self._tree1._graph[node1], self._tree2._graph[node2]):
-                temp_mapping = [(node1, node2)]
+                temp_mapping = {node1: node2}
 
                 # Recursively map each set of trigger nodes
                 mapping_successful = True
@@ -287,7 +289,7 @@ class WorkflowTreeMapper(object):
                     mapping = self._map(trigger_nodes1, trigger_nodes2)
 
                     if mapping:
-                        temp_mapping.extend(mapping)
+                        temp_mapping.update(mapping)
                     else:
                         mapping_successful = False
                         break
@@ -311,7 +313,7 @@ class WorkflowTreeMapper(object):
 
                 # If mapping successful, then the mapping is complete
                 if mapping:
-                    temp_mapping.extend(mapping)
+                    temp_mapping.update(mapping)
                     return temp_mapping
 
                 # Otherwise, try to map node1 to next node
