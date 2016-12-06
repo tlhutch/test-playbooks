@@ -275,7 +275,6 @@ class Test_Job_Template_Callback(Base_Api_Test):
             assert result['status'] == httplib.CREATED
             assert not result['changed']
             assert 'failed' not in result, "Callback failed\n%s" % result
-            assert result['content_length'].isdigit() and int(result['content_length']) == 0
 
         # FIXME - assert 'Location' header points to launched job
         # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
@@ -312,7 +311,6 @@ class Test_Job_Template_Callback(Base_Api_Test):
             assert result['status'] == httplib.CREATED
             assert not result['changed']
             assert 'failed' not in result, "Callback failed\n%s" % result
-            assert result['content_length'].isdigit() and int(result['content_length']) == 0
 
         # FIXME - assert 'Location' header points to launched job
         # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
@@ -366,7 +364,6 @@ class Test_Job_Template_Callback(Base_Api_Test):
                     assert result['status'] == httplib.CREATED
                     assert not result['changed']
                     assert 'failed' not in result, "First provisioning callback unexpectedly failed."
-                    assert result['content_length'].isdigit() and int(result['content_length']) == 0
                     assert 'location' in result, "Missing expected 'location' in callback response."
                     assert re.search(r'%s[0-9]+/$' % api_jobs_url, result['location']), \
                         "Unexpected format for 'location' header (%s)" % result['location']
