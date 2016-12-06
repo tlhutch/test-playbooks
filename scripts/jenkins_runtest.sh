@@ -43,17 +43,6 @@ else
     exit 1
 fi
 
-# Create and modify credentials.yml
-SCRIPT_NAME="create_credentials.py"
-# Look for script in multple locations (this allows for backwards compat with
-# jenkins)
-for SCRIPT_DIR in "scripts" "." ; do
-    if [ -f "${SCRIPT_DIR}/${SCRIPT_NAME}" ]; then
-        break
-    fi
-done
-python ${SCRIPT_DIR}/${SCRIPT_NAME} tests/credentials.template tests/credentials.yml
-
 export ANSIBLE_NOCOLOR=True
 export ANSIBLE_HOST_KEY_CHECKING=False
 
