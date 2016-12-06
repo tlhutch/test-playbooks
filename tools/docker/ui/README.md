@@ -4,6 +4,7 @@ docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test
 ```
 
 ## Example: Running API Tests
+```shell
 ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/ui/credentials.yml
 
 docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test \
@@ -13,7 +14,7 @@ docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test
     --ansible-inventory=playbooks/ec2.ini \
     --ansible-host-pattern=ec2-01-234-56-789.compute-1.amazonaws.com \
     tests/api
-
+```
 
 ## Running Headless UI Tests:
 
