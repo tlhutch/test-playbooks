@@ -3,10 +3,9 @@
 CONTAINER_IMAGE_NAME="${CONTAINER_IMAGE_NAME:-gcr.io/ansible-tower-engineering/tower-qe}"
 
 ansible localhost -i 'localhost,' -c local -o -m git -a \
-    "repo=git@github.com:ansible/towerkit.git
+    "repo=https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/ansible/towerkit
      dest=tools/docker/ui/.build/towerkit
      version=master
-     ssh_opts='-o StrictHostKeyChecking=no'
      force=yes"
 
 REV_TOWERKIT=$(git --git-dir=tools/docker/ui/.build/towerkit/.git rev-parse HEAD | head -c7)
