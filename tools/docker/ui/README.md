@@ -1,9 +1,9 @@
-## Running Your very own py.test command using the tower-qe container image:
+## running your very own py.test command using the tower-qe container image:
 ```shell
 docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test
 ```
 
-## Example: Running API Tests
+## example: running API tests
 ```shell
 ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/ui/credentials.yml
 
@@ -16,7 +16,7 @@ docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test
     tests/api
 ```
 
-## Running Headless UI Tests:
+## running headless UI tests:
 
 ```shell
 export PYTEST_ADDOPTS="--base-url='https://ec2.tower.com' --ansible-inventory=playbooks/inventory.log --ansible-host-pattern=tower"
