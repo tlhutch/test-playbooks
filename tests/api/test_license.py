@@ -550,6 +550,7 @@ class Test_Legacy_License(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > license_instance_count:
@@ -750,6 +751,7 @@ class Test_Legacy_License_Grace_Period(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > license_instance_count:
@@ -934,6 +936,7 @@ class Test_Legacy_Trial_License(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > license_instance_count:
@@ -1042,6 +1045,7 @@ class Test_Basic_License(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > license_instance_count:
@@ -1265,6 +1269,7 @@ class Test_Enterprise_License(Base_Api_Test):
             for result in contacted.values():
                 assert not result['stat']['exists'], "No license file was expected, but one was found"
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         '''Verify that hosts can be added up to the 'license_instance_count' '''
         if api_config_pg.get().license_info.current_instances > license_instance_count:
