@@ -15,10 +15,10 @@ from towerkit import TowerUI
 # -----------------------------------------------------------------------------
 
 def pytest_addoption(parser):
-    #parser.addoption('--base-url',
-                     #action='store',
-                     #dest='base_url',
-                     #help='base url of tower instance under test')
+    # parser.addoption('--base-url',
+    #                  action='store',
+    #                  dest='base_url',
+    #                  help='base url of tower instance under test')
     parser.addoption('--browser',
                      action='store',
                      dest='browser_name',
@@ -37,10 +37,10 @@ def pytest_addoption(parser):
                      action='store',
                      dest='driver_location',
                      help='remote webdriver url or file path to a webdriver binary')
-    #parser.addoption('--credentials',
-                     #action='store',
-                     #dest='credentials',
-                     #help='path to towerkit credentials file')
+    # parser.addoption('--credentials',
+    #                  action='store',
+    #                  dest='credentials',
+    #                  help='path to towerkit credentials file')
     parser.addoption('--validate-schema',
                      action='store',
                      dest='validate_schema',
@@ -51,6 +51,7 @@ def pytest_addoption(parser):
 # -----------------------------------------------------------------------------
 # Session Fixtures
 # -----------------------------------------------------------------------------
+
 
 @pytest.fixture(scope='session')
 def supported_window_sizes(request):
