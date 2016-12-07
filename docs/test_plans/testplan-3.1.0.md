@@ -40,6 +40,19 @@
 1. [ ] Test non-standard config.
 1. [ ] Test that modules are idempotent.
 
+### Task Manager (???)
+[Feature]()
+
+1. [ ] Groups of blocked tasks run in chronological order
+1. [ ] Tasks that are not blocked run whenever there is capacity available
+1. [ ] 1 job is always allowed to run, even if there isn't enough capacity.
+1. [ ] Only 1 Project Updates for a Project may be running
+1. [ ] Only 1 Inventory Update for an Inventory Source may be running
+1. [ ] For a related Project, only a Job xor Project Update may be running
+1. [ ] For a related Inventory, only a Job xor Inventory Update(s) may be running
+1. [ ] Only 1 Job for a Job Template may be running (allow_simultaneous feature relaxes this condition)
+1. [ ] Only 1 System Job may be running
+
 ## Regression
 1. [ ] UI regression completed
 1. [ ] API regression completed
