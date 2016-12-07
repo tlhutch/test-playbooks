@@ -157,7 +157,10 @@ class Test_Setting(Base_Api_Test):
     @pytest.mark.parametrize('timeout, default_job_timeout, status, job_explanation', [
         (0, 1, 'failed', 'Job terminated due to timeout'),
         (60, 1, 'successful', ''),
-    ], ids=['without JT timeout - with global timeout', 'with JT timeout - with global timeout'])
+        (-1, 1, 'successful', ''),
+    ], ids=['without JT timeout - with global timeout',
+            'with JT timeout - with global timeout',
+            'with negative JT timeout - with global timeout'])
     def test_default_job_timeout(self, job_template, update_setting_pg, timeout, default_job_timeout, status, job_explanation):
         """Tests DEFAULT_JOB_TIMEOUT. JT timeout value should override DEFAULT_JOB_TIMEOUT
         in instances where both timeout values are supplied.
@@ -181,7 +184,10 @@ class Test_Setting(Base_Api_Test):
     @pytest.mark.parametrize('timeout, default_update_timeout, status, job_explanation', [
         (0, 1, 'failed', 'Job terminated due to timeout'),
         (60, 1, 'successful', ''),
-    ], ids=['without inv_source timeout - with global timeout', 'with inv_source timeout - with global timeout'])
+        (-1, 1, 'successful', ''),
+    ], ids=['without inv_source timeout - with global timeout',
+            'with inv_source timeout - with global timeout',
+            'with negative inv_source timeout - with global timeout'])
     def test_default_inventory_update_timeout(self, custom_inventory_source, update_setting_pg, timeout, default_update_timeout,
                                               status, job_explanation):
         """Tests DEFAULT_INVENTORY_UPDATE_TIMEOUT. Inventory source timeout value should override
@@ -205,7 +211,10 @@ class Test_Setting(Base_Api_Test):
     @pytest.mark.parametrize('timeout, default_update_timeout, status, job_explanation', [
         (0, 1, 'failed', 'Job terminated due to timeout'),
         (60, 1, 'successful', ''),
-    ], ids=['without project timeout - with global timeout', 'with project timeout - with global timeout'])
+        (-1, 1, 'successful', ''),
+    ], ids=['without project timeout - with global timeout',
+            'with project timeout - with global timeout',
+            'with negative project timeout - with global timeout'])
     def test_default_project_update_with_timeout(self, project, update_setting_pg, timeout, default_update_timeout, status,
                                                  job_explanation):
         """Tests DEFAULT_PROJECT_UPDATE_TIMEOUT. Project timeout value should override
