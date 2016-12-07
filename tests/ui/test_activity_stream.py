@@ -7,8 +7,8 @@ import pytest
 pytestmark = [pytest.mark.ui]
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4327')
 @pytest.mark.usefixtures('supported_window_sizes')
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4327')
 def test_component_visibility(ui):
     """Verify basic component visibility, page layout, and responsiveness
     """
