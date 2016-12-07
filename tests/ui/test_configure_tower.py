@@ -40,6 +40,7 @@ def test_configure_tower_settings_card_not_visble_to_org_admin(v1, ui, org_admin
         assert 'CONFIGURE TOWER' not in settings.card_titles
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4327')
 def test_activity_stream_toggle(v1, ui, inventory):
     """Verify that activity stream events are not displayed for events that
     occur while activity stream logging is disabled from configuration menu.
