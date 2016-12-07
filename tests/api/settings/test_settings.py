@@ -181,15 +181,11 @@ class Test_Setting(Base_Api_Test):
             "has been removed from AD_HOC_COMMANDS: %s." % json.dumps(result)
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/4030")
-    def test_stdout_max_bytes_display(self, unified_job_with_stdout, update_setting_pg, ansible_runner):
+    def test_stdout_max_bytes_display(self, unified_job_with_stdout, update_setting_pg):
         '''
         Assert that all of our unified jobs include result_stdout by default. Then assert that
         result_stdout gets truncated once 'STDOUT_MAX_BYTES_DISPLAY' gets set to zero upon
         unified job relaunch.
-
-        Note: job stdout gets stored under /var/lib/awx/job_status as entries of the form:
-        98-814e638a-ab4a-11e6-8ea5-22000b9345d0.out. The number that starts our file name
-        (98 here) is our unified job ID.
         '''
         # check that by default that our unified job includes stdout
         assert unified_job_with_stdout.result_stdout, \
@@ -211,13 +207,6 @@ class Test_Setting(Base_Api_Test):
         else:
             raise ValueError("Received unhandled unified job.")
         assert uj.is_successful, "Unified job unsuccessful - %s." % uj
-
-        # assert that job stdout gets truncated and stored on Tower server
-        assert re.search('^Standard Output too large to display \(\d+ bytes\), only download supported for sizes over 0 bytes$', uj.result_stdout), \
-            "No matching job stdout found."
-
-        contacted = ansible_runner.command("find /var/lib/awx/job_status -name '{0}-*.out'".format(uj.id))
-        assert contacted.values()[0]['stdout'], "No matching job stdout entry found."
 
     @pytest.mark.skip(reason="Test flakiness detailed here: https://github.com/ansible/tower-qa/issues/882")
     def test_schedule_max_jobs(self, factories, update_setting_pg):
