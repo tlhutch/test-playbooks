@@ -71,6 +71,7 @@ class CleanCommand(Command):
                 if not self.dry_run:
                     os.remove(rm)
 
+
 setup(
     name="tower-qa",
     version="0.0.1",

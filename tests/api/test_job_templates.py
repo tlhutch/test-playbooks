@@ -1093,7 +1093,7 @@ print json.dumps(inv, indent=2)
         project_pg = job_template_sleep.get_related("project")
 
         # launch the job_template
-        job_pg = job_template_sleep.launch().wait_until_started()
+        job_template_sleep.launch().wait_until_started()
 
         # delete target object and assert 409 raised
         for tower_resource in [job_template_sleep, inventory_pg, project_pg]:

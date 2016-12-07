@@ -23,10 +23,10 @@ def parse_args():
                       default=[],
                       help="Instance filters")
     parser.add_option("--include-protected",
-                     action="store_true",
-                     dest="include_protected",
-                     default=False,
-                     help="Include instances with termination protection in match results (default: %default)")
+                      action="store_true",
+                      dest="include_protected",
+                      default=False,
+                      help="Include instances with termination protection in match results (default: %default)")
 
     actions = ['stop', 'terminate']
     parser.add_option("--action", action="store", dest="action",

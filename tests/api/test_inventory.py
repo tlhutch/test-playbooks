@@ -121,8 +121,8 @@ class Test_Inventory(Base_Api_Test):
         org1 = factories.organization()
         org2 = factories.organization()
 
-        inv1 = factories.inventory(name="test-org", organization=org1)
-        inv2 = factories.inventory(name="test-org", organization=org2)
+        factories.inventory(name="test-org", organization=org1)
+        factories.inventory(name="test-org", organization=org2)
 
     def test_host_without_group(self, host_without_group, tower_version_cmp):
         '''
