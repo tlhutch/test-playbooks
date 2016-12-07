@@ -1,6 +1,7 @@
 from towerkit import utils, WSClient
 import pytest
 
+from tests.lib.helpers.workflow_utils import WorkflowTree, WorkflowTreeMapper
 from tests.api import Base_Api_Test
 
 
@@ -19,7 +20,7 @@ class TestChannels(Base_Api_Test):
             request.addfinalizer(host.teardown)
             ws = WSClient(v1.get_authtoken()).connect()
             request.addfinalizer(ws.close)
-            ws.ad_hoc_stdout()
+            ws.pending_ad_hoc_stdout()
             utils.logged_sleep(3)  # give Tower some time to process subscription
             ahc = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
             request.addfinalizer(ahc.teardown)
@@ -63,7 +64,7 @@ class TestChannels(Base_Api_Test):
             """
             ws = WSClient(v1.get_authtoken()).connect()
             request.addfinalizer(ws.close)
-            ws.job_status_changed()
+            ws.status_changes()
             utils.logged_sleep(3)  # give Tower some time to process subscription
             group = v1.groups.create(source='custom', inventory_script=True)
             request.addfinalizer(group.teardown)
@@ -128,7 +129,7 @@ class TestChannels(Base_Api_Test):
             """
             ws = WSClient(v1.get_authtoken()).connect()
             request.addfinalizer(ws.close)
-            ws.job_status_changed()
+            ws.status_changes()
             utils.logged_sleep(3)  # give Tower some time to process subscription
             project = factories.project()
             update_id = project.related.project_updates.get().results.pop().id
@@ -142,4 +143,45 @@ class TestChannels(Base_Api_Test):
             ws.unsubscribe()
             utils.logged_sleep(3)
             project.update().wait_until_completed()
+            assert(not [m for m in ws])  # no messages should be broadcasted to client
+
+        def test_workflow_events(self, request, v1, factories):
+            """Confirm that (un)subscriptions to status changed events and event emits are functional
+            for workflow jobs, and that workflow_events match what's available at the command's
+            relative events endpoint.
+            """
+            ws = WSClient(v1.get_authtoken()).connect()
+            request.addfinalizer(ws.close)
+            success_jt = factories.job_template(playbook='debug.yml')
+            fail_jt = factories.job_template(playbook='fail_unless.yml')
+            wfjt = factories.workflow_job_template()
+            root = factories.workflow_job_template_node(workflow_job_template=wfjt,
+                                                        unified_job_template=success_jt)
+            failure = root.related.success_nodes.post(dict(unified_job_template=fail_jt.id))
+            success = failure.related.failure_nodes.post(dict(unified_job_template=success_jt.id))
+            ws.pending_workflow_events()
+            utils.logged_sleep(3)  # give Tower some time to process subscription
+            wfj = wfjt.launch().wait_until_completed()
+            mapper = WorkflowTreeMapper(WorkflowTree(wfjt), WorkflowTree(wfj)).map()
+
+            success_job_ids = [result.id for result in success_jt.related.jobs.get().results]
+            failure_job_id = fail_jt.related.jobs.get().results.pop().id
+
+            messages = [m for m in ws if m.get('group_name') == 'workflow_events']
+            base_workflow_event = dict(group_name='workflow_events', workflow_job_id=wfj.id)
+            expected = []
+            for workflow_node_id, job_id in zip((mapper[root.id], mapper[success.id]), success_job_ids):
+                for status in ('pending', 'waiting', 'running', 'successful'):
+                    expected.append(dict(status=status, workflow_node_id=workflow_node_id,
+                                         unified_job_id=job_id, **base_workflow_event))
+            for status in ('pending', 'waiting', 'running', 'failed'):
+                expected.append(dict(status=status, workflow_node_id=mapper[failure.id],
+                                     unified_job_id=failure_job_id, **base_workflow_event))
+
+            for message in expected:
+                assert(message in messages)
+
+            ws.unsubscribe()
+            utils.logged_sleep(3)
+            wfjt.launch().wait_until_completed()
             assert(not [m for m in ws])  # no messages should be broadcasted to client
