@@ -7,6 +7,7 @@ import pytest
 pytestmark = [pytest.mark.ui]
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4327')
 @pytest.mark.usefixtures('supported_window_sizes')
 def test_component_visibility(ui):
     """Verify basic component visibility, page layout, and responsiveness
@@ -17,6 +18,7 @@ def test_component_visibility(ui):
     assert activity.list_panel.surrounds(activity.navigation_dropdown)
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4327')
 def test_navigation_dropdown(ui):
     """Verify expected functionality of the navigation dropdown widget
     """
@@ -54,6 +56,7 @@ def test_navigation_dropdown(ui):
     assert activity.navigation_dropdown.value == nondefault
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4327')
 @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4185')
 def test_navigation_with_edit_query_params(ui, inventory):
     """Verify expected activity stream functionality with url query parameters
@@ -76,6 +79,7 @@ def test_navigation_with_edit_query_params(ui, inventory):
         'Unexpected activity stream url query content after nav select')
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4327')
 def test_activity_stream_after_inventory_update(ui, inventory):
     """Verify displayed event details, routing, and page functionality when
     updating a crud page resource and clicking over to the activity stream.
@@ -101,6 +105,7 @@ def test_activity_stream_after_inventory_update(ui, inventory):
     assert new_name in action_text
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4327')
 def test_event_details_modal(ui, inventory):
     """Verify component visibility, layout, and responsiveness of the activity
     stream event details modal
