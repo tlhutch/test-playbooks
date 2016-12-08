@@ -1,8 +1,6 @@
 import os.path
-import sys
 import logging
 import pytest
-import towerkit.tower.license
 
 
 log = logging.getLogger(__name__)
