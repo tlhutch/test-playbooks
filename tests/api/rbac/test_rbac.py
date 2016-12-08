@@ -457,6 +457,14 @@ def test_job_template_post_request_without_network_credential_access(
         check_request(api_job_templates_pg, 'POST', httplib.CREATED, data)
 
 
+def test_delete_license_as_non_superuser(
+        non_superuser, user_password, auth_user, api_config_pg):
+    """Verify that DELETE to /api/v1/config/ as a non-superuser raises a 403.
+    """
+    with auth_user(non_superuser), pytest.raises(towerkit.exceptions.Forbidden):
+        api_config_pg.delete()
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
