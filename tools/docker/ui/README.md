@@ -20,5 +20,7 @@ docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test
 
 ```shell
 export PYTEST_ADDOPTS="--base-url='https://ec2.tower.com' --ansible-inventory=playbooks/inventory.log --ansible-host-pattern=tower"
+
+ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/ui/credentials.yml
 docker-compose -f tools/docker/ui/docker-compose.yml run ui_headless
 ```
