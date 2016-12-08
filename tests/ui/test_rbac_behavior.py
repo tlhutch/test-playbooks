@@ -1,6 +1,9 @@
 import pytest
 
 
+pytestmark = [pytest.mark.ui]
+
+
 class TestReadOnlyButtonVisbility(object):
 
     @pytest.fixture(scope='class')
