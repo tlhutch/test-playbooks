@@ -1187,6 +1187,23 @@ class Test_Team_RBAC(Base_Api_Test):
         assert users_pg.results[0].id == user_pg.id, \
             "Team user not our target user. Expected user with ID %s but got one with ID %s." % (user_pg.id, users_pg.results[0].id)
 
+    def test_system_roles_forbidden(self, factories, api_roles_pg):
+        """Teams are not allowed to be given the system admin and auditor roles.
+        """
+        team = factories.team()
+
+        # find system admin and auditor roles
+        roles_pg = api_roles_pg.get(role_field='system_auditor')
+        assert roles_pg.count == 1, "Unexpected number of roles returned (expected 1)."
+        auditor_role = roles_pg.results[0]
+        roles_pg = api_roles_pg.get(role_field='system_administrator')
+        assert roles_pg.count == 1, "Unexpected number of roles returned (expected 1)."
+        admin_role = roles_pg.results[0]
+
+        for role in [auditor_role, admin_role]:
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                 team.get_related('roles').post(dict(id=role.id))
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
