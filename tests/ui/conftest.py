@@ -1,13 +1,18 @@
 from collections import namedtuple
+import logging
 import time
 
 import fauxfactory
 import pytest
 
+from selenium.webdriver.remote.remote_connection import LOGGER
+
 from towerkit import api, config, utils
 from towerkit import exceptions as exc
 from towerkit.rrule import RRule
 from towerkit import TowerUI
+
+LOGGER.setLevel(logging.WARNING)
 
 
 # -----------------------------------------------------------------------------
@@ -227,7 +232,7 @@ SessionObjects = namedtuple('SessionObjects', [
 ])
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='session')
 def session_fixtures(request,
                      session_org,
                      session_machine_credential,
@@ -244,8 +249,10 @@ def session_fixtures(request,
         job_template=session_job_template,
         user=session_user,
         team=session_team)
-    if request.cls:
+
+    if hasattr(request, 'cls'):
         request.cls.session_objects = objects
+
     yield objects
 
 
@@ -293,9 +300,9 @@ def ui(request, ui_client):
     ui_client.browser.quit()
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='session')
 def v1(request, api_v1):
-    if request.cls:
+    if hasattr(request, 'cls'):
         request.cls.v1 = api_v1
     yield api_v1
 
