@@ -1190,6 +1190,31 @@ class Test_Enterprise_License(Base_Api_Test):
         for fact_version in fact_versions_pg.results:
             fact_version.get_related('fact_view')
 
+    def test_main_settings_endpoint(self, api_settings_pg):
+        '''Verify that the top-level /api/v1/settings/ endpoint shows our
+        enterprise auth endpoints.
+        '''
+        settings_pg = api_settings_pg.get()
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/saml/', settings_pg.results)) == 1, \
+            "Expected to find an /api/v1/settings/saml/ object under /api/v1/settings/."
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/radius/', settings_pg.results)) == 1, \
+            "Expected to find an /api/v1/settings/radius/ object under /api/v1/settings/."
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/ldap/', settings_pg.results)) == 1, \
+            "Expected to find an /api/v1/settings/ldap/ object under /api/v1/settings/."
+
+    def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
+        '''Verify that enterprise license users have access to our enterprise authentication
+        settings pages.
+        '''
+        for endpoint in enterprise_auth_settings_pgs:
+            # test get
+            endpoint.get()
+            # test put/patch
+            endpoint.put()
+            endpoint.patch()
+            # test delete
+            endpoint.delete()
+
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg):
         '''Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg.'''
         # Update the license

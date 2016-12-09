@@ -20,3 +20,8 @@ def update_setting_pg(request):
         request.addfinalizer(setting_pg.delete)
         return setting_pg.patch(**payload)
     return func
+
+
+@pytest.fixture
+def enterprise_auth_settings_pgs(api_settings_ldap_pg, api_settings_radius_pg, api_settings_saml_pg):
+    return [api_settings_ldap_pg, api_settings_radius_pg, api_settings_saml_pg]
