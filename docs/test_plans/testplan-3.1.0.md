@@ -26,7 +26,7 @@
 [Feature](https://drive.google.com/open?id=1Oc84TUnV2eh2Cy29vVfUfdJmV_qyg7NnTAEhuqoYdiQ)
 
 1. [ ] Test basic functionality of all /api/v1/settings/ endpoints.
-1. [ ] Test that that enterprise_auth enforced.
+1. [ ] Test that that capabilities filtered by license.
 1. [ ] Test that DELETE resets an endpoint.
 1. [ ] Test /api/v1/settings/ RBAC.
 1. [ ] Test that settings get migrated upon upgrade.
