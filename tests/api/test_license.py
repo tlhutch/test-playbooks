@@ -222,11 +222,10 @@ def install_basic_license(request, api_config_pg, license_instance_count):
 
 
 @pytest.fixture(scope='function')
-def install_enterprise_license(request, ansible_runner, api_config_pg, enterprise_license_json):
+def install_enterprise_license(request, api_config_pg, enterprise_license_json):
     log.debug("calling license fixture install_enterprise_license")
-
-    # POST a license
     api_config_pg.post(enterprise_license_json)
+    request.addfinalizer(api_config_pg.delete)
 
     # Confirm that license is present
     conf = api_config_pg.get()
@@ -238,78 +237,37 @@ def install_enterprise_license(request, ansible_runner, api_config_pg, enterpris
     assert conf.license_info.license_key == enterprise_license_json['license_key'], \
         "License found differs from license applied"
 
-    def teardown():
-        log.debug("calling license teardown install_enterprise_license")
-
-        # Delete the license
-        api_config_pg.delete()
-
-        # Pause to allow tower to do it's thing
-        ansible_runner.pause(seconds=15)
-
-    request.addfinalizer(teardown)
-
 
 @pytest.fixture(scope='function')
-def install_enterprise_license_expired(request, ansible_runner, api_config_pg, license_instance_count):
+def install_enterprise_license_expired(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_enterprise_license_expired")
-
     license_info = towerkit.tower.license.generate_license(license_type='enterprise', instance_count=license_instance_count, days=-61)
     api_config_pg.post(license_info)
-
-    def teardown():
-        log.debug("calling license teardown install_enterprise_license_expired")
-        # Delete the license
-        api_config_pg.delete()
-
-        # Pause to allow tower to do it's thing
-        ansible_runner.pause(seconds=15)
-
-    request.addfinalizer(teardown)
+    request.addfinalizer(api_config_pg.delete)
 
 
 @pytest.fixture(scope='function')
 def install_legacy_license_warning(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_warning")
-
-    # Post license
     license_info = towerkit.tower.license.generate_license(instance_count=license_instance_count, days=1)
     api_config_pg.post(license_info)
     request.addfinalizer(api_config_pg.delete)
 
 
 @pytest.yield_fixture(scope='function')
-def install_legacy_license_expired(api_config_pg, license_instance_count):
+def install_legacy_license_expired(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_expired")
-
-    def apply_license():
-        license_info = towerkit.tower.license.generate_license(instance_count=license_instance_count, days=-61)
-        api_config_pg.post(license_info)
-
-    apply_license()
-    yield apply_license
-    api_config_pg.delete()
+    license_info = towerkit.tower.license.generate_license(instance_count=license_instance_count, days=-61)
+    api_config_pg.post(license_info)
+    request.addfianlizer(api_config_pg.delete)
 
 
 @pytest.fixture(scope='function')
 def install_legacy_license_grace_period(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_grace_period")
-
-    # Apply license
     license_info = towerkit.tower.license.generate_license(instance_count=license_instance_count, days=-1)
     api_config_pg.post(license_info)
     request.addfinalizer(api_config_pg.delete)
-
-
-@pytest.fixture(scope='class')
-def ansible_ec2_facts(ansible_runner):
-    '''This will only work on an ec2 system'''
-    contacted = ansible_runner.ec2_facts()
-    if len(contacted) > 1:
-        log.warning("%d ec2_facts returned, but only returning the first" % len(contacted))
-    ec2_facts = contacted.values()[0]
-    assert 'ansible_facts' in ec2_facts
-    return ec2_facts['ansible_facts']
 
 
 @pytest.fixture(scope="function")
