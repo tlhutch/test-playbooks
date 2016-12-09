@@ -57,20 +57,6 @@ def pytest_generate_tests(metafunc):
 
 
 @pytest.fixture(scope='class')
-def install_integration_license(authtoken, api_config_pg, awx_config, tower_license_path, tower_aws_path):
-    '''If a suitable license is not already installed, install a new license'''
-    logging.debug("calling fixture install_integration_license")
-    if not (awx_config['license_info'].get('valid_key', False) and
-            awx_config['license_info'].get('compliant', False) and
-            awx_config['license_info'].get('available_instances', 0) >= 10001):
-
-        # Install/replace license
-        logging.debug("installing license {0}".format(tower_license_path))
-        license_json = towerkit.tower.license.generate_license(instance_count=10000, days=60, license_type='enterprise')
-        api_config_pg.post(license_json)
-
-
-@pytest.fixture(scope='class')
 def update_sshd_config(ansible_runner):
     '''Update /etc/ssh/sshd_config to increase MaxSessions'''
 
@@ -107,7 +93,7 @@ def set_rootpw(ansible_runner, testsetup):
 @pytest.mark.trylast
 class Test_Quickstart_Scenario(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures("authtoken", "install_integration_license", "update_sshd_config", "set_rootpw")
+    pytestmark = pytest.mark.usefixtures("authtoken", "install_enterprise_license_unlimited", "update_sshd_config", "set_rootpw")
 
     # Load test configuration
     config = load_file(os.path.join(os.path.dirname(__file__), 'data.yml'))
