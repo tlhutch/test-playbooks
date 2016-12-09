@@ -257,10 +257,14 @@ def install_legacy_license_warning(request, api_config_pg, license_instance_coun
 @pytest.yield_fixture(scope='function')
 def install_legacy_license_expired(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_expired")
-    license_info = towerkit.tower.license.generate_license(instance_count=license_instance_count, days=-61)
-    api_config_pg.post(license_info)
-    request.addfinalizer(api_config_pg.delete)
 
+    def apply_license():
+        license_info = towerkit.tower.license.generate_license(instance_count=license_instance_count, days=-61)
+        api_config_pg.post(license_info)
+
+    apply_license()
+    yield apply_license
+    api_config_pg.delete()
 
 @pytest.fixture(scope='function')
 def install_legacy_license_grace_period(request, api_config_pg, license_instance_count):
