@@ -1,13 +1,11 @@
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
-import logging
 import json
 import os
 import re
 
 from towerkit.exceptions import BadRequest, Duplicate, NoContent
 from towerkit.yaml_file import load_file
-import towerkit.tower.license
 from inflect import engine
 import pytest
 
