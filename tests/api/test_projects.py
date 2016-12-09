@@ -309,3 +309,14 @@ class Test_Projects(Base_Api_Test):
         for result in contacted.values():
             assert result['stat']['exists'], "The expected galaxy role requirement was not found (%s)." % \
                 expected_role_path
+
+    def test_git_project_from_file_path(self, factories, ansible_runner):
+        """Confirms that local file paths can be used for git repos"""
+        path = 'file:///tmp/at_3207_test/'
+        sync = ansible_runner.git(repo='git://github.com/jlaska/ansible-playbooks.git', dest=path)
+        rev = sync.values().pop()['after']
+        assert(rev)
+        project = factories.project(scm_url=path)
+        update = project.related.current_update.get().wait_until_completed()
+        assert(update.is_successful)
+        assert(project.get().scm_revision == rev)
