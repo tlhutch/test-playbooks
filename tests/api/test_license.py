@@ -548,6 +548,36 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected API response upon attempting to navigate to fact_versions with a legacy license - %s." % json.dumps(result)
 
+    def test_main_settings_endpoint(self, api_settings_pg):
+        '''Verify that the top-level /api/v1/settings/ endpoint shows only
+        LDAP among our enterprise auth solutions. Note: LDAP support is
+        included in legacy licenses.
+        '''
+        settings_pg = api_settings_pg.get()
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/saml/', settings_pg.results)) == 0, \
+            "Expected not to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/radius/', settings_pg.results)) == 0, \
+            "Expected not to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/ldap/', settings_pg.results)) == 1, \
+            "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
+
+    def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
+        '''Verify that enterprise license users have access to our enterprise authentication
+        settings pages.
+        '''
+        for endpoint in enterprise_auth_settings_pgs:
+            # test get
+            with pytest.raises(towerkit.execeptions.Forbidden):
+                endpoint.get()
+            # test put/patch
+            with pytest.raises(towerkit.execeptions.Forbidden):
+                endpoint.put()
+            with pytest.raises(towerkit.execeptions.Forbidden):
+                endpoint.patch()
+            # test delete
+            with pytest.raises(towerkit.execeptions.Forbidden):
+                endpoint.delete()
+
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg):
         '''Verify the license_info field is empty after deleting the license'''
@@ -995,6 +1025,35 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected JSON response upon attempting to navigate to fact_versions with a basic license - %s." % json.dumps(result)
 
+    def test_main_settings_endpoint(self, api_settings_pg):
+        '''Verify that the top-level /api/v1/settings/ endpoint does not show
+        our enterprise auth endpoints.
+        '''
+        settings_pg = api_settings_pg.get()
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/saml/', settings_pg.results)) == 0, \
+            "Expected not to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/radius/', settings_pg.results)) == 0, \
+            "Expected not to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/ldap/', settings_pg.results)) == 0, \
+            "Expected not to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
+
+    def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
+        '''Verify that enterprise license users have access to our enterprise authentication
+        settings pages.
+        '''
+        for endpoint in enterprise_auth_settings_pgs:
+            # test get
+            with pytest.raises(towerkit.execeptions.Forbidden):
+                endpoint.get()
+            # test put/patch
+            with pytest.raises(towerkit.execeptions.Forbidden):
+                endpoint.put()
+            with pytest.raises(towerkit.execeptions.Forbidden):
+                endpoint.patch()
+            # test delete
+            with pytest.raises(towerkit.execeptions.Forbidden):
+                endpoint.delete()
+
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
         '''Verify that a basic license can get upgraded to an enterprise license.'''
 
@@ -1196,11 +1255,11 @@ class Test_Enterprise_License(Base_Api_Test):
         '''
         settings_pg = api_settings_pg.get()
         assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/saml/', settings_pg.results)) == 1, \
-            "Expected to find an /api/v1/settings/saml/ object under /api/v1/settings/."
+            "Expected to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
         assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/radius/', settings_pg.results)) == 1, \
-            "Expected to find an /api/v1/settings/radius/ object under /api/v1/settings/."
+            "Expected to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
         assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/ldap/', settings_pg.results)) == 1, \
-            "Expected to find an /api/v1/settings/ldap/ object under /api/v1/settings/."
+            "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
         '''Verify that enterprise license users have access to our enterprise authentication
