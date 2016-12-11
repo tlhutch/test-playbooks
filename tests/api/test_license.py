@@ -554,11 +554,11 @@ class Test_Legacy_License(Base_Api_Test):
         case with legacy licenses.
         '''
         settings_pg = api_settings_pg.get()
-        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/saml/', settings_pg.results)) == 0, \
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == towerkit.api.resources.v1_settings_saml, settings_pg.results)) == 0, \
             "Expected not to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/radius/', settings_pg.results)) == 0, \
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == towerkit.api.resources.v1_settings_radius, settings_pg.results)) == 0, \
             "Expected not to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/ldap/', settings_pg.results)) == 1, \
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == towerkit.api.resources.v1_settings_ldap, settings_pg.results)) == 1, \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
@@ -1026,11 +1026,11 @@ class Test_Basic_License(Base_Api_Test):
         our enterprise auth endpoints.
         '''
         settings_pg = api_settings_pg.get()
-        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/saml/', settings_pg.results)) == 0, \
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == towerkit.api.resources.v1_settings_saml, settings_pg.results)) == 0, \
             "Expected not to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/radius/', settings_pg.results)) == 0, \
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == towerkit.api.resources.v1_settings_radius, settings_pg.results)) == 0, \
             "Expected not to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/ldap/', settings_pg.results)) == 0, \
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == towerkit.api.resources.v1_settings_ldap, settings_pg.results)) == 0, \
             "Expected not to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
@@ -1243,11 +1243,11 @@ class Test_Enterprise_License(Base_Api_Test):
         enterprise auth endpoints.
         '''
         settings_pg = api_settings_pg.get()
-        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/saml/', settings_pg.results)) == 1, \
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == towerkit.api.resources.v1_settings_saml, settings_pg.results)) == 1, \
             "Expected to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/radius/', settings_pg.results)) == 1, \
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == towerkit.api.resources.v1_settings_radius, settings_pg.results)) == 1, \
             "Expected to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/ldap/', settings_pg.results)) == 1, \
+        assert len(filter(lambda setting_pg: setting_pg.json['url'] == towerkit.api.resources.v1_settings_ldap, settings_pg.results)) == 1, \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
