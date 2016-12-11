@@ -567,15 +567,15 @@ class Test_Legacy_License(Base_Api_Test):
         '''
         for endpoint in enterprise_auth_settings_pgs:
             # test get
-            with pytest.raises(towerkit.execeptions.Forbidden):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 endpoint.get()
             # test put/patch
-            with pytest.raises(towerkit.execeptions.Forbidden):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 endpoint.put()
-            with pytest.raises(towerkit.execeptions.Forbidden):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 endpoint.patch()
             # test delete
-            with pytest.raises(towerkit.execeptions.Forbidden):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 endpoint.delete()
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
@@ -1043,15 +1043,15 @@ class Test_Basic_License(Base_Api_Test):
         '''
         for endpoint in enterprise_auth_settings_pgs:
             # test get
-            with pytest.raises(towerkit.execeptions.Forbidden):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 endpoint.get()
             # test put/patch
-            with pytest.raises(towerkit.execeptions.Forbidden):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 endpoint.put()
-            with pytest.raises(towerkit.execeptions.Forbidden):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 endpoint.patch()
             # test delete
-            with pytest.raises(towerkit.execeptions.Forbidden):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 endpoint.delete()
 
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
