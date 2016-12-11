@@ -266,6 +266,7 @@ def install_legacy_license_expired(request, api_config_pg, license_instance_coun
     yield apply_license
     api_config_pg.delete()
 
+
 @pytest.fixture(scope='function')
 def install_legacy_license_grace_period(request, api_config_pg, license_instance_count):
     log.debug("calling fixture install_legacy_license_grace_period")
