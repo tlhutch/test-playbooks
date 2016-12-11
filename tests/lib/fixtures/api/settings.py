@@ -24,4 +24,4 @@ def update_setting_pg(request):
 
 @pytest.fixture
 def enterprise_auth_settings_pgs(api_settings_ldap_pg, api_settings_radius_pg, api_settings_saml_pg):
-    return [api_settings_ldap_pg, api_settings_radius_pg, api_settings_saml_pg]
+    return [api_settings_radius_pg, api_settings_saml_pg, api_settings_ldap_pg]

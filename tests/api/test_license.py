@@ -550,8 +550,8 @@ class Test_Legacy_License(Base_Api_Test):
 
     def test_main_settings_endpoint(self, api_settings_pg):
         '''Verify that the top-level /api/v1/settings/ endpoint shows only
-        LDAP among our enterprise auth solutions. Note: LDAP support is
-        included in legacy licenses.
+        LDAP among our enterprise auth solutions. Note: LDAP is a special
+        case with legacy licenses.
         '''
         settings_pg = api_settings_pg.get()
         assert len(filter(lambda setting_pg: setting_pg.json['url'] == '/api/v1/settings/saml/', settings_pg.results)) == 0, \
@@ -562,21 +562,17 @@ class Test_Legacy_License(Base_Api_Test):
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
-        '''Verify that enterprise license users have access to our enterprise authentication
-        settings pages.
+        '''Verify that legacy license users have access to LDAP only from our
+        enterprise authentication settings pages.
         '''
+        requests = ["get", "put", "patch", "delete"]
         for endpoint in enterprise_auth_settings_pgs:
-            # test get
-            with pytest.raises(towerkit.exceptions.Forbidden):
-                endpoint.get()
-            # test put/patch
-            with pytest.raises(towerkit.exceptions.Forbidden):
-                endpoint.put()
-            with pytest.raises(towerkit.exceptions.Forbidden):
-                endpoint.patch()
-            # test delete
-            with pytest.raises(towerkit.exceptions.Forbidden):
-                endpoint.delete()
+            for request in requests:
+                if endpoint.base_url == '/api/v1/settings/ldap/':
+                    getattr(endpoint, request)()
+                else:
+                    with pytest.raises(towerkit.exceptions.NotFound):
+                        getattr(endpoint, request)()
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg):
@@ -1038,20 +1034,20 @@ class Test_Basic_License(Base_Api_Test):
             "Expected not to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
-        '''Verify that enterprise license users have access to our enterprise authentication
-        settings pages.
+        '''Verify that basic license users do not have access to any of our enterprise
+        authentication settings pages.
         '''
         for endpoint in enterprise_auth_settings_pgs:
             # test get
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(towerkit.exceptions.NotFound):
                 endpoint.get()
             # test put/patch
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(towerkit.exceptions.NotFound):
                 endpoint.put()
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(towerkit.exceptions.NotFound):
                 endpoint.patch()
             # test delete
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(towerkit.exceptions.NotFound):
                 endpoint.delete()
 
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
@@ -1262,8 +1258,8 @@ class Test_Enterprise_License(Base_Api_Test):
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
-        '''Verify that enterprise license users have access to our enterprise authentication
-        settings pages.
+        '''Verify that enterprise license users have access to our enterprise
+        authentication settings pages.
         '''
         for endpoint in enterprise_auth_settings_pgs:
             # test get
