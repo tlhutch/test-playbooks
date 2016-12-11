@@ -1037,18 +1037,11 @@ class Test_Basic_License(Base_Api_Test):
         '''Verify that basic license users do not have access to any of our enterprise
         authentication settings pages.
         '''
+        requests = ["get", "put", "patch", "delete"]
         for endpoint in enterprise_auth_settings_pgs:
-            # test get
-            with pytest.raises(towerkit.exceptions.NotFound):
-                endpoint.get()
-            # test put/patch
-            with pytest.raises(towerkit.exceptions.NotFound):
-                endpoint.put()
-            with pytest.raises(towerkit.exceptions.NotFound):
-                endpoint.patch()
-            # test delete
-            with pytest.raises(towerkit.exceptions.NotFound):
-                endpoint.delete()
+            for request in requests:
+                with pytest.raises(towerkit.exceptions.NotFound):
+                    getattr(endpoint, request)()
 
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
         '''Verify that a basic license can get upgraded to an enterprise license.'''
@@ -1261,14 +1254,10 @@ class Test_Enterprise_License(Base_Api_Test):
         '''Verify that enterprise license users have access to our enterprise
         authentication settings pages.
         '''
+        requests = ["get", "put", "patch", "delete"]
         for endpoint in enterprise_auth_settings_pgs:
-            # test get
-            endpoint.get()
-            # test put/patch
-            endpoint.put()
-            endpoint.patch()
-            # test delete
-            endpoint.delete()
+            for request in requests:
+                getattr(endpoint, request)()
 
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg):
         '''Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg.'''
