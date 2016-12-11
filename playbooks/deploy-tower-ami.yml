@@ -66,7 +66,7 @@
       register: key_pair
       failed_when: "{{ (key_pair.module_stderr is defined and key_pair.module_stderr.find('InvalidKeyPair.Duplicate') == -1) or key_pair.msg is defined }}"
       ignore_errors: true
-      # This `failed_when` condion is here because our CI sometimes has issues
+      # This `failed_when` condition is here because our CI sometimes has issues
       # when 2 different builds check for / attempt to create the key pair
       # at the same exact time.
 
@@ -116,12 +116,16 @@
 # - Change the admin password which is randomized on boot.
 #   This is easier than pulling it out of /etc/motd.
 #
+# - Turn off Pendo tracking.
+#
 # - Tell the API not to use the client's IP address or hostname as part of the
 #   token it grants the front end. This is because Sauce Labs' IP address
 #   changes throughout the test run on Windows.
 #
 - hosts: tower
   become: yes
+  vars:
+    admin_password: ch@ng3m3
 
   tasks:
     - name: Wait for db to be reconfigured
@@ -134,17 +138,45 @@
         port: 5432
 
     - name: Change admin password
-      shell: tower-manage update_password --username=admin --password=fo0m4nchU
+      shell: tower-manage update_password --username=admin --password={{ admin_password }}
       register: update_password
       changed_when: update_password.stdout != 'Password not updated'
+
+    - name: obtain tower version
+      command: tower-manage --version
+      register: tower_version
+
+    - name: turn off pendo tracking
+      uri:
+          url: 'https://localhost/api/v1/settings/all/'
+          method: PATCH
+          body:
+            PENDO_TRACKING_STATE: off
+          body_format: json
+          validate_certs: no
+          status_code: '200'
+          user: 'admin'
+          password: '{{ admin_password }}'
+          force_basic_auth: yes
+      when: tower_version.stdout|version_compare('3.1.0', '>=')
+
+    - name: turn off pendo tracking (legacy)
+      lineinfile:
+        dest: /etc/tower/settings.py
+        line: "PENDO_TRACKING_STATE = 'off'"
+        regexp: ^PENDO_TRACKING_STATE*
+        state: present
+        create: yes
+      when: not(tower_version.stdout|version_compare('3.1.0', '>='))
+      notify: Restart Tower
 
     - name: Tell Tower not to use IP address or host in API tokens
       lineinfile:
         dest: /etc/tower/conf.d/remote_host_headers.py
         line: 'REMOTE_HOST_HEADERS = []'
         create: yes
-      register: remote_host_headers
+      notify: Restart Tower
 
+  handlers:
     - name: Restart Tower
       shell: ansible-tower-service restart
-      when: remote_host_headers.changed
