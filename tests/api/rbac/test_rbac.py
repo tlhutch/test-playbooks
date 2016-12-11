@@ -2600,13 +2600,15 @@ class Test_License_RBAC(Base_Api_Test):
 @pytest.mark.destructive
 class Test_Settings_RBAC(Base_Api_Test):
 
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+
     def test_get_main_endpoint_as_non_superuser(self, non_superuser, user_password, api_settings_pg):
         """Verify that a non_superuser can GET the main settings endpoint but that no entries
         are returned.
         """
         with self.current_user(non_superuser.username, user_password):
-            api_settings_pg.get().count == 0, \
-                "Unexpected number of settings returned. Expected zero, got {0}.".format(api_settings_pg.get().count)
+            assert api_settings_pg.get().count == 0, \
+                "Unexpected number of settings returned. Expected zero, got {0}.".format(api_settings_pg.count)
 
     def test_get_nested_endpoint_as_non_superuser(self, non_superuser, user_password, settings_pgs):
         """Verify that non_superusers cannot GET nested settings endpoints (/api/v1/settings/ui/).
