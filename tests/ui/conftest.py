@@ -263,6 +263,9 @@ def ui_client(request, v1, default_tower_credentials):
     driver_capabilities_str = request.config.getoption('driver_capabilities')
     driver_capabilities = dict([v.split(':') for v in driver_capabilities_str.split(',')])
 
+    if 'platform' in driver_capabilities:
+        driver_capabilities['platform'] = driver_capabilities['platform'].replace('_', ' ')
+
     client = TowerUI(
         base_url=request.config.getoption('base_url'),
         browser_name=request.config.getoption('browser_name'),
