@@ -363,12 +363,10 @@ class Test_No_License(Base_Api_Test):
         payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
                        description="host-%s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
-        inv_hosts_pg = inventory.get_related('hosts')
-        group_hosts_pg = group.get_related('hosts')
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
-            inv_hosts_pg.post(payload)
+            inventory.related.hosts.post(payload)
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
-            group_hosts_pg.post(payload)
+            group.related.hosts.post(payload)
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
             api_hosts_pg.post(payload)
 
@@ -693,12 +691,10 @@ class Test_Legacy_License_Expired(Base_Api_Test):
         payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
                        description="host-%s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
-        inv_hosts_pg = inventory.get_related('hosts')
-        group_hosts_pg = group.get_related('hosts')
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
-            inv_hosts_pg.post(payload)
+            inventory.related.hosts.post(payload)
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
-            group_hosts_pg.post(payload)
+            group.related.hosts.post(payload)
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
             api_hosts_pg.post(payload)
 
