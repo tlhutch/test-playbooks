@@ -30,22 +30,6 @@ def navigate(api, url, field):
     return data.get(field)
 
 
-def navigate_to_setting(api, url, endpoint):
-    '''
-    Navigate to a nested /api/v1/settings/ endpoint.
-
-    Examples:
-    * navigate_to_setting(api, '/api/v1/settings/', 'all') returns '/api/v1/settings/all/'
-    * navigate_to_setting(api, '/api/v1/settings/', 'ldap') returns '/api/v1/settings/ldap/'
-    '''
-    if not endpoint.endswith('/'):
-        endpoint += '/'
-    data = api.get(url).json()
-    matches = [dict for dict in data['results'] if dict['url'].endswith(endpoint)]
-    assert len(matches) == 1, "No '%s' endpoint found."
-    return matches[0]['url']
-
-
 def api_default_page_size(testsetup):
     '''
     The tower default pagination size
@@ -542,19 +526,6 @@ def api_roles_pg(testsetup, api_roles_url):
 
 
 #
-# /api/v1/settings
-#
-@pytest.fixture(scope="module")
-def api_settings_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'settings')
-
-
-@pytest.fixture(scope="module")
-def api_settings_pg(testsetup, api_settings_url):
-    return Settings(testsetup, base_url=api_settings_url)
-
-
-#
 # /api/v1/workflow_job_templates
 #
 @pytest.fixture(scope="module")
@@ -607,12 +578,24 @@ def api_workflow_job_nodes_pg(testsetup, api_workflow_job_nodes_url):
 
 
 #
+# /api/v1/settings
+#
+@pytest.fixture(scope="module")
+def api_settings_url(api, api_v1_url):
+    return navigate(api, api_v1_url, 'settings')
+
+
+@pytest.fixture(scope="module")
+def api_settings_pg(testsetup, api_settings_url):
+    return Settings(testsetup, base_url=api_settings_url)
+
+
+#
 # /api/v1/settings/all
 #
 @pytest.fixture(scope="module")
 def api_settings_all_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'all')
+    return towerkit.api.resources.v1_settings_all
 
 
 @pytest.fixture(scope="module")
@@ -625,8 +608,7 @@ def api_settings_all_pg(testsetup, api_settings_all_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_auth_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'authentication')
+    return towerkit.api.resources.v1_settings_authentication
 
 
 @pytest.fixture(scope="module")
@@ -639,8 +621,7 @@ def api_settings_auth_pg(testsetup, api_settings_auth_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_azuread_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'azuread-oauth2')
+    return towerkit.api.resources.v1_settings_azuread_oauth2
 
 
 @pytest.fixture(scope="module")
@@ -653,8 +634,7 @@ def api_settings_azuread_pg(testsetup, api_settings_azuread_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_changed_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'changed')
+    return towerkit.api.resources.v1_settings_changed
 
 
 @pytest.fixture(scope="module")
@@ -667,8 +647,7 @@ def api_settings_changed_pg(testsetup, api_settings_changed_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_github_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'github')
+    return towerkit.api.resources.v1_settings_github
 
 
 @pytest.fixture(scope="module")
@@ -681,8 +660,7 @@ def api_settings_github_pg(testsetup, api_settings_github_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_github_org_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'github-org')
+    return towerkit.api.resources.v1_settings_github_org
 
 
 @pytest.fixture(scope="module")
@@ -695,8 +673,7 @@ def api_settings_github_org_pg(testsetup, api_settings_github_org_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_github_team_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'github-team')
+    return towerkit.api.resources.v1_settings_github_team
 
 
 @pytest.fixture(scope="module")
@@ -709,8 +686,7 @@ def api_settings_github_team_pg(testsetup, api_settings_github_team_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_google_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'google-oauth2')
+    return towerkit.api.resources.v1_settings_google_oauth2
 
 
 @pytest.fixture(scope="module")
@@ -723,8 +699,7 @@ def api_settings_google_pg(testsetup, api_settings_google_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_jobs_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'jobs')
+    return towerkit.api.resources.v1_settings_jobs
 
 
 @pytest.fixture(scope="module")
@@ -737,8 +712,7 @@ def api_settings_jobs_pg(testsetup, api_settings_jobs_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_ldap_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'ldap')
+    return towerkit.api.resources.v1_settings_ldap
 
 
 @pytest.fixture(scope="module")
@@ -751,8 +725,7 @@ def api_settings_ldap_pg(testsetup, api_settings_ldap_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_radius_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'radius')
+    return towerkit.api.resources.v1_settings_radius
 
 
 @pytest.fixture(scope="module")
@@ -765,8 +738,7 @@ def api_settings_radius_pg(testsetup, api_settings_radius_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_saml_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'saml')
+    return towerkit.api.resources.v1_settings_saml
 
 
 @pytest.fixture(scope="module")
@@ -779,8 +751,7 @@ def api_settings_saml_pg(testsetup, api_settings_saml_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_system_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'system')
+    return towerkit.api.resources.v1_settings_system
 
 
 @pytest.fixture(scope="module")
@@ -793,8 +764,7 @@ def api_settings_system_pg(testsetup, api_settings_system_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_ui_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'ui')
+    return towerkit.api.resources.v1_settings_ui
 
 
 @pytest.fixture(scope="module")
@@ -807,8 +777,7 @@ def api_settings_ui_pg(testsetup, api_settings_ui_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_user_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'user')
+    return towerkit.api.resources.v1_settings_user
 
 
 @pytest.fixture(scope="module")
@@ -821,8 +790,7 @@ def api_settings_user_pg(testsetup, api_settings_user_url):
 #
 @pytest.fixture(scope="module")
 def api_settings_user_defaults_url(api, api_v1_url):
-    settings_url = navigate(api, api_v1_url, 'settings')
-    return navigate_to_setting(api, settings_url, 'user-defaults')
+    return towerkit.api.resources.v1_settings_user_defaults
 
 
 @pytest.fixture(scope="module")
