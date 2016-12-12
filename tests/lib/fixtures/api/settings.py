@@ -24,4 +24,7 @@ def update_setting_pg(request):
 
 @pytest.fixture
 def enterprise_auth_settings_pgs(api_settings_ldap_pg, api_settings_radius_pg, api_settings_saml_pg):
+    """Returns a list of all of our enterprise auth settings_pgs. Enterprise auth includes: LDAP,
+    SAML, and RADIUS.
+    """
     return [api_settings_radius_pg, api_settings_saml_pg, api_settings_ldap_pg]
