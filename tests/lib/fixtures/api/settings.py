@@ -1,4 +1,5 @@
 import pytest
+from towerkit.api.pages import Setting
 
 
 @pytest.fixture
@@ -23,9 +24,17 @@ def update_setting_pg(request):
 
 
 @pytest.fixture
-def settings_pgs(api_settings_all_pg, api_settings_auth_pg, api_settings_azuread_pg, api_settings_changed_pg, api_settings_github_pg,
-                 api_settings_github_org_pg, api_settings_github_team_pg, api_settings_google_pg, api_settings_jobs_pg, api_settings_ldap_pg,
-                 api_settings_radius_pg, api_settings_saml_pg, api_settings_system_pg, api_settings_ui_pg):
-    return [api_settings_all_pg, api_settings_auth_pg, api_settings_azuread_pg, api_settings_changed_pg, api_settings_github_pg, api_settings_github_org_pg,
-            api_settings_github_team_pg, api_settings_google_pg, api_settings_jobs_pg, api_settings_ldap_pg, api_settings_radius_pg, api_settings_saml_pg,
-            api_settings_system_pg, api_settings_ui_pg]
+def settings_pgs(api_settings_pg, testsetup):
+    """Returns list of settings page objects for each setting posted under the main
+    /api/v1/settings/ endpoint.
+
+    Note: list of settings page objects returned will depend on your license.
+    """
+    endpoint_urls = [entry.json['url'] for entry in api_settings_pg.get().results]
+
+    settings_pgs = []
+    for url in endpoint_urls:
+        setting_pg = Setting(testsetup, base_url=url)
+        settings_pgs.append(setting_pg)
+
+    return settings_pgs
