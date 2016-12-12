@@ -71,7 +71,7 @@ if __name__ == '__main__':
                                           aws_access_key_id=opts.id,
                                           aws_secret_access_key=opts.key)
         if conn is None:
-            print "Failed to connect to region:%s, ignoring." % region.name
+            print("Failed to connect to region:%s, ignoring." % region.name)
             continue
 
         reservations = conn.get_all_instances(filters=opts.filters)
@@ -90,21 +90,21 @@ if __name__ == '__main__':
             instances += protected
 
         if instances:
-            print "== Instances [region:%s] ==" % region.name
+            print("== Instances [region:%s] ==" % region.name)
             for i in instances:
                 # Using dateutil.parser results in tzoffset problems when comparing times
                 # launch_time = dateutil.parser.parse(i.launch_time)
                 launch_time = datetime.strptime(i.launch_time, "%Y-%m-%dT%H:%M:%S.%fZ")
                 if opts.uptime is None or (utcnow - launch_time) > timedelta(minutes=opts.uptime):
-                    print " * %s %s (%s) %s" % (i.id, i.public_dns_name, i.launch_time,
+                    print(" * %s %s (%s) %s" % (i.id, i.public_dns_name, i.launch_time),
                                                 ', '.join(["%s=%s" % item for item in i.tags.items()]))
                     if opts.action is not None and hasattr(i, opts.action):
                         getattr(i, opts.action)()
-                        print " ... %s" % opts.action
+                        print(" ... %s" % opts.action)
                         total_action += 1
 
     # Display summary
     if opts.action and opts.action == 'terminate':
-        print "Instances terminated: %s" % total_action
+        print("Instances terminated: %s" % total_action)
     if opts.action and opts.action == 'stop':
-        print "Instances stopped: %s" % total_action
+        print("Instances stopped: %s" % total_action)
