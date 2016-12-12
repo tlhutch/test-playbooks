@@ -1201,8 +1201,8 @@ class Test_Team_RBAC(Base_Api_Test):
         admin_role = roles_pg.results[0]
 
         for role in [auditor_role, admin_role]:
-            with pytest.raises(towerkit.exceptions.Forbidden):
-                 team.get_related('roles').post(dict(id=role.id))
+            with pytest.raises(towerkit.exceptions.BadRequest):
+                 team.related.roles.post(dict(id=role.id))
 
 
 @pytest.mark.api
