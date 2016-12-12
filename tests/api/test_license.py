@@ -19,6 +19,9 @@
 [] Test cannot run scan jobs
 [X] Test cannot run cleanup_facts
 [X] Test cannot GET fact_versions endpoints
+[X] Test cannot see custom rebranding flags under /api/v1/settings/ui/
+[X] Test enterprise auth items under /api/v1/settings/ filtered by license
+[X] Test access to enterprise auth nested settings endpoints
 [X] Test can delete license
 
 # Test Legacy License Warning
@@ -60,6 +63,9 @@
 [] Test cannot run scan jobs
 [X] Test cannot launch cleanup_facts
 [X] Test cannot GET fact_versions endpoints
+[X] Test cannot see custom rebranding flags under /api/v1/settings/ui/
+[X] Test enterprise auth items under /api/v1/settings/ filtered by license
+[X] Test access to enterprise auth nested settings endpoints
 [X] Test upgrade to enterprise
 [X] Test can delete license
 
@@ -78,6 +84,9 @@
 [X] Test can launch scan jobs
 [X] Test can launch cleanup_facts
 [X] Test can GET fact_versions endpoints
+[X] Test cannot see custom rebranding flags under /api/v1/settings/ui/
+[X] Test enterprise auth items under /api/v1/settings/ filtered by license
+[X] Test access to enterprise auth nested settings endpoints
 [X] Test downgrade to basic
 [X] Test able to delete license
 
@@ -104,6 +113,14 @@ log = logging.getLogger(__name__)
 def license_instance_count(request):
     '''Number of host instances permitted by the license'''
     return 10
+
+
+@pytest.fixture(scope='module')
+def custom_rebranding_flags():
+    '''Return a list containing the names of our custom_rebranding flags
+    under /api/v1/settings/ui/.
+    '''
+    return ["CUSTOM_LOGIN_INFO", "CUSTOM_LOGO"]
 
 
 @pytest.fixture(scope='function')
@@ -547,6 +564,14 @@ class Test_Legacy_License(Base_Api_Test):
 
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected API response upon attempting to navigate to fact_versions with a legacy license - %s." % json.dumps(result)
+
+    def test_custom_rebranding(self, custom_rebranding_flags, api_settings_ui_pg):
+        '''Verify that custom rebranding flags are not visible with a legacy license.
+        '''
+        settings_pg = api_settings_ui_pg.get()
+        for flag in settings_pg.json.keys():
+            assert flag not in custom_rebranding_flags, \
+                "Flag '{0}' visible under /api/v1/settings/ui/ with a legacy license.".format(flag)
 
     def test_main_settings_endpoint(self, api_settings_pg):
         '''Verify that the top-level /api/v1/settings/ endpoint shows only
@@ -1021,6 +1046,14 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected JSON response upon attempting to navigate to fact_versions with a basic license - %s." % json.dumps(result)
 
+    def test_custom_rebranding(self, custom_rebranding_flags, api_settings_ui_pg):
+        '''Verify that custom rebranding flags are not accessible with a basic license.
+        '''
+        settings_pg = api_settings_ui_pg.get()
+        for flag in settings_pg.json.keys():
+            assert flag not in custom_rebranding_flags, \
+                "Flag '{0}' visible under /api/v1/settings/ui/ with a basic license.".format(flag)
+
     def test_main_settings_endpoint(self, api_settings_pg):
         '''Verify that the top-level /api/v1/settings/ endpoint does not show
         our enterprise auth endpoints.
@@ -1237,6 +1270,14 @@ class Test_Enterprise_License(Base_Api_Test):
         fact_versions_pg = host_pg.get_related('fact_versions')
         for fact_version in fact_versions_pg.results:
             fact_version.get_related('fact_view')
+
+    def test_custom_rebranding(self, custom_rebranding_flags, api_settings_ui_pg):
+        '''Verify that custom rebranding flags are visible with an enterprise license.
+        '''
+        settings_pg = api_settings_ui_pg.get()
+        for flag in custom_rebranding_flags:
+            assert flag in settings_pg.json.keys(), \
+                "Flag '{0}' not displayed under /api/v1/settings/ui/ with an enterprise license.".format(flag)
 
     def test_main_settings_endpoint(self, api_settings_pg):
         '''Verify that the top-level /api/v1/settings/ endpoint shows our
