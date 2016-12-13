@@ -10,6 +10,7 @@ results.xml
 *.jsonc
 .tox
 .cache
+chromedriver
 /playbooks/credentials.yml
 /playbooks/*vars.*
 /playbooks/inventory.*
