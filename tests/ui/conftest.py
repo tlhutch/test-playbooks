@@ -266,6 +266,14 @@ def ui_client(request, v1, default_tower_credentials):
     if 'platform' in driver_capabilities:
         driver_capabilities['platform'] = driver_capabilities['platform'].replace('_', ' ')
 
+    if request.config.getoption('driver_type') == 'remote':
+        driver_capabilities['acceptSslCerts'] = True
+
+        if request.config.getoption('browser_name') == 'firefox':
+            if driver_capabilities.get('platform', None) != 'linux':
+                driver_capabilities['version'] = '47'
+            driver_capabilities['marionette'] = False
+
     client = TowerUI(
         base_url=request.config.getoption('base_url'),
         browser_name=request.config.getoption('browser_name'),
