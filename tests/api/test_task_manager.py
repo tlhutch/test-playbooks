@@ -1,4 +1,5 @@
 import pytest
+from dateutil.parser import parse as du_parse
 
 from tests.api import Base_Api_Test
 
@@ -29,7 +30,7 @@ class Test_Task_Manager(Base_Api_Test):
         three project updates on the same project and then check that only one update was
         running at any given point in time.
         """
-        # launch two updates
+        # launch three updates
         for _ in range(3):
             project.update().wait_until_completed()
 
@@ -42,7 +43,7 @@ class Test_Task_Manager(Base_Api_Test):
         we launch three inventory updates on the same inventory source and then check that only one
         update was running at any given point in time.
         """
-        # launch two updates
+        # launch three updates
         for _ in range(3):
             custom_inventory_source.update().wait_until_completed()
 
@@ -60,3 +61,34 @@ class Test_Task_Manager(Base_Api_Test):
 
         # check that we have no overlapping system jobs
         check_sequential_jobs(system_jobs)
+
+    def test_job_template(self, job_template):
+        """Launch several jobs using the same JT. Assert no job was running when another job was
+        running.
+        """
+        # launch three jobs
+        for _ in range(3):
+            job_template.launch().wait_until_completed()
+
+        # check that we have no overlapping jobs
+        jobs = job_template.related.jobs.get()
+        check_sequential_jobs(jobs.results)
+
+    def test_job_template_with_allow_simultaneous(self, job_template):
+        """Launch two jobs using the same JT with allow_simultaneous. Assert that we have overlapping
+        jobs.
+        """
+        job_template.patch(allow_simultaneous=True, playbook="sleep.yml", extra_vars=dict(sleep_interval=10))
+
+        # launch two jobs
+        job_1 = job_template.launch()
+        job_2 = job_template.launch()
+        job_1.wait_until_completed()
+        job_2.wait_until_completed()
+
+        # check that we have overlapping jobs
+        # assert that job#1 started before job#2 finished
+        assert du_parse(job_1.started) < du_parse(job_2.finished)
+
+        # assert that job#1 finished after job#2 started
+        assert du_parse(job_1.finished) > du_parse(job_2.started)
