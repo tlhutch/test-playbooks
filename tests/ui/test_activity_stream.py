@@ -34,6 +34,7 @@ def test_navigation_dropdown(ui):
         'Schedules',
         'Teams',
         'Users',
+        'Workflow Job Templates',
     ]
     activity = ui.activity_stream.get()
     assert activity.navigation_dropdown.value == 'All Activity', (
