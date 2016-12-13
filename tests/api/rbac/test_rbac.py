@@ -2610,28 +2610,28 @@ class Test_Settings_RBAC(Base_Api_Test):
             assert api_settings_pg.get().count == 0, \
                 "Unexpected number of settings returned. Expected zero, got {0}.".format(api_settings_pg.count)
 
-    def test_get_nested_endpoint_as_non_superuser(self, non_superuser, user_password, settings_pgs):
+    def test_get_nested_endpoint_as_non_superuser(self, non_superuser, user_password, api_settings_pg):
         """Verify that non_superusers cannot GET nested settings endpoints (/api/v1/settings/ui/).
         """
-        for settings_pg in settings_pgs:
+        for settings_pg in api_settings_pg.get().results:
             with self.current_user(non_superuser.username, user_password):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     settings_pg.get()
 
-    def test_edit_nested_endpoint_as_non_superuser(self, non_superuser, user_password, settings_pgs):
+    def test_edit_nested_endpoint_as_non_superuser(self, non_superuser, user_password, api_settings_pg):
         """Verify that non_superusers cannot edit nested settings endpoints (/api/v1/settings/ui/).
         """
-        for settings_pg in settings_pgs:
+        for settings_pg in api_settings_pg.get().results:
             with self.current_user(non_superuser.username, user_password):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     settings_pg.put()
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     settings_pg.patch()
 
-    def test_delete_nested_endpoint_as_non_superuser(self, non_superuser, user_password, settings_pgs):
+    def test_delete_nested_endpoint_as_non_superuser(self, non_superuser, user_password, api_settings_pg):
         """Verify that non_superusers cannot delete nested settings endpoints (/api/v1/settings/ui/).
         """
-        for settings_pg in settings_pgs:
+        for settings_pg in api_settings_pg.get().results:
             with self.current_user(non_superuser.username, user_password):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     settings_pg.delete()
