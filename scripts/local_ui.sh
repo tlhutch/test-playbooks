@@ -5,8 +5,13 @@
 # for debugging, writing new tests, or any other occasion where you'd like to actually
 # see what is going on.
 #
+# assumptions:
+#   - you've created a valid credentials file and have saved it to tests/credentials.yml
+#
+# usage:
+#     ./scripts/local_ui.sh $BASE_URL
+#
 # example: 
-#    ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/ui/credentials.yml
 #    ./scripts/local_ui.sh "http://ec2-12-345-67-89.compute-1.amazonaws.com"
 #
 
@@ -42,12 +47,10 @@ fi
 py.test \
     --ansible-host-pattern=all \
     --ansible-inventory=playbooks/inventory \
-    --api-credentials=tools/docker/ui/credentials.yml \
     --api-destructive \
     --base-url="${BASE_URL}" \
     --browser=chrome \
     --driver-type=local \
     --driver-location=./chromedriver \
-    --github-cfg=tools/docker/ui/credentials.yml \
     --no-print-logs \
     tests/ui
