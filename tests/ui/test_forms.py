@@ -137,6 +137,3 @@ class TestJobTemplateDetails(RequiredFields, TextInputPanelResponse):
     @pytest.fixture
     def form(self, request, ui, session_fixtures):
         yield ui.job_template_edit.get(id=session_fixtures.job_template.id).details
-
-    def test_clearing_required_fields_disables_save(self, form):
-        super(TestJobTemplateDetails, self).test_clearing_required_fields_disables_save(form)
