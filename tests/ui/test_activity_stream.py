@@ -17,6 +17,7 @@ def test_component_visibility(ui):
     assert activity.list_panel.surrounds(activity.navigation_dropdown)
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4406')
 def test_navigation_dropdown(ui):
     """Verify expected functionality of the navigation dropdown widget
     """
@@ -33,6 +34,7 @@ def test_navigation_dropdown(ui):
         'Schedules',
         'Teams',
         'Users',
+        'Workflow Job Templates',
     ]
     activity = ui.activity_stream.get()
     assert activity.navigation_dropdown.value == 'All Activity', (
