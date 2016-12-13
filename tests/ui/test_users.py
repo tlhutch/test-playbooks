@@ -63,7 +63,6 @@ def test_delete_user(ui, user):
     assert len(results) == 0
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3942')
 def test_create_user(v1, ui, session_org):
     """End-to-end functional test for creating a user
     """
