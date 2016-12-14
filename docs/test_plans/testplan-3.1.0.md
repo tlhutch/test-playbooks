@@ -68,7 +68,7 @@
 
 ### Clustering/HA (Ryan)
 1. [x] Successful installation of 3 node + 1 db clustered system
-1. [ ] Successful installation of 5 node + 1 db clustered system
+1. [x] Successful installation of 5 node + 1 db clustered system
 1. [ ] Successful installation of 10 node + 1 db clustered system
 1. [ ] Successful addition of new nodes to cluster via inventory update and setup.sh rerun
 1. [ ] Successful addition of former standalone nodes to cluster via setup.sh rerun (https://github.com/ansible/ansible-tower/issues/4392)
@@ -96,7 +96,7 @@
 1. [ ] Expected distribution and success of 2000 jobs over 10 node cluster w/ network disruption
 
 ### Job Events (Ryan)
-1. [ ] Expected job events are visible for all unified jobs
+1. [ ] Expected job events are visible for jobs with playbooks
 1. [ ] Expected job events are visible for playbooks with async tasks
 1. [ ] Expected job events are visible for playbooks when free strategy is used
 
