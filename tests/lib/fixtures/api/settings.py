@@ -1,5 +1,4 @@
 import pytest
-from towerkit.api.pages import Setting
 
 
 @pytest.fixture
