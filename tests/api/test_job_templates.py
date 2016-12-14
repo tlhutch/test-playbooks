@@ -946,7 +946,7 @@ class Test_Job_Template(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             launch_pg.post()
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3534")
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/4438")
     @pytest.mark.parametrize("limit_value, expected_count", [
         ("", 12),
         ("all", 12),
