@@ -4,7 +4,6 @@ import pytest
 pytestmark = [pytest.mark.ui]
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3896')
 def test_displayed_card_titles_and_ordering(ui, rando):
     """Verify that the visibility and ordering of setup menu cards
     as an admin and a random user
@@ -44,7 +43,6 @@ def test_displayed_card_titles_and_ordering(ui, rando):
         assert ui_setup.card_titles == anon_card_titles
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3896')
 def test_cards_route_to_expected_destination(ui):
     """Verify succesful expected link destination of setup menu cards
     """
@@ -56,10 +54,11 @@ def test_cards_route_to_expected_destination(ui):
         'teams': '/#/teams',
         'credentials': '/#/credentials',
         'management jobs': '/#/management_jobs',
-        'inventory scripts': '/#/inventory_scripts',
+        'inventory scripts': '/#/inventory_script',
         'notifications': '/#/notification_templates',
         'view your license': '/#/license',
-        'about tower': '/#/setup/about'
+        'about tower': '/#/setup/about',
+        'configure tower': '/#/configuration',
     }
     for card in ui_setup.cards:
         title_key = card.title.text.lower()
