@@ -432,7 +432,7 @@ print json.dumps(inv, indent=2)
         assert command_pg.is_successful, "Command unsuccessful - %s" % command_pg
 
         # assert that command run on correct number of hosts
-        events_pg = command_pg.get_related('events')
+        events_pg = command_pg.get_related('events', event__startswith='runner_on')
         assert events_pg.count == expected_count
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4233')
