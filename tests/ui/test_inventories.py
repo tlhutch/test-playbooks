@@ -64,7 +64,6 @@ def test_edit_inventory(v1, ui, inventory):
     assert len(results) == 1, 'Unable to find row of updated inventory'
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3816')
 def test_delete_inventory(ui, inventory):
     """End-to-end functional test for deleting an inventory
     """

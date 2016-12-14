@@ -58,7 +58,6 @@ def test_edit_credential(ui, org_cred):
     assert len(results) == 1, 'Unable to find row of updated credential'
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3816')
 def test_delete_credential(v1, ui, org_cred):
     """End-to-end functional test for deleting a credential
     """
