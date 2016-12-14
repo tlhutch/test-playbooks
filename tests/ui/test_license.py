@@ -21,10 +21,6 @@ def unlicensed(v1, ui, default_tower_credentials):
     ui.login.login_username.send_keys(un)
     ui.login.login_password.send_keys(pw)
     ui.login.login_button.click()
-    ui.login.logout()
-    ui.login.login_username.send_keys(un)
-    ui.login.login_password.send_keys(pw)
-    ui.login.login_button.click()
     yield
     v1.config.get().install_license()
 
@@ -66,6 +62,9 @@ def test_license_date(v1, ui):
     v1.config.post(license_info)
 
     ui_license.get()
+    if ui_license.driver.name == 'firefox':
+        ui_license.driver.refresh()
+
     ui_license.wait_until_time_remaining_is_displayed()
 
     license_date = int(license_info['license_date'])
