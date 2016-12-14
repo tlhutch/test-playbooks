@@ -126,7 +126,7 @@ def test_create_project(v1, ui, session_org, session_project):
     assert api_results, 'unable to verify creation of project'
     # wait for newly created project scm_update to finish
     api_project = api_results[0]
-    api_project.get_related('current_update').wait_until_completed()
+    add.wait.until(lambda _: api_project.get().is_successful)
     # check the current url for the project id
     assert str(api_project.id) in add.driver.current_url
     # check that we find a row showing the updated project name
