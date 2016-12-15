@@ -137,6 +137,18 @@
       wait_for:
         port: 5432
 
+    - name: verify Tower API is accepting connections
+      uri:
+          url: 'https://localhost/api/v1/ping/'
+          validate_certs: no
+          user: 'admin'
+          password: '{{ admin_password }}'
+          force_basic_auth: yes
+      register: result
+      until: result['status']|default(0) == 200
+      retries: 20
+      delay: 2
+
     - name: Change admin password
       shell: tower-manage update_password --username=admin --password={{ admin_password }}
       register: update_password
