@@ -69,7 +69,7 @@
 ### Clustering/HA (Ryan)
 1. [x] Successful installation of 3 node + 1 db clustered system
 1. [x] Successful installation of 5 node + 1 db clustered system
-1. [ ] Successful installation of 10 node + 1 db clustered system
+1. [x] Successful installation of 10 node + 1 db clustered system
 1. [ ] Successful addition of new nodes to cluster via inventory update and setup.sh rerun
 1. [ ] Successful addition of former standalone nodes to cluster via setup.sh rerun (https://github.com/ansible/ansible-tower/issues/4392)
 1. [x] Successful deprovisioning of nodes via tower-manage command
