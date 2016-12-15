@@ -109,13 +109,13 @@ from tests.api import Base_Api_Test
 log = logging.getLogger(__name__)
 
 
+REBRANDING_FLAGS = ["CUSTOM_LOGIN_INFO", "CUSTOM_LOGO"]
+
+
 @pytest.fixture(scope='class')
 def license_instance_count(request):
     '''Number of host instances permitted by the license'''
     return 10
-
-
-REBRANDING_FLAGS = ["CUSTOM_LOGIN_INFO", "CUSTOM_LOGO"]
 
 
 @pytest.fixture(scope='function')
