@@ -1466,6 +1466,15 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled job_template role.")
 
+    def test_launch_as_auditor(self, factories):
+        """Confirms that a system auditor cannot launch job templates"""
+        jt = factories.job_template()
+        user = factories.user()
+        user.is_system_auditor = True
+        with self.current_user(user.username, user.password):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                jt.launch().wait_until_completed()
+
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_relaunch_job(self, factories, user_password, role):
         """Tests ability to relaunch a job."""
@@ -1539,6 +1548,14 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         with self.current_user(username=user2.username, password=user_password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 job_pg.get_related('relaunch').post()
+
+    def test_relaunch_job_as_auditor(self, factories, job_with_status_completed):
+        """Confirms that a system auditor cannot relaunch a job"""
+        user = factories.user()
+        user.is_system_auditor = True
+        with self.current_user(user.username, user.password):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                job_with_status_completed.relaunch().wait_until_completed()
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_cancel_job(self, factories, user_password, role):
@@ -2496,6 +2513,14 @@ class Test_System_Jobs_RBAC(Base_Api_Test):
         '''
         check_user_capabilities(cleanup_jobs_with_status_completed.get(), "superuser")
         check_user_capabilities(api_system_jobs_pg.get(id=cleanup_jobs_with_status_completed.id).results.pop().get(), "superuser")
+
+    def test_launch_as_auditor(self, factories, system_job_template):
+        """Confirms that a system auditor cannot launch system jobs"""
+        user = factories.user()
+        user.is_system_auditor = True
+        with self.current_user(user.username, user.password):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                system_job_template.launch().wait_until_completed()
 
 
 @pytest.mark.api
