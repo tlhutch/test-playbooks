@@ -26,3 +26,12 @@ def enterprise_auth_settings_pgs(api_settings_ldap_pg, api_settings_radius_pg, a
     SAML, and RADIUS.
     """
     return [api_settings_radius_pg, api_settings_saml_pg, api_settings_ldap_pg]
+
+
+@pytest.fixture(scope="function", params=["all", "auth", "azuread", "changed", "github", "github_org", "github_team", "google", "jobs",
+                                          "ldap", "radius", "saml", "system", "ui"])
+def setting_pg(request):
+    """
+    Returns each of our nested /api/v1/settings/ endpoints.
+    """
+    return request.getfuncargvalue("api_settings_" + request.param + "_pg")
