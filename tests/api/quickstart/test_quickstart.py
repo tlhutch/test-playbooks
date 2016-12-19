@@ -88,7 +88,7 @@ def set_rootpw(ansible_runner, testsetup):
 @pytest.mark.incremental
 @pytest.mark.integration
 @pytest.mark.skip_selenium
-@pytest.mark.trylast
+@pytest.mark.last
 class Test_Quickstart_Scenario(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures("authtoken", "install_enterprise_license_unlimited", "update_sshd_config", "set_rootpw")
