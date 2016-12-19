@@ -49,6 +49,13 @@
   include: epel.yml
   when: ansible_os_family == 'RedHat' and ansible_install_method in ['stable', 'testing', 'nightly', 'pip']
 
+# https://bugzilla.redhat.com/show_bug.cgi?id=1405175
+- name: update selinux-policy
+  yum:
+    name: selinux-policy
+    state: latest
+  when: ansible_pkg_mgr == 'yum'
+
 # install ansible nightly yum repo (optional)
 
 - name: install ansible nightly yum repository
