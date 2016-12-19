@@ -13,7 +13,7 @@ def test_toggle_all_users_visble_to_org_admin(v1, ui, org_admin, rando):
     configuration, users = ui.configuration, ui.users
 
     configuration.get()
-    configuration.system.org_admins_can_see_all_users.value = False
+    configuration.system.misc.org_admins_can_see_all_users.value = False
 
     with users.get().current_user(org_admin.username):
         users.search(rando.username)
@@ -21,7 +21,7 @@ def test_toggle_all_users_visble_to_org_admin(v1, ui, org_admin, rando):
         assert users.passively_wait_until(lambda: users.badge.text == '0')
 
     configuration.get()
-    configuration.system.org_admins_can_see_all_users.value = True
+    configuration.system.misc.org_admins_can_see_all_users.value = True
 
     with users.get().current_user(org_admin.username):
         users.search(rando.username)
@@ -48,13 +48,13 @@ def test_activity_stream_toggle(v1, ui, inventory):
     names = (inventory.name, fauxfactory.gen_alphanumeric(), fauxfactory.gen_alphanumeric())
     # patch the inventory with activity reporting enabled
     configuration.get()
-    configuration.system.activity_stream_enabled.value = True
+    configuration.system.activity_stream.activity_stream_enabled.value = True
     inventory.patch(name=names[1])
     # patch the inventory with activity reporting disabled
-    configuration.system.activity_stream_enabled.value = False
+    configuration.system.activity_stream.activity_stream_enabled.value = False
     inventory.patch(name=names[2])
     # re-enable activity reporting
-    configuration.system.activity_stream_enabled.value = True
+    configuration.system.activity_stream.activity_stream_enabled.value = True
     # load the activity stream
     activity_stream.get()
     activity_stream.navigation_dropdown.value = 'Inventories'
