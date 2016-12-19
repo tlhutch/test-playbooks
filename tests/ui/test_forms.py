@@ -65,7 +65,9 @@ class TestConfiguration(TextInputReset, TextInputPanelResponse):
         'auth.radius',
         'auth.saml',
         'jobs',
-        'system',
+        'system.misc',
+        'system.activity_stream',
+        'system.logging',
         'ui',)
 
     @pytest.fixture(params=form_names)
