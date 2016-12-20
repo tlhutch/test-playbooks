@@ -41,3 +41,10 @@ def setting_pg(request):
     Returns each of our nested /api/v1/settings/ endpoints.
     """
     return request.getfuncargvalue("api_settings_" + request.param + "_pg")
+
+
+@pytest.fixture
+def reset_settings_upon_teardown(request, api_settings_all_pg):
+    """Resets all Tower settings to factory defaults.
+    """
+    request.addfinalizer(api_settings_all_pg.delete())

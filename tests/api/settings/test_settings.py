@@ -457,5 +457,5 @@ class Test_Setting(Base_Api_Test):
         # reset nested settings endpoint and check that defaults restored
         setting_pg.delete()
         assert initial_json == setting_pg.get().json, \
-            "Expected {0} to look different after changing Tower settings.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
+            "Expected {0} to be reverted to initial state after submitting DELETE request.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
                 setting_pg.base_url, initial_json, setting_pg.get().json)
