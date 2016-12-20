@@ -451,7 +451,7 @@ def test_job_template_post_request_without_network_credential_access(
 
 
 @pytest.mark.parametrize(
-    'resource_name, main_api_endpoint',
+    'resource_name, fixture_name',
     [
         ('organization', 'api_organizations_pg'),
         ('team', 'api_teams_pg'),
@@ -459,33 +459,37 @@ def test_job_template_post_request_without_network_credential_access(
         ('inventory', 'api_inventories_pg'),
         ('inventory_script', 'api_inventory_scripts_pg'),
         ('credential', 'api_credentials_pg'),
-        ('job_template', 'api_job_template_pg')
+        ('job_template', 'api_job_templates_pg')
     ]
 )
-def test_admin_role_filter(request, factories, auth_user, resource_name, main_api_endpoint):
+def test_admin_role_filter(request, factories, auth_user, resource_name, fixture_name):
     """Tower supports query filters of the following form: /api/v1/projects/?role_level=admin_role.
-    Test that our query filter works for admin role on select Tower resources. Note: we choose not
-    to test other roles types here because the admin role filter is the filter that the UI uses.
+    Test that this query filter works with the admin role of select Tower resources. Note: we choose
+    not to test other roles here because the admin role filter is the filter used in the UI.
     """
-    # create resources
+    # create tower resources
     if resource_name == 'credential':
         organization = factories.organization()
         user = factories.user(organization=organization)
-        admin_resource  = getattr(factories, resource_name)(organization=organization)
-        non_admin_resource = getattr(factories, resource_name)(organization=organization)
+        admin_resource = getattr(factories, resource_name)(organization=organization)
+        getattr(factories, resource_name)(organization=organization)
     else:
         user = factories.user()
         admin_resource = getattr(factories, resource_name)()
-        non_admin_resource = getattr(factories, resource_name)()
+        getattr(factories, resource_name)()
 
     # assign role to admin_resource
     set_roles(user, admin_resource, ['admin'])
 
-    # assert that
+    # assert that our query filter returns the correct resource
     with auth_user(user):
-        results = request.getfuncargvalue(main_api_endpoint).get(role_level='admin_role')
-        assert results.count == 1
-        assert results.results[0].id == admin_resource.id
+        query_results = request.getfuncargvalue(fixture_name).get(role_level='admin_role')
+        assert query_results.count == 1, \
+            "Unexpected number of query results returned. Expected one, received {0}.".format(query_results.count)
+        assert query_results.results[0].id == admin_resource.id, \
+            "Incorrect Tower resource returned. Expected {0}, received {1}.".format(
+                admin_resource.base_url, query_results.results[0].base_url)
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
