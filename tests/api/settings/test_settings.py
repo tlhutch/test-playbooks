@@ -439,7 +439,7 @@ class Test_Setting(Base_Api_Test):
             "Discrepancy between license and license displayed under /api/v1/settings/system/." \
             "\n\nLicense:\n{0}\n\nAPI returned:\n{1}\n".format(json.dumps(license_info), json.dumps(returned_license))
 
-    def test_reset_setting(self, setting_pg, update_settings, reset_settings_upon_teardown):
+    def test_reset_setting(self, setting_pg, update_settings, reset_settings):
         '''
         Verifies that settings get restored to factory defaults with a DELETE
         request.
@@ -459,3 +459,6 @@ class Test_Setting(Base_Api_Test):
         assert initial_json == setting_pg.get().json, \
             "Expected {0} to be reverted to initial state after submitting DELETE request.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
                 setting_pg.base_url, initial_json, setting_pg.get().json)
+
+        # reset Tower settings
+        reset_settings()

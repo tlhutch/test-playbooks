@@ -34,17 +34,23 @@ def reset_settings_upon_teardown(request, api_settings_all_pg):
     request.addfinalizer(api_settings_all_pg.delete())
 
 
-@pytest.fixture(scope="function", params=["all", "auth", "azuread", "changed", "github", "github_org", "github_team", "google", "jobs",
+@pytest.fixture(scope="function", params=["all", "auth", "azuread", "changed", "github_org", "github_team", "google", "jobs",
                                           "ldap", "radius", "saml", "system", "ui"])
 def setting_pg(request):
     """
     Returns each of our nested /api/v1/settings/ endpoints.
+
+    FIXME: we do not include "github" here because tests will
+    choke on pytest-github.
     """
     return request.getfuncargvalue("api_settings_" + request.param + "_pg")
 
 
 @pytest.fixture
-def reset_settings_upon_teardown(request, api_settings_all_pg):
-    """Resets all Tower settings to factory defaults.
+def reset_settings(api_settings_all_pg):
     """
-    request.addfinalizer(api_settings_all_pg.delete())
+    Reset total Tower settings
+    """
+    def func():
+        api_settings_all_pg.delete()
+    return func
