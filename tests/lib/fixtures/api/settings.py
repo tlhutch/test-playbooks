@@ -28,6 +28,12 @@ def enterprise_auth_settings_pgs(api_settings_ldap_pg, api_settings_radius_pg, a
     return [api_settings_radius_pg, api_settings_saml_pg, api_settings_ldap_pg]
 
 
+def reset_settings_upon_teardown(request, api_settings_all_pg):
+    """Resets all Tower settings to factory defaults.
+    """
+    request.addfinalizer(api_settings_all_pg.delete())
+
+
 @pytest.fixture(scope="function", params=["all", "auth", "azuread", "changed", "github", "github_org", "github_team", "google", "jobs",
                                           "ldap", "radius", "saml", "system", "ui"])
 def setting_pg(request):
