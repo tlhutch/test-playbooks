@@ -450,6 +450,43 @@ def test_job_template_post_request_without_network_credential_access(
         check_request(api_job_templates_pg, 'POST', httplib.CREATED, data)
 
 
+@pytest.mark.parametrize(
+    'resource_name, main_api_endpoint',
+    [
+        ('organization', 'api_organizations_pg'),
+        ('team', 'api_teams_pg'),
+        ('project', 'api_projects_pg'),
+        ('inventory', 'api_inventories_pg'),
+        ('inventory_script', 'api_inventory_scripts_pg'),
+        ('credential', 'api_credentials_pg'),
+        ('job_template', 'api_job_template_pg')
+    ]
+)
+def test_admin_role_filter(request, factories, auth_user, resource_name, main_api_endpoint):
+    """Tower supports query filters of the following form: /api/v1/projects/?role_level=admin_role.
+    Test that our query filter works for admin role on select Tower resources. Note: we choose not
+    to test other roles types here because the admin role filter is the filter that the UI uses.
+    """
+    # create resources
+    if resource_name == 'credential':
+        organization = factories.organization()
+        user = factories.user(organization=organization)
+        admin_resource  = getattr(factories, resource_name)(organization=organization)
+        non_admin_resource = getattr(factories, resource_name)(organization=organization)
+    else:
+        user = factories.user()
+        admin_resource = getattr(factories, resource_name)()
+        non_admin_resource = getattr(factories, resource_name)()
+
+    # assign role to admin_resource
+    set_roles(user, admin_resource, ['admin'])
+
+    # assert that
+    with auth_user(user):
+        results = request.getfuncargvalue(main_api_endpoint).get(role_level='admin_role')
+        assert results.count == 1
+        assert results.results[0].id == admin_resource.id
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
