@@ -495,7 +495,8 @@ class Test_Setting(Base_Api_Test):
         payload = update_obfuscated_settings(return_payload=True)
 
         # check that all nested settings endpoints have sensitive values obfuscated
-        for endpoint in api_settings_pg.get().results:
+        api_settings_pg.get()
+        for endpoint in api_settings_pg.results:
             endpoint.get()
             relevant_keys = [key for key in endpoint.json.keys() if key in payload and key in endpoint.json.keys()]
             for key in relevant_keys:

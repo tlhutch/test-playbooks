@@ -30,7 +30,7 @@
 1. [x] Test /api/v1/settings/ RBAC.
 1. [x] Test that DELETE resets an endpoint.
 1. [x] Test that changed entries listed under /api/v1/settings/changed/.
-1. [ ] Test that sensitive values hidden on all settings endpoints.
+1. [x] Test that sensitive values hidden on all settings endpoints.
 1. [ ] Test that settings get migrated upon upgrade.
 
 ### Tower Module (Chris)
