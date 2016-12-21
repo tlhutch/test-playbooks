@@ -34,25 +34,28 @@ def assess_created_elements(elements, criteria, expected_count):
 def update_settings(api_settings_all_pg):
     """Helper fixture used for changing Tower settings.
     """
-    def func():
+    def func(return_payload=False):
         """Change one setting under each nested /api/v1/settings/ endpoint. The setting selected
         must not change the system in a manner that will interfere with tests.
         """
         # update Tower settings
         payload = dict(AUTH_TOKEN_EXPIRATION=100000,  # /api/v1/settings/authtoken/
-                       SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET="test",  # /api/v1/settings/azuread-oauth2/
-                       SOCIAL_AUTH_GITHUB_SECRET="test",  # /api/v1/settings/settings/github/
-                       SOCIAL_AUTH_GITHUB_ORG_SECRET="test",  # /api/v1/settings/settings/github-org/
-                       SOCIAL_AUTH_GITHUB_TEAM_SECRET="test",  # /api/v1/settings/settings/github-team/
-                       SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET="test",  # /api/v1/settings/google-oauth2/
+                       SOCIAL_AUTH_AZUREAD_OAUTH2_KEY="test",  # /api/v1/settings/azuread-oauth2/
+                       SOCIAL_AUTH_GITHUB_KEY="test",  # /api/v1/settings/settings/github/
+                       SOCIAL_AUTH_GITHUB_ORG_KEY="test",  # /api/v1/settings/settings/github-org/
+                       SOCIAL_AUTH_GITHUB_TEAM_KEY="test",  # /api/v1/settings/settings/github-team/
+                       SOCIAL_AUTH_GOOGLE_OAUTH2_KEY="test",  # /api/v1/settings/google-oauth2/
                        SCHEDULE_MAX_JOBS=30,  # /api/v1/settings/jobs/
-                       AUTH_LDAP_BIND_PASSWORD="test",  # /api/v1/settings/ldap/
-                       LOG_AGGREGATOR_PASSWORD="test",  # /api/v1/settings/logging/
-                       RADIUS_SECRET="test",  # /api/v1/settings/radius/
+                       AUTH_LDAP_SERVER_URI="ldap://ldap.test.com:777",  # /api/v1/settings/ldap/
+                       LOG_AGGREGATOR_USERNAME="test",  # /api/v1/settings/logging/
+                       RADIUS_PORT=1000,  # /api/v1/settings/radius/
                        SOCIAL_AUTH_SAML_SP_ENTITY_ID="test",  # /api/v1/settings/saml/
                        TOWER_ADMIN_ALERTS=False,  # /api/v1/settings/system/
                        CUSTOM_LOGIN_INFO="test")  # /api/v1/settings/ui/
         api_settings_all_pg.patch(**payload)
+        # return payload if asked
+        if return_payload:
+            return payload
     return func
 
 
@@ -439,6 +442,25 @@ class Test_Setting(Base_Api_Test):
             "Discrepancy between license and license displayed under /api/v1/settings/system/." \
             "\n\nLicense:\n{0}\n\nAPI returned:\n{1}\n".format(json.dumps(license_info), json.dumps(returned_license))
 
+    def test_changed_settings(self, update_settings, api_settings_changed_pg, reset_settings):
+        '''
+        Verifies that changed entries show under /api/v1/settings/changed/.
+        Note: "TOWER_URL_BASE" and "LICENSE" always show here regardless of
+        the changes that we make.
+        '''
+        payload = update_settings(return_payload=True)
+        settings_changed = api_settings_changed_pg.get()
+
+        # check that all of our updated settings are present under /api/v1/settings/changed/
+        assert all([item in settings_changed.json.items() for item in payload.items()]), \
+            "Not all changed entries listed under /api/v1/settings/changed/."
+        # check for two additional entries under /api/v1/settings/changed/
+        assert set(settings_changed.json.keys()) - set(payload.keys()) == set([u'TOWER_URL_BASE', u'LICENSE']), \
+            "Unexpected additional items listed under /api/v1/settings/changed/."
+
+        # reset settings
+        reset_settings()
+
     def test_reset_setting(self, setting_pg, update_settings, reset_settings):
         '''
         Verifies that settings get restored to factory defaults with a DELETE
@@ -460,5 +482,5 @@ class Test_Setting(Base_Api_Test):
             "Expected {0} to be reverted to initial state after submitting DELETE request.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
                 setting_pg.base_url, initial_json, setting_pg.get().json)
 
-        # reset Tower settings
+        # reset settings
         reset_settings()
