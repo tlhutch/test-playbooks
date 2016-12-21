@@ -49,7 +49,7 @@ def setting_pg(request):
 @pytest.fixture
 def reset_settings(api_settings_all_pg):
     """
-    Reset total Tower settings
+    Reset total Tower settings.
     """
     def func():
         api_settings_all_pg.delete()
