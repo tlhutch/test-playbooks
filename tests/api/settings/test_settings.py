@@ -70,15 +70,16 @@ def update_obfuscated_settings(api_settings_all_pg):
         must not change the system in a manner that will interfere with tests.
         """
         # update Tower settings
-        payload = dict(SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET="test",
-                       SOCIAL_AUTH_GITHUB_SECRET="test",
-                       SOCIAL_AUTH_GITHUB_ORG_SECRET="test",
-                       SOCIAL_AUTH_GITHUB_TEAM_SECRET="test",
-                       SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET="test",
-                       AUTH_LDAP_BIND_PASSWORD="test",
-                       LOG_AGGREGATOR_PASSWORD="test",
-                       RADIUS_SECRET="test",
-                       SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=open(os.path.join(fixtures_dir, 'static/unencrypted_rsa'), 'r').read())
+        payload = dict(SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET="test",  # /api/v1/settings/azuread-oauth2/
+                       SOCIAL_AUTH_GITHUB_SECRET="test",  # /api/v1/settings/github/
+                       SOCIAL_AUTH_GITHUB_ORG_SECRET="test",  # /api/v1/settings/github-org/
+                       SOCIAL_AUTH_GITHUB_TEAM_SECRET="test",  # /api/v1/settings/github-team/
+                       SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET="test",  # /api/v1/settings/google-oauth2//
+                       AUTH_LDAP_BIND_PASSWORD="test",  # /api/v1/settings/ldap/
+                       LOG_AGGREGATOR_PASSWORD="test",  # /api/v1/settings/logging/
+                       RADIUS_SECRET="test",  # /api/v1/settings/radius/
+                       SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=open(
+                           os.path.join(fixtures_dir, 'static/unencrypted_rsa'), 'r').read())  # /api/v1/settings/saml/
         api_settings_all_pg.patch(**payload)
         # return payload if asked
         if return_payload:
