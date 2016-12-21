@@ -16,7 +16,6 @@ def user(api_v1, session_org):
     obj.silent_cleanup()
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4180')
 def test_edit_user(ui, user):
     """Basic end-to-end functional test for updating an existing user
     """
