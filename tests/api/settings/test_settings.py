@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 import json
 import fauxfactory
@@ -7,6 +8,7 @@ from tests.api import Base_Api_Test
 
 from towerkit.tower.license import generate_license
 from towerkit.exceptions import BadRequest
+from tests.lib.fixtures.api.credentials import fixtures_dir
 import towerkit.utils
 
 
@@ -61,13 +63,12 @@ def update_settings(api_settings_all_pg):
 
 @pytest.fixture
 def update_obfuscated_settings(api_settings_all_pg):
-    """Helper fixture used for changing Toewr settings.
+    """Helper fixture used for changing Tower settings.
     """
     def func(return_payload=False):
         """Change all settings that need to get obfuscated by the API. The setting selected
         must not change the system in a manner that will interfere with tests.
         """
-        # open(os.path.join(fixtures_dir, 'static/encrypted_rsa'), 'r').read()
         # update Tower settings
         payload = dict(SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET="test",
                        SOCIAL_AUTH_GITHUB_SECRET="test",
@@ -77,7 +78,7 @@ def update_obfuscated_settings(api_settings_all_pg):
                        AUTH_LDAP_BIND_PASSWORD="test",
                        LOG_AGGREGATOR_PASSWORD="test",
                        RADIUS_SECRET="test",
-                       SOCIAL_AUTH_SAML_SP_PRIVATE_KEY="FIXME")
+                       SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=open(os.path.join(fixtures_dir, 'static/unencrypted_rsa'), 'r').read())
         api_settings_all_pg.patch(**payload)
         # return payload if asked
         if return_payload:
@@ -487,6 +488,23 @@ class Test_Setting(Base_Api_Test):
         # reset settings
         reset_settings()
 
+    def test_setting_obfuscation(self, api_settings_pg, update_obfuscated_settings, reset_settings):
+        '''
+        Verifies that sensitive setting values get obfuscated.
+        '''
+        payload = update_obfuscated_settings(return_payload=True)
+
+        # check that all nested settings endpoints have sensitive values obfuscated
+        for endpoint in api_settings_pg.get().results:
+            endpoint.get()
+            relevant_keys = [key for key in endpoint.json.keys() if key in payload and key in endpoint.json.keys()]
+            for key in relevant_keys:
+                assert endpoint.json[key] == "$encrypted$", \
+                    "\"{0}\" not obfuscated with on {1}.".format(key, endpoint.base_url)
+
+        # reset settings
+        reset_settings()
+
     def test_reset_setting(self, setting_pg, update_settings, reset_settings):
         '''
         Verifies that settings get restored to factory defaults with a DELETE
@@ -507,23 +525,6 @@ class Test_Setting(Base_Api_Test):
         assert initial_json == setting_pg.get().json, \
             "Expected {0} to be reverted to initial state after submitting DELETE request.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
                 setting_pg.base_url, initial_json, setting_pg.get().json)
-
-        # reset settings
-        reset_settings()
-
-    def test_setting_obfuscation(self, api_settings_pg, update_settings, reset_settings):
-        '''
-        Verifies that sensitive setting values get obfuscated.
-        '''
-        payload = update_settings(return_payload=True)
-
-        # check that all nested settings endpoints have sensitive values obfuscated
-        for endpoint in api_settings_pg.get().results:
-            endpoint.get()
-            relevant_keys = [key for key in endpoint.json.keys() if key in payload and key in endpoint.json.keys()]
-            for key in relevant_keys:
-                assert endpoint.json[key] == "$encrypted$", \
-                    "\"{0}\" not obfuscated with on {1}.".format(key, endpoint.base_url)
 
         # reset settings
         reset_settings()
