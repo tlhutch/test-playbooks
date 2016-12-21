@@ -501,7 +501,7 @@ class Test_Setting(Base_Api_Test):
             relevant_keys = [key for key in endpoint.json.keys() if key in payload and key in endpoint.json.keys()]
             for key in relevant_keys:
                 assert endpoint.json[key] == "$encrypted$", \
-                    "\"{0}\" not obfuscated with on {1}.".format(key, endpoint.base_url)
+                    "\"{0}\" not obfuscated in {1}.".format(key, endpoint.base_url)
 
         # reset settings
         reset_settings()
@@ -515,11 +515,13 @@ class Test_Setting(Base_Api_Test):
         initial_json = setting_pg.get().json
 
         # update settings and check for changes
-        update_settings()
+        payload = update_settings(return_payload=True)
         updated_json = setting_pg.get().json
         assert initial_json != updated_json, \
             "Expected {0} to look different after changing Tower settings.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
                 setting_pg.base_url, initial_json, updated_json)
+        assert any([item in updated_json.items() for item in payload.items()]), \
+            "No changed entry found under {0}.".format(setting_pg.base_url)
 
         # reset nested settings endpoint and check that defaults restored
         setting_pg.delete()
