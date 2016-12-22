@@ -44,13 +44,3 @@ def setting_pg(request):
     choke on pytest-github.
     """
     return request.getfuncargvalue("api_settings_" + request.param + "_pg")
-
-
-@pytest.fixture
-def reset_settings(api_settings_all_pg):
-    """
-    Reset total Tower settings.
-    """
-    def func():
-        api_settings_all_pg.delete()
-    return func

@@ -33,7 +33,7 @@ def assess_created_elements(elements, criteria, expected_count):
 
 
 @pytest.fixture
-def modify_settings(api_settings_all_pg):
+def modify_settings(update_setting_pg):
     """Helper fixture used for changing Tower settings."""
 
     def func():
@@ -54,13 +54,13 @@ def modify_settings(api_settings_all_pg):
                        SOCIAL_AUTH_SAML_SP_ENTITY_ID="test",  # /api/v1/settings/saml/
                        TOWER_ADMIN_ALERTS=False,  # /api/v1/settings/system/
                        CUSTOM_LOGIN_INFO="test")  # /api/v1/settings/ui/
-        api_settings_all_pg.patch(**payload)
+        update_setting_pg("api_settings_all_pg", payload)
         return payload
     return func
 
 
 @pytest.fixture
-def modify_obfuscated_settings(api_settings_all_pg):
+def modify_obfuscated_settings(update_setting_pg):
     """Helper fixture used for changing Tower settings."""
 
     def func():
@@ -78,7 +78,7 @@ def modify_obfuscated_settings(api_settings_all_pg):
                        RADIUS_SECRET="test",  # /api/v1/settings/radius/
                        SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=open(
                            os.path.join(fixtures_dir, 'static/unencrypted_rsa'), 'r').read())  # /api/v1/settings/saml/
-        api_settings_all_pg.patch(**payload)
+        update_setting_pg("api_settings_all_pg", payload)
         return payload
     return func
 
@@ -467,7 +467,7 @@ class Test_Setting(Base_Api_Test):
             "Discrepancy between license and license displayed under /api/v1/settings/system/." \
             "\n\nLicense:\n{0}\n\nAPI returned:\n{1}\n".format(json.dumps(license_info), json.dumps(returned_license))
 
-    def test_changed_settings(self, modify_settings, api_settings_changed_pg, reset_settings):
+    def test_changed_settings(self, modify_settings, api_settings_changed_pg):
         """Verifies that changed entries show under /api/v1/settings/changed/.
         Note: "TOWER_URL_BASE" and "LICENSE" always show here regardless of
         the changes that we make.
@@ -482,10 +482,7 @@ class Test_Setting(Base_Api_Test):
         assert set(settings_changed.json.keys()) - set(payload.keys()) == set([u'TOWER_URL_BASE', u'LICENSE']), \
             "Unexpected additional items listed under /api/v1/settings/changed/."
 
-        # reset settings
-        reset_settings()
-
-    def test_setting_obfuscation(self, api_settings_pg, modify_obfuscated_settings, reset_settings):
+    def test_setting_obfuscation(self, api_settings_pg, modify_obfuscated_settings):
         """Verifies that sensitive setting values get obfuscated."""
         payload = modify_obfuscated_settings()
 
@@ -498,10 +495,7 @@ class Test_Setting(Base_Api_Test):
                 assert endpoint.json[key] == "$encrypted$", \
                     "\"{0}\" not obfuscated in {1}.".format(key, endpoint.base_url)
 
-        # reset settings
-        reset_settings()
-
-    def test_reset_setting(self, setting_pg, modify_settings, reset_settings):
+    def test_reset_setting(self, setting_pg, modify_settings):
         """Verifies that settings get restored to factory defaults with a DELETE request."""
         # store initial endpoint JSON
         initial_json = setting_pg.get().json
@@ -520,6 +514,3 @@ class Test_Setting(Base_Api_Test):
         assert initial_json == setting_pg.get().json, \
             "Expected {0} to be reverted to initial state after submitting DELETE request.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
                 setting_pg.base_url, initial_json, setting_pg.json)
-
-        # reset settings
-        reset_settings()
