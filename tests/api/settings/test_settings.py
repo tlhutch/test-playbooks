@@ -34,8 +34,8 @@ def assess_created_elements(elements, criteria, expected_count):
 
 @pytest.fixture
 def update_settings(api_settings_all_pg):
-    """Helper fixture used for changing Tower settings.
-    """
+    """Helper fixture used for changing Tower settings."""
+
     def func(return_payload=False):
         """Change one setting under each nested /api/v1/settings/ endpoint. The setting selected
         must not change the system in a manner that will interfere with tests.
@@ -63,8 +63,8 @@ def update_settings(api_settings_all_pg):
 
 @pytest.fixture
 def update_obfuscated_settings(api_settings_all_pg):
-    """Helper fixture used for changing Tower settings.
-    """
+    """Helper fixture used for changing Tower settings."""
+
     def func(return_payload=False):
         """Change all settings that need to get obfuscated by the API. The setting selected
         must not change the system in a manner that will interfere with tests.
@@ -152,7 +152,7 @@ class Test_Setting(Base_Api_Test):
                 % (module_name, json.dumps(result))
 
     def test_relaunch_with_excluded_module(self, ad_hoc_with_status_completed, update_setting_pg):
-        """Verifies that you cannot relaunch a command which has been removedfrom AD_HOC_COMMANDS."""
+        """Verifies that you cannot relaunch a command which has been removed from AD_HOC_COMMANDS."""
         # update allowed commands
         payload = dict(AD_HOC_COMMANDS=[])
         update_setting_pg('api_settings_jobs_pg', payload)
@@ -450,7 +450,8 @@ class Test_Setting(Base_Api_Test):
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:False" % matching_non_org_users.count
 
     def test_system_license(self, api_config_pg, api_settings_system_pg, update_setting_pg):
-        """Verifies that our exact license contents gets displayed under /api/v1/settings/system/.
+        """
+        Verifies that our exact license contents gets displayed under /api/v1/settings/system/.
 
         Note: the towerkit license generator auto-appends a 'eula_accepted' field which is not
         actually part of the license so we remove that manually below.
@@ -471,11 +472,10 @@ class Test_Setting(Base_Api_Test):
             "\n\nLicense:\n{0}\n\nAPI returned:\n{1}\n".format(json.dumps(license_info), json.dumps(returned_license))
 
     def test_changed_settings(self, update_settings, api_settings_changed_pg, reset_settings):
-        '''
-        Verifies that changed entries show under /api/v1/settings/changed/.
-        Note: "TOWER_URL_BASE" and "LICENSE" always show here regardless of
-        the changes that we make.
-        '''
+        """Verifies that changed entries show under /api/v1/settings/changed/.
+        Note: "TOWER_URL_BASE" and "LICENSE" always show here regardless of the
+        changes that we make.
+        """
         payload = update_settings(return_payload=True)
         settings_changed = api_settings_changed_pg.get()
 
@@ -490,9 +490,7 @@ class Test_Setting(Base_Api_Test):
         reset_settings()
 
     def test_setting_obfuscation(self, api_settings_pg, update_obfuscated_settings, reset_settings):
-        '''
-        Verifies that sensitive setting values get obfuscated.
-        '''
+        """Verifies that sensitive setting values get obfuscated."""
         payload = update_obfuscated_settings(return_payload=True)
 
         # check that all nested settings endpoints have sensitive values obfuscated
@@ -508,10 +506,7 @@ class Test_Setting(Base_Api_Test):
         reset_settings()
 
     def test_reset_setting(self, setting_pg, update_settings, reset_settings):
-        '''
-        Verifies that settings get restored to factory defaults with a DELETE
-        request.
-        '''
+        """Verifies that settings get restored to factory defaults with a DELETE request."""
         # store initial endpoint JSON
         initial_json = setting_pg.get().json
 
@@ -528,7 +523,7 @@ class Test_Setting(Base_Api_Test):
         setting_pg.delete()
         assert initial_json == setting_pg.get().json, \
             "Expected {0} to be reverted to initial state after submitting DELETE request.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
-                setting_pg.base_url, initial_json, setting_pg.get().json)
+                setting_pg.base_url, initial_json, setting_pg.json)
 
         # reset settings
         reset_settings()
