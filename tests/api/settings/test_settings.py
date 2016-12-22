@@ -509,11 +509,11 @@ class Test_Setting(Base_Api_Test):
         # update settings and check for changes
         payload = modify_settings()
         updated_json = setting_pg.get().json
+        assert any([item in updated_json.items() for item in payload.items()]), \
+            "No changed entry found under {0}.".format(setting_pg.base_url)
         assert initial_json != updated_json, \
             "Expected {0} to look different after changing Tower settings.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
                 setting_pg.base_url, initial_json, updated_json)
-        assert any([item in updated_json.items() for item in payload.items()]), \
-            "No changed entry found under {0}.".format(setting_pg.base_url)
 
         # reset nested settings endpoint and check that defaults restored
         setting_pg.delete()
