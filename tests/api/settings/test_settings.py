@@ -39,6 +39,9 @@ def modify_settings(update_setting_pg):
     def func():
         """Change one setting under each nested /api/v1/settings/ endpoint. The setting selected
         must not change the system in a manner that will interfere with tests.
+
+        Example: disabiling "AUTH_BASIC_ENABLED" will cause Tower to reject all subsequent REST
+        requests.
         """
         # update Tower settings
         payload = dict(AUTH_TOKEN_EXPIRATION=100000,  # /api/v1/settings/authtoken/
@@ -66,6 +69,9 @@ def modify_obfuscated_settings(update_setting_pg):
     def func():
         """Change all settings that need to get obfuscated by the API. The setting selected
         must not change the system in a manner that will interfere with tests.
+
+        Example: disabiling "AUTH_BASIC_ENABLED" will cause Tower to reject all subsequent REST
+        requests.
         """
         # update Tower settings
         payload = dict(SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET="test",  # /api/v1/settings/azuread-oauth2/
