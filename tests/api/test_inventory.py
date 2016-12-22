@@ -464,7 +464,7 @@ class Test_Inventory_Update(Base_Api_Test):
                                                         source_vars=json.dumps(dict(replace_dash_in_groups=True)))
 
         # Launch job and check results
-        job_pg = job_template.launch().wait_until_completed(timeout=3*60)
+        job_pg = job_template.launch().wait_until_completed(timeout=3 * 60)
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
         # Assert that the inventory_update is marked as successful

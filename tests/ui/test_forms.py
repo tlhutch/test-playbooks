@@ -17,7 +17,8 @@ class RequiredFields(object):
         form.save.is_enabled(), msg_fail_disabled + '[all]'
 
         for name, field in form.load_groups(required=True):
-            if field.options: continue  # NOQA
+            if field.options:
+                continue
             initial_value = field.value
             field.clear()
             assert form.save_eventually_disabled(), msg_fail_enabled + name
@@ -46,7 +47,7 @@ class TextInputPanelResponse(object):
         msg_fail = 'field {0} not fully surrounded by form panel'
         for name, field in form.load_groups(kind='text_input'):
             field.randomize()
-            field.value = 'a'*200 + field.value
+            field.value = 'a' * 200 + field.value
             assert form.surrounds(field), msg_fail.format(name)
 
 

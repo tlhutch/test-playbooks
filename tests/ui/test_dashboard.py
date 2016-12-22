@@ -43,7 +43,7 @@ def recent_jobs(create_batch_template):
     x_vars = map(json.dumps, [{'fail': False}, {'fail': True}])
     for i in xrange(3):
         jt = create_batch_template(playbook='fail_unless.yml')
-        for n in xrange(i+1):
+        for n in xrange(i + 1):
             jt.patch(extra_vars=x_vars[n % 2])
             data[jt.name].append(jt.launch())
     data[jt.name][-1].wait_until_completed()
