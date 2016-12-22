@@ -46,22 +46,26 @@
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/task_manager_system.md)
 
 Canceling jobs:
+
 1. [ ] Cascade fail works with project updates (cancel the project update, dependent jobs are marked as "failed."
 1. [ ] Cascade fail works with inventory updates (cancel the inventory update, dependent jobs are marked as "failed."
 1. [ ] Fail dependent jobs upon cancelling update with job with multiple inventory updates.
 1. [ ] Fail dependent jobs upon cancelling update with job with both inventory and project updates.
 
 Update on launch:
+
 1. [ ] For inventory updates, inventory update gets spawned before job.
 1. [ ] For inventory updates with multiple inventory sources, all inventory sources get updated before job launches.
 1. [ ] For project updates, two project updates get spawned before the job runs. One update is of type "check" and the other of type "run."
 
 Cache timeout:
+
 1. [ ] Cache timeout respected for inventory updates. If we're within our timeout window, no additional updates should get spawned.
 1. [ ] Cache timeout respected for project updates. If we're within our timeout window, we still get a "run" project update
 1. [ ] Cache timeout respected when we have cache timeouts for both our inventory sources and project. Project should have a "run" update, inventory sources should not update.
 
 General acceptance criteria:
+
 1. [ ] Groups of blocked tasks run in chronological order
 1. [ ] Tasks that are not blocked run whenever there is capacity available
 1. [ ] One job is always allowed to run, even if there isn't enough capacity.
