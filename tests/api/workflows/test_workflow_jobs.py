@@ -83,5 +83,16 @@ class Test_Workflow_Jobs(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_here(self, factories):
-        pass
+    def test_inventory_source_correctly_referenced_in_related_job_endpoint(self, factories):
+        """Confirms that inventory sources are treated as unified job templates in addition to confirming
+        related workflow job nodes of inventory update types have correct url
+        """
+        group = factories.group()
+        inv_script = factories.inventory_script()
+        inv_source = group.related.inventory_source.patch(source_script=inv_script.id)
+        wfjt = factories.workflow_job_template()
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=inv_source)
+        wfj = wfjt.launch().wait_until_completed()
+        wfjn = wfj.related.workflow_nodes.get().results.pop()
+        assert('inventory_updates' in wfjn.related.job)  # confirm that it's not linked as a job
+        assert(inv_source.related.inventory_updates.get().results.pop().json == wfjn.related.job.get().json)
