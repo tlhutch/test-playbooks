@@ -82,26 +82,6 @@ def utf8_template(request, authtoken, api_job_templates_pg, project_ansible_play
 
 
 @pytest.fixture(scope="function")
-def project_django(request, authtoken, organization):
-    # Create project
-    payload = dict(name="django.git - %s" % fauxfactory.gen_utf8(),
-                   scm_type='git',
-                   scm_url='https://github.com/ansible-test/django.git',
-                   scm_clean=False,
-                   scm_delete_on_update=True,
-                   scm_update_on_launch=True,)
-    obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.silent_delete)
-    return obj
-
-
-@pytest.fixture(scope="function")
-def job_template_with_project_django(job_template, project_django):
-    project_django.wait_until_completed()
-    return job_template.patch(project=project_django.id, playbook='ping.yml')
-
-
-@pytest.fixture(scope="function")
 def project_with_scm_update_on_launch(request, project_ansible_playbooks_git):
     return project_ansible_playbooks_git.patch(scm_update_on_launch=True)
 

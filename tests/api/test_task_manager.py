@@ -7,13 +7,6 @@ from tests.api import Base_Api_Test
 
 
 @pytest.fixture(scope="function")
-def cloud_inventory_job_template(request, job_template, cloud_group):
-    # Substitute in no-op playbook that does not attempt to connect to host
-    job_template.patch(playbook='debug.yml')
-    return job_template
-
-
-@pytest.fixture(scope="function")
 def another_custom_group(request, authtoken, api_groups_pg, inventory, inventory_script):
     payload = dict(name="custom-group-%s" % fauxfactory.gen_alphanumeric(),
                    description="Custom Group %s" % fauxfactory.gen_utf8(),
@@ -27,6 +20,33 @@ def another_custom_group(request, authtoken, api_groups_pg, inventory, inventory
     inv_source.patch(source='custom',
                      source_script=inventory_script.id)
     return obj
+
+
+@pytest.fixture(scope="function")
+def project_django(request, authtoken, organization):
+    # Create project
+    payload = dict(name="django.git - %s" % fauxfactory.gen_utf8(),
+                   scm_type='git',
+                   scm_url='https://github.com/ansible-test/django.git',
+                   scm_clean=False,
+                   scm_delete_on_update=True,
+                   scm_update_on_launch=True,)
+    obj = organization.get_related('projects').post(payload)
+    request.addfinalizer(obj.silent_delete)
+    return obj
+
+
+@pytest.fixture(scope="function")
+def job_template_with_project_django(job_template, project_django):
+    project_django.wait_until_completed()
+    return job_template.patch(project=project_django.id, playbook='ping.yml')
+
+
+@pytest.fixture(scope="function")
+def cloud_inventory_job_template(request, job_template, cloud_group):
+    # Substitute in no-op playbook that does not attempt to connect to host
+    job_template.patch(playbook='debug.yml')
+    return job_template
 
 
 def check_sequential_jobs(jobs):
