@@ -19,6 +19,9 @@
 [] Test cannot run scan jobs
 [X] Test cannot run cleanup_facts
 [X] Test cannot GET fact_versions endpoints
+[X] Test cannot see custom rebranding flags under /api/v1/settings/ui/
+[X] Test enterprise auth items under /api/v1/settings/ filtered by license
+[X] Test access to enterprise auth nested settings endpoints
 [X] Test can delete license
 
 # Test Legacy License Warning
@@ -60,6 +63,9 @@
 [] Test cannot run scan jobs
 [X] Test cannot launch cleanup_facts
 [X] Test cannot GET fact_versions endpoints
+[X] Test cannot see custom rebranding flags under /api/v1/settings/ui/
+[X] Test enterprise auth items under /api/v1/settings/ filtered by license
+[X] Test access to enterprise auth nested settings endpoints
 [X] Test upgrade to enterprise
 [X] Test can delete license
 
@@ -78,6 +84,9 @@
 [X] Test can launch scan jobs
 [X] Test can launch cleanup_facts
 [X] Test can GET fact_versions endpoints
+[X] Test cannot see custom rebranding flags under /api/v1/settings/ui/
+[X] Test enterprise auth items under /api/v1/settings/ filtered by license
+[X] Test access to enterprise auth nested settings endpoints
 [X] Test downgrade to basic
 [X] Test able to delete license
 
@@ -98,6 +107,9 @@ from tests.api import Base_Api_Test
 
 
 log = logging.getLogger(__name__)
+
+
+REBRANDING_FLAGS = ["CUSTOM_LOGIN_INFO", "CUSTOM_LOGO"]
 
 
 @pytest.fixture(scope='class')
@@ -548,6 +560,41 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected API response upon attempting to navigate to fact_versions with a legacy license - %s." % json.dumps(result)
 
+    def test_custom_rebranding(self, api_settings_ui_pg):
+        '''Verify that custom rebranding flags are not visible with a legacy license.
+        '''
+        settings_pg = api_settings_ui_pg.get()
+        for flag in settings_pg.json.keys():
+            assert flag not in REBRANDING_FLAGS, \
+                "Flag '{0}' visible under /api/v1/settings/ui/ with a legacy license.".format(flag)
+
+    def test_main_settings_endpoint(self, api_settings_pg):
+        '''Verify that the top-level /api/v1/settings/ endpoint shows only
+        LDAP among our enterprise auth solutions. Note: LDAP is a special
+        case with legacy licenses.
+        '''
+        settings_pg = api_settings_pg.get()
+        settings_urls = [setting.url for setting in settings_pg.results]
+        assert(towerkit.api.resources.v1_settings_saml not in settings_urls), \
+            "Expected not to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
+        assert(towerkit.api.resources.v1_settings_radius not in settings_urls), \
+            "Expected not to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
+        assert(towerkit.api.resources.v1_settings_ldap in settings_urls), \
+            "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
+
+    def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
+        '''Verify that legacy license users have access to LDAP only from our
+        enterprise authentication settings pages.
+        '''
+        requests = ["get", "put", "patch", "delete"]
+        for endpoint in enterprise_auth_settings_pgs:
+            for request in requests:
+                if endpoint.base_url == '/api/v1/settings/ldap/':
+                    getattr(endpoint, request)()
+                else:
+                    with pytest.raises(towerkit.exceptions.NotFound):
+                        getattr(endpoint, request)()
+
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg):
         '''Verify the license_info field is empty after deleting the license'''
@@ -995,6 +1042,37 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected JSON response upon attempting to navigate to fact_versions with a basic license - %s." % json.dumps(result)
 
+    def test_custom_rebranding(self, api_settings_ui_pg):
+        '''Verify that custom rebranding flags are not accessible with a basic license.
+        '''
+        settings_pg = api_settings_ui_pg.get()
+        for flag in settings_pg.json.keys():
+            assert flag not in REBRANDING_FLAGS, \
+                "Flag '{0}' visible under /api/v1/settings/ui/ with a basic license.".format(flag)
+
+    def test_main_settings_endpoint(self, api_settings_pg):
+        '''Verify that the top-level /api/v1/settings/ endpoint does not show
+        our enterprise auth endpoints.
+        '''
+        settings_pg = api_settings_pg.get()
+        settings_urls = [setting.url for setting in settings_pg.results]
+        assert(towerkit.api.resources.v1_settings_saml not in settings_urls), \
+            "Expected not to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
+        assert(towerkit.api.resources.v1_settings_radius not in settings_urls), \
+            "Expected not to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
+        assert(towerkit.api.resources.v1_settings_ldap not in settings_urls), \
+            "Expected not to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
+
+    def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
+        '''Verify that basic license users do not have access to any of our enterprise
+        authentication settings pages.
+        '''
+        requests = ["get", "put", "patch", "delete"]
+        for endpoint in enterprise_auth_settings_pgs:
+            for request in requests:
+                with pytest.raises(towerkit.exceptions.NotFound):
+                    getattr(endpoint, request)()
+
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
         '''Verify that a basic license can get upgraded to an enterprise license.'''
 
@@ -1189,6 +1267,36 @@ class Test_Enterprise_License(Base_Api_Test):
         fact_versions_pg = host_pg.get_related('fact_versions')
         for fact_version in fact_versions_pg.results:
             fact_version.get_related('fact_view')
+
+    def test_custom_rebranding(self, api_settings_ui_pg):
+        '''Verify that custom rebranding flags are visible with an enterprise license.
+        '''
+        settings_pg = api_settings_ui_pg.get()
+        for flag in REBRANDING_FLAGS:
+            assert flag in settings_pg.json.keys(), \
+                "Flag '{0}' not displayed under /api/v1/settings/ui/ with an enterprise license.".format(flag)
+
+    def test_main_settings_endpoint(self, api_settings_pg):
+        '''Verify that the top-level /api/v1/settings/ endpoint shows our
+        enterprise auth endpoints.
+        '''
+        settings_pg = api_settings_pg.get()
+        settings_urls = [setting.url for setting in settings_pg.results]
+        assert(towerkit.api.resources.v1_settings_saml in settings_urls), \
+            "Expected to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
+        assert(towerkit.api.resources.v1_settings_radius in settings_urls), \
+            "Expected to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
+        assert(towerkit.api.resources.v1_settings_ldap in settings_urls), \
+            "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
+
+    def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
+        '''Verify that enterprise license users have access to our enterprise
+        authentication settings pages.
+        '''
+        requests = ["get", "put", "patch", "delete"]
+        for endpoint in enterprise_auth_settings_pgs:
+            for request in requests:
+                getattr(endpoint, request)()
 
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg):
         '''Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg.'''
