@@ -107,22 +107,6 @@ def project_with_scm_update_on_launch(request, project_ansible_playbooks_git):
 
 
 @pytest.fixture(scope="function")
-def another_custom_group(request, authtoken, api_groups_pg, inventory, inventory_script):
-    payload = dict(name="custom-group-%s" % fauxfactory.gen_alphanumeric(),
-                   description="Custom Group %s" % fauxfactory.gen_utf8(),
-                   inventory=inventory.id,
-                   variables=json.dumps(dict(my_group_variable=True)))
-    obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.delete)
-
-    # Set the inventory_source
-    inv_source = obj.get_related('inventory_source')
-    inv_source.patch(source='custom',
-                     source_script=inventory_script.id)
-    return obj
-
-
-@pytest.fixture(scope="function")
 def job_template_with_cloud_credential(request, job_template, cloud_credential):
     job_template.patch(cloud_credential=cloud_credential.id)
     return job_template
@@ -131,13 +115,6 @@ def job_template_with_cloud_credential(request, job_template, cloud_credential):
 @pytest.fixture(scope="function")
 def job_template_with_network_credential(request, job_template, network_credential):
     job_template.patch(network_credential=network_credential.id)
-    return job_template
-
-
-@pytest.fixture(scope="function")
-def cloud_inventory_job_template(request, job_template, cloud_group):
-    # Substitute in no-op playbook that does not attempt to connect to host
-    job_template.patch(playbook='debug.yml')
     return job_template
 
 

@@ -1,8 +1,32 @@
 import pytest
 import json
+import fauxfactory
 from dateutil.parser import parse as du_parse
 
 from tests.api import Base_Api_Test
+
+
+@pytest.fixture(scope="function")
+def cloud_inventory_job_template(request, job_template, cloud_group):
+    # Substitute in no-op playbook that does not attempt to connect to host
+    job_template.patch(playbook='debug.yml')
+    return job_template
+
+
+@pytest.fixture(scope="function")
+def another_custom_group(request, authtoken, api_groups_pg, inventory, inventory_script):
+    payload = dict(name="custom-group-%s" % fauxfactory.gen_alphanumeric(),
+                   description="Custom Group %s" % fauxfactory.gen_utf8(),
+                   inventory=inventory.id,
+                   variables=json.dumps(dict(my_group_variable=True)))
+    obj = api_groups_pg.post(payload)
+    request.addfinalizer(obj.delete)
+
+    # Set the inventory_source
+    inv_source = obj.get_related('inventory_source')
+    inv_source.patch(source='custom',
+                     source_script=inventory_script.id)
+    return obj
 
 
 def check_sequential_jobs(jobs):
@@ -326,7 +350,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Cascade_Fail(Base_Api_Test):
+class Test_Cascade_Fail_Dependent_Jobs(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
@@ -337,7 +361,7 @@ time.sleep(60)
 inventory = dict()
 print json.dumps(inventory)
 ''')
-    def test_cascade_cancel_with_inventory_update(self, job_template, custom_group):
+    def test_cancel_inventory_update(self, job_template, custom_group):
         '''
         Tests that if you cancel an inventory update before it finishes that its dependent job fails.
         '''
@@ -385,7 +409,7 @@ time.sleep(60)
 inventory = dict()
 print json.dumps(inventory)
 ''')
-    def test_cascade_cancel_with_multiple_inventory_updates(self, job_template, custom_group, another_custom_group):
+    def test_cancel_inventory_update_with_multiple_inventory_updates(self, job_template, custom_group, another_custom_group):
         '''
         Tests that if you cancel an inventory update before it finishes that its dependent jobs fail.
         '''
@@ -462,7 +486,7 @@ print json.dumps(inventory)
         assert inventory_job_explanation['job_name'] == first_inv_update_pg.name
         assert inventory_job_explanation['job_id'] == str(first_inv_update_pg.id)
 
-    def test_cascade_cancel_with_project_update(self, job_template_with_project_django):
+    def test_cancel_project_update(self, job_template_with_project_django):
         '''
         Tests that if you cancel a SCM update before it finishes that its dependent job fails.
         '''
@@ -497,7 +521,7 @@ print json.dumps(inventory)
         assert project_pg.get().status == 'canceled', \
             "Unexpected project status (expected status:canceled) - %s." % project_pg
 
-    def test_cascade_cancel_project_update_with_inventory_and_project_updates(self, job_template_with_project_django, custom_group):
+    def test_cancel_project_update_with_inventory_and_project_updates(self, job_template_with_project_django, custom_group):
         '''
         Tests that if you cancel a scm update before it finishes that its dependent job
         fails. This test runs both inventory and SCM updates on job launch.
@@ -549,7 +573,7 @@ time.sleep(60)
 inventory = dict()
 print json.dumps(inventory)
 ''')
-    def test_cascade_cancel_inventory_update_with_inventory_and_project_updates(self, job_template, custom_group):
+    def test_cancel_inventory_update_with_inventory_and_project_updates(self, job_template, custom_group):
         '''
         Tests that if you cancel an inventory update before it finishes that its dependent job
         fails. This test runs both inventory and SCM updates on job launch.
