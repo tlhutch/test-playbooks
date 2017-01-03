@@ -357,7 +357,7 @@ class Test_Cascade_Fail_Dependent_Jobs(Base_Api_Test):
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
 # sleep helps us cancel the inventory update
-time.sleep(60)
+time.sleep(30)
 inventory = dict()
 print json.dumps(inventory)
 ''')
@@ -405,7 +405,7 @@ print json.dumps(inventory)
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
 # sleep helps us cancel the inventory update
-time.sleep(60)
+time.sleep(30)
 inventory = dict()
 print json.dumps(inventory)
 ''')
@@ -469,22 +469,11 @@ print json.dumps(inventory)
         assert first_inv_source_pg.get().status == 'canceled', \
             "Did not cancel job as expected (expected status:canceled) - %s." % first_inv_source_pg
 
-        # Assert second inventory update and source failed
-        assert second_inv_update_pg.get().status == 'failed', \
+        # Assert second inventory update and source successful
+        assert second_inv_update_pg.wait_until_completed().is_successful, \
             "Secondary inventory update not failed (status: %s)." % second_inv_update_pg.status
-        assert second_inv_source_pg.get().status == 'failed', \
+        assert second_inv_source_pg.get().is_successful, \
             "Secondary inventory update not failed (status: %s)." % second_inv_source_pg.status
-
-        # Assess second update job_explanation
-        assert second_inv_update_pg.job_explanation.startswith(u'Previous Task Failed:'), \
-            "Unexpected job_explanation: %s." % second_inv_update_pg.job_explanation
-        try:
-            inventory_job_explanation = json.loads(second_inv_update_pg.job_explanation[22:])
-        except Exception:
-            pytest.fail("job_explanation not stored as JSON data: %s.") % inventory_job_explanation
-        assert inventory_job_explanation['job_type'] == first_inv_update_pg.type
-        assert inventory_job_explanation['job_name'] == first_inv_update_pg.name
-        assert inventory_job_explanation['job_id'] == str(first_inv_update_pg.id)
 
     def test_cancel_project_update(self, job_template_with_project_django):
         '''
@@ -569,7 +558,7 @@ print json.dumps(inventory)
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
 # sleep helps us cancel the inventory update
-time.sleep(60)
+time.sleep(30)
 inventory = dict()
 print json.dumps(inventory)
 ''')
