@@ -361,33 +361,51 @@ class Test_Autospawned_Jobs(Base_Api_Test):
 
     def test_inventory_and_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git,
                                    cloud_group):
-        '''Verify that a project_update and inventory_update are triggered by job launch'''
-
-        # 1) Set scm_update_on_launch for the project
+        '''Verify that two project updates and an inventory update get triggered by a job
+        launch when we enable update_on_launch for both our project and custom group.
+        * Our initial project-post should launch a project update of job_type 'check.'
+        * Our JT launch should spawn two additional project updates: one of job_type 'check'
+        and one of job_type 'run.'
+        * Our JT launch should spawn an inventory update.
+        '''
+        # set scm_update_on_launch for the project
         project_ansible_playbooks_git.patch(scm_update_on_launch=True)
         assert project_ansible_playbooks_git.scm_update_on_launch
-        last_updated = project_ansible_playbooks_git.last_updated
 
-        # 2) Set update_on_launch for the inventory
+        # set update_on_launch for the inventory
         inv_src_pg = cloud_group.get_related('inventory_source')
         inv_src_pg.patch(update_on_launch=True)
         assert inv_src_pg.update_on_launch
 
-        # 3) Update job_template to cloud inventory
-        #    Also, substitute in no-op playbook that does not attempt to connect to host
+        # check the autospawned project update
+        initial_updates = project_ansible_playbooks_git.related.project_updates.get()
+        assert initial_updates.count == 1, \
+            "Unexpected number of initial project updates."
+        initial_update = initial_updates.results.pop()
+        assert initial_update.job_type == "check", \
+            "Unexpected job_type for our initial project update: {0}.".format(initial_update.job_type)
+
+        # update job_template to cloud inventory
+        # substitute in no-op playbook that does not attempt to connect to host
         job_template_ansible_playbooks_git.patch(inventory=cloud_group.inventory, playbook='debug.yml')
 
-        # 4) Launch job_template and wait for completion
+        # launch job_template and wait for completion
         job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
 
-        # 5) Ensure project_update was triggered and is successful
-        project_ansible_playbooks_git.get()
-        assert project_ansible_playbooks_git.last_updated != last_updated, \
-            "project_update was not triggered - %s" % json.dumps(project_ansible_playbooks_git.json, indent=4)
-        assert project_ansible_playbooks_git.is_successful, "project unsuccessful - %s" % \
-            json.dumps(project_ansible_playbooks_git.json, indent=4)
+        # check our new project updates are successful
+        final_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id)
+        assert final_updates.count == 2, \
+            "Unexpected number of final updates."
+        for update in final_updates.results:
+            assert update.wait_until_completed().is_successful, "Project update unsuccessful."
 
-        # 6) Ensure inventory_update was triggered and is successful
+        # check that our new project updates are of the right type
+        assert project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='check').count == 1, \
+            "Expected one new project update of job_type 'check'."
+        assert project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='run').count == 1, \
+            "Expected one new project update of job_type 'run'."
+
+        # ensure inventory_update was triggered and is successful
         inv_src_pg.get()
         assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % \
             json.dumps(inv_src_pg.json, indent=4)
