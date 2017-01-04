@@ -78,12 +78,12 @@ General acceptance criteria:
 
 
 ### Logging
-1. [ ] replicate documented steps for setting up and connecting with supported log aggregator services.
+1. [ ] verify documented steps for setting up and connecting with all supported log aggregator services.
 1. [ ] verify authentication and connectivity via HTTPS for all supported aggregator services.
 1. [ ] with at least one of the aggregator services (Logstash, most likely), verify that tower succesfully creates and sends a log message in the expected format for each data type:
   2. [ ] activity_stream
   2. [ ] job event
-  3. [ ] fact scan / system tracking
+  2. [ ] fact scan / system tracking
   2. [ ] job status updates
 
 
