@@ -20,9 +20,8 @@ def related_organization_object(request):
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Organizations(Base_Api_Test):
-    """
-    Verify the /users endpoint displays the expected information based on the current user
-    """
+    """Verify the /users endpoint displays the expected information based on the current user"""
+
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     # TODO - test_post_as_superuser
@@ -34,17 +33,13 @@ class Test_Organizations(Base_Api_Test):
     # TODO - test_patch_as_non_superuser
 
     def test_duplicate(self, api_organizations_pg, organization):
-        """
-        Verify that organization names are unique.
-        """
+        """Verify that organization names are unique."""
         payload = dict(name=organization.name)
         with pytest.raises(towerkit.exceptions.Duplicate):
             api_organizations_pg.post(payload)
 
     def test_delete(self, api_organizations_pg, organization):
-        """
-        Verify that deleting an organization actually works.
-        """
+        """Verify that deleting an organization actually works."""
         # Delete the organization
         organization.delete()
 
@@ -53,9 +48,7 @@ class Test_Organizations(Base_Api_Test):
         assert matches.count == 0, "An organization was deleted, but is still visible from the /api/v1/organizations/ endpoint"
 
     def test_organization_related_counts(self, organization, related_organization_object, api_job_templates_pg):
-        """
-        Verify summary_fields 'related_field_counts' content.
-        """
+        """Verify summary_fields 'related_field_counts' content."""
         # determine the expected JTs count
         #
         # note: the API determines the organization of a non-scan JT by looking at the organization of the JT project. For scan JTs, it

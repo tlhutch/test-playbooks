@@ -88,9 +88,7 @@ def another_inventory(request, authtoken, api_inventories_pg, organization):
 
 @pytest.fixture(scope="function")
 def custom_inventory_update_with_status_completed(custom_inventory_source):
-    """
-    Launches an inventory sync.
-    """
+    """Launches an inventory sync."""
     # navigate to launch_pg and launch inventory update
     update_pg = custom_inventory_source.get_related('update')
     result = update_pg.post()
@@ -122,8 +120,7 @@ def host_with_default_ipv4_in_variables(request, authtoken, api_hosts_pg, group,
 
 @pytest.fixture(scope="function")
 def my_public_ipv4(request):
-    """
-    Return the IP address of the system running pytest.
+    """Return the IP address of the system running pytest.
 
     NOTE: this doesn't work properly when the system running pytest and the
     target system are both on a private network.
@@ -133,9 +130,7 @@ def my_public_ipv4(request):
 
 @pytest.fixture(scope="function")
 def local_ipv4_addresses(request):
-    """
-    Return the list of ip addresses for the system running tests.
-    """
+    """Return the list of ip addresses for the system running tests."""
     return socket.gethostbyname_ex(socket.gethostname())[2]
 
 

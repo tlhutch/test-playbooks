@@ -57,7 +57,6 @@ def pytest_generate_tests(metafunc):
 @pytest.fixture(scope='class')
 def update_sshd_config(ansible_runner):
     """Update /etc/ssh/sshd_config to increase MaxSessions"""
-
     # Increase MaxSessions and MaxStartups
     ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxSessions .*", line="MaxSessions 150")
     ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxStartups .*", line="MaxStartups 150")
@@ -488,9 +487,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_inventory_sources_get_children(self, api_groups_pg, _inventory_source, region_choices):
-        """
-        Tests that an inventory_sync created expected sub-groups
-        """
+        """Tests that an inventory_sync created expected sub-groups"""
         # Find desired group
         group = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0]
 

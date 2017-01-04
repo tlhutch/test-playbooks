@@ -18,8 +18,7 @@ def team(api_v1, session_org):
 
 @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4174')
 def test_edit_team(ui, team):
-    """Basic end-to-end functional test for updating an existing team
-    """
+    """Basic end-to-end functional test for updating an existing team"""
     edit = ui.team_edit.get(id=team.id)
     # make some data
     name = fauxfactory.gen_alphanumeric()
@@ -45,8 +44,7 @@ def test_edit_team(ui, team):
 
 
 def test_delete_team(ui, team):
-    """End-to-end functional test for deleting a team
-    """
+    """End-to-end functional test for deleting a team"""
     ui_teams = ui.teams.get()
     # add a search filter for the team
     ui_teams.search(team.name)
@@ -67,8 +65,7 @@ def test_delete_team(ui, team):
 
 
 def test_create_team(v1, ui, session_org):
-    """End-to-end functional test for creating a team
-    """
+    """End-to-end functional test for creating a team"""
     add = ui.team_add.get()
     # make some data
     name = fauxfactory.gen_alphanumeric()

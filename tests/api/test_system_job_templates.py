@@ -9,8 +9,7 @@ from tests.api import Base_Api_Test
 
 @pytest.fixture(scope="function")
 def cleanup_jobs_template(request, api_system_job_templates_pg):
-    """
-    Return a System_Job_Template object representing the 'cleanup_jobs' system
+    """Return a System_Job_Template object representing the 'cleanup_jobs' system
     job template.
     """
     matches = api_system_job_templates_pg.get(job_type='cleanup_jobs')
@@ -23,14 +22,12 @@ def cleanup_jobs_template(request, api_system_job_templates_pg):
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_System_Job_Template(Base_Api_Test):
-    """
-    Verify actions with system_job_templates
-    """
+    """Verify actions with system_job_templates"""
+
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get_as_superuser(self, api_system_job_templates_pg):
-        """
-        Verify that a superuser account is able to GET the system_job_template
+        """Verify that a superuser account is able to GET the system_job_template
         resource.
         """
         results = api_system_job_templates_pg.get()
@@ -40,8 +37,7 @@ class Test_System_Job_Template(Base_Api_Test):
             results.count
 
     def test_get_as_non_superuser(self, api_system_job_templates_pg, non_superusers, user_password):
-        """
-        Verify that non-superuser accounts are unable to access the
+        """Verify that non-superuser accounts are unable to access the
         system_job_template endpoint
         """
         for non_superuser in non_superusers:
@@ -50,9 +46,7 @@ class Test_System_Job_Template(Base_Api_Test):
                     api_system_job_templates_pg.get()
 
     def test_method_not_allowed(self, api_system_job_templates_pg):
-        """
-        Verify that PUT, POST and PATCH are unsupported request methods
-        """
+        """Verify that PUT, POST and PATCH are unsupported request methods"""
         with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             api_system_job_templates_pg.post()
 
@@ -64,9 +58,7 @@ class Test_System_Job_Template(Base_Api_Test):
             system_job_template.patch()
 
     def test_launch_as_superuser(self, system_job_template):
-        """
-        Verify successful launch of a system_job_template
-        """
+        """Verify successful launch of a system_job_template"""
         result = system_job_template.get_related('launch').post()
         assert 'system_job' in result.json, "Unexpected JSON response when " \
             "launching system_job_template\n%s" % json.dumps(result.json, indent=2)
@@ -82,9 +74,7 @@ class Test_System_Job_Template(Base_Api_Test):
             assert job_pg.is_successful, "System job unexpectedly failed - %s" % job_pg
 
     def test_launch_as_non_superuser(self, system_job_template, non_superusers, user_password):
-        """
-        Verify launch fails when attempted by a non-superuser
-        """
+        """Verify launch fails when attempted by a non-superuser"""
         launch_pg = system_job_template.get_related('launch')
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
@@ -92,9 +82,7 @@ class Test_System_Job_Template(Base_Api_Test):
                     launch_pg.post()
 
     def test_launch_with_extra_vars(self, system_job_template):
-        """
-        Verify successful launch of a system_job_template with extra_vars.
-        """
+        """Verify successful launch of a system_job_template with extra_vars."""
         launch_pg = system_job_template.get_related('launch')
         payload = dict(extra_vars=dict(days='365', older_than='1y', granularity='1y'))
         result = launch_pg.post(payload)

@@ -73,9 +73,9 @@ def ssh_credential_ask(request, authtoken, api_credentials_pg, admin_user, tests
 @pytest.fixture(scope="function")
 def ssh_credential_with_ssh_key_data_and_sudo(request, ansible_facts, authtoken, api_credentials_pg, admin_user, testsetup):
     """Create ssh credential with the following properties:
-        * username: SUDO_USER
-        * become_method: sudo
-        * ssh_key_data: <str>
+    * username: SUDO_USER
+    * become_method: sudo
+    * ssh_key_data: <str>
     """
     SUDO_USER = ansible_facts.values()[0]['ansible_facts']['ansible_env']['SUDO_USER']
 
@@ -400,7 +400,7 @@ def encrypted_scm_credential(request, authtoken, api_credentials_pg, admin_user,
 
 @pytest.fixture(scope="function")
 def scm_credential_key_unlock_ASK(request, authtoken, api_credentials_pg, admin_user):
-    """Create scm credential with scm_key_unlock="ASK""""
+    """Create scm credential with scm_key_unlock='ASK'"""
     payload = dict(name="credentials-%s" % fauxfactory.gen_utf8(),
                    description="SCM credential %s (scm_key_unlock:ASK)" % fauxfactory.gen_utf8(),
                    kind='scm',

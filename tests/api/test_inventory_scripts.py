@@ -56,16 +56,12 @@ def custom_inventory_source_with_vars(request, custom_inventory_source, custom_i
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Inventory_Scripts(Base_Api_Test):
-    """
-    Verifies basic CRUD operations against the /inventory_scripts endpoint
-    """
+    """Verifies basic CRUD operations against the /inventory_scripts endpoint"""
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_post_as_privileged_user(self, request, script_source, organization, api_inventory_scripts_pg, privileged_user, user_password):
-        """
-        Verify succesful POST to /inventory_scripts as privileged user.
-        """
+        """Verify succesful POST to /inventory_scripts as privileged user."""
         payload = dict(name="random_inventory_script-%s" % fauxfactory.gen_utf8(),
                        description="Random Inventory Script - %s" % fauxfactory.gen_utf8(),
                        organization=organization.id,
@@ -75,9 +71,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         request.addfinalizer(obj.silent_delete)
 
     def test_post_as_unprivileged_user(self, script_source, organization, api_inventory_scripts_pg, unprivileged_user, user_password):
-        """
-        Verify unsuccesful POST to /inventory_scripts as unprivileged user.
-        """
+        """Verify unsuccesful POST to /inventory_scripts as unprivileged user."""
         payload = dict(name=fauxfactory.gen_utf8(),
                        description="Random inventory script - %s" % fauxfactory.gen_utf8(),
                        organization=organization.id,
@@ -87,9 +81,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 api_inventory_scripts_pg.post(payload)
 
     def test_post_without_required_fields(self, api_inventory_scripts_pg, organization, script_source):
-        """
-        Verify succesful POST to /inventory_scripts
-        """
+        """Verify succesful POST to /inventory_scripts"""
         # without name
         payload = dict(script=script_source,
                        organization=organization.id)
@@ -124,8 +116,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
             "Unexpected API response when posting an inventory_script with a missing value for 'organization': %s." % json.dumps(result)
 
     def test_get_as_privileged_user(self, inventory_script, privileged_user, user_password):
-        """
-        Verify succesful GET to /inventory_scripts as privileged_user and that
+        """Verify succesful GET to /inventory_scripts as privileged_user and that
         script contents viewable.
         """
         with self.current_user(privileged_user.username, user_password):
@@ -135,8 +126,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 % inventory_script.script
 
     def test_get_as_org_user(self, inventory_script, org_user, user_password):
-        """
-        Verify that organization user accounts are able to access the
+        """Verify that organization user accounts are able to access the
         the inventory_script, but unable to read the contents.
         """
         with self.current_user(org_user.username, user_password):
@@ -146,8 +136,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 % inventory_script.script
 
     def test_get_as_anonymous_user(self, anonymous_user, user_password, inventory_script):
-        """
-        Verify that an anonymous user is forbidden from seeing
+        """Verify that an anonymous user is forbidden from seeing
         inventory_scripts associated with an organization.
         """
         with self.current_user(anonymous_user.username, user_password):
@@ -155,17 +144,13 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 inventory_script.get()
 
     def test_duplicate(self, api_inventory_scripts_pg, inventory_script):
-        """
-        Verify response when POSTing a duplicate to /inventory_scripts
-        """
+        """Verify response when POSTing a duplicate to /inventory_scripts"""
         # assert duplicate error
         with pytest.raises(towerkit.exceptions.Duplicate):
             api_inventory_scripts_pg.post(inventory_script.json)
 
     def test_unique(self, request, api_inventory_scripts_pg, inventory_script, another_organization):
-        """
-        Verify response when POSTing a duplicate to /inventory_scripts
-        """
+        """Verify response when POSTing a duplicate to /inventory_scripts"""
         print json.dumps(inventory_script.json, indent=2)
         payload = dict(name=inventory_script.name,
                        description=inventory_script.description,
@@ -180,9 +165,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         request.addfinalizer(obj.silent_delete)
 
     def test_filter(self, api_inventory_scripts_pg, inventory_script):
-        """
-        Verify filters with the GET resource
-        """
+        """Verify filters with the GET resource"""
         # Issue GET against /inventory_scripts/ endpoint
         for attr in ('id', 'name', 'description'):
             filter = {attr: getattr(inventory_script, attr)}
@@ -192,9 +175,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 (attr, filter_results.count, 1)
 
     def test_put(self, api_inventory_scripts_pg, inventory_script):
-        """
-        Verify successful PUT to /inventory_scripts/n
-        """
+        """Verify successful PUT to /inventory_scripts/n"""
         payload = dict(name=fauxfactory.gen_utf8(),
                        description="Random inventory script - %s" % fauxfactory.gen_utf8(),
                        script='#!/bin/bash\necho "%s"\n' % fauxfactory.gen_utf8())
@@ -208,9 +189,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 (key, getattr(inventory_script, key), val)
 
     def test_patch(self, api_inventory_scripts_pg, inventory_script):
-        """
-        Verify successful PATCH to /inventory_scripts/n
-        """
+        """Verify successful PATCH to /inventory_scripts/n"""
         payload = dict(name=fauxfactory.gen_utf8(),
                        description="Random inventory script - %s" % fauxfactory.gen_utf8(),
                        script='#!/bin/bash\necho "%s"\n' % fauxfactory.gen_utf8())
@@ -222,9 +201,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 (key, getattr(inventory_script, key), val)
 
     def test_delete_as_privileged_user(self, api_inventory_scripts_pg, inventory_script, privileged_user, user_password):
-        """
-        Verify succesful DELETE to /inventory_scripts/N as a privileged user.
-        """
+        """Verify succesful DELETE to /inventory_scripts/N as a privileged user."""
         with self.current_user(privileged_user.username, user_password):
             # delete script
             inventory_script.delete()
@@ -239,19 +216,15 @@ class Test_Inventory_Scripts(Base_Api_Test):
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3928")
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3927")
     def test_delete_as_unprivileged_user(self, inventory_script, unprivileged_user, user_password):
-        """
-        Verify unsuccesful DELETE to /inventory_scripts/N as an unprivileged user.
-        """
+        """Verify unsuccesful DELETE to /inventory_scripts/N as an unprivileged user."""
         with self.current_user(unprivileged_user.username, user_password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 inventory_script.delete()
 
     def test_inventory_update_after_delete(self, custom_inventory_source_with_vars, inventory_script):
-        """
-        Verify attempting to run an inventory_update, after deleting the
+        """Verify attempting to run an inventory_update, after deleting the
         associated custom_inventory_script, fails.
         """
-
         # grab update_pg page before deleting inventory_script
         update_pg = custom_inventory_source_with_vars.get_related('update')
         assert update_pg.can_update
@@ -277,10 +250,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     def test_import(self, custom_inventory_source_with_vars, api_unified_jobs_pg, inventory_script,
                     custom_inventory_source_vars_good, custom_inventory_source_vars_bad):
-        """
-        Verify succesful inventory_update using a custom /inventory_script
-        """
-
+        """Verify succesful inventory_update using a custom /inventory_script"""
         # Update inventory_source and wait for completion
         update_pg = custom_inventory_source_with_vars.update().wait_until_completed()
 
@@ -320,10 +290,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
     # @pytest.mark.fixture_args(script_source='#!env python\nraise Exception("fail!")\n') # traceback
     # @pytest.mark.fixture_args(script_source='#!env python\nimport sys\nsys.exit(1)\n')
     def test_import_script_failure(self, custom_inventory_source, api_unified_jobs_pg, bad_inventory_script):
-        """
-        Verify an inventory_update fails when using various bad inventory_scripts
-        """
-
+        """Verify an inventory_update fails when using various bad inventory_scripts"""
         # PATCH inventory_source
         custom_inventory_source.patch(source_script=bad_inventory_script.id)
 

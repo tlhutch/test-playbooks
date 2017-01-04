@@ -8,8 +8,7 @@ pytestmark = [pytest.mark.ui]
 
 
 def test_toggle_all_users_visble_to_org_admin(v1, ui, org_admin, rando):
-    """Verify functionality of org admin user visibility setting
-    """
+    """Verify functionality of org admin user visibility setting"""
     configuration, users = ui.configuration, ui.users
 
     configuration.get()

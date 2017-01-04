@@ -33,8 +33,7 @@ def test_permissions_tab_is_disabled_for_private_credentials(ui, private_cred):
 
 
 def test_edit_credential(ui, org_cred):
-    """Basic end-to-end functional test for updating an existing credential
-    """
+    """Basic end-to-end functional test for updating an existing credential"""
     edit = ui.credential_edit.get(id=org_cred.id)
     # make some data
     name = fauxfactory.gen_alphanumeric()
@@ -59,8 +58,7 @@ def test_edit_credential(ui, org_cred):
 
 
 def test_delete_credential(v1, ui, org_cred):
-    """End-to-end functional test for deleting a credential
-    """
+    """End-to-end functional test for deleting a credential"""
     cred_name = org_cred.name
     cred_page = ui.credentials.get()
     # add a search filter for the credential
@@ -84,8 +82,7 @@ def test_delete_credential(v1, ui, org_cred):
 
 
 def test_create_credential(v1, ui, session_org):
-    """End-to-end functional test for creating a credential
-    """
+    """End-to-end functional test for creating a credential"""
     add = ui.credential_add.get()
     add.table.wait_for_table_to_load()
     # make some data

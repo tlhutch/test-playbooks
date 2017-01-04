@@ -1,16 +1,14 @@
-"""Base class for CLI tests.
-"""
+"""Base class for CLI tests."""
 import pytest
 
 
 @pytest.mark.skip_selenium
 class BaseCLITest(object):
-    """
-    Base class for tower_cli tests
-    """
+    """Base class for tower_cli tests"""
+
     @classmethod
     def setup_class(cls):
-        """ setup any state specific to the execution of the given class (which
+        """setup any state specific to the execution of the given class (which
         usually contains tests).
         """
         plugin = pytest.config.pluginmanager.getplugin("plugins.pytest_restqa.pytest_restqa")
@@ -29,15 +27,11 @@ class BaseCLITest(object):
 
     @classmethod
     def teardown_class(cls):
-        """
-        Perform any required test teardown
-        """
+        """Perform any required test teardown"""
+        pass
 
     def has_credentials(self, ctype, sub_ctype=None, fields=None):
-        """
-        assert whether requested credentials are present
-        """
-
+        """assert whether requested credentials are present"""
         # Make sure credentials.yaml has ctype we need
         assert ctype in self.testsetup.credentials, \
             "No '%s' credentials defined in credentals.yaml" % ctype

@@ -36,8 +36,7 @@ def associate_notification_template(notification_template_pg, resource_pg, job_r
 
 
 def expected_test_notification(tower_url, notification_template_pg, tower_message=False):
-    """
-    Returns test notification message expected for given notification template.
+    """Returns test notification message expected for given notification template.
     By default, returns message as it would be shown in notification service
     (if tower_message is True, returns message shown on notifications endpoint).
     """
@@ -58,8 +57,7 @@ def expected_test_notification(tower_url, notification_template_pg, tower_messag
 
 
 def expected_job_notification(tower_url, notification_template_pg, job_pg, job_result, tower_message=False):
-    """
-    Returns notification message expected for given job and state.
+    """Returns notification message expected for given job and state.
     Note that job can be regular job template or system job template.
     By default, returns message as it would be shown in notification service
     (if tower_message is True, returns message shown on notifications endpoint).
@@ -85,8 +83,7 @@ def expected_job_notification(tower_url, notification_template_pg, job_pg, job_r
 
 
 def _expected_webhook_job_notification(tower_url, notification_template_pg, job_pg, job_result):
-    """
-    Returns job notification message for webhooks.
+    """Returns job notification message for webhooks.
     Note that job can be regular job template or system job template.
     """
     # Get job_host_summaries_pg (used in build_host_results())

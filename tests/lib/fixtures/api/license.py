@@ -81,8 +81,7 @@ def apply_license(api_config_pg):
 
 @pytest.yield_fixture
 def no_license(api_config_pg):
-    """Remove an active license
-    """
+    """Remove an active license"""
     log.debug('deleting any active license')
     api_config_pg.delete()
     yield
@@ -91,8 +90,7 @@ def no_license(api_config_pg):
 
 @pytest.yield_fixture
 def install_legacy_license(api_config_pg):
-    """Install legacy license
-    """
+    """Install legacy license"""
     log.debug('calling fixture install_legacy_license')
     license_info = generate_license(
         days=365,
@@ -105,8 +103,7 @@ def install_legacy_license(api_config_pg):
 
 @pytest.yield_fixture
 def install_basic_license(api_config_pg):
-    """Install basic license
-    """
+    """Install basic license"""
     log.debug('calling fixture install_basic_license')
     license_info = generate_license(
         days=365,
@@ -119,8 +116,7 @@ def install_basic_license(api_config_pg):
 
 @pytest.yield_fixture
 def install_enterprise_license(api_config_pg):
-    """Install enterprise license
-    """
+    """Install enterprise license"""
     log.debug('calling fixture install_enterprise_license')
     license_info = generate_license(
         days=365,
@@ -133,8 +129,7 @@ def install_enterprise_license(api_config_pg):
 
 @pytest.yield_fixture(scope='class')
 def install_enterprise_license_unlimited(api_config_pg):
-    """Install enterprise license at the class fixture scope
-    """
+    """Install enterprise license at the class fixture scope"""
     log.debug('calling fixture install_enterprise_license_unlimited')
     license_info = generate_license(
         days=365,
@@ -147,8 +142,7 @@ def install_enterprise_license_unlimited(api_config_pg):
 
 @pytest.yield_fixture(scope='module')
 def module_install_enterprise_license(authtoken, api_config_pg):
-    """Install enterprise license at the module fixture scope
-    """
+    """Install enterprise license at the module fixture scope"""
     log.debug('calling fixture module_install_enterprise_license')
     license_info = generate_license(
         days=365,

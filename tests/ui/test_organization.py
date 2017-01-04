@@ -46,8 +46,7 @@ def test_api_referential_integrity(v1, ui, organizations):
 
 
 def test_edit_organization(v1, ui, organization):
-    """Basic end-to-end functional test for updating an existing organization
-    """
+    """Basic end-to-end functional test for updating an existing organization"""
     edit = ui.organization_edit.get(id=organization.id)
     # make some data
     name = fauxfactory.gen_alphanumeric()
@@ -73,8 +72,7 @@ def test_edit_organization(v1, ui, organization):
 
 
 def test_delete_organization(v1, ui, organization):
-    """End-to-end functional test for deleting a organization
-    """
+    """End-to-end functional test for deleting a organization"""
     org_page = ui.organizations.get()
     search_name = organization.name.lower()
     # add a search filter for the organization
@@ -96,8 +94,7 @@ def test_delete_organization(v1, ui, organization):
 
 
 def test_create_organization(v1, ui):
-    """End-to-end functional test for creating a organization
-    """
+    """End-to-end functional test for creating a organization"""
     add = ui.organization_add.get()
     # make some data
     name = fauxfactory.gen_alphanumeric()

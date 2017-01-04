@@ -16,8 +16,7 @@ class Test_Credential(Base_Api_Test):
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3303")
     def test_duplicate(self, request, factories, api_credentials_pg):
-        """
-        As of Tower-3.0, we allow for duplicate credentials when a value is supplied
+        """As of Tower-3.0, we allow for duplicate credentials when a value is supplied
         for user or team but not for organization.
 
         Note: in Tower-3.0.2, we effectively no longer have pure team credentials.
@@ -88,8 +87,7 @@ class Test_Credential(Base_Api_Test):
         (dict(project="foo", password="foo", username="foo"), {"host": ["Host required for OpenStack credential."]}),
     ], ids=['project', 'password', 'username', 'host'])
     def test_post_invalid_openstack_credential(self, admin_user, api_credentials_pg, payload, expected_result):
-        """
-        Tests that if you post an OpenStack credential with missing params that
+        """Tests that if you post an OpenStack credential with missing params that
         the post fails.
         """
         # create payload

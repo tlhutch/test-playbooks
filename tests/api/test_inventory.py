@@ -10,8 +10,7 @@ from tests.api import Base_Api_Test
 
 
 def inventory_dict():
-    """
-    Return inventory json to simulate an ec2 inventory import.  The ec2_id used
+    """Return inventory json to simulate an ec2 inventory import.  The ec2_id used
     is randomly generated.
     """
     return {  # NOQA
@@ -125,14 +124,12 @@ class Test_Inventory(Base_Api_Test):
         factories.inventory(name="test-org", organization=org2)
 
     def test_host_without_group(self, host_without_group, tower_version_cmp):
-        """
-        Verify that /inventory/N/script includes hosts that are not a member of
+        """Verify that /inventory/N/script includes hosts that are not a member of
         any group.
             1) Create inventory with hosts, but no groups
             2) Verify the hosts appear in related->hosts
             2) Verify the hosts appear in related->script
         """
-
         if tower_version_cmp('2.0.0') < 0:
             pytest.xfail("Only supported on tower-2.0.0 (or newer)")
 
@@ -157,7 +154,8 @@ class Test_Inventory(Base_Api_Test):
 
     def test_conflict_exception_with_running_update(self, custom_inventory_source):
         """Verify that deleting an inventory with a running update will
-        raise a 409 exception"""
+        raise a 409 exception
+        """
         inventory_pg = custom_inventory_source.get_related("inventory")
         custom_inventory_source.get_related("update").post()
         update_pg = custom_inventory_source.get().get_related("current_update")
@@ -169,7 +167,8 @@ class Test_Inventory(Base_Api_Test):
 
     def test_update_cascade_delete(self, custom_inventory_source, api_inventory_updates_pg):
         """Verify that associated inventory updates get cascade deleted with custom group
-        deletion."""
+        deletion.
+        """
         inv_source_id = custom_inventory_source.id
         custom_inventory_source.update().wait_until_completed()
 
@@ -220,9 +219,7 @@ class Test_Inventory_Update(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_success(self, cloud_group):
-        """
-        Verify successful inventory_update for various cloud providers.
-        """
+        """Verify successful inventory_update for various cloud providers."""
         # Assert that the cloud_group has not updated
         inv_source_pg = cloud_group.get_related('inventory_source')
         assert not inv_source_pg.is_successful, \
@@ -261,8 +258,7 @@ class Test_Inventory_Update(Base_Api_Test):
         #    "triggered by the callback as expected"
 
     def test_inventory_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):
-        """
-        Assess inventory imports with all possible choices for source_regions.
+        """Assess inventory imports with all possible choices for source_regions.
 
         Note: we expect inventory imports with certain regions to fail. For more context,
         please see https://github.com/ansible/ansible-tower/issues/545.
@@ -304,8 +300,7 @@ class Test_Inventory_Update(Base_Api_Test):
             # TODO: Assert specific cloud instance is now listed in group
 
     def test_inventory_update_with_populated_source_region(self, cloud_group_supporting_source_regions):
-        """
-        Tests that hosts are imported when applying source regions containing hosts.
+        """Tests that hosts are imported when applying source regions containing hosts.
 
         NOTE: test may fail if our expected test hosts are down.
         """
@@ -342,8 +337,7 @@ class Test_Inventory_Update(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/625')
     def test_inventory_update_with_unpopulated_source_region(self, cloud_group_supporting_source_regions):
-        """
-        Tests that hosts are not imported when applying source regions not containing hosts.
+        """Tests that hosts are not imported when applying source regions not containing hosts.
 
         NOTE: test may fail if someone spins up an instance in one of these regions. Regions correspond as follow:
         * sa-east-1    => South America (Sao Paulo)
@@ -384,8 +378,7 @@ class Test_Inventory_Update(Base_Api_Test):
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=Name", "key-name=jenkins", "tag:Name=*"])
     def test_inventory_update_with_matched_aws_instance_filter(self, aws_group, instance_filter):
-        """
-        Tests inventory imports with matched AWS instance filters
+        """Tests inventory imports with matched AWS instance filters
 
         NOTE: test may fail if our expected test hosts are down.
         """
@@ -406,8 +399,7 @@ class Test_Inventory_Update(Base_Api_Test):
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=UNMATCHED", "key-name=UNMATCHED", "tag:Name=UNMATCHED"])
     def test_inventory_update_with_unmatched_aws_instance_filter(self, aws_group, instance_filter):
-        """
-        Tests inventory imports with unmatched AWS instance filters
+        """Tests inventory imports with unmatched AWS instance filters
 
         NOTE: test may fail if someone spins up an unexpected instance.
         """
@@ -437,8 +429,7 @@ class Test_Inventory_Update(Base_Api_Test):
             ("availability_zone,ami_id", ["ec2", "zones", "images"],),
         ], ids=["\"\"", "availability_zone", "ami_id", "instance_id", "instance_type", "key_pair", "region", "security_group", "availability_zone,ami_id"])
     def test_aws_only_group_by(self, aws_group, only_group_by, expected_group_names):
-        """Tests that expected groups are created when supplying value for 'only_group_by'
-        """
+        """Tests that expected groups are created when supplying value for 'only_group_by'"""
         # update the inv_source_pg and launch the inventory update
         inv_source_pg = aws_group.get_related('inventory_source')
         inv_source_pg.patch(group_by=only_group_by)
@@ -455,8 +446,7 @@ class Test_Inventory_Update(Base_Api_Test):
             "Unexpected groups created.\n\nExpected group names: %s\nActual group names: %s\n" % (expected_group_names, actual_group_names)
 
     def test_aws_replace_dash_in_groups_source_variable(self, job_template, aws_group, host_local):
-        """
-        Tests that AWS inventory groups will be registered with underscores instead of hyphens
+        """Tests that AWS inventory groups will be registered with underscores instead of hyphens
         when using "replace_dash_in_groups" source variable
         """
         job_template.patch(inventory=aws_group.inventory, limit=host_local.name)
@@ -523,16 +513,15 @@ class Test_Inventory_Update(Base_Api_Test):
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
-    """
-    Verify successful 'awx-manage inventory_import' operation.  This class
+    """Verify successful 'awx-manage inventory_import' operation.  This class
     tests import using both --inventory-id and --inventory-name.  Importing
     with, and without, available licenses is also confirmed.
     """
+
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_using_bad_id(self, ansible_runner, api_inventories_pg, import_inventory):
         """Verify that importing inventory using a bogus --inventory-id=<ID> fails"""
-
         # find an inventory_id that doesn't exist
         bad_id = towerkit.utils.random_int()
         while api_inventories_pg.get(id=bad_id).count != 0:
@@ -548,7 +537,6 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
 
     def test_import_bad_name(self, ansible_runner, import_inventory):
         """Verify that importing inventory using a bogus --inventory-name=<NAME> fails"""
-
         # Run awx-manage inventory_import
         contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name "%s" --source /etc/fstab' % fauxfactory.gen_alphanumeric())
         # Verify the import failed
@@ -559,7 +547,6 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
 
     def test_import_by_id(self, ansible_runner, import_inventory):
         """Verify that importing inventory using --inventory-id=<ID> succeeds"""
-
         # Upload inventory script
         dest = towerkit.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
 
@@ -577,7 +564,6 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
 
     def test_import_by_name(self, ansible_runner, import_inventory):
         """Verify that importing inventory using --inventory-name=<NAME> succeeds"""
-
         # Upload inventory script
         dest = towerkit.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
 
@@ -596,7 +582,6 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
 
     def test_import_ini(self, ansible_runner, import_inventory):
         """Verify that importing inventory from a .INI file succeeds"""
-
         # Upload inventory script
         dest = towerkit.tower.inventory.upload_inventory(ansible_runner, nhosts=10, ini=True)
 
@@ -688,11 +673,9 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         assert import_inventory.get_related('hosts').count == 0
 
     def test_import_instance_id_constraint(self, ansible_runner, import_inventory, json_inventory_before, json_inventory_after, tower_version_cmp):
-        """
-        Verify that tower can handle inventory_import where the host name
+        """Verify that tower can handle inventory_import where the host name
         remains the same, but the instance_id changes.
         """
-
         if tower_version_cmp('2.0.2') < 0:
             pytest.xfail("Only supported on tower-2.0.2 (or newer)")
 
@@ -729,10 +712,7 @@ EOF""" % (json.dumps(json_inventory_after, indent=4),))
             print result
 
     def test_import_ipv6_hosts(self, ansible_runner, import_inventory, json_inventory_ipv6, tower_version_cmp):
-        """
-        Verify that tower can handle inventory_import with ipv6 hosts.
-        """
-
+        """Verify that tower can handle inventory_import with ipv6 hosts."""
         if tower_version_cmp('2.0.2') < 0:
             pytest.xfail("Only supported on tower-2.0.2 (or newer)")
 
@@ -753,7 +733,7 @@ EOF""" % (json.dumps(json_inventory_ipv6, indent=4),))
 
     @pytest.mark.skipif(True, reason="TODO - https://trello.com/c/JF0hVue0")
     def test_import_directory(self, ansible_runner, import_inventory):
-        """
-        Verify that tower can handle inventory_import when --source refers a
+        """Verify that tower can handle inventory_import when --source refers a
         directory.
         """
+        pass

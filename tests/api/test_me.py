@@ -6,13 +6,10 @@ from tests.api import Base_Api_Test
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Me(Base_Api_Test):
-    """
-    Verify the /me endpoint displays the expected information based on the current user
-    """
+    """Verify the /me endpoint displays the expected information based on the current user"""
 
     def test_get(self, api_me_pg, all_users, user_password):
-        """
-        Verify that the /api/v1/me endpoint returns the expected information
+        """Verify that the /api/v1/me endpoint returns the expected information
         when authenticated as various user types.
         """
         for user in all_users:

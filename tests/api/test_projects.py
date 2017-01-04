@@ -1,5 +1,4 @@
-"""
-# Create projects in /var/lib/awx/projects and verify
+"""# Create projects in /var/lib/awx/projects and verify
 # 1) projects starting with '.' or '_' are excluded from config['project_local_paths']
 # 2) project appears under config['project_local_paths']
 """
@@ -39,14 +38,12 @@ def project_with_galaxy_requirements(request, authtoken, organization):
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Projects(Base_Api_Test):
-    """
-    Verify various activities on /projects endpoint
-    """
+    """Verify various activities on /projects endpoint"""
+
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_manual_project(self, project_ansible_playbooks_manual):
-        """
-        Verify tower can successfully creates a manual project (scm_type='').
+        """Verify tower can successfully creates a manual project (scm_type='').
         This includes verifying UTF-8 local-path.
         """
         # if we make it through the fixure, post worked
@@ -87,8 +84,7 @@ class Test_Projects(Base_Api_Test):
     # Override the project local_path to workaround and unicode issues
     @pytest.mark.fixture_args(local_path="project_dir_%s" % fauxfactory.gen_alphanumeric())
     def test_change_from_manual_to_scm_project(self, project_ansible_playbooks_manual):
-        """
-        Verify tower can successfully convert a manual project, into a scm
+        """Verify tower can successfully convert a manual project, into a scm
         managed project.
         """
         # change the scm_type to 'git'
@@ -111,9 +107,7 @@ class Test_Projects(Base_Api_Test):
             "the project is not marked as successful - id:%s" % project_pg.id
 
     def test_update_with_private_git_repository(self, ansible_runner, project_ansible_docsite_git):
-        """
-        Tests that project updates succeed with private git repositories.
-        """
+        """Tests that project updates succeed with private git repositories."""
         # find project path
         local_path = project_ansible_docsite_git.local_path
         expected_project_path = os.path.join('/var/lib/awx/projects/', local_path)
@@ -150,8 +144,7 @@ class Test_Projects(Base_Api_Test):
         ]
     )
     def test_scm_delete_on_next_update(self, project_ansible_playbooks_git, attr, value):
-        """
-        Verify changing the scm_type or the scm_url causes tower to enable
+        """Verify changing the scm_type or the scm_url causes tower to enable
         scm_delete_on_next_update.
 
         Also assert that after subsequently updating the project, the field
@@ -199,8 +192,7 @@ class Test_Projects(Base_Api_Test):
             (project_ansible_playbooks_git.scm_delete_on_next_update)
 
     def test_cancel_queued_update(self, project_ansible_git_nowait):
-        """
-        Verify the project->current_update->cancel endpoint behaves as expected when canceling a
+        """Verify the project->current_update->cancel endpoint behaves as expected when canceling a
         queued project_update.  Note, the project_ansible_git repo is used
         because the repo is large enough that the git-clone should take enough
         time to trigger a project_update cancel.
@@ -229,8 +221,7 @@ class Test_Projects(Base_Api_Test):
             "(expected status:canceled) - %s" % project_ansible_git_nowait
 
     def test_cancel_running_update(self, project_ansible_git_nowait):
-        """
-        Verify the project->current_update->cancel endpoint behaves as expected
+        """Verify the project->current_update->cancel endpoint behaves as expected
         when canceling a running project_update.  Note, the project_ansible_git
         repo is used because the repo is large enough that the git-clone should
         take enough time to trigger a project_update cancel.
@@ -264,7 +255,8 @@ class Test_Projects(Base_Api_Test):
 
     def test_update_cascade_delete(self, project_ansible_playbooks_git, api_project_updates_pg):
         """Verify that associated project updates get cascade deleted with project
-        deletion."""
+        deletion.
+        """
         project_id = project_ansible_playbooks_git.id
 
         # assert that we have a project update
@@ -278,7 +270,8 @@ class Test_Projects(Base_Api_Test):
 
     def test_conflict_exception_with_running_update(self, project_ansible_git_nowait):
         """Verify that deleting a project with a running update will
-        raise a 409 exception"""
+        raise a 409 exception
+        """
         update_pg = project_ansible_git_nowait.get_related("current_update")
 
         # delete the job_template

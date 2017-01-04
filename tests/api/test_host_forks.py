@@ -115,8 +115,7 @@ class Test_Host_Fork(Base_Api_Test):
 
     @pytest.mark.usefixtures('authtoken')
     def test_awx_job_launch(self, api_jobs_pg, job_template):
-        """
-        1) Launch the job_template
+        """1) Launch the job_template
         2) Poll for status
         3) Assert results
         """

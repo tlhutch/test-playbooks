@@ -145,8 +145,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
                                           host_with_default_ipv4_in_variables,
                                           another_host_with_default_ipv4_in_variables, host_config_key,
                                           ansible_default_ipv4):
-        """Verify launch failure when launching a job_template where multiple hosts match """
-
+        """Verify launch failure when launching a job_template where multiple hosts match"""
         # enable callback
         job_template.patch(host_config_key=host_config_key)
         assert job_template.host_config_key == host_config_key
@@ -252,8 +251,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
     def test_launch_with_limit(self, api_jobs_url, ansible_runner, job_template_with_random_limit,
                                host_with_default_ipv4_in_variables, host_config_key,
                                ansible_default_ipv4):
-        """
-        Assert that launching a callback job against a job_template with an
+        """Assert that launching a callback job against a job_template with an
         existing 'limit' parameter successfully launches and that it is launched
         with a value for "limit" that matches our test host.
         """
@@ -335,11 +333,9 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3534")
     def test_launch_multiple(self, api_jobs_url, ansible_runner, job_template, host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4):
-        """
-        Verify that issuing a callback, while a callback job from the same host
+        """Verify that issuing a callback, while a callback job from the same host
         is already running, fails.
         """
-
         # enable host_config_key, use playbook with delay
         # (so that first job is running while second/third jobs are requested)
         job_template.patch(host_config_key=host_config_key, playbook='sleep.yml', extra_vars='{"sleep_interval": 10}')
@@ -399,7 +395,6 @@ class Test_Job_Template_Callback(Base_Api_Test):
         cloud_group, ansible_default_ipv4, tower_version_cmp
     ):
         """Assert that a callback job against a job_template also initiates an inventory_update (when configured)."""
-
         if tower_version_cmp('2.0.0') < 0:
             pytest.xfail("Only supported on tower-2.0.0 (or newer)")
 
@@ -469,7 +464,6 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
     def test_launch_without_inventory_update(self, ansible_runner, job_template, host_config_key, cloud_group, ansible_default_ipv4):
         """Assert that a callback job against a job_template does not initiate an inventory_update"""
-
         # Change the job_template inventory to match cloud_group
         # Enable host_config_key
         job_template.patch(inventory=cloud_group.inventory, host_config_key=host_config_key)

@@ -148,8 +148,7 @@ def multiple_management_job_schedules(request, system_job_template, rrule_minute
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken')
 class Test_Project_Schedules(Base_Api_Test):
-    """
-    Test basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
+    """Test basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
 
     Test schedule rrule support ...
       1. valid should be accepted
@@ -449,8 +448,7 @@ class Test_Project_Schedules(Base_Api_Test):
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Inventory_Schedules(Base_Api_Test):
-    """
-    Test basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
+    """Test basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
 
     Test schedule rrule support ...
       1. valid should be accepted
@@ -709,7 +707,6 @@ class Test_Inventory_Schedules(Base_Api_Test):
     # SEE JIRA(AC-1106)
     def test_inventory_group_delete(self, api_schedules_pg, api_groups_pg, inventory, aws_credential):
         """assert that schedules are deleted when a inventory group is deleted"""
-
         # create group/inventory_source
         payload = dict(name="aws-group-%s" % fauxfactory.gen_alphanumeric(),
                        description="AWS group %s" % fauxfactory.gen_utf8(),
@@ -755,8 +752,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 class Test_Job_Template_Schedules(Base_Api_Test):
-    """
-    TODO - Validation of job_template schedules
+    """TODO - Validation of job_template schedules
 
     This class tests the following:
     * Verify basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
@@ -764,6 +760,7 @@ class Test_Job_Template_Schedules(Base_Api_Test):
     * Verify related fields map correctly (schedule->job_template and job_templates->schedules)
     * Verify extra_vars handling
     """
+
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_schedule_with_no_credential(self, job_template_no_credential):
         """Verify that a job_template with no credential launches jobs that fail."""
@@ -810,6 +807,7 @@ class Test_Job_Template_Schedules(Base_Api_Test):
 @pytest.mark.usefixtures('authtoken')
 class Test_System_Job_Template_Schedules(Base_Api_Test):
     """Tests system job schedules."""
+
     @pytest.mark.parametrize("name, count, system_job_template_id, kwargs", [
         ("Cleanup Job Schedule", 1, 1, dict(days='120')),
         ("Cleanup Activity Schedule", 1, 2, dict(days='355')),

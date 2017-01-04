@@ -107,7 +107,8 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
 
     def test_node_triggers_should_be_mutually_exclusive(self, factories):
         """Confirms that if a node is listed under `always_nodes`, it cannot also be
-           listed under `{success, failure}_nodes`."""
+        listed under `{success, failure}_nodes`.
+        """
         # Create two nodes. First node set to _always_ trigger second node.
         wfjt = factories.workflow_job_template()
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
@@ -130,8 +131,9 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
 
     def test_delete_workflow_job_template_with_single_node(self, factories):
         """When a workflow job template with a single node is deleted,
-           expect node to be deleted. Job template referenced by node should
-           *not* be deleted."""
+        expect node to be deleted. Job template referenced by node should
+        *not* be deleted.
+        """
         # Build workflow
         wfjt = factories.workflow_job_template()
         node = factories.workflow_job_template_node(workflow_job_template=wfjt)
@@ -150,18 +152,18 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
 
     def test_delete_workflow_job_template_with_complex_tree(self, factories):
         """When a workflow job template with a a complex tree is deleted,
-           expect all nodes in tree to be deleted. Job template referenced
-           by nodes should *not* be deleted.
+        expect all nodes in tree to be deleted. Job template referenced
+        by nodes should *not* be deleted.
 
-           Workflow:
-            n1
-             - (always) n2
-            n3
-             - (success) n4
-             - (failure) n5
-               - (always) n6
-                 - (success) n7
-           """
+        Workflow:
+         n1
+          - (always) n2
+         n3
+          - (success) n4
+          - (failure) n5
+            - (always) n6
+              - (success) n7
+        """
         # Build workflow
         wfjt = factories.workflow_job_template()
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
@@ -191,15 +193,15 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
     def test_delete_root_node(self, factories):
         """Confirm that when a noot node is deleted, the subsequent nodes become root nodes.
 
-           Workflow:
-            n1                  <----- Delete
-             - (failure) n2         <--- Should become root node
-               - (failure) n3
-                 - (always) n4
-               - (success) n5
-                 - (always) n6
-             - (success) n7        <--- Should become root node
-            n8
+        Workflow:
+         n1                  <----- Delete
+          - (failure) n2         <--- Should become root node
+            - (failure) n3
+              - (always) n4
+            - (success) n5
+              - (always) n6
+          - (success) n7        <--- Should become root node
+         n8
         """
         # Build workflow
         wfjt = factories.workflow_job_template()
@@ -234,11 +236,11 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
     def test_delete_intermediate_node(self, factories):
         """Confirm that when an intermediate leaf node is deleted, the subsequent node becomes a root node.
 
-           Workflow:
-            n1
-             - (always) n2      <----- Delete
-               - (always) n3      <--- Should become root node
-                 - (always) n4
+        Workflow:
+         n1
+          - (always) n2      <----- Delete
+            - (always) n3      <--- Should become root node
+              - (always) n4
         """
         # Build workflow
         wfjt = factories.workflow_job_template()
@@ -266,10 +268,10 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
     def test_delete_leaf_node(self, factories):
         """Confirm that when a leaf node is deleted, the rest of the tree is not affected
 
-           Workflow:
-            n1
-             - (always) n2
-           """
+        Workflow:
+         n1
+          - (always) n2
+        """
         # Build workflow
         wfjt = factories.workflow_job_template()
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)

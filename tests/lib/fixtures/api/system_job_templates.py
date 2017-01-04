@@ -13,8 +13,7 @@ def system_job_template(request, api_system_job_templates_pg):
 
 @pytest.fixture(scope="function")
 def cleanup_jobs_template(request, api_system_job_templates_pg):
-    """
-    Return a System_Job_Template object representing the 'cleanup_jobs' system
+    """Return a System_Job_Template object representing the 'cleanup_jobs' system
     job template.
     """
     matches = api_system_job_templates_pg.get(job_type='cleanup_jobs')
@@ -25,8 +24,7 @@ def cleanup_jobs_template(request, api_system_job_templates_pg):
 
 @pytest.fixture(scope="function")
 def cleanup_activitystream_template(request, api_system_job_templates_pg):
-    """
-    Return a System_Job_Template object representing the 'cleanup_activitystream'
+    """Return a System_Job_Template object representing the 'cleanup_activitystream'
     system job template.
     """
     matches = api_system_job_templates_pg.get(job_type='cleanup_activitystream')
@@ -37,8 +35,7 @@ def cleanup_activitystream_template(request, api_system_job_templates_pg):
 
 @pytest.fixture(scope="function")
 def cleanup_facts_template(request, api_system_job_templates_pg):
-    """
-    Return a System_Job_Template object representing the 'cleanup facts'
+    """Return a System_Job_Template object representing the 'cleanup facts'
     system job template.
     """
     matches = api_system_job_templates_pg.get(job_type='cleanup_facts')

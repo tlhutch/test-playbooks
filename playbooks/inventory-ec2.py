@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-"""
-EC2 external inventory script
+"""EC2 external inventory script
 =================================
 
 Generates inventory that Ansible can understand by making API request to
@@ -136,8 +135,7 @@ class Ec2Inventory(object):
         return {"_meta" : {"hostvars" : {}}}
 
     def __init__(self):
-        """ Main execution path """
-
+        """Main execution path"""
         # Inventory grouped by instance IDs, tags, security groups, regions,
         # and availability zones
         self.inventory = self._empty_inventory()
@@ -170,8 +168,7 @@ class Ec2Inventory(object):
 
 
     def is_cache_valid(self):
-        """ Determines if the cache files have expired, or if it is still valid """
-
+        """Determines if the cache files have expired, or if it is still valid"""
         if os.path.isfile(self.cache_path_cache):
             mod_time = os.path.getmtime(self.cache_path_cache)
             current_time = time()
@@ -183,8 +180,7 @@ class Ec2Inventory(object):
 
 
     def read_settings(self):
-        """ Reads the settings from the ec2.ini file """
-
+        """Reads the settings from the ec2.ini file"""
         config = ConfigParser.SafeConfigParser()
         ec2_default_ini_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ec2.ini')
         ec2_ini_path = os.environ.get('EC2_INI_PATH', ec2_default_ini_path)
@@ -307,8 +303,7 @@ class Ec2Inventory(object):
                 self.ec2_instance_filters[filter_key].append(filter_value)
 
     def parse_cli_args(self):
-        """ Command line argument processing """
-
+        """Command line argument processing"""
         parser = argparse.ArgumentParser(description='Produce an Ansible Inventory file based on EC2')
         parser.add_argument('--list', action='store_true', default=True,
                            help='List instances (default: True)')
@@ -320,8 +315,7 @@ class Ec2Inventory(object):
 
 
     def do_api_calls_update_cache(self):
-        """ Do API calls to each region, and save data in cache files """
-
+        """Do API calls to each region, and save data in cache files"""
         if self.route53_enabled:
             self.get_route53_records()
 
@@ -335,9 +329,9 @@ class Ec2Inventory(object):
 
 
     def get_instances_by_region(self, region):
-        """ Makes an AWS EC2 API call to the list of instances in a particular
-        region """
-
+        """Makes an AWS EC2 API call to the list of instances in a particular
+        region
+        """
         try:
             if self.eucalyptus:
                 conn = boto.connect_euca(host=self.eucalyptus_host)
@@ -368,9 +362,7 @@ class Ec2Inventory(object):
             sys.exit(1)
 
     def get_rds_instances_by_region(self, region):
-        """ Makes an AWS API call to the list of RDS instances in a particular
-        region """
-
+        """Makes an AWS API call to the list of RDS instances in a particular region"""
         try:
             conn = rds.connect_to_region(region)
             if conn:
@@ -384,7 +376,7 @@ class Ec2Inventory(object):
                 sys.exit(1)
 
     def get_instance(self, region, instance_id):
-        """ Gets details about a specific instance """
+        """Gets details about a specific instance"""
         if self.eucalyptus:
             conn = boto.connect_euca(self.eucalyptus_host)
             conn.APIVersion = '2010-08-31'
@@ -402,9 +394,9 @@ class Ec2Inventory(object):
                 return instance
 
     def add_instance(self, instance, region):
-        """ Adds an instance to the inventory and index, as long as it is
-        addressable """
-
+        """Adds an instance to the inventory and index, as long as it is
+        addressable
+        """
         # Only want running instances unless all_instances is True
         if not self.all_instances and instance.state != 'running':
             return
@@ -515,9 +507,9 @@ class Ec2Inventory(object):
 
 
     def add_rds_instance(self, instance, region):
-        """ Adds an RDS instance to the inventory and index, as long as it is
-        addressable """
-
+        """Adds an RDS instance to the inventory and index, as long as it is
+        addressable
+        """
         # Only want available instances unless all_rds_instances is True
         if not self.all_rds_instances and instance.status != 'available':
             return
@@ -599,9 +591,9 @@ class Ec2Inventory(object):
 
 
     def get_route53_records(self):
-        """ Get and store the map of resource records to domain names that
-        point to them. """
-
+        """Get and store the map of resource records to domain names that
+        point to them.
+        """
         r53_conn = route53.Route53Connection()
         all_zones = r53_conn.get_zones()
 
@@ -625,10 +617,10 @@ class Ec2Inventory(object):
 
 
     def get_instance_route53_names(self, instance):
-        """ Check if an instance is referenced in the records we have from
+        """Check if an instance is referenced in the records we have from
         Route53. If it is, return the list of domain names pointing to said
-        instance. If nothing points to it, return an empty list. """
-
+        instance. If nothing points to it, return an empty list.
+        """
         instance_attributes = [ 'public_dns_name', 'private_dns_name',
                                 'ip_address', 'private_ip_address' ]
 
@@ -692,8 +684,7 @@ class Ec2Inventory(object):
         return instance_vars
 
     def get_host_info(self):
-        """ Get variables about a specific host """
-
+        """Get variables about a specific host"""
         if len(self.index) == 0:
             # Need to load index from cache
             self.load_index_from_cache()
@@ -711,8 +702,9 @@ class Ec2Inventory(object):
         return self.json_format_dict(self.get_host_info_dict_from_instance(instance), True)
 
     def push(self, my_dict, key, element):
-        """ Push an element onto an array that may not have been defined in
-        the dict """
+        """Push an element onto an array that may not have been defined in
+        the dict
+        """
         group_info = my_dict.setdefault(key, [])
         if isinstance(group_info, dict):
             host_list = group_info.setdefault('hosts', [])
@@ -721,7 +713,7 @@ class Ec2Inventory(object):
             group_info.append(element)
 
     def push_group(self, my_dict, key, element):
-        """ Push a group as a child of another group. """
+        """Push a group as a child of another group."""
         parent_group = my_dict.setdefault(key, {})
         if not isinstance(parent_group, dict):
             parent_group = my_dict[key] = {'hosts': parent_group}
@@ -730,25 +722,23 @@ class Ec2Inventory(object):
             child_groups.append(element)
 
     def get_inventory_from_cache(self):
-        """ Reads the inventory from the cache file and returns it as a JSON
-        object """
-
+        """Reads the inventory from the cache file and returns it as a JSON
+        object
+        """
         cache = open(self.cache_path_cache, 'r')
         json_inventory = cache.read()
         return json_inventory
 
 
     def load_index_from_cache(self):
-        """ Reads the index from the cache file sets self.index """
-
+        """Reads the index from the cache file sets self.index"""
         cache = open(self.cache_path_index, 'r')
         json_index = cache.read()
         self.index = json.loads(json_index)
 
 
     def write_to_cache(self, data, filename):
-        """ Writes data in JSON format to a file """
-
+        """Writes data in JSON format to a file"""
         json_data = self.json_format_dict(data, True)
         cache = open(filename, 'w')
         cache.write(json_data)
@@ -756,16 +746,14 @@ class Ec2Inventory(object):
 
 
     def to_safe(self, word):
-        """ Converts 'bad' characters in a string to underscores so they can be
-        used as Ansible groups """
-
+        """Converts 'bad' characters in a string to underscores so they can be
+        used as Ansible groups
+        """
         return re.sub("[^A-Za-z0-9\-]", "_", word)
 
 
     def json_format_dict(self, data, pretty=False):
-        """ Converts a dict to a JSON object and dumps it as a formatted
-        string """
-
+        """Converts a dict to a JSON object and dumps it as a formatted string"""
         if pretty:
             return json.dumps(data, sort_keys=True, indent=2)
         else:
@@ -774,4 +762,3 @@ class Ec2Inventory(object):
 
 # Run the script
 Ec2Inventory()
-

@@ -21,9 +21,8 @@ def awx_data(request):
 
 
 class AwxConfig():
-    """
-        This class is just used for monkey patching
-    """
+    """This class is just used for monkey patching"""
+
     def __init__(self, request):
         self.request = request
 

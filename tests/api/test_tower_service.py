@@ -12,8 +12,7 @@ log = logging.getLogger(__name__)
 @pytest.mark.destructive
 @pytest.mark.second_to_last
 class Test_Ansible_Tower_Service(Base_Api_Test):
-    """
-    Executes ansible-tower-service commands and checks process statuses.
+    """Executes ansible-tower-service commands and checks process statuses.
     Note: we check process output with systemctl on EL7 systems and with
     service on EL6 systems. Did not implement with Ubuntu because of the
     following:
@@ -22,6 +21,7 @@ class Test_Ansible_Tower_Service(Base_Api_Test):
     * On Ubuntu systems, rapidly restarting supervisor can leave your system
     in an indeterminate state.
     """
+
     pytestmark = pytest.mark.usefixtures('authtoken')
 
     @pytest.mark.parametrize("command, expected_process_status", [
@@ -32,9 +32,7 @@ class Test_Ansible_Tower_Service(Base_Api_Test):
     ], ids=['ansible-tower-service start', 'ansible-tower-service stop', 'ansible-tower-service restart', 'ansible-tower-service status'])
     def test_tower_status_on_el7(self, ansible_runner, ansible_os_family, ansible_distribution_major_version,
                                  restart_tower_on_teardown, command, expected_process_status):
-        """
-        Execute ansible-tower-service commands and check process statuses.
-        """
+        """Execute ansible-tower-service commands and check process statuses."""
         # check that Tower is running on an EL7 system
         if not (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'):
             pytest.skip("Only supported on EL7 distributions")
@@ -65,9 +63,7 @@ class Test_Ansible_Tower_Service(Base_Api_Test):
     ], ids=['ansible-tower-service start', 'ansible-tower-service stop', 'ansible-tower-service restart', 'ansible-tower-service status'])
     def test_tower_status_on_el6(self, ansible_runner, ansible_os_family, ansible_distribution_major_version,
                                  restart_tower_on_teardown, command, expected_process_status):
-        """
-        Execute ansible-tower-service commands and check process statuses.
-        """
+        """Execute ansible-tower-service commands and check process statuses."""
         # check that Tower is running on an EL6 system
         if not (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6'):
             pytest.skip("Only supported on EL6 distributions")

@@ -11,9 +11,9 @@ author: Rick Mendes
 options:
   instance_id:
     description:
-      - The instance id to get the password data from. 
+      - The instance id to get the password data from.
     required: true
-    default: null 
+    default: null
     aliases: []
   key_file:
     description:

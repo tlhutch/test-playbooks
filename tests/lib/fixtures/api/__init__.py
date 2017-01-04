@@ -15,8 +15,7 @@ from towerkit.api.pages.authtoken import AuthToken_Page
 
 
 def navigate(api, url, field):
-    """
-    Return a json attribute from the given url.  While one can simply
+    """Return a json attribute from the given url.  While one can simply
     concatenate strings to form a URL, this method is preferred to ensure the
     API is capable of self-referencing.
 
@@ -31,24 +30,19 @@ def navigate(api, url, field):
 
 
 def api_default_page_size(testsetup):
-    """
-    The tower default pagination size
-    """
+    """The tower default pagination size"""
     return 25
 
 
 @pytest.fixture(scope="module")
 def api(testsetup):
-    """
-    Convenience fixture that returns api object
-    """
+    """Convenience fixture that returns api object"""
     return testsetup.api
 
 
 @pytest.fixture(scope="module")
 def api_v1_url(request, api):
-    """
-    Navigate the API and return a link to the base api for the requested version.
+    """Navigate the API and return a link to the base api for the requested version.
     For example, if --api-version=v1, returns string '/api/v1/'
     """
     api_version = request.config.getvalue('api_version')
@@ -93,8 +87,7 @@ def api_authtoken_pg(testsetup, api_authtoken_url):
 
 @pytest.fixture(scope="module")
 def authtoken(api, testsetup, api_authtoken_pg):
-    """
-    Logs in to the application with default credentials and returns the
+    """Logs in to the application with default credentials and returns the
     home page
     """
     payload = dict(username=testsetup.credentials['default']['username'],

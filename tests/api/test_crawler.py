@@ -42,7 +42,6 @@ def assert_response(api, resource, method, response_code=httplib.OK, response_sc
     """Issue the desired API method on the provided resource.  Assert that the
     http response and JSON schema are valid
     """
-
     # Determine requested api method
     method = method.lower()
 

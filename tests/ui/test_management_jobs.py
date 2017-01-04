@@ -8,8 +8,7 @@ pytestmark = [pytest.mark.ui]
 
 @pytest.mark.usefixtures('supported_window_sizes')
 def test_component_visibility(ui):
-    """Verify basic component visibility, page layout, and responsiveness
-    """
+    """Verify basic component visibility, page layout, and responsiveness"""
     mgmt = ui.management_jobs.get()
 
     assert mgmt.current_breadcrumb == 'management jobs', (

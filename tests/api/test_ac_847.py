@@ -879,7 +879,6 @@ class Test_AC_847(Base_Api_Test):
         """Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner
         """
-
         # Create an inventory script
         sh_script = """#!/bin/bash
 cat <<EOF

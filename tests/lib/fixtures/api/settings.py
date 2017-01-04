@@ -3,11 +3,9 @@ import pytest
 
 @pytest.fixture
 def update_setting_pg(request):
-    """Helper fixture used in testing Tower settings.
-    """
+    """Helper fixture used in testing Tower settings."""
     def func(api_setting_pg, payload):
-        """
-        :param api_setting_pg: the name of the fixture of our setting page fixture.
+        """:param api_setting_pg: the name of the fixture of our setting page fixture.
         :param payload: a payload used for patching our setting page.
 
         Examples:

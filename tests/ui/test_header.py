@@ -7,8 +7,7 @@ pytestmark = [pytest.mark.ui]
 
 @pytest.mark.usefixtures('supported_window_sizes')
 def test_header_shows_correct_username(v1, ui, rando):
-    """Verify correctly displayed username on header
-    """
+    """Verify correctly displayed username on header"""
     dashboard = ui.dashboard
     msg = 'Unable to verify correctly displayed username on header'
 
@@ -24,8 +23,7 @@ def test_header_shows_correct_username(v1, ui, rando):
 
 @pytest.mark.usefixtures('supported_window_sizes')
 def test_header_click_through(ui):
-    """Verify header menu link functionality
-    """
+    """Verify header menu link functionality"""
     dashboard = ui.dashboard
 
     link_names = [

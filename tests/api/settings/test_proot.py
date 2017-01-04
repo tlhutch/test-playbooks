@@ -9,10 +9,7 @@ from tests.api import Base_Api_Test
 
 @pytest.fixture(scope="function")
 def job_template_proot_1(request, job_template_ansible_playbooks_git, host_local):
-    """
-    Return a job_template for running the test_proot.yml playbook.
-    """
-
+    """Return a job_template for running the test_proot.yml playbook."""
     payload = dict(name="playbook:test_proot.yml, random:%s" % (fauxfactory.gen_utf8()),
                    description="test_proot.yml - %s" % (fauxfactory.gen_utf8()),
                    playbook='test_proot.yml')
@@ -21,13 +18,11 @@ def job_template_proot_1(request, job_template_ansible_playbooks_git, host_local
 
 @pytest.fixture(scope="function")
 def job_template_proot_2(request, factories, api_job_templates_pg, job_template_proot_1):
-    """
-    Create a job_template that uses the same playbook as job_template_proot_1,
+    """Create a job_template that uses the same playbook as job_template_proot_1,
     but runs against a different inventory. By using a different inventory,
     Tower will run job_template_proot_1 and job_template_proot_2 to run at the
     same time.
     """
-
     inventory = factories.inventory()
     factories.host(inventory=inventory)
 
@@ -48,14 +43,12 @@ def job_template_proot_2(request, factories, api_job_templates_pg, job_template_
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Proot(Base_Api_Test):
-    """
-    Tests to assert correctness while running with AWX_PROOT_ENABLED=True
-    """
+    """Tests to assert correctness while running with AWX_PROOT_ENABLED=True"""
+
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_job_isolation(self, job_template_proot_1, job_template_proot_2, update_setting_pg):
-        """
-        Launch 2 jobs and verify that they each:
+        """Launch 2 jobs and verify that they each:
          - complete successfully
          - ran at the same time
 
@@ -159,8 +152,7 @@ if errors:
 print json.dumps({})
 """)
     def test_inventory_script_isolation(self, api_unified_jobs_pg, custom_inventory_source, update_setting_pg):
-        """
-        Launch a custom inventory_script verify it:
+        """Launch a custom inventory_script verify it:
          - completes successfully
          - is unable to view the following directories
 
@@ -191,8 +183,7 @@ print json.dumps({})
         assert job_pg.is_successful, "Inventory update unsuccessful - %s" % job_pg
 
     def test_ssh_connections(self, job_with_ssh_connection, update_setting_pg):
-        """
-        Verify that jobs complete successfully when connecting to inventory
+        """Verify that jobs complete successfully when connecting to inventory
         using the default ansible connection type (e.g. not local).
         """
         payload = dict(AWX_PROOT_ENABLED=True)

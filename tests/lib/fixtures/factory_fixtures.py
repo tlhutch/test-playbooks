@@ -24,6 +24,7 @@ class FactoryFixture(object):
     up the request fixture with a factory class so we don't need to explicitly
     bring the request fixture into every test that needs to use a factory.
     """
+
     def __init__(self, request, page_factory):
         self.request = request
         self._factory = page_factory
@@ -56,13 +57,11 @@ def factory_namespace(request):
 
 @pytest.fixture
 def factories(request):
-    """Inject a function-scoped factory namespace into your test context
-    """
+    """Inject a function-scoped factory namespace into your test context"""
     return factory_namespace(request)
 
 
 @pytest.fixture(scope='module')
 def module_factories(module_install_enterprise_license, request):
-    """Inject a module-scoped factory namespace into your test context
-    """
+    """Inject a module-scoped factory namespace into your test context"""
     return factory_namespace(request)

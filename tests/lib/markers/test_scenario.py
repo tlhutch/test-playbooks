@@ -1,5 +1,4 @@
-"""
-Automatically xfail remaining tests if previous test failed.  Tests will
+"""Automatically xfail remaining tests if previous test failed.  Tests will
 continue to run if:
  * the result is skip
  * the result is xfail

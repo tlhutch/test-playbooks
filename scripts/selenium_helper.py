@@ -8,6 +8,7 @@ from IPython.frontend.terminal.embed import InteractiveShellEmbed
 
 class TestSetup(object):
     """Mock mozwebqa class"""
+
     def __init__(self, args):
         self.base_url = args.base_url
         self.credentials = pytest_mozwebqa.credentials.read('tests/credentials.yml')

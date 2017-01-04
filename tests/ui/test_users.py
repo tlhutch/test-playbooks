@@ -17,8 +17,7 @@ def user(api_v1, session_org):
 
 
 def test_edit_user(ui, user):
-    """Basic end-to-end functional test for updating an existing user
-    """
+    """Basic end-to-end functional test for updating an existing user"""
     edit = ui.user_edit.get(id=user.id)
     # these are indicators that the page is actually ready to be used
     edit.table.wait_for_table_to_load()
@@ -41,8 +40,7 @@ def test_edit_user(ui, user):
 
 
 def test_delete_user(ui, user):
-    """End-to-end functional test for deleting a user
-    """
+    """End-to-end functional test for deleting a user"""
     ui_users = ui.users.get()
     # add a search filter for the user
     ui_users.search(user.username)
@@ -63,8 +61,7 @@ def test_delete_user(ui, user):
 
 
 def test_create_user(v1, ui, session_org):
-    """End-to-end functional test for creating a user
-    """
+    """End-to-end functional test for creating a user"""
     add = ui.user_add.get()
     # these are indicators that the page is actually ready to be used
     add.table.wait_for_table_to_load()

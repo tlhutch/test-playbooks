@@ -44,8 +44,7 @@ def test_displayed_card_titles_and_ordering(ui, rando):
 
 
 def test_cards_route_to_expected_destination(ui):
-    """Verify succesful expected link destination of setup menu cards
-    """
+    """Verify succesful expected link destination of setup menu cards"""
     ui_setup = ui.setup_menu.get()
 
     card_destinations = {

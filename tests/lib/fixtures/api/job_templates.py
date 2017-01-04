@@ -16,7 +16,6 @@ def nonscan_job_template(request):
 @pytest.fixture(scope="function")
 def job_template_no_credential(request, authtoken, api_job_templates_pg, project, host_local):
     """Define a job_template with no machine credential"""
-
     payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
                    description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
@@ -48,7 +47,6 @@ def job_template_with_random_limit(request, authtoken, api_job_templates_pg, pro
 @pytest.fixture(scope="function")
 def job_template_with_random_tag(request, authtoken, api_job_templates_pg, project_ansible_git, host_local, ssh_credential, ansible_version_cmp):
     """Create a job template with a valid machine credential, but a tag parameter that matches nothing"""
-
     # Ansible 1.9.x cannot handle unicode tags (and is EOL)
     if ansible_version_cmp('2.0.0.0') > 0:
         job_tag = fauxfactory.gen_utf8()
@@ -101,7 +99,6 @@ def job_template_multi_ask(request, authtoken, api_job_templates_pg, project, ho
 @pytest.fixture(scope="function")
 def job_template_ansible_playbooks_git(request, authtoken, api_job_templates_pg, project_ansible_playbooks_git, host_local, ssh_credential):
     """Define a job_template with a valid machine credential"""
-
     payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
                    description="Random job_template using ansible-playbooks.git - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
@@ -117,7 +114,6 @@ def job_template_ansible_playbooks_git(request, authtoken, api_job_templates_pg,
 @pytest.fixture(scope="function")
 def job_template(request, authtoken, api_job_templates_pg, project, host_local, ssh_credential):
     """Define a job_template with a valid machine credential"""
-
     payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
                    description="Random job_template with machine credentials - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
@@ -133,7 +129,6 @@ def job_template(request, authtoken, api_job_templates_pg, project, host_local, 
 @pytest.fixture(scope="function")
 def another_job_template(request, authtoken, api_job_templates_pg, job_template):
     """Define a job_template with a valid machine credential"""
-
     payload = job_template.json
     payload.update(name="Another job template - %s" % fauxfactory.gen_utf8())
     obj = api_job_templates_pg.post(payload)
@@ -144,7 +139,6 @@ def another_job_template(request, authtoken, api_job_templates_pg, job_template)
 @pytest.fixture(scope="function")
 def job_template_with_extra_vars(request, authtoken, api_job_templates_pg, project, ssh_credential, host_local):
     """Define a job_template with a set of extra_vars"""
-
     payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
                    description="Random job_template with machine credential - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
@@ -166,7 +160,6 @@ def check_job_template(job_template):
 @pytest.fixture(scope="function")
 def scan_job_template(request, authtoken, api_job_templates_pg, ssh_credential, host_local):
     """Define a basic scan job_template"""
-
     payload = dict(name="scan_job_template-%s" % fauxfactory.gen_utf8(),
                    description="Random scan job_template with machine credential - %s" % fauxfactory.gen_utf8(),
                    inventory=host_local.get_related('inventory').id,
@@ -211,8 +204,8 @@ def job_template_with_ssh_connection(request, testsetup, ansible_facts,
                                      authtoken, api_job_templates_pg, project,
                                      ssh_credential_with_ssh_key_data_and_sudo, host_with_default_connection):
     """Define a job_template that uses a machine credential that uses 'ssh',
-    not a 'local' connection."""
-
+    not a 'local' connection.
+    """
     # Create job_template
     payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
                    description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
@@ -311,9 +304,7 @@ def files_scan_job_template(scan_job_template):
 
 @pytest.fixture(scope="function")
 def job_template_with_schedule(request, authtoken, job_template):
-    """
-    A job template with an associated schedule.
-    """
+    """A job template with an associated schedule."""
     schedule_rrule = rrule.RRule(
         dateutil.rrule.DAILY, count=1, byminute='', bysecond='', byhour='')
 
@@ -332,9 +323,7 @@ def job_template_with_schedule(request, authtoken, job_template):
 
 @pytest.fixture(scope="function")
 def job_template_with_label(request, authtoken, job_template, label):
-    """
-    Job template with a randomly named label.
-    """
+    """Job template with a randomly named label."""
     with pytest.raises(exceptions.NoContent):
         job_template.get_related('labels').post(dict(id=label.id))
     return job_template.get()
@@ -342,9 +331,7 @@ def job_template_with_label(request, authtoken, job_template, label):
 
 @pytest.fixture(scope="function")
 def job_template_with_labels(request, authtoken, job_template):
-    """
-    Job template with three randomly named labels.
-    """
+    """Job template with three randomly named labels."""
     organization_id = job_template.get_related('inventory').organization
     labels_pg = job_template.get_related('labels')
 

@@ -10,8 +10,7 @@ pytestmark = [pytest.mark.ui]
 
 
 def test_active_project_update(ui, session_project):
-    """Verify that the project update button is active for a scm project
-    """
+    """Verify that the project update button is active for a scm project"""
     ui_projects = ui.projects.get()
     # add a search filter for the project
     ui_projects.search(session_project.name)
@@ -50,8 +49,7 @@ def test_active_project_update(ui, session_project):
 
 
 def test_edit_project(v1, ui, project):
-    """End-to-end functional test for updating an existing project
-    """
+    """End-to-end functional test for updating an existing project"""
     edit = ui.project_edit.get(id=project.id)
     # these are indicators that the page is actually ready to be used
     edit.table.wait_for_table_to_load()
@@ -81,8 +79,7 @@ def test_edit_project(v1, ui, project):
 
 @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3816')
 def test_delete_project(v1, ui, project):
-    """End-to-end functional test for deleting a project
-    """
+    """End-to-end functional test for deleting a project"""
     ui_projects = ui.projects.get()
     # add a search filter for the project
     ui_projects.search(project.name)
@@ -103,8 +100,7 @@ def test_delete_project(v1, ui, project):
 
 
 def test_create_project(v1, ui, session_org, session_project):
-    """End-to-end functional test for creating a project
-    """
+    """End-to-end functional test for creating a project"""
     add = ui.project_add.get()
     # these are indicators that the page is actually ready to be used
     add.table.wait_for_table_to_load()

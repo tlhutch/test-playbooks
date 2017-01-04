@@ -69,11 +69,9 @@ def auth_user(testsetup, authtoken, api_authtoken_url):
 
 @pytest.fixture
 def set_test_roles(factories):
-    """Helper fixture used in creating the roles used in our RBAC tests.
-    """
+    """Helper fixture used in creating the roles used in our RBAC tests."""
     def func(user_pg, tower_object, agent, role):
-        """
-        :param user_pg: The api page model for a user
+        """:param user_pg: The api page model for a user
         :param tower_object: Test Tower resource (a job template for example)
         :param agent: Either "user" or "team"; used for test parametrization
         :param role: Test role to give to our user_pg
@@ -226,8 +224,7 @@ def check_request(model, method, code, data=None):
 
 
 def assert_response_raised(tower_object, response=httplib.OK):
-    """Check PUT, PATCH, and DELETE against a Tower resource.
-    """
+    """Check PUT, PATCH, and DELETE against a Tower resource."""
     exc_dict = {
         httplib.OK: None,
         httplib.NOT_FOUND: towerkit.exceptions.NotFound,
@@ -243,8 +240,7 @@ def assert_response_raised(tower_object, response=httplib.OK):
 
 
 def check_read_access(tower_object, expected_forbidden=[], unprivileged=False):
-    """Check GET against a Tower resource.
-    """
+    """Check GET against a Tower resource."""
     # for test scenarios involving unprivileged users
     if unprivileged:
         with pytest.raises(towerkit.exceptions.Forbidden):
@@ -265,8 +261,7 @@ def check_read_access(tower_object, expected_forbidden=[], unprivileged=False):
 # -----------------------------------------------------------------------------
 
 def get_nt_endpoints(notifiable_resource):
-    """
-    Helper function that returns the notification template endpoints of a
+    """Helper function that returns the notification template endpoints of a
     notifiable Tower resource.
     """
     nt_any_pg = notifiable_resource.get_related('notification_templates_any')
@@ -280,9 +275,7 @@ def get_nt_endpoints(notifiable_resource):
 
 
 def set_read_role(user_pg, notifiable_resource):
-    """
-    Helper function that grants a user the read_role of a notifiable_resource.
-    """
+    """Helper function that grants a user the read_role of a notifiable_resource."""
     if notifiable_resource.type == 'inventory_source':
         inventory_pg = notifiable_resource.get_related('inventory')
         set_roles(user_pg, inventory_pg, ['read'])
@@ -291,8 +284,7 @@ def set_read_role(user_pg, notifiable_resource):
 
 
 def check_user_capabilities(resource, role):
-    """Helper function used in checking the values of summary_fields flag, 'user_capabilities'
-    """
+    """Helper function used in checking the values of summary_fields flag, 'user_capabilities'"""
     assert resource.summary_fields['user_capabilities'] == user_capabilities[resource.type][role], \
         "Unexpected response for 'user_capabilities' when testing against a[n] %s resource with a user with %s permissions." \
         % (resource.type, role)
@@ -319,8 +311,7 @@ def check_user_capabilities(resource, role):
     ['organization', 'team', 'project', 'inventory', 'inventory_script', 'credential', 'job_template']
 )
 def test_role_association_and_disassociation(factories, resource_name, endpoint):
-    """Verify basic role association and disassociation functionality.
-    """
+    """Verify basic role association and disassociation functionality."""
     resource = getattr(factories, resource_name)()
     # make credential and user organization align in testing credentials
     if resource.type == 'credential':
@@ -355,7 +346,7 @@ def test_unauthorized_self_privilege_escalation_returns_code_403(
         resource_name, initial_role, unauthorized_target_role):
     """A user with [intial_role] permission on a [resource_name] cannot add
     the [unauthorized_target_role] for the [resource_name] to themselves
-        """
+    """
     # make credential and user organization align in testing credentials
     if resource_name == 'credential':
         organization = factories.organization()
@@ -465,8 +456,7 @@ class Test_Organization_RBAC(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, factories, user_password):
-        """
-        An unprivileged user should not be able to:
+        """An unprivileged user should not be able to:
         * Issue GETs to our organization details page
         * Issue GETs to all of this organization's related pages
         * Edit our organization
@@ -483,8 +473,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
 
     def test_auditor_role(self, factories, user_password):
-        """
-        A user with organization 'auditor' should be able to:
+        """A user with organization 'auditor' should be able to:
         * Issue GETs to our organization details page
         * Issue GETs to all of this organization's related pages
 
@@ -506,8 +495,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
 
     def test_admin_role(self, factories, user_password):
-        """
-        A user with organization 'admin' should be able to:
+        """A user with organization 'admin' should be able to:
         * GET our organization details page
         * GET all of our organization's related pages
         * Edit our organization
@@ -527,8 +515,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             assert_response_raised(organization_pg, httplib.OK)
 
     def test_member_role(self, factories, user_password):
-        """
-        A user with organization 'member' should be able to:
+        """A user with organization 'member' should be able to:
         * The ability to make a GET to our target organization
         * The ability to make a GET against our organization's related endpoints
 
@@ -550,8 +537,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             assert_response_raised(organization_pg, httplib.FORBIDDEN)
 
     def test_read_role(self, factories, user_password):
-        """
-        A user with organization 'read' should be able to:
+        """A user with organization 'read' should be able to:
         * The ability to make a GET to our target organization
         * The ability to make a GET against our organization's related endpoints
 
@@ -586,8 +572,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             check_user_capabilities(api_organizations_pg.get(id=organization_pg.id).results.pop().get(), role)
 
     def test_member_role_association(self, factories, user_password):
-        """
-        Tests that after a user is granted member_role that he now shows
+        """Tests that after a user is granted member_role that he now shows
         up under organizations/N/users.
         """
         user_pg = factories.user()
@@ -606,8 +591,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             "Organization user not our target user. Expected user with ID %s but got one with ID %s." % (user_pg.id, users_pg.results[0].id)
 
     def test_autopopulated_member_role(self, organization, org_user, user_password):
-        """
-        Tests that when you create a user by posting to organizations/N/users
+        """Tests that when you create a user by posting to organizations/N/users
         that the user is automatically created with a member_role for this
         organization.
         """
@@ -628,9 +612,7 @@ class Test_Organization_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize('organization_role', ['admin_role', 'auditor_role', 'member_role', 'read_role'])
     def test_organization_roles_not_allowed_with_teams(self, factories, organization_role):
-        """
-        Test that an organization role association with a team raises a 400.
-        """
+        """Test that an organization role association with a team raises a 400."""
         team_pg = factories.team()
         organization_pg = factories.organization()
 
@@ -652,8 +634,7 @@ class Test_Project_RBAC(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, factories, user_password):
-        """
-        An unprivileged user/team should not be able to:
+        """An unprivileged user/team should not be able to:
         * GET our project detail page
         * GET all project related pages
         * Launch project updates
@@ -678,8 +659,7 @@ class Test_Project_RBAC(Base_Api_Test):
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3930")
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with project 'admin' should be able to:
+        """A user/team with project 'admin' should be able to:
         * GET our project detail page
         * GET all project related pages
         * Edit our project
@@ -700,8 +680,7 @@ class Test_Project_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_update_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with project 'update' should be able to:
+        """A user/team with project 'update' should be able to:
         * GET our project detail page
         * GET all project related pages
 
@@ -724,8 +703,7 @@ class Test_Project_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_use_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with project 'use' should be able to:
+        """A user/team with project 'use' should be able to:
         * GET our project detail page
         * GET all project related pages
 
@@ -748,8 +726,7 @@ class Test_Project_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with project 'read' should be able to:
+        """A user/team with project 'read' should be able to:
         * GET our project detail page
         * GET all project related pages
 
@@ -858,7 +835,8 @@ class Test_Project_RBAC(Base_Api_Test):
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_update_user_capabilities(self, factories, user_password, api_project_updates_pg, role):
         """Test user_capabilities given each project role on spawned
-        project_updates."""
+        project_updates.
+        """
         project_pg = factories.project()
         user_pg = factories.user()
 
@@ -881,8 +859,7 @@ class Test_Credential_RBAC(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, factories, user_password):
-        """
-        An unprivileged user/team should not be able to:
+        """An unprivileged user/team should not be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
         * Edit the credential
@@ -900,8 +877,7 @@ class Test_Credential_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with credential 'admin' should be able to:
+        """A user/team with credential 'admin' should be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
         * Edit the credential
@@ -922,8 +898,7 @@ class Test_Credential_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_use_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with credential 'use' should be able to:
+        """A user/team with credential 'use' should be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
 
@@ -946,8 +921,7 @@ class Test_Credential_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with credential 'read' should be able to:
+        """A user/team with credential 'read' should be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
 
@@ -982,8 +956,7 @@ class Test_Credential_RBAC(Base_Api_Test):
             check_user_capabilities(api_credentials_pg.get(id=credential_pg.id).results.pop().get(), role)
 
     def test_autopopulated_admin_role_with_users(self, factories):
-        """
-        Tests that when you create a credential with a value supplied for 'user'
+        """Tests that when you create a credential with a value supplied for 'user'
         that your user is automatically given the admin role of your credential.
         """
         user_pg = factories.user()
@@ -1018,8 +991,7 @@ class Test_Credential_RBAC(Base_Api_Test):
                 set_roles(team, credential, [role_name])
 
     def test_invalid_organization_credential_role_assignment(self, factories, set_roles):
-        """
-        Tests that organization credentials may not have their roles assigned to users
+        """Tests that organization credentials may not have their roles assigned to users
         and teams who exist outside of their organization.
         """
         # create an organization credential
@@ -1039,8 +1011,7 @@ class Test_Credential_RBAC(Base_Api_Test):
                 set_roles(team, credential, [role_name])
 
     def test_valid_organization_credential_role_assignment(self, factories, set_roles):
-        """
-        Tests that organization credentials may have their roles assigned to users
+        """Tests that organization credentials may have their roles assigned to users
         and teams who exist within their own organization.
         """
         # create an organization credential
@@ -1065,8 +1036,7 @@ class Test_Team_RBAC(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, factories, user_password):
-        """
-        An unprivileged user/team may not be able to:
+        """An unprivileged user/team may not be able to:
         * Get the team details page
         * Get all of the team related pages
         * Edit the team
@@ -1084,8 +1054,7 @@ class Test_Team_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with team 'admin_role' should be able to:
+        """A user/team with team 'admin_role' should be able to:
         * Get the team details page
         * Get all of the team related pages
         * Edit the team
@@ -1106,8 +1075,7 @@ class Test_Team_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_member_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with team 'member_role' should be able to:
+        """A user/team with team 'member_role' should be able to:
         * Get the team details page
         * Get all of the team related pages
 
@@ -1130,8 +1098,7 @@ class Test_Team_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with team 'read_role' should be able to:
+        """A user/team with team 'read_role' should be able to:
         * Get the team details page
         * Get all of the team related pages
 
@@ -1166,8 +1133,7 @@ class Test_Team_RBAC(Base_Api_Test):
             check_user_capabilities(api_teams_pg.get(id=team_pg.id).results.pop().get(), role)
 
     def test_member_role_association(self, factories, user_password):
-        """
-        Tests that after a user is granted member_role that he now shows
+        """Tests that after a user is granted member_role that he now shows
         up under teams/N/users.
         """
         team_pg = factories.team()
@@ -1188,8 +1154,7 @@ class Test_Team_RBAC(Base_Api_Test):
             "Team user not our target user. Expected user with ID %s but got one with ID %s." % (user_pg.id, users_pg.results[0].id)
 
     def test_system_roles_forbidden(self, factories, api_roles_pg):
-        """Teams are not allowed to be given the system admin and auditor roles.
-        """
+        """Teams are not allowed to be given the system admin and auditor roles."""
         team = factories.team()
 
         # find system admin and auditor roles
@@ -1213,8 +1178,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, factories, inventory_script, user_password):
-        """
-        An unprivileged user/team may not be able to:
+        """An unprivileged user/team may not be able to:
         * Get your inventory_script detail page
         * Get all of your inventory_script get_related
         * Edit your inventory script
@@ -1231,8 +1195,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, inventory_script, set_test_roles, agent, user_password):
-        """
-        A user/team with inventory_script 'admin' should be able to:
+        """A user/team with inventory_script 'admin' should be able to:
         * Get your inventory_script detail page
         * Get all of your inventory_script get_related
         * Edit your inventory script
@@ -1260,8 +1223,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, factories, inventory_script, set_test_roles, agent, user_password):
-        """
-        A user/team with inventory_script 'read' should be able to:
+        """A user/team with inventory_script 'read' should be able to:
         * Get your inventory_script detail page
         * Get all of your inventory_script get_related
 
@@ -1302,8 +1264,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
 
     def test_able_to_assign_inventory_script_to_different_org(self, factories, user_password, inventory_script, organization,
                                                               another_organization):
-        """
-        Tests that org_admins can reassign an inventory_script to an organization for which they
+        """Tests that org_admins can reassign an inventory_script to an organization for which they
         are an admin.
         """
         user_pg = factories.user()
@@ -1316,8 +1277,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
 
     def test_unable_to_assign_inventory_script_to_different_org(self, factories, user_password, inventory_script, organization,
                                                                 another_organization):
-        """
-        Tests that org_admins cannot reassign an inventory_script to an organization for which they
+        """Tests that org_admins cannot reassign an inventory_script to an organization for which they
         are only a member.
         """
         user_pg = factories.user()
@@ -1338,8 +1298,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, factories, user_password):
-        """
-        An unprivileged user/team should not be able to:
+        """An unprivileged user/team should not be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
         * Launch the JT
@@ -1363,8 +1322,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with JT 'admin' should be able to:
+        """A user/team with JT 'admin' should be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
         * Edit the JT
@@ -1385,8 +1343,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_execute_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with JT 'execute' should be able to:
+        """A user/team with JT 'execute' should be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
 
@@ -1409,8 +1366,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, factories, set_test_roles, agent, user_password):
-        """
-        A user/team with JT 'admin' should be able to:
+        """A user/team with JT 'admin' should be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
 
@@ -1666,8 +1622,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unprivileged_user(self, host_local, aws_inventory_source, custom_group, user_password, factories):
-        """
-        An unprivileged user should not be able to:
+        """An unprivileged user should not be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
         * Update all groups that the inventory contains
@@ -1713,8 +1668,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, host_local, set_test_roles, agent, user_password, factories):
-        """
-        A user/team with inventory 'admin' should be able to:
+        """A user/team with inventory 'admin' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
         * Edit/delete the inventory
@@ -1747,8 +1701,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_use_role(self, host_local, set_test_roles, agent, user_password, factories):
-        """
-        A user/team with inventory 'use' should be able to:
+        """A user/team with inventory 'use' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
 
@@ -1785,8 +1738,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_adhoc_role(self, host_local, set_test_roles, agent, user_password, factories):
-        """
-        A user/team with inventory 'adhoc' should be able to:
+        """A user/team with inventory 'adhoc' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
 
@@ -1823,8 +1775,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_update_role(self, host_local, set_test_roles, agent, user_password, factories):
-        """
-        A user/team with inventory 'update' should be able to:
+        """A user/team with inventory 'update' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
 
@@ -1861,8 +1812,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, host_local, set_test_roles, agent, user_password, factories):
-        """
-        A user/team with inventory 'read' should be able to:
+        """A user/team with inventory 'read' should be able to:
         * Get the inventory detail
         * Get all of the inventory get_related
 
@@ -2015,7 +1965,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_update_user_capabilities(self, factories, custom_inventory_source, user_password, api_inventory_updates_pg, role):
         """Test user_capabilities given each inventory role on spawned
-        inventory_updates."""
+        inventory_updates.
+        """
         user_pg = factories.user()
 
         # give test user target role privileges
@@ -2188,7 +2139,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_command_user_capabilities(self, factories, user_password, api_ad_hoc_commands_pg, role):
         """Test user_capabilities given each inventory role on spawned
-        ad hoc commands."""
+        ad hoc commands.
+        """
         inventory_pg = factories.inventory()
         user_pg = factories.user()
         credential_pg = factories.credential(user=user_pg, organization=None)
@@ -2216,27 +2168,21 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
 
     def test_notification_template_create_as_unprivileged_user(self, email_notification_template_payload, api_notification_templates_pg,
                                                                unprivileged_user, user_password):
-        """
-        Tests that unprivileged users may not create notification templates.
-        """
+        """Tests that unprivileged users may not create notification templates."""
         # test notification template create as unprivileged user
         with self.current_user(username=unprivileged_user.username, password=user_password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 api_notification_templates_pg.post(email_notification_template_payload)
 
     def test_notification_template_create_as_org_admin(self, email_notification_template_payload, api_notification_templates_pg, org_admin, user_password):
-        """
-        Tests that org_admins may create notification templates.
-        """
+        """Tests that org_admins may create notification templates."""
         # test notification template create as org_admin
         with self.current_user(username=org_admin.username, password=user_password):
             api_notification_templates_pg.post(email_notification_template_payload)
 
     def test_notification_template_associate_as_unprivileged_user(self, email_notification_template, notifiable_resource,
                                                                   unprivileged_user, user_password):
-        """
-        Tests that unprivileged users may not associate a NT with a notifiable resource.
-        """
+        """Tests that unprivileged users may not associate a NT with a notifiable resource."""
         # store our future test endpoints
         endpoints = get_nt_endpoints(notifiable_resource)
 
@@ -2251,9 +2197,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
                     endpoint.post(payload)
 
     def test_notification_template_associate_as_org_admin(self, email_notification_template, notifiable_resource, org_admin, user_password):
-        """
-        Tests that org_admins may associate a NT with a notifiable resource.
-        """
+        """Tests that org_admins may associate a NT with a notifiable resource."""
         # store our future test endpoints
         endpoints = get_nt_endpoints(notifiable_resource)
 
@@ -2265,26 +2209,20 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
                     endpoint.post(payload)
 
     def test_notification_template_read_as_unprivileged_user(self, email_notification_template, unprivileged_user, user_password):
-        """
-        Tests that unprivileged users cannot read NT endpoints.
-        """
+        """Tests that unprivileged users cannot read NT endpoints."""
         # assert that we cannot access api/v1/notification_templates
         with self.current_user(username=unprivileged_user.username, password=user_password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.get()
 
     def test_notification_template_read_as_org_admin(self, email_notification_template, org_admin, user_password):
-        """
-        Tests that org_admins can read NT endpoints.
-        """
+        """Tests that org_admins can read NT endpoints."""
         # assert that we can access api/v1/notification_templates
         with self.current_user(username=org_admin.username, password=user_password):
             email_notification_template.get()
 
     def test_notification_template_edit_as_unprivileged_user(self, email_notification_template, unprivileged_user, user_password):
-        """
-        Tests that unprivileged users cannot edit NTs.
-        """
+        """Tests that unprivileged users cannot edit NTs."""
         # assert that put/patch is forbidden
         with self.current_user(username=unprivileged_user.username, password=user_password):
             with pytest.raises(towerkit.exceptions.Forbidden):
@@ -2293,42 +2231,32 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
                 email_notification_template.patch()
 
     def test_notification_template_edit_as_org_admin(self, email_notification_template, org_admin, user_password):
-        """
-        Tests that org_admins can edit NTs.
-        """
+        """Tests that org_admins can edit NTs."""
         # assert that put/patch is accepted
         with self.current_user(username=org_admin.username, password=user_password):
             email_notification_template.put()
             email_notification_template.patch()
 
     def test_notification_template_delete_as_unprivileged_user(self, email_notification_template, unprivileged_user, user_password):
-        """
-        Tests that unprivileged_users cannot delete NTs.
-        """
+        """Tests that unprivileged_users cannot delete NTs."""
         # assert that delete is forbidden
         with self.current_user(username=unprivileged_user.username, password=user_password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.delete()
 
     def test_notification_template_delete_as_org_admin(self, email_notification_template, org_admin, user_password):
-        """
-        Tests that org_admins can delete NTs.
-        """
+        """Tests that org_admins can delete NTs."""
         # assert that delete is accepted
         with self.current_user(username=org_admin.username, password=user_password):
             email_notification_template.delete()
 
     def test_user_capabilities_as_superuser(self, email_notification_template, api_notification_templates_pg):
-        """
-        Tests NT 'user_capabilities' as superuser.
-        """
+        """Tests NT 'user_capabilities' as superuser."""
         check_user_capabilities(email_notification_template.get(), "superuser")
         check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop().get(), "superuser")
 
     def test_user_capabilities_as_org_admin(self, email_notification_template, org_admin, user_password, api_notification_templates_pg):
-        """
-        Tests NT 'user_capabilities' as an org_admin.
-        """
+        """Tests NT 'user_capabilities' as an org_admin."""
         with self.current_user(username=org_admin.username, password=user_password):
             check_user_capabilities(email_notification_template.get(), "org_admin")
             check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop().get(), "org_admin")
@@ -2342,9 +2270,7 @@ class Test_Notifications_RBAC(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_notification_read_as_unprivileged_user(self, email_notification_template, unprivileged_user, user_password):
-        """
-        Test that unprivileged users cannot read notifications.
-        """
+        """Test that unprivileged users cannot read notifications."""
         notification_pg = email_notification_template.test().wait_until_completed()
 
         with self.current_user(username=unprivileged_user.username, password=user_password):
@@ -2352,9 +2278,7 @@ class Test_Notifications_RBAC(Base_Api_Test):
                 notification_pg.get()
 
     def test_notification_read_as_org_admin(self, email_notification_template, org_admin, user_password):
-        """
-        Test that org_admins can read notifications.
-        """
+        """Test that org_admins can read notifications."""
         notification_pg = email_notification_template.test().wait_until_completed()
 
         with self.current_user(username=org_admin.username, password=user_password):
@@ -2384,8 +2308,7 @@ class Test_Label_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize('role', ['admin', 'auditor', 'read', 'member'])
     def test_organization_label_post(self, factories, user_password, api_labels_pg, role):
-        """
-        Users with organization 'admin' and 'member' should be able to create a label with their role
+        """Users with organization 'admin' and 'member' should be able to create a label with their role
         organization. Users with organization 'auditor' and 'read' should receive a 403 forbidden.
         """
         ALLOWED_ROLES = ['admin', 'member']
@@ -2416,8 +2339,7 @@ class Test_Label_RBAC(Base_Api_Test):
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3592')
     @pytest.mark.parametrize("role", ["admin", "read"])
     def test_job_template_label_association(self, factories, user_password, role):
-        """
-        Tests that when JT can_edit is true that our test user may associate a label with
+        """Tests that when JT can_edit is true that our test user may associate a label with
         a JT. Note: our test iterates through "admin_role" and "read_role" since these two
         roles should unlock can_edit as true and false respectively.
         """
@@ -2491,16 +2413,12 @@ class Test_System_Jobs_RBAC(Base_Api_Test):
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_get_as_superuser(self, system_job):
-        """
-        Verify that a superuser account is able to GET a system_job resource.
-        """
+        """Verify that a superuser account is able to GET a system_job resource."""
         system_job.get()
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_get_as_non_superuser(self, non_superusers, user_password, api_system_jobs_pg, system_job):
-        """
-        Verify that non-superuser accounts are unable to access a system_job.
-        """
+        """Verify that non-superuser accounts are unable to access a system_job."""
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
                 with pytest.raises(towerkit.exceptions.Forbidden):
@@ -2508,9 +2426,7 @@ class Test_System_Jobs_RBAC(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3576')
     def test_user_capabilities_as_superuser(self, cleanup_jobs_with_status_completed, api_system_jobs_pg):
-        """
-        Verify 'user_capabilities' with a superuser.
-        """
+        """Verify 'user_capabilities' with a superuser."""
         check_user_capabilities(cleanup_jobs_with_status_completed.get(), "superuser")
         check_user_capabilities(api_system_jobs_pg.get(id=cleanup_jobs_with_status_completed.id).results.pop().get(), "superuser")
 
@@ -2532,7 +2448,8 @@ class Test_Schedules_RBAC(Base_Api_Test):
 
     def test_crud_as_superuser(self, resource_with_schedule):
         """Tests schedule CRUD as superuser against all UJTs that support schedules.
-        Create is tested upon fixture instantiation."""
+        Create is tested upon fixture instantiation.
+        """
         # test get
         # NOTE: additional filter so that we do not delete our prestocked system job schedule
         schedule_pg = resource_with_schedule.get_related('schedules', not__name='Cleanup Job Schedule').results[0]
@@ -2603,15 +2520,13 @@ class Test_Schedules_RBAC(Base_Api_Test):
                 schedule_pg.delete()
 
     def test_user_capabilities_as_superuser(self, resource_with_schedule, api_schedules_pg):
-        """Tests 'user_capabilities' against schedules of all types of UJT
-        as superuser."""
+        """Tests 'user_capabilities' against schedules of all types of UJT as superuser."""
         schedule_pg = resource_with_schedule.get_related('schedules').results[0]
         check_user_capabilities(schedule_pg.get(), 'superuser')
         check_user_capabilities(api_schedules_pg.get(id=schedule_pg.id).results.pop().get(), "superuser")
 
     def test_user_capabilities_as_org_admin(self, org_admin, user_password, organization_resource_with_schedule, api_schedules_pg):
-        """Tests 'user_capabilities' against schedules of all types of UJT
-        as an org_admin."""
+        """Tests 'user_capabilities' against schedules of all types of UJT as an org_admin."""
         schedule_pg = organization_resource_with_schedule.get_related('schedules').results[0]
 
         with self.current_user(org_admin.username, user_password):
@@ -2625,14 +2540,12 @@ class Test_Schedules_RBAC(Base_Api_Test):
 class Test_License_RBAC(Base_Api_Test):
 
     def test_delete_as_non_superuser(self, non_superuser, user_password, auth_user, api_config_pg):
-        """Verify that DELETE to /api/v1/config/ as a non-superuser raises a 403.
-        """
+        """Verify that DELETE to /api/v1/config/ as a non-superuser raises a 403."""
         with auth_user(non_superuser), pytest.raises(towerkit.exceptions.Forbidden):
             api_config_pg.delete()
 
     def test_post_as_non_superuser(self, non_superuser, user_password, auth_user, api_config_pg):
-        """Verify that DELETE to /api/v1/config/ as a non-superuser raises a 403.
-        """
+        """Verify that DELETE to /api/v1/config/ as a non-superuser raises a 403."""
         with auth_user(non_superuser), pytest.raises(towerkit.exceptions.Forbidden):
             api_config_pg.post()
 
@@ -2653,16 +2566,14 @@ class Test_Settings_RBAC(Base_Api_Test):
                 "Unexpected number of settings returned. Expected zero, got {0}.".format(api_settings_pg.count)
 
     def test_get_nested_endpoint_as_non_superuser(self, non_superuser, user_password, api_settings_pg):
-        """Verify that non_superusers cannot GET nested settings endpoints (/api/v1/settings/ui/).
-        """
+        """Verify that non_superusers cannot GET nested settings endpoints (/api/v1/settings/ui/)."""
         for settings_pg in api_settings_pg.get().results:
             with self.current_user(non_superuser.username, user_password):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     settings_pg.get()
 
     def test_edit_nested_endpoint_as_non_superuser(self, non_superuser, user_password, api_settings_pg):
-        """Verify that non_superusers cannot edit nested settings endpoints (/api/v1/settings/ui/).
-        """
+        """Verify that non_superusers cannot edit nested settings endpoints (/api/v1/settings/ui/)."""
         for settings_pg in api_settings_pg.get().results:
             with self.current_user(non_superuser.username, user_password):
                 with pytest.raises(towerkit.exceptions.Forbidden):
@@ -2671,8 +2582,7 @@ class Test_Settings_RBAC(Base_Api_Test):
                     settings_pg.patch()
 
     def test_delete_nested_endpoint_as_non_superuser(self, non_superuser, user_password, api_settings_pg):
-        """Verify that non_superusers cannot delete nested settings endpoints (/api/v1/settings/ui/).
-        """
+        """Verify that non_superusers cannot delete nested settings endpoints (/api/v1/settings/ui/)."""
         for settings_pg in api_settings_pg.get().results:
             with self.current_user(non_superuser.username, user_password):
                 with pytest.raises(towerkit.exceptions.Forbidden):

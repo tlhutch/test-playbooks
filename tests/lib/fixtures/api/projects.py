@@ -57,10 +57,7 @@ def project_update_with_status_completed(request, project_ansible_playbooks_git)
 
 @pytest.fixture(scope="function")
 def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_config, organization):
-    """
-    Create a manual project associated with ansible-playbooks.git
-    """
-
+    """Create a manual project associated with ansible-playbooks.git"""
     # Override the local_path
 
     fixture_args = getattr(request.function, 'fixture_args', None)
@@ -196,8 +193,7 @@ def project_with_credential_prompt(request, authtoken, organization, scm_credent
 
 @pytest.fixture(scope="function")
 def project_with_schedule(request, authtoken, project_ansible_playbooks_git_nowait):
-    """A project with a schedule
-    """
+    """A project with a schedule"""
     project = project_ansible_playbooks_git_nowait
     project.wait_until_completed()
 

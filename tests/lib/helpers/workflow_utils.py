@@ -6,8 +6,7 @@ log = logging.getLogger(__name__)
 
 
 class WorkflowTree(object):
-    """
-    Represents workflow tree structure. Can be built manually, but also has
+    """Represents workflow tree structure. Can be built manually, but also has
     a constructor that supports building a `WorkflowTree` using a
     `WorkflowJobTemplate` or `WorkflowJob` page.
 
@@ -27,7 +26,8 @@ class WorkflowTree(object):
 
     def __init__(self, workflow=None):
         """Initialize `WorkflowTree`. May optionally provide reference to a
-           `WorkflowJobTemplate` or `WorkflowJob` object."""
+        `WorkflowJobTemplate` or `WorkflowJob` object.
+        """
         self._graph = {}
 
         if workflow:
@@ -79,16 +79,16 @@ class WorkflowTree(object):
 
     def add_node(self, id, always_nodes=[], failure_nodes=[], success_nodes=[]):
         """Add single node to workflow tree. Requires id of node.
-           May optionally specify triggered nodes using lists of integers.
+        May optionally specify triggered nodes using lists of integers.
 
-           Raises `Exception` if node with `id` already exists.
-           Raises `Exception` if node includes edges to nodes that do not exist.
+        Raises `Exception` if node with `id` already exists.
+        Raises `Exception` if node includes edges to nodes that do not exist.
 
-           ex:
-           >>> tree = WorkflowTree()
-           >>> tree.add_nodes(3)
-           >>> tree.add_node(2, always_nodes=[3])
-           >>> tree.add_node(1, sucess_nodes=[2,3])
+        ex:
+        >>> tree = WorkflowTree()
+        >>> tree.add_nodes(3)
+        >>> tree.add_node(2, always_nodes=[3])
+        >>> tree.add_node(1, sucess_nodes=[2,3])
         """
         # Node should not already exist
         if id in self._graph:
@@ -113,13 +113,13 @@ class WorkflowTree(object):
     def add_nodes(self, *ids):
         """Add one or more nodes to workflow tree.
 
-           Raises `Exception` if node with id found in `ids` already exists.
-           (If this happens, no nodes are created).
+        Raises `Exception` if node with id found in `ids` already exists.
+        (If this happens, no nodes are created).
 
-           ex:
-           >>> tree = WorkflowTree()
-           >>> tree.add_nodes(1)
-           >>> tree.add_nodes(2, 3, 4)
+        ex:
+        >>> tree = WorkflowTree()
+        >>> tree.add_nodes(1)
+        >>> tree.add_nodes(2, 3, 4)
         """
         # Cannot reference same node more than once
         if len(ids) != len(set(ids)):
@@ -136,11 +136,11 @@ class WorkflowTree(object):
     def remove_nodes(self, *ids):
         """Remove one or more nodes from workflow tree.
 
-           Automatically removes any edges that referred to deleted nodes.
+        Automatically removes any edges that referred to deleted nodes.
 
-           Note that nodes must already exist, otherwise raises `Exception`.
-           If ids contains a reference to a node that is not in the
-           `WorkflowTree`, no nodes will be deleted.
+        Note that nodes must already exist, otherwise raises `Exception`.
+        If ids contains a reference to a node that is not in the
+        `WorkflowTree`, no nodes will be deleted.
         """
         if not len(ids):
             return
@@ -167,16 +167,16 @@ class WorkflowTree(object):
     def add_edge(self, node, triggered_node, condition):
         """Adds an edge from `node` to `triggered_node` of type `condition`.
 
-           Note that both `node` ande `triggered_node` must both exist, otherwise
-           raises `Exception`.
+        Note that both `node` ande `triggered_node` must both exist, otherwise
+        raises `Exception`.
 
-           `condition` must be one of 'always', 'failure', or 'success', otherwise
-           raises `Exception`.
+        `condition` must be one of 'always', 'failure', or 'success', otherwise
+        raises `Exception`.
 
-           >>> tree = WorkflowTree()
-           >>> tree.add_nodes(1)
-           >>> tree.add_nodes(2)
-           >>> tree.add_edge(1, 2, 'always')
+        >>> tree = WorkflowTree()
+        >>> tree.add_nodes(1)
+        >>> tree.add_nodes(2)
+        >>> tree.add_edge(1, 2, 'always')
         """
         if condition not in ('always', 'failure', 'success'):
             raise Exception("Node {0}: cannot add edge of type '{1}'.".format(node, condition))
@@ -192,8 +192,8 @@ class WorkflowTree(object):
     def remove_edge(self, node, triggered_node, condition):
         """Removes an edge from `node` to `triggered_node` of type `condition`.
 
-           * `condition` must be one of 'always', 'failure', or 'success', otherwise raises `Exception`.
-           * If edge does not exist, raises `ExceptionError`.
+        * `condition` must be one of 'always', 'failure', or 'success', otherwise raises `Exception`.
+        * If edge does not exist, raises `ExceptionError`.
         """
         if condition not in ('always', 'failure', 'success'):
             raise Exception("Node {0}: cannot remove edge of type '{1}'.".format(node, condition))
@@ -210,11 +210,13 @@ class WorkflowTree(object):
 
 class WorkflowTreeMapper(object):
     """Finds a mapping of one graph's nodes onto the other's.
-    (i.e. a graph homomorphism)."""
+    (i.e. a graph homomorphism).
+    """
 
     def __init__(self, tree1, tree2):
         """Create `WorkflowTreeMapper` with references
-        to two `WorkflowTree`s being compared."""
+        to two `WorkflowTree`s being compared.
+        """
         self._tree1 = tree1
         self._tree2 = tree2
 
@@ -233,7 +235,8 @@ class WorkflowTreeMapper(object):
 
     def _match(self, node1, node2):
         """Two nodes match if they have the same number
-        of edges (for each edge type)."""
+        of edges (for each edge type).
+        """
         for condition in node1:
             if condition not in node2:
                 return False

@@ -9,7 +9,7 @@ def pytest_addoption(parser):
 
 def highlight(element):
     """Highlights (blinks) a Webdriver element.
-        In pure javascript, as suggested by https://github.com/alp82.
+    In pure javascript, as suggested by https://github.com/alp82.
     """
     driver = element._parent
     driver.execute_script("""

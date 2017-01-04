@@ -12,8 +12,7 @@ def login_page(request, ui_client):
 
 
 def test_login_logout(login_page, default_tower_credentials):
-    """Verify a successful login and logout with default credentials
-    """
+    """Verify a successful login and logout with default credentials"""
     username = default_tower_credentials['username']
     password = default_tower_credentials['password']
     try:
@@ -45,8 +44,7 @@ def test_login_invalid_credentials(login_page, username, password):
 
 @pytest.mark.github('https://github.com/ansible/tower-qa/issues/782')
 def test_stock_branding(login_page):
-    """Verify our stock login modal branding and notice
-    """
+    """Verify our stock login modal branding and notice"""
     image_src = login_page.modal_image.get_attribute('src')
     assert image_src.endswith('/static/assets/tower-logo-login.svg'), \
         "Unexpected console_logo path."

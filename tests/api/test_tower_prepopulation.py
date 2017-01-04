@@ -10,9 +10,7 @@ class Test_Tower_Prepopulation(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_success(self, default_organization):
-        """
-        Tests Tower demo objects.
-        """
+        """Tests Tower demo objects."""
         # check for demo credential
         admin_user_pg = default_organization.get_related('created_by', username='admin')
         assert admin_user_pg.get_related('credentials', name='Demo Credential').count == 1, \

@@ -11,8 +11,7 @@ pytestmark = [pytest.mark.ui]
 
 
 def test_machine_credential_association(v1, ui, job_template, session_machine_credential):
-    """Verify machine credential association using an existing job template
-    """
+    """Verify machine credential association using an existing job template"""
     edit = ui.job_template_edit.get(id=job_template.id)
     edit.details.credential.value = session_machine_credential.name
     edit.details.save.click()
@@ -20,8 +19,7 @@ def test_machine_credential_association(v1, ui, job_template, session_machine_cr
 
 
 def test_cloud_credential_association(v1, ui, job_template, session_cloud_credential):
-    """Verify machine credential association using an existing job template
-    """
+    """Verify machine credential association using an existing job template"""
     edit = ui.job_template_edit.get(id=job_template.id)
     edit.details.cloud_credential.value = session_cloud_credential.name
     time.sleep(5)
@@ -45,8 +43,7 @@ def test_job_template_verbosity_selection(ui, job_template):
 
 
 def test_edit_job_template(v1, ui, job_template):
-    """End-to-end functional test for updating an existing job template
-    """
+    """End-to-end functional test for updating an existing job template"""
     edit = ui.job_template_edit.get(id=job_template.id)
     # make some data
     name = fauxfactory.gen_alphanumeric()
@@ -75,8 +72,7 @@ def test_edit_job_template(v1, ui, job_template):
 
 
 def test_delete_job_template(v1, ui, job_template):
-    """End-to-end functional test for deleting a job template
-    """
+    """End-to-end functional test for deleting a job template"""
     ui_job_templates = ui.job_templates.get()
     # add a search filter for the job template
     ui_job_templates.search(job_template.name)
@@ -97,8 +93,7 @@ def test_delete_job_template(v1, ui, job_template):
 
 def test_create_job_template(v1, ui, session_inventory,
                              session_machine_credential, session_project):
-    """End-to-end functional test for creating a job template
-    """
+    """End-to-end functional test for creating a job template"""
     add = ui.job_template_add.get()
     add.table.wait_for_table_to_load()
     add.wait.until(lambda _: 'Run' in add.details.job_type.options)

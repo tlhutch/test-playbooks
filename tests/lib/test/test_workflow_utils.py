@@ -31,7 +31,8 @@ class MockWorkflowJobTemplate:
 
     def get_related(self, item):
         """ignore `item`. WorkflowTree only uses `get_related`
-           for getting 'workflow_nodes'."""
+        for getting 'workflow_nodes'.
+        """
         return self.nodes
 
 ######################
@@ -41,7 +42,7 @@ class MockWorkflowJobTemplate:
 
 @pytest.mark.parametrize('node', [0, -1, 5])
 def test_get_node_from_empty_tree(node):
-    'Confirms getting node that does not exist returns None'
+    """Confirms getting node that does not exist returns None"""
     t = WorkflowTree()
     assert not len(t._graph), 'Tree should be empty when first created'
     assert t.get_node(node) is None, 'Tree empty, but found node ({})'.format(id)
@@ -79,7 +80,8 @@ def test_add_nodes():
 
 def test_add_node_with_edge_to_node_that_does_not_exist():
     """Confirm that attempting to create a node with an edge
-    to a node that does not exist, `Exception` is raised."""
+    to a node that does not exist, `Exception` is raised.
+    """
     t = WorkflowTree()
     error = 'Should not be able to create node with edge to node that does not exist.'
     with pytest.raises(Exception, msg=error):
@@ -223,20 +225,20 @@ def test_remove_edges():
 
 def fixture_for_equality_tests():
     """Builds:
-       - `WorkflowTree` constructed based on (mock) `WorkflowJobTemplate` object, and
-       - Manually constructed `WorkflowTree`
+    - `WorkflowTree` constructed based on (mock) `WorkflowJobTemplate` object, and
+    - Manually constructed `WorkflowTree`
 
-        Workflow:
-         n1:
-          - always: n2
-         n3:
-          - success: n4
-          - failure: n5
-         n6:
-          - always: n7
-            - always: n8
-              - always: n9
-         n10
+     Workflow:
+      n1:
+       - always: n2
+      n3:
+       - success: n4
+       - failure: n5
+      n6:
+       - always: n7
+         - always: n8
+           - always: n9
+      n10
     """
     # Build WorkflowTree from (mock) WorkflowJobTemplate
     n1 = MockNode(1, always_nodes=[2])
@@ -360,8 +362,7 @@ def fixture_for_simple_mapping_tests():
 
 
 def test_map_simple_trees():
-    """
-    Forms mapping between two simple trees
+    """Forms mapping between two simple trees
     (that are identical in structure, but
     have different node ids).
     """
@@ -390,8 +391,7 @@ def test_map_simple_trees_differing_by_single_edge():
 
 
 def test_map_trees_with_similar_root_nodes():
-    """
-    Forms mapping between two trees with similar
+    """Forms mapping between two trees with similar
     root nodes.
 
     Workflow:

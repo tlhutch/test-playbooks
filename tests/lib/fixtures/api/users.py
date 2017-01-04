@@ -100,89 +100,67 @@ def superuser(request, authtoken, api_users_pg, user_password):
 
 @pytest.fixture(scope="function")
 def all_users(request, superuser, org_admin, org_user, anonymous_user):
-    """
-    Return a list of user types
-    """
+    """Return a list of user types"""
     return (superuser, org_admin, org_user, anonymous_user)
 
 
 @pytest.fixture(scope="function", params=('superuser', 'org_admin', 'org_user', 'anonymous_user'))
 def all_user(request):
-    """
-    Return the fixture for the specified request.param
-    """
+    """Return the fixture for the specified request.param"""
     return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture(scope="function")
 def non_superusers(request, org_admin, org_user, anonymous_user):
-    """
-    Return a list of non-superusers
-    """
+    """Return a list of non-superusers"""
     return (org_admin, org_user, anonymous_user)
 
 
 @pytest.fixture(scope="function", params=('org_admin', 'org_user', 'anonymous_user'))
 def non_superuser(request):
-    """
-    Return the fixture for the specified request.param
-    """
+    """Return the fixture for the specified request.param"""
     return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture(scope="function")
 def org_users(request, org_admin, org_user):
-    """
-    Return a list of organization users.
-    """
+    """Return a list of organization users."""
     return (org_admin, org_user)
 
 
 @pytest.fixture(scope="function")
 def non_org_users(request, anonymous_user, another_org_admin, another_org_user):
-    """
-    Return a list of organization users outside of 'Default' organization.
-    """
+    """Return a list of organization users outside of 'Default' organization."""
     return (anonymous_user, another_org_admin, another_org_user)
 
 
 @pytest.fixture(scope="function")
 def privileged_users(request, superuser, org_admin):
-    """
-    Return a list of privileged_users
-    """
+    """Return a list of privileged_users"""
     return (superuser, org_admin)
 
 
 @pytest.fixture(scope="function", params=('superuser', 'org_admin'))
 def privileged_user(request):
-    """
-    Return the fixture for the specified request.param
-    """
+    """Return the fixture for the specified request.param"""
     return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture(scope="function")
 def unprivileged_users(request, org_user, anonymous_user):
-    """
-    Return a list of unprivileged_users
-    """
+    """Return a list of unprivileged_users"""
     return (org_user, anonymous_user)
 
 
 @pytest.fixture(scope="function", params=('org_user', 'anonymous_user'))
 def unprivileged_user(request):
-    """
-    Return the fixture for the specified request.param
-    """
+    """Return the fixture for the specified request.param"""
     return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture(scope="function")
 def current_user(request, testsetup):
-    """
-    Return a context manager to allow performing operations as an alternate user
-    """
+    """Return a context manager to allow performing operations as an alternate user"""
     @contextlib.contextmanager
     def ctx(username=None, password=None):
         try:

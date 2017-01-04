@@ -7,8 +7,7 @@ pytestmark = [pytest.mark.ui]
 class RequiredFields(object):
 
     def test_clearing_required_fields_disables_save(self, form):
-        """Verify save enabled / disabled behavior for required input fields
-        """
+        """Verify save enabled / disabled behavior for required input fields"""
         msg_fail_enabled = 'save enabled after clearing required field: '
         msg_fail_disabled = 'save disabled after populating required field: '
 

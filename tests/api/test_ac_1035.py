@@ -127,10 +127,10 @@ def job_templates_yaml(request, authtoken, api_job_templates_pg, project, ssh_cr
 @pytest.mark.nondestructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_AC_1035(Base_Api_Test):
-    """
-    For API objects that support a 'variables' (or 'extra_vars') attribute,
+    """For API objects that support a 'variables' (or 'extra_vars') attribute,
     verify they support storing and retrieving JSON/YAML data.
     """
+
     #
     # /inventories
     #

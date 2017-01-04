@@ -40,8 +40,7 @@ def test_inventory_search_persists_after_sorting(ui, shared_org):
 
 
 def test_edit_inventory(v1, ui, inventory):
-    """End-to-end functional test for updating an inventory
-    """
+    """End-to-end functional test for updating an inventory"""
     # make some data
     name = fauxfactory.gen_alphanumeric()
     description = fauxfactory.gen_alphanumeric()
@@ -65,8 +64,7 @@ def test_edit_inventory(v1, ui, inventory):
 
 
 def test_delete_inventory(ui, inventory):
-    """End-to-end functional test for deleting an inventory
-    """
+    """End-to-end functional test for deleting an inventory"""
     ui_inventories = ui.inventories.get()
     # add a search filter for the inventory
     ui_inventories.search(inventory.name)
@@ -86,8 +84,7 @@ def test_delete_inventory(ui, inventory):
 
 
 def test_create_inventory(v1, ui, session_org):
-    """End-to-end functional test for creating an inventory
-    """
+    """End-to-end functional test for creating an inventory"""
     add = ui.inventory_add.get()
     # make some data
     name = fauxfactory.gen_alphanumeric()

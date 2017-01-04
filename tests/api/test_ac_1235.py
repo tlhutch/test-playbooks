@@ -22163,7 +22163,6 @@ class Test_AC_1235(Base_Api_Test):
         """Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner
         """
-
         # Copy inventory to test system
         contacted = ansible_runner.copy(
             dest='/tmp/inventory.sh',

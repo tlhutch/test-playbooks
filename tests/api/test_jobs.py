@@ -18,33 +18,25 @@ log = logging.getLogger(__name__)
 
 @pytest.fixture(scope="function")
 def job_sleep(request, job_template_sleep):
-    """
-    Launch the job_template_sleep and return a job resource.
-    """
+    """Launch the job_template_sleep and return a job resource."""
     return job_template_sleep.launch()
 
 
 @pytest.fixture(scope="function")
 def job_with_status_pending(job_template_sleep, pause_awx_task_system):
-    """
-    Wait for job_sleep to move from new to queued, and return the job.
-    """
+    """Wait for job_sleep to move from new to queued, and return the job."""
     return job_template_sleep.launch().wait_until_started()
 
 
 @pytest.fixture(scope="function")
 def job_with_status_running(request, job_sleep):
-    """
-    Wait for job_sleep to move from queued to running, and return the job.
-    """
+    """Wait for job_sleep to move from queued to running, and return the job."""
     return job_sleep.wait_until_status('running')
 
 
 @pytest.fixture(scope="function")
 def job_with_multi_ask_credential_and_password_in_payload(request, job_template_multi_ask, testsetup):
-    """
-    Launch job_template_multi_ask with passwords in the payload.
-    """
+    """Launch job_template_multi_ask with passwords in the payload."""
     launch_pg = job_template_multi_ask.get_related("launch")
 
     # determine whether sudo or su was used
@@ -152,8 +144,7 @@ def cloud_inventory_job_template(request, job_template, cloud_group):
 
 @pytest.fixture(scope="function")
 def expected_net_env_vars(testsetup):
-    """Returns a list of our expected network job env variables.
-    """
+    """Returns a list of our expected network job env variables."""
     def func(network_credential):
         expected_env_vars = dict()
         if getattr(network_credential, "username", None):
@@ -224,9 +215,7 @@ class Test_Job(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_utf8(self, utf8_template):
-        """
-        Verify that a playbook full of UTF-8 successfully works through Tower
-        """
+        """Verify that a playbook full of UTF-8 successfully works through Tower"""
         # launch job
         job_pg = utf8_template.launch_job()
 
@@ -237,9 +226,7 @@ class Test_Job(Base_Api_Test):
         assert job_pg.is_successful, "Job unsuccessful - %s " % job_pg
 
     def test_post_as_superuser(self, job_template, api_jobs_pg):
-        """
-        Verify a superuser is able to create a job by POSTing to the /api/v1/jobs endpoint.
-        """
+        """Verify a superuser is able to create a job by POSTing to the /api/v1/jobs endpoint."""
         # post a job
         job_pg = api_jobs_pg.post(job_template.json)
 
@@ -247,9 +234,7 @@ class Test_Job(Base_Api_Test):
         assert job_pg.status == 'new'
 
     def test_post_as_non_superuser(self, non_superusers, user_password, api_jobs_pg, job_template):
-        """
-        Verify a non-superuser is unable to create a job by POSTing to the /api/v1/jobs endpoint.
-        """
+        """Verify a non-superuser is unable to create a job by POSTing to the /api/v1/jobs endpoint."""
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
                 with pytest.raises(towerkit.exceptions.Forbidden):
@@ -257,9 +242,7 @@ class Test_Job(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3590')
     def test_relaunch_with_credential(self, job_with_status_completed):
-        """
-        Verify relaunching a job with a valid credential no-ask credential.
-        """
+        """Verify relaunching a job with a valid credential no-ask credential."""
         relaunch_pg = job_with_status_completed.get_related('relaunch')
 
         # assert values on relaunch resource
@@ -272,9 +255,7 @@ class Test_Job(Base_Api_Test):
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     def test_relaunch_with_deleted_related(self, job_with_deleted_related):
-        """
-        Verify relaunching a job whose related information has been deleted.
-        """
+        """Verify relaunching a job whose related information has been deleted."""
         # get relaunch page
         relaunch_pg = job_with_deleted_related.get_related('relaunch')
 
@@ -287,8 +268,7 @@ class Test_Job(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3590')
     def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload, testsetup):  # NOQA
-        """
-        Verify that relaunching a job with a credential that includes ASK passwords, behaves as expected when
+        """Verify that relaunching a job with a credential that includes ASK passwords, behaves as expected when
         supplying the necessary passwords in the relaunch payload.
         """
         # get relaunch page
@@ -311,9 +291,7 @@ class Test_Job(Base_Api_Test):
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     def test_relaunch_with_multi_ask_credential_and_without_passwords(self, job_with_multi_ask_credential_and_password_in_payload):  # NOQA
-        """
-        Verify that relaunching a job with a multi-ask credential fails when not supplied with passwords.
-        """
+        """Verify that relaunching a job with a multi-ask credential fails when not supplied with passwords."""
         # get relaunch page
         relaunch_pg = job_with_multi_ask_credential_and_password_in_payload.get_related('relaunch')
 
@@ -338,8 +316,7 @@ class Test_Job(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3590')
     def test_relaunch_uses_extra_vars_from_job(self, job_with_extra_vars):
-        """
-        Verify that when you relaunch a job containing extra_vars in the
+        """Verify that when you relaunch a job containing extra_vars in the
         launch-time payload, the resulting extra_vars *and* the job_template
         extra_vars are used.
         """
@@ -372,8 +349,7 @@ class Test_Job(Base_Api_Test):
             (relaunch_extra_vars, job_extra_vars)
 
     def test_password_survey_launched_with_empty_extra_vars(self, factories):
-        """
-        Confirms that password surveys with defaults are displayed (and encrypted) when
+        """Confirms that password surveys with defaults are displayed (and encrypted) when
         job template is launched with empty extra_vars, and those without defaults are not.
         """
         survey = [dict(required=False,
@@ -394,8 +370,7 @@ class Test_Job(Base_Api_Test):
 
     @pytest.mark.skip('https://github.com/ansible/tower-qa/issues/838')
     def test_cancel_pending_job(self, job_with_status_pending):
-        """
-        Verify the job->cancel endpoint behaves as expected when canceling a
+        """Verify the job->cancel endpoint behaves as expected when canceling a
         pending/queued job
         """
         cancel_pg = job_with_status_pending.get_related('cancel')
@@ -424,8 +399,7 @@ class Test_Job(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4225')
     def test_cancel_running_job(self, job_with_status_running):
-        """
-        Verify the job->cancel endpoint behaves as expected when canceling a
+        """Verify the job->cancel endpoint behaves as expected when canceling a
         running job
         """
         cancel_pg = job_with_status_running.get_related('cancel')
@@ -457,8 +431,7 @@ class Test_Job(Base_Api_Test):
         assert "PLAY RECAP ************" not in job_with_status_running.result_stdout
 
     def test_cancel_completed_job(self, job_with_status_completed):
-        """
-        Verify the job->cancel endpoint behaves as expected when canceling a
+        """Verify the job->cancel endpoint behaves as expected when canceling a
         completed job
         """
         cancel_pg = job_with_status_completed.get_related('cancel')
@@ -473,9 +446,7 @@ class Test_Job(Base_Api_Test):
             cancel_pg.post()
 
     def test_launch_with_inventory_update(self, job_template, cloud_group, host_local):
-        """
-        Tests that job launches with inventory updates work with all cloud providers.
-        """
+        """Tests that job launches with inventory updates work with all cloud providers."""
         job_template.patch(limit=host_local.name)
         cloud_group.get_related('inventory_source').patch(update_on_launch=True)
 
@@ -495,9 +466,7 @@ class Test_Job(Base_Api_Test):
         assert inv_update_pg.is_successful, "An inventory_update was launched, but did not succeed - %s" % inv_update_pg
 
     def test_launch_with_scm_update(self, job_template, project_with_scm_update_on_launch):
-        """
-        Tests that job launches with projects that have "Update on Launch" enabled work as expected.
-        """
+        """Tests that job launches with projects that have "Update on Launch" enabled work as expected."""
         job_template.patch(project=project_with_scm_update_on_launch.id)
 
         # Remember last update
@@ -522,9 +491,7 @@ inventory = dict()
 print json.dumps(inventory)
 """)
     def test_cascade_cancel_with_inventory_update(self, job_template, custom_group):
-        """
-        Tests that if you cancel an inventory update before it finishes that its dependent job fails.
-        """
+        """Tests that if you cancel an inventory update before it finishes that its dependent job fails."""
         inv_source_pg = custom_group.get_related('inventory_source')
         inv_source_pg.patch(update_on_launch=True)
 
@@ -573,9 +540,7 @@ inventory = dict()
 print json.dumps(inventory)
 """)
     def test_cascade_cancel_with_multiple_inventory_updates(self, job_template, custom_group, another_custom_group):
-        """
-        Tests that if you cancel an inventory update before it finishes that its dependent jobs fail.
-        """
+        """Tests that if you cancel an inventory update before it finishes that its dependent jobs fail."""
         inv_source_pg = custom_group.get_related('inventory_source')
         inv_source_pg.patch(update_on_launch=True)
         another_inv_source_pg = another_custom_group.get_related('inventory_source')
@@ -650,9 +615,7 @@ print json.dumps(inventory)
         assert inventory_job_explanation['job_id'] == str(first_inv_update_pg.id)
 
     def test_cascade_cancel_with_project_update(self, job_template_with_project_django):
-        """
-        Tests that if you cancel a SCM update before it finishes that its dependent job fails.
-        """
+        """Tests that if you cancel a SCM update before it finishes that its dependent job fails."""
         project_pg = job_template_with_project_django.get_related('project')
 
         # Launch job
@@ -686,8 +649,7 @@ print json.dumps(inventory)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4225')
     def test_cascade_cancel_project_update_with_inventory_and_project_updates(self, job_template_with_project_django, custom_group):
-        """
-        Tests that if you cancel a scm update before it finishes that its dependent job
+        """Tests that if you cancel a scm update before it finishes that its dependent job
         fails. This test runs both inventory and SCM updates on job launch.
         """
         project_pg = job_template_with_project_django.get_related('project')
@@ -740,8 +702,7 @@ inventory = dict()
 print json.dumps(inventory)
 """)
     def test_cascade_cancel_inventory_update_with_inventory_and_project_updates(self, job_template, custom_group):
-        """
-        Tests that if you cancel an inventory update before it finishes that its dependent job
+        """Tests that if you cancel an inventory update before it finishes that its dependent job
         fails. This test runs both inventory and SCM updates on job launch.
         """
         project_pg = job_template.get_related('project')
@@ -789,8 +750,7 @@ print json.dumps(inventory)
             "Unexpected inventory_source status after cancelling (expected 'canceled') - %s." % inv_source_pg
 
     def test_job_with_no_log(self, factories, ansible_version_cmp):
-        """
-        Tests that jobs with 'no_log' censor the following:
+        """Tests that jobs with 'no_log' censor the following:
         * jobs/N/job_events
         * jobs/N.result_stdout
         """
@@ -878,6 +838,7 @@ print json.dumps(inventory)
 @pytest.mark.destructive
 class Test_Scan_Job(Base_Api_Test):
     """Tests for scan jobs."""
+
     pytestmark = pytest.mark.usefixtures('authtoken')
 
     def test_scan_job(self, install_enterprise_license_unlimited, scan_job_template):
@@ -983,15 +944,14 @@ class Test_Scan_Job(Base_Api_Test):
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Env(Base_Api_Test):
-    """
-    Verify that credentials are properly passed to playbooks as
+    """Verify that credentials are properly passed to playbooks as
     environment variables ('job_env').
     """
+
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_job_env_with_cloud_credential(self, job_template_with_cloud_credential):
-        """
-        Verify that job_env has the expected cloud_credential variables.
+        """Verify that job_env has the expected cloud_credential variables.
 
         Note: Tower doesn't set environmental variables for CloudForms and Satellite6.
         """
@@ -1081,9 +1041,7 @@ class Test_Job_Env(Base_Api_Test):
                                        job_pg.job_env[env_var])
 
     def test_job_env_with_network_credential(self, job_template_with_network_credential, expected_net_env_vars):
-        """
-        Verify that job_env has the expected network_credential variables.
-        """
+        """Verify that job_env has the expected network_credential variables."""
         # get cloud_credential
         network_credential = job_template_with_network_credential.get_related('network_credential')
 
@@ -1106,8 +1064,7 @@ class Test_Job_Env(Base_Api_Test):
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Update_On_Launch(Base_Api_Test):
-    """
-    Verify that, when configured, inventory_updates and project_updates are
+    """Verify that, when configured, inventory_updates and project_updates are
     initiated on job launch
     """
 
@@ -1115,7 +1072,6 @@ class Test_Update_On_Launch(Base_Api_Test):
 
     def test_inventory(self, cloud_inventory_job_template, cloud_group):
         """Verify that an inventory_update is triggered by job launch"""
-
         # 1) Set update_on_launch
         inv_src_pg = cloud_group.get_related('inventory_source')
         inv_src_pg.patch(update_on_launch=True)
@@ -1143,7 +1099,6 @@ class Test_Update_On_Launch(Base_Api_Test):
 
     def test_inventory_multiple(self, job_template, aws_inventory_source, rax_inventory_source):
         """Verify that multiple inventory_update's are triggered by job launch"""
-
         # 1) Set update_on_launch
         aws_inventory_source.patch(update_on_launch=True)
         assert aws_inventory_source.update_on_launch
@@ -1192,7 +1147,6 @@ class Test_Update_On_Launch(Base_Api_Test):
 
     def test_inventory_cache_timeout(self, cloud_inventory_job_template, cloud_group):
         """Verify that an inventory_update is not triggered by job launch if the cache is still valid"""
-
         # 1) Set update_on_launch and a 5min update_cache_timeout
         inv_src_pg = cloud_group.get_related('inventory_source')
         cache_timeout = 60 * 5
@@ -1230,7 +1184,6 @@ class Test_Update_On_Launch(Base_Api_Test):
 
     def test_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
         """Verify that a project_update is triggered by job launch"""
-
         # 1) set scm_update_on_launch for the project
         project_ansible_playbooks_git.patch(scm_update_on_launch=True)
         assert project_ansible_playbooks_git.scm_update_on_launch
@@ -1250,7 +1203,6 @@ class Test_Update_On_Launch(Base_Api_Test):
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3926")
     def test_project_cache_timeout(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
         """Verify that a project_update is not triggered when the cache_timeout has not exceeded"""
-
         # 1) set scm_update_on_launch for the project
         cache_timeout = 60 * 5
         project_ansible_playbooks_git.patch(scm_update_on_launch=True, scm_update_cache_timeout=cache_timeout)
@@ -1270,7 +1222,6 @@ class Test_Update_On_Launch(Base_Api_Test):
     def test_inventory_and_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git,
                                    cloud_group):
         """Verify that a project_update and inventory_update are triggered by job launch"""
-
         # 1) Set scm_update_on_launch for the project
         project_ansible_playbooks_git.patch(scm_update_on_launch=True)
         assert project_ansible_playbooks_git.scm_update_on_launch

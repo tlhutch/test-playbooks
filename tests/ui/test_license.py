@@ -27,8 +27,7 @@ def unlicensed(v1, ui, default_tower_credentials):
 
 @pytest.mark.usefixtures('unlicensed')
 def test_license_upload(ui):
-    """End-to-end functional test for uploading a valid license
-    """
+    """End-to-end functional test for uploading a valid license"""
     ui_license = ui.license
 
     license_path = generate_license_file(
@@ -51,8 +50,7 @@ def test_license_upload(ui):
 
 @pytest.mark.usefixtures('unlicensed')
 def test_license_date(v1, ui):
-    """Verify the correct time remaining and license expiration date
-    """
+    """Verify the correct time remaining and license expiration date"""
     ui_license = ui.license
 
     license_info = generate_license(
@@ -85,8 +83,7 @@ def test_license_date(v1, ui):
 
 @pytest.mark.usefixtures('unlicensed')
 def test_malformed_license(ui):
-    """Verify the alert modal is displayed when an invalid json file is uploaded
-    """
+    """Verify the alert modal is displayed when an invalid json file is uploaded"""
     (fd, license_path) = tempfile.mkstemp(suffix='.json')
     os.write(fd, 'this is not valid json')
     os.close(fd)

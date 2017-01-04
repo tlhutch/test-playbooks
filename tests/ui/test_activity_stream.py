@@ -9,8 +9,7 @@ pytestmark = [pytest.mark.ui]
 
 @pytest.mark.usefixtures('supported_window_sizes')
 def test_component_visibility(ui):
-    """Verify basic component visibility, page layout, and responsiveness
-    """
+    """Verify basic component visibility, page layout, and responsiveness"""
     activity = ui.activity_stream.get()
     assert activity.current_breadcrumb == 'activity stream'
     assert activity.navigation_dropdown.is_displayed()
@@ -18,8 +17,7 @@ def test_component_visibility(ui):
 
 
 def test_navigation_dropdown(ui):
-    """Verify expected functionality of the navigation dropdown widget
-    """
+    """Verify expected functionality of the navigation dropdown widget"""
     expected_nav_options = [
         'All Activity',
         'Credentials',

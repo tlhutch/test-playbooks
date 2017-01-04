@@ -154,9 +154,7 @@ class JUnitFile(object):
 
 
 class CallbackModule(object):
-    """
-    logs playbook results
-    """
+    """logs playbook results"""
 
     # These events should never have an associated play.
     EVENTS_WITHOUT_PLAY = [

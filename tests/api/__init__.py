@@ -5,12 +5,11 @@ import contextlib
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Base_Api_Test(object):
-    """
-    Base class
-    """
+    """Base class"""
+
     @classmethod
     def setup_class(self):
-        """ setup any state specific to the execution of the given class (which
+        """setup any state specific to the execution of the given class (which
         usually contains tests).
         """
         plugin = pytest.config.pluginmanager.getplugin("plugins.pytest_restqa.pytest_restqa")
@@ -29,14 +28,10 @@ class Base_Api_Test(object):
 
     @classmethod
     def teardown_class(self):
-        """
-        Perform any required test teardown
-        """
+        """Perform any required test teardown"""
 
     def has_credentials(self, ctype, sub_ctype=None, fields=[]):
-        """
-        assert whether requested credentials are present
-        """
+        """assert whether requested credentials are present"""
         # Make sure credentials.yaml has ctype we need
         assert ctype in self.testsetup.credentials, \
             "No '%s' credentials defined in credentals.yaml" % ctype
@@ -59,9 +54,7 @@ class Base_Api_Test(object):
 
     @contextlib.contextmanager
     def current_user(self, username, password):
-        """
-        Context manager to allow running tests as an alternative login user.
-        """
+        """Context manager to allow running tests as an alternative login user."""
         try:
             previous_auth = self.api.session.auth
             self.api.login(username, password)

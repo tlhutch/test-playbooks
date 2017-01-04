@@ -37,8 +37,7 @@ def create_batch_template(api_v1, session_org):
 
 @pytest.fixture(scope='module')
 def recent_jobs(create_batch_template):
-    """Generate varied job run data for the dashboard page
-    """
+    """Generate varied job run data for the dashboard page"""
     data = defaultdict(list)
     x_vars = map(json.dumps, [{'fail': False}, {'fail': True}])
     for i in xrange(3):
