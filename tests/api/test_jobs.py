@@ -156,7 +156,7 @@ def expected_net_env_vars(testsetup):
         else:
             expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "0"
         if getattr(network_credential, "authorize_password", None):
-            expected_env_vars["ANSIBLE_NET_AUTHORIZE_PASSWORD"] = testsetup.credentials['network']['authorize']
+            expected_env_vars["ANSIBLE_NET_AUTH_PASS"] = testsetup.credentials['network']['authorize']
         return expected_env_vars
     return func
 
