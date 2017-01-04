@@ -72,7 +72,7 @@ def check_sequential_jobs(jobs):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Task_Manager(Base_Api_Test):
+class Test_Sequential_Jobs(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
@@ -291,6 +291,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
             "An inventory_update was unexpectedly triggered (last_job_run changed)- %s" % \
             json.dumps(inv_src_pg.json, indent=4)
 
+    #FIXME
     def test_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
         '''Verify that a project_update is triggered by job launch'''
 
@@ -298,17 +299,22 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         project_ansible_playbooks_git.patch(scm_update_on_launch=True)
         assert project_ansible_playbooks_git.scm_update_on_launch
         assert project_ansible_playbooks_git.scm_update_cache_timeout == 0
-        last_updated = project_ansible_playbooks_git.last_updated
 
-        # 2) Launch job_template and wait for completion
+        # 2) check the autospawned project update
+        initial_updates = project_ansible_playbooks_git.related.project_updates.get()
+        assert initial_updates.count == 1, \
+            "Unexpected number of default project updates."
+        initial_update = initial_updates.results.pop()
+        assert initial_update.job_type == "check", \
+            "Unexpected job_type for our default project update: {0}.".format(default_update.job_type)
+
+        # 3) Launch job_template and wait for completion
         job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
 
-        # 3) Ensure project_update was triggered and successful
-        project_ansible_playbooks_git.get()
-        assert project_ansible_playbooks_git.last_updated != last_updated, \
-            "A project_update was not triggered, last_updated (%s) remains unchanged" % last_updated
-        assert project_ansible_playbooks_git.is_successful, "project unsuccessful - %s" % \
-            json.dumps(project_ansible_playbooks_git.json, indent=4)
+        # 4) Ensure project_update was triggered and successful
+        final_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id)
+        assert final_updates.count == 2, \
+            "Unexpected number of final updates."
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3926")
     def test_project_cache_timeout(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
@@ -530,6 +536,7 @@ print json.dumps(inventory)
         assert project_pg.get().status == 'canceled', \
             "Unexpected project status (expected status:canceled) - %s." % project_pg
 
+    #FIXME
     def test_cancel_project_update_with_inventory_and_project_updates(self, job_template_with_project_django, custom_group):
         '''
         Tests that if you cancel a scm update before it finishes that its dependent job
@@ -575,6 +582,7 @@ print json.dumps(inventory)
         assert inv_update_pg.is_successful, "Inventory update unexpectedly unsuccessful - %s." % inv_update_pg
         assert inv_source_pg.get().is_successful, "inventory_source unexpectedly unsuccessful - %s." % inv_source_pg
 
+    #FIXME
     @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
 import json, time
 # sleep helps us cancel the inventory update
