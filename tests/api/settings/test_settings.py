@@ -38,9 +38,9 @@ class Test_Setting(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_included_modules(self, host, ssh_credential, api_ad_hoc_commands_pg, ad_hoc_module_name_choices, update_setting_pg):
-        '''
+        """
         Verifies that adding additional modules to AD_HOC_COMMANDS unlocks additional modules.
-        '''
+        """
         # update allowed commands
         payload = dict(AD_HOC_COMMANDS=['shell'])
         update_setting_pg('api_settings_jobs_pg', payload)
@@ -65,9 +65,9 @@ class Test_Setting(Base_Api_Test):
         assert command_pg.module_name == "shell", "Incorrect module run. Expected 'shell' but got %s." % command_pg.module_name
 
     def test_excluded_modules(self, inventory, ssh_credential, api_ad_hoc_commands_pg, ad_hoc_module_name_choices, update_setting_pg):
-        '''
+        """
         Verifies that removed modules from AD_HOC_COMMANDS are no longer callable.
-        '''
+        """
         # update allowed commands
         payload = dict(AD_HOC_COMMANDS=[])
         update_setting_pg('api_settings_jobs_pg', payload)
@@ -99,10 +99,10 @@ class Test_Setting(Base_Api_Test):
                 % (module_name, json.dumps(result))
 
     def test_relaunch_with_excluded_module(self, ad_hoc_with_status_completed, update_setting_pg):
-        '''
+        """
         Verifies that you cannot relaunch a command which has been removed
         from AD_HOC_COMMANDS.
-        '''
+        """
         # update allowed commands
         payload = dict(AD_HOC_COMMANDS=[])
         update_setting_pg('api_settings_jobs_pg', payload)
@@ -120,14 +120,14 @@ class Test_Setting(Base_Api_Test):
 
     @pytest.mark.skip(reason="Test flakiness detailed here: https://github.com/ansible/tower-qa/issues/882")
     def test_schedule_max_jobs(self, factories, update_setting_pg):
-        '''
+        """
         Verifies that number of spawned schedule jobs is capped by SCHEDULE_MAX_JOBS.
 
         Note: SCHEDULE_MAX_JOBS caps the number of waiting scheduled jobs spawned by
         the schedules of a JT. In this test, since we create three schedules, one job
         will start running immediately and only one should be waiting even though we
         have three schedules.
-        '''
+        """
         job_template = factories.job_template()
 
         # update max schedules flag
@@ -236,9 +236,9 @@ class Test_Setting(Base_Api_Test):
             "Update_pg has a different timeout value ({0}) than its project ({1}).".format(update_pg.timeout, project.timeout)
 
     def test_activity_stream_enabled(self, factories, api_activity_stream_pg, update_setting_pg):
-        '''
+        """
         Verifies that if ACTIVITY_STREAM_ENABLED is enabled that Tower activity gets logged.
-        '''
+        """
         # find number of current activity stream elements
         old_activity_stream_count = api_activity_stream_pg.get().count
 
@@ -264,9 +264,9 @@ class Test_Setting(Base_Api_Test):
         assess_created_elements(generated_elements, criteria, 2)
 
     def test_activity_stream_disabled(self, factories, api_activity_stream_pg, update_setting_pg):
-        '''
+        """
         Verifies that if ACTIVITY_STREAM_ENABLED is disabled that future activity is no longer logged.
-        '''
+        """
         # find number of current activity stream elements
         old_activity_stream_count = api_activity_stream_pg.get().count
 
@@ -284,12 +284,12 @@ class Test_Setting(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     def test_activity_stream_enabled_for_inventory_sync(self, factories, custom_inventory_source, api_activity_stream_pg, update_setting_pg):
-        '''
+        """
         Verifies that if ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC is enabled that:
         * inventory update group/host creation gets logged
         * group/host role association gets logged
         * other Tower operations still get logged
-        '''
+        """
         # find number of current activity stream elements
         old_activity_stream_count = api_activity_stream_pg.get().count
 
@@ -327,12 +327,12 @@ class Test_Setting(Base_Api_Test):
         assess_created_elements(generated_elements, criteria, 2)
 
     def test_activity_stream_disabled_for_inventory_sync(self, factories, custom_inventory_source, api_activity_stream_pg, update_setting_pg):
-        '''
+        """
         Verifies that if ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC is disabled that:
         * inventory update group/host creation does not get logged
         * group/host role association does not get logged
         * other Tower operations still get logged
-        '''
+        """
         # find number of current activity stream elements
         old_activity_stream_count = api_activity_stream_pg.get().count
 
@@ -361,9 +361,9 @@ class Test_Setting(Base_Api_Test):
         assess_created_elements(generated_elements, criteria, 2)
 
     def test_org_admins_can_see_all_users(self, org_users, non_org_users, org_admin, api_users_pg, user_password, update_setting_pg):
-        '''
+        """
         Tests that when ORG_ADMINS_CAN_SEE_ALL_USERS is enabled that org_admins can see all users systemwide.
-        '''
+        """
         # enable org_admins from seeing all users
         payload = dict(ORG_ADMINS_CAN_SEE_ALL_USERS=True)
         update_setting_pg('api_settings_system_pg', payload)
@@ -385,10 +385,10 @@ class Test_Setting(Base_Api_Test):
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:True" % matching_non_org_users.count
 
     def test_org_admins_cannot_see_all_users(self, org_users, non_org_users, org_admin, api_users_pg, user_password, update_setting_pg):
-        '''
+        """
         Tests that when ORG_ADMINS_CAN_SEE_ALL_USERS is disabled that org_admins can only see users within
         their own organization.
-        '''
+        """
         # disable org_admins from seeing all users
         payload = dict(ORG_ADMINS_CAN_SEE_ALL_USERS=False)
         update_setting_pg('api_settings_system_pg', payload)
@@ -410,12 +410,12 @@ class Test_Setting(Base_Api_Test):
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:False" % matching_non_org_users.count
 
     def test_system_license(self, api_config_pg, api_settings_system_pg, update_setting_pg):
-        '''
+        """
         Verifies that our exact license contents gets displayed under /api/v1/settings/system/.
 
         Note: the towerkit license generator auto-appends a 'eula_accepted' field which is not
         actually part of the license so we remove that manually below.
-        '''
+        """
         # install test license
         log.debug("Installing test enterprise license test_system_license.")
         license_info = generate_license(

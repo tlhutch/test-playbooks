@@ -1,8 +1,8 @@
-'''integration: mark a test as a complex integration suite
+"""integration: mark a test as a complex integration suite
 
 Integration tests tend to be complex, interdependent and take significant
 runtime.  Using this marker allows one to distinguish integration tests from
-other functional tests. '''
+other functional tests. """
 
 
 def pytest_configure(config):

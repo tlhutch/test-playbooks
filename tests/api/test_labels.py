@@ -15,24 +15,24 @@ class Test_Labels(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_duplicate(self, label, api_labels_pg):
-        '''
+        """
         Verify that labels must be unique.
-        '''
+        """
         payload = label.json
         with pytest.raises(towerkit.exceptions.Duplicate):
             api_labels_pg.post(payload)
 
     def test_duplicate_across_different_organizations(self, label, another_organization, api_labels_pg):
-        '''
+        """
         Verify that labels with the same name may be created across different organizations.
-        '''
+        """
         payload = dict(name=label.name, organization=another_organization.id)
         api_labels_pg.post(payload)
 
     def test_job_association(self, job_template_with_labels):
-        '''
+        """
         Verify that resulting jobs list JT labels.
-        '''
+        """
         # launch JT
         job_pg = job_template_with_labels.launch().wait_until_completed()
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
@@ -45,9 +45,9 @@ class Test_Labels(Base_Api_Test):
             % (json.dumps(job_template_labels.json, indent=2), json.dumps(job_pg_labels.json, indent=2))
 
     def test_job_label_persistence(self, job_template_with_label):
-        '''
+        """
         Verify that job_pg labels persist beyond JT deletion.
-        '''
+        """
         job_pg = job_template_with_label.launch().wait_until_completed()
 
         # find JT labels
@@ -66,9 +66,9 @@ class Test_Labels(Base_Api_Test):
             % (json.dumps(job_template_labels.json, indent=2), json.dumps(job_pg_labels.json, indent=2))
 
     def test_job_template_association(self, job_template, label):
-        '''
+        """
         Verify that you can associate a label with a JT.
-        '''
+        """
         # Check that we don't have any labels to start
         labels_pg = job_template.get_related('labels')
         assert labels_pg.count == 0, \
@@ -83,9 +83,9 @@ class Test_Labels(Base_Api_Test):
             "Unexpected number of labels returned: (%s != 1)." % labels_pg.count
 
     def test_job_template_disassociation(self, job_template_with_label):
-        '''
+        """
         Verify that you can disassociate a label from a JT.
-        '''
+        """
         # Check that we have one label to start
         labels_pg = job_template_with_label.get_related('labels')
         assert labels_pg.count == 1, \
@@ -101,9 +101,9 @@ class Test_Labels(Base_Api_Test):
             "Unexpected number of labels returned: (%s != 0)." % labels_pg.count
 
     def test_organization_reference_delete(self, label):
-        '''
+        """
         Tests that labels get reference deleted with their organization.
-        '''
+        """
         # find and delete label organization
         organization_pg = label.get_related('organization')
         organization_pg.delete()
@@ -113,10 +113,10 @@ class Test_Labels(Base_Api_Test):
             label.get()
 
     def test_reference_delete_with_job_template_deletion(self, job_template, another_job_template, label):
-        '''
+        """
         Tests that a label attached to JTs get reference deleted when their last associated JT gets deleted
         in the absence of jobs that use this label.
-        '''
+        """
         # associate label with both JTs
         labels_pg = job_template.get_related('labels')
         another_labels_pg = another_job_template.get_related('labels')
@@ -141,10 +141,10 @@ class Test_Labels(Base_Api_Test):
             label.get()
 
     def test_reference_delete_with_job_template_disassociation(self, job_template, another_job_template, label):
-        '''
+        """
         Tests that a label attached to JTs get reference deleted after getting disassociated with its last JT
         in the absence of jobs that use this label.
-        '''
+        """
         # associate label with both JTs
         labels_pg = job_template.get_related('labels')
         another_labels_pg = another_job_template.get_related('labels')
@@ -172,9 +172,9 @@ class Test_Labels(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4191')
     def test_job_reference_delete(self, job_template_with_label, api_labels_pg):
-        '''
+        """
         Labels should get reference deleted when their last remaining job gets deleted
-        '''
+        """
         # launch JT and assert successful
         job_pg = job_template_with_label.launch().wait_until_completed()
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
@@ -202,10 +202,10 @@ class Test_Labels(Base_Api_Test):
         assert api_labels_pg.get(id=label_pg.id).count == 0
 
     def test_summary_field_label_max(self, job_template):
-        '''
+        """
         JTs and jobs may have an infinite number of labels. The summary_fields of
         JTs and jobs, however, are limited to ten labels each.
-        '''
+        """
         job_template_labels_pg = job_template.get_related('labels')
         organization_id = job_template.get_related('inventory').organization
 
@@ -237,18 +237,18 @@ class Test_Labels(Base_Api_Test):
         assert job_labels_pg.count == 11, "Unexpected number of job labels returned. Expected eleven but got %s." % job_labels_pg.count
 
     def test_summary_field_label_order(self, job_template_with_labels):
-        '''
+        """
         JT summary_field labels should be presented in alphabetical order.
-        '''
+        """
         summary_field_labels = job_template_with_labels.summary_fields['labels']['results']
         sorted_summary_field_labels = sorted(summary_field_labels, key=lambda k: k['name'])
         assert summary_field_labels == sorted_summary_field_labels, \
             "JT summary fields not sorted by name. API gave %s but we expected %s." % (summary_field_labels, sorted_summary_field_labels)
 
     def test_filter_by_label_name(self, job_template_with_label, api_job_templates_pg, api_jobs_pg):
-        '''
+        """
         Test that JTs and jobs may be filtered by label.
-        '''
+        """
         # launch JT and assert success
         job_pg = job_template_with_label.launch().wait_until_completed()
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
@@ -265,20 +265,20 @@ class Test_Labels(Base_Api_Test):
         assert jobs_pg.count == 1, "No job matches for label %s." % label_name
 
     def test_unable_to_assign_label_to_different_org(self, org_admin, user_password, label, another_organization):
-        '''
+        """
         Tests that org_admins may not reassign a label to an organization for which they
         are not a member.
-        '''
+        """
         with self.current_user(org_admin.username, user_password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 label.patch(organization=another_organization.id)
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3929")
     def test_able_to_assign_label_to_different_org(self, org_admin, user_password, label, another_organization):
-        '''
+        """
         Tests that org_admins may reassign a label to an organization for which they
         are a member.
-        '''
+        """
         # make org_admin a member of another_organization
         org_users_pg = another_organization.get_related('users')
         with pytest.raises(towerkit.exceptions.NoContent):
@@ -289,9 +289,9 @@ class Test_Labels(Base_Api_Test):
             label.patch(organization=another_organization.id)
 
     def test_unable_to_assign_label_to_different_org_as_unprivileged_user(self, unprivileged_users, user_password, label, another_organization):
-        '''
+        """
         Tests that unprivileged users may not reassign labels across organizations.
-        '''
+        """
         for unprivileged_user in unprivileged_users:
             # make unprivileged user a member of another_organization
             users_pg = another_organization.get_related('users')

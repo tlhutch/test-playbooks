@@ -50,7 +50,7 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
     # (3) trigger the same node in both always_nodes and {success,failure}_nodes
 
     def test_converging_nodes(self, factories):
-        '''Confirms that two nodes cannot trigger the same node'''
+        """Confirms that two nodes cannot trigger the same node"""
         wfjt = factories.workflow_job_template()
         # Create two top-level nodes
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
@@ -70,7 +70,7 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
                 'Found nodes listed, expected none. (Creates converging path in workflow):\n{0}'.format(triggered_nodes)
 
     def test_single_node_references_itself(self, factories):
-        '''Confirms that a node cannot trigger itself'''
+        """Confirms that a node cannot trigger itself"""
         wfjt = factories.workflow_job_template()
         n = factories.workflow_job_template_node(workflow_job_template=wfjt)
         for condition in ('always', 'success', 'failure'):
@@ -84,7 +84,7 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
                 'Found nodes listed, expected none. (Creates cycle in workflow):\n{0}'.format(triggered_nodes)
 
     def test_cyclic_graph(self, factories):
-        '''Confirms that a graph cannot contain a cycle'''
+        """Confirms that a graph cannot contain a cycle"""
         # Create two nodes. First node triggers second node.
         wfjt = factories.workflow_job_template()
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
@@ -106,8 +106,8 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
     #      of different types of edges)
 
     def test_node_triggers_should_be_mutually_exclusive(self, factories):
-        '''Confirms that if a node is listed under `always_nodes`, it cannot also be
-           listed under `{success, failure}_nodes`.'''
+        """Confirms that if a node is listed under `always_nodes`, it cannot also be
+           listed under `{success, failure}_nodes`."""
         # Create two nodes. First node set to _always_ trigger second node.
         wfjt = factories.workflow_job_template()
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
@@ -129,9 +129,9 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
     # Deleting workflow job templates
 
     def test_delete_workflow_job_template_with_single_node(self, factories):
-        '''When a workflow job template with a single node is deleted,
+        """When a workflow job template with a single node is deleted,
            expect node to be deleted. Job template referenced by node should
-           *not* be deleted.'''
+           *not* be deleted."""
         # Build workflow
         wfjt = factories.workflow_job_template()
         node = factories.workflow_job_template_node(workflow_job_template=wfjt)
@@ -149,7 +149,7 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
             pytest.fail('Job template should still exist after deleting WFJT')
 
     def test_delete_workflow_job_template_with_complex_tree(self, factories):
-        '''When a workflow job template with a a complex tree is deleted,
+        """When a workflow job template with a a complex tree is deleted,
            expect all nodes in tree to be deleted. Job template referenced
            by nodes should *not* be deleted.
 
@@ -161,7 +161,7 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
              - (failure) n5
                - (always) n6
                  - (success) n7
-           '''
+           """
         # Build workflow
         wfjt = factories.workflow_job_template()
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
@@ -189,7 +189,7 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
     # Deleting WFJT nodes
 
     def test_delete_root_node(self, factories):
-        '''Confirm that when a noot node is deleted, the subsequent nodes become root nodes.
+        """Confirm that when a noot node is deleted, the subsequent nodes become root nodes.
 
            Workflow:
             n1                  <----- Delete
@@ -200,7 +200,7 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
                  - (always) n6
              - (success) n7        <--- Should become root node
             n8
-        '''
+        """
         # Build workflow
         wfjt = factories.workflow_job_template()
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
@@ -232,14 +232,14 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
         assert tree == expected_tree, 'Expected tree:\n\n{0}\n\nBut found:\n\n{1}'.format(tree, expected_tree)
 
     def test_delete_intermediate_node(self, factories):
-        '''Confirm that when an intermediate leaf node is deleted, the subsequent node becomes a root node.
+        """Confirm that when an intermediate leaf node is deleted, the subsequent node becomes a root node.
 
            Workflow:
             n1
              - (always) n2      <----- Delete
                - (always) n3      <--- Should become root node
                  - (always) n4
-        '''
+        """
         # Build workflow
         wfjt = factories.workflow_job_template()
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
@@ -264,12 +264,12 @@ class Test_Workflow_Job_Templates(Base_Api_Test):
         assert tree == expected_tree, 'Expected tree:\n\n{0}\n\nBut found:\n\n{1}'.format(tree, expected_tree)
 
     def test_delete_leaf_node(self, factories):
-        '''Confirm that when a leaf node is deleted, the rest of the tree is not affected
+        """Confirm that when a leaf node is deleted, the rest of the tree is not affected
 
            Workflow:
             n1
              - (always) n2
-           '''
+           """
         # Build workflow
         wfjt = factories.workflow_job_template()
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)

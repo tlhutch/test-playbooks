@@ -1,7 +1,7 @@
-'''
+"""
 # 1) Verify teams with unicode names
 # 2) Verify credentials, owned by the team, are removed upon DELETE
-'''
+"""
 
 import pytest
 import fauxfactory
@@ -20,7 +20,7 @@ def some_team(request, testsetup, authtoken, organization):
 
 @pytest.fixture(scope="function")
 def some_team_credential(request, testsetup, authtoken, some_team):
-    '''Create ssh credential'''
+    """Create ssh credential"""
     payload = dict(name="credential-%s" % fauxfactory.gen_utf8(),
                    description="machine credential for team:%s" % some_team.name,
                    kind='ssh',
@@ -45,49 +45,49 @@ def team_payload(**kwargs):
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Teams(Base_Api_Test):
-    '''
+    """
     Tests related to the /api/v1/teams endpoint.
-    '''
+    """
 
     pytestmark = pytest.mark.usefixtures('authtoken')
 
     def test_duplicate(self, api_teams_pg, some_team):
-        '''Verify that teamnames are unique'''
+        """Verify that teamnames are unique"""
         payload = dict(name=some_team.name,
                        organization=some_team.organization)
         with pytest.raises(towerkit.exceptions.Duplicate):
             api_teams_pg.post(payload)
 
     def test_privileged_user_can_create_team(self, request, api_teams_pg, privileged_user, user_password, organization):
-        '''
+        """
         Verify that a privileged user can create teams.
-        '''
+        """
         with self.current_user(privileged_user.username, user_password):
             obj = api_teams_pg.post(team_payload(organization=organization.id))
             request.addfinalizer(obj.delete)
 
     def test_unprivileged_user_cannot_create_team(self, api_teams_pg, unprivileged_user, user_password, organization):
-        '''
+        """
         Verify that a normal unprivileged user cannot create teams.
-        '''
+        """
         with self.current_user(unprivileged_user.username, user_password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 api_teams_pg.post(team_payload(organization=organization.id))
 
     def test_non_superuser_cannot_create_team_in_another_organization(self, api_teams_pg, non_superuser, user_password, organization,
                                                                       install_enterprise_license_unlimited, another_organization):
-        '''
+        """
         Verify that only an organization admin can only create teams within
         their organization.
-        '''
+        """
         with self.current_user(non_superuser.username, user_password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 api_teams_pg.post(team_payload(organization=another_organization.id))
 
     def test_organization_cascade_delete(self, team):
-        '''
+        """
         Verifies that teams get cascade deleted along with their organization.
-        '''
+        """
         team.get_related("organization").delete()
         with pytest.raises(towerkit.exceptions.NotFound):
             team.get()

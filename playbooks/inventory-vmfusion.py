@@ -21,7 +21,7 @@ def parse_args():
 
 
 def get_vm_ip(vmxfile):
-    ''' Return the IP of a running VM '''
+    """ Return the IP of a running VM """
     try:
         ip = subprocess.check_output([VMRUN, 'getGuestIPAddress', vmxfile]).strip()
         return ip
@@ -30,7 +30,7 @@ def get_vm_ip(vmxfile):
 
 
 def get_running_vms():
-    ''' List the running VMs '''
+    """ List the running VMs """
     output = subprocess.check_output( [VMRUN, "list"]).split('\n')
 
     vms = []

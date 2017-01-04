@@ -9,10 +9,10 @@ from tests.api import Base_Api_Test
 
 @pytest.fixture()
 def num_hosts(request):
-    '''
+    """
     The number of hosts to dynamically create.  The value is used by the
     dynamic_inventory playbook.
-    '''
+    """
     return 50
 
 
@@ -81,10 +81,10 @@ class Test_Job_Events(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_dynamic_inventory(self, dynamic_inventory, num_hosts, tower_version_cmp):
-        '''
+        """
         Verify that the /job_tasks and /job_plays endpoints are correctly
         aggregating data from /job_events
-        '''
+        """
 
         # Only supported >- tower-2.0.0
         if tower_version_cmp('2.0.0') < 0:

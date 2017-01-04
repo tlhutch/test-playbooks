@@ -1,8 +1,8 @@
-'''
+"""
 # Create projects in /var/lib/awx/projects and verify
 # 1) projects starting with '.' or '_' are excluded from config['project_local_paths']
 # 2) project appears under config['project_local_paths']
-'''
+"""
 
 import os
 import pytest
@@ -39,16 +39,16 @@ def project_with_galaxy_requirements(request, authtoken, organization):
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Projects(Base_Api_Test):
-    '''
+    """
     Verify various activities on /projects endpoint
-    '''
+    """
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_manual_project(self, project_ansible_playbooks_manual):
-        '''
+        """
         Verify tower can successfully creates a manual project (scm_type='').
         This includes verifying UTF-8 local-path.
-        '''
+        """
         # if we make it through the fixure, post worked
         # assert various project attributes are empty ('')
         for attr in ('scm_type', 'scm_url', 'scm_branch'):
@@ -87,10 +87,10 @@ class Test_Projects(Base_Api_Test):
     # Override the project local_path to workaround and unicode issues
     @pytest.mark.fixture_args(local_path="project_dir_%s" % fauxfactory.gen_alphanumeric())
     def test_change_from_manual_to_scm_project(self, project_ansible_playbooks_manual):
-        '''
+        """
         Verify tower can successfully convert a manual project, into a scm
         managed project.
-        '''
+        """
         # change the scm_type to 'git'
         project_pg = project_ansible_playbooks_manual.patch(
             scm_type='git',
@@ -111,9 +111,9 @@ class Test_Projects(Base_Api_Test):
             "the project is not marked as successful - id:%s" % project_pg.id
 
     def test_update_with_private_git_repository(self, ansible_runner, project_ansible_docsite_git):
-        '''
+        """
         Tests that project updates succeed with private git repositories.
-        '''
+        """
         # find project path
         local_path = project_ansible_docsite_git.local_path
         expected_project_path = os.path.join('/var/lib/awx/projects/', local_path)
@@ -150,13 +150,13 @@ class Test_Projects(Base_Api_Test):
         ]
     )
     def test_scm_delete_on_next_update(self, project_ansible_playbooks_git, attr, value):
-        '''
+        """
         Verify changing the scm_type or the scm_url causes tower to enable
         scm_delete_on_next_update.
 
         Also assert that after subsequently updating the project, the field
         scm_delete_on_next_update is disabled.
-        '''
+        """
         # assert scm_delete_on_update == False
         assert not project_ansible_playbooks_git.scm_delete_on_update, \
             "Unable to test scm_delete_on_next_update when scm_delete_on_update==True"
@@ -199,12 +199,12 @@ class Test_Projects(Base_Api_Test):
             (project_ansible_playbooks_git.scm_delete_on_next_update)
 
     def test_cancel_queued_update(self, project_ansible_git_nowait):
-        '''
+        """
         Verify the project->current_update->cancel endpoint behaves as expected when canceling a
         queued project_update.  Note, the project_ansible_git repo is used
         because the repo is large enough that the git-clone should take enough
         time to trigger a project_update cancel.
-        '''
+        """
         update_pg = project_ansible_git_nowait.get_related('current_update')
         cancel_pg = update_pg.get_related('cancel')
         assert cancel_pg.can_cancel, "Unable to cancel project_update (can_cancel:%s)" % cancel_pg.can_cancel
@@ -229,12 +229,12 @@ class Test_Projects(Base_Api_Test):
             "(expected status:canceled) - %s" % project_ansible_git_nowait
 
     def test_cancel_running_update(self, project_ansible_git_nowait):
-        '''
+        """
         Verify the project->current_update->cancel endpoint behaves as expected
         when canceling a running project_update.  Note, the project_ansible_git
         repo is used because the repo is large enough that the git-clone should
         take enough time to trigger a project_update cancel.
-        '''
+        """
         update_pg = project_ansible_git_nowait.get_related('current_update')
         cancel_pg = update_pg.get_related('cancel')
         assert cancel_pg.can_cancel, "Unable to cancel project_update (can_cancel:%s)" % cancel_pg.can_cancel
@@ -287,7 +287,7 @@ class Test_Projects(Base_Api_Test):
         assert result == {'conflict': 'Resource is being used by running jobs', 'active_jobs': [{'type': '%s' % update_pg.type, 'id': update_pg.id}]}
 
     def test_delete_related_fields(self, install_enterprise_license_unlimited, project_ansible_playbooks_git):
-        '''Verify that related fields on a deleted resource respond as expected'''
+        """Verify that related fields on a deleted resource respond as expected"""
         # delete all the projects
         project_ansible_playbooks_git.delete()
 
@@ -298,7 +298,7 @@ class Test_Projects(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3936')
     def test_project_with_galaxy_requirements(self, ansible_runner, project_with_galaxy_requirements, api_config_pg):
-        '''Verify that project requirements are downloaded when specified in a requirements file.'''
+        """Verify that project requirements are downloaded when specified in a requirements file."""
         last_update_pg = project_with_galaxy_requirements.wait_until_completed().get_related('last_update')
         assert last_update_pg.is_successful, "Project update unsuccessful - %s" % last_update_pg
 

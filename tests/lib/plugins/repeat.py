@@ -1,6 +1,6 @@
-'''
+"""
 Repeat tests a specified number of times.
-'''
+"""
 
 
 def pytest_addoption(parser):

@@ -16,14 +16,14 @@ class Test_Credential(Base_Api_Test):
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3303")
     def test_duplicate(self, request, factories, api_credentials_pg):
-        '''
+        """
         As of Tower-3.0, we allow for duplicate credentials when a value is supplied
         for user or team but not for organization.
 
         Note: in Tower-3.0.2, we effectively no longer have pure team credentials.
         Team credentials now act like organization credentials and have their value
         for organization inherited through their team.
-        '''
+        """
         user_pg = factories.user()
         team_pg = factories.team()
 
@@ -48,7 +48,7 @@ class Test_Credential(Base_Api_Test):
             api_credentials_pg.post(payload)
 
     def test_unicode(self, admin_user, api_credentials_pg):
-        '''Create an ssh credential where the password fields contain unicode.'''
+        """Create an ssh credential where the password fields contain unicode."""
         payload = dict(name=fauxfactory.gen_utf8(),
                        description=fauxfactory.gen_utf8(),
                        kind='ssh',
@@ -62,12 +62,12 @@ class Test_Credential(Base_Api_Test):
         credential.delete()
 
     def test_team_credentials_are_organization_credentials(self, factories):
-        '''Create a team credential and assert that the created credential
+        """Create a team credential and assert that the created credential
         is also an organization credential.
 
         Note: we use summary_fields here because of a number of issues regarding
         credential_pg JSON. Please update this test once #3304 and #3089 are resolved.
-        '''
+        """
         team = factories.team()
         credential = factories.credential(team=team, organization=None)
 
@@ -88,10 +88,10 @@ class Test_Credential(Base_Api_Test):
         (dict(project="foo", password="foo", username="foo"), {"host": ["Host required for OpenStack credential."]}),
     ], ids=['project', 'password', 'username', 'host'])
     def test_post_invalid_openstack_credential(self, admin_user, api_credentials_pg, payload, expected_result):
-        '''
+        """
         Tests that if you post an OpenStack credential with missing params that
         the post fails.
-        '''
+        """
         # create payload
         payload.update(dict(name="openstack-credential-%s" % fauxfactory.gen_utf8(),
                        description="Openstack credential %s" % fauxfactory.gen_utf8(),

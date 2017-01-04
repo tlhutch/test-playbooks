@@ -9,7 +9,7 @@ fixtures_dir = os.path.dirname(__file__)
 
 @pytest.fixture(scope="function")
 def credential_kind_choices(request, authtoken, api_credentials_pg):
-    '''Return ssh credential'''
+    """Return ssh credential"""
     return dict(api_credentials_pg.options().json['actions']['POST']['kind']['choices'])
 
 
@@ -18,7 +18,7 @@ def credential_kind_choices(request, authtoken, api_credentials_pg):
 #
 @pytest.fixture(scope="function")
 def ssh_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create ssh credential'''
+    """Create ssh credential"""
     payload = dict(name="credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
@@ -38,7 +38,7 @@ def ssh_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
 
 @pytest.fixture(scope="function")
 def another_ssh_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create another ssh credential'''
+    """Create another ssh credential"""
     payload = dict(name="another credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
@@ -58,7 +58,7 @@ def another_ssh_credential(request, authtoken, api_credentials_pg, admin_user, t
 
 @pytest.fixture(scope="function")
 def ssh_credential_ask(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create ssh credential with 'ASK' password'''
+    """Create ssh credential with 'ASK' password"""
     payload = dict(name="credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential with ASK password - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
@@ -72,11 +72,11 @@ def ssh_credential_ask(request, authtoken, api_credentials_pg, admin_user, tests
 
 @pytest.fixture(scope="function")
 def ssh_credential_with_ssh_key_data_and_sudo(request, ansible_facts, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create ssh credential with the following properties:
+    """Create ssh credential with the following properties:
         * username: SUDO_USER
         * become_method: sudo
         * ssh_key_data: <str>
-    '''
+    """
     SUDO_USER = ansible_facts.values()[0]['ansible_facts']['ansible_env']['SUDO_USER']
 
     payload = dict(name=fauxfactory.gen_utf8(),
@@ -94,7 +94,7 @@ def ssh_credential_with_ssh_key_data_and_sudo(request, ansible_facts, authtoken,
 
 @pytest.fixture(scope="function", params=['sudo', 'su', 'pbrun'])
 def ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create ssh credential with multiple 'ASK' passwords'''
+    """Create ssh credential with multiple 'ASK' passwords"""
     if request.param not in ('sudo', 'su', 'pbrun'):
         raise Exception("Unsupported parameter value: %s" % request.param)
 
@@ -117,7 +117,7 @@ def ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user,
 
 @pytest.fixture(scope="function")
 def team_ssh_credential(request, authtoken, team_with_org_admin, testsetup):
-    '''Create team ssh credential'''
+    """Create team ssh credential"""
     payload = dict(name="credential-%s" % fauxfactory.gen_utf8(),
                    description="machine credential for team:%s" % team_with_org_admin.name,
                    kind='ssh',
@@ -135,7 +135,7 @@ def team_ssh_credential(request, authtoken, team_with_org_admin, testsetup):
 #
 @pytest.fixture(scope="function")
 def unencrypted_rsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
-    '''Create rsa ssh_credential'''
+    """Create rsa ssh_credential"""
     payload = dict(name="unencrypted rsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
@@ -150,7 +150,7 @@ def unencrypted_rsa_ssh_credential(request, authtoken, api_credentials_pg, admin
 
 @pytest.fixture(scope="function")
 def encrypted_rsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
-    '''Create rsa ssh_credential'''
+    """Create rsa ssh_credential"""
     payload = dict(name="encrypted rsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
@@ -166,7 +166,7 @@ def encrypted_rsa_ssh_credential(request, authtoken, api_credentials_pg, admin_u
 
 @pytest.fixture(scope="function")
 def unencrypted_dsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
-    '''Create dsa ssh_credential'''
+    """Create dsa ssh_credential"""
     payload = dict(name="unencrypted dsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
@@ -181,7 +181,7 @@ def unencrypted_dsa_ssh_credential(request, authtoken, api_credentials_pg, admin
 
 @pytest.fixture(scope="function")
 def encrypted_dsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
-    '''Create dsa ssh_credential'''
+    """Create dsa ssh_credential"""
     payload = dict(name="encrypted dsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
@@ -197,7 +197,7 @@ def encrypted_dsa_ssh_credential(request, authtoken, api_credentials_pg, admin_u
 
 @pytest.fixture(scope="function")
 def unencrypted_ecdsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
-    '''Create ecdsa ssh_credential'''
+    """Create ecdsa ssh_credential"""
     payload = dict(name="unencrypted ecdsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
@@ -212,7 +212,7 @@ def unencrypted_ecdsa_ssh_credential(request, authtoken, api_credentials_pg, adm
 
 @pytest.fixture(scope="function")
 def encrypted_ecdsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
-    '''Create ecdsa ssh_credential'''
+    """Create ecdsa ssh_credential"""
     payload = dict(name="encrypted ecdsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
@@ -228,7 +228,7 @@ def encrypted_ecdsa_ssh_credential(request, authtoken, api_credentials_pg, admin
 
 @pytest.fixture(scope="function")
 def unencrypted_open_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
-    '''Create open ssh_credential'''
+    """Create open ssh_credential"""
     payload = dict(name="unencrypted open ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
@@ -243,7 +243,7 @@ def unencrypted_open_ssh_credential(request, authtoken, api_credentials_pg, admi
 
 @pytest.fixture(scope="function")
 def encrypted_open_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
-    '''Create open ssh_credential'''
+    """Create open ssh_credential"""
     payload = dict(name="encrypted open ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
@@ -310,7 +310,7 @@ def encrypted_ssh_credential_with_ssh_key_data(request):
 #
 @pytest.fixture(scope="function")
 def network_credential_with_basic_auth(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create network credential'''
+    """Create network credential"""
     payload = dict(name="network credentials-%s" % fauxfactory.gen_utf8(),
                    description="network credential - %s" % fauxfactory.gen_utf8(),
                    kind='net',
@@ -325,7 +325,7 @@ def network_credential_with_basic_auth(request, authtoken, api_credentials_pg, a
 
 @pytest.fixture(scope="function")
 def network_credential_with_authorize(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create network credential'''
+    """Create network credential"""
     payload = dict(name="network credentials-%s" % fauxfactory.gen_utf8(),
                    description="network credential - %s" % fauxfactory.gen_utf8(),
                    kind='net',
@@ -342,7 +342,7 @@ def network_credential_with_authorize(request, authtoken, api_credentials_pg, ad
 
 @pytest.fixture(scope="function")
 def network_credential_with_ssh_key_data(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create network credential'''
+    """Create network credential"""
     payload = dict(name="network credentials-%s" % fauxfactory.gen_utf8(),
                    description="network credential - %s" % fauxfactory.gen_utf8(),
                    kind='net',
@@ -370,7 +370,7 @@ def network_credential(request):
 #
 @pytest.fixture(scope="function")
 def unencrypted_scm_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create an unencrypted scm credential'''
+    """Create an unencrypted scm credential"""
     payload = dict(name="scm credentials-%s" % fauxfactory.gen_utf8(),
                    description="unencrypted scm credential - %s" % fauxfactory.gen_utf8(),
                    kind='scm',
@@ -385,7 +385,7 @@ def unencrypted_scm_credential(request, authtoken, api_credentials_pg, admin_use
 
 @pytest.fixture(scope="function")
 def encrypted_scm_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create an encrypted scm credential'''
+    """Create an encrypted scm credential"""
     payload = dict(name="scm credentials-%s" % fauxfactory.gen_utf8(),
                    description="encrypted scm credential - %s" % fauxfactory.gen_utf8(),
                    kind='scm',
@@ -400,7 +400,7 @@ def encrypted_scm_credential(request, authtoken, api_credentials_pg, admin_user,
 
 @pytest.fixture(scope="function")
 def scm_credential_key_unlock_ASK(request, authtoken, api_credentials_pg, admin_user):
-    '''Create scm credential with scm_key_unlock="ASK"'''
+    """Create scm credential with scm_key_unlock="ASK""""
     payload = dict(name="credentials-%s" % fauxfactory.gen_utf8(),
                    description="SCM credential %s (scm_key_unlock:ASK)" % fauxfactory.gen_utf8(),
                    kind='scm',
@@ -417,7 +417,7 @@ def scm_credential_key_unlock_ASK(request, authtoken, api_credentials_pg, admin_
 #
 @pytest.fixture(scope="function")
 def aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Amazon cloud credential'''
+    """Create a randomly named Amazon cloud credential"""
     payload = dict(name="awx-credential-%s" % fauxfactory.gen_utf8(),
                    description="AWS credential %s" % fauxfactory.gen_utf8(),
                    kind='aws',
@@ -431,7 +431,7 @@ def aws_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
 
 @pytest.fixture(scope="function")
 def rax_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Rackspace cloud credential'''
+    """Create a randomly named Rackspace cloud credential"""
     payload = dict(name="rax-credential-%s" % fauxfactory.gen_utf8(),
                    description="Rackspace credential %s" % fauxfactory.gen_utf8(),
                    kind='rax',
@@ -445,7 +445,7 @@ def rax_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
 
 @pytest.fixture(scope="function")
 def azure_classic_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Azure classic cloud credential'''
+    """Create a randomly named Azure classic cloud credential"""
     payload = dict(name="azure-classic-credential-%s" % fauxfactory.gen_utf8(),
                    description="Microsoft Azure credential %s" % fauxfactory.gen_utf8(),
                    kind='azure',
@@ -459,7 +459,7 @@ def azure_classic_credential(request, authtoken, api_credentials_pg, admin_user,
 
 @pytest.fixture(scope="function")
 def azure_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Azure cloud credential'''
+    """Create a randomly named Azure cloud credential"""
     payload = dict(name="azure-credential-%s" % fauxfactory.gen_utf8(),
                    description="Microsoft Azure credential %s" % fauxfactory.gen_utf8(),
                    kind='azure_rm',
@@ -475,7 +475,7 @@ def azure_credential(request, authtoken, api_credentials_pg, admin_user, testset
 
 @pytest.fixture(scope="function")
 def azure_ad_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Azure active directory cloud credential'''
+    """Create a randomly named Azure active directory cloud credential"""
     payload = dict(name="azure-ad-credential-%s" % fauxfactory.gen_utf8(),
                    description="Microsoft Azure credential %s" % fauxfactory.gen_utf8(),
                    kind='azure_rm',
@@ -490,7 +490,7 @@ def azure_ad_credential(request, authtoken, api_credentials_pg, admin_user, test
 
 @pytest.fixture(scope="function")
 def gce_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named Google Compute Engine cloud credential'''
+    """Create a randomly named Google Compute Engine cloud credential"""
     payload = dict(name="gce-credential-%s" % fauxfactory.gen_utf8(),
                    description="Google Compute Engine credential %s" % fauxfactory.gen_utf8(),
                    kind='gce',
@@ -505,7 +505,7 @@ def gce_credential(request, authtoken, api_credentials_pg, admin_user, testsetup
 
 @pytest.fixture(scope="function")
 def vmware_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named VMware vCenter cloud credential'''
+    """Create a randomly named VMware vCenter cloud credential"""
     payload = dict(name="vmware-credential-%s" % fauxfactory.gen_utf8(),
                    description="VMware vCenter credential %s" % fauxfactory.gen_utf8(),
                    kind='vmware',
@@ -520,7 +520,7 @@ def vmware_credential(request, authtoken, api_credentials_pg, admin_user, testse
 
 @pytest.fixture(scope="function")
 def openstack_v2_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named OpenStack_v2 cloud credential'''
+    """Create a randomly named OpenStack_v2 cloud credential"""
     payload = dict(name="openstack-v2-credential-%s" % fauxfactory.gen_utf8(),
                    description="OpenStack credential %s" % fauxfactory.gen_utf8(),
                    kind='openstack',
@@ -536,7 +536,7 @@ def openstack_v2_credential(request, authtoken, api_credentials_pg, admin_user, 
 
 @pytest.fixture(scope="function")
 def openstack_v3_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create a randomly named OpenStack_v3 cloud credential'''
+    """Create a randomly named OpenStack_v3 cloud credential"""
     payload = dict(name="openstack-v3-credential-%s" % fauxfactory.gen_utf8(),
                    description="OpenStack credential %s" % fauxfactory.gen_utf8(),
                    kind='openstack',
@@ -561,7 +561,7 @@ def openstack_credential(request):
 
 @pytest.fixture(scope="function")
 def cloudforms_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create CloudForms credential'''
+    """Create CloudForms credential"""
     payload = dict(name="cloudforms-credentials-%s" % fauxfactory.gen_utf8(),
                    description="CloudForms credential - %s" % fauxfactory.gen_utf8(),
                    kind='cloudforms',
@@ -576,7 +576,7 @@ def cloudforms_credential(request, authtoken, api_credentials_pg, admin_user, te
 
 @pytest.fixture(scope="function")
 def satellite6_credential(request, authtoken, api_credentials_pg, admin_user, testsetup):
-    '''Create Satellite6 credential'''
+    """Create Satellite6 credential"""
     payload = dict(name="satellite6-credentials-%s" % fauxfactory.gen_utf8(),
                    description="Satellite6 credential - %s" % fauxfactory.gen_utf8(),
                    kind='satellite6',

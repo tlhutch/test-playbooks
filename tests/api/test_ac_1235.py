@@ -22160,18 +22160,18 @@ class Test_AC_1235(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3861')
     def test_import(self, ansible_runner, tmpdir, inventory):
-        '''Invoke an inventory import for a *large* dataset.  Verify the
+        """Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner
-        '''
+        """
 
         # Copy inventory to test system
         contacted = ansible_runner.copy(
             dest='/tmp/inventory.sh',
             mode='0755',
-            content='''#!/bin/bash
+            content="""#!/bin/bash
 cat <<EOF
 %s
-EOF''' % (json.dumps(inventory_dict, indent=4),))
+EOF""" % (json.dumps(inventory_dict, indent=4),))
         for result in contacted.values():
             assert 'failed' not in result, "Failed to create inventory file: %s" % result
 

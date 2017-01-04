@@ -115,9 +115,9 @@ def pytest_unconfigure(config):
 
 @pytest.fixture(scope="session")
 def testsetup(request):
-    '''
+    """
     Return initialized REST QA TestSetup object
-    '''
+    """
     return TestSetup(request)
 
 
@@ -157,8 +157,8 @@ def _debug_summary(debug):
 
 
 class TestSetup:
-    '''
+    """
         This class is just used for monkey patching
-    '''
+    """
     def __init__(self, request):
         self.request = request

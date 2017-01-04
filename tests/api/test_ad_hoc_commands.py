@@ -7,7 +7,7 @@ import pytest
 from tests.api import Base_Api_Test
 
 
-'''
+"""
 Tests that span all four endpoints
 -[X] Four tests - that super user can GET from all four ad hoc endpoints. Tests will be housed in respective modules.
 -[X] Test that POST works for superuser on all four endpoints
@@ -42,15 +42,15 @@ Permissions
 -[X] Verify that unprivileged users cannot launch commands without the ad hoc permission
 -[X] Verify that unprivileged users with the correct permissions can launch a command
 -[X] Verify that privileged users can launch commands without permissions
-'''
+"""
 
 
 @pytest.fixture(scope="function", params=['inventory', 'ssh_credential'])
 def deleted_object(request):
-    '''
+    """
     Creates and deletes an object.
     Returns the deleted object.
-    '''
+    """
     obj = request.getfuncargvalue(request.param)
     obj.delete()
     return obj
@@ -58,9 +58,9 @@ def deleted_object(request):
 
 @pytest.fixture(scope="function")
 def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, host, ssh_credential_multi_ask, api_ad_hoc_commands_pg, testsetup):
-    '''
+    """
     Launch command with multi_ask credential and passwords in the payload.
-    '''
+    """
     # create payload
     payload = dict(inventory=host.inventory,
                    credential=ssh_credential_multi_ask.id,
@@ -84,22 +84,22 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, ho
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Ad_Hoc_Commands_Inventory(Base_Api_Test):
-    '''
+    """
     From /api/v1/inventories/{id}
-    '''
+    """
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get_as_superuser(self, inventory):
-        '''
+        """
         Verify that a superuser account is able to GET from the ad_hoc_commands endpoint.
-        '''
+        """
         ad_hoc_commands_pg = inventory.get_related('ad_hoc_commands')
         ad_hoc_commands_pg.get()
 
     def test_post_as_superuser(self, host, ssh_credential):
-        '''
+        """
         Verify that a superuser account is able to POST to the ad_hoc_commands endpoint.
-        '''
+        """
         inventory_pg = host.get_related('inventory')
         ad_hoc_commands_pg = inventory_pg.get_related('ad_hoc_commands')
 
@@ -120,22 +120,22 @@ class Test_Ad_Hoc_Commands_Inventory(Base_Api_Test):
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
-    '''
+    """
     From /api/v1/groups/{id}
-    '''
+    """
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get_as_superuser(self, group):
-        '''
+        """
         Verify that a superuser account is able to GET from the ad_hoc_commands endpoint.
-        '''
+        """
         ad_hoc_commands_pg = group.get_related('ad_hoc_commands')
         ad_hoc_commands_pg.get()
 
     def test_post_as_superuser(self, group, host, ssh_credential):
-        '''
+        """
         Verify that a superuser account is able to POST to the ad_hoc_commands endpoint.
-        '''
+        """
         ad_hoc_commands_pg = group.get_related('ad_hoc_commands')
 
         # create payload
@@ -155,22 +155,22 @@ class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Ad_Hoc_Commands_Host(Base_Api_Test):
-    '''
+    """
     From /api/v1/hosts/{id}/
-    '''
+    """
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get_as_superuser(self, host):
-        '''
+        """
         Verify that a superuser account is able to GET from the ad_hoc_commands endpoint.
-        '''
+        """
         ad_hoc_commands_pg = host.get_related('ad_hoc_commands')
         ad_hoc_commands_pg.get()
 
     def test_post_as_superuser(self, host, ssh_credential):
-        '''
+        """
         Verify that a superuser account is able to POST to the ad_hoc_commands endpoint.
-        '''
+        """
         ad_hoc_commands_pg = host.get_related('ad_hoc_commands')
 
         # create payload
@@ -190,23 +190,23 @@ class Test_Ad_Hoc_Commands_Host(Base_Api_Test):
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
-    '''
+    """
     For the api/v1/ad_hoc_commands endpoint.
-    '''
+    """
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get(self, api_ad_hoc_commands_pg, all_users, user_password):
-        '''
+        """
         Verify that privileged users are able to GET from the ad_hoc_commands endpoint.
-        '''
+        """
         for user in all_users:
             with self.current_user(user.username, user_password):
                 api_ad_hoc_commands_pg.get()
 
     def test_post_as_privileged_user(self, host, ssh_credential, api_ad_hoc_commands_pg, privileged_users, user_password):
-        '''
+        """
         Verify that a superuser account is able to post to the ad_hoc_commands endpoint.
-        '''
+        """
         use_role_pg = ssh_credential.get_object_role('use_role')
 
         # create payload
@@ -227,9 +227,9 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                 assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
 
     def test_post_as_unprivileged_user(self, inventory, ssh_credential, api_ad_hoc_commands_pg, unprivileged_users, user_password):
-        '''
+        """
         Verify that unprivileged users cannot post to the ad_hoc_commands endpoint.
-        '''
+        """
         # create payload
         payload = dict(inventory=inventory.id,
                        credential=ssh_credential.id,
@@ -243,9 +243,9 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                     api_ad_hoc_commands_pg.post(payload)
 
     def test_launch_without_module_name(self, host, ssh_credential, api_ad_hoc_commands_pg):
-        '''
+        """
         Verifies that if you post without specifiying module_name that the command module is run.
-        '''
+        """
         # create payload
         payload = dict(inventory=host.inventory,
                        credential=ssh_credential.id,
@@ -263,9 +263,9 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         assert command_pg.module_args == "true"
 
     def test_launch_with_invalid_module_name(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
-        '''
+        """
         Verifies that if you post with an invalid module_name that a BadRequest exception is raised.
-        '''
+        """
         invalid_module_names = [-1, 0, 1, True, False, (), {}]
 
         for invalid_module_name in invalid_module_names:
@@ -279,10 +279,10 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                 api_ad_hoc_commands_pg.post(payload)
 
     def test_launch_without_module_args(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
-        '''
+        """
         Verifies that if you post without specifiying module_args that the post fails with
         the command module.
-        '''
+        """
         # create payload
         payload = dict(inventory=inventory.id,
                        credential=ssh_credential.id,
@@ -300,9 +300,9 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
     @pytest.mark.skip('https://github.com/ansible/tower-qa/issues/838')
     @pytest.mark.fixture_args(module_name='command', module_args='sleep 60s')
     def test_cancel_command(self, ad_hoc_with_status_pending):
-        '''
+        """
         Tests that posting to the cancel endpoint cancels a command.
-        '''
+        """
         cancel_pg = ad_hoc_with_status_pending.get_related('cancel')
 
         # verify that you can cancel
@@ -318,9 +318,9 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
             "status:canceled) - %s" % ad_hoc_with_status_pending
 
     def test_launch_with_ask_credential_and_passwords_in_payload(self, host, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
-        '''
+        """
         Verifies that launching a command with an ask credential succeeds when supplied with proper passwords.
-        '''
+        """
         # create payload
         payload = dict(inventory=host.inventory,
                        credential=ssh_credential_multi_ask.id,
@@ -338,9 +338,9 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         assert command_pg.is_successful, "Command unsuccessful - %s" % command_pg
 
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
-        '''
+        """
         Verifies that launching a command with an ask credential fails when not supplied with required passwords.
-        '''
+        """
         # create payload
         payload = dict(inventory=inventory.id,
                        credential=ssh_credential_multi_ask.id,
@@ -351,9 +351,9 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
             api_ad_hoc_commands_pg.post(payload)
 
     def test_launch_with_ask_credential_and_invalid_passwords_in_payload(self, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
-        '''
+        """
         Verifies that launching a command with an ask credential fails when supplied with invalid passwords.
-        '''
+        """
         # create payload
         payload = dict(inventory=inventory.id,
                        credential=ssh_credential_multi_ask.id,
@@ -379,7 +379,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         ("group*:&group-1:!duplicate_host", 3),  # All groups intersect with "group-1" and not "duplicate_host"
         ("duplicate_host", 1),
     ])
-    @pytest.mark.fixture_args(source_script='''#!/usr/bin/env python
+    @pytest.mark.fixture_args(source_script="""#!/usr/bin/env python
 import json
 
 # Create hosts and groups
@@ -410,7 +410,7 @@ for grp, hosts in inv.items():
         inv['_meta']['hostvars'][host] = dict(ansible_ssh_host='127.0.0.1', ansible_connection='local')
 
 print json.dumps(inv, indent=2)
-''')
+""")
     def test_launch_with_matched_limit_value(
             self, limit_value,
             expected_count,
@@ -418,9 +418,9 @@ print json.dumps(inv, indent=2)
             ssh_credential,
             api_ad_hoc_commands_pg
     ):
-        '''
+        """
         Verifies that ad hoc command launches with different values for limit behave as expected.
-        '''
+        """
         # create payload
         payload = dict(inventory=custom_inventory_update_with_status_completed.get_related('inventory_source').inventory,
                        credential=ssh_credential.id,
@@ -437,9 +437,9 @@ print json.dumps(inv, indent=2)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4233')
     def test_launch_with_unmatched_limit_value(self, host, ssh_credential, api_ad_hoc_commands_pg, ansible_version_cmp):
-        '''
+        """
         Verify that launching an ad hoc command without matching host fails appropriately.
-        '''
+        """
         # create payload
         payload = dict(inventory=host.inventory,
                        credential=ssh_credential.id,
@@ -478,9 +478,9 @@ print json.dumps(inv, indent=2)
         privileged_users,
         user_password
     ):
-        '''
+        """
         Verifies that privileged users can relaunch commands.
-        '''
+        """
         use_role_pg = ssh_credential.get_object_role('use_role')
         for privileged_user in privileged_users:
             # give privileged user 'use_role' permissions
@@ -508,9 +508,9 @@ print json.dumps(inv, indent=2)
                 assert relaunched_command.is_successful, "Command unsuccessful - %s " % relaunched_command
 
     def test_relaunch_command_with_unprivileged_users(self, ad_hoc_with_status_completed, unprivileged_users, user_password):
-        '''
+        """
         Verifies that unprivileged users cannot relaunch a command originally launched by admin.
-        '''
+        """
         relaunch_pg = ad_hoc_with_status_completed.get_related('relaunch')
 
         # relaunch the job and assert success
@@ -524,9 +524,9 @@ print json.dumps(inv, indent=2)
         ad_hoc_command_with_multi_ask_credential_and_password_in_payload,
         api_unified_jobs_pg
     ):
-        '''
+        """
         Tests that command relaunches work when supplied with the right passwords.
-        '''
+        """
         # create payload
         payload = dict(ssh_password=self.credentials['ssh']['password'],
                        ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
@@ -543,9 +543,9 @@ print json.dumps(inv, indent=2)
         ad_hoc_command_with_multi_ask_credential_and_password_in_payload,
         api_unified_jobs_pg
     ):
-        '''
+        """
         Tests that command relaunches fail when supplied without the right passwords.
-        '''
+        """
         relaunch_pg = ad_hoc_command_with_multi_ask_credential_and_password_in_payload.get_related('relaunch')
 
         # create payload
@@ -556,9 +556,9 @@ print json.dumps(inv, indent=2)
             relaunch_pg.post(payload)
 
     def test_relaunch_with_deleted_related(self, ad_hoc_with_status_completed, deleted_object):
-        '''
+        """
         Verify that relaunching a job with deleted related fails.
-        '''
+        """
         # verify that the first ad hoc command ran successfully
         assert ad_hoc_with_status_completed.is_successful, "Ad hoc command unsuccessful - %s" % ad_hoc_with_status_completed
 
@@ -573,9 +573,9 @@ print json.dumps(inv, indent=2)
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3544')
     @pytest.mark.fixture_args(module_name='shell', module_args='exit 1', job_type='check')
     def test_launch_with_check(self, host, ssh_credential, ad_hoc_with_status_completed):
-        '''
+        """
         Verifies check command behavior.
-        '''
+        """
         assert ad_hoc_with_status_completed.is_successful, "Command unsuccessful - %s." % ad_hoc_with_status_completed
 
         # check command attributes
@@ -589,9 +589,9 @@ print json.dumps(inv, indent=2)
             "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
 
     def test_ad_hoc_activity_stream(self, api_ad_hoc_commands_pg, ad_hoc_with_status_completed):
-        '''
+        """
         Verifies that launching an ad hoc command updates the activity stream.
-        '''
+        """
         # find command and navigate to command page
         ad_hoc_commands_pg = api_ad_hoc_commands_pg.get(id=ad_hoc_with_status_completed.id)
         assert ad_hoc_commands_pg.count == 1, \
@@ -604,9 +604,9 @@ print json.dumps(inv, indent=2)
         assert activity_stream_pg.count == 1, "Activity stream not populated."
 
     def test_command_page_update(self, org_admin, user_password, host, ssh_credential, api_ad_hoc_commands_pg):
-        '''
+        """
         Tests that deleting related objects will be reflected in the updated command page.
-        '''
+        """
         use_role_pg = ssh_credential.get_object_role('use_role')
         inventory_pg = host.get_related('inventory')
 

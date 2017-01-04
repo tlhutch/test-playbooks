@@ -10,11 +10,11 @@ from tests.api import Base_Api_Test
 
 @pytest.fixture(scope="function")
 def variables_yaml(request):
-    return yaml.load('''
+    return yaml.load("""
 variables: |
     ansible_ssh_host: localhost
     ansible_ssh_user: ubuntu
-''')['variables']
+""")['variables']
 
 
 @pytest.fixture(scope="function")
@@ -127,22 +127,22 @@ def job_templates_yaml(request, authtoken, api_job_templates_pg, project, ssh_cr
 @pytest.mark.nondestructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_AC_1035(Base_Api_Test):
-    '''
+    """
     For API objects that support a 'variables' (or 'extra_vars') attribute,
     verify they support storing and retrieving JSON/YAML data.
-    '''
+    """
     #
     # /inventories
     #
     def test_inventory_variables_attr_yaml_post(self, inventory_yaml):
-        '''Assert that storing (POST) valid YAML in inventory.variables succeeds'''
+        """Assert that storing (POST) valid YAML in inventory.variables succeeds"""
         try:
             yaml.load(inventory_yaml.variables)
         except Exception:
             pytest.fail("inventory variables not stored as YAML data: %s" % inventory_yaml.variables)
 
     def test_inventory_variables_attr_yaml_patch(self, inventory_yaml, variables_yaml):
-        '''Assert that storing (PATCH) valid YAML in inventory.variables succeeds'''
+        """Assert that storing (PATCH) valid YAML in inventory.variables succeeds"""
         inventory_yaml.patch(variables=variables_yaml)
         inventory_yaml.get()
         try:
@@ -151,7 +151,7 @@ class Test_AC_1035(Base_Api_Test):
             pytest.fail("inventory variables not stored as YAML data: %s" % inventory_yaml.variables)
 
     def test_inventory_variables_attr_yaml_put(self, inventory_yaml, variables_yaml):
-        '''Assert that storing (PUT) valid YAML in inventory.variables succeeds'''
+        """Assert that storing (PUT) valid YAML in inventory.variables succeeds"""
         inventory_yaml.variables = variables_yaml
         inventory_yaml.put()
         inventory_yaml.get()
@@ -161,14 +161,14 @@ class Test_AC_1035(Base_Api_Test):
             pytest.fail("inventory variables not stored as YAML data: %s" % inventory_yaml.variables)
 
     def test_inventory_variables_attr_json_post(self, inventory_json):
-        '''Assert that storing (POST) valid JSON in inventory.variables succeeds'''
+        """Assert that storing (POST) valid JSON in inventory.variables succeeds"""
         try:
             json.loads(inventory_json.variables)
         except Exception:
             pytest.fail("inventory variables not stored as JSON data: %s" % inventory_json.variables)
 
     def test_inventory_variables_attr_json_patch(self, inventory_json, variables_json):
-        '''Assert that storing (PATCH) valid JSON in inventory.variables succeeds'''
+        """Assert that storing (PATCH) valid JSON in inventory.variables succeeds"""
         inventory_json.patch(variables=variables_json)
         inventory_json.get()
         try:
@@ -177,7 +177,7 @@ class Test_AC_1035(Base_Api_Test):
             pytest.fail("inventory variables not stored as JSON data: %s" % inventory_json.variables)
 
     def test_inventory_variables_attr_json_put(self, inventory_json, variables_json):
-        '''Assert that storing (PUT) valid JSON in inventory.variables succeeds'''
+        """Assert that storing (PUT) valid JSON in inventory.variables succeeds"""
         inventory_json.variables = variables_json
         inventory_json.put()
         inventory_json.get()
@@ -187,7 +187,7 @@ class Test_AC_1035(Base_Api_Test):
             pytest.fail("inventory variables not stored as JSON data: %s" % inventory_json.variables)
 
     def test_inventory_variables_attr_invalid(self, inventory_yaml):
-        '''Assert that storing invalid YAML/JSON in inventory.variables fails'''
+        """Assert that storing invalid YAML/JSON in inventory.variables fails"""
         with pytest.raises(BadRequest):
             inventory_yaml.patch(variables="{")
 
@@ -195,21 +195,21 @@ class Test_AC_1035(Base_Api_Test):
     # /groups
     #
     def test_groups_variables_attr_yaml_post(self, groups_yaml):
-        '''Assert that storing (POST) valid YAML in groups.variables succeeds'''
+        """Assert that storing (POST) valid YAML in groups.variables succeeds"""
         try:
             yaml.load(groups_yaml.variables)
         except Exception:
             pytest.fail("groups variables not stored as YAML data: %s" % groups_yaml.variables)
 
     def test_groups_variables_attr_json_post(self, groups_json):
-        '''Assert that storing (POST) valid JSON in groups.variables succeeds'''
+        """Assert that storing (POST) valid JSON in groups.variables succeeds"""
         try:
             json.loads(groups_json.variables)
         except Exception:
             pytest.fail("groups variables not stored as JSON data: %s" % groups_json.variables)
 
     def test_groups_variables_attr_invalid(self, groups_yaml):
-        '''Assert that storing invalid YAML/JSON in groups.variables fails'''
+        """Assert that storing invalid YAML/JSON in groups.variables fails"""
         with pytest.raises(BadRequest):
             groups_yaml.patch(variables="{")
 
@@ -229,7 +229,7 @@ class Test_AC_1035(Base_Api_Test):
             pytest.fail("hosts variables not stored as JSON data: %s" % hosts_json.variables)
 
     def test_hosts_variables_attr_invalid(self, hosts_yaml):
-        '''Assert that storing invalid YAML/JSON in hosts.variables fails'''
+        """Assert that storing invalid YAML/JSON in hosts.variables fails"""
         with pytest.raises(BadRequest):
             hosts_yaml.patch(variables="{")
 
@@ -237,21 +237,21 @@ class Test_AC_1035(Base_Api_Test):
     # /job_templates
     #
     def test_job_templates_extra_var_attr_yaml_post(self, job_templates_yaml):
-        '''Assert that valid yaml is properly stored/retrieved in extra_vars'''
+        """Assert that valid yaml is properly stored/retrieved in extra_vars"""
         try:
             yaml.load(job_templates_yaml.extra_vars)
         except Exception:
             pytest.fail("job_templates extra_vars not stored as YAML data: %s" % job_templates_yaml.extra_vars)
 
     def test_job_templates_extra_var_attr_json_post(self, job_templates_json):
-        '''Assert that valid json is properly stored/retrieved in extra_vars'''
+        """Assert that valid json is properly stored/retrieved in extra_vars"""
         try:
             json.loads(job_templates_json.extra_vars)
         except Exception:
             pytest.fail("job_templates extra_vars not stored as JSON data: %s" % job_templates_json.extra_vars)
 
     def test_job_templates_extra_var_attr_invalid(self, job_templates_yaml):
-        '''Assert that no data validation happens updating extra_vars with invalid JSON/YAML'''
+        """Assert that no data validation happens updating extra_vars with invalid JSON/YAML"""
         payload = dict(extra_vars="{")
         exc_info = pytest.raises(BadRequest, job_templates_yaml.patch, **payload)
         result = exc_info.value[1]

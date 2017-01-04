@@ -56,7 +56,7 @@ def pytest_generate_tests(metafunc):
 
 @pytest.fixture(scope='class')
 def update_sshd_config(ansible_runner):
-    '''Update /etc/ssh/sshd_config to increase MaxSessions'''
+    """Update /etc/ssh/sshd_config to increase MaxSessions"""
 
     # Increase MaxSessions and MaxStartups
     ansible_runner.lineinfile(dest="/etc/ssh/sshd_config", regexp="^#?MaxSessions .*", line="MaxSessions 150")
@@ -78,7 +78,7 @@ def update_sshd_config(ansible_runner):
 
 @pytest.fixture(scope='class')
 def set_rootpw(ansible_runner, testsetup):
-    '''Set the rootpw to something we use in credentials'''
+    """Set the rootpw to something we use in credentials"""
     assert 'ssh' in testsetup.credentials, "No SSH credentials defined"
     assert 'username' in testsetup.credentials['ssh'], "No SSH username defined in credentials"
     assert 'password' in testsetup.credentials['ssh'], "No SSH password defined in credentials"
@@ -488,9 +488,9 @@ class Test_Quickstart_Scenario(Base_Api_Test):
 
     @pytest.mark.nondestructive
     def test_inventory_sources_get_children(self, api_groups_pg, _inventory_source, region_choices):
-        '''
+        """
         Tests that an inventory_sync created expected sub-groups
-        '''
+        """
         # Find desired group
         group = api_groups_pg.get(name__iexact=_inventory_source['group']).results[0]
 

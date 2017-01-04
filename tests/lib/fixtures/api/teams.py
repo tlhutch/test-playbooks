@@ -15,7 +15,7 @@ def team(request, authtoken, organization):
 
 @pytest.fixture(scope="function")
 def team_with_org_admin(request, team, org_admin):
-    '''A team with an org_admin as a member'''
+    """A team with an org_admin as a member"""
     users_pg = team.get_related('users')
     payload = dict(id=org_admin.id)
     with pytest.raises(towerkit.exceptions.NoContent):

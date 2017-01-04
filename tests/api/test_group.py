@@ -10,7 +10,7 @@ from tests.api import Base_Api_Test
 # Ansible inventory variations for testing 'root' group removal
 root_variations = [
     dict(name='children:0, hosts:0',
-         inventory='''
+         inventory="""
 [usa] # <------- DELETE
 [fr]
 fr-host-1
@@ -18,9 +18,9 @@ fr-host-2
 [uk]
 uk-host-1
 [de]
-'''),
+"""),
     dict(name='children:m, hosts:0',
-         inventory='''
+         inventory="""
 [usa] # <------- DELETE
 [usa:children]
 ca
@@ -32,9 +32,9 @@ fr-host-2
 [uk]
 uk-host-1
 [de]
-'''),
+"""),
     dict(name='children:0, hosts:n',
-         inventory='''
+         inventory="""
 [usa] # <------- DELETE
 usa-host-1
 usa-host-2
@@ -45,9 +45,9 @@ fr-host-2
 [uk]
 uk-host-1
 [de]
-'''),
+"""),
     dict(name='children:m, hosts:n',
-         inventory='''
+         inventory="""
 [usa] # <------- DELETE
 usa-host-1
 usa-host-2
@@ -66,7 +66,7 @@ fr-host-2
 [uk]
 uk-host-1
 [de]
-'''),
+"""),
 ]
 
 
@@ -75,7 +75,7 @@ def root_variation(request, authtoken, inventory, ansible_runner):
     contacted = ansible_runner.copy(
         dest='/tmp/inventory.ini',
         force=True, mode='0644',
-        content='''# --inventory-id %s %s''' % (inventory.id, request.param['inventory'])
+        content="""# --inventory-id %s %s""" % (inventory.id, request.param['inventory'])
     )
     for results in contacted.values():
         assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
@@ -96,7 +96,7 @@ def root_variation(request, authtoken, inventory, ansible_runner):
 
 # Ansible inventory variations for testing 'non-root' group removal.  These are
 # the same as root_variations ... but they are nested a level deeper.
-inventory_prefix = '''
+inventory_prefix = """
 [continents]
 content-host-1
 
@@ -122,7 +122,7 @@ mex
 fr
 uk
 de
-'''
+"""
 
 
 non_root_variations = [dict(name=item['name'], inventory=inventory_prefix + item['inventory']) for item in root_variations]
@@ -133,7 +133,7 @@ def non_root_variation(request, authtoken, inventory, ansible_runner):
     contacted = ansible_runner.copy(
         dest='/tmp/inventory.ini',
         force=True, mode='0644',
-        content='''# --inventory-id %s %s''' % (inventory.id, request.param['inventory'])
+        content="""# --inventory-id %s %s""" % (inventory.id, request.param['inventory'])
     )
     for results in contacted.values():
         assert results['changed'] and 'failed' not in results, \
@@ -162,7 +162,7 @@ all_variations = root_variations + non_root_variations
 def variation(request, authtoken, inventory, ansible_runner):
     contacted = ansible_runner.copy(
         dest='/tmp/inventory.ini', force=True,
-        content='''# --inventory-id %s %s''' % (inventory.id, request.param['inventory']))
+        content="""# --inventory-id %s %s""" % (inventory.id, request.param['inventory']))
     for results in contacted.values():
         assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
@@ -203,7 +203,7 @@ def some_group(request, authtoken, inventory):
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Group(Base_Api_Test):
-    '''
+    """
     Verify DELETE and POST (disassociate) behaves as expected for groups and their hosts
 
     Top-level group
@@ -217,14 +217,14 @@ class Test_Group(Base_Api_Test):
         verify child group with children:0, hosts:M -> group deleted, hosts promote to parent
         verify child group with children:N, hosts:0 -> group deleted, children promote to parent
         verify child group with children:N, hosts:M -> group deleted, children and hosts promote to parent
-    '''
+    """
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_disassociate_root_group(self, root_variation):
-        '''verify behavior of disassociate of a top-level group.
+        """verify behavior of disassociate of a top-level group.
            POST {id=N, disassociate=True} to /inventories/N/groups
-        '''
+        """
         # For convenience, display the INI file
         root_variation.print_ini()
 
@@ -260,9 +260,9 @@ class Test_Group(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3551')
     def test_disassociate_non_root_group(self, non_root_variation):
-        '''verify behavior of disassociate of a child group
+        """verify behavior of disassociate of a child group
            POST {disassociate=True} /groups/N/children
-        '''
+        """
         # For convenience, display the INI file
         non_root_variation.print_ini()
 
@@ -314,9 +314,9 @@ class Test_Group(Base_Api_Test):
         assert parent_group.get_related('hosts').count == total_parent_hosts + total_group_hosts
 
     def test_delete(self, api_groups_pg, variation):
-        '''verify behavior of group delete
+        """verify behavior of group delete
            DELETE /groups/N
-        '''
+        """
         # For convenience, display the INI file
         variation.print_ini()
 
@@ -378,9 +378,9 @@ class Test_Group(Base_Api_Test):
             assert parent_group.get_related('all_hosts').count == total_parent_all_hosts - total_group_all_hosts
 
     def test_associate_with_root_group(self, non_root_variation):
-        '''Verify expected behavior when disassociating a group from it's parent, thereby creating a root group.
+        """Verify expected behavior when disassociating a group from it's parent, thereby creating a root group.
            POST {id=M, disassociate=True} /groups/N/children
-        '''
+        """
 
         # For convenience, display the INI file
         non_root_variation.print_ini()
@@ -437,9 +437,9 @@ class Test_Group(Base_Api_Test):
             assert parent_group.get_related('all_hosts').count == total_parent_all_hosts - total_group_all_hosts
 
     def test_associate_with_non_root_group(self, root_variation):
-        '''Verify expected behavior for a group association
+        """Verify expected behavior for a group association
            POST {id=N} /group/<new_parent>/children
-        '''
+        """
         # For convenience, display the INI file
         root_variation.print_ini()
 
@@ -512,10 +512,10 @@ class Test_Group(Base_Api_Test):
             assert parent_group.get_related('all_hosts').count == total_parent_all_hosts
 
     def test_reassociate_with_non_root_group(self, non_root_variation):
-        '''Verify expected behavior for moving a group from one non-root-group to another
+        """Verify expected behavior for moving a group from one non-root-group to another
            POST {id=M} /groups/<new_parent>/children
            POST {id=M, disassociate=True} /groups/<old_parent>/children
-        '''
+        """
         # For convenience, display the INI file
         non_root_variation.print_ini()
 
@@ -594,7 +594,7 @@ class Test_Group(Base_Api_Test):
             assert parent_group.get_related('all_hosts').count == total_parent_all_hosts - total_group_all_hosts
 
     def test_circular_dependency(self, inventory):
-        '''verify unable to add a circular dependency (top -> ... -> leaf -> top)'''
+        """verify unable to add a circular dependency (top -> ... -> leaf -> top)"""
 
         # Add parent_group
         payload = dict(name="root-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
@@ -614,7 +614,7 @@ class Test_Group(Base_Api_Test):
             grandchild_group.get_related('children').post(payload)
 
     def test_unique(self, inventory, another_inventory):
-        '''verify duplicate group names are allowed if in a different inventory'''
+        """verify duplicate group names are allowed if in a different inventory"""
 
         # Create inventory.parent_group
         payload = dict(name="root-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
@@ -634,7 +634,7 @@ class Test_Group(Base_Api_Test):
         new_parent.get_related('children').post(payload)
 
     def test_duplicate(self, inventory):
-        '''verify duplicate group names, in the same inventory, are not allowed'''
+        """verify duplicate group names, in the same inventory, are not allowed"""
 
         # Add parent_group
         payload = dict(name="root-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
@@ -655,7 +655,7 @@ class Test_Group(Base_Api_Test):
             parent_group.get_related('children').post(payload)
 
     def test_name_reuse(self, some_group):
-        '''verify one can re-use the name of a previously deleted group'''
+        """verify one can re-use the name of a previously deleted group"""
 
         groups_pg = some_group.get_related('inventory').get_related('groups')
 

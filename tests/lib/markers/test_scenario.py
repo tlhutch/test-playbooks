@@ -1,4 +1,4 @@
-'''
+"""
 Automatically xfail remaining tests if previous test failed.  Tests will
 continue to run if:
  * the result is skip
@@ -7,7 +7,7 @@ continue to run if:
 
 For more information, refer to
 http://stackoverflow.com/questions/12411431/pytest-how-to-skip-the-rest-of-tests-in-the-class-if-one-has-failed/12579625#12579625
-'''
+"""
 
 
 import py

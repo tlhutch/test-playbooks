@@ -15,13 +15,13 @@ log = logging.getLogger(__name__)
 
 @pytest.fixture(scope="function")
 def project_scm_type_choices(request, authtoken, api_projects_pg):
-    '''Return project scm_types from OPTIONS'''
+    """Return project scm_types from OPTIONS"""
     return dict(api_projects_pg.options().json['actions']['GET']['scm_type']['choices'])
 
 
 @pytest.fixture(scope="function")
 def project_status_choices(request, authtoken, api_projects_pg):
-    '''Return project statuses from OPTIONS'''
+    """Return project statuses from OPTIONS"""
     return dict(api_projects_pg.options().json['actions']['GET']['status']['choices'])
 
 
@@ -57,9 +57,9 @@ def project_update_with_status_completed(request, project_ansible_playbooks_git)
 
 @pytest.fixture(scope="function")
 def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_config, organization):
-    '''
+    """
     Create a manual project associated with ansible-playbooks.git
-    '''
+    """
 
     # Override the local_path
 

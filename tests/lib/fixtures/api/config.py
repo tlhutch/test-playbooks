@@ -15,7 +15,7 @@ def tower_config_dir():
 # TODO - move this to pytest-ansible
 @pytest.fixture(scope="function")
 def ansible_os_family(request, ansible_facts):
-    '''Return ansible_os_family from the ansible_facts of the system under test.'''
+    """Return ansible_os_family from the ansible_facts of the system under test."""
     if len(ansible_facts) > 1:
         log.warning("ansible_facts for %d systems found, but returning "
                     "only the first" % len(ansible_facts))
@@ -25,7 +25,7 @@ def ansible_os_family(request, ansible_facts):
 # TODO - move this to pytest-ansible
 @pytest.fixture(scope="function")
 def ansible_distribution_major_version(request, ansible_facts):
-    '''Return ansible_distribution_major_version from the ansible_facts of the system under test.'''
+    """Return ansible_distribution_major_version from the ansible_facts of the system under test."""
     if len(ansible_facts) > 1:
         log.warning("ansible_facts for %d systems found, but returning "
                     "only the first" % len(ansible_facts))
@@ -34,7 +34,7 @@ def ansible_distribution_major_version(request, ansible_facts):
 
 @pytest.fixture(scope="function")
 def restart_tower_on_teardown(request, ansible_runner, ansible_os_family):
-    '''Restarts Tower upon teardown.'''
+    """Restarts Tower upon teardown."""
     log.debug("calling fixture restart_tower")
 
     # FIXME: implement with Ubuntu systems

@@ -45,11 +45,11 @@ def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups
     # inventory_dict = {grp_name: dict(hosts=[], vars=[])}
 
     # Create an inventory script
-    sh_script = '''#!/bin/bash
+    sh_script = """#!/bin/bash
 cat <<EOF
 %s
 EOF
-''' % json.dumps(inventory_dict)
+""" % json.dumps(inventory_dict)
     (fd, fname) = tempfile.mkstemp(suffix='.sh')
     os.write(fd, sh_script)
     os.close(fd)
@@ -115,11 +115,11 @@ class Test_Host_Fork(Base_Api_Test):
 
     @pytest.mark.usefixtures('authtoken')
     def test_awx_job_launch(self, api_jobs_pg, job_template):
-        '''
+        """
         1) Launch the job_template
         2) Poll for status
         3) Assert results
-        '''
+        """
         # Create the job
         payload = dict(name=job_template.name,  # Add Date?
                        job_template=job_template.id,

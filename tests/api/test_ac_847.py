@@ -876,16 +876,16 @@ inventory_dict = {
 class Test_AC_847(Base_Api_Test):
     @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
     def test_import(self, ansible_runner, tmpdir, inventory):
-        '''Invoke an inventory import for a *large* dataset.  Verify the
+        """Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner
-        '''
+        """
 
         # Create an inventory script
-        sh_script = '''#!/bin/bash
+        sh_script = """#!/bin/bash
 cat <<EOF
 %s
 EOF
-''' % json.dumps(inventory_dict)
+""" % json.dumps(inventory_dict)
         p = tmpdir.mkdir("ansible").join("ec2.sh")
         fd = p.open('w+')
         fd.write(sh_script)

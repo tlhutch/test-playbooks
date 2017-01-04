@@ -12,7 +12,7 @@ from tests.api import Base_Api_Test
 
 @pytest.fixture(scope="function")
 def another_host_with_default_ipv4_in_variables(request, authtoken, api_hosts_pg, host_with_default_ipv4_in_variables):
-    '''Create a another host object matching host_with_default_ipv4_in_variables'''
+    """Create a another host object matching host_with_default_ipv4_in_variables"""
     payload = host_with_default_ipv4_in_variables.json
     payload.update(name="another_host_with_default_ipv4_in_variables - %s" % fauxfactory.gen_alphanumeric(),)
     obj = api_hosts_pg.post(payload)
@@ -26,7 +26,7 @@ def another_host_with_default_ipv4_in_variables(request, authtoken, api_hosts_pg
 
 @pytest.fixture(scope="function")
 def hosts_with_name_matching_local_ipv4_addresses_but_random_ssh_host(request, group, local_ipv4_addresses):
-    '''Create an inventory host matching the public ipv4 address of the system running pytest.'''
+    """Create an inventory host matching the public ipv4 address of the system running pytest."""
     for ipv4_addr in local_ipv4_addresses:
         payload = dict(name=ipv4_addr,
                        description="test host %s" % fauxfactory.gen_utf8(),
@@ -50,7 +50,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     def test_get_without_matching_hosts(self, job_template, host_config_key):
-        '''Assert a GET on the /callback resource returns an empty list of matching hosts'''
+        """Assert a GET on the /callback resource returns an empty list of matching hosts"""
         # enable callback
         job_template.patch(host_config_key=host_config_key)
         assert job_template.host_config_key == host_config_key
@@ -65,7 +65,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
     def test_get_with_matching_hosts(self, ansible_runner, job_template, host_config_key, host_with_default_ipv4_in_variables,
                                      ansible_default_ipv4, testsetup):
-        '''Assert a GET on the /callback resource returns a list of matching hosts'''
+        """Assert a GET on the /callback resource returns a list of matching hosts"""
         # enable callback
         job_template.patch(host_config_key=host_config_key)
         assert job_template.host_config_key == host_config_key
@@ -100,7 +100,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
             "Unexpected matching host displayed on callback_pg - %s." % matching_hosts[0]
 
     def test_launch_without_hosts(self, ansible_runner, job_template, host_config_key, ansible_default_ipv4):
-        '''Verify launch failure when no matching inventory host can be found'''
+        """Verify launch failure when no matching inventory host can be found"""
         # enable callback
         job_template.patch(host_config_key=host_config_key)
         assert job_template.host_config_key == host_config_key
@@ -122,7 +122,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
     def test_launch_without_matching_hosts(self, ansible_runner, job_template,
                                            host_config_key, ansible_default_ipv4,
                                            hosts_with_name_matching_local_ipv4_addresses_but_random_ssh_host):
-        '''Verify launch failure when a matching host.name is found, but ansible_ssh_host is different.'''
+        """Verify launch failure when a matching host.name is found, but ansible_ssh_host is different."""
         # enable callback
         job_template.patch(host_config_key=host_config_key)
         assert job_template.host_config_key == host_config_key
@@ -145,7 +145,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
                                           host_with_default_ipv4_in_variables,
                                           another_host_with_default_ipv4_in_variables, host_config_key,
                                           ansible_default_ipv4):
-        '''Verify launch failure when launching a job_template where multiple hosts match '''
+        """Verify launch failure when launching a job_template where multiple hosts match """
 
         # enable callback
         job_template.patch(host_config_key=host_config_key)
@@ -165,7 +165,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
             assert result['json']['msg'] == 'Multiple hosts matched the request!'
 
     def test_launch_with_incorrect_hostkey(self, ansible_runner, job_template, host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4):
-        '''Verify launch failure when providing incorrect host_config_key'''
+        """Verify launch failure when providing incorrect host_config_key"""
         # enable callback
         job_template.patch(host_config_key=host_config_key)
         assert job_template.host_config_key == host_config_key
@@ -187,7 +187,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
     def test_launch_without_credential(self, ansible_runner, job_template_no_credential,
                                        host_with_default_ipv4_in_variables,
                                        host_config_key, ansible_default_ipv4):
-        '''Verify launch failure when launching a job_template with no credentials'''
+        """Verify launch failure when launching a job_template with no credentials"""
         # enable callback
         job_template_no_credential.patch(host_config_key=host_config_key)
         assert job_template_no_credential.host_config_key == host_config_key
@@ -207,7 +207,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
             assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
     def test_launch_with_ask_credential(self, ansible_runner, job_template_ask, host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4):
-        '''Verify launch failure when launching a job_template with ASK credentials'''
+        """Verify launch failure when launching a job_template with ASK credentials"""
         # assert callback
         job_template_ask.patch(host_config_key=host_config_key)
         assert job_template_ask.host_config_key == host_config_key
@@ -230,7 +230,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         self, ansible_runner, job_template_variables_needed_to_start,
         host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4
     ):
-        '''Verify launch failure when launching a job_template that has required survey variables.'''
+        """Verify launch failure when launching a job_template that has required survey variables."""
         # assert callback
         job_template_variables_needed_to_start.patch(host_config_key=host_config_key)
         assert job_template_variables_needed_to_start.host_config_key == host_config_key
@@ -252,11 +252,11 @@ class Test_Job_Template_Callback(Base_Api_Test):
     def test_launch_with_limit(self, api_jobs_url, ansible_runner, job_template_with_random_limit,
                                host_with_default_ipv4_in_variables, host_config_key,
                                ansible_default_ipv4):
-        '''
+        """
         Assert that launching a callback job against a job_template with an
         existing 'limit' parameter successfully launches and that it is launched
         with a value for "limit" that matches our test host.
-        '''
+        """
         # validate host_config_key
         job_template_with_random_limit.patch(host_config_key=host_config_key)
         assert job_template_with_random_limit.host_config_key == host_config_key
@@ -292,7 +292,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3534")
     def test_launch(self, ansible_runner, job_template, host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4):
-        '''Assert that launching a callback job against a job_template successfully launches, and the job successfully runs on a single host.'''
+        """Assert that launching a callback job against a job_template successfully launches, and the job successfully runs on a single host."""
         # enable host_config_key
         job_template.patch(host_config_key=host_config_key)
         assert job_template.host_config_key == host_config_key
@@ -335,10 +335,10 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3534")
     def test_launch_multiple(self, api_jobs_url, ansible_runner, job_template, host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4):
-        '''
+        """
         Verify that issuing a callback, while a callback job from the same host
         is already running, fails.
-        '''
+        """
 
         # enable host_config_key, use playbook with delay
         # (so that first job is running while second/third jobs are requested)
@@ -398,7 +398,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         self, api_jobs_url, ansible_runner, job_template, host_config_key,
         cloud_group, ansible_default_ipv4, tower_version_cmp
     ):
-        '''Assert that a callback job against a job_template also initiates an inventory_update (when configured).'''
+        """Assert that a callback job against a job_template also initiates an inventory_update (when configured)."""
 
         if tower_version_cmp('2.0.0') < 0:
             pytest.xfail("Only supported on tower-2.0.0 (or newer)")
@@ -468,7 +468,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
         assert inv_update_pg.is_successful, "An inventory_update was launched, but did not succeed - %s" % inv_update_pg
 
     def test_launch_without_inventory_update(self, ansible_runner, job_template, host_config_key, cloud_group, ansible_default_ipv4):
-        '''Assert that a callback job against a job_template does not initiate an inventory_update'''
+        """Assert that a callback job against a job_template does not initiate an inventory_update"""
 
         # Change the job_template inventory to match cloud_group
         # Enable host_config_key

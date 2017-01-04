@@ -15,7 +15,7 @@ from towerkit.api.pages.authtoken import AuthToken_Page
 
 
 def navigate(api, url, field):
-    '''
+    """
     Return a json attribute from the given url.  While one can simply
     concatenate strings to form a URL, this method is preferred to ensure the
     API is capable of self-referencing.
@@ -23,7 +23,7 @@ def navigate(api, url, field):
     Examples:
      * navigate(api, '/api/', 'current_version') returns '/api/v1'
      * navigate(api, '/api/v1/, 'config') returns '/api/v1/config'
-    '''
+    """
     if not url.endswith('/'):
         url += '/'
     data = api.get(url).json()
@@ -31,26 +31,26 @@ def navigate(api, url, field):
 
 
 def api_default_page_size(testsetup):
-    '''
+    """
     The tower default pagination size
-    '''
+    """
     return 25
 
 
 @pytest.fixture(scope="module")
 def api(testsetup):
-    '''
+    """
     Convenience fixture that returns api object
-    '''
+    """
     return testsetup.api
 
 
 @pytest.fixture(scope="module")
 def api_v1_url(request, api):
-    '''
+    """
     Navigate the API and return a link to the base api for the requested version.
     For example, if --api-version=v1, returns string '/api/v1/'
-    '''
+    """
     api_version = request.config.getvalue('api_version')
     available_versions = navigate(api, '/api', 'available_versions')
 
@@ -93,10 +93,10 @@ def api_authtoken_pg(testsetup, api_authtoken_url):
 
 @pytest.fixture(scope="module")
 def authtoken(api, testsetup, api_authtoken_pg):
-    '''
+    """
     Logs in to the application with default credentials and returns the
     home page
-    '''
+    """
     payload = dict(username=testsetup.credentials['default']['username'],
                    password=testsetup.credentials['default']['password'])
     authtoken_pg = api_authtoken_pg.post(payload)
@@ -157,7 +157,7 @@ def tower_version_cmp(request, tower_version):
 
 @pytest.fixture(scope='module')
 def ansible_version(api_config_pg):
-    '''Returns the ansible version of the system under test.'''
+    """Returns the ansible version of the system under test."""
     return api_config_pg.get().ansible_version
 
 

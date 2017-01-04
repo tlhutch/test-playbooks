@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 @pytest.fixture(scope="function")
 def api_inventory_sources_options_json(request, authtoken, api_inventory_sources_pg):
-    '''Return inventory_sources OPTIONS json.'''
+    """Return inventory_sources OPTIONS json."""
     return api_inventory_sources_pg.options().json
 
 
@@ -23,43 +23,43 @@ def api_inventory_sources_options_json(request, authtoken, api_inventory_sources
 #
 @pytest.fixture(scope="function")
 def azure_region_choices(request, api_inventory_sources_options_json):
-    '''Return field 'azure_ret_choices' from the inventory_sources OPTIONS json.'''
+    """Return field 'azure_ret_choices' from the inventory_sources OPTIONS json."""
     return dict(api_inventory_sources_options_json['actions']['GET']['source_regions']['azure_region_choices'])
 
 
 @pytest.fixture(scope="function")
 def gce_region_choices(request, api_inventory_sources_options_json):
-    '''Return field 'gce_ret_choices' from the inventory_sources OPTIONS json.'''
+    """Return field 'gce_ret_choices' from the inventory_sources OPTIONS json."""
     return dict(api_inventory_sources_options_json['actions']['GET']['source_regions']['gce_region_choices'])
 
 
 @pytest.fixture(scope="function")
 def ec2_region_choices(request, api_inventory_sources_options_json):
-    '''Return field 'ec2_ret_choices' from the inventory_sources OPTIONS json.'''
+    """Return field 'ec2_ret_choices' from the inventory_sources OPTIONS json."""
     return dict(api_inventory_sources_options_json['actions']['GET']['source_regions']['ec2_region_choices'])
 
 
 @pytest.fixture(scope="function")
 def rax_region_choices(request, api_inventory_sources_options_json):
-    '''Return field 'rax_ret_choices' from the inventory_sources OPTIONS json.'''
+    """Return field 'rax_ret_choices' from the inventory_sources OPTIONS json."""
     return dict(api_inventory_sources_options_json['actions']['GET']['source_regions']['rax_region_choices'])
 
 
 @pytest.fixture(scope="function")
 def ec2_group_by_choices(request, api_inventory_sources_options_json):
-    '''Return field 'ec2_group_by_choices' from the inventory_sources OPTIONS json.'''
+    """Return field 'ec2_group_by_choices' from the inventory_sources OPTIONS json."""
     return dict(api_inventory_sources_options_json['actions']['GET']['group_by']['ec2_group_by_choices'])
 
 
 @pytest.fixture(scope="function")
 def host_config_key():
-    '''Returns a uuid4 string for use as a host_config_key.'''
+    """Returns a uuid4 string for use as a host_config_key."""
     return str(uuid.uuid4())
 
 
 @pytest.fixture(scope="function")
 def ansible_default_ipv4(request, ansible_facts):
-    '''Return the ansible_default_ipv4 from ansible_facts of the system under test.'''
+    """Return the ansible_default_ipv4 from ansible_facts of the system under test."""
     if len(ansible_facts) > 1:
         log.warning("ansible_facts for %d systems found, but returning "
                     "only the first" % len(ansible_facts))
@@ -88,9 +88,9 @@ def another_inventory(request, authtoken, api_inventories_pg, organization):
 
 @pytest.fixture(scope="function")
 def custom_inventory_update_with_status_completed(custom_inventory_source):
-    '''
+    """
     Launches an inventory sync.
-    '''
+    """
     # navigate to launch_pg and launch inventory update
     update_pg = custom_inventory_source.get_related('update')
     result = update_pg.post()
@@ -107,7 +107,7 @@ def custom_inventory_update_with_status_completed(custom_inventory_source):
 
 @pytest.fixture(scope="function")
 def host_with_default_ipv4_in_variables(request, authtoken, api_hosts_pg, group, ansible_default_ipv4):
-    '''Create a random inventory host where ansible_ssh_host == ansible_default_ipv4.'''
+    """Create a random inventory host where ansible_ssh_host == ansible_default_ipv4."""
     payload = dict(name="random_host_alias-%s" % fauxfactory.gen_alphanumeric(),
                    description="host-%s" % fauxfactory.gen_utf8(),
                    variables=json.dumps(dict(ansible_ssh_host=ansible_default_ipv4, ansible_connection="local")),
@@ -122,26 +122,26 @@ def host_with_default_ipv4_in_variables(request, authtoken, api_hosts_pg, group,
 
 @pytest.fixture(scope="function")
 def my_public_ipv4(request):
-    '''
+    """
     Return the IP address of the system running pytest.
 
     NOTE: this doesn't work properly when the system running pytest and the
     target system are both on a private network.
-    '''
+    """
     return json.load(urllib2.urlopen('http://httpbin.org/ip'))['origin']
 
 
 @pytest.fixture(scope="function")
 def local_ipv4_addresses(request):
-    '''
+    """
     Return the list of ip addresses for the system running tests.
-    '''
+    """
     return socket.gethostbyname_ex(socket.gethostname())[2]
 
 
 @pytest.fixture(scope="function")
 def hosts_with_name_matching_local_ipv4_addresses(request, authtoken, group, local_ipv4_addresses):
-    '''Create an inventory host matching the public ipv4 address of the system running pytest.'''
+    """Create an inventory host matching the public ipv4 address of the system running pytest."""
     for ipv4_addr in local_ipv4_addresses:
         payload = dict(name=ipv4_addr,
                        description="test host %s" % fauxfactory.gen_utf8(),
@@ -235,12 +235,12 @@ def script_source(request):
 
     # create script to generate inventory
     group_name = re.sub(r"[\']", "", u"group-%s" % fauxfactory.gen_utf8())
-    script = u'''#!/usr/bin/env python
+    script = u"""#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
 inventory = dict()
 inventory['{0}'] = list()
-'''.format(group_name)
+""".format(group_name)
     for i in range(5):
         host_name = re.sub(r"[\':]", "", u"host-%s" % fauxfactory.gen_utf8())
         script += u"inventory['{0}'].append('{1}')\n".format(group_name, host_name)

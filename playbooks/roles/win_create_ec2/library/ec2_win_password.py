@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: ec2_win_password
 short_description: gets the default administrator password for ec2 windows instances
@@ -29,9 +29,9 @@ options:
     aliases: [ 'aws_region', 'ec2_region' ]
 
 extends_documentation_fragment: aws
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 # Example of getting a password
 tasks:
 - name: get the Administrator password
@@ -40,7 +40,7 @@ tasks:
     instance_id: i-XXXXXX
     region: us-east-1
     key_file: "~/aws-creds/my_test_key.pem"
-'''
+"""
 
 import sys
 from base64 import b64decode

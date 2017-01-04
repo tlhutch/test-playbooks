@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 # TODO: Establish alternative w/ celery?
 @pytest.fixture(scope="function")
 def pause_awx_task_system(request, ansible_runner):
-    '''Stops awx-task-system and restarts it upon teardown. Aids our cancel tests.'''
+    """Stops awx-task-system and restarts it upon teardown. Aids our cancel tests."""
     def teardown():
         log.debug("calling supervisorctl teardown pause_awx_task_system")
         contacted = ansible_runner.supervisorctl(name='awx-task-system', state='started')

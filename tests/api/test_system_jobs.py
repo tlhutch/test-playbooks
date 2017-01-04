@@ -16,11 +16,11 @@ def convert_to_camelcase(s):
                                           'job_with_status_completed',
                                           'ad_hoc_with_status_completed'])
 def unified_job_with_status_completed(request):
-    '''
+    """
     Launches jobs of all types sequentially.
 
     Returns the job run.
-    '''
+    """
     return request.getfuncargvalue(request.param)
 
 
@@ -32,11 +32,11 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
                                         project_update_with_status_completed,
                                         job_with_status_completed,
                                         ad_hoc_with_status_completed):
-    '''
+    """
     Launches all four system jobs, an inventory update, an SCM update, a job template, and an ad hoc command.
 
     Returns a list of the jobs run.
-    '''
+    """
     return [cleanup_jobs_with_status_completed,
             cleanup_activitystream_with_status_completed,
             cleanup_facts_with_status_completed,
@@ -51,17 +51,17 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
 @pytest.mark.destructive
 @pytest.mark.first
 class Test_System_Jobs(Base_Api_Test):
-    '''
+    """
     Verify actions with system_job_templates
-    '''
+    """
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_method_not_allowed(self, system_job):
-        '''
+        """
         Verify that PUT, POST and PATCH are unsupported request methods
-        '''
+        """
         with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             system_job.post()
 
@@ -73,10 +73,10 @@ class Test_System_Jobs(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     def test_cleanup_jobs(self, cleanup_jobs_template, unified_job_with_status_completed, api_unified_jobs_pg):
-        '''
+        """
         Run jobs of different types sequentially and check that cleanup jobs deletes all of our jobs that are
         not project/inventory updates.
-        '''
+        """
         # launch cleanup job
         payload = dict(extra_vars=dict(days=0))
         system_job_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
@@ -97,11 +97,11 @@ class Test_System_Jobs(Base_Api_Test):
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     def test_cleanup_jobs_on_multiple_jobs(self, cleanup_jobs_template, multiple_jobs_with_status_completed, api_jobs_pg, api_system_jobs_pg,
                                            api_unified_jobs_pg):
-        '''
+        """
         Run jobs of different types and check that cleanup_jobs deletes expected jobs.
         Our cleanup_job shouldn't delete the cleanup job and any inventory/project
         updates.
-        '''
+        """
         # launch cleanup job and assert job successful
         payload = dict(extra_vars=dict(days=0))
         system_job_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
@@ -127,9 +127,9 @@ class Test_System_Jobs(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     def test_cleanup_activitystream(self, cleanup_activitystream_template, multiple_jobs_with_status_completed, api_activity_stream_pg):
-        '''
+        """
         Launch jobs of different types, run cleanup_activitystreams, and verify that the activity_stream clears.
-        '''
+        """
         # launch job and assert job successful
         payload = dict(extra_vars=dict(days=0))
         system_job_pg = cleanup_activitystream_template.launch(payload).wait_until_completed(timeout=60 * 5)
@@ -142,9 +142,9 @@ class Test_System_Jobs(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4157')
     def test_cleanup_facts(self, files_scan_job_with_status_completed, cleanup_facts_template):
-        '''
+        """
         Run a scan job, launch a cleanup_facts job, and assert that facts get deleted.
-        '''
+        """
         # assert scan job successful
         assert files_scan_job_with_status_completed.is_successful, \
             "Job unsuccessful - %s." % files_scan_job_with_status_completed
@@ -167,7 +167,7 @@ class Test_System_Jobs(Base_Api_Test):
                                                       ('cleanup_activitystream', '{"days":"1000"}'),
                                                       ('cleanup_facts', '{"older_than":"1000d","granularity":"1000w"}')])
     def test_cancel_system_job(self, v1, job_type, extra_vars):
-        '''Test that pending system_jobs may be canceled.'''
+        """Test that pending system_jobs may be canceled."""
         system_job_template = v1.system_job_templates.get(job_type=job_type).results.pop()
 
         # create a queue of jobs to ensure tested job is pending

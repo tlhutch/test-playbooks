@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 def associate_notification_template(notification_template_pg, resource_pg, job_result="any"):
-    '''Associate notification template to tower resource'''
+    """Associate notification template to tower resource"""
     nt_id = notification_template_pg.id
     resource_nt_pg = resource_pg.get_related('notification_templates_' + job_result)
     nt_count = resource_nt_pg.get().count
@@ -36,11 +36,11 @@ def associate_notification_template(notification_template_pg, resource_pg, job_r
 
 
 def expected_test_notification(tower_url, notification_template_pg, tower_message=False):
-    '''
+    """
     Returns test notification message expected for given notification template.
     By default, returns message as it would be shown in notification service
     (if tower_message is True, returns message shown on notifications endpoint).
-    '''
+    """
     nt_id = notification_template_pg.id
     nt_type = notification_template_pg.notification_type
 
@@ -58,12 +58,12 @@ def expected_test_notification(tower_url, notification_template_pg, tower_messag
 
 
 def expected_job_notification(tower_url, notification_template_pg, job_pg, job_result, tower_message=False):
-    '''
+    """
     Returns notification message expected for given job and state.
     Note that job can be regular job template or system job template.
     By default, returns message as it would be shown in notification service
     (if tower_message is True, returns message shown on notifications endpoint).
-    '''
+    """
     nt_type = notification_template_pg.notification_type
     job_description = ("System " if job_pg.type == 'system_job' else "") + "Job"
 
@@ -85,16 +85,16 @@ def expected_job_notification(tower_url, notification_template_pg, job_pg, job_r
 
 
 def _expected_webhook_job_notification(tower_url, notification_template_pg, job_pg, job_result):
-    '''
+    """
     Returns job notification message for webhooks.
     Note that job can be regular job template or system job template.
-    '''
+    """
     # Get job_host_summaries_pg (used in build_host_results())
     if job_pg.type == 'job':
         job_host_summaries_pg = job_pg.get_related('job_host_summaries')
 
     def get_friendly_name():
-        '''Returns friendly name based on type'''
+        """Returns friendly name based on type"""
         if job_pg.type == 'job':
             return 'Job'
         elif job_pg.type == 'system_job':
@@ -103,7 +103,7 @@ def _expected_webhook_job_notification(tower_url, notification_template_pg, job_
         raise Exception(msg)
 
     def build_host_results():
-        '''Returns mapping of host to host results'''
+        """Returns mapping of host to host results"""
         host_results = dict()
         host_stats = ['skipped', 'ok', 'changed', 'dark', 'failed', 'processed', 'failures']
 
@@ -140,13 +140,13 @@ def _expected_webhook_job_notification(tower_url, notification_template_pg, job_
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_Notifications(Base_Api_Test):
-    '''Notification tests'''
+    """Notification tests"""
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     @pytest.mark.destructive
     def test_test_notification(self, request, testsetup, notification_template):
-        '''Generate test notifications for each notification type'''
+        """Generate test notifications for each notification type"""
         # Trigger test notification
         notification_pg = notification_template.test().wait_until_completed()
         assert notification_pg.is_successful, "Notification was unsuccessful - %s" %\
@@ -164,7 +164,7 @@ class Test_Notifications(Base_Api_Test):
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
     def test_system_job_notifications(self, request, system_job_template, notification_template, job_result,
                                       testsetup):
-        '''Test notification templates attached to system job templates'''
+        """Test notification templates attached to system job templates"""
         existing_notifications = system_job_template.get_related('notification_templates_any').count + \
             system_job_template.get_related('notification_templates_success').count
         notifications_expected = existing_notifications + (1 if job_result in ('any', 'success') else 0)
@@ -208,7 +208,7 @@ class Test_Notifications(Base_Api_Test):
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
     @pytest.mark.parametrize("resource", ['organization', 'project', 'job_template'])
     def test_notification_inheritance(self, request, resource, job_template, notification_template, job_result, testsetup):
-        '''Test inheritance of notifications when notification template attached to various tower resources'''
+        """Test inheritance of notifications when notification template attached to various tower resources"""
         # Get reference to resource
         if resource == "organization":
             resource = job_template.get_related('project').get_related('organization')

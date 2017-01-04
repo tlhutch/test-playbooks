@@ -113,7 +113,7 @@ class JUnitFile(object):
         # return self.current_play.test_cases[-1]
 
     def read(self, filename=None):
-        '''Read data from existing junit XML file'''
+        """Read data from existing junit XML file"""
         if not os.path.isfile(filename or self.filename):
             return
 
@@ -148,7 +148,7 @@ class JUnitFile(object):
                     self.current_host_event.add_error_info(message=error.attrib['message'])
 
     def write(self, filename=None):
-        '''Write junit XML file'''
+        """Write junit XML file"""
         with open(filename or self.filename, 'wb') as fd:
             self.plays[0].to_file(fd, self.plays, encoding='UTF-8', prettyprint=True)
 
@@ -300,7 +300,7 @@ class CallbackModule(object):
         self._log_event('playbook_on_play_start', name=name, pattern=pattern)
 
     def playbook_on_stats(self, stats):
-        '''Write Junit XML file describing playbook'''
+        """Write Junit XML file describing playbook"""
         # Debugging
         d = {}
         for attr in ('changed', 'dark', 'failures', 'ok', 'processed', 'skipped'):

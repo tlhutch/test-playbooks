@@ -115,7 +115,7 @@ def disabled_inventory_schedule(request, aws_inventory_source, disabled_rrule_mi
 
 @pytest.fixture(scope="function")
 def multiple_management_job_schedules(request, system_job_template, rrule_minutely, tower_version_cmp):
-    '''Create two schedules per each system job template.'''
+    """Create two schedules per each system job template."""
     if tower_version_cmp('2.4.0') < 0:
         pytest.xfail("Only supported on tower-2.4.0 and later.")
 
@@ -148,7 +148,7 @@ def multiple_management_job_schedules(request, system_job_template, rrule_minute
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken')
 class Test_Project_Schedules(Base_Api_Test):
-    '''
+    """
     Test basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
 
     Test schedule rrule support ...
@@ -164,15 +164,15 @@ class Test_Project_Schedules(Base_Api_Test):
     Create multiple schedules (rrules), verify ...
       1. project.next_update is expected
       2. project is updated at desired time
-    '''
+    """
 
     def test_empty(self, project):
-        '''assert a fresh project has no schedules'''
+        """assert a fresh project has no schedules"""
         schedules_pg = project.get_related('schedules')
         assert schedules_pg.count == 0
 
     def test_post_invalid(self, project, unsupported_rrules):
-        '''assert unsupported rrules are rejected'''
+        """assert unsupported rrules are rejected"""
         schedules_pg = project.get_related('schedules')
 
         for unsupported_rrule in unsupported_rrules:
@@ -184,7 +184,7 @@ class Test_Project_Schedules(Base_Api_Test):
                 schedules_pg.post(payload)
 
     def test_post_duplicate(self, project, disabled_project_schedule):
-        '''assert duplicate schedules are rejected'''
+        """assert duplicate schedules are rejected"""
         schedules_pg = project.get_related('schedules')
 
         payload = dict(name=disabled_project_schedule.name,
@@ -193,7 +193,7 @@ class Test_Project_Schedules(Base_Api_Test):
             schedules_pg.post(payload)
 
     def test_post_disabled(self, project, disabled_project_schedule):
-        '''assert can POST disabled schedules'''
+        """assert can POST disabled schedules"""
         assert not disabled_project_schedule.enabled
         schedules_pg = project.get_related('schedules')
 
@@ -201,7 +201,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert disabled_project_schedule.id in [sched.id for sched in schedules_pg.results]
 
     def test_post_past(self, project):
-        '''assert creating a schedule with only past occurances'''
+        """assert creating a schedule with only past occurances"""
         schedules_pg = project.get_related('schedules')
 
         # commemorate first 10 years of pearl_harbor
@@ -215,7 +215,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.next_run is None
 
     def test_post_future(self, project):
-        '''assert creating a schedule with only future occurances'''
+        """assert creating a schedule with only future occurances"""
         schedules_pg = project.get_related('schedules')
 
         # celebrate Odyssey three date
@@ -229,7 +229,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.next_run == rrule[0].isoformat() + 'Z'
 
     def test_post_overlap(self, project):
-        '''assert creating a schedule with past and future occurances'''
+        """assert creating a schedule with past and future occurances"""
         schedules_pg = project.get_related('schedules')
 
         last_week = datetime.utcnow() + relativedelta(weeks=-1, minutes=+1)
@@ -242,7 +242,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
     def test_put(self, project, disabled_project_schedule):
-        '''assert successful schedule PUT'''
+        """assert successful schedule PUT"""
         schedules_pg = project.get_related('schedules')
         assert schedules_pg.count > 0
 
@@ -258,7 +258,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.description == new_desc
 
     def test_patch(self, project, disabled_project_schedule):
-        '''assert successful schedule PATCH'''
+        """assert successful schedule PATCH"""
         schedules_pg = project.get_related('schedules')
         assert schedules_pg.count > 0
 
@@ -271,7 +271,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.description == new_desc
 
     def test_readonly_fields(self, api_schedules_pg, project):
-        '''assert read-only fields are not writable'''
+        """assert read-only fields are not writable"""
         schedules_pg = project.get_related('schedules')
 
         # Create a schedule
@@ -296,7 +296,7 @@ class Test_Project_Schedules(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_update_with_credential_prompt(self, project_with_credential_prompt):
-        '''assert projects with credential prompts launch, but fail'''
+        """assert projects with credential prompts launch, but fail"""
         schedules_pg = project_with_credential_prompt.get_related('schedules')
 
         # Create a schedule
@@ -327,7 +327,7 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.next_run is None
 
     def test_delete(self, project, rrule_minutely):
-        '''assert successful schedule DELETE'''
+        """assert successful schedule DELETE"""
         schedules_pg = project.get_related('schedules')
 
         # Create a schedule
@@ -356,7 +356,7 @@ class Test_Project_Schedules(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_update_count1(self, project, rrule_frequency):
-        '''assert a schedule launches at the proper interval'''
+        """assert a schedule launches at the proper interval"""
         schedules_pg = project.get_related('schedules')
 
         # Create schedule
@@ -382,7 +382,7 @@ class Test_Project_Schedules(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_update_minutely_count3(self, project):
-        '''assert a minutely schedule launches properly'''
+        """assert a minutely schedule launches properly"""
         schedules_pg = project.get_related('schedules')
 
         # Create schedule
@@ -410,7 +410,7 @@ class Test_Project_Schedules(Base_Api_Test):
 
     # SEE JIRA(AC-1106)
     def test_project_delete(self, api_projects_pg, api_schedules_pg, organization):
-        '''assert that schedules are deleted when a project is deleted'''
+        """assert that schedules are deleted when a project is deleted"""
         # create a project
         payload = dict(name="project-%s" % fauxfactory.gen_utf8(),
                        organization=organization.id,
@@ -449,7 +449,7 @@ class Test_Project_Schedules(Base_Api_Test):
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Inventory_Schedules(Base_Api_Test):
-    '''
+    """
     Test basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
 
     Test schedule rrule support ...
@@ -468,15 +468,15 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
     FIXME
       - Verify interaction between schedule and cache_timeout
-    '''
+    """
 
     def test_empty(self, inventory_source):
-        '''assert a fresh inventory_source has no schedules'''
+        """assert a fresh inventory_source has no schedules"""
         schedules_pg = inventory_source.get_related('schedules')
         assert schedules_pg.count == 0
 
     def test_post_nocloud(self, inventory_source):
-        '''assert unable to schedule against an non-cloud inventory'''
+        """assert unable to schedule against an non-cloud inventory"""
         schedules_pg = inventory_source.get_related('schedules')
 
         rrule = RRule(dateutil.rrule.DAILY, dtstart=datetime.utcnow(), count=10, interval=5)
@@ -488,7 +488,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
             schedules_pg.post(payload)
 
     def test_post_invalid(self, aws_inventory_source, unsupported_rrules):
-        '''assert unsupported rrules are rejected'''
+        """assert unsupported rrules are rejected"""
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         for unsupported_rrule in unsupported_rrules:
@@ -500,7 +500,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
                 schedules_pg.post(payload)
 
     def test_post_duplicate(self, aws_inventory_source, disabled_inventory_schedule):
-        '''assert duplicate schedules are rejected'''
+        """assert duplicate schedules are rejected"""
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         payload = dict(name=disabled_inventory_schedule.name,
@@ -509,7 +509,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
             schedules_pg.post(payload)
 
     def test_post_disabled(self, aws_inventory_source, disabled_inventory_schedule):
-        '''assert can POST disabled schedules'''
+        """assert can POST disabled schedules"""
         assert not disabled_inventory_schedule.enabled
         schedules_pg = aws_inventory_source.get_related('schedules')
 
@@ -517,7 +517,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert disabled_inventory_schedule.id in [sched.id for sched in schedules_pg.results]
 
     def test_post_cloud(self, cloud_group):
-        '''Verify successful schedule creation for all supported cloud types inventory_source'''
+        """Verify successful schedule creation for all supported cloud types inventory_source"""
         schedules_pg = cloud_group.get_related('inventory_source').get_related('schedules')
 
         # commemorate first 10 years of pearl_harbor
@@ -531,7 +531,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.next_run is None
 
     def test_post_past(self, aws_inventory_source):
-        '''assert creating a schedule with only past occurances'''
+        """assert creating a schedule with only past occurances"""
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         # commemorate first 10 years of pearl_harbor
@@ -545,7 +545,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.next_run is None
 
     def test_post_future(self, aws_inventory_source):
-        '''assert creating a schedule with only future occurances'''
+        """assert creating a schedule with only future occurances"""
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         # celebrate Odyssey three date
@@ -559,7 +559,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.next_run == rrule[0].isoformat() + 'Z'
 
     def test_post_overlap(self, aws_inventory_source):
-        '''assert creating a schedule with past and future occurances'''
+        """assert creating a schedule with past and future occurances"""
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         last_week = datetime.utcnow() + relativedelta(weeks=-1, minutes=+1)
@@ -572,7 +572,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
     def test_put(self, aws_inventory_source, disabled_inventory_schedule):
-        '''assert successful schedule PUT'''
+        """assert successful schedule PUT"""
         schedules_pg = aws_inventory_source.get_related('schedules')
         assert schedules_pg.count > 0
 
@@ -588,7 +588,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.description == new_desc
 
     def test_patch(self, aws_inventory_source, disabled_inventory_schedule):
-        '''assert successful schedule PATCH'''
+        """assert successful schedule PATCH"""
         schedules_pg = aws_inventory_source.get_related('schedules')
         assert schedules_pg.count > 0
 
@@ -601,7 +601,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.description == new_desc
 
     def test_readonly_fields(self, api_schedules_pg, aws_inventory_source):
-        '''assert read-only fields are not writable'''
+        """assert read-only fields are not writable"""
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         # Create a schedule
@@ -625,7 +625,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.next_run == ro_schedule.next_run
 
     def test_delete(self, aws_inventory_source, rrule_minutely):
-        '''assert successful schedule DELETE'''
+        """assert successful schedule DELETE"""
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         # Create a schedule
@@ -654,7 +654,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_update_count1(self, aws_inventory_source, rrule_frequency):
-        '''assert a schedule launches at the proper interval'''
+        """assert a schedule launches at the proper interval"""
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         # Create schedule
@@ -680,7 +680,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_update_minutely_count3(self, aws_inventory_source):
-        '''assert a minutely schedule launches properly'''
+        """assert a minutely schedule launches properly"""
         schedules_pg = aws_inventory_source.get_related('schedules')
 
         # Create schedule
@@ -708,7 +708,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
     # SEE JIRA(AC-1106)
     def test_inventory_group_delete(self, api_schedules_pg, api_groups_pg, inventory, aws_credential):
-        '''assert that schedules are deleted when a inventory group is deleted'''
+        """assert that schedules are deleted when a inventory group is deleted"""
 
         # create group/inventory_source
         payload = dict(name="aws-group-%s" % fauxfactory.gen_alphanumeric(),
@@ -755,7 +755,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 class Test_Job_Template_Schedules(Base_Api_Test):
-    '''
+    """
     TODO - Validation of job_template schedules
 
     This class tests the following:
@@ -763,10 +763,10 @@ class Test_Job_Template_Schedules(Base_Api_Test):
     * Verify RBAC for above operations
     * Verify related fields map correctly (schedule->job_template and job_templates->schedules)
     * Verify extra_vars handling
-    '''
+    """
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_schedule_with_no_credential(self, job_template_no_credential):
-        '''Verify that a job_template with no credential launches jobs that fail.'''
+        """Verify that a job_template with no credential launches jobs that fail."""
         schedules_pg = job_template_no_credential.get_related('schedules')
 
         # Create a schedule
@@ -809,14 +809,14 @@ class Test_Job_Template_Schedules(Base_Api_Test):
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken')
 class Test_System_Job_Template_Schedules(Base_Api_Test):
-    '''Tests system job schedules.'''
+    """Tests system job schedules."""
     @pytest.mark.parametrize("name, count, system_job_template_id, kwargs", [
         ("Cleanup Job Schedule", 1, 1, dict(days='120')),
         ("Cleanup Activity Schedule", 1, 2, dict(days='355')),
         ("Cleanup Fact Schedule", 1, 3, dict(older_than='120d', granularity='1w')),
     ], ids=['Cleanup Job Schedule', 'Cleanup Activity Schedule', 'Cleanup Fact Schedule'])
     def test_prepopulated_schedules(self, api_schedules_pg, name, count, system_job_template_id, kwargs):
-        '''Tests default system jobs'''
+        """Tests default system jobs"""
         schedules_pg = api_schedules_pg.get()
 
         # find prepopulated system jobs
@@ -832,7 +832,7 @@ class Test_System_Job_Template_Schedules(Base_Api_Test):
             assert default_schedule_pg.enabled, "System job schedule not enabled by default."
 
     def test_multiple_schedules(self, multiple_management_job_schedules):
-        '''Tests that multiple schedules may be created for each system_job_template.'''
+        """Tests that multiple schedules may be created for each system_job_template."""
         # assert correct number of schedules
         assert multiple_management_job_schedules.count >= 2, \
             "Unexpected number of system_job_template schedules found after creating an additional two schedules."

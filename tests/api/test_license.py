@@ -1,4 +1,4 @@
-'''
+"""
 # Test No License
 [X] Test that config.license_info is empty before license is added
 [X] Test that you cannot add hosts without a license
@@ -93,7 +93,7 @@
 # Test Enterprise Expired
 [X] Test metadata
 [X] Can launch system jobs
-'''
+"""
 
 import json
 import logging
@@ -114,7 +114,7 @@ REBRANDING_FLAGS = ["CUSTOM_LOGIN_INFO", "CUSTOM_LOGO"]
 
 @pytest.fixture(scope='class')
 def license_instance_count(request):
-    '''Number of host instances permitted by the license'''
+    """Number of host instances permitted by the license"""
     return 10
 
 
@@ -316,7 +316,7 @@ def inventory_no_free_instances(request, authtoken, api_config_pg, api_inventori
 
 
 def assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group):
-    '''Verify hosts can be added up to the provided 'license_instance_count' variable'''
+    """Verify hosts can be added up to the provided 'license_instance_count' variable"""
 
     # Get API resource /groups/N/hosts
     group_hosts_pg = group.get_related('hosts')
@@ -360,19 +360,19 @@ def assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, 
 @pytest.mark.api
 @pytest.mark.skip_selenium
 class Test_No_License(Base_Api_Test):
-    '''
+    """
     Verify /config behaves as expected when no license is installed
-    '''
+    """
     pytestmark = pytest.mark.usefixtures('authtoken', 'no_license')
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_empty_license_info(self, api_config_pg):
-        '''Verify the license_info field is empty'''
+        """Verify the license_info field is empty"""
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=4)
 
     def test_cannot_add_host(self, api_hosts_pg, inventory, group):
-        '''Verify that no hosts can be added'''
+        """Verify that no hosts can be added"""
         payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
                        description="host-%s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
@@ -384,28 +384,28 @@ class Test_No_License(Base_Api_Test):
             api_hosts_pg.post(payload)
 
     def test_can_launch_project_update(self, project_ansible_playbooks_git_nowait):
-        '''Verify that project_updates can be launched'''
+        """Verify that project_updates can be launched"""
         job_pg = project_ansible_playbooks_git_nowait.update().wait_until_completed()
         assert job_pg.is_successful, "project_update was unsuccessful - %s" % job_pg
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3954', raises=AssertionError)
     def test_can_launch_inventory_update_but_it_should_fail(self, custom_inventory_source):
-        '''Verify that inventory_updates can be launched, but they fail because
-        no license is installed.'''
+        """Verify that inventory_updates can be launched, but they fail because
+        no license is installed."""
         job_pg = custom_inventory_source.update().wait_until_completed()
         assert job_pg.status == 'failed', "inventory_update was unexpectedly successful - %s" % job_pg
         assert 'CommandError: No Tower license found!' in job_pg.result_stdout
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3481")
     def test_cannot_launch_job(self, install_basic_license, api_config_pg, job_template):
-        '''Verify that job_templates cannot be launched'''
+        """Verify that job_templates cannot be launched"""
         api_config_pg.delete()
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
             job_template.launch_job()
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_post_invalid_license(self, api_config_pg, invalid_license_json):
-        '''Verify that various bogus license formats fail to successfully install'''
+        """Verify that various bogus license formats fail to successfully install"""
 
         # Assert expected error when issuing a POST with an invalid license
         with pytest.raises(towerkit.exceptions.LicenseInvalid):
@@ -416,20 +416,20 @@ class Test_No_License(Base_Api_Test):
         assert conf.license_info == {}, "No license was expected, found %s" % conf.license_info
 
     def test_post_legacy_license_without_eula_accepted(self, api_config_pg, missing_eula_legacy_license_json):
-        '''Verify failure while POSTing a license with no `eula_accepted` attribute.'''
+        """Verify failure while POSTing a license with no `eula_accepted` attribute."""
 
         with pytest.raises(towerkit.exceptions.LicenseInvalid):
             api_config_pg.post(missing_eula_legacy_license_json)
 
     def test_post_legacy_license_with_rejected_eula(self, api_config_pg, eula_rejected_legacy_license_json):
-        '''Verify failure while POSTing a license with `eula_accepted:false` attribute.'''
+        """Verify failure while POSTing a license with `eula_accepted:false` attribute."""
 
         with pytest.raises(towerkit.exceptions.LicenseInvalid):
             api_config_pg.post(eula_rejected_legacy_license_json)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_post_legacy_license(self, api_config_pg, legacy_license_json):
-        '''Verify that a license can be installed by issuing a POST to the /config endpoint'''
+        """Verify that a license can be installed by issuing a POST to the /config endpoint"""
         # Assert that no license present at /api/v1/config/
         conf = api_config_pg.get()
         assert not conf.is_valid_license, "No license was expected, but one was found"
@@ -490,7 +490,7 @@ class Test_Legacy_License(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
-        '''Verify that hosts can be added up to the 'license_instance_count' '''
+        """Verify that hosts can be added up to the 'license_instance_count' """
         if api_config_pg.get().license_info.current_instances > license_instance_count:
             pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
         assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
@@ -507,7 +507,7 @@ class Test_Legacy_License(Base_Api_Test):
             assert 'license_key' not in conf.license_info
 
     def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, job_template):
-        '''Verify that scan job templates may not be created with a legacy license.'''
+        """Verify that scan job templates may not be created with a legacy license."""
         conf = api_config_pg.get()
         if conf.license_info.free_instances < 0:
             pytest.skip("Unable to test because there are no free_instances remaining")
@@ -538,7 +538,7 @@ class Test_Legacy_License(Base_Api_Test):
 
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
-        '''Verify that cleanup_facts may not be run with a legacy license.'''
+        """Verify that cleanup_facts may not be run with a legacy license."""
 
         # wait for cleanup_facts to finish
         job_pg = cleanup_facts.wait_until_completed()
@@ -553,7 +553,7 @@ class Test_Legacy_License(Base_Api_Test):
             "Unexpected stdout when running cleanup_facts with a legacy license."
 
     def test_unable_to_get_fact_versions(self, host_local):
-        '''Verify that GET requests are rejected from fact_versions.'''
+        """Verify that GET requests are rejected from fact_versions."""
         exc_info = pytest.raises(towerkit.exceptions.PaymentRequired, host_local.get_related, 'fact_versions')
         result = exc_info.value[1]
 
@@ -561,18 +561,18 @@ class Test_Legacy_License(Base_Api_Test):
             "Unexpected API response upon attempting to navigate to fact_versions with a legacy license - %s." % json.dumps(result)
 
     def test_custom_rebranding(self, api_settings_ui_pg):
-        '''Verify that custom rebranding flags are not visible with a legacy license.
-        '''
+        """Verify that custom rebranding flags are not visible with a legacy license.
+        """
         settings_pg = api_settings_ui_pg.get()
         for flag in settings_pg.json.keys():
             assert flag not in REBRANDING_FLAGS, \
                 "Flag '{0}' visible under /api/v1/settings/ui/ with a legacy license.".format(flag)
 
     def test_main_settings_endpoint(self, api_settings_pg):
-        '''Verify that the top-level /api/v1/settings/ endpoint shows only
+        """Verify that the top-level /api/v1/settings/ endpoint shows only
         LDAP among our enterprise auth solutions. Note: LDAP is a special
         case with legacy licenses.
-        '''
+        """
         settings_pg = api_settings_pg.get()
         settings_urls = [setting.url for setting in settings_pg.results]
         assert(towerkit.api.resources.v1_settings_saml not in settings_urls), \
@@ -583,9 +583,9 @@ class Test_Legacy_License(Base_Api_Test):
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
-        '''Verify that legacy license users have access to LDAP only from our
+        """Verify that legacy license users have access to LDAP only from our
         enterprise authentication settings pages.
-        '''
+        """
         requests = ["get", "put", "patch", "delete"]
         for endpoint in enterprise_auth_settings_pgs:
             for request in requests:
@@ -597,7 +597,7 @@ class Test_Legacy_License(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg):
-        '''Verify the license_info field is empty after deleting the license'''
+        """Verify the license_info field is empty after deleting the license"""
         api_config_pg.delete()
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
@@ -635,7 +635,7 @@ class Test_Legacy_License_Warning(Base_Api_Test):
             "returned %s." % conf.license_info['license_type']
 
     def test_update_license(self, api_config_pg, legacy_license_json):
-        '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
+        """Verify that the license can be updated by issuing a POST to the /config endpoint"""
         # Record license_key
         conf = api_config_pg.get()
         before_license_key = conf.license_info.license_key
@@ -688,13 +688,13 @@ class Test_Legacy_License_Grace_Period(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
-        '''Verify that hosts can be added up to the 'license_instance_count' '''
+        """Verify that hosts can be added up to the 'license_instance_count' """
         if api_config_pg.get().license_info.current_instances > license_instance_count:
             pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
         assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
 
     def test_job_launch(self, api_config_pg, job_template):
-        '''Verify that job_templates can be launched while there are remaining free_instances'''
+        """Verify that job_templates can be launched while there are remaining free_instances"""
 
         conf = api_config_pg.get()
         if conf.license_info.free_instances < 0:
@@ -735,7 +735,7 @@ class Test_Legacy_License_Expired(Base_Api_Test):
             "returned %s." % conf.license_info['license_type']
 
     def test_cannot_add_host(self, api_hosts_pg, inventory, group):
-        '''Verify that no hosts can be added'''
+        """Verify that no hosts can be added"""
         payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
                        description="host-%s" % fauxfactory.gen_utf8(),
                        inventory=group.inventory)
@@ -748,14 +748,14 @@ class Test_Legacy_License_Expired(Base_Api_Test):
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3483")
     def test_job_launch(self, request, install_basic_license, job_template):
-        '''Verify that job_templates cannot be launched'''
+        """Verify that job_templates cannot be launched"""
         request.getfuncargvalue('install_legacy_license_expired')()
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
             job_template.launch_job()
 
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job):
-        '''Verify that system jobs can be launched'''
+        """Verify that system jobs can be launched"""
         # launch job and assess success
         system_job.wait_until_completed()
 
@@ -768,7 +768,7 @@ class Test_Legacy_License_Expired(Base_Api_Test):
             assert system_job.is_successful, "System job unexpectedly failed - %s" % system_job
 
     def test_unable_to_launch_ad_hoc_command(self, request, api_ad_hoc_commands_pg, install_basic_license, host_local, ssh_credential):
-        '''Verify that ad hoc commands cannot be launched from all four ad hoc endpoints.'''
+        """Verify that ad hoc commands cannot be launched from all four ad hoc endpoints."""
         request.getfuncargvalue('install_legacy_license_expired')()
 
         ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
@@ -788,7 +788,7 @@ class Test_Legacy_License_Expired(Base_Api_Test):
                     "Unexpectedly launched an ad_hoc_command with an expired license from %s." % ad_hoc_commands_pg.base_url
 
     def test_update_license(self, api_config_pg, legacy_license_json):
-        '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
+        """Verify that the license can be updated by issuing a POST to the /config endpoint"""
         # Record license_key
         conf = api_config_pg.get()
         before_license_key = conf.license_info.license_key
@@ -840,7 +840,7 @@ class Test_Legacy_Trial_License(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
-        '''Verify that hosts can be added up to the 'license_instance_count' '''
+        """Verify that hosts can be added up to the 'license_instance_count' """
         if api_config_pg.get().license_info.current_instances > license_instance_count:
             pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
         assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
@@ -857,7 +857,7 @@ class Test_Legacy_Trial_License(Base_Api_Test):
             assert 'license_key' not in conf.license_info
 
     def test_update_license(self, api_config_pg, trial_legacy_license_json):
-        '''Verify that the license can be updated by issuing a POST to the /config endpoint'''
+        """Verify that the license can be updated by issuing a POST to the /config endpoint"""
         # Record license_key
         conf = api_config_pg.get()
         before_license_key = conf.license_info.license_key
@@ -924,7 +924,7 @@ class Test_Basic_License(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
-        '''Verify that hosts can be added up to the 'license_instance_count' '''
+        """Verify that hosts can be added up to the 'license_instance_count' """
         if api_config_pg.get().license_info.current_instances > license_instance_count:
             pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
         assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
@@ -941,7 +941,7 @@ class Test_Basic_License(Base_Api_Test):
             assert 'license_key' not in conf.license_info
 
     def test_job_launch(self, api_config_pg, job_template):
-        '''Verify that job_templates can be launched while there are remaining free_instances'''
+        """Verify that job_templates can be launched while there are remaining free_instances"""
 
         conf = api_config_pg.get()
         if conf.license_info.free_instances < 0:
@@ -950,7 +950,7 @@ class Test_Basic_License(Base_Api_Test):
             job_template.launch_job().wait_until_completed()
 
     def test_unable_to_create_multiple_organizations(self, api_organizations_pg):
-        '''Verify that attempting to create a second organization with a basic license raises a 402.'''
+        """Verify that attempting to create a second organization with a basic license raises a 402."""
         # check that a default organization already exists
         organizations_pg = api_organizations_pg.get()
         assert organizations_pg.count > 0, "Unexpected number of organizations returned (%s)." % organizations_pg.count
@@ -967,7 +967,7 @@ class Test_Basic_License(Base_Api_Test):
             "license. %s" % json.dumps(result)
 
     def test_unable_to_create_survey(self, api_config_pg, job_template_ping, required_survey_spec):
-        '''Verify that attempting to create a survey with a basic license raises a 402.'''
+        """Verify that attempting to create a survey with a basic license raises a 402."""
         conf = api_config_pg.get()
         if conf.license_info.free_instances < 0:
             pytest.skip("Unable to test because there are no free_instances remaining")
@@ -981,7 +981,7 @@ class Test_Basic_License(Base_Api_Test):
             "basic license - %s." % json.dumps(result)
 
     def test_unable_to_access_activity_stream(self, api_activity_stream_pg):
-        '''Verify that GET requests to api/v1/activity_streams raise 402s.'''
+        """Verify that GET requests to api/v1/activity_streams raise 402s."""
         exc_info = pytest.raises(towerkit.exceptions.PaymentRequired, api_activity_stream_pg.get)
         result = exc_info.value[1]
 
@@ -989,7 +989,7 @@ class Test_Basic_License(Base_Api_Test):
             "Unexpected API response when issuing a GET to api/v1/activity_streams with a basic license - %s." % json.dumps(result)
 
     def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, job_template):
-        '''Verify that scan job templates may not be created with a basic license.'''
+        """Verify that scan job templates may not be created with a basic license."""
         conf = api_config_pg.get()
         if conf.license_info.free_instances < 0:
             pytest.skip("Unable to test because there are no free_instances remaining")
@@ -1020,7 +1020,7 @@ class Test_Basic_License(Base_Api_Test):
 
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
-        '''Verify that cleanup_facts may not be run with a basic license.'''
+        """Verify that cleanup_facts may not be run with a basic license."""
 
         # wait for cleanup_facts to finish
         job_pg = cleanup_facts.wait_until_completed()
@@ -1035,7 +1035,7 @@ class Test_Basic_License(Base_Api_Test):
             "Unexpected stdout when running cleanup_facts with a basic license."
 
     def test_unable_to_get_fact_versions(self, host_local):
-        '''Verify that GET requests are rejected from fact_versions.'''
+        """Verify that GET requests are rejected from fact_versions."""
         exc_info = pytest.raises(towerkit.exceptions.PaymentRequired, host_local.get_related, 'fact_versions')
         result = exc_info.value[1]
 
@@ -1043,17 +1043,17 @@ class Test_Basic_License(Base_Api_Test):
             "Unexpected JSON response upon attempting to navigate to fact_versions with a basic license - %s." % json.dumps(result)
 
     def test_custom_rebranding(self, api_settings_ui_pg):
-        '''Verify that custom rebranding flags are not accessible with a basic license.
-        '''
+        """Verify that custom rebranding flags are not accessible with a basic license.
+        """
         settings_pg = api_settings_ui_pg.get()
         for flag in settings_pg.json.keys():
             assert flag not in REBRANDING_FLAGS, \
                 "Flag '{0}' visible under /api/v1/settings/ui/ with a basic license.".format(flag)
 
     def test_main_settings_endpoint(self, api_settings_pg):
-        '''Verify that the top-level /api/v1/settings/ endpoint does not show
+        """Verify that the top-level /api/v1/settings/ endpoint does not show
         our enterprise auth endpoints.
-        '''
+        """
         settings_pg = api_settings_pg.get()
         settings_urls = [setting.url for setting in settings_pg.results]
         assert(towerkit.api.resources.v1_settings_saml not in settings_urls), \
@@ -1064,9 +1064,9 @@ class Test_Basic_License(Base_Api_Test):
             "Expected not to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
-        '''Verify that basic license users do not have access to any of our enterprise
+        """Verify that basic license users do not have access to any of our enterprise
         authentication settings pages.
-        '''
+        """
         requests = ["get", "put", "patch", "delete"]
         for endpoint in enterprise_auth_settings_pgs:
             for request in requests:
@@ -1074,7 +1074,7 @@ class Test_Basic_License(Base_Api_Test):
                     getattr(endpoint, request)()
 
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
-        '''Verify that a basic license can get upgraded to an enterprise license.'''
+        """Verify that a basic license can get upgraded to an enterprise license."""
 
         # Update the license
         api_config_pg.post(enterprise_license_json)
@@ -1096,7 +1096,7 @@ class Test_Basic_License(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg):
-        '''Verify the license_info field is empty after deleting the license'''
+        """Verify the license_info field is empty after deleting the license"""
         api_config_pg.delete()
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
@@ -1149,7 +1149,7 @@ class Test_Enterprise_License(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
-        '''Verify that hosts can be added up to the 'license_instance_count' '''
+        """Verify that hosts can be added up to the 'license_instance_count' """
         if api_config_pg.get().license_info.current_instances > license_instance_count:
             pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
         assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
@@ -1166,7 +1166,7 @@ class Test_Enterprise_License(Base_Api_Test):
             assert 'license_key' not in conf.license_info
 
     def test_job_launch(self, api_config_pg, job_template):
-        '''Verify that job_templates can be launched while there are remaining free_instances'''
+        """Verify that job_templates can be launched while there are remaining free_instances"""
         conf = api_config_pg.get()
         if conf.license_info.free_instances < 0:
             pytest.skip("Unable to test because there are no free_instances remaining")
@@ -1174,7 +1174,7 @@ class Test_Enterprise_License(Base_Api_Test):
             job_template.launch_job().wait_until_completed()
 
     def test_post_multiple_organizations(self, api_organizations_pg):
-        '''Verify that multiple organizations may exist with an enterprise license.'''
+        """Verify that multiple organizations may exist with an enterprise license."""
         # create second organization
         payload = dict(name="org-%s" % fauxfactory.gen_utf8(),
                        description="Random organization - %s" % fauxfactory.gen_utf8())
@@ -1186,7 +1186,7 @@ class Test_Enterprise_License(Base_Api_Test):
             "to exist, but do not. Instead, only %s exist." % api_organizations_pg.count
 
     def test_create_survey(self, api_config_pg, job_template_ping, required_survey_spec):
-        '''Verify that surveys may be created with an enterprise license.'''
+        """Verify that surveys may be created with an enterprise license."""
         conf = api_config_pg.get()
         if conf.license_info.free_instances < 0:
             pytest.skip("Unable to test because there are no free_instances remaining")
@@ -1202,11 +1202,11 @@ class Test_Enterprise_License(Base_Api_Test):
         assert survey_spec.name == required_survey_spec['name']
 
     def test_activity_streams(self, api_activity_stream_pg):
-        '''Verify that GET requests to api/v1/activity_streams are allowed with an enterprise license.'''
+        """Verify that GET requests to api/v1/activity_streams are allowed with an enterprise license."""
         api_activity_stream_pg.get()
 
     def test_post_scan_job_template(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
-        '''Verifies that scan job templates may be created with an enterprise license.'''
+        """Verifies that scan job templates may be created with an enterprise license."""
         conf = api_config_pg.get()
         if conf.license_info.free_instances < 0:
             pytest.skip("Unable to test because there are no free_instances remaining")
@@ -1225,7 +1225,7 @@ class Test_Enterprise_License(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4157')
     def test_launch_scan_job(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
-        '''Verifies that scan jobs may be launched with an enterprise license.'''
+        """Verifies that scan jobs may be launched with an enterprise license."""
         conf = api_config_pg.get()
         if conf.license_info.free_instances < 0:
             pytest.skip("Unable to test because there are no free_instances remaining")
@@ -1250,7 +1250,7 @@ class Test_Enterprise_License(Base_Api_Test):
 
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_able_to_cleanup_facts(self, cleanup_facts):
-        '''Verifies that cleanup_facts may be run with an enterprise license.'''
+        """Verifies that cleanup_facts may be run with an enterprise license."""
 
         # wait for cleanup_facts to finish
         job_pg = cleanup_facts.wait_until_completed()
@@ -1260,7 +1260,7 @@ class Test_Enterprise_License(Base_Api_Test):
             "with an enterprise license - %s" % job_pg
 
     def test_able_to_get_facts(self, scan_job_with_status_completed):
-        '''Verify that that enterprise license users can GET fact endpoints.'''
+        """Verify that that enterprise license users can GET fact endpoints."""
         host_pg = scan_job_with_status_completed.get_related('inventory').get_related('hosts').results[0]
 
         # test navigating to fact pages
@@ -1269,17 +1269,17 @@ class Test_Enterprise_License(Base_Api_Test):
             fact_version.get_related('fact_view')
 
     def test_custom_rebranding(self, api_settings_ui_pg):
-        '''Verify that custom rebranding flags are visible with an enterprise license.
-        '''
+        """Verify that custom rebranding flags are visible with an enterprise license.
+        """
         settings_pg = api_settings_ui_pg.get()
         for flag in REBRANDING_FLAGS:
             assert flag in settings_pg.json.keys(), \
                 "Flag '{0}' not displayed under /api/v1/settings/ui/ with an enterprise license.".format(flag)
 
     def test_main_settings_endpoint(self, api_settings_pg):
-        '''Verify that the top-level /api/v1/settings/ endpoint shows our
+        """Verify that the top-level /api/v1/settings/ endpoint shows our
         enterprise auth endpoints.
-        '''
+        """
         settings_pg = api_settings_pg.get()
         settings_urls = [setting.url for setting in settings_pg.results]
         assert(towerkit.api.resources.v1_settings_saml in settings_urls), \
@@ -1290,16 +1290,16 @@ class Test_Enterprise_License(Base_Api_Test):
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
-        '''Verify that enterprise license users have access to our enterprise
+        """Verify that enterprise license users have access to our enterprise
         authentication settings pages.
-        '''
+        """
         requests = ["get", "put", "patch", "delete"]
         for endpoint in enterprise_auth_settings_pgs:
             for request in requests:
                 getattr(endpoint, request)()
 
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg):
-        '''Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg.'''
+        """Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg."""
         # Update the license
         api_config_pg.post(basic_license_json)
 
@@ -1320,7 +1320,7 @@ class Test_Enterprise_License(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg):
-        '''Verify the license_info field is empty after deleting the license'''
+        """Verify the license_info field is empty after deleting the license"""
         api_config_pg.delete()
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=2)
@@ -1359,5 +1359,5 @@ class Test_Enterprise_License_Expired(Base_Api_Test):
 
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job_with_status_completed):
-        '''Verify that system jobs can be launched'''
+        """Verify that system jobs can be launched"""
         assert system_job_with_status_completed.is_successful, "System job unexpectedly failed - %s" % system_job_with_status_completed

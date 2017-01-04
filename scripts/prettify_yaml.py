@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-'''
+"""
 Prettify a YAML document
-'''
+"""
 
 import yaml
 import sys

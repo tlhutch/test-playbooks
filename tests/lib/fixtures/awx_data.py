@@ -10,7 +10,7 @@ def pytest_addoption(parser):
 
 
 def pytest_runtest_setup(item):
-    '''If awx_data_filename is None, it will be autoloaded'''
+    """If awx_data_filename is None, it will be autoloaded"""
     if item.config.getvalue('awx_data_filename'):
         AwxConfig.data = load_file(item.config.option.awx_data_filename)
 
@@ -21,9 +21,9 @@ def awx_data(request):
 
 
 class AwxConfig():
-    '''
+    """
         This class is just used for monkey patching
-    '''
+    """
     def __init__(self, request):
         self.request = request
 
