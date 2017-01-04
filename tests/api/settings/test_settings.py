@@ -452,8 +452,7 @@ class Test_Setting(Base_Api_Test):
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:False" % matching_non_org_users.count
 
     def test_system_license(self, api_config_pg, api_settings_system_pg, update_setting_pg):
-        """
-        Verifies that our exact license contents gets displayed under /api/v1/settings/system/.
+        """Verifies that our exact license contents gets displayed under /api/v1/settings/system/.
 
         Note: the towerkit license generator auto-appends a 'eula_accepted' field which is not
         actually part of the license so we remove that manually below.
