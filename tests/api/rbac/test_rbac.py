@@ -459,7 +459,8 @@ def test_job_template_post_request_without_network_credential_access(
         ('inventory', 'api_inventories_pg'),
         ('inventory_script', 'api_inventory_scripts_pg'),
         ('credential', 'api_credentials_pg'),
-        ('job_template', 'api_job_templates_pg')
+        ('job_template', 'api_job_templates_pg'),
+        ('workflow_job_template', 'api_workflow_job_templates_pg')
     ]
 )
 def test_admin_role_filter(request, factories, auth_user, resource_name, fixture_name):
@@ -471,7 +472,7 @@ def test_admin_role_filter(request, factories, auth_user, resource_name, fixture
     if resource_name == 'credential':
         organization = factories.organization()
         user = factories.user(organization=organization)
-        admin_resource = getattr(factories, resource_name)(organization=organization)
+        admin_resource = factories.credential(organization=organization)
         getattr(factories, resource_name)(organization=organization)
     else:
         user = factories.user()
