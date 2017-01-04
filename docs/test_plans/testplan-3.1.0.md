@@ -1,8 +1,7 @@
 # Tower 3.1.0 Release Test Plan
 
 ## Resources
-* 3 full-time api quality engineers - cwang/jladd/rfitzpat
-* 2 full-time ui quality engineers - jmcdermott/shane
+* 4 full-time automation engineers - cwang/jladd/rfitzpat/jmcdermott
 
 ## Features Not Tested
 
