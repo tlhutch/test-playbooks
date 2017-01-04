@@ -291,16 +291,19 @@ class Test_Autospawned_Jobs(Base_Api_Test):
             "An inventory_update was unexpectedly triggered (last_job_run changed)- %s" % \
             json.dumps(inv_src_pg.json, indent=4)
 
-    #FIXME
     def test_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
-        '''Verify that a project_update is triggered by job launch'''
-
-        # 1) set scm_update_on_launch for the project
+        '''Verify that two project updates are triggered by a job launch when we enable
+        project update_on_launch.
+        * Our initial project-post should launch a project update of job_type 'check.'
+        * Our JT launch should spawn two additional project updates: one of job_type 'check' and one of
+        job_type 'run.'
+        '''
+        # set scm_update_on_launch for the project
         project_ansible_playbooks_git.patch(scm_update_on_launch=True)
         assert project_ansible_playbooks_git.scm_update_on_launch
         assert project_ansible_playbooks_git.scm_update_cache_timeout == 0
 
-        # 2) check the autospawned project update
+        # check the autospawned project update
         initial_updates = project_ansible_playbooks_git.related.project_updates.get()
         assert initial_updates.count == 1, \
             "Unexpected number of default project updates."
@@ -308,13 +311,21 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         assert initial_update.job_type == "check", \
             "Unexpected job_type for our default project update: {0}.".format(default_update.job_type)
 
-        # 3) Launch job_template and wait for completion
+        # launch job_template and wait for completion
         job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
 
-        # 4) Ensure project_update was triggered and successful
+        # check our new project updates are successful
         final_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id)
         assert final_updates.count == 2, \
             "Unexpected number of final updates."
+        for update in final_updates.results:
+            assert update.wait_until_completed().is_successful, "Project update unsuccessful."
+
+        # check that our new project updates are of the right type
+        assert project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='check').count == 1, \
+            "Expected one new project update of job_type 'check'."
+        assert project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='run').count == 1, \
+            "Expected one new project update of job_type 'run'."
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3926")
     def test_project_cache_timeout(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
