@@ -306,10 +306,10 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         # check the autospawned project update
         initial_updates = project_ansible_playbooks_git.related.project_updates.get()
         assert initial_updates.count == 1, \
-            "Unexpected number of default project updates."
+            "Unexpected number of initial project updates."
         initial_update = initial_updates.results.pop()
         assert initial_update.job_type == "check", \
-            "Unexpected job_type for our default project update: {0}.".format(default_update.job_type)
+            "Unexpected job_type for our initial project update: {0}.".format(initial_update.job_type)
 
         # launch job_template and wait for completion
         job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
@@ -327,25 +327,37 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         assert project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='run').count == 1, \
             "Expected one new project update of job_type 'run'."
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3926")
     def test_project_cache_timeout(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
-        '''Verify that a project_update is not triggered when the cache_timeout has not exceeded'''
-
-        # 1) set scm_update_on_launch for the project
+        '''Verify that a project update of job_type "run" gets triggered by a job launch
+        within our timeout window when we enable project update_on_launch.
+        * Our initial project-post should launch a project update of job_type 'check.'
+        * Our JT launch should spawn an additional project update of job_tpe 'run.'
+        '''
+        # set scm_update_on_launch for the project
         cache_timeout = 60 * 5
         project_ansible_playbooks_git.patch(scm_update_on_launch=True, scm_update_cache_timeout=cache_timeout)
         assert project_ansible_playbooks_git.scm_update_on_launch
         assert project_ansible_playbooks_git.scm_update_cache_timeout == cache_timeout
         assert project_ansible_playbooks_git.last_updated is not None
-        last_updated = project_ansible_playbooks_git.last_updated
 
-        # 2) Launch job_template and wait for completion
+        # check the autospawned project update
+        initial_updates = project_ansible_playbooks_git.related.project_updates.get()
+        assert initial_updates.count == 1, \
+            "Unexpected number of initial project updates."
+        initial_update = initial_updates.results.pop()
+        assert initial_update.job_type == "check", \
+            "Unexpected job_type for our initial project update: {0}.".format(initial_update.job_type)
+
+        # launch job_template and wait for completion
         job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
 
-        # 3) Ensure project_update was *NOT* triggered
-        project_ansible_playbooks_git.get()
-        assert project_ansible_playbooks_git.last_updated == last_updated, \
-            "A project_update happened, but was not expected"
+        # check that our new project update completes successfully and is of the right type
+        final_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id)
+        assert final_updates.count == 1, \
+            "Unexpected number of final updates."
+        assert final_updates.results.pop().wait_until_completed().is_successful, "Project update unsuccessful."
+        assert project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='run').count == 1, \
+            "Expected one new project update of job_type 'run'."
 
     def test_inventory_and_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git,
                                    cloud_group):
