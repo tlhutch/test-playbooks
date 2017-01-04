@@ -36,11 +36,6 @@ Stranger situations
 -[X] test changes to settings.py
 -[] Launching a command with an invalid payload <= loop through required in options
 -[X] Verify that deleting related is reflected correctly in the command page
-
-Permissions
--[X] Verify that unprivileged users cannot launch commands without the ad hoc permission
--[X] Verify that unprivileged users with the correct permissions can launch a command
--[X] Verify that privileged users can launch commands without permissions
 """
 
 
