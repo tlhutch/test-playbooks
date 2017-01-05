@@ -1,5 +1,5 @@
 ---
-ec2_public_key: '~/.ssh/id_rsa.jenkins.pub'
+ec2_public_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 
 user_data_install_py2: &install_py2
   "{{ lookup('file', 'files/install_py2.sh') }}"

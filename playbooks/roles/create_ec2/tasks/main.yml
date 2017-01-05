@@ -12,14 +12,13 @@
   when: ec2_security_groups and ec2_images
   with_items: '{{ ec2_security_groups|default([]) }}'
 
-- name: ensure keypair exists
+- name: Ensure keypair exists
   ec2_key:
     aws_access_key: '{{ aws_access_key }}'
     aws_secret_key: '{{ aws_secret_key }}'
     region: '{{ ec2_region }}'
     name: '{{ ec2_key_name }}'
-    key_material: '{{ item }}'
-  with_file: "{{ ec2_public_key|default('') }}"
+    key_material: "{{ ec2_public_key|default('') }}"
   when: ec2_images
 
 - name: create/locate ec2 instance(s)
