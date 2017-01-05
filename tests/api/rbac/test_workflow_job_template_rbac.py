@@ -1,0 +1,210 @@
+import pytest
+import logging
+
+from tests.api import Base_Api_Test
+
+from towerkit.exceptions import Forbidden
+
+log = logging.getLogger(__name__)
+
+
+# WFJ
+# - superuser - read, execute, modify
+# - auditor - read
+# - user / team assigned to role, confirm role access
+# WFJT nodes
+# WFJ nodes
+# WFJT node UJTs
+# WFJ node UJs
+# Relaunch
+# Copying
+# Notifications
+# All - access to related endpoints
+
+# In each test:
+# - access list
+# - user capability fields
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.destructive
+class Test_Workflow_Job_Template_RBAC(Base_Api_Test):
+
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+
+    @pytest.mark.parametrize('wfjt_state', ['wfjt_has_org', 'wfjt_org_null'])
+    def test_system_admin_access(self, factories, wfjt_state):
+        """A superuser should be able to perform all actions with WFJTs, including:
+        - POST new WFJT
+        - GET, PUT, PATCH, or DELETE existing WFJTs
+
+        (This is true whether or not a WFJT has been assigned to an organization)
+        """
+        wfjt = factories.workflow_job_template()
+        if wfjt_state == 'wfjt_has_org':
+            org = factories.organization()
+            wfjt.patch(organization=org.id)
+        wfjt.get()
+        wfjt.patch()
+        wfjt.put()
+        wfjt.delete()
+
+    @pytest.mark.parametrize('wfjt_state', ['wfjt_has_org', 'wfjt_org_null'])
+    def test_system_auditor_access(self, factories, api_workflow_job_templates_pg, wfjt_state):
+        """A system auditor should be able to:
+        - GET WFJTs
+
+        A system auditor should not be able to:
+        - POST a new WFJT
+        - PUT, PATCH or DELETE existing WFJTs
+
+        (This is true whether or not a WFJT has been assigned to an organization)
+        """
+        sys_auditor = factories.user(is_system_auditor=True)
+
+        # Create WFJT
+        wfjt = factories.workflow_job_template()
+        if wfjt_state == 'wfjt_has_org':
+            org = factories.organization()
+            wfjt.patch(organization=org.id)
+
+        # Test access
+        with self.current_user(sys_auditor.username, sys_auditor.password):
+            with pytest.raises(Forbidden):
+                api_workflow_job_templates_pg.post()
+            wfjt.get()
+            with pytest.raises(Forbidden):
+                wfjt.patch()
+            with pytest.raises(Forbidden):
+                wfjt.put()
+            with pytest.raises(Forbidden):
+                wfjt.delete()
+
+    def test_org_admin_access(self, factories, api_organizations_pg):
+        """An org admin should be able to perform all actions on WFJTs assigned to
+        the same organization, including:
+        - POST new WFJT
+        - GET, PUT, PATCH, or DELETE existing WFJTs
+        """
+        # Create org admin
+        org = factories.organization()
+        org_admin = factories.user(organization=org)
+        org.add_admin(org_admin)
+
+        # Test access
+        with self.current_user(org_admin.username, org_admin.password):
+            wfjt = factories.workflow_job_template(organization=org)
+            assert wfjt.organization == org.id, \
+                "Expected WFJT to be assigned to org '{0}'. Org set to '{1}' instead"\
+                .format(org.id, wfjt.organization)
+            wfjt.get()
+            wfjt.patch()
+            wfjt.put()
+            wfjt.delete()
+
+    def test_org_auditor_access(self, factories, api_workflow_job_templates_pg, api_organizations_pg):
+        """An org auditor should be able to GET existing WFJTs assigned to
+        the same organization.
+
+        An org auditor should not be able to:
+        - POST new WFJT
+        - PUT, PATCH, or DELETE existing WFJTs
+        """
+        # Create org auditor
+        org = factories.organization()
+        org_auditor = factories.user(organization=org)
+        org.set_object_roles(org_auditor, 'Auditor')
+
+        wfjt = factories.workflow_job_template(organization=org)
+
+        # Test access
+        with self.current_user(org_auditor.username, org_auditor.password):
+            wfjt.get()
+            with pytest.raises(Forbidden):
+                api_workflow_job_templates_pg.post()
+            with pytest.raises(Forbidden):
+                wfjt.patch()
+            with pytest.raises(Forbidden):
+                wfjt.put()
+            with pytest.raises(Forbidden):
+                wfjt.delete()
+
+    @pytest.mark.parametrize('role_name', ['Read', 'Execute', 'Admin'])
+    def test_regular_user_access(self, factories, api_workflow_job_templates_pg, api_organizations_pg, role_name):
+        """An org user with Read access is able to GET a WFJT,
+        but not able to POST, PUT, PATCH, or DELETE.
+
+        An org user with Execute access is able to GET a WFJT,
+        but not able to POST, PUT, PATCH, or DELETE.
+
+        An org user with Admin access is able to
+        GET, POST, PUT, PATCH, and DELETE a WFJT.
+        """
+        # Create user
+        org = factories.organization()
+        user = factories.user(organization=org)
+        assert len(org.related.users.get(id=user.id).results), \
+            "Failed to add user '{0}' to organization '{1}'".format(user.id, org.id)
+
+        # Create WFJT
+        wfjt = factories.workflow_job_template(organization=org)
+
+        # Assign role
+        wfjt.set_object_roles(user, role_name)
+
+        # Test access
+        with self.current_user(user.username, user.password):
+            wfjt.get()
+            with pytest.raises(Forbidden):
+                api_workflow_job_templates_pg.post()
+            if role_name == 'Admin':
+                wfjt.patch()
+                wfjt.put()
+                wfjt.delete()
+            else:
+                with pytest.raises(Forbidden):
+                    wfjt.patch()
+                with pytest.raises(Forbidden):
+                    wfjt.put()
+                with pytest.raises(Forbidden):
+                    wfjt.delete()
+
+    @pytest.mark.parametrize('role', ['org_admin', 'org_auditor', 'wfjt_read', 'wfjt_execute', 'wfjt_admin'])
+    def test_non_org_member_access(self, factories, api_organizations_pg, role):
+        """Users should not be able to perform any operations on WFJTs in
+        organizations to which they do not belong.
+        """
+        # Create user
+        org = factories.organization()
+        user = factories.user()
+
+        # Create WFJT in user's organization
+        wfjt = factories.workflow_job_template(organization=org)
+
+        # Create WFJT in other organization
+        other_org = factories.organization()
+        other_wfjt = factories.workflow_job_template(organization=other_org)
+
+        # Assign role
+        if role == 'org_admin':
+            org.add_admin(user)
+        elif role == 'org_auditor':
+            org.set_object_roles(user, 'Auditor')
+        elif 'wfjt' in role:
+            wfjt_role = role[5:]
+            wfjt.set_object_roles(user, wfjt_role)
+
+        # Test access
+        with self.current_user(user.username, user.password):
+            with pytest.raises(Forbidden):
+                factories.workflow_job_template()  # no organization
+            with pytest.raises(Forbidden):
+                factories.workflow_job_template(organization=other_org)
+            with pytest.raises(Forbidden):
+                other_wfjt.get()
+            with pytest.raises(Forbidden):
+                other_wfjt.patch()
+            with pytest.raises(Forbidden):
+                other_wfjt.put()
+            with pytest.raises(Forbidden):
+                other_wfjt.delete()
