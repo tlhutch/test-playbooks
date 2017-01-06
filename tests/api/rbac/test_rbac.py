@@ -974,7 +974,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         assert admin_role_users_pg.results[0].id == user_pg.id, \
             "Unexpected admin role user returned. Expected user with ID %s, but %s." % (user_pg.id, admin_role_users_pg.results[0].id)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3392')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4602')
     def test_user_credential_role_assignment(self, factories, set_roles):
         """Tests that user credential roles may not be given to other users and teams."""
         # create user credential
