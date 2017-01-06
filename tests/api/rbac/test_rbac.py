@@ -339,6 +339,7 @@ def test_role_association_and_disassociation(factories, resource_name, endpoint)
         ('inventory_script', 'read', 'admin'),
         ('credential', 'read', 'admin'),
         ('job_template', 'read', 'admin'),
+        ('workflow_job_template', 'read', 'admin')
     ]
 )
 def test_unauthorized_self_privilege_escalation_returns_code_403(
