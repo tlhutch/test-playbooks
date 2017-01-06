@@ -77,6 +77,8 @@ General acceptance criteria:
 
 
 ### Logging
+[Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/logging_integration.md)
+
 1. [ ] verify documented steps for setting up and connecting with all supported log aggregator services.
 1. [ ] verify authentication and connectivity via HTTPS for all supported aggregator services.
 1. [ ] with at least one of the aggregator services (Logstash, most likely), verify that tower succesfully creates and sends a log message in the expected format for each data type:
@@ -132,6 +134,46 @@ General acceptance criteria:
 1. [ ] Expected job events are visible for jobs with playbooks
 1. [ ] Expected job events are visible for playbooks with async tasks
 1. [ ] Expected job events are visible for playbooks when free strategy is used
+
+### Workflows (Jim)
+[Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/workflow.md)
+
+#### CRUD-related
+
+1. [x] Verify that CRUD operations on all workflow resources are working properly. Note workflow job nodes cannot be created or deleted independently, but verifications are needed to make sure when a workflow job is deleted, all its related workflow job nodes are deleted.
+1. [ ] Verify the RBAC property of workflow resources. More specifically:
+ - [x] Workflow job templates can only be accessible by superusers ---- system admin, admin of the same organization and system auditor and auditor of the same organization with read permission only.
+ - [ ] Workflow jobs follows the permission rules of its associated workflow job template.
+ - [ ] Workflow job template nodes rely their permission rules on the permission rules of both their associated workflow job template and unified job template.
+ - [ ] Workflow job nodes follows the permission rules of both its associated workflow job and unified job.
+1. [x] Verify that workflow job template nodes can be created under, or (dis)associated with workflow job templates.
+1. [x] Verify that only the permitted types of job template types can be associated with a workflow job template node. Currently the permitted types are job templates, inventory sources and projects.
+1. [x] Verify that workflow job template nodes under the same workflow job template can be associated to form parent-child relationship of decision trees. More specifically, one node takes another as its child node by POSTing another node's id to one of the three endpoints: /success_nodes/, /failure_nodes/ and /always_nodes/.
+1. [ ] Verify that workflow job template nodes are not allowed to have invalid association. Any attempt to create an invalid association will trigger 400-level response. The three types of invalid associations are cycle, convergence(multiple parent) and mutex('always' XOR the rest).
+1. [ ] Verify that a workflow job template can be successfully copied and the created workflow job template does not miss any field that should be copied or intentionally modified.
+1. [ ] Verify that if a user has no access to any of the related resources of a workflow job template node, that node will not be copied and will have null as placeholder.
+
+#### Task-related
+
+1. [x] Verify that workflow jobs can be launched by POSTing to endpoint /workflow_job_templates/\d/launch/.
+1. [ ] Verify that schedules can be successfully (dis)associated with a workflow job template, and workflow jobs can be triggered by the schedule of associated workflow job template at specified time point.
+1. [ ] Verify that extra variables work for workflow job templates as described. In specific, verify the role of workflow job extra variables as a set of global runtime variables over all its spawned jobs.
+1. [ ] Verify that extra variables of a workflow job node are correctly overwritten in order by the cumulative job artifacts of ancestors, and the overwrite policy of cumulative job artifacts is correct (artifacts of parent overwrite artifacts of grandparent).
+1. [ ] Verify that during a workflow job run, all its decision trees follow their correct paths of execution. Unwarranted behaviors include child node executing before its parent and wrong path being selected (failure nodes are executed when parent node succeeds and so on).
+1. [ ] Verify that a subtree of execution will never start if its root node runs into internal error (not ends with failure).
+1. [x] Verify that a subtree of execution will never start if its root node is successfully canceled.
+1. [ ] Verify that cancelling a workflow job that is cancellable will consequently cancel any of its cancellable spawned jobs and thus interrupts the whole workflow execution.
+1. [ ] Verify that during a workflow job run, deleting its spawned jobs are prohibited.
+1. [ ] Verify that at the beginning of each spawned job run, its prompted fields will be populated by the wrapping workflow job node with corrected values. For example, credential field of workflow job node goes to credential field of spawned job.
+1. [ ] Verify that notification templates can be successfully (dis)associated with a workflow job template. Later when its spawned workflow jobs finish running, verify that the correct type of notifications will be sent according to the job status.
+1. [ ] Verify that a workflow job can be successfully relaunched.
+
+#### Test Notes
+
+Non-trivial topology should be used when testing workflow run. A non-trivial topology for a workflow job template should include:
+- [x] Multiple decision trees.
+- [ ] Relatively large hight in each decision tree.
+- [x] All three types of relationships (success, failure and always).
 
 ## Regression
 1. [ ] UI regression completed
