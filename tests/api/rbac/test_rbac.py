@@ -1163,9 +1163,9 @@ class Test_Team_RBAC(Base_Api_Test):
 
         # check that our team is listed under the /users/N/teams/ endpoint
         with self.current_user(username=user.username, password=user_password):
-             teams = user.related.teams.get()
-             assert teams.count == 1, "Target team not found under /api/v1/users/N/teams/."
-             assert teams.results.pop().id == team.id, \
+            teams = user.related.teams.get()
+            assert teams.count == 1, "Target team not found under /api/v1/users/N/teams/."
+            assert teams.results.pop().id == team.id, \
                 "Unexpected team returned under /api/v1/users/N/teams/"
 
     def test_system_roles_forbidden(self, factories, api_roles_pg):
