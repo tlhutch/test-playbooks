@@ -92,10 +92,10 @@ def ssh_credential_with_ssh_key_data_and_sudo(request, ansible_facts, authtoken,
     return obj
 
 
-@pytest.fixture(scope="function", params=['sudo', 'su', 'pbrun'])
+@pytest.fixture(scope="function", params=['sudo', 'su', 'pbrun', 'pfexec', 'dzdo'])
 def ssh_credential_multi_ask(request, authtoken, api_credentials_pg, admin_user, testsetup):
     """Create ssh credential with multiple 'ASK' passwords"""
-    if request.param not in ('sudo', 'su', 'pbrun'):
+    if request.param not in ('sudo', 'su', 'pbrun', 'pfexec', 'dzdo'):
         raise Exception("Unsupported parameter value: %s" % request.param)
 
     payload = dict(name="credentials-%s" % fauxfactory.gen_utf8(),
