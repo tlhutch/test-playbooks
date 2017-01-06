@@ -1153,7 +1153,7 @@ class Test_Team_RBAC(Base_Api_Test):
         assert users_pg.results[0].id == user_pg.id, \
             "Team user not our target user. Expected user with ID %s but got one with ID %s." % (user_pg.id, users_pg.results[0].id)
 
-    def test_member_role_inheritance(self, factories, user_password):
+    def test_member_role_inheritance(self, factories):
         """Test that team-member gets included with team-admin permissions."""
         team = factories.team()
         user = factories.user()
@@ -1162,7 +1162,7 @@ class Test_Team_RBAC(Base_Api_Test):
         set_roles(user, team, ['admin'])
 
         # check that our team is listed under the /users/N/teams/ endpoint
-        with self.current_user(username=user.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             teams = user.related.teams.get()
             assert teams.count == 1, "Target team not found under /api/v1/users/N/teams/."
             assert teams.results.pop().id == team.id, \
