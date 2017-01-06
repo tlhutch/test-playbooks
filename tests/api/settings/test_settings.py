@@ -8,7 +8,6 @@ from tests.api import Base_Api_Test
 
 from towerkit.tower.license import generate_license
 from towerkit.exceptions import BadRequest
-from tests.lib.fixtures.api.credentials import fixtures_dir
 import towerkit.utils
 
 
@@ -63,7 +62,7 @@ def modify_settings(update_setting_pg):
 
 
 @pytest.fixture
-def modify_obfuscated_settings(update_setting_pg):
+def modify_obfuscated_settings(update_setting_pg, unencrypted_rsa_ssh_key_data):
     """Helper fixture used for changing Tower settings."""
 
     def func():
@@ -82,8 +81,7 @@ def modify_obfuscated_settings(update_setting_pg):
                        AUTH_LDAP_BIND_PASSWORD="test",  # /api/v1/settings/ldap/
                        LOG_AGGREGATOR_PASSWORD="test",  # /api/v1/settings/logging/
                        RADIUS_SECRET="test",  # /api/v1/settings/radius/
-                       SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=open(
-                           os.path.join(fixtures_dir, 'static/unencrypted_rsa'), 'r').read())  # /api/v1/settings/saml/
+                       SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=unencrypted_rsa_ssh_key_data)  # /api/v1/settings/saml/
         update_setting_pg("api_settings_all_pg", payload)
         return payload
     return func

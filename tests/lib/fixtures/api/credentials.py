@@ -134,29 +134,34 @@ def team_ssh_credential(request, authtoken, team_with_org_admin, testsetup):
 # Passphrases for all encrypted keys is "fo0m4nchU"
 #
 @pytest.fixture(scope="function")
-def unencrypted_rsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
+def unencrypted_rsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user, unencrypted_rsa_ssh_key_data):
     """Create rsa ssh_credential"""
     payload = dict(name="unencrypted rsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
                    user=admin_user.id,
                    username=fauxfactory.gen_alphanumeric(),
-                   ssh_key_data=open(os.path.join(fixtures_dir, 'static/unencrypted_rsa'), 'r').read())
+                   ssh_key_data=unencrypted_rsa_ssh_key_data)
 
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj
 
 
+@pytest.fixture
+def unencrypted_rsa_ssh_key_data():
+    return open(os.path.join(fixtures_dir, 'static/unencrypted_rsa'), 'r').read()
+
+
 @pytest.fixture(scope="function")
-def encrypted_rsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
+def encrypted_rsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user, encrypted_rsa_ssh_key_data):
     """Create rsa ssh_credential"""
     payload = dict(name="encrypted rsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
                    user=admin_user.id,
                    username=fauxfactory.gen_alphanumeric(),
-                   ssh_key_data=open(os.path.join(fixtures_dir, 'static/encrypted_rsa'), 'r').read(),
+                   ssh_key_data=encrypted_rsa_ssh_key_data,
                    ssh_key_unlock='ASK')
 
     obj = api_credentials_pg.post(payload)
@@ -164,30 +169,40 @@ def encrypted_rsa_ssh_credential(request, authtoken, api_credentials_pg, admin_u
     return obj
 
 
+@pytest.fixture
+def encrypted_rsa_ssh_key_data():
+    return open(os.path.join(fixtures_dir, 'static/encrypted_rsa'), 'r').read()
+
+
 @pytest.fixture(scope="function")
-def unencrypted_dsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
+def unencrypted_dsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user, unencrypted_dsa_ssh_key_data):
     """Create dsa ssh_credential"""
     payload = dict(name="unencrypted dsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
                    user=admin_user.id,
                    username=fauxfactory.gen_alphanumeric(),
-                   ssh_key_data=open(os.path.join(fixtures_dir, 'static/unencrypted_dsa'), 'r').read())
+                   ssh_key_data=unencrypted_dsa_ssh_key_data)
 
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj
 
 
+@pytest.fixture
+def unencrypted_dsa_ssh_key_data():
+    return open(os.path.join(fixtures_dir, 'static/unencrypted_dsa'), 'r').read()
+
+
 @pytest.fixture(scope="function")
-def encrypted_dsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
+def encrypted_dsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user, encrypted_dsa_ssh_key_data):
     """Create dsa ssh_credential"""
     payload = dict(name="encrypted dsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
                    user=admin_user.id,
                    username=fauxfactory.gen_alphanumeric(),
-                   ssh_key_data=open(os.path.join(fixtures_dir, 'static/encrypted_dsa'), 'r').read(),
+                   ssh_key_data=encrypted_dsa_ssh_key_data,
                    ssh_key_unlock='ASK')
 
     obj = api_credentials_pg.post(payload)
@@ -195,30 +210,40 @@ def encrypted_dsa_ssh_credential(request, authtoken, api_credentials_pg, admin_u
     return obj
 
 
+@pytest.fixture
+def encrypted_dsa_ssh_key_data():
+    return open(os.path.join(fixtures_dir, 'static/encrypted_dsa'), 'r').read()
+
+
 @pytest.fixture(scope="function")
-def unencrypted_ecdsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
+def unencrypted_ecdsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user, unencrypted_ecdsa_ssh_key_data):
     """Create ecdsa ssh_credential"""
     payload = dict(name="unencrypted ecdsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
                    user=admin_user.id,
                    username=fauxfactory.gen_alphanumeric(),
-                   ssh_key_data=open(os.path.join(fixtures_dir, 'static/unencrypted_ecdsa'), 'r').read())
+                   ssh_key_data=unencrypted_ecdsa_ssh_key_data)
 
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj
 
 
+@pytest.fixture
+def unencrypted_ecdsa_ssh_key_data():
+    return open(os.path.join(fixtures_dir, 'static/unencrypted_ecdsa'), 'r').read()
+
+
 @pytest.fixture(scope="function")
-def encrypted_ecdsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
+def encrypted_ecdsa_ssh_credential(request, authtoken, api_credentials_pg, admin_user, encrypted_ecdsa_ssh_key_data):
     """Create ecdsa ssh_credential"""
     payload = dict(name="encrypted ecdsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
                    user=admin_user.id,
                    username=fauxfactory.gen_alphanumeric(),
-                   ssh_key_data=open(os.path.join(fixtures_dir, 'static/encrypted_ecdsa'), 'r').read(),
+                   ssh_key_data=encrypted_ecdsa_ssh_key_data,
                    ssh_key_unlock='ASK')
 
     obj = api_credentials_pg.post(payload)
@@ -226,35 +251,50 @@ def encrypted_ecdsa_ssh_credential(request, authtoken, api_credentials_pg, admin
     return obj
 
 
+@pytest.fixture
+def encrypted_ecdsa_ssh_key_data():
+    return open(os.path.join(fixtures_dir, 'static/encrypted_ecdsa'), 'r').read()
+
+
 @pytest.fixture(scope="function")
-def unencrypted_open_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
+def unencrypted_open_ssh_credential(request, authtoken, api_credentials_pg, admin_user, unencrypted_open_ssh_key_data):
     """Create open ssh_credential"""
     payload = dict(name="unencrypted open ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
                    user=admin_user.id,
                    username=fauxfactory.gen_alphanumeric(),
-                   ssh_key_data=open(os.path.join(fixtures_dir, 'static/unencrypted_open_rsa'), 'r').read())
+                   ssh_key_data=unencrypted_open_ssh_key_data)
 
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj
 
 
+@pytest.fixture
+def unencrypted_open_ssh_key_data():
+    return open(os.path.join(fixtures_dir, 'static/unencrypted_open_rsa'), 'r').read()
+
+
 @pytest.fixture(scope="function")
-def encrypted_open_ssh_credential(request, authtoken, api_credentials_pg, admin_user):
+def encrypted_open_ssh_credential(request, authtoken, api_credentials_pg, admin_user, encrypted_open_ssh_key_data):
     """Create open ssh_credential"""
     payload = dict(name="encrypted open ssh_credentials-%s" % fauxfactory.gen_utf8(),
                    description="machine credential - %s" % fauxfactory.gen_utf8(),
                    kind='ssh',
                    user=admin_user.id,
                    username=fauxfactory.gen_alphanumeric(),
-                   ssh_key_data=open(os.path.join(fixtures_dir, 'static/encrypted_open_rsa'), 'r').read(),
+                   ssh_key_data=encrypted_open_ssh_key_data,
                    ssh_key_unlock='ASK')
 
     obj = api_credentials_pg.post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj
+
+
+@pytest.fixture
+def encrypted_open_ssh_key_data():
+    return open(os.path.join(fixtures_dir, 'static/encrypted_open_rsa'), 'r').read()
 
 
 #
