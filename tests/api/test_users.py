@@ -102,5 +102,5 @@ class Test_Users(Base_Api_Test):
     def test_nonsuperusers_cannot_create_orphaned_user(self, api_users_pg, non_superuser, user_password):
         """Verify that a non_superuser cannot create users via /api/v1/users/."""
         with self.current_user(non_superuser.username, user_password):
-            with pytest.raises(towerkit.exceptions.MethodNotAllowed):
+            with pytest.raises(towerkit.exceptions.Forbidden):
                 api_users_pg.post(user_payload())
