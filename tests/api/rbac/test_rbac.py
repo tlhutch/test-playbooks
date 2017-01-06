@@ -2413,17 +2413,29 @@ class Test_System_Jobs_RBAC(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
-    def test_get_as_superuser(self, system_job):
+    def test_get_detail_view_as_superuser(self, system_job):
         """Verify that a superuser account is able to GET a system_job resource."""
         system_job.get()
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
-    def test_get_as_non_superuser(self, non_superusers, user_password, api_system_jobs_pg, system_job):
-        """Verify that non-superuser accounts are unable to access a system_job."""
+    def test_get_list_view_as_non_superuser(self, non_superusers, user_password, api_system_jobs_pg):
+        """Verify that non-superuser accounts are unable to access the top-level
+        system jobs endpoint (/api/v1/system_jobs/).
+        """
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    api_system_jobs_pg.get(id=system_job.id)
+                    api_system_jobs_pg.get()
+
+    @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
+    def test_get_detail_view_as_non_superuser(self, non_superusers, user_password, system_job):
+        """Verify that non-superuser accounts are unable to access nested system
+        job endpoints (/api/v1/system_jobs/N/).
+        """
+        for non_superuser in non_superusers:
+            with self.current_user(non_superuser.username, user_password):
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    system_job.get()
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3576')
     def test_user_capabilities_as_superuser(self, cleanup_jobs_with_status_completed, api_system_jobs_pg):
