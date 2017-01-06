@@ -150,15 +150,33 @@ def expected_net_env_vars(testsetup):
         if getattr(network_credential, "username", None):
             expected_env_vars["ANSIBLE_NET_USERNAME"] = testsetup.credentials['network']['username']
         if getattr(network_credential, "password", None):
-            expected_env_vars["ANSIBLE_NET_PASSWORD"] = testsetup.credentials['network']['password']
+            expected_env_vars["ANSIBLE_NET_PASSWORD"] = u"**********"
+        if getattr(network_credential, "ssh_key_data", None):
+            expected_env_vars["ANSIBLE_NET_SSH_KEYFILE"] = u"**********"
         if getattr(network_credential, "authorize", None):
             expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "1"
         else:
             expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "0"
         if getattr(network_credential, "authorize_password", None):
-            expected_env_vars["ANSIBLE_NET_AUTH_PASS"] = testsetup.credentials['network']['authorize']
+            expected_env_vars["ANSIBLE_NET_AUTH_PASS"] = u"**********"
         return expected_env_vars
     return func
+
+
+def confirm_job_env(job_pg, expected_env_vars):
+    """Convenience function to assess that the correct job environment variables
+    are present and have the correct values.
+    """
+    for env_var, env_val in expected_env_vars.items():
+        assert env_var in job_pg.job_env, "Missing expected environment variable %s in job_env.\n%s" % \
+            (env_var, json.dumps(job_pg.job_env, indent=2))
+
+        if isinstance(env_val, types.FunctionType):
+            is_correct = env_val(job_pg.job_env[env_var])
+        else:
+            is_correct = job_pg.job_env[env_var] == env_val
+        assert is_correct, "Unexpected value for environment variable %s in job_env ('%s')." % \
+            (env_var, job_pg.job_env[env_var])
 
 
 def confirm_fact_modules_present(facts, **kwargs):
@@ -1027,18 +1045,7 @@ class Test_Job_Env(Base_Api_Test):
             raise ValueError("Unhandled cloud type: %s" % cloud_credential.kind)
 
         # assert the expected job_env variables are present
-        for env_var, env_val in expected_env_vars.items():
-            assert env_var in job_pg.job_env, \
-                "Missing expected %s environment variable %s in job_env.\n%s" % \
-                (cloud_credential.kind, env_var, json.dumps(job_pg.job_env, indent=2))
-            if isinstance(env_val, types.FunctionType):
-                is_correct = env_val(job_pg.job_env[env_var])
-            else:
-                is_correct = job_pg.job_env[env_var] == env_val
-
-            assert is_correct, "Unexpected value for %s environment variable %s " \
-                "in job_env ('%s')" % (cloud_credential.kind, env_var,
-                                       job_pg.job_env[env_var])
+        confirm_job_env(job_pg, expected_env_vars)
 
     def test_job_env_with_network_credential(self, job_template_with_network_credential, expected_net_env_vars):
         """Verify that job_env has the expected network_credential variables."""
@@ -1051,13 +1058,7 @@ class Test_Job_Env(Base_Api_Test):
 
         # assert the expected job_env variables are present
         expected_env_vars = expected_net_env_vars(network_credential)
-        for env_var, env_val in expected_env_vars.items():
-            assert env_var in job_pg.job_env, \
-                "Missing expected network environment variable %s in job_env.\n%s" % \
-                (env_var, json.dumps(job_pg.job_env, indent=2))
-            assert job_pg.job_env[env_var] == env_val, \
-                "Unexpected value for %s environment variable %s in job_env ('%s')" \
-                % (network_credential.kind, env_var, job_pg.job_env[env_var])
+        confirm_job_env(job_pg, expected_env_vars)
 
 
 @pytest.mark.api
