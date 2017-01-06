@@ -152,7 +152,7 @@ def expected_net_env_vars(testsetup):
         if getattr(network_credential, "password", None):
             expected_env_vars["ANSIBLE_NET_PASSWORD"] = u"**********"
         if getattr(network_credential, "ssh_key_data", None):
-            expected_env_vars["ANSIBLE_NET_SSH_KEYFILE"] = lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
+            expected_env_vars["ANSIBLE_NET_SSH_KEYFILE"] = u"**********"
         if getattr(network_credential, "authorize", None):
             expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "1"
         else:
