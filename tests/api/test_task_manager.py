@@ -58,49 +58,79 @@ def wait_for_jobs_to_finish(jobs):
         job.wait_until_completed()
 
 
-def check_sequential_jobs(jobs):
-    """Helper function that will check that jobs ran sequentially. How this works:
-    * Sort jobs by start time.
-    * Check that each job finishes before the next job starts.
+def construct_time_series(jobs):
+    """Helper function used to create time-series data for job sequencing. Create
+    a list whose elements are a list of the start and end times of either:
+    A) A unified job.
+    B) A list of unified jobs. When given a list of unified jobs, make our entry
+    a list whose first element is the first 'started' time of these jobs. Make the
+    second entry the last 'finished' time of these jobs.
 
-    :jobs: A list of unified job page objects.
+    Example:
+    construct_time_series([[aws_update, rax_update], job])
+    >>> [[start time of first inv_update, finished time of last inv_update], [job.started, job.finished]]
     """
-    # check that jobs ran sequentially
-    intervals = [[job.started, job.finished] for job in jobs]
-    sorted_intervals = sorted(intervals, key=lambda x: x[0])
-    for i in range(1, len(sorted_intervals)):
-        assert sorted_intervals[i-1][1] < sorted_intervals[i][0], \
-            "Job overlap found: we have an instance where one job starts before previous job finishes."
+    intervals = list()
+    for entry in jobs:
+        if isinstance(entry, list):
+            first_started = min([job.started for job in entry])
+            last_finished = max([job.finished for job in entry])
+            intervals.append([first_started, last_finished])
+        else:
+            intervals.append([entry.started, entry.finished])
+    return intervals
+
+
+def check_sequential_jobs(jobs):
+    """Helper function that will check that jobs ran sequentially. We do this
+    by checking that each entry finishes before the next entry starts.
+
+    :jobs: A list whose elements are either unified jobs or a list containing
+    unified jobs.
+    """
+    # sort time series by 'started' value
+    time_series = sorted(construct_time_series(jobs), key=lambda x: x[0])
+
+    # check that we don't have overlapping elements
+    for i in range(1, len(time_series)):
+        assert time_series[i-1][1] < time_series[i][0], \
+            "Job overlap found: we have an instance where one job starts before the previous job finishes."
 
 
 def check_overlapping_jobs(jobs):
     """Helper function that will check that two jobs have overlapping runtimes.
-    Note: for this to work the first job will have to start before the second.
-
     :jobs: A list of unified job page objects.
     """
+    jobs = sorted(jobs, key=lambda x: x.started)
+
     # assert that job1 started before job2 finished
     assert du_parse(jobs[0].started) < du_parse(jobs[1].finished)
-
     # assert that job1 finished after job2 started
     assert du_parse(jobs[0].finished) > du_parse(jobs[1].started)
 
 
 def check_job_order(jobs):
     """Helper function that will check whether jobs ran in the right order. How this works:
-    * Sort jobs by 'started' time using the built-in API filter.
-    * Sort jobs by 'finished' time using the built-in API filter.
-    * Assert that the order of the jobs given in argument 'jobs' matches both results.
+    * Sort elements by 'started' time.
+    * Sort elements by 'finished' time.
+    * Check that our series sequence remains unchanged after both sorts.
 
-    jobs: A list of page objects where we have:
+    jobs: A list of page objects where we expect to have:
           jobs[0].started < jobs[1].started < jobs[i+2].started ...
           jobs[0].finished < jobs[1].finished < job[i+2].finished ...
+    Note: jobs may also support a list of jobs as an entry. See the documentation for
+    construct_time_series for more details.
     """
-    # check job ordering
-    assert jobs == sorted(jobs, key=lambda k: k.started), \
-        "Unexpected job ordering. Jobs in question: {0}.".format([job.url for job in jobs])
-    assert jobs == sorted(jobs, key=lambda k: k.finished), \
-        "Unexpected job ordering. Jobs in question: {0}.".format([job.url for job in jobs])
+    time_series = construct_time_series(jobs)
+
+    # check that our time series is already sorted by start time
+    assert time_series == sorted(time_series, key=lambda k: k[0]), \
+        "Unexpected job ordering upon sorting by started time.\
+        \n\nTime series order: {0}.".format(time_series)
+    # check that our time series is already sorted by finished time
+    assert time_series == sorted(time_series, key=lambda k: k[1]), \
+        "Unexpected job ordering upon sorting by finished time.\
+        \n\nTime series order: {0}.".format(time_series)
 
 
 @pytest.mark.api
@@ -175,11 +205,11 @@ class Test_Sequential_Jobs(Base_Api_Test):
         # launch two jobs
         job_1 = job_template.launch()
         job_2 = job_template.launch()
-        ordered_jobs = [job_1, job_2]
-        wait_for_jobs_to_finish(ordered_jobs)
+        jobs = [job_1, job_2]
+        wait_for_jobs_to_finish(jobs)
 
         # check that we have overlapping jobs
-        check_overlapping_jobs(ordered_jobs)
+        check_overlapping_jobs(jobs)
 
     def test_system_job(self, system_jobs):
         """Launch all three of our system jobs. Assert no system job was running when another system
@@ -238,7 +268,10 @@ class Test_Autospawned_Jobs(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_inventory(self, cloud_inventory_job_template, cloud_group):
-        """Verify that an inventory_update is triggered by job launch."""
+        """Verify that an inventory_update is triggered by job launch. Job ordering should be as follows:
+        * Inventory update should run first.
+        * Job should run after completion of inventory update.
+        """
         # set update_on_launch
         inv_src_pg = cloud_group.get_related('inventory_source')
         inv_src_pg.patch(update_on_launch=True)
@@ -270,7 +303,10 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         check_job_order(sorted_unified_jobs)
 
     def test_inventory_multiple(self, job_template, aws_inventory_source, rax_inventory_source):
-        """Verify that multiple inventory_update's are triggered by job launch."""
+        """Verify that multiple inventory_update's are triggered by job launch. Job ordering should be as follows:
+        * AWS and Rackspace inventory updates should run simultaneously.
+        * Upon completion of both inventory imports, job can run.
+        """
         # set update_on_launch
         aws_inventory_source.patch(update_on_launch=True)
         assert aws_inventory_source.update_on_launch
@@ -318,7 +354,8 @@ class Test_Autospawned_Jobs(Base_Api_Test):
             json.dumps(rax_inventory_source.json, indent=4)
 
         # check that jobs ran sequentially and in the right order
-        sorted_unified_jobs = [aws_update, rax_update, job_pg]
+        check_overlapping_jobs([aws_update, rax_update])
+        sorted_unified_jobs = [[aws_update, rax_update], job_pg]
         check_sequential_jobs(sorted_unified_jobs)
         check_job_order(sorted_unified_jobs)
 
