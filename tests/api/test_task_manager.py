@@ -110,7 +110,8 @@ def check_overlapping_jobs(jobs):
 
 
 def check_job_order(jobs):
-    """Helper function that will check whether jobs ran in the right order. How this works:
+    """Helper function that will check whether jobs ran in the right order. How
+    this works:
     * Sort elements by 'started' time.
     * Sort elements by 'finished' time.
     * Check that our series sequence remains unchanged after both sorts.
@@ -118,8 +119,8 @@ def check_job_order(jobs):
     jobs: A list of page objects where we expect to have:
           jobs[0].started < jobs[1].started < jobs[i+2].started ...
           jobs[0].finished < jobs[1].finished < job[i+2].finished ...
-    Note: jobs may also support a list of jobs as an entry. See the documentation for
-    construct_time_series for more details.
+    Note: jobs may also support a list of jobs as an entry. See the documentation
+    for construct_time_series for more details.
     """
     time_series = construct_time_series(jobs)
 
@@ -285,14 +286,14 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         # launch job_template and wait for completion
         job_pg = cloud_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
 
-        # ensure inventory_update was triggered
+        # check inventory_update was triggered
         inv_src_pg.get()
         assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % \
             json.dumps(inv_src_pg.json, indent=4)
         assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s" % \
             json.dumps(inv_src_pg.json, indent=4)
 
-        # ensure inventory_update was successful
+        # check that inventory update and source successful
         last_update = inv_src_pg.get_related('last_update')
         assert last_update.is_successful, "last_update unsuccessful - %s" % last_update
         assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
@@ -303,7 +304,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         check_job_order(sorted_unified_jobs)
 
     def test_inventory_multiple(self, job_template, aws_inventory_source, rax_inventory_source):
-        """Verify that multiple inventory_update's are triggered by job launch. Job ordering should be as follows:
+        """Verify that multiple inventory_updates are triggered by job launch. Job ordering should be as follows:
         * AWS and Rackspace inventory updates should run simultaneously.
         * Upon completion of both inventory imports, job can run.
         """
@@ -328,7 +329,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         # launch job_template and wait for completion
         job_pg = job_template.launch_job().wait_until_completed(timeout=50 * 10)
 
-        # ensure inventory_update was triggered
+        # check that inventory updates were triggered
         aws_inventory_source.get()
         assert aws_inventory_source.last_updated is not None, "Expecting value for aws_inventory_source last_updated - %s" % \
             json.dumps(aws_inventory_source.json, indent=4)
@@ -341,13 +342,13 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         assert rax_inventory_source.last_job_run is not None, "Expecting value for rax_inventory_source last_job_run - %s" % \
             json.dumps(rax_inventory_source.json, indent=4)
 
-        # ensure inventory_update was successful
+        # check that aws inventory update was successful
         aws_update = aws_inventory_source.get_related('last_update')
         assert aws_update.is_successful, "aws_inventory_source -> last_update unsuccessful - %s" % aws_update
         assert aws_inventory_source.is_successful, "inventory_source unsuccessful - %s" % \
             json.dumps(aws_inventory_source.json, indent=4)
 
-        # assert last_update successful
+        # check that rax inventory update was successful
         rax_update = rax_inventory_source.get_related('last_update')
         assert rax_update.is_successful, "rax_inventory_source -> last_update unsuccessful - %s" % rax_update
         assert rax_inventory_source.is_successful, "inventory_source unsuccessful - %s" % \
@@ -361,7 +362,8 @@ class Test_Autospawned_Jobs(Base_Api_Test):
 
     def test_inventory_cache_timeout(self, cloud_inventory_job_template, cloud_group):
         """Verify that an inventory_update is not triggered by job launch if the
-        cache is still valid."""
+        cache is still valid.
+        """
         # set update_on_launch and a 5min update_cache_timeout
         inv_src_pg = cloud_group.get_related('inventory_source')
         cache_timeout = 60 * 5
@@ -373,10 +375,10 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         # update job_template to cloud inventory
         cloud_inventory_job_template.patch(inventory=cloud_group.inventory)
 
-        # launch job_template and wait for completion
-        cloud_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        # launch inventory update and wait for completion
+        inv_update_pg = cloud_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
 
-        # ensure inventory_update was triggered
+        # check that inventory source reports our inventory update
         inv_src_pg.get()
         assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % \
             json.dumps(inv_src_pg.json, indent=4)
@@ -386,9 +388,9 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         last_job_run = inv_src_pg.last_job_run
 
         # launch job_template and wait for completion
-        cloud_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        job_pg = cloud_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
 
-        # ensure inventory_update was *NOT* triggered
+        # check that inventory update not triggered
         inv_src_pg.get()
         assert inv_src_pg.last_updated == last_updated, \
             "An inventory_update was unexpectedly triggered (last_updated changed)- %s" % \
@@ -396,6 +398,11 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         assert inv_src_pg.last_job_run == last_job_run, \
             "An inventory_update was unexpectedly triggered (last_job_run changed)- %s" % \
             json.dumps(inv_src_pg.json, indent=4)
+
+        # check that jobs ran sequentially and in the right order
+        sorted_unified_jobs = [inv_update_pg, job_pg]
+        check_sequential_jobs(sorted_unified_jobs)
+        check_job_order(sorted_unified_jobs)
 
     def test_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
         """Verify that two project updates are triggered by a job launch when we
@@ -419,20 +426,27 @@ class Test_Autospawned_Jobs(Base_Api_Test):
             "Unexpected job_type for our initial project update: {0}.".format(initial_update.job_type)
 
         # launch job_template and wait for completion
-        job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
+        job_pg = job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
 
         # check our new project updates are successful
         final_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id)
         assert final_updates.count == 2, \
             "Unexpected number of final updates."
         for update in final_updates.results:
-            assert update.wait_until_completed().is_successful, "Project update unsuccessful."
+            assert update.is_successful, "Project update unsuccessful."
 
         # check that our new project updates are of the right type
-        assert project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='check').count == 1, \
-            "Expected one new project update of job_type 'check'."
-        assert project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='run').count == 1, \
-            "Expected one new project update of job_type 'run'."
+        spawned_check_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='check')
+        spawned_run_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='run')
+        assert spawned_check_updates.count == 1, "Unexpected number of new check project updates."
+        assert spawned_run_updates.count == 1, "Unexpected number of new run project updates."
+        spawned_check_update, spawned_run_update = spawned_check_updates.results.pop(), spawned_run_updates.results.pop()
+
+        # check that jobs ran sequentially and in the right order
+        check_overlapping_jobs([job_pg, spawned_run_update])
+        sorted_unified_jobs = [initial_update, spawned_check_update, [job_pg, spawned_run_update]]
+        check_sequential_jobs(sorted_unified_jobs)
+        check_job_order(sorted_unified_jobs)
 
     def test_project_cache_timeout(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
         """Verify that a project update of job_type "run" gets triggered by a job
@@ -457,15 +471,22 @@ class Test_Autospawned_Jobs(Base_Api_Test):
             "Unexpected job_type for our initial project update: {0}.".format(initial_update.job_type)
 
         # launch job_template and wait for completion
-        job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
+        job_pg = job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
 
         # check that our new project update completes successfully and is of the right type
         final_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id)
         assert final_updates.count == 1, \
             "Unexpected number of final updates."
-        assert final_updates.results.pop().wait_until_completed().is_successful, "Project update unsuccessful."
-        assert project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='run').count == 1, \
+        final_update = final_updates.results.pop()
+        assert final_update.is_successful, "Project update unsuccessful."
+        assert final_update.job_type == 'run', \
             "Expected one new project update of job_type 'run'."
+
+        # check that jobs ran sequentially and in the right order
+        check_overlapping_jobs([job_pg, final_update])
+        sorted_unified_jobs = [initial_update, [job_pg, final_update]]
+        check_sequential_jobs(sorted_unified_jobs)
+        check_job_order(sorted_unified_jobs)
 
     def test_inventory_and_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git,
                                    cloud_group):
@@ -477,7 +498,8 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         'check.'
         * Our JT launch should spawn two additional project updates: one of
         job_type 'check' and one of job_type 'run.'
-        * Our JT launch should spawn an inventory update.
+        * Our JT launch should spawn an inventory update. This inventory update
+        is supposed to run simultaneously with our check project update.
         """
         # set scm_update_on_launch for the project
         project_ansible_playbooks_git.patch(scm_update_on_launch=True)
@@ -501,28 +523,40 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         job_template_ansible_playbooks_git.patch(inventory=cloud_group.inventory, playbook='debug.yml')
 
         # launch job_template and wait for completion
-        job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
+        job_pg = job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
 
         # check our new project updates are successful
         final_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id)
         assert final_updates.count == 2, \
             "Unexpected number of final updates."
         for update in final_updates.results:
-            assert update.wait_until_completed().is_successful, "Project update unsuccessful."
+            assert update.is_successful, "Project update unsuccessful."
 
         # check that our new project updates are of the right type
-        assert project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='check').count == 1, \
+        spawned_check_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='check')
+        spawned_run_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='run')
+        assert spawned_check_updates.count == 1, \
             "Expected one new project update of job_type 'check'."
-        assert project_ansible_playbooks_git.related.project_updates.get(not__id=initial_update.id, job_type='run').count == 1, \
+        assert spawned_run_updates.count == 1, \
             "Expected one new project update of job_type 'run'."
+        spawned_check_update, spawned_run_update = spawned_check_updates.results.pop(), spawned_run_updates.results.pop()
 
-        # ensure inventory_update was triggered and is successful
+        # check that inventory update was triggered and is successful
         inv_src_pg.get()
         assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s" % \
             json.dumps(inv_src_pg.json, indent=4)
         assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s" % \
             json.dumps(inv_src_pg.json, indent=4)
-        assert inv_src_pg.is_successful, "inventory_source unsuccessful - %s" % json.dumps(inv_src_pg.json, indent=4)
+        inv_update = inv_src_pg.related.inventory_updates.get().results.pop()
+        assert inv_update.is_successful, "Inventory update unsuccessful - {0}.".format(inv_update)
+        assert inv_src_pg.is_successful, "Inventory source unsuccessful - {0}.".format(inv_src_pg)
+
+        # check that jobs ran sequentially and in the right order
+        check_overlapping_jobs([spawned_check_update, inv_update])
+        check_overlapping_jobs([job_pg, spawned_run_update])
+        sorted_unified_jobs = [initial_update, [spawned_check_update, inv_update], [job_pg, spawned_run_update]]
+        check_sequential_jobs(sorted_unified_jobs)
+        check_job_order(sorted_unified_jobs)
 
 
 @pytest.mark.api
