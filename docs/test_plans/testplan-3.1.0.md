@@ -63,7 +63,6 @@ Cache timeout:
 
 1. [x] Cache timeout respected for inventory updates. If we're within our timeout window, no additional updates should get spawned.
 1. [x] Cache timeout respected for project updates. If we're within our timeout window, we still get a "run" project update
-1. [x] Cache timeout respected when we have cache timeouts for both our inventory sources and project. Project should have a "run" update, inventory sources should not update.
 
 General acceptance criteria:
 
@@ -76,7 +75,6 @@ General acceptance criteria:
 1. [x] For a related inventory, only a job xor inventory update(s) may be running
 1. [x] Only one job for a JT may be running (allow_simultaneous feature relaxes this condition)
 1. [x] Only one system job may be running
-
 
 ### Logging
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/logging_integration.md)
@@ -98,7 +96,6 @@ General acceptance criteria:
     - [x] job event
     - [x] fact scan / system tracking
     - [x] job status updates
-
 
 ### Channels (Ryan)
 1. [x] \(Un\)subscription functional for inventory updates

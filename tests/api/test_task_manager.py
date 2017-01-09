@@ -59,8 +59,8 @@ def wait_for_jobs_to_finish(jobs):
 
 
 def construct_time_series(jobs):
-    """Helper function used to create time-series data for job sequencing. Create
-    a list whose elements are a list of the start and end times of either:
+    """Helper function used to create time-series data for job sequence testing.
+    Create a list whose elements are a list of the start and end times of either:
     A) A unified job.
     B) A list of unified jobs. When given a list of unified jobs, make our entry
     a list whose first element is the first 'started' time of these jobs. Make the
@@ -73,6 +73,8 @@ def construct_time_series(jobs):
     intervals = list()
     for entry in jobs:
         if isinstance(entry, list):
+            # make sure that we actually have overlapping jobs
+            check_overlapping_jobs(entry)
             first_started = min([job.started for job in entry])
             last_finished = max([job.finished for job in entry])
             intervals.append([first_started, last_finished])
@@ -89,12 +91,13 @@ def check_sequential_jobs(jobs):
     unified jobs.
     """
     # sort time series by 'started' value
-    time_series = sorted(construct_time_series(jobs), key=lambda x: x[0])
+    sorted_time_series = sorted(construct_time_series(jobs), key=lambda x: x[0])
 
     # check that we don't have overlapping elements
-    for i in range(1, len(time_series)):
-        assert time_series[i-1][1] < time_series[i][0], \
-            "Job overlap found: we have an instance where one job starts before the previous job finishes."
+    for i in range(1, len(sorted_time_series)):
+        assert sorted_time_series[i-1][1] < sorted_time_series[i][0], \
+            "Job overlap found: we have an instance where one job starts before the previous job finishes."\
+            "\n\nTime series used: {0}.".format(sorted_time_series)
 
 
 def check_overlapping_jobs(jobs):
@@ -103,24 +106,24 @@ def check_overlapping_jobs(jobs):
     """
     jobs = sorted(jobs, key=lambda x: x.started)
 
-    # assert that job1 started before job2 finished
+    # assert that job1 starts before job2 finishes
     assert du_parse(jobs[0].started) < du_parse(jobs[1].finished)
-    # assert that job1 finished after job2 started
+    # assert that job1 finishes after job2 starts
     assert du_parse(jobs[0].finished) > du_parse(jobs[1].started)
 
 
 def check_job_order(jobs):
-    """Helper function that will check whether jobs ran in the right order. How
-    this works:
+    """Helper function that will check whether jobs ran in the right order.
+    How this works:
     * Sort elements by 'started' time.
     * Sort elements by 'finished' time.
-    * Check that our series sequence remains unchanged after both sorts.
+    * Check that our series order remains unchanged after both sorts.
 
     jobs: A list of page objects where we expect to have:
           jobs[0].started < jobs[1].started < jobs[i+2].started ...
           jobs[0].finished < jobs[1].finished < job[i+2].finished ...
-    Note: jobs may also support a list of jobs as an entry. See the documentation
-    for construct_time_series for more details.
+    Note: jobs may also be a list of jobs. See the documentation for
+    construct_time_series for more details.
     """
     time_series = construct_time_series(jobs)
 
@@ -143,13 +146,12 @@ class Test_Sequential_Jobs(Base_Api_Test):
 
     def test_project_update(self, project):
         """Test a project may only have one project update running at a time. Here, we launch
-        three project updates on the same project and then check that only one update was
-        running at any given point in time. Project updates should run in the order spawned.
+        three project updates on the same project and then check that:
+        * Only one update was running at any given point in time.
+        * Project updates ran in the order spawned.
         """
-        updates = project.related.project_updates.get()
-
         # get three project updates
-        update1 = updates.results.pop()
+        update1 = project.related.project_updates.get().results.pop()
         update2 = project.update()
         update3 = project.update()
         ordered_updates = [update1, update2, update3]
@@ -158,14 +160,14 @@ class Test_Sequential_Jobs(Base_Api_Test):
         # check that we have no overlapping project updates
         check_sequential_jobs(ordered_updates)
 
-        # check that updates ran in correct order
+        # check that updates ran in the correct order
         check_job_order(ordered_updates)
 
     def test_inventory_update(self, custom_inventory_source):
         """Test an inventory source may only have one inventory update running at a time. Here,
-        we launch three inventory updates on the same inventory source and then check that only one
-        update was running at any given point in time. Inventory updates should run in the order
-        spawned.
+        we launch three inventory updates on the same inventory source and then check that:
+        * Only one update was running at any given point in time.
+        * Inventory updates ran in the order spawned.
         """
         # launch three updates
         update1 = custom_inventory_source.update()
@@ -177,12 +179,13 @@ class Test_Sequential_Jobs(Base_Api_Test):
         # check that we have no overlapping inventory updates
         check_sequential_jobs(ordered_updates)
 
-        # check that updates ran in correct order
+        # check that updates ran in the correct order
         check_job_order(ordered_updates)
 
     def test_job_template(self, job_template):
-        """Launch several jobs using the same JT. Assert no job was running when another job was
-        running. Jobs should run in the order launched.
+        """Launch several jobs using the same JT. Check that:
+        * No jobs ran simultaneously.
+        * Jobs ran in the order spawned.
         """
         # launch three jobs
         job1 = job_template.launch()
@@ -194,14 +197,15 @@ class Test_Sequential_Jobs(Base_Api_Test):
         # check that we have no overlapping jobs
         check_sequential_jobs(ordered_jobs)
 
-        # check that jobs ran in correct order
+        # check that jobs ran in the correct order
         check_job_order(ordered_jobs)
 
     def test_job_template_with_allow_simultaneous(self, job_template):
         """Launch two jobs using the same JT with allow_simultaneous enabled. Assert that we have
         overlapping jobs.
         """
-        job_template.patch(allow_simultaneous=True, playbook="sleep.yml", extra_vars=json.dumps(dict(sleep_interval=10)))
+        job_template.patch(allow_simultaneous=True, playbook="sleep.yml",
+                           extra_vars=json.dumps(dict(sleep_interval=10)))
 
         # launch two jobs
         job_1 = job_template.launch()
@@ -213,20 +217,23 @@ class Test_Sequential_Jobs(Base_Api_Test):
         check_overlapping_jobs(jobs)
 
     def test_system_job(self, system_jobs):
-        """Launch all three of our system jobs. Assert no system job was running when another system
-        job was running. System jobs should run in the order launched.
+        """Launch all three of our system jobs. Check that:
+        * No system jobs were running simultaneously.
+        * System jobs ran in the order spawned.
         """
         wait_for_jobs_to_finish(system_jobs)
 
         # check that we have no overlapping system jobs
         check_sequential_jobs(system_jobs)
 
-        # check that jobs ran in correct order
+        # check that jobs ran in the correct order
         check_job_order(system_jobs)
 
     def test_related_project_update(self, job_template):
-        """If a project is used in a JT, then spawned jobs and updates must run sequentially. Unified
-        jobs should run in the order launched.
+        """If a project is used in a JT, then spawned jobs and updates must run sequentially.
+        Check that:
+        * Spawned unified jobs run sequentially.
+        * Unified jobs run in the order launched.
         """
         project = job_template.related.project.get()
 
@@ -239,12 +246,14 @@ class Test_Sequential_Jobs(Base_Api_Test):
         # check that our update and job ran sequentially
         check_sequential_jobs(sorted_unified_jobs)
 
-        # check that jobs ran in correct order
+        # check that jobs ran in the correct order
         check_job_order(sorted_unified_jobs)
 
     def test_related_inventory_update(self, job_template, custom_group):
         """If an inventory is used in a JT and has a group that allows for updates, then spawned
-        jobs and updates must run sequentially. Unified jobs should run in the order launched.
+        jobs and updates must run sequentially. Check that:
+        * Spawned unified jobs run sequentially.
+        * Unified jobs run in the order launched.
         """
         inv_source = custom_group.related.inventory_source.get()
 
@@ -257,7 +266,7 @@ class Test_Sequential_Jobs(Base_Api_Test):
         # check that our update and job ran sequentially
         check_sequential_jobs(sorted_unified_jobs)
 
-        # check that jobs ran in correct order
+        # check that jobs ran in the correct order
         check_job_order(sorted_unified_jobs)
 
 
