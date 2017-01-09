@@ -30,6 +30,62 @@ def assess_created_elements(elements, criteria, expected_count):
         "Looked through these elements:\n{3}".format(expected_count, count, criteria, elements)
 
 
+@pytest.fixture
+def modify_settings(update_setting_pg):
+    """Helper fixture used for changing Tower settings."""
+
+    def func():
+        """Change one setting under each nested /api/v1/settings/ endpoint. The setting selected
+        must not change the system in a manner that will interfere with tests.
+
+        Example: disabiling "AUTH_BASIC_ENABLED" will cause Tower to reject all subsequent REST
+        requests.
+        """
+        # update Tower settings
+        payload = dict(AUTH_TOKEN_EXPIRATION=100000,  # /api/v1/settings/authtoken/
+                       SOCIAL_AUTH_AZUREAD_OAUTH2_KEY="test",  # /api/v1/settings/azuread-oauth2/
+                       SOCIAL_AUTH_GITHUB_KEY="test",  # /api/v1/settings/settings/github/
+                       SOCIAL_AUTH_GITHUB_ORG_KEY="test",  # /api/v1/settings/settings/github-org/
+                       SOCIAL_AUTH_GITHUB_TEAM_KEY="test",  # /api/v1/settings/settings/github-team/
+                       SOCIAL_AUTH_GOOGLE_OAUTH2_KEY="test",  # /api/v1/settings/google-oauth2/
+                       SCHEDULE_MAX_JOBS=30,  # /api/v1/settings/jobs/
+                       AUTH_LDAP_SERVER_URI="ldap://ldap.test.com:777",  # /api/v1/settings/ldap/
+                       LOG_AGGREGATOR_USERNAME="test",  # /api/v1/settings/logging/
+                       RADIUS_PORT=1000,  # /api/v1/settings/radius/
+                       SOCIAL_AUTH_SAML_SP_ENTITY_ID="test",  # /api/v1/settings/saml/
+                       TOWER_ADMIN_ALERTS=False,  # /api/v1/settings/system/
+                       CUSTOM_LOGIN_INFO="test")  # /api/v1/settings/ui/
+        update_setting_pg("api_settings_all_pg", payload)
+        return payload
+    return func
+
+
+@pytest.fixture
+def modify_obfuscated_settings(update_setting_pg, unencrypted_rsa_ssh_key_data):
+    """Helper fixture used for changing Tower settings."""
+
+    def func():
+        """Change all settings that need to get obfuscated by the API. The setting selected
+        must not change the system in a manner that will interfere with tests.
+
+        Example: disabiling "AUTH_BASIC_ENABLED" will cause Tower to reject all subsequent REST
+        requests.
+        """
+        # update Tower settings
+        payload = dict(SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET="test",  # /api/v1/settings/azuread-oauth2/
+                       SOCIAL_AUTH_GITHUB_SECRET="test",  # /api/v1/settings/github/
+                       SOCIAL_AUTH_GITHUB_ORG_SECRET="test",  # /api/v1/settings/github-org/
+                       SOCIAL_AUTH_GITHUB_TEAM_SECRET="test",  # /api/v1/settings/github-team/
+                       SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET="test",  # /api/v1/settings/google-oauth2//
+                       AUTH_LDAP_BIND_PASSWORD="test",  # /api/v1/settings/ldap/
+                       LOG_AGGREGATOR_PASSWORD="test",  # /api/v1/settings/logging/
+                       RADIUS_SECRET="test",  # /api/v1/settings/radius/
+                       SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=unencrypted_rsa_ssh_key_data)  # /api/v1/settings/saml/
+        update_setting_pg("api_settings_all_pg", payload)
+        return payload
+    return func
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -95,7 +151,7 @@ class Test_Setting(Base_Api_Test):
                 % (module_name, json.dumps(result))
 
     def test_relaunch_with_excluded_module(self, ad_hoc_with_status_completed, update_setting_pg):
-        """Verifies that you cannot relaunch a command which has been removedfrom AD_HOC_COMMANDS."""
+        """Verifies that you cannot relaunch a command which has been removed from AD_HOC_COMMANDS."""
         # update allowed commands
         payload = dict(AD_HOC_COMMANDS=[])
         update_setting_pg('api_settings_jobs_pg', payload)
@@ -412,3 +468,51 @@ class Test_Setting(Base_Api_Test):
         assert license_info == returned_license, \
             "Discrepancy between license and license displayed under /api/v1/settings/system/." \
             "\n\nLicense:\n{0}\n\nAPI returned:\n{1}\n".format(json.dumps(license_info), json.dumps(returned_license))
+
+    def test_changed_settings(self, modify_settings, api_settings_changed_pg):
+        """Verifies that changed entries show under /api/v1/settings/changed/.
+        Note: "TOWER_URL_BASE" and "LICENSE" always show here regardless of
+        the changes that we make.
+        """
+        payload = modify_settings()
+        settings_changed = api_settings_changed_pg.get()
+
+        # check that all of our updated settings are present under /api/v1/settings/changed/
+        assert all([item in settings_changed.json.items() for item in payload.items()]), \
+            "Not all changed entries listed under /api/v1/settings/changed/."
+        # check for two additional entries under /api/v1/settings/changed/
+        assert set(settings_changed.json.keys()) - set(payload.keys()) == set([u'TOWER_URL_BASE', u'LICENSE']), \
+            "Unexpected additional items listed under /api/v1/settings/changed/."
+
+    def test_setting_obfuscation(self, api_settings_pg, modify_obfuscated_settings):
+        """Verifies that sensitive setting values get obfuscated."""
+        payload = modify_obfuscated_settings()
+
+        # check that all nested settings endpoints have sensitive values obfuscated
+        api_settings_pg.get()
+        for endpoint in api_settings_pg.results:
+            endpoint.get()
+            relevant_keys = [key for key in endpoint.json.keys() if key in payload and key in endpoint.json]
+            for key in relevant_keys:
+                assert endpoint.json[key] == "$encrypted$", \
+                    "\"{0}\" not obfuscated in {1}.".format(key, endpoint.base_url)
+
+    def test_reset_setting(self, setting_pg, modify_settings):
+        """Verifies that settings get restored to factory defaults with a DELETE request."""
+        # store initial endpoint JSON
+        initial_json = setting_pg.get().json
+
+        # update settings and check for changes
+        payload = modify_settings()
+        updated_json = setting_pg.get().json
+        assert any([item in updated_json.items() for item in payload.items()]), \
+            "No changed entry found under {0}.".format(setting_pg.base_url)
+        assert initial_json != updated_json, \
+            "Expected {0} to look different after changing Tower settings.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
+                setting_pg.base_url, initial_json, updated_json)
+
+        # reset nested settings endpoint and check that defaults restored
+        setting_pg.delete()
+        assert initial_json == setting_pg.get().json, \
+            "Expected {0} to be reverted to initial state after submitting DELETE request.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
+                setting_pg.base_url, initial_json, setting_pg.json)
