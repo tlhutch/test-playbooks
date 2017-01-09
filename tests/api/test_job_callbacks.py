@@ -77,10 +77,11 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # issue a GET to the callback page from the Tower host
         args = dict(method="GET",
                     status_code=httplib.OK,
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
+                    url="https://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
                     user=testsetup.credentials['users']['admin']['username'],
                     password=testsetup.credentials['users']['admin']['password'],
-                    force_basic_auth=True)
+                    force_basic_auth=True,
+                    validate_certs=False)
         contacted = ansible_runner.uri(**args)
 
         # verify response
@@ -108,8 +109,9 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # trigger callback
         args = dict(method="POST",
                     status_code=httplib.CREATED,
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
-                    body="host_config_key=%s" % host_config_key,)
+                    url="https://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
+                    body="host_config_key=%s" % host_config_key,
+                    validate_certs=False)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         contacted = ansible_runner.uri(**args)
 
@@ -129,8 +131,9 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         args = dict(method="POST",
                     status_code=httplib.CREATED,
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
-                    body="host_config_key=%s" % host_config_key,)
+                    url="https://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
+                    body="host_config_key=%s" % host_config_key,
+                    validate_certs=False)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         contacted = ansible_runner.uri(**args)
 
@@ -152,8 +155,9 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         args = dict(method="POST",
                     status_code=httplib.CREATED,
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
-                    body="host_config_key=%s" % host_config_key,)
+                    url="https://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
+                    body="host_config_key=%s" % host_config_key,
+                    validate_certs=False)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         contacted = ansible_runner.uri(**args)
 
@@ -172,8 +176,9 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # trigger callback
         args = dict(method="POST",
                     status_code=httplib.CREATED,
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
-                    body="host_config_key=BOGUS",)
+                    url="https://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
+                    body="host_config_key=BOGUS",
+                    validate_certs=False)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         contacted = ansible_runner.uri(**args)
 
@@ -194,8 +199,9 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # trigger callback
         args = dict(method="POST",
                     status_code=httplib.CREATED,
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template_no_credential.json['related']['callback']),
-                    body="host_config_key=%s" % host_config_key,)
+                    url="https://%s/%s" % (ansible_default_ipv4, job_template_no_credential.json['related']['callback']),
+                    body="host_config_key=%s" % host_config_key,
+                    validate_certs=False)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         contacted = ansible_runner.uri(**args)
 
@@ -214,8 +220,9 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # trigger callback
         args = dict(method="POST",
                     status_code=httplib.CREATED,
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template_ask.json['related']['callback']),
-                    body="host_config_key=%s" % host_config_key,)
+                    url="https://%s/%s" % (ansible_default_ipv4, job_template_ask.json['related']['callback']),
+                    body="host_config_key=%s" % host_config_key,
+                    validate_certs=False)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         contacted = ansible_runner.uri(**args)
 
@@ -237,8 +244,9 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # trigger callback
         args = dict(method="POST",
                     status_code=httplib.CREATED,
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template_variables_needed_to_start.json['related']['callback']),
-                    body="host_config_key=%s" % host_config_key,)
+                    url="https://%s/%s" % (ansible_default_ipv4, job_template_variables_needed_to_start.json['related']['callback']),
+                    body="host_config_key=%s" % host_config_key,
+                    validate_certs=False)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         contacted = ansible_runner.uri(**args)
 
@@ -263,8 +271,9 @@ class Test_Job_Template_Callback(Base_Api_Test):
         args = dict(method="POST",
                     timeout=60,
                     status_code=httplib.CREATED,
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template_with_random_limit.json['related']['callback']),
-                    body="host_config_key=%s" % host_config_key,)
+                    url="https://%s/%s" % (ansible_default_ipv4, job_template_with_random_limit.json['related']['callback']),
+                    body="host_config_key=%s" % host_config_key,
+                    validate_certs=False)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         contacted = ansible_runner.uri(**args)
 
@@ -299,9 +308,13 @@ class Test_Job_Template_Callback(Base_Api_Test):
         args = dict(method="POST",
                     timeout=60,
                     status_code=httplib.CREATED,
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
-                    body="host_config_key=%s" % host_config_key,)
-        args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
+                    url="https://%s%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
+                    body_format='json',
+                    body=dict(host_config_key=host_config_key,
+                              extra_vars=dict(dont_filter_me=True,
+                                              ansible_filter_me=1234)),
+                    validate_certs=False)
+        args["HEADER_Content-Type"] = "application/json"
         contacted = ansible_runner.uri(**args)
 
         # verify callback response
@@ -331,6 +344,10 @@ class Test_Job_Template_Callback(Base_Api_Test):
         # Assert the affected host matches expected
         assert host_summaries_pg.results[0].host == host_with_default_ipv4_in_variables.id
 
+        # Assert that ansible_* extra_var is filtered
+        assert('ansible_filter_me' not in job_pg.extra_vars)
+        assert('dont_filter_me' in job_pg.extra_vars)
+
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3534")
     def test_launch_multiple(self, api_jobs_url, ansible_runner, job_template, host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4):
         """Verify that issuing a callback, while a callback job from the same host
@@ -345,12 +362,13 @@ class Test_Job_Template_Callback(Base_Api_Test):
 
         # issue multiple callbacks, only the first should succeed
         for attempt in range(3):
-            callback_url = "http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback'])
+            callback_url = "https://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback'])
             args = dict(method="POST",
                         timeout=60,
                         status_code=httplib.CREATED,
                         url=callback_url,
-                        body="host_config_key=%s" % host_config_key,)
+                        body="host_config_key=%s" % host_config_key,
+                        validate_certs=False)
             args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
             contacted = ansible_runner.uri(**args)
 
@@ -424,8 +442,9 @@ class Test_Job_Template_Callback(Base_Api_Test):
         args = dict(method="POST",
                     timeout=240,
                     status_code=[httplib.CREATED, httplib.BAD_REQUEST],
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
-                    body="host_config_key=%s" % host_config_key,)
+                    url="https://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
+                    body="host_config_key=%s" % host_config_key,
+                    validate_certs=False)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         contacted = ansible_runner.uri(**args)
 
@@ -482,8 +501,9 @@ class Test_Job_Template_Callback(Base_Api_Test):
         args = dict(method="POST",
                     timeout=60,
                     status_code=[httplib.CREATED, httplib.BAD_REQUEST],
-                    url="http://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
-                    body="host_config_key=%s" % host_config_key,)
+                    url="https://%s/%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
+                    body="host_config_key=%s" % host_config_key,
+                    validate_certs=False)
         args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
         contacted = ansible_runner.uri(**args)
 
