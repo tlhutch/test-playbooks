@@ -500,9 +500,6 @@ def custom_inventory_source(request, authtoken, custom_group):
 #
 @pytest.fixture(scope="function", params=['aws', 'rax', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2', 'openstack_v3'])
 def cloud_group(request, ansible_os_family, ansible_distribution_major_version):
-    # add in temporary pytest marker
-    if request.param in ['azure', 'azure_ad']:
-        pytest.skip(msg='https://github.com/ansible/ansible-tower/issues/3493')
     # new-style azure inventory imports are not supported on EL6 systems
     if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param in ['azure', 'azure_ad']):
         pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
@@ -530,8 +527,6 @@ def cloud_group_supporting_source_regions(ansible_os_family, ansible_distributio
     # Skip cited test until we have a fixture to provision a rackspace instance
     if request.param == 'rax' and request.function.__name__ == 'test_inventory_update_with_populated_source_region':
         pytest.skip(msg='https://github.com/ansible/tower-qa/issues/649')
-    if request.param == 'azure':
-        pytest.skip(msg='https://github.com/ansible/ansible-tower/issues/3493')
     if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param == 'azure'):
         pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
     return request.getfuncargvalue(request.param + '_group')
