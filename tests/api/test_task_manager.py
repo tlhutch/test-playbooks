@@ -238,7 +238,7 @@ class Test_Sequential_Jobs(Base_Api_Test):
         check_job_order(ordered_commands)
 
     def test_simultaneous_ad_hoc_commands(self, request, v1):
-        """Launch two ad hoc commands on different inventories. Check that:
+        """Launch two ad hoc commands on different inventories. Check that
         our commands run simultaneously.
         """
         host1 = v1.hosts.create()
