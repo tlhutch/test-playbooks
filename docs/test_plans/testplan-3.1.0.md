@@ -135,7 +135,7 @@ General acceptance criteria:
 1. [ ] Expected job events are visible for playbooks with async tasks
 1. [ ] Expected job events are visible for playbooks when free strategy is used
 
-### Workflows (Jim)
+### Workflows (Jim) (Progress: 12/28 = 43%)
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/workflow.md)
 
 #### CRUD-related
@@ -143,14 +143,15 @@ General acceptance criteria:
 1. [x] Verify that CRUD operations on all workflow resources are working properly. Note workflow job nodes cannot be created or deleted independently, but verifications are needed to make sure when a workflow job is deleted, all its related workflow job nodes are deleted.
 1. [ ] Verify the RBAC property of workflow resources. More specifically:
  - [x] Workflow job templates can only be accessible by superusers ---- system admin, admin of the same organization and system auditor and auditor of the same organization with read permission only.
- - [ ] Workflow jobs follows the permission rules of its associated workflow job template.
+ - [x] Workflow jobs follows the permission rules of its associated workflow job template.
  - [ ] Workflow job template nodes rely their permission rules on the permission rules of both their associated workflow job template and unified job template.
  - [ ] Workflow job nodes follows the permission rules of both its associated workflow job and unified job.
+ - [ ] Copying WFJTs (TODO: Flesh out rules)
 1. [x] Verify that workflow job template nodes can be created under, or (dis)associated with workflow job templates.
 1. [x] Verify that only the permitted types of job template types can be associated with a workflow job template node. Currently the permitted types are job templates, inventory sources and projects.
 1. [x] Verify that workflow job template nodes under the same workflow job template can be associated to form parent-child relationship of decision trees. More specifically, one node takes another as its child node by POSTing another node's id to one of the three endpoints: /success_nodes/, /failure_nodes/ and /always_nodes/.
-1. [ ] Verify that workflow job template nodes are not allowed to have invalid association. Any attempt to create an invalid association will trigger 400-level response. The three types of invalid associations are cycle, convergence(multiple parent) and mutex('always' XOR the rest).
-1. [ ] Verify that a workflow job template can be successfully copied and the created workflow job template does not miss any field that should be copied or intentionally modified.
+1. [x] Verify that workflow job template nodes are not allowed to have invalid association. Any attempt to create an invalid association will trigger 400-level response. The three types of invalid associations are cycle, convergence(multiple parent) and mutex('always' XOR the rest).
+1. [x] Verify that a workflow job template can be successfully copied and the created workflow job template does not miss any field that should be copied or intentionally modified.
 1. [ ] Verify that if a user has no access to any of the related resources of a workflow job template node, that node will not be copied and will have null as placeholder.
 
 #### Task-related
