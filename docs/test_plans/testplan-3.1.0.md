@@ -73,7 +73,9 @@ General acceptance criteria:
 1. [x] Only one inventory update for an inventory source may be running
 1. [x] For a related project, only a job xor project update may be running
 1. [x] For a related inventory, only a job xor inventory update(s) may be running
+1. [x] For a related inventory, only a command xor inventory update(s) may be running
 1. [x] Only one job for a JT may be running (allow_simultaneous feature relaxes this condition)
+1. [x] Only one command for an inventory may be running
 1. [x] Only one system job may be running
 
 ### Logging

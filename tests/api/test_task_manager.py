@@ -95,7 +95,7 @@ def check_sequential_jobs(jobs):
 
     # check that we don't have overlapping elements
     for i in range(1, len(sorted_time_series)):
-        assert sorted_time_series[i-1][1] < sorted_time_series[i][0], \
+        assert sorted_time_series[i - 1][1] < sorted_time_series[i][0], \
             "Job overlap found: we have an instance where one job starts before the previous job finishes."\
             "\n\nTime series used: {0}.".format(sorted_time_series)
 
@@ -216,6 +216,45 @@ class Test_Sequential_Jobs(Base_Api_Test):
         # check that we have overlapping jobs
         check_overlapping_jobs(jobs)
 
+    def test_sequential_ad_hoc_commands(self, request, v1):
+        """Launch three ad hoc commands on the same inventory. Check that:
+        * No commands ran simultaneously.
+        * Commands ran in the order spawned.
+        """
+        host = v1.hosts.create()
+        request.addfinalizer(host.teardown)
+
+        # lauch three commands
+        ahc1 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
+        ahc2 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
+        ahc3 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
+        ordered_commands = [ahc1, ahc2, ahc3]
+        wait_for_jobs_to_finish(ordered_commands)
+
+        # check that we have no overlapping commands
+        check_sequential_jobs(ordered_commands)
+
+        # check that commands ran in the correct order
+        check_job_order(ordered_commands)
+
+    def test_simultaneous_ad_hoc_commands(self, request, v1):
+        """Launch two ad hoc commands on different inventories. Check that:
+        our commands run simultaneously.
+        """
+        host1 = v1.hosts.create()
+        request.addfinalizer(host1.teardown)
+        host2 = v1.hosts.create()
+        request.addfinalizer(host2.teardown)
+
+        # launch two commands
+        ahc1 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host1.ds.inventory)
+        ahc2 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host2.ds.inventory)
+        ordered_commands = [ahc1, ahc2]
+        wait_for_jobs_to_finish(ordered_commands)
+
+        # check that we have overlapping commands
+        check_overlapping_jobs(ordered_commands)
+
     def test_system_job(self, system_jobs):
         """Launch all three of our system jobs. Check that:
         * No system jobs were running simultaneously.
@@ -249,7 +288,7 @@ class Test_Sequential_Jobs(Base_Api_Test):
         # check that jobs ran in the correct order
         check_job_order(sorted_unified_jobs)
 
-    def test_related_inventory_update(self, job_template, custom_group):
+    def test_related_inventory_update_with_job(self, job_template, custom_group):
         """If an inventory is used in a JT and has a group that allows for updates, then spawned
         jobs and updates must run sequentially. Check that:
         * Spawned unified jobs run sequentially.
@@ -267,6 +306,29 @@ class Test_Sequential_Jobs(Base_Api_Test):
         check_sequential_jobs(sorted_unified_jobs)
 
         # check that jobs ran in the correct order
+        check_job_order(sorted_unified_jobs)
+
+    def test_related_inventory_update_with_command(self, request, v1):
+        """If an inventory is used in a command and has a group that allows for updates, then spawned
+        commands and updates must run sequentially. Check that:
+        * Spawned unified jobs run sequentially.
+        * Unified jobs run in the order launched.
+        """
+        inventory_script = v1.inventory_scripts.create()
+        request.addfinalizer(inventory_script.teardown)
+        custom_group = v1.groups.create(inventory_script=inventory_script)
+        request.addfinalizer(custom_group.teardown)
+
+        # launch unified jobs
+        update = custom_group.related.inventory_source.get().update()
+        command = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=custom_group.ds.inventory)
+        sorted_unified_jobs = [update, command]
+        wait_for_jobs_to_finish(sorted_unified_jobs)
+
+        # check that our update and command ran sequentially
+        check_sequential_jobs(sorted_unified_jobs)
+
+        # check that unified jobs ran in the correct order
         check_job_order(sorted_unified_jobs)
 
 
@@ -708,7 +770,6 @@ print json.dumps(inventory)
         assert project_pg.get().status == 'canceled', \
             "Unexpected project status (expected status:canceled) - %s." % project_pg
 
-    #FIXME
     def test_cancel_project_update_with_inventory_and_project_updates(self, job_template_with_project_django, custom_group):
         """Tests that if you cancel a scm update before it finishes that its
         dependent job fails. This test runs both inventory and SCM updates
@@ -754,7 +815,6 @@ print json.dumps(inventory)
         assert inv_update_pg.is_successful, "Inventory update unexpectedly unsuccessful - %s." % inv_update_pg
         assert inv_source_pg.get().is_successful, "inventory_source unexpectedly unsuccessful - %s." % inv_source_pg
 
-    #FIXME
     @pytest.mark.fixture_args(source_script="""#!/usr/bin/env python
 import json, time
 # sleep helps us cancel the inventory update
