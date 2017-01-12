@@ -1,0 +1,24 @@
+---
+
+- name: Install adhoc.py
+  copy:
+    src: ad_hoc.py
+    dest: /etc/tower/conf.d/ad_hoc.py
+    mode: 0755
+- name: Install radius.py
+  copy:
+    src: radius.py
+    dest: /etc/tower/conf.d/radius.py
+    mode: 0755
+- name: Install ldap.py
+  copy:
+    src: ldap.py 
+    dest: /etc/tower/conf.d/ldap.py
+    mode: 0755
+- name: Install session.py
+  copy:
+    src: session.py
+    dest: /etc/tower/conf.d/session.py 
+    mode: 0755
+- name: Restart ansible tower
+  command: ansible-tower-service restart

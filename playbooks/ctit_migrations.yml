@@ -1,0 +1,27 @@
+---
+- name: 'Create AWS instances'
+  hosts: local
+  roles:
+    - role: create_ec2
+    - role: save_inventory
+      my_inventory_file: '{{inventory_dir}}/inventory.ctit'
+
+- name: 'Install Tower'
+  hosts: 'all'
+  gather_facts: yes
+  become: true
+  become_method: sudo
+  roles:
+    - role: awx_setup
+  vars:
+    aw_repo_url: 'http://jenkins.testing.ansible.com/ansible-tower_nightlies_RTYUIOPOIUYTYU/release_3.0.3'
+    awx_setup_path: 'setup/ansible-tower-setup-latest.tar.gz'
+
+- name: 'Populate Tower instance with settings'
+  hosts: 'all'
+  gather_facts: yes
+  become: true
+  become_method: sudo
+  roles:
+    - role: ctit_migrations
+
