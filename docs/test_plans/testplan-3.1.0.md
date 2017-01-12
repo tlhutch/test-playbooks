@@ -25,11 +25,13 @@
 [Feature](https://drive.google.com/open?id=1Oc84TUnV2eh2Cy29vVfUfdJmV_qyg7NnTAEhuqoYdiQ)
 
 1. [ ] Test basic functionality of all /api/v1/settings/ endpoints.
-1. [ ] Test that that capabilities filtered by license.
+1. [x] Test that that capabilities filtered by license.
 1. [x] Test /api/v1/settings/ RBAC.
 1. [x] Test that DELETE resets an endpoint.
 1. [x] Test that changed entries listed under /api/v1/settings/changed/.
 1. [x] Test that sensitive values hidden on all settings endpoints.
+1. [ ] Test that static file settings override database settings.
+1. [ ] Test that static file settings make their API-partners read-only.
 1. [ ] Test that settings get migrated upon upgrade.
 
 ### Tower Module (Chris)
