@@ -196,3 +196,4 @@ AUTH_LDAP_TEAM_MAP = {
         'users': 'cn=sales,ou=groups,dc=example,dc=com',
         'remove': True,
     },
+}
