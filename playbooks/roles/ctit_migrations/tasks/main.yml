@@ -42,5 +42,19 @@
     mode: 0755
     owner: awx
     group: awx
+- name: Install console logo
+  copy:
+    src: custom_console_logo.png
+    dest: /var/lib/awx/public/static/assets/custom_console_logo.png
+    mode: 0755
+    owner: awx
+    group: awx
+- name: Install local_settings.json
+  copy:
+    src: local_settings.json
+    dest: /var/lib/awx/public/static/local_settings.json
+    mode: 0755
+    owner: awx
+    group: awx
 - name: Restart ansible tower
   command: ansible-tower-service restart
