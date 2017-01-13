@@ -87,13 +87,64 @@ SOCIAL_AUTH_GITHUB_TEAM_ID = '1824663'
 # Set to a URL for a domain name you own (does not need to be a valid URL;
 # only used as a unique ID).
 
-SOCIAL_AUTH_SAML_SP_ENTITY_ID = 'https://tower.example.com'
+SOCIAL_AUTH_SAML_SP_ENTITY_ID = 'https://ec2-54-226-127-168.compute-1.amazonaws.com'
 
 # Create a keypair for Tower to use as a service provider (SP) and include the
 # certificate and private key contents here.
 
-SOCIAL_AUTH_SAML_SP_PUBLIC_CERT = ''
-SOCIAL_AUTH_SAML_SP_PRIVATE_KEY = ''
+SOCIAL_AUTH_SAML_SP_PUBLIC_CERT = '''
+-----BEGIN CERTIFICATE-----
+MIIDhTCCAm2gAwIBAgIJAOmNmsPuoqz6MA0GCSqGSIb3DQEBCwUAMFgxCzAJBgNV
+BAYTAlVTMQswCQYDVQQIDAJOQzEQMA4GA1UEBwwHUmFsZWlnaDEQMA4GA1UECgwH
+QW5zaWJsZTEYMBYGA1UEAwwPd3d3LmFuc2libGUuY29tMCAXDTE3MDExMzA3MTEw
+NVoYDzIyOTAxMDI4MDcxMTA1WjBYMQswCQYDVQQGEwJVUzELMAkGA1UECAwCTkMx
+EDAOBgNVBAcMB1JhbGVpZ2gxEDAOBgNVBAoMB0Fuc2libGUxGDAWBgNVBAMMD3d3
+dy5hbnNpYmxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOTZ
+rFka/55q7+jfxxAouon0iMgHEqlaTzcF25X+4vJbbSDY6F/+ecGvrFcegrXp8srM
+m61SwGvnC1SEUxOue+zqbUCZMqWB9lQi9WuliXD6Ya9BoxJ/CMgVy2IQz8gHopHs
+E4PJVsNq7POp++ozmN55m+sTL4RXbm9PNQq1tpPj/787q2+j1bq/h1v6mCghXVHZ
+gkJnr7nn/SyLS/ve9KjQO7voqTSurKtFSkaBrcY4RONLULZqj1Biih0WTD4WCfYj
+7+nLT+7iEnUyeIovPxXRYCZ7FJWr0dl96T/WGkhEdWUS0qgyFweRgWk11ZIudqTA
+Awym/qz6ONO9fTPS2dkCAwEAAaNQME4wHQYDVR0OBBYEFEXjZ5rLiFKV9u3Y0QpS
+S8dQQUwWMB8GA1UdIwQYMBaAFEXjZ5rLiFKV9u3Y0QpSS8dQQUwWMAwGA1UdEwQF
+MAMBAf8wDQYJKoZIhvcNAQELBQADggEBANfM1vVwo25ueBcguU4kPjUDPaiLqUIo
+m0g7Pp745+x5b+fIq+psiVMXCDpWsbHHXa3LdtwWLJ+HI3AW9OC+/J/pZuFV29wA
+dfTmIMUKovPN5cM6e+YO9qornZNCvNI3prFn0KmEpmKi25fDgsbAKRFUfwKdG9Nj
+KtaXYU27ZG/zFDyYryjT34gCLttbqUvCqHg0I++31LMFKTtYRkyZU/zJ0eIKFbI5
+ylcKMIN89Emg3RFvJQ/uDjy97LaUK4e51Doh2Em1dzYKBDXfmOjOCE/I/oCqVQfw
+aYmn+79MuLkLdWjMegSb/719FY9YRe9IvrthHH/bx5wcai8G3CZsTX8=
+-----END CERTIFICATE-----
+'''
+SOCIAL_AUTH_SAML_SP_PRIVATE_KEY = '''
+-----BEGIN PRIVATE KEY-----
+MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDk2axZGv+eau/o
+38cQKLqJ9IjIBxKpWk83BduV/uLyW20g2Ohf/nnBr6xXHoK16fLKzJutUsBr5wtU
+hFMTrnvs6m1AmTKlgfZUIvVrpYlw+mGvQaMSfwjIFctiEM/IB6KR7BODyVbDauzz
+qfvqM5jeeZvrEy+EV25vTzUKtbaT4/+/O6tvo9W6v4db+pgoIV1R2YJCZ6+55/0s
+i0v73vSo0Du76Kk0rqyrRUpGga3GOETjS1C2ao9QYoodFkw+Fgn2I+/py0/u4hJ1
+MniKLz8V0WAmexSVq9HZfek/1hpIRHVlEtKoMhcHkYFpNdWSLnakwAMMpv6s+jjT
+vX0z0tnZAgMBAAECggEBAJK9vNSaCkRjX5hcPUFwTER/Z2GTn3S2MsseV3IzsQQk
+ebIxQ7eh7iKy6XgnWTsaWxOM5VnbEQVfbhVwj/Cz1kTRAOMGGMKltfS3QdUXnSyz
+cAW3ub/3cwMRbotgKkuiEa0tykmbxaWin3OSkLTZBvHI2qB+ed6LTYXULTfD0uG6
+f07fcCR176TSoAlpsAFZpIHsjd1jgrZWXqqThe+Dj1BPleyopHZcYcnaEo+ssgq8
+r+OKtOKWLQX71ThYltfoMpmQuvw0a4JxetCZ+pVw2prjGzmXskR8OMZEXvkbs1Qk
+8hp6vy+sgS+XsiztC689e9TlD/dFeGmcxR35G8YfarECgYEA+RXNV0UfuSlIdKpq
+2k3LTy8zJjN1UrHaiF/8Rw6Sz0b5gwMrdCux+V1p5lUHvg6sUIr9D8ZaUfYRqT98
+Lpq7g35MRzDKx64xVFeb/TUy5pJY6eXbCV4xxBj5c8rU8AtI7/HTcZHwXKfYP6DY
+JLIJUZUxmWAy0LiDzoQFvm+KWO0CgYEA6zQQ4P/RQ9BQSvbaOxiXaPZQBsWoq0ba
+fcqBKcOy7G4F7rA0/EPAI9BlJnDjCq1WnCatazOanp15U856G5aUIh+vOtfqf+Os
+V7wNN8hL8sfGU/NmCy3WHno3So4RkVzldHUQWg93Vm35LLNuz8Dw/Ed+J4N4j79r
+VGTwyQMMAx0CgYEAjto0JALeyMCmb1J1abIIEefN+/CzLrQV0vTJqK7w/7OC0eJ1
+f3C3533tiE3n3NZpeN/ddriZgDwRsPFZ9RiExkse0A1pns+GNwrvyW5DPP1dxPcw
+gdTl0cNI/WGscebm88XLMG00Xs9cNFG45IK+2W0pPv9u5UmNPll1OdyaiZkCgYAc
+uasmD5g7NAHaZfOZLBOx2gNEEHfdEzY0DrtfomsDvRw0XojaFlwtA5KW80qHT0w4
+nfCoGxFTNeBPf/Qh0m4dDMmV4jDdlazCulDS8z9zUzrBngRkcSCpcDu4e0lh+3p6
+kqGAnkrw31WDRBbQgLvt071wjfn3dGVjVUCjDCA3cQKBgQC16jdSSY9loWEiNFsR
+5d5DaV123UHM9C2PTOc+5jv6T3xX53Ah2TWyfn1+IcGSU4DTZv61+wvLXNh4k89r
+6PzeBmvcOtVYV9tF+fwsZTQhtlUNCP8CsX75k7KeLxaoIwbkzMn4KtRcnvAeKvsV
+gTCGnzE5GXF2/NPa2zqPf1sdpg==
+-----END PRIVATE KEY-----
+'''
 
 # Configure the following settings with information about your app and contact
 # information.
@@ -127,16 +178,40 @@ SOCIAL_AUTH_SAML_ENABLED_IDPS = {
     #    'url': 'https://myidp.example.com/sso',
     #    'x509cert': '',
     #},
-    #'onelogin': {
-    #    'entity_id': 'https://app.onelogin.com/saml/metadata/123456',
-    #    'url': 'https://example.onelogin.com/trust/saml2/http-post/sso/123456',
-    #    'x509cert': '',
-    #    'attr_user_permanent_id': 'name_id',
-    #    'attr_first_name': 'User.FirstName',
-    #    'attr_last_name': 'User.LastName',
-    #    'attr_username': 'User.email',
-    #    'attr_email': 'User.email',
-    #},
+    'onelogin': {
+        'entity_id': 'https://app.onelogin.com/saml/metadata/605388',
+        'url': 'https://ansible.onelogin.com/trust/saml2/http-post/sso/605388',
+        'x509cert': '''
+MIIEJjCCAw6gAwIBAgIUfuSD54OPSBhndDHh3gZorvrIaoAwDQYJKoZIhvcNAQEF
+BQAwXTELMAkGA1UEBhMCVVMxFjAUBgNVBAoMDUFuc2libGUsIEluYy4xFTATBgNV
+BAsMDE9uZUxvZ2luIElkUDEfMB0GA1UEAwwWT25lTG9naW4gQWNjb3VudCA2NDEy
+NzAeFw0xNTA1MTIxNTU2NTBaFw0yMDA1MTMxNTU2NTBaMF0xCzAJBgNVBAYTAlVT
+MRYwFAYDVQQKDA1BbnNpYmxlLCBJbmMuMRUwEwYDVQQLDAxPbmVMb2dpbiBJZFAx
+HzAdBgNVBAMMFk9uZUxvZ2luIEFjY291bnQgNjQxMjcwggEiMA0GCSqGSIb3DQEB
+AQUAA4IBDwAwggEKAoIBAQC2YfKbJZSssbtotYrOD35OLIqQBIrxVK7G7tRno5pg
+h1ZLJSCitqCuauEi4xYCV9Rd2RisJN0gwqg5VqBeRgtwQIDe4pNljxAkSS/UChl6
+mMnA0OT46iBWD2fiTIx2W82BrCSN+f3oNvJcigbp3IdS1Njr23HCS9K6zQ7Oby2F
+TbIEoKW0I+8V7dRPLyEtNoyf7GUQvf4sLGTbK3Bh1QBK4wFGMjOcigLu1OE8+F+o
+emVMTVTlky3veSGbqX8IPReVtqqYx2e55pdAs1Fo75M2OqOZArSlzQBaK+1WP5gr
+z1VQMywc+S+kma5ES3xetw94kLoTbknyt23BKeUVqCrtAgMBAAGjgd0wgdowDAYD
+VR0TAQH/BAIwADAdBgNVHQ4EFgQUG6dSxZkCptzLshpJU3222h57ra4wgZoGA1Ud
+IwSBkjCBj4AUG6dSxZkCptzLshpJU3222h57ra6hYaRfMF0xCzAJBgNVBAYTAlVT
+MRYwFAYDVQQKDA1BbnNpYmxlLCBJbmMuMRUwEwYDVQQLDAxPbmVMb2dpbiBJZFAx
+HzAdBgNVBAMMFk9uZUxvZ2luIEFjY291bnQgNjQxMjeCFH7kg+eDj0gYZ3Qx4d4G
+aK76yGqAMA4GA1UdDwEB/wQEAwIHgDANBgkqhkiG9w0BAQUFAAOCAQEAGGN/SgN7
+pbwquue4HhoFx2ssMTZUfdswlB6rdq81gc03Jxum38B+WrUpNcJgQtkg7N++0/q6
+zXlfSROPBnLYq1pmwcMvZ+puySgRrtxNpavvUZjdfEkYrXxmEXdnwlxitsL1Lmry
+vM/lPxBxWYzrR4Cz51f44bKvTnYUa0lEi73K+4H/nb5F+P+GD4F4Fv4267eLMbj8
+83j7Zw3iEVMOtF7O7coS+fwVym5KuBafzCzfiYdbAK9ceCb80TP2M9As03B9rhCi
+Qeqc9lAtMmx1L1umCyBkX8aA1OLZ1gnFt0jYGmpWzXMUECrPWfuADB750lJuR5Tf
++0Kk+xrlgUe7zA==
+''',
+        'attr_user_permanent_id': 'name_id',
+        'attr_first_name': 'User.FirstName',
+        'attr_last_name': 'User.LastName',
+        'attr_username': 'User.email',
+        'attr_email': 'User.email',
+    },
 }
 
 # Once configuration is complete, you will need to register your SP with each
