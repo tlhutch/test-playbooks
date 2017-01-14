@@ -1,10 +1,22 @@
 ---
+#
+# To run playbook:
+#
+# ansible-playbook -i playbooks/inventory playbooks/ctint-migrations.yml -e @playbooks/tower-vars.yml -e @playbooks/images-ctint.yml
+#
+# Note: we use tower-vars.yml to set the variables that we need the setup playbook to install completely. As an example, setting the 
+# following:
+#   minimum_var_space: 0
+#   gpgcheck: 0
+#   pendo_state: 'off'
+#
+
 - name: 'Create AWS instances'
   hosts: local
   roles:
     - role: create_ec2
     - role: save_inventory
-      my_inventory_file: '{{inventory_dir}}/inventory.ctit'
+      my_inventory_file: '{{inventory_dir}}/inventory.ctint'
 
 - name: 'Install Tower'
   hosts: 'tower,primary'
@@ -22,7 +34,7 @@
   become: true
   become_method: sudo
   roles:
-    - role: ctit_migrations
+    - role: ctint_migrations
 
 - name: 'Install Tower'
   hosts: 'tower,primary'
