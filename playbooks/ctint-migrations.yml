@@ -2,7 +2,7 @@
 #
 # To run playbook:
 #
-# ansible-playbook -i playbooks/inventory playbooks/ctint-migrations.yml -e @playbooks/tower-vars.yml -e @playbooks/images-ctint.yml
+# ansible-playbook -i playbooks/inventory playbooks/ctint-migrations.yml -e @playbooks/tower-vars.yml -e @playbooks/images-ctint-migrations.yml
 #
 # Note: we use tower-vars.yml to set the variables that we need the setup playbook to install completely. As an example, setting the 
 # following:
