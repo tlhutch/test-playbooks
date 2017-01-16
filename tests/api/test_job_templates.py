@@ -522,6 +522,7 @@ class Test_Job_Template(Base_Api_Test):
         # assert expected 'passwords_needed_to_start'
         assert ssh_credential_multi_ask.expected_passwords_needed_to_start == result['passwords_needed_to_start']
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/4740")
     def test_launch_with_ask_credential_and_with_passwords_in_payload(self, job_template_no_credential,
                                                                       ssh_credential_multi_ask):
         """Verify that launching a job_template, while providing the credential in
@@ -853,6 +854,7 @@ class Test_Job_Template(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             launch_pg.post(payload)
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/4740")
     def test_launch_with_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         """Verify the job->launch endpoint behaves as expected when passwords are needed to start"""
         launch_pg = job_template_passwords_needed_to_start.get_related('launch')
