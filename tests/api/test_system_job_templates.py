@@ -64,14 +64,7 @@ class Test_System_Job_Template(Base_Api_Test):
             "launching system_job_template\n%s" % json.dumps(result.json, indent=2)
 
         job_pg = system_job_template.get_related('jobs', id=result.json['system_job']).results[0].wait_until_completed()
-
-        # cleanup_facts jobs will fail when no extra_vars are provided
-        if job_pg.job_type == 'cleanup_facts':
-            assert job_pg.status == 'failed', "Unexpected cleanup_facts job status - %s" % job_pg.status
-            assert job_pg.result_stdout == "CommandError: Both --granularity and --older_than are required.\r\n"
-        # all other system_jobs are expected to succeed
-        else:
-            assert job_pg.is_successful, "System job unexpectedly failed - %s" % job_pg
+        assert job_pg.is_successful, "System job unexpectedly failed - %s" % job_pg
 
     def test_launch_as_non_superuser(self, system_job_template, non_superusers, user_password):
         """Verify launch fails when attempted by a non-superuser"""
