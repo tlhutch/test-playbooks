@@ -284,7 +284,7 @@ class Test_Job(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             relaunch_pg.post()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3590')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4740')
     def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload, testsetup):  # NOQA
         """Verify that relaunching a job with a credential that includes ASK passwords, behaves as expected when
         supplying the necessary passwords in the relaunch payload.
