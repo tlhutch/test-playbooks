@@ -43,7 +43,7 @@ job:
   read: {delete: false, start: false}
 job_template:
   admin: {copy: false, delete: true, edit: true, schedule: true, start: true}
-  execute: {copy: false, delete: false, edit: false, schedule: false, start: true}
+  execute: {copy: false, delete: false, edit: false, schedule: true, start: true}
   read: {copy: false, delete: false, edit: false, schedule: false, start: false}
 notification_template:
   org_admin: {delete: true, edit: true}
@@ -57,7 +57,7 @@ organization:
 project:
   admin: {delete: true, edit: true, schedule: true, start: true}
   read: {delete: false, edit: false, schedule: false, start: false}
-  update: {delete: false, edit: false, schedule: false, start: true}
+  update: {delete: false, edit: false, schedule: true, start: true}
   use: {delete: false, edit: false, schedule: false, start: false}
 project_update:
   admin: {delete: true, start: true}
