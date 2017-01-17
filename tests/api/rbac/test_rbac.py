@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import httplib
 import logging
+import json
 import os
 
 from towerkit.api.pages.users import User_Page
@@ -1535,7 +1536,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         ALLOWED_ROLES = ['admin']
         REJECTED_ROLES = ['execute', 'read']
 
-        job_template_pg = factories.job_template(playbook='sleep.yml', extra_vars=dict(sleep_interval=10))
+        job_template_pg = factories.job_template(playbook='sleep.yml', extra_vars=json.dumps(dict(sleep_interval=10)))
         user_pg = factories.user()
 
         # give test user target role privileges
