@@ -81,21 +81,21 @@ General acceptance criteria:
 ### Logging
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/logging_integration.md)
 
-1. [ ] verify documented steps for setting up and connecting with all supported log aggregator services.
-1. verify authentication and logins:
-  2. [x] ELK
-  2. [x] Splunk
-1. verify that tower succesfully creates and sends a log message in the expected format for each data type:
+- [ ] verify documented steps for setting up and connecting with all supported log aggregator services.
+- verify authentication and logins:
+  - [x] ELK
+  - [x] Splunk
+- verify that tower succesfully creates and sends a log message in the expected format for each data type:
   - ELK:
-    3. [x] activity_stream
-    3. [x] job event
-    3. [x] fact scan / system tracking
-    3. [x] job status updates
+    - [x] activity_stream
+    - [x] job event
+    - [x] fact scan / system tracking
+    - [x] job status updates
   - Splunk:
-    3. [x] activity_stream
-    3. [x] job event
-    3. [x] fact scan / system tracking
-    3. [x] job status updates
+    - [x] activity_stream
+    - [x] job event
+    - [x] fact scan / system tracking
+    - [x] job status updates
 
 
 ### Channels (Ryan)
