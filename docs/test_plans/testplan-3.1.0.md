@@ -81,7 +81,9 @@ General acceptance criteria:
 ### Logging
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/logging_integration.md)
 
-- [ ] verify documented steps for setting up and connecting with all supported log aggregator services.
+- verify documented steps for setting up and connecting with all supported log aggregator services.
+  - [ ] ELK
+  - [ ] Splunk
 - verify authentication and logins:
   - [x] ELK
   - [x] Splunk
