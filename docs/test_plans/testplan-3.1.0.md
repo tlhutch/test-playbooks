@@ -82,12 +82,20 @@ General acceptance criteria:
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/logging_integration.md)
 
 1. [ ] verify documented steps for setting up and connecting with all supported log aggregator services.
-1. [ ] verify authentication and connectivity via HTTPS for all supported aggregator services.
-1. [ ] with at least one of the aggregator services (Logstash, most likely), verify that tower succesfully creates and sends a log message in the expected format for each data type:
-  2. [ ] activity_stream
-  2. [ ] job event
-  2. [ ] fact scan / system tracking
-  2. [ ] job status updates
+1. verify authentication and logins:
+  2. [x] ELK
+  2. [x] Splunk
+1. verify that tower succesfully creates and sends a log message in the expected format for each data type:
+  - ELK:
+    3. [x] activity_stream
+    3. [x] job event
+    3. [x] fact scan / system tracking
+    3. [x] job status updates
+  - Splunk:
+    3. [x] activity_stream
+    3. [x] job event
+    3. [x] fact scan / system tracking
+    3. [x] job status updates
 
 
 ### Channels (Ryan)
