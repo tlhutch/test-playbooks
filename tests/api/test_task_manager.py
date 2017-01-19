@@ -62,9 +62,9 @@ def construct_time_series(jobs):
     """Helper function used to create time-series data for job sequence testing.
     Create a list whose elements are a list of the start and end times of either:
     A) A unified job.
-    B) A list of unified jobs. When given a list of unified jobs, make our entry
-    a list whose first element is the first 'started' time of these jobs. Make the
-    second entry the last 'finished' time of these jobs.
+    B) A two-element list of unified jobs. When given a list of unified jobs, make
+    our entry a list whose first element is the first 'started' time of these jobs.
+    Make the second entry the last 'finished' time of these jobs.
 
     Example:
     construct_time_series([[aws_update, rax_update], job])
@@ -120,8 +120,8 @@ def check_job_order(jobs):
     * Check that our series order remains unchanged after both sorts.
 
     jobs: A list of page objects where we expect to have:
-          jobs[0].started < jobs[1].started < jobs[i+2].started ...
-          jobs[0].finished < jobs[1].finished < job[i+2].finished ...
+          jobs[0].started < jobs[1].started < jobs[2].started ...
+          jobs[0].finished < jobs[1].finished < job[2].finished ...
     Note: jobs may also be a list of jobs. See the documentation for
     construct_time_series for more details.
     """
@@ -247,8 +247,8 @@ class Test_Sequential_Jobs(Base_Api_Test):
         request.addfinalizer(host2.teardown)
 
         # launch two commands
-        ahc1 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host1.ds.inventory)
-        ahc2 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host2.ds.inventory)
+        ahc1 = v1.ad_hoc_commands.create(module_name='shell', module_args='sleep 5s', inventory=host1.ds.inventory)
+        ahc2 = v1.ad_hoc_commands.create(module_name='shell', module_args='sleep 5s', inventory=host2.ds.inventory)
         ordered_commands = [ahc1, ahc2]
         wait_for_jobs_to_finish(ordered_commands)
 
