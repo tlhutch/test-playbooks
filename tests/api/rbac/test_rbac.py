@@ -450,6 +450,7 @@ def test_job_template_post_request_without_network_credential_access(
         check_request(api_job_templates_pg, 'POST', httplib.CREATED, data)
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4818')
 @pytest.mark.parametrize(
     'resource_name, fixture_name',
     [
@@ -461,7 +462,9 @@ def test_job_template_post_request_without_network_credential_access(
         ('credential', 'api_credentials_pg'),
         ('job_template', 'api_job_templates_pg'),
         ('workflow_job_template', 'api_workflow_job_templates_pg')
-    ]
+    ], ids=['organization', 'team', 'project', 'inventory',
+            'inventory_script', 'credential', 'job_template',
+            'workflow_job_template']
 )
 def test_admin_role_filter(request, factories, auth_user, resource_name, fixture_name):
     """Tower supports query filters of the following form: /api/v1/projects/?role_level=admin_role.
@@ -485,9 +488,9 @@ def test_admin_role_filter(request, factories, auth_user, resource_name, fixture
         query_results = request.getfuncargvalue(fixture_name).get(role_level='admin_role')
         assert query_results.count == 1, \
             "Unexpected number of query results returned. Expected one, received {0}.".format(query_results.count)
-        assert query_results.results[0].id == admin_resource.id, \
-            "Incorrect Tower resource returned. Expected {0}, received {1}.".format(
-                admin_resource.base_url, query_results.results[0].base_url)
+        assert query_results.results[0].json == admin_resource.get().json, \
+            "Incorrect Tower resource returned.\n\nExpected: {0}\n\nReceived {1}.".format(
+                admin_resource.json, query_results.results[0].json)
 
 
 @pytest.mark.api
