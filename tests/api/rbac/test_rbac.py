@@ -476,9 +476,11 @@ def test_admin_role_filter(request, factories, auth_user, resource_name, fixture
         organization = factories.organization()
         user = factories.user(organization=organization)
         admin_resource = factories.credential(organization=organization)
+        factories.credential(organization=organization)
     else:
         user = factories.user()
         admin_resource = getattr(factories, resource_name)()
+        getattr(factories, resource_name)()
 
     # assign role to admin_resource
     set_roles(user, admin_resource, ['admin'])
