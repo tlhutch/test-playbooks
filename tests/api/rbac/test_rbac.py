@@ -450,6 +450,52 @@ def test_job_template_post_request_without_network_credential_access(
         check_request(api_job_templates_pg, 'POST', httplib.CREATED, data)
 
 
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4818')
+@pytest.mark.parametrize(
+    'resource_name, fixture_name',
+    [
+        ('organization', 'api_organizations_pg'),
+        ('team', 'api_teams_pg'),
+        ('project', 'api_projects_pg'),
+        ('inventory', 'api_inventories_pg'),
+        ('inventory_script', 'api_inventory_scripts_pg'),
+        ('credential', 'api_credentials_pg'),
+        ('job_template', 'api_job_templates_pg'),
+        ('workflow_job_template', 'api_workflow_job_templates_pg')
+    ], ids=['organization', 'team', 'project', 'inventory',
+            'inventory_script', 'credential', 'job_template',
+            'workflow_job_template']
+)
+def test_admin_role_filter(request, factories, auth_user, resource_name, fixture_name):
+    """Tower supports query filters of the following form: /api/v1/projects/?role_level=admin_role.
+    Test that this query filter works with the admin role of select Tower resources. Note: we choose
+    not to test other roles here because the admin role filter is the filter used in the UI.
+    """
+    # create tower resources
+    if resource_name == 'credential':
+        organization = factories.organization()
+        user = factories.user(organization=organization)
+        admin_resource = factories.credential(organization=organization)
+        factories.credential(organization=organization)
+    else:
+        user = factories.user()
+        admin_resource = getattr(factories, resource_name)()
+        getattr(factories, resource_name)()
+
+    # assign role to admin_resource
+    set_roles(user, admin_resource, ['admin'])
+
+    with auth_user(user):
+        query_results = request.getfuncargvalue(fixture_name).get(role_level='admin_role')
+        # only one of our two resources should get returned
+        assert query_results.count == 1, \
+            "Unexpected number of query results returned. Expected one, received {0}.".format(query_results.count)
+        # assert that our query filter returns the correct resource
+        assert query_results.results[0].json == admin_resource.get().json, \
+            "Incorrect Tower resource returned.\n\nExpected: {0}\n\nReceived {1}.".format(
+                admin_resource.json, query_results.results[0].json)
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
