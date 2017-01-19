@@ -485,11 +485,12 @@ def test_admin_role_filter(request, factories, auth_user, resource_name, fixture
     # assign role to admin_resource
     set_roles(user, admin_resource, ['admin'])
 
-    # assert that our query filter returns the correct resource
     with auth_user(user):
         query_results = request.getfuncargvalue(fixture_name).get(role_level='admin_role')
+        # only one of our two resources should get returned
         assert query_results.count == 1, \
             "Unexpected number of query results returned. Expected one, received {0}.".format(query_results.count)
+        # assert that our query filter returns the correct resource
         assert query_results.results[0].json == admin_resource.get().json, \
             "Incorrect Tower resource returned.\n\nExpected: {0}\n\nReceived {1}.".format(
                 admin_resource.json, query_results.results[0].json)
