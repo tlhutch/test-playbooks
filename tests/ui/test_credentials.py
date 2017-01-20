@@ -81,8 +81,9 @@ def test_delete_credential(v1, ui, org_cred):
     assert not results
 
 
-def test_create_credential(v1, ui, session_org):
-    """End-to-end functional test for creating a credential"""
+def test_create_user_credential(v1, ui):
+    """End-to-end functional test for creating a user credential
+    """
     add = ui.credential_add.get()
     add.table.wait_for_table_to_load()
     # make some data
@@ -100,3 +101,29 @@ def test_create_credential(v1, ui, session_org):
     # check that we find a row showing the updated credential name
     results = add.table.query(lambda r: r.name.text == name)
     assert len(results) == 1, 'unable to verify creation of credential'
+
+
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4840')
+def test_create_org_credential(v1, ui, session_org):
+    """End-to-end functional test for creating an org credential
+    """
+    add = ui.credential_add.get()
+    add.table.wait_for_table_to_load()
+    # make some data
+    name = fauxfactory.gen_alphanumeric()
+    # populate the form and save
+    add.details.machine.name.value = name
+    add.details.machine.organization.value = session_org.name
+    add.details.machine.scroll_save_into_view().click()
+    # verify the update took place api-side
+    add.passively_wait_until(lambda: v1.credentials.get(name=name).results)
+    api_results = v1.credentials.get(name=name).results
+    assert len(api_results) == 1, 'unable to verify creation of credential'
+    # add a search filter for the credential
+    add.search(name)
+    # check that we find a row showing the updated credential name
+    results = add.table.query(lambda r: r.name.text == name)
+    assert len(results) == 1, 'unable to verify creation of credential'
+    # verify org association to credential
+    row = results.pop()
+    assert session_org.name.lower() in [e.text.lower() for e in row.owner_list]
