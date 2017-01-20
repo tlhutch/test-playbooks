@@ -450,7 +450,6 @@ def test_job_template_post_request_without_network_credential_access(
         check_request(api_job_templates_pg, 'POST', httplib.CREATED, data)
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4818')
 @pytest.mark.parametrize(
     'resource_name, fixture_name',
     [
@@ -491,9 +490,9 @@ def test_admin_role_filter(request, factories, auth_user, resource_name, fixture
         assert query_results.count == 1, \
             "Unexpected number of query results returned. Expected one, received {0}.".format(query_results.count)
         # assert that our query filter returns the correct resource
-        assert query_results.results[0].json == admin_resource.get().json, \
-            "Incorrect Tower resource returned.\n\nExpected: {0}\n\nReceived {1}.".format(
-                admin_resource.json, query_results.results[0].json)
+        assert query_results.results[0].base_url == admin_resource.get().base_url, \
+            "Incorrect Tower resource returned.\n\nExpected: {0}\nReceived {1}.".format(
+                admin_resource.base_url, query_results.results[0].base_url)
 
 
 @pytest.mark.api
