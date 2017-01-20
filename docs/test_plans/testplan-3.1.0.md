@@ -147,22 +147,22 @@ General acceptance criteria:
 1. [ ] Expected job events are visible for playbooks with async tasks
 1. [ ] Expected job events are visible for playbooks when free strategy is used
 
-### Workflows (Jim) (Progress: 17/32 = 53%)
+### Workflows (Jim) (Progress: 23/33 = 70%)
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/workflow.md)
 
 #### CRUD-related
 
 1. [x] Verify that CRUD operations on all workflow resources are working properly. Note workflow job nodes cannot be created or deleted independently, but verifications are needed to make sure when a workflow job is deleted, all its related workflow job nodes are deleted.
-1. [ ] Verify the RBAC property of workflow resources. More specifically:
+1. [x] Verify the RBAC property of workflow resources. More specifically:
  - [x] Workflow job templates can only be accessible by superusers ---- system admin, admin of the same organization and system auditor and auditor of the same organization with read permission only.
  - [x] Workflow job read and delete permissions follow from its associated workflow job template.
- - [ ] (r) Workflow job relaunch permission consists of the union of execute permission to its associated workflow job template, and the permission to re-create all the nodes inside of the workflow job.
+ - [x] Workflow job relaunch permission consists of the union of execute permission to its associated workflow job template, and the permission to re-create all the nodes inside of the workflow job.
  - [x] Workflow job template nodes rely their permission rules on the permission rules of both their associated workflow job template and unified job template for creation and editing.
  - [x] Workflow job template nodes can be deleted with admin permission to their workflow job template (even lacking permission to the node's job template).
  - [x] Workflow job nodes are viewable if its workflow job is viewable.
  - [x] No CRUD actions are possible on workflow job nodes by any user, and they may only be deleted by deleting their workflow job.
- - [ ] (r) Workflow jobs can be deleted by superusers and org admins of the organization of its associated workflow job template, and no one else.
- - [ ] (r) Copying workflow job templates based on permission rules of workflow job template, unified job templates, and all related resources used by nodes.
+ - [x] Workflow jobs can be deleted by superusers and org admins of the organization of its associated workflow job template, and no one else.
+ - [x] Copying workflow job templates based on permission rules of workflow job template, unified job templates, and all related resources used by nodes.
 1. [x] Verify that workflow job template nodes can be created under, or (dis)associated with workflow job templates.
 1. [x] Verify that only the permitted types of job template types can be associated with a workflow job template node. Currently the permitted types are job templates, inventory sources and projects.
 1. [x] Verify that workflow job template nodes under the same workflow job template can be associated to form parent-child relationship of decision trees. More specifically, one node takes another as its child node by POSTing another node's id to one of the three endpoints: /success_nodes/, /failure_nodes/ and /always_nodes/.
@@ -173,10 +173,10 @@ General acceptance criteria:
 #### Task-related
 
 1. [x] Verify that workflow jobs can be launched by POSTing to endpoint /workflow_job_templates/\d/launch/.
-1. [ ] Verify that schedules can be successfully (dis)associated with a workflow job template, and workflow jobs can be triggered by the schedule of associated workflow job template at specified time point.
-1. [ ] Verify that extra variables work for workflow job templates as described. In specific, verify the role of workflow job extra variables as a set of global runtime variables over all its spawned jobs.
-1. [ ] Verify that extra variables of a workflow job node are correctly overwritten in order by the cumulative job artifacts of ancestors, and the overwrite policy of cumulative job artifacts is correct (artifacts of parent overwrite artifacts of grandparent).
-1. [ ] Verify that during a workflow job run, all its decision trees follow their correct paths of execution. Unwarranted behaviors include child node executing before its parent and wrong path being selected (failure nodes are executed when parent node succeeds and so on).
+1. [x] Verify that schedules can be successfully (dis)associated with a workflow job template, and workflow jobs can be triggered by the schedule of associated workflow job template at specified time point.
+1. [ ] (-) Verify that extra variables work for workflow job templates as described. In specific, verify the role of workflow job extra variables as a set of global runtime variables over all its spawned jobs.
+1. [ ] (-) Verify that extra variables of a workflow job node are correctly overwritten in order by the cumulative job artifacts of ancestors, and the overwrite policy of cumulative job artifacts is correct (artifacts of parent overwrite artifacts of grandparent).
+1. [x] Verify that during a workflow job run, all its decision trees follow their correct paths of execution. Unwarranted behaviors include child node executing before its parent and wrong path being selected (failure nodes are executed when parent node succeeds and so on).
 1. [ ] Verify that a subtree of execution will never start if its root node runs into internal error (not ends with failure).
 1. [x] Verify that a subtree of execution will never start if its root node is successfully canceled.
 1. [ ] Verify that cancelling a workflow job that is cancellable will consequently cancel any of its cancellable spawned jobs and thus interrupts the whole workflow execution.
@@ -184,6 +184,7 @@ General acceptance criteria:
 1. [ ] Verify that at the beginning of each spawned job run, its prompted fields will be populated by the wrapping workflow job node with corrected values. For example, credential field of workflow job node goes to credential field of spawned job.
 1. [ ] Verify that notification templates can be successfully (dis)associated with a workflow job template. Later when its spawned workflow jobs finish running, verify that the correct type of notifications will be sent according to the job status.
 1. [ ] Verify that a workflow job can be successfully relaunched.
+1. [ ] Verify that `artifacts` is populated when `set_stats` is used in Ansible >= v2.2.1.0-0.3.rc3
 
 #### Test Notes
 
