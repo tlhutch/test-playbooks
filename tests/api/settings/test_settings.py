@@ -1,5 +1,6 @@
 import logging
 import sys
+import re
 import json
 import fauxfactory
 import pytest
@@ -11,6 +12,18 @@ import towerkit.utils
 
 
 log = logging.getLogger(__name__)
+
+
+@pytest.fixture(scope="function", params=['cleanup_jobs_with_status_completed',
+                                          'custom_inventory_update_with_status_completed',
+                                          'project_update_with_status_completed',
+                                          'job_with_status_completed',
+                                          'ad_hoc_with_status_completed'])
+def unified_job_with_stdout(request):
+    '''
+    Returns a completed unified job with job stdout.
+    '''
+    return request.getfuncargvalue(request.param)
 
 
 def assess_created_elements(elements, criteria, expected_count):
@@ -166,6 +179,32 @@ class Test_Setting(Base_Api_Test):
         assert result == {u'module_name': [u'"ping" is not a valid choice.']}, \
             "Unexpected response when relaunching ad hoc command whose module " \
             "has been removed from AD_HOC_COMMANDS: %s." % json.dumps(result)
+
+    def test_stdout_max_bytes_display(self, unified_job_with_stdout, update_setting_pg):
+        """Assert that all of our unified jobs include stdout by default. Then assert that
+        stdout gets truncated once 'STDOUT_MAX_BYTES_DISPLAY' gets set to zero. We check
+        both uj.result_stdout and uj.related.stdout here.
+        """
+        # check that by default that our unified job includes result_stdout
+        assert unified_job_with_stdout.result_stdout, \
+            "Unified job did not include result_stdout - %s." % unified_job_with_stdout
+        # check that by default that our unified job related stdout not censored
+        # note: system jobs do not have a related stdout endpoint
+        if unified_job_with_stdout.type != "system_job":
+            assert "Standard Output too large to display" not in unified_job_with_stdout.api.get(unified_job_with_stdout.related.stdout).text, \
+                "UJ related stdout unexpectedly censored - %s." % unified_job_with_stdout
+
+        # update stdout max bytes flag
+        payload = dict(STDOUT_MAX_BYTES_DISPLAY=0)
+        update_setting_pg('api_settings_jobs_pg', payload)
+
+        # assert new job stdout truncated
+        assert re.search('^Standard Output too large to display \(\d+ bytes\), only download supported for sizes over 0 bytes$',
+                         unified_job_with_stdout.get().result_stdout), \
+            "Expected result_stdout error message not matched - %s." % unified_job_with_stdout.result_stdout
+        if unified_job_with_stdout.type != "system_job":
+            assert "Standard Output too large to display" in unified_job_with_stdout.api.get(unified_job_with_stdout.related.stdout).text, \
+                "UJ related stdout censorship notice not displayed."
 
     @pytest.mark.skip(reason="Test flakiness detailed here: https://github.com/ansible/tower-qa/issues/882")
     def test_schedule_max_jobs(self, factories, update_setting_pg):
