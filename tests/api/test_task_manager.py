@@ -731,9 +731,9 @@ print json.dumps(inventory)
 
         # assert second inventory update and source successful
         assert second_inv_update_pg.wait_until_completed().is_successful, \
-            "Secondary inventory update not failed (status: %s)." % second_inv_update_pg.status
+            "Secondary inventory update not successful (status: %s)." % second_inv_update_pg.status
         assert second_inv_source_pg.get().is_successful, \
-            "Secondary inventory update not failed (status: %s)." % second_inv_source_pg.status
+            "Secondary inventory update not successful (status: %s)." % second_inv_source_pg.status
 
     def test_cancel_project_update(self, job_template_with_project_django):
         """Tests that if you cancel a SCM update before it finishes that its
