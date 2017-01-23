@@ -82,8 +82,7 @@ def test_delete_credential(v1, ui, org_cred):
 
 
 def test_create_user_credential(v1, ui):
-    """End-to-end functional test for creating a user credential
-    """
+    """End-to-end functional test for creating a user credential"""
     add = ui.credential_add.get()
     add.table.wait_for_table_to_load()
     # make some data
@@ -105,8 +104,7 @@ def test_create_user_credential(v1, ui):
 
 @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4840')
 def test_create_org_credential(v1, ui, session_org):
-    """End-to-end functional test for creating an org credential
-    """
+    """End-to-end functional test for creating an org credential"""
     add = ui.credential_add.get()
     add.table.wait_for_table_to_load()
     # make some data
