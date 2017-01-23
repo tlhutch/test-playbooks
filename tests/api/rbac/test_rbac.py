@@ -490,7 +490,7 @@ def test_admin_role_filter(request, factories, auth_user, resource_name, fixture
         assert query_results.count == 1, \
             "Unexpected number of query results returned. Expected one, received {0}.".format(query_results.count)
         # assert that our query filter returns the correct resource
-        assert query_results.results[0].base_url == admin_resource.get().base_url, \
+        assert query_results.results[0].base_url == admin_resource.base_url, \
             "Incorrect Tower resource returned.\n\nExpected: {0}\nReceived {1}.".format(
                 admin_resource.base_url, query_results.results[0].base_url)
 
