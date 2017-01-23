@@ -79,6 +79,7 @@ class Test_Job_Events(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/4832")
     def test_dynamic_inventory(self, dynamic_inventory, num_hosts, tower_version_cmp):
         """Verify that the /job_tasks and /job_plays endpoints are correctly
         aggregating data from /job_events

@@ -324,7 +324,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         command_pg.wait_until_completed()
         assert not command_pg.is_successful, "Command successful, but was expected to fail - %s " % command_pg
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3544')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4832')
     @pytest.mark.parametrize("limit_value, expected_count", [
         ("", 11),
         ("all", 11),
@@ -510,7 +510,7 @@ print json.dumps(inv, indent=2)
         with pytest.raises(towerkit.exceptions.BadRequest):
             relaunch_pg.post()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3544')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4832')
     @pytest.mark.fixture_args(module_name='shell', module_args='exit 1', job_type='check')
     def test_launch_with_check(self, host, ssh_credential, ad_hoc_with_status_completed):
         """Verifies check command behavior."""
