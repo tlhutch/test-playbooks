@@ -2,7 +2,5 @@ import pytest
 
 
 @pytest.fixture
-def workflow_job_template(request, factories):
-    wfjt = factories.workflow_job_template()
-    request.addfinalizer(wfjt.silent_cleanup)
-    return wfjt
+def workflow_job_template(factories):
+    return factories.workflow_job_template()
