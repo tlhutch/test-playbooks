@@ -124,6 +124,7 @@ def session_project(api_v1, session_org):
         organization=session_org,
         wait=True,
         scm_url='https://github.com/jlaska/ansible-playbooks.git')
+    project.wait_until_completed()
     yield project
     project.silent_cleanup()
 
