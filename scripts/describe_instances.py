@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 def parse_args():
 
     # Build parser
-    # parser = argparse.ArgumentParser(usage="%s [options]" % (sys.argv[0],))
     parser = argparse.ArgumentParser()
     parser.add_argument("--id", action="store", dest="id",
                         default=os.environ.get('AWS_ACCESS_KEY', None),
@@ -29,17 +28,21 @@ def parse_args():
                         help="Instance filters")
     parser.add_argument("--exclude", action="append", dest="excludes",
                         default=[],
-                        help="Instance exclusion filters")
+                        help="Exclude instances matching the provided JMESPath query "
+                        "(http://jmespath.org/tutorial.html)")
     parser.add_argument("--include-protected",
                         action="store_true",
                         dest="include_protected",
                         default=False,
                         help="Include instances with termination protection in match results (default: %(default)s)")
 
-    actions = ['stop', 'terminate']
-    parser.add_argument("--action", action="store", dest="action",
-                        default=None, choices=actions,
-                        help="Perform the specified operation on matching instances (choices: {0})".format(', '.join(actions)))
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--stop", action="store_true", dest="stop",
+                       default=False,
+                       help="Stop matching instances.")
+    group.add_argument("--terminate", action="store_true", dest="terminate",
+                       default=False,
+                       help="Terminate matching instances.")
 
     # Parse args
     args = parser.parse_args()
@@ -93,6 +96,24 @@ def is_excluded(ec2, excludes=[]):
     return _
 
 
+def display_instance(region, instance):
+    # calculate age in hours
+    age = int((datetime.utcnow() - instance['LaunchTime']).total_seconds() / 60 / 60)
+
+    # hack to inject KeyName as a tag.  This makes displaying the key easier below.
+    if 'KeyName' in instance:
+        if 'Tags' not in instance:
+            instance['Tags'] = []
+        instance['Tags'].append(dict(Key='KeyName', Value=instance['KeyName']))
+
+    # display instance info
+    print(
+        "{InstanceId} {PublicDnsName} RegionName:{0} State:{State[Name]} Uptime:{1}h {2}".format(
+            region, age,
+            ", ".join(["{Key}:{Value}".format(**tag) for tag in instance.get('Tags', [])]), **instance)
+    )
+
+
 if __name__ == '__main__':
 
     # Parse args
@@ -102,10 +123,10 @@ if __name__ == '__main__':
     session = boto3.session.Session(aws_access_key_id=args.id, aws_secret_access_key=args.key)
 
     # Determine oldest launch_time
-    if args.uptime:
-        oldest_launch_time = datetime.utcnow() - timedelta(hours=args.uptime)
+    if args.uptime is None:
+        oldest_launch_time = datetime.utcnow() + timedelta(days=30 * 365)
     else:
-        oldest_launch_time = datetime.utcnow() - timedelta(days=10 * 365)
+        oldest_launch_time = datetime.utcnow() - timedelta(hours=args.uptime)
 
     # Sanitize --region parameter
     all_regions = session.get_available_regions('ec2')
@@ -116,7 +137,7 @@ if __name__ == '__main__':
         args.regions = all_regions
 
     # List running instances in all regions
-    total_actions = 0
+    count = 0
     for region in args.regions:
         ec2 = boto3.client('ec2', region_name=region, aws_access_key_id=args.id, aws_secret_access_key=args.key)
         if ec2 is None:
@@ -132,13 +153,11 @@ if __name__ == '__main__':
         # filter_iterator = page_iterator.search("Reservations[].Instances[?LaunchTime<`{0}`]".format(oldest_launch_time))
         # for reservations in filter_iterator:
 
+        # Track instance ids for possible termination or stop
+        matching_instance_ids = []
+
         for reservations in page_iterator:
 
-            # Print header
-            if reservations['Reservations']:
-                print("== Instances [region:%s] ==" % region)
-
-            count = 1
             for reservation in reservations['Reservations']:
                 # Filter based on termination protection
                 reservation['Instances'] = filter(is_protected(ec2, args.include_protected), reservation['Instances'])
@@ -148,31 +167,16 @@ if __name__ == '__main__':
 
                 for instance in reservation['Instances']:
                     # Assert both datetimes are offset aware
-                    instance['LaunchTime'] = instance['LaunchTime'].replace(tzinfo=None)
-                    # if args.uptime is None or (utcnow - instance['LaunchTime']) > timedelta(minutes=args.uptime):
+                    instance['LaunchTime'] = instance['LaunchTime'].replace(tzinfo=oldest_launch_time.tzinfo)
                     if instance['LaunchTime'] < oldest_launch_time:
-                        age = int((datetime.utcnow() - instance['LaunchTime']).total_seconds() / 60 / 60)
-                        # hack to get keyname to display below
-                        if 'KeyName' in instance:
-                            if 'Tags' not in instance:
-                                instance['Tags'] = []
-                            instance['Tags'].append(dict(Key='KeyName', Value=instance['KeyName']))
-                        print(
-                            "{0:3}. {InstanceId} {PublicDnsName} uptime:{1:d}h {2}".format(
-                                count, age,
-                                ", ".join(["{Key}:{Value}".format(**tag) for tag in instance.get('Tags', [])]),
-                                **instance)
-                        )
+                        display_instance(region, instance)
+                        matching_instance_ids.append(instance['InstanceId'])
                         count += 1
 
                 # Perform action (stop/terminate)
-                if args.action in ['stop', 'terminate']:
-                    getattr(ec2, '{0}_instances'.format(args.action))(InstanceIds=map(lambda x: x['InstanceId'],
-                                                                                      reservation['Instances']))
-                    total_actions += len(reservation['Instances'])
-
-    # Display summary
-    if args.action and args.action == 'terminate':
-        print("Instances terminated: %s" % total_actions)
-    if args.action and args.action == 'stop':
-        print("Instances stopped: %s" % total_actions)
+                if reservation['Instances'] and any([args.stop, args.terminate]):
+                    func = getattr(ec2, args.stop and 'stop_instances' or 'terminate_instances')
+                    func(InstanceIds=matching_instance_ids)
+    if count:
+        action_performed = args.stop and 'stopped' or args.terminate and 'terminated' or ''
+        print("Total instances: {0} {1}".format(count, action_performed))
