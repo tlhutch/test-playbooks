@@ -1,44 +1,4 @@
 ---
-license:
-    company_name: Ansible, Inc
-    contact_name: Art Vandelay
-    contact_email: art@ansible.com
-    instance_count: 1000
-    license_days: 31
-
-organizations:
-    - name: Bender Products
-      description: Bender Products, Ltd.
-      users:
-        - bender_eng_user
-        - bender_it_user
-      admins:
-        - bender_admin
-      projects:
-        - ansible-examples.git (manual)
-        - ansible-examples.svn (manual)
-        - ansible-helloworld.hg (manual)
-        - ansible-examples.git (git)
-        - ansible-examples.svn (svn)
-        - ansible-helloworld (hg)
-        - ansible-helloworld (hg, ssh_key_data)
-        - ansible-helloworld (hg, ssh_key_data, ssh_key_unlock)
-        - ansible-examples.git (github, ssh_key_data)
-        - ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
-
-    - name: Ansible, Inc
-      description: Ansible is the simplest way to automate IT.
-      users:
-        - ansible_user
-        - ansible_it_user
-      admins:
-        - ansible_admin
-      projects:
-        - ansible-playbooks.git (manual)
-        - ansible-playbooks.git (github, ssh_key_data)
-        - ansible-tower.git (github, ssh_key_data)
-        - tower-qa.git (github, ssh_key_data)
-
 users:
     - username: anonymous
       email: anonymous@example.com
@@ -89,6 +49,32 @@ users:
       last_name: Admin
       is_superuser: False
 
+organizations:
+    - name: Bender Products
+      description: Bender Products, Ltd.
+      users:
+        - bender_eng_user
+        - bender_it_user
+      admins:
+        - bender_admin
+      projects:
+        - ansible-examples.git (git)
+        - ansible-examples.svn (svn)
+        - ansible-examples.git (github, ssh_key_data)
+        - ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
+
+    - name: Ansible, Inc
+      description: Ansible is the simplest way to automate IT.
+      users:
+        - ansible_user
+        - ansible_it_user
+      admins:
+        - ansible_admin
+      projects:
+        - ansible-playbooks.git (github, ssh_key_data)
+        - ansible-tower.git (github, ssh_key_data)
+        - tower-qa.git (github, ssh_key_data)
+
 teams:
     - name: Bender IT
       description: IT Department
@@ -119,78 +105,72 @@ credentials:
       kind: ssh
       user: bender_eng_user
       team: null
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: 'ASK'
       ssh_key_data: ''
       ssh_key_unlock: ''
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
 
     - name: 'SSH (user:bender_eng_user, password:***)'
       description: 'user:bender_eng_user, ssh_user:root, password:***'
       kind: ssh
       user: bender_eng_user
       team: null
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: '{password}' # merged from credentials.yaml
       ssh_key_data: ''
       ssh_key_unlock: ''
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
 
     - name: 'SSH (user:bender_eng_user, ssh_key_data)'
       description: 'user:bender_eng_user, ssh_user:root, ssh_key_data'
       kind: ssh
       user: bender_eng_user
       team: null
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
       ssh_key_data: '{ssh_key_data}' # from credentials.yaml
       ssh_key_unlock: ''
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
 
     - name: 'SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:ASK)'
       description: 'user:bender_eng_user, ssh_user:root, ssh_key_data, ssh_key_unlock:ASK'
       kind: ssh
       user: bender_eng_user
       team: null
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: 'ASK'
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
 
     - name: 'SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)'
       description: 'user:bender_eng_user, ssh_user:root, ssh_key_data, ssh_key_unlock:***'
       kind: ssh
       user: bender_eng_user
       team: null
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
 
     - name: 'SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***, vault_password:ASK'
       description: 'user:bender_eng_user, ssh_user:root, ssh_key_data, ssh_key_unlock:***, vault_password:ASK'
       kind: ssh
       user: bender_eng_user
       team: null
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
       vault_password: 'ASK'
 
     - name: 'SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***, vault_password:***)'
@@ -198,53 +178,49 @@ credentials:
       kind: ssh
       user: bender_eng_user
       team: null
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
       vault_password: '{vault_password}'
 
-    - name: 'SSH (user:bender_eng_user, sudo_password:ASK)'
-      description: 'user:bender_eng_user, ssh_user:root, sudo_password:ASK'
+    - name: 'SSH (user:bender_eng_user, become_password:ASK)'
+      description: 'user:bender_eng_user, ssh_user:root, become_password:ASK'
       kind: ssh
       user: bender_eng_user
       team: null
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: '{password}'
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
-      sudo_username: '{sudo_username}'
-      sudo_password: 'ASK'
+      become_username: '{become_username}'
+      become_password: 'ASK'
 
-    - name: 'SSH (user:bender_eng_user, sudo_password:***)'
-      description: 'user:bender_eng_user, ssh_user:root, sudo_password:***'
+    - name: 'SSH (user:bender_eng_user, become_password:***)'
+      description: 'user:bender_eng_user, ssh_user:root, become_password:***'
       kind: ssh
       user: bender_eng_user
       team: null
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: '{password}'
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
-      sudo_username: '{sudo_username}'
-      sudo_password: '{sudo_password}'
+      become_username: '{become_username}'
+      become_password: '{become_password}'
 
-    - name: 'SSH (team:Engineering, password:ASK, ssh_key_unlock:ASK, sudo_password:ASK, vault_password:ASK)'
-      description: 'team:Engineering, ssh_user:root, password:ASK, ssh_key_unlock:ASK, sudo_password:ASK, vault_password:ASK'
+    - name: 'SSH (team:Engineering, password:ASK, ssh_key_unlock:ASK, become_password:ASK, vault_password:ASK)'
+      description: 'team:Engineering, ssh_user:root, password:ASK, ssh_key_unlock:ASK, become_password:ASK, vault_password:ASK'
       kind: ssh
       user: null
       team: Bender Engineering
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: 'ASK'
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: 'ASK'
-      sudo_username: '{sudo_username}'
-      sudo_password: 'ASK'
+      become_username: '{become_username}'
+      become_password: 'ASK'
       vault_password: 'ASK'
 
     #
@@ -255,7 +231,6 @@ credentials:
       kind: scm
       user: bender_eng_user
       team: null
-      cloud: false
       username: git
       password: ''
       ssh_key_data: '{ssh_key_data}'
@@ -266,33 +241,7 @@ credentials:
       kind: scm
       user: bender_eng_user
       team: null
-      cloud: false
       username: git
-      password: ''
-      ssh_key_data: '{encrypted[ssh_key_data]}'
-      ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
-
-    #
-    # bitbucket credentials
-    #
-    - name: hg@bitbucket.org (ssh_key_data)
-      description: 'SCM credential for git@github.com (includes ssh_key_data)'
-      kind: scm
-      user: bender_eng_user
-      team: null
-      cloud: false
-      username: hg
-      password: ''
-      ssh_key_data: '{ssh_key_data}'
-      ssh_key_unlock: ''
-
-    - name: hg@bitbucket.org (ssh_key_data, ssh_key_unlock)
-      description: 'SCM credential for git@github.com (includes ssh_key_data and ssh_key_unlock)'
-      kind: scm
-      user: bender_eng_user
-      team: null
-      cloud: false
-      username: hg
       password: ''
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
@@ -305,7 +254,6 @@ credentials:
       kind: aws
       user: bender_eng_user
       team: null
-      cloud: true
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
 
@@ -314,7 +262,6 @@ credentials:
       kind: aws
       user: null
       team: Bender IT
-      cloud: true
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
 
@@ -326,7 +273,6 @@ credentials:
       kind: rax
       user: bender_eng_user
       team: null
-      cloud: true
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
 
@@ -335,7 +281,6 @@ credentials:
       kind: rax
       user: null
       team: Bender IT
-      cloud: true
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
 
@@ -347,7 +292,6 @@ credentials:
       kind: azure
       user: null
       team: Bender IT
-      cloud: true
       username: '{username}' # Gathered from credentials.yaml
       ssh_key_data: '{ssh_key_data}' # Gathered from credentials.yaml
 
@@ -359,7 +303,6 @@ credentials:
       kind: gce
       user: null
       team: Bender IT
-      cloud: true
       username: '{username}' # Gathered from credentials.yaml
       project: '{project}'   # Gathered from credentials.yaml
       ssh_key_data: '{ssh_key_data}' # Gathered from credentials.yaml
@@ -372,7 +315,6 @@ credentials:
       kind: vmware
       user: null
       team: Bender IT
-      cloud: true
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
       host: '{host}'         # Gathered from credentials.yaml
@@ -385,7 +327,6 @@ credentials:
       kind: openstack
       user: null
       team: Bender IT
-      cloud: true
       username: '{username}' # Gathered from credentials.yaml
       password: '{password}' # Gathered from credentials.yaml
       project: '{project}'   # Gathered from credentials.yaml
@@ -399,78 +340,72 @@ credentials:
       kind: ssh
       user: null
       team: Ansible Users
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: 'ASK'
       ssh_key_data: ''
       ssh_key_unlock: ''
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
 
     - name: 'SSH (team:Ansible Users, password:***)'
       description: 'team:Ansible Users, ssh_user:root, password:***'
       kind: ssh
       user: null
       team: Ansible Users
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: '{password}' # merged from credentials.yaml
       ssh_key_data: ''
       ssh_key_unlock: ''
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
 
     - name: 'SSH (team:Ansible Users, ssh_key_data)'
       description: 'team:Ansible Users, ssh_user:root, ssh_key_data'
       kind: ssh
       user: null
       team: Ansible Users
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
       ssh_key_data: '{ssh_key_data}' # from credentials.yaml
       ssh_key_unlock: ''
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
 
     - name: 'SSH (team:Ansible Users, ssh_key_data, ssh_key_unlock:ASK)'
       description: 'team:Ansible Users, ssh_user:root, ssh_key_data, ssh_key_unlock:ASK'
       kind: ssh
       user: null
       team: Ansible Users
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: 'ASK'
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
 
     - name: 'SSH (team:Ansible Users, ssh_key_data, ssh_key_unlock:***)'
       description: 'team:Ansible Users, ssh_user:root, ssh_key_data, ssh_key_unlock:***'
       kind: ssh
       user: null
       team: Ansible Users
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
 
     - name: 'SSH (team:Ansible Users, ssh_key_data, ssh_key_unlock:***, vault_password:ASK'
       description: 'team:Ansible Users, ssh_user:root, ssh_key_data, ssh_key_unlock:***, vault_password:ASK'
       kind: ssh
       user: null
       team: Ansible Users
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
       vault_password: 'ASK'
 
     - name: 'SSH (team:Ansible Users, ssh_key_data, ssh_key_unlock:***, vault_password:***)'
@@ -478,40 +413,113 @@ credentials:
       kind: ssh
       user: null
       team: Ansible Users
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: ''
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
-      sudo_username: ''
-      sudo_password: ''
+      become_username: ''
+      become_password: ''
       vault_password: '{vault_password}'
 
-    - name: 'SSH (team:Ansible Users, sudo_password:ASK)'
-      description: 'team:Ansible Users, ssh_user:root, sudo_password:ASK'
+    - name: 'SSH (team:Ansible Users, become_password:ASK)'
+      description: 'team:Ansible Users, ssh_user:root, become_password:ASK'
       kind: ssh
       user: null
       team: Ansible Users
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: '{password}'
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
-      sudo_username: '{sudo_username}'
-      sudo_password: 'ASK'
+      become_username: '{become_username}'
+      become_password: 'ASK'
 
-    - name: 'SSH (team:Ansible Users, sudo_password:***)'
-      description: 'team:Ansible Users, ssh_user:root, sudo_password:***'
+    - name: 'SSH (team:Ansible Users, become_password:***)'
+      description: 'team:Ansible Users, ssh_user:root, become_password:***'
       kind: ssh
       user: null
       team: Ansible Users
-      cloud: false
       username: '{username}' # merged from credentials.yaml
       password: '{password}'
       ssh_key_data: '{encrypted[ssh_key_data]}'
       ssh_key_unlock: '{encrypted[ssh_key_unlock]}'
-      sudo_username: '{sudo_username}'
-      sudo_password: '{sudo_password}'
+      become_username: '{become_username}'
+      become_password: '{become_password}'
+
+projects:
+    - name: ansible-examples.git (git)
+      description: 'scm_type:git'
+      organization: Bender Products
+      scm_type: git
+      scm_url: 'https://github.com/ansible/ansible-examples.git'
+      scm_branch: ''
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+
+    - name: ansible-examples.svn (svn)
+      description: 'scm_type:svn'
+      organization: Bender Products
+      scm_type: svn
+      scm_url: 'https://github.com/ansible/ansible-examples'
+      scm_branch: ''
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+
+    - name: ansible-examples.git (github, ssh_key_data)
+      description: 'git@github.com:ansible/ansible-examples.git (ssh_key_data)'
+      organization: Bender Products
+      scm_type: git
+      scm_url: 'git@github.com:ansible/ansible-examples.git'
+      scm_branch: 'master'
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+      credential: git@github.com (ssh_key_data)
+
+    - name: ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
+      description: 'git@github.com:ansible/ansible-examples.git (ssh_key_data, ssh_key_unlock)'
+      organization: Bender Products
+      scm_type: git
+      scm_url: 'git@github.com:ansible/ansible-examples.git'
+      scm_branch: 'master'
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+      credential: git@github.com (ssh_key_data, ssh_key_unlock)
+
+    - name: ansible-tower.git (github, ssh_key_data)
+      description: 'git@github.com:ansible/ansible-tower.git (ssh_key_data)'
+      organization: Ansible, Inc
+      scm_type: git
+      scm_url: 'git@github.com:ansible/ansible-tower.git'
+      scm_branch: 'stable'
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+      credential: git@github.com (ssh_key_data)
+
+    - name: tower-qa.git (github, ssh_key_data)
+      description: 'git@github.com:ansible/tower-qa.git (ssh_key_data)'
+      organization: Ansible, Inc
+      scm_type: git
+      scm_url: 'git@github.com:ansible/tower-qa.git'
+      scm_branch: 'master'
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+      credential: git@github.com (ssh_key_data)
+
+    - name: ansible-playbooks.git (github, ssh_key_data)
+      description: 'git@github.com:jlaska/ansible-playbooks.git (ssh_key_data)'
+      organization: Ansible, Inc
+      scm_type: git
+      scm_url: 'git@github.com:jlaska/ansible-playbooks.git'
+      scm_branch: 'master'
+      scm_clean: false
+      scm_delete_on_update: false
+      scm_update_on_launch: false
+      credential: git@github.com (ssh_key_data)
 
 inventory_scripts:
     - name: script_generate_hosts
@@ -689,8 +697,6 @@ inventory_sources:
       inventory: inventory-all
       source: ec2
       credential: 'AWS (user:bender_eng_user)'
-      source_vars: ''
-      source_regions: ''
       overwrite: true
       overwrite_vars: true
       update_on_launch: true
@@ -703,9 +709,7 @@ inventory_sources:
       credential: 'Rackspace (user:bender_eng_user)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
-      source_vars: ''
       source_regions: 'ORD'
-      source_tags: ''
       overwrite: true
       overwrite_vars: true
       update_on_launch: true
@@ -718,9 +722,6 @@ inventory_sources:
       credential: 'Google Compute (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
-      source_vars: ''
-      source_regions: ''
-      source_tags: ''
       overwrite: true
       overwrite_vars: true
       update_on_launch: true
@@ -733,9 +734,6 @@ inventory_sources:
       credential: 'Microsoft Azure Classic (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
-      source_vars: ''
-      source_regions: ''
-      source_tags: ''
       overwrite: true
       overwrite_vars: true
       update_on_launch: true
@@ -748,9 +746,6 @@ inventory_sources:
       credential: 'VMware vCenter (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
-      source_vars: ''
-      source_regions: ''
-      source_tags: ''
       overwrite: true
       overwrite_vars: true
       update_on_launch: true
@@ -763,9 +758,6 @@ inventory_sources:
       credential: 'OpenStack (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
-      source_vars: ''
-      source_regions: ''
-      source_tags: ''
       overwrite: true
       overwrite_vars: true
       update_on_launch: true
@@ -776,8 +768,6 @@ inventory_sources:
       inventory: inventory-aws
       source: ec2
       credential: 'AWS (team:IT)'
-      source_vars: ''
-      source_regions: ''
       overwrite: false
       overwrite_vars: false
       update_on_launch: false
@@ -790,9 +780,7 @@ inventory_sources:
       credential: 'Rackspace (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
-      source_vars: ''
       source_regions: 'ORD'
-      source_tags: ''
       overwrite: false
       overwrite_vars: false
       update_on_launch: false
@@ -805,9 +793,6 @@ inventory_sources:
       credential: 'Google Compute (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
-      source_vars: ''
-      source_regions: ''
-      source_tags: ''
       overwrite: false
       overwrite_vars: false
       update_on_launch: false
@@ -820,9 +805,6 @@ inventory_sources:
       credential: 'Microsoft Azure Classic (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
-      source_vars: ''
-      source_regions: ''
-      source_tags: ''
       overwrite: false
       overwrite_vars: false
       update_on_launch: false
@@ -835,9 +817,6 @@ inventory_sources:
       credential: 'VMware vCenter (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
-      source_vars: ''
-      source_regions: ''
-      source_tags: ''
       overwrite: false
       overwrite_vars: false
       update_on_launch: false
@@ -850,9 +829,6 @@ inventory_sources:
       credential: 'OpenStack (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
-      source_vars: ''
-      source_regions: ''
-      source_tags: ''
       overwrite: false
       overwrite_vars: false
       update_on_launch: false
@@ -1100,201 +1076,9 @@ hosts:
     - name: local
       inventory: local,
 
-projects:
-    - name: ansible-examples.git (manual)
-      description: 'scm_type:manual'
-      organization: Bender Products
-      _ansible_module: git
-      scm_type: null # manual
-      scm_url: 'https://github.com/ansible/ansible-examples.git'
-      local_path: ansible-examples.git.manual
-
-    - name: ansible-examples.svn (manual)
-      description: 'scm_type:manual'
-      organization: Bender Products
-      _ansible_module: subversion
-      scm_type: null # manual
-      scm_url: 'https://github.com/ansible/ansible-examples'
-      local_path: ansible-examples.svn.manual
-
-    - name: ansible-helloworld.hg (manual)
-      description: 'scm_type:manual'
-      organization: Bender Products
-      _ansible_module: hg
-      scm_type: null # manual
-      scm_url: 'https://bitbucket.org/jlaska/ansible-helloworld'
-      local_path: ansible-helloworld.hg.manual
-
-    - name: ansible-playbooks.git (manual)
-      description: 'scm_type:manual'
-      organization: Ansible, Inc
-      _ansible_module: git
-      scm_type: null # manual
-      scm_url: 'https://github.com/jlaska/ansible-playbooks.git'
-      local_path: ansible-playbooks.git.manual
-
-    - name: ansible-examples.git (git)
-      description: 'scm_type:git'
-      organization: Bender Products
-      scm_type: git
-      scm_url: 'https://github.com/ansible/ansible-examples.git'
-      scm_branch: ''
-      scm_clean: false
-      scm_delete_on_update: false
-      scm_update_on_launch: false
-
-    - name: ansible-examples.svn (svn)
-      description: 'scm_type:svn'
-      organization: Bender Products
-      scm_type: svn
-      scm_url: 'https://github.com/ansible/ansible-examples'
-      scm_branch: ''
-      scm_clean: false
-      scm_delete_on_update: false
-      scm_update_on_launch: false
-
-    - name: ansible-helloworld (hg)
-      description: 'scm_type:hg'
-      organization: Bender Products
-      scm_type: hg
-      scm_url: 'https://bitbucket.org/jlaska/ansible-helloworld'
-      scm_branch: ''
-      scm_clean: false
-      scm_delete_on_update: false
-      scm_update_on_launch: false
-
-    - name: ansible-helloworld (hg, ssh_key_data)
-      description: 'ssh://hg@bitbucket.org/jlaska/ansible-helloworld (ssh_key_data)'
-      organization: Bender Products
-      scm_type: hg
-      scm_url: 'ssh://hg@bitbucket.org/jlaska/ansible-helloworld'
-      scm_branch: ''
-      scm_clean: false
-      scm_delete_on_update: false
-      scm_update_on_launch: false
-      credential: hg@bitbucket.org (ssh_key_data)
-
-    - name: ansible-helloworld (hg, ssh_key_data, ssh_key_unlock)
-      description: 'ssh://hg@bitbucket.org/jlaska/ansible-helloworld (ssh_key_data)'
-      organization: Bender Products
-      scm_type: hg
-      scm_url: 'ssh://hg@bitbucket.org/jlaska/ansible-helloworld'
-      scm_branch: ''
-      scm_clean: true
-      scm_delete_on_update: true
-      scm_update_on_launch: false
-      credential: hg@bitbucket.org (ssh_key_data, ssh_key_unlock)
-
-    - name: ansible-examples.git (github, ssh_key_data)
-      description: 'git@github.com:ansible/ansible-examples.git (ssh_key_data)'
-      organization: Bender Products
-      scm_type: git
-      scm_url: 'git@github.com:ansible/ansible-examples.git'
-      scm_branch: 'master'
-      scm_clean: false
-      scm_delete_on_update: false
-      scm_update_on_launch: false
-      credential: git@github.com (ssh_key_data)
-
-    - name: ansible-examples.git (github, ssh_key_data, ssh_key_unlock)
-      description: 'git@github.com:ansible/ansible-examples.git (ssh_key_data, ssh_key_unlock)'
-      organization: Bender Products
-      scm_type: git
-      scm_url: 'git@github.com:ansible/ansible-examples.git'
-      scm_branch: 'master'
-      scm_clean: false
-      scm_delete_on_update: false
-      scm_update_on_launch: false
-      credential: git@github.com (ssh_key_data, ssh_key_unlock)
-
-    - name: ansible-tower.git (github, ssh_key_data)
-      description: 'git@github.com:ansible/ansible-tower.git (ssh_key_data)'
-      organization: Ansible, Inc
-      scm_type: git
-      scm_url: 'git@github.com:ansible/ansible-tower.git'
-      scm_branch: 'stable'
-      scm_clean: false
-      scm_delete_on_update: false
-      scm_update_on_launch: false
-      credential: git@github.com (ssh_key_data)
-
-    - name: tower-qa.git (github, ssh_key_data)
-      description: 'git@github.com:ansible/tower-qa.git (ssh_key_data)'
-      organization: Ansible, Inc
-      scm_type: git
-      scm_url: 'git@github.com:ansible/tower-qa.git'
-      scm_branch: 'master'
-      scm_clean: false
-      scm_delete_on_update: false
-      scm_update_on_launch: false
-      credential: git@github.com (ssh_key_data)
-
-    - name: ansible-playbooks.git (github, ssh_key_data)
-      description: 'git@github.com:jlaska/ansible-playbooks.git (ssh_key_data)'
-      organization: Ansible, Inc
-      scm_type: git
-      scm_url: 'git@github.com:jlaska/ansible-playbooks.git'
-      scm_branch: 'master'
-      scm_clean: false
-      scm_delete_on_update: false
-      scm_update_on_launch: false
-      credential: git@github.com (ssh_key_data)
-
 job_templates:
-    - name: 'language_features/loop_nested.yml (limit:host-1*:&local_1-10, ssh_key_unlock:ASK)'
-      job_type: run
-      allow_callbacks: false
-      playbook: language_features/loop_nested.yml
-      project: ansible-examples.git (manual)
-      inventory: inventory-all
-      credential: 'SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:ASK)'
-      limit: 'host-1*:&local_1-10'
-
-    - name: 'language_features/roletest.yml (limit:~host-1[3-7]+\.example\.com, sudo_password:ASK)'
-      job_type: check
-      allow_callbacks: false
-      playbook: trunk/language_features/roletest.yml
-      project: ansible-examples.svn (manual)
-      inventory: inventory-all
-      credential: 'SSH (user:bender_eng_user, sudo_password:ASK)'
-      limit: ~host-1[3-7]+\.example\.com
-      verbosity: 2
-
-    - name: 'language_features/roletest.yml (limit:all:!cloud)'
-      job_type: run
-      allow_callbacks: false
-      playbook: trunk/language_features/environment.yml
-      project: ansible-examples.svn (manual)
-      inventory: inventory-all
-      credential: 'SSH (user:bender_eng_user, sudo_password:***)'
-      limit: 'all:!cloud'
-      verbosity: 2
-      forks: 50
-      extra_vars:
-        who_does_number_two_work_fork: one
-
-    - name: 'helloworld/debug.yml (limit:local)'
-      job_type: run
-      project: ansible-helloworld.hg (manual)
-      playbook: debug.yml
-      inventory: inventory-all
-      credential: 'SSH (user:bender_eng_user, password:***)'
-      limit: local
-      verbosity: 1
-      extra_vars:
-        ansible_connection: local
-
-    - name: 'helloworld/vault.yml (limit:local)'
-      job_type: run
-      project: ansible-helloworld (hg, ssh_key_data)
-      playbook: vault.yml
-      inventory: inventory-all
-      credential: 'SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***, vault_password:***)'
-      limit: local
-
     - name: 'language_features/tags.yml (tags:foo, limit:unresolvable-name.example.com)'
       job_type: check
-      allow_callbacks: false
       playbook: language_features/tags.yml
       project: ansible-examples.git (github, ssh_key_data)
       inventory: inventory-all
@@ -1311,7 +1095,6 @@ job_templates:
         scan_file_paths: "/tmp,/bin"
 
     - name: ansible-tower.git/setup/install.yml
-      _launch: false
       job_type: run
       playbook: setup/install.yml
       project: ansible-tower.git (github, ssh_key_data)
@@ -1323,7 +1106,6 @@ job_templates:
         sudo_user: root
 
     - name: ansible-playbooks.git/dynamic_inventory.yml
-      _launch: false
       job_type: run
       project: ansible-playbooks.git (github, ssh_key_data)
       playbook: dynamic_inventory.yml
@@ -1333,7 +1115,6 @@ job_templates:
         num_hosts: 100
 
     - name: ansible-playbooks.git/fail_unless.yml
-      _launch: false
       job_type: run
       project: ansible-playbooks.git (github, ssh_key_data)
       playbook: fail_unless.yml
@@ -1343,7 +1124,6 @@ job_templates:
         fail: false
 
     - name: ansible-playbooks.git/pass_unless.yml
-      _launch: false
       job_type: run
       project: ansible-playbooks.git (github, ssh_key_data)
       playbook: pass_unless.yml
@@ -1353,38 +1133,8 @@ job_templates:
         fail: false
 
     - name: ansible-playbooks.git/sleep.yml
-      _launch: false
       job_type: run
       project: ansible-playbooks.git (github, ssh_key_data)
       playbook: sleep.yml
       inventory: local,
-      credential: 'SSH (team:Ansible Users, sudo_password:***)'
-
-schedules:
-    - name: Update ansible-playbooks.git every 30 minutes
-      _type: project
-      description: Update every 30m with a COUNT=10
-      unified_job_template: ansible-playbooks.git (github, ssh_key_data)
-      enabled: true
-      rrule: 'DTSTART:{dtstart}; RRULE:FREQ=MINUTELY;INTERVAL=30;COUNT=10'
-
-#    - name: Update inventory-aws every hour
-#      _type: inventory_source
-#      description: Update every hour with a COUNT=5
-#      unified_job_template: Amazon EC2 Instances (inventory-aws)
-#      enabled: true
-#      rrule: 'DTSTART:{dtstart}; RRULE:FREQ=HOURLY;INTERVAL=1;COUNT=5'
-#
-#    - name: Update inventory-rax every day
-#      _type: inventory_source
-#      description: Update every day
-#      unified_job_template: Rackspace Cloud Servers (inventory-rax)
-#      enabled: true
-#      rrule: 'DTSTART:{dtstart}; RRULE:FREQ=DAILY;INTERVAL=1'
-
-    - name: Launch language_features/tag.yml on Sunday
-      _type: job_template
-      description: Update every Sunday at 2am
-      unified_job_template: 'language_features/tags.yml (tags:foo, limit:unresolvable-name.example.com)'
-      enabled: true
-      rrule: 'DTSTART:{dtstart}; RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=SU'
+      credential: 'SSH (team:Ansible Users, become_password:***)'
