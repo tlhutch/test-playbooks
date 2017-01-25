@@ -14,6 +14,7 @@ def convert_to_camelcase(s):
                                           'custom_inventory_update_with_status_completed',
                                           'project_update_with_status_completed',
                                           'job_with_status_completed',
+                                          'workflow_job_with_status_completed',
                                           'ad_hoc_with_status_completed'])
 def unified_job_with_status_completed(request):
     """Launches jobs of all types sequentially.
@@ -30,6 +31,7 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
                                         custom_inventory_update_with_status_completed,
                                         project_update_with_status_completed,
                                         job_with_status_completed,
+                                        workflow_job_with_status_completed,
                                         ad_hoc_with_status_completed):
     """Launches all four system jobs, an inventory update, an SCM update, a job template, and an ad hoc command.
 
@@ -41,6 +43,7 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
             custom_inventory_update_with_status_completed,
             project_update_with_status_completed,
             job_with_status_completed,
+            workflow_job_with_status_completed,
             ad_hoc_with_status_completed]
 
 
