@@ -214,7 +214,7 @@ Non-trivial topology should be used when testing workflow run. A non-trivial top
     * [ ] ansible-2.2
     * [ ] ansible-2.1
 1. Installation completes successfully on supported images
-    * [ ] AMI (unlicensed)
+    * [x] AMI (unlicensed)
     * [ ] Vagrant
 1. Bundled installation completes successfully on all supported platforms (Automated)
     * [ ] rhel-7.latest
