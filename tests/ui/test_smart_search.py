@@ -31,7 +31,7 @@ class BaseTestSearchTags(object):
         assert len(search.tags) == 0
 
     def test_multi_tag_add_clear(self, search):
-        [search(fauxfactory.gen_alphanumeric()) for _ in xrange(5)]
+        [search(fauxfactory.gen_alphanumeric()) for _ in range(5)]
         assert len(search.tags) == 5
 
         search.clear()
