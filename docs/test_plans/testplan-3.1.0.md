@@ -117,27 +117,26 @@ General acceptance criteria:
 1. [x] Successful installation of 3 node + 1 db clustered system
 1. [x] Successful installation of 5 node + 1 db clustered system
 1. [x] Successful installation of 10 node + 1 db clustered system
-1. [ ] Successful addition of new nodes to cluster via inventory update and setup.sh rerun
+1. [x] Successful addition of new nodes to cluster via inventory update and setup.sh rerun
 1. [ ] Successful addition of former standalone nodes to cluster via setup.sh rerun (https://github.com/ansible/ansible-tower/issues/4392)
 1. [x] Successful deprovisioning of nodes via tower-manage command
 1. [x] Expected distribution of 2000 launched jobs over 3 node cluster
-1. [ ] Expected distribution of 2000 launched jobs over 5 node cluster
-1. [ ] Expected distribution of 2000 launched jobs over 10 node cluster
+1. [x] Expected distribution of 2000 launched jobs over 5 node cluster
+1. [x] Expected distribution of 2000 launched jobs over 10 node cluster
 1. [ ] Satisfactory create/run performance of 3.0.3 v. 3.1.0 standalone system w/ 2000 debug jobs over 10 hosts
 1. [ ] Satisfactory query/delete performance of 3.0.3 v. 3.1.0 standalone system w/ 2000 debug jobs over 10 hosts
 1. [ ] Satisfactory create/run performance of 3.0.3 v. 3.1.0 standalone system w/ 2000 debug jobs over 100 hosts
 1. [ ] Satisfactory query/delete performance of 3.0.3 v. 3.1.0 standalone system w/ 2000 debug jobs over 100 hosts
-1. [ ] Satisfactory create/run performance of 3.0.3 v. 3.1.0 standalone system w/ stress benchmarking job over 100 hosts (https://github.com/ansible/ansible-tower/issues/3990)
-1. [ ] Satisfactory query/delete performance of 3.0.3 v. 3.1.0 standalone system w/ stress benchmarking job over 100 hosts (https://github.com/ansible/ansible-tower/issues/3990)
-1. [ ] Satisfactory create/run performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 10 hosts
-1. [ ] Satisfactory query/delete performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 10 hosts
-1. [ ] Satisfactory create/run performance of 3.1.0 standalone v. 5 node cluster w/ 2000 debug jobs over 10 hosts
-1. [ ] Satisfactory create/run performance of 3.1.0 standalone v. 10 node cluster w/ 2000 debug jobs over 10 hosts
+1. [x] Satisfactory performance of 3.0.3 v. 3.1.0 standalone system w/ stress benchmarking job over 100 hosts
+1. [x] Satisfactory create/run performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 10 hosts
+1. [x] Satisfactory query/delete performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 10 hosts
+1. [x] Satisfactory create/run performance of 3.1.0 standalone v. 5 node cluster w/ 2000 debug jobs over 10 hosts
+1. [x] Satisfactory create/run performance of 3.1.0 standalone v. 10 node cluster w/ 2000 debug jobs over 10 hosts
 1. [ ] Satisfactory create/run performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 100 hosts
 1. [ ] Satisfactory query/delete performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 100 hosts
 1. [ ] Satisfactory create/run performance of 3.1.0 standalone v. 5 node cluster w/ 2000 debug jobs over 100 hosts
 1. [ ] Satisfactory create/run performance of 3.1.0 standalone v. 10 node cluster w/ 2000 debug jobs over 100 hosts
-1. [ ] Satisfactory performance of 3.1.0 standalone v. 3 node clustered systems w/ stress benchmarking job over 100 hosts (https://github.com/ansible/ansible-tower/issues/3990)
+1. [ ] Satisfactory performance of 3.1.0 standalone v. 3 node clustered systems w/ stress benchmarking job over 100 hosts
 1. [ ] Expected distribution and success of 2000 jobs over 3 node cluster w/ network disruption
 1. [ ] Expected distribution and success of 2000 jobs over 5 node cluster w/ network disruption
 1. [ ] Expected distribution and success of 2000 jobs over 10 node cluster w/ network disruption
@@ -225,6 +224,6 @@ Non-trivial topology should be used when testing workflow run. A non-trivial top
 1. [ ] Upgrade completes on all supported platforms from `3.0.*`
 1. [ ] Verify the following functions work as intended after upgrade
     * [ ] Launch project_updates for existing projects
-    * [ ] Launch inventory_udpates for existing inventory_source
+    * [ ] Launch inventory_updates for existing inventory_source
     * [ ] Launch, and relaunch, existing job_templates
     * [ ] Migrations were successful
