@@ -30,9 +30,9 @@ def parse_args():
                         default=[],
                         help="Exclude instances matching the provided JMESPath query "
                         "(http://jmespath.org/tutorial.html)")
-    parser.add_argument("--include-protected",
+    parser.add_argument("--protected",
                         action="store_true",
-                        dest="include_protected",
+                        dest="protected",
                         default=False,
                         help="Include instances with termination protection in match results (default: %(default)s)")
 
@@ -160,7 +160,7 @@ if __name__ == '__main__':
 
             for reservation in reservations['Reservations']:
                 # Filter based on termination protection
-                reservation['Instances'] = filter(is_protected(ec2, args.include_protected), reservation['Instances'])
+                reservation['Instances'] = filter(is_protected(ec2, args.protected), reservation['Instances'])
 
                 # Filter based on exclusions
                 reservation['Instances'] = filter(is_excluded(ec2, args.excludes), reservation['Instances'])
