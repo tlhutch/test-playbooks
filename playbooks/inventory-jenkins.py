@@ -21,7 +21,7 @@ if has_ansible_v2:
 
 job_path = '/job/Test_Tower_Install/ANSIBLE_NIGHTLY_BRANCH={ansible_nightly_branch},PLATFORM={platform},label={label}/lastBuild'
 artifact_path = '/artifact/playbooks/inventory.log/*view*/'
-ansible_nightly_branches = ['devel', 'stable-2.2', 'stable-1.9']
+ansible_nightly_branches = ['devel', 'stable-2.2', 'stable-2.1']
 supported_platforms = ['rhel-7.2-x86_64', 'centos-7.latest-x86_64', 'ol-7.2-x86_64',
                        'ubuntu-14.04-x86_64', 'ubuntu-16.04-x86_64', ]
 
@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
         for ansible_nightly_branch in ansible_nightly_branches:
             for platform in supported_platforms:
-                for label in ['rhel-7', ]:
+                for label in ['jenkins-gke-agent', ]:
                     # build URL to Jenkins artifact
                     url = urljoin(args.jenkins, job_path + artifact_path)
                     url = url.format(**dict(ansible_nightly_branch=ansible_nightly_branch, platform=platform, label=label))
