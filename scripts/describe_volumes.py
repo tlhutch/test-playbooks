@@ -132,10 +132,6 @@ if __name__ == '__main__':
 
         for page in page_iterator:
 
-            # Filter based on termination protection
-            # page['Volumes'] = filter(is_protected(ec2, args.protected), page['Volumes'])
-            # page['Volumes'] = filter(is_excluded(ec2, args.excludes), page['Volumes'])
-
             for volume in page['Volumes']:
 
                 # Assert both datetimes are offset aware
