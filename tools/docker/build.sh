@@ -4,14 +4,14 @@ CONTAINER_IMAGE_NAME="${CONTAINER_IMAGE_NAME:-gcr.io/ansible-tower-engineering/t
 
 ansible localhost -i 'localhost,' -c local -o -m git -a \
     "repo=https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/ansible/towerkit
-     dest=tools/docker/ui/.build/towerkit
+     dest=tools/docker/.build/towerkit
      version=master
      force=yes"
 
-REV_TOWERKIT=$(git --git-dir=tools/docker/ui/.build/towerkit/.git rev-parse HEAD | head -c7)
+REV_TOWERKIT=$(git --git-dir=tools/docker/.build/towerkit/.git rev-parse HEAD | head -c7)
 REV_TOWER_QA=$(git rev-parse HEAD | head -c7)
 
-docker build -f ./tools/docker/ui/Dockerfile \
+docker build -f ./tools/docker/Dockerfile \
     --tag ${CONTAINER_IMAGE_NAME}:latest \
     --tag ${CONTAINER_IMAGE_NAME}:${REV_TOWERKIT}_${REV_TOWER_QA} .
 

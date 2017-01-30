@@ -10,9 +10,13 @@ services:
     links:
       - 'chrome_local'
     command: py.test --no-print-logs --api-destructive --browser=chrome --driver-type=remote --driver-location=http://chrome_local:4444/wd/hub --driver-capabilities='platform:linux' tests/ui
+    privileged: true
   chrome_local:
-    image: selenium/standalone-chrome:latest
+    image: selenium/standalone-chrome-debug:latest
     volumes:
       - /dev/shm:/dev/shm
     expose:
       - "4444"
+      - "5900"
+    ports:
+      - "5901:5900"
