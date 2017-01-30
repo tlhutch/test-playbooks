@@ -996,9 +996,10 @@ print json.dumps(inv, indent=2)
             "Launched a tag JT but '-t tag' not found in job_args."
 
         # check that expected tasks run
-        task_events = job_pg.get_related('job_events', event='playbook_on_task_start')
-        assert task_events.count == 2, \
-            "Unexpected number of task_events returned (%s != 2)" % task_events.count
+        assert job_pg.get_related('job_events', event='playbook_on_task_start').count == 2, \
+            "Unexpected number of task_events returned (expected 2)."
+        assert job_pg.get_related('job_events', event='runner_on_ok').count == 2, \
+            "Unexpected number of task_events returned (expected 2)."
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4233')
     def test_launch_with_unmatched_tag_value(self, job_template_with_random_tag, ansible_version_cmp):
