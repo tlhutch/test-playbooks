@@ -14,6 +14,18 @@ def system_job_with_status_completed(request):
 
 
 @pytest.fixture(scope="function")
+def system_jobs(cleanup_jobs, cleanup_activitystream, cleanup_facts):
+    return [cleanup_jobs, cleanup_activitystream, cleanup_facts]
+
+
+@pytest.fixture(scope="function")
+def system_jobs_with_status_completed(cleanup_jobs_with_status_completed,
+                                      cleanup_activitystream_with_status_completed,
+                                      cleanup_facts_with_status_completed):
+        return [cleanup_jobs_with_status_completed, cleanup_activitystream_with_status_completed, cleanup_facts_with_status_completed]
+
+
+@pytest.fixture(scope="function")
 def cleanup_jobs(request, cleanup_jobs_template):
     payload = dict()
 
