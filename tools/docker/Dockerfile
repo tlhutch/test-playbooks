@@ -1,6 +1,6 @@
 FROM frolvlad/alpine-glibc
 
-ARG towerkit_dir='./tools/docker/ui/.build/towerkit'
+ARG towerkit_dir='./tools/docker/.build/towerkit'
 ARG tower_qa_dir='.'
 
 RUN apk add --update \
