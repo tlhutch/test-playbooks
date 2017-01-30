@@ -11,10 +11,12 @@ def job(session_job_template):
     obj.silent_cleanup()
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4860')
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5049')
 class BaseTestSearchTags(object):
 
-    def test_multi_tag_add_remove(self, search):
+    @pytest.mark.parametrize('pop_first', (0, 1, 2))
+    @pytest.mark.parametrize('pop_second', (0, 1))
+    def test_multi_tag_add_remove(self, search, pop_first, pop_second):
         search('foo')
         search('bar')
         search('fiz')
@@ -24,8 +26,8 @@ class BaseTestSearchTags(object):
         assert 'bar' in search.tags[1].text
         assert 'fiz' in search.tags[2].text
 
-        search.tags.pop().delete.click()
-        search.tags.pop().delete.click()
+        search.tags.pop(pop_first).delete.click()
+        search.tags.pop(pop_second).delete.click()
         search.tags.pop().delete.click()
 
         assert len(search.tags) == 0
