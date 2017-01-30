@@ -43,9 +43,15 @@ def job_template_with_project_django(job_template, project_django):
 
 
 @pytest.fixture(scope="function")
-def cloud_inventory_job_template(request, job_template, cloud_group):
+def cloud_inventory_job_template(job_template, cloud_group):
     # Substitute in no-op playbook that does not attempt to connect to host
-    job_template.patch(playbook='debug.yml')
+    job_template.patch(playbook='debug.yml', inventory=cloud_group.inventory)
+    return job_template
+
+
+@pytest.fixture(scope="function")
+def custom_inventory_job_template(job_template, custom_group):
+    job_template.patch(inventory=custom_group.inventory)
     return job_template
 
 
@@ -337,11 +343,9 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         assert inv_src_pg.last_updated is None, \
             "Not expecting our inventory source to have been updated - %s." % inv_src_pg
 
-        # update job_template to cloud inventory
-        cloud_inventory_job_template.patch(inventory=cloud_group.inventory)
-
-        # launch job_template and wait for completion
+        # launch job_template and assert successful
         job_pg = cloud_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that inventory update triggered
         inv_src_pg.get()
@@ -382,8 +386,9 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         # substitute in no-op playbook that does not attempt to connect to host
         job_template.patch(inventory=aws_inventory_source.inventory, playbook='debug.yml')
 
-        # launch job_template and wait for completion
+        # launch job_template and assert successful
         job_pg = job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that inventory updates were triggered
         for inv_source in (aws_inventory_source, rax_inventory_source):
@@ -404,41 +409,38 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [[aws_update, rax_update], job_pg]
         confirm_unified_jobs(sorted_unified_jobs)
 
-    def test_inventory_cache_timeout(self, cloud_inventory_job_template, cloud_group):
+    def test_inventory_cache_timeout(self, custom_inventory_job_template, custom_inventory_source):
         """Verify that an inventory update is not triggered by the job launch if the
         cache is still valid. Job ordering should be as follows:
         * Manually launched inventory update.
         * Job upon completion of inventory update.
         """
         # set update_on_launch and a five minute update_cache_timeout
-        inv_src_pg = cloud_group.get_related('inventory_source')
         cache_timeout = 60 * 5
-        inv_src_pg.patch(update_on_launch=True, update_cache_timeout=cache_timeout)
-        assert inv_src_pg.update_cache_timeout == cache_timeout
-        assert inv_src_pg.last_updated is None, \
-            "Not expecting inventory source an have been updated - %s." % inv_src_pg
-
-        # update job_template to cloud inventory
-        cloud_inventory_job_template.patch(inventory=cloud_group.inventory)
+        custom_inventory_source.patch(update_on_launch=True, update_cache_timeout=cache_timeout)
+        assert custom_inventory_source.update_cache_timeout == cache_timeout
+        assert custom_inventory_source.last_updated is None, \
+            "Not expecting inventory source to have been updated - %s." % custom_inventory_source
 
         # launch inventory update and wait for completion
-        inv_update_pg = cloud_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        inv_update_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
 
         # check that inventory source reports our inventory update
-        inv_src_pg.get()
-        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s." % inv_src_pg
-        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s." % inv_src_pg
-        last_updated, last_job_run = inv_src_pg.last_updated, inv_src_pg.last_job_run
+        custom_inventory_source.get()
+        assert custom_inventory_source.last_updated is not None, "Expecting value for last_updated - %s." % custom_inventory_source
+        assert custom_inventory_source.last_job_run is not None, "Expecting value for last_job_run - %s." % custom_inventory_source
+        last_updated, last_job_run = custom_inventory_source.last_updated, custom_inventory_source.last_job_run
 
-        # launch job_template and wait for completion
-        job_pg = cloud_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        # launch job_template and assert successful
+        job_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that inventory update not triggered
-        inv_src_pg.get()
-        assert inv_src_pg.last_updated == last_updated, \
-            "An inventory update was unexpectedly triggered (last_updated changed) - %s." % inv_src_pg
-        assert inv_src_pg.last_job_run == last_job_run, \
-            "An inventory update was unexpectedly triggered (last_job_run changed) - %s." % inv_src_pg
+        custom_inventory_source.get()
+        assert custom_inventory_source.last_updated == last_updated, \
+            "An inventory update was unexpectedly triggered (last_updated changed) - %s." % custom_inventory_source
+        assert custom_inventory_source.last_job_run == last_job_run, \
+            "An inventory update was unexpectedly triggered (last_job_run changed) - %s." % custom_inventory_source
 
         # check that jobs ran sequentially and in the right order
         sorted_unified_jobs = [inv_update_pg, job_pg]
@@ -464,8 +466,9 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         assert initial_project_update.job_type == "check", \
             "Unexpected job_type for our initial project update: {0}.".format(initial_project_update.job_type)
 
-        # launch job_template and wait for completion
+        # launch job_template and assert successful
         job_pg = job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that our new project updates are successful
         spawned_project_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_project_update.id)
@@ -507,8 +510,9 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         assert initial_project_update.job_type == "check", \
             "Unexpected job_type for our initial project update: {0}.".format(initial_project_update.job_type)
 
-        # launch job_template and wait for completion
+        # launch job_template and assert successful
         job_pg = job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that our new project update completes successfully and is of the right type
         spawned_project_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_project_update.id)
@@ -521,8 +525,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [initial_project_update, [job_pg, spawned_project_update]]
         confirm_unified_jobs(sorted_unified_jobs)
 
-    def test_inventory_and_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git,
-                                   cloud_group):
+    def test_inventory_and_project(self, custom_inventory_job_template, custom_inventory_source):
         """Verify that two project updates and an inventory update get triggered
         by a job launch when we enable update_on_launch for both our project and
         custom group. Job ordering should be as follows:
@@ -532,48 +535,45 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         * Our job should run simultaneously with our 'run' project update.
         """
         # set scm_update_on_launch for the project
-        project_ansible_playbooks_git.patch(scm_update_on_launch=True)
-        assert project_ansible_playbooks_git.scm_update_on_launch
+        project = custom_inventory_job_template.related.project.get()
+        project.patch(scm_update_on_launch=True)
+        assert project.scm_update_on_launch
 
         # set update_on_launch for the inventory
-        inv_src_pg = cloud_group.get_related('inventory_source')
-        inv_src_pg.patch(update_on_launch=True)
-        assert inv_src_pg.update_on_launch
+        custom_inventory_source.patch(update_on_launch=True)
+        assert custom_inventory_source.update_on_launch
 
         # check the autospawned project update
-        initial_project_updates = project_ansible_playbooks_git.related.project_updates.get()
+        initial_project_updates = project.related.project_updates.get()
         assert initial_project_updates.count == 1, "Unexpected number of initial project updates."
         initial_project_update = initial_project_updates.results.pop()
         assert initial_project_update.job_type == "check", \
             "Unexpected job_type for our initial project update: {0}.".format(initial_project_update.job_type)
 
-        # update job_template to cloud inventory
-        # substitute in no-op playbook that does not attempt to connect to host
-        job_template_ansible_playbooks_git.patch(inventory=cloud_group.inventory, playbook='debug.yml')
-
-        # launch job_template and wait for completion
-        job_pg = job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
+        # launch job_template and assert successful
+        job_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check our new project updates are successful
-        spawned_project_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_project_update.id)
+        spawned_project_updates = project.related.project_updates.get(not__id=initial_project_update.id)
         assert spawned_project_updates.count == 2, "Unexpected number of final updates ({0}).".format(spawned_project_updates.count)
         for update in spawned_project_updates.results:
             assert update.is_successful, "Project update unsuccessful - %s." % update
 
         # check that our new project updates are of the right type
-        spawned_check_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_project_update.id, job_type='check')
-        spawned_run_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_project_update.id, job_type='run')
+        spawned_check_updates = project.related.project_updates.get(not__id=initial_project_update.id, job_type='check')
+        spawned_run_updates = project.related.project_updates.get(not__id=initial_project_update.id, job_type='run')
         assert spawned_check_updates.count == 1, "Expected one new project update of job_type 'check.'"
         assert spawned_run_updates.count == 1, "Expected one new project update of job_type 'run.'"
         spawned_check_update, spawned_run_update = spawned_check_updates.results.pop(), spawned_run_updates.results.pop()
 
         # check that inventory update was triggered and is successful
-        inv_src_pg.get()
-        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s." % inv_src_pg
-        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s." % inv_src_pg
-        assert inv_src_pg.is_successful, "Inventory source unsuccessful - {0}.".format(inv_src_pg)
-        inv_update_pg = inv_src_pg.related.inventory_updates.get().results.pop()
-        assert inv_update_pg.is_successful, "Inventory update unsuccessful - {0}.".format(inv_update_pg)
+        custom_inventory_source.get()
+        assert custom_inventory_source.last_updated is not None, "Expecting value for last_updated - %s." % custom_inventory_source
+        assert custom_inventory_source.last_job_run is not None, "Expecting value for last_job_run - %s." % custom_inventory_source
+        assert custom_inventory_source.is_successful, "Inventory source unsuccessful - {0}.".format(custom_inventory_source)
+        inv_update_pg = custom_inventory_source.related.inventory_updates.get().results.pop()
+        assert custom_inventory_source.is_successful, "Inventory update unsuccessful - {0}.".format(inv_update_pg)
 
         # check that jobs ran sequentially and in the right order
         sorted_unified_jobs = [initial_project_update, [spawned_check_update, inv_update_pg], [job_pg, spawned_run_update]]
