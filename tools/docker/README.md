@@ -1,13 +1,16 @@
-## running your very own py.test command using the tower-qe container image:
+# Running Tests in Docker
+
+## Examples
+
+## Running your very own py.test command
 ```shell
-docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test
+$ docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test
 ```
 
-## example: running API tests
+## Running API tests
 ```shell
-ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/credentials.yml
-
-docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test \
+$ ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/credentials.yml
+$ docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test \
     --api-credentials=tools/docker/credentials.yml \
     --github-cfg=tools/docker/credentials.yml \
     --base-url='https://ec2-01-234-56-789.compute-1.amazonaws.com' \
@@ -16,11 +19,20 @@ docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test
     tests/api
 ```
 
-## running headless UI tests:
+## Running UI tests
 
 ```shell
-export PYTEST_ADDOPTS="--base-url='https://ec2.tower.com' --ansible-inventory=playbooks/inventory.log --ansible-host-pattern=tower --api-destructive --api-credentials=tools/docker/credentials.yml --github-cfg=tools/docker/credentials.yml"
-
-ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/credentials.yml
-docker-compose -f tools/docker/docker-compose.yml run ui_headless
+$ export PYTEST_ADDOPTS="--base-url='https://ec2.tower.com' --ansible-inventory=playbooks/inventory.log --ansible-host-pattern=tower"
+$ ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/credentials.yml
+$ docker-compose -f tools/docker/ui/docker-compose.yml run ui_headless
 ```
+
+### Debugging
+
+You can watch the tests as they are running:
+
+```shell
+$ open vnc://localhost:5901
+```
+
+**Note** If using `docker-machine`, replace `localhost` with the output of `docker-machine ip`
