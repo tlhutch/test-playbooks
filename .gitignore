@@ -16,3 +16,4 @@ chromedriver
 /playbooks/inventory.*
 /tests/credentials.yml
 /tests/credentials.yaml
+tools/docker/.build
