@@ -365,15 +365,14 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         """
         # set update_on_launch
         aws_inventory_source.patch(update_on_launch=True)
-        assert aws_inventory_source.update_on_launch
-        assert aws_inventory_source.update_cache_timeout == 0
-        assert aws_inventory_source.last_updated is None, \
-            "Not expecting inventory source to have been updated - %s." % aws_inventory_source
         rax_inventory_source.patch(update_on_launch=True)
-        assert rax_inventory_source.update_on_launch
-        assert rax_inventory_source.update_cache_timeout == 0
-        assert rax_inventory_source.last_updated is None, \
-            "Not expecting inventory source to have been updated - %s." % rax_inventory_source
+
+        # check inventory sources
+        for inv_source in (aws_inventory_source, rax_inventory_source):
+            assert inv_source.update_on_launch
+            assert inv_source.update_cache_timeout == 0
+            assert inv_source.last_updated is None, \
+                "Not expecting inventory source to have been updated - %s." % inv_source
 
         # sanity check: cloud groups should be in the same inventory
         assert rax_inventory_source.inventory == aws_inventory_source.inventory, \
@@ -387,22 +386,17 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         job_pg = job_template.launch_job().wait_until_completed(timeout=50 * 10)
 
         # check that inventory updates were triggered
-        aws_inventory_source.get()
-        assert aws_inventory_source.last_updated is not None, \
-            "Expecting value for aws_inventory_source last_updated - %s." % aws_inventory_source
-        assert aws_inventory_source.last_job_run is not None, \
-            "Expecting value for aws_inventory_source last_job_run - %s." % aws_inventory_source
-        rax_inventory_source.get()
-        assert rax_inventory_source.last_updated is not None, \
-            "Expecting value for rax_inventory_source last_updated - %s." % rax_inventory_source
-        assert rax_inventory_source.last_job_run is not None, \
-            "Expecting value for rax_inventory_source last_job_run - %s." % rax_inventory_source
+        for inv_source in (aws_inventory_source, rax_inventory_source):
+            inv_source.get()
+            assert inv_source.last_updated is not None, \
+                "Expecting value for inventory_source last_updated - %s." % inv_source
+            assert inv_source.last_job_run is not None, \
+                "Expecting value for inventory_source last_job_run - %s." % inv_source
 
         # check that inventory updates were successful
-        aws_update = aws_inventory_source.get_related('last_update')
+        aws_update, rax_update = aws_inventory_source.related.last_update.get(), rax_inventory_source.related.last_update.get()
         assert aws_update.is_successful, "aws_inventory_source -> last_update unsuccessful - %s." % aws_update
         assert aws_inventory_source.is_successful, "Inventory source unsuccessful - %s." % aws_inventory_source
-        rax_update = rax_inventory_source.get_related('last_update')
         assert rax_update.is_successful, "rax_inventory_source -> last_update unsuccessful - %s." % rax_update
         assert rax_inventory_source.is_successful, "Inventory source unsuccessful - %s." % rax_inventory_source
 
