@@ -1,20 +1,20 @@
-FROM frolvlad/alpine-glibc
+FROM centos:7
 
 ARG towerkit_dir='./tools/docker/.build/towerkit'
 ARG tower_qa_dir='.'
 
-RUN apk add --update \
+RUN yum install -y epel-release
+
+RUN yum install -y \
     bash \
     ca-certificates \
     gcc \
-    libffi-dev \
-    linux-headers \
-    musl-dev \
-    openssh-client \
-    openssl-dev \
-    py-pip \
+    gdb \
+    openssl \
+    openssl-devel \
     python \
-    python-dev
+    python-pip \
+    python-devel
 
 RUN pip install --upgrade pip
 
@@ -30,10 +30,3 @@ RUN pip install /towerkit
 COPY ${tower_qa_dir} /tower-qa
 
 WORKDIR /tower-qa
-
-RUN apk del --purge \
-    gcc \
-    linux-headers \
-    musl-dev \
-    openssl-dev \
-    python-dev
