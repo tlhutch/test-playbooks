@@ -10,7 +10,7 @@
 ### RBAC Copy/Edit Rework (Chris)
 [Feature](https://docs.google.com/document/d/19qwq-6nAMAZcYonQjKERgVhK_dXJ3oLDNTmx5_rNZHU/edit)
 
-Top-level /api/v1/ user_capabilities:
+Top-level /api/v1/\w+/ user_capabilities:
 
 1. [x] Expected flags for /api/v1/ad_hoc_commands/ against range of inventory permissions.
 1. [x] Expected flags for /api/v1/credentials/ against range of credential permissions.
@@ -25,24 +25,14 @@ Top-level /api/v1/ user_capabilities:
 1. [x] Expected flags for /api/v1/notification_templates/ against range of system permissions.
 1. [x] Expected flags for /api/v1/organizations/ against range of organization permissions.
 1. [x] Expected flags for /api/v1/schedules/ against range of system permissions.
-1. [ ] Expected flags for /api/v1/schedules/ against range of scheduled resource permissions (ex: inventory).
+1. [ ] Expected flags for /api/v1/\w+/\d+/schedules/ against range of scheduled resource permissions (ex: inventory).
 1. [x] Expected flags for /api/v1/system_jobs/ against range of system permissions.
 1. [x] Expected flags for /api/v1/teams/ against range of team permissions.
 1. [x] Expected flags for /api/v1/users/ against range of system permissions.
 
-Nested access_list user_capabilities:
-
-1. [ ] Expected flags for /api/v1/credentials/N/access_list/ against range of credential permissions.
-1. [ ] Expected flags for /api/v1/inventories/N/access_list/ against range of inventory permissions.
-1. [ ] Expected flags for /api/v1/job_templates/N/access_list/ against range of job_template permissions.
-1. [ ] Expected flags for /api/v1/organizations/N/access_list/ against range of organization permissions.
-1. [ ] Expected flags for /api/v1/projects/N/access_list/ against range of project permissions.
-1. [ ] Expected flags for /api/v1/teams/N/access_list/ against range of team permissions.
-1. [ ] Expected flags for /api/v1/users/N/access_list/ against range of user permissions.
-1. [ ] Expected flags for /api/v1/workflow_job_templates/N/access_list/ against range of WFJT permissions.
-
 Additional cases:
 
+1. [x] Expected flags for /api/v1/\w+/\d+/access_list/ against range of credential permissions (covered in unittests).
 1. [ ] Expected flags for special cases (manual groups and projects).
 1. [ ] Smokescreen testing of user_capabilities with team permissions.
 
