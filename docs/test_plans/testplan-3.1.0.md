@@ -10,31 +10,81 @@
 ### RBAC Copy/Edit Rework (Chris)
 [Feature](https://docs.google.com/document/d/19qwq-6nAMAZcYonQjKERgVhK_dXJ3oLDNTmx5_rNZHU/edit)
 
-1. [x] Tests for all main user_capabilities endpoints.
-1. [x] Tests roles and access_list user_capabilities endpoints for "unattach" (covered in unittests).
+1. [x] Expected flags for /api/v1/ad_hoc_commands/ against range of inventory permissions.
+1. [x] Expected flags for /api/v1/credentials/ against range of credential permissions.
+1. [x] Expected flags for /api/v1/inventories/ against range of inventory permissions.
+1. [x] Expected flags for /api/v1/groups/ against range of inventory permissions.
+1. [x] Expected flags for /api/v1/hosts/ against range of inventory permissions.
+1. [x] Expected flags for /api/v1/inventory_scripts/ against range of inventory script permissions.
+1. [x] Expected flags for /api/v1/jobs/ against range of job template permissions.
+1. [x] Expected flags for /api/v1/inventory_updates/ against range of inventory permissions.
+1. [x] Expected flags for /api/v1/project_updates/ against range of project permissions.
+1. [x] Expected flags for /api/v1/job_templates/ against range of job template permissions.
+1. [x] Expected flags for /api/v1/notification_templates/ against range of system permissions.
+1. [x] Expected flags for /api/v1/organizations/ against range of organization permissions.
+1. [x] Expected flags for /api/v1/schedules/ against range of system permissions.
+1. [ ] Expected flags for /api/v1/schedules/ against range of scheduled resource permissions (ex: inventory).
+1. [x] Expected flags for /api/v1/system_jobs/ against range of system permissions.
+1. [x] Expected flags for /api/v1/teams/ against range of team permissions.
+1. [x] Expected flags for /api/v1/users/ against range of system permissions.
+
+1. [ ] Expected flags for /api/v1/credentials/N/access_list/ against range of credential permissions.
+1. [ ] Expected flags for /api/v1/inventories/N/access_list/ against range of inventory permissions.
+1. [ ] Expected flags for /api/v1/job_templates/N/access_list/ against range of job_template permissions.
+1. [ ] Expected flags for /api/v1/organizations/N/access_list/ against range of organization permissions.
+1. [ ] Expected flags for /api/v1/projects/N/access_list/ against range of project permissions.
+1. [ ] Expected flags for /api/v1/teams/N/access_list/ against range of team permissions.
+1. [ ] Expected flags for /api/v1/users/N/access_list/ against range of user permissions.
+1. [ ] Expected flags for /api/v1/workflow_job_templates/N/access_list/ against range of WFJT permissions.
+
+1. [ ] Expected flags for special cases (manual groups and projects).
 1. [ ] Smokescreen testing of user_capabilities with team permissions.
 
 ### Timeouts (Chris)
 [Feature](https://github.com/ansible/ansible-tower/issues/2363)
 
-1. [x] Tests for timeouts with project updates, inventory updates, and jobs.
-1. [x] Tests for universal /api/v1/settings/jobs/ timeout flags.
-1. [x] Test that local timeout values override global timeout values.
+1. [x] Verify successful timeout with project update.
+1. [x] Verify successful timeout with inventory update.
+1. [x] Verify successful timeout with job.
+1. [x] Test that by default that unified jobs run to completion.
+1. [x] Test global timeout flags under /api/v1/settings/jobs/.
+1. [x] Test that resource timeouts override global timeouts.
 
 ### Configure Tower in Tower (Chris)
 [Feature](https://drive.google.com/open?id=1Oc84TUnV2eh2Cy29vVfUfdJmV_qyg7NnTAEhuqoYdiQ)
 
-1. [ ] Test basic functionality of all /api/v1/settings/ endpoints.
-1. [x] Test that that capabilities filtered by license.
-1. [x] Test /api/v1/settings/ RBAC.
-1. [x] Test that DELETE resets an endpoint.
-1. [x] Test that changed entries listed under /api/v1/settings/changed/.
-1. [x] Test that sensitive values hidden on all settings endpoints.
-1. [ ] Test that static file settings override database settings.
-1. [ ] Test that static file settings make their API-partners read-only.
-1. [ ] Test that settings get migrated upon upgrade.
+1. [x] Test successful authentication via GitHub social auth.
+1. [x] Test successful authentication via Github Teams social auth.
+1. [x] Test successful authentication via Github Organizations social auth.
+1. [x] Test successful authentication via Google social auth.
+1. [x] Test successful authentication via AzureAD social auth.
+1. [x] Test successful authentication via LDAP.
+1. [x] Test successful authentication via RADIUS.
+1. [x] Test successful authentication via SAML.
+1. [x] Verify organization-mapping flag functionality.
+1. [x] Verify team-mapping flag functionality.
 
-### Tower Module (Chris)
+1. [x] Test that options under /api/v1/settings/ filtered by license.
+1. [x] Test that flags listed under /api/v1/settings/\* filtered by license.
+1. [x] Verify that no options listed under /api/v1/settings/ against range of non-superusers.
+1. [x] Verify RUD access to nested settings endpoints against range of non-superusers.
+1. [x] Verify that DELETE resets a nested settings endpoint to factory defaults.
+1. [x] Verify that changed settings get listed under /api/v1/settings/changed/.
+1. [x] Test that sensitive values obscured on all nested settings endpoints.
+
+1. [ ] Test that static file settings override database settings.
+1. [ ] Test that static file settings make their API-counterparts read-only.
+
+1. [x] Test successful migration to database on EL7 Tower-3.0.3.
+1. [x] Test successful migration to database on Ubuntu 14.04 Tower-3.03.
+1. [ ] Test successful third-party Tower authentication via upgraded test instance.
+
+1. [x] Test major flags listed under /api/v1/settings/authentication/.
+1. [x] Test major flags listed under /api/v1/settings/jobs/.
+1. [x] Test major flags listed under /api/v1/settings/system/.
+1. [x] Test major flags listed under /api/v1/settings/ui/.
+
+### Tower Module (???)
 [Feature](https://docs.google.com/document/d/1OzgMmV3kM9CDnp1bymSc3gVIMndTZ2v2hKTqk6q4r9Q/edit#heading=h.9fzgd7wtce8c)
 
 1. [ ] Test that modules posts correct payloads to Tower upon create request.
@@ -43,7 +93,7 @@
 1. [ ] Test non-standard config.
 1. [ ] Test that modules are idempotent.
 
-### Task Manager (???)
+### Task Manager (Chris)
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/task_manager_system.md)
 
 Canceling jobs:
@@ -78,7 +128,7 @@ General acceptance criteria:
 1. [x] Only one command for an inventory may be running
 1. [x] Only one system job may be running
 
-### Logging
+### Logging (Jake)
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/logging_integration.md)
 
 - verify documented steps for setting up and connecting with all supported log aggregator services.
