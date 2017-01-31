@@ -672,6 +672,20 @@ class Test_Organization_RBAC(Base_Api_Test):
         assert result == {u'msg': u'You cannot assign an Organization role as a child role for a Team.'}, \
             "Unexpected error message received when attempting to assign an organization role to a team."
 
+    @pytest.mark.parametrize('role', ['admin', 'auditor', 'member', 'read'])
+    def test_change_project_org_affiliation(self, factories, role):
+        """Confirm attempts to change project org to an unaffiliated one result in 403 for all organization roles"""
+        org = factories.organization()
+        project = factories.project(organization=org, wait=False)
+        user = factories.user()
+        another_org = factories.organization()
+
+        org.set_object_roles(user, role)
+
+        with self.current_user(username=user.username, password=user.password):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                project.organization = another_org.id
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -896,6 +910,19 @@ class Test_Project_RBAC(Base_Api_Test):
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(update_pg.get(), role)
             check_user_capabilities(api_project_updates_pg.get(id=update_pg.id).results.pop().get(), role)
+
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_change_project_org_affiliation(self, factories, role):
+        """Confirm attempts to change project org to an unaffiliated one result in 403 for all project roles"""
+        project = factories.project(wait=False)
+        user = factories.user()
+        another_org = factories.organization()
+
+        project.set_object_roles(user, role)
+
+        with self.current_user(username=user.username, password=user.password):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                project.organization = another_org.id
 
 
 @pytest.mark.api
