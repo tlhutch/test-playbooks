@@ -2492,6 +2492,17 @@ class Test_User_RBAC(Base_Api_Test):
             check_user_capabilities(org_user.get(), "org_admin")
             check_user_capabilities(api_users_pg.get(id=org_user.id).results.pop().get(), "org_admin")
 
+    def test_cross_org_admin_self_rename(self, factories):
+        """Confirms that a user who is a member of one org and an admin of another can change their own name"""
+        org_a, org_b, = [factories.organization() for _ in range(2)]
+        user = factories.user(organization=org_a)
+        org_b.set_object_roles(user, 'admin')
+        with self.current_user(user.username, user.password):
+            user.first_name = 'First'
+            user.last_name = 'Last'
+        assert(user.get().first_name == 'First')
+        assert(user.last_name == 'Last')
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
