@@ -1938,7 +1938,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize('agent', ['user', 'team'])
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_user_capabilities2(self, factories, api_inventories_pg, set_test_roles, agent, role):
+    def test_user_capabilities(self, factories, api_inventories_pg, set_test_roles, agent, role):
         """Test user_capabilities given each inventory role.
 
         Note: this test serves as a smokescreen test with user_capabilites and team credentials.
