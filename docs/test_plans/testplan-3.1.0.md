@@ -10,6 +10,8 @@
 ### RBAC Copy/Edit Rework (Chris)
 [Feature](https://docs.google.com/document/d/19qwq-6nAMAZcYonQjKERgVhK_dXJ3oLDNTmx5_rNZHU/edit)
 
+Top-level /api/v1/ user_capabilities:
+
 1. [x] Expected flags for /api/v1/ad_hoc_commands/ against range of inventory permissions.
 1. [x] Expected flags for /api/v1/credentials/ against range of credential permissions.
 1. [x] Expected flags for /api/v1/inventories/ against range of inventory permissions.
@@ -28,6 +30,8 @@
 1. [x] Expected flags for /api/v1/teams/ against range of team permissions.
 1. [x] Expected flags for /api/v1/users/ against range of system permissions.
 
+Nested access_list user_capabilities:
+
 1. [ ] Expected flags for /api/v1/credentials/N/access_list/ against range of credential permissions.
 1. [ ] Expected flags for /api/v1/inventories/N/access_list/ against range of inventory permissions.
 1. [ ] Expected flags for /api/v1/job_templates/N/access_list/ against range of job_template permissions.
@@ -36,6 +40,8 @@
 1. [ ] Expected flags for /api/v1/teams/N/access_list/ against range of team permissions.
 1. [ ] Expected flags for /api/v1/users/N/access_list/ against range of user permissions.
 1. [ ] Expected flags for /api/v1/workflow_job_templates/N/access_list/ against range of WFJT permissions.
+
+Additional cases:
 
 1. [ ] Expected flags for special cases (manual groups and projects).
 1. [ ] Smokescreen testing of user_capabilities with team permissions.
@@ -47,11 +53,14 @@
 1. [x] Verify successful timeout with inventory update.
 1. [x] Verify successful timeout with job.
 1. [x] Test that by default that unified jobs run to completion.
-1. [x] Test global timeout flags under /api/v1/settings/jobs/.
-1. [x] Test that resource timeouts override global timeouts.
+1. [x] Test global timeout flags listed under /api/v1/settings/jobs/.
+1. [x] Test that positive timeouts override global timeouts.
+1. [x] Test that negative resource timeouts nullify global timeouts.
 
 ### Configure Tower in Tower (Chris)
 [Feature](https://drive.google.com/open?id=1Oc84TUnV2eh2Cy29vVfUfdJmV_qyg7NnTAEhuqoYdiQ)
+
+Third-party authentication:
 
 1. [x] Test successful authentication via GitHub social auth.
 1. [x] Test successful authentication via Github Teams social auth.
@@ -64,6 +73,8 @@
 1. [x] Verify organization-mapping flag functionality.
 1. [x] Verify team-mapping flag functionality.
 
+Settings access:
+
 1. [x] Test that options under /api/v1/settings/ filtered by license.
 1. [x] Test that flags listed under /api/v1/settings/\* filtered by license.
 1. [x] Verify that no options listed under /api/v1/settings/ against range of non-superusers.
@@ -72,12 +83,18 @@
 1. [x] Verify that changed settings get listed under /api/v1/settings/changed/.
 1. [x] Test that sensitive values obscured on all nested settings endpoints.
 
+Backward compatability:
+
 1. [ ] Test that static file settings override database settings.
 1. [ ] Test that static file settings make their API-counterparts read-only.
+
+Migrations:
 
 1. [x] Test successful migration to database on EL7 Tower-3.0.3.
 1. [x] Test successful migration to database on Ubuntu 14.04 Tower-3.03.
 1. [ ] Test successful third-party Tower authentication via upgraded test instance.
+
+Select flags:
 
 1. [x] Test major flags listed under /api/v1/settings/authentication/.
 1. [x] Test major flags listed under /api/v1/settings/jobs/.
@@ -96,37 +113,40 @@
 ### Task Manager (Chris)
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/task_manager_system.md)
 
-Canceling jobs:
+Cascade failing jobs:
 
-1. [x] Cascade fail works with project updates (cancel the project update, dependent jobs are marked as "failed."
-1. [x] Cascade fail works with inventory updates (cancel the inventory update, dependent jobs are marked as "failed."
-1. [x] Fail dependent jobs upon cancelling update with job with multiple inventory updates.
-1. [x] Fail dependent jobs upon cancelling update with job with both inventory and project updates.
+1. [x] Cascade fail with project updates (cancel the project update, dependent jobs are failed).
+1. [x] Cascade fail with inventory updates (cancel the inventory update, dependent jobs are failed).
+1. [x] Fail dependent job upon cancelling update with job with multiple inventory updates.
+1. [x] Fail dependent job upon cancelling project update with job with both inventory and project updates.
+1. [x] Fail dependent job upon cancelling inventory update with job with both inventory and project updates.
 
-Update on launch:
+Autospawned jobs:
 
-1. [x] For inventory updates, inventory update gets spawned before job.
-1. [x] For inventory updates with multiple inventory sources, all inventory sources get updated before job launches.
-1. [x] For project updates, two project updates get spawned before the job runs. One update is of type "check" and the other of type "run."
+1. [x] With inventory with a single inventory source with update_on_launch, inventory update must finish before job is allowed to run.
+1. [x] With inventory with multiple inventory sources with update_on_launch, inventory updates must finish before job is allowed to run.
+1. [x] For project updates, two project updates get spawned by the job: one of type "check" and one of type "run." Job is blocked by the "check" update.
+1. [x] For a job with autospawned project and inventory updates, all updates except our "run" project update must run to completion before our job is allowed to start.
 
-Cache timeout:
+Autospawned jobs with cache timeout:
 
 1. [x] Cache timeout respected for inventory updates. If we're within our timeout window, no additional updates should get spawned.
-1. [x] Cache timeout respected for project updates. If we're within our timeout window, we still get a "run" project update
+1. [x] Cache timeout respected for project updates. If we're within our timeout window, we still get a "run" project update.
 
 General acceptance criteria:
 
-1. [x] Groups of blocked tasks run in chronological order
-1. [ ] Tasks that are not blocked run whenever there is capacity available
-1. [ ] One job is always allowed to run, even if there isn't enough capacity.
-1. [x] Only one project updates for a project may be running
-1. [x] Only one inventory update for an inventory source may be running
-1. [x] For a related project, only a job xor project update may be running
-1. [x] For a related inventory, only a job xor inventory update(s) may be running
-1. [x] For a related inventory, only a command xor inventory update(s) may be running
-1. [x] Only one job for a JT may be running (allow_simultaneous feature relaxes this condition)
-1. [x] Only one command for an inventory may be running
-1. [x] Only one system job may be running
+1. [x] Groups of blocked tasks run in chronological order.
+1. [ ] Tasks that are not blocked run whenever there is capacity available.
+1. [ ] One job is always allowed to run even if there isn't enough capacity.
+1. [x] Only one project update for a project may be running at any given point in time.
+1. [x] Only one inventory update for an inventory source may be running at any given point in time.
+1. [x] For a related project, only one job xor project update may be running at any given point in time.
+1. [x] For a related inventory, only one job xor inventory update(s) may be running at any given point in time.
+1. [x] For a related inventory, only one command xor inventory update(s) may be running at any given point in time.
+1. [x] Only one job for a JT may be running at any given point in time when allow_simultaneous is disabled.
+1. [x] Multiple jobs from the same JT may be running at any given point in time when allow_simultaneous is enabled.
+1. [x] Only one command for an inventory may be running for any given point in time.
+1. [x] Only one system job may be running at any given point in time.
 
 ### Logging (Jake)
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/logging_integration.md)
