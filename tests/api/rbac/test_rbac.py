@@ -1936,17 +1936,22 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(group_pg, httplib.FORBIDDEN)
             assert_response_raised(inventory_pg, httplib.FORBIDDEN)
 
+    @pytest.mark.parametrize('agent', ['user', 'team'])
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_user_capabilities(self, factories, user_password, api_inventories_pg, role):
-        """Test user_capabilities given each inventory role."""
+    def test_user_capabilities(self, factories, api_inventories_pg, set_test_roles, agent, role):
+        """Test user_capabilities given each inventory role.
+
+        Note: this test serves as a smokescreen test with user_capabilites and team credentials.
+        This is the only place in tower-qa where we test user_capabilities with team credentials.
+        """
         inventory_pg = factories.inventory()
         factories.group(inventory=inventory_pg)
         user_pg = factories.user()
 
-        # give test user target role privileges
-        set_roles(user_pg, inventory_pg, [role])
+        # give agent target role privileges
+        set_test_roles(user_pg, inventory_pg, agent, role)
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user_pg.username, password=user_pg.password):
             check_user_capabilities(inventory_pg.get(), role)
             check_user_capabilities(api_inventories_pg.get(id=inventory_pg.id).results.pop().get(), role)
 
