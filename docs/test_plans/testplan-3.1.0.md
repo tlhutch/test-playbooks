@@ -33,8 +33,8 @@ Top-level /api/v1/\w+/ user_capabilities:
 Additional cases:
 
 1. [x] Expected flags for /api/v1/\w+/\d+/access_list/ against range of credential permissions (covered in unittests).
-1. [ ] Expected flags for special cases (manual groups and projects).
-1. [ ] Smokescreen testing of user_capabilities with team permissions.
+1. [x] Expected flags for special cases (manual groups and projects).
+1. [x] Smokescreen testing of user_capabilities with team permissions.
 
 ### Timeouts (Chris)
 [Feature](https://github.com/ansible/ansible-tower/issues/2363)
