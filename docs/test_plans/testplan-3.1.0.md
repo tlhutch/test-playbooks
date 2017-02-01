@@ -127,7 +127,7 @@ General acceptance criteria:
 
 1. [x] Groups of blocked tasks run in chronological order.
 1. [ ] Tasks that are not blocked run whenever there is capacity available.
-1. [ ] One job is always allowed to run even if there isn't enough capacity.
+1. [x] One job is always allowed to run even if there isn't enough capacity.
 1. [x] Only one project update for a project may be running at any given point in time.
 1. [x] Only one inventory update for an inventory source may be running at any given point in time.
 1. [x] For a related project, only one job xor project update may be running at any given point in time.
