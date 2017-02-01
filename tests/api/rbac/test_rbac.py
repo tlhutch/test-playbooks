@@ -224,7 +224,7 @@ def check_request(model, method, code, data=None):
         pytest.fail(msg.format(method, response.status_code, code))
 
 
-def assert_response_raised(tower_object, response=httplib.OK):
+def assert_response_raised(tower_object, response=httplib.OK, methods=('put', 'patch', 'delete')):
     """Check PUT, PATCH, and DELETE against a Tower resource."""
     exc_dict = {
         httplib.OK: None,
@@ -232,7 +232,7 @@ def assert_response_raised(tower_object, response=httplib.OK):
         httplib.FORBIDDEN: towerkit.exceptions.Forbidden,
     }
     exc = exc_dict[response]
-    for method in ('put', 'patch', 'delete'):
+    for method in methods:
         if exc is None:
             getattr(tower_object, method)()
         else:
@@ -840,6 +840,29 @@ class Test_Project_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     project_pg.update()
+            else:
+                raise ValueError("Received unhandled project role.")
+
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3545")
+    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
+    def test_schedule_update(self, factories, role):
+        """Tests ability to schedule a project update."""
+        ALLOWED_ROLES = ['admin', 'update']
+        REJECTED_ROLES = ['use', 'read']
+
+        project_pg = factories.project()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, project_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_pg.password):
+            if role in ALLOWED_ROLES:
+                schedule_pg = project_pg.add_schedule()
+                assert_response_raised(schedule_pg, methods=('get', 'put', 'patch', 'delete'))
+            elif role in REJECTED_ROLES:
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    project_pg.related.schedules.post()
             else:
                 raise ValueError("Received unhandled project role.")
 
@@ -1602,6 +1625,29 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 job_with_status_completed.relaunch().wait_until_completed()
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3545")
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_schedule_job(self, factories, role):
+        """Tests ability to schedule a job."""
+        ALLOWED_ROLES = ['admin', 'update']
+        REJECTED_ROLES = ['read']
+
+        job_template_pg = factories.job_template()
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        set_roles(user_pg, job_template_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_pg.password):
+            if role in ALLOWED_ROLES:
+                schedule_pg = job_template_pg.add_schedule()
+                assert_response_raised(schedule_pg, methods=('get', 'put', 'patch', 'delete'))
+            elif role in REJECTED_ROLES:
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    job_template_pg.add_schedule()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_cancel_job(self, factories, user_password, role):
         """Tests job cancellation. JT admins can cancel other people's jobs."""
@@ -1995,6 +2041,29 @@ class Test_Inventory_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     aws_inventory_source.update()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3545")
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_schedule_update(self, factories, custom_inventory_source, role):
+        """Tests ability to schedule an inventory update."""
+        ALLOWED_ROLES = ['admin', 'update']
+        REJECTED_ROLES = ['use', 'ad hoc', 'read']
+
+        user_pg = factories.user()
+
+        # give test user target role privileges
+        inventory_pg = custom_inventory_source.get_related('inventory')
+        set_roles(user_pg, inventory_pg, [role])
+
+        with self.current_user(username=user_pg.username, password=user_pg.password):
+            if role in ALLOWED_ROLES:
+                schedule_pg = custom_inventory_source.add_schedule()
+                assert_response_raised(schedule_pg, methods=('get', 'put', 'patch', 'delete'))
+            elif role in REJECTED_ROLES:
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    custom_inventory_source.add_schedule()
             else:
                 raise ValueError("Received unhandled inventory role.")
 
