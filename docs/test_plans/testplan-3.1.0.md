@@ -205,7 +205,7 @@ General acceptance criteria:
 1. [ ] Expected job events are visible for playbooks with async tasks
 1. [ ] Expected job events are visible for playbooks when free strategy is used
 
-### Workflows (Jim) (Progress: 23/33 = 70%)
+### Workflows (Jim) (Progress: 27/33 = 81%)
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/workflow.md)
 
 #### CRUD-related
@@ -232,23 +232,23 @@ General acceptance criteria:
 
 1. [x] Verify that workflow jobs can be launched by POSTing to endpoint /workflow_job_templates/\d/launch/.
 1. [x] Verify that schedules can be successfully (dis)associated with a workflow job template, and workflow jobs can be triggered by the schedule of associated workflow job template at specified time point.
-1. [ ] (-) Verify that extra variables work for workflow job templates as described. In specific, verify the role of workflow job extra variables as a set of global runtime variables over all its spawned jobs.
-1. [ ] (-) Verify that extra variables of a workflow job node are correctly overwritten in order by the cumulative job artifacts of ancestors, and the overwrite policy of cumulative job artifacts is correct (artifacts of parent overwrite artifacts of grandparent).
+1. [x] Verify that extra variables work for workflow job templates as described. In specific, verify the role of workflow job extra variables as a set of global runtime variables over all its spawned jobs.
+1. [ ] Verify that extra variables of a workflow job node are correctly overwritten in order by the cumulative job artifacts of ancestors, and the overwrite policy of cumulative job artifacts is correct (artifacts of parent overwrite artifacts of grandparent).
 1. [x] Verify that during a workflow job run, all its decision trees follow their correct paths of execution. Unwarranted behaviors include child node executing before its parent and wrong path being selected (failure nodes are executed when parent node succeeds and so on).
-1. [ ] Verify that a subtree of execution will never start if its root node runs into internal error (not ends with failure).
+1. [x] Verify that a subtree of execution will never start if its root node runs into internal error (not ends with failure).
 1. [x] Verify that a subtree of execution will never start if its root node is successfully canceled.
 1. [ ] Verify that cancelling a workflow job that is cancellable will consequently cancel any of its cancellable spawned jobs and thus interrupts the whole workflow execution.
 1. [ ] Verify that during a workflow job run, deleting its spawned jobs are prohibited.
 1. [ ] Verify that at the beginning of each spawned job run, its prompted fields will be populated by the wrapping workflow job node with corrected values. For example, credential field of workflow job node goes to credential field of spawned job.
 1. [ ] Verify that notification templates can be successfully (dis)associated with a workflow job template. Later when its spawned workflow jobs finish running, verify that the correct type of notifications will be sent according to the job status.
-1. [ ] Verify that a workflow job can be successfully relaunched.
+1. [x] Verify that a workflow job can be successfully relaunched.
 1. [ ] Verify that `artifacts` is populated when `set_stats` is used in Ansible >= v2.2.1.0-0.3.rc3
 
 #### Test Notes
 
 Non-trivial topology should be used when testing workflow run. A non-trivial topology for a workflow job template should include:
 - [x] Multiple decision trees.
-- [ ] Relatively large hight in each decision tree.
+- [x] Relatively large height in each decision tree.
 - [x] All three types of relationships (success, failure and always).
 
 ## Regression
