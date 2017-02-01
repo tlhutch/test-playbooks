@@ -1646,7 +1646,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     job_template_pg.add_schedule()
             else:
-                raise ValueError("Received unhandled inventory role.")
+                raise ValueError("Received unhandled job_template role.")
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_cancel_job(self, factories, user_password, role):
