@@ -575,6 +575,7 @@ class Test_Legacy_License(Base_Api_Test):
         assert(towerkit.api.resources.v1_settings_ldap in settings_urls), \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/5148")
     def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
         """Verify that legacy license users have access to LDAP only from our
         enterprise authentication settings pages.
@@ -1052,6 +1053,7 @@ class Test_Basic_License(Base_Api_Test):
         assert(towerkit.api.resources.v1_settings_ldap not in settings_urls), \
             "Expected not to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/5148")
     def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
         """Verify that basic license users do not have access to any of our enterprise
         authentication settings pages.
