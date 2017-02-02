@@ -42,6 +42,7 @@ class Test_Projects(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/5141")
     def test_manual_project(self, project_ansible_playbooks_manual):
         """Verify tower can successfully creates a manual project (scm_type='').
         This includes verifying UTF-8 local-path.
