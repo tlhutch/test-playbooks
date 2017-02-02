@@ -262,15 +262,15 @@ Non-trivial topology should be used when testing workflow run. A non-trivial top
 
 ### Installation
 1. Installation completes successfully on all supported platforms
-    * [ ] ubuntu-14.04
-    * [ ] ubuntu-16.04
-    * [ ] rhel-7.latest
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] ubuntu-14.04
+    * [x] ubuntu-16.04
+    * [x] rhel-7.latest
+    * [x] centos-7.latest
+    * [x] ol-7.latest
 1. Installation completes successfully using supported ansible releases
-    * [ ] ansible-2.3 (devel branch)
-    * [ ] ansible-2.2
-    * [ ] ansible-2.1
+    * [x] ansible-2.3 (devel branch)
+    * [x] ansible-2.2
+    * [x] ansible-2.1
 1. Installation completes successfully on supported images
     * [x] AMI (unlicensed)
     * [ ] Vagrant
