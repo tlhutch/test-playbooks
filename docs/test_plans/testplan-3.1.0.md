@@ -205,7 +205,7 @@ General acceptance criteria:
 1. [ ] Expected job events are visible for playbooks with async tasks
 1. [ ] Expected job events are visible for playbooks when free strategy is used
 
-### Workflows (Jim) (Progress: 27/33 = 81%)
+### Workflows (Jim) (Progress: 29/33 = 88%)
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/workflow.md)
 
 #### CRUD-related
@@ -237,10 +237,10 @@ General acceptance criteria:
 1. [x] Verify that during a workflow job run, all its decision trees follow their correct paths of execution. Unwarranted behaviors include child node executing before its parent and wrong path being selected (failure nodes are executed when parent node succeeds and so on).
 1. [x] Verify that a subtree of execution will never start if its root node runs into internal error (not ends with failure).
 1. [x] Verify that a subtree of execution will never start if its root node is successfully canceled.
-1. [ ] Verify that cancelling a workflow job that is cancellable will consequently cancel any of its cancellable spawned jobs and thus interrupts the whole workflow execution.
+1. [x] Verify that cancelling a workflow job that is cancellable will consequently cancel any of its cancellable spawned jobs and thus interrupts the whole workflow execution.
 1. [ ] Verify that during a workflow job run, deleting its spawned jobs are prohibited.
 1. [ ] Verify that at the beginning of each spawned job run, its prompted fields will be populated by the wrapping workflow job node with corrected values. For example, credential field of workflow job node goes to credential field of spawned job.
-1. [ ] Verify that notification templates can be successfully (dis)associated with a workflow job template. Later when its spawned workflow jobs finish running, verify that the correct type of notifications will be sent according to the job status.
+1. [x] Verify that notification templates can be successfully (dis)associated with a workflow job template. Later when its spawned workflow jobs finish running, verify that the correct type of notifications will be sent according to the job status.
 1. [x] Verify that a workflow job can be successfully relaunched.
 1. [ ] Verify that `artifacts` is populated when `set_stats` is used in Ansible >= v2.2.1.0-0.3.rc3
 
