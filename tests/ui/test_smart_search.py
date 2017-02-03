@@ -17,14 +17,14 @@ class BaseTestSearchTags(object):
     @pytest.mark.parametrize('pop_first', (0, 1, 2))
     @pytest.mark.parametrize('pop_second', (0, 1))
     def test_multi_tag_add_remove(self, search, pop_first, pop_second):
-        search('foo')
-        search('bar')
-        search('fiz')
+        search('foo:bar')
+        search('fiz:buz')
+        search('hello:world')
 
         assert len(search.tags) == 3
-        assert 'foo' in search.tags[0].text
-        assert 'bar' in search.tags[1].text
-        assert 'fiz' in search.tags[2].text
+        assert 'foo:bar' in search.tags[0].text
+        assert 'fiz:buz' in search.tags[1].text
+        assert 'hello:world' in search.tags[2].text
 
         search.tags.pop(pop_first).delete.click()
         search.tags.pop(pop_second).delete.click()
