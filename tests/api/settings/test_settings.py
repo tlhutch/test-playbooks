@@ -62,7 +62,7 @@ def modify_settings(update_setting_pg):
                        SOCIAL_AUTH_GITHUB_TEAM_KEY="test",  # /api/v1/settings/settings/github-team/
                        SOCIAL_AUTH_GOOGLE_OAUTH2_KEY="test",  # /api/v1/settings/google-oauth2/
                        SCHEDULE_MAX_JOBS=30,  # /api/v1/settings/jobs/
-                       AUTH_LDAP_SERVER_URI="ldap://ldap.test.com:777",  # /api/v1/settings/ldap/
+                       AUTH_LDAP_START_TLS=True,  # /api/v1/settings/ldap/
                        LOG_AGGREGATOR_USERNAME="test",  # /api/v1/settings/logging/
                        RADIUS_PORT=1000,  # /api/v1/settings/radius/
                        SOCIAL_AUTH_SAML_SP_ENTITY_ID="test",  # /api/v1/settings/saml/
