@@ -843,7 +843,6 @@ class Test_Project_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled project role.")
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3545")
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_schedule_update(self, factories, role):
         """Tests ability to schedule a project update."""
@@ -1625,11 +1624,10 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 job_with_status_completed.relaunch().wait_until_completed()
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3545")
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_schedule_job(self, factories, role):
         """Tests ability to schedule a job."""
-        ALLOWED_ROLES = ['admin', 'update']
+        ALLOWED_ROLES = ['admin', 'execute']
         REJECTED_ROLES = ['read']
 
         job_template_pg = factories.job_template()
@@ -2049,7 +2047,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled inventory role.")
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3545")
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_schedule_update(self, factories, custom_inventory_source, role):
         """Tests ability to schedule an inventory update."""
