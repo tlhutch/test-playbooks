@@ -32,7 +32,7 @@ $ docker-compose -f tools/docker/ui/docker-compose.yml run ui_headless
 You can watch the tests as they are running:
 
 ```shell
-$ open vnc://localhost:5901
+$ open vnc://localhost:secret@localhost:5901
 ```
 
 **Note** If using `docker-machine`, replace `localhost` with the output of `docker-machine ip`
