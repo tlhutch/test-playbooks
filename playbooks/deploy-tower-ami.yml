@@ -110,6 +110,12 @@
   roles:
     - save_inventory
 
+
+- hosts: tower
+  become: yes
+  roles:
+    - auth_keys
+
 #
 # In order to run the UI tests, we need to:
 #
