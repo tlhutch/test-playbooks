@@ -7,6 +7,8 @@ services:
       PYTEST_ADDOPTS:
     volumes:
       - '../../..:/tower-qa'
+      # a local checkout of towerkit may be mounted and used for test runs:
+      # - '../relative/path/to/towerkit:/towerkit'
     links:
       - chrome_local
     external_links:
