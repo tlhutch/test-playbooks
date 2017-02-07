@@ -35,6 +35,10 @@ $ ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/crede
 $ docker-compose -f tools/docker/ui/docker-compose.yml run test_tower_ui
 ```
 
+### Development with towerkit
+
+A local checkout of [towerkit](https://github.com/ansible/towerkit) may be mounted from the host to the `/towerkit` directory inside the container.
+
 ### Debugging
 
 You can watch the tests as they are running:

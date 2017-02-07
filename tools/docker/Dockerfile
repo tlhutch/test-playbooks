@@ -25,7 +25,7 @@ COPY ${towerkit_dir}/requirements.txt /towerkit/requirements.txt
 RUN pip install -r /towerkit/requirements.txt
 
 COPY ${towerkit_dir} /towerkit
-RUN pip install /towerkit
+RUN pip install -e /towerkit
 
 COPY ${tower_qa_dir} /tower-qa
 
