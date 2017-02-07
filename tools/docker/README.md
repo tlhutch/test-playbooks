@@ -19,12 +19,20 @@ $ docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.te
     tests/api
 ```
 
-## Running UI tests
+## Running UI Tests
+
+Ensure the admin user exists with the expected password:
 
 ```shell
-$ export PYTEST_ADDOPTS="--base-url='https://ec2.tower.com' --ansible-inventory=playbooks/inventory.log --ansible-host-pattern=tower"
-$ ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/credentials.yml
-$ docker-compose -f tools/docker/ui/docker-compose.yml run ui_headless
+$ docker exec tools_tower_1 tower-manage createsuperuser --noinput --username admin --email a@b.com
+$ docker exec tools_tower_1 tower-manage update_password --username admin --password fo0m4nchU
+```
+
+Then run the test service:
+
+```shell
+$ ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/credentials.yml --output=tests/credentials.yml
+$ docker-compose -f tools/docker/ui/docker-compose.yml run test_tower_ui
 ```
 
 ### Debugging

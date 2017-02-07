@@ -1,0 +1,2 @@
+[tower]
+tools_tower_1 ansible_connection=docker
