@@ -1,16 +1,17 @@
 ---
 version: '2'
 services:
-  ui_headless:
+  test_tower_ui:
     image: gcr.io/ansible-tower-engineering/tower-qe
     environment:
       PYTEST_ADDOPTS:
     volumes:
       - '../../..:/tower-qa'
     links:
-      - 'chrome_local'
-    command: py.test --no-print-logs --api-destructive --browser=chrome --driver-type=remote --driver-location=http://chrome_local:4444/wd/hub --driver-capabilities='platform:linux' tests/ui
-    privileged: true
+      - chrome_local
+    external_links:
+      - 'tools_tower_1:tower'
+    command: py.test -c tools/docker/ui/pytest.ini tests/ui
   chrome_local:
     image: selenium/standalone-chrome-debug:latest
     volumes:
@@ -20,3 +21,7 @@ services:
       - "5900"
     ports:
       - "5901:5900"
+networks:
+  default:
+    external:
+      name: tools_default
