@@ -12,7 +12,7 @@
   vars:
     instance_count: 1
     ec2_region: 'us-east-1'
-    instance_type: 'm3.large'
+    instance_type: 'm3.medium'
     public_key_material: "{{ lookup('env','PUBLIC_KEY_MATERIAL') if lookup('env','PUBLIC_KEY_MATERIAL') else lookup('file', '~/.ssh/id_rsa.pub') }}"
     ec2_key_pair_name: "{{ 'jenkins' if lookup('env','JENKINS_HOME') else lookup('env','USER') }}"
     ec2_name_prefix: "{{ 'jenkins' if lookup('env','JENKINS_HOME') else lookup('env','USER') }}"
