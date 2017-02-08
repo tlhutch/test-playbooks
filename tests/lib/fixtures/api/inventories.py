@@ -407,8 +407,9 @@ def vmware_group(request, authtoken, api_groups_pg, inventory, vmware_credential
     request.addfinalizer(obj.silent_cleanup)
 
     # Set the inventory_source.sourc = 'vmware'
+    # Context for not validating certificates: https://github.com/ansible/ansible-tower/issues/4521
     inv_source = obj.get_related('inventory_source')
-    inv_source.patch(source='vmware', credential=vmware_credential.id)
+    inv_source.patch(source='vmware', credential=vmware_credential.id, source_vars="---\nvalidate_certs: false")
     return obj
 
 
