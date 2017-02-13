@@ -143,6 +143,11 @@
       wait_for:
         port: 5432
 
+    - name: Change admin password
+      shell: tower-manage update_password --username=admin --password={{ admin_password }}
+      register: update_password
+      changed_when: update_password.stdout != 'Password not updated'
+
     - name: verify Tower API is accepting connections
       uri:
           url: 'https://localhost/api/v1/ping/'
@@ -154,11 +159,6 @@
       until: result['status']|default(0) == 200
       retries: 20
       delay: 2
-
-    - name: Change admin password
-      shell: tower-manage update_password --username=admin --password={{ admin_password }}
-      register: update_password
-      changed_when: update_password.stdout != 'Password not updated'
 
     - name: obtain tower version
       command: tower-manage --version
