@@ -170,35 +170,36 @@ General acceptance criteria:
 1. [x] Expected status and workflow events are broadcasted for launched workflow
 1. [ ] \(Un\)subscription functional for control events
 1. [ ] Expected limit reached control event is broadcasted for auth
-1. [ ] Expected events broadcasted by rbac read role filtering (https://github.com/ansible/ansible-tower/issues/4169)
+1. [x] Expected job events broadcasted by rbac roles filtering
 
 ### Clustering/HA (Ryan)
 1. [x] Successful installation of 3 node + 1 db clustered system
 1. [x] Successful installation of 5 node + 1 db clustered system
 1. [x] Successful installation of 10 node + 1 db clustered system
 1. [x] Successful addition of new nodes to cluster via inventory update and setup.sh rerun
-1. [ ] Successful addition of former standalone nodes to cluster via setup.sh rerun (https://github.com/ansible/ansible-tower/issues/4392)
+1. [x] Successful addition of former standalone nodes to cluster via setup.sh rerun
 1. [x] Successful deprovisioning of nodes via tower-manage command
 1. [x] Expected distribution of 2000 launched jobs over 3 node cluster
 1. [x] Expected distribution of 2000 launched jobs over 5 node cluster
 1. [x] Expected distribution of 2000 launched jobs over 10 node cluster
-1. [ ] Satisfactory create/run performance of 3.0.3 v. 3.1.0 standalone system w/ 2000 debug jobs over 10 hosts
-1. [ ] Satisfactory query/delete performance of 3.0.3 v. 3.1.0 standalone system w/ 2000 debug jobs over 10 hosts
-1. [ ] Satisfactory create/run performance of 3.0.3 v. 3.1.0 standalone system w/ 2000 debug jobs over 100 hosts
-1. [ ] Satisfactory query/delete performance of 3.0.3 v. 3.1.0 standalone system w/ 2000 debug jobs over 100 hosts
+1. [x] Satisfactory create/run performance of 3.0.3 v. 3.1.0 standalone system w/ 2000 debug jobs over 10 hosts
+1. [x] Satisfactory query/delete performance of 3.0.3 v. 3.1.0 standalone system w/ 2000 debug jobs over 10 hosts
+1. [x] Satisfactory create/run performance of 3.0.3 v. 3.1.0 standalone system w/ 2000 debug jobs over 100 hosts
+1. [x] Satisfactory query/delete performance of 3.0.3 v. 3.1.0 standalone system w/ 2000 debug jobs over 100 hosts
 1. [x] Satisfactory performance of 3.0.3 v. 3.1.0 standalone system w/ stress benchmarking job over 100 hosts
 1. [x] Satisfactory create/run performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 10 hosts
 1. [x] Satisfactory query/delete performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 10 hosts
 1. [x] Satisfactory create/run performance of 3.1.0 standalone v. 5 node cluster w/ 2000 debug jobs over 10 hosts
 1. [x] Satisfactory create/run performance of 3.1.0 standalone v. 10 node cluster w/ 2000 debug jobs over 10 hosts
-1. [ ] Satisfactory create/run performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 100 hosts
-1. [ ] Satisfactory query/delete performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 100 hosts
-1. [ ] Satisfactory create/run performance of 3.1.0 standalone v. 5 node cluster w/ 2000 debug jobs over 100 hosts
-1. [ ] Satisfactory create/run performance of 3.1.0 standalone v. 10 node cluster w/ 2000 debug jobs over 100 hosts
+1. [x] Satisfactory create/run performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 100 hosts
+1. [x] Satisfactory query/delete performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 100 hosts
+1. [x] Satisfactory create/run performance of 3.1.0 standalone v. 5 node cluster w/ 2000 debug jobs over 100 hosts
+1. [x] Satisfactory create/run performance of 3.1.0 standalone v. 10 node cluster w/ 2000 debug jobs over 100 hosts
 1. [ ] Satisfactory performance of 3.1.0 standalone v. 3 node clustered systems w/ stress benchmarking job over 100 hosts
 1. [ ] Expected distribution and success of 2000 jobs over 3 node cluster w/ network disruption
 1. [ ] Expected distribution and success of 2000 jobs over 5 node cluster w/ network disruption
 1. [ ] Expected distribution and success of 2000 jobs over 10 node cluster w/ network disruption
+1. [ ] Logging functions as expected for all nodes in 3 node cluster
 
 ### Job Events (Ryan)
 1. [ ] Expected job events are visible for jobs with playbooks
@@ -280,9 +281,9 @@ Non-trivial topology should be used when testing workflow run. A non-trivial top
     * [ ] ol-7.latest
 
 ### Upgrades
-1. [ ] Upgrade completes on all supported platforms from `3.0.*`
-1. [ ] Verify the following functions work as intended after upgrade
-    * [ ] Launch project_updates for existing projects
-    * [ ] Launch inventory_updates for existing inventory_source
-    * [ ] Launch, and relaunch, existing job_templates
+1. [x] Upgrade completes on all supported platforms from `3.0.*`
+1. [x] Verify the following functions work as intended after upgrade
+    * [x] Launch project_updates for existing projects
+    * [x] Launch inventory_updates for existing inventory_source
+    * [x] Launch, and relaunch, existing job_templates
     * [ ] Migrations were successful
