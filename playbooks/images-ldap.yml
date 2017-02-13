@@ -8,8 +8,8 @@ my_inventory_file: '{{inventory_dir}}/inventory.ldap'
 #
 
 ec2_images:
-    - {'name': 'ldap-primary-centos-6.latest-x86_64',   'user': 'root',     'id': 'ami-8997afe0', 'type': 'm3.large', 'groups': 'primary',   'security_group': 'Tower'}
-    - {'name': 'ldap-openldap-centos-7.latest-x86_64',  'user': 'centos',   'id': 'ami-96a818fe', 'type': 'm3.large', 'groups': 'ldap',   'security_group': 'LDAP'}
+    - {'name': 'ldap-primary-centos-7.latest-x86_64', 'user': 'centos',     'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'tower,primary', 'security_group': 'Tower'}
+    - {'name': 'ldap-openldap-centos-7.latest-x86_64',  'user': 'centos',   'id': 'ami-96a818fe', 'type': 'm3.medium', 'groups': 'ldap',   'security_group': 'LDAP'}
 
 ec2_security_groups:
     - name: Tower
