@@ -176,7 +176,7 @@ if __name__ == '__main__':
                         count += 1
 
                 # Perform action (stop/terminate)
-                if reservation['Instances'] and any([args.stop, args.terminate]):
+                if matching_instance_ids and any([args.stop, args.terminate]):
                     func = getattr(ec2, args.stop and 'stop_instances' or 'terminate_instances')
                     func(InstanceIds=matching_instance_ids)
     if count:
