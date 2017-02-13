@@ -1,4 +1,7 @@
+import urlparse
+
 import pytest
+import requests
 from selenium.common.exceptions import TimeoutException
 
 
@@ -62,3 +65,26 @@ def test_custom_rebranding(login_page, CUSTOM_CONSOLE_LOGO):
         "Unexpected console_logo path."
     assert login_page.is_modal_notice_displayed(), (
         'Expected modal notice to be displayed')
+
+
+def test_token_invalidation_on_logout(ui, base_url):
+    """Verify tokens are invalidated on logout"""
+    # get client cookie store
+    cookies = {str(c['name']): str(c['value']) for c in ui.dashboard.driver.get_cookies()}
+    # get auth token from client cookie store
+    token = 'Token ' + cookies['token'].replace('%22', '')
+    # get the browser's user agent
+    agent = str(ui.dashboard.driver.execute_script('return navigator.userAgent;'))
+    # logout through the header menu
+    ui.dashboard.header.logout.click()
+    ui.login.wait_until_loaded()
+    # make an http request to a restricted endpoint using the grifted browser
+    # credentials
+    url = urlparse.urljoin(base_url, '/api/v1/settings/')
+    headers = {
+        'Authorization': token,
+        'User-Agent': agent,
+        'Content-Type': 'application/json',
+    }
+    response = requests.get(url, cookies=cookies, headers=headers, verify=False)
+    assert response.status_code == 401
