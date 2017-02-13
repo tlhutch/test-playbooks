@@ -74,13 +74,26 @@ def default_tower_credentials(config_credentials):
 
 
 @pytest.fixture(scope='session')
-def api_v1(request, config_credentials):
+def base_url(request):
+    return request.config.getoption('base_url')
+
+
+@pytest.fixture(scope='session')
+def api_v1(request, config_credentials, base_url):
     config.validate_schema = request.config.getoption('validate_schema')
     config.base_url = request.config.getoption('base_url')
     config.credentials = config_credentials
     v1 = api.ApiV1().load_default_authtoken().get()
     v1.config.get().install_license()
     return v1
+
+
+@pytest.fixture(scope='session')
+def ui_user(api_v1, default_tower_credentials):
+    pw = default_tower_credentials['password']
+    user = api_v1.users.create(password=pw, is_superuser=True)
+    yield user
+    user.silent_cleanup()
 
 
 @pytest.yield_fixture(scope='session')
@@ -143,8 +156,9 @@ def session_job_template(api_v1,
 
 
 @pytest.fixture(scope='session')
-def org_admin(api_v1, get_role, session_org):
-    user = api_v1.users.get().create(organization=session_org, password='fo0m4nchU')
+def org_admin(api_v1, default_tower_credentials, get_role, session_org):
+    user = api_v1.users.get().create(
+        organization=session_org, password=default_tower_credentials['password'])
     with pytest.raises(exc.NoContent):
         get_role(session_org, 'Admin').get_related('users').post({'id': user.id})
     yield user
@@ -152,8 +166,9 @@ def org_admin(api_v1, get_role, session_org):
 
 
 @pytest.fixture(scope='session')
-def rando(api_v1):
-    user = api_v1.users.get().create(password='fo0m4nchU')
+def rando(api_v1, default_tower_credentials):
+    user = api_v1.users.get().create(
+        password=default_tower_credentials['password'])
     yield user
     user.silent_cleanup()
 
@@ -258,7 +273,7 @@ def session_fixtures(request,
 
 
 @pytest.fixture(scope='class')
-def ui_client(request, v1, default_tower_credentials):
+def ui_client(request, v1, default_tower_credentials, ui_user):
 
     # 'action=append' for pytest parser hook doesn't appear to be working
     driver_capabilities_str = request.config.getoption('driver_capabilities')
@@ -281,8 +296,8 @@ def ui_client(request, v1, default_tower_credentials):
         driver_type=request.config.getoption('driver_type'),
         driver_location=request.config.getoption('driver_location'),
         driver_capabilities=driver_capabilities,
-        username=default_tower_credentials['username'],
-        password=default_tower_credentials['password'])
+        username=ui_user.username,
+        password=ui_user.password)
     if request.cls:
         request.cls.client = client
         request.cls.browser = client.browser

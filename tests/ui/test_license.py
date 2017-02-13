@@ -13,13 +13,11 @@ pytestmark = [pytest.mark.ui]
 
 
 @pytest.fixture
-def unlicensed(v1, ui, default_tower_credentials):
-    un = default_tower_credentials['username']
-    pw = default_tower_credentials['password']
+def unlicensed(v1, ui, ui_user):
     v1.config.delete()
     ui.login.logout()
-    ui.login.login_username.send_keys(un)
-    ui.login.login_password.send_keys(pw)
+    ui.login.login_username.send_keys(ui_user.username)
+    ui.login.login_password.send_keys(ui_user.password)
     ui.login.login_button.click()
     yield
     v1.config.get().install_license()
