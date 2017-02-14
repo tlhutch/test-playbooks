@@ -25,7 +25,7 @@ Top-level /api/v1/\w+/ user_capabilities:
 1. [x] Expected flags for /api/v1/notification_templates/ against range of system permissions.
 1. [x] Expected flags for /api/v1/organizations/ against range of organization permissions.
 1. [x] Expected flags for /api/v1/schedules/ against range of system permissions.
-1. [ ] Expected flags for /api/v1/\w+/\d+/schedules/ against range of scheduled resource permissions (ex: inventory).
+1. [x] Expected flags for /api/v1/\w+/\d+/schedules/ against range of scheduled resource permissions (ex: inventory).
 1. [x] Expected flags for /api/v1/system_jobs/ against range of system permissions.
 1. [x] Expected flags for /api/v1/teams/ against range of team permissions.
 1. [x] Expected flags for /api/v1/users/ against range of system permissions.
@@ -75,6 +75,7 @@ Settings access:
 
 Backward compatability:
 
+1. [ ] Test that static file settings still supported
 1. [ ] Test that static file settings override database settings.
 1. [ ] Test that static file settings make their API-counterparts read-only.
 
@@ -82,7 +83,8 @@ Migrations:
 
 1. [x] Test successful migration to database on EL7 Tower-3.0.3.
 1. [x] Test successful migration to database on Ubuntu 14.04 Tower-3.03.
-1. [ ] Test successful third-party Tower authentication via upgraded test instance.
+1. [ ] Test successful third-party Tower authentication via upgraded test instance on EL7.
+1. [ ] Test successful third-party Tower authentication via upgraded test instance on Ubuntu 14.04.
 
 Select flags:
 
@@ -103,6 +105,21 @@ Select flags:
 ### Task Manager (Chris)
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/task_manager_system.md)
 
+General acceptance criteria:
+
+1. [x] Groups of blocked tasks run in chronological order.
+1. [ ] Tasks that are not blocked run whenever there is capacity available.
+1. [x] One job is always allowed to run even if there isn't enough capacity.
+1. [x] Only one project update for a project may be running at any given point in time.
+1. [x] Only one inventory update for an inventory source may be running at any given point in time.
+1. [x] For a related project, only one job xor project update may be running at any given point in time.
+1. [x] For a related inventory, only one job xor inventory update(s) may be running at any given point in time.
+1. [x] For a related inventory, only one command xor inventory update(s) may be running at any given point in time.
+1. [x] Only one job for a JT may be running at any given point in time when allow_simultaneous is disabled.
+1. [x] Multiple jobs from the same JT may be running at any given point in time when allow_simultaneous is enabled.
+1. [x] Only one command for an inventory may be running for any given point in time.
+1. [x] Only one system job may be running at any given point in time.
+
 Cascade failing jobs:
 
 1. [x] Cascade fail with project updates (cancel the project update, dependent jobs are failed).
@@ -122,21 +139,6 @@ Autospawned jobs with cache timeout:
 
 1. [x] Cache timeout respected for inventory updates. If we're within our timeout window, no additional updates should get spawned.
 1. [x] Cache timeout respected for project updates. If we're within our timeout window, we still get a "run" project update.
-
-General acceptance criteria:
-
-1. [x] Groups of blocked tasks run in chronological order.
-1. [ ] Tasks that are not blocked run whenever there is capacity available.
-1. [x] One job is always allowed to run even if there isn't enough capacity.
-1. [x] Only one project update for a project may be running at any given point in time.
-1. [x] Only one inventory update for an inventory source may be running at any given point in time.
-1. [x] For a related project, only one job xor project update may be running at any given point in time.
-1. [x] For a related inventory, only one job xor inventory update(s) may be running at any given point in time.
-1. [x] For a related inventory, only one command xor inventory update(s) may be running at any given point in time.
-1. [x] Only one job for a JT may be running at any given point in time when allow_simultaneous is disabled.
-1. [x] Multiple jobs from the same JT may be running at any given point in time when allow_simultaneous is enabled.
-1. [x] Only one command for an inventory may be running for any given point in time.
-1. [x] Only one system job may be running at any given point in time.
 
 ### Logging (Jake)
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/logging_integration.md)
