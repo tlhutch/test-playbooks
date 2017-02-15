@@ -307,23 +307,8 @@ def ui_client(request, v1, default_tower_credentials, ui_user):
 
 @pytest.fixture(scope='class')
 def ui(request, ui_client):
-    # logins have been flakey for 3.1 and fail seemingly at random once
-    # every 50 tests or so - the block below makes several attempts
-    # before failing loudly
-    for _ in xrange(5):
-        try:
-            ui_client.login()
-        except:
-            success = False
-            time.sleep(5)
-        else:
-            success = True
-            break
-    if not success:
-        raise Exception('Failed login attempt')
-
+    ui_client.login()
     yield ui_client.ui
-
     ui_client.browser.quit()
 
 
