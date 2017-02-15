@@ -1,21 +1,24 @@
-import pytest
 import logging
+import re
+
+import pytest
+import towerkit
 
 from tests.api import Base_Api_Test
 from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)
 
 # Job results
-# [ ] Single node success
-# [ ] Single failing node
-# [ ] Node fails, triggers successful node
+# [x] Single node success
+# [x] Single failing node
+# [x] Node fails, triggers successful node
 # [ ] Two branches, one node succeeds, other fails
 # [ ] Individual job encounters error
 # [ ] Workflow job encounters error
 # [ ] Workflow job interrupted (e.g. by restarting tower)
 
 # Job runs
-# [ ] Node triggers success/failure/always nodes when appropriate
-# [ ] Workflow includes multiple nodes that point to same unified job template
+# [x] Node triggers success/failure/always nodes when appropriate
+# [x] Workflow includes multiple nodes that point to same unified job template
 # [ ] Running concurrent workflows
 # [ ] Changing job node while workflow is running
 # [ ] Changing job template while workflow is running (change playbook, add survey, delete extra var..)
@@ -95,7 +98,119 @@ class Test_Workflow_Jobs(Base_Api_Test):
         wfj = wfjt.launch().wait_until_completed()
         wfjn = wfj.related.workflow_nodes.get().results.pop()
         assert('inventory_updates' in wfjn.related.job)  # confirm that it's not linked as a job
-        assert(inv_source.related.inventory_updates.get().results.pop().json == wfjn.related.job.get().json)
+        assert(inv_source.related.inventory_updates.get().results.pop().base_url == wfjn.related.job.get().base_url)
+
+    # Basic tests of workflow jobs
+
+    def test_workflow_job_single_node_success(self, factories):
+        """Workflow with single node with successful job template.
+        Expect workflow job to be 'successful', job to be 'successful'
+        """
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template()
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        wf_job = wfjt.launch().wait_until_completed()
+        assert wf_job.is_successful, "Workflow job {} unsuccessful".format(wfjt.id)
+
+        # Get job in node
+        wfjns = wf_job.related.workflow_nodes.get().results
+        assert len(wfjns) == 1, "Expected one workflow job node, found {}".format(len(wfjns))
+        wfjn = wfjns.pop()
+        job = wfjn.get_related('job')
+        assert job.is_successful, "Job {} unsuccessful".format(job.id)
+
+        # Confirm WFJ correctly references job
+        assert re.match(towerkit.resources.v1_job, wfjn.related.job)
+        assert wfjn.get_related('job').base_url == jt.get().get_related('last_job').base_url
+
+    def test_workflow_job_single_node_failure(self, factories):
+        """Workflow with single node with failing job template.
+        Expect workflow job to be 'successful', job to be 'failure'
+        """
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template(playbook='fail_unless.yml')
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        wf_job = wfjt.launch().wait_until_completed()
+        assert wf_job.is_successful, "Workflow job {} unsuccessful".format(wfjt.id)
+
+        # Get job in node
+        wfjns = wf_job.related.workflow_nodes.get().results
+        assert len(wfjns) == 1, "Expected one workflow job node, found {}".format(len(wfjns))
+        job = wfjns.pop().get_related('job')
+        assert not job.is_successful, "Job {} successful".format(job.id)
+
+    def test_workflow_job_trigger_conditions(self, factories, api_workflow_job_nodes_pg):
+        """Confirm that workflow with all possible triggering scenarios executes jobs appropriately.
+
+        Workflow:                        Should run?
+         - n1+                           Yes
+          - (always) n2                    Yes
+         - n3-                           Yes
+          - (always) n4                    Yes
+          - (always) n5*                   Yes
+         - n6+                           Yes
+          - (success) n7                   Yes
+          - (failure) n8                   No
+          - (failure) n9*                  No
+         - n10-                          Yes
+          - (success) n11                  No
+          - (failure) n12                  Yes
+
+        + -> node with passing job
+        - -> node with failing job
+
+        * -> Node not essential to test, added so that there could be a unique mapping (i.e. homomorphism) between
+             the WFJT's nodes and the WFJ's nodes.
+        """
+        jt = factories.job_template(allow_simultaneous=True)
+        failing_jt = factories.job_template(playbook='fail_unless.yml', allow_simultaneous=True)
+
+        wfjt = factories.workflow_job_template()
+        node_payload = dict(unified_job_template=jt.id)
+        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        n2 = n1.related.always_nodes.post(node_payload)
+
+        n3 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=failing_jt)
+        n4 = n3.related.always_nodes.post(node_payload)
+        n5 = n3.related.always_nodes.post(node_payload)
+
+        n6 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        n7 = n6.related.success_nodes.post(node_payload)
+        n8 = n6.related.failure_nodes.post(node_payload)
+        n9 = n6.related.failure_nodes.post(node_payload)
+
+        n10 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=failing_jt)
+        n11 = n10.related.success_nodes.post(node_payload)
+        n12 = n10.related.failure_nodes.post(node_payload)
+
+        wfj = wfjt.launch().wait_until_completed()
+        assert wfj.is_successful, "Workflow job {} unsuccessful".format(wfjt.id)
+
+        # Map nodes to job nodes
+        tree = WorkflowTree(wfjt)
+        job_tree = WorkflowTree(wfj)
+        mapping = WorkflowTreeMapper(tree, job_tree).map()
+        assert mapping, "Failed to map WFJT to WFJ.\n\nWFJT:\n{0}\n\nWFJ:\n{1}".format(tree, job_tree)
+
+        # Confirm only expected jobs ran
+        should_run_ids = [str(mapping[node.id]) for node in [n1, n2, n3, n4, n5, n6, n7, n10, n12]]
+        should_run_nodes = api_workflow_job_nodes_pg.get(id__in=','.join(should_run_ids)).results
+        assert all([node.job for node in should_run_nodes]), \
+            "Found node(s) missing job: {0}".format(node for node in should_run_nodes if not node.job)
+        should_not_run_ids = [str(mapping[node.id]) for node in [n8, n9, n11]]
+        should_not_run_nodes = api_workflow_job_nodes_pg.get(id__in=','.join(should_not_run_ids)).results
+        assert not any([node.job for node in should_not_run_nodes]), \
+            "Found node(s) with job: {0}".format(node for node in should_not_run_nodes if node.job)
+
+    def test_workflow_job_with_project_update(self, factories):
+        """Confirms that workflow job can include project updates."""
+        project = factories.project()
+        wfjt = factories.workflow_job_template()
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=project)
+        wfj = wfjt.launch().wait_until_completed()
+        wfjn = wfj.related.workflow_nodes.get().results.pop()
+        assert re.match(towerkit.resources.v1_project_update, wfjn.related.job)
+        assert wfjn.get_related('job').base_url == project.get().get_related('last_job').base_url
 
     # Canceling jobs
 
@@ -133,8 +248,8 @@ class Test_Workflow_Jobs(Base_Api_Test):
         Workflow:
          n1     <--- cancelled
         """
-        jt_sleep = factories.job_template(playbook='sleep.yml')  # Longer-running job
-        jt_sleep.patch(extra_vars='{"sleep_interval": 20}', allow_simultaneous=True)
+        jt_sleep = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 20}',
+                                          allow_simultaneous=True)  # Longer-running job
 
         # Build workflow
         wfjt = factories.workflow_job_template()
@@ -183,16 +298,17 @@ class Test_Workflow_Jobs(Base_Api_Test):
         # are triggered *after* n1 is canceled.
 
         jt = factories.job_template()                            # Default job template for all nodes
-        jt_sleep = factories.job_template(playbook='sleep.yml')  # Longer-running job
-        jt_sleep.patch(extra_vars='{"sleep_interval": 20}', allow_simultaneous=True)
+        jt_sleep = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 20}',
+                                          allow_simultaneous=True)  # Longer-running job
 
         # Build workflow
         wfjt = factories.workflow_job_template()
+        node_payload = dict(unified_job_template=jt.id)
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_sleep)
-        n2 = n1.related.success_nodes.post(dict(unified_job_template=jt.id))
-        n3 = n1.related.failure_nodes.post(dict(unified_job_template=jt.id))
+        n2 = n1.related.success_nodes.post(node_payload)
+        n3 = n1.related.failure_nodes.post(node_payload)
         n4 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_sleep)
-        n5 = n4.related.always_nodes.post(dict(unified_job_template=jt.id))
+        n5 = n4.related.always_nodes.post(node_payload)
 
         # Run workflow
         wfj = wfjt.launch()
