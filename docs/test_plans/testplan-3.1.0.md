@@ -66,8 +66,8 @@ Third-party authentication:
 Settings access:
 
 1. [x] Test that options under /api/v1/settings/ filtered by license.
-1. [x] Test that flags listed under /api/v1/settings/\* filtered by license.
-1. [x] Verify that no options listed under /api/v1/settings/ against range of non-superusers.
+1. [x] Test that flags listed under /api/v1/settings/\w+/ filtered by license.
+1. [x] Verify that nothing listed under /api/v1/settings/ against range of non-superusers.
 1. [x] Verify RUD access to nested settings endpoints against range of non-superusers.
 1. [x] Verify that DELETE resets a nested settings endpoint to factory defaults.
 1. [x] Verify that changed settings get listed under /api/v1/settings/changed/.
@@ -75,7 +75,7 @@ Settings access:
 
 Backward compatability:
 
-1. [ ] Test that static file settings still supported
+1. [ ] Test that static file settings still supported.
 1. [ ] Test that static file settings override database settings.
 1. [ ] Test that static file settings make their API-counterparts read-only.
 
@@ -83,8 +83,8 @@ Migrations:
 
 1. [x] Test successful migration to database on EL7 Tower-3.0.3.
 1. [x] Test successful migration to database on Ubuntu 14.04 Tower-3.03.
-1. [ ] Test successful third-party Tower authentication via upgraded test instance on EL7.
-1. [ ] Test successful third-party Tower authentication via upgraded test instance on Ubuntu 14.04.
+1. [x] Test successful third-party Tower authentication via upgraded test instance on EL7.
+1. [x] Test successful third-party Tower authentication via upgraded test instance on Ubuntu 14.04.
 
 Select flags:
 
