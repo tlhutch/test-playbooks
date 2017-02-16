@@ -75,9 +75,9 @@ Settings access:
 
 Backward compatability:
 
-1. [ ] Test that static file settings still supported.
-1. [ ] Test that static file settings override database settings.
-1. [ ] Test that static file settings make their API-counterparts read-only.
+1. [x] Test that static file settings still supported.
+1. [x] Test that static file settings override database settings.
+1. [x] Test that OPTIONS successfully updated for static settings.
 
 Migrations:
 
