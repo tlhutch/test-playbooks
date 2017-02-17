@@ -277,6 +277,7 @@ class Test_Workflow_Jobs(Base_Api_Test):
         # Confirm WF job success
         wfj.wait_until_status('successful', timeout=3 * 60, raise_on_timeout=True)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5441', raises=AssertionError)
     def test_cancel_job_in_workflow_with_downstream_jobs(self, factories, api_jobs_pg):
         """Cancel job spawned by workflow job. Confirm jobs downstream from cancelled job
         are not triggered, but rest of workflow continues to execute.
