@@ -10,8 +10,8 @@ pytestmark = [pytest.mark.ui]
 
 
 @pytest.fixture(scope='module')
-def user(api_v1, session_org):
-    obj = api_v1.users.create(organization=session_org)
+def user(v1, session_org):
+    obj = v1.users.create(organization=session_org)
     yield obj
     obj.silent_cleanup()
 

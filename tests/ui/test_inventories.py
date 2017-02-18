@@ -8,15 +8,15 @@ pytestmark = [pytest.mark.ui]
 
 
 @pytest.fixture(scope='module')
-def shared_org(api_v1):
-    org = api_v1.organizations.create(name=fauxfactory.gen_alphanumeric())
+def shared_org(v1):
+    org = v1.organizations.create(name=fauxfactory.gen_alphanumeric())
     yield org
     org.silent_cleanup()
 
 
 @pytest.fixture(scope='module')
-def shared_org_inventories(api_v1, shared_org):
-    invs = [api_v1.inventory.create(organization=shared_org) for _ in xrange(2)]
+def shared_org_inventories(v1, shared_org):
+    invs = [v1.inventory.create(organization=shared_org) for _ in xrange(2)]
     yield invs
     [obj.silent_cleanup() for obj in invs]
 
