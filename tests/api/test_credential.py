@@ -108,12 +108,12 @@ class Test_Credential(Base_Api_Test):
         ("net", "passphrase"),
         ("net", "ASK")
     ], ids=["ssh-passphrase", "ssh-ASK", "net-passphrase", "net-ASK"])
-    def test_ssh_key_unlock_with_unencrypted_key_data(self, admin_user, api_credentials_pg, testsetup, kind, ssh_key_unlock):
+    def test_ssh_key_unlock_with_unencrypted_key_data(self, admin_user, api_credentials_pg, kind, ssh_key_unlock):
         """Credentials with unencrypted key data should reject both passphrases and passphrase-ASK."""
         payload = dict(name="credential-%s." % fauxfactory.gen_utf8(),
                        kind=kind,
                        user=admin_user.id,
-                       ssh_key_data=testsetup.credentials['ssh']['ssh_key_data'],
+                       ssh_key_data=self.credentials['ssh']['ssh_key_data'],
                        ssh_key_unlock=ssh_key_unlock)
         with pytest.raises(towerkit.exceptions.BadRequest):
             api_credentials_pg.post(payload)
