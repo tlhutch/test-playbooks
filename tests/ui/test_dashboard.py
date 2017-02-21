@@ -8,20 +8,20 @@ pytestmark = [pytest.mark.ui]
 
 
 @pytest.fixture(scope='module')
-def create_batch_template(api_v1, session_org):
+def create_batch_template(v1, session_org):
     """Create a factory for job templates that share the same set of
     resource dependencies
     """
-    inv = api_v1.inventory.create(organization=session_org)
-    pj = api_v1.projects.create(organization=session_org)
-    cred = api_v1.credentials.create(organization=session_org)
+    inv = v1.inventory.create(organization=session_org)
+    pj = v1.projects.create(organization=session_org)
+    cred = v1.credentials.create(organization=session_org)
 
     batch_templates = []
 
     def _create(**kwargs):
         params = {'inventory': inv, 'project': pj, 'credential': cred}
         params.update(kwargs)
-        template = api_v1.job_templates.create(**params)
+        template = v1.job_templates.create(**params)
         batch_templates.append(template)
         return template
 

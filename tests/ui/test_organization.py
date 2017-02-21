@@ -8,15 +8,15 @@ pytestmark = [pytest.mark.ui]
 
 
 @pytest.fixture(scope='module')
-def organization(api_v1):
-    obj = api_v1.organizations.create()
+def organization(v1):
+    obj = v1.organizations.create()
     yield obj
     obj.silent_cleanup()
 
 
 @pytest.fixture(scope='module')
-def organizations(api_v1):
-    org_objects = [api_v1.organizations.create() for _ in xrange(30)]
+def organizations(v1):
+    org_objects = [v1.organizations.create() for _ in xrange(30)]
     yield org_objects
     for obj in org_objects:
         obj.silent_cleanup()

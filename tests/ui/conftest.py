@@ -79,61 +79,66 @@ def base_url(request):
 
 
 @pytest.fixture(scope='session')
-def api_v1(request, config_credentials, base_url):
-    config.validate_schema = request.config.getoption('validate_schema')
+def v1(request, config_credentials, base_url):
     config.base_url = request.config.getoption('base_url')
     config.credentials = config_credentials
+    config.validate_schema = request.config.getoption('validate_schema')
+
     v1 = api.ApiV1().load_default_authtoken().get()
     v1.config.get().install_license()
-    return v1
+
+    if hasattr(request, 'cls'):
+        request.cls.v1 = v1
+
+    yield v1
 
 
 @pytest.fixture(scope='session')
-def ui_user(api_v1, default_tower_credentials):
+def ui_user(v1, default_tower_credentials):
     pw = default_tower_credentials['password']
-    user = api_v1.users.create(password=pw, is_superuser=True)
+    user = v1.users.create(password=pw, is_superuser=True)
     yield user
     user.silent_cleanup()
 
 
 @pytest.yield_fixture(scope='session')
-def session_org(api_v1):
-    organization = api_v1.organizations.create()
+def session_org(v1):
+    organization = v1.organizations.create()
     yield organization
     organization.silent_cleanup()
 
 
 @pytest.yield_fixture(scope='session')
-def session_machine_credential(api_v1, session_org):
-    credential = api_v1.credentials.create(kind='ssh', organization=session_org)
+def session_machine_credential(v1, session_org):
+    credential = v1.credentials.create(kind='ssh', organization=session_org)
     yield credential
     credential.silent_cleanup()
 
 
 @pytest.yield_fixture(scope='session')
-def session_cloud_credential(api_v1, session_org):
-    credential = api_v1.credentials.create(kind='aws', organization=session_org)
+def session_cloud_credential(v1, session_org):
+    credential = v1.credentials.create(kind='aws', organization=session_org)
     yield credential
     credential.silent_cleanup()
 
 
 @pytest.yield_fixture(scope='session')
-def session_network_credential(api_v1, session_org):
-    credential = api_v1.credentials.create(kind='net', organization=session_org)
+def session_network_credential(v1, session_org):
+    credential = v1.credentials.create(kind='net', organization=session_org)
     yield credential
     credential.silent_cleanup()
 
 
 @pytest.yield_fixture(scope='session')
-def session_inventory(api_v1, session_org):
-    inventory = api_v1.inventory.create(organization=session_org)
+def session_inventory(v1, session_org):
+    inventory = v1.inventory.create(organization=session_org)
     yield inventory
     inventory.silent_cleanup()
 
 
 @pytest.yield_fixture(scope='session')
-def session_project(api_v1, session_org):
-    project = api_v1.projects.create(
+def session_project(v1, session_org):
+    project = v1.projects.create(
         organization=session_org,
         wait=True,
         scm_url='https://github.com/jlaska/ansible-playbooks.git')
@@ -143,11 +148,11 @@ def session_project(api_v1, session_org):
 
 
 @pytest.yield_fixture(scope='session')
-def session_job_template(api_v1,
+def session_job_template(v1,
                          session_inventory,
                          session_machine_credential,
                          session_project):
-    job_template = api_v1.job_templates.create(
+    job_template = v1.job_templates.create(
         credential=session_machine_credential,
         inventory=session_inventory,
         project=session_project)
@@ -156,8 +161,8 @@ def session_job_template(api_v1,
 
 
 @pytest.fixture(scope='session')
-def org_admin(api_v1, default_tower_credentials, get_role, session_org):
-    user = api_v1.users.get().create(
+def org_admin(v1, default_tower_credentials, get_role, session_org):
+    user = v1.users.get().create(
         organization=session_org, password=default_tower_credentials['password'])
     with pytest.raises(exc.NoContent):
         get_role(session_org, 'Admin').get_related('users').post({'id': user.id})
@@ -166,16 +171,16 @@ def org_admin(api_v1, default_tower_credentials, get_role, session_org):
 
 
 @pytest.fixture(scope='session')
-def rando(api_v1, default_tower_credentials):
-    user = api_v1.users.get().create(
+def rando(v1, default_tower_credentials):
+    user = v1.users.get().create(
         password=default_tower_credentials['password'])
     yield user
     user.silent_cleanup()
 
 
 @pytest.fixture(scope='session')
-def session_team(api_v1):
-    team = api_v1.teams.create()
+def session_team(v1):
+    team = v1.teams.create()
     yield team
     team.silent_cleanup()
 
@@ -188,25 +193,25 @@ session_user = rando
 
 
 @pytest.fixture(scope='module')
-def inventory(api_v1, session_org):
-    obj = api_v1.inventory.create(organization=session_org)
+def inventory(v1, session_org):
+    obj = v1.inventory.create(organization=session_org)
     yield obj
     obj.silent_cleanup()
 
 
 @pytest.fixture(scope='module')
-def project(api_v1, session_org):
-    obj = api_v1.projects.create(organization=session_org)
+def project(v1, session_org):
+    obj = v1.projects.create(organization=session_org)
     yield obj
     obj.silent_cleanup()
 
 
 @pytest.fixture(scope='module')
-def job_template(api_v1,
+def job_template(v1,
                  session_inventory,
                  session_project,
                  session_machine_credential):
-    template = api_v1.job_templates.create(
+    template = v1.job_templates.create(
         inventory=session_inventory,
         project=session_project,
         credential=session_machine_credential)
@@ -307,31 +312,9 @@ def ui_client(request, v1, default_tower_credentials, ui_user):
 
 @pytest.fixture(scope='class')
 def ui(request, ui_client):
-    # logins have been flakey for 3.1 and fail seemingly at random once
-    # every 50 tests or so - the block below makes several attempts
-    # before failing loudly
-    for _ in xrange(5):
-        try:
-            ui_client.login()
-        except:
-            success = False
-            time.sleep(5)
-        else:
-            success = True
-            break
-    if not success:
-        raise Exception('Failed login attempt')
-
+    ui_client.login()
     yield ui_client.ui
-
     ui_client.browser.quit()
-
-
-@pytest.fixture(scope='session')
-def v1(request, api_v1):
-    if hasattr(request, 'cls'):
-        request.cls.v1 = api_v1
-    yield api_v1
 
 
 # -----------------------------------------------------------------------------

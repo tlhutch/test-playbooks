@@ -8,15 +8,15 @@ pytestmark = [pytest.mark.ui]
 
 
 @pytest.fixture(scope='module')
-def org_cred(api_v1, session_org):
-    cred = api_v1.credentials.create(user=None, organization=session_org, team=None)
+def org_cred(v1, session_org):
+    cred = v1.credentials.create(user=None, organization=session_org, team=None)
     yield cred
     cred.silent_cleanup()
 
 
 @pytest.fixture(scope='module')
-def private_cred(api_v1, session_user):
-    cred = api_v1.credentials.create(user=session_user, organization=None, team=None)
+def private_cred(v1, session_user):
+    cred = v1.credentials.create(user=session_user, organization=None, team=None)
     yield cred
     cred.silent_cleanup()
 
