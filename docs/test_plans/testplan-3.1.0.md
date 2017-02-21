@@ -173,6 +173,7 @@ Autospawned jobs with cache timeout:
 1. [ ] \(Un\)subscription functional for control events
 1. [ ] Expected limit reached control event is broadcasted for auth
 1. [x] Expected job events broadcasted by rbac roles filtering
+1. [ ] Expected status and events are broadcasted over cluster
 
 ### Clustering/HA (Ryan)
 1. [x] Successful installation of 3 node + 1 db clustered system
@@ -201,12 +202,12 @@ Autospawned jobs with cache timeout:
 1. [ ] Expected distribution and success of 2000 jobs over 3 node cluster w/ network disruption
 1. [ ] Expected distribution and success of 2000 jobs over 5 node cluster w/ network disruption
 1. [ ] Expected distribution and success of 2000 jobs over 10 node cluster w/ network disruption
-1. [ ] Logging functions as expected for all nodes in 3 node cluster
+1. [x] Logging functions as expected for all nodes in 3 node cluster
 
 ### Job Events (Ryan)
-1. [ ] Expected job events are visible for jobs with playbooks
-1. [ ] Expected job events are visible for playbooks with async tasks
-1. [ ] Expected job events are visible for playbooks when free strategy is used
+1. [x] Expected job events are visible for playbooks with multiple plays
+1. [x] Expected job events are visible for playbooks with async tasks
+1. [x] Expected job events are visible for playbooks when free strategy is used
 
 ### Workflows (Jim)
 [Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/workflow.md)
@@ -288,4 +289,4 @@ Non-trivial topology should be used when testing workflow run. A non-trivial top
     * [x] Launch project_updates for existing projects
     * [x] Launch inventory_updates for existing inventory_source
     * [x] Launch, and relaunch, existing job_templates
-    * [ ] Migrations were successful
+    * [x] Migrations were successful
