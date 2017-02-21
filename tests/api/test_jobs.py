@@ -330,7 +330,7 @@ class Test_Job(Base_Api_Test):
                        question_name="{} - What's the password?".format(i),
                        variable='secret{}'.format(i),
                        type='password',
-                       default='visible' if i % 2 else '') for i in range(10)]
+                       default='visible' if i % 2 else None) for i in range(10)]
         jt = factories.job_template().add_survey(spec=survey)
         job = jt.launch(dict(extra_vars={}))
         assert(job.wait_until_completed().is_successful)
