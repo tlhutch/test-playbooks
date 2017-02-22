@@ -258,10 +258,10 @@ Non-trivial topology should be used when testing workflow run. A non-trivial top
 ## Regression
 1. [ ] UI regression completed
 1. [ ] API regression completed
-1. [ ] Tower HA installation regression completed
-1. [ ] Tower LDAP Integration regression completed
-1. [ ] Tower RADIUS Integration regression completed
-1. [ ] Social authentication regression completed
+1. [x] Tower HA installation regression completed
+1. [x] Tower LDAP Integration regression completed
+1. [x] Tower RADIUS Integration regression completed
+1. [x] Social authentication regression completed
 1. [ ] Backup/restore playbook
 
 ### Installation
@@ -279,8 +279,8 @@ Non-trivial topology should be used when testing workflow run. A non-trivial top
     * [x] AMI (unlicensed)
     * [ ] Vagrant
 1. Bundled installation completes successfully on all supported platforms (Automated)
-    * [ ] rhel-7.latest
-    * [ ] centos-7.latest
+    * [x] rhel-7.latest
+    * [x] centos-7.latest
     * [ ] ol-7.latest
 
 ### Upgrades
