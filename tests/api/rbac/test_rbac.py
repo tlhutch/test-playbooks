@@ -1069,20 +1069,20 @@ class Test_Credential_RBAC(Base_Api_Test):
         assert admin_role_users_pg.results[0].id == user_pg.id, \
             "Unexpected admin role user returned. Expected user with ID %s, but %s." % (user_pg.id, admin_role_users_pg.results[0].id)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4602')
     def test_user_credential_role_assignment(self, factories, set_roles):
-        """Tests that user credential roles may not be given to other users and teams."""
+        """Tests that user credential roles may be given to other users and not to teams."""
         # create user credential
         user = factories.user()
         credential = factories.credential(user=user, organization=None)
         # create another user and team
         another_user = factories.user()
         team = factories.team()
-        # assert that credential roles may not be assigned to these agents
+
         role_names = [role.replace("_role", "") for role in credential.summary_fields.object_roles.keys()]
         for role_name in role_names:
-            with pytest.raises(towerkit.exceptions.BadRequest):
-                set_roles(another_user, credential, [role_name])
+            # assert that credential roles may be assigned to another user
+            set_roles(another_user, credential, [role_name])
+            # assert that credential roles may not be assigned to team
             with pytest.raises(towerkit.exceptions.BadRequest):
                 set_roles(team, credential, [role_name])
 
