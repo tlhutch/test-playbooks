@@ -10,8 +10,9 @@ awx_package_name: {{awx_package_name}}
 ## Disable gpg signature checking on nightly builds
 {% if not aw_repo_url.endswith("//releases.ansible.com/ansible-tower") %}
 gpgcheck: 0
-pendo_state: {{ pendo_state|default('off') }}
 {% endif %}
+
+pendo_state: {{ pendo_state|default('off') }}
 
 ## Allow disabling the tower preflight disk space check
 {% if minimum_var_space is defined %}
