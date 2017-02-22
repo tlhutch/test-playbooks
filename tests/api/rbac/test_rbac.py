@@ -2708,6 +2708,7 @@ class Test_Schedules_RBAC(Base_Api_Test):
         check_user_capabilities(schedule_pg.get(), 'superuser')
         check_user_capabilities(api_schedules_pg.get(id=schedule_pg.id).results.pop().get(), "superuser")
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/5507")
     def test_user_capabilities_as_org_admin(self, org_admin, user_password, organization_resource_with_schedule, api_schedules_pg):
         """Tests 'user_capabilities' against schedules of all types of UJT as an org_admin."""
         schedule_pg = organization_resource_with_schedule.get_related('schedules').results[0]
