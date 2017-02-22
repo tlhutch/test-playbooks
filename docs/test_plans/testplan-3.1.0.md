@@ -281,7 +281,7 @@ Non-trivial topology should be used when testing workflow run. A non-trivial top
 1. Bundled installation completes successfully on all supported platforms (Automated)
     * [x] rhel-7.latest
     * [x] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] ol-7.latest
 
 ### Upgrades
 1. [x] Upgrade completes on all supported platforms from `3.0.*`
