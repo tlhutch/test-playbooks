@@ -63,8 +63,7 @@ def process_filters(filters):
 
 
 def is_excluded(ec2, excludes=[]):
-    '''Return whether the provided volume matches the exclude filters.'''
-
+    """Return whether the provided volume matches the exclude filters."""
     def _(volume):
         # Test if volume should be excluded
         for exclude in excludes:

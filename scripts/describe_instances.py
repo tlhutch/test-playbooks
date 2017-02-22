@@ -75,8 +75,7 @@ def process_filters(filters):
 
 
 def is_protected(ec2, include_protected=False):
-    '''Return whether the provided instance has termination protection enabled.'''
-
+    """Return whether the provided instance has termination protection enabled."""
     def _(instance):
         if include_protected:
             return True
@@ -87,8 +86,7 @@ def is_protected(ec2, include_protected=False):
 
 
 def is_excluded(ec2, excludes=[]):
-    '''Return whether the provided instance matches the exclude filters.'''
-
+    """Return whether the provided instance matches the exclude filters."""
     def _(instance):
         # Test if instance should be excluded
         for exclude in excludes:

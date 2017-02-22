@@ -31,8 +31,7 @@ def enterprise_auth_settings_pgs(api_settings_ldap_pg, api_settings_radius_pg, a
 @pytest.fixture(scope="function", params=["all", "auth", "azuread", "changed", "github_org", "github_team", "google", "jobs",
                                           "ldap", "radius", "saml", "system", "ui"])
 def setting_pg(request):
-    """
-    Returns each of our nested /api/v1/settings/ endpoints.
+    """Returns each of our nested /api/v1/settings/ endpoints.
 
     FIXME: we do not include "github" here because tests will
     choke on pytest-github.

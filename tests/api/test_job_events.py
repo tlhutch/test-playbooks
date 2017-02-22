@@ -1,75 +1,40 @@
+from collections import Counter
 import json
 
-import towerkit.tower
-import fauxfactory
 import pytest
 
 from tests.api import Base_Api_Test
 
 
-@pytest.fixture()
-def num_hosts(request):
-    """The number of hosts to dynamically create.  The value is used by the
-    dynamic_inventory playbook.
-    """
-    return 50
-
-
-@pytest.fixture()
-def dynamic_inventory(request, authtoken, api_job_templates_pg, project_ansible_playbooks_git, host_local, ssh_credential, num_hosts):
-    payload = dict(name="playbook:dynamic_inventory.yml, num_hosts:%s, random:%s" % (num_hosts, fauxfactory.gen_utf8()),
-                   description="dynamic_inventory, num_hosts:%s" % num_hosts,
-                   inventory=host_local.inventory,
-                   job_type='run',
-                   project=project_ansible_playbooks_git.id,
-                   credential=ssh_credential.id,
-                   extra_vars=json.dumps(dict(num_hosts=num_hosts)),
-                   forks=10,
-                   playbook='dynamic_inventory.yml',)
-    obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.cleanup)
-    return obj
-
-
-inventory_hosts = [200, 500, 1000, 5000, 10000]
-
-
-@pytest.fixture(params=inventory_hosts)
-def import_inventory(request, authtoken, api_inventories_pg, organization, ansible_runner):
-    payload = dict(name="inventory:%s, hosts:%s" % (fauxfactory.gen_alphanumeric(), request.param),
-                   description="Random inventory %s with %s hosts" % (fauxfactory.gen_utf8(), request.param),
-                   organization=organization.id,)
-    obj = api_inventories_pg.post(payload)
-    request.addfinalizer(obj.delete)
-
-    # Upload inventory script
-    dest = towerkit.tower.inventory.upload_inventory(ansible_runner, nhosts=request.param)
-
-    # Run awx-manage inventory_import
-    contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (obj.id, dest))
-
-    # Verify the import completed successfully
-    for result in contacted.values():
-        assert result['rc'] == 0, "awx-manage inventory_import failed: %s" \
-            % json.dumps(result, indent=2)
-
-    return obj
-
-
-@pytest.fixture()
-def setfact_50(request, authtoken, api_job_templates_pg, project_ansible_playbooks_git, import_inventory, ssh_credential):
-    num_hosts = import_inventory.get_related('hosts').count
-    payload = dict(name="playbook:setfact_50.yml, hosts:%s, random:%s" % (num_hosts, fauxfactory.gen_utf8()),
-                   description="setfact_50.yml with %s hosts" % (num_hosts),
-                   inventory=import_inventory.id,
-                   job_type='run',
-                   project=project_ansible_playbooks_git.id,
-                   credential=ssh_credential.id,
-                   extra_vars=json.dumps(dict(ansible_connection='local')),
-                   playbook='setfact_50.yml',)
-    obj = api_job_templates_pg.post(payload)
-    request.addfinalizer(obj.delete)
-    return obj
+# from https://github.com/ansible/ansible-tower/blob/release_3.1.0/awx/main/models/jobs.py
+# note: Doesn't include `verbose`
+JOB_EVENT_TYPES = ['playbook_on_start',  # (once for each playbook file)
+                   'playbook_on_vars_prompt',  # (for each play, but before play starts, we
+                                               #  currently don't handle responding to these prompts)
+                   'playbook_on_play_start',   # (once for each play)
+                   'playbook_on_import_for_host',  # (not logged, not used for v2)
+                   'playbook_on_not_import_for_host',  # (not logged, not used for v2)
+                   'playbook_on_no_hosts_matched',
+                   'playbook_on_no_hosts_remaining',
+                   'playbook_on_include',  # (only v2 - only used for handlers?)
+                   'playbook_on_setup',  # (not used for v2)
+                   'playbook_on_task_start',  # (once for each task within a play)
+                   'runner_on_failed',
+                   'runner_on_ok',
+                   'runner_on_error',  # (not used for v2)
+                   'runner_on_skipped',
+                   'runner_on_unreachable',
+                   'runner_on_no_hosts',  # (not used for v2)
+                   'runner_on_async_poll',  # (not used for v2)
+                   'runner_on_async_ok',  # (not used for v2)
+                   'runner_on_async_failed',  # (not used for v2)
+                   'runner_on_file_diff',  # (v2 event is v2_on_file_diff)
+                   'runner_item_on_ok',  # (v2 only)
+                   'runner_item_on_failed',  # (v2 only)
+                   'runner_item_on_skipped',  # (v2 only)
+                   'runner_retry',  # (v2 only)
+                   'playbook_on_notify',  # (once for each notification from the play, not used for v2)
+                   'playbook_on_stats']
 
 
 @pytest.mark.api
@@ -77,46 +42,232 @@ def setfact_50(request, authtoken, api_job_templates_pg, project_ansible_playboo
 @pytest.mark.destructive
 class Test_Job_Events(Base_Api_Test):
 
+    def get_job_events(self, job, query=None):
+        query = query if query else {}
+        query['page_size'] = 200
+        events = []
+        job_events = job.related.job_events.get(**query)
+        while True:
+            events.extend(job_events.results)
+            if not job_events.next:
+                return events
+            job_events = job_events.next.get()
+
+    def get_job_events_by_event_type(self, job, event_type):
+        return self.get_job_events(job, dict(event=event_type))
+
+    def verify_desired_tasks(self, job, job_event_type, desired_tasks):
+        event_tasks = Counter(map(lambda x: x.task, self.get_job_events_by_event_type(job, job_event_type)))
+        assert(event_tasks == desired_tasks)
+
+    def verify_desired_stdout(self, job, job_event_type, desired_stdout_contents):
+        desired_stdout = list(desired_stdout_contents)
+        actual_stdout = map(lambda x: x.stdout, self.get_job_events_by_event_type(job, job_event_type))
+        for actual in list(actual_stdout):
+            for desired in list(desired_stdout):
+                if desired in actual:
+                    actual_stdout.remove(actual)
+                    desired_stdout.remove(desired)
+                    break
+        assert(not actual_stdout), "Not all event stdout was expected."
+        assert(not desired_stdout), "Not all expected stdout was included."
+
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/4832")
-    def test_dynamic_inventory(self, dynamic_inventory, num_hosts, tower_version_cmp):
-        """Verify that the /job_tasks and /job_plays endpoints are correctly
-        aggregating data from /job_events
-        """
-        # Only supported >- tower-2.0.0
-        if tower_version_cmp('2.0.0') < 0:
-            pytest.xfail("Only supported on tower-2.0.0 (or newer)")
+    def test_dynamic_inventory(self, factories):
+        """Launch a linear playbook of several plays and confirm desired events are at its related job events"""
+        # ensure desired verbose events regarding authentication
+        cred = factories.credential(password='passphrase', vault_password='vault')
+        jt = factories.job_template(credential=cred,
+                                    playbook='dynamic_inventory.yml',
+                                    extra_vars=json.dumps(dict(num_hosts=5)))
+        job = jt.launch().wait_until_completed(interval=20)
 
-        # launch job
-        job_pg = dynamic_inventory.launch_job()
+        playbook_on_start = self.get_job_events_by_event_type(job, 'playbook_on_start')
+        assert(len(playbook_on_start) == 1)
 
-        # wait for completion
-        job_pg = job_pg.wait_until_completed(timeout=60 * 10)
+        playbook_on_play_start = set(map(lambda x: x.play,
+                                         self.get_job_events_by_event_type(job, 'playbook_on_play_start')))
+        desired_play_names = set(("add hosts to inventory",
+                                  "various task responses on dynamic inventory",
+                                  "shrink inventory to 1 host",
+                                  "1 host play",
+                                  "fail remaining dynamic group",
+                                  "add hosts to inventory",
+                                  "some unreachable, some changed, some skipped",
+                                  "gather facts fail",
+                                  "some gather facts fail",
+                                  "no tasks, just the facts"))
+        assert(playbook_on_play_start == desired_play_names)
 
-        # assert successful completion of job
-        assert job_pg.is_completed, "Job unexpectedly still running - %s " % job_pg
+        playbook_on_task_start = set(map(lambda x: (x.play, x.task),
+                                         self.get_job_events_by_event_type(job, 'playbook_on_task_start')))
+        desired_play_task_tuples = set((("add hosts to inventory", "setup"),
+                                        ("add hosts to inventory", "create inventory"),
+                                        ("add hosts to inventory", "single host handler"),
+                                        ("various task responses on dynamic inventory", "setup"),
+                                        ("various task responses on dynamic inventory", "fail even numbered hosts"),
+                                        ("various task responses on dynamic inventory", "skip multiples of 3"),
+                                        ("various task responses on dynamic inventory", "all skipped"),
+                                        ("various task responses on dynamic inventory", "all changed"),
+                                        ("various task responses on dynamic inventory", "all ok"),
+                                        ("various task responses on dynamic inventory", "changed handler"),
+                                        ("various task responses on dynamic inventory", "another changed handler"),
+                                        ("shrink inventory to 1 host", "setup"),
+                                        ("shrink inventory to 1 host", "fail all but 1"),
+                                        ("1 host play", "pass"),
+                                        ("1 host play", "ok"),
+                                        ("1 host play", "ignored"),
+                                        ("fail remaining dynamic group", "setup"),
+                                        ("fail remaining dynamic group", "fail"),
+                                        ("add hosts to inventory", "add dynamic inventory"),
+                                        ("add hosts to inventory", "add unreachable inventory"),
+                                        ("add hosts to inventory", "add more_unreachable inventory"),
+                                        ("some unreachable, some changed, some skipped", "all changed with items"),
+                                        ("gather facts fail", "setup"),
+                                        ("some gather facts fail", "setup"),
+                                        ("some gather facts fail", "skip this task"),
+                                        ("no tasks, just the facts", "setup")))
+        assert(playbook_on_task_start == desired_play_task_tuples)
 
-        # assert job_plays matches job_events?event=playbook_on_play_start
-        job_events_plays = job_pg.get_related('job_events', event='playbook_on_play_start')
-        job_plays_pg = job_pg.get_related('job_plays')
+        task_counts = {"fail even numbered hosts": 2,
+                       "fail all but 1": 2,
+                       "ignored": 1,
+                       "fail": 1}
+        self.verify_desired_tasks(job, 'runner_on_failed', task_counts)
 
-        assert job_events_plays.count == job_plays_pg.count, \
-            "The /jobs/%s/job_plays endpoint doesn't match the expected " \
-            "number of job_events of type 'playbook_on_play_start' (%d != %d)" \
-            % (job_pg.id, job_plays_pg.count, job_events_plays.count)
+        task_counts = {"setup": 17,
+                       "another changed handler": 3,
+                       "all changed": 3,
+                       "changed handler": 3,
+                       "all ok": 3,
+                       "skip multiples of 3": 2,
+                       "ok": 1,
+                       "create inventory": 1,
+                       "add unreachable inventory": 1,
+                       "add dynamic inventory": 1,
+                       "add more_unreachable inventory": 1,
+                       "pass": 1,
+                       "single host handler": 1}
+        self.verify_desired_tasks(job, 'runner_on_ok', task_counts)
 
-        # assert job_tasks matches job_events?parent=N job_tasks
-        for play in job_events_plays.results:
+        task_counts = {"all changed with items": 4,
+                       "fail even numbered hosts": 3,
+                       "all skipped": 3,
+                       "skip this task": 2,
+                       "fail all but 1": 1,
+                       "skip multiples of 3": 1,
+                       "fail": 1}
+        self.verify_desired_tasks(job, 'runner_on_skipped', task_counts)
 
-            # NOTE: playbook_on_* events are playbook-scoped and therefore do not have associated tasks.
-            # We filter out a subset of these here.
-            job_events_tasks = job_pg.get_related('job_events', parent=play.id, not__event__in=','.join(('playbook_on_notify',
-                                                                                                         'playbook_on_no_hosts_matched',
-                                                                                                         'playbook_on_no_hosts_remaining')))
-            job_tasks_pg = job_pg.get_related('job_tasks', event_id=play.id)
+        task_counts = {"setup": 5,
+                       "all changed with items": 1}
+        self.verify_desired_tasks(job, 'runner_on_unreachable', task_counts)
 
-            assert job_tasks_pg.count == job_events_tasks.count, \
-                "The endpoints /job_tasks and /job_events differ on the " \
-                "expected number of tasks for play:%s (%d != %d)" \
-                % (play.id, job_tasks_pg.count, job_events_tasks.count)
+        task_counts = {"create inventory": 5,
+                       "add unreachable inventory": 3,
+                       "add more_unreachable inventory": 3,
+                       "add dynamic inventory": 2}
+        self.verify_desired_tasks(job, 'runner_item_on_ok', task_counts)
+
+        desired_stdout_contents = ["SSH password:", "Identity added:", "Vault password:", "SUDO password"]
+        self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
+
+        assert(len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1)
+
+        events = self.get_job_events(job)
+        assert(len(events) == 121)
+
+        non_verbose = filter(lambda x: x.event != 'verbose', events)
+        assert(not filter(lambda x: not x.uuid, non_verbose))
+        assert(not filter(lambda x: x.playbook != 'dynamic_inventory.yml', non_verbose))
+
+    def test_async_tasks(self, factories):
+        """Runs a single play with async tasks and confirms desired events at related endpoint"""
+        credential = factories.credential(password='passphrase', vault_password='vault')
+        inventory = factories.inventory()
+        for _ in range(4):
+            factories.host(inventory=inventory)
+        jt = factories.job_template(credential=credential,
+                                    inventory=inventory,
+                                    playbook='async_tasks.yml')
+        job = jt.launch().wait_until_completed(interval=20)
+        assert(job.is_successful)
+
+        playbook_on_start = self.get_job_events_by_event_type(job, 'playbook_on_start')
+        assert(len(playbook_on_start) == 1)
+
+        playbook_on_play_start = map(lambda x: x.play, self.get_job_events_by_event_type(job, 'playbook_on_play_start'))
+        assert(playbook_on_play_start == ['all'])
+
+        task_counts = {"debug": 3,
+                       "Examine slow command": 1,
+                       "Examine slow reversal": 1,
+                       "Poll a sleep": 1,
+                       "Fire and forget a slow command": 1,
+                       "Fire and forget a slow reversal": 1}
+        self.verify_desired_tasks(job, 'playbook_on_task_start', task_counts)
+
+        task_counts = {"debug": 15,
+                       "Examine slow command": 5,
+                       "Examine slow reversal": 5,
+                       "Poll a sleep": 5,
+                       "Fire and forget a slow command": 5,
+                       "Fire and forget a slow reversal": 5}
+        self.verify_desired_tasks(job, 'runner_on_ok', task_counts)
+
+        task_counts = {"Examine slow command": 15,
+                       "Examine slow reversal": 10}
+        self.verify_desired_tasks(job, 'runner_retry', task_counts)
+
+        assert(len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1)
+
+        desired_stdout_contents = ["SSH password:", "Identity added:", "Vault password:", "SUDO password"]
+        self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
+
+        events = self.get_job_events(job)
+        assert(len(events) == 80)
+
+        non_verbose = filter(lambda x: x.event != 'verbose', events)
+        assert(not filter(lambda x: not x.uuid, non_verbose))
+        assert(not filter(lambda x: x.playbook != 'async_tasks.yml', non_verbose))
+
+    def test_free_strategy(self, factories):
+        """Runs a single play with free strategy and confirms desired events at related endpoint"""
+        credential = factories.credential(password='passphrase', vault_password='vault')
+        inventory = factories.inventory()
+        for _ in range(4):
+            factories.host(inventory=inventory)
+        jt = factories.job_template(credential=credential,
+                                    inventory=inventory,
+                                    playbook='free_waiter.yml')
+        job = jt.launch().wait_until_completed(interval=20)
+        assert(job.is_successful)
+
+        playbook_on_start = self.get_job_events_by_event_type(job, 'playbook_on_start')
+        assert(len(playbook_on_start) == 1)
+
+        playbook_on_play_start = map(lambda x: x.play, self.get_job_events_by_event_type(job, 'playbook_on_play_start'))
+        assert(playbook_on_play_start == ['all'])
+
+        task_counts = {"debug": 11,
+                       "wait_for": 10,
+                       "set_fact": 10}
+        self.verify_desired_tasks(job, 'playbook_on_task_start', task_counts)
+
+        task_counts = {"debug": 55,
+                       "wait_for": 50,
+                       "set_fact": 50}
+        self.verify_desired_tasks(job, 'runner_on_ok', task_counts)
+
+        assert(len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1)
+
+        desired_stdout_contents = ["SSH password:", "Identity added:", "Vault password:", "SUDO password"]
+        self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
+
+        events = self.get_job_events(job)
+        assert(len(events) == 193)
+
+        non_verbose = filter(lambda x: x.event != 'verbose', events)
+        assert(not filter(lambda x: not x.uuid, non_verbose))
+        assert(not filter(lambda x: x.playbook != 'free_waiter.yml', non_verbose))

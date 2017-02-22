@@ -1,6 +1,5 @@
 from collections import namedtuple
 import logging
-import time
 
 import fauxfactory
 import pytest

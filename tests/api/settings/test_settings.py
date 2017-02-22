@@ -20,9 +20,7 @@ log = logging.getLogger(__name__)
                                           'job_with_status_completed',
                                           'ad_hoc_with_status_completed'])
 def unified_job_with_stdout(request):
-    '''
-    Returns a completed unified job with job stdout.
-    '''
+    """Returns a completed unified job with job stdout."""
     return request.getfuncargvalue(request.param)
 
 
@@ -46,7 +44,6 @@ def assess_created_elements(elements, criteria, expected_count):
 @pytest.fixture
 def modify_settings(update_setting_pg):
     """Helper fixture used for changing Tower settings."""
-
     def func():
         """Change one setting under each nested /api/v1/settings/ endpoint. The setting selected
         must not change the system in a manner that will interfere with tests.
@@ -76,7 +73,6 @@ def modify_settings(update_setting_pg):
 @pytest.fixture
 def modify_obfuscated_settings(update_setting_pg, unencrypted_rsa_ssh_key_data):
     """Helper fixture used for changing Tower settings."""
-
     def func():
         """Change all settings that need to get obfuscated by the API. The setting selected
         must not change the system in a manner that will interfere with tests.
