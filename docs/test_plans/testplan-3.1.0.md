@@ -198,10 +198,8 @@ Autospawned jobs with cache timeout:
 1. [x] Satisfactory query/delete performance of 3.1.0 standalone v. 3 node cluster w/ 2000 debug jobs over 100 hosts
 1. [x] Satisfactory create/run performance of 3.1.0 standalone v. 5 node cluster w/ 2000 debug jobs over 100 hosts
 1. [x] Satisfactory create/run performance of 3.1.0 standalone v. 10 node cluster w/ 2000 debug jobs over 100 hosts
-1. [ ] Satisfactory performance of 3.1.0 standalone v. 3 node clustered systems w/ stress benchmarking job over 100 hosts
-1. [ ] Expected distribution and success of 2000 jobs over 3 node cluster w/ network disruption
-1. [ ] Expected distribution and success of 2000 jobs over 5 node cluster w/ network disruption
-1. [ ] Expected distribution and success of 2000 jobs over 10 node cluster w/ network disruption
+1. [x] Satisfactory performance of 3.1.0 standalone v. 3 node clustered systems w/ stress benchmarking job over 100 hosts
+1. [ ] Expected survivability, distribution, and success of 2000 jobs over 3 node cluster w/ network disruption
 1. [x] Logging functions as expected for all nodes in 3 node cluster
 
 ### Job Events (Ryan)
