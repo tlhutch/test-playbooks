@@ -256,6 +256,37 @@ class Test_Job_Template_Callback(Base_Api_Test):
             assert result['failed']
             assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
+    def test_launch_with_variables_needed_to_start_are_provided(self, ansible_runner,
+                                                                job_template_variables_needed_to_start,
+                                                                host_with_default_ipv4_in_variables, host_config_key,
+                                                                ansible_default_ipv4):
+        """Verify launch success when launching a job_template while providing required survey variables."""
+        job_template_variables_needed_to_start.host_config_key = host_config_key
+        assert(job_template_variables_needed_to_start.host_config_key == host_config_key)
+
+        args = dict(method="POST",
+                    status_code=httplib.CREATED,
+                    url="https://{0}{1}".format(ansible_default_ipv4,
+                                                job_template_variables_needed_to_start.related.callback),
+                    body_format='json',
+                    body=dict(host_config_key=host_config_key,
+                              extra_vars=dict(likes_chicken='yes',
+                                              favorite_color='red')),
+                    validate_certs=False)
+        args["HEADER_Content-Type"] = "application/json"
+        contacted = ansible_runner.uri(**args)
+
+        for result in contacted.values():
+            assert(result['status'] == httplib.CREATED)
+            assert(not result['changed'])
+            assert('failed' not in result)
+
+        job = job_template_variables_needed_to_start.related.jobs.get(launch_type='callback',
+                                                                      order_by='-id').results.pop()
+        job.wait_until_completed(timeout=300)
+        assert(job.launch_type == "callback")
+        assert(job.is_successful)
+
     def test_launch_with_limit(self, api_jobs_url, ansible_runner, job_template_with_random_limit,
                                host_with_default_ipv4_in_variables, host_config_key,
                                ansible_default_ipv4):
