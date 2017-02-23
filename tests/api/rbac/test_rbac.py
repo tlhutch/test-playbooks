@@ -2318,6 +2318,26 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_user_capabilities(command_pg.get(), role)
             check_user_capabilities(api_ad_hoc_commands_pg.get(id=command_pg.id).results.pop().get(), role)
 
+    def test_cloud_credential_reassignment(self, request, v1, openstack_v2_credential, admin_user):
+        """Test that a user with inventory-admin may not patch an inventory source with another user's
+        personal user credential.
+        """
+        inventory = v1.inventory.create()
+        request.addfinalizer(inventory.teardown)
+        user = v1.users.create()
+        request.addfinalizer(user.teardown)
+
+        set_roles(user, inventory, ["admin"])
+
+        with self.current_user(username=user.username, password=user.password):
+            os_cred = v1.credentials.create(kind='openstack', user=user)
+            os_group = v1.groups.create(inventory=inventory, credential=os_cred)
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                os_group.related.inventory_source.patch(credential=openstack_v2_credential.id)
+
+        request.addfinalizer(os_cred.teardown)
+        request.addfinalizer(os_group.teardown)
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
