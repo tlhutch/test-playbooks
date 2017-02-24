@@ -1069,8 +1069,11 @@ class Test_Credential_RBAC(Base_Api_Test):
         assert admin_role_users_pg.results[0].id == user_pg.id, \
             "Unexpected admin role user returned. Expected user with ID %s, but %s." % (user_pg.id, admin_role_users_pg.results[0].id)
 
-    def test_user_credential_role_assignment(self, factories, set_roles):
-        """Tests that user credential roles may be given to other users and not to teams."""
+    @pytest.mark.parametrize("agent_name", ["admin_user", "org_user"])
+    def test_user_credential_role_assignment(self, request, factories, set_roles, agent_name):
+        """Tests that only superusers may grant user-credential roles to other users and that
+        both superusers and regular users cannot grant user-credential roles to teams.
+        """
         # create user credential
         user = factories.user()
         credential = factories.credential(user=user, organization=None)
@@ -1078,13 +1081,25 @@ class Test_Credential_RBAC(Base_Api_Test):
         another_user = factories.user()
         team = factories.team()
 
+        agent = request.getfuncargvalue(agent_name)
         role_names = [role.replace("_role", "") for role in credential.summary_fields.object_roles.keys()]
-        for role_name in role_names:
-            # assert that credential roles may be assigned to another user
-            set_roles(another_user, credential, [role_name])
-            # assert that credential roles may not be assigned to team
-            with pytest.raises(towerkit.exceptions.BadRequest):
-                set_roles(team, credential, [role_name])
+        with self.current_user(agent.username, agent.password):
+            for role_name in role_names:
+                # superusers may assign credential roles to another user
+                if agent_name == "admin_user":
+                    set_roles(another_user, credential, [role_name])
+                # regular users may not assign credential roles to another user
+                else:
+                    with pytest.raises(towerkit.exceptions.Forbidden):
+                        set_roles(another_user, credential, [role_name])
+                # superusers should receive 400
+                if agent_name == "admin_user":
+                    with pytest.raises(towerkit.exceptions.BadRequest):
+                        set_roles(team, credential, [role_name])
+                # regular users should receive 403
+                else:
+                    with pytest.raises(towerkit.exceptions.Forbidden):
+                        set_roles(team, credential, [role_name])
 
     def test_invalid_organization_credential_role_assignment(self, factories, set_roles):
         """Tests that organization credentials may not have their roles assigned to users
