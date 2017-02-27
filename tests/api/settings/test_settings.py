@@ -335,14 +335,12 @@ class Test_Setting(Base_Api_Test):
         generated_elements = api_activity_stream_pg.get(order_by='-id', page_size=generated_elements_count).results
 
         # assert specific created elements created
-        assert len(generated_elements) == 4, \
+        assert len(generated_elements) == 2, \
             "Unexpected number of created activity stream elements: {0}.".format(len(generated_elements))
         criteria = dict(operation="create", object1="organization", object2="")
         assess_created_elements(generated_elements, criteria, 1)
         criteria = dict(operation="create", object1="setting", object2="")
         assess_created_elements(generated_elements, criteria, 1)
-        criteria = dict(operation="associate", object1="organization", object2="role")
-        assess_created_elements(generated_elements, criteria, 2)
 
     def test_activity_stream_disabled(self, factories, api_activity_stream_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED is disabled that future activity is no longer logged."""
@@ -386,7 +384,7 @@ class Test_Setting(Base_Api_Test):
         generated_elements = api_activity_stream_pg.get(order_by='-id', page_size=generated_elements_count).results
 
         # assert specific created elements created
-        assert len(generated_elements) == 21, \
+        assert len(generated_elements) == 19, \
             "Unexpected number of created activity stream elements: {0}.".format(len(generated_elements))
         criteria = dict(operation="create", object1="host", object2="")
         assess_created_elements(generated_elements, criteria, 5)
@@ -401,8 +399,6 @@ class Test_Setting(Base_Api_Test):
         assess_created_elements(generated_elements, criteria, 10)
         criteria = dict(operation="associate", object1="group", object2="group")
         assess_created_elements(generated_elements, criteria, 1)
-        criteria = dict(operation="associate", object1="organization", object2="role")
-        assess_created_elements(generated_elements, criteria, 2)
 
     def test_activity_stream_disabled_for_inventory_sync(self, factories, custom_inventory_source, api_activity_stream_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC is disabled that:
@@ -428,14 +424,12 @@ class Test_Setting(Base_Api_Test):
         generated_elements = api_activity_stream_pg.get(order_by='-id', page_size=generated_elements_count).results
 
         # assert specific created elements created
-        assert len(generated_elements) == 4, \
+        assert len(generated_elements) == 2, \
             "Unexpected number of created activity stream elements: {0}.".format(len(generated_elements))
         criteria = dict(operation="create", object1="organization", object2="")
         assess_created_elements(generated_elements, criteria, 1)
         criteria = dict(operation="create", object1="setting", object2="")
         assess_created_elements(generated_elements, criteria, 1)
-        criteria = dict(operation="associate", object1="organization", object2="role")
-        assess_created_elements(generated_elements, criteria, 2)
 
     def test_org_admins_can_see_all_users(self, org_users, non_org_users, org_admin, api_users_pg, user_password, update_setting_pg):
         """Tests that when ORG_ADMINS_CAN_SEE_ALL_USERS is enabled that org_admins can see all users systemwide."""
