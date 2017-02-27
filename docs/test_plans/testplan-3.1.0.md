@@ -260,7 +260,7 @@ Non-trivial topology should be used when testing workflow run. A non-trivial top
 1. [x] Tower LDAP Integration regression completed
 1. [x] Tower RADIUS Integration regression completed
 1. [x] Social authentication regression completed
-1. [ ] Backup/restore playbook
+1. [x] Backup/restore successful
 
 ### Installation
 1. Installation completes successfully on all supported platforms
