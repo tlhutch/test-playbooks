@@ -419,42 +419,6 @@ class Test_Job(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             cancel_pg.post()
 
-    def test_launch_with_inventory_update(self, job_template, cloud_group, host_local):
-        """Tests that job launches with inventory updates work with all cloud providers."""
-        job_template.patch(limit=host_local.name)
-        cloud_group.get_related('inventory_source').patch(update_on_launch=True)
-
-        # Assert that the cloud_group has not updated
-        assert not cloud_group.get_related('inventory_source').last_updated
-
-        # Launch job and check results
-        job_pg = job_template.launch().wait_until_completed(timeout=60 * 3)
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
-
-        # Assert that the inventory_update is marked as successful
-        inv_source_pg = cloud_group.get_related('inventory_source')
-        assert inv_source_pg.is_successful, "An inventory_update was launched, but the inventory_source is not successful - %s" % inv_source_pg
-
-        # Assert that an inventory_update completed successfully
-        inv_update_pg = inv_source_pg.get_related('last_update')
-        assert inv_update_pg.is_successful, "An inventory_update was launched, but did not succeed - %s" % inv_update_pg
-
-    def test_launch_with_scm_update(self, job_template, project_with_scm_update_on_launch):
-        """Tests that job launches with projects that have "Update on Launch" enabled work as expected."""
-        job_template.patch(project=project_with_scm_update_on_launch.id)
-
-        # Remember last update
-        initial_update_pg = project_with_scm_update_on_launch.get_related('last_update')
-
-        # Launch job and check results
-        job_pg = job_template.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
-
-        # Assert a new scm update was launched
-        updated_project_pg = project_with_scm_update_on_launch.get()
-        final_update_pg = updated_project_pg.get_related('last_update')
-        assert initial_update_pg.id != final_update_pg.id, "Update IDs are the same (%s = %s)" % (initial_update_pg.id, final_update_pg.id)
-
     def test_job_with_no_log(self, factories, ansible_version_cmp):
         """Tests that jobs with 'no_log' censor the following:
         * jobs/N/job_events
