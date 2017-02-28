@@ -69,6 +69,7 @@ def api_v1_pg(testsetup, api_v1_url):
 
 @pytest.fixture
 def v1(testsetup):
+    # todo : monkeypatch `Base.create()` to include request.addfinalizer()
     return ApiV1(testsetup).get()
 
 
