@@ -21,6 +21,13 @@ def update_setting_pg(request):
 
 
 @pytest.fixture
+def oauth_settings_pgs(v1):
+    """Returns a list of all of our oauth settings_pgs."""
+    endpoints = ['github', 'github-team', 'github-org', 'google-oauth2', 'azuread-oauth2']
+    return [v1.settings.get().get_endpoint(endpoint) for endpoint in endpoints]
+
+
+@pytest.fixture
 def enterprise_auth_settings_pgs(api_settings_ldap_pg, api_settings_radius_pg, api_settings_saml_pg):
     """Returns a list of all of our enterprise auth settings_pgs. Enterprise auth includes: LDAP,
     SAML, and RADIUS.
