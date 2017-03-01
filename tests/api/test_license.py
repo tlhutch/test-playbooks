@@ -1044,7 +1044,7 @@ class Test_Basic_License(Base_Api_Test):
         """Verify that activity stream flags are not visible with a basic license."""
         settings_pg = api_settings_system_pg.get()
         assert not any(flag in settings_pg.json for flag in ACTIVITY_STREAM_FLAGS), \
-            "Activity stream flags not visible under /api/v1/settings/system/ with a legacy license."
+            "Activity stream flags not visible under /api/v1/settings/system/ with a basic license."
 
     def test_custom_rebranding_settings(self, api_settings_ui_pg):
         """Verify that custom rebranding flags are not accessible with a basic license."""
@@ -1206,7 +1206,7 @@ class Test_Enterprise_License(Base_Api_Test):
 
     def test_activity_streams_get(self, api_activity_stream_pg):
         """Verify that GET requests to /api/v1/activity_stream/ are allowed with an enterprise license."""
-        api_activity_stream_pg.get()
+        api_activity_stream_pg
 
     def test_post_scan_job_template(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
         """Verifies that scan job templates may be created with an enterprise license."""
@@ -1274,7 +1274,7 @@ class Test_Enterprise_License(Base_Api_Test):
         """Verify that activity stream flags are visible with an enterprise license."""
         settings_pg = api_settings_system_pg.get()
         assert all(flag in settings_pg.json for flag in ACTIVITY_STREAM_FLAGS), \
-            "Activity stream flags not visible under /api/v1/settings/system/ with a legacy license."
+            "Activity stream flags not visible under /api/v1/settings/system/ with an enterprise license."
 
     def test_custom_rebranding_settings(self, api_settings_ui_pg):
         """Verify that custom rebranding flags are visible with an enterprise license."""
