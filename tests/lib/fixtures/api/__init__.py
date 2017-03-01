@@ -1,17 +1,6 @@
-import httplib
-
-import pytest
-import towerkit.api
+from towerkit.api import get_registered_page
 import towerkit.tower
-from towerkit.api.pages import (Activity_Stream_Page, Ad_Hoc_Commands_Page, ApiV1, Base, Config_Page, Credentials_Page,
-                                Dashboard_Page, Groups_Page, Hosts_Page, Inventories_Page, Inventory_Scripts_Page,
-                                Inventory_Sources_Page, Job_Templates_Page, Jobs_Page, Labels_Page, Me_Page,
-                                Notification_Templates_Page, Notifications_Page, Organizations_Page, Ping_Page,
-                                Projects_Page, Roles_Page, Schedules_Page, System_Jobs_Page,
-                                System_Job_Templates_Page, Teams_Page, Unified_Job_Templates_Page, Users_Page,
-                                Setting, Settings, ProjectUpdates, InventoryUpdates, WorkflowJobNodes, WorkflowJobs,
-                                WorkflowJobTemplateNodes, WorkflowJobTemplates)
-from towerkit.api.pages.authtoken import AuthToken_Page
+import pytest
 
 
 def navigate(api, url, field):
@@ -22,16 +11,15 @@ def navigate(api, url, field):
     Examples:
      * navigate(api, '/api/', 'current_version') returns '/api/v1'
      * navigate(api, '/api/v1/, 'config') returns '/api/v1/config'
+
+    Update: towerkit traces the api in its functionality and is the preferred
+    resource object builder.  `navigate` is just used for api_v1_url and test will
+    be done by towerkit `Base` subclasses.
     """
     if not url.endswith('/'):
         url += '/'
     data = api.get(url).json()
     return data.get(field)
-
-
-def api_default_page_size(testsetup):
-    """The tower default pagination size"""
-    return 25
 
 
 @pytest.fixture(scope="module")
@@ -64,82 +52,74 @@ def api_v1_url(request, api):
 
 @pytest.fixture(scope="module")
 def api_v1_pg(testsetup, api_v1_url):
-    return Base(testsetup, base_url=api_v1_url).get()
+    return get_registered_page(api_v1_url)(testsetup, base_url=api_v1_url).get()
+
+
+@pytest.fixture(scope='module')
+def v1_module(api_v1_pg):
+    return api_v1_pg
 
 
 @pytest.fixture
-def v1(testsetup):
-    # todo : monkeypatch `Base.create()` to include request.addfinalizer()
-    return ApiV1(testsetup).get()
+def v1(v1_module):
+    return v1_module
 
 
-#
 # /api/v1/authtoken
-#
 @pytest.fixture(scope="module")
-def api_authtoken_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'authtoken')
-
-
-@pytest.fixture(scope="module")
-def api_authtoken_pg(testsetup, api_authtoken_url):
-    return AuthToken_Page(testsetup, base_url=api_authtoken_url)
+def api_authtoken_url(v1_module):
+    return v1_module.authtoken
 
 
 @pytest.fixture(scope="module")
-def authtoken(api, testsetup, api_authtoken_pg):
-    """Logs in to the application with default credentials and returns the
-    home page
-    """
-    payload = dict(username=testsetup.credentials['default']['username'],
-                   password=testsetup.credentials['default']['password'])
-    authtoken_pg = api_authtoken_pg.post(payload)
-    testsetup.api.login(token=authtoken_pg.token)
-    return authtoken_pg.json
+def api_authtoken_pg(api_authtoken_url):
+    return api_authtoken_url.get()
 
 
-#
+@pytest.fixture(scope="module")
+def authtoken(testsetup, v1_module):
+    """Logs in to the application with default credentials"""
+    authtoken = v1_module.get_authtoken()
+    testsetup.api.login(token=authtoken)
+    return authtoken
+
+
 # /api/v1/dashboard
-#
 @pytest.fixture(scope="module")
-def api_dashboard_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'dashboard')
+def api_dashboard_url(v1_module):
+    return v1_module.dashboard
 
 
 @pytest.fixture(scope="module")
-def api_dashboard_pg(testsetup, api_dashboard_url):
-    return Dashboard_Page(testsetup, base_url=api_dashboard_url)
+def api_dashboard_pg(api_dashboard_url):
+    return api_dashboard_url.get()
 
 
-#
 # /api/v1/ping
-#
 @pytest.fixture(scope="module")
-def api_ping_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'ping')
+def api_ping_url(v1_module):
+    return v1_module.ping
 
 
 @pytest.fixture(scope="module")
-def api_ping_pg(testsetup, api_ping_url):
-    return Ping_Page(testsetup, base_url=api_ping_url)
+def api_ping_pg(api_ping_url):
+    return api_ping_url.get()
 
 
-#
 # /api/v1/config
-#
 @pytest.fixture(scope="module")
-def api_config_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'config')
+def api_config_url(v1_module):
+    return v1_module.config
 
 
 @pytest.fixture(scope="module")
-def api_config_pg(testsetup, api_config_url):
-    return Config_Page(testsetup, base_url=api_config_url)
+def api_config_pg(api_config_url):
+    return api_config_url.get()
 
 
 @pytest.fixture(scope="module")
 def tower_version(api_config_pg):
-    return api_config_pg.get().version
+    return api_config_pg.version
 
 
 @pytest.fixture(scope="module")
@@ -163,297 +143,250 @@ def ansible_version_cmp(request, ansible_version):
 
 
 @pytest.fixture(scope="module")
-def awx_config(api, api_v1_url):
-    url = navigate(api, api_v1_url, 'config')
-    r = api.get(url)
-    assert r.status_code == httplib.OK
-    return r.json()
+def awx_config(v1_module):
+    return v1_module.config.get()
 
 
-#
 # /api/v1/me
-#
 @pytest.fixture(scope="module")
-def api_me_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'me')
+def api_me_url(v1_module):
+    return v1_module.me
 
 
 @pytest.fixture(scope="module")
-def api_me_pg(testsetup, api_me_url):
-    return Me_Page(testsetup, base_url=api_me_url)
+def api_me_pg(api_me_url):
+    return api_me_url.get()
 
 
-#
 # /api/v1/organizations
-#
 @pytest.fixture(scope="module")
-def api_organizations_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'organizations')
+def api_organizations_url(v1_module):
+    return v1_module.organizations
 
 
 @pytest.fixture(scope="module")
-def api_organizations_pg(testsetup, api_organizations_url):
-    return Organizations_Page(testsetup, base_url=api_organizations_url)
+def api_organizations_pg(api_organizations_url):
+    return api_organizations_url.get()
 
 
-#
 # /api/v1/users
-#
 @pytest.fixture(scope="module")
-def api_users_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'users')
+def api_users_url(v1_module):
+    return v1_module.users
 
 
 @pytest.fixture(scope="module")
-def api_users_pg(testsetup, api_users_url):
-    return Users_Page(testsetup, base_url=api_users_url)
+def api_users_pg(api_users_url):
+    return api_users_url.get()
 
 
-#
 # /api/v1/teams
-#
 @pytest.fixture(scope="module")
-def api_teams_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'teams')
+def api_teams_url(v1_module):
+    return v1_module.teams
 
 
 @pytest.fixture(scope="module")
-def api_teams_pg(testsetup, api_teams_url):
-    return Teams_Page(testsetup, base_url=api_teams_url)
+def api_teams_pg(api_teams_url):
+    return api_teams_url.get()
 
 
-#
 # /api/v1/projects
-#
 @pytest.fixture(scope="module")
-def api_projects_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'projects')
+def api_projects_url(v1_module):
+    return v1_module.projects
 
 
 @pytest.fixture(scope="module")
-def api_projects_pg(testsetup, api_projects_url):
-    return Projects_Page(testsetup, base_url=api_projects_url)
+def api_projects_pg(api_projects_url):
+    return api_projects_url.get()
 
 
-#
 # /api/v1/project_updates
-#
 @pytest.fixture(scope="module")
-def api_project_updates_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'project_updates')
+def api_project_updates_url(v1_module):
+    return v1_module.project_updates
 
 
 @pytest.fixture(scope="module")
-def api_project_updates_pg(testsetup, api_project_updates_url):
-    return ProjectUpdates(testsetup, base_url=api_project_updates_url)
+def api_project_updates_pg(api_project_updates_url):
+    return api_project_updates_url.get()
 
 
-#
 # /api/v1/activity_stream
-#
 @pytest.fixture(scope="module")
-def api_activity_stream_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'activity_stream')
+def api_activity_stream_url(v1_module):
+    return v1_module.activity_stream
 
 
 @pytest.fixture(scope="module")
-def api_activity_stream_pg(testsetup, api_activity_stream_url):
-    return Activity_Stream_Page(testsetup, base_url=api_activity_stream_url)
+def api_activity_stream_pg(api_activity_stream_url):
+    return api_activity_stream_url.get()
 
 
-#
 # /api/v1/credentials
-#
 @pytest.fixture(scope="module")
-def api_credentials_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'credentials')
+def api_credentials_url(v1_module):
+    return v1_module.credentials
 
 
 @pytest.fixture(scope="module")
-def api_credentials_pg(testsetup, api_credentials_url):
-    return Credentials_Page(testsetup, base_url=api_credentials_url)
+def api_credentials_pg(api_credentials_url):
+    return api_credentials_url.get()
 
 
-#
 # /api/v1/inventory
-#
 @pytest.fixture(scope="module")
-def api_inventories_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'inventory')
+def api_inventories_url(v1_module):
+    return v1_module.inventory
 
 
 @pytest.fixture(scope="module")
-def api_inventories_pg(testsetup, api_inventories_url):
-    return Inventories_Page(testsetup, base_url=api_inventories_url)
+def api_inventories_pg(api_inventories_url):
+    return api_inventories_url.get()
 
 
-#
 # /api/v1/inventory_updates
-#
 @pytest.fixture(scope="module")
-def api_inventory_updates_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'inventory_updates')
+def api_inventory_updates_url(v1_module):
+    return v1_module.inventory_updates
 
 
 @pytest.fixture(scope="module")
-def api_inventory_updates_pg(testsetup, api_inventory_updates_url):
-    return InventoryUpdates(testsetup, base_url=api_inventory_updates_url)
+def api_inventory_updates_pg(api_inventory_updates_url):
+    return api_inventory_updates_url.get()
 
 
-#
 # /api/v1/inventory_sources
-#
 @pytest.fixture(scope="module")
-def api_inventory_sources_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'inventory_sources')
+def api_inventory_sources_url(v1_module):
+    return v1_module.inventory_sources
 
 
 @pytest.fixture(scope="module")
-def api_inventory_sources_pg(testsetup, api_inventory_sources_url):
-    return Inventory_Sources_Page(testsetup, base_url=api_inventory_sources_url)
+def api_inventory_sources_pg(api_inventory_sources_url):
+    return api_inventory_sources_url.get()
 
 
-#
 # /api/v1/inventory_scripts
-#
 @pytest.fixture(scope="module")
-def api_inventory_scripts_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'inventory_scripts')
+def api_inventory_scripts_url(v1_module):
+    return v1_module.inventory_scripts
 
 
 @pytest.fixture(scope="module")
-def api_inventory_scripts_pg(testsetup, api_inventory_scripts_url):
-    return Inventory_Scripts_Page(testsetup, base_url=api_inventory_scripts_url)
+def api_inventory_scripts_pg(api_inventory_scripts_url):
+    return api_inventory_scripts_url.get()
 
 
-#
 # /api/v1/groups
-#
 @pytest.fixture(scope="module")
-def api_groups_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'groups')
+def api_groups_url(v1_module):
+    return v1_module.groups
 
 
 @pytest.fixture(scope="module")
-def api_groups_pg(testsetup, api_groups_url):
-    return Groups_Page(testsetup, base_url=api_groups_url)
+def api_groups_pg(api_groups_url):
+    return api_groups_url.get()
 
 
-#
 # /api/v1/hosts
-#
 @pytest.fixture(scope="module")
-def api_hosts_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'hosts')
+def api_hosts_url(v1_module):
+    return v1_module.hosts
 
 
 @pytest.fixture(scope="module")
-def api_hosts_pg(testsetup, api_hosts_url):
-    return Hosts_Page(testsetup, base_url=api_hosts_url)
+def api_hosts_pg(api_hosts_url):
+    return api_hosts_url.get()
 
 
-#
 # /api/v1/job_templates
-#
 @pytest.fixture(scope="module")
-def api_job_templates_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'job_templates')
+def api_job_templates_url(v1_module):
+    return v1_module.job_templates
 
 
 @pytest.fixture(scope="module")
-def api_job_templates_pg(testsetup, api_job_templates_url):
-    return Job_Templates_Page(testsetup, base_url=api_job_templates_url)
+def api_job_templates_pg(api_job_templates_url):
+    return api_job_templates_url.get()
 
 
-#
 # /api/v1/schedules
-#
 @pytest.fixture(scope="module")
-def api_schedules_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'schedules')
+def api_schedules_url(v1_module):
+    return v1_module.schedules
 
 
 @pytest.fixture(scope="module")
-def api_schedules_pg(testsetup, api_schedules_url):
-    return Schedules_Page(testsetup, base_url=api_schedules_url)
+def api_schedules_pg(api_schedules_url):
+    return api_schedules_url.get()
 
 
-#
 # /api/v1/jobs
-#
 @pytest.fixture(scope="module")
-def api_jobs_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'jobs')
+def api_jobs_url(v1_module):
+    return v1_module.jobs
 
 
 @pytest.fixture(scope="module")
-def api_jobs_pg(testsetup, api_jobs_url):
-    return Jobs_Page(testsetup, base_url=api_jobs_url)
+def api_jobs_pg(api_jobs_url):
+    return api_jobs_url.get()
 
 
-#
 # /api/v1/unified_jobs
-#
 @pytest.fixture(scope="module")
-def api_unified_jobs_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'unified_jobs')
+def api_unified_jobs_url(v1_module):
+    return v1_module.unified_jobs
 
 
 @pytest.fixture(scope="module")
-def api_unified_jobs_pg(testsetup, api_unified_jobs_url):
-    return Jobs_Page(testsetup, base_url=api_unified_jobs_url)
+def api_unified_jobs_pg(api_unified_jobs_url):
+    return api_unified_jobs_url.get()
 
 
-#
 # /api/v1/unified_job_templates
-#
 @pytest.fixture(scope="module")
-def api_unified_job_templates_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'unified_job_templates')
+def api_unified_job_templates_url(v1_module):
+    return v1_module.unified_job_templates
 
 
 @pytest.fixture(scope="module")
-def api_unified_job_templates_pg(testsetup, api_unified_job_templates_url):
-    return Unified_Job_Templates_Page(testsetup, base_url=api_unified_job_templates_url)
+def api_unified_job_templates_pg(api_unified_job_templates_url):
+    return api_unified_job_templates_url.get()
 
 
-#
 # /api/v1/system_jobs
-#
 @pytest.fixture(scope="module")
-def api_system_jobs_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'system_jobs')
+def api_system_jobs_url(v1_module):
+    return v1_module.system_jobs
 
 
 @pytest.fixture(scope="module")
-def api_system_jobs_pg(testsetup, api_system_jobs_url):
-    return System_Jobs_Page(testsetup, base_url=api_system_jobs_url)
+def api_system_jobs_pg(api_system_jobs_url):
+    return api_system_jobs_url.get()
 
 
-#
 # /api/v1/system_job_templates
-#
 @pytest.fixture(scope="module")
-def api_system_job_templates_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'system_job_templates')
+def api_system_job_templates_url(v1_module):
+    return v1_module.system_job_templates
 
 
 @pytest.fixture(scope="module")
-def api_system_job_templates_pg(testsetup, api_system_job_templates_url):
-    return System_Job_Templates_Page(testsetup, base_url=api_system_job_templates_url)
+def api_system_job_templates_pg(api_system_job_templates_url):
+    return api_system_job_templates_url.get()
 
 
-#
 # /api/v1/ad_hoc_commands
-#
 @pytest.fixture(scope="module")
-def api_ad_hoc_commands_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'ad_hoc_commands')
+def api_ad_hoc_commands_url(v1_module):
+    return v1_module.ad_hoc_commands
 
 
 @pytest.fixture(scope="module")
-def api_ad_hoc_commands_pg(testsetup, api_ad_hoc_commands_url):
-    return Ad_Hoc_Commands_Page(testsetup, base_url=api_ad_hoc_commands_url)
+def api_ad_hoc_commands_pg(api_ad_hoc_commands_url):
+    return api_ad_hoc_commands_url.get()
 
 
 @pytest.fixture(scope="module")
@@ -467,246 +400,196 @@ def region_choices(api_inventory_sources_pg):
                 gce=[r[0] for r in options.json.get('actions', {}).get('GET', {}).get('source_regions', {}).get('gce_region_choices', [])])
 
 
-#
 # /api/v1/notifications
-#
 @pytest.fixture(scope="module")
-def api_notifications_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'notifications')
+def api_notifications_url(v1_module):
+    return v1_module.notifications
 
 
 @pytest.fixture(scope="module")
-def api_notifications_pg(testsetup, api_notifications_url):
-    return Notifications_Page(testsetup, base_url=api_notifications_url)
+def api_notifications_pg(api_notifications_url):
+    return api_notifications_url.get()
 
 
-#
 # /api/v1/notification_templates
-#
 @pytest.fixture(scope="module")
-def api_notification_templates_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'notification_templates')
+def api_notification_templates_url(v1_module):
+    return v1_module.notification_templates
 
 
 @pytest.fixture(scope="module")
-def api_notification_templates_pg(testsetup, api_notification_templates_url):
-    return Notification_Templates_Page(testsetup, base_url=api_notification_templates_url)
+def api_notification_templates_pg(api_notification_templates_url):
+    return api_notification_templates_url.get()
 
 
-#
 # /api/v1/labels
-#
 @pytest.fixture(scope="module")
-def api_labels_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'labels')
+def api_labels_url(v1_module):
+    return v1_module.labels
 
 
 @pytest.fixture(scope="module")
-def api_labels_pg(testsetup, api_labels_url):
-    return Labels_Page(testsetup, base_url=api_labels_url)
+def api_labels_pg(api_labels_url):
+    return api_labels_url.get()
 
 
-#
 # /api/v1/roles
-#
 @pytest.fixture(scope="module")
-def api_roles_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'roles')
+def api_roles_url(v1_module):
+    return v1_module.roles
 
 
 @pytest.fixture(scope="module")
-def api_roles_pg(testsetup, api_roles_url):
-    return Roles_Page(testsetup, base_url=api_roles_url)
+def api_roles_pg(api_roles_url):
+    return api_roles_url.get()
 
 
-#
 # /api/v1/workflow_job_templates
-#
 @pytest.fixture(scope="module")
-def api_workflow_job_templates_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'workflow_job_templates')
+def api_workflow_job_templates_url(v1_module):
+    return v1_module.workflow_job_templates
 
 
 @pytest.fixture(scope="module")
-def api_workflow_job_templates_pg(testsetup, api_workflow_job_templates_url):
-    return WorkflowJobTemplates(testsetup, base_url=api_workflow_job_templates_url)
+def api_workflow_job_templates_pg(api_workflow_job_templates_url):
+    return api_workflow_job_templates_url.get()
 
 
-#
 # /api/v1/workflow_job_template_nodes
-#
 @pytest.fixture(scope="module")
-def api_workflow_job_template_nodes_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'workflow_job_template_nodes')
+def api_workflow_job_template_nodes_url(v1_module):
+    return v1_module.workflow_job_template_nodes
 
 
 @pytest.fixture(scope="module")
-def api_workflow_job_template_nodes_pg(testsetup, api_workflow_job_template_nodes_url):
-    return WorkflowJobTemplateNodes(testsetup, base_url=api_workflow_job_template_nodes_url)
+def api_workflow_job_template_nodes_pg(api_workflow_job_template_nodes_url):
+    return api_workflow_job_template_nodes_url.get()
 
 
-#
 # /api/v1/workflow_jobs
-#
 @pytest.fixture(scope="module")
-def api_workflow_jobs_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'workflow_jobs')
+def api_workflow_jobs_url(v1_module):
+    return v1_module.workflow_jobs
 
 
 @pytest.fixture(scope="module")
-def api_workflow_jobs_pg(testsetup, api_workflow_jobs_url):
-    return WorkflowJobs(testsetup, base_url=api_workflow_jobs_url)
+def api_workflow_jobs_pg(api_workflow_jobs_url):
+    return api_workflow_jobs_url.get()
 
 
-#
 # /api/v1/workflow_job_nodes
-#
 @pytest.fixture(scope="module")
-def api_workflow_job_nodes_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'workflow_job_nodes')
+def api_workflow_job_nodes_url(v1_module):
+    return v1_module.workflow_job_nodes
 
 
 @pytest.fixture(scope="module")
-def api_workflow_job_nodes_pg(testsetup, api_workflow_job_nodes_url):
-    return WorkflowJobNodes(testsetup, base_url=api_workflow_job_nodes_url)
+def api_workflow_job_nodes_pg(api_workflow_job_nodes_url):
+    return api_workflow_job_nodes_url.get()
 
 
-#
 # /api/v1/settings
-#
 @pytest.fixture(scope="module")
-def api_settings_url(api, api_v1_url):
-    return navigate(api, api_v1_url, 'settings')
+def api_settings_url(v1_module):
+    return v1_module.settings
 
 
 @pytest.fixture(scope="module")
-def api_settings_pg(testsetup, api_settings_url):
-    return Settings(testsetup, base_url=api_settings_url)
+def api_settings_pg(api_settings_url):
+    return api_settings_url.get()
 
 
-#
 # /api/v1/settings/all
-#
 @pytest.fixture(scope="module")
-def api_settings_all_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_all)
+def api_settings_all_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('all')
 
 
-#
 # /api/v1/settings/authentication
-#
 @pytest.fixture(scope="module")
-def api_settings_auth_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_authentication)
+def api_settings_auth_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('authentication')
 
 
-#
 # /api/v1/settings/azuread-oauth2
-#
 @pytest.fixture(scope="module")
-def api_settings_azuread_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_azuread_oauth2)
+def api_settings_azuread_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('azuread-oauth2')
 
 
-#
 # /api/v1/settings/changed
-#
 @pytest.fixture(scope="module")
-def api_settings_changed_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_changed)
+def api_settings_changed_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('changed')
 
 
-#
 # /api/v1/settings/github
-#
 @pytest.fixture(scope="module")
-def api_settings_github_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_github)
+def api_settings_github_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('github')
 
 
-#
 # /api/v1/settings/github-org
-#
 @pytest.fixture(scope="module")
-def api_settings_github_org_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_github_org)
+def api_settings_github_org_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('github-org')
 
 
-#
 # /api/v1/settings/github-team
-#
 @pytest.fixture(scope="module")
-def api_settings_github_team_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_github_team)
+def api_settings_github_team_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('github-team')
 
 
-#
 # /api/v1/settings/google-oauth2
-#
 @pytest.fixture(scope="module")
-def api_settings_google_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_google_oauth2)
+def api_settings_google_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('google-oauth2')
 
 
-#
 # /api/v1/settings/jobs
-#
 @pytest.fixture(scope="module")
-def api_settings_jobs_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_jobs)
+def api_settings_jobs_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('jobs')
 
 
-#
 # /api/v1/settings/ldap
-#
 @pytest.fixture(scope="module")
-def api_settings_ldap_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_ldap)
+def api_settings_ldap_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('ldap')
 
 
-#
 # /api/v1/settings/radius
-#
 @pytest.fixture(scope="module")
-def api_settings_radius_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_radius)
+def api_settings_radius_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('radius')
 
 
-#
 # /api/v1/settings/saml
-#
 @pytest.fixture(scope="module")
-def api_settings_saml_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_saml)
+def api_settings_saml_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('saml')
 
 
-#
 # /api/v1/settings/system
-#
 @pytest.fixture(scope="module")
-def api_settings_system_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_system)
+def api_settings_system_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('system')
 
 
-#
 # /api/v1/settings/ui
-#
 @pytest.fixture(scope="module")
-def api_settings_ui_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_ui)
+def api_settings_ui_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('ui')
 
 
-#
 # /api/v1/settings/user
-#
 @pytest.fixture(scope="module")
-def api_settings_user_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_user)
+def api_settings_user_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('user')
 
 
-#
 # /api/v1/settings/user-defaults
-#
 @pytest.fixture(scope="module")
-def api_settings_user_defaults_pg(testsetup):
-    return Setting(testsetup, base_url=towerkit.api.resources.v1_settings_user_defaults)
+def api_settings_user_defaults_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('user-defaults')
