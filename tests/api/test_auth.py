@@ -13,7 +13,7 @@ def find_settings(endpoint, substrings):
     >>> find_settings(api_settings_github_pg, ['CALLBACK'])
     [u'SOCIAL_AUTH_GITHUB_CALLBACK_URL']
 
-    /api/v1/github/ is for reference:
+    Endpoint JSON for reference:
     {
         "SOCIAL_AUTH_GITHUB_CALLBACK_URL": "https://ec2-54-80-169-208.compute-1.amazonaws.com/sso/complete/github/",
         "SOCIAL_AUTH_GITHUB_KEY": "test",
@@ -29,13 +29,25 @@ def find_settings(endpoint, substrings):
     return keys
 
 
-# add teardown
-# update update_settings_pg fixture to accept base_urls
-def configure_oauth(endpoint):
-    # update endpoint
-    keys = find_settings(endpoint, OAUTH_SUBSTRINGS)
-    payload = {key: "test" for key in keys}
-    endpoint.patch(**payload)
+@pytest.fixture
+def configure_oauth(update_setting_pg):
+    """Configure an oauth endpoint with dummy settings."""
+    def func(endpoint):
+        keys = find_settings(endpoint, OAUTH_SUBSTRINGS)
+        payload = {key: "test" for key in keys}
+        update_setting_pg(endpoint, payload)
+    return func
+
+
+@pytest.fixture
+def find_configured_settings(oauth_settings_pgs):
+    def func():
+        changed = 0
+        for endpoint in oauth_settings_pgs:
+            if "test" in endpoint.json.values():
+                changed += 1
+        return changed
+    return func
 
 
 @pytest.mark.api
@@ -51,17 +63,16 @@ class Test_Auth(Base_Api_Test):
         assert auth.json == {}, \
             "Unexpected value for /api/v1/auth/."
 
-    def test_updated_entries(self, v1, oauth_settings_pgs):
-        """Update our oauth settings pages sequentially. Check that:
-        * /api/v1/auth/ updates to shows our new entry.
-        * Entry contents are as expected.
+    def test_updated_entries(self, v1, oauth_settings_pgs, configure_oauth, find_configured_settings):
+        """Update oauth settings endpoints sequentially and verify that
+        /api/v1/auth/ updates appropriately.
         """
         for endpoint in oauth_settings_pgs:
             configure_oauth(endpoint)
             auth = v1.walk('/api/v1/auth/')
-            # assert that we have one entry returned
-            assert len(auth.json) == 1, \
-                "Expected to have one entry under /api/v1/auth/."
+            # assert that we have the right number of entries returned
+            assert len(auth.json) == find_configured_settings(), \
+                "Expected to have {0} result[s] under /api/v1/auth/.".format(find_configured_settings())
             # assert entry contains expected contents
             endpoint_name = endpoint.base_url.replace('/api/v1/settings/', '').strip('/')
             assert endpoint_name in auth.json, \
