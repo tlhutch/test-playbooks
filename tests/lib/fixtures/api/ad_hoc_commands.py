@@ -24,12 +24,6 @@ def ad_hoc_with_status_pending(pause_awx_task_system, ad_hoc_ping):
 
 
 @pytest.fixture(scope="function")
-def ad_hoc_with_status_running(ad_hoc_ping):
-    """Wait for ad_hoc_ping to move from queued to running, and return the job."""
-    return ad_hoc_ping.wait_until_status('running')
-
-
-@pytest.fixture(scope="function")
 def ad_hoc_with_status_completed(ad_hoc_ping):
     """Wait for ad_hoc_ping to finish, and return the job."""
     return ad_hoc_ping.wait_until_completed()
@@ -39,6 +33,6 @@ def ad_hoc_with_status_completed(ad_hoc_ping):
 def ad_hoc_module_name_choices(api_ad_hoc_commands_pg):
     """Returns the list of module_names from api/v1/ad_hoc_commands OPTIONS."""
     def func():
-        options_json = api_ad_hoc_commands_pg.options().json
-        return options_json["actions"]["POST"]["module_name"]['choices']
+        options = api_ad_hoc_commands_pg.options()
+        return options.actions.POST.module_name.choices
     return func

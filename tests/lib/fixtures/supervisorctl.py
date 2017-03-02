@@ -6,20 +6,26 @@ import pytest
 log = logging.getLogger(__name__)
 
 
-# WARNING awx-task-system has been obsoleted and this will halt pytest.
-# TODO: Establish alternative w/ celery?
 @pytest.fixture(scope="function")
 def pause_awx_task_system(request, ansible_runner):
-    """Stops awx-task-system and restarts it upon teardown. Aids our cancel tests."""
+    """Stops awx-task-system and restarts it upon teardown. Aids our cancel tests.
+
+    Note: this is about as noisy of a neighbor a test can be.  Its worth should be re-evaluated:
+    1. Stopping celery will halt task processing tower activity (the point of the fixture) but this will
+       break other tests if multiprocessing is running.
+    2. Failing to stop the awx-celeryd service will exit pytest, killing the test run.
+    3. Having to halt a critical part of tower to confirm pending jobs can be canceled seems like a bad approach.
+    """
     def teardown():
         log.debug("calling supervisorctl teardown pause_awx_task_system")
-        contacted = ansible_runner.supervisorctl(name='awx-task-system', state='started')
+        contacted = ansible_runner.supervisorctl(name='tower-processes:awx-celeryd', state='started')
         result = contacted.values()[0]
         if 'failed' in result:
-            pytest.exit("awx-task-system failed to restart - %s." % json.dumps(result, indent=2))
+            pytest.exit("tower-processes:awx-celeryd failed to restart - {0}.".format(json.dumps(result, indent=2)))
     request.addfinalizer(teardown)
 
     log.debug("calling supervisorctl fixture pause_awx_task_system")
-    contacted = ansible_runner.supervisorctl(name='awx-task-system', state='stopped')
+    contacted = ansible_runner.supervisorctl(name='tower-processes:awx-celeryd', state='stopped')
     result = contacted.values()[0]
-    assert 'failed' not in result, "Stopping awx-task-system failed - %s." % json.dumps(result, indent=2)
+    assert('failed' not in result
+           ), "Stopping tower-processes:awx-celeryd failed - {0}.".format(json.dumps(result, indent=2))
