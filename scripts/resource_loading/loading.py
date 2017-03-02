@@ -10,7 +10,7 @@ from ansible.inventory import Inventory
 def delete_all(endpoint):
     resource = endpoint
     while True:
-        resource = resource.get(page_size=200)
+        resource = resource.get()
         for item in resource.results:
             try:
                 item.delete()
@@ -18,7 +18,6 @@ def delete_all(endpoint):
                 print(e)
         if not resource.next:
             return
-        resource = resource.next
 
 
 def delete_all_created(v1):
