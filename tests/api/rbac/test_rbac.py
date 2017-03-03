@@ -60,11 +60,15 @@ def auth_user(testsetup, authtoken, api_authtoken_url):
             *** Forbidden
         """
         prev_auth = testsetup.api.session.auth
+
         data = {'username': user.username, 'password': password}
-        response = testsetup.api.post(api_authtoken_url, data)
-        testsetup.api.login(token=response.json()['token'])
-        yield
-        testsetup.api.session.auth = prev_auth
+        token = testsetup.api.post(api_authtoken_url, data).json()['token']
+
+        try:
+            testsetup.api.login(token=token)
+            yield
+        finally:
+            testsetup.api.session.auth = prev_auth
     return _auth_user
 
 
