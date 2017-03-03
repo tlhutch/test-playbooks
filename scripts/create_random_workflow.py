@@ -46,6 +46,7 @@ if __name__ == '__main__':
     config.base_url = args[0]
     config.credentials = utils.load_credentials(opts.credentials)
     v1 = api.ApiV1().load_default_authtoken().get()
+    v1.config.get().install_license()
 
     # List of potential nodes to build on
     # (uses duplicate nodes to increase likelihood of adding nodes after new root nodes)
@@ -54,15 +55,25 @@ if __name__ == '__main__':
     nodes_in_full_binary_tree = 2**(int(opts.desired_depth) + 1) - 1
 
     # Create job templates
-    passing_jt = os.getenv('RAND_WORKFLOW_PASSING_JT_ID')
-    failing_jt = os.getenv('RAND_WORKFLOW_FAILING_JT_ID')
+    passing_jt_id = os.getenv('RAND_WORKFLOW_PASSING_JT_ID')
+    failing_jt_id = os.getenv('RAND_WORKFLOW_FAILING_JT_ID')
     name_hash = fauxfactory.gen_alphanumeric()
-    if not passing_jt:
+
+    if not any((passing_jt_id, failing_jt_id)):
+        inventory = v1.hosts.create().ds.inventory
+
+    if not passing_jt_id:
         log.info("Creating Passing Job Template (Use RAND_WORKFLOW_PASSING_JT_ID to specify existing JT)")
-        passing_jt = v1.job_templates.create(name='Passing JT - {0}'.format(name_hash)).id
-    if not failing_jt:
+        passing_jt = v1.job_templates.create(name='Passing JT - {0}'.format(name_hash), inventory=inventory)
+        passing_jt.allow_simultaneous = True
+        passing_jt_id = passing_jt.id
+    if not failing_jt_id:
         log.info("Creating Failing Job Template (Use RAND_WORKFLOW_FAILING_JT_ID to specify existing JT)")
-        failing_jt = v1.job_templates.create(name='Failing JT - {0}'.format(name_hash), limit='garbage').id
+        failing_jt = v1.job_templates.create(name='Failing JT - {0}'.format(name_hash),
+                                             inventory=inventory,
+                                             playbook='fail_unless.yml')
+        failing_jt.allow_simultaneous = True
+        failing_jt_id = failing_jt.id
 
     # Helpers
     def _get_rand_node():
@@ -76,11 +87,7 @@ if __name__ == '__main__':
             len(node.get_related('failure_nodes').results)
 
     def _rand_payload():
-        if random.randint(0, 1):
-            jt = passing_jt
-        else:
-            jt = failing_jt
-        return dict(unified_job_template=jt)
+        return dict(unified_job_template=passing_jt_id if random.randint(0, 1) else failing_jt_id)
 
     def add_leaf_node():
         log.info("Add leaf node")
@@ -113,7 +120,6 @@ if __name__ == '__main__':
 
     # Build workflow
     log.info("Add root node")
-    wfjt = v1.workflow_job_templates.create()
     nodes = [wfjt.related.workflow_nodes.post(_rand_payload())]
     for i in range(int(opts.num_nodes) - 1):
         if random.random() < 1.0 / nodes_in_full_binary_tree:
