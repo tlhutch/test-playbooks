@@ -118,6 +118,7 @@ log = logging.getLogger(__name__)
 
 REBRANDING_FLAGS = ["CUSTOM_LOGIN_INFO", "CUSTOM_LOGO"]
 ACTIVITY_STREAM_FLAGS = ["ACTIVITY_STREAM_ENABLED", "ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC"]
+ENTERPRISE_AUTH_ENDPOINTS = ["/api/v1/settings/ldap/", "/api/v1/settings/radius/", "/api/v1/settings/saml/"]
 
 
 @pytest.fixture(scope='class')
@@ -630,19 +631,16 @@ class Test_Legacy_License(Base_Api_Test):
         assert(towerkit.api.resources.v1_settings_ldap in settings_urls), \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/5148")
-    def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
+    def test_nested_enterprise_auth_endpoints(self, v1):
         """Verify that legacy license users have access to LDAP only from our
         enterprise authentication settings pages.
         """
-        requests = ["get", "put", "patch", "delete"]
-        for endpoint in enterprise_auth_settings_pgs:
-            for request in requests:
-                if endpoint.base_url == '/api/v1/settings/ldap/':
-                    getattr(endpoint, request)()
-                else:
-                    with pytest.raises(towerkit.exceptions.NotFound):
-                        getattr(endpoint, request)()
+        for endpoint in ENTERPRISE_AUTH_ENDPOINTS:
+            if endpoint == '/api/v1/settings/ldap/':
+                v1.walk(endpoint)
+            else:
+                with pytest.raises(towerkit.exceptions.NotFound):
+                    v1.walk(endpoint)
 
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
         """Verify that a legacy license can get upgraded to an enterprise license."""
@@ -1134,16 +1132,13 @@ class Test_Basic_License(Base_Api_Test):
         assert(towerkit.api.resources.v1_settings_ldap not in settings_urls), \
             "Expected not to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/5148")
-    def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
+    def test_nested_enterprise_auth_endpoints(self, v1):
         """Verify that basic license users do not have access to any of our enterprise
         authentication settings pages.
         """
-        requests = ["get", "put", "patch", "delete"]
-        for endpoint in enterprise_auth_settings_pgs:
-            for request in requests:
-                with pytest.raises(towerkit.exceptions.NotFound):
-                    getattr(endpoint, request)()
+        for endpoint in ENTERPRISE_AUTH_ENDPOINTS:
+            with pytest.raises(towerkit.exceptions.NotFound):
+                v1.walk(endpoint)
 
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
         """Verify that a basic license can get upgraded to an enterprise license."""
@@ -1364,14 +1359,15 @@ class Test_Enterprise_License(Base_Api_Test):
         assert(towerkit.api.resources.v1_settings_ldap in settings_urls), \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
-    def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
+    def test_nested_enterprise_auth_endpoints(self, v1):
         """Verify that enterprise license users have access to our enterprise
         authentication settings pages.
         """
         requests = ["get", "put", "patch", "delete"]
-        for endpoint in enterprise_auth_settings_pgs:
+        for endpoint in ENTERPRISE_AUTH_ENDPOINTS:
+            setting_pg = v1.walk(endpoint)
             for request in requests:
-                getattr(endpoint, request)()
+                getattr(setting_pg, request)()
 
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg):
         """Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg."""
