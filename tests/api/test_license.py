@@ -1,4 +1,5 @@
-"""# Test No License
+"""
+# Test No License
 [X] Test that config.license_info is empty before license is added
 [X] Test that you cannot add hosts without a license
 [X] Test can launch project updates
@@ -14,13 +15,20 @@
 [X] Verify that hosts can be added to license maximum
 [X] Verify that license_key is visible to admin user
 [X] Verify that license_key is not visible to non-admin users
+[X] Test can launch job
+[X] Test can post multiple organizations
+[X] Test can create surveys
+[X] Test can get activity stream
+[] Test can promote secondary
 [X] Test cannot create scan job templates
 [] Test cannot run scan jobs
 [X] Test cannot run cleanup_facts
 [X] Test cannot GET fact_versions endpoints
+[X] Test cannot see activity stream flags under /api/v1/settings/system/
 [X] Test cannot see custom rebranding flags under /api/v1/settings/ui/
 [X] Test enterprise auth items under /api/v1/settings/ filtered by license
 [X] Test access to enterprise auth nested settings endpoints
+[X] Test upgrade to enterprise
 [X] Test can delete license
 
 # Test Legacy License Warning
@@ -57,11 +65,11 @@
 [X] Test cannot create surveys
 [X] Test cannot get activity streams
 [] Test cannot promote secondary
-[] Test that LDAP is disabled
 [X] Test cannot create scan JT
 [] Test cannot run scan jobs
 [X] Test cannot launch cleanup_facts
 [X] Test cannot GET fact_versions endpoints
+[X] Test can see activity stream flags under /api/v1/settings/system/
 [X] Test cannot see custom rebranding flags under /api/v1/settings/ui/
 [X] Test enterprise auth items under /api/v1/settings/ filtered by license
 [X] Test access to enterprise auth nested settings endpoints
@@ -78,11 +86,11 @@
 [X] Test can create surveys
 [X] Test can get activity streams
 [] Test can promote secondary
-[] Test that LDAP is enabled
 [X] Test can create scan JT
 [X] Test can launch scan jobs
 [X] Test can launch cleanup_facts
 [X] Test can GET fact_versions endpoints
+[X] Test can see activity stream flags under /api/v1/settings/system/
 [X] Test cannot see custom rebranding flags under /api/v1/settings/ui/
 [X] Test enterprise auth items under /api/v1/settings/ filtered by license
 [X] Test access to enterprise auth nested settings endpoints
@@ -502,6 +510,46 @@ class Test_Legacy_License(Base_Api_Test):
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
+    def test_job_launch(self, api_config_pg, job_template):
+        """Verify that job_templates can be launched while there are remaining free_instances"""
+        conf = api_config_pg.get()
+        if conf.license_info.free_instances < 0:
+            pytest.skip("Unable to test because there are no free_instances remaining")
+        else:
+            job_template.launch_job().wait_until_completed()
+
+    def test_post_multiple_organizations(self, api_organizations_pg):
+        """Verify that multiple organizations may exist with a legacy license."""
+        # create second organization
+        payload = dict(name="org-%s" % fauxfactory.gen_utf8(),
+                       description="Random organization - %s" % fauxfactory.gen_utf8())
+        api_organizations_pg.post(payload)
+
+        # assert multiple organizations exist
+        organizations_pg = api_organizations_pg.get()
+        assert organizations_pg.count > 1, "Multiple organizations are supposed" \
+            "to exist, but do not. Instead, only %s exist." % api_organizations_pg.count
+
+    def test_create_survey(self, api_config_pg, job_template_ping, required_survey_spec):
+        """Verify that surveys may be created with a legacy license."""
+        conf = api_config_pg.get()
+        if conf.license_info.free_instances < 0:
+            pytest.skip("Unable to test because there are no free_instances remaining")
+
+        job_template_ping.patch(survey_enabled=True)
+
+        # post survey
+        survey_spec = job_template_ping.get_related('survey_spec')
+        survey_spec.post(required_survey_spec)
+
+        # assert survey created
+        survey_spec.get()
+        assert survey_spec.name == required_survey_spec['name']
+
+    def test_activity_stream(self, v1):
+        """Verify that GET requests to /api/v1/activity_stream/ are allowed with a legacy license."""
+        v1.activity_stream.get()
+
     def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, job_template):
         """Verify that scan job templates may not be created with a legacy license."""
         conf = api_config_pg.get()
@@ -555,9 +603,9 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected API response upon attempting to navigate to fact_versions with a legacy license - %s." % json.dumps(result)
 
-    def test_activity_stream_settings(self, api_settings_system_pg):
+    def test_activity_stream_settings(self, v1):
         """Verify that activity stream flags are visible with a legacy license."""
-        settings_pg = api_settings_system_pg.get()
+        settings_pg = v1.settings.get().get_endpoint('system')
         assert all(flag in settings_pg.json for flag in ACTIVITY_STREAM_FLAGS), \
             "Activity stream flags not visible under /api/v1/settings/system/ with a legacy license."
 
@@ -595,6 +643,26 @@ class Test_Legacy_License(Base_Api_Test):
                 else:
                     with pytest.raises(towerkit.exceptions.NotFound):
                         getattr(endpoint, request)()
+
+    def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
+        """Verify that a legacy license can get upgraded to an enterprise license."""
+        # Update the license
+        api_config_pg.post(enterprise_license_json)
+
+        # Record license_key
+        conf = api_config_pg.get()
+        after_license_key = conf.license_info.license_key
+
+        # Assert license_key is correct
+        expected_license_key = enterprise_license_json['license_key']
+        assert after_license_key == expected_license_key, \
+            "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
+
+        # Confirm enterprise license present
+        conf = api_config_pg.get()
+        assert conf.license_info['license_type'] == 'enterprise', \
+            "Incorrect license_type returned. Expected 'enterprise,' " \
+            "returned %s." % conf.license_info['license_type']
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg):
@@ -979,9 +1047,9 @@ class Test_Basic_License(Base_Api_Test):
             "Unexpected API response when attempting to create a survey with a " \
             "basic license - %s." % json.dumps(result)
 
-    def test_unable_to_access_activity_stream(self, api_activity_stream_pg):
+    def test_unable_to_access_activity_stream(self, v1):
         """Verify that GET requests to api/v1/activity_streams raise 402s."""
-        exc_info = pytest.raises(towerkit.exceptions.PaymentRequired, api_activity_stream_pg.get)
+        exc_info = pytest.raises(towerkit.exceptions.PaymentRequired, v1.activity_stream.get)
         result = exc_info.value[1]
 
         result == {u'detail': u'Your license does not allow use of the activity stream.'}, \
@@ -1040,9 +1108,9 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected JSON response upon attempting to navigate to fact_versions with a basic license - %s." % json.dumps(result)
 
-    def test_activity_stream_settings(self, api_settings_system_pg):
+    def test_activity_stream_settings(self, v1):
         """Verify that activity stream flags are not visible with a basic license."""
-        settings_pg = api_settings_system_pg.get()
+        settings_pg = v1.settings.get().get_endpoint('system')
         assert not any(flag in settings_pg.json for flag in ACTIVITY_STREAM_FLAGS), \
             "Activity stream flags not visible under /api/v1/settings/system/ with a basic license."
 
@@ -1204,9 +1272,9 @@ class Test_Enterprise_License(Base_Api_Test):
         survey_spec.get()
         assert survey_spec.name == required_survey_spec['name']
 
-    def test_activity_streams_get(self, api_activity_stream_pg):
+    def test_activity_stream_get(self, v1):
         """Verify that GET requests to /api/v1/activity_stream/ are allowed with an enterprise license."""
-        api_activity_stream_pg
+        v1.activity_stream.get()
 
     def test_post_scan_job_template(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
         """Verifies that scan job templates may be created with an enterprise license."""
@@ -1276,9 +1344,9 @@ class Test_Enterprise_License(Base_Api_Test):
         assert all(flag in settings_pg.json for flag in ACTIVITY_STREAM_FLAGS), \
             "Activity stream flags not visible under /api/v1/settings/system/ with an enterprise license."
 
-    def test_custom_rebranding_settings(self, api_settings_ui_pg):
+    def test_custom_rebranding_settings(self, v1):
         """Verify that custom rebranding flags are visible with an enterprise license."""
-        settings_pg = api_settings_ui_pg.get()
+        settings_pg = v1.settings.get().get_endpoint('ui')
         for flag in REBRANDING_FLAGS:
             assert flag in settings_pg.json, \
                 "Flag '{0}' not displayed under /api/v1/settings/ui/ with an enterprise license.".format(flag)
