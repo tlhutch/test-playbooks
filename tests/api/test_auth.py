@@ -57,7 +57,7 @@ class Test_Auth(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_default(self, v1):
+    def test_default_entries(self, v1):
         """By default /api/v1/auth/ should not contain any entries."""
         auth = v1.walk('/api/v1/auth/')
         assert auth.json == {}, \
@@ -81,3 +81,9 @@ class Test_Auth(Base_Api_Test):
                 "Unexpected value for login_url."
             callback_setting = find_settings(endpoint, ['CALLBACK']).pop()
             assert auth.json[endpoint_name]["complete_url"] == endpoint.json[callback_setting]
+
+    def test_reset_entries(self, v1):
+        """Our /api/v1/auth/ endpoint should not contain any entries after settings reset."""
+        auth = v1.walk('/api/v1/auth/')
+        assert auth.json == {}, \
+            "Unexpected value for /api/v1/auth/."
