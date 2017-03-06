@@ -42,7 +42,7 @@ def assess_created_elements(elements, criteria, expected_count):
 
 
 @pytest.fixture
-def modify_settings(update_setting_pg):
+def modify_settings(api_settings_all_pg, update_setting_pg):
     """Helper fixture used for changing Tower settings."""
     def func():
         """Change one setting under each nested /api/v1/settings/ endpoint. The setting selected
@@ -65,13 +65,13 @@ def modify_settings(update_setting_pg):
                        SOCIAL_AUTH_SAML_SP_ENTITY_ID="test",  # /api/v1/settings/saml/
                        TOWER_ADMIN_ALERTS=False,  # /api/v1/settings/system/
                        CUSTOM_LOGIN_INFO="test")  # /api/v1/settings/ui/
-        update_setting_pg("api_settings_all_pg", payload)
+        update_setting_pg(api_settings_all_pg, payload)
         return payload
     return func
 
 
 @pytest.fixture
-def modify_obfuscated_settings(update_setting_pg, unencrypted_rsa_ssh_key_data):
+def modify_obfuscated_settings(api_settings_all_pg, update_setting_pg, unencrypted_rsa_ssh_key_data):
     """Helper fixture used for changing Tower settings."""
     def func():
         """Change all settings that need to get obfuscated by the API. The setting selected
@@ -90,7 +90,7 @@ def modify_obfuscated_settings(update_setting_pg, unencrypted_rsa_ssh_key_data):
                        LOG_AGGREGATOR_PASSWORD="test",  # /api/v1/settings/logging/
                        RADIUS_SECRET="test",  # /api/v1/settings/radius/
                        SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=unencrypted_rsa_ssh_key_data)  # /api/v1/settings/saml/
-        update_setting_pg("api_settings_all_pg", payload)
+        update_setting_pg(api_settings_all_pg, payload)
         return payload
     return func
 
@@ -102,11 +102,12 @@ class Test_Setting(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_included_modules(self, host, ssh_credential, api_ad_hoc_commands_pg, ad_hoc_module_name_choices, update_setting_pg):
+    def test_included_modules(self, host, ssh_credential, api_ad_hoc_commands_pg, ad_hoc_module_name_choices,
+                              api_settings_jobs_pg, update_setting_pg):
         """Verifies that adding additional modules to AD_HOC_COMMANDS unlocks additional modules."""
         # update allowed commands
         payload = dict(AD_HOC_COMMANDS=['shell'])
-        update_setting_pg('api_settings_jobs_pg', payload)
+        update_setting_pg(api_settings_jobs_pg, payload)
 
         # assess options choices
         assert ad_hoc_module_name_choices() == [[u'shell', u'shell']], \
@@ -127,11 +128,12 @@ class Test_Setting(Base_Api_Test):
         # check that correct module run
         assert command_pg.module_name == "shell", "Incorrect module run. Expected 'shell' but got %s." % command_pg.module_name
 
-    def test_excluded_modules(self, inventory, ssh_credential, api_ad_hoc_commands_pg, ad_hoc_module_name_choices, update_setting_pg):
+    def test_excluded_modules(self, inventory, ssh_credential, api_ad_hoc_commands_pg, ad_hoc_module_name_choices,
+                              api_settings_jobs_pg, update_setting_pg):
         """Verifies that removed modules from AD_HOC_COMMANDS are no longer callable."""
         # update allowed commands
         payload = dict(AD_HOC_COMMANDS=[])
-        update_setting_pg('api_settings_jobs_pg', payload)
+        update_setting_pg(api_settings_jobs_pg, payload)
 
         # assess options choices
         assert ad_hoc_module_name_choices() == [], \
@@ -159,11 +161,11 @@ class Test_Setting(Base_Api_Test):
                 "Unexpected response upon launching ad hoc command %s not included in AD_HOC_COMMANDS: %s." \
                 % (module_name, json.dumps(result))
 
-    def test_relaunch_with_excluded_module(self, ad_hoc_with_status_completed, update_setting_pg):
+    def test_relaunch_with_excluded_module(self, ad_hoc_with_status_completed, api_settings_jobs_pg, update_setting_pg):
         """Verifies that you cannot relaunch a command which has been removed from AD_HOC_COMMANDS."""
         # update allowed commands
         payload = dict(AD_HOC_COMMANDS=[])
-        update_setting_pg('api_settings_jobs_pg', payload)
+        update_setting_pg(api_settings_jobs_pg, payload)
 
         relaunch_pg = ad_hoc_with_status_completed.get_related('relaunch')
 
@@ -176,7 +178,7 @@ class Test_Setting(Base_Api_Test):
             "Unexpected response when relaunching ad hoc command whose module " \
             "has been removed from AD_HOC_COMMANDS: %s." % json.dumps(result)
 
-    def test_stdout_max_bytes_display(self, unified_job_with_stdout, update_setting_pg):
+    def test_stdout_max_bytes_display(self, unified_job_with_stdout, api_settings_jobs_pg, update_setting_pg):
         """Assert that all of our unified jobs include stdout by default. Then assert that
         stdout gets truncated once 'STDOUT_MAX_BYTES_DISPLAY' gets set to zero. We check
         both uj.result_stdout and uj.related.stdout here.
@@ -192,7 +194,7 @@ class Test_Setting(Base_Api_Test):
 
         # update stdout max bytes flag
         payload = dict(STDOUT_MAX_BYTES_DISPLAY=0)
-        update_setting_pg('api_settings_jobs_pg', payload)
+        update_setting_pg(api_settings_jobs_pg, payload)
 
         # assert new job stdout truncated
         assert re.search('^Standard Output too large to display \(\d+ bytes\), only download supported for sizes over 0 bytes$',
@@ -203,7 +205,7 @@ class Test_Setting(Base_Api_Test):
                 "UJ related stdout censorship notice not displayed."
 
     @pytest.mark.skip(reason="Test flakiness detailed here: https://github.com/ansible/tower-qa/issues/882")
-    def test_schedule_max_jobs(self, factories, update_setting_pg):
+    def test_schedule_max_jobs(self, factories, api_settings_jobs_pg, update_setting_pg):
         """Verifies that number of spawned schedule jobs is capped by SCHEDULE_MAX_JOBS.
 
         Note: SCHEDULE_MAX_JOBS caps the number of waiting scheduled jobs spawned by
@@ -215,7 +217,7 @@ class Test_Setting(Base_Api_Test):
 
         # update max schedules flag
         payload = dict(SCHEDULE_MAX_JOBS=1)
-        update_setting_pg('api_settings_jobs_pg', payload)
+        update_setting_pg(api_settings_jobs_pg, payload)
 
         # create three schedules
         schedules = []
@@ -244,7 +246,8 @@ class Test_Setting(Base_Api_Test):
     ], ids=['without JT timeout - with global timeout',
             'with JT timeout - with global timeout',
             'with negative JT timeout - with global timeout'])
-    def test_default_job_timeout(self, job_template, update_setting_pg, timeout, default_job_timeout, status, job_explanation):
+    def test_default_job_timeout(self, job_template, api_settings_jobs_pg, update_setting_pg, timeout, default_job_timeout,
+                                 status, job_explanation):
         """Tests DEFAULT_JOB_TIMEOUT. JT timeout value should override DEFAULT_JOB_TIMEOUT
         in instances where both timeout values are supplied.
         """
@@ -252,7 +255,7 @@ class Test_Setting(Base_Api_Test):
 
         # update job timeout flag
         payload = dict(DEFAULT_JOB_TIMEOUT=default_job_timeout)
-        update_setting_pg('api_settings_jobs_pg', payload)
+        update_setting_pg(api_settings_jobs_pg, payload)
 
         # launch JT and assess spawned job
         job_pg = job_template.launch().wait_until_completed()
@@ -271,7 +274,7 @@ class Test_Setting(Base_Api_Test):
     ], ids=['without inv_source timeout - with global timeout',
             'with inv_source timeout - with global timeout',
             'with negative inv_source timeout - with global timeout'])
-    def test_default_inventory_update_timeout(self, custom_inventory_source, update_setting_pg, timeout, default_update_timeout,
+    def test_default_inventory_update_timeout(self, custom_inventory_source, api_settings_jobs_pg, update_setting_pg, timeout, default_update_timeout,
                                               status, job_explanation):
         """Tests DEFAULT_INVENTORY_UPDATE_TIMEOUT. Inventory source timeout value should override
         DEFAULT_INVENTORY_SOURCE_TIMEOUT in instances where both timeout values are supplied.
@@ -280,7 +283,7 @@ class Test_Setting(Base_Api_Test):
 
         # update job timeout flag
         payload = dict(DEFAULT_INVENTORY_UPDATE_TIMEOUT=default_update_timeout)
-        update_setting_pg('api_settings_jobs_pg', payload)
+        update_setting_pg(api_settings_jobs_pg, payload)
 
         # launch inventory update and assess spawned update
         update_pg = custom_inventory_source.update().wait_until_completed()
@@ -298,8 +301,8 @@ class Test_Setting(Base_Api_Test):
     ], ids=['without project timeout - with global timeout',
             'with project timeout - with global timeout',
             'with negative project timeout - with global timeout'])
-    def test_default_project_update_with_timeout(self, project, update_setting_pg, timeout, default_update_timeout, status,
-                                                 job_explanation):
+    def test_default_project_update_with_timeout(self, project, api_settings_jobs_pg, update_setting_pg, timeout, default_update_timeout,
+                                                 status, job_explanation):
         """Tests DEFAULT_PROJECT_UPDATE_TIMEOUT. Project timeout value should override
         DEFAULT_PROJECT_UPDATE_TIMEOUT in instances where both timeout values are supplied.
         """
@@ -307,7 +310,7 @@ class Test_Setting(Base_Api_Test):
 
         # update job timeout flag
         payload = dict(DEFAULT_PROJECT_UPDATE_TIMEOUT=default_update_timeout)
-        update_setting_pg('api_settings_jobs_pg', payload)
+        update_setting_pg(api_settings_jobs_pg, payload)
 
         # launch project update and assess spawned update
         update_pg = project.update().wait_until_completed()
@@ -318,14 +321,14 @@ class Test_Setting(Base_Api_Test):
         assert update_pg.timeout == project.timeout, \
             "Update_pg has a different timeout value ({0}) than its project ({1}).".format(update_pg.timeout, project.timeout)
 
-    def test_activity_stream_enabled(self, factories, api_activity_stream_pg, update_setting_pg):
+    def test_activity_stream_enabled(self, factories, api_activity_stream_pg, api_settings_system_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED is enabled that Tower activity gets logged."""
         # find number of current activity stream elements
         old_activity_stream_count = api_activity_stream_pg.get().count
 
         # enable activity stream
         payload = dict(ACTIVITY_STREAM_ENABLED=True)
-        update_setting_pg('api_settings_system_pg', payload)
+        update_setting_pg(api_settings_system_pg, payload)
 
         # create test organization
         factories.organization()
@@ -342,14 +345,14 @@ class Test_Setting(Base_Api_Test):
         criteria = dict(operation="create", object1="setting", object2="")
         assess_created_elements(generated_elements, criteria, 1)
 
-    def test_activity_stream_disabled(self, factories, api_activity_stream_pg, update_setting_pg):
+    def test_activity_stream_disabled(self, factories, api_activity_stream_pg, api_settings_system_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED is disabled that future activity is no longer logged."""
         # find number of current activity stream elements
         old_activity_stream_count = api_activity_stream_pg.get().count
 
         # disable activity stream
         payload = dict(ACTIVITY_STREAM_ENABLED=False)
-        update_setting_pg('api_settings_system_pg', payload)
+        update_setting_pg(api_settings_system_pg, payload)
 
         # create test organization
         factories.organization()
@@ -359,8 +362,8 @@ class Test_Setting(Base_Api_Test):
         assert old_activity_stream_count == new_activity_stream_count, \
             "New activity stream entry[ies] found after creating test organization with ACTIVITY_STREAM_ENABLED disabled."
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
-    def test_activity_stream_enabled_for_inventory_sync(self, factories, custom_inventory_source, api_activity_stream_pg, update_setting_pg):
+    def test_activity_stream_enabled_for_inventory_sync(self, factories, custom_inventory_source, api_activity_stream_pg,
+                                                        api_settings_system_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC is enabled that:
         * inventory update group/host creation gets logged
         * group/host role association gets logged
@@ -371,7 +374,7 @@ class Test_Setting(Base_Api_Test):
 
         # enable activity stream for inventory updates
         payload = dict(ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC=True)
-        update_setting_pg('api_settings_system_pg', payload)
+        update_setting_pg(api_settings_system_pg, payload)
 
         # create test organization
         factories.organization()
@@ -400,7 +403,8 @@ class Test_Setting(Base_Api_Test):
         criteria = dict(operation="associate", object1="group", object2="group")
         assess_created_elements(generated_elements, criteria, 1)
 
-    def test_activity_stream_disabled_for_inventory_sync(self, factories, custom_inventory_source, api_activity_stream_pg, update_setting_pg):
+    def test_activity_stream_disabled_for_inventory_sync(self, factories, custom_inventory_source, api_activity_stream_pg,
+                                                         api_settings_system_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC is disabled that:
         * inventory update group/host creation does not get logged
         * group/host role association does not get logged
@@ -411,7 +415,7 @@ class Test_Setting(Base_Api_Test):
 
         # disable activity stream for inventory updates
         payload = dict(ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC=False)
-        update_setting_pg('api_settings_system_pg', payload)
+        update_setting_pg(api_settings_system_pg, payload)
 
         # create test organization
         factories.organization()
@@ -431,11 +435,12 @@ class Test_Setting(Base_Api_Test):
         criteria = dict(operation="create", object1="setting", object2="")
         assess_created_elements(generated_elements, criteria, 1)
 
-    def test_org_admins_can_see_all_users(self, org_users, non_org_users, org_admin, api_users_pg, user_password, update_setting_pg):
+    def test_org_admins_can_see_all_users(self, org_users, non_org_users, org_admin, api_users_pg, user_password,
+                                          api_settings_system_pg, update_setting_pg):
         """Tests that when ORG_ADMINS_CAN_SEE_ALL_USERS is enabled that org_admins can see all users systemwide."""
         # enable org_admins from seeing all users
         payload = dict(ORG_ADMINS_CAN_SEE_ALL_USERS=True)
-        update_setting_pg('api_settings_system_pg', payload)
+        update_setting_pg(api_settings_system_pg, payload)
 
         with self.current_user(username=org_admin.username, password=user_password):
             # find users within current organization
@@ -453,13 +458,14 @@ class Test_Setting(Base_Api_Test):
                 "An Org Admin is unable to see users (%s) outside the organization, despite the default setting " \
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:True" % matching_non_org_users.count
 
-    def test_org_admins_cannot_see_all_users(self, org_users, non_org_users, org_admin, api_users_pg, user_password, update_setting_pg):
+    def test_org_admins_cannot_see_all_users(self, org_users, non_org_users, org_admin, api_users_pg, user_password,
+                                             api_settings_system_pg, update_setting_pg):
         """Tests that when ORG_ADMINS_CAN_SEE_ALL_USERS is disabled that org_admins can only see users within
         their own organization.
         """
         # disable org_admins from seeing all users
         payload = dict(ORG_ADMINS_CAN_SEE_ALL_USERS=False)
-        update_setting_pg('api_settings_system_pg', payload)
+        update_setting_pg(api_settings_system_pg, payload)
 
         with self.current_user(username=org_admin.username, password=user_password):
             # find users within current organization
@@ -477,7 +483,7 @@ class Test_Setting(Base_Api_Test):
                 "An org_admin is able to see users (%s) outside the organization, despite the setting " \
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:False" % matching_non_org_users.count
 
-    def test_system_license(self, api_config_pg, api_settings_system_pg, update_setting_pg):
+    def test_system_license(self, api_config_pg, api_settings_system_pg):
         """Verifies that our exact license contents gets displayed under /api/v1/settings/system/.
 
         Note: the towerkit license generator auto-appends a 'eula_accepted' field which is not
