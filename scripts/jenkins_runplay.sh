@@ -21,7 +21,7 @@ gen_passwd() {
 # Convenience function to load images from playbooks/group_vars/all
 #
 filter_images() {
-    python scripts/image_deploy_vars.py --cloud_provider ${1} --platform ${2} --ansible_version ${3}
+    python scripts/image_deploy_vars.py --cloud_provider ${1} --platform ${2} --ansible_version ${3} ${4}
 }
 
 # Determine which playbook was requested
@@ -68,6 +68,9 @@ for LINE in $(env) ; do
             ;;
     esac
 done
+# Without unsetting field separators, expected future variable functionality is in jeopardy
+unset IFS
+unset OFS
 
 # # Establish the aw_repo_url.  This is the baseurl used by the install playbook.
 # # If OFFICIAL=yes, use the public repository. Otherwise, use the nightly
@@ -97,7 +100,7 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
         GCE_IMAGES="[]"
         AZURE_IMAGES="[]"
         # use desired ec2 distro
-        EC2_IMAGES=$(filter_images ec2 ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} )
+        EC2_IMAGES=$(filter_images ec2 ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
         ;;
     # All rax distros
     rax-all)
@@ -111,7 +114,7 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
         GCE_IMAGES="[]"
         AZURE_IMAGES="[]"
         # use desired rax distro
-        RAX_IMAGES=$(filter_images rax ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} )
+        RAX_IMAGES=$(filter_images rax ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
         ;;
     # All gce distros
     gce-all)
@@ -125,7 +128,7 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
         RAX_IMAGES="[]"
         AZURE_IMAGES="[]"
         # use desired rax distro
-        GCE_IMAGES=$(filter_images gce ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} )
+        GCE_IMAGES=$(filter_images gce ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
         ;;
     # All azure distros
     azure-all)
@@ -139,16 +142,16 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
         RAX_IMAGES="[]"
         GCE_IMAGES="[]"
         # use desired rax distro
-        AZURE_IMAGES=$(filter_images azure ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH})
+        AZURE_IMAGES=$(filter_images azure ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
         ;;
     all-all)
         # the default is all clouds, all distros ... no action required
         ;;
     all-*)
-        EC2_IMAGES=$(filter_images ec2 ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} )
-        RAX_IMAGES=$(filter_images rax ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} )
-        GCE_IMAGES=$(filter_images gce ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} )
-        AZURE_IMAGES=$(filter_images azure ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} )
+        EC2_IMAGES=$(filter_images ec2 ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
+        RAX_IMAGES=$(filter_images rax ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
+        GCE_IMAGES=$(filter_images gce ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
+        AZURE_IMAGES=$(filter_images azure ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
         ;;
     *)
         # the default is all clouds, all distros ... no action required
