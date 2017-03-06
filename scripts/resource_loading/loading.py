@@ -49,6 +49,13 @@ inventory_manager = Inventory(loader=DataLoader(), variable_manager=VariableMana
 resources = utils.PseudoNamespace(yaml_file.load_file(args.resources))
 
 config.validate_schema = args.validate
-config.base_url = "https://{0}".format(inventory_manager.groups['tower'].hosts[0].address)
+
+try:
+    group = filter(lambda potential: potential in inventory_manager.groups, ('tower', 'primary'))[0]
+except IndexError:
+    raise(Exception('{0.inventory} is without either desired "tower" or "primary" group.'.format(args)))
+
+config.base_url = "https://{0}".format(inventory_manager.groups[group].hosts[0].address)
+
 if utils.to_bool(args.credentials):
     config.credentials = utils.load_credentials(args.credentials)
