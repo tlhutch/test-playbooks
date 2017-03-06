@@ -41,6 +41,7 @@ def configure_oauth(update_setting_pg):
 
 @pytest.fixture
 def find_configured_settings(oauth_settings_pgs):
+    """Returns the number of configured oauth settings pages."""
     def func():
         changed = 0
         for setting_pg in oauth_settings_pgs:
@@ -69,8 +70,9 @@ class Test_Auth(Base_Api_Test):
             configure_oauth(setting_pg)
             auth = v1.walk('/api/v1/auth/')
             # assert that we have the right number of entries returned
-            assert len(auth.json) == find_configured_settings(), \
-                "Expected to have {0} result[s] under /api/v1/auth/.".format(find_configured_settings())
+            configured_pgs = find_configured_settings()
+            assert len(auth.json) == configured_pgs, \
+                "Expected to have {0} result[s] under /api/v1/auth/.".format(configured_pgs)
             # assert expected entry found
             endpoint_name = setting_pg.base_url.replace('/api/v1/settings/', '').strip('/')
             assert endpoint_name in auth.json, \
