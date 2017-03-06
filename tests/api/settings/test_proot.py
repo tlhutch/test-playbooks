@@ -47,7 +47,7 @@ class Test_Proot(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_job_isolation(self, job_template_proot_1, job_template_proot_2, v1, update_setting_pg):
+    def test_job_isolation(self, job_template_proot_1, job_template_proot_2, api_settings_jobs_pg, update_setting_pg):
         """Launch 2 jobs and verify that they each:
          - complete successfully
          - ran at the same time
@@ -62,9 +62,8 @@ class Test_Proot(Base_Api_Test):
          - /var/log/supervisor/* - Permission Denied
         """
         # enable proot
-        settings_jobs_pg = v1.settings.get().get_endpoint('jobs')
         payload = dict(AWX_PROOT_ENABLED=True)
-        update_setting_pg(settings_jobs_pg, payload)
+        update_setting_pg(api_settings_jobs_pg, payload)
 
         # launch jobs
         job_proot_1 = job_template_proot_1.launch()
@@ -152,7 +151,7 @@ if errors:
 
 print json.dumps({})
 """)
-    def test_inventory_script_isolation(self, api_unified_jobs_pg, custom_inventory_source, v1, update_setting_pg):
+    def test_inventory_script_isolation(self, api_unified_jobs_pg, custom_inventory_source, api_settings_jobs_pg, update_setting_pg):
         """Launch a custom inventory_script verify it:
          - completes successfully
          - is unable to view the following directories
@@ -167,9 +166,8 @@ print json.dumps({})
          - /var/log/supervisor/* - Permission Denied
         """
         # enable proot
-        settings_jobs_pg = v1.settings.get().get_endpoint('jobs')
         payload = dict(AWX_PROOT_ENABLED=True)
-        update_setting_pg(settings_jobs_pg, payload)
+        update_setting_pg(api_settings_jobs_pg, payload)
 
         # TODO - pass tower directories as environment variables
         payload = dict()
@@ -184,13 +182,12 @@ print json.dumps({})
         # assert successful inventory_update
         assert job_pg.is_successful, "Inventory update unsuccessful - %s" % job_pg
 
-    def test_ssh_connections(self, job_with_ssh_connection, v1, update_setting_pg):
+    def test_ssh_connections(self, job_with_ssh_connection, api_settings_jobs_pg, update_setting_pg):
         """Verify that jobs complete successfully when connecting to inventory
         using the default ansible connection type (e.g. not local).
         """
-        settings_jobs_pg = v1.settings.get().get_endpoint('jobs')
         payload = dict(AWX_PROOT_ENABLED=True)
-        update_setting_pg(settings_jobs_pg, payload)
+        update_setting_pg(api_settings_jobs_pg, payload)
 
         # wait for completion
         job_with_ssh_connection = job_with_ssh_connection.wait_until_completed(timeout=60 * 2)

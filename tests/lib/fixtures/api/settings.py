@@ -9,9 +9,9 @@ def update_setting_pg(request):
         :param payload: a payload used for patching our setting page.
 
         Examples:
-        (Pdb) update_setting_pg('api_settings_ui_pg', {'PENDO_TRACKING_STATE': 'detailed'})
+        (Pdb) update_setting_pg(api_settings_ui_pg, {'PENDO_TRACKING_STATE': 'detailed'})
         {"PENDO_TRACKING_STATE": "detailed"}
-        (Pdb) update_setting_pg('api_settings_ui_pg', {'PENDO_TRACKING_STATE': 'off'})
+        (Pdb) update_setting_pg(api_settings_ui_pg, {'PENDO_TRACKING_STATE': 'off'})
         {"PENDO_TRACKING_STATE": "off"}
         """
         request.addfinalizer(setting_pg.delete)
@@ -20,28 +20,27 @@ def update_setting_pg(request):
 
 
 @pytest.fixture
-def oauth_settings_pgs(v1):
-    """Returns a list of all of our oauth settings_pgs."""
-    endpoints = ['github', 'github-team', 'github-org', 'google-oauth2', 'azuread-oauth2']
-    return [v1.settings.get().get_endpoint(endpoint) for endpoint in endpoints]
+def oauth_settings_pgs(api_settings_github_pg, api_settings_github_org_pg, api_settings_github_team_pg, api_settings_google_pg,
+                       api_settings_azuread_pg):
+    """Returns a list of all of our oauth settings pages. Fixture current with Tower-3.1.1."""
+    return [api_settings_github_pg, api_settings_github_org_pg, api_settings_github_team_pg, api_settings_google_pg,
+            api_settings_azuread_pg]
 
 
 @pytest.fixture
-def enterprise_auth_settings_pgs(v1):
-    """Returns a list of all of our enterprise auth endpoints. Enterprise auth includes: LDAP,
-    SAML, and RADIUS.
+def enterprise_auth_settings_pgs(api_settings_ldap_pg, api_settings_radius_pg, api_settings_saml_pg):
+    """Returns a list of all of our enterprise auth settings pages. As of Tower-3.1.1, enterprise auth includes:
+    LDAP, SAML, and RADIUS.
     """
-    endpoints = ['radius', 'saml', 'ldap']
-    return [v1.settings.get().get_endpoint(endpoint) for endpoint in endpoints]
+    return [api_settings_radius_pg, api_settings_saml_pg, api_settings_ldap_pg]
 
 
-@pytest.fixture(scope="function", params=['all', 'authentication', 'azuread-oauth2', 'changed', 'github-org',
-                                          'github-team', 'google-oauth2', 'jobs', 'ldap', 'logging', 'radius',
-                                          'saml', 'system', 'ui'])
-def setting_pg(request, v1):
-    """Returns each of our nested /api/v1/settings/ endpoints.
+@pytest.fixture(scope="function", params=["all", "auth", "azuread", "changed", "github_org", "github_team", "google", "jobs",
+                                          "ldap", "radius", "saml", "system", "ui"])
+def setting_pg(request):
+    """Returns each of our nested /api/v1/settings/\w+/ endpoints.
 
     FIXME: we do not include "github" here because tests will
     choke on pytest-github.
     """
-    return v1.settings.get().get_endpoint(request.param)
+    return request.getfuncargvalue("api_settings_" + request.param + "_pg")
