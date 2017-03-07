@@ -53,7 +53,6 @@ def test_navigation_dropdown(ui):
     assert activity.navigation_dropdown.value == nondefault
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4185')
 def test_navigation_with_edit_query_params(ui, inventory):
     """Verify expected activity stream functionality with url query parameters
     generated when linking from a crud edit page
@@ -70,8 +69,8 @@ def test_navigation_with_edit_query_params(ui, inventory):
     assert 'target=inventory' in activity_stream.driver.current_url, (
         'Unexpected activity stream url content after page load')
 
-    activity_stream.navigation_dropdown.value = 'Job Templates'
-    assert 'target=job_template' in activity_stream.driver.current_url, (
+    activity_stream.navigation_dropdown.value = 'Templates'
+    assert 'target=template' in activity_stream.driver.current_url, (
         'Unexpected activity stream url query content after nav select')
 
 
