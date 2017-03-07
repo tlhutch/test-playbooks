@@ -25,6 +25,7 @@ def test_navigation_dropdown(ui):
         'Inventories',
         'Inventory Scripts',
         'Jobs',
+        'Notification Templates',
         'Organizations',
         'Projects',
         'Schedules',
