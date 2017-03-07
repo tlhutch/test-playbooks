@@ -333,6 +333,24 @@ def test_role_association_and_disassociation(factories, resource_name, endpoint)
         check_role_disassociation(user, resource, role_name)
 
 
+@pytest.mark.parametrize(
+    'resource_name',
+    ['organization', 'team', 'project', 'inventory', 'inventory_script', 'credential', 'job_template', 'workflow_job_template', 'label']
+)
+def test_role_associate_as_admin(factories, auth_user, resource_name):
+    """Verify that an admin of a resource can grant resource roles to
+    other users.
+    """
+    organization = factories.organization()
+    admin_user = factories.user(organization=organization)
+    unprivileged_user = factories.user(organization=organization)
+    resource = getattr(factories, resource_name)()
+
+    resource.set_object_roles(admin_user, "admin")
+
+    with auth_user(admin_user):
+        resource.set_object_roles(unprivileged_user, "admin")
+
 @pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])
 @pytest.mark.parametrize(
     'resource_name, initial_role, unauthorized_target_role',
