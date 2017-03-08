@@ -381,7 +381,9 @@ def test_role_association_and_disassociation_as_resource_nonadmin(factories, aut
 
     # grant nonadmin_user all resource permissions besides our admin permission
     role_names = get_resource_roles(resource)
-    [resource.set_object_roles(nonadmin_user, role) for role in role_names if role != "admin"]
+    for rn in role_names:
+        if rn != "admin":
+            resource.set_object_roles(nonadmin_user, rn)
 
     # verify that our resource nonadmin may not grant all resource roles
     role_names = get_resource_roles(resource)
@@ -391,7 +393,8 @@ def test_role_association_and_disassociation_as_resource_nonadmin(factories, aut
                 resource.set_object_roles(user, role)
 
     # verify that our resource nonadmin may not revoke all resource roles
-    [resource.set_object_roles(user, role) for role in role_names]
+    for rn in role_names:
+        resource.set_object_roles(user, rn)
     with auth_user(nonadmin_user):
         for role in role_names:
             with pytest.raises(towerkit.exceptions.Forbidden):
