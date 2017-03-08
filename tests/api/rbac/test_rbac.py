@@ -411,7 +411,7 @@ def test_job_template_change_request_without_usage_role_returns_code_403(
 def test_job_template_creators_are_added_to_admin_role(
         factories, auth_user, api_job_templates_pg):
     """Verify that job template creators are added to the admin role of the
-    created job template
+    created job template.
     """
     # make test user
     user = factories.user()
@@ -426,6 +426,19 @@ def test_job_template_creators_are_added_to_admin_role(
         job_template = api_job_templates_pg.post(data)
     # verify succesful job_template admin role association
     check_role_association(user, job_template, 'admin')
+
+
+def test_credential_creators_are_added_to_admin_role(
+        factories, auth_user, api_credentials_pg):
+    """Verify that if a user creates a personal user credential that the
+    user is automatically given the credential admin role.
+    """
+    user = factories.user()
+    # create credential as our test user
+    with auth_user(user):
+        credential = api_credentials_pg.create(user=user)
+    # verify auto-populated credential admin role
+    check_role_association(user, credential, 'admin')
 
 
 def test_job_template_post_request_without_network_credential_access(
