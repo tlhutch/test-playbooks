@@ -360,7 +360,42 @@ def test_role_association_and_disassociation_as_resource_admin(factories, auth_u
     with auth_user(admin_user):
         for role in role_names:
             resource.set_object_roles(user, role)
-            resource.set_object_roles(user, role, dissassociate=True)
+            resource.set_object_roles(user, role, disassociate=True)
+
+
+@pytest.mark.parametrize(
+    'resource_name',
+    ['organization', 'team', 'project', 'inventory', 'inventory_script', 'credential', 'job_template', 'workflow_job_template']
+)
+def test_role_association_and_disassociation_as_resource_nonadmin(factories, auth_user, resource_name):
+    """Verify that an non-admin of a resource can grant/revoke other users resource roles.
+    Here, we give our nonadmin_user all of our resource roles besides the admin role.
+    """
+    organization = factories.organization()
+    nonadmin_user = factories.user(organization=organization)
+    user = factories.user(organization=organization)
+    if resource_name == 'credential':
+        resource = factories.credential(organization=organization)
+    else:
+        resource = getattr(factories, resource_name)()
+
+    # grant nonadmin_user all resource permissions besides our admin permission
+    role_names = get_resource_roles(resource)
+    [resource.set_object_roles(nonadmin_user, role) for role in role_names if role != "admin"]
+
+    # verify that our resource nonadmin may not grant all resource roles
+    role_names = get_resource_roles(resource)
+    with auth_user(nonadmin_user):
+        for role in role_names:
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                resource.set_object_roles(user, role)
+
+    # verify that our resource nonadmin may not revoke all resource roles
+    [resource.set_object_roles(user, role) for role in role_names]
+    with auth_user(nonadmin_user):
+        for role in role_names:
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                resource.set_object_roles(user, role, disassociate=True)
 
 
 @pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])
