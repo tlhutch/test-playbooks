@@ -22,6 +22,8 @@ class TestChannels(Base_Api_Test):
             request.addfinalizer(ws.close)
             ws.pending_ad_hoc_stdout()
             utils.logged_sleep(3)  # give Tower some time to process subscription
+            for m in ws:
+                pass  # empty user indentifier
             ahc = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
             request.addfinalizer(ahc.teardown)
             ahc.wait_until_completed()
@@ -66,6 +68,8 @@ class TestChannels(Base_Api_Test):
             request.addfinalizer(ws.close)
             ws.status_changes()
             utils.logged_sleep(3)  # give Tower some time to process subscription
+            for m in ws:
+                pass  # empty user indentifier
             group = v1.groups.create(source='custom', inventory_script=True)
             request.addfinalizer(group.teardown)
             update_id = group.related.inventory_source.get().update().wait_until_completed().id
@@ -90,6 +94,8 @@ class TestChannels(Base_Api_Test):
             request.addfinalizer(ws.close)
             ws.pending_job_stdout()
             utils.logged_sleep(3)  # give Tower some time to process subscription
+            for m in ws:
+                pass  # empty user indentifier
             job = jt.launch().wait_until_completed()
 
             # keys where ws event doesn't match retrieved event for subtle reasons
@@ -131,6 +137,8 @@ class TestChannels(Base_Api_Test):
             request.addfinalizer(ws.close)
             ws.status_changes()
             utils.logged_sleep(3)  # give Tower some time to process subscription
+            for m in ws:
+                pass  # empty user indentifier
             project = factories.project()
             update_id = project.related.project_updates.get().results.pop().id
             messages = [m for m in ws]
@@ -161,6 +169,8 @@ class TestChannels(Base_Api_Test):
             success = failure.related.failure_nodes.post(dict(unified_job_template=success_jt.id))
             ws.pending_workflow_events()
             utils.logged_sleep(3)  # give Tower some time to process subscription
+            for m in ws:
+                pass  # empty user indentifier
             wfj = wfjt.launch().wait_until_completed()
             mapper = WorkflowTreeMapper(WorkflowTree(wfjt), WorkflowTree(wfj)).map()
 
