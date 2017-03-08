@@ -436,7 +436,7 @@ def test_credential_creators_are_added_to_admin_role(
     user = factories.user()
     # create credential as our test user
     with auth_user(user):
-        credential = api_credentials_pg.create(user=user)
+        credential = factories.credential(user=user, organization=None)
     # verify auto-populated credential admin role
     check_role_association(user, credential, 'admin')
 
