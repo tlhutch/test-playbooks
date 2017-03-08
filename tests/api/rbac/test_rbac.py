@@ -265,6 +265,11 @@ def check_read_access(tower_object, expected_forbidden=[], unprivileged=False):
 # Helper functions
 # -----------------------------------------------------------------------------
 
+def get_resource_roles(resource):
+    """Helper function that returns a list containing a Tower resource's role names."""
+    return [role.replace("_role", "").replace("adhoc", "ad hoc") for role in resource.summary_fields.object_roles.keys()]
+
+
 def get_nt_endpoints(notifiable_resource):
     """Helper function that returns the notification template endpoints of a
     notifiable Tower resource.
@@ -313,7 +318,7 @@ def check_user_capabilities(resource, role):
 @pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])
 @pytest.mark.parametrize(
     'resource_name',
-    ['organization', 'team', 'project', 'inventory', 'inventory_script', 'credential', 'job_template']
+    ['organization', 'team', 'project', 'inventory', 'inventory_script', 'credential', 'job_template', 'workflow_job_template']
 )
 def test_role_association_and_disassociation(factories, resource_name, endpoint):
     """Verify basic role association and disassociation functionality."""
@@ -335,21 +340,28 @@ def test_role_association_and_disassociation(factories, resource_name, endpoint)
 
 @pytest.mark.parametrize(
     'resource_name',
-    ['organization', 'team', 'project', 'inventory', 'inventory_script', 'credential', 'job_template', 'workflow_job_template', 'label']
+    ['organization', 'team', 'project', 'inventory', 'inventory_script', 'credential', 'job_template', 'workflow_job_template']
 )
-def test_role_associate_as_admin(factories, auth_user, resource_name):
-    """Verify that an admin of a resource can grant resource roles to
-    other users.
-    """
+def test_role_association_and_disassociation_as_resource_admin(factories, auth_user, resource_name):
+    """Verify that an admin of a resource can grant/revoke other users resource roles."""
     organization = factories.organization()
     admin_user = factories.user(organization=organization)
-    unprivileged_user = factories.user(organization=organization)
-    resource = getattr(factories, resource_name)()
+    user = factories.user(organization=organization)
+    if resource_name == 'credential':
+        resource = factories.credential(organization=organization)
+    else:
+        resource = getattr(factories, resource_name)()
 
+    # grant admin_user resource-admin privileges
     resource.set_object_roles(admin_user, "admin")
 
+    # verify that our resource admin may grant and revoke all resource roles
+    role_names = get_resource_roles(resource)
     with auth_user(admin_user):
-        resource.set_object_roles(unprivileged_user, "admin")
+        for role in role_names:
+            resource.set_object_roles(user, role)
+            resource.set_object_roles(user, role, dissassociate=True)
+
 
 @pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])
 @pytest.mark.parametrize(
@@ -1104,7 +1116,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         team = factories.team()
 
         agent = request.getfuncargvalue(agent_name)
-        role_names = [role.replace("_role", "") for role in credential.summary_fields.object_roles.keys()]
+        role_names = get_resource_roles(credential)
         with self.current_user(agent.username, agent.password):
             for role_name in role_names:
                 # superusers may assign credential roles to another user
@@ -1133,7 +1145,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         # user from another organization may not be assigned any of our credential roles
         another_organization = factories.organization()
         user = factories.user(organization=another_organization)
-        role_names = [role.replace("_role", "") for role in credential.summary_fields.object_roles.keys()]
+        role_names = get_resource_roles(credential)
         for role_name in role_names:
             with pytest.raises(towerkit.exceptions.BadRequest):
                 set_roles(user, credential, [role_name])
@@ -1152,7 +1164,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         credential = factories.credential(organization=organization)
         # user from another organization may be assigned our credential roles
         user = factories.user(organization=organization)
-        role_names = [role.replace("_role", "") for role in credential.summary_fields.object_roles.keys()]
+        role_names = get_resource_roles(credential)
         for role_name in role_names:
             set_roles(user, credential, [role_name])
         # team from another organization may be assigned our credential roles
