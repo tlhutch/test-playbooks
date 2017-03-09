@@ -38,14 +38,12 @@ desired_job_templates = desired_resources('job_templates')
 
 def find_resources(endpoint, identifier='name'):
     results = {}
-    resources = endpoint
+    resources = endpoint.get(order_by=identifier)
     while True:
-        resources = resources.get()
-        results.update({item.json[identifier]: item for item in resources.results})
+        results.update({item[identifier]: item for item in resources.results})
         if not resources.next:
-            break
-        resources = resources.next
-    return results
+            return results
+        resources = resources.next.get()
 
 
 found_users = find_resources(v1.users, 'username')
@@ -91,13 +89,11 @@ def confirm_related_field(field, found, desired):
 
 
 def resolve_duplicates_by_description(potential_duplicates, desired_object):
-    if 'description' in desired_object:
-        found = filter(lambda x: x.description == desired_object.description,
-                       potential_duplicates.values()).pop()
-    else:
-        # Ones without descriptions are unique
-        found = potential_duplicates.values().pop()
-    return found
+    if len(potential_duplicates) == 1 or 'description' not in desired_object:
+        return potential_duplicates.values().pop()
+
+    return filter(lambda x: x.description == desired_object.description,
+                  potential_duplicates.values()).pop()
 
 
 log.info('Verifying users')
