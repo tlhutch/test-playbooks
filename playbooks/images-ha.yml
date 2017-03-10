@@ -3,16 +3,11 @@ instance_name_prefix: "{{ lookup('env','USER') }}-tower-ha"
 my_inventory_file: '{{inventory_dir}}/inventory.ha'
 ha_install: true
 
-#
-# Images used for HA testing
-#
-
 ec2_images:
-    - {'name': 'haproxy-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'haproxy', 'security_group': 'tower-ha'}
+    #- {'name': 'haproxy-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'haproxy', 'security_group': 'tower-ha'}
     - {'name': 'ha-1-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'ha_installer,tower', 'security_group': 'tower-ha'}
     - {'name': 'ha-2-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'tower-ha'}
     - {'name': 'ha-3-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'tower-ha'}
-    #- {'name': 'ha-4-ubuntu-14.04-x86_64',  'user': 'ubuntu',   'id': 'ami-20d3fc4a', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'tower-ha'}
     - {'name': 'ha-pg-rhel-7.2.-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'database',   'security_group': 'tower-ha'}
 
 ec2_security_groups:
@@ -54,6 +49,10 @@ ec2_security_groups:
         - proto: tcp
           from_port: 8080
           to_port: 8080
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 15672
+          to_port: 15672
           cidr_ip: 0.0.0.0/0
         - proto: tcp
           from_port: 25672
