@@ -176,8 +176,6 @@ class Test_Job_Events(Base_Api_Test):
         assert(len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1)
 
         events = self.get_job_events(job)
-        assert(len(events) == 121)
-
         non_verbose = filter(lambda x: x.event != 'verbose', events)
         assert(not filter(lambda x: not x.uuid, non_verbose))
         assert(not filter(lambda x: x.playbook != 'dynamic_inventory.yml', non_verbose))
@@ -216,9 +214,9 @@ class Test_Job_Events(Base_Api_Test):
                        "Fire and forget a slow reversal": 5}
         self.verify_desired_tasks(job, 'runner_on_ok', task_counts)
 
-        task_counts = {"Examine slow command": 15,
-                       "Examine slow reversal": 10}
-        self.verify_desired_tasks(job, 'runner_retry', task_counts)
+        # asserted retry counts are a major source of flake, so just confirm that retries happened
+        runner_retry_tasks = set(map(lambda x: x.task, self.get_job_events_by_event_type(job, 'runner_retry')))
+        assert(runner_retry_tasks == {"Examine slow command", "Examine slow reversal"})
 
         assert(len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1)
 
@@ -226,8 +224,6 @@ class Test_Job_Events(Base_Api_Test):
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
         events = self.get_job_events(job)
-        assert(len(events) == 80)
-
         non_verbose = filter(lambda x: x.event != 'verbose', events)
         assert(not filter(lambda x: not x.uuid, non_verbose))
         assert(not filter(lambda x: x.playbook != 'async_tasks.yml', non_verbose))
@@ -266,8 +262,6 @@ class Test_Job_Events(Base_Api_Test):
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
         events = self.get_job_events(job)
-        assert(len(events) == 193)
-
         non_verbose = filter(lambda x: x.event != 'verbose', events)
         assert(not filter(lambda x: not x.uuid, non_verbose))
         assert(not filter(lambda x: x.playbook != 'free_waiter.yml', non_verbose))
