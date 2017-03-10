@@ -1,9 +1,11 @@
 import json
 
-from towerkit.utils import SimpleNamespace
-from towerkit.api import pages
 import factory
+import fauxfactory
 import pytest
+
+from towerkit.api import pages
+from towerkit.utils import SimpleNamespace
 
 
 class PageFactoryOptions(factory.base.FactoryOptions):
@@ -122,6 +124,7 @@ class LabelFactory(PageFactory):
         inline_args = ('request',)
         resources = ('organization',)
 
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
 
 
@@ -179,6 +182,7 @@ class HostFactory(PageFactory):
         inline_args = ('request',)
         resources = ('inventory',)
 
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     inventory = factory.SubFactory(InventoryFactory, request=factory.SelfAttribute('..request'))
     variables = json.dumps({'ansible_ssh_host': '127.0.0.1',
                             'ansible_connection': 'local'})
@@ -190,6 +194,7 @@ class GroupFactory(PageFactory):
         inline_args = ('request',)
         resources = ('inventory',)
 
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     inventory = factory.SubFactory(InventoryFactory, request=factory.SelfAttribute('..request'))
 
 
@@ -199,6 +204,7 @@ class InventoryScriptFactory(PageFactory):
         inline_args = ('request',)
         resources = ('organization',)
 
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
     organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
 
 
@@ -208,6 +214,11 @@ class JobTemplateFactory(PageFactory):
         inline_args = ('request',)
         exclude = ('organization',)
         resources = ('project', 'inventory', 'credential', 'organization')
+
+    job_type = 'run'
+    playbook = 'ping.yml'
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
+    description = factory.LazyFunction(fauxfactory.gen_alphanumeric)
 
     organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
     project = factory.SubFactory(ProjectFactory,
