@@ -44,3 +44,11 @@ def setting_pg(request):
     choke on pytest-github.
     """
     return request.getfuncargvalue("api_settings_" + request.param + "_pg")
+
+
+@pytest.fixture
+def install_custom_branding(update_setting_pg, api_settings_ui_pg):
+    """Update our Tower login modal with a custom image and text field."""
+    payload = dict(CUSTOM_LOGIN_INFO="Installed with fixture 'install_custom_branding'",
+                   CUSTOM_LOGO="data:image/gif;base64,R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=")
+    update_setting_pg(api_settings_ui_pg, payload)
