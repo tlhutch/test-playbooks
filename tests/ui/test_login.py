@@ -59,7 +59,7 @@ def test_custom_rebranding(login_page, authtoken, install_enterprise_license, in
     image and notice.
     """
     login_page.driver.refresh()
-    login_page.wait_until_loaded()
+    login_page.wait_until_loaded_with_modal_notice()
     image_src = login_page.modal_image.get_attribute('ng-src')
     assert image_src.startswith('data:image')
     assert login_page.is_modal_notice_displayed(), (
