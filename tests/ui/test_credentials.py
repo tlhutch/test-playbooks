@@ -102,7 +102,7 @@ def test_create_user_credential(v1, ui):
     assert len(results) == 1, 'unable to verify creation of credential'
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4840')
+@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5730')
 def test_create_org_credential(v1, ui, session_org):
     """End-to-end functional test for creating an org credential"""
     add = ui.credential_add.get()
