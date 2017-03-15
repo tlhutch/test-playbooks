@@ -93,9 +93,11 @@ def v1(request, config_credentials, base_url):
 
 
 @pytest.fixture(scope='session')
-def ui_user(v1, default_tower_credentials):
+def ui_user(v1, default_tower_credentials, session_org, get_role):
     pw = default_tower_credentials['password']
     user = v1.users.create(password=pw, is_superuser=True)
+    with pytest.raises(exc.NoContent):
+        get_role(session_org, 'Admin').get_related('users').post({'id': user.id})
     yield user
     user.silent_cleanup()
 
