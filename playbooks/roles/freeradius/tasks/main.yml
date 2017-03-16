@@ -1,0 +1,44 @@
+- name: set radius directory
+  set_fact:
+    radius_dir: "{{'raddb' if ansible_os_family == 'RedHat' else 'freeradius'}}"
+
+- name: Install FreeRADIUS packages (RedHat)
+  yum:
+    name: freeradius
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Install FreeRADIUS packages (Debian)
+  apt:
+    name: freeradius
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Update RADIUS users file
+  lineinfile:
+    dest: /etc/{{radius_dir}}/users
+    insertbefore: BOF
+    line: 'radius_user Cleartext-Password := "{{user_password}}"'
+    state: present
+
+- name: Update RADIUS clients.conf
+  template:
+    src: templates/centos.clients.conf.j2
+    dest: /etc/{{radius_dir}}/clients.conf
+    backup: yes
+
+- name: Restart radius service (RedHat)
+  service:
+    name: radiusd
+    state: restarted
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Restart radius service (Debian)
+  service:
+    name: freeradius
+    state: restarted
+    enabled: yes
+  when: ansible_os_family == "Debian"
