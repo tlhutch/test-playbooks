@@ -1,4 +1,5 @@
-"""# Test No License
+"""
+# Test No License
 [X] Test that config.license_info is empty before license is added
 [X] Test that you cannot add hosts without a license
 [X] Test can launch project updates
@@ -14,13 +15,20 @@
 [X] Verify that hosts can be added to license maximum
 [X] Verify that license_key is visible to admin user
 [X] Verify that license_key is not visible to non-admin users
+[X] Test can launch job
+[X] Test can post multiple organizations
+[X] Test can enable and create surveys
+[X] Test can get activity stream
+[] Test can promote secondary
 [X] Test cannot create scan job templates
 [] Test cannot run scan jobs
 [X] Test cannot run cleanup_facts
 [X] Test cannot GET fact_versions endpoints
+[X] Test cannot see activity stream flags under /api/v1/settings/system/
 [X] Test cannot see custom rebranding flags under /api/v1/settings/ui/
 [X] Test enterprise auth items under /api/v1/settings/ filtered by license
 [X] Test access to enterprise auth nested settings endpoints
+[X] Test upgrade to enterprise
 [X] Test can delete license
 
 # Test Legacy License Warning
@@ -54,14 +62,14 @@
 [X] Test non-admin cannot see license key
 [X] Test can launch jobs
 [X] Test cannot post multiple organizations
-[X] Test cannot create surveys
+[X] Test cannot enable and create surveys
 [X] Test cannot get activity streams
 [] Test cannot promote secondary
-[] Test that LDAP is disabled
 [X] Test cannot create scan JT
 [] Test cannot run scan jobs
 [X] Test cannot launch cleanup_facts
 [X] Test cannot GET fact_versions endpoints
+[X] Test can see activity stream flags under /api/v1/settings/system/
 [X] Test cannot see custom rebranding flags under /api/v1/settings/ui/
 [X] Test enterprise auth items under /api/v1/settings/ filtered by license
 [X] Test access to enterprise auth nested settings endpoints
@@ -75,14 +83,14 @@
 [X] Test non-admins cannot see keys
 [X] Test can launch job
 [X] Test can post multiple organizations
-[X] Test can create surveys
+[X] Test can enable and create surveys
 [X] Test can get activity streams
 [] Test can promote secondary
-[] Test that LDAP is enabled
 [X] Test can create scan JT
 [X] Test can launch scan jobs
 [X] Test can launch cleanup_facts
 [X] Test can GET fact_versions endpoints
+[X] Test can see activity stream flags under /api/v1/settings/system/
 [X] Test cannot see custom rebranding flags under /api/v1/settings/ui/
 [X] Test enterprise auth items under /api/v1/settings/ filtered by license
 [X] Test access to enterprise auth nested settings endpoints
@@ -109,6 +117,8 @@ log = logging.getLogger(__name__)
 
 
 REBRANDING_FLAGS = ["CUSTOM_LOGIN_INFO", "CUSTOM_LOGO"]
+ACTIVITY_STREAM_FLAGS = ["ACTIVITY_STREAM_ENABLED", "ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC"]
+ENTERPRISE_AUTH_SERVICES = ['radius', 'ldap', 'saml']
 
 
 @pytest.fixture(scope='class')
@@ -483,7 +493,6 @@ class Test_Legacy_License(Base_Api_Test):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for legacy license: %s." % conf.license_info
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         """Verify that hosts can be added up to the 'license_instance_count'"""
         if api_config_pg.get().license_info.current_instances > license_instance_count:
@@ -500,6 +509,26 @@ class Test_Legacy_License(Base_Api_Test):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
+
+    def test_job_launch(self, job_template):
+        """Verify that job templates can be launched."""
+        job_template.launch_job().wait_until_completed()
+
+    def test_post_multiple_organizations(self, factories):
+        """Verify that multiple organizations may exist with a legacy license."""
+        for _ in range(2):
+            factories.organization()
+
+    def test_create_survey(self, job_template_ping, required_survey_spec):
+        """Verify that surveys may be enabled and created with a legacy license."""
+        job_template_ping.patch(survey_enabled=True)
+        survey_spec = job_template_ping.related.survey_spec.post(required_survey_spec)
+        assert survey_spec.get().name == required_survey_spec['name'], \
+            "Expected /api/v1/job_templates/N/survey_spec/ to reflect our survey_spec."
+
+    def test_activity_stream_get(self, v1):
+        """Verify that GET requests to /api/v1/activity_stream/ are allowed with a legacy license."""
+        v1.activity_stream.get()
 
     def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, job_template):
         """Verify that scan job templates may not be created with a legacy license."""
@@ -554,10 +583,14 @@ class Test_Legacy_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected API response upon attempting to navigate to fact_versions with a legacy license - %s." % json.dumps(result)
 
-    def test_custom_rebranding(self, api_settings_ui_pg):
+    def test_activity_stream_settings(self, api_settings_system_pg):
+        """Verify that activity stream flags are visible with a legacy license."""
+        assert all(flag in api_settings_system_pg.json for flag in ACTIVITY_STREAM_FLAGS), \
+            "Activity stream flags not visible under /api/v1/settings/system/ with a legacy license."
+
+    def test_custom_rebranding_settings(self, api_settings_ui_pg):
         """Verify that custom rebranding flags are not visible with a legacy license."""
-        settings_pg = api_settings_ui_pg.get()
-        for flag in settings_pg.json.keys():
+        for flag in api_settings_ui_pg.json.keys():
             assert flag not in REBRANDING_FLAGS, \
                 "Flag '{0}' visible under /api/v1/settings/ui/ with a legacy license.".format(flag)
 
@@ -566,30 +599,45 @@ class Test_Legacy_License(Base_Api_Test):
         LDAP among our enterprise auth solutions. Note: LDAP is a special
         case with legacy licenses.
         """
-        settings_pg = api_settings_pg.get()
-        settings_urls = [setting.url for setting in settings_pg.results]
-        assert(towerkit.api.resources.v1_settings_saml not in settings_urls), \
+        endpoints = [setting.base_url for setting in api_settings_pg.results]
+        assert(towerkit.api.resources.v1_settings_saml not in endpoints), \
             "Expected not to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_radius not in settings_urls), \
+        assert(towerkit.api.resources.v1_settings_radius not in endpoints), \
             "Expected not to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_ldap in settings_urls), \
+        assert(towerkit.api.resources.v1_settings_ldap in endpoints), \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/5148")
-    def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
+    def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
         """Verify that legacy license users have access to LDAP only from our
         enterprise authentication settings pages.
         """
-        requests = ["get", "put", "patch", "delete"]
-        for endpoint in enterprise_auth_settings_pgs:
-            for request in requests:
-                if endpoint.base_url == '/api/v1/settings/ldap/':
-                    getattr(endpoint, request)()
-                else:
-                    with pytest.raises(towerkit.exceptions.NotFound):
-                        getattr(endpoint, request)()
+        for service in ENTERPRISE_AUTH_SERVICES:
+            if service == 'ldap':
+                api_settings_pg.get_endpoint(service)
+            else:
+                with pytest.raises(towerkit.exceptions.NotFound):
+                    api_settings_pg.get_endpoint(service)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
+    def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
+        """Verify that a legacy license can get upgraded to an enterprise license."""
+        # Update the license
+        api_config_pg.post(enterprise_license_json)
+
+        # Record license_key
+        conf = api_config_pg.get()
+        after_license_key = conf.license_info.license_key
+
+        # Assert license_key is correct
+        expected_license_key = enterprise_license_json['license_key']
+        assert after_license_key == expected_license_key, \
+            "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
+
+        # Confirm enterprise license present
+        conf = api_config_pg.get()
+        assert conf.license_info['license_type'] == 'enterprise', \
+            "Incorrect license_type returned. Expected 'enterprise,' " \
+            "returned %s." % conf.license_info['license_type']
+
     def test_delete_license(self, api_config_pg):
         """Verify the license_info field is empty after deleting the license"""
         api_config_pg.delete()
@@ -680,7 +728,6 @@ class Test_Legacy_License_Grace_Period(Base_Api_Test):
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         """Verify that hosts can be added up to the 'license_instance_count'"""
         if api_config_pg.get().license_info.current_instances > license_instance_count:
@@ -831,7 +878,6 @@ class Test_Legacy_Trial_License(Base_Api_Test):
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         """Verify that hosts can be added up to the 'license_instance_count'"""
         if api_config_pg.get().license_info.current_instances > license_instance_count:
@@ -915,7 +961,6 @@ class Test_Basic_License(Base_Api_Test):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for basic license: %s." % conf.license_info
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         """Verify that hosts can be added up to the 'license_instance_count'"""
         if api_config_pg.get().license_info.current_instances > license_instance_count:
@@ -933,52 +978,39 @@ class Test_Basic_License(Base_Api_Test):
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
-    def test_job_launch(self, api_config_pg, job_template):
-        """Verify that job_templates can be launched while there are remaining free_instances"""
-        conf = api_config_pg.get()
-        if conf.license_info.free_instances < 0:
-            pytest.skip("Unable to test because there are no free_instances remaining")
-        else:
-            job_template.launch_job().wait_until_completed()
+    def test_job_launch(self, job_template):
+        """Verify that job templates can be launched."""
+        job_template.launch_job().wait_until_completed()
 
-    def test_unable_to_create_multiple_organizations(self, api_organizations_pg):
+    def test_unable_to_create_multiple_organizations(self, factories, api_organizations_pg):
         """Verify that attempting to create a second organization with a basic license raises a 402."""
-        # check that a default organization already exists
-        organizations_pg = api_organizations_pg.get()
-        assert organizations_pg.count > 0, "Unexpected number of organizations returned (%s)." % organizations_pg.count
+        # verify that we have a prestocked organization
+        assert api_organizations_pg.get(name="Default").count == 1, \
+            "Default organization not found."
+        # attempting to create an additional organization should trigger a 402
+        with pytest.raises(towerkit.exceptions.PaymentRequired):
+            factories.organization()
 
-        # post second organization and assess API response
-        payload = dict(name="org-%s" % fauxfactory.gen_utf8(),
-                       description="Random organization - %s" % fauxfactory.gen_utf8())
-
-        exc_info = pytest.raises(towerkit.exceptions.PaymentRequired, api_organizations_pg.post, payload)
-        result = exc_info.value[1]
-
-        assert result == {u'detail': u'Your Tower license only permits a single organization to exist.'}, \
-            "Unexpected response upon trying to create multiple organizations with a basic " \
-            "license. %s" % json.dumps(result)
-
-    def test_unable_to_create_survey(self, api_config_pg, job_template_ping, required_survey_spec):
-        """Verify that attempting to create a survey with a basic license raises a 402."""
-        conf = api_config_pg.get()
-        if conf.license_info.free_instances < 0:
-            pytest.skip("Unable to test because there are no free_instances remaining")
-
+    def test_unable_to_create_survey(self, job_template_ping, required_survey_spec):
+        """Verify that attempting to enable and create a survey with a basic license raises a 402."""
+        # verify survey enablement
         payload = dict(survey_enabled=True)
         exc_info = pytest.raises(towerkit.exceptions.PaymentRequired, job_template_ping.patch, **payload)
         result = exc_info.value[1]
-
         assert result == {u'detail': u'Feature surveys is not enabled in the active license.'}, \
             "Unexpected API response when attempting to create a survey with a " \
             "basic license - %s." % json.dumps(result)
 
-    def test_unable_to_access_activity_stream(self, api_activity_stream_pg):
-        """Verify that GET requests to api/v1/activity_streams raise 402s."""
-        exc_info = pytest.raises(towerkit.exceptions.PaymentRequired, api_activity_stream_pg.get)
-        result = exc_info.value[1]
+        # verify survey_spec post
+        with pytest.raises(towerkit.exceptions.PaymentRequired):
+            job_template_ping.related.survey_spec.post(required_survey_spec)
 
+    def test_activity_stream_get(self, v1):
+        """Verify that GET requests to /api/v1/activity_stream/ raise 402s."""
+        exc_info = pytest.raises(towerkit.exceptions.PaymentRequired, v1.activity_stream.get)
+        result = exc_info.value[1]
         result == {u'detail': u'Your license does not allow use of the activity stream.'}, \
-            "Unexpected API response when issuing a GET to api/v1/activity_streams with a basic license - %s." % json.dumps(result)
+            "Unexpected API response when issuing a GET to /api/v1/activity_stream/ with a basic license - %s." % json.dumps(result)
 
     def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, job_template):
         """Verify that scan job templates may not be created with a basic license."""
@@ -1033,10 +1065,14 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Your license does not permit use of system tracking.'}, \
             "Unexpected JSON response upon attempting to navigate to fact_versions with a basic license - %s." % json.dumps(result)
 
-    def test_custom_rebranding(self, api_settings_ui_pg):
+    def test_activity_stream_settings(self, api_settings_system_pg):
+        """Verify that activity stream flags are not visible with a basic license."""
+        assert not any(flag in api_settings_system_pg.json for flag in ACTIVITY_STREAM_FLAGS), \
+            "Activity stream flags not visible under /api/v1/settings/system/ with a basic license."
+
+    def test_custom_rebranding_settings(self, api_settings_ui_pg):
         """Verify that custom rebranding flags are not accessible with a basic license."""
-        settings_pg = api_settings_ui_pg.get()
-        for flag in settings_pg.json.keys():
+        for flag in api_settings_ui_pg.json:
             assert flag not in REBRANDING_FLAGS, \
                 "Flag '{0}' visible under /api/v1/settings/ui/ with a basic license.".format(flag)
 
@@ -1044,25 +1080,21 @@ class Test_Basic_License(Base_Api_Test):
         """Verify that the top-level /api/v1/settings/ endpoint does not show
         our enterprise auth endpoints.
         """
-        settings_pg = api_settings_pg.get()
-        settings_urls = [setting.url for setting in settings_pg.results]
-        assert(towerkit.api.resources.v1_settings_saml not in settings_urls), \
+        endpoints = [setting.base_url for setting in api_settings_pg.results]
+        assert(towerkit.api.resources.v1_settings_saml not in endpoints), \
             "Expected not to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_radius not in settings_urls), \
+        assert(towerkit.api.resources.v1_settings_radius not in endpoints), \
             "Expected not to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_ldap not in settings_urls), \
+        assert(towerkit.api.resources.v1_settings_ldap not in endpoints), \
             "Expected not to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/5148")
-    def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
+    def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
         """Verify that basic license users do not have access to any of our enterprise
         authentication settings pages.
         """
-        requests = ["get", "put", "patch", "delete"]
-        for endpoint in enterprise_auth_settings_pgs:
-            for request in requests:
-                with pytest.raises(towerkit.exceptions.NotFound):
-                    getattr(endpoint, request)()
+        for service in ENTERPRISE_AUTH_SERVICES:
+            with pytest.raises(towerkit.exceptions.NotFound):
+                api_settings_pg.get_endpoint(service)
 
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
         """Verify that a basic license can get upgraded to an enterprise license."""
@@ -1084,7 +1116,6 @@ class Test_Basic_License(Base_Api_Test):
             "Incorrect license_type returned. Expected 'enterprise,' " \
             "returned %s." % conf.license_info['license_type']
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg):
         """Verify the license_info field is empty after deleting the license"""
         api_config_pg.delete()
@@ -1137,7 +1168,6 @@ class Test_Enterprise_License(Base_Api_Test):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for enterprise license: %s." % conf.license_info
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4306', raises=AssertionError)
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         """Verify that hosts can be added up to the 'license_instance_count'"""
         if api_config_pg.get().license_info.current_instances > license_instance_count:
@@ -1155,13 +1185,9 @@ class Test_Enterprise_License(Base_Api_Test):
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
-    def test_job_launch(self, api_config_pg, job_template):
-        """Verify that job_templates can be launched while there are remaining free_instances"""
-        conf = api_config_pg.get()
-        if conf.license_info.free_instances < 0:
-            pytest.skip("Unable to test because there are no free_instances remaining")
-        else:
-            job_template.launch_job().wait_until_completed()
+    def test_job_launch(self, job_template):
+        """Verify that job templates can be launched."""
+        job_template.launch_job().wait_until_completed()
 
     def test_post_multiple_organizations(self, api_organizations_pg):
         """Verify that multiple organizations may exist with an enterprise license."""
@@ -1175,25 +1201,16 @@ class Test_Enterprise_License(Base_Api_Test):
         assert organizations_pg.count > 1, "Multiple organizations are supposed" \
             "to exist, but do not. Instead, only %s exist." % api_organizations_pg.count
 
-    def test_create_survey(self, api_config_pg, job_template_ping, required_survey_spec):
-        """Verify that surveys may be created with an enterprise license."""
-        conf = api_config_pg.get()
-        if conf.license_info.free_instances < 0:
-            pytest.skip("Unable to test because there are no free_instances remaining")
-
+    def test_create_survey(self, job_template_ping, required_survey_spec):
+        """Verify that surveys may be enabled and created with an enterprise license."""
         job_template_ping.patch(survey_enabled=True)
+        survey_spec = job_template_ping.related.survey_spec.post(required_survey_spec)
+        assert survey_spec.get().name == required_survey_spec['name'], \
+            "Expected /api/v1/job_templates/N/survey_spec/ to reflect our survey_spec."
 
-        # post survey
-        survey_spec = job_template_ping.get_related('survey_spec')
-        survey_spec.post(required_survey_spec)
-
-        # assert survey created
-        survey_spec.get()
-        assert survey_spec.name == required_survey_spec['name']
-
-    def test_activity_streams(self, api_activity_stream_pg):
-        """Verify that GET requests to api/v1/activity_streams are allowed with an enterprise license."""
-        api_activity_stream_pg.get()
+    def test_activity_stream_get(self, v1):
+        """Verify that GET requests to /api/v1/activity_stream/ are allowed with an enterprise license."""
+        v1.activity_stream.get()
 
     def test_post_scan_job_template(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
         """Verifies that scan job templates may be created with an enterprise license."""
@@ -1257,34 +1274,36 @@ class Test_Enterprise_License(Base_Api_Test):
         for fact_version in fact_versions_pg.results:
             fact_version.get_related('fact_view')
 
-    def test_custom_rebranding(self, api_settings_ui_pg):
+    def test_activity_stream_settings(self, api_settings_system_pg):
+        """Verify that activity stream flags are visible with an enterprise license."""
+        settings_pg = api_settings_system_pg.get()
+        assert all(flag in settings_pg.json for flag in ACTIVITY_STREAM_FLAGS), \
+            "Activity stream flags not visible under /api/v1/settings/system/ with an enterprise license."
+
+    def test_custom_rebranding_settings(self, api_settings_ui_pg):
         """Verify that custom rebranding flags are visible with an enterprise license."""
-        settings_pg = api_settings_ui_pg.get()
         for flag in REBRANDING_FLAGS:
-            assert flag in settings_pg.json.keys(), \
+            assert flag in api_settings_ui_pg.json, \
                 "Flag '{0}' not displayed under /api/v1/settings/ui/ with an enterprise license.".format(flag)
 
     def test_main_settings_endpoint(self, api_settings_pg):
         """Verify that the top-level /api/v1/settings/ endpoint shows our
         enterprise auth endpoints.
         """
-        settings_pg = api_settings_pg.get()
-        settings_urls = [setting.url for setting in settings_pg.results]
-        assert(towerkit.api.resources.v1_settings_saml in settings_urls), \
+        endpoints = [setting.base_url for setting in api_settings_pg.results]
+        assert(towerkit.api.resources.v1_settings_saml in endpoints), \
             "Expected to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_radius in settings_urls), \
+        assert(towerkit.api.resources.v1_settings_radius in endpoints), \
             "Expected to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_ldap in settings_urls), \
+        assert(towerkit.api.resources.v1_settings_ldap in endpoints), \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
-    def test_nested_enterprise_auth_endpoints(self, enterprise_auth_settings_pgs):
+    def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
         """Verify that enterprise license users have access to our enterprise
         authentication settings pages.
         """
-        requests = ["get", "put", "patch", "delete"]
-        for endpoint in enterprise_auth_settings_pgs:
-            for request in requests:
-                getattr(endpoint, request)()
+        for service in ENTERPRISE_AUTH_SERVICES:
+            api_settings_pg.get_endpoint(service)
 
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg):
         """Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg."""

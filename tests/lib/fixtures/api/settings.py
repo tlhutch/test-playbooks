@@ -27,14 +27,6 @@ def oauth_settings_pgs(api_settings_github_pg, api_settings_github_org_pg, api_s
             api_settings_azuread_pg]
 
 
-@pytest.fixture
-def enterprise_auth_settings_pgs(api_settings_ldap_pg, api_settings_radius_pg, api_settings_saml_pg):
-    """Returns a list of all of our enterprise auth settings pages. As of Tower-3.1.1, enterprise auth includes:
-    LDAP, SAML, and RADIUS.
-    """
-    return [api_settings_radius_pg, api_settings_saml_pg, api_settings_ldap_pg]
-
-
 @pytest.fixture(scope="function", params=["all", "auth", "azuread", "changed", "github_org", "github_team", "google", "jobs",
                                           "ldap", "radius", "saml", "system", "ui"])
 def setting_pg(request):
