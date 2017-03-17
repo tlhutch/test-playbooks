@@ -29,7 +29,7 @@ def test_inventory_search_persists_after_sorting(ui, shared_org):
     # there should be at least three inventories visible
     assert len(inventories.table.rows) >= 3
     # filter the inventory list by organization name
-    inventories.search('or:organization:name:icontains:{0}'.format(shared_org.name))
+    inventories.search('organization.name.icontains:{0}'.format(shared_org.name))
     # verify expected results count from filtering
     assert len(inventories.table.rows) == 2
     # change the table sorting
