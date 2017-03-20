@@ -6,17 +6,17 @@ pytestmark = [pytest.mark.ui]
 
 
 @pytest.mark.usefixtures('supported_window_sizes')
-def test_header_shows_correct_username(v1, ui, rando):
+def test_header_shows_correct_username(v1, ui, ui_user):
     """Verify correctly displayed username on header"""
     dashboard = ui.dashboard
     msg = 'Unable to verify correctly displayed username on header'
 
-    expected = v1.me.get().results.pop().username
+    expected = ui_user.username
     actual = dashboard.header.username
 
     assert expected.lower() == actual.lower(), msg
-    with dashboard.current_user(rando.username, refresh=False):
-        expected = rando.username
+    with dashboard.current_user(ui_user.username, refresh=False):
+        expected = ui_user.username
         actual = dashboard.header.username
         assert expected.lower() == actual.lower(), msg
 
