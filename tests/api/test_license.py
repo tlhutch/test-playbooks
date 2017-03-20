@@ -1,5 +1,4 @@
-"""
-# Test No License
+"""# Test No License
 [X] Test that config.license_info is empty before license is added
 [X] Test that you cannot add hosts without a license
 [X] Test can launch project updates

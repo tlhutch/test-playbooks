@@ -5,13 +5,13 @@
     - { role: deploy_cloud }
 
 - name: 'Dynamically create host groups'
-  hosts: 'primary'
+  hosts: 'tower,primary'
   tasks:
    - name: group hosts by distribution_major_version
      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
 - name: 'Install Tower'
-  hosts: 'primary'
+  hosts: 'tower,primary'
   gather_facts: no
   sudo: yes
   roles:
