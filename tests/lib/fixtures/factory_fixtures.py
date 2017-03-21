@@ -160,7 +160,12 @@ class CredentialFactory(PageFactory):
 
     user = None
     team = None
-    organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
+
+    @factory.LazyAttribute
+    def organization(self):
+        if not any((self.user, self.team)):
+            return factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
+        return None
 
 
 class InventoryFactory(PageFactory):
