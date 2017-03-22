@@ -46,7 +46,7 @@ def team_payload(**kwargs):
 class Test_Teams(Base_Api_Test):
     """Tests related to the /api/v1/teams endpoint."""
 
-    pytestmark = pytest.mark.usefixtures('authtoken')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     def test_duplicate(self, api_teams_pg, some_team):
         """Verify that teamnames are unique"""
