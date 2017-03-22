@@ -18,6 +18,11 @@
    - name: group hosts by distribution_major_version
      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
+- name: 'Configure cluster ssh keys'
+  hosts: 'tower:database'
+  roles:
+    - role: cluster_key_config
+
 - name: 'Install ha tower on installer instance'
   hosts: 'ha_installer,primary'
   gather_facts: no
