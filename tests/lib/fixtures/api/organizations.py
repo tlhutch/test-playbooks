@@ -1,40 +1,34 @@
 import types
+
 import pytest
 import fauxfactory
 
 
 @pytest.fixture(scope="function")
-def default_organization(authtoken, api_organizations_pg):
-    match = api_organizations_pg.get(name='Default')
-    assert match.count == 1, "No default organization found (%s)" % match.count
-    obj = match.results.pop()
+def default_organization(api_organizations_pg):
+    matches = api_organizations_pg.get(name='Default')
+    assert matches.count == 1, "Default organization not found."
+    org = matches.results.pop()
 
     # Protect from inadvertantly deleting the default organization
     def protect_from_delete(self):
-        raise Exception("Attempting to delete the default organization.  " +
-                        "Have you installed the appropriate Tower license?")
-
-    obj.delete = types.MethodType(protect_from_delete, obj)
-    return obj
+        pass
+    org.delete = types.MethodType(protect_from_delete, org)
+    return org
 
 
 @pytest.fixture(scope="function")
-def organization(request, authtoken, api_config_pg, api_organizations_pg):
-    api_config_pg.get()
-    if 'multiple_organizations' not in api_config_pg.features:
+def organization(request, api_config_pg, factories):
+    if 'multiple_organizations' not in api_config_pg.get().features:
         return request.getfuncargvalue('default_organization')
     else:
-        payload = dict(name="Random organization %s" % fauxfactory.gen_utf8(),
-                       description="Random organization - %s" % fauxfactory.gen_utf8())
-        obj = api_organizations_pg.post(payload)
-        request.addfinalizer(obj.silent_cleanup)
-        return obj
+        org = factories.organization(name="Random organization %s" % fauxfactory.gen_utf8(),
+                                     description="Random organization - %s" % fauxfactory.gen_utf8())
+        return org
 
 
 @pytest.fixture(scope="function")
-def another_organization(request, authtoken, api_organizations_pg):
-    payload = dict(name="org-%s" % fauxfactory.gen_utf8(),
-                   description="Another random organization - %s" % fauxfactory.gen_utf8())
-    obj = api_organizations_pg.post(payload)
-    request.addfinalizer(obj.silent_cleanup)
-    return obj
+def another_organization(factories):
+    org = factories.organization(name="Another random organization %s" % fauxfactory.gen_utf8(),
+                                 description="Another random organization - %s" % fauxfactory.gen_utf8())
+    return org
