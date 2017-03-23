@@ -43,14 +43,6 @@ directory of the repository.
         tower.example.com ansible_ssh_user=root
         EOF
 
-7. Disable ansible host key checking
-
-        export ANSIBLE_HOST_KEY_CHECKING=False
-        
-Or you can specify it as a host variable in the inventory file.
-
-        ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-
 8. From the root directory of the repository, run all the tests with the
    following command.  Note, it's more common to limit test execution with
    either the `-m` and/or `-k` parameters.
