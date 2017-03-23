@@ -262,7 +262,7 @@ class Test_Job_Template_Callback(Base_Api_Test):
                                                                 ansible_default_ipv4):
         """Verify launch success when launching a job_template while providing required survey variables."""
         job_template_variables_needed_to_start.host_config_key = host_config_key
-        assert(job_template_variables_needed_to_start.host_config_key == host_config_key)
+        assert job_template_variables_needed_to_start.host_config_key == host_config_key
 
         args = dict(method="POST",
                     status_code=httplib.CREATED,
@@ -277,15 +277,15 @@ class Test_Job_Template_Callback(Base_Api_Test):
         contacted = ansible_runner.uri(**args)
 
         for result in contacted.values():
-            assert(result['status'] == httplib.CREATED)
-            assert(not result['changed'])
-            assert('failed' not in result)
+            assert result['status'] == httplib.CREATED
+            assert not result['changed']
+            assert 'failed' not in result
 
         job = job_template_variables_needed_to_start.related.jobs.get(launch_type='callback',
                                                                       order_by='-id').results.pop()
         job.wait_until_completed(timeout=300)
-        assert(job.launch_type == "callback")
-        assert(job.is_successful)
+        assert job.launch_type == "callback"
+        assert job.is_successful
 
     def test_launch_with_limit(self, api_jobs_url, ansible_runner, job_template_with_random_limit,
                                host_with_default_ipv4_in_variables, host_config_key,
@@ -328,58 +328,56 @@ class Test_Job_Template_Callback(Base_Api_Test):
         assert job_pg.limit == host_with_default_ipv4_in_variables.name, \
             "Unexpected value for job_pg.limit. Expected %s, got %s." % (job_pg.limit, host_with_default_ipv4_in_variables.name)
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3534")
-    def test_launch(self, ansible_runner, job_template, host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4):
-        """Assert that launching a callback job against a job_template successfully launches, and the job successfully runs on a single host."""
-        # enable host_config_key
-        job_template.patch(host_config_key=host_config_key)
-        assert job_template.host_config_key == host_config_key
+    @pytest.mark.parametrize(
+        'ask_on_launch,provided_extra_vars,expected_extra_vars',
+        [[False, {}, {}],
+         [False, dict(dont_filter_me=True, ansible_filter_me=1234), {}],
+         [True, dict(dont_filter_me=True, ansible_filter_me=1234), dict(dont_filter_me=True)]]
+    )
+    def test_launch_with_extra_vars(self, ansible_runner, job_template, host_with_default_ipv4_in_variables,
+                                    host_config_key, ansible_default_ipv4, ask_on_launch, provided_extra_vars,
+                                    expected_extra_vars):
+        """Confirms that extra_vars are accepted and filtered or ignored properly with varying
+        `ask_variables_on_launch` and provided extra_var values
+        """
+        job_template.host_config_key = host_config_key
+        job_template.ask_variables_on_launch = ask_on_launch
 
-        # issue callback
-        args = dict(method="POST",
-                    timeout=60,
-                    status_code=httplib.CREATED,
-                    url="https://%s%s" % (ansible_default_ipv4, job_template.json['related']['callback']),
-                    body_format='json',
-                    body=dict(host_config_key=host_config_key,
-                              extra_vars=dict(dont_filter_me=True,
-                                              ansible_filter_me=1234)),
-                    validate_certs=False)
-        args["HEADER_Content-Type"] = "application/json"
-        contacted = ansible_runner.uri(**args)
+        contacted = ansible_runner.uri(method="POST", timeout=90, status_code=httplib.CREATED,
+                                       url="https://{0}{1.related.callback}".format(ansible_default_ipv4, job_template),
+                                       body_format='json', validate_certs=False,
+                                       body=dict(host_config_key=host_config_key, extra_vars=provided_extra_vars))
+        callback_result = contacted.values().pop()
+        assert callback_result['status'] == httplib.CREATED
+        assert not callback_result['changed']
+        assert 'failed' not in callback_result
 
-        # verify callback response
-        for result in contacted.values():
-            assert result['status'] == httplib.CREATED
-            assert not result['changed']
-            assert 'failed' not in result, "Callback failed\n%s" % result
+        job_id = callback_result['location'].split('jobs/')[1].split('/')[0]
+        job = job_template.related.jobs.get(id=job_id).results.pop()
+        job.wait_until_completed(timeout=5 * 60)
+        assert job.launch_type == "callback"
+        assert job.is_successful
 
-        # FIXME - assert 'Location' header points to launched job
-        # https://github.com/ansible/ansible-commander/commit/05febca0857aa9c6575a193072918949b0c1227b
+        host_summaries = job.related.job_host_summaries.get()
+        assert host_summaries.count == 1
+        assert host_summaries.results[0].host == host_with_default_ipv4_in_variables.id
+        assert json.loads(job.extra_vars) == expected_extra_vars
 
-        # Wait for job to complete
-        jobs_pg = job_template.get_related('jobs', launch_type='callback', order_by='-id')
-        assert jobs_pg.count == 1
-        job_pg = jobs_pg.results[0].wait_until_completed(timeout=5 * 60)
+    def test_launch_without_required_extra_vars(self, ansible_runner, job_template, host_with_default_ipv4_in_variables,
+                                                host_config_key, ansible_default_ipv4):
+        """Confirms that launch attempts for `ask_variables_on_launch` jobs fail without extra_vars"""
+        job_template.host_config_key = host_config_key
+        job_template.ask_variables_on_launch = True
 
-        # Assert job was successful
-        assert job_pg.launch_type == "callback"
-        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+        contacted = ansible_runner.uri(method="POST", timeout=90, status_code=httplib.CREATED,
+                                       url="https://{0}{1.related.callback}".format(ansible_default_ipv4, job_template),
+                                       body_format='json', validate_certs=False,
+                                       body=dict(host_config_key=host_config_key))
+        callback_result = contacted.values().pop()
+        assert callback_result['status'] == httplib.BAD_REQUEST
+        assert callback_result['failed']
+        assert callback_result['json']['msg'] == 'Cannot start automatically, user input required!'
 
-        # Assert only a single host was affected
-        # NOTE: may need to poll as the job_host_summaries are calculated
-        # asynchronously when a job completes.
-        host_summaries_pg = job_pg.get_related('job_host_summaries')
-        assert host_summaries_pg.count == 1
-
-        # Assert the affected host matches expected
-        assert host_summaries_pg.results[0].host == host_with_default_ipv4_in_variables.id
-
-        # Assert that ansible_* extra_var is filtered
-        assert('ansible_filter_me' not in job_pg.extra_vars)
-        assert('dont_filter_me' in job_pg.extra_vars)
-
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3534")
     def test_launch_multiple(self, api_jobs_url, ansible_runner, job_template, host_with_default_ipv4_in_variables, host_config_key, ansible_default_ipv4):
         """Verify that issuing a callback, while a callback job from the same host
         is already running, fails.
