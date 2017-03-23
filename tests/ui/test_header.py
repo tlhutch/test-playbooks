@@ -29,7 +29,6 @@ def test_header_click_through(ui):
     link_names = [
         'inventories',
         'jobs',
-        'logo',
         'templates',
         'portal',
         'projects',
