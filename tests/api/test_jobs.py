@@ -143,32 +143,6 @@ def confirm_fact_modules_present(facts, **kwargs):
         assert module_names.count(mod_name) == mod_count, "Unexpected number of facts found (%d) for module %s" % (mod_count, mod_name)
 
 
-def assess_job_event_pg_for_no_log(job_event_pg):
-    """Convenience function to assess job_event_pg contents in testing no_log."""
-    result = job_event_pg.event_data.get('res')
-    if not result:
-        if "skipped task" in job_event_pg.task:
-            return
-        raise Exception("Unexpected condition: event_data.res not included in job_event for non-skipped task. "
-                        "Possible integration test or schema change detected.")
-    # For item tasks with no_log
-    elif result.get('_ansible_no_log', None):
-        assert 'item' not in result
-        for item in ['cmd', 'censored']:
-            if item in result:
-                assert result[item] in ["echo <censored>",
-                                        "the output has been hidden due to the fact that "
-                                        "'no_log: true' was specified for this result"]
-    # For item tasks without no_log
-    else:
-        for item in [item for item in ['item', 'cmd', 'stdout'] if item in result and item != 'stdout_lines']:
-            assert 'LOG_ME' in result[item]
-        if 'invocation' in result:
-            assert 'LOG_ME' in result['invocation']['module_args']['_raw_params']
-        if 'stdout_lines' in result:
-            assert 'LOG_ME' in result['stdout_lines'][0]
-
-
 def azure_type(azure_credential):
     """Convenience function that returns our type of new-style Azure credential"""
     azure_attrs = ['subscription', 'tenant', 'secret', 'client']
@@ -417,70 +391,6 @@ class Test_Job(Base_Api_Test):
         # assert MethodNotAllowed when attempting to cancel
         with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             cancel_pg.post()
-
-    def test_job_with_no_log(self, factories, ansible_version_cmp):
-        """Tests that jobs with 'no_log' censor the following:
-        * jobs/N/job_events
-        * jobs/N.result_stdout
-        """
-        # Test for ansible-v2 or greater
-        if ansible_version_cmp('2.0.0.0') < 0:
-            pytest.skip("Only supported on ansible-2.0.0.0 (or newer)")
-
-        job_template = factories.job_template(project__scm_url='https://github.com/ansible/ansible.git',
-                                              playbook='test/integration/targets/no_log/no_log_local.yml',
-                                              inventory__localhost__name='testhost',
-                                              verbosity=1)
-        # Launch test job template
-        job_pg = job_template.launch().wait_until_completed()
-        assert(job_pg.is_successful), "Job unsuccessful - %s." % job_pg
-
-        # Check job_events
-        job_events_pg = job_pg.get_related('job_events', event__startswith='runner')
-        for job_event_pg in job_events_pg.results:
-            assess_job_event_pg_for_no_log(job_event_pg)
-
-        # Check result_stdout
-        log_count = job_pg.result_stdout.count('LOG_ME')
-        assert(log_count == 21), ('Unexpected number of instances of "LOG_ME" in job_pg.result_stdout: expected 21, '
-                                  'got {}'.format(log_count))
-        censored_count = job_pg.result_stdout.count('censored')
-        assert(censored_count == 12), ('Unexpected number of instances of "censored" in job_pg.result_stdout: expected '
-                                       '12, got {}.'.format(censored_count))
-
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/872')
-    def test_job_with_async_events(self, factories, ansible_version_cmp):
-        """Tests that jobs with 'async' report their runner events"""
-        if ansible_version_cmp('2.0.0.0') < 0:
-            pytest.skip("test_async only supported on ansible-2.0.0.0 (or newer)")
-        elif ansible_version_cmp('2.2.0.0') < 0:
-            scm_branch = 'stable-2.1'
-        else:
-            scm_branch = 'devel'
-
-        job_template = factories.job_template(project__scm_url='https://github.com/ansible/ansible.git',
-                                              project__scm_branch=scm_branch,
-                                              playbook='test/integration/non_destructive.yml',
-                                              inventory__localhost__name='testhost',
-                                              job_tags='test_async',
-                                              verbosity=1)
-        job = job_template.launch().wait_until_completed()
-        # Async playbook includes task ('test exception module failure') which intentionally throws
-        # an exception (which is ignored). Instead of using job.is_successful (which checks for exceptions
-        # in the jobs stdout), check job status and failed field explicitly
-        assert(job.status.lower() == 'successful' and not job.failed), "Job unsuccessful - {0}.".format(job)
-
-        # Check job_events
-        job_events = job.get_related('job_events', event__startswith='runner_on')
-        test_events = [event for event in job_events.results if 'test_async' in event.task]
-        assert(test_events), 'No "runner_on" events reported during test_async integration test execution'
-
-        for test_event in test_events:
-            assertion_error = 'Undesired job event for {0.task}: "{0.event}"'.format(test_event)
-            if "skipped" in test_event.task:
-                assert(test_event.event == 'runner_on_skipped'), assertion_error
-            else:
-                assert(test_event.event == 'runner_on_ok'), assertion_error
 
     def test_delete_running_job_with_orphaned_project(self, factories, set_roles, user_password):
         """Confirms that JT w/ cross org inventory and orphaned project deletion attempt triggers Forbidden"""

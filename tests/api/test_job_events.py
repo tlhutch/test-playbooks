@@ -54,11 +54,11 @@ class Test_Job_Events(Base_Api_Test):
             job_events = job_events.next.get()
 
     def get_job_events_by_event_type(self, job, event_type):
-        return self.get_job_events(job, dict(event=event_type))
+        return self.get_job_events(job, dict(event__icontains=event_type))
 
     def verify_desired_tasks(self, job, job_event_type, desired_tasks):
         event_tasks = Counter(map(lambda x: x.task, self.get_job_events_by_event_type(job, job_event_type)))
-        assert(event_tasks == desired_tasks)
+        assert event_tasks == desired_tasks
 
     def verify_desired_stdout(self, job, job_event_type, desired_stdout_contents):
         desired_stdout = list(desired_stdout_contents)
@@ -69,8 +69,8 @@ class Test_Job_Events(Base_Api_Test):
                     actual_stdout.remove(actual)
                     desired_stdout.remove(desired)
                     break
-        assert(not actual_stdout), "Not all event stdout was expected."
-        assert(not desired_stdout), "Not all expected stdout was included."
+        assert not actual_stdout, "Not all event stdout was expected."
+        assert not desired_stdout, "Not all expected stdout was included."
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
@@ -84,7 +84,7 @@ class Test_Job_Events(Base_Api_Test):
         job = jt.launch().wait_until_completed(interval=20)
 
         playbook_on_start = self.get_job_events_by_event_type(job, 'playbook_on_start')
-        assert(len(playbook_on_start) == 1)
+        assert len(playbook_on_start) == 1
 
         playbook_on_play_start = set(map(lambda x: x.play,
                                          self.get_job_events_by_event_type(job, 'playbook_on_play_start')))
@@ -98,7 +98,7 @@ class Test_Job_Events(Base_Api_Test):
                                   "gather facts fail",
                                   "some gather facts fail",
                                   "no tasks, just the facts"))
-        assert(playbook_on_play_start == desired_play_names)
+        assert playbook_on_play_start == desired_play_names
 
         playbook_on_task_start = set(map(lambda x: (x.play, x.task),
                                          self.get_job_events_by_event_type(job, 'playbook_on_task_start')))
@@ -128,7 +128,7 @@ class Test_Job_Events(Base_Api_Test):
                                         ("some gather facts fail", "setup"),
                                         ("some gather facts fail", "skip this task"),
                                         ("no tasks, just the facts", "setup")))
-        assert(playbook_on_task_start == desired_play_task_tuples)
+        assert playbook_on_task_start == desired_play_task_tuples
 
         task_counts = {"fail even numbered hosts": 2,
                        "fail all but 1": 2,
@@ -173,12 +173,12 @@ class Test_Job_Events(Base_Api_Test):
         desired_stdout_contents = ["SSH password:", "Identity added:", "Vault password:", "SUDO password"]
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
-        assert(len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1)
+        assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
 
         events = self.get_job_events(job)
         non_verbose = filter(lambda x: x.event != 'verbose', events)
-        assert(not filter(lambda x: not x.uuid, non_verbose))
-        assert(not filter(lambda x: x.playbook != 'dynamic_inventory.yml', non_verbose))
+        assert not filter(lambda x: not x.uuid, non_verbose)
+        assert not filter(lambda x: x.playbook != 'dynamic_inventory.yml', non_verbose)
 
     def test_async_tasks(self, factories):
         """Runs a single play with async tasks and confirms desired events at related endpoint"""
@@ -190,13 +190,13 @@ class Test_Job_Events(Base_Api_Test):
                                     inventory=inventory,
                                     playbook='async_tasks.yml')
         job = jt.launch().wait_until_completed(interval=20)
-        assert(job.is_successful)
+        assert job.is_successful
 
         playbook_on_start = self.get_job_events_by_event_type(job, 'playbook_on_start')
-        assert(len(playbook_on_start) == 1)
+        assert len(playbook_on_start) == 1
 
         playbook_on_play_start = map(lambda x: x.play, self.get_job_events_by_event_type(job, 'playbook_on_play_start'))
-        assert(playbook_on_play_start == ['all'])
+        assert playbook_on_play_start == ['all']
 
         task_counts = {"debug": 3,
                        "Examine slow command": 1,
@@ -216,17 +216,17 @@ class Test_Job_Events(Base_Api_Test):
 
         # asserted retry counts are a major source of flake, so just confirm that retries happened
         runner_retry_tasks = set(map(lambda x: x.task, self.get_job_events_by_event_type(job, 'runner_retry')))
-        assert(runner_retry_tasks == {"Examine slow command", "Examine slow reversal"})
+        assert runner_retry_tasks == {"Examine slow command", "Examine slow reversal"}
 
-        assert(len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1)
+        assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
 
         desired_stdout_contents = ["SSH password:", "Identity added:", "Vault password:", "SUDO password"]
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
         events = self.get_job_events(job)
         non_verbose = filter(lambda x: x.event != 'verbose', events)
-        assert(not filter(lambda x: not x.uuid, non_verbose))
-        assert(not filter(lambda x: x.playbook != 'async_tasks.yml', non_verbose))
+        assert not filter(lambda x: not x.uuid, non_verbose)
+        assert not filter(lambda x: x.playbook != 'async_tasks.yml', non_verbose)
 
     def test_free_strategy(self, factories):
         """Runs a single play with free strategy and confirms desired events at related endpoint"""
@@ -238,13 +238,13 @@ class Test_Job_Events(Base_Api_Test):
                                     inventory=inventory,
                                     playbook='free_waiter.yml')
         job = jt.launch().wait_until_completed(interval=20)
-        assert(job.is_successful)
+        assert job.is_successful
 
         playbook_on_start = self.get_job_events_by_event_type(job, 'playbook_on_start')
-        assert(len(playbook_on_start) == 1)
+        assert len(playbook_on_start) == 1
 
         playbook_on_play_start = map(lambda x: x.play, self.get_job_events_by_event_type(job, 'playbook_on_play_start'))
-        assert(playbook_on_play_start == ['all'])
+        assert playbook_on_play_start == ['all']
 
         task_counts = {"debug": 11,
                        "wait_for": 10,
@@ -256,12 +256,57 @@ class Test_Job_Events(Base_Api_Test):
                        "set_fact": 50}
         self.verify_desired_tasks(job, 'runner_on_ok', task_counts)
 
-        assert(len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1)
+        assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
 
         desired_stdout_contents = ["SSH password:", "Identity added:", "Vault password:", "SUDO password"]
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
         events = self.get_job_events(job)
         non_verbose = filter(lambda x: x.event != 'verbose', events)
-        assert(not filter(lambda x: not x.uuid, non_verbose))
-        assert(not filter(lambda x: x.playbook != 'free_waiter.yml', non_verbose))
+        assert not filter(lambda x: not x.uuid, non_verbose)
+        assert not filter(lambda x: x.playbook != 'free_waiter.yml', non_verbose)
+
+    def test_no_log(self, factories):
+        """Runs Ansible's no_log integration test playbook and confirms Tower's callback receiver offers
+        near equivalent censoring.
+        """
+        host = factories.host(name='testhost')
+        project = factories.project(scm_url='https://github.com/ansible/ansible.git')
+        jt = factories.job_template(project=project, playbook='test/integration/targets/no_log/no_log_local.yml',
+                                    inventory=host.ds.inventory, verbosity=1)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        playbook_on_task_start = self.get_job_events_by_event_type(job, 'playbook_on_task_start')
+        task_start_task_args = map(lambda x: x.event_data.get('task_args', ''), playbook_on_task_start)
+        assert not filter(lambda task_args: 'DO_NOT_LOG' in task_args, task_start_task_args)
+
+        events = self.get_job_events_by_event_type(job, 'runner')
+        assert not filter(lambda event: 'DO_NOT_LOG' in event.stdout, events)
+        assert not filter(lambda data: 'DO_NOT_LOG' in data.task_args, map(lambda event: event.event_data, events))
+
+        hidden_prefix = 'the output has been hidden'
+        for event in events:
+            data = event.event_data
+            if data.get('event_loop'):
+                results = data.res.results
+            else:
+                if 'res' not in data:
+                    if event.event != 'runner_on_skipped':
+                        raise(Exception('Unexpected lack of result in event_data: {0}'.format(event)))
+                    continue
+                results = [data.res]
+
+            for result in results:
+                if result.get('_ansible_no_log') is False:  # censored results only contain 'censored' key
+                    assert 'censored' not in data.res
+                    assert hidden_prefix not in data.task_args
+                    result = data.res.get('result', data.res)
+                    assert hidden_prefix not in result.get('cmd', '')
+                    assert hidden_prefix not in result.get('stdout', '')
+                    assert hidden_prefix not in result.get('stdout_lines', '')
+                else:
+                    assert hidden_prefix in data.task_args
+                    assert result.keys() == ['censored']
+                    assert hidden_prefix in result.censored
