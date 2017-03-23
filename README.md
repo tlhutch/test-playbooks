@@ -13,4 +13,7 @@ py.test -c config/api.cfg --base-url='https://ec2-tower.com'
 # run ui tests
 ./scripts/download_chromedriver.sh
 py.test -c config/ui.cfg --base-url='https://ec2-tower.com' tests/ui
+
+# run linter
+flake8
 ```

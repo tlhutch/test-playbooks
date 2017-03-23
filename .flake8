@@ -1,0 +1,8 @@
+[flake8]
+ignore = E501,E12,E261,F403
+max_complexity = 11
+exclude = playbooks,*.egg*,.tox
+
+[pep8]
+ignore = E501,E12,E261
+exclude=playbooks,*.egg*,.tox
