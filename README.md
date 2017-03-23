@@ -2,7 +2,7 @@
 
 ```bash
 # install dependencies
-pip install -r tests/requirements.txt
+pip install -r requirements.txt
 
 # decrypt credentials
 ansible-vault decrypt config/credentials.vault --output=config/credentials.yml
