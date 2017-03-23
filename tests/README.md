@@ -62,14 +62,6 @@ Or you can specify it as a host variable in the inventory file.
             --api-destructive \
             tests
 
-## Recommended Reading
-
-* [HomeBrew](http://brew.sh/) - Additional package manager for OSX.
-* [Automated Test Hell](http://www.slideshare.net/wseliga/escaping-testhellxpdaysukraine2013) - presentation on automation best practices and learning experiences.
-* [pytest](http://pytest.org/latest/) - The python test framework used by tower-qa.
-* [pytest usage and invocations](http://pytest.org/latest/usage.html) - Learn how to run `py.test` from the command-line.
-* [pytest selenium plugin](https://github.com/pytest-dev/pytest-selenium) -  The pytest selenium plugin used by browser UI automation.
-
 ## TODO
 
 1. Model comprehensive RBAC test scenario
