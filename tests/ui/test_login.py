@@ -45,7 +45,6 @@ def test_login_invalid_credentials(login_page, username, password):
         'Expected login failure alert error(s) to be displayed')
 
 
-@pytest.mark.github('https://github.com/ansible/tower-qa/issues/782')
 def test_stock_branding(login_page):
     """Verify our stock login modal branding and notice"""
     image_src = login_page.modal_image.get_attribute('src')
@@ -55,14 +54,14 @@ def test_stock_branding(login_page):
         'Expected modal notice to not be displayed')
 
 
-@pytest.mark.github('https://github.com/ansible/tower-qa/issues/782')
-def test_custom_rebranding(login_page, CUSTOM_CONSOLE_LOGO):
+def test_custom_rebranding(login_page, authtoken, install_enterprise_license, install_custom_branding):
     """Verify that our login modal may be rebranded with a custom
-    image and notice
+    image and notice.
     """
-    image_src = login_page.modal_image.get_attribute('src')
-    assert image_src.endswith('/static/assets/custom_console_logo.png'), \
-        "Unexpected console_logo path."
+    login_page.driver.refresh()
+    login_page.wait_until_loaded_with_modal_notice()
+    image_src = login_page.modal_image.get_attribute('ng-src')
+    assert image_src.startswith('data:image')
     assert login_page.is_modal_notice_displayed(), (
         'Expected modal notice to be displayed')
 

@@ -1,5 +1,4 @@
 import re
-import json
 import pytest
 import logging
 
@@ -54,61 +53,3 @@ def restart_tower_on_teardown(request, ansible_runner, ansible_os_family):
             result = contacted.values()[0]
             assert result['state'] == 'started', "Starting service %s failed." % process
     request.addfinalizer(teardown)
-
-
-@pytest.fixture
-def CUSTOM_CONSOLE_LOGO(request, ansible_runner):
-    """Installs a custom console logo on our target host. Files transferred include the image itself
-    and a settings file. Files are removed upon teardown.
-    """
-    # install custom_console_logo.png
-    contacted = ansible_runner.copy(
-        src='tests/lib/fixtures/api/static/custom_console_logo.png',
-        dest='/var/lib/awx/public/static/assets/custom_console_logo.png',
-        owner='awx',
-        group='awx',
-        mode='0755'
-    )
-
-    # assert success
-    for result in contacted.values():
-        assert 'failed' not in result, \
-            "Failure installing custom_console_logo.png.\n%s" % json.dumps(result, indent=2)
-
-    # install local_settings.json
-    contacted = ansible_runner.copy(
-        src='tests/lib/fixtures/api/static/local_settings.json',
-        dest='/var/lib/awx/public/static/local_settings.json',
-        owner='awx',
-        group='awx',
-        mode='0755'
-    )
-
-    # assert success
-    for result in contacted.values():
-        assert 'failed' not in result, \
-            "Failure installing local_settings.json.\n%s" % json.dumps(result, indent=2)
-
-    def fin():
-        # remove custom_console_logo.png
-        contacted = ansible_runner.file(
-            path='/var/lib/awx/public/static/assets/custom_console_logo.png',
-            state='absent'
-        )
-
-        # assert success
-        for result in contacted.values():
-            assert 'failed' not in result, \
-                "Failure removing custom_console_logo.png.\n%s" % json.dumps(result, indent=2)
-
-        # remove local_settings.json
-        contacted = ansible_runner.file(
-            path='/var/lib/awx/public/static/local_settings.json',
-            state='absent'
-        )
-
-        # assert success
-        for result in contacted.values():
-            assert 'failed' not in result, \
-                "Failure removing local_settings.json.\n%s" % json.dumps(result, indent=2)
-    request.addfinalizer(fin)
