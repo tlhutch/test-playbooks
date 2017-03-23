@@ -446,7 +446,8 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [inv_update_pg, job_pg]
         confirm_unified_jobs(sorted_unified_jobs)
 
-    def test_project(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
+    @pytest.mark.parametrize('project', ['project_ansible_playbooks_git', 'project_ansible_helloworld_hg'])
+    def test_project_update_on_launch(self, request, factories, project):
         """Verify that two project updates are triggered by a job launch when we
         enable project update_on_launch. Job ordering should be as follows:
         * Our initial project-post should launch a project update of job_type 'check.'
@@ -454,31 +455,33 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         'check' and one of job_type 'run.' Our check update should run before the job
         launch and our run update should run simultaneously with our job.
         """
-        # set scm_update_on_launch for the project
-        project_ansible_playbooks_git.patch(scm_update_on_launch=True)
-        assert project_ansible_playbooks_git.scm_update_on_launch
-        assert project_ansible_playbooks_git.scm_update_cache_timeout == 0
+        project = request.getfixturevalue(project)
+        host = factories.host()
+        job_template = factories.job_template(project=project, inventory=host.ds.inventory)
+        project.scm_update_on_launch = True
+        assert project.scm_update_on_launch
+        assert project.scm_update_cache_timeout == 0
 
         # check the autospawned project update
-        initial_project_updates = project_ansible_playbooks_git.related.project_updates.get()
+        initial_project_updates = project.related.project_updates.get()
         assert initial_project_updates.count == 1, "Unexpected number of initial project updates."
         initial_project_update = initial_project_updates.results.pop()
         assert initial_project_update.job_type == "check", \
             "Unexpected job_type for our initial project update: {0}.".format(initial_project_update.job_type)
 
         # launch job_template and assert successful
-        job_pg = job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
+        job_pg = job_template.launch_job().wait_until_completed(timeout=50 * 10)
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that our new project updates are successful
-        spawned_project_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_project_update.id)
+        spawned_project_updates = project.related.project_updates.get(not__id=initial_project_update.id)
         assert spawned_project_updates.count == 2, "Unexpected number of job-spawned project updates."
         for update in spawned_project_updates.results:
             assert update.is_successful, "Project update unsuccessful - %s." % update
 
         # check that our new project updates are of the right type
-        spawned_check_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_project_update.id, job_type='check')
-        spawned_run_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_project_update.id, job_type='run')
+        spawned_check_updates = project.related.project_updates.get(not__id=initial_project_update.id, job_type='check')
+        spawned_run_updates = project.related.project_updates.get(not__id=initial_project_update.id, job_type='run')
         assert spawned_check_updates.count == 1, "Unexpected number of spawned check project updates."
         assert spawned_run_updates.count == 1, "Unexpected number of spawned run project updates."
         spawned_check_update, spawned_run_update = spawned_check_updates.results.pop(), spawned_run_updates.results.pop()
