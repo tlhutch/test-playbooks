@@ -238,6 +238,15 @@ class JobTemplateFactory(PageFactory):
                                    organization=factory.SelfAttribute('..organization'))
 
 
+class NotificationTemplateFactory(PageFactory):
+    class Meta:
+        model = pages.NotificationTemplate
+        inline_args = ('request',)
+        resources = ('organization',)
+
+    organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
+
+
 class WorkflowJobTemplateFactory(PageFactory):
     class Meta:
         model = pages.WorkflowJobTemplates
@@ -278,6 +287,7 @@ def factory_namespace(request):
                            inventory=FactoryFixture(request, InventoryFactory),
                            inventory_script=FactoryFixture(request, InventoryScriptFactory),
                            job_template=FactoryFixture(request, JobTemplateFactory),
+                           notification_template=FactoryFixture(request, NotificationTemplateFactory),
                            organization=FactoryFixture(request, OrganizationFactory),
                            project=FactoryFixture(request, ProjectFactory),
                            user=FactoryFixture(request, UserFactory),
