@@ -3,6 +3,7 @@ import re
 
 import pytest
 import towerkit
+from towerkit.utils import poll_until
 
 from tests.api import Base_Api_Test
 from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)
@@ -233,14 +234,14 @@ class Test_Workflow_Jobs(Base_Api_Test):
         job = job_node.get_related('job')
 
         # Wait for spawned job to enter running state
-        job.wait_until_status('running', raise_on_timeout=True)
+        job.wait_until_status('running')
 
         # ..then cancel workflow job
         wfj.cancel()
-        wfj.wait_until_status('canceled', timeout=3 * 60, raise_on_timeout=True)
+        poll_until(lambda: getattr(wfj.get(), 'status') == 'canceled', timeout=3 * 60)
 
         # Confirm job spawned by workflow job was canceled
-        job.wait_until_status('canceled', raise_on_timeout=True)
+        poll_until(lambda: getattr(job.get(), 'status') == 'canceled', timeout=60)
 
     def test_cancel_job_spawned_by_workflow_job(self, factories):
         """Cancel job spawned by workflow job. Confirm workflow job finishes and is marked successful.
@@ -272,12 +273,11 @@ class Test_Workflow_Jobs(Base_Api_Test):
         job.cancel()
 
         # Confirm job cancelled
-        job.wait_until_status('canceled', raise_on_timeout=True)
+        poll_until(lambda: getattr(job.get(), 'status') == 'canceled', timeout=60)
 
         # Confirm WF job success
-        wfj.wait_until_status('successful', timeout=3 * 60, raise_on_timeout=True)
+        poll_until(lambda: getattr(wfj.get(), 'status') == 'successful', timeout=3 * 60)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5441', raises=AssertionError)
     def test_cancel_job_in_workflow_with_downstream_jobs(self, factories, api_jobs_pg):
         """Cancel job spawned by workflow job. Confirm jobs downstream from cancelled job
         are not triggered, but rest of workflow continues to execute.
@@ -335,10 +335,11 @@ class Test_Workflow_Jobs(Base_Api_Test):
         assert getattr(n1_job_node, 'job', None), 'Failed to find job for node {}'.format(n1_job_node)
         n1_job = n1_job_node.related.job.get()
         n1_job.cancel()
-        n1_job.wait_until_status('canceled', raise_on_timeout=True)
+
+        poll_until(lambda: getattr(n1_job.get(), 'status') == 'canceled', timeout=60)
 
         # Confirm workflow job completes successfully
-        wfj.wait_until_status('successful', timeout=3 * 60, raise_on_timeout=True)
+        poll_until(lambda: getattr(wfj.get(), 'status') == 'successful', timeout=3 * 60)
 
         # Confirm remaining jobs in workflow completed successfully
         for job_node in (n4_job_node, n5_job_node):
