@@ -316,6 +316,20 @@ class Test_Job(Base_Api_Test):
         assert(all([val == "$encrypted$" for val in extra_vars.values()])
                ), "Undesired values for extra_vars detected: {0}".format(extra_vars)
 
+    def test_survey_defaults_dont_meet_length_requirements(self, factories):
+        """Confirms that default survey spec variables that don't meet length requirements aren't provided to job"""
+        jt = factories.job_template()
+        spec = [dict(required=False, question_name="Question the First.",
+                     variable='test_var_one', type='text', min=3, default=''),
+                dict(required=False, question_name="Question the Second.",
+                     variable='test_var_two', type='text', max=3, default='four'),
+                dict(required=False, question_name="Question the Third.",
+                     variable='test_var_three', type='text', min=0, default='abc')]
+        jt.add_survey(spec=spec)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+        assert job.extra_vars == json.dumps(dict(test_var_three='abc'))
+
     def test_cancel_pending_job(self, job_with_status_pending):
         """Verify the job->cancel endpoint behaves as expected when canceling a
         pending/queued job
