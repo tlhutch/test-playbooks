@@ -3,9 +3,6 @@ instance_name_prefix: "{{ lookup('env','USER') }}-tower-radius"
 
 my_inventory_file: '{{ inventory_dir }}/inventory.radius'
 
-user_data_install_py2: &install_py2
-  "{{ lookup('file', 'files/install_py2.sh') }}"
-
 #
 # Images used for RADIUS testing
 #
@@ -13,7 +10,6 @@ user_data_install_py2: &install_py2
 ec2_images:
     - {'name': 'radius-primary-centos-7.latest-x86_64',    'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'tower,primary', 'security_group': 'Tower' }
     - {'name': 'radius-freeradius-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'radius',        'security_group': 'RADIUS'}
-    - {'name': 'radius-freeradius-ubuntu-16.04',           'user': 'ubuntu', 'id': 'ami-e3c3b8f4', 'type': 'm3.medium', 'groups': 'radius',        'security_group': 'RADIUS', 'user_data': *install_py2}
 
 ec2_security_groups:
     - name: Tower
