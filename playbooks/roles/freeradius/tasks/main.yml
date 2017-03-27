@@ -20,7 +20,7 @@
   lineinfile:
     dest: /etc/{{radius_dir}}/users
     insertbefore: BOF
-    line: 'radius_user Cleartext-Password := "{{user_password}}"'
+    line: 'radius_user Cleartext-Password := "{{freeradius_user_password}}"'
     state: present
 
 - name: Update RADIUS clients.conf
