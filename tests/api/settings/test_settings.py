@@ -234,10 +234,9 @@ class Test_Setting(Base_Api_Test):
         jobs = job_template.get_related('jobs')
 
         try:
-            count = poll_until(lambda: getattr(jobs.get(), 'count'), interval=5, timeout=90)
+            poll_until(lambda: getattr(jobs.get(), 'count') == 2, interval=5, timeout=90)
         except WaitUntilTimeout:
-            msg = "Unexpected number of jobs spawned. Expected two, got {0}."
-            pytest.fail(msg.format(count))
+            pytest.fail("unable to verify the expected number of jobs (2)")
 
         # wait for jobs to finish for clean test teardown
         for job in jobs.results:

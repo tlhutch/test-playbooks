@@ -461,6 +461,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
     FIXME
       - Verify interaction between schedule and cache_timeout
     """
+
     def test_empty(self, inventory_source):
         """assert a fresh inventory_source has no schedules"""
         schedules_pg = inventory_source.get_related('schedules')
@@ -776,7 +777,7 @@ class Test_Job_Template_Schedules(Base_Api_Test):
         assert schedule_pg.next_run is None
 
         # Wait for job to complete
-        job_pg = unified_jobs_pg.results[0].poll_until_completed(timeout=60)
+        job_pg = unified_jobs_pg.results[0].wait_until_completed(timeout=60)
 
         # Assert the expected job status
         assert not job_pg.is_successful, "Job unexpectedly completed successfully - %s" % job_pg
