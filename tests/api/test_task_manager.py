@@ -590,7 +590,6 @@ class Test_Cascade_Fail_Dependent_Jobs(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5700')
     @pytest.mark.fixture_args(source_script="""#!/usr/bin/env python
 import json, time
 # sleep helps us cancel the inventory update
@@ -625,10 +624,10 @@ print json.dumps(inventory)
         assert job_pg.wait_until_completed().status == "canceled", "Unexpected job status - %s." % job_pg
 
         # assess job_explanation
-        assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
+        assert job_pg.job_explanation.startswith(u'Previous Task Canceled:'), \
             "Unexpected job_explanation: %s." % job_pg.job_explanation
         try:
-            job_explanation = json.loads(job_pg.job_explanation[22:])
+            job_explanation = json.loads(job_pg.job_explanation[24:])
         except Exception:
             pytest.fail("job_explanation not stored as JSON data: %s.") % job_explanation
         assert job_explanation['job_type'] == inv_update_pg.type
@@ -638,7 +637,6 @@ print json.dumps(inventory)
         assert inv_source_pg.get().status == 'canceled', \
             "Unexpected inventory_source status after cancelling (expected 'canceled') - %s." % inv_source_pg.status
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5700')
     @pytest.mark.fixture_args(source_script="""#!/usr/bin/env python
 import json, time
 # sleep helps us cancel the inventory update
@@ -686,10 +684,10 @@ print json.dumps(inventory)
         assert job_pg.wait_until_completed().status == "canceled", "Unexpected job status - %s." % job_pg
 
         # assess job_explanation
-        assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
+        assert job_pg.job_explanation.startswith(u'Previous Task Canceled:'), \
             "Unexpected job_explanation: %s." % job_pg.job_explanation
         try:
-            job_explanation = json.loads(job_pg.job_explanation[22:])
+            job_explanation = json.loads(job_pg.job_explanation[24:])
         except Exception:
             pytest.fail("job_explanation not stored as JSON data: %s.") % job_explanation
         assert job_explanation['job_type'] == first_inv_update_pg.type
@@ -783,7 +781,6 @@ print json.dumps(inventory)
         assert inv_update_pg.is_successful, "Inventory update unexpectedly unsuccessful - %s." % inv_update_pg
         assert inv_source_pg.get().is_successful, "inventory_source unexpectedly unsuccessful - %s." % inv_source_pg
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5700')
     @pytest.mark.fixture_args(source_script="""#!/usr/bin/env python
 import json, time
 # sleep helps us cancel the inventory update
@@ -821,10 +818,10 @@ print json.dumps(inventory)
         assert job_pg.wait_until_completed().status == "canceled", "Unexpected job status - %s." % job_pg
 
         # assess job_explanation
-        assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
+        assert job_pg.job_explanation.startswith(u'Previous Task Canceled:'), \
             "Unexpected job_explanation: %s." % job_pg.job_explanation
         try:
-            job_explanation = json.loads(job_pg.job_explanation[22:])
+            job_explanation = json.loads(job_pg.job_explanation[24:])
         except Exception:
             pytest.fail("job_explanation not stored as JSON data: %s.") % job_explanation
         assert job_explanation['job_type'] == inv_update_pg.type
