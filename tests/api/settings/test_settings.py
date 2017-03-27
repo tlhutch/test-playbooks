@@ -7,8 +7,8 @@ import pytest
 from tests.api import Base_Api_Test
 
 from towerkit.tower.license import generate_license
-from towerkit.exceptions import BadRequest
-import towerkit.utils
+from towerkit.exceptions import BadRequest, WaitUntilTimeout
+from towerkit.utils import poll_until
 
 
 log = logging.getLogger(__name__)
@@ -205,7 +205,7 @@ class Test_Setting(Base_Api_Test):
                 "UJ related stdout censorship notice not displayed."
 
     @pytest.mark.skip(reason="Test flakiness detailed here: https://github.com/ansible/tower-qa/issues/882")
-    def test_schedule_max_jobs(self, factories, api_settings_jobs_pg, update_setting_pg):
+    def test_schedule_max_jobs(self, request, factories, api_settings_jobs_pg, update_setting_pg):
         """Verifies that number of spawned schedule jobs is capped by SCHEDULE_MAX_JOBS.
 
         Note: SCHEDULE_MAX_JOBS caps the number of waiting scheduled jobs spawned by
@@ -231,12 +231,16 @@ class Test_Setting(Base_Api_Test):
         # wait for scheduled jobs to spawn and assert that only two jobs spawned
         # Note: since our schedules spawn jobs minutely, we should only have one set of
         # spawned jobs within our timeout window
-        jobs_pg = job_template.get_related('jobs')
-        jobs_pg = towerkit.utils.wait_until(jobs_pg, 'count', 2, interval=5, verbose=True, timeout=60 * 1.5)
-        assert jobs_pg.count == 2, "Unexpected number of jobs spawned. Expected two, got {0}.".format(jobs_pg.count)
+        jobs = job_template.get_related('jobs')
+
+        try:
+            count = poll_until(lambda: getattr(jobs.get(), 'count'), interval=5, timeout=90)
+        except WaitUntilTimeout:
+            msg = "Unexpected number of jobs spawned. Expected two, got {0}."
+            pytest.fail(msg.format(count))
 
         # wait for jobs to finish for clean test teardown
-        for job in jobs_pg.results:
+        for job in jobs.results:
             job.wait_until_completed()
 
     @pytest.mark.parametrize('timeout, default_job_timeout, status, job_explanation', [

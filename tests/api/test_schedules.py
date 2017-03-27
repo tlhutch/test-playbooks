@@ -1,12 +1,14 @@
+import dateutil.rrule
+from datetime import datetime
+from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
+
 import pytest
 import fauxfactory
-import towerkit.exceptions
-import dateutil.rrule
-
+from towerkit import exceptions as exc
 from towerkit.rrule import RRule
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-from dateutil.parser import parse
+from towerkit.utils import poll_until
+
 from tests.api import Base_Api_Test
 
 
@@ -179,7 +181,7 @@ class Test_Project_Schedules(Base_Api_Test):
                            description="%s" % fauxfactory.gen_utf8(),
                            enabled=True,
                            rrule=str(unsupported_rrule))
-            with pytest.raises(towerkit.exceptions.BadRequest):
+            with pytest.raises(exc.BadRequest):
                 schedules_pg.post(payload)
 
     def test_post_duplicate(self, project, disabled_project_schedule):
@@ -188,7 +190,7 @@ class Test_Project_Schedules(Base_Api_Test):
 
         payload = dict(name=disabled_project_schedule.name,
                        rrule=disabled_project_schedule.rrule)
-        with pytest.raises(towerkit.exceptions.Duplicate):
+        with pytest.raises(exc.Duplicate):
             schedules_pg.post(payload)
 
     def test_post_disabled(self, project, disabled_project_schedule):
@@ -310,16 +312,12 @@ class Test_Project_Schedules(Base_Api_Test):
 
         # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = towerkit.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
 
-        # Ensure correct number of scheduled launches occurred
-        assert unified_jobs_pg.count == 1
+        poll_until(lambda: getattr(unified_jobs_pg.get(), 'count') == 1, interval=15, timeout=5 * 60)
 
         # Ensure the job status is failed
-        job_pg = unified_jobs_pg.results[0]
-        job_pg = towerkit.utils.wait_until(job_pg, 'status', 'failed', interval=15, verbose=True, timeout=60 * 5)
-        assert job_pg.status == 'failed', "Unexpected job status (%s != %s) - %s" % \
-            (job_pg.status, 'failed', job_pg)
+        job = unified_jobs_pg.get().results[0]
+        poll_until(lambda: getattr(job.get(), 'status') == 'failed', interval=15, timeout=5 * 60)
 
         # Is the next_run still what we expect?
         schedule_pg.get()
@@ -369,17 +367,13 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.next_run == rrule_frequency.after(datetime.utcnow()).isoformat() + 'Z'
 
         # wait 5 minutes for 1 scheduled update to complete
-        unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = towerkit.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
-
-        # Ensure correct number of scheduled launches occured
-        assert unified_jobs_pg.count == 1
+        jobs = schedule_pg.get_related('unified_jobs')
+        poll_until(lambda: getattr(jobs.get(), 'count') == 1, interval=15, timeout=5 * 60)
 
         # Is the next_run still what we expect?
         schedule_pg.get()
         assert schedule_pg.next_run == rrule_frequency.after(datetime.utcnow()).isoformat() + 'Z'
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3547')
     def test_update_minutely_count3(self, project):
         """assert a minutely schedule launches properly"""
         schedules_pg = project.get_related('schedules')
@@ -397,11 +391,8 @@ class Test_Project_Schedules(Base_Api_Test):
         assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
         # wait 5 minutes for scheduled updates to complete
-        unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = towerkit.utils.wait_until(unified_jobs_pg, 'count', rrule.count(), interval=15, verbose=True, timeout=60 * 5)
-
-        # ensure scheduled project updates ran
-        assert unified_jobs_pg.count == rrule.count()
+        jobs = schedule_pg.get_related('unified_jobs')
+        poll_until(lambda: getattr(jobs.get(), 'count') == rrule.count(), interval=15, timeout=5 * 60)
 
         # ensure the schedule has no remaining runs
         schedule_pg.get()
@@ -427,7 +418,6 @@ class Test_Project_Schedules(Base_Api_Test):
             payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
                            description=fauxfactory.gen_utf8(),
                            rrule=str(rrule))
-            print rrule
             schedule_pg = schedules_pg.post(payload)
             schedule_ids.append(schedule_pg.id)
 
@@ -438,9 +428,13 @@ class Test_Project_Schedules(Base_Api_Test):
         # delete the project
         project_pg.wait_until_completed().delete()
 
-        # assert the project schedules are gone
-        remaining_schedules = api_schedules_pg.get(id__in=','.join([str(sid) for sid in schedule_ids]))
-        assert remaining_schedules.count == 0
+        query_ids = ','.join(map(str, schedule_ids))
+
+        def schedules_are_deleted():
+            schedules = api_schedules_pg.get(id__in=query_ids)
+            return getattr(schedules, 'count') == 0
+
+        poll_until(schedules_are_deleted, interval=5, timeout=120)
 
 
 @pytest.mark.api
@@ -467,7 +461,6 @@ class Test_Inventory_Schedules(Base_Api_Test):
     FIXME
       - Verify interaction between schedule and cache_timeout
     """
-
     def test_empty(self, inventory_source):
         """assert a fresh inventory_source has no schedules"""
         schedules_pg = inventory_source.get_related('schedules')
@@ -482,7 +475,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
                        description="%s" % fauxfactory.gen_utf8(),
                        enabled=True,
                        rrule=str(rrule))
-        with pytest.raises(towerkit.exceptions.BadRequest):
+        with pytest.raises(exc.BadRequest):
             schedules_pg.post(payload)
 
     def test_post_invalid(self, aws_inventory_source, unsupported_rrules):
@@ -494,7 +487,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
                            description="%s" % fauxfactory.gen_utf8(),
                            enabled=True,
                            rrule=str(unsupported_rrule))
-            with pytest.raises(towerkit.exceptions.BadRequest):
+            with pytest.raises(exc.BadRequest):
                 schedules_pg.post(payload)
 
     def test_post_duplicate(self, aws_inventory_source, disabled_inventory_schedule):
@@ -503,7 +496,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
         payload = dict(name=disabled_inventory_schedule.name,
                        rrule=disabled_inventory_schedule.rrule)
-        with pytest.raises(towerkit.exceptions.Duplicate):
+        with pytest.raises(exc.Duplicate):
             schedules_pg.post(payload)
 
     def test_post_disabled(self, aws_inventory_source, disabled_inventory_schedule):
@@ -667,10 +660,8 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
         # wait 5 minutes for 1 scheduled update to complete
         unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = towerkit.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 5)
 
-        # Ensure correct number of scheduled launches occured
-        assert unified_jobs_pg.count == 1
+        poll_until(lambda: getattr(unified_jobs_pg.get(), 'count') == 1, interval=15, timeout=5 * 60)
 
         # Is the next_run still what we expect?
         schedule_pg.get()
@@ -694,11 +685,8 @@ class Test_Inventory_Schedules(Base_Api_Test):
         assert schedule_pg.next_run == rrule.after(datetime.utcnow()).isoformat() + 'Z'
 
         # wait 5 minutes for scheduled updates to complete
-        unified_jobs_pg = schedule_pg.get_related('unified_jobs')
-        unified_jobs_pg = towerkit.utils.wait_until(unified_jobs_pg, 'count', rrule.count(), interval=15, verbose=True, timeout=60 * 5)
-
-        # ensure scheduled updates ran
-        assert unified_jobs_pg.count == rrule.count()
+        jobs = schedule_pg.get_related('unified_jobs')
+        poll_until(lambda: getattr(jobs.get(), 'count') == rrule.count(), interval=15, timeout=5 * 60)
 
         # ensure the schedule has no remaining runs
         schedule_pg.get()
@@ -727,7 +715,6 @@ class Test_Inventory_Schedules(Base_Api_Test):
             payload = dict(name="schedule-%s" % fauxfactory.gen_utf8(),
                            description=fauxfactory.gen_utf8(),
                            rrule=str(rrule))
-            print rrule
             schedule_pg = schedules_pg.post(payload)
             schedule_ids.append(schedule_pg.id)
 
@@ -741,10 +728,14 @@ class Test_Inventory_Schedules(Base_Api_Test):
         # assert the group schedules are gone
         # Group deletes take much longer than project deletes.  Wait 2 minutes for
         # cascade schedule deletion.
-        remaining_schedules = towerkit.utils.wait_until(
-            api_schedules_pg.get(id__in=','.join([str(sid) for sid in schedule_ids])),
-            'count', 0, interval=5, verbose=True, timeout=60 * 2)
-        assert remaining_schedules.count == 0
+
+        query_ids = ','.join(map(str, schedule_ids))
+
+        def schedules_are_deleted():
+            schedules = api_schedules_pg.get(id__in=query_ids)
+            return getattr(schedules, 'count') == 0
+
+        poll_until(schedules_are_deleted, interval=5, timeout=120)
 
 
 @pytest.mark.api
@@ -778,17 +769,14 @@ class Test_Job_Template_Schedules(Base_Api_Test):
 
         # wait for a scheduled job to launch
         unified_jobs_pg = schedule_pg.get_related('unified_jobs', launch_type='scheduled')
-        unified_jobs_pg = towerkit.utils.wait_until(unified_jobs_pg, 'count', 1, interval=15, verbose=True, timeout=60 * 1)
-
-        # Assert expected number of launched jobs
-        assert unified_jobs_pg.count == 1
+        poll_until(lambda: getattr(unified_jobs_pg.get(), 'count') == 1, interval=15, timeout=60)
 
         # Is the next_run still what we expect?
         schedule_pg.get()
         assert schedule_pg.next_run is None
 
         # Wait for job to complete
-        job_pg = unified_jobs_pg.results[0].wait_until_completed(verbose=True, timeout=60 * 1)
+        job_pg = unified_jobs_pg.results[0].poll_until_completed(timeout=60)
 
         # Assert the expected job status
         assert not job_pg.is_successful, "Job unexpectedly completed successfully - %s" % job_pg
