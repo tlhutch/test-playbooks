@@ -2444,14 +2444,14 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_notification_template_create_as_unprivileged_user(self, unprivileged_user, factories):
+    def test_notification_template_create_as_unprivileged_user(self, factories, unprivileged_user):
         """Tests that unprivileged users may not create notification templates."""
         # test notification template create as unprivileged user
         with self.current_user(username=unprivileged_user.username, password=unprivileged_user.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 factories.notification_template()
 
-    def test_notification_template_create_as_org_admin(self, org_admin, factories):
+    def test_notification_template_create_as_org_admin(self, factories, org_admin):
         """Tests that org_admins may create notification templates."""
         # test notification template create as org_admin
         organization = org_admin.related.organizations.get().results.pop()
