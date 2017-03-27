@@ -1,214 +1,107 @@
 import dateutil.rrule
-import json
 import logging
 import os.path
+import json
 
+from towerkit.rrule import RRule
 import fauxfactory
 import pytest
-
-import towerkit.exceptions
-import towerkit.rrule
 
 
 log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="function")
-def project_scm_type_choices(request, authtoken, api_projects_pg):
-    """Return project scm_types from OPTIONS"""
-    return dict(api_projects_pg.options().json['actions']['GET']['scm_type']['choices'])
+def project_ansible_helloworld_hg(factories, organization):
+    project = factories.project(scm_type='hg', scm_url='https://bitbucket.org/jlaska/ansible-helloworld',
+                                organization=organization)
+    return project
 
 
 @pytest.fixture(scope="function")
-def project_status_choices(request, authtoken, api_projects_pg):
-    """Return project statuses from OPTIONS"""
-    return dict(api_projects_pg.options().json['actions']['GET']['status']['choices'])
+def project_ansible_playbooks_git_nowait(factories, organization):
+    project = factories.project(scm_type='git', scm_url='https://github.com/jlaska/ansible-playbooks.git',
+                                organization=organization, wait=False)
+    return project
 
 
 @pytest.fixture(scope="function")
-def project_ansible_helloworld_hg(request, authtoken, organization):
-    # Create project
-    payload = dict(name="project-%s" % fauxfactory.gen_utf8(),
-                   scm_type='hg',
-                   scm_url='https://bitbucket.org/jlaska/ansible-helloworld',
-                   scm_clean=False,
-                   scm_delete_on_update=False,
-                   scm_update_on_launch=False,)
-
-    obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.cleanup)
-
-    # Wait for project update to complete
-    latest_update_pg = obj.get_related('current_update').wait_until_completed()
-    # Assert project_update completed successfully
-    assert latest_update_pg.is_successful, "Job unsuccessful - %s" % latest_update_pg
-    return obj.get()
-
-
-@pytest.fixture(scope="function")
-def project(request, project_ansible_playbooks_git):
-    return project_ansible_playbooks_git
-
-
-@pytest.fixture(scope="function")
-def project_update_with_status_completed(request, project_ansible_playbooks_git):
-    return project_ansible_playbooks_git.get_related('last_update')
-
-
-@pytest.fixture(scope="function")
-def project_ansible_playbooks_manual(request, authtoken, ansible_runner, awx_config, organization):
-    """Create a manual project associated with ansible-playbooks.git"""
-    # Override the local_path
-
-    fixture_args = getattr(request.function, 'fixture_args', None)
-    if fixture_args and fixture_args.kwargs.get('local_path', False):
-        local_path = fixture_args.kwargs['local_path']
-    else:
-        local_path = "project_dir_%s" % fauxfactory.gen_utf8()
-
-    # Clone the repo
-    results = ansible_runner.git(repo='https://github.com/jlaska/ansible-playbooks.git',
-                                 dest=os.path.join(awx_config['project_base_dir'], local_path))
-    assert 'failed' not in results, "Clone failed\n%s" % json.dumps(results, indent=4)
-
-    # Initialize the project payload
-    payload = dict(name="ansible-playbooks.manual - %s" % local_path,
-                   description="manual project - %s" % fauxfactory.gen_utf8(),
-                   local_path=local_path,
-                   scm_type='')
-
-    # customize the payload using fixture_args (optional)
-    if fixture_args:
-        payload.update(fixture_args.kwargs)
-
-    try:
-        obj = organization.get_related('projects').post(payload)
-    except towerkit.exceptions.Duplicate:
-        log.debug("POST failed - %s" % json.dumps(payload, indent=2))
-        raise
-
-    request.addfinalizer(obj.silent_cleanup)
-
-    # manually delete the local_path
-    def delete_project():
-        ansible_runner.file(state="absent",
-                            path=os.path.join(awx_config['project_base_dir'], local_path))
-    request.addfinalizer(delete_project)
-    return obj
-
-
-@pytest.fixture(scope="function")
-def project_manual(request, project_ansible_playbooks_manual):
-    return project_ansible_playbooks_manual
-
-
-@pytest.fixture(scope="function")
-def project_ansible_playbooks_git_nowait(request, authtoken, organization):
-    # Create project
-    payload = dict(name="ansible-playbooks.git - %s" % fauxfactory.gen_utf8(),
-                   scm_type='git',
-                   scm_url='https://github.com/jlaska/ansible-playbooks.git',
-                   scm_clean=False,
-                   scm_delete_on_update=False,
-                   scm_update_on_launch=False,)
-    obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.silent_cleanup)
-    return obj
-
-
-@pytest.fixture(scope="function")
-def project_ansible_playbooks_git(request, project_ansible_playbooks_git_nowait):
-    # Wait for project update to complete
-    updates_pg = project_ansible_playbooks_git_nowait.get_related('project_updates', order_by="-id")
-    assert updates_pg.count > 0, 'No project updates found'
-    latest_update_pg = updates_pg.results.pop().wait_until_completed()
-    # Assert project_update completed successfully
-    assert latest_update_pg.is_successful, "Job unsuccessful - %s" % latest_update_pg
+def project_ansible_playbooks_git(project_ansible_playbooks_git_nowait):
+    updates = project_ansible_playbooks_git_nowait.related.project_updates.get(order_by="-id")
+    assert updates.count > 0, 'No project updates found'
+    assert updates.results.pop().wait_until_completed().is_successful
     return project_ansible_playbooks_git_nowait.get()
 
 
 @pytest.fixture(scope="function")
-def project_ansible_git_nowait(request, authtoken, organization):
-    # Create project
-    payload = dict(name="ansible.git - %s" % fauxfactory.gen_utf8(),
-                   scm_type='git',
-                   scm_url='https://github.com/ansible/ansible.git',
-                   scm_clean=False,
-                   scm_delete_on_update=False,
-                   scm_update_on_launch=False,)
-    obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.silent_cleanup)
-    return obj
+def project(project_ansible_playbooks_git):
+    return project_ansible_playbooks_git
 
 
 @pytest.fixture(scope="function")
-def project_ansible_git(request, project_ansible_git_nowait):
-    # Wait for project update to complete
-    updates_pg = project_ansible_git_nowait.get_related('project_updates', order_by="-id")
-    assert updates_pg.count > 0, 'No project updates found'
-    latest_update_pg = updates_pg.results.pop().wait_until_completed(timeout=60 * 5)
-    # Assert project_update completed successfully
-    assert latest_update_pg.is_successful, "Job unsuccessful - %s" % latest_update_pg
+def project_update_with_status_completed(project_ansible_playbooks_git):
+    return project_ansible_playbooks_git.related.last_update.get()
+
+
+@pytest.fixture(scope="function")
+def project_ansible_playbooks_manual(request, factories, ansible_runner, api_config_pg, organization):
+    local_path = 'project_dir_{0}'.format(fauxfactory.gen_alphanumeric())
+    full_path = os.path.join(api_config_pg.project_base_dir, local_path)
+    results = ansible_runner.git(repo='https://github.com/jlaska/ansible-playbooks.git', dest=full_path)
+    assert 'failed' not in results, "Clone failed\n{0}".format(json.dumps(results, indent=4))
+
+    project = factories.project(name="ansible-playbooks.manual - {0}".format(local_path),
+                                local_path=local_path, scm_type='', wait=False, organization=organization)
+
+    def delete_local_project():
+        ansible_runner.file(state="absent", path=full_path)
+
+    request.addfinalizer(delete_local_project)
+    return project
+
+
+@pytest.fixture(scope="function")
+def project_ansible_git_nowait(factories, organization):
+    project = factories.project(name="ansible.git - {0}".format(fauxfactory.gen_alphanumeric()),
+                                scm_type='git', scm_url='https://github.com/ansible/ansible.git',
+                                organization=organization, wait=False)
+    return project
+
+
+@pytest.fixture(scope="function")
+def project_ansible_git(project_ansible_git_nowait):
+    updates = project_ansible_git_nowait.related.project_updates.get(order_by="-id")
+    assert updates.count > 0, 'No project updates found'
+    assert updates.results.pop().wait_until_completed().is_successful
     return project_ansible_git_nowait.get()
 
 
 @pytest.fixture(scope="function")
-def project_ansible_docsite_git_nowait(request, authtoken, encrypted_scm_credential, organization):
-    # Create project
-    payload = dict(name="ansible-docsite.git - %s" % fauxfactory.gen_utf8(),
-                   scm_type='git',
-                   scm_url='git@github.com:ansible/docsite.git',
-                   scm_clean=False,
-                   scm_delete_on_update=False,
-                   scm_update_on_launch=False,
-                   credential=encrypted_scm_credential.id)
-    obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.silent_cleanup)
-    return obj
+def project_ansible_docsite_git_nowait(factories, encrypted_scm_credential, organization):
+    project = factories.project(name="ansible-docsite.git - {0}".format(fauxfactory.gen_alphanumeric()),
+                                scm_type='git', scm_url='git@github.com:ansible/docsite.git',
+                                credential=encrypted_scm_credential, organization=organization)
+    return project
 
 
 @pytest.fixture(scope="function")
-def project_ansible_docsite_git(request, project_ansible_docsite_git_nowait):
-    # Wait for project update to complete
-    updates_pg = project_ansible_docsite_git_nowait.get_related('project_updates', order_by="-id")
-    assert updates_pg.count > 0, 'No project updates found'
-    latest_update_pg = updates_pg.results.pop().wait_until_completed()
-    # Assert project_update completed successfully
-    assert latest_update_pg.is_successful, "Job unsuccessful - %s" % latest_update_pg
+def project_ansible_docsite_git(project_ansible_docsite_git_nowait):
+    updates = project_ansible_docsite_git_nowait.related.project_updates.get(order_by="-id")
+    assert updates.count > 0, 'No project updates found'
+    assert updates.results.pop().wait_until_completed().is_successful
     return project_ansible_docsite_git_nowait.get()
 
 
 @pytest.fixture(scope="function")
-def project_with_credential_prompt(request, authtoken, organization, scm_credential_key_unlock_ASK):
-    # Create project
-    payload = dict(name="project-%s" % fauxfactory.gen_utf8(),
-                   scm_type='git',
-                   scm_url='git@github.com:ansible/ansible-examples.git',
-                   scm_key_unlock='ASK',
-                   credential=scm_credential_key_unlock_ASK.id,)
-    obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.cleanup)
-    return obj
+def project_with_credential_prompt(factories, organization, scm_credential_key_unlock_ASK):
+    project = factories.project(scm_type='git', scm_url='git@github.com:ansible/ansible-examples.git',
+                                scm_key_unlock='ASK', credential=scm_credential_key_unlock_ASK,
+                                organization=organization, wait=False)
+    return project
 
 
 @pytest.fixture(scope="function")
-def project_with_schedule(request, authtoken, project_ansible_playbooks_git_nowait):
-    """A project with a schedule"""
-    project = project_ansible_playbooks_git_nowait
-    project.wait_until_completed()
-
-    schedule_rrule = towerkit.rrule.RRule(
-        dateutil.rrule.DAILY, count=1, byminute='', bysecond='', byhour='')
-
-    schedule_data = {
-        "name": "test_schedule-%s" % fauxfactory.gen_utf8(),
-        "description": "every day for 1 time",
-        "enabled": True,
-        "rrule": "{0}".format(schedule_rrule),
-        "extra_data": {}
-    }
-
-    obj = project.get_related('schedules').post(schedule_data)
-    request.addfinalizer(obj.silent_delete)
-
-    return project
+def project_with_schedule(project_ansible_playbooks_git):
+    rrule = RRule(dateutil.rrule.DAILY, count=1, byminute='', bysecond='', byhour='')
+    project_ansible_playbooks_git.add_schedule(rrule=rrule)
+    return project_ansible_playbooks_git.get()
