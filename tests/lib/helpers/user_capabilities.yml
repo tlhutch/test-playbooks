@@ -77,3 +77,7 @@ user:
   # org_admins cannot delete org_users within their own organization
   org_admin: {delete: false, edit: true}
   superuser: {delete: true, edit: true}
+workflow_job_template:
+  admin: {"edit": true, "start": true, "copy": false, "schedule": true, "delete": true}
+  execute: {"edit": false, "start": true, "copy": false, "schedule": true, "delete": false}
+  read: {"edit": false, "start": false, "copy": false, "schedule": false, "delete": false}
