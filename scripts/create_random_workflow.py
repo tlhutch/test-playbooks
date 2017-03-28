@@ -19,9 +19,9 @@ def parse_args():
     parser = optparse.OptionParser(usage="{0} [options] BASE_URL".format(sys.argv[0],))
 
     cwd = os.path.dirname(__file__)
-    _cred_help = 'Credential file to be loaded (default: tests/credentials.yml).  Use "false" for none.'
+    _cred_help = 'Credential file to be loaded (default: config/credentials.yml).  Use "false" for none.'
     parser.add_option('--credentials', action="store", dest='credentials',
-                      default=os.path.join(cwd, '..', 'tests/credentials.yml'),
+                      default=os.path.join(cwd, '..', 'config/credentials.yml'),
                       help=_cred_help)
     parser.add_option("--nodes", action="store", dest="num_nodes",
                       default=os.getenv("RAND_WORKFLOW_NUM_NODES", 5),
