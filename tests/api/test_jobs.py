@@ -392,6 +392,30 @@ class Test_Job(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             cancel_pg.post()
 
+    def test_jobs_persist_beyond_job_template_deletion(self, job_template):
+        """Verify that jobs presist beyond their JT deletion."""
+        job = job_template.launch().wait_until_completed()
+        job_template.delete()
+
+        # verify that our job persists
+        job.get()
+
+    @pytest.mark.parametrize('resource', ['project', 'custom_inventory_source'])
+    def test_cascade_delete_update_unified_jobs(self, request, resource):
+        """Verify that project and inventory updates get cascade deleted with their UJT deletion."""
+        resource = request.getfuncargvalue(resource)
+        update = resource.update().wait_until_completed()
+
+        # delete unified job template
+        if resource.type == 'project':
+            resource.delete()
+        else:
+            resource.related.inventory.delete()
+
+        # verify that update cascade deleted
+        with pytest.raises(towerkit.exceptions.NotFound):
+            update.get()
+
     def test_delete_running_job_with_orphaned_project(self, factories, set_roles, user_password):
         """Confirms that JT w/ cross org inventory and orphaned project deletion attempt triggers Forbidden"""
         org = factories.organization()
