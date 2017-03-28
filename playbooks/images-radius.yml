@@ -3,13 +3,9 @@ instance_name_prefix: "{{ lookup('env','USER') }}-tower-radius"
 
 my_inventory_file: '{{ inventory_dir }}/inventory.radius'
 
-#
-# Images used for RADIUS testing
-#
-
 ec2_images:
-    - {'name': 'radius-primary-centos-7.latest-x86_64',    'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'tower,primary', 'security_group': 'Tower' }
-    - {'name': 'radius-freeradius-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'radius',        'security_group': 'RADIUS'}
+    - {'name': 'primary-centos-7.latest-x86_64',    'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'tower,primary', 'security_group': 'Tower' }
+    - {'name': 'freeradius-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'radius',        'security_group': 'RADIUS'}
 
 ec2_security_groups:
     - name: Tower
