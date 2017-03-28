@@ -709,8 +709,8 @@ class Test_Organization_RBAC(Base_Api_Test):
         org_admin = factories.user()
         org.add_admin(org_admin)
 
-        inv = factories.inventory(organization=org)
-        jt1 = factories.job_template(inventory=inv)
+        project = factories.project(organization=org)
+        jt1 = factories.job_template(project=project)
         jt2 = factories.job_template()
 
         job1 = jt1.launch().wait_until_completed()
