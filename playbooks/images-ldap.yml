@@ -3,13 +3,9 @@ instance_name_prefix: "{{ lookup('env','USER') }}-tower-ldap"
 
 my_inventory_file: '{{inventory_dir}}/inventory.ldap'
 
-#
-# Images used for HA testing
-#
-
 ec2_images:
-    - {'name': 'ldap-primary-centos-7.latest-x86_64', 'user': 'centos',     'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'tower,primary', 'security_group': 'Tower'}
-    - {'name': 'ldap-openldap-centos-7.latest-x86_64',  'user': 'centos',   'id': 'ami-96a818fe', 'type': 'm3.medium', 'groups': 'ldap',   'security_group': 'LDAP'}
+    - {'name': 'primary-centos-7.latest-x86_64',  'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'tower,primary', 'security_group': 'Tower'}
+    - {'name': 'openldap-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'ldap',          'security_group': 'LDAP' }
 
 ec2_security_groups:
     - name: Tower

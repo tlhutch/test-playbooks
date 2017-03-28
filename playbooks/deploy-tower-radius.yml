@@ -1,0 +1,33 @@
+---
+#
+# To launch instance(s):
+#
+# ansible-playbook -i playbooks/inventory -e @playbooks/images-radius.yml playbooks/deploy-tower-radius.yml
+#
+# To terminate instance(s):
+#
+# ansible-playbook -i playbooks/inventory -e @playbooks/images-radius.yml -e 'instance_count=0' playbooks/deploy-tower-radius.yml
+#
+
+- name: create instance(s)
+  hosts: local
+  roles:
+    - role: create_ec2
+    - role: save_inventory
+      my_inventory_file: '{{inventory_dir}}/inventory.radius'
+
+- name: 'Install tower'
+  hosts: 'tower,primary'
+  gather_facts: yes
+  become: true
+  become_method: sudo
+  roles:
+    - role: awx_setup
+
+- name: 'Install freeradius'
+  hosts: 'radius'
+  gather_facts: yes
+  become: true
+  become_method: sudo
+  roles:
+    - role: freeradius

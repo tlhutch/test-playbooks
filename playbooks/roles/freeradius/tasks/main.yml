@@ -1,0 +1,24 @@
+- name: Install FreeRADIUS packages
+  yum:
+    name: freeradius
+    state: present
+    update_cache: yes
+
+- name: Update RADIUS users file
+  lineinfile:
+    dest: /etc/raddb/users
+    insertbefore: BOF
+    line: 'radius_user Cleartext-Password := "{{freeradius_user_password}}"'
+    state: present
+
+- name: Update RADIUS clients.conf
+  template:
+    src: templates/clients.conf.j2
+    dest: /etc/raddb/clients.conf
+    backup: yes
+
+- name: Restart radius service
+  service:
+    name: radiusd
+    state: restarted
+    enabled: yes

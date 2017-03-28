@@ -1,7 +1,6 @@
 ---
 - name: create instance(s)
   hosts: local
-
   roles:
     - role: create_ec2
     - role: save_inventory
