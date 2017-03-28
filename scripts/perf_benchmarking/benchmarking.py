@@ -18,9 +18,9 @@ _results_help = 'Timestamp file for performance information'
 parser.add_argument('--results', dest='results', help=_results_help,
                     default=os.path.join(cwd, 'data.yml'))
 
-_cred_help = 'Credential file to be loaded (default: tests/credentials.yml).  Use "false" for none.'
+_cred_help = 'Credential file to be loaded (default: config/credentials.yml).  Use "false" for none.'
 parser.add_argument('--credentials', dest='credentials', help=_cred_help,
-                    default=os.path.join(cwd, '..', '..', 'tests/credentials.yml'))
+                    default=os.path.join(cwd, '..', '..', 'config/credentials.yml'))
 args = parser.parse_args()
 
 results_file = open(args.results, 'wb')

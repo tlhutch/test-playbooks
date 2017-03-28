@@ -12,7 +12,7 @@ $ docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.te
 $ ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/credentials.yml
 $ docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test \
     --api-credentials=tools/docker/credentials.yml \
-    --github-cfg=tools/docker/credentials.yml \
+    --github-cfg=config/credentials.yml \
     --base-url='https://ec2-01-234-56-789.compute-1.amazonaws.com' \
     --ansible-inventory=playbooks/ec2.ini \
     --ansible-host-pattern=ec2-01-234-56-789.compute-1.amazonaws.com \
@@ -31,7 +31,7 @@ $ docker exec tools_tower_1 tower-manage update_password --username admin --pass
 Then run the test service:
 
 ```shell
-$ ansible-vault decrypt --vault-password-file="${VAULT_FILE}" tools/docker/credentials.yml --output=tests/credentials.yml
+$ ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml
 $ docker-compose -f tools/docker/ui/docker-compose.yml run test_tower_ui
 ```
 
