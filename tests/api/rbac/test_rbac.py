@@ -679,7 +679,7 @@ class Test_Organization_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(organization_pg.get(), role)
-            check_user_capabilities(api_organizations_pg.get(id=organization_pg.id).results.pop().get(), role)
+            check_user_capabilities(api_organizations_pg.get(id=organization_pg.id).results.pop(), role)
 
     def test_member_role_association(self, factories, user_password):
         """Tests that after a user is granted member_role that he now shows
@@ -882,7 +882,7 @@ class Test_Project_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(project_pg.get(), role)
-            check_user_capabilities(api_projects_pg.get(id=project_pg.id).results.pop().get(), role)
+            check_user_capabilities(api_projects_pg.get(id=project_pg.id).results.pop(), role)
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_launch_update(self, factories, user_password, role):
@@ -994,7 +994,7 @@ class Test_Project_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(update_pg.get(), role)
-            check_user_capabilities(api_project_updates_pg.get(id=update_pg.id).results.pop().get(), role)
+            check_user_capabilities(api_project_updates_pg.get(id=update_pg.id).results.pop(), role)
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_change_project_org_affiliation(self, factories, role):
@@ -1112,7 +1112,7 @@ class Test_Credential_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(credential_pg.get(), role)
-            check_user_capabilities(api_credentials_pg.get(id=credential_pg.id).results.pop().get(), role)
+            check_user_capabilities(api_credentials_pg.get(id=credential_pg.id).results.pop(), role)
 
     def test_autopopulated_admin_role_with_users(self, factories):
         """Tests that when you create a credential with a value supplied for 'user'
@@ -1304,7 +1304,7 @@ class Test_Team_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(team_pg.get(), role)
-            check_user_capabilities(api_teams_pg.get(id=team_pg.id).results.pop().get(), role)
+            check_user_capabilities(api_teams_pg.get(id=team_pg.id).results.pop(), role)
 
     def test_member_role_association(self, factories, user_password):
         """Tests that after a user is granted member_role that he now shows
@@ -1449,7 +1449,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(inventory_script.get(), role)
-            check_user_capabilities(api_inventory_scripts_pg.get(id=inventory_script.id).results.pop().get(), role)
+            check_user_capabilities(api_inventory_scripts_pg.get(id=inventory_script.id).results.pop(), role)
 
     def test_able_to_assign_inventory_script_to_different_org(self, factories, user_password, inventory_script, organization,
                                                               another_organization):
@@ -1587,7 +1587,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(job_template_pg.get(), role)
-            check_user_capabilities(api_job_templates_pg.get(id=job_template_pg.id).results.pop().get(), role)
+            check_user_capabilities(api_job_templates_pg.get(id=job_template_pg.id).results.pop(), role)
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_launch_job(self, factories, user_password, role):
@@ -1822,7 +1822,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(job_pg.get(), role)
-            check_user_capabilities(api_jobs_pg.get(id=job_pg.id).results.pop().get(), role)
+            check_user_capabilities(api_jobs_pg.get(id=job_pg.id).results.pop(), role)
 
 
 @pytest.mark.api
@@ -2075,7 +2075,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_pg.password):
             check_user_capabilities(inventory_pg.get(), role)
-            check_user_capabilities(api_inventories_pg.get(id=inventory_pg.id).results.pop().get(), role)
+            check_user_capabilities(api_inventories_pg.get(id=inventory_pg.id).results.pop(), role)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
@@ -2216,7 +2216,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(update_pg.get(), role)
-            check_user_capabilities(api_inventory_updates_pg.get(id=update_pg.id).results.pop().get(), role)
+            check_user_capabilities(api_inventory_updates_pg.get(id=update_pg.id).results.pop(), role)
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_launch_command(self, factories, user_password, role):
@@ -2394,7 +2394,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         with self.current_user(username=user_pg.username, password=user_password):
             check_user_capabilities(command_pg.get(), role)
-            check_user_capabilities(api_ad_hoc_commands_pg.get(id=command_pg.id).results.pop().get(), role)
+            check_user_capabilities(api_ad_hoc_commands_pg.get(id=command_pg.id).results.pop(), role)
 
     def test_cloud_credential_reassignment(self, factories, openstack_v2_credential, admin_user):
         """Test that a user with inventory-admin may not patch an inventory source with another user's
@@ -2509,13 +2509,13 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
     def test_user_capabilities_as_superuser(self, email_notification_template, api_notification_templates_pg):
         """Tests NT 'user_capabilities' as superuser."""
         check_user_capabilities(email_notification_template.get(), "superuser")
-        check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop().get(), "superuser")
+        check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop(), "superuser")
 
     def test_user_capabilities_as_org_admin(self, email_notification_template, org_admin, user_password, api_notification_templates_pg):
         """Tests NT 'user_capabilities' as an org_admin."""
         with self.current_user(username=org_admin.username, password=user_password):
             check_user_capabilities(email_notification_template.get(), "org_admin")
-            check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop().get(), "org_admin")
+            check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop(), "org_admin")
 
 
 @pytest.mark.api
@@ -2645,7 +2645,7 @@ class Test_User_RBAC(Base_Api_Test):
         superuser = factories.user(is_superuser=True)
 
         check_user_capabilities(superuser.get(), "superuser")
-        check_user_capabilities(api_users_pg.get(id=superuser.id).results.pop().get(), "superuser")
+        check_user_capabilities(api_users_pg.get(id=superuser.id).results.pop(), "superuser")
 
     def test_user_capabilities_as_org_admin(self, factories, user_password, api_users_pg):
         """Tests 'user_capabilities' with an org_admin."""
@@ -2657,7 +2657,7 @@ class Test_User_RBAC(Base_Api_Test):
 
         with self.current_user(username=org_admin.username, password=user_password):
             check_user_capabilities(org_user.get(), "org_admin")
-            check_user_capabilities(api_users_pg.get(id=org_user.id).results.pop().get(), "org_admin")
+            check_user_capabilities(api_users_pg.get(id=org_user.id).results.pop(), "org_admin")
 
     def test_cross_org_admin_self_rename(self, factories):
         """Confirms that a user who is a member of one org and an admin of another can change their own name"""
@@ -2707,7 +2707,7 @@ class Test_System_Jobs_RBAC(Base_Api_Test):
     def test_user_capabilities_as_superuser(self, cleanup_jobs_with_status_completed, api_system_jobs_pg):
         """Verify 'user_capabilities' with a superuser."""
         check_user_capabilities(cleanup_jobs_with_status_completed.get(), "superuser")
-        check_user_capabilities(api_system_jobs_pg.get(id=cleanup_jobs_with_status_completed.id).results.pop().get(), "superuser")
+        check_user_capabilities(api_system_jobs_pg.get(id=cleanup_jobs_with_status_completed.id).results.pop(), "superuser")
 
     def test_launch_as_auditor(self, factories, system_job_template):
         """Confirms that a system auditor cannot launch system jobs"""
@@ -2802,7 +2802,7 @@ class Test_Schedules_RBAC(Base_Api_Test):
         """Tests 'user_capabilities' against schedules of all types of UJT as superuser."""
         schedule_pg = resource_with_schedule.get_related('schedules').results[0]
         check_user_capabilities(schedule_pg.get(), 'superuser')
-        check_user_capabilities(api_schedules_pg.get(id=schedule_pg.id).results.pop().get(), "superuser")
+        check_user_capabilities(api_schedules_pg.get(id=schedule_pg.id).results.pop(), "superuser")
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/5507")
     def test_user_capabilities_as_org_admin(self, org_admin, user_password, organization_resource_with_schedule, api_schedules_pg):
@@ -2811,7 +2811,7 @@ class Test_Schedules_RBAC(Base_Api_Test):
 
         with self.current_user(org_admin.username, user_password):
             check_user_capabilities(schedule_pg.get(), 'org_admin')
-            check_user_capabilities(api_schedules_pg.get(id=schedule_pg.id).results.pop().get(), "org_admin")
+            check_user_capabilities(api_schedules_pg.get(id=schedule_pg.id).results.pop(), "org_admin")
 
 
 @pytest.mark.api
