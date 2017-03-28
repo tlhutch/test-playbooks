@@ -681,6 +681,83 @@ class Test_Organization_RBAC(Base_Api_Test):
             check_user_capabilities(organization_pg.get(), role)
             check_user_capabilities(api_organizations_pg.get(id=organization_pg.id).results.pop(), role)
 
+    def test_org_admin_job_deletion(self, factories):
+        """Test that org admins can delete jobs from their organization only."""
+        org = factories.organization()
+        org_admin = factories.user()
+        org.add_admin(org_admin)
+
+        project = factories.project(organization=org)
+        jt1 = factories.job_template(project=project)
+        jt2 = factories.job_template()
+
+        job1 = jt1.launch().wait_until_completed()
+        job2 = jt2.launch().wait_until_completed()
+
+        with self.current_user(username=org_admin.username, password=org_admin.password):
+            job1.delete()
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                job2.delete()
+
+    def test_org_admin_command_deletion(self, factories, v1):
+        """Test that org admins can delete commands from their organization only."""
+        org = factories.organization()
+        org_admin = factories.user()
+        org.add_admin(org_admin)
+
+        inv1 = factories.inventory(organization=org)
+        inv2 = factories.inventory()
+
+        ahc1 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=inv1)
+        ahc2 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=inv2)
+
+        with self.current_user(username=org_admin.username, password=org_admin.password):
+            ahc1.delete()
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                ahc2.delete()
+
+    def test_org_admin_project_update_deletion(self, factories):
+        """Test that org admins can delete project updates from their organization only."""
+        org = factories.organization()
+        org_admin = factories.user()
+        org.add_admin(org_admin)
+
+        project1 = factories.project(organization=org)
+        project2 = factories.project()
+
+        update1 = project1.update().wait_until_completed()
+        update2 = project2.update().wait_until_completed()
+
+        with self.current_user(username=org_admin.username, password=org_admin.password):
+            update1.delete()
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                update2.delete()
+
+    def test_org_admin_inventory_update_deletion(self, factories):
+        """Test that org admins can delete inventory updates from their organization only."""
+        org1 = factories.organization()
+        org2 = factories.organization()
+        org_admin = factories.user()
+        org1.add_admin(org_admin)
+
+        inv1 = factories.inventory(organization=org1)
+        inv2 = factories.inventory(organization=org2)
+
+        # create custom groups
+        inv_script1 = factories.inventory_script(organization=org1)
+        inv_script2 = factories.inventory_script(organization=org2)
+        group1 = factories.group(inventory=inv1, inventory_script=inv_script1)
+        group2 = factories.group(inventory=inv2, inventory_script=inv_script2)
+
+        # launch inventory updates
+        inv_update1 = group1.related.inventory_source.get().update().wait_until_completed()
+        inv_update2 = group2.related.inventory_source.get().update().wait_until_completed()
+
+        with self.current_user(username=org_admin.username, password=org_admin.password):
+            inv_update1.delete()
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                inv_update2.delete()
+
     def test_member_role_association(self, factories, user_password):
         """Tests that after a user is granted member_role that he now shows
         up under organizations/N/users.
