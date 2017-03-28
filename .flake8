@@ -1,6 +1,6 @@
 [flake8]
 ignore = E501,E12,E261,F403
-max_complexity = 11
+max_complexity = 20
 exclude = playbooks,*.egg*,.tox
 
 [pep8]
