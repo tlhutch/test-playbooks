@@ -703,6 +703,28 @@ class Test_Organization_RBAC(Base_Api_Test):
             check_user_capabilities(organization_pg.get(), role)
             check_user_capabilities(api_organizations_pg.get(id=organization_pg.id).results.pop().get(), role)
 
+    def test_org_admin_job_deletion(self, factories):
+        """Test that org admins can delete jobs from their organization only."""
+        org = factories.organization()
+        org_admin = factories.user()
+        org.set_object_roles(org_admin, "admin")
+
+        inv = factories.inventory(organization=org)
+        jt1 = factories.job_template(inventory=inv)
+        jt2 = factories.job_template()
+
+        # sanity check: JTs should have inventories in different organizations
+        assert inv.organization != jt2.related.inventory.get().organization, \
+            "JT inventories are unexpectedly in the same organization."
+
+        job1 = jt1.launch().wait_until_completed()
+        job2 = jt2.launch().wait_until_completed()
+
+        with self.current_user(username=org_admin.username, password=org_admin.password):
+            job1.delete()
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                job2.delete()
+
     def test_member_role_association(self, factories, user_password):
         """Tests that after a user is granted member_role that he now shows
         up under organizations/N/users.
