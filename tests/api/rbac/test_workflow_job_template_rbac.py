@@ -1,6 +1,7 @@
 import pytest
 import logging
 
+from tests.lib.helpers.rbac_utils import check_user_capabilities
 from tests.api import Base_Api_Test
 
 from towerkit.exceptions import Forbidden
@@ -208,3 +209,16 @@ class Test_Workflow_Job_Template_RBAC(Base_Api_Test):
                 other_wfjt.put()
             with pytest.raises(Forbidden):
                 other_wfjt.delete()
+
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_user_capabilities(self, factories, api_workflow_job_templates_pg, role):
+        """Test user_capabilities given each WFJT role."""
+        wfjt = factories.workflow_job_template()
+        user = factories.user()
+
+        # give test user target role privileges
+        wfjt.set_object_roles(user, role)
+
+        with self.current_user(user.username, user.password):
+            check_user_capabilities(wfjt.get(), role)
+            check_user_capabilities(api_workflow_job_templates_pg.get(id=wfjt.id).results.pop(), role)
