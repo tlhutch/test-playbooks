@@ -54,7 +54,7 @@ def test_stock_branding(login_page):
         'Expected modal notice to not be displayed')
 
 
-def test_custom_rebranding(login_page, authtoken, install_enterprise_license, install_custom_branding):
+def test_custom_rebranding(login_page, authtoken, install_custom_branding):
     """Verify that our login modal may be rebranded with a custom
     image and notice.
     """
