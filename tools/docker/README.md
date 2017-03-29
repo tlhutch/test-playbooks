@@ -1,16 +1,9 @@
 # Tower Integration Tests in Docker
 
-## Examples
-
-## Running an arbitary py.test command
-```shell
-docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe py.test
-```
-
 ## Running API tests
 ```shell
 # decrypt credentials
-ansible-vault decrypt tools/docker/credentials.yml
+ansible-vault decrypt config/credentials.vault --output=config/credentials.yml
 
 # run tests
 docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe \
