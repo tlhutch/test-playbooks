@@ -6,7 +6,7 @@ pytestmark = [pytest.mark.ui]
 
 
 @pytest.mark.usefixtures('supported_window_sizes')
-def test_header_shows_correct_username(v1, ui, ui_user):
+def test_header_shows_correct_username(ui, ui_user):
     """Verify correctly displayed username on header"""
     dashboard = ui.dashboard
     msg = 'Unable to verify correctly displayed username on header'
