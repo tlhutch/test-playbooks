@@ -35,7 +35,7 @@ parser.add_argument('--inventory', dest='inventory', help=_inv_help,
 
 _cred_help = 'Credential file to be loaded (default: tests/credentials.yml).  Use "false" for none.'
 parser.add_argument('--credentials', dest='credentials', help=_cred_help,
-                    default=os.path.join(cwd, '..', '..', 'tests/credentials.yml'))
+                    default=os.path.join(cwd, '..', '..', 'config/credentials.yml'))
 
 _resource_help = 'Resource file to be loaded (default: scripts/resource_loading/data.yml)'
 parser.add_argument('--resources', dest='resources', help=_resource_help,
