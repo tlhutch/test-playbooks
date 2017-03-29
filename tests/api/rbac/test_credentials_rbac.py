@@ -114,7 +114,7 @@ class Test_Credential_RBAC(Base_Api_Test):
             check_user_capabilities(credential_pg.get(), role)
             check_user_capabilities(api_credentials_pg.get(id=credential_pg.id).results.pop(), role)
 
-    def test_autopopulated_admin_role_with_users(self, factories):
+    def test_autopopulated_admin_role_with_user_credentials(self, factories):
         """Tests that when you create a credential with a value supplied for 'user'
         that your user is automatically given the admin role of your credential.
         """
