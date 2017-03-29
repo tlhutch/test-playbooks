@@ -112,7 +112,7 @@ def set_roles(get_role):
 
 
 @pytest.fixture
-def set_test_roles(factories):
+def set_test_roles(factories, set_roles):
     """Helper fixture used in creating the roles used in our RBAC tests."""
     def func(user_pg, tower_object, agent, role):
         """:param user_pg: The api page model for a user

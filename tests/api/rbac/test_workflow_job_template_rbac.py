@@ -1,9 +1,10 @@
 import pytest
 import logging
 
-from towerkit.exceptions import Forbidden
 from tests.lib.helpers.rbac_utils import check_user_capabilities
 from tests.api import Base_Api_Test
+
+from towerkit.exceptions import Forbidden
 
 log = logging.getLogger(__name__)
 
