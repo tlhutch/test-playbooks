@@ -1,10 +1,9 @@
 import pytest
 import logging
 
+from towerkit.exceptions import Forbidden
 from tests.lib.helpers.rbac_utils import check_user_capabilities
 from tests.api import Base_Api_Test
-
-from towerkit.exceptions import Forbidden
 
 log = logging.getLogger(__name__)
 
@@ -27,8 +26,8 @@ log = logging.getLogger(__name__)
 # - user capability fields
 
 @pytest.mark.api
+@pytest.mark.rbac
 @pytest.mark.skip_selenium
-@pytest.mark.destructive
 class Test_Workflow_Job_Template_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')

@@ -1,7 +1,42 @@
 import pytest
+from contextlib import contextmanager
 
+import towerkit.exceptions
 from towerkit.api.pages import Role_Page, Roles_Page, Team_Page, User_Page
-from towerkit.exceptions import NoContent
+
+
+@pytest.fixture
+def auth_user(testsetup, authtoken, api_authtoken_url):
+    """Inject a context manager for user authtoken switching on api models.
+    The context manager is a wrapped function which takes a user api model
+    and optional password.
+    """
+    @contextmanager
+    def _auth_user(user, password='fo0m4nchU'):
+        """Switch authorization context to that of a user corresponding to
+        the api model of a user details endpoint.
+        :param user: The api page model for a user
+        :param password: (optional[str]): The password of the user
+        Usage::
+            >>> # patch a job template as a user with insufficient permissions
+            >>> foo_job_template = factories.job_template(name='foo')
+            >>> bar_inventory = factories.inventory(name='bar')
+            >>> test_user = factories.user(username='phil')
+            >>> with auth_user(test_user):
+            >>>     foo_job_template.patch(inventory=bar_inventory.id)
+            *** Forbidden
+        """
+        prev_auth = testsetup.api.session.auth
+
+        data = {'username': user.username, 'password': password}
+        token = testsetup.api.post(api_authtoken_url, data).json()['token']
+
+        try:
+            testsetup.api.login(token=token)
+            yield
+        finally:
+            testsetup.api.session.auth = prev_auth
+    return _auth_user
 
 
 @pytest.fixture(scope='session')
@@ -71,6 +106,53 @@ def set_roles(get_role):
                 raise RuntimeError('Invalid role association endpoint')
             if disassociate:
                 payload['disassociate'] = disassociate
-            with pytest.raises(NoContent):
+            with pytest.raises(towerkit.exceptions.NoContent):
                 endpoint_model.post(payload)
     return _set_roles
+
+
+@pytest.fixture
+def set_test_roles(factories):
+    """Helper fixture used in creating the roles used in our RBAC tests."""
+    def func(user_pg, tower_object, agent, role):
+        """:param user_pg: The api page model for a user
+        :param tower_object: Test Tower resource (a job template for example)
+        :param agent: Either "user" or "team"; used for test parametrization
+        :param role: Test role to give to our user_pg
+        Note: the organization of our team matters when we're testing
+        credentials.
+        """
+        if agent == "user":
+            set_roles(user_pg, tower_object, [role])
+        elif agent == "team":
+            # create our team in our user organization if applicable
+            organizations_pg = user_pg.get_related("organizations")
+            if organizations_pg.results:
+                team_pg = factories.team(organization=organizations_pg.results[0])
+            else:
+                team_pg = factories.team()
+            set_roles(user_pg, team_pg, ['member'])
+            set_roles(team_pg, tower_object, [role])
+        else:
+            raise ValueError("Unhandled 'agent' value.")
+    return func
+
+
+@pytest.fixture(scope="function", params=['organization', 'job_template', 'custom_inventory_source', 'project'])
+def notifiable_resource(request):
+    """Iterates through the Tower objects that support notifications."""
+    return request.getfuncargvalue(request.param)
+
+
+@pytest.fixture(scope="function", params=['organization', 'job_template', 'custom_inventory_source', 'project'])
+def resource_with_notification(request, email_notification_template):
+    """Tower resource with an associated email notification template."""
+    resource = request.getfuncargvalue(request.param)
+
+    # associate our email NT with all notification template endpoints
+    payload = dict(id=email_notification_template.id)
+    endpoints = ['notification_templates_any', 'notification_templates_success', 'notification_templates_error']
+    for endpoint in endpoints:
+        with pytest.raises(towerkit.exceptions.NoContent):
+            resource.get_related(endpoint).post(payload)
+    return resource

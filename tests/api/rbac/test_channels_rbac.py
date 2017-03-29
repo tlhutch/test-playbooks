@@ -6,6 +6,7 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
+@pytest.mark.rbac
 @pytest.mark.skip_selenium
 class TestChannelsRBAC(Base_Api_Test):
 
