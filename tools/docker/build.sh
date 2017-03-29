@@ -12,7 +12,7 @@ REV_TOWERKIT=$(git --git-dir="${TOWERKIT_DIR}/.git" rev-parse HEAD | head -c7)
 REV_TOWER_QA=$(git rev-parse HEAD | head -c7)
 
 docker build -f ./tools/docker/Dockerfile \
-    --build-arg TOWERKIT_REPO="${TOWERKIT_REPO}" \
+    --build-arg TOWERKIT_DIR="${TOWERKIT_DIR}" \
     --tag ${CONTAINER_IMAGE_NAME}:latest \
     --tag ${CONTAINER_IMAGE_NAME}:${REV_TOWERKIT}_${REV_TOWER_QA} .
 
