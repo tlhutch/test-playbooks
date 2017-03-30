@@ -5,6 +5,9 @@
 # decrypt credentials
 ansible-vault decrypt config/credentials.vault --output=config/credentials.yml
 
+# remove .pyc files from disk before mounting the project dir into the container
+./scripts/clean.sh
+
 # run tests
 docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe \
     py.test -c config/api.cfg --base-url='https://ec2-tower.com'
@@ -19,6 +22,9 @@ docker exec tools_tower_1 tower-manage update_password --username admin --passwo
 
 # decrypt credentials
 ansible-vault decrypt config/credentials.vault --output=config/credentials.yml
+
+# remove .pyc files from disk before mounting the project dir into the container
+./scripts/clean.sh
 
 # run the test services
 docker-compose -f tools/docker/ui/docker-compose.yml run test_tower_ui
