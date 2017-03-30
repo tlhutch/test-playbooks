@@ -1,6 +1,0 @@
----
-
-admin_password: 'fo0m4nchU'
-
-custom_console_logo_path: '/var/lib/awx/public/static/assets/custom_console_logo.png'
-local_settings_path: '/var/lib/awx/public/static/local_settings.json'

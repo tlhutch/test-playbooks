@@ -1,6 +1,0 @@
-{
-  "base_dir": "/var/lib/awx/projects",
-  "local_path": "test.manual",
-  "name": "Test Manual Project",
-  "organization": 1
-}

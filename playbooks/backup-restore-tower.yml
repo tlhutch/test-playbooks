@@ -1,7 +1,0 @@
----
-- name: 'Invoke backup/restore job and check results'
-  hosts: 'all'
-  gather_facts: no
-  become: true
-  roles:
-    - { role: backup_restore_tower }
