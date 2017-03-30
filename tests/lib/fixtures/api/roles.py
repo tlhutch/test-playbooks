@@ -1,42 +1,7 @@
 import pytest
-from contextlib import contextmanager
 
 import towerkit.exceptions
 from towerkit.api.pages import Role_Page, Roles_Page, Team_Page, User_Page
-
-
-@pytest.fixture
-def auth_user(testsetup, authtoken, api_authtoken_url):
-    """Inject a context manager for user authtoken switching on api models.
-    The context manager is a wrapped function which takes a user api model
-    and optional password.
-    """
-    @contextmanager
-    def _auth_user(user, password='fo0m4nchU'):
-        """Switch authorization context to that of a user corresponding to
-        the api model of a user details endpoint.
-        :param user: The api page model for a user
-        :param password: (optional[str]): The password of the user
-        Usage::
-            >>> # patch a job template as a user with insufficient permissions
-            >>> foo_job_template = factories.job_template(name='foo')
-            >>> bar_inventory = factories.inventory(name='bar')
-            >>> test_user = factories.user(username='phil')
-            >>> with auth_user(test_user):
-            >>>     foo_job_template.patch(inventory=bar_inventory.id)
-            *** Forbidden
-        """
-        prev_auth = testsetup.api.session.auth
-
-        data = {'username': user.username, 'password': password}
-        token = testsetup.api.post(api_authtoken_url, data).json()['token']
-
-        try:
-            testsetup.api.login(token=token)
-            yield
-        finally:
-            testsetup.api.session.auth = prev_auth
-    return _auth_user
 
 
 @pytest.fixture(scope='session')
