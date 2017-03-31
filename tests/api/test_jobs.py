@@ -430,7 +430,7 @@ class Test_Job(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.NotFound):
             update.get()
 
-    def test_delete_running_job_with_orphaned_project(self, factories, set_roles, user_password):
+    def test_delete_running_job_with_orphaned_project(self, factories, user_password):
         """Confirms that JT w/ cross org inventory and orphaned project deletion attempt triggers Forbidden"""
         org = factories.organization()
         operator = factories.user(organization=org)
@@ -442,7 +442,7 @@ class Test_Job(Base_Api_Test):
                                               project=orphaned_project,
                                               inventory=cross_inventory)
 
-        set_roles(operator, job_template, ['execute'])
+        job_template.set_object_roles(operator, "execute")
         with self.current_user(operator.username, user_password):
             job = job_template.launch()
             with pytest.raises(towerkit.exceptions.Forbidden):
