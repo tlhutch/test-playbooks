@@ -118,38 +118,16 @@ class OrganizationFactory(PageFactory):
         inline_args = ('request',)
 
 
-class LabelFactory(PageFactory):
-    class Meta:
-        model = pages.Label
-        inline_args = ('request',)
-        resources = ('organization',)
-
-    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
-    organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
-
-
-class ProjectFactory(PageFactory):
-    class Meta:
-        model = pages.Project
-        inline_args = ('request',)
-        resources = ('organization',)
-
-    organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
-
-
 class UserFactory(PageFactory):
     class Meta:
         model = pages.User
         inline_args = ('request',)
 
 
-class TeamFactory(PageFactory):
+class WorkflowJobTemplateFactory(PageFactory):
     class Meta:
-        model = pages.Team
+        model = pages.WorkflowJobTemplates
         inline_args = ('request',)
-        resources = ('organization',)
-
-    organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
 
 
 class CredentialFactory(PageFactory):
@@ -181,16 +159,61 @@ class InventoryFactory(PageFactory):
     organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
 
 
-class HostFactory(PageFactory):
+class InventoryScriptFactory(PageFactory):
     class Meta:
-        model = pages.Host
+        model = pages.InventoryScript
         inline_args = ('request',)
-        resources = ('inventory',)
+        resources = ('organization',)
 
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
+    organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
+
+
+class LabelFactory(PageFactory):
+    class Meta:
+        model = pages.Label
+        inline_args = ('request',)
+        resources = ('organization',)
+
+    name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
+    organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
+
+
+class NotificationTemplateFactory(PageFactory):
+    class Meta:
+        model = pages.NotificationTemplate
+        inline_args = ('request',)
+        resources = ('organization',)
+
+    organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
+
+
+class ProjectFactory(PageFactory):
+    class Meta:
+        model = pages.Project
+        inline_args = ('request',)
+        resources = ('organization',)
+
+    organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
+
+
+class TeamFactory(PageFactory):
+    class Meta:
+        model = pages.Team
+        inline_args = ('request',)
+        resources = ('organization',)
+
+    organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
+
+
+class AdHocCommandFactory(PageFactory):
+    class Meta:
+        model = pages.AdHocCommand
+        inline_args = ('request',)
+        resources = ('credential', 'inventory')
+
     inventory = factory.SubFactory(InventoryFactory, request=factory.SelfAttribute('..request'))
-    variables = json.dumps({'ansible_ssh_host': '127.0.0.1',
-                            'ansible_connection': 'local'})
+    credential = factory.SubFactory(CredentialFactory, request=factory.SelfAttribute('..request'))
 
 
 class GroupFactory(PageFactory):
@@ -203,14 +226,16 @@ class GroupFactory(PageFactory):
     inventory = factory.SubFactory(InventoryFactory, request=factory.SelfAttribute('..request'))
 
 
-class InventoryScriptFactory(PageFactory):
+class HostFactory(PageFactory):
     class Meta:
-        model = pages.InventoryScript
+        model = pages.Host
         inline_args = ('request',)
-        resources = ('organization',)
+        resources = ('inventory',)
 
     name = factory.LazyFunction(fauxfactory.gen_alphanumeric)
-    organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
+    inventory = factory.SubFactory(InventoryFactory, request=factory.SelfAttribute('..request'))
+    variables = json.dumps({'ansible_ssh_host': '127.0.0.1',
+                            'ansible_connection': 'local'})
 
 
 class JobTemplateFactory(PageFactory):
@@ -236,21 +261,6 @@ class JobTemplateFactory(PageFactory):
     inventory = factory.SubFactory(InventoryFactory,
                                    request=factory.SelfAttribute('..request'),
                                    organization=factory.SelfAttribute('..organization'))
-
-
-class NotificationTemplateFactory(PageFactory):
-    class Meta:
-        model = pages.NotificationTemplate
-        inline_args = ('request',)
-        resources = ('organization',)
-
-    organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
-
-
-class WorkflowJobTemplateFactory(PageFactory):
-    class Meta:
-        model = pages.WorkflowJobTemplates
-        inline_args = ('request',)
 
 
 class WorkflowJobTemplateNodeFactory(PageFactory):
@@ -281,7 +291,8 @@ class FactoryFixture(object):
 
 
 def factory_namespace(request):
-    return SimpleNamespace(credential=FactoryFixture(request, CredentialFactory),
+    return SimpleNamespace(ad_hoc_command=FactoryFixture(request, AdHocCommandFactory),
+                           credential=FactoryFixture(request, CredentialFactory),
                            group=FactoryFixture(request, GroupFactory),
                            host=FactoryFixture(request, HostFactory),
                            inventory=FactoryFixture(request, InventoryFactory),

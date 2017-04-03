@@ -2,31 +2,26 @@ import pytest
 
 
 @pytest.fixture(scope="function")
-def ad_hoc_ping(request, api_ad_hoc_commands_pg, host, ssh_credential):
-    """Launch an ad_hoc ping command and return the job resource."""
-    ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
-    payload = dict(inventory=host.inventory,
-                   credential=ssh_credential.id,
-                   module_name="ping")
-
+def ad_hoc_command(request, factories, host, ssh_credential):
+    kwargs = dict(inventory=host.ds.inventory, credential=ssh_credential)
     fixture_args = getattr(request.function, 'fixture_args', None)
-    for key in ('module_name', 'module_args', 'job_type'):
-        if fixture_args and key in fixture_args.kwargs:
-            payload[key] = fixture_args.kwargs[key]
+    if fixture_args:
+        for key in ('module_name', 'module_args', 'job_type'):
+            if key in fixture_args.kwargs:
+                kwargs[key] = fixture_args.kwargs[key]
 
-    return ad_hoc_commands_pg.post(payload)
-
-
-@pytest.fixture(scope="function")
-def ad_hoc_with_status_pending(pause_awx_task_system, ad_hoc_ping):
-    """Wait for ad_hoc_ping to move from new to queued and return the job."""
-    return ad_hoc_ping.wait_until_started()
+    return factories.ad_hoc_command(**kwargs)
 
 
 @pytest.fixture(scope="function")
-def ad_hoc_with_status_completed(ad_hoc_ping):
-    """Wait for ad_hoc_ping to finish, and return the job."""
-    return ad_hoc_ping.wait_until_completed()
+def ad_hoc_with_status_pending(pause_awx_task_system, ad_hoc_command):
+    """Wait for ad_hoc_command to move from new to queued and return the job."""
+    return ad_hoc_command.wait_until_started()
+
+
+@pytest.fixture(scope="function")
+def ad_hoc_with_status_completed(ad_hoc_command):
+    return ad_hoc_command.wait_until_completed()
 
 
 @pytest.fixture(scope="function")
