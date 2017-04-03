@@ -8,7 +8,7 @@ awx_package_name: {{awx_package_name}}
 {% endif %}
 
 ## Disable gpg signature checking on nightly builds
-{% if aw_repo_url.contains("testing.ansible.com") %}
+{% if "testing.ansible.com" in aw_repo_url %}
 gpgcheck: 0
 {% endif %}
 
