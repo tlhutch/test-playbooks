@@ -27,8 +27,8 @@ log = logging.getLogger(__name__)
 # - user capability fields
 
 @pytest.mark.api
+@pytest.mark.rbac
 @pytest.mark.skip_selenium
-@pytest.mark.destructive
 class Test_Workflow_Job_Template_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
