@@ -46,13 +46,16 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     endpoint.post(payload)
 
-    def test_notification_template_associate_as_org_admin(self, email_notification_template, notifiable_resource, org_admin, user_password):
+    def test_notification_template_associate_as_org_admin(self, factories, notifiable_resource, org_admin, user_password):
         """Tests that org_admins may associate a NT with a notifiable resource."""
         # store our future test endpoints
         endpoints = get_nt_endpoints(notifiable_resource)
 
+        organization = org_admin.related.organizations.get().results.pop()
+        notification_template = factories.notification_template(organization=organization)
+
         # test notification template associate as org_admin
-        payload = dict(id=email_notification_template.id)
+        payload = dict(id=notification_template.id)
         with self.current_user(username=org_admin.username, password=user_password):
             for endpoint in endpoints:
                 with pytest.raises(towerkit.exceptions.NoContent):
@@ -65,11 +68,14 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.get()
 
-    def test_notification_template_read_as_org_admin(self, email_notification_template, org_admin, user_password):
+    def test_notification_template_read_as_org_admin(self, factories, org_admin, user_password):
         """Tests that org_admins can read NT endpoints."""
         # assert that we can access api/v1/notification_templates
+
+        organization = org_admin.related.organizations.get().results.pop()
+        notification_template = factories.notification_template(organization=organization)
         with self.current_user(username=org_admin.username, password=user_password):
-            email_notification_template.get()
+            notification_template.get()
 
     def test_notification_template_edit_as_unprivileged_user(self, email_notification_template, unprivileged_user, user_password):
         """Tests that unprivileged users cannot edit NTs."""
@@ -80,12 +86,14 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.patch()
 
-    def test_notification_template_edit_as_org_admin(self, email_notification_template, org_admin, user_password):
+    def test_notification_template_edit_as_org_admin(self, factories, org_admin, user_password):
         """Tests that org_admins can edit NTs."""
         # assert that put/patch is accepted
+        organization = org_admin.related.organizations.get().results.pop()
+        notification_template = factories.notification_template(organization=organization)
         with self.current_user(username=org_admin.username, password=user_password):
-            email_notification_template.put()
-            email_notification_template.patch()
+            notification_template.put()
+            notification_template.patch()
 
     def test_notification_template_delete_as_unprivileged_user(self, email_notification_template, unprivileged_user, user_password):
         """Tests that unprivileged_users cannot delete NTs."""
@@ -94,19 +102,23 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.delete()
 
-    def test_notification_template_delete_as_org_admin(self, email_notification_template, org_admin, user_password):
+    def test_notification_template_delete_as_org_admin(self, factories, org_admin, user_password):
         """Tests that org_admins can delete NTs."""
         # assert that delete is accepted
+        organization = org_admin.related.organizations.get().results.pop()
+        notification_template = factories.notification_template(organization=organization)
         with self.current_user(username=org_admin.username, password=user_password):
-            email_notification_template.delete()
+            notification_template.delete()
 
     def test_user_capabilities_as_superuser(self, email_notification_template, api_notification_templates_pg):
         """Tests NT 'user_capabilities' as superuser."""
         check_user_capabilities(email_notification_template.get(), "superuser")
         check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop(), "superuser")
 
-    def test_user_capabilities_as_org_admin(self, email_notification_template, org_admin, user_password, api_notification_templates_pg):
+    def test_user_capabilities_as_org_admin(self, factories, org_admin, user_password, api_notification_templates_pg):
         """Tests NT 'user_capabilities' as an org_admin."""
+        organization = org_admin.related.organizations.get().results.pop()
+        notification_template = factories.notification_template(organization=organization)
         with self.current_user(username=org_admin.username, password=user_password):
-            check_user_capabilities(email_notification_template.get(), "org_admin")
-            check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop(), "org_admin")
+            check_user_capabilities(notification_template.get(), "org_admin")
+            check_user_capabilities(api_notification_templates_pg.get(id=notification_template.id).results.pop(), "org_admin")

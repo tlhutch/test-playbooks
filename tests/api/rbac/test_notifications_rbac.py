@@ -19,9 +19,11 @@ class Test_Notifications_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 notification_pg.get()
 
-    def test_notification_read_as_org_admin(self, email_notification_template, org_admin, user_password):
+    def test_notification_read_as_org_admin(self, factories, org_admin, user_password):
         """Test that org_admins can read notifications."""
-        notification_pg = email_notification_template.test().wait_until_completed()
+        organization = org_admin.related.organizations.get().results.pop()
+        notification_template = factories.notification_template(organization=organization)
+        notification_pg = notification_template.test().wait_until_completed()
 
         with self.current_user(username=org_admin.username, password=user_password):
             notification_pg.get()
