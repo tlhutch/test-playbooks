@@ -126,7 +126,7 @@ class UserFactory(PageFactory):
 
 class WorkflowJobTemplateFactory(PageFactory):
     class Meta:
-        model = pages.WorkflowJobTemplates
+        model = pages.WorkflowJobTemplate
         inline_args = ('request',)
 
 
@@ -265,7 +265,7 @@ class JobTemplateFactory(PageFactory):
 
 class WorkflowJobTemplateNodeFactory(PageFactory):
     class Meta:
-        model = pages.WorkflowJobTemplateNodes
+        model = pages.WorkflowJobTemplateNode
         inline_args = ('request',)
         resources = ('workflow_job_template', 'unified_job_template')
 
