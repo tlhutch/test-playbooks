@@ -74,7 +74,7 @@ class Test_Job_Events(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_dynamic_inventory(self, factories):
+    def test_dynamic_inventory(self, factories, ansible_version_cmp):
         """Launch a linear playbook of several plays and confirm desired events are at its related job events"""
         # ensure desired verbose events regarding authentication
         cred = factories.credential(password='passphrase', vault_password='vault')
@@ -98,14 +98,25 @@ class Test_Job_Events(Base_Api_Test):
                                   "gather facts fail",
                                   "some gather facts fail",
                                   "no tasks, just the facts"))
+        # "skipping: no hosts matched" message restored in 2.3:
+        # https://github.com/ansible/ansible/issues/17706
+        if ansible_version_cmp('2.3') >= 0 or ansible_version_cmp('2.2') < 0:
+            desired_play_names.add("no matching hosts")
         assert playbook_on_play_start == desired_play_names
+
+        # playbook_on_task_start incorrectly used 'setup' instead of 'Gathering Facts' before 2.2:
+        # https://github.com/ansible/ansible/pull/16168
+        if ansible_version_cmp('2.3') >= 0:
+            gathering_facts_task_name = "Gathering Facts"
+        else:
+            gathering_facts_task_name = "setup"
 
         playbook_on_task_start = set(map(lambda x: (x.play, x.task),
                                          self.get_job_events_by_event_type(job, 'playbook_on_task_start')))
-        desired_play_task_tuples = set((("add hosts to inventory", "setup"),
+        desired_play_task_tuples = set((("add hosts to inventory", gathering_facts_task_name),
                                         ("add hosts to inventory", "create inventory"),
                                         ("add hosts to inventory", "single host handler"),
-                                        ("various task responses on dynamic inventory", "setup"),
+                                        ("various task responses on dynamic inventory", gathering_facts_task_name),
                                         ("various task responses on dynamic inventory", "fail even numbered hosts"),
                                         ("various task responses on dynamic inventory", "skip multiples of 3"),
                                         ("various task responses on dynamic inventory", "all skipped"),
@@ -113,21 +124,23 @@ class Test_Job_Events(Base_Api_Test):
                                         ("various task responses on dynamic inventory", "all ok"),
                                         ("various task responses on dynamic inventory", "changed handler"),
                                         ("various task responses on dynamic inventory", "another changed handler"),
-                                        ("shrink inventory to 1 host", "setup"),
+                                        ("shrink inventory to 1 host", gathering_facts_task_name),
                                         ("shrink inventory to 1 host", "fail all but 1"),
                                         ("1 host play", "pass"),
                                         ("1 host play", "ok"),
                                         ("1 host play", "ignored"),
-                                        ("fail remaining dynamic group", "setup"),
+                                        ("fail remaining dynamic group", gathering_facts_task_name),
                                         ("fail remaining dynamic group", "fail"),
                                         ("add hosts to inventory", "add dynamic inventory"),
                                         ("add hosts to inventory", "add unreachable inventory"),
                                         ("add hosts to inventory", "add more_unreachable inventory"),
                                         ("some unreachable, some changed, some skipped", "all changed with items"),
-                                        ("gather facts fail", "setup"),
-                                        ("some gather facts fail", "setup"),
+                                        ("gather facts fail", gathering_facts_task_name),
+                                        ("some gather facts fail", gathering_facts_task_name),
                                         ("some gather facts fail", "skip this task"),
-                                        ("no tasks, just the facts", "setup")))
+                                        ("no tasks, just the facts", gathering_facts_task_name),
+                                        ("some gather facts fail", "skip this task")))
+
         assert playbook_on_task_start == desired_play_task_tuples
 
         task_counts = {"fail even numbered hosts": 2,
@@ -136,7 +149,7 @@ class Test_Job_Events(Base_Api_Test):
                        "fail": 1}
         self.verify_desired_tasks(job, 'runner_on_failed', task_counts)
 
-        task_counts = {"setup": 17,
+        task_counts = {gathering_facts_task_name: 17,
                        "another changed handler": 3,
                        "all changed": 3,
                        "changed handler": 3,
@@ -160,7 +173,7 @@ class Test_Job_Events(Base_Api_Test):
                        "fail": 1}
         self.verify_desired_tasks(job, 'runner_on_skipped', task_counts)
 
-        task_counts = {"setup": 5,
+        task_counts = {gathering_facts_task_name: 5,
                        "all changed with items": 1}
         self.verify_desired_tasks(job, 'runner_on_unreachable', task_counts)
 
