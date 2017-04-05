@@ -52,7 +52,7 @@ def api_v1_url(request, api):
 
 @pytest.fixture(scope="module")
 def api_v1_pg(testsetup, api_v1_url):
-    return get_registered_page(api_v1_url)(testsetup, base_url=api_v1_url).get()
+    return get_registered_page(api_v1_url)(testsetup.api, base_url=api_v1_url).get()
 
 
 @pytest.fixture(scope='module')

@@ -1,5 +1,6 @@
 import httplib
 
+from towerkit.utils import version_from_endpoint
 from towerkit.api.client import Connection
 from towerkit.api.schema import validate
 import pytest
@@ -53,7 +54,7 @@ def assert_response(api, resource, method, response_code=httplib.OK, response_sc
         r = getattr(api, method)(resource, data)
 
     # Assert api response code matches expected
-    assert r.code == response_code
+    assert r.status_code == response_code
 
     # Extract JSON response
     try:
@@ -64,7 +65,7 @@ def assert_response(api, resource, method, response_code=httplib.OK, response_sc
     # Validate API JSON response:
     # Schema validation methods (e.g. 'head', 'get', 'method_not_allowed')
     # are found in schema/SCHEMA_VERSION/__init__.py::Awx_Schema
-    validate(json, resource, response_schema)
+    validate(json, resource, response_schema, version=version_from_endpoint(resource))
 
 
 bad_request = (httplib.BAD_REQUEST, 'bad_request')

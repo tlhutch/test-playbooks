@@ -33,7 +33,7 @@ class PageFactory(factory.Factory):
     def _create(cls, model_class, request, **kwargs):
         """Create data and post to the associated endpoint"""
         testsetup = request.getfuncargvalue('testsetup') if request else None
-        model = model_class(testsetup)  # TODO: determine desired authentication behavior out of pytest context.
+        model = model_class(testsetup.api)  # TODO: determine desired authentication behavior out of pytest context.
         # get or create the requested resource
         if cls._meta.get_or_create:
             obj = cls._get_or_create(model, request, **kwargs)
