@@ -269,7 +269,6 @@ class Test_Setting(Base_Api_Test):
         assert job_pg.timeout == job_template.timeout, \
             "Job_pg has a different timeout value ({0}) than its JT ({1}).".format(job_pg.timeout, job_template.timeout)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     @pytest.mark.parametrize('timeout, default_update_timeout, status, job_explanation', [
         (0, 1, 'failed', 'Job terminated due to timeout'),
         (60, 1, 'successful', ''),

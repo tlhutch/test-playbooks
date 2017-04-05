@@ -16,7 +16,6 @@ def team(v1, session_org):
     obj.silent_cleanup()
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4174')
 def test_edit_team(ui, team):
     """Basic end-to-end functional test for updating an existing team"""
     edit = ui.team_edit.get(id=team.id)

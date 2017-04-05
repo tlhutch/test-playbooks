@@ -468,7 +468,6 @@ class Test_Inventory_Update(Base_Api_Test):
             assert inv_groups_pg.count, ('An inventory sync was launched with "replace_dash_in_groups: true", '
                                          'but desired group with sanitized tag "{0}" not found.'.format(group_name))
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     @pytest.mark.parametrize('timeout, status, job_explanation', [
         (0, 'successful', ''),
         (60, 'successful', ''),
@@ -651,7 +650,6 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
             "Unexpected timing when importing inventory multiple times: %s, %s, %s" % \
             (first_import, second_import, third_import)
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3957")
     def test_import_license_exceeded(self, api_config_pg, ansible_runner, import_inventory):
         """Verify inventory_import fails if the number of imported hosts will exceed licensed amount"""
         # update test license

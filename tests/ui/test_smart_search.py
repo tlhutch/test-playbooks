@@ -11,7 +11,6 @@ def job(session_job_template):
     obj.silent_cleanup()
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5049')
 class BaseTestSearchTags(object):
 
     @pytest.mark.parametrize('pop_first', (0, 1, 2))

@@ -371,7 +371,6 @@ class Test_No_License(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'no_license')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_empty_license_info(self, api_config_pg):
         """Verify the license_info field is empty"""
         conf = api_config_pg.get()
@@ -394,7 +393,6 @@ class Test_No_License(Base_Api_Test):
         job_pg = project_ansible_playbooks_git_nowait.update().wait_until_completed()
         assert job_pg.is_successful, "project_update was unsuccessful - %s" % job_pg
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3954', raises=AssertionError)
     def test_can_launch_inventory_update_but_it_should_fail(self, custom_inventory_source):
         """Verify that inventory_updates can be launched, but they fail because
         no license is installed.
@@ -403,14 +401,12 @@ class Test_No_License(Base_Api_Test):
         assert job_pg.status == 'failed', "inventory_update was unexpectedly successful - %s" % job_pg
         assert 'CommandError: No Tower license found!' in job_pg.result_stdout
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3481")
     def test_cannot_launch_job(self, install_basic_license, api_config_pg, job_template):
         """Verify that job_templates cannot be launched"""
         api_config_pg.delete()
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
             job_template.launch_job()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_post_invalid_license(self, api_config_pg, invalid_license_json):
         """Verify that various bogus license formats fail to successfully install"""
         # Assert expected error when issuing a POST with an invalid license
@@ -431,7 +427,6 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.LicenseInvalid):
             api_config_pg.post(eula_rejected_legacy_license_json)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_post_legacy_license(self, api_config_pg, legacy_license_json):
         """Verify that a license can be installed by issuing a POST to the /config endpoint"""
         # Assert that no license present at /api/v1/config/
@@ -785,7 +780,6 @@ class Test_Legacy_License_Expired(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
             api_hosts_pg.post(payload)
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3483")
     def test_job_launch(self, request, install_basic_license, job_template):
         """Verify that job_templates cannot be launched"""
         request.getfuncargvalue('install_legacy_license_expired')()
@@ -1229,7 +1223,6 @@ class Test_Enterprise_License(Base_Api_Test):
         # post scan_job template
         api_job_templates_pg.post(payload)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4157')
     def test_launch_scan_job(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
         """Verifies that scan jobs may be launched with an enterprise license."""
         conf = api_config_pg.get()
@@ -1324,7 +1317,6 @@ class Test_Enterprise_License(Base_Api_Test):
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3727')
     def test_delete_license(self, api_config_pg):
         """Verify the license_info field is empty after deleting the license"""
         api_config_pg.delete()

@@ -188,7 +188,6 @@ class Test_Job(Base_Api_Test):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     api_jobs_pg.post(job_template.json)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3590')
     def test_relaunch_with_credential(self, job_with_status_completed):
         """Verify relaunching a job with a valid credential no-ask credential."""
         relaunch_pg = job_with_status_completed.get_related('relaunch')
@@ -214,7 +213,6 @@ class Test_Job(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             relaunch_pg.post()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4740')
     def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload, testsetup):  # NOQA
         """Verify that relaunching a job with a credential that includes ASK passwords, behaves as expected when
         supplying the necessary passwords in the relaunch payload.
@@ -262,7 +260,6 @@ class Test_Job(Base_Api_Test):
         # assert expected values in response
         assert credential.expected_passwords_needed_to_start == result['passwords_needed_to_start']
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3590')
     def test_relaunch_uses_extra_vars_from_job(self, job_with_extra_vars):
         """Verify that when you relaunch a job containing extra_vars in the
         launch-time payload, the resulting extra_vars *and* the job_template
@@ -358,7 +355,6 @@ class Test_Job(Base_Api_Test):
             "canceled, but a 'playbook_on_start' host_event was received. " \
             "It appears that the job was not cancelled while in pending."
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4225')
     def test_cancel_running_job(self, job_with_status_running):
         """Verify the job->cancel endpoint behaves as expected when canceling a
         running job
@@ -449,7 +445,6 @@ class Test_Job(Base_Api_Test):
                 job.delete()
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4157')
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive

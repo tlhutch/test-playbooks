@@ -77,7 +77,6 @@ def test_edit_project(v1, ui, project):
     assert len(results) == 1, 'Unable to find updated project'
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3816')
 def test_delete_project(v1, ui, project):
     """End-to-end functional test for deleting a project"""
     ui_projects = ui.projects.get()

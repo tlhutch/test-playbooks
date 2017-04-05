@@ -41,7 +41,6 @@ class Test_Project_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(project_pg, httplib.FORBIDDEN)
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3930")
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent, user_password):
         """A user/team with project 'admin' should be able to:
@@ -209,7 +208,6 @@ class Test_Project_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled project role.")
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4181')
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_delete_update(self, factories, user_password, role):
         """Tests ability to delete a project update."""

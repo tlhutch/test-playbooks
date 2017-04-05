@@ -213,8 +213,6 @@ class Test_Inventory_Scripts(Base_Api_Test):
             # query /inventory_sources endpoint for matching id
             assert api_inventory_scripts_pg.get(id=inventory_script.id).count == 0
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3928")
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/3927")
     def test_delete_as_unprivileged_user(self, inventory_script, unprivileged_user, user_password):
         """Verify unsuccesful DELETE to /inventory_scripts/N as an unprivileged user."""
         with self.current_user(unprivileged_user.username, user_password):
@@ -247,7 +245,6 @@ class Test_Inventory_Scripts(Base_Api_Test):
             "attribute still has a value (%s != None)" % \
             custom_inventory_source_with_vars.source_script
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     def test_import(self, custom_inventory_source_with_vars, api_unified_jobs_pg, inventory_script,
                     custom_inventory_source_vars_good, custom_inventory_source_vars_bad):
         """Verify succesful inventory_update using a custom /inventory_script"""

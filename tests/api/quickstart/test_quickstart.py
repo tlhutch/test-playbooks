@@ -744,7 +744,6 @@ class Test_Quickstart_Scenario(Base_Api_Test):
         start_pg.post(passwords)
 
     @pytest.mark.nondestructive
-    @pytest.mark.github('https://github.com/ansible/ansible/issues/16801')
     def test_jobs_launch_status(self, api_job_templates_pg, api_jobs_pg, _job_template):
         # If desired, skip launch
         if not _job_template.get('_launch', True):

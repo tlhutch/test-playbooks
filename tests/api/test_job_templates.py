@@ -292,7 +292,6 @@ class Test_Job_Template(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.BadRequest):
                 nonscan_job_template.launch(payload)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4157')
     @pytest.mark.parametrize("job_type", ["run", "scan", "check"])
     def test_launch_scan_job_template_with_job_type_in_payload(self, scan_job_template, job_type):
         """Verifies that "job_type" may be given at launch-time with scan JTs."""
@@ -522,7 +521,6 @@ class Test_Job_Template(Base_Api_Test):
         # assert expected 'passwords_needed_to_start'
         assert ssh_credential_multi_ask.expected_passwords_needed_to_start == result['passwords_needed_to_start']
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/4740")
     def test_launch_with_ask_credential_and_with_passwords_in_payload(self, job_template_no_credential,
                                                                       ssh_credential_multi_ask):
         """Verify that launching a job_template, while providing the credential in
@@ -854,7 +852,6 @@ class Test_Job_Template(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             launch_pg.post(payload)
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/4740")
     def test_launch_with_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         """Verify the job->launch endpoint behaves as expected when passwords are needed to start"""
         launch_pg = job_template_passwords_needed_to_start.get_related('launch')
@@ -907,7 +904,6 @@ class Test_Job_Template(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             launch_pg.post()
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/4438")
     @pytest.mark.parametrize("limit_value, expected_count", [
         ("", 12),
         ("all", 12),
@@ -968,7 +964,6 @@ print json.dumps(inv, indent=2)
         job_host_summaries_pg = job_pg.get_related('job_host_summaries')
         assert job_host_summaries_pg.count == expected_count
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4233')
     def test_launch_with_unmatched_limit_value(self, job_template_with_random_limit):
         """Verify that launching a job template without matching hosts fails appropriately."""
         # check that our job_template limit is unmatched
@@ -1001,7 +996,6 @@ print json.dumps(inv, indent=2)
         assert job_pg.get_related('job_events', event='runner_on_ok').count == 2, \
             "Unexpected number of task_events returned (expected 2)."
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4233')
     def test_launch_with_unmatched_tag_value(self, job_template_with_random_tag, ansible_version_cmp):
         """Tests launching jobs with an unmatched tag value."""
         job_pg = job_template_with_random_tag.launch().wait_until_completed()

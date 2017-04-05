@@ -68,7 +68,6 @@ class Test_System_Jobs(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             system_job.patch()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     def test_cleanup_jobs(self, cleanup_jobs_template, unified_job_with_status_completed, api_unified_jobs_pg):
         """Run jobs of different types sequentially and check that cleanup jobs deletes all of our jobs that are
         not project/inventory updates.
@@ -90,7 +89,6 @@ class Test_System_Jobs(Base_Api_Test):
         assert api_unified_jobs_pg.get(id=unified_job_with_status_completed.id).count == expected_count, \
             "An unexpected number of unified jobs were found (expected %s)." % expected_count
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     def test_cleanup_jobs_on_multiple_jobs(self, cleanup_jobs_template, multiple_jobs_with_status_completed, api_jobs_pg, api_system_jobs_pg,
                                            api_unified_jobs_pg):
         """Run jobs of different types and check that cleanup_jobs deletes expected jobs.
@@ -120,7 +118,6 @@ class Test_System_Jobs(Base_Api_Test):
         assert set(unified_job_ids) == set(update_job_ids) | set([system_job_pg.id]), \
             "Unexpected unified_jobs returned. Expected only project/inventory updates and our system job."
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4098')
     def test_cleanup_activitystream(self, cleanup_activitystream_template, multiple_jobs_with_status_completed, api_activity_stream_pg):
         """Launch jobs of different types, run cleanup_activitystreams, and verify that the activity_stream clears."""
         # launch job and assert job successful
@@ -133,7 +130,6 @@ class Test_System_Jobs(Base_Api_Test):
         assert activity_stream_pg.count == 0, \
             "After running cleanup_activitystream, activity_stream items still present (%s items found)." % activity_stream_pg.count
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4157')
     def test_cleanup_facts(self, files_scan_job_with_status_completed, cleanup_facts_template):
         """Run a scan job, launch a cleanup_facts job, and assert that facts get deleted."""
         # assert scan job successful

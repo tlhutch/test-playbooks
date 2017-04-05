@@ -37,7 +37,6 @@ class Test_System_Jobs_RBAC(Base_Api_Test):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     system_job.get()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3576')
     def test_user_capabilities_as_superuser(self, cleanup_jobs_with_status_completed, api_system_jobs_pg):
         """Verify 'user_capabilities' with a superuser."""
         check_user_capabilities(cleanup_jobs_with_status_completed.get(), "superuser")

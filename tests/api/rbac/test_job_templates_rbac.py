@@ -366,7 +366,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled job_template role.")
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4190')
     def test_delete_job_as_org_admin(self, factories, user_password):
         """Create a run and a scan JT and an org_admin for each of these JTs. Then check
         that each org_admin may only delete his org's job.

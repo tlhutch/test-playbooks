@@ -21,7 +21,6 @@ def private_cred(v1, session_user):
     cred.silent_cleanup()
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/4184')
 def test_permissions_tab_is_disabled_for_private_credentials(ui, private_cred):
     edit = ui.credential_edit.get(id=private_cred.id)
     # check that the tab is disabled initially
@@ -102,7 +101,6 @@ def test_create_user_credential(v1, ui):
     assert len(results) == 1, 'unable to verify creation of credential'
 
 
-@pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5730')
 def test_create_org_credential(v1, ui, session_org):
     """End-to-end functional test for creating an org credential"""
     add = ui.credential_add.get()

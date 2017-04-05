@@ -200,7 +200,6 @@ class Test_Notifications(Base_Api_Test):
                 notification_template.notification_type + " notification " + \
                 ("not " if notification_expected else "") + "present (%s)" % msg
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3486')
     @pytest.mark.destructive
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
     @pytest.mark.parametrize("resource", ['organization', 'project', 'job_template'])

@@ -42,7 +42,6 @@ class Test_Label_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled organization role.")
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/3592')
     @pytest.mark.parametrize("role", ["admin", "read"])
     def test_job_template_label_association(self, factories, user_password, role):
         """Tests that when JT can_edit is true that our test user may associate a label with
