@@ -6,8 +6,7 @@ from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
     check_read_access,
     check_user_capabilities,
-    get_resource_roles,
-    set_roles
+    get_resource_roles
 )
 from tests.api import Base_Api_Test
 
@@ -108,7 +107,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         user = factories.user(organization=credential.related.organization.get())
 
         # give test user target role privileges
-        set_roles(user, credential, [role])
+        credential.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             check_user_capabilities(credential.get(), role)
@@ -122,7 +121,7 @@ class Test_Credential_RBAC(Base_Api_Test):
 
         # assert newly created user has no roles
         roles_count = user.related.roles.get().count
-        assert not roles_count, "Newly created user created unexpectedly with roles - %s." % roles_count
+        assert not roles_count, "Newly created user created unexpectedly with {0} roles.".format(roles_count)
 
         # assert user now has admin role after user credential creation
         credential = factories.credential(user=user, organization=None)
@@ -130,10 +129,11 @@ class Test_Credential_RBAC(Base_Api_Test):
         assert admin_role_users.count == 1, \
             "Unexpected number of users with our credential admin role. Expected one, got %s." % admin_role_users.count
         assert admin_role_users.results.pop().id == user.id, \
-            "Unexpected admin role user returned. Expected user with ID %s, but %s." % (user.id, admin_role_users.results.pop().id)
+            "Unexpected admin role user returned. Expected user with ID %s, but one with ID %s." \
+            % (user.id, admin_role_users.results.pop().id)
 
     @pytest.mark.parametrize("agent_name", ["admin_user", "org_user"])
-    def test_user_credential_role_assignment(self, request, factories, user_password, agent_name):
+    def test_user_credential_role_assignment(self, request, factories, agent_name):
         """Tests that only superusers may grant user-credential roles to other users and that
         both superusers and regular users cannot grant user-credential roles to teams.
         """
@@ -146,7 +146,7 @@ class Test_Credential_RBAC(Base_Api_Test):
 
         agent = request.getfuncargvalue(agent_name)
         role_names = get_resource_roles(credential)
-        with self.current_user(username=agent.username, password=user_password):
+        with self.current_user(username=agent.username, password=agent.password):
             for role_name in role_names:
                 # superusers may assign credential roles to another user
                 if agent_name == "admin_user":

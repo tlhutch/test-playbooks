@@ -5,8 +5,7 @@ import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
     check_read_access,
-    check_user_capabilities,
-    set_roles
+    check_user_capabilities
 )
 from tests.api import Base_Api_Test
 
@@ -94,9 +93,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
     def test_user_capabilities(self, factories, inventory_script, api_inventory_scripts_pg, role):
         """Test user_capabilities given each inventory_script role."""
         user = factories.user()
-
-        # give test user target role privileges
-        set_roles(user, inventory_script, [role])
+        inventory_script.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             check_user_capabilities(inventory_script.get(), role)
@@ -108,8 +105,8 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
         are an admin.
         """
         user = factories.user()
-        set_roles(user, organization, ['admin'])
-        set_roles(user, another_organization, ['admin'])
+        organization.set_object_roles(user, "admin")
+        another_organization.set_object_roles(user, "admin")
 
         # assert that org_admin can reassign label
         with self.current_user(username=user.username, password=user.password):
@@ -121,8 +118,8 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
         are only a member.
         """
         user = factories.user()
-        set_roles(user, organization, ['admin'])
-        set_roles(user, another_organization, ['member'])
+        organization.set_object_roles(user, "admin")
+        another_organization.set_object_roles(user, "member")
 
         # assert that org_admin cannot reassign label
         with self.current_user(username=user.username, password=user.password):

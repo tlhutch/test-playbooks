@@ -5,8 +5,7 @@ import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
     check_read_access,
-    check_user_capabilities,
-    set_roles
+    check_user_capabilities
 )
 from tests.api import Base_Api_Test
 
@@ -106,15 +105,14 @@ class Test_Team_RBAC(Base_Api_Test):
         team = factories.team()
         user = factories.user()
 
-        # give test user target role privileges
-        set_roles(user, team, [role])
+        team.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             check_user_capabilities(team.get(), role)
             check_user_capabilities(api_teams_pg.get(id=team.id).results.pop(), role)
 
     def test_member_role_association(self, factories):
-        """Tests that after a user is granted member_role that he now shows
+        """Tests that after a user is granted the member_role that he now shows
         up under /api/v1/teams/N/users/.
         """
         team = factories.team()
@@ -122,23 +120,22 @@ class Test_Team_RBAC(Base_Api_Test):
 
         # team by default should have no users
         users = team.related.users.get()
-        assert users.count == 0, "%s user[s] unexpectedly found for teams/%s." % (users.count, team.id)
+        assert users.count == 0, "Users unexpectedly found for our team."
 
         # give test user member role privileges
         team.set_object_roles(user, "member")
 
-        # assert that teams/N/users now shows test user
-        assert users.get().count == 1, "Expected one user for teams/%s/users/, got %s." % (team.id, users.count)
+        # assert that /teams/N/users/ now shows test user
+        assert users.get().count == 1, "Expected one user under /teams/N/users/."
         assert users.results[0].id == user.id, \
-            "Team user not our target user. Expected user with ID %s but got one with ID %s." % (user.id, users.results[0].id)
+            "Team user not our target user. Expected user with ID %s but received ID %s instead." % (user.id, users.results[0].id)
 
     def test_member_role_inheritance(self, factories):
         """Test that team-member gets included with team-admin permissions."""
         team = factories.team()
         user = factories.user()
 
-        # give test user admin role privileges
-        set_roles(user, team, ['admin'])
+        team.set_object_roles(user, "admin")
 
         # check that our team is listed under the /users/N/teams/ endpoint
         with self.current_user(username=user.username, password=user.password):

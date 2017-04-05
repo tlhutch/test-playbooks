@@ -38,7 +38,7 @@ class Test_Schedules_RBAC(Base_Api_Test):
             # test delete
             schedule.delete()
 
-    def test_system_job_template_schedule_crud_as_org_admin(self, request, org_admin, cleanup_jobs_template):
+    def test_system_job_template_schedule_crud_as_org_admin(self, org_admin, cleanup_jobs_template):
         """Tests schedules CRUD as an org_admin against a SJT."""
         schedules = cleanup_jobs_template.related.schedules.get()
         # Tower-3.0 comes with a prestocked cleanup_jobs schedule
@@ -60,7 +60,7 @@ class Test_Schedules_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 schedule.delete()
 
-    def test_crud_as_org_user(self, request, org_user, resource_with_schedule):
+    def test_crud_as_org_user(self, org_user, resource_with_schedule):
         """Test schedules CRUD as an org_user against an inventory_source, project, and JT."""
         schedules = resource_with_schedule.related.schedules.get()
         schedule = schedules.results.pop()

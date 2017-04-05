@@ -2,8 +2,7 @@ import pytest
 
 import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
-    check_user_capabilities,
-    set_roles
+    check_user_capabilities
 )
 from tests.api import Base_Api_Test
 
@@ -40,8 +39,9 @@ class Test_User_RBAC(Base_Api_Test):
         organization = factories.organization()
         org_user = factories.user()
         org_admin = factories.user()
-        set_roles(org_user, organization, ["member"])
-        set_roles(org_admin, organization, ["admin"])
+
+        organization.set_object_roles(org_user, "member")
+        organization.set_object_roles(org_admin, "admin")
 
         with self.current_user(username=org_admin.username, password=org_admin.password):
             check_user_capabilities(org_user.get(), "org_admin")
