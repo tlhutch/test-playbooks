@@ -65,12 +65,12 @@ def ansible_default_ipv4(ansible_facts):
 
 @pytest.fixture(scope="function")
 def inventory(factories, organization):
-    return factories.inventory(organization=organization)
+    return factories.inventory(organization=organization, localhost=None)
 
 
 @pytest.fixture(scope="function")
 def another_inventory(factories, organization):
-    return factories.inventory(organization=organization)
+    return factories.inventory(organization=organization, localhost=None)
 
 
 @pytest.fixture(scope="function")
