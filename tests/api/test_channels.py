@@ -11,6 +11,7 @@ class TestChannels(Base_Api_Test):
 
         pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
+        @pytest.mark.ansible_integration
         def test_ad_hoc_command_events(self, request, v1):
             """Confirm that (un)subscriptions to status changed events and event emits are functional
             for ad hoc commands, and that ad_hoc_command_events match what's available at the command's
@@ -85,6 +86,7 @@ class TestChannels(Base_Api_Test):
             group.related.inventory_source.get().update().wait_until_completed()
             assert(not [m for m in ws])  # no messages should be broadcasted to client
 
+        @pytest.mark.ansible_integration
         def test_job_events(self, request, v1, factories):
             """Confirm that (un)subscriptions to status changed events and event emits are functional
             for launched jobs.
@@ -129,6 +131,7 @@ class TestChannels(Base_Api_Test):
             job.relaunch().wait_until_completed()
             assert(not [m for m in ws])  # no messages should be broadcasted to client
 
+        @pytest.mark.ansible_integration
         def test_project_update_status_changes(self, request, v1, factories):
             """Confirm that (un)subscriptions to status changed events and event emits are functional
             for project updates.
@@ -153,6 +156,7 @@ class TestChannels(Base_Api_Test):
             project.update().wait_until_completed()
             assert(not [m for m in ws])  # no messages should be broadcasted to client
 
+        @pytest.mark.ansible_integration
         def test_workflow_events(self, request, v1, factories):
             """Confirm that (un)subscriptions to status changed events and event emits are functional
             for workflow jobs, and that workflow_events match what's available at the command's

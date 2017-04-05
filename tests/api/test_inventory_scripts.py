@@ -245,6 +245,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
             "attribute still has a value (%s != None)" % \
             custom_inventory_source_with_vars.source_script
 
+    @pytest.mark.ansible_integration
     def test_import(self, custom_inventory_source_with_vars, api_unified_jobs_pg, inventory_script,
                     custom_inventory_source_vars_good, custom_inventory_source_vars_bad):
         """Verify succesful inventory_update using a custom /inventory_script"""
@@ -286,6 +287,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
 
     # @pytest.mark.fixture_args(script_source='#!env python\nraise Exception("fail!")\n') # traceback
     # @pytest.mark.fixture_args(script_source='#!env python\nimport sys\nsys.exit(1)\n')
+    @pytest.mark.ansible_integration
     def test_import_script_failure(self, custom_inventory_source, api_unified_jobs_pg, bad_inventory_script):
         """Verify an inventory_update fails when using various bad inventory_scripts"""
         # PATCH inventory_source

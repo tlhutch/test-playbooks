@@ -49,6 +49,7 @@ class Test_Job_Template(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.ansible_integration
     def test_launch(self, job_template_ping):
         """Verify the job->launch endpoint behaves as expected"""
         launch_pg = job_template_ping.get_related('launch')
@@ -66,6 +67,7 @@ class Test_Job_Template(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
+    @pytest.mark.ansible_integration
     def test_launch_with_extra_vars_from_job_template(self, job_template_with_extra_vars):
         """Verify that when no launch-time extra_vars are provided, variables from
         the job_template are used.
@@ -96,6 +98,7 @@ class Test_Job_Template(Base_Api_Test):
         # assert extra_vars match job_template extra_vars
         assert job_extra_vars == job_template_extra_vars
 
+    @pytest.mark.ansible_integration
     def test_launch_with_extra_vars_at_launch(self, job_template_with_extra_vars, job_extra_vars_dict, tower_version_cmp):
         """Verify that when launch-time extra_vars are provided, the job
         extra_variables are a union of the launch-time variables and the
@@ -191,6 +194,7 @@ class Test_Job_Template(Base_Api_Test):
             "Unexpected job_extra_vars returned. Expected %s, got %s." \
             % (dict(submitter_email=payload['extra_vars']['submitter_email']), job_extra_vars)
 
+    @pytest.mark.ansible_integration
     def test_launch_with_limit_in_payload(self, job_template_with_random_limit):
         """Verifies that a value for 'limit' may be passed at launch-time."""
         job_template_with_random_limit.patch(ask_limit_on_launch=True)
@@ -214,6 +218,7 @@ class Test_Job_Template(Base_Api_Test):
         assert job_pg.limit == "local", "Unexpected value for job_pg.limit. Expected 'local', got %s." % job_pg.limit
         assert '"-l", "local"' in job_pg.job_args, "Limit value not passed to job_args."
 
+    @pytest.mark.ansible_integration
     @pytest.mark.parametrize("patch_payload, launch_payload", [
         (
             {"ask_tags_on_launch": True, "ask_skip_tags_on_launch": False},
@@ -265,6 +270,7 @@ class Test_Job_Template(Base_Api_Test):
             assert '\"--skip-tags=%s\"' % launch_payload['skip_tags'] in job_pg.job_args, \
                 "Value for skip_tags not represented in job args."
 
+    @pytest.mark.ansible_integration
     @pytest.mark.parametrize("job_type", ["run", "scan", "check"])
     def test_launch_nonscan_job_template_with_job_type_in_payload(self, nonscan_job_template, job_type):
         """Verifies that "job_type" may be given at launch-time with run/check JTs."""
@@ -292,6 +298,7 @@ class Test_Job_Template(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.BadRequest):
                 nonscan_job_template.launch(payload)
 
+    @pytest.mark.ansible_integration
     @pytest.mark.parametrize("job_type", ["run", "scan", "check"])
     def test_launch_scan_job_template_with_job_type_in_payload(self, scan_job_template, job_type):
         """Verifies that "job_type" may be given at launch-time with scan JTs."""
@@ -319,6 +326,7 @@ class Test_Job_Template(Base_Api_Test):
             assert job_pg.ask_job_type_on_launch
             assert job_pg.job_type == job_type, "Unexpected value for job_type. Expected %s, got %s." % (job_type, job_pg.job_type)
 
+    @pytest.mark.ansible_integration
     def test_launch_with_inventory_in_payload(self, job_template, another_inventory):
         """Verifies that 'inventory' may be given at launch-time."""
         job_template.patch(ask_inventory_on_launch=True)
@@ -343,6 +351,7 @@ class Test_Job_Template(Base_Api_Test):
         assert job_pg.inventory == another_inventory.id, \
             "Job ran with incorrect inventory. Expected %s but got %s." % (another_inventory.id, job_template.inventory)
 
+    @pytest.mark.ansible_integration
     def test_ask_inventory_on_launch_with_scan_job_template(self, scan_job_template, api_job_templates_pg):
         """Verifies scan JTs may not have ask_inventory_on_launch."""
         # patch scan JT and assess results
@@ -549,6 +558,7 @@ class Test_Job_Template(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
+    @pytest.mark.ansible_integration
     def test_launch_with_unencrypted_ssh_credential(self, ansible_runner, job_template, unencrypted_ssh_credential_with_ssh_key_data):
         """Launch job template with unencrypted ssh_credential"""
         (credential_type, credential_pg) = unencrypted_ssh_credential_with_ssh_key_data
@@ -573,6 +583,7 @@ class Test_Job_Template(Base_Api_Test):
         else:
             assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
+    @pytest.mark.ansible_integration
     def test_launch_with_encrypted_ssh_credential(self, ansible_runner, job_template, encrypted_ssh_credential_with_ssh_key_data):
         """Launch job template with encrypted ssh_credential"""
         (credential_type, credential_pg) = encrypted_ssh_credential_with_ssh_key_data
@@ -904,6 +915,7 @@ class Test_Job_Template(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             launch_pg.post()
 
+    @pytest.mark.ansible_integration
     @pytest.mark.parametrize("limit_value, expected_count", [
         ("", 12),
         ("all", 12),
@@ -964,6 +976,7 @@ print json.dumps(inv, indent=2)
         job_host_summaries_pg = job_pg.get_related('job_host_summaries')
         assert job_host_summaries_pg.count == expected_count
 
+    @pytest.mark.ansible_integration
     def test_launch_with_unmatched_limit_value(self, job_template_with_random_limit):
         """Verify that launching a job template without matching hosts fails appropriately."""
         # check that our job_template limit is unmatched
@@ -978,6 +991,7 @@ print json.dumps(inv, indent=2)
         assert "Specified --limit does not match any hosts" in job_pg.result_stdout, \
             "Unexpected job_pg.result_stdout when launching a job_template with an unmatched limit."
 
+    @pytest.mark.ansible_integration
     def test_launch_with_matched_tag_value(self, job_template_with_random_tag):
         """Tests that target tasks are run when launching a job with job_tags."""
         # patch our JT such that its tag value matches a single playbook task
@@ -996,6 +1010,7 @@ print json.dumps(inv, indent=2)
         assert job_pg.get_related('job_events', event='runner_on_ok').count == 2, \
             "Unexpected number of task_events returned (expected 2)."
 
+    @pytest.mark.ansible_integration
     def test_launch_with_unmatched_tag_value(self, job_template_with_random_tag, ansible_version_cmp):
         """Tests launching jobs with an unmatched tag value."""
         job_pg = job_template_with_random_tag.launch().wait_until_completed()
@@ -1043,6 +1058,7 @@ print json.dumps(inv, indent=2)
             with pytest.raises(towerkit.exceptions.Conflict):
                 tower_resource.delete()
 
+    @pytest.mark.ansible_integration
     def test_launch_check_job_template(self, job_template):
         """Launch check job template and assess results."""
         # patch job template

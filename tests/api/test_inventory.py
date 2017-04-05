@@ -336,6 +336,7 @@ class Test_Inventory_Update(Base_Api_Test):
             "Unexpected number of hosts returned %s." % cloud_group_supporting_source_regions.total_hosts
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/625')
+    @pytest.mark.ansible_integration
     def test_inventory_update_with_unpopulated_source_region(self, cloud_group_supporting_source_regions):
         """Tests that hosts are not imported when applying source regions not containing hosts.
 
@@ -377,6 +378,7 @@ class Test_Inventory_Update(Base_Api_Test):
             "Unexpected number of hosts returned (%s != 0)." % cloud_group_supporting_source_regions.total_hosts
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=Name", "key-name=jenkins", "tag:Name=*"])
+    @pytest.mark.ansible_integration
     def test_inventory_update_with_matched_aws_instance_filter(self, aws_group, instance_filter):
         """Tests inventory imports with matched AWS instance filters
 
@@ -398,6 +400,7 @@ class Test_Inventory_Update(Base_Api_Test):
         assert aws_group.get().total_hosts > 0, "Unexpected number of hosts returned %s." % aws_group.total_hosts
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=UNMATCHED", "key-name=UNMATCHED", "tag:Name=UNMATCHED"])
+    @pytest.mark.ansible_integration
     def test_inventory_update_with_unmatched_aws_instance_filter(self, aws_group, instance_filter):
         """Tests inventory imports with unmatched AWS instance filters
 
@@ -415,6 +418,7 @@ class Test_Inventory_Update(Base_Api_Test):
         # assert whether hosts were imported
         assert aws_group.get().total_hosts == 0, "Unexpected number of hosts returned (%s != 0)." % aws_group.total_hosts
 
+    @pytest.mark.ansible_integration
     @pytest.mark.parametrize(
         "only_group_by, expected_group_names",
         [
@@ -445,6 +449,7 @@ class Test_Inventory_Update(Base_Api_Test):
         assert set(actual_group_names) == set(expected_group_names), \
             "Unexpected groups created.\n\nExpected group names: %s\nActual group names: %s\n" % (expected_group_names, actual_group_names)
 
+    @pytest.mark.ansible_integration
     def test_aws_replace_dash_in_groups_source_variable(self, job_template, aws_group, host_local):
         """Tests that AWS inventory groups will be registered with underscores instead of hyphens
         when using "replace_dash_in_groups" source variable
@@ -468,6 +473,7 @@ class Test_Inventory_Update(Base_Api_Test):
             assert inv_groups_pg.count, ('An inventory sync was launched with "replace_dash_in_groups: true", '
                                          'but desired group with sanitized tag "{0}" not found.'.format(group_name))
 
+    @pytest.mark.ansible_integration
     @pytest.mark.parametrize('timeout, status, job_explanation', [
         (0, 'successful', ''),
         (60, 'successful', ''),
@@ -508,6 +514,7 @@ class Test_Inventory_Update(Base_Api_Test):
         assert(updates.results.pop().status == 'failed')
 
 
+# Is awx-manage inventory_import using Ansible at any point?
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive

@@ -162,6 +162,7 @@ class Test_Job(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.ansible_integration
     def test_utf8(self, utf8_template):
         """Verify that a playbook full of UTF-8 successfully works through Tower"""
         # launch job
@@ -327,6 +328,7 @@ class Test_Job(Base_Api_Test):
         assert job.is_successful
         assert job.extra_vars == json.dumps(dict(test_var_three='abc'))
 
+    @pytest.mark.ansible_integration
     def test_cancel_pending_job(self, job_with_status_pending):
         """Verify the job->cancel endpoint behaves as expected when canceling a
         pending/queued job
@@ -355,6 +357,7 @@ class Test_Job(Base_Api_Test):
             "canceled, but a 'playbook_on_start' host_event was received. " \
             "It appears that the job was not cancelled while in pending."
 
+    @pytest.mark.ansible_integration
     def test_cancel_running_job(self, job_with_status_running):
         """Verify the job->cancel endpoint behaves as expected when canceling a
         running job
@@ -453,6 +456,7 @@ class Test_Scan_Job(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken')
 
+    @pytest.mark.ansible_integration
     def test_scan_job(self, install_enterprise_license_unlimited, scan_job_template):
         """Verifies that a default scan job populates fact_versions with the default three scan modules."""
         # obtain initial fact results
@@ -468,6 +472,7 @@ class Test_Scan_Job(Base_Api_Test):
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
         confirm_fact_modules_present(new_facts, ansible=1, packages=1, services=1)
 
+    @pytest.mark.ansible_integration
     def test_file_scan_job(self, install_enterprise_license_unlimited, files_scan_job_template):
         """Tests file scan jobs."""
         # obtain intial fact results
@@ -483,6 +488,7 @@ class Test_Scan_Job(Base_Api_Test):
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
         confirm_fact_modules_present(new_facts, ansible=1, packages=1, services=1, files=1)
 
+    @pytest.mark.ansible_integration
     def test_recursive_file_scan_job(self, install_enterprise_license_unlimited, scan_job_template):
         """Tests that recursive file scan jobs pick up nested files"""
         # obtain intial fact results
@@ -508,6 +514,7 @@ class Test_Scan_Job(Base_Api_Test):
         assert any(fact.path == "/bin/ls" for fact in files_fact_view_pg.facts), \
             "Did not find target file 'bin/ls' after running recursive file scan. Results: %s." % files_fact_view_pg.fact
 
+    @pytest.mark.ansible_integration
     def test_file_scan_job_with_checksums(self, install_enterprise_license_unlimited, scan_job_template):
         """Tests that checksum file scan jobs include checksums."""
         # obtain intial fact results
@@ -533,6 +540,7 @@ class Test_Scan_Job(Base_Api_Test):
         file_checksums = [x for x in files_fact_view_pg.facts if 'checksum' in x]
         assert len(file_checksums) > 0, "No files with checksums found after running a checksum scan job - %s." % file_checksums
 
+    @pytest.mark.ansible_integration
     def test_custom_scan_job(self, install_enterprise_license_unlimited, job_template):
         """Tests custom scan jobs."""
         # obtain intial fact results

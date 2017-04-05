@@ -103,6 +103,7 @@ class Test_Workflow_Jobs(Base_Api_Test):
 
     # Basic tests of workflow jobs
 
+    @pytest.mark.ansible_integration
     def test_workflow_job_single_node_success(self, factories):
         """Workflow with single node with successful job template.
         Expect workflow job to be 'successful', job to be 'successful'
@@ -124,6 +125,7 @@ class Test_Workflow_Jobs(Base_Api_Test):
         assert re.match(towerkit.resources.v1_job, wfjn.related.job)
         assert wfjn.get_related('job').base_url == jt.get().get_related('last_job').base_url
 
+    @pytest.mark.ansible_integration
     def test_workflow_job_single_node_failure(self, factories):
         """Workflow with single node with failing job template.
         Expect workflow job to be 'successful', job to be 'failure'
@@ -140,6 +142,7 @@ class Test_Workflow_Jobs(Base_Api_Test):
         job = wfjns.pop().get_related('job')
         assert not job.is_successful, "Job {} successful".format(job.id)
 
+    @pytest.mark.ansible_integration
     def test_workflow_job_trigger_conditions(self, factories, api_workflow_job_nodes_pg):
         """Confirm that workflow with all possible triggering scenarios executes jobs appropriately.
 

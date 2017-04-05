@@ -84,6 +84,7 @@ class Test_Ad_Hoc_Commands_Inventory(Base_Api_Test):
         ad_hoc_commands_pg = inventory.get_related('ad_hoc_commands')
         ad_hoc_commands_pg.get()
 
+    @pytest.mark.ansible_integration
     def test_post_as_superuser(self, host, ssh_credential):
         """Verify that a superuser account is able to POST to the ad_hoc_commands endpoint."""
         inventory_pg = host.get_related('inventory')
@@ -115,6 +116,7 @@ class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
         ad_hoc_commands_pg = group.get_related('ad_hoc_commands')
         ad_hoc_commands_pg.get()
 
+    @pytest.mark.ansible_integration
     def test_post_as_superuser(self, group, host, ssh_credential):
         """Verify that a superuser account is able to POST to the ad_hoc_commands endpoint."""
         ad_hoc_commands_pg = group.get_related('ad_hoc_commands')
@@ -145,6 +147,7 @@ class Test_Ad_Hoc_Commands_Host(Base_Api_Test):
         ad_hoc_commands_pg = host.get_related('ad_hoc_commands')
         ad_hoc_commands_pg.get()
 
+    @pytest.mark.ansible_integration
     def test_post_as_superuser(self, host, ssh_credential):
         """Verify that a superuser account is able to POST to the ad_hoc_commands endpoint."""
         ad_hoc_commands_pg = host.get_related('ad_hoc_commands')
@@ -211,6 +214,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     api_ad_hoc_commands_pg.post(payload)
 
+    @pytest.mark.ansible_integration
     def test_launch_without_module_name(self, host, ssh_credential, api_ad_hoc_commands_pg):
         """Verifies that if you post without specifiying module_name that the command module is run."""
         # create payload
@@ -244,7 +248,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                 api_ad_hoc_commands_pg.post(payload)
 
     def test_launch_without_module_args(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
-        """Verifies that if you post without specifiying module_args that the post fails withthe command module."""
+        """Verifies that if you post without specifiying module_args that the post fails with the command module."""
         # create poad
         payload = dict(inventory=inventory.id,
                        credential=ssh_credential.id,
@@ -276,6 +280,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
             "Unexpected command status after cancelling (expected " \
             "status:canceled) - %s" % ad_hoc_with_status_pending
 
+    @pytest.mark.ansible_integration
     def test_launch_with_ask_credential_and_passwords_in_payload(self, host, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
         """Verifies that launching a command with an ask credential succeeds when supplied with proper passwords."""
         # create payload
@@ -294,6 +299,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         command_pg.wait_until_completed()
         assert command_pg.is_successful, "Command unsuccessful - %s" % command_pg
 
+    @pytest.mark.ansible_integration
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
         """Verifies that launching a command with an ask credential fails when not supplied with required passwords."""
         # create payload
@@ -305,6 +311,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             api_ad_hoc_commands_pg.post(payload)
 
+    @pytest.mark.ansible_integration
     def test_launch_with_ask_credential_and_invalid_passwords_in_payload(self, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
         """Verifies that launching a command with an ask credential fails when supplied with invalid passwords."""
         # create payload
@@ -323,6 +330,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         command_pg.wait_until_completed()
         assert not command_pg.is_successful, "Command successful, but was expected to fail - %s " % command_pg
 
+    @pytest.mark.ansible_integration
     @pytest.mark.parametrize("limit_value, expected_count", [
         ("", 11),
         ("all", 11),
@@ -385,6 +393,7 @@ print json.dumps(inv, indent=2)
         events_pg = command_pg.get_related('events', event__startswith='runner_on')
         assert events_pg.count == expected_count
 
+    @pytest.mark.ansible_integration
     def test_launch_with_unmatched_limit_value(self, host, ssh_credential, api_ad_hoc_commands_pg, ansible_version_cmp):
         """Verify that launching an ad hoc command without matching host fails appropriately."""
         # create payload
@@ -507,6 +516,7 @@ print json.dumps(inv, indent=2)
         with pytest.raises(towerkit.exceptions.BadRequest):
             relaunch_pg.post()
 
+    @pytest.mark.ansible_integration
     @pytest.mark.fixture_args(module_name='shell', module_args='exit 1', job_type='check')
     def test_launch_with_check(self, host, ssh_credential, ad_hoc_with_status_completed):
         """Verifies check command behavior."""

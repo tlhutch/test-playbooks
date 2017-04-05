@@ -74,6 +74,7 @@ class Test_Job_Events(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.ansible_integration
     def test_dynamic_inventory(self, factories, ansible_version_cmp):
         """Launch a linear playbook of several plays and confirm desired events are at its related job events"""
         # ensure desired verbose events regarding authentication
@@ -193,6 +194,7 @@ class Test_Job_Events(Base_Api_Test):
         assert not filter(lambda x: not x.uuid, non_verbose)
         assert not filter(lambda x: x.playbook != 'dynamic_inventory.yml', non_verbose)
 
+    @pytest.mark.ansible_integration
     def test_async_tasks(self, factories):
         """Runs a single play with async tasks and confirms desired events at related endpoint"""
         credential = factories.credential(password='passphrase', vault_password='vault')
@@ -241,6 +243,7 @@ class Test_Job_Events(Base_Api_Test):
         assert not filter(lambda x: not x.uuid, non_verbose)
         assert not filter(lambda x: x.playbook != 'async_tasks.yml', non_verbose)
 
+    @pytest.mark.ansible_integration
     def test_free_strategy(self, factories):
         """Runs a single play with free strategy and confirms desired events at related endpoint"""
         credential = factories.credential(password='passphrase', vault_password='vault')
@@ -279,6 +282,7 @@ class Test_Job_Events(Base_Api_Test):
         assert not filter(lambda x: not x.uuid, non_verbose)
         assert not filter(lambda x: x.playbook != 'free_waiter.yml', non_verbose)
 
+    @pytest.mark.ansible_integration
     def test_no_log(self, factories):
         """Runs Ansible's no_log integration test playbook and confirms Tower's callback receiver offers
         near equivalent censoring.
