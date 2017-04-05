@@ -154,7 +154,7 @@ class InventoryFactory(PageFactory):
 
     localhost = factory.RelatedFactory('tests.lib.fixtures.factory_fixtures.HostFactory',
                                        factory_related_name='inventory',
-                                       request=factory.SelfAttribute('inventory.testsetup.request'),
+                                       request=factory.SelfAttribute('..request'),
                                        name='localhost')
     organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
 

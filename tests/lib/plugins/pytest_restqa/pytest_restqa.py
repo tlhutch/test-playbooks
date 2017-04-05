@@ -116,7 +116,9 @@ def pytest_unconfigure(config):
 @pytest.fixture(scope="session")
 def testsetup(request):
     """Return initialized REST QA TestSetup object"""
-    return TestSetup(request)
+    testsetup = TestSetup(request)
+    testsetup.request = request
+    return testsetup
 
 
 @pytest.mark.hookwrapper
