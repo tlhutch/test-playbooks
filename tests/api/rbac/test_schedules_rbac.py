@@ -86,6 +86,21 @@ class Test_Schedules_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 schedule_pg.delete()
 
+    def test_schedule_reassignment(self, org_user, schedulable_resource_as_org_admin, cleanup_jobs_template):
+        """Tests that UJT-admins cannot patch their schedules to other UJTs."""
+        # grant test user admin permissions to underlying Tower resource
+        if schedulable_resource_as_org_admin.type != "inventory_source":
+            schedulable_resource_as_org_admin.set_object_roles(org_user, "admin")
+        else:
+            inventory = schedulable_resource_as_org_admin.related.inventory.get()
+            inventory.set_object_roles(org_user, "admin")
+
+        schedule = schedulable_resource_as_org_admin.add_schedule()
+
+        with self.current_user(username=org_user.username, password=org_user.password):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                schedule.patch(unified_job_template=cleanup_jobs_template.id)
+
     def test_user_capabilities_as_superuser(self, resource_with_schedule, api_schedules_pg):
         """Tests 'user_capabilities' against schedules of all types of UJT as superuser."""
         schedule_pg = resource_with_schedule.get_related('schedules').results[0]
