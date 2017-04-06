@@ -11,13 +11,13 @@ class Test_License_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken')
 
-    def test_delete_as_non_superuser(self, non_superuser, user_password, api_config_pg):
+    def test_delete_as_non_superuser(self, non_superuser, api_config_pg):
         """Verify that DELETE to /api/v1/config/ as a non-superuser raises a 403."""
         with self.current_user(username=non_superuser.username, password=non_superuser.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 api_config_pg.delete()
 
-    def test_post_as_non_superuser(self, non_superuser, user_password, api_config_pg):
+    def test_post_as_non_superuser(self, non_superuser, api_config_pg):
         """Verify that DELETE to /api/v1/config/ as a non-superuser raises a 403."""
         with self.current_user(username=non_superuser.username, password=non_superuser.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
