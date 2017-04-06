@@ -2,8 +2,7 @@ import pytest
 
 import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
-    check_user_capabilities,
-    set_roles
+    check_user_capabilities
 )
 from tests.api import Base_Api_Test
 
@@ -25,25 +24,26 @@ class Test_User_RBAC(Base_Api_Test):
         for user in [user_one, user_two]:
             for disassociate in [True, False]:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    user.get_related('roles').post(dict(id=user_one_admin_role.id,
-                                                        disassociate=disassociate))
+                    user.related.roles.post(dict(id=user_one_admin_role.id,
+                                                 disassociate=disassociate))
 
     def test_user_capabilities_as_superuser(self, factories, api_users_pg):
         """Tests 'user_capabilities' with a superuser."""
         superuser = factories.user(is_superuser=True)
 
-        check_user_capabilities(superuser.get(), "superuser")
+        check_user_capabilities(superuser, "superuser")
         check_user_capabilities(api_users_pg.get(id=superuser.id).results.pop(), "superuser")
 
-    def test_user_capabilities_as_org_admin(self, factories, user_password, api_users_pg):
+    def test_user_capabilities_as_org_admin(self, factories, api_users_pg):
         """Tests 'user_capabilities' with an org_admin."""
         organization = factories.organization()
         org_user = factories.user()
         org_admin = factories.user()
-        set_roles(org_user, organization, ["member"])
-        set_roles(org_admin, organization, ["admin"])
 
-        with self.current_user(username=org_admin.username, password=user_password):
+        organization.set_object_roles(org_user, "member")
+        organization.set_object_roles(org_admin, "admin")
+
+        with self.current_user(username=org_admin.username, password=org_admin.password):
             check_user_capabilities(org_user.get(), "org_admin")
             check_user_capabilities(api_users_pg.get(id=org_user.id).results.pop(), "org_admin")
 

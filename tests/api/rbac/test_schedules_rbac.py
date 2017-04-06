@@ -1,5 +1,4 @@
 import pytest
-import fauxfactory
 
 import towerkit.exceptions
 from tests.api import Base_Api_Test
@@ -15,76 +14,72 @@ class Test_Schedules_RBAC(Base_Api_Test):
 
     def test_crud_as_superuser(self, resource_with_schedule):
         """Tests schedule CRUD as superuser against all UJTs that support schedules.
-        Create is tested upon fixture instantiation.
+        Note: schedule creation is tested upon fixture instantiation.
         """
-        # test get
-        # NOTE: additional filter so that we do not delete our prestocked system job schedule
-        schedule_pg = resource_with_schedule.get_related('schedules', not__name='Cleanup Job Schedule').results[0]
+        # test get with additional filter so that we do not delete our prestocked system job schedule
+        schedule = resource_with_schedule.related.schedules.get(not__name='Cleanup Job Schedule').results.pop()
         # test put/patch
-        schedule_pg.put()
-        schedule_pg.patch()
+        schedule.put()
+        schedule.patch()
         # test delete
-        schedule_pg.delete()
+        schedule.delete()
 
-    def test_crud_as_org_admin(self, org_admin, user_password, schedulable_resource_as_org_admin):
+    def test_crud_as_org_admin(self, org_admin, schedulable_resource_as_org_admin):
         """Tests schedules CRUD as an org_admin against an inventory_source, project, and JT."""
-        schedules_pg = schedulable_resource_as_org_admin.get_related('schedules')
-        payload = dict(name="Schedule - %s" % fauxfactory.gen_utf8(),
-                       rrule="DTSTART:20160926T040000Z RRULE:FREQ=HOURLY;INTERVAL=1")
 
-        with self.current_user(org_admin.username, user_password):
+        with self.current_user(org_admin.username, org_admin.password):
             # test create
-            schedule_pg = schedules_pg.post(payload)
+            schedule = schedulable_resource_as_org_admin.add_schedule()
             # test get
-            schedule_pg.get()
+            schedule.get()
             # test put/patch
-            schedule_pg.put()
-            schedule_pg.patch()
+            schedule.put()
+            schedule.patch()
             # test delete
-            schedule_pg.delete()
+            schedule.delete()
 
-    def test_system_job_template_schedule_crud_as_org_admin(self, request, org_admin, user_password, cleanup_jobs_template):
-        """Tests schedules CRUD as an org_admin against a system job template."""
-        schedules_pg = cleanup_jobs_template.get_related('schedules')
+    def test_system_job_template_schedule_crud_as_org_admin(self, org_admin, cleanup_jobs_template):
+        """Tests schedules CRUD as an org_admin against a SJT."""
+        schedules = cleanup_jobs_template.related.schedules.get()
         # Tower-3.0 comes with a prestocked cleanup_jobs schedule
-        schedule_pg = cleanup_jobs_template.get_related('schedules').results[0]
+        schedule = schedules.results.pop()
 
-        with self.current_user(org_admin.username, user_password):
+        with self.current_user(org_admin.username, org_admin.password):
             # test get
             with pytest.raises(towerkit.exceptions.Forbidden):
-                schedule_pg.get()
+                schedule.get()
             # test put/patch
             with pytest.raises(towerkit.exceptions.Forbidden):
-                schedule_pg.put()
+                schedule.put()
             with pytest.raises(towerkit.exceptions.Forbidden):
-                schedule_pg.patch()
+                schedule.patch()
             # test post
             with pytest.raises(towerkit.exceptions.Forbidden):
-                schedules_pg.post()
+                schedules.post()
             # test delete
             with pytest.raises(towerkit.exceptions.Forbidden):
-                schedule_pg.delete()
+                schedule.delete()
 
-    def test_crud_as_org_user(self, request, org_user, user_password, resource_with_schedule):
+    def test_crud_as_org_user(self, org_user, resource_with_schedule):
         """Test schedules CRUD as an org_user against an inventory_source, project, and JT."""
-        schedules_pg = resource_with_schedule.get_related('schedules')
-        schedule_pg = resource_with_schedule.get_related('schedules').results[0]
+        schedules = resource_with_schedule.related.schedules.get()
+        schedule = schedules.results.pop()
 
-        with self.current_user(org_user.username, user_password):
+        with self.current_user(org_user.username, org_user.password):
             # test get
             with pytest.raises(towerkit.exceptions.Forbidden):
-                schedule_pg.get()
+                schedule.get()
             # test put/patch
             with pytest.raises(towerkit.exceptions.Forbidden):
-                schedule_pg.put()
+                schedule.put()
             with pytest.raises(towerkit.exceptions.Forbidden):
-                schedule_pg.patch()
+                schedule.patch()
             # test create
             with pytest.raises(towerkit.exceptions.Forbidden):
-                schedules_pg.post()
+                schedules.post()
             # test delete
             with pytest.raises(towerkit.exceptions.Forbidden):
-                schedule_pg.delete()
+                schedule.delete()
 
     def test_schedule_reassignment(self, org_user, schedulable_resource_as_org_admin, cleanup_jobs_template):
         """Tests that UJT-admins cannot patch their schedules to other UJTs."""
@@ -103,14 +98,14 @@ class Test_Schedules_RBAC(Base_Api_Test):
 
     def test_user_capabilities_as_superuser(self, resource_with_schedule, api_schedules_pg):
         """Tests 'user_capabilities' against schedules of all types of UJT as superuser."""
-        schedule_pg = resource_with_schedule.get_related('schedules').results[0]
-        check_user_capabilities(schedule_pg.get(), 'superuser')
-        check_user_capabilities(api_schedules_pg.get(id=schedule_pg.id).results.pop(), "superuser")
+        schedule = resource_with_schedule.related.schedules.get().results.pop()
+        check_user_capabilities(schedule, 'superuser')
+        check_user_capabilities(api_schedules_pg.get(id=schedule.id).results.pop(), "superuser")
 
-    def test_user_capabilities_as_org_admin(self, org_admin, user_password, organization_resource_with_schedule, api_schedules_pg):
+    def test_user_capabilities_as_org_admin(self, org_admin, organization_resource_with_schedule, api_schedules_pg):
         """Tests 'user_capabilities' against schedules of all types of UJT as an org_admin."""
-        schedule_pg = organization_resource_with_schedule.get_related('schedules').results[0]
+        schedule = organization_resource_with_schedule.related.schedules.get().results.pop()
 
-        with self.current_user(org_admin.username, user_password):
-            check_user_capabilities(schedule_pg.get(), 'org_admin')
-            check_user_capabilities(api_schedules_pg.get(id=schedule_pg.id).results.pop(), "org_admin")
+        with self.current_user(org_admin.username, org_admin.password):
+            check_user_capabilities(schedule.get(), 'org_admin')
+            check_user_capabilities(api_schedules_pg.get(id=schedule.id).results.pop(), "org_admin")

@@ -6,8 +6,7 @@ from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
     check_read_access,
     check_user_capabilities,
-    get_resource_roles,
-    set_roles
+    get_resource_roles
 )
 from tests.api import Base_Api_Test
 
@@ -19,46 +18,46 @@ class Test_Credential_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_unprivileged_user(self, factories, user_password):
+    def test_unprivileged_user(self, factories):
         """An unprivileged user/team should not be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
         * Edit the credential
         * Delete the credential
         """
-        credential_pg = factories.credential()
-        user_pg = factories.user(organization=credential_pg.get_related('organization'))
+        credential = factories.credential()
+        user = factories.user(organization=credential.related.organization.get())
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(credential_pg, unprivileged=True)
+            check_read_access(credential, unprivileged=True)
 
             # check put/patch/delete
-            assert_response_raised(credential_pg, httplib.FORBIDDEN)
+            assert_response_raised(credential, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_admin_role(self, factories, set_test_roles, agent, user_password):
+    def test_admin_role(self, factories, set_test_roles, agent):
         """A user/team with credential 'admin' should be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
         * Edit the credential
         * Delete the credential
         """
-        credential_pg = factories.credential()
-        user_pg = factories.user(organization=credential_pg.get_related('organization'))
+        credential = factories.credential()
+        user = factories.user(organization=credential.related.organization.get())
 
         # give agent admin_role
-        set_test_roles(user_pg, credential_pg, agent, "admin")
+        set_test_roles(user, credential, agent, "admin")
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(credential_pg)
+            check_read_access(credential)
 
             # check put/patch/delete
-            assert_response_raised(credential_pg, httplib.OK)
+            assert_response_raised(credential, httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_use_role(self, factories, set_test_roles, agent, user_password):
+    def test_use_role(self, factories, set_test_roles, agent):
         """A user/team with credential 'use' should be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
@@ -66,21 +65,21 @@ class Test_Credential_RBAC(Base_Api_Test):
         * Edit the credential
         * Delete the credential
         """
-        credential_pg = factories.credential()
-        user_pg = factories.user(organization=credential_pg.get_related('organization'))
+        credential = factories.credential()
+        user = factories.user(organization=credential.related.organization.get())
 
         # give agent use_role
-        set_test_roles(user_pg, credential_pg, agent, "use")
+        set_test_roles(user, credential, agent, "use")
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(credential_pg, ['user'])
+            check_read_access(credential, ['user'])
 
             # check put/patch/delete
-            assert_response_raised(credential_pg, httplib.FORBIDDEN)
+            assert_response_raised(credential, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_read_role(self, factories, set_test_roles, agent, user_password):
+    def test_read_role(self, factories, set_test_roles, agent):
         """A user/team with credential 'read' should be able to:
         * Make GETs to the credential detail page
         * Make GETs to all of the credential get_related
@@ -88,49 +87,50 @@ class Test_Credential_RBAC(Base_Api_Test):
         * Edit the credential
         * Delete the credential
         """
-        credential_pg = factories.credential()
-        user_pg = factories.user(organization=credential_pg.get_related('organization'))
+        credential = factories.credential()
+        user = factories.user(organization=credential.related.organization.get())
 
         # give agent read_role
-        set_test_roles(user_pg, credential_pg, agent, "read")
+        set_test_roles(user, credential, agent, "read")
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(credential_pg, ['user'])
+            check_read_access(credential, ['user'])
 
             # check put/patch/delete
-            assert_response_raised(credential_pg, httplib.FORBIDDEN)
+            assert_response_raised(credential, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'read'])
-    def test_user_capabilities(self, factories, user_password, api_credentials_pg, role):
+    def test_user_capabilities(self, factories, api_credentials_pg, role):
         """Test user_capabilities given each credential role."""
-        credential_pg = factories.credential()
-        user_pg = factories.user(organization=credential_pg.get_related('organization'))
+        credential = factories.credential()
+        user = factories.user(organization=credential.related.organization.get())
 
         # give test user target role privileges
-        set_roles(user_pg, credential_pg, [role])
+        credential.set_object_roles(user, role)
 
-        with self.current_user(username=user_pg.username, password=user_password):
-            check_user_capabilities(credential_pg.get(), role)
-            check_user_capabilities(api_credentials_pg.get(id=credential_pg.id).results.pop(), role)
+        with self.current_user(username=user.username, password=user.password):
+            check_user_capabilities(credential.get(), role)
+            check_user_capabilities(api_credentials_pg.get(id=credential.id).results.pop(), role)
 
     def test_autopopulated_admin_role_with_user_credentials(self, factories):
         """Tests that when you create a credential with a value supplied for 'user'
         that your user is automatically given the admin role of your credential.
         """
-        user_pg = factories.user()
+        user = factories.user()
 
         # assert newly created user has no roles
-        assert not user_pg.get_related('roles').count, \
-            "Newly created user created unexpectedly with roles - %s." % user_pg.get_related('roles')
+        roles_count = user.related.roles.get().count
+        assert not roles_count, "Newly created user created unexpectedly with {0} roles.".format(roles_count)
 
         # assert user now has admin role after user credential creation
-        credential_pg = factories.credential(user=user_pg, organization=None)
-        admin_role_users_pg = credential_pg.get_object_role('admin_role').get_related('users')
-        assert admin_role_users_pg.count == 1, \
-            "Unexpected number of users with our credential admin role. Expected one, got %s." % admin_role_users_pg.count
-        assert admin_role_users_pg.results[0].id == user_pg.id, \
-            "Unexpected admin role user returned. Expected user with ID %s, but %s." % (user_pg.id, admin_role_users_pg.results[0].id)
+        credential = factories.credential(user=user, organization=None)
+        admin_role_users = credential.get_object_role('admin_role').related.users.get()
+        assert admin_role_users.count == 1, \
+            "Unexpected number of users with our credential admin role. Expected one, got %s." % admin_role_users.count
+        assert admin_role_users.results.pop().id == user.id, \
+            "Unexpected admin role user returned. Expected user with ID %s, but one with ID %s." \
+            % (user.id, admin_role_users.results.pop().id)
 
     @pytest.mark.parametrize("agent_name", ["admin_user", "org_user"])
     def test_user_credential_role_assignment(self, request, factories, agent_name):
@@ -146,7 +146,7 @@ class Test_Credential_RBAC(Base_Api_Test):
 
         agent = request.getfuncargvalue(agent_name)
         role_names = get_resource_roles(credential)
-        with self.current_user(agent.username, agent.password):
+        with self.current_user(username=agent.username, password=agent.password):
             for role_name in role_names:
                 # superusers may assign credential roles to another user
                 if agent_name == "admin_user":
