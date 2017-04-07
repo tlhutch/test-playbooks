@@ -8,4 +8,4 @@ pytest-html
 pytest-instafail
 pytest-ordering
 python-dateutil
-git+ssh://git@github.com/ansible/towerkit.git@connection_page_base_refactor
+git+ssh://git@github.com/ansible/towerkit.git
