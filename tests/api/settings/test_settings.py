@@ -532,7 +532,7 @@ class Test_Setting(Base_Api_Test):
             relevant_keys = [key for key in endpoint.json.keys() if key in payload and key in endpoint.json]
             for key in relevant_keys:
                 assert endpoint.json[key] == "$encrypted$", \
-                    "\"{0}\" not obfuscated in {1}.".format(key, endpoint.base_url)
+                    "\"{0}\" not obfuscated in {1}.".format(key, endpoint.endpoint)
 
     def test_reset_setting(self, setting_pg, modify_settings):
         """Verifies that settings get restored to factory defaults with a DELETE request."""
@@ -543,13 +543,13 @@ class Test_Setting(Base_Api_Test):
         payload = modify_settings()
         updated_json = setting_pg.get().json
         assert any([item in updated_json.items() for item in payload.items()]), \
-            "No changed entry found under {0}.".format(setting_pg.base_url)
+            "No changed entry found under {0}.".format(setting_pg.endpoint)
         assert initial_json != updated_json, \
             "Expected {0} to look different after changing Tower settings.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
-                setting_pg.base_url, initial_json, updated_json)
+                setting_pg.endpoint, initial_json, updated_json)
 
         # reset nested settings endpoint and check that defaults restored
         setting_pg.delete()
         assert initial_json == setting_pg.get().json, \
             "Expected {0} to be reverted to initial state after submitting DELETE request.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
-                setting_pg.base_url, initial_json, setting_pg.json)
+                setting_pg.endpoint, initial_json, setting_pg.json)

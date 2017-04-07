@@ -173,6 +173,6 @@ class Test_Main_RBAC(Base_Api_Test):
             assert query_results.count == 1, \
                 "Unexpected number of query results returned. Expected one, received {0}.".format(query_results.count)
             # assert that our query filter returns the correct resource
-            assert query_results.results[0].base_url == admin_resource.base_url, \
+            assert query_results.results[0].endpoint == admin_resource.endpoint, \
                 "Incorrect Tower resource returned.\n\nExpected: {0}\nReceived {1}.".format(
-                    admin_resource.base_url, query_results.results[0].base_url)
+                    admin_resource.endpoint, query_results.results[0].endpoint)

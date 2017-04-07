@@ -65,15 +65,14 @@ def check_request(model, method, code, data=None):
     http response code
     """
     method = method.lower()
-    api = model.api
-    url = model.base_url.format(**model.json)
+    connection_method = getattr(model.connection, method)
 
     if method in ('get', 'head', 'options', 'delete'):
         if data:
             log.warning('Unused {0} request data provided'.format(method))
-        response = getattr(api, method)(url)
+        response = connection_method(model.endpoint)
     else:
-        response = getattr(api, method)(url, data)
+        response = connection_method(model.endpoint, data)
     if response.status_code != code:
         msg = 'Unexpected {0} request response code: {1} != {2}'
         pytest.fail(msg.format(method, response.status_code, code))
