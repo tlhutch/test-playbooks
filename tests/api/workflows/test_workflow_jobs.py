@@ -99,7 +99,7 @@ class Test_Workflow_Jobs(Base_Api_Test):
         wfj = wfjt.launch().wait_until_completed()
         wfjn = wfj.related.workflow_nodes.get().results.pop()
         assert('inventory_updates' in wfjn.related.job)  # confirm that it's not linked as a job
-        assert(inv_source.related.inventory_updates.get().results.pop().base_url == wfjn.related.job.get().base_url)
+        assert(inv_source.related.inventory_updates.get().results.pop().endpoint == wfjn.related.job.get().endpoint)
 
     # Basic tests of workflow jobs
 
@@ -123,7 +123,7 @@ class Test_Workflow_Jobs(Base_Api_Test):
 
         # Confirm WFJ correctly references job
         assert re.match(towerkit.resources.v1_job, wfjn.related.job)
-        assert wfjn.get_related('job').base_url == jt.get().get_related('last_job').base_url
+        assert wfjn.get_related('job').endpoint == jt.get().get_related('last_job').endpoint
 
     @pytest.mark.ansible_integration
     def test_workflow_job_single_node_failure(self, factories):
@@ -214,7 +214,7 @@ class Test_Workflow_Jobs(Base_Api_Test):
         wfj = wfjt.launch().wait_until_completed()
         wfjn = wfj.related.workflow_nodes.get().results.pop()
         assert re.match(towerkit.resources.v1_project_update, wfjn.related.job)
-        assert wfjn.get_related('job').base_url == project.get().get_related('last_job').base_url
+        assert wfjn.get_related('job').endpoint == project.get().get_related('last_job').endpoint
 
     # Canceling jobs
 
