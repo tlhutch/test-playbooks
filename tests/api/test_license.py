@@ -104,6 +104,7 @@
 import json
 import logging
 
+from towerkit.api.resources import resources
 import towerkit.tower.license
 import towerkit.exceptions
 import fauxfactory
@@ -594,11 +595,11 @@ class Test_Legacy_License(Base_Api_Test):
         case with legacy licenses.
         """
         endpoints = [setting.endpoint for setting in api_settings_pg.results]
-        assert(towerkit.api.resources.v1_settings_saml not in endpoints), \
+        assert(resources.v1_settings_saml not in endpoints), \
             "Expected not to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_radius not in endpoints), \
+        assert(resources.v1_settings_radius not in endpoints), \
             "Expected not to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_ldap in endpoints), \
+        assert(resources.v1_settings_ldap in endpoints), \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
@@ -1074,11 +1075,11 @@ class Test_Basic_License(Base_Api_Test):
         our enterprise auth endpoints.
         """
         endpoints = [setting.endpoint for setting in api_settings_pg.results]
-        assert(towerkit.api.resources.v1_settings_saml not in endpoints), \
+        assert(resources.v1_settings_saml not in endpoints), \
             "Expected not to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_radius not in endpoints), \
+        assert(resources.v1_settings_radius not in endpoints), \
             "Expected not to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_ldap not in endpoints), \
+        assert(resources.v1_settings_ldap not in endpoints), \
             "Expected not to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
@@ -1283,11 +1284,11 @@ class Test_Enterprise_License(Base_Api_Test):
         enterprise auth endpoints.
         """
         endpoints = [setting.endpoint for setting in api_settings_pg.results]
-        assert(towerkit.api.resources.v1_settings_saml in endpoints), \
+        assert(resources.v1_settings_saml in endpoints), \
             "Expected to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_radius in endpoints), \
+        assert(resources.v1_settings_radius in endpoints), \
             "Expected to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_ldap in endpoints), \
+        assert(resources.v1_settings_ldap in endpoints), \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
