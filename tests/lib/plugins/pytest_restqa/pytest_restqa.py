@@ -99,11 +99,11 @@ def pytest_configure(config):
             qe_config.api_version = config.getvalue('api_version')
             qe_config.assume_untrusted = config.getvalue('assume_untrusted')
 
-            TestSetup.api = Connection(qe_config.base_url,
-                                       version=qe_config.api_version,
-                                       verify=not qe_config.assume_untrusted)
+            TestSetup.api = Connection(qe_config.base_url, verify=not qe_config.assume_untrusted)
             if config.option.debug_rest and hasattr(config, '_debug_rest_hdlr'):
-                TestSetup.api.setup_logging(config._debug_rest_hdlr)
+                logger = logging.getLogger('towerkit.api.client')
+                logger.setLevel('DEBUG')
+                logger.addHandler(config._debug_rest_hdlr)
 
 
 @pytest.mark.trylast
@@ -116,7 +116,9 @@ def pytest_unconfigure(config):
 @pytest.fixture(scope="session")
 def testsetup(request):
     """Return initialized REST QA TestSetup object"""
-    return TestSetup(request)
+    testsetup = TestSetup(request)
+    testsetup.request = request
+    return testsetup
 
 
 @pytest.mark.hookwrapper

@@ -44,7 +44,7 @@ for resource, endpoint in endpoints:
         if loop:
             page = int(loop.split('=')[1].split('&')[0])
         write_results(big_get.last_elapsed, operation='Querying 200 created {0}s'.format(resource),
-                      user='admin', endpoint=big_get.base_url, method='get')
+                      user='admin', endpoint=big_get.endpoint, method='get')
         results = big_get.results
         for result in results:
             if item_count > item_limit:
@@ -53,16 +53,16 @@ for resource, endpoint in endpoints:
             item_count += 1
             result.get()
             write_results(result.last_elapsed, operation='Getting {0}'.format(resource),
-                          user='admin', endpoint=str(result.base_url), method='get')
+                          user='admin', endpoint=str(result.endpoint), method='get')
             if resource == 'job':
-                job_times.append((result.base_url, timedelta(seconds=result.elapsed)))
+                job_times.append((result.endpoint, timedelta(seconds=result.elapsed)))
                 if job_event_job_count <= item_limit:
                     job_events_endpoint = result.related.job_events
                     while True:
                         events = job_events_endpoint.get()
                         for event in events.results:
                             event.get()
-                            job_event_times.append((event.base_url, event.last_elapsed))
+                            job_event_times.append((event.endpoint, event.last_elapsed))
                             job_event_job_count += 1
                             if job_event_job_count > item_limit:
                                 break

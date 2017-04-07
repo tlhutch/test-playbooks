@@ -104,6 +104,7 @@
 import json
 import logging
 
+from towerkit.api.resources import resources
 import towerkit.tower.license
 import towerkit.exceptions
 import fauxfactory
@@ -593,12 +594,12 @@ class Test_Legacy_License(Base_Api_Test):
         LDAP among our enterprise auth solutions. Note: LDAP is a special
         case with legacy licenses.
         """
-        endpoints = [setting.base_url for setting in api_settings_pg.results]
-        assert(towerkit.api.resources.v1_settings_saml not in endpoints), \
+        endpoints = [setting.endpoint for setting in api_settings_pg.results]
+        assert(resources.v1_settings_saml not in endpoints), \
             "Expected not to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_radius not in endpoints), \
+        assert(resources.v1_settings_radius not in endpoints), \
             "Expected not to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_ldap in endpoints), \
+        assert(resources.v1_settings_ldap in endpoints), \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
@@ -818,7 +819,7 @@ class Test_Legacy_License_Expired(Base_Api_Test):
             ad_hoc_commands_pg = endpoint.get_related('ad_hoc_commands')
             with pytest.raises(towerkit.exceptions.LicenseExceeded):
                 ad_hoc_commands_pg.post(payload), \
-                    "Unexpectedly launched an ad_hoc_command with an expired license from %s." % ad_hoc_commands_pg.base_url
+                    "Unexpectedly launched an ad_hoc_command with an expired license from %s." % ad_hoc_commands_pg.endpoint
 
     def test_update_license(self, api_config_pg, legacy_license_json):
         """Verify that the license can be updated by issuing a POST to the /config endpoint"""
@@ -1073,12 +1074,12 @@ class Test_Basic_License(Base_Api_Test):
         """Verify that the top-level /api/v1/settings/ endpoint does not show
         our enterprise auth endpoints.
         """
-        endpoints = [setting.base_url for setting in api_settings_pg.results]
-        assert(towerkit.api.resources.v1_settings_saml not in endpoints), \
+        endpoints = [setting.endpoint for setting in api_settings_pg.results]
+        assert(resources.v1_settings_saml not in endpoints), \
             "Expected not to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_radius not in endpoints), \
+        assert(resources.v1_settings_radius not in endpoints), \
             "Expected not to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_ldap not in endpoints), \
+        assert(resources.v1_settings_ldap not in endpoints), \
             "Expected not to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
@@ -1282,12 +1283,12 @@ class Test_Enterprise_License(Base_Api_Test):
         """Verify that the top-level /api/v1/settings/ endpoint shows our
         enterprise auth endpoints.
         """
-        endpoints = [setting.base_url for setting in api_settings_pg.results]
-        assert(towerkit.api.resources.v1_settings_saml in endpoints), \
+        endpoints = [setting.endpoint for setting in api_settings_pg.results]
+        assert(resources.v1_settings_saml in endpoints), \
             "Expected to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_radius in endpoints), \
+        assert(resources.v1_settings_radius in endpoints), \
             "Expected to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert(towerkit.api.resources.v1_settings_ldap in endpoints), \
+        assert(resources.v1_settings_ldap in endpoints), \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, api_settings_pg):

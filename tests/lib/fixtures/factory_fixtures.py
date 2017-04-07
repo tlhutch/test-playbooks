@@ -33,7 +33,7 @@ class PageFactory(factory.Factory):
     def _create(cls, model_class, request, **kwargs):
         """Create data and post to the associated endpoint"""
         testsetup = request.getfuncargvalue('testsetup') if request else None
-        model = model_class(testsetup)  # TODO: determine desired authentication behavior out of pytest context.
+        model = model_class(testsetup.api)  # TODO: determine desired authentication behavior out of pytest context.
         # get or create the requested resource
         if cls._meta.get_or_create:
             obj = cls._get_or_create(model, request, **kwargs)
@@ -41,6 +41,7 @@ class PageFactory(factory.Factory):
             obj = model.create(**kwargs)
             if request:
                 request.addfinalizer(obj.silent_cleanup)
+                obj.request = request
         return obj
 
     @classmethod
@@ -61,6 +62,7 @@ class PageFactory(factory.Factory):
             obj = model.create(**kwargs)
             if request:
                 request.addfinalizer(obj.silent_cleanup)
+                obj.request = request
         return obj
 
     @classmethod
@@ -154,7 +156,7 @@ class InventoryFactory(PageFactory):
 
     localhost = factory.RelatedFactory('tests.lib.fixtures.factory_fixtures.HostFactory',
                                        factory_related_name='inventory',
-                                       request=factory.SelfAttribute('inventory.testsetup.request'),
+                                       request=factory.SelfAttribute('inventory.request'),
                                        name='localhost')
     organization = factory.SubFactory(OrganizationFactory, request=factory.SelfAttribute('..request'))
 
@@ -287,7 +289,7 @@ class FactoryFixture(object):
         return self._factory(request=self.request, **kwargs)
 
     def payload(self, **kwargs):
-        return self._factory.payload(request=self.request, **kwargs)
+        return self._factory.payload(self.request, **kwargs)
 
 
 def factory_namespace(request):

@@ -74,7 +74,7 @@ class Test_Auth(Base_Api_Test):
             assert len(auth.json) == configured_pgs, \
                 "Expected to have {0} result[s] under /api/v1/auth/.".format(configured_pgs)
             # assert expected entry found
-            endpoint_name = setting_pg.base_url.replace('/api/v1/settings/', '').strip('/')
+            endpoint_name = setting_pg.endpoint.replace('/api/v1/settings/', '').strip('/')
             assert endpoint_name in auth.json, \
                 "Unexpected result[s] found with /api/v1/auth/. Expected '{0}.'".format(endpoint_name)
             # assert entry contains expected contents

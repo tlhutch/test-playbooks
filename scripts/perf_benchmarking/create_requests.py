@@ -165,8 +165,7 @@ for _ in range(20):
             launched.wait_until_completed = types.MethodType(no_op, launched)
 
         if isinstance(launched, api.JobTemplateLaunch):
-            launched = api.Job(testsetup=launched.testsetup,
-                               base_url=launched.base_url,
+            launched = api.Job(launched.connection, endpoint=launched.endpoint,
                                last_elapsed=launched.last_elapsed)
 
         job_launch_times.append(launched.last_elapsed)
