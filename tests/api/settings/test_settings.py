@@ -189,7 +189,7 @@ class Test_Setting(Base_Api_Test):
         # check that by default that our unified job related stdout not censored
         # note: system jobs do not have a related stdout endpoint
         if unified_job_with_stdout.type != "system_job":
-            assert "Standard Output too large to display" not in unified_job_with_stdout.api.get(unified_job_with_stdout.related.stdout).text, \
+            assert "Standard Output too large to display" not in unified_job_with_stdout.connection.get(unified_job_with_stdout.related.stdout).text, \
                 "UJ related stdout unexpectedly censored - %s." % unified_job_with_stdout
 
         # update stdout max bytes flag
@@ -201,7 +201,7 @@ class Test_Setting(Base_Api_Test):
                          unified_job_with_stdout.get().result_stdout), \
             "Expected result_stdout error message not matched - %s." % unified_job_with_stdout.result_stdout
         if unified_job_with_stdout.type != "system_job":
-            assert "Standard Output too large to display" in unified_job_with_stdout.api.get(unified_job_with_stdout.related.stdout).text, \
+            assert "Standard Output too large to display" in unified_job_with_stdout.connection.get(unified_job_with_stdout.related.stdout).text, \
                 "UJ related stdout censorship notice not displayed."
 
     @pytest.mark.skip(reason="Test flakiness detailed here: https://github.com/ansible/tower-qa/issues/882")
