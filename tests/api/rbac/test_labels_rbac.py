@@ -1,7 +1,6 @@
 import pytest
 
 import towerkit.exceptions
-from tests.lib.helpers.rbac_utils import set_roles
 from tests.api import Base_Api_Test
 
 
@@ -12,58 +11,59 @@ class Test_Label_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    def test_label_post_with_unprivileged_user(self, factories):
+        """Unprivileged users cannot create labels."""
+        user = factories.user()
+        organization = factories.organization()
+
+        with self.current_user(username=user.username, password=user.password):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                factories.label(organization=organization)
+
     @pytest.mark.parametrize('role', ['admin', 'auditor', 'read', 'member'])
-    def test_organization_label_post(self, factories, user_password, api_labels_pg, role):
-        """Users with organization 'admin' and 'member' should be able to create a label with their role
+    def test_label_post_with_privileged_user(self, factories, api_labels_pg, role):
+        """Users with organization 'admin' and 'member' should be able to create a label with their
         organization. Users with organization 'auditor' and 'read' should receive a 403 forbidden.
         """
         ALLOWED_ROLES = ['admin', 'member']
         REJECTED_ROLES = ['read', 'auditor']
 
-        user_pg = factories.user()
-        organization_pg = factories.organization()
-        payload = factories.label.payload(organization=organization_pg)[0]
+        user = factories.user()
+        organization = factories.organization()
 
-        # assert initial label post raises 403
-        with self.current_user(username=user_pg.username, password=user_password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
-                api_labels_pg.post(payload)
+        organization.set_object_roles(user, role)
 
-        # grant user target organization permission
-        set_roles(user_pg, organization_pg, [role])
-
-        # assert label post accepted
-        with self.current_user(username=user_pg.username, password=user_password):
+        # test label creation
+        with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                api_labels_pg.post(payload)
+                factories.label(organization=organization)
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    api_labels_pg.post(payload)
+                    factories.label(organization=organization)
             else:
                 raise ValueError("Received unhandled organization role.")
 
-    @pytest.mark.parametrize("role", ["admin", "read"])
-    def test_job_template_label_association(self, factories, user_password, role):
-        """Tests that when JT can_edit is true that our test user may associate a label with
-        a JT. Note: our test iterates through "admin_role" and "read_role" since these two
-        roles should unlock can_edit as true and false respectively.
+    @pytest.mark.parametrize("role", ["admin", "execute", "read"])
+    def test_job_template_label_association(self, factories, role):
+        """Users with JT-admin should be able to associate labels with their
+        JT. Users with JT-execute and JT-read should receive a 403 forbidden.
         """
-        job_template_pg = factories.job_template()
-        labels_pg = job_template_pg.get_related('labels')
-        organization_pg = job_template_pg.get_related('inventory').get_related('organization')
-        user_pg = factories.user(organization=organization_pg)
-        label_pg = factories.label(organization=organization_pg)
+        ALLOWED_ROLES = ['admin']
+        REJECTED_ROLES = ['execute', 'read']
 
-        # grant user target JT permission
-        set_roles(user_pg, job_template_pg, [role])
+        job_template = factories.job_template()
+        organization = job_template.ds.project.ds.organization
+        user = factories.user(organization=organization)
+        label = factories.label(organization=organization)
+
+        job_template.set_object_roles(user, role)
 
         # test label association
-        payload = dict(id=label_pg.id)
-        with self.current_user(username=user_pg.username, password=user_password):
-            job_template_pg.get()
-            if job_template_pg.summary_fields.user_capabilities.edit:
-                with pytest.raises(towerkit.exceptions.NoContent):
-                    labels_pg.post(payload)
-            else:
+        with self.current_user(username=user.username, password=user.password):
+            if role in ALLOWED_ROLES:
+                job_template.add_label(label)
+            elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    labels_pg.post(payload)
+                    job_template.add_label(label)
+            else:
+                raise ValueError("Received unhandled JT role.")
