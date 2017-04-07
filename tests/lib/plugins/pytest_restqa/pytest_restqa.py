@@ -16,13 +16,6 @@ __version__ = '1.0'
 
 def pytest_addoption(parser):
     group = parser.getgroup('rest', 'rest')
-    group.addoption('--api-version',
-                    action='store',
-                    dest='api_version',
-                    default='current_version',
-                    metavar='API-VERSION',
-                    help='Choose the API version')
-
     group.addoption('--api-untrusted',
                     action='store_true',
                     dest='assume_untrusted',
@@ -96,7 +89,6 @@ def pytest_configure(config):
                 qe_config.credentials = load_credentials(config.option.credentials_file)
                 TestSetup.credentials = qe_config.credentials
 
-            qe_config.api_version = config.getvalue('api_version')
             qe_config.assume_untrusted = config.getvalue('assume_untrusted')
 
             TestSetup.api = Connection(qe_config.base_url, verify=not qe_config.assume_untrusted)

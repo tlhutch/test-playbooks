@@ -22,32 +22,24 @@ def navigate(api, url, field):
     return data.get(field)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def api(testsetup):
     """Convenience fixture that returns api object"""
     return testsetup.api
 
 
-@pytest.fixture(scope="module")
-def api_v1_url(request, api):
-    """Navigate the API and return a link to the base api for the requested version.
-    For example, if --api-version=v1, returns string '/api/v1/'
-    """
-    api_version = request.config.getvalue('api_version')
-    available_versions = navigate(api, '/api', 'available_versions')
+@pytest.fixture(scope='session')
+def available_versions(api):
+    return navigate(api, '/api', 'available_versions')
 
-    if api_version in [None, 'current_version']:
-        current_version = navigate(api, '/api', 'current_version')
-        # Update the stored api.version
-        for version, link in available_versions.items():
-            if current_version == link:
-                api.version = version
-                request.config.option.api_version = version
-                break
-        return current_version
-    else:
-        assert api_version in available_versions, "Requested tower version (%s) not available.  Choices include: %s" % (api_version, available_versions)
-        return available_versions.get(api_version)
+
+@pytest.fixture(scope="module")
+def api_v1_url(available_versions):
+    api_version = 'v1'
+    if api_version not in available_versions:
+        raise(Exception("Requested tower version '{0}' not available.  Choices include: {1}"
+                        .format(api_version, available_versions)))
+    return available_versions.get(api_version)
 
 
 @pytest.fixture(scope="module")
