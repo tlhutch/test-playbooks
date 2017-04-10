@@ -16,8 +16,9 @@ class Test_Settings_RBAC(Base_Api_Test):
         are returned.
         """
         with self.current_user(non_superuser.username, non_superuser.password):
-            assert api_settings_pg.get().count == 0, \
-                "Unexpected number of settings returned. Expected zero, got {0}.".format(api_settings_pg.count)
+            settings_count = api_settings_pg.get().count
+            assert settings_count == 0, \
+                "Unexpected number of settings returned. Expected zero, got {0}.".format(settings_count)
 
     def test_get_nested_endpoint_as_non_superuser(self, non_superuser, api_settings_pg):
         """Verify that non_superusers cannot GET nested settings endpoints (/api/v1/settings/ui/)."""

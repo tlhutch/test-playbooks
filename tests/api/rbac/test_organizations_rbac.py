@@ -249,17 +249,3 @@ class Test_Organization_RBAC(Base_Api_Test):
 
         with pytest.raises(towerkit.exceptions.BadRequest):
             organization.set_object_roles(team, role)
-
-    @pytest.mark.parametrize('role', ['admin', 'auditor', 'member', 'read'])
-    def test_change_project_org_affiliation(self, factories, role):
-        """Confirm attempts to change project org to an unaffiliated one result in 403 for all organization roles"""
-        org = factories.organization()
-        project = factories.project(organization=org, wait=False)
-        user = factories.user()
-        another_org = factories.organization()
-
-        org.set_object_roles(user, role)
-
-        with self.current_user(username=user.username, password=user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
-                project.organization = another_org.id

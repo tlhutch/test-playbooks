@@ -134,6 +134,27 @@ class Test_Main_RBAC(Base_Api_Test):
                 set_roles(user, resource, [unauthorized_target_role], endpoint=endpoint)
 
     @pytest.mark.parametrize(
+        'resource',
+        ['team', 'project', 'inventory', 'inventory_script', 'credential', 'workflow_job_template', 'notification_template', 'label']
+    )
+    def test_change_resource_organization_affiliation(self, factories, resource):
+        """Confirm attempts to change resource organization to an unaffiliated one results in 403 for
+        all organization roles.
+        """
+        org = factories.organization()
+        org2 = factories.organization()
+        resource = getattr(factories, resource)(organization=org)
+        user = factories.user()
+
+        # grant all organization permissions
+        role_names = get_resource_roles(org)
+        org.set_object_roles(user, *role_names)
+
+        with self.current_user(username=user.username, password=user.password):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                resource.organization = org2.id
+
+    @pytest.mark.parametrize(
         'resource_name, fixture_name',
         [
             ('organization', 'api_organizations_pg'),

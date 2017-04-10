@@ -39,11 +39,10 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         set_read_role(unprivileged_user, notifiable_resource)
 
         # test notification template associate as unprivileged user
-        payload = dict(id=email_notification_template.id)
         with self.current_user(username=unprivileged_user.username, password=unprivileged_user.password):
             for endpoint in endpoints:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    endpoint.post(payload)
+                    notifiable_resource.add_notification_template(email_notification_template, endpoint)
 
     def test_notification_template_associate_as_org_admin(self, factories, notifiable_resource, org_admin):
         """Tests that org_admins may associate a NT with a notifiable resource."""
@@ -52,11 +51,9 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         notification_template = factories.notification_template(organization=organization)
 
         # test notification template associate as org_admin
-        payload = dict(id=notification_template.id)
         with self.current_user(username=org_admin.username, password=org_admin.password):
             for endpoint in endpoints:
-                with pytest.raises(towerkit.exceptions.NoContent):
-                    endpoint.post(payload)
+                notifiable_resource.add_notification_template(notification_template, endpoint)
 
     def test_notification_template_read_as_unprivileged_user(self, email_notification_template, unprivileged_user):
         """Tests that unprivileged users cannot read NT endpoints."""

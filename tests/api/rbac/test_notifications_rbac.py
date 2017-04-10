@@ -35,7 +35,7 @@ class Test_Notifications_RBAC(Base_Api_Test):
                 email_notification_template.test().wait_until_completed()
 
     def test_notification_test_as_another_org_admin(self, email_notification_template, another_org_admin):
-        """Confirms that admins of other orgs cannot test notifcations outside their organization"""
+        """Confirms that admins of other orgs cannot test notifications outside their organization"""
         with self.current_user(username=another_org_admin.username, password=another_org_admin.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.test().wait_until_completed()
