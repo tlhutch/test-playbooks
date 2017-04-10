@@ -219,7 +219,7 @@ class Test_Labels(Base_Api_Test):
     def test_summary_field_label_order(self, job_template_with_labels):
         """JT summary_field labels should be presented in alphabetical order."""
         summary_field_labels = job_template_with_labels.summary_fields['labels']['results']
-        sorted_summary_field_labels = sorted(summary_field_labels, key=lambda k: k['name'])
+        sorted_summary_field_labels = sorted(summary_field_labels, key=lambda k: k['name'].lower())
         assert summary_field_labels == sorted_summary_field_labels, \
             "JT summary fields not sorted by name. API gave %s but we expected %s." % (summary_field_labels, sorted_summary_field_labels)
 
