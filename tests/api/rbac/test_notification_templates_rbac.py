@@ -3,8 +3,7 @@ import pytest
 import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     check_user_capabilities,
-    get_nt_endpoints,
-    set_read_role
+    get_nt_endpoints
 )
 from tests.api import Base_Api_Test
 
@@ -15,6 +14,13 @@ from tests.api import Base_Api_Test
 class Test_Notification_Template_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+
+    def set_read_role(self, user, notifiable_resource):
+        if notifiable_resource.type == 'inventory_source':
+            inventory = notifiable_resource.related.inventory.get()
+            inventory.set_object_roles(user, 'read')
+        else:
+            notifiable_resource.set_object_roles(user, 'read')
 
     def test_notification_template_create_as_unprivileged_user(self, factories, unprivileged_user):
         """Tests that unprivileged users may not create notification templates."""
@@ -36,7 +42,7 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
                                                                   unprivileged_user):
         """Tests that unprivileged users may not associate a NT with a notifiable resource."""
         endpoints = get_nt_endpoints(notifiable_resource)
-        set_read_role(unprivileged_user, notifiable_resource)
+        self.set_read_role(unprivileged_user, notifiable_resource)
 
         # test notification template associate as unprivileged user
         with self.current_user(username=unprivileged_user.username, password=unprivileged_user.password):

@@ -130,15 +130,6 @@ def get_nt_endpoints(notifiable_resource):
         return ['notification_templates_any', 'notification_templates_success', 'notification_templates_error']
 
 
-def set_read_role(user_pg, notifiable_resource):
-    """Helper function that grants a user the read_role of a notifiable_resource."""
-    if notifiable_resource.type == 'inventory_source':
-        inventory_pg = notifiable_resource.get_related('inventory')
-        set_roles(user_pg, inventory_pg, ['read'])
-    else:
-        set_roles(user_pg, notifiable_resource, ['read'])
-
-
 def check_user_capabilities(resource, role):
     """Helper function used in checking the values of summary_fields flag, 'user_capabilities'"""
     assert resource.summary_fields['user_capabilities'] == user_capabilities[resource.type][role], \
