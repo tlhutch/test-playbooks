@@ -1,4 +1,5 @@
 import dateutil.rrule
+import json
 
 import fauxfactory
 import pytest
@@ -224,7 +225,7 @@ def job_template_passwords_needed_to_start(job_template_ping, ssh_credential_mul
 @pytest.fixture(scope="function")
 def files_scan_job_template(scan_job_template):
     """Scan job template with files enabled"""
-    return scan_job_template.patch(extra_vars=dict(scan_file_paths="/tmp,/bin"))
+    return scan_job_template.patch(extra_vars=json.dumps(dict(scan_file_paths="/tmp,/bin")))
 
 
 @pytest.fixture(scope="function")
