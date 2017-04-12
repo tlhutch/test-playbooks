@@ -150,64 +150,55 @@ def job_template_with_ssh_connection(factories, organization, project, ssh_crede
 @pytest.fixture(scope="function")
 def optional_survey_spec():
     # TODO - add an optional question for each question type
-    payload = dict(name=fauxfactory.gen_utf8(),
-                   description=fauxfactory.gen_utf8(),
-                   spec=[dict(required=False,
-                              question_name="Enter your email &mdash; &euro;",
-                              variable="submitter_email",
-                              type="text",
-                              default="mjones@maffletrox.edu"),
-                         dict(required=False,
-                              question_name="Enter your employee number email &mdash; &euro;",
-                              variable="employee_number",
-                              type="integer",)])
-    return payload
+    return [dict(required=False,
+                 question_name="Enter your email &mdash; &euro;",
+                 variable="submitter_email",
+                 type="text",
+                 default="mjones@maffletrox.edu"),
+            dict(required=False,
+                 question_name="Enter your employee number email &mdash; &euro;",
+                 variable="employee_number",
+                 type="integer",)]
 
 
 @pytest.fixture(scope="function")
 def optional_survey_spec_without_defaults():
     # TODO - add an optional question for each question type
-    payload = dict(name=fauxfactory.gen_utf8(),
-                   description=fauxfactory.gen_utf8(),
-                   spec=[dict(required=False,
-                              question_name="Enter your email &mdash; &euro;",
-                              variable="submitter_email",
-                              type="text",),
-                         dict(required=False,
-                              question_name="Enter your employee number email &mdash; &euro;",
-                              variable="employee_number",
-                              type="integer",)])
-    return payload
+    return [dict(required=False,
+                 question_name="Enter your email &mdash; &euro;",
+                 variable="submitter_email",
+                 type="text",),
+            dict(required=False,
+                 question_name="Enter your employee number email &mdash; &euro;",
+                 variable="employee_number",
+                 type="integer",)]
 
 
 @pytest.fixture(scope="function")
 def required_survey_spec():
     # TODO - add a required question for each question type
-    payload = dict(name=fauxfactory.gen_utf8(),
-                   description=fauxfactory.gen_utf8(),
-                   spec=[dict(required=True,
-                              question_name="Do you like chicken?",
-                              question_description="Please indicate your chicken preference:",
-                              variable="likes_chicken",
-                              type="multiselect",
-                              choices=['yes', 'no']),
-                         dict(required=True,
-                              question_name="Favorite color?",
-                              question_description="Pick a color darnit!",
-                              variable="favorite_color",
-                              type="multiplechoice",
-                              choices=['red', 'green', 'blue'],
-                              default="green"),
-                         dict(required=False,
-                              question_name="Enter your email &mdash; &euro;",
-                              variable="submitter_email",
-                              type="text"),
-                         dict(required=False,
-                              question_name="Test question",
-                              variable="intersection",
-                              type="text",
-                              default="survey"), ])
-    return payload
+    return [dict(required=True,
+                 question_name="Do you like chicken?",
+                 question_description="Please indicate your chicken preference:",
+                 variable="likes_chicken",
+                 type="multiselect",
+                 choices=['yes', 'no']),
+            dict(required=True,
+                 question_name="Favorite color?",
+                 question_description="Pick a color darnit!",
+                 variable="favorite_color",
+                 type="multiplechoice",
+                 choices=['red', 'green', 'blue'],
+                 default="green"),
+            dict(required=False,
+                 question_name="Enter your email &mdash; &euro;",
+                 variable="submitter_email",
+                 type="text"),
+            dict(required=False,
+                 question_name="Test question",
+                 variable="intersection",
+                 type="text",
+                 default="survey")]
 
 
 @pytest.fixture(scope="function")

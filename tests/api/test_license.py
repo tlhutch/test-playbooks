@@ -516,9 +516,8 @@ class Test_Legacy_License(Base_Api_Test):
 
     def test_create_survey(self, job_template_ping, required_survey_spec):
         """Verify that surveys may be enabled and created with a legacy license."""
-        job_template_ping.patch(survey_enabled=True)
-        survey_spec = job_template_ping.related.survey_spec.post(required_survey_spec)
-        assert survey_spec.get().name == required_survey_spec['name'], \
+        job_template_ping.add_survey(spec=required_survey_spec)
+        assert job_template_ping.get_related('survey_spec').spec == required_survey_spec, \
             "Expected /api/v1/job_templates/N/survey_spec/ to reflect our survey_spec."
 
     def test_activity_stream_get(self, v1):
@@ -1197,9 +1196,9 @@ class Test_Enterprise_License(Base_Api_Test):
 
     def test_create_survey(self, job_template_ping, required_survey_spec):
         """Verify that surveys may be enabled and created with an enterprise license."""
-        job_template_ping.patch(survey_enabled=True)
-        survey_spec = job_template_ping.related.survey_spec.post(required_survey_spec)
-        assert survey_spec.get().name == required_survey_spec['name'], \
+        job_template_ping.add_survey(spec=required_survey_spec)
+        survey_spec = job_template_ping.get_related('survey_spec')
+        assert survey_spec.spec == required_survey_spec, \
             "Expected /api/v1/job_templates/N/survey_spec/ to reflect our survey_spec."
 
     def test_activity_stream_get(self, v1):

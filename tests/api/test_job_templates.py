@@ -173,9 +173,7 @@ class Test_Job_Template(Base_Api_Test):
         assert not job_template.ask_variables_on_launch
 
         # give JT optional survey
-        job_template.patch(survey_enabled=True)
-        survey_spec = job_template.get_related('survey_spec')
-        survey_spec.post(optional_survey_spec_without_defaults)
+        job_template.add_survey(spec=optional_survey_spec_without_defaults)
 
         # launch JT with non-survey and survey variables
         # note: 'submitter_email' is a survey variable; 'non_survey_variable' is not
@@ -767,8 +765,9 @@ class Test_Job_Template(Base_Api_Test):
         extra_variables are a union of the job_template variables, survey
         variables, and launch-time variables.
         """
-        job_template_with_extra_vars.patch(survey_enabled=True, ask_variables_on_launch=True)
-        survey_spec = job_template_with_extra_vars.get_related('survey_spec').post(required_survey_spec).get()
+        job_template_with_extra_vars.patch(ask_variables_on_launch=True)
+        job_template_with_extra_vars.add_survey(spec=required_survey_spec)
+        survey_spec = job_template_with_extra_vars.get_related('survey_spec')
 
         # find future job variables that come exclusively from the survey
         survey_vars = [question['variable']
@@ -1114,20 +1113,16 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
 
     def test_post_multiple(self, job_template_ping, optional_survey_spec, required_survey_spec):
         """Verify the API allows posting survey_spec multiple times."""
-        job_template_ping.patch(survey_enabled=True)
         # post a survey
+        job_template_ping.add_survey(spec=optional_survey_spec)
         survey_spec = job_template_ping.get_related('survey_spec')
-        survey_spec.post(optional_survey_spec)
-        # update resource
-        survey_spec.get()
-        assert survey_spec.name == optional_survey_spec['name']
+        assert survey_spec.spec == optional_survey_spec
 
         # post another survey
-        job_template_ping.get_related('survey_spec').post(required_survey_spec)
-        survey_spec.post(required_survey_spec)
+        job_template_ping.add_survey(spec=required_survey_spec)
         # update resource
         survey_spec.get()
-        assert survey_spec.name == required_survey_spec['name']
+        assert survey_spec.spec == required_survey_spec
 
     def test_launch_survey_enabled(self, job_template_ping, required_survey_spec):
         """Assess launch_pg.survey_enabled behaves as expected."""
@@ -1155,8 +1150,8 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
     def test_launch_with_optional_survey_spec(self, job_template_ping, optional_survey_spec):
         """Verify launch_pg attributes with an optional survey spec and job extra_vars."""
         # post a survey
-        job_template_ping.patch(survey_enabled=True)
-        survey_pg = job_template_ping.get_related('survey_spec').post(optional_survey_spec).get()
+        job_template_ping.add_survey(spec=optional_survey_spec)
+        survey_pg = job_template_ping.get_related('survey_spec')
 
         # assess launch_pg values
         launch_pg = job_template_ping.get_related('launch')
