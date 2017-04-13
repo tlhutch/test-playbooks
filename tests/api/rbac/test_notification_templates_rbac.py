@@ -31,10 +31,8 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 factories.notification_template(organization=organization)
 
-    def test_notification_template_create_as_org_admin(self, factories, org_admin):
+    def test_notification_template_create_as_org_admin(self, factories, organization, org_admin):
         """Tests that org_admins may create notification templates."""
-        organization = org_admin.related.organizations.get().results.pop()
-
         with self.current_user(username=org_admin.username, password=org_admin.password):
             factories.notification_template(organization=organization)
 
@@ -50,10 +48,9 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     notifiable_resource.add_notification_template(email_notification_template, endpoint)
 
-    def test_notification_template_associate_as_org_admin(self, factories, notifiable_resource, org_admin):
+    def test_notification_template_associate_as_org_admin(self, factories, notifiable_resource, organization, org_admin):
         """Tests that org_admins may associate a NT with a notifiable resource."""
         endpoints = get_nt_endpoints(notifiable_resource)
-        organization = org_admin.related.organizations.get().results.pop()
         notification_template = factories.notification_template(organization=organization)
 
         # test notification template associate as org_admin
@@ -67,9 +64,8 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.get()
 
-    def test_notification_template_read_as_org_admin(self, factories, org_admin):
+    def test_notification_template_read_as_org_admin(self, factories, organization, org_admin):
         """Tests that org_admins can read NT endpoints."""
-        organization = org_admin.related.organizations.get().results.pop()
         notification_template = factories.notification_template(organization=organization)
 
         with self.current_user(username=org_admin.username, password=org_admin.password):
@@ -83,9 +79,8 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.patch()
 
-    def test_notification_template_edit_as_org_admin(self, factories, org_admin):
+    def test_notification_template_edit_as_org_admin(self, factories, organization, org_admin):
         """Tests that org_admins can edit NTs."""
-        organization = org_admin.related.organizations.get().results.pop()
         notification_template = factories.notification_template(organization=organization)
 
         with self.current_user(username=org_admin.username, password=org_admin.password):
@@ -98,9 +93,8 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 email_notification_template.delete()
 
-    def test_notification_template_delete_as_org_admin(self, factories, org_admin):
+    def test_notification_template_delete_as_org_admin(self, factories, organization, org_admin):
         """Tests that org_admins can delete NTs."""
-        organization = org_admin.related.organizations.get().results.pop()
         notification_template = factories.notification_template(organization=organization)
 
         with self.current_user(username=org_admin.username, password=org_admin.password):
@@ -111,9 +105,8 @@ class Test_Notification_Template_RBAC(Base_Api_Test):
         check_user_capabilities(email_notification_template, "superuser")
         check_user_capabilities(api_notification_templates_pg.get(id=email_notification_template.id).results.pop(), "superuser")
 
-    def test_user_capabilities_as_org_admin(self, factories, org_admin, api_notification_templates_pg):
+    def test_user_capabilities_as_org_admin(self, factories, organization, org_admin, api_notification_templates_pg):
         """Tests NT 'user_capabilities' as an org_admin."""
-        organization = org_admin.related.organizations.get().results.pop()
         notification_template = factories.notification_template(organization=organization)
 
         with self.current_user(username=org_admin.username, password=org_admin.password):

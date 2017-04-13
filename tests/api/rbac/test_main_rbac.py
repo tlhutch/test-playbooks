@@ -146,13 +146,14 @@ class Test_Main_RBAC(Base_Api_Test):
         resource = getattr(factories, resource)(organization=org)
         user = factories.user()
 
-        # grant all organization permissions
+        # all organization roles should not allow for resource organization change
         role_names = get_resource_roles(org)
-        org.set_object_roles(user, *role_names)
-
-        with self.current_user(username=user.username, password=user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
-                resource.organization = org2.id
+        for role in role_names:
+            org.set_object_roles(user, role)
+            with self.current_user(username=user.username, password=user.password):
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    resource.organization = org2.id
+            org.set_object_roles(user, role, disassociate=True)
 
     @pytest.mark.parametrize(
         'resource_name, fixture_name',
