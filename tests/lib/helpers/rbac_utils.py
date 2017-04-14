@@ -124,23 +124,10 @@ def get_nt_endpoints(notifiable_resource):
     """Helper function that returns the notification template endpoints of a
     notifiable Tower resource.
     """
-    nt_any_pg = notifiable_resource.get_related('notification_templates_any')
-    nt_success_pg = notifiable_resource.get_related('notification_templates_success')
-    nt_error_pg = notifiable_resource.get_related('notification_templates_error')
-    if notifiable_resource.type == 'organization':
-        nt_pg = notifiable_resource.get_related('notification_templates')
-        return [nt_pg, nt_any_pg, nt_success_pg, nt_error_pg]
+    if notifiable_resource.type == "organization":
+        return ['notification_templates', 'notification_templates_any', 'notification_templates_success', 'notification_templates_error']
     else:
-        return [nt_any_pg, nt_success_pg, nt_error_pg]
-
-
-def set_read_role(user_pg, notifiable_resource):
-    """Helper function that grants a user the read_role of a notifiable_resource."""
-    if notifiable_resource.type == 'inventory_source':
-        inventory_pg = notifiable_resource.get_related('inventory')
-        set_roles(user_pg, inventory_pg, ['read'])
-    else:
-        set_roles(user_pg, notifiable_resource, ['read'])
+        return ['notification_templates_any', 'notification_templates_success', 'notification_templates_error']
 
 
 def check_user_capabilities(resource, role):
