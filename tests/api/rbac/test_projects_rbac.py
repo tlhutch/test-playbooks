@@ -18,7 +18,7 @@ class Test_Project_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_unprivileged_user(self, factories, user_password):
+    def test_unprivileged_user(self, factories):
         """An unprivileged user/team should not be able to:
         * GET our project detail page
         * GET all project related pages
@@ -26,44 +26,44 @@ class Test_Project_RBAC(Base_Api_Test):
         * Edit our project
         * Delete our project
         """
-        project_pg = factories.project()
-        user_pg = factories.user()
-        update_pg = project_pg.get_related('update')
+        project = factories.project()
+        user = factories.user()
+        update = project.get_related('update')
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(project_pg, unprivileged=True)
+            check_read_access(project, unprivileged=True)
 
             # check project update
             with pytest.raises(towerkit.exceptions.Forbidden):
-                update_pg.post()
+                update.post()
 
             # check put/patch/delete
-            assert_response_raised(project_pg, httplib.FORBIDDEN)
+            assert_response_raised(project, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_admin_role(self, factories, set_test_roles, agent, user_password):
+    def test_admin_role(self, factories, set_test_roles, agent):
         """A user/team with project 'admin' should be able to:
         * GET our project detail page
         * GET all project related pages
         * Edit our project
         * Delete our project
         """
-        project_pg = factories.project()
-        user_pg = factories.user()
+        project = factories.project()
+        user = factories.user()
 
         # give agent admin_role
-        set_test_roles(user_pg, project_pg, agent, "admin")
+        set_test_roles(user, project, agent, "admin")
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(project_pg, ["organization"])
+            check_read_access(project, ["organization"])
 
             # check put/patch/delete
-            assert_response_raised(project_pg, httplib.OK)
+            assert_response_raised(project, httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_update_role(self, factories, set_test_roles, agent, user_password):
+    def test_update_role(self, factories, set_test_roles, agent):
         """A user/team with project 'update' should be able to:
         * GET our project detail page
         * GET all project related pages
@@ -71,21 +71,21 @@ class Test_Project_RBAC(Base_Api_Test):
         * Edit our project
         * Delete our project
         """
-        project_pg = factories.project()
-        user_pg = factories.user()
+        project = factories.project()
+        user = factories.user()
 
         # give agent update_role
-        set_test_roles(user_pg, project_pg, agent, "update")
+        set_test_roles(user, project, agent, "update")
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(project_pg, ["organization"])
+            check_read_access(project, ["organization"])
 
             # check put/patch/delete
-            assert_response_raised(project_pg, httplib.FORBIDDEN)
+            assert_response_raised(project, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_use_role(self, factories, set_test_roles, agent, user_password):
+    def test_use_role(self, factories, set_test_roles, agent):
         """A user/team with project 'use' should be able to:
         * GET our project detail page
         * GET all project related pages
@@ -93,21 +93,21 @@ class Test_Project_RBAC(Base_Api_Test):
         * Edit our project
         * Delete our project
         """
-        project_pg = factories.project()
-        user_pg = factories.user()
+        project = factories.project()
+        user = factories.user()
 
         # give agent use_role
-        set_test_roles(user_pg, project_pg, agent, "use")
+        set_test_roles(user, project, agent, "use")
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(project_pg, ["organization"])
+            check_read_access(project, ["organization"])
 
             # check put/patch/delete
-            assert_response_raised(project_pg, httplib.FORBIDDEN)
+            assert_response_raised(project, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_read_role(self, factories, set_test_roles, agent, user_password):
+    def test_read_role(self, factories, set_test_roles, agent):
         """A user/team with project 'read' should be able to:
         * GET our project detail page
         * GET all project related pages
@@ -115,51 +115,51 @@ class Test_Project_RBAC(Base_Api_Test):
         * Edit our project
         * Delete our project
         """
-        project_pg = factories.project()
-        user_pg = factories.user()
+        project = factories.project()
+        user = factories.user()
 
         # give agent read_role
-        set_test_roles(user_pg, project_pg, agent, "read")
+        set_test_roles(user, project, agent, "read")
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(project_pg, ["organization"])
+            check_read_access(project, ["organization"])
 
             # check put/patch/delete
-            assert_response_raised(project_pg, httplib.FORBIDDEN)
+            assert_response_raised(project, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-    def test_user_capabilities(self, factories, user_password, api_projects_pg, role):
+    def test_user_capabilities(self, factories, api_projects_pg, role):
         """Test user_capabilities given each project role."""
-        project_pg = factories.project()
-        user_pg = factories.user()
+        project = factories.project()
+        user = factories.user()
 
         # give test user target role privileges
-        set_roles(user_pg, project_pg, [role])
+        set_roles(user, project, [role])
 
-        with self.current_user(username=user_pg.username, password=user_password):
-            check_user_capabilities(project_pg.get(), role)
-            check_user_capabilities(api_projects_pg.get(id=project_pg.id).results.pop(), role)
+        with self.current_user(username=user.username, password=user.password):
+            check_user_capabilities(project.get(), role)
+            check_user_capabilities(api_projects_pg.get(id=project.id).results.pop(), role)
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-    def test_launch_update(self, factories, user_password, role):
+    def test_launch_update(self, factories, role):
         """Tests ability to launch a project update."""
         ALLOWED_ROLES = ['admin', 'update']
         REJECTED_ROLES = ['use', 'read']
 
-        project_pg = factories.project()
-        user_pg = factories.user()
+        project = factories.project()
+        user = factories.user()
 
         # give test user target role privileges
-        set_roles(user_pg, project_pg, [role])
+        set_roles(user, project, [role])
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                update_pg = project_pg.update().wait_until_completed()
-                assert update_pg.is_successful, "Project update unsuccessful - %s." % update_pg
+                update = project.update().wait_until_completed()
+                assert update.is_successful, "Project update unsuccessful - %s." % update
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    project_pg.update()
+                    project.update()
             else:
                 raise ValueError("Received unhandled project role.")
 
@@ -169,88 +169,88 @@ class Test_Project_RBAC(Base_Api_Test):
         ALLOWED_ROLES = ['admin', 'update']
         REJECTED_ROLES = ['use', 'read']
 
-        project_pg = factories.project()
-        user_pg = factories.user()
+        project = factories.project()
+        user = factories.user()
 
         # give test user target role privileges
-        set_roles(user_pg, project_pg, [role])
+        set_roles(user, project, [role])
 
-        with self.current_user(username=user_pg.username, password=user_pg.password):
+        with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                schedule_pg = project_pg.add_schedule()
-                assert_response_raised(schedule_pg, methods=('get', 'put', 'patch', 'delete'))
+                schedule = project.add_schedule()
+                assert_response_raised(schedule, methods=('get', 'put', 'patch', 'delete'))
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    project_pg.related.schedules.post()
+                    project.related.schedules.post()
             else:
                 raise ValueError("Received unhandled project role.")
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-    def test_cancel_update(self, factories, project_ansible_git_nowait, user_password, role):
+    def test_cancel_update(self, factories, project_ansible_git_nowait, role):
         """Tests project update cancellation. Project admins can cancel other people's projects."""
         ALLOWED_ROLES = ['admin']
         REJECTED_ROLES = ['update', 'use', 'read']
 
-        user_pg = factories.user()
-        update_pg = project_ansible_git_nowait.related.current_update.get()
+        user = factories.user()
+        update = project_ansible_git_nowait.related.current_update.get()
 
         # give test user target role privileges
-        set_roles(user_pg, project_ansible_git_nowait, [role])
+        set_roles(user, project_ansible_git_nowait, [role])
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                update_pg.cancel()
+                update.cancel()
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    update_pg.cancel()
+                    update.cancel()
                 # wait for project to finish to ensure clean teardown
-                update_pg.wait_until_completed()
+                update.wait_until_completed()
             else:
                 raise ValueError("Received unhandled project role.")
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-    def test_delete_update(self, factories, user_password, role):
+    def test_delete_update(self, factories, role):
         """Tests ability to delete a project update."""
         ALLOWED_ROLES = ['admin']
         REJECTED_ROLES = ['update', 'use', 'read']
 
-        project_pg = factories.project()
-        user_pg = factories.user()
+        project = factories.project()
+        user = factories.user()
 
         # give test user target role privileges
-        set_roles(user_pg, project_pg, [role])
+        set_roles(user, project, [role])
 
         # launch project update
-        update_pg = project_pg.update()
+        update = project.update()
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                update_pg.delete()
+                update.delete()
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    update_pg.delete()
+                    update.delete()
                 # wait for project to finish to ensure clean teardown
-                update_pg.wait_until_completed()
+                update.wait_until_completed()
             else:
                 raise ValueError("Received unhandled project role.")
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-    def test_update_user_capabilities(self, factories, user_password, api_project_updates_pg, role):
+    def test_update_user_capabilities(self, factories, api_project_updates_pg, role):
         """Test user_capabilities given each project role on spawned
         project_updates.
         """
-        project_pg = factories.project()
-        user_pg = factories.user()
+        project = factories.project()
+        user = factories.user()
 
         # give test user target role privileges
-        set_roles(user_pg, project_pg, [role])
+        set_roles(user, project, [role])
 
         # launch project_update
-        update_pg = project_pg.update().wait_until_completed()
+        update = project.update().wait_until_completed()
 
-        with self.current_user(username=user_pg.username, password=user_password):
-            check_user_capabilities(update_pg.get(), role)
-            check_user_capabilities(api_project_updates_pg.get(id=update_pg.id).results.pop(), role)
+        with self.current_user(username=user.username, password=user.password):
+            check_user_capabilities(update.get(), role)
+            check_user_capabilities(api_project_updates_pg.get(id=update.id).results.pop(), role)
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_change_project_org_affiliation(self, factories, role):
