@@ -8,8 +8,7 @@ from tests.lib.helpers.rbac_utils import (
     check_read_access,
     check_request,
     check_role_association,
-    check_user_capabilities,
-    set_roles
+    check_user_capabilities
 )
 from tests.api import Base_Api_Test
 
@@ -21,7 +20,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_unprivileged_user(self, factories, user_password):
+    def test_unprivileged_user(self, factories):
         """An unprivileged user/team should not be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
@@ -29,44 +28,44 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         * Edit the JT
         * Delete the JT
         """
-        job_template_pg = factories.job_template()
-        user_pg = factories.user()
-        launch_pg = job_template_pg.get_related('launch')
+        job_template = factories.job_template()
+        user = factories.user()
+        launch = job_template.related.launch.get()
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(job_template_pg, unprivileged=True)
+            check_read_access(job_template, unprivileged=True)
 
             # check JT launch
             with pytest.raises(towerkit.exceptions.Forbidden):
-                launch_pg.post()
+                launch.post()
 
             # check put/patch/delete
-            assert_response_raised(job_template_pg, httplib.FORBIDDEN)
+            assert_response_raised(job_template, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_admin_role(self, factories, set_test_roles, agent, user_password):
+    def test_admin_role(self, factories, set_test_roles, agent):
         """A user/team with JT 'admin' should be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
         * Edit the JT
         * Delete the JT
         """
-        job_template_pg = factories.job_template()
-        user_pg = factories.user()
+        job_template = factories.job_template()
+        user = factories.user()
 
         # give agent admin_role
-        set_test_roles(user_pg, job_template_pg, agent, "admin")
+        set_test_roles(user, job_template, agent, "admin")
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(job_template_pg, ["credential", "inventory", "project"])
+            check_read_access(job_template, ["credential", "inventory", "project"])
 
             # check put/patch/delete
-            assert_response_raised(job_template_pg.get(), httplib.OK)
+            assert_response_raised(job_template.get(), httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_execute_role(self, factories, set_test_roles, agent, user_password):
+    def test_execute_role(self, factories, set_test_roles, agent):
         """A user/team with JT 'execute' should be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
@@ -74,21 +73,21 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         * Edit the JT
         * Delete the JT
         """
-        job_template_pg = factories.job_template()
-        user_pg = factories.user()
+        job_template = factories.job_template()
+        user = factories.user()
 
         # give agent execute_role
-        set_test_roles(user_pg, job_template_pg, agent, "execute")
+        set_test_roles(user, job_template, agent, "execute")
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(job_template_pg, ["credential", "inventory", "project"])
+            check_read_access(job_template, ["credential", "inventory", "project"])
 
             # check put/patch/delete
-            assert_response_raised(job_template_pg, httplib.FORBIDDEN)
+            assert_response_raised(job_template, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
-    def test_read_role(self, factories, set_test_roles, agent, user_password):
+    def test_read_role(self, factories, set_test_roles, agent):
         """A user/team with JT 'admin' should be able to:
         * Get the JT details page
         * Get all of the JT get_related pages
@@ -96,31 +95,30 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         * Edit the JT
         * Delete the JT
         """
-        job_template_pg = factories.job_template()
-        user_pg = factories.user()
+        job_template = factories.job_template()
+        user = factories.user()
 
         # give agent read_role
-        set_test_roles(user_pg, job_template_pg, agent, "read")
+        set_test_roles(user, job_template, agent, "read")
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(job_template_pg, ["credential", "inventory", "project"])
+            check_read_access(job_template, ["credential", "inventory", "project"])
 
             # check put/patch/delete
-            assert_response_raised(job_template_pg, httplib.FORBIDDEN)
+            assert_response_raised(job_template, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
-    def test_user_capabilities(self, factories, user_password, api_job_templates_pg, role):
+    def test_user_capabilities(self, factories, api_job_templates_pg, role):
         """Test user_capabilities given each job_template role."""
-        job_template_pg = factories.job_template()
-        user_pg = factories.user()
+        job_template = factories.job_template()
+        user = factories.user()
 
-        # give test user target role privileges
-        set_roles(user_pg, job_template_pg, [role])
+        job_template.set_object_roles(user, role)
 
-        with self.current_user(username=user_pg.username, password=user_password):
-            check_user_capabilities(job_template_pg.get(), role)
-            check_user_capabilities(api_job_templates_pg.get(id=job_template_pg.id).results.pop(), role)
+        with self.current_user(username=user.username, password=user.password):
+            check_user_capabilities(job_template.get(), role)
+            check_user_capabilities(api_job_templates_pg.get(id=job_template.id).results.pop(), role)
 
     def test_autopopulated_admin_role_with_job_template_creator(self, factories, api_job_templates_pg):
         """Verify that job template creators are added to the admin role of the
@@ -131,9 +129,9 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         # generate job template test payload
         data, resources = factories.job_template.payload()
         # set user resource role associations
-        set_roles(user, resources['organization'], ['admin'])
+        resources['organization'].set_object_roles(user, 'admin')
         for name in ('credential', 'project', 'inventory'):
-            set_roles(user, resources[name], ['use'])
+            resources[name].set_object_roles(user, 'use')
         # create a job template as the test user
         with self.current_user(username=user.username, password=user.password):
             job_template = api_job_templates_pg.post(data)
@@ -167,14 +165,14 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         user = factories.user()
         organization = factories.organization()
         job_template = factories.job_template(organization=organization)
-        set_roles(user, organization, ['member'])
-        set_roles(user, job_template, ['admin'])
+        organization.set_object_roles(user, 'member')
+        job_template.set_object_roles(user, 'admin')
         # generate test request payload
         data, resources = factories.job_template.payload(
             organization=organization)
         # assign test permissions
         for name, roles in payload_resource_roles.iteritems():
-            set_roles(user, resources[name], roles)
+            resources[name].set_object_roles(user, *roles)
         # check access
         with self.current_user(username=user.username, password=user.password):
             for method, code in response_codes.iteritems():
@@ -191,39 +189,39 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         organization = resources['organization']
         user = factories.user(organization=organization)
         for name in ('credential', 'project', 'inventory'):
-            set_roles(user, resources[name], ['use'])
+            resources[name].set_object_roles(user, 'use')
         # make network credential and add it to payload
         network_credential = factories.credential(kind='net', organization=organization)
         data['network_credential'] = network_credential.id
         # check POST response code with network credential read permissions
-        set_roles(user, network_credential, ['read'])
+        network_credential.set_object_roles(user, 'read')
         with self.current_user(user.username, password=user.password):
             check_request(api_job_templates_pg, 'POST', httplib.FORBIDDEN, data)
         # add network credential usage role permissions to test user
-        set_roles(user, network_credential, ['use'])
+        network_credential.set_object_roles(user, 'use')
         # verify that the POST request is now permitted
         with self.current_user(user.username, password=user.password):
             check_request(api_job_templates_pg, 'POST', httplib.CREATED, data)
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
-    def test_launch_job(self, factories, user_password, role):
+    def test_launch_job(self, factories, role):
         """Tests ability to launch a job."""
         ALLOWED_ROLES = ['admin', 'execute']
         REJECTED_ROLES = ['read']
 
-        job_template_pg = factories.job_template()
-        user_pg = factories.user()
+        job_template = factories.job_template()
+        user = factories.user()
 
         # give test user target role privileges
-        set_roles(user_pg, job_template_pg, [role])
+        job_template.set_object_roles(user, role)
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                job_pg = job_template_pg.launch().wait_until_completed()
-                assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+                job = job_template.launch().wait_until_completed()
+                assert job.is_successful, "Job unsuccessful - %s." % job
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    job_template_pg.launch()
+                    job_template.launch()
             else:
                 raise ValueError("Received unhandled job_template role.")
 
@@ -237,78 +235,78 @@ class Test_Job_Template_RBAC(Base_Api_Test):
                 jt.launch().wait_until_completed()
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
-    def test_relaunch_job(self, factories, user_password, role):
+    def test_relaunch_job(self, factories, role):
         """Tests ability to relaunch a job."""
         ALLOWED_ROLES = ['admin', 'execute']
         REJECTED_ROLES = ['read']
 
-        job_template_pg = factories.job_template()
-        user_pg = factories.user()
-        job_pg = job_template_pg.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_template = factories.job_template()
+        user = factories.user()
+        job = job_template.launch().wait_until_completed()
+        assert job.is_successful, "Job unsuccessful - %s." % job
 
         # give test user target role privileges
-        set_roles(user_pg, job_template_pg, [role])
+        job_template.set_object_roles(user, role)
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                relaunched_job_pg = job_pg.relaunch().wait_until_completed()
-                assert relaunched_job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+                relaunched_job = job.relaunch().wait_until_completed()
+                assert relaunched_job.is_successful, "Job unsuccessful - %s." % job
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    job_pg.relaunch()
+                    job.relaunch()
             else:
                 raise ValueError("Received unhandled job_template role.")
 
-    def test_relaunch_with_ask_inventory(self, factories, job_template, user_password):
+    def test_relaunch_with_ask_inventory(self, factories, job_template):
         """Tests relaunch RBAC when ask_inventory_on_launch is true."""
         # FIXME: update for when factories get fixed for #821
-        job_template.get_related('inventory').delete()
+        job_template.ds.inventory.delete()
         job_template.patch(ask_inventory_on_launch=True)
 
-        credential = job_template.get_related('credential')
+        credential = job_template.ds.credential
         inventory = factories.inventory()
         user1 = factories.user()
         user2 = factories.user()
 
         # set test permissions
-        set_roles(user1, job_template, ['execute'])
-        set_roles(user1, inventory, ['use'])
-        set_roles(user1, credential, ['use'])
-        set_roles(user2, job_template, ['execute'])
+        job_template.set_object_roles(user1, 'execute')
+        inventory.set_object_roles(user1, 'use')
+        credential.set_object_roles(user1, 'use')
+        job_template.set_object_roles(user2, 'execute')
 
         # launch job as user1
-        with self.current_user(username=user1.username, password=user_password):
+        with self.current_user(username=user1.username, password=user1.password):
             payload = dict(inventory=inventory.id)
-            job_pg = job_template.launch(payload).wait_until_completed()
+            job = job_template.launch(payload).wait_until_completed()
 
         # relaunch as user2 should raise 403
-        with self.current_user(username=user2.username, password=user_password):
+        with self.current_user(username=user2.username, password=user2.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
-                job_pg.get_related('relaunch').post()
+                job.relaunch()
 
-    def test_relaunch_with_ask_credential(self, factories, job_template_no_credential, user_password):
+    def test_relaunch_with_ask_credential(self, factories, job_template_no_credential):
         """Tests relaunch RBAC when ask_credential_on_launch is true."""
         job_template_no_credential.patch(ask_credential_on_launch=True)
 
         credential = factories.credential()
-        user1 = factories.user(organization=credential.get_related('organization'))
+        user1 = factories.user(organization=credential.ds.organization)
         user2 = factories.user()
 
         # set test permissions
-        set_roles(user1, job_template_no_credential, ['execute'])
-        set_roles(user1, credential, ['use'])
-        set_roles(user2, job_template_no_credential, ['execute'])
+        job_template_no_credential.set_object_roles(user1, 'execute')
+        credential.set_object_roles.set_object_roles(user1, 'use')
+        job_template_no_credential.set_object_roles(user2, 'execute')
 
         # launch job as user1
-        with self.current_user(username=user1.username, password=user_password):
+        with self.current_user(username=user1.username, password=user1.password):
             payload = dict(credential=credential.id)
-            job_pg = job_template_no_credential.launch(payload).wait_until_completed()
+            job = job_template_no_credential.launch(payload).wait_until_completed()
 
         # relaunch as user2 should raise 403
-        with self.current_user(username=user2.username, password=user_password):
+        with self.current_user(username=user2.username, password=user2.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
-                job_pg.get_related('relaunch').post()
+                job.relaunch()
 
     def test_relaunch_job_as_auditor(self, factories, job_with_status_completed):
         """Confirms that a system auditor cannot relaunch a job"""
@@ -324,49 +322,47 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         ALLOWED_ROLES = ['admin', 'execute']
         REJECTED_ROLES = ['read']
 
-        job_template_pg = factories.job_template()
-        user_pg = factories.user()
+        job_template = factories.job_template()
+        user = factories.user()
 
-        # give test user target role privileges
-        set_roles(user_pg, job_template_pg, [role])
+        job_template.set_object_roles(user, role)
 
-        with self.current_user(username=user_pg.username, password=user_pg.password):
+        with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                schedule_pg = job_template_pg.add_schedule()
-                assert_response_raised(schedule_pg, methods=('get', 'put', 'patch', 'delete'))
+                schedule = job_template.add_schedule()
+                assert_response_raised(schedule, methods=('get', 'put', 'patch', 'delete'))
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    job_template_pg.add_schedule()
+                    job_template.add_schedule()
             else:
                 raise ValueError("Received unhandled job_template role.")
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
-    def test_cancel_job(self, factories, user_password, role):
+    def test_cancel_job(self, factories, role):
         """Tests job cancellation. JT admins can cancel other people's jobs."""
         ALLOWED_ROLES = ['admin']
         REJECTED_ROLES = ['execute', 'read']
 
-        job_template_pg = factories.job_template(playbook='sleep.yml', extra_vars=json.dumps(dict(sleep_interval=10)))
-        user_pg = factories.user()
+        job_template = factories.job_template(playbook='sleep.yml', extra_vars=json.dumps(dict(sleep_interval=10)))
+        user = factories.user()
 
-        # give test user target role privileges
-        set_roles(user_pg, job_template_pg, [role])
+        job_template.set_object_roles(user, role)
 
         # launch job_template
-        job_pg = job_template_pg.launch()
+        job = job_template.launch()
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                job_pg.cancel()
+                job.cancel()
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    job_pg.cancel()
+                    job.cancel()
                 # wait for job to finish to ensure clean teardown
-                job_pg.wait_until_completed()
+                job.wait_until_completed()
             else:
                 raise ValueError("Received unhandled job_template role.")
 
-    def test_delete_job_as_org_admin(self, factories, user_password):
+    def test_delete_job_as_org_admin(self, factories):
         """Create a run and a scan JT and an org_admin for each of these JTs. Then check
         that each org_admin may only delete his org's job.
         Note: job deletion is organization scoped. A run JT's project determines its
@@ -384,56 +380,54 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         # create org_admins
         org_admin1 = factories.user(organization=run_jt_org)
         org_admin2 = factories.user(organization=scan_jt_org)
-        set_roles(org_admin1, run_jt_org, ['admin'])
-        set_roles(org_admin2, scan_jt_org, ['admin'])
+        run_jt_org.set_object_roles(org_admin1, 'admin')
+        scan_jt_org.set_object_roles(org_admin2, 'admin')
 
         # launch JTs
         run_job = run_job_template.launch()
         scan_job = scan_job_template.launch()
 
         # assert that each org_admin cannot delete other organization's job
-        with self.current_user(username=org_admin1.username, password=user_password):
+        with self.current_user(username=org_admin1.username, password=org_admin1.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 scan_job.delete()
-        with self.current_user(username=org_admin2.username, password=user_password):
+        with self.current_user(username=org_admin2.username, password=org_admin2.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 run_job.delete()
 
         # assert that each org_admin can delete his own organization's job
-        with self.current_user(username=org_admin1.username, password=user_password):
+        with self.current_user(username=org_admin1.username, password=org_admin1.password):
             run_job.delete()
-        with self.current_user(username=org_admin2.username, password=user_password):
+        with self.current_user(username=org_admin2.username, password=org_admin2.password):
             scan_job.delete()
 
-    def test_delete_job_as_org_user(self, factories, user_password):
+    def test_delete_job_as_org_user(self, factories):
         """Tests ability to delete a job as a privileged org_user."""
-        job_template_pg = factories.job_template()
-        user_pg = factories.user()
+        job_template = factories.job_template()
+        user = factories.user()
 
-        # give test user target role privileges
-        set_roles(user_pg, job_template_pg, ['admin'])
+        job_template.set_object_roles(user, 'admin')
 
         # launch job_template
-        job_pg = job_template_pg.launch()
+        job = job_template.launch()
 
-        with self.current_user(username=user_pg.username, password=user_password):
+        with self.current_user(username=user.username, password=user.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
-                job_pg.delete()
+                job.delete()
             # wait for project to finish to ensure clean teardown
-            job_pg.wait_until_completed()
+            job.wait_until_completed()
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
-    def test_job_user_capabilities(self, factories, user_password, api_jobs_pg, role):
+    def test_job_user_capabilities(self, factories, api_jobs_pg, role):
         """Test user_capabilities given each JT role on spawned jobs."""
-        job_template_pg = factories.job_template()
-        user_pg = factories.user()
+        job_template = factories.job_template()
+        user = factories.user()
 
-        # give test user target role privileges
-        set_roles(user_pg, job_template_pg, [role])
+        job_template.set_object_roles(user, role)
 
         # launch job_template
-        job_pg = job_template_pg.launch().wait_until_completed()
+        job = job_template.launch().wait_until_completed()
 
-        with self.current_user(username=user_pg.username, password=user_password):
-            check_user_capabilities(job_pg.get(), role)
-            check_user_capabilities(api_jobs_pg.get(id=job_pg.id).results.pop(), role)
+        with self.current_user(username=user.username, password=user.password):
+            check_user_capabilities(job.get(), role)
+            check_user_capabilities(api_jobs_pg.get(id=job.id).results.pop(), role)
