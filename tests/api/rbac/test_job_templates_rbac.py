@@ -212,7 +212,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         job_template = factories.job_template()
         user = factories.user()
 
-        # give test user target role privileges
         job_template.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
@@ -245,7 +244,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         job = job_template.launch().wait_until_completed()
         assert job.is_successful, "Job unsuccessful - %s." % job
 
-        # give test user target role privileges
         job_template.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):

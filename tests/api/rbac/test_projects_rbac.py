@@ -5,8 +5,7 @@ import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
     check_read_access,
-    check_user_capabilities,
-    set_roles
+    check_user_capabilities
 )
 from tests.api import Base_Api_Test
 
@@ -134,8 +133,7 @@ class Test_Project_RBAC(Base_Api_Test):
         project = factories.project()
         user = factories.user()
 
-        # give test user target role privileges
-        set_roles(user, project, [role])
+        project.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             check_user_capabilities(project.get(), role)
@@ -150,8 +148,7 @@ class Test_Project_RBAC(Base_Api_Test):
         project = factories.project()
         user = factories.user()
 
-        # give test user target role privileges
-        set_roles(user, project, [role])
+        project.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
@@ -172,8 +169,7 @@ class Test_Project_RBAC(Base_Api_Test):
         project = factories.project()
         user = factories.user()
 
-        # give test user target role privileges
-        set_roles(user, project, [role])
+        project.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
@@ -194,8 +190,7 @@ class Test_Project_RBAC(Base_Api_Test):
         user = factories.user()
         update = project_ansible_git_nowait.related.current_update.get()
 
-        # give test user target role privileges
-        set_roles(user, project_ansible_git_nowait, [role])
+        project_ansible_git_nowait.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
@@ -217,8 +212,7 @@ class Test_Project_RBAC(Base_Api_Test):
         project = factories.project()
         user = factories.user()
 
-        # give test user target role privileges
-        set_roles(user, project, [role])
+        project.set_object_roles(user, role)
 
         # launch project update
         update = project.update()
@@ -242,8 +236,7 @@ class Test_Project_RBAC(Base_Api_Test):
         project = factories.project()
         user = factories.user()
 
-        # give test user target role privileges
-        set_roles(user, project, [role])
+        project.set_object_roles(user, role)
 
         # launch project_update
         update = project.update().wait_until_completed()

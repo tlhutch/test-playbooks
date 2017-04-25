@@ -4,8 +4,7 @@ import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     check_role_association,
     check_role_disassociation,
-    get_resource_roles,
-    set_roles
+    get_resource_roles
 )
 from tests.api import Base_Api_Test
 
@@ -33,10 +32,10 @@ class Test_Main_RBAC(Base_Api_Test):
         for role in resource.object_roles:
             role_name = role.name
             # associate the role with the user
-            set_roles(user, resource, [role_name], endpoint=endpoint)
+            resource.set_object_roles(user, role_name, endpoint=endpoint)
             check_role_association(user, resource, role_name)
             # disassociate the role from the user
-            set_roles(user, resource, [role_name], endpoint=endpoint, disassociate=True)
+            resource.set_object_roles(user, role_name, endpoint=endpoint, disassociate=True)
             check_role_disassociation(user, resource, role_name)
 
     @pytest.mark.parametrize(
@@ -128,10 +127,10 @@ class Test_Main_RBAC(Base_Api_Test):
             user = factories.user()
             resource = getattr(factories, resource_name)()
         # make a test user and associate it with the initial role
-        set_roles(user, resource, [initial_role])
+        resource.set_object_roles(user, initial_role)
         with self.current_user(username=user.username, password=user.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
-                set_roles(user, resource, [unauthorized_target_role], endpoint=endpoint)
+                resource.set_object_roles(user, unauthorized_target_role, endpoint=endpoint)
 
     @pytest.mark.parametrize(
         'resource',
@@ -208,8 +207,7 @@ class Test_Main_RBAC(Base_Api_Test):
             admin_resource = getattr(factories, resource_name)()
             getattr(factories, resource_name)()
 
-        # assign role to admin_resource
-        set_roles(user, admin_resource, ['admin'])
+        admin_resource.set_object_roles(user, 'admin')
 
         with self.current_user(username=user.username, password=user.password):
             query_results = request.getfuncargvalue(fixture_name).get(role_level='admin_role')
