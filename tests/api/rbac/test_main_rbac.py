@@ -27,7 +27,7 @@ class Test_Main_RBAC(Base_Api_Test):
         resource = getattr(factories, resource_name)()
         # make credential and user organization align in testing credentials
         if resource.type == 'credential':
-            user = factories.user(organization=resource.get_related('organization'))
+            user = factories.user(organization=resource.ds.organization)
         else:
             user = factories.user()
         for role in resource.object_roles:
@@ -137,23 +137,45 @@ class Test_Main_RBAC(Base_Api_Test):
         'resource',
         ['team', 'project', 'inventory', 'inventory_script', 'credential', 'workflow_job_template', 'notification_template', 'label']
     )
-    def test_change_resource_organization_affiliation(self, factories, resource):
+    def test_change_resource_organization_affiliation_with_organization_roles(self, factories, resource):
         """Confirm attempts to change resource organization to an unaffiliated one results in 403 for
         all organization roles.
         """
-        org = factories.organization()
+        org1 = factories.organization()
         org2 = factories.organization()
-        resource = getattr(factories, resource)(organization=org)
+        resource = getattr(factories, resource)(organization=org1)
         user = factories.user()
 
         # all organization roles should not allow for resource organization change
-        role_names = get_resource_roles(org)
+        role_names = get_resource_roles(org1)
         for role in role_names:
-            org.set_object_roles(user, role)
+            org1.set_object_roles(user, role)
             with self.current_user(username=user.username, password=user.password):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     resource.organization = org2.id
-            org.set_object_roles(user, role, disassociate=True)
+            org1.set_object_roles(user, role, disassociate=True)
+
+    @pytest.mark.parametrize(
+        'resource',
+        ['team', 'project', 'inventory', 'inventory_script', 'credential', 'workflow_job_template']
+    )
+    def test_change_resource_organization_affiliation_with_resource_roles(self, factories, resource):
+        """Confirm attempts to change resource organization to an unaffiliated one results in 403 for
+        all resource roles.
+        """
+        org1 = factories.organization()
+        org2 = factories.organization()
+        resource = getattr(factories, resource)(organization=org1)
+        user = factories.user(organization=org1)
+
+        # all organization roles should not allow for resource organization change
+        role_names = get_resource_roles(resource)
+        for role in role_names:
+            resource.set_object_roles(user, role)
+            with self.current_user(username=user.username, password=user.password):
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    resource.organization = org2.id
+            resource.set_object_roles(user, role, disassociate=True)
 
     @pytest.mark.parametrize(
         'resource_name, fixture_name',
