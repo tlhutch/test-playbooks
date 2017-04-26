@@ -29,11 +29,10 @@ def pytest_generate_tests(metafunc):
                 api = Connection(pytest.config.option.base_url)
                 r = api.get('/api/')
                 data = r.json()
-                current_version = data.get('current_version')
-                r = api.get(current_version)
-                api_resources = r.json().values()
-
-                test_set.extend(api_resources)
+                for version in data.get('available_versions').values():
+                    r = api.get(version)
+                    api_resources = r.json().values()
+                    test_set.extend(api_resources)
 
             if test_set:
                 metafunc.parametrize(fixture, test_set, ids=list(test_set))
