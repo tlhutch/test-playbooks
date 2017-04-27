@@ -332,7 +332,11 @@ class Test_Job_Template_Callback(Base_Api_Test):
         'ask_on_launch,provided_extra_vars,expected_extra_vars',
         [[False, {}, {}],
          [False, dict(dont_filter_me=True, ansible_filter_me=1234), {}],
-         [True, dict(dont_filter_me=True, ansible_filter_me=1234), dict(dont_filter_me=True)]]
+         [True, dict(dont_filter_me=True, ansible_filter_me=1234), dict(dont_filter_me=True)],
+         [False, "{\"dont_filter_me\": true, \"ansible_filter_me\": 1234}", {}],
+         [True, "{\"dont_filter_me\": true, \"ansible_filter_me\": 1234}", dict(dont_filter_me=True)],
+         [False, '---\ndont_filter_me: true\nansible_filter_me: 1234', {}],
+         [True, '---\ndont_filter_me: true\nansible_filter_me: 1234', dict(dont_filter_me=True)]]
     )
     def test_launch_with_extra_vars(self, ansible_runner, job_template, host_with_default_ipv4_in_variables,
                                     host_config_key, ansible_default_ipv4, ask_on_launch, provided_extra_vars,
