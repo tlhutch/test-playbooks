@@ -30,7 +30,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         """
         job_template = factories.job_template()
         user = factories.user()
-        launch = job_template.related.launch.get()
 
         with self.current_user(username=user.username, password=user.password):
             # check GET as test user
@@ -38,7 +37,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
             # check JT launch
             with pytest.raises(towerkit.exceptions.Forbidden):
-                launch.post()
+                job_template.related.launch.post()
 
             # check put/patch/delete
             assert_response_raised(job_template, httplib.FORBIDDEN)
@@ -241,10 +240,11 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
         job_template = factories.job_template()
         user = factories.user()
-        job = job_template.launch().wait_until_completed()
-        assert job.is_successful, "Job unsuccessful - %s." % job
 
         job_template.set_object_roles(user, role)
+
+        job = job_template.launch().wait_until_completed()
+        assert job.is_successful, "Job unsuccessful - %s." % job
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
@@ -258,14 +258,13 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     def test_relaunch_with_ask_inventory(self, factories, job_template):
         """Tests relaunch RBAC when ask_inventory_on_launch is true."""
-        # FIXME: update for when factories get fixed for #821
+        # FIXME: update for factories when towerkit-210 gets resolved
         job_template.ds.inventory.delete()
         job_template.patch(ask_inventory_on_launch=True)
 
         credential = job_template.ds.credential
         inventory = factories.inventory()
-        user1 = factories.user()
-        user2 = factories.user()
+        user1, user2 = factories.user(), factories.user()
 
         # set test permissions
         job_template.set_object_roles(user1, 'execute')
@@ -293,7 +292,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
         # set test permissions
         job_template_no_credential.set_object_roles(user1, 'execute')
-        credential.set_object_roles.set_object_roles(user1, 'use')
+        credential.set_object_roles(user1, 'use')
         job_template_no_credential.set_object_roles(user2, 'execute')
 
         # launch job as user1
@@ -371,8 +370,8 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         scan_job_template = factories.job_template(job_type="scan", project=None)
 
         # sanity check
-        run_jt_org = run_job_template.get_related('project').get_related('organization')
-        scan_jt_org = scan_job_template.get_related('inventory').get_related('organization')
+        run_jt_org = run_job_template.ds.project.ds.organization
+        scan_jt_org = scan_job_template.ds.inventory.ds.organization
         assert run_jt_org.id != scan_jt_org.id, "Test JTs unexpectedly in the same organization."
 
         # create org_admins
@@ -407,13 +406,11 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         job_template.set_object_roles(user, 'admin')
 
         # launch job_template
-        job = job_template.launch()
+        job = job_template.launch().wait_until_completed()
 
         with self.current_user(username=user.username, password=user.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 job.delete()
-            # wait for project to finish to ensure clean teardown
-            job.wait_until_completed()
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_job_user_capabilities(self, factories, api_jobs_pg, role):

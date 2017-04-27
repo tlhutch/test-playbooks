@@ -198,10 +198,11 @@ class Test_Project_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     update.cancel()
-                # wait for project to finish to ensure clean teardown
-                update.wait_until_completed()
             else:
                 raise ValueError("Received unhandled project role.")
+
+        # wait for project to finish to ensure clean teardown
+        update.wait_until_completed()
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_delete_update(self, factories, role):
@@ -214,8 +215,7 @@ class Test_Project_RBAC(Base_Api_Test):
 
         project.set_object_roles(user, role)
 
-        # launch project update
-        update = project.update()
+        update = project.update().wait_until_completed()
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
@@ -223,8 +223,6 @@ class Test_Project_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     update.delete()
-                # wait for project to finish to ensure clean teardown
-                update.wait_until_completed()
             else:
                 raise ValueError("Received unhandled project role.")
 
@@ -238,7 +236,6 @@ class Test_Project_RBAC(Base_Api_Test):
 
         project.set_object_roles(user, role)
 
-        # launch project_update
         update = project.update().wait_until_completed()
 
         with self.current_user(username=user.username, password=user.password):
