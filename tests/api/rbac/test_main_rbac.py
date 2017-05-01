@@ -4,8 +4,7 @@ import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     check_role_association,
     check_role_disassociation,
-    get_resource_roles,
-    set_roles
+    get_resource_roles
 )
 from tests.api import Base_Api_Test
 
@@ -27,16 +26,16 @@ class Test_Main_RBAC(Base_Api_Test):
         resource = getattr(factories, resource_name)()
         # make credential and user organization align in testing credentials
         if resource.type == 'credential':
-            user = factories.user(organization=resource.get_related('organization'))
+            user = factories.user(organization=resource.ds.organization)
         else:
             user = factories.user()
         for role in resource.object_roles:
             role_name = role.name
             # associate the role with the user
-            set_roles(user, resource, [role_name], endpoint=endpoint)
+            resource.set_object_roles(user, role_name, endpoint=endpoint)
             check_role_association(user, resource, role_name)
             # disassociate the role from the user
-            set_roles(user, resource, [role_name], endpoint=endpoint, disassociate=True)
+            resource.set_object_roles(user, role_name, endpoint=endpoint, disassociate=True)
             check_role_disassociation(user, resource, role_name)
 
     @pytest.mark.parametrize(
@@ -128,32 +127,54 @@ class Test_Main_RBAC(Base_Api_Test):
             user = factories.user()
             resource = getattr(factories, resource_name)()
         # make a test user and associate it with the initial role
-        set_roles(user, resource, [initial_role])
+        resource.set_object_roles(user, initial_role)
         with self.current_user(username=user.username, password=user.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
-                set_roles(user, resource, [unauthorized_target_role], endpoint=endpoint)
+                resource.set_object_roles(user, unauthorized_target_role, endpoint=endpoint)
 
     @pytest.mark.parametrize(
         'resource',
         ['team', 'project', 'inventory', 'inventory_script', 'credential', 'workflow_job_template', 'notification_template', 'label']
     )
-    def test_change_resource_organization_affiliation(self, factories, resource):
+    def test_change_resource_organization_affiliation_with_organization_roles(self, factories, resource):
         """Confirm attempts to change resource organization to an unaffiliated one results in 403 for
         all organization roles.
         """
-        org = factories.organization()
+        org1 = factories.organization()
         org2 = factories.organization()
-        resource = getattr(factories, resource)(organization=org)
+        resource = getattr(factories, resource)(organization=org1)
         user = factories.user()
 
         # all organization roles should not allow for resource organization change
-        role_names = get_resource_roles(org)
+        role_names = get_resource_roles(org1)
         for role in role_names:
-            org.set_object_roles(user, role)
+            org1.set_object_roles(user, role)
             with self.current_user(username=user.username, password=user.password):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     resource.organization = org2.id
-            org.set_object_roles(user, role, disassociate=True)
+            org1.set_object_roles(user, role, disassociate=True)
+
+    @pytest.mark.parametrize(
+        'resource',
+        ['team', 'project', 'inventory', 'inventory_script', 'credential', 'workflow_job_template']
+    )
+    def test_change_resource_organization_affiliation_with_resource_roles(self, factories, resource):
+        """Confirm attempts to change resource organization to an unaffiliated one results in 403 for
+        all resource roles.
+        """
+        org1 = factories.organization()
+        org2 = factories.organization()
+        resource = getattr(factories, resource)(organization=org1)
+        user = factories.user(organization=org1)
+
+        # all organization roles should not allow for resource organization change
+        role_names = get_resource_roles(resource)
+        for role in role_names:
+            resource.set_object_roles(user, role)
+            with self.current_user(username=user.username, password=user.password):
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    resource.organization = org2.id
+            resource.set_object_roles(user, role, disassociate=True)
 
     @pytest.mark.parametrize(
         'resource_name, fixture_name',
@@ -186,8 +207,7 @@ class Test_Main_RBAC(Base_Api_Test):
             admin_resource = getattr(factories, resource_name)()
             getattr(factories, resource_name)()
 
-        # assign role to admin_resource
-        set_roles(user, admin_resource, ['admin'])
+        admin_resource.set_object_roles(user, 'admin')
 
         with self.current_user(username=user.username, password=user.password):
             query_results = request.getfuncargvalue(fixture_name).get(role_level='admin_role')

@@ -15,30 +15,6 @@ user_capabilities = load_file(os.path.join(os.path.dirname(__file__), 'user_capa
 
 
 # -----------------------------------------------------------------------------
-# RBAC Utilities
-# -----------------------------------------------------------------------------
-
-def set_roles(agent, model, role_names, **kw):
-    """Associate a list of roles to a user/team for a given api page model.
-    Provides backwards compatibility to existing RBAC tests.
-
-    :param model: A resource api page model with related roles endpoint
-    :param role_names: A case insensitive list of role names
-
-    For documentation on kwargs, see the help text for Base.set_object_roles.
-    Usage::
-        >>> # create a user that is an organization admin with use and
-        >>> # update roles on a test inventory
-        >>> foo_organization = factories.organization(name='foo')
-        >>> bar_inventory = factories.inventory(name='bar')
-        >>> test_user = factories.user()
-        >>> set_roles(test_user, foo_organization, ['admin'])
-        >>> set_roles(test_user, bar_inventory, ['use', 'update'])
-    """
-    model.set_object_roles(agent, *role_names, **kw)
-
-
-# -----------------------------------------------------------------------------
 # Integrated Assertion Helpers
 # -----------------------------------------------------------------------------
 

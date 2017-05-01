@@ -26,7 +26,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         * Delete the credential
         """
         credential = factories.credential()
-        user = factories.user(organization=credential.related.organization.get())
+        user = factories.user(organization=credential.ds.organization)
 
         with self.current_user(username=user.username, password=user.password):
             # check GET as test user
@@ -44,7 +44,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         * Delete the credential
         """
         credential = factories.credential()
-        user = factories.user(organization=credential.related.organization.get())
+        user = factories.user(organization=credential.ds.organization)
 
         # give agent admin_role
         set_test_roles(user, credential, agent, "admin")
@@ -66,7 +66,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         * Delete the credential
         """
         credential = factories.credential()
-        user = factories.user(organization=credential.related.organization.get())
+        user = factories.user(organization=credential.ds.organization)
 
         # give agent use_role
         set_test_roles(user, credential, agent, "use")
@@ -88,7 +88,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         * Delete the credential
         """
         credential = factories.credential()
-        user = factories.user(organization=credential.related.organization.get())
+        user = factories.user(organization=credential.ds.organization)
 
         # give agent read_role
         set_test_roles(user, credential, agent, "read")
@@ -104,7 +104,7 @@ class Test_Credential_RBAC(Base_Api_Test):
     def test_user_capabilities(self, factories, api_credentials_pg, role):
         """Test user_capabilities given each credential role."""
         credential = factories.credential()
-        user = factories.user(organization=credential.related.organization.get())
+        user = factories.user(organization=credential.ds.organization)
 
         # give test user target role privileges
         credential.set_object_roles(user, role)
@@ -169,8 +169,7 @@ class Test_Credential_RBAC(Base_Api_Test):
         and teams who exist outside of their organization.
         """
         # create an organization credential
-        organization = factories.organization()
-        credential = factories.credential(organization=organization)
+        credential = factories.credential()
         # user from another organization may not be assigned any of our credential roles
         another_organization = factories.organization()
         user = factories.user(organization=another_organization)
@@ -189,8 +188,8 @@ class Test_Credential_RBAC(Base_Api_Test):
         and teams who exist within their own organization.
         """
         # create an organization credential
-        organization = factories.organization()
-        credential = factories.credential(organization=organization)
+        credential = factories.credential()
+        organization = credential.ds.organization
         # user from another organization may be assigned our credential roles
         user = factories.user(organization=organization)
         role_names = get_resource_roles(credential)
