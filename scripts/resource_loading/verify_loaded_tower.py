@@ -234,7 +234,7 @@ for project in projects_to_update:
 
 for update in project_updates:
     update.wait_until_completed(timeout=300, interval=30)
-    assert(update.is_successful)
+    assert update.is_successful
 
 log.info('Verifying updated inventory sources are successful')
 source_updates = []
@@ -243,7 +243,7 @@ for source in inventory_sources_to_update:
 
 for update in source_updates:
     update.wait_until_completed(timeout=1200, interval=30)
-    assert(update.is_successful)
+    assert update.is_successful
 
 log.info('Verify job templates can be launched')
 jobs = []
@@ -252,3 +252,11 @@ for job_template in job_templates_to_check:
 
 for job in jobs:
     job.wait_until_completed(timeout=1800, interval=30)
+
+for job in jobs:
+    if job.name in ('ansible-playbooks.git/dynamic_inventory.yml',
+                    'ansible-tower.git/setup/install.yml'):
+        assert job.status == 'failed'
+        assert job.job_explanation == ''
+    else:
+        assert job.is_successful
