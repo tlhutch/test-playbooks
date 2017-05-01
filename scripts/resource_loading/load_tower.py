@@ -92,6 +92,9 @@ for project in resources.projects:
 for update in project_updates:
     update.wait_until_completed(timeout=300, interval=30)
 
+for update in project_updates:
+    assert update.is_successful
+
 # Create inventory scripts
 inventory_scripts = {}
 for inventory_script in resources.inventory_scripts:
@@ -151,6 +154,9 @@ for inventory_source in resources.inventory_sources:
 for update in inventory_source_updates:
     update.wait_until_completed(timeout=1200, interval=30)
 
+for update in inventory_source_updates:
+    update.is_successful
+
 # Create job templates
 job_templates = {}
 for job_template in resources.job_templates:
@@ -176,3 +182,11 @@ for jt in job_templates.values():
 
 for job in jobs:
     job.wait_until_completed(timeout=1800, interval=30)
+
+for job in jobs:
+    if job.name in ('ansible-playbooks.git/dynamic_inventory.yml',
+                    'ansible-tower.git/setup/install.yml'):
+        assert job.status == 'failed'
+        assert job.job_explanation == ''
+    else:
+        assert job.is_successful
