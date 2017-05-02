@@ -211,6 +211,11 @@ def required_survey_spec():
                  type="text"),
             dict(required=False,
                  question_name="Test question",
+                 variable="survey_var",
+                 type="text",
+                 default="text"),
+            dict(required=False,
+                 question_name="Test question",
                  variable="intersection",
                  type="text",
                  default="survey")]
