@@ -11,17 +11,16 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="function")
-def enable_tacacs_auth(request, v1):
+def enable_tacacs_auth(request, v1, api_settings_tacacsplus_pg):
     def _enable_tacacs_auth(protocol='ascii'):
-        tacacs_plus_pg = v1.settings.get().get_endpoint('tacacsplus')
         tacacs_config = config.credentials.tacacs_plus
         payload = {'TACACSPLUS_HOST': tacacs_config.host,
                    'TACACSPLUS_PORT': tacacs_config.port,
                    'TACACSPLUS_SECRET': tacacs_config.secret,
                    'TACACSPLUS_SESSION_TIMEOUT': 5,
                    'TACACSPLUS_AUTH_PROTOCOL': protocol}
-        tacacs_plus_pg.put(payload)
-        request.addfinalizer(tacacs_plus_pg.delete)
+        api_settings_tacacsplus_pg.put(payload)
+        request.addfinalizer(api_settings_tacacsplus_pg.delete)
     return _enable_tacacs_auth
 
 
@@ -63,9 +62,9 @@ class Test_TACACS_Plus(Base_Api_Test):
             with pytest.raises(exc.Unauthorized):
                 api_me_pg.get()
 
-    def test_timeout(self, enable_tacacs_auth, v1, api_me_pg):
+    def test_timeout(self, enable_tacacs_auth, v1, api_me_pg, api_settings_tacacsplus_pg):
         enable_tacacs_auth()
-        v1.settings.get().get_endpoint('tacacsplus').patch(TACACSPLUS_HOST='8.8.8.8', TACACSPLUS_SESSION_TIMEOUT=20)
+        api_settings_tacacsplus_pg.patch(TACACSPLUS_HOST='8.8.8.8', TACACSPLUS_SESSION_TIMEOUT=20)
         user = v1.users.create()
 
         start = datetime.now()
