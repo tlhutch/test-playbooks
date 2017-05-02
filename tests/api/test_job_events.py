@@ -78,7 +78,7 @@ class Test_Job_Events(Base_Api_Test):
     def test_dynamic_inventory(self, factories, ansible_version_cmp):
         """Launch a linear playbook of several plays and confirm desired events are at its related job events"""
         # ensure desired verbose events regarding authentication
-        cred = factories.credential(password='passphrase', vault_password='vault')
+        cred = factories.credential(password='passphrase')
         jt = factories.job_template(credential=cred,
                                     playbook='dynamic_inventory.yml',
                                     extra_vars=json.dumps(dict(num_hosts=5)))
@@ -184,7 +184,7 @@ class Test_Job_Events(Base_Api_Test):
                        "add dynamic inventory": 2}
         self.verify_desired_tasks(job, 'runner_item_on_ok', task_counts)
 
-        desired_stdout_contents = ["SSH password:", "Identity added:", "Vault password:", "SUDO password"]
+        desired_stdout_contents = ["SSH password:", "Identity added:", "SUDO password"]
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
         assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
@@ -197,7 +197,7 @@ class Test_Job_Events(Base_Api_Test):
     @pytest.mark.ansible_integration
     def test_async_tasks(self, factories):
         """Runs a single play with async tasks and confirms desired events at related endpoint"""
-        credential = factories.credential(password='passphrase', vault_password='vault')
+        credential = factories.credential(password='passphrase')
         inventory = factories.inventory()
         for _ in range(4):
             factories.host(inventory=inventory)
@@ -235,7 +235,7 @@ class Test_Job_Events(Base_Api_Test):
 
         assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
 
-        desired_stdout_contents = ["SSH password:", "Identity added:", "Vault password:", "SUDO password"]
+        desired_stdout_contents = ["SSH password:", "Identity added:", "SUDO password"]
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
         events = self.get_job_events(job)
@@ -246,7 +246,7 @@ class Test_Job_Events(Base_Api_Test):
     @pytest.mark.ansible_integration
     def test_free_strategy(self, factories):
         """Runs a single play with free strategy and confirms desired events at related endpoint"""
-        credential = factories.credential(password='passphrase', vault_password='vault')
+        credential = factories.credential(password='passphrase')
         inventory = factories.inventory()
         for _ in range(4):
             factories.host(inventory=inventory)
@@ -274,7 +274,7 @@ class Test_Job_Events(Base_Api_Test):
 
         assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
 
-        desired_stdout_contents = ["SSH password:", "Identity added:", "Vault password:", "SUDO password"]
+        desired_stdout_contents = ["SSH password:", "Identity added:", "SUDO password"]
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
         events = self.get_job_events(job)
