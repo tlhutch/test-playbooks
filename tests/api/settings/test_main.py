@@ -2,13 +2,14 @@ import logging
 import sys
 import re
 import json
-import fauxfactory
-import pytest
-from tests.api import Base_Api_Test
 
 from towerkit.tower.license import generate_license
 from towerkit.exceptions import BadRequest, WaitUntilTimeout
 from towerkit.utils import poll_until
+import fauxfactory
+import pytest
+
+from tests.api import Base_Api_Test
 
 
 log = logging.getLogger(__name__)
@@ -98,7 +99,7 @@ def modify_obfuscated_settings(api_settings_all_pg, update_setting_pg, unencrypt
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Setting(Base_Api_Test):
+class Test_Main_Setting(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
