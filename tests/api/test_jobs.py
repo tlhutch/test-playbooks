@@ -47,7 +47,6 @@ def job_with_multi_ask_credential_and_password_in_payload(request, job_template_
     # build launch payload
     payload = dict(ssh_password=testsetup.credentials['ssh']['password'],
                    ssh_key_unlock=testsetup.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                   vault_password=testsetup.credentials['ssh']['vault_password'],
                    become_password=testsetup.credentials['ssh']['become_password'])
 
     # launch job_template
@@ -230,7 +229,6 @@ class Test_Job(Base_Api_Test):
         # relaunch the job and wait for completion
         payload = dict(ssh_password=testsetup.credentials['ssh']['password'],
                        ssh_key_unlock=testsetup.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                       vault_password=testsetup.credentials['ssh']['vault_password'],
                        become_password=testsetup.credentials['ssh']['become_password'])
         job_pg = job_with_multi_ask_credential_and_password_in_payload.relaunch(payload).wait_until_completed()
 

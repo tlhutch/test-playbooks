@@ -547,7 +547,6 @@ class Test_Job_Template(Base_Api_Test):
         payload = dict(credential=ssh_credential_multi_ask.id,
                        ssh_password=self.credentials['ssh']['password'],
                        ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                       vault_password=self.credentials['ssh']['vault_password'],
                        become_password=self.credentials['ssh']['become_password'])
 
         # launch the job_template and wait for completion
@@ -882,7 +881,6 @@ class Test_Job_Template(Base_Api_Test):
         # prepare payload with passwords
         payload = dict(ssh_password=self.credentials['ssh']['password'],
                        ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                       vault_password=self.credentials['ssh']['vault_password'],
                        become_password=self.credentials['ssh']['become_password'])
 
         # launch the job_template

@@ -58,7 +58,6 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, ho
                    module_name="ping",
                    ssh_password=testsetup.credentials['ssh']['password'],
                    ssh_key_unlock=testsetup.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                   vault_password=testsetup.credentials['ssh']['vault_password'],
                    become_password=testsetup.credentials['ssh']['become_password'], )
 
     # post the command
@@ -289,7 +288,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                        module_name="ping",
                        ssh_password=self.credentials['ssh']['password'],
                        ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                       vault_password=self.credentials['ssh']['vault_password'],
                        become_password=self.credentials['ssh']['become_password'], )
 
         # post the command
@@ -320,7 +318,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                        module_name="ping",
                        ssh_password=fauxfactory.gen_utf8(),
                        ssh_key_unlock=fauxfactory.gen_utf8(),
-                       vault_password=fauxfactory.gen_utf8(),
                        become_password=fauxfactory.gen_utf8())
 
         # post the command
@@ -480,7 +477,6 @@ print json.dumps(inv, indent=2)
         # create payload
         payload = dict(ssh_password=self.credentials['ssh']['password'],
                        ssh_key_unlock=self.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                       vault_password=self.credentials['ssh']['vault_password'],
                        become_password=self.credentials['ssh']['become_password'],
                        extra_vars={}, )
 
