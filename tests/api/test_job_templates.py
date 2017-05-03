@@ -3,6 +3,7 @@ import logging
 import json
 import yaml
 
+from towerkit import utils
 import towerkit.tower.inventory
 import towerkit.exceptions
 import fauxfactory
@@ -50,37 +51,32 @@ class Test_Job_Template(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def load_json(self, obj):
-        try:
-            return json.loads(obj)
-        except ValueError:
-            return {}
+    def get_required_survey_vars(self, survey_spec):
+        required_vars = []
+        for item in survey_spec.spec:
+            if item.get('required'):
+                required_vars.append(item.variable)
+        return required_vars
 
-    def load_json_or_yaml(self, obj):
-        try:
-            return json.loads(obj)
-        except ValueError:
-            return yaml.load(obj)
+    def get_default_survey_vars(self, survey_spec):
+        default_vars = []
+        for item in survey_spec.spec:
+            if item.get('default'):
+                default_vars.append(item.variable)
+        return default_vars
 
-    def get_survey_vars(self, survey_spec, **kwargs):
-        survey_vars = []
-        for question in survey_spec.spec:
-            if all(item in question.items() for item in kwargs.items()):
-                survey_vars.append(question['variable'])
-        return survey_vars
-
-    def update_launchtime_vars(self, launchtime_vars, update):
-        """Updates a set of launchtime variables (either YAML or JSON) with a dictionary of
+    def update_launch_time_vars(self, launch_time_vars, update):
+        """Updates a set of launch_time variables (either YAML or JSON) with a dictionary of
         key-value pairs. Returns YAML or JSON.
         """
         try:
-            loaded_launchtime_vars = json.loads(launchtime_vars)
-            loaded_launchtime_vars.update(update)
-            return json.dumps(loaded_launchtime_vars)
+            launch_time_vars = json.loads(launch_time_vars)
+            launch_time_vars.update(update)
+            return json.dumps(launch_time_vars)
         except:
-            loaded_launchtime_vars = yaml.load(launchtime_vars)
-            loaded_launchtime_vars.update(update)
-            return yaml.dumps(loaded_launchtime_vars)
+            launch_time_vars = yaml.load(launch_time_vars)
+            launch_time_vars.update(update)
+            return yaml.dump(launch_time_vars)
 
     @pytest.mark.ansible_integration
     def test_launch(self, job_template_ping):
@@ -119,9 +115,9 @@ class Test_Job_Template(Base_Api_Test):
         assert job.is_successful, "Job unsuccessful - %s." % job
 
         # assert extra_vars match JT extra_vars
-        loaded_job_template_vars = self.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
-        loaded_job_vars = self.load_json(job.extra_vars)
-        assert loaded_job_vars == loaded_job_template_vars
+        job_template_vars = utils.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
+        job_vars = json.loads(job.extra_vars)
+        assert job_vars == job_template_vars
 
     @pytest.mark.ansible_integration
     def test_launch_with_extra_vars_at_launch(self, job_template_with_extra_vars, launch_time_extra_vars):
@@ -143,15 +139,15 @@ class Test_Job_Template(Base_Api_Test):
         job = job_template_with_extra_vars.launch(dict(extra_vars=launch_time_extra_vars)).wait_until_completed()
         assert job.is_successful, "Job unsuccessful - %s." % job
 
-        loaded_jt_vars = self.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
-        loaded_launchtime_vars = self.load_json_or_yaml(launch_time_extra_vars)
-        loaded_job_vars = self.load_json(job.extra_vars)
+        jt_vars = utils.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
+        launch_time_vars = utils.load_json_or_yaml(launch_time_extra_vars)
+        job_vars = json.loads(job.extra_vars)
 
         # assert expected job extra_vars
-        assert set(loaded_jt_vars) < set(loaded_job_vars)
-        assert set(loaded_launchtime_vars) < set(loaded_job_vars)
-        assert set(loaded_job_vars) == set(loaded_jt_vars) | set(loaded_job_vars)
-        assert loaded_job_vars['intersection'] == loaded_launchtime_vars['intersection'], \
+        assert set(jt_vars) < set(job_vars)
+        assert set(launch_time_vars) < set(job_vars)
+        assert set(job_vars) == set(jt_vars) | set(job_vars)
+        assert job_vars['intersection'] == launch_time_vars['intersection'], \
             "Our launch-time variable did not replace our colliding JT variable value."
 
     def test_launch_with_excluded_variables_in_payload(self, job_template, launch_time_extra_vars):
@@ -165,16 +161,16 @@ class Test_Job_Template(Base_Api_Test):
         assert job.is_successful, "Job unsuccessful - %s." % job
 
         # assert launch-time variables excluded
-        loaded_job_extra_vars = self.load_json(job.extra_vars)
-        assert loaded_job_extra_vars == {}, \
+        job_extra_vars = json.loads(job.extra_vars)
+        assert job_extra_vars == {}, \
             "Unexpected value for job extra variables - {0}.".format(job.extra_vars)
 
-    @pytest.mark.parametrize("launchtime_vars", [
+    @pytest.mark.parametrize("launch_time_vars", [
         "{'non_survey_variable': false, 'submitter_email': 'sample_email@maffenmox.edu'}",
         "---\nnon_survey_variable: false\nsubmitter_email: sample_email@maffenmox.edu"
     ], ids=['json', 'yaml'])
     def test_launch_with_survey_and_excluded_variables_in_payload(self, job_template, optional_survey_spec_without_defaults,
-            launchtime_vars):
+            launch_time_vars):
         """Tests that when ask_variables_at_launch is disabled that only survey variables are
         received and make it to our job. Here, "submitter_email" is our only survey variable.
         """
@@ -182,16 +178,16 @@ class Test_Job_Template(Base_Api_Test):
         assert not job_template.ask_variables_on_launch
 
         # launch JT with launch-time variables
-        payload = dict(extra_vars=launchtime_vars)
+        payload = dict(extra_vars=launch_time_vars)
         job = job_template.launch(payload).wait_until_completed()
         assert job.is_successful, "Job unsuccessful - %s." % job
 
-        loaded_runtime_vars = self.load_json_or_yaml(launchtime_vars)
-        loaded_job_extra_vars = self.load_json(job.extra_vars)
+        launch_time_vars = utils.load_json_or_yaml(launch_time_vars)
+        job_extra_vars = json.loads(job.extra_vars)
 
         # assert non-survey variables excluded
-        expected_job_vars = dict(submitter_email=loaded_runtime_vars['submitter_email'])
-        assert loaded_job_extra_vars == expected_job_vars, \
+        expected_job_vars = dict(submitter_email=launch_time_vars['submitter_email'])
+        assert job_extra_vars == expected_job_vars, \
             "Unexpected job extra_vars returned."
 
     @pytest.mark.ansible_integration
@@ -621,8 +617,8 @@ class Test_Job_Template(Base_Api_Test):
         job = job_template_ask_variables_on_launch.launch().wait_until_completed()
         assert job.is_successful, "Job unsuccessful - {0}".format(job)
 
-        loaded_job_vars = self.load_json(job.extra_vars)
-        assert loaded_job_vars == {}, \
+        job_vars = json.loads(job.extra_vars)
+        assert job_vars == {}, \
             "No variables were provided at launch-time " \
             "but our job contains extra variables - {0}.".format(job.extra_vars)
 
@@ -644,9 +640,9 @@ class Test_Job_Template(Base_Api_Test):
         payload = dict(extra_vars=launch_time_extra_vars)
         job = job_template_ask_variables_on_launch.launch(payload).wait_until_completed()
 
-        loaded_runtime_vars = self.load_json_or_yaml(launch_time_extra_vars)
-        loaded_job_vars = self.load_json(job.extra_vars)
-        assert loaded_runtime_vars == loaded_job_vars
+        launch_time_vars = utils.load_json_or_yaml(launch_time_extra_vars)
+        job_vars = json.loads(job.extra_vars)
+        assert launch_time_vars == job_vars
 
     def test_launch_without_variables_needed_to_start(self, job_template_variables_needed_to_start):
         """Verify the job->launch endpoint behaves as expected when launching a
@@ -701,15 +697,15 @@ class Test_Job_Template(Base_Api_Test):
             assert variable in launch_pg.variables_needed_to_start, \
                 "Missing required variable: %s" % variable
 
-    @pytest.mark.parametrize("launchtime_vars", [
+    @pytest.mark.parametrize("launch_time_vars", [
         "{'likes_chicken': ['yes'], 'favorite_color': 'green'}",
         "---\nlikes_chicken:\n  - 'yes'\nfavorite_color: green"
     ], ids=['json', 'yaml'])
-    def test_launch_with_variables_needed_to_start(self, job_template_variables_needed_to_start, launchtime_vars):
-        """Verifies that job variables are a union of the variables supplied at launchtime
+    def test_launch_with_variables_needed_to_start(self, job_template_variables_needed_to_start, launch_time_vars):
+        """Verifies that job variables are a union of the variables supplied at launch time
         and variables sourced from survey defaults when:
         * Survey has required questions and non-required questions with default answers.
-        * JT is launched supplying values for the required variables at launchtime only.
+        * JT is launched supplying values for the required variables at launch time only.
         """
         launch = job_template_variables_needed_to_start.related.launch.get()
         survey_spec = job_template_variables_needed_to_start.related.survey_spec.get()
@@ -722,19 +718,20 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch.credential_needed_to_start
 
         # assert expected launch page required variables
-        required_survey_vars = self.get_survey_vars(survey_spec, required=True)
+        required_survey_vars = self.get_required_survey_vars(survey_spec)
         assert set(required_survey_vars) == set(launch.variables_needed_to_start), \
             "Unexpected number of JT launch page variables listed as needed to start."
 
         # launch JT and assert successful
-        payload = dict(extra_vars=launchtime_vars)
+        payload = dict(extra_vars=launch_time_vars)
         job = job_template_variables_needed_to_start.launch(payload).wait_until_completed()
         assert job.is_successful, "Job unsuccessful - %s." % job
 
-        survey_vars = [question['variable'] for question in survey_spec.spec if (question.get('required', False) is False and question.get('default') not in (None, ""))]
-        loaded_runtime_vars = self.load_json_or_yaml(launchtime_vars)
-        loaded_job_vars = self.load_json(job.extra_vars)
-        assert set(loaded_job_vars) == set(survey_vars) | set(loaded_runtime_vars)
+        default_survey_vars = self.get_default_survey_vars(survey_spec)
+        survey_vars = [var for var in default_survey_vars if var not in required_survey_vars]
+        launch_time_vars = utils.load_json_or_yaml(launch_time_vars)
+        job_vars = json.loads(job.extra_vars)
+        assert set(job_vars) == set(survey_vars) | set(launch_time_vars)
 
     def test_launch_with_variables_needed_to_start_and_extra_vars_at_launch(self, job_template_with_extra_vars, required_survey_spec,
                                                                             launch_time_extra_vars):
@@ -757,25 +754,26 @@ class Test_Job_Template(Base_Api_Test):
         assert not launch.credential_needed_to_start
 
         # assert expected launch page required variables
-        required_survey_vars = self.get_survey_vars(survey_spec, required=True)
+        required_survey_vars = self.get_required_survey_vars(survey_spec)
         assert set(required_survey_vars) == set(launch.variables_needed_to_start), \
             "Unexpected number of JT launch page variables listed as needed to start."
 
         # launch JT and assert successful
-        loaded_launchtime_vars = self.update_launchtime_vars(launch_time_extra_vars, dict(likes_chicken=["yes"], favorite_color="green"))
-        job = job_template_with_extra_vars.launch(dict(extra_vars=loaded_launchtime_vars)).wait_until_completed()
+        launch_time_vars = self.update_launch_time_vars(launch_time_extra_vars, dict(likes_chicken=["yes"], favorite_color="green"))
+        job = job_template_with_extra_vars.launch(dict(extra_vars=launch_time_vars)).wait_until_completed()
         assert job.is_successful, "Job unsuccessful - %s." % job
 
-        loaded_jt_vars = self.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
-        loaded_launchtime_vars = self.load_json_or_yaml(loaded_launchtime_vars)
-        survey_vars = [question['variable'] for question in survey_spec.spec if (question.get('required', False) is False and question.get('default') not in (None, ""))]
-        loaded_job_vars = self.load_json(job.extra_vars)
+        jt_vars = utils.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
+        launch_time_vars = utils.load_json_or_yaml(launch_time_vars)
+        default_survey_vars = self.get_default_survey_vars(survey_spec)
+        survey_vars = [var for var in default_survey_vars if var not in required_survey_vars]
+        job_vars = json.loads(job.extra_vars)
 
-        assert set(loaded_jt_vars) < set(loaded_job_vars)
-        assert set(survey_vars) < set(loaded_job_vars)
-        assert set(loaded_launchtime_vars) < set(loaded_job_vars)
-        assert set(loaded_job_vars) == set(loaded_jt_vars) | set(survey_vars) | set(loaded_launchtime_vars)
-        assert loaded_job_vars['intersection'] == loaded_launchtime_vars['intersection'], \
+        assert set(jt_vars) < set(job_vars)
+        assert set(survey_vars) < set(job_vars)
+        assert set(launch_time_vars) < set(job_vars)
+        assert set(job_vars) == set(jt_vars) | set(survey_vars) | set(launch_time_vars)
+        assert job_vars['intersection'] == launch_time_vars['intersection'], \
             "A launch-time variable did not replace our JT and survey intersection variable."
 
     def test_launch_without_passwords_needed_to_start(self, job_template_passwords_needed_to_start):

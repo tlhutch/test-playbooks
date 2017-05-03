@@ -37,7 +37,7 @@ def yaml_launch_time_vars():
 @pytest.fixture(scope="function")
 def job_with_extra_vars(job_template_with_extra_vars):
     """Launch job_template_extra_vars and return the job resource."""
-    return job_template_with_extra_vars.launch().wait_until_completed()
+    return job_template_with_extra_vars.launch()
 
 
 @pytest.fixture(scope="function")
