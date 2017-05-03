@@ -64,7 +64,7 @@ class Test_TACACS_Plus(Base_Api_Test):
 
     def test_timeout(self, enable_tacacs_auth, v1, api_me_pg, api_settings_tacacsplus_pg):
         enable_tacacs_auth()
-        api_settings_tacacsplus_pg.patch(TACACSPLUS_HOST='8.8.8.8', TACACSPLUS_SESSION_TIMEOUT=20)
+        api_settings_tacacsplus_pg.patch(TACACSPLUS_HOST='169.254.1.0', TACACSPLUS_SESSION_TIMEOUT=20)
         user = v1.users.create()
 
         start = datetime.now()
