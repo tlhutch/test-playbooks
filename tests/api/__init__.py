@@ -1,5 +1,12 @@
-import pytest
+from StringIO import StringIO
+import logging
+import re
+
 import contextlib
+import pytest
+
+
+error_pattern = re.compile('SchemaValidationError\:.*\n')
 
 
 @pytest.mark.api
@@ -15,6 +22,30 @@ class Base_Api_Test(object):
         plugin = pytest.config.pluginmanager.getplugin("plugins.pytest_restqa.pytest_restqa")
         assert plugin, 'Unable to find pytest_restqa plugin'
         self.testsetup = plugin.TestSetup
+
+    @pytest.fixture(autouse=True)
+    def attach_stream_handler_and_validate_schema_on_teardown(self, request):
+        stream = StringIO()
+        handler = logging.StreamHandler(stream)
+        handler.setLevel('ERROR')
+
+        # This is not xdist friendly to say the least
+        # TODO: implement per-test suite logging system
+        log = logging.getLogger('towerkit.api.pages.page')
+        log.addHandler(handler)
+
+        def _raise_on_teardown_if_validation_error():
+            stream.flush()
+            stream.seek(0)
+            test_log = ''.join(stream.readlines())
+            errors = error_pattern.findall(test_log)
+
+            log.removeHandler(handler)
+
+            if errors:
+                raise Exception('Found SchemaValidationError: {0}'.format(''.join(errors)))
+
+        request.addfinalizer(_raise_on_teardown_if_validation_error)
 
     @property
     def credentials(self):
