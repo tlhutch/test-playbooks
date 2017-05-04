@@ -177,6 +177,34 @@ class Test_Main_RBAC(Base_Api_Test):
             resource.set_object_roles(user, role, disassociate=True)
 
     @pytest.mark.parametrize(
+        'resource',
+        ['team', 'project', 'inventory', 'inventory_script', 'credential', 'workflow_job_template', 'notification_template', 'label']
+    )
+    def test_change_resource_organization_affiliation_with_org_admin(self, factories, resource):
+        """Confirm attempts to change resource organization to an unaffiliated one results in 403 as
+        an organization admin. Our change should succeed however if our user is an admin of both
+        oranizations.
+        """
+        org1 = factories.organization()
+        org2 = factories.organization()
+        resource = getattr(factories, resource)(organization=org1)
+        user = factories.user(organization=org1)
+        org1.add_admin(user)
+
+        with self.current_user(username=user.username, password=user.password):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                resource.organization = org2.id
+
+        org2.add_admin(user)
+        with self.current_user(username=user.username, password=user.password):
+            # team organization change is specifically disallowed
+            if resource.type == "team":
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    resource.organization = org2.id
+            else:
+                resource.organization = org2.id
+
+    @pytest.mark.parametrize(
         'resource_name, fixture_name',
         [
             ('organization', 'api_organizations_pg'),
