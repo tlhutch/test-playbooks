@@ -79,7 +79,7 @@ def construct_time_series(jobs):
     Make the second entry the last 'finished' time of these jobs.
 
     Example:
-    construct_time_series([[aws_update, rax_update], job])
+    construct_time_series([[aws_update, gce_update], job])
     >>> [[start time of first inv_update, finished time of last inv_update], [job.started, job.finished]]
     """
     intervals = list()
@@ -361,25 +361,25 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [inv_update, job_pg]
         confirm_unified_jobs(sorted_unified_jobs)
 
-    def test_inventory_multiple(self, job_template, aws_inventory_source, rax_inventory_source):
+    def test_inventory_multiple(self, job_template, aws_inventory_source, gce_inventory_source):
         """Verify that multiple inventory updates are triggered by job launch. Job ordering
         should be as follows:
-        * AWS and Rackspace inventory updates should run simultaneously.
+        * AWS and GCE inventory updates should run simultaneously.
         * Upon completion of both inventory imports, job should run.
         """
         # set update_on_launch
         aws_inventory_source.patch(update_on_launch=True)
-        rax_inventory_source.patch(update_on_launch=True)
+        gce_inventory_source.patch(update_on_launch=True)
 
         # check inventory sources
-        for inv_source in (aws_inventory_source, rax_inventory_source):
+        for inv_source in (aws_inventory_source, gce_inventory_source):
             assert inv_source.update_on_launch
             assert inv_source.update_cache_timeout == 0
             assert inv_source.last_updated is None, \
                 "Not expecting inventory source to have been updated - %s." % inv_source
 
         # sanity check: cloud groups should be in the same inventory
-        assert rax_inventory_source.inventory == aws_inventory_source.inventory, \
+        assert gce_inventory_source.inventory == aws_inventory_source.inventory, \
             "The inventory differs between the two inventory sources."
 
         # update job_template to cloud inventory
@@ -391,7 +391,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that inventory updates were triggered
-        for inv_source in (aws_inventory_source, rax_inventory_source):
+        for inv_source in (aws_inventory_source, gce_inventory_source):
             inv_source.get()
             assert inv_source.last_updated is not None, \
                 "Expecting value for inventory_source last_updated - %s." % inv_source
@@ -399,14 +399,14 @@ class Test_Autospawned_Jobs(Base_Api_Test):
                 "Expecting value for inventory_source last_job_run - %s." % inv_source
 
         # check that inventory updates were successful
-        aws_update, rax_update = aws_inventory_source.related.last_update.get(), rax_inventory_source.related.last_update.get()
+        aws_update, gce_update = aws_inventory_source.related.last_update.get(), gce_inventory_source.related.last_update.get()
         assert aws_update.is_successful, "aws_inventory_source -> last_update unsuccessful - %s." % aws_update
         assert aws_inventory_source.is_successful, "Inventory source unsuccessful - %s." % aws_inventory_source
-        assert rax_update.is_successful, "rax_inventory_source -> last_update unsuccessful - %s." % rax_update
-        assert rax_inventory_source.is_successful, "Inventory source unsuccessful - %s." % rax_inventory_source
+        assert gce_update.is_successful, "gce_inventory_source -> last_update unsuccessful - %s." % gce_update
+        assert gce_inventory_source.is_successful, "Inventory source unsuccessful - %s." % gce_inventory_source
 
         # check that jobs ran sequentially and in the right order
-        sorted_unified_jobs = [[aws_update, rax_update], job_pg]
+        sorted_unified_jobs = [[aws_update, gce_update], job_pg]
         confirm_unified_jobs(sorted_unified_jobs)
 
     def test_inventory_cache_timeout(self, custom_inventory_job_template, custom_inventory_source):

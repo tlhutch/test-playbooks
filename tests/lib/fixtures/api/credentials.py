@@ -295,14 +295,6 @@ def aws_credential(admin_user, factories):
 
 
 @pytest.fixture(scope="function")
-def rax_credential(admin_user, factories):
-    cred = factories.credential(name="rax-credential-%s" % fauxfactory.gen_utf8(),
-                                description="Rackspace credential %s" % fauxfactory.gen_utf8(),
-                                kind='rax', user=admin_user)
-    return cred
-
-
-@pytest.fixture(scope="function")
 def azure_classic_credential(admin_user, factories):
     cred = factories.credential(name="azure-classic-credential-%s" % fauxfactory.gen_utf8(),
                                 description="Microsoft Azure credential %s" % fauxfactory.gen_utf8(),
@@ -381,7 +373,7 @@ def satellite6_credential(admin_user, factories):
 
 
 # Convenience fixture that iterates through supported cloud_credential types
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware',
+@pytest.fixture(scope="function", params=['aws', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware',
                                           'openstack_v2', 'openstack_v3', 'cloudforms', 'satellite6'])
 def cloud_credential(request, ansible_os_family, ansible_distribution_major_version):
     if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and

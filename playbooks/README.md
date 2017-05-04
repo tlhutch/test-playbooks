@@ -23,7 +23,6 @@ Ansible Tower and related services.
  * `images-azure.yml` - variables to describe supported Microsoft Azure instances
  * `images-ec2.yml` - variables to describe supported Amazon Machine Images (AMI)
  * `images-gce.yml` - variables to describe supported Google Compute Engine instances
- * `images-rax.yml` - variables to describe supported Rackspace Cloud Servers
  * `images-rds.yml` - variables to describe an AWS RDS instance
  * `images-ha.yml` - variables to describe an AWS-based Tower HA deployment
  * `images-ldap.yml` - variables to describe an AWS-based Tower LDAP deployment

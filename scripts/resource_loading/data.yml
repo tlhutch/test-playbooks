@@ -266,25 +266,6 @@ credentials:
       password: '{password}' # Gathered from credentials.yaml
 
     #
-    # Rackspace Cloud Credentials
-    #
-    - name: 'Rackspace (user:bender_eng_user)'
-      description: Rackspace Cloudserver credentials for bender_eng_user
-      kind: rax
-      user: bender_eng_user
-      team: null
-      username: '{username}' # Gathered from credentials.yaml
-      password: '{password}' # Gathered from credentials.yaml
-
-    - name: 'Rackspace (team:IT)'
-      description: Rackspace Cloudserver credentials for bender_eng_user
-      kind: rax
-      user: null
-      team: Bender IT
-      username: '{username}' # Gathered from credentials.yaml
-      password: '{password}' # Gathered from credentials.yaml
-
-    #
     # Microsoft Azure Classic Cloud Credential
     #
     - name: 'Microsoft Azure Classic (team:IT)'
@@ -554,10 +535,6 @@ inventories:
       description: Includes only Amazon EC2 hosts
       organization: Ansible, Inc
 
-    - name: inventory-rax
-      description: Includes only Rackspace cloud servers
-      organization: Ansible, Inc
-
     - name: inventory-gce
       description: Includes only Google Compute Engine hosts
       organization: Ansible, Inc
@@ -645,11 +622,6 @@ groups:
       inventory: inventory-all
       parent: cloud
 
-    - name: rax
-      description: Group for tracking Rackspace mycloud servers
-      inventory: inventory-all
-      parent: cloud
-
     - name: gce
       description: Group for tracking Google Compute servers
       inventory: inventory-all
@@ -673,9 +645,6 @@ groups:
     - name: Amazon EC2 Instances
       inventory: inventory-aws
 
-    - name: Rackspace Cloud Servers
-      inventory: inventory-rax
-
     - name: Google Compute Engine
       inventory: inventory-gce
 
@@ -697,19 +666,6 @@ inventory_sources:
       inventory: inventory-all
       source: ec2
       credential: 'AWS (user:bender_eng_user)'
-      overwrite: true
-      overwrite_vars: true
-      update_on_launch: true
-      update_interval: 0
-
-    - name: inventory-all/rax # name is used for internal purposes
-      group: rax
-      inventory: inventory-all
-      source: rax
-      credential: 'Rackspace (user:bender_eng_user)'
-      # source_username: # stored in credentials.yaml
-      # source_password: # stored in credentials.yaml
-      source_regions: 'ORD'
       overwrite: true
       overwrite_vars: true
       update_on_launch: true
@@ -768,19 +724,6 @@ inventory_sources:
       inventory: inventory-aws
       source: ec2
       credential: 'AWS (team:IT)'
-      overwrite: false
-      overwrite_vars: false
-      update_on_launch: false
-      update_interval: 0
-
-    - name: inventory-rax # name is used for internal purposes
-      group: Rackspace Cloud Servers
-      inventory: inventory-rax
-      source: rax
-      credential: 'Rackspace (team:IT)'
-      # source_username: # stored in credentials.yaml
-      # source_password: # stored in credentials.yaml
-      source_regions: 'ORD'
       overwrite: false
       overwrite_vars: false
       update_on_launch: false

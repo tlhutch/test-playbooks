@@ -587,12 +587,6 @@ class Test_Job_Env(Base_Api_Test):
                 AWS_ACCESS_KEY=self.credentials['cloud'][cloud_credential.kind]['username'],
                 AWS_SECRET_KEY=u'**********'
             )
-        elif cloud_credential.kind == 'rax':
-            self.has_credentials('cloud', cloud_credential.kind, ['username'])
-            expected_env_vars = dict(
-                RAX_USERNAME=self.credentials['cloud'][cloud_credential.kind]['username'],
-                RAX_API_KEY=u'**********'
-            )
         elif cloud_credential.kind == 'gce':
             self.has_credentials('cloud', cloud_credential.kind, ['username', 'project'])
             expected_env_vars = dict(

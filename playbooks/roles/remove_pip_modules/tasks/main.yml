@@ -1,7 +1,4 @@
 ---
-# RHEL-6.5 rax images are pre-loaded with pip installed packages.  This breaks
-# distro packaging (see support ticket 140303-00299-3).
-
 - name: detect if PyYAML rpm is installed
   command: rpm -q PyYAML
   changed_when: false
