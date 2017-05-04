@@ -147,6 +147,9 @@ class Test_Job_Template(Base_Api_Test):
         assert set(jt_vars) < set(job_vars)
         assert set(launch_time_vars) < set(job_vars)
         assert set(job_vars) == set(jt_vars) | set(job_vars)
+
+        assert job_vars['jt_var'] == jt_vars['jt_var']
+        assert job_vars['job_var'] == launch_time_vars['job_var']
         assert job_vars['intersection'] == launch_time_vars['intersection'], \
             "Our launch-time variable did not replace our colliding JT variable value."
 
@@ -731,7 +734,16 @@ class Test_Job_Template(Base_Api_Test):
         survey_vars = [var for var in default_survey_vars if var not in required_survey_vars]
         launch_time_vars = utils.load_json_or_yaml(launch_time_vars)
         job_vars = json.loads(job.extra_vars)
+
+        # assert expected job extra_vars
+        assert set(survey_vars) < set(job_vars)
+        assert set(launch_time_vars) < set(job_vars)
         assert set(job_vars) == set(survey_vars) | set(launch_time_vars)
+
+        assert job_vars['survey_var'] == survey_spec.get_variable_default('survey_var')
+        assert job_vars['likes_chicken'] == launch_time_vars['likes_chicken']
+        assert job_vars['favorite_color'] == launch_time_vars['favorite_color']
+        assert job_vars['intersection'] == survey_spec.get_variable_default('intersection')
 
     def test_launch_with_variables_needed_to_start_and_extra_vars_at_launch(self, job_template_with_extra_vars, required_survey_spec,
                                                                             launch_time_extra_vars):
@@ -769,10 +781,17 @@ class Test_Job_Template(Base_Api_Test):
         survey_vars = [var for var in default_survey_vars if var not in required_survey_vars]
         job_vars = json.loads(job.extra_vars)
 
+        # assert expected job extra_vars
         assert set(jt_vars) < set(job_vars)
         assert set(survey_vars) < set(job_vars)
         assert set(launch_time_vars) < set(job_vars)
         assert set(job_vars) == set(jt_vars) | set(survey_vars) | set(launch_time_vars)
+
+        assert job_vars['jt_var'] == jt_vars['jt_var']
+        assert job_vars['survey_var'] == survey_spec.get_variable_default('survey_var')
+        assert job_vars['likes_chicken'] == launch_time_vars['likes_chicken']
+        assert job_vars['favorite_color'] == launch_time_vars['favorite_color']
+        assert job_vars['job_var'] == launch_time_vars['job_var']
         assert job_vars['intersection'] == launch_time_vars['intersection'], \
             "A launch-time variable did not replace our JT and survey intersection variable."
 
