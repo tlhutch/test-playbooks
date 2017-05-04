@@ -73,5 +73,5 @@ class Test_TACACS_Plus(Base_Api_Test):
             api_me_pg.get()
         end = datetime.now()
 
-        assert abs((end - start).total_seconds() - 20) < 5
+        assert (end - start).total_seconds() - 20 < 5
         user.delete()
