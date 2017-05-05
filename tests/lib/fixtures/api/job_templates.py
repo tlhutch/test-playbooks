@@ -82,13 +82,28 @@ def another_job_template(factories, organization, project, ssh_credential, host_
                                   inventory=host_local.ds.inventory, playbook='debug.yml')
 
 
-@pytest.fixture(scope="function")
-def job_template_with_extra_vars(factories, organization, project, ssh_credential, host_local):
+@pytest.fixture(scope="function", params=['job_template_with_json_vars', 'job_template_with_yaml_vars'])
+def job_template_with_extra_vars(request):
     """job_template with a set of extra_vars"""
+    return request.getfuncargvalue(request.param)
+
+
+@pytest.fixture(scope="function")
+def job_template_with_json_vars(factories, organization, project, ssh_credential, host_local):
+    """job_template with a set of JSON extra_vars"""
     return factories.job_template(description="job_template with extra_vars - %s" % fauxfactory.gen_utf8(),
                                   organization=organization, project=project, credential=ssh_credential,
                                   inventory=host_local.ds.inventory, playbook='debug.yml',
-                                  extra_vars=dict(one=1, two=2, three=3, intersection="job template"))
+                                  extra_vars='{"jt_var": true, "intersection": "JT"}')
+
+
+@pytest.fixture(scope="function")
+def job_template_with_yaml_vars(factories, organization, project, ssh_credential, host_local):
+    """job_template with a set of YAML extra_vars"""
+    return factories.job_template(description="job_template with extra_vars - %s" % fauxfactory.gen_utf8(),
+                                  organization=organization, project=project, credential=ssh_credential,
+                                  inventory=host_local.ds.inventory, playbook='debug.yml',
+                                  extra_vars="---\njt_var: true\nintersection: job template")
 
 
 @pytest.fixture(scope="function")
@@ -194,6 +209,11 @@ def required_survey_spec():
                  question_name="Enter your email &mdash; &euro;",
                  variable="submitter_email",
                  type="text"),
+            dict(required=False,
+                 question_name="Test question",
+                 variable="survey_var",
+                 type="text",
+                 default="text"),
             dict(required=False,
                  question_name="Test question",
                  variable="intersection",

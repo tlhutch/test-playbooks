@@ -19,17 +19,25 @@ def files_scan_job_with_status_completed(files_scan_job_template):
     return files_scan_job_template.launch().wait_until_completed()
 
 
-@pytest.fixture(scope="function")
-def job_extra_vars_dict():
-    return dict(Flaff=True, Moffey=False, Maffey=True, intersection="job")
+@pytest.fixture(scope="function", params=['json_launch_time_vars', 'yaml_launch_time_vars'])
+def launch_time_extra_vars(request):
+    return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture(scope="function")
-def job_with_extra_vars(job_template_with_extra_vars, job_extra_vars_dict):
+def json_launch_time_vars():
+    return "{'job_var': 0, 'intersection': 'launch-time'}"
+
+
+@pytest.fixture(scope="function")
+def yaml_launch_time_vars():
+    return "---\njob_var: 0\nintersection: launch-time"
+
+
+@pytest.fixture(scope="function")
+def job_with_extra_vars(job_template_with_extra_vars):
     """Launch job_template_extra_vars and return the job resource."""
-    # Supply extra variables at launch time
-    payload = dict(extra_vars=job_extra_vars_dict)
-    return job_template_with_extra_vars.launch(payload)
+    return job_template_with_extra_vars.launch()
 
 
 @pytest.fixture(scope="function")
