@@ -1,5 +1,5 @@
 ---
-# Tasks to delete (optionally) and create rax instances
+# Tasks to delete (optionally) and create gce instances
 
 # - name: ensure security group exists
 #   gce_net:

@@ -37,12 +37,6 @@ def ec2_region_choices(api_inventory_sources_options_json):
 
 
 @pytest.fixture(scope="function")
-def rax_region_choices(api_inventory_sources_options_json):
-    """Return field 'rax_ret_choices' from the inventory_sources OPTIONS json."""
-    return dict(api_inventory_sources_options_json['actions']['GET']['source_regions']['rax_region_choices'])
-
-
-@pytest.fixture(scope="function")
 def ec2_group_by_choices(api_inventory_sources_options_json):
     """Return field 'ec2_group_by_choices' from the inventory_sources OPTIONS json."""
     return dict(api_inventory_sources_options_json['actions']['GET']['group_by']['ec2_group_by_choices'])
@@ -176,19 +170,6 @@ def aws_inventory_source(aws_group):
 
 
 @pytest.fixture(scope="function")
-def rax_group(factories, inventory, rax_credential):
-    group = factories.group(name="rax-group-%s" % fauxfactory.gen_alphanumeric(),
-                            description="Rackspace group %s" % fauxfactory.gen_utf8(),
-                            source='rax', inventory=inventory, credential=rax_credential)
-    return group
-
-
-@pytest.fixture(scope="function")
-def rax_inventory_source(rax_group):
-    return rax_group.related.inventory_source.get()
-
-
-@pytest.fixture(scope="function")
 def azure_classic_group(factories, inventory, azure_classic_credential):
     group = factories.group(name="azure-classic-group-%s" % fauxfactory.gen_alphanumeric(),
                             description="Microsoft Azure %s" % fauxfactory.gen_utf8(),
@@ -300,7 +281,7 @@ def custom_inventory_source(request, authtoken, custom_group):
 
 
 # Convenience fixture that iterates through supported cloud_groups
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware',
+@pytest.fixture(scope="function", params=['aws', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware',
                                           'openstack_v2', 'openstack_v3'])
 def cloud_group(request, ansible_os_family, ansible_distribution_major_version):
     # new-style azure inventory imports are not supported on EL6 systems
@@ -312,23 +293,20 @@ def cloud_group(request, ansible_os_family, ansible_distribution_major_version):
 
 # Convenience fixture that returns all of our cloud_groups as a list
 @pytest.fixture(scope="function")
-def cloud_groups(ansible_os_family, ansible_distribution_major_version, aws_group, rax_group,
+def cloud_groups(ansible_os_family, ansible_distribution_major_version, aws_group,
                  azure_classic_group, azure_group, azure_ad_group, gce_group, vmware_group,
                  openstack_v2_group, openstack_v3_group):
     if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6'):
-        return [aws_group, rax_group, azure_classic_group, gce_group, vmware_group, openstack_v2_group,
+        return [aws_group, azure_classic_group, gce_group, vmware_group, openstack_v2_group,
                 openstack_v3_group]
     else:
-        return [aws_group, rax_group, azure_classic_group, azure_group, azure_ad_group, gce_group, vmware_group,
+        return [aws_group, azure_classic_group, azure_group, azure_ad_group, gce_group, vmware_group,
                 openstack_v2_group, openstack_v3_group]
 
 
 # Convenience fixture that iterates through cloud_groups that support source_regions
-@pytest.fixture(scope="function", params=['aws', 'rax', 'azure', 'gce'])
+@pytest.fixture(scope="function", params=['aws', 'azure', 'gce'])
 def cloud_group_supporting_source_regions(ansible_os_family, ansible_distribution_major_version, request):
-    # Skip cited test until we have a fixture to provision a rackspace instance
-    if request.param == 'rax' and request.function.__name__ == 'test_inventory_update_with_populated_source_region':
-        pytest.skip(msg='https://github.com/ansible/tower-qa/issues/649')
     if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param == 'azure'):
         pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
     return request.getfuncargvalue(request.param + '_group')

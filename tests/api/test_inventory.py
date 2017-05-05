@@ -267,8 +267,6 @@ class Test_Inventory_Update(Base_Api_Test):
         cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
         if cloud_provider == 'aws':
             source_regions = region_choices['ec2']
-        elif cloud_provider == 'rax':
-            source_regions = region_choices['rax']
         elif cloud_provider == 'azure_rm':
             source_regions = region_choices['azure']
         elif cloud_provider == 'gce':
@@ -311,8 +309,6 @@ class Test_Inventory_Update(Base_Api_Test):
         cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
         if cloud_provider == 'aws':
             source_region = "us-east-1"
-        elif cloud_provider == 'rax':
-            source_region = "DFW"
         elif cloud_provider == 'azure_rm':
             source_region = "East_US_1"
         elif cloud_provider == 'gce':
@@ -353,8 +349,6 @@ class Test_Inventory_Update(Base_Api_Test):
         cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
         if cloud_provider == 'aws':
             source_region = "sa-east-1"
-        elif cloud_provider == 'rax':
-            source_region = "HKG"
         elif cloud_provider == 'azure':
             source_region = "West_Japan"
         elif cloud_provider == 'gce':

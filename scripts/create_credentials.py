@@ -65,11 +65,6 @@ if __name__ == '__main__':
     # Set default admin password
     cfg['default']['password'] = os.environ.get("AWX_ADMIN_PASSWORD", "")
 
-    # Set rackspace info
-    for rax in ['rackspace', 'rax']:
-        cfg['cloud'][rax]['username'] = os.environ.get("RAX_USERNAME", "")
-        cfg['cloud'][rax]['password'] = os.environ.get("RAX_API_KEY", "")
-
     # Set aws info
     for ec2 in ['aws', 'ec2']:
         cfg['cloud'][ec2]['username'] = os.environ.get("AWS_ACCESS_KEY", "")

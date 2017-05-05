@@ -102,20 +102,6 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
         # use desired ec2 distro
         EC2_IMAGES=$(filter_images ec2 ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
         ;;
-    # All rax distros
-    rax-all)
-        EC2_IMAGES="[]"
-        GCE_IMAGES="[]"
-        AZURE_IMAGES="[]"
-        ;;
-    # A specific rax distro
-    rax-*)
-        EC2_IMAGES="[]"
-        GCE_IMAGES="[]"
-        AZURE_IMAGES="[]"
-        # use desired rax distro
-        RAX_IMAGES=$(filter_images rax ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
-        ;;
     # All gce distros
     gce-all)
         EC2_IMAGES="[]"
@@ -127,7 +113,7 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
         EC2_IMAGES="[]"
         RAX_IMAGES="[]"
         AZURE_IMAGES="[]"
-        # use desired rax distro
+        # use desired gce distro
         GCE_IMAGES=$(filter_images gce ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
         ;;
     # All azure distros
@@ -141,7 +127,7 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
         EC2_IMAGES="[]"
         RAX_IMAGES="[]"
         GCE_IMAGES="[]"
-        # use desired rax distro
+        # use desired azure distro
         AZURE_IMAGES=$(filter_images azure ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
         ;;
     all-all)
@@ -149,7 +135,6 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
         ;;
     all-*)
         EC2_IMAGES=$(filter_images ec2 ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
-        RAX_IMAGES=$(filter_images rax ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
         GCE_IMAGES=$(filter_images gce ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
         AZURE_IMAGES=$(filter_images azure ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
         ;;
@@ -161,9 +146,6 @@ esac
 # If custom distros are needed, save them in ${PLAYBOOK_DIR}/vars.yml
 if [ -n "${EC2_IMAGES}" ]; then
     echo "ec2_images: ${EC2_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yml
-fi
-if [ -n "${RAX_IMAGES}" ]; then
-    echo "rax_images: ${RAX_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yml
 fi
 if [ -n "${GCE_IMAGES}" ]; then
     echo "gce_images: ${GCE_IMAGES}" >> ${PLAYBOOK_DIR}/vars.yml
