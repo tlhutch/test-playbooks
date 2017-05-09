@@ -45,31 +45,92 @@ def test_login_invalid_credentials(login_page, username, password):
         'Expected login failure alert error(s) to be displayed')
 
 
-def test_third_party_auth_icon(login_page, authtoken, sso_settings_pg, configure_auth):
-    """Verify that third-party auth icons appear after API configuration."""
-    # sso icons should not be initially present
-    assert not login_page.sso_icons, \
-        "Login page sso icons displayed before initial configuration."
-    # configure sso endpoint
-    configure_auth(sso_settings_pg)
+def test_disabled_auth_icons(login_page):
+    """Verify that third-party authentication icons are not displayed
+    by default.
+    """
+    assert not login_page.is_azuread_icon_displayed()
+    assert not login_page.is_github_icon_displayed()
+    assert not login_page.is_github_org_icon_displayed()
+    assert not login_page.is_github_team_icon_displayed()
+    assert not login_page.is_google_icon_displayed()
+
+
+def test_azuread_auth_icon(login_page, authtoken, configure_auth_azuread):
+    """Verify that the AzureAD icon appears after API configuration."""
     login_page.driver.refresh()
     login_page.wait_until_loaded_with_auth_icon()
+
     # check for new icon
     assert len(login_page.sso_icons) == 1, \
         "Unexpected number of sso icons found."
     # check that we have our expected icon
-    if "azuread-oauth2/" in sso_settings_pg.endpoint:
-        assert login_page.is_azuread_icon_displayed()
-    elif "github/" in sso_settings_pg.endpoint:
-        assert login_page.is_github_icon_displayed()
-    elif "github-org/" in sso_settings_pg.endpoint:
-        assert login_page.is_github_org_icon_displayed()
-    elif "github-team/" in sso_settings_pg.endpoint:
-        assert login_page.is_github_team_icon_displayed()
-    elif "google-oauth2/" in sso_settings_pg.endpoint:
-        assert login_page.is_google_icon_displayed()
-    else:
-        raise ValueError("Received unhandled settings page.")
+    assert login_page.is_azuread_icon_displayed()
+
+
+def test_google_icon(login_page, authtoken, configure_auth_google):
+    """Verify that the Google icon appears after API configuration."""
+    login_page.driver.refresh()
+    login_page.wait_until_loaded_with_auth_icon()
+
+    # check for new icon
+    assert len(login_page.sso_icons) == 1, \
+        "Unexpected number of sso icons found."
+    # check that we have our expected icon
+    assert login_page.is_google_icon_displayed()
+
+
+def test_github_icon(login_page, authtoken, configure_auth_github):
+    """Verify that the GitHub icon appears after API configuration."""
+    login_page.driver.refresh()
+    login_page.wait_until_loaded_with_auth_icon()
+
+    # check for new icon
+    assert len(login_page.sso_icons) == 1, \
+        "Unexpected number of sso icons found."
+    # check that we have our expected icon
+    assert login_page.is_github_icon_displayed()
+
+
+def test_github_org_icon(login_page, authtoken, configure_auth_github_org):
+    """Verify that the GitHub org icon appears after API configuration."""
+    login_page.driver.refresh()
+    login_page.wait_until_loaded_with_auth_icon()
+
+    # check for new icon
+    assert len(login_page.sso_icons) == 1, \
+        "Unexpected number of sso icons found."
+    # check that we have our expected icon
+    assert login_page.is_github_org_icon_displayed()
+
+
+def test_github_team_icon(login_page, authtoken, configure_auth_github_team):
+    """Verify that the GitHub team icon appears after API configuration."""
+    login_page.driver.refresh()
+    login_page.wait_until_loaded_with_auth_icon()
+
+    # check for new icon
+    assert len(login_page.sso_icons) == 1, \
+        "Unexpected number of sso icons found."
+    # check that we have our expected icon
+    assert login_page.is_github_team_icon_displayed()
+
+
+def test_sso_icons(login_page, authtoken, configure_auth_azuread, configure_auth_github,
+       configure_auth_github_org, configure_auth_github_team, configure_auth_google):
+    """Verify sso icon placement."""
+    login_page.driver.refresh()
+    login_page.wait_until_loaded_with_auth_icon()
+
+    # check for new icons
+    assert len(login_page.sso_icons) == 5, \
+        "Unexpected number of sso icons found."
+    # check icon placement
+    assert login_page.sso_icons[0].get_attribute('class').endswith('microsoft')
+    assert login_page.sso_icons[1].get_attribute('class').endswith('google')
+    assert login_page.sso_icons[2].get_attribute('class').endswith('gitHub')
+    assert login_page.sso_icons[3].get_attribute('class').endswith('gitHub')
+    assert login_page.sso_icons[4].get_attribute('class').endswith('gitHub')
 
 
 def test_stock_branding(login_page):

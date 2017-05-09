@@ -20,35 +20,6 @@ def update_setting_pg(request):
     return func
 
 
-@pytest.fixture(scope="function", params=["api_settings_azuread_pg",
-                                          "api_settings_github_pg",
-                                          "api_settings_github_org_pg",
-                                          "api_settings_github_team_pg",
-                                          "api_settings_google_pg"])
-def sso_settings_pg(request):
-    """Returns each of our SSO settings pages."""
-    return request.getfuncargvalue(request.param)
-
-
-@pytest.fixture
-def configure_auth(update_setting_pg):
-    """Configure an authentication service with dummy settings."""
-    def func(settings_pg):
-        v = fauxfactory.gen_utf8()
-        if settings_pg.endpoint.endswith("azuread-oauth2/"):
-            payload = {k: v for k in ["SOCIAL_AUTH_AZUREAD_OAUTH2_KEY", "SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET"]}
-        elif settings_pg.endpoint.endswith("github/"):
-            payload = {k: v for k in ["SOCIAL_AUTH_GITHUB_KEY", "SOCIAL_AUTH_GITHUB_SECRET"]}
-        elif settings_pg.endpoint.endswith("github-org/"):
-            payload = {k:v for k in ["SOCIAL_AUTH_GITHUB_ORG_KEY", "SOCIAL_AUTH_GITHUB_ORG_SECRET", "SOCIAL_AUTH_GITHUB_ORG_NAME"]}
-        elif settings_pg.endpoint.endswith("github-team/"):
-            payload = {k:v for k in ["SOCIAL_AUTH_GITHUB_TEAM_KEY", "SOCIAL_AUTH_GITHUB_TEAM_SECRET", "SOCIAL_AUTH_GITHUB_TEAM_ID"]}
-        elif settings_pg.endpoint.endswith("google-oauth2/"):
-            payload = {k:v for k in ["SOCIAL_AUTH_GOOGLE_OAUTH2_KEY", "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET"]}
-        update_setting_pg(settings_pg, payload)
-    return func
-
-
 @pytest.fixture(scope="function", params=["all", "auth", "azuread", "changed", "github_org", "github_team", "google", "jobs",
                                           "ldap", "radius", "saml", "system", "ui"])
 def setting_pg(request):
@@ -58,6 +29,56 @@ def setting_pg(request):
     choke on pytest-github.
     """
     return request.getfuncargvalue("api_settings_" + request.param + "_pg")
+
+
+@pytest.fixture
+def configure_auth_azuread(update_setting_pg, api_settings_azuread_pg):
+    """Configure Tower with Azure Active Directory SSO."""
+    v = fauxfactory.gen_utf8()
+    payload = {k: v for k in ["SOCIAL_AUTH_AZUREAD_OAUTH2_KEY", "SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET"]}
+    update_setting_pg(api_settings_azuread_pg, payload)
+
+
+@pytest.fixture
+def configure_auth_github(update_setting_pg, api_settings_github_pg):
+    """Configure Tower with GitHub SSO."""
+    v = fauxfactory.gen_utf8()
+    payload = {k: v for k in ["SOCIAL_AUTH_GITHUB_KEY", "SOCIAL_AUTH_GITHUB_SECRET"]}
+    update_setting_pg(api_settings_github_pg, payload)
+
+
+@pytest.fixture
+def configure_auth_github_org(update_setting_pg, api_settings_github_org_pg):
+    """Configure Tower with GitHub organization SSO."""
+    v = fauxfactory.gen_utf8()
+    payload = {k: v for k in ["SOCIAL_AUTH_GITHUB_ORG_KEY", "SOCIAL_AUTH_GITHUB_ORG_SECRET", "SOCIAL_AUTH_GITHUB_ORG_NAME"]}
+    update_setting_pg(api_settings_github_org_pg, payload)
+
+
+@pytest.fixture
+def configure_auth_github_team(update_setting_pg, api_settings_github_team_pg):
+    """Configure Tower with Github team SSO."""
+    v = fauxfactory.gen_utf8()
+    payload = {k: v for k in ["SOCIAL_AUTH_GITHUB_TEAM_KEY", "SOCIAL_AUTH_GITHUB_TEAM_SECRET", "SOCIAL_AUTH_GITHUB_TEAM_ID"]}
+    update_setting_pg(api_settings_github_team_pg, payload)
+
+
+@pytest.fixture
+def configure_auth_google(update_setting_pg, api_settings_google_pg):
+    """Configure Tower with Google SSO."""
+    v = fauxfactory.gen_utf8()
+    payload = {k: v for k in ["SOCIAL_AUTH_GOOGLE_OAUTH2_KEY", "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET"]}
+    update_setting_pg(api_settings_google_pg, payload)
+
+
+@pytest.fixture(scope="function", params=["configure_auth_azuread",
+                                          "configure_auth_github",
+                                          "configure_auth_github_org",
+                                          "configure_auth_github_team",
+                                          "configure_auth_google"])
+@pytest.fixture
+def configure_auth(request):
+    return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture
