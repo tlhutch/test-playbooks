@@ -15,10 +15,6 @@ def test_header_shows_correct_username(ui, ui_user):
     actual = dashboard.header.username
 
     assert expected.lower() == actual.lower(), msg
-    with dashboard.current_user(ui_user.username, refresh=False):
-        expected = ui_user.username
-        actual = dashboard.header.username
-        assert expected.lower() == actual.lower(), msg
 
 
 @pytest.mark.usefixtures('supported_window_sizes')
