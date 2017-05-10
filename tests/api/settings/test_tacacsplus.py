@@ -35,7 +35,7 @@ class Test_TACACS_Plus(Base_Api_Test):
     def test_login_as_new_user(self, protocol, enable_tacacs_auth, v1, api_me_pg):
         enable_tacacs_auth(protocol)
         tacacs_config = config.credentials.tacacs_plus
-        assert not len(v1.users.get(username=tacacs_config.user).results)
+        assert not v1.users.get(username=tacacs_config.user).count
 
         with self.current_user(tacacs_config.user, getattr(tacacs_config, protocol + '_pass')):
             api_me_pg.get()
@@ -46,13 +46,35 @@ class Test_TACACS_Plus(Base_Api_Test):
         users.pop().delete()
 
     @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
+    def test_repeated_login_with_tacacs_auth(self, protocol, enable_tacacs_auth, v1):
+        enable_tacacs_auth(protocol)
+        tacacs_config = config.credentials.tacacs_plus
+        username, password = (tacacs_config.user, getattr(tacacs_config, protocol + '_pass'))
+        assert not v1.users.get(username=tacacs_config.user).count
+
+        with self.current_user(username, password):
+            user = v1.me.get().results.pop()
+            assert user.username == username
+            user_id = user.id
+            user.first_name = 'changed'
+            v1.authtoken.delete()
+
+        with self.current_user(username, password):
+            assert user_id == v1.me.get().results.pop().id, "Found different user_id on second login"
+            assert user.get().first_name == 'changed', \
+                'Change to user (first_name) did not persist across logins'
+        user.delete()
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6169')
+    @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
     def test_login_as_existing_user(self, protocol, enable_tacacs_auth, v1, api_me_pg):
         enable_tacacs_auth(protocol)
         tacacs_config = config.credentials.tacacs_plus
         user = v1.users.create(username=tacacs_config.user)
 
         with self.current_user(tacacs_config.user, getattr(tacacs_config, protocol + '_pass')):
-            api_me_pg.get()
+            with pytest.raises(exc.Unauthorized):
+                api_me_pg.get()
         user.delete()
 
     @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
