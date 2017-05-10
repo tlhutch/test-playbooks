@@ -1,7 +1,6 @@
 import pytest
 import httplib
 
-import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
     check_read_access,
