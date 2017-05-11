@@ -28,7 +28,7 @@ def oauth_settings_pgs(api_settings_github_pg, api_settings_github_org_pg, api_s
 
 
 @pytest.fixture(scope="function", params=["all", "auth", "azuread", "changed", "github_org", "github_team", "google", "jobs",
-                                          "ldap", "radius", "saml", "system", "ui"])
+                                          "ldap", "radius", "saml", "system", "tacacsplus", "ui"])
 def setting_pg(request):
     """Returns each of our nested /api/v1/settings/\w+/ endpoints.
 

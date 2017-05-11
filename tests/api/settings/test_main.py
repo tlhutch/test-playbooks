@@ -65,6 +65,7 @@ def modify_settings(api_settings_all_pg, update_setting_pg):
                        RADIUS_PORT=1000,  # /api/v1/settings/radius/
                        SOCIAL_AUTH_SAML_SP_ENTITY_ID="test",  # /api/v1/settings/saml/
                        TOWER_ADMIN_ALERTS=False,  # /api/v1/settings/system/
+                       TACACSPLUS_PORT=777,  # /api/v1/settings/tacasplus/
                        CUSTOM_LOGIN_INFO="test")  # /api/v1/settings/ui/
         update_setting_pg(api_settings_all_pg, payload)
         return payload
@@ -90,7 +91,8 @@ def modify_obfuscated_settings(api_settings_all_pg, update_setting_pg, unencrypt
                        AUTH_LDAP_BIND_PASSWORD="test",  # /api/v1/settings/ldap/
                        LOG_AGGREGATOR_PASSWORD="test",  # /api/v1/settings/logging/
                        RADIUS_SECRET="test",  # /api/v1/settings/radius/
-                       SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=unencrypted_rsa_ssh_key_data)  # /api/v1/settings/saml/
+                       SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=unencrypted_rsa_ssh_key_data,  # /api/v1/settings/saml/
+                       TACACSPLUS_SECRET="test")  # /api/v1/settings/tacasplus/
         update_setting_pg(api_settings_all_pg, payload)
         return payload
     return func
