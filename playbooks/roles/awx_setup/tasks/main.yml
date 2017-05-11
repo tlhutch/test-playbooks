@@ -34,7 +34,7 @@
     group: 'root'
 
 - pause:
-    prompt: "Tower admin password:"
+    prompt: "Tower admin password"
   no_log: True
   register: prompt
   when: admin_password is not defined
