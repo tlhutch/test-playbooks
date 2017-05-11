@@ -390,7 +390,7 @@ class Test_Main_Setting(Base_Api_Test):
         generated_elements = api_activity_stream_pg.get(order_by='-id', page_size=generated_elements_count).results
 
         # assert specific created elements created
-        assert len(generated_elements) == 19, \
+        assert len(generated_elements) == 13, \
             "Unexpected number of created activity stream elements: {0}.".format(len(generated_elements))
         criteria = dict(operation="create", object1="host", object2="")
         assess_created_elements(generated_elements, criteria, 5)
@@ -402,9 +402,7 @@ class Test_Main_Setting(Base_Api_Test):
         assess_created_elements(generated_elements, criteria, 1)
 
         criteria = dict(operation="associate", object1="group", object2="host")
-        assess_created_elements(generated_elements, criteria, 10)
-        criteria = dict(operation="associate", object1="group", object2="group")
-        assess_created_elements(generated_elements, criteria, 1)
+        assess_created_elements(generated_elements, criteria, 5)
 
     def test_activity_stream_disabled_for_inventory_sync(self, factories, custom_inventory_source, api_activity_stream_pg,
                                                          api_settings_system_pg, update_setting_pg):
