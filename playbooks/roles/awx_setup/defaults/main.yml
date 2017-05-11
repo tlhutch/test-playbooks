@@ -5,7 +5,7 @@ awx_upgrade: false
 ha_install: false
 
 # Choose location for ansible-tower package repository
-aw_repo_url: 'http://jenkins.testing.ansible.com/ansible-tower_nightlies_f8b8c5588b2505970227a7b0900ef69040ad5a00'
+aw_repo_url: 'http://jenkins.testing.ansible.com/ansible-tower_nightlies_f8b8c5588b2505970227a7b0900ef69040ad5a00/devel'
 # aw_repo_url: 'http://releases.ansible.com/ansible-tower'
 
 # Choose location for awx-setup
@@ -33,9 +33,14 @@ rabbitmq_use_long_name: '{{ ha_install }}'
 rabbitmq_cookie: 'cookiemonster'
 rabbitmq_enable_manager: '{{ ha_install }}'
 
+# Admin password required
+admin_password: fo0m4nchU
+
 # Optionally customize the default awx passwords
-# admin_password: fo0m4nchU
 # pg_password: 9CJCSUtePvE
 # rabbitmq_password: 9CJCSUtePvE
 # munin_password: 9CJCSUtePvE
 # redis_password: 9CJCSUtePvE
+
+# Default minimum var space (disabled with '0'):
+minimum_var_space: 0
