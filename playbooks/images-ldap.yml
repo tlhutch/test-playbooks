@@ -4,7 +4,7 @@ instance_name_prefix: "{{ lookup('env','USER') }}-tower-ldap"
 my_inventory_file: '{{inventory_dir}}/inventory.ldap'
 
 ec2_images:
-    - {'name': 'tower-ldap-centos-7.latest-x86_64',  'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'Tower'}
+    - {'name': 'centos-7.latest-x86_64',  'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'Tower'}
     - {'name': 'openldap-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'ldap',          'security_group': 'LDAP' }
 
 ec2_security_groups:
