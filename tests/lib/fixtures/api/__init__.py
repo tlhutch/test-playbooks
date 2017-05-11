@@ -594,7 +594,7 @@ def api_settings_system_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('system')
 
 
-# /api/v1/settings/github
+# /api/v1/settings/tacasplus
 @pytest.fixture(scope="module")
 def api_settings_tacacsplus_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('tacacsplus')
