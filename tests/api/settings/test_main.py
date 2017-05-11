@@ -403,7 +403,7 @@ class Test_Main_Setting(Base_Api_Test):
 
         criteria = dict(operation="associate", object1="group", object2="host")
         assess_created_elements(generated_elements, criteria, 5)
-        
+
     def test_activity_stream_disabled_for_inventory_sync(self, factories, custom_inventory_source, api_activity_stream_pg,
                                                          api_settings_system_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC is disabled that:
