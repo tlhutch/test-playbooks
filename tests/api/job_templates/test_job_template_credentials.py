@@ -17,7 +17,7 @@ class TestJobTemplateCredentials(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     def test_launch_without_credential_and_credential_needed_to_start(self, job_template_no_credential):
-        """Verify the job launch endpoint does not allow launching a job_template without an associated credential."""
+        """Verify the job launch endpoint disallows launching a job template without a credential."""
         launch = job_template_no_credential.get_related('launch')
 
         assert not launch.can_start_without_user_input
@@ -31,28 +31,19 @@ class TestJobTemplateCredentials(Base_Api_Test):
             launch.post()
 
     def test_launch_with_credential_and_credential_needed_to_start(self, job_template_no_credential, ssh_credential):
-        """Verify the job->launch endpoint behaves as expected"""
+        """Verify the job launch endpoint allows launching a job template when providing a credential."""
         launch = job_template_no_credential.get_related('launch')
 
-        # assert values on launch resource
         assert not launch.can_start_without_user_input
         assert not launch.ask_variables_on_launch
         assert not launch.passwords_needed_to_start
         assert not launch.variables_needed_to_start
         assert launch.credential_needed_to_start
 
-        # launch the job_template providing the credential in the payload
-        payload = dict(credential=ssh_credential.id)
-        job_pg = job_template_no_credential.launch(payload).wait_until_completed()
+        job = job_template_no_credential.launch(dict(credential=ssh_credential.id)).wait_until_completed()
 
-        # assert success
-        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
-
-        # assert job is associated with the expected credential
-        assert job_pg.credential == ssh_credential.id, \
-            "A job_template was launched with a credential in the payload, but" \
-            "the launched job does not have the same credential " \
-            "(%s != %s)" % (job_pg.credential, ssh_credential.id)
+        assert job.is_successful
+        assert job.credential == ssh_credential.id
 
     def test_launch_with_team_credential(self, job_template_no_credential, team_with_org_admin, team_ssh_credential):
         """Verifies that a team user can use a team credential to launch a job template."""
@@ -69,16 +60,16 @@ class TestJobTemplateCredentials(Base_Api_Test):
 
             # launch the job_template providing the credential in the payload
             payload = dict(credential=team_ssh_credential.id)
-            job_pg = job_template_no_credential.launch(payload).wait_until_completed()
+            job = job_template_no_credential.launch(payload).wait_until_completed()
 
             # assert success
-            assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+            assert job.is_successful, "Job unsuccessful - %s" % job
 
             # assert job is associated with the expected credential
-            assert job_pg.credential == team_ssh_credential.id, \
+            assert job.credential == team_ssh_credential.id, \
                 "A job_template was launched with a credential in the payload, but" \
                 "the launched job does not have the same credential " \
-                "(%s != %s)" % (job_pg.credential, team_ssh_credential.id)
+                "(%s != %s)" % (job.credential, team_ssh_credential.id)
 
     def test_launch_with_invalid_credential_in_payload(self, job_template_no_credential):
         """Verify the job->launch endpoint behaves as expected when launched with
@@ -161,21 +152,21 @@ class TestJobTemplateCredentials(Base_Api_Test):
 
         launch = job_template.get_related('launch')
         assert not launch.passwords_needed_to_start
-        job_pg = job_template.launch().wait_until_completed()
+        job = job_template.launch().wait_until_completed()
 
         # support for OpenSSH credentials was introduced in OpenSSH 6.5
         if credential_type == "unencrypted_open":
             contacted = ansible_runner.command('ssh -V')
             if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("6.5"):
-                assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+                assert job.is_successful, "Job unsuccessful - %s" % job
             else:
-                assert job_pg.status == 'error', "Job did not error as expected - %s" % job_pg
-                assert "RuntimeError: It looks like you're trying to use a private key in OpenSSH format" in job_pg.result_traceback, \
-                    "Unexpected job_pg.result_traceback when launching a job with a OpenSSH credential: %s." % job_pg.result_traceback
+                assert job.status == 'error', "Job did not error as expected - %s" % job
+                assert "RuntimeError: It looks like you're trying to use a private key in OpenSSH format" in job.result_traceback, \
+                    "Unexpected job.result_traceback when launching a job with a OpenSSH credential: %s." % job.result_traceback
 
         # assess job launch behavior with other credential types
         else:
-            assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+            assert job.is_successful, "Job unsuccessful - %s" % job
 
     @pytest.mark.ansible_integration
     def test_launch_with_encrypted_ssh_credential(self, ansible_runner, job_template,
@@ -188,21 +179,21 @@ class TestJobTemplateCredentials(Base_Api_Test):
         launch = job_template.get_related('launch')
         assert launch.passwords_needed_to_start == [u'ssh_key_unlock']
         payload = dict(ssh_key_unlock="fo0m4nchU")
-        job_pg = job_template.launch(payload).wait_until_completed()
+        job = job_template.launch(payload).wait_until_completed()
 
         # support for OpenSSH credentials was introduced in OpenSSH 6.5
         if credential_type == "encrypted_open":
             contacted = ansible_runner.command('ssh -V')
             if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("6.5"):
-                assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+                assert job.is_successful, "Job unsuccessful - %s" % job
             else:
-                assert job_pg.status == 'error', "Job did not error as expected - %s" % job_pg
-                assert "RuntimeError: It looks like you're trying to use a private key in OpenSSH format" in job_pg.result_traceback, \
-                    "Unexpected job_pg.result_traceback when launching a job with a OpenSSH credential: %s." % job_pg.result_traceback
+                assert job.status == 'error', "Job did not error as expected - %s" % job
+                assert "RuntimeError: It looks like you're trying to use a private key in OpenSSH format" in job.result_traceback, \
+                    "Unexpected job.result_traceback when launching a job with a OpenSSH credential: %s." % job.result_traceback
 
         # assess job launch behavior with other credential types
         else:
-            assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+            assert job.is_successful, "Job unsuccessful - %s" % job
 
     def test_launch_without_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         """Verify the job->launch endpoint behaves as expected when passwords are needed to start"""
@@ -253,7 +244,7 @@ class TestJobTemplateCredentials(Base_Api_Test):
                        become_password=self.credentials['ssh']['become_password'])
 
         # launch the job_template
-        job_pg = job_template_passwords_needed_to_start.launch(payload).wait_until_completed()
+        job = job_template_passwords_needed_to_start.launch(payload).wait_until_completed()
 
         # assert success
-        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+        assert job.is_successful, "Job unsuccessful - %s" % job
