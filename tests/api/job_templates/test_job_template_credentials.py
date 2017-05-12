@@ -134,15 +134,6 @@ class TestJobTemplateCredentials(Base_Api_Test):
         job_template_no_credential.set_object_roles(team_user, 'execute')
 
         with self.current_user(team_user.username, team_user.password):
-            launch = job_template_no_credential.get_related('launch')
-
-            assert not launch.can_start_without_user_input
-            assert not launch.ask_variables_on_launch
-            assert not launch.passwords_needed_to_start
-            assert not launch.variables_needed_to_start
-            assert launch.credential_needed_to_start
-
             job = job_template_no_credential.launch(dict(credential=team_ssh_credential.id)).wait_until_completed()
-
             assert job.is_successful
             assert job.credential == team_ssh_credential.id
