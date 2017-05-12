@@ -32,6 +32,9 @@ fr-host-2
 [uk]
 uk-host-1
 [de]
+[ca]
+[pa]
+[nc]
 """),
     dict(name='children:0, hosts:n',
          inventory="""
@@ -66,6 +69,8 @@ fr-host-2
 [uk]
 uk-host-1
 [de]
+[ca]
+[nc]
 """),
 ]
 
@@ -122,6 +127,15 @@ mex
 fr
 uk
 de
+[af]
+[an]
+[as]
+[eu]
+[oc]
+[sa]
+[can]
+[grl]
+[mex]
 """
 
 
