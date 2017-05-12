@@ -1,5 +1,6 @@
 from urlparse import urlparse
 import httplib
+import socket
 import json
 
 from towerkit.config import config
@@ -92,12 +93,12 @@ class Test_Job_Template_Callbacks(Base_Api_Test):
         assert result['json']['msg'] == 'No matching host could be found!'
 
     @pytest.fixture(scope="function")
-    def hosts_with_actual_ipv4_for_name_and_random_ssh_host(self, request, factories, group, local_ipv4_addresses,
-                                                            callback_host):
+    def hosts_with_actual_ipv4_for_name_and_random_ssh_host(self, request, factories, group, callback_host):
         """Create an inventory host matching the public ipv4 address of the system running pytest."""
-        # account for dev container
-        if 'localhost' in callback_host:
+        if 'localhost' in callback_host:  # account for dev container
             local_ipv4_addresses = ['127.0.0.1', 'localhost']
+        else:
+            local_ipv4_addresses = socket.gethostbyname_ex(socket.gethostname())[2]
 
         hosts = []
         for ipv4_addr in local_ipv4_addresses:
@@ -400,7 +401,6 @@ class Test_Job_Template_Callbacks(Base_Api_Test):
 
         assert custom_group.get_related('inventory_source').last_updated is None
 
-
         contacted = ansible_runner.uri(method="POST",
                                        status_code=httplib.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
@@ -414,6 +414,7 @@ class Test_Job_Template_Callbacks(Base_Api_Test):
         assert not result['changed']
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
+        assert job.is_successful
 
         inv_source_pg = custom_group.get_related('inventory_source')
         assert inv_source_pg.is_successful
@@ -454,5 +455,3 @@ class Test_Job_Template_Callbacks(Base_Api_Test):
         assert custom_group.get_related('hosts').count == 0
         assert custom_group.get_related('children').count == 0
         assert custom_group.get_related('inventory_source').last_updated is None
-        import pdb
-        pdb.set_trace()

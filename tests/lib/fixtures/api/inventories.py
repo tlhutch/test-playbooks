@@ -1,5 +1,4 @@
 import logging
-import socket
 import json
 import uuid
 import re
@@ -83,12 +82,6 @@ def host_with_default_ipv4_in_variables(factories, group, ansible_default_ipv4):
                                                     ansible_connection="local")))
     group.add_host(host)
     return host
-
-
-@pytest.fixture(scope="function")
-def local_ipv4_addresses(request):
-    """Return the list of ip addresses for the system running tests."""
-    return socket.gethostbyname_ex(socket.gethostname())[2]
 
 
 @pytest.fixture(scope="function")

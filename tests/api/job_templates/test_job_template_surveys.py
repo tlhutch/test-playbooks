@@ -13,27 +13,6 @@ from tests.api import Base_Api_Test
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope="function")
-def missing_field_survey_specs(request):
-    """Returns a list of survey_spec's which should fail to post."""
-    return [dict(),
-            dict(description=fauxfactory.gen_utf8(),
-                 spec=[dict(required=False,
-                            question_name="Enter your email &mdash; &euro;",
-                            variable="submitter_email",
-                            type="text",)]),
-            dict(name=fauxfactory.gen_utf8(),
-                 spec=[dict(required=False,
-                            question_name="Enter your email &mdash; &euro;",
-                            variable="submitter_email",
-                            type="text",)]),
-            dict(name=fauxfactory.gen_utf8(),
-                 description=fauxfactory.gen_utf8()),
-            dict(name=fauxfactory.gen_utf8(),
-                 description=fauxfactory.gen_utf8(),
-                 spec=[])]
-
-
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
@@ -67,11 +46,28 @@ class Test_Job_Template_Surveys(Base_Api_Test):
         assert job_extra_vars == expected_job_vars, \
             "Unexpected job extra_vars returned."
 
-    def test_post_with_missing_fields(self, job_template_ping, missing_field_survey_specs):
+    def test_post_with_missing_fields(self, job_template_ping, ):
         """Verify the API does not allow survey creation when missing any or all
         of the spec, name, or description fields.
         """
         job_template_ping.patch(survey_enabled=True)
+
+        missing_field_survey_specs = [dict(),
+                                      dict(description=fauxfactory.gen_utf8(),
+                                           spec=[dict(required=False,
+                                                      question_name="Enter your email &mdash; &euro;",
+                                                      variable="submitter_email",
+                                                      type="text",)]),
+                                      dict(name=fauxfactory.gen_utf8(),
+                                           spec=[dict(required=False,
+                                                      question_name="Enter your email &mdash; &euro;",
+                                                      variable="submitter_email",
+                                                      type="text",)]),
+                                      dict(name=fauxfactory.gen_utf8(),
+                                           description=fauxfactory.gen_utf8()),
+                                      dict(name=fauxfactory.gen_utf8(),
+                                           description=fauxfactory.gen_utf8(),
+                                           spec=[])]
 
         # assert failure on post
         for payload in missing_field_survey_specs:
