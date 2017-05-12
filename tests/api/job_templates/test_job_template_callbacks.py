@@ -451,6 +451,8 @@ class Test_Job_Template_Callbacks(Base_Api_Test):
         assert result['status'] == httplib.CREATED
         assert 'failed' not in result
         assert not result['changed']
+        job_id = result['location'].split('jobs/')[1].split('/')[0]
+        job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
 
         assert custom_group.get_related('hosts').count == 0
         assert custom_group.get_related('children').count == 0
