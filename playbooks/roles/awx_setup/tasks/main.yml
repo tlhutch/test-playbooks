@@ -33,17 +33,6 @@
     owner: 'root'
     group: 'root'
 
-- pause:
-    prompt: "Tower admin password"
-  no_log: True
-  register: prompt
-  when: admin_password is not defined
-
-- set_fact:
-    admin_password: "{{ prompt.user_input }}"
-  no_log: True
-  when: prompt.user_input is defined
-
 # Certain setup playbooks (>= 2.1.0, < 3.0.0) require running ./configure first
 - name: determine if a configure script exists
   stat:
