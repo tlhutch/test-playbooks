@@ -16,33 +16,30 @@ class TestJobTemplateCredentials(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
-    def test_launch_without_credential(self, job_template_no_credential):
-        """Verify the job->launch endpoint does not allow launching a job_template
-        that has no associated credential.
-        """
-        launch_pg = job_template_no_credential.get_related('launch')
+    def test_launch_without_credential_and_credential_needed_to_start(self, job_template_no_credential):
+        """Verify the job launch endpoint does not allow launching a job_template without an associated credential."""
+        launch = job_template_no_credential.get_related('launch')
 
-        # assert values on launch resource
-        assert not launch_pg.can_start_without_user_input
-        assert not launch_pg.ask_variables_on_launch
-        assert not launch_pg.passwords_needed_to_start
-        assert not launch_pg.variables_needed_to_start
-        assert launch_pg.credential_needed_to_start
+        assert not launch.can_start_without_user_input
+        assert not launch.ask_variables_on_launch
+        assert not launch.passwords_needed_to_start
+        assert not launch.variables_needed_to_start
+        assert launch.credential_needed_to_start
 
         # launch the job_template without providing a credential
         with pytest.raises(towerkit.exceptions.BadRequest):
-            launch_pg.post()
+            launch.post()
 
-    def test_launch_with_credential_in_payload(self, job_template_no_credential, ssh_credential):
+    def test_launch_with_credential_and_credential_needed_to_start(self, job_template_no_credential, ssh_credential):
         """Verify the job->launch endpoint behaves as expected"""
-        launch_pg = job_template_no_credential.get_related('launch')
+        launch = job_template_no_credential.get_related('launch')
 
         # assert values on launch resource
-        assert not launch_pg.can_start_without_user_input
-        assert not launch_pg.ask_variables_on_launch
-        assert not launch_pg.passwords_needed_to_start
-        assert not launch_pg.variables_needed_to_start
-        assert launch_pg.credential_needed_to_start
+        assert not launch.can_start_without_user_input
+        assert not launch.ask_variables_on_launch
+        assert not launch.passwords_needed_to_start
+        assert not launch.variables_needed_to_start
+        assert launch.credential_needed_to_start
 
         # launch the job_template providing the credential in the payload
         payload = dict(credential=ssh_credential.id)
@@ -57,18 +54,18 @@ class TestJobTemplateCredentials(Base_Api_Test):
             "the launched job does not have the same credential " \
             "(%s != %s)" % (job_pg.credential, ssh_credential.id)
 
-    def test_launch_with_team_credential(self, job_template_no_credential, team_with_org_admin, team_ssh_credential, user_password):
+    def test_launch_with_team_credential(self, job_template_no_credential, team_with_org_admin, team_ssh_credential):
         """Verifies that a team user can use a team credential to launch a job template."""
         team_user = team_with_org_admin.get_related('users').results[0]
-        with self.current_user(team_user.username, user_password):
-            launch_pg = job_template_no_credential.get_related('launch')
+        with self.current_user(team_user.username, team_user.password):
+            launch = job_template_no_credential.get_related('launch')
 
             # assert values on launch resource
-            assert not launch_pg.can_start_without_user_input
-            assert not launch_pg.ask_variables_on_launch
-            assert not launch_pg.passwords_needed_to_start
-            assert not launch_pg.variables_needed_to_start
-            assert launch_pg.credential_needed_to_start
+            assert not launch.can_start_without_user_input
+            assert not launch.ask_variables_on_launch
+            assert not launch.passwords_needed_to_start
+            assert not launch.variables_needed_to_start
+            assert launch.credential_needed_to_start
 
             # launch the job_template providing the credential in the payload
             payload = dict(credential=team_ssh_credential.id)
@@ -87,14 +84,14 @@ class TestJobTemplateCredentials(Base_Api_Test):
         """Verify the job->launch endpoint behaves as expected when launched with
         a bogus credential id.
         """
-        launch_pg = job_template_no_credential.get_related('launch')
+        launch = job_template_no_credential.get_related('launch')
 
         # assert values on launch resource
-        assert not launch_pg.can_start_without_user_input
-        assert not launch_pg.ask_variables_on_launch
-        assert not launch_pg.passwords_needed_to_start
-        assert not launch_pg.variables_needed_to_start
-        assert launch_pg.credential_needed_to_start
+        assert not launch.can_start_without_user_input
+        assert not launch.ask_variables_on_launch
+        assert not launch.passwords_needed_to_start
+        assert not launch.variables_needed_to_start
+        assert launch.credential_needed_to_start
 
         # launch the job_template providing a bogus credential in payload
         for bogus in ['', 'one', 0, False, [], {}]:
@@ -155,14 +152,15 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert job.credential == ssh_credential_multi_ask.id
 
     @pytest.mark.ansible_integration
-    def test_launch_with_unencrypted_ssh_credential(self, ansible_runner, job_template, unencrypted_ssh_credential_with_ssh_key_data):
+    def test_launch_with_unencrypted_ssh_credential(self, ansible_runner, job_template,
+                                                    unencrypted_ssh_credential_with_ssh_key_data):
         """Launch job template with unencrypted ssh_credential"""
         (credential_type, credential_pg) = unencrypted_ssh_credential_with_ssh_key_data
 
         job_template.patch(credential=credential_pg.id)
 
-        launch_pg = job_template.get_related('launch')
-        assert not launch_pg.passwords_needed_to_start
+        launch = job_template.get_related('launch')
+        assert not launch.passwords_needed_to_start
         job_pg = job_template.launch().wait_until_completed()
 
         # support for OpenSSH credentials was introduced in OpenSSH 6.5
@@ -180,14 +178,15 @@ class TestJobTemplateCredentials(Base_Api_Test):
             assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     @pytest.mark.ansible_integration
-    def test_launch_with_encrypted_ssh_credential(self, ansible_runner, job_template, encrypted_ssh_credential_with_ssh_key_data):
+    def test_launch_with_encrypted_ssh_credential(self, ansible_runner, job_template,
+                                                  encrypted_ssh_credential_with_ssh_key_data):
         """Launch job template with encrypted ssh_credential"""
         (credential_type, credential_pg) = encrypted_ssh_credential_with_ssh_key_data
 
         job_template.patch(credential=credential_pg.id)
 
-        launch_pg = job_template.get_related('launch')
-        assert launch_pg.passwords_needed_to_start == [u'ssh_key_unlock']
+        launch = job_template.get_related('launch')
+        assert launch.passwords_needed_to_start == [u'ssh_key_unlock']
         payload = dict(ssh_key_unlock="fo0m4nchU")
         job_pg = job_template.launch(payload).wait_until_completed()
 
@@ -207,46 +206,46 @@ class TestJobTemplateCredentials(Base_Api_Test):
 
     def test_launch_without_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         """Verify the job->launch endpoint behaves as expected when passwords are needed to start"""
-        launch_pg = job_template_passwords_needed_to_start.get_related('launch')
+        launch = job_template_passwords_needed_to_start.get_related('launch')
 
         # assert values on launch resource
-        assert not launch_pg.can_start_without_user_input
-        assert not launch_pg.ask_variables_on_launch
-        assert launch_pg.passwords_needed_to_start
-        assert not launch_pg.variables_needed_to_start
-        assert not launch_pg.credential_needed_to_start
+        assert not launch.can_start_without_user_input
+        assert not launch.ask_variables_on_launch
+        assert launch.passwords_needed_to_start
+        assert not launch.variables_needed_to_start
+        assert not launch.credential_needed_to_start
 
-        # assert expected values in launch_pg.passwords_needed_to_start
+        # assert expected values in launch.passwords_needed_to_start
         credential = job_template_passwords_needed_to_start.get_related('credential')
-        assert credential.expected_passwords_needed_to_start == launch_pg.passwords_needed_to_start
+        assert credential.expected_passwords_needed_to_start == launch.passwords_needed_to_start
 
         # launch the job_template without passwords
         with pytest.raises(towerkit.exceptions.BadRequest):
-            launch_pg.post()
+            launch.post()
 
         # prepare payload with empty passwords
         payload = dict(ssh_password='', ssh_key_unlock='', become_password='')
 
         # launch the job_template
         with pytest.raises(towerkit.exceptions.BadRequest):
-            launch_pg.post(payload)
+            launch.post(payload)
 
     def test_launch_with_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         """Verify the job->launch endpoint behaves as expected when passwords are needed to start"""
-        launch_pg = job_template_passwords_needed_to_start.get_related('launch')
+        launch = job_template_passwords_needed_to_start.get_related('launch')
 
-        print json.dumps(launch_pg.json, indent=2)
+        print json.dumps(launch.json, indent=2)
 
         # assert values on launch resource
-        assert not launch_pg.can_start_without_user_input
-        assert not launch_pg.ask_variables_on_launch
-        assert launch_pg.passwords_needed_to_start
-        assert not launch_pg.variables_needed_to_start
-        assert not launch_pg.credential_needed_to_start
+        assert not launch.can_start_without_user_input
+        assert not launch.ask_variables_on_launch
+        assert launch.passwords_needed_to_start
+        assert not launch.variables_needed_to_start
+        assert not launch.credential_needed_to_start
 
         # assert expected passwords_needed_to_start
         credential = job_template_passwords_needed_to_start.get_related('credential')
-        assert credential.expected_passwords_needed_to_start == launch_pg.passwords_needed_to_start
+        assert credential.expected_passwords_needed_to_start == launch.passwords_needed_to_start
 
         # prepare payload with passwords
         payload = dict(ssh_password=self.credentials['ssh']['password'],
