@@ -95,8 +95,9 @@ class Test_Job_Template_Callbacks(Base_Api_Test):
     def hosts_with_actual_ipv4_for_name_and_random_ssh_host(self, request, factories, group, local_ipv4_addresses,
                                                             callback_host):
         """Create an inventory host matching the public ipv4 address of the system running pytest."""
+        # account for dev container
         if 'localhost' in callback_host:
-            local_ipv4_addresses.append('127.0.0.1')
+            local_ipv4_addresses = ['127.0.0.1', 'localhost']
 
         hosts = []
         for ipv4_addr in local_ipv4_addresses:
@@ -129,14 +130,18 @@ class Test_Job_Template_Callbacks(Base_Api_Test):
         assert result['failed']
         assert result['json']['msg'] == 'No matching host could be found!'
 
-    def test_provision_failure_with_multiple_host_matches(self, ansible_runner, factories,
-                                                          host_with_default_ipv4_in_variables, ansible_default_ipv4,
+    def test_provision_failure_with_multiple_host_matches(self, ansible_runner, factories, ansible_default_ipv4,
                                                           host_config_key, callback_host):
         """Verify launch failure when launching a job_template where multiple hosts match"""
-        inventory = host_with_default_ipv4_in_variables.ds.inventory
-        factories.host(name='another_matching_host', inventory=inventory,
-                       variables=json.dumps(dict(ansible_ssh_host=ansible_default_ipv4,
-                                                 ansible_connection="local")))
+        inventory = factories.inventory()
+
+        # account for dev container
+        ansible_ssh_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
+        for name in ('matching_host', 'another_matching_host'):
+            factories.host(name=name, inventory=inventory,
+                           variables=json.dumps(dict(ansible_ssh_host=ansible_ssh_host,
+                                                     ansible_connection="local")))
+
         job_template = factories.job_template(inventory=inventory)
         job_template.host_config_key = host_config_key
 
@@ -416,43 +421,38 @@ class Test_Job_Template_Callbacks(Base_Api_Test):
         inv_update_pg = inv_source_pg.get_related('last_update')
         assert inv_update_pg.is_successful
 
-    def test_provision_without_inventory_update(self, ansible_runner, job_template, host_config_key, custom_group,
-                                                callback_host):
+    def test_provision_without_inventory_update_on_launch(self, ansible_runner, factories, host_config_key,
+                                                          custom_group, ansible_default_ipv4, callback_host):
         """Assert that a callback job against a job_template does not initiate an inventory_update"""
-        # Change the job_template inventory to match custom_group
-        # Enable host_config_key
-        job_template.patch(inventory=custom_group.inventory, host_config_key=host_config_key)
-        assert job_template.host_config_key == host_config_key
+        inventory = custom_group.ds.inventory
+        ansible_ssh_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
+        factories.host(inventory=inventory,
+                       variables=json.dumps(dict(ansible_ssh_host=ansible_ssh_host,
+                                                 ansible_connection="local")))
 
-        # FIXME - should we add a host so the job+callback actually succeed?
-        # variables=json.dumps(dict(ansible_ssh_host=ansible_default_ipv4, ansible_connection="local"))
+        job_template = factories.job_template(inventory=inventory, playbook='sleep.yml',
+                                              extra_vars='{"sleep_interval": 200}')
+        job_template.host_config_key = host_config_key
 
-        # Enable update_on_launch
-        custom_group.get_related('inventory_source').patch(update_on_launch=False)
+        custom_group.related.inventory_source.patch(update_on_launch=False)
 
-        # Assert that the custom_group has not updated
         assert custom_group.get_related('inventory_source').last_updated is None
 
-        # issue callback (expected to return 400)
-        args = dict(method="POST",
-                    timeout=60,
-                    status_code=[httplib.CREATED, httplib.BAD_REQUEST],
-                    url='{0}{1.related.callback}'.format(callback_host, job_template),
-                    body="host_config_key=%s" % host_config_key,
-                    validate_certs=False)
-        args["HEADER_Content-Type"] = "application/x-www-form-urlencoded"
-        contacted = ansible_runner.uri(**args)
+        contacted = ansible_runner.uri(method="POST",
+                                       timeout=60,
+                                       status_code=httplib.CREATED,
+                                       url='{0}{1.related.callback}'.format(callback_host, job_template),
+                                       body_format='json',
+                                       body=dict(host_config_key=host_config_key),
+                                       validate_certs=False)
 
-        # assert callback response
-        for result in contacted.values():
-            assert result['status'] in [httplib.CREATED, httplib.BAD_REQUEST]
-            assert 'failed' not in result, "Callback failed\n%s" % result
-            assert not result['changed']
-            # Note, for this test, it is expected that no host will match
-            assert result['json']['msg'] == 'No matching host could be found!'
+        result = contacted.values().pop()
+        assert result['status'] == httplib.CREATED
+        assert 'failed' not in result
+        assert not result['changed']
 
-        assert custom_group.get_related('hosts').count == 0, "Hosts found.  An inventory_update was unexpectedly triggered by the callback"
-        assert custom_group.get_related('children').count == 0, "Children found.  An inventory_update was unexpectedly triggered by the callback"
-
-        # Assert that the custom_group has not updated
+        assert custom_group.get_related('hosts').count == 0
+        assert custom_group.get_related('children').count == 0
         assert custom_group.get_related('inventory_source').last_updated is None
+        import pdb
+        pdb.set_trace()
