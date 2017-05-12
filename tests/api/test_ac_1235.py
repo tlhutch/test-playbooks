@@ -22173,10 +22173,10 @@ EOF""" % (json.dumps(inventory_dict, indent=4),))
         for result in contacted.values():
             assert 'failed' not in result, "Failed to create inventory file: %s" % result
 
-        # Run awx-manage inventory_import
-        contacted = ansible_runner.command('awx-manage inventory_import --inventory-id %s --source /tmp/inventory.sh' % inventory.id)
+        # Run tower-manage inventory_import
+        contacted = ansible_runner.command('tower-manage inventory_import --inventory-id %s --source /tmp/inventory.sh' % inventory.id)
         for result in contacted.values():
-            assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
+            assert result['rc'] == 0, "tower-manage inventory_import failed: %s" % json.dumps(result, indent=2)
             print json.dumps(result, indent=2)
 
         # The expected delta format is - H:MM:SS.SSSSS
