@@ -508,12 +508,12 @@ class Test_Inventory_Update(Base_Api_Test):
         assert(updates.results.pop().status == 'failed')
 
 
-# Is awx-manage inventory_import using Ansible at any point?
+# Is tower-manage inventory_import using Ansible at any point?
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
-    """Verify successful 'awx-manage inventory_import' operation.  This class
+    """Verify successful 'tower-manage inventory_import' operation.  This class
     tests import using both --inventory-id and --inventory-name.  Importing
     with, and without, available licenses is also confirmed.
     """
@@ -527,21 +527,21 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         while api_inventories_pg.get(id=bad_id).count != 0:
             bad_id = towerkit.utils.random_int()
 
-        # Run awx-manage inventory_import
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source /etc/fstab' % bad_id)
+        # Run tower-manage inventory_import
+        contacted = ansible_runner.shell('tower-manage inventory_import --inventory-id %s --source /etc/fstab' % bad_id)
         # Verify the import failed
         for result in contacted.values():
-            assert result['rc'] == 1, "awx-manage inventory_import succeeded " \
+            assert result['rc'] == 1, "tower-manage inventory_import succeeded " \
                 "unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
                 % (result['stdout'], result['stderr'])
 
     def test_import_bad_name(self, ansible_runner, import_inventory):
         """Verify that importing inventory using a bogus --inventory-name=<NAME> fails"""
-        # Run awx-manage inventory_import
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name "%s" --source /etc/fstab' % fauxfactory.gen_alphanumeric())
+        # Run tower-manage inventory_import
+        contacted = ansible_runner.shell('tower-manage inventory_import --inventory-name "%s" --source /etc/fstab' % fauxfactory.gen_alphanumeric())
         # Verify the import failed
         for result in contacted.values():
-            assert result['rc'] == 1, "awx-manage inventory_import succeeded " \
+            assert result['rc'] == 1, "tower-manage inventory_import succeeded " \
                 "unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
                 % (result['stdout'], result['stderr'])
 
@@ -550,11 +550,11 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         # Upload inventory script
         dest = towerkit.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
 
-        # Run awx-manage inventory_import
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (import_inventory.id, dest))
+        # Run tower-manage inventory_import
+        contacted = ansible_runner.shell('tower-manage inventory_import --inventory-id %s --source %s' % (import_inventory.id, dest))
         # Verify the import completed successfully
         for result in contacted.values():
-            assert result['rc'] == 0, "awx-manage inventory_import " \
+            assert result['rc'] == 0, "tower-manage inventory_import " \
                 "failed:\n[stdout]\n%s\n[stderr]\n%s" \
                 % (result['stdout'], result['stderr'])
 
@@ -567,12 +567,12 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         # Upload inventory script
         dest = towerkit.tower.inventory.upload_inventory(ansible_runner, nhosts=10)
 
-        # Run awx-manage inventory_import
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
+        # Run tower-manage inventory_import
+        contacted = ansible_runner.shell('tower-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
 
         for result in contacted.values():
             # Verify the import completed successfully
-            assert result['rc'] == 0, "awx-manage inventory_import " \
+            assert result['rc'] == 0, "tower-manage inventory_import " \
                 "failed:\n[stdout]\n%s\n[stderr]\n%s" \
                 % (result['stdout'], result['stderr'])
 
@@ -585,12 +585,12 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         # Upload inventory script
         dest = towerkit.tower.inventory.upload_inventory(ansible_runner, nhosts=10, ini=True)
 
-        # Run awx-manage inventory_import
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
+        # Run tower-manage inventory_import
+        contacted = ansible_runner.shell('tower-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
 
         for result in contacted.values():
             # Verify the import completed successfully
-            assert result['rc'] == 0, "awx-manage inventory_import " \
+            assert result['rc'] == 0, "tower-manage inventory_import " \
                 "failed:\n[stdout]\n%s\n[stderr]\n%s" \
                 % (result['stdout'], result['stderr'])
 
@@ -606,11 +606,11 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         # Upload inventory script
         dest = towerkit.tower.inventory.upload_inventory(ansible_runner, nhosts=100, ini=True)
 
-        # Run first awx-manage inventory_import
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
+        # Run first tower-manage inventory_import
+        contacted = ansible_runner.shell('tower-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
         for result in contacted.values():
             # Verify the import completed successfully
-            assert result['rc'] == 0, "awx-manage inventory_import " \
+            assert result['rc'] == 0, "tower-manage inventory_import " \
                 "failed:\n[stdout]\n%s\n[stderr]\n%s" \
                 % (result['stdout'], result['stderr'])
 
@@ -622,11 +622,11 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         assert import_inventory.get_related('groups').count > 0
         assert import_inventory.get_related('hosts').count == 100
 
-        # Run second awx-manage inventory_import
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s --overwrite' % (import_inventory.name, dest))
+        # Run second tower-manage inventory_import
+        contacted = ansible_runner.shell('tower-manage inventory_import --inventory-name %s --source %s --overwrite' % (import_inventory.name, dest))
         for result in contacted.values():
             # Verify the import completed successfully
-            assert result['rc'] == 0, "awx-manage inventory_import " \
+            assert result['rc'] == 0, "tower-manage inventory_import " \
                 "failed:\n[stdout]\n%s\n[stderr]\n%s" \
                 % (result['stdout'], result['stderr'])
 
@@ -634,11 +634,11 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
             (hours, minutes, seconds) = result['delta'].split(':')
             second_import = float(seconds) + 60 * float(minutes) + 60 * 60 * float(hours)
 
-        # Run third awx-manage inventory_import
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
+        # Run third tower-manage inventory_import
+        contacted = ansible_runner.shell('tower-manage inventory_import --inventory-name %s --source %s' % (import_inventory.name, dest))
         for result in contacted.values():
             # Verify the import completed successfully
-            assert result['rc'] == 0, "awx-manage inventory_import " \
+            assert result['rc'] == 0, "tower-manage inventory_import " \
                 "failed:\n[stdout]\n%s\n[stderr]\n%s" \
                 % (result['stdout'], result['stderr'])
 
@@ -659,11 +659,11 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         # Upload inventory script
         dest = towerkit.tower.inventory.upload_inventory(ansible_runner, nhosts=2000)
 
-        # Run awx-manage inventory_import
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id %s --source %s' % (import_inventory.id, dest))
+        # Run tower-manage inventory_import
+        contacted = ansible_runner.shell('tower-manage inventory_import --inventory-id %s --source %s' % (import_inventory.id, dest))
         for result in contacted.values():
             # Verify the import failed
-            assert result['rc'] == 1, "awx-manage inventory_import " \
+            assert result['rc'] == 1, "tower-manage inventory_import " \
                 "succeeded unexpectedly:\n[stdout]\n%s\n[stderr]\n%s" \
                 % (result['stdout'], result['stderr'])
 
@@ -687,11 +687,11 @@ EOF""" % (json.dumps(json_inventory_before, indent=4),))
             assert 'failed' not in result, "Failed to create inventory file: %s" % result
 
         # Import inventory_before
-        cmd = "awx-manage inventory_import --inventory-id %s --instance-id-var ec2_id " \
+        cmd = "tower-manage inventory_import --inventory-id %s --instance-id-var ec2_id " \
             "--source /tmp/inventory.sh" % import_inventory.id
         contacted = ansible_runner.command(cmd)
         for result in contacted.values():
-            assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
+            assert result['rc'] == 0, "tower-manage inventory_import failed: %s" % json.dumps(result, indent=2)
             print result
 
         # Copy inventory_after to test system
@@ -703,11 +703,11 @@ EOF""" % (json.dumps(json_inventory_after, indent=4),))
             assert 'failed' not in result, "Failed to create inventory file: %s" % result
 
         # Import inventory_after
-        cmd = "awx-manage inventory_import --inventory-id %s --instance-id-var ec2_id " \
+        cmd = "tower-manage inventory_import --inventory-id %s --instance-id-var ec2_id " \
             "--source /tmp/inventory.sh" % import_inventory.id
         contacted = ansible_runner.command(cmd)
         for result in contacted.values():
-            assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
+            assert result['rc'] == 0, "tower-manage inventory_import failed: %s" % json.dumps(result, indent=2)
             print result
 
     def test_import_ipv6_hosts(self, ansible_runner, import_inventory, json_inventory_ipv6, tower_version_cmp):
@@ -724,10 +724,10 @@ EOF""" % (json.dumps(json_inventory_ipv6, indent=4),))
             assert 'failed' not in result, "Failed to create inventory file: %s" % result
 
         # Import inventory_before
-        cmd = "awx-manage inventory_import --inventory-id %s --source /tmp/inventory.sh" % import_inventory.id
+        cmd = "tower-manage inventory_import --inventory-id %s --source /tmp/inventory.sh" % import_inventory.id
         contacted = ansible_runner.command(cmd)
         for result in contacted.values():
-            assert result['rc'] == 0, "awx-managed inventory_import failed: %s" % json.dumps(result, indent=2)
+            assert result['rc'] == 0, "tower-manage inventory_import failed: %s" % json.dumps(result, indent=2)
             print result
 
     @pytest.mark.skipif(True, reason="TODO - https://trello.com/c/JF0hVue0")

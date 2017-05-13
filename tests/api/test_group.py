@@ -32,6 +32,9 @@ fr-host-2
 [uk]
 uk-host-1
 [de]
+[ca]
+[pa]
+[nc]
 """),
     dict(name='children:0, hosts:n',
          inventory="""
@@ -66,6 +69,8 @@ fr-host-2
 [uk]
 uk-host-1
 [de]
+[ca]
+[nc]
 """),
 ]
 
@@ -81,11 +86,11 @@ def root_variation(request, authtoken, inventory, ansible_runner):
         assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
     contacted = ansible_runner.shell(
-        "awx-manage inventory_import --overwrite --inventory-id %s "
+        "tower-manage inventory_import --overwrite --inventory-id %s "
         "--source /tmp/inventory.ini" % inventory.id
     )
     for results in contacted.values():
-        assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
+        assert results['rc'] == 0, "tower-manage inventory_import failed: %s" % results
 
     # Re-GET the resource to populate host/group information
     inventory = inventory.get()
@@ -122,6 +127,15 @@ mex
 fr
 uk
 de
+[af]
+[an]
+[as]
+[eu]
+[oc]
+[sa]
+[can]
+[grl]
+[mex]
 """
 
 
@@ -141,11 +155,11 @@ def non_root_variation(request, authtoken, inventory, ansible_runner):
             json.dumps(results, indent=2)
 
     contacted = ansible_runner.shell(
-        "awx-manage inventory_import --overwrite --inventory-id %s "
+        "tower-manage inventory_import --overwrite --inventory-id %s "
         "--source /tmp/inventory.ini" % inventory.id
     )
     for results in contacted.values():
-        assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % \
+        assert results['rc'] == 0, "tower-manage inventory_import failed: %s" % \
             json.dumps(results, indent=2)
 
     # Re-GET the resource to populate host/group information
@@ -167,11 +181,11 @@ def variation(request, authtoken, inventory, ansible_runner):
         assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
 
     contacted = ansible_runner.shell(
-        "awx-manage inventory_import --overwrite --inventory-id %s "
+        "tower-manage inventory_import --overwrite --inventory-id %s "
         "--source /tmp/inventory.ini" % inventory.id
     )
     for results in contacted.values():
-        assert results['rc'] == 0, "awx-managed inventory_import failed: %s" % results
+        assert results['rc'] == 0, "tower-manage inventory_import failed: %s" % results
 
     # Re-GET the resource to populate host/group information
     inventory = inventory.get()
