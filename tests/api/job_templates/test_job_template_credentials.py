@@ -30,7 +30,26 @@ class TestJobTemplateCredentials(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             launch.post()
 
-    def test_launch_with_credential_and_credential_needed_to_start(self, job_template_no_credential, ssh_credential):
+    def test_launch_with_linked_credential(self, job_template_no_credential, ssh_credential):
+        """Verify the job template launch endpoint requires user input when using a linked credential and
+        `ask_credential_on_launch`.
+        """
+        job_template_no_credential.credential = ssh_credential.id
+        launch = job_template_no_credential.related.launch.get()
+
+        assert not launch.can_start_without_user_input
+        assert not launch.ask_variables_on_launch
+        assert not launch.passwords_needed_to_start
+        assert not launch.variables_needed_to_start
+        assert not launch.credential_needed_to_start
+
+        job = job_template_no_credential.launch().wait_until_completed()
+
+        assert job.is_successful
+        assert job.credential == ssh_credential.id
+
+    def test_launch_with_payload_credential_and_credential_needed_to_start(self, job_template_no_credential,
+                                                                           ssh_credential):
         """Verify the job launch endpoint allows launching a job template when providing a credential."""
         launch = job_template_no_credential.related.launch.get()
 

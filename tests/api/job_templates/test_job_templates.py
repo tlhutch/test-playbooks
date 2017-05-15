@@ -22,7 +22,7 @@ def job_template_with_deleted_related(request, job_template):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Job_Templates(Base_Api_Test):
+class TestJobTemplates(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 

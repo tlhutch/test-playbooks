@@ -14,7 +14,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Job_Template_Callbacks(Base_Api_Test):
+class TestJobTemplateCallbacks(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
@@ -54,11 +54,10 @@ class Test_Job_Template_Callbacks(Base_Api_Test):
                                                             host_with_default_ipv4_in_variables, callback_host):
         """Assert a GET on the callback resource returns a list containimg a matching host if made by that host"""
         job_template.host_config_key = host_config_key
-        callback = job_template.get_related('callback')
 
         contacted = ansible_runner.uri(method="GET",
                                        status_code=httplib.OK,
-                                       url='{0}{1.endpoint}'.format(callback_host, callback),
+                                       url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        user=config.credentials.users.admin.username,
                                        password=config.credentials.users.admin.password,
                                        force_basic_auth=True,
@@ -431,8 +430,7 @@ class Test_Job_Template_Callbacks(Base_Api_Test):
                        variables=json.dumps(dict(ansible_ssh_host=ansible_ssh_host,
                                                  ansible_connection="local")))
 
-        job_template = factories.job_template(inventory=inventory, playbook='sleep.yml',
-                                              extra_vars='{"sleep_interval": 200}')
+        job_template = factories.job_template(inventory=inventory)
         job_template.host_config_key = host_config_key
 
         custom_group.related.inventory_source.patch(update_on_launch=False)
