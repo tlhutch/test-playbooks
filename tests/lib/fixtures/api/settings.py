@@ -37,6 +37,7 @@ def configure_auth_azuread(update_setting_pg, api_settings_azuread_pg):
     v = fauxfactory.gen_utf8()
     payload = {k: v for k in ["SOCIAL_AUTH_AZUREAD_OAUTH2_KEY", "SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET"]}
     update_setting_pg(api_settings_azuread_pg, payload)
+    return api_settings_azuread_pg
 
 
 @pytest.fixture
@@ -45,6 +46,7 @@ def configure_auth_github(update_setting_pg, api_settings_github_pg):
     v = fauxfactory.gen_utf8()
     payload = {k: v for k in ["SOCIAL_AUTH_GITHUB_KEY", "SOCIAL_AUTH_GITHUB_SECRET"]}
     update_setting_pg(api_settings_github_pg, payload)
+    return api_settings_github_pg
 
 
 @pytest.fixture
@@ -53,6 +55,7 @@ def configure_auth_github_org(update_setting_pg, api_settings_github_org_pg):
     v = fauxfactory.gen_utf8()
     payload = {k: v for k in ["SOCIAL_AUTH_GITHUB_ORG_KEY", "SOCIAL_AUTH_GITHUB_ORG_SECRET", "SOCIAL_AUTH_GITHUB_ORG_NAME"]}
     update_setting_pg(api_settings_github_org_pg, payload)
+    return api_settings_github_org_pg
 
 
 @pytest.fixture
@@ -61,6 +64,7 @@ def configure_auth_github_team(update_setting_pg, api_settings_github_team_pg):
     v = fauxfactory.gen_utf8()
     payload = {k: v for k in ["SOCIAL_AUTH_GITHUB_TEAM_KEY", "SOCIAL_AUTH_GITHUB_TEAM_SECRET", "SOCIAL_AUTH_GITHUB_TEAM_ID"]}
     update_setting_pg(api_settings_github_team_pg, payload)
+    return api_settings_github_team_pg
 
 
 @pytest.fixture
@@ -69,6 +73,7 @@ def configure_auth_google(update_setting_pg, api_settings_google_pg):
     v = fauxfactory.gen_utf8()
     payload = {k: v for k in ["SOCIAL_AUTH_GOOGLE_OAUTH2_KEY", "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET"]}
     update_setting_pg(api_settings_google_pg, payload)
+    return api_settings_google_pg
 
 
 @pytest.fixture(scope="function", params=["configure_auth_azuread",
@@ -77,7 +82,7 @@ def configure_auth_google(update_setting_pg, api_settings_google_pg):
                                           "configure_auth_github_team",
                                           "configure_auth_google"])
 @pytest.fixture
-def configure_auth(request):
+def configured_auth(request):
     return request.getfuncargvalue(request.param)
 
 
