@@ -21,7 +21,8 @@ class TestJobTemplateSurveys(Base_Api_Test):
 
     @pytest.mark.parametrize("launch_time_vars",
                              ["{'non_survey_variable': false, 'submitter_email': 'sample_email@maffenmox.edu'}",
-                              "---\nnon_survey_variable: false\nsubmitter_email: sample_email@maffenmox.edu"])
+                              "---\nnon_survey_variable: false\nsubmitter_email: sample_email@maffenmox.edu"],
+                              ids=['json', 'yaml'])
     def test_launch_with_survey_and_excluded_variables_in_payload(self, job_template,
                                                                   optional_survey_spec_without_defaults,
                                                                   launch_time_vars):
