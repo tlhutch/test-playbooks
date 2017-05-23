@@ -3,6 +3,16 @@
 {% for host in groups['tower'] %}
 {{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
 {% endfor %}
+
+{% for group in groups %}
+{% if 'instance_group_' in group %}
+[{{ group }}]
+{% for host in groups[group] %}
+{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
+{% endfor %}
+
+{% endif %}
+{% endfor %}
 {% endif %}
 
 {% if 'secondary' in groups %}

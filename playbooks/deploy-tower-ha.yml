@@ -8,18 +8,18 @@
       my_inventory_file: '{{inventory_dir}}/inventory.ha'
 
 - name: 'Add authorized keys on non-installer instances'
-  hosts: 'secondary:tower:database:haproxy:!ha_installer'
+  hosts: 'secondary:tower:instance_group_*:database:haproxy:!ha_installer'
   roles:
     - role: auth_keys
 
 - name: 'Group hosts by distribution_major_version'
-  hosts: 'tower,primary,secondary'
+  hosts: 'tower,instance_group_*,primary,secondary'
   tasks:
    - name: group hosts by distribution_major_version
      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
 - name: 'Configure cluster ssh keys'
-  hosts: 'tower:database'
+  hosts: 'tower:instance_group_*:database'
   roles:
     - role: cluster_key_config
 
