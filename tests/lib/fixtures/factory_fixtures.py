@@ -3,37 +3,49 @@ from towerkit.api import mixins, pages
 import pytest
 
 
+def flattened_has_creates(*items):
+    flattened = []
+    for item in items:
+        if isinstance(item, tuple):
+            flattened.extend(flattened_has_creates(*item))
+        elif isinstance(item, mixins.has_create.HasCreate):
+            flattened.append(item)
+    return flattened
+
+
 class HasCreateFactory(object):
 
     model = None
+
+    _to_teardown = set()
+
+    @classmethod
+    def register_teardown(cls, request, teardown):
+        request.addfinalizer(teardown.silent_cleanup)
+        cls._to_teardown.remove(teardown)
 
     @classmethod
     def __call__(cls, request, *args, **kwargs):
         connection = request.getfixturevalue('testsetup').api
 
-        provided_has_creates = mixins.has_create.all_instantiated_dependencies(*kwargs.items())
+        provided_has_creates = mixins.has_create.all_instantiated_dependencies(*flattened_has_creates(*kwargs.items()))
 
         has_create = cls.model(connection).create(**kwargs)
 
         for resource in mixins.has_create.all_instantiated_dependencies(has_create):
-            if resource not in provided_has_creates:
-                request.addfinalizer(resource.silent_cleanup)
+            if resource not in provided_has_creates and resource not in cls._to_teardown:
+                cls._to_teardown.add(resource)
+                cls.register_teardown(request, resource)
 
         return has_create
-
-    to_teardown = set()
 
     @classmethod
     def payload(cls, request, **kwargs):
         connection = request.getfixturevalue('testsetup').api
 
-        provided_has_creates = mixins.has_create.all_instantiated_dependencies(*kwargs.items())
+        provided_has_creates = mixins.has_create.all_instantiated_dependencies(*flattened_has_creates(*kwargs.items()))
 
         payload = cls.model(connection).create_payload(**kwargs)
-
-        def register_teardown(teardown):
-            request.addfinalizer(teardown.silent_cleanup)
-            cls.to_teardown.remove(teardown)
 
         resources = []
         for resource_type in payload.ds:
@@ -44,9 +56,9 @@ class HasCreateFactory(object):
                 pass
 
         for resource in mixins.has_create.all_instantiated_dependencies(*resources):
-            if resource not in provided_has_creates and resource not in cls.to_teardown:
-                cls.to_teardown.add(resource)
-                register_teardown(resource)
+            if resource not in provided_has_creates and resource not in cls._to_teardown:
+                cls._to_teardown.add(resource)
+                cls.register_teardown(request, resource)
 
         return payload
 

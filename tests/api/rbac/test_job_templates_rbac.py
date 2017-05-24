@@ -165,7 +165,8 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         """
         user = factories.user()
         organization = factories.organization()
-        job_template = factories.job_template(inventory=(True, dict(organization=organization)))
+        job_template = factories.job_template(credential=(True, dict(organization=organization)),
+                                              inventory=(True, dict(organization=organization)))
         organization.set_object_roles(user, 'member')
         job_template.set_object_roles(user, 'admin')
         # generate test request payload

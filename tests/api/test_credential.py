@@ -27,20 +27,20 @@ class Test_Credential(Base_Api_Test):
         team_pg = factories.team()
 
         # create duplicate user credentials
-        payload = factories.credential.payload(user=user_pg, organization=None)[0]
+        payload = factories.credential.payload(user=user_pg, organization=None)
         for _ in range(2):
             obj = api_credentials_pg.post(payload)
             request.addfinalizer(obj.silent_delete)
 
         # attempt to create duplicate team-organization credentials
-        payload = factories.credential.payload(team=team_pg, organization=None)[0]
+        payload = factories.credential.payload(team=team_pg, organization=None)
         obj = api_credentials_pg.post(payload)
         request.addfinalizer(obj.silent_delete)
         with pytest.raises(towerkit.exceptions.Duplicate):
             api_credentials_pg.post(payload)
 
         # attempt to create duplicate organization credentials
-        payload = factories.credential.payload()[0]
+        payload = factories.credential.payload()
         obj = api_credentials_pg.post(payload)
         request.addfinalizer(obj.silent_delete)
         with pytest.raises(towerkit.exceptions.Duplicate):
