@@ -140,7 +140,7 @@ def install_enterprise_license_unlimited(api_config_pg):
     api_config_pg.delete()
 
 
-@pytest.yield_fixture(scope='module')
+@pytest.yield_fixture(scope='class')
 def module_install_enterprise_license(authtoken, api_config_pg):
     """Install enterprise license at the module fixture scope"""
     log.debug('calling fixture module_install_enterprise_license')
