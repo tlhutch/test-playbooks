@@ -109,6 +109,7 @@ def import_inventory(request, authtoken, api_inventories_pg, organization):
 
 
 @pytest.mark.api
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Inventory(Base_Api_Test):
@@ -218,6 +219,7 @@ class Test_Inventory_Update(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.ha_tower
     def test_success(self, cloud_group):
         """Verify successful inventory_update for various cloud providers."""
         # Assert that the cloud_group has not updated
@@ -257,6 +259,7 @@ class Test_Inventory_Update(Base_Api_Test):
         #    "found after inventory_update.  An inventory_update was not " \
         #    "triggered by the callback as expected"
 
+    @pytest.mark.ha_tower
     def test_inventory_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):
         """Assess inventory imports with all possible choices for source_regions.
 
@@ -395,6 +398,7 @@ class Test_Inventory_Update(Base_Api_Test):
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=UNMATCHED", "key-name=UNMATCHED", "tag:Name=UNMATCHED"])
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_inventory_update_with_unmatched_aws_instance_filter(self, aws_group, instance_filter):
         """Tests inventory imports with unmatched AWS instance filters
 
@@ -444,6 +448,7 @@ class Test_Inventory_Update(Base_Api_Test):
             "Unexpected groups created.\n\nExpected group names: %s\nActual group names: %s\n" % (expected_group_names, actual_group_names)
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_aws_replace_dash_in_groups_source_variable(self, job_template, aws_group, host_local):
         """Tests that AWS inventory groups will be registered with underscores instead of hyphens
         when using "replace_dash_in_groups" source variable
@@ -468,6 +473,7 @@ class Test_Inventory_Update(Base_Api_Test):
                                          'but desired group with sanitized tag "{0}" not found.'.format(group_name))
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize('timeout, status, job_explanation', [
         (0, 'successful', ''),
         (60, 'successful', ''),
@@ -510,6 +516,7 @@ class Test_Inventory_Update(Base_Api_Test):
 
 # Is tower-manage inventory_import using Ansible at any point?
 @pytest.mark.api
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Tower_Manage_Inventory_Import(Base_Api_Test):

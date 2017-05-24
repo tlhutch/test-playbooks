@@ -43,6 +43,7 @@ def hosts_with_name_matching_local_ipv4_addresses_but_random_ssh_host(request, g
 
 
 @pytest.mark.api
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Template_Callback(Base_Api_Test):

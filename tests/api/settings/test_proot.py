@@ -40,6 +40,7 @@ def job_template_proot_2(request, factories, api_job_templates_pg, job_template_
 
 
 @pytest.mark.api
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Proot(Base_Api_Test):

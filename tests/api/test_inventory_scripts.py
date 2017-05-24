@@ -60,6 +60,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.ha_tower
     def test_post_as_privileged_user(self, request, script_source, organization, api_inventory_scripts_pg, privileged_user, user_password):
         """Verify succesful POST to /inventory_scripts as privileged user."""
         payload = dict(name="random_inventory_script-%s" % fauxfactory.gen_utf8(),
@@ -70,6 +71,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
             obj = api_inventory_scripts_pg.post(payload)
         request.addfinalizer(obj.silent_delete)
 
+    @pytest.mark.ha_tower
     def test_post_as_unprivileged_user(self, script_source, organization, api_inventory_scripts_pg, unprivileged_user, user_password):
         """Verify unsuccesful POST to /inventory_scripts as unprivileged user."""
         payload = dict(name=fauxfactory.gen_utf8(),
@@ -80,6 +82,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 api_inventory_scripts_pg.post(payload)
 
+    @pytest.mark.ha_tower
     def test_post_without_required_fields(self, api_inventory_scripts_pg, organization, script_source):
         """Verify succesful POST to /inventory_scripts"""
         # without name
@@ -115,6 +118,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         assert result == {u'organization': [u'This field is required.']}, \
             "Unexpected API response when posting an inventory_script with a missing value for 'organization': %s." % json.dumps(result)
 
+    @pytest.mark.ha_tower
     def test_get_as_privileged_user(self, inventory_script, privileged_user, user_password):
         """Verify succesful GET to /inventory_scripts as privileged_user and that
         script contents viewable.
@@ -125,6 +129,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "unable to read the 'script' attribute of an inventory_script (%s)." \
                 % inventory_script.script
 
+    @pytest.mark.ha_tower
     def test_get_as_org_user(self, inventory_script, org_user, user_password):
         """Verify that organization user accounts are able to access the
         the inventory_script, but unable to read the contents.
@@ -135,6 +140,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "able to read the 'script' attribute of an inventory_script (%s)" \
                 % inventory_script.script
 
+    @pytest.mark.ha_tower
     def test_get_as_anonymous_user(self, anonymous_user, user_password, inventory_script):
         """Verify that an anonymous user is forbidden from seeing
         inventory_scripts associated with an organization.
@@ -143,12 +149,14 @@ class Test_Inventory_Scripts(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 inventory_script.get()
 
+    @pytest.mark.ha_tower
     def test_duplicate(self, api_inventory_scripts_pg, inventory_script):
         """Verify response when POSTing a duplicate to /inventory_scripts"""
         # assert duplicate error
         with pytest.raises(towerkit.exceptions.Duplicate):
             api_inventory_scripts_pg.post(inventory_script.json)
 
+    @pytest.mark.ha_tower
     def test_unique(self, request, api_inventory_scripts_pg, inventory_script, another_organization):
         """Verify response when POSTing a duplicate to /inventory_scripts"""
         print json.dumps(inventory_script.json, indent=2)
@@ -164,6 +172,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         obj = api_inventory_scripts_pg.post(payload)
         request.addfinalizer(obj.silent_delete)
 
+    @pytest.mark.ha_tower
     def test_filter(self, api_inventory_scripts_pg, inventory_script):
         """Verify filters with the GET resource"""
         # Issue GET against /inventory_scripts/ endpoint
@@ -174,6 +183,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "Filtering by %s returned unexpected number of results (%s != %s)" % \
                 (attr, filter_results.count, 1)
 
+    @pytest.mark.ha_tower
     def test_put(self, api_inventory_scripts_pg, inventory_script):
         """Verify successful PUT to /inventory_scripts/n"""
         payload = dict(name=fauxfactory.gen_utf8(),
@@ -188,6 +198,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "Unexpected value for %s field ('%s' != '%s')" % \
                 (key, getattr(inventory_script, key), val)
 
+    @pytest.mark.ha_tower
     def test_patch(self, api_inventory_scripts_pg, inventory_script):
         """Verify successful PATCH to /inventory_scripts/n"""
         payload = dict(name=fauxfactory.gen_utf8(),
@@ -200,6 +211,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "Unexpected value for %s field ('%s' != '%s')" % \
                 (key, getattr(inventory_script, key), val)
 
+    @pytest.mark.ha_tower
     def test_delete_as_privileged_user(self, api_inventory_scripts_pg, inventory_script, privileged_user, user_password):
         """Verify succesful DELETE to /inventory_scripts/N as a privileged user."""
         with self.current_user(privileged_user.username, user_password):
@@ -213,6 +225,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
             # query /inventory_sources endpoint for matching id
             assert api_inventory_scripts_pg.get(id=inventory_script.id).count == 0
 
+    @pytest.mark.ha_tower
     def test_delete_as_unprivileged_user(self, inventory_script, unprivileged_user, user_password):
         """Verify unsuccesful DELETE to /inventory_scripts/N as an unprivileged user."""
         with self.current_user(unprivileged_user.username, user_password):
@@ -288,6 +301,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
     # @pytest.mark.fixture_args(script_source='#!env python\nraise Exception("fail!")\n') # traceback
     # @pytest.mark.fixture_args(script_source='#!env python\nimport sys\nsys.exit(1)\n')
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_import_script_failure(self, custom_inventory_source, api_unified_jobs_pg, bad_inventory_script):
         """Verify an inventory_update fails when using various bad inventory_scripts"""
         # PATCH inventory_source

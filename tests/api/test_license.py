@@ -372,11 +372,13 @@ class Test_No_License(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'no_license')
 
+    @pytest.mark.ha_tower
     def test_empty_license_info(self, api_config_pg):
         """Verify the license_info field is empty"""
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info, indent=4)
 
+    @pytest.mark.ha_tower
     def test_cannot_add_host(self, api_hosts_pg, inventory, group):
         """Verify that no hosts can be added"""
         payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
@@ -389,11 +391,13 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
             api_hosts_pg.post(payload)
 
+    @pytest.mark.ha_tower
     def test_can_launch_project_update(self, project_ansible_playbooks_git_nowait):
         """Verify that project_updates can be launched"""
         job_pg = project_ansible_playbooks_git_nowait.update().wait_until_completed()
         assert job_pg.is_successful, "project_update was unsuccessful - %s" % job_pg
 
+    @pytest.mark.ha_tower
     def test_can_launch_inventory_update_but_it_should_fail(self, custom_inventory_source):
         """Verify that inventory_updates can be launched, but they fail because
         no license is installed.
@@ -408,6 +412,7 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
             job_template.launch_job()
 
+    @pytest.mark.ha_tower
     def test_post_invalid_license(self, api_config_pg, invalid_license_json):
         """Verify that various bogus license formats fail to successfully install"""
         # Assert expected error when issuing a POST with an invalid license
@@ -418,16 +423,19 @@ class Test_No_License(Base_Api_Test):
         conf = api_config_pg.get()
         assert conf.license_info == {}, "No license was expected, found %s" % conf.license_info
 
+    @pytest.mark.ha_tower
     def test_post_legacy_license_without_eula_accepted(self, api_config_pg, missing_eula_legacy_license_json):
         """Verify failure while POSTing a license with no `eula_accepted` attribute."""
         with pytest.raises(towerkit.exceptions.LicenseInvalid):
             api_config_pg.post(missing_eula_legacy_license_json)
 
+    @pytest.mark.ha_tower
     def test_post_legacy_license_with_rejected_eula(self, api_config_pg, eula_rejected_legacy_license_json):
         """Verify failure while POSTing a license with `eula_accepted:false` attribute."""
         with pytest.raises(towerkit.exceptions.LicenseInvalid):
             api_config_pg.post(eula_rejected_legacy_license_json)
 
+    @pytest.mark.ha_tower
     def test_post_legacy_license(self, api_config_pg, legacy_license_json):
         """Verify that a license can be installed by issuing a POST to the /config endpoint"""
         # Assert that no license present at /api/v1/config/
@@ -444,6 +452,7 @@ class Test_No_License(Base_Api_Test):
 
 
 @pytest.mark.api
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Legacy_License(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license')
@@ -640,6 +649,7 @@ class Test_Legacy_License(Base_Api_Test):
 
 
 @pytest.mark.api
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Legacy_License_Warning(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license_warning')
@@ -692,6 +702,7 @@ class Test_Legacy_License_Warning(Base_Api_Test):
 
 
 @pytest.mark.api
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Legacy_License_Grace_Period(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license_grace_period')
@@ -738,6 +749,7 @@ class Test_Legacy_License_Grace_Period(Base_Api_Test):
 
 
 @pytest.mark.api
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Legacy_License_Expired(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license_expired')
@@ -842,6 +854,7 @@ class Test_Legacy_License_Expired(Base_Api_Test):
 
 
 @pytest.mark.api
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Legacy_Trial_License(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_trial_legacy_license')
@@ -914,6 +927,7 @@ class Test_Legacy_Trial_License(Base_Api_Test):
 class Test_Basic_License(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_basic_license')
 
+    @pytest.mark.ha_tower
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
@@ -954,27 +968,32 @@ class Test_Basic_License(Base_Api_Test):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for basic license: %s." % conf.license_info
 
+    @pytest.mark.ha_tower
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         """Verify that hosts can be added up to the 'license_instance_count'"""
         if api_config_pg.get().license_info.current_instances > license_instance_count:
             pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
         assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
 
+    @pytest.mark.ha_tower
     def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
         assert 'license_key' in conf.license_info
 
+    @pytest.mark.ha_tower
     def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
         with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
+    @pytest.mark.ha_tower
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
         job_template.launch_job().wait_until_completed()
 
+    @pytest.mark.ha_tower
     def test_unable_to_create_multiple_organizations(self, factories, api_organizations_pg):
         """Verify that attempting to create a second organization with a basic license raises a 402."""
         # verify that we have a prestocked organization
@@ -998,6 +1017,7 @@ class Test_Basic_License(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.PaymentRequired):
             job_template_ping.related.survey_spec.post(required_survey_spec)
 
+    @pytest.mark.ha_tower
     def test_activity_stream_get(self, v1):
         """Verify that GET requests to /api/v1/activity_stream/ raise 402s."""
         exc_info = pytest.raises(towerkit.exceptions.PaymentRequired, v1.activity_stream.get)
@@ -1005,6 +1025,7 @@ class Test_Basic_License(Base_Api_Test):
         result == {u'detail': u'Your license does not allow use of the activity stream.'}, \
             "Unexpected API response when issuing a GET to /api/v1/activity_stream/ with a basic license - %s." % json.dumps(result)
 
+    @pytest.mark.ha_tower
     def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, job_template):
         """Verify that scan job templates may not be created with a basic license."""
         conf = api_config_pg.get()
@@ -1035,6 +1056,7 @@ class Test_Basic_License(Base_Api_Test):
         assert result == {u'detail': u'Feature system_tracking is not enabled in the active license.'}, \
             "Unexpected API response when attempting to patch a job template into a scan job template with a basic license - %s." % json.dumps(result)
 
+    @pytest.mark.ha_tower
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
         """Verify that cleanup_facts may not be run with a basic license."""
@@ -1050,6 +1072,7 @@ class Test_Basic_License(Base_Api_Test):
             "feature is not enabled for your Tower instance\r\n", \
             "Unexpected stdout when running cleanup_facts with a basic license."
 
+    @pytest.mark.ha_tower
     def test_unable_to_get_fact_versions(self, host_local):
         """Verify that GET requests are rejected from fact_versions."""
         exc_info = pytest.raises(towerkit.exceptions.PaymentRequired, host_local.get_related, 'fact_versions')
@@ -1063,6 +1086,7 @@ class Test_Basic_License(Base_Api_Test):
         assert not any(flag in api_settings_system_pg.json for flag in ACTIVITY_STREAM_FLAGS), \
             "Activity stream flags not visible under /api/v1/settings/system/ with a basic license."
 
+    @pytest.mark.ha_tower
     def test_custom_rebranding_settings(self, api_settings_ui_pg):
         """Verify that custom rebranding flags are not accessible with a basic license."""
         for flag in api_settings_ui_pg.json:
@@ -1081,6 +1105,7 @@ class Test_Basic_License(Base_Api_Test):
         assert(resources.v1_settings_ldap not in endpoints), \
             "Expected not to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
+    @pytest.mark.ha_tower
     def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
         """Verify that basic license users do not have access to any of our enterprise
         authentication settings pages.
@@ -1089,6 +1114,7 @@ class Test_Basic_License(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.NotFound):
                 api_settings_pg.get_endpoint(service)
 
+    @pytest.mark.ha_tower
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
         """Verify that a basic license can get upgraded to an enterprise license."""
         # Update the license
@@ -1109,6 +1135,7 @@ class Test_Basic_License(Base_Api_Test):
             "Incorrect license_type returned. Expected 'enterprise,' " \
             "returned %s." % conf.license_info['license_type']
 
+    @pytest.mark.ha_tower
     def test_delete_license(self, api_config_pg):
         """Verify the license_info field is empty after deleting the license"""
         api_config_pg.delete()
@@ -1121,6 +1148,7 @@ class Test_Basic_License(Base_Api_Test):
 class Test_Enterprise_License(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
+    @pytest.mark.ha_tower
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
@@ -1161,27 +1189,32 @@ class Test_Enterprise_License(Base_Api_Test):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for enterprise license: %s." % conf.license_info
 
+    @pytest.mark.ha_tower
     def test_instance_counts(self, api_config_pg, api_hosts_pg, license_instance_count, inventory, group):
         """Verify that hosts can be added up to the 'license_instance_count'"""
         if api_config_pg.get().license_info.current_instances > license_instance_count:
             pytest.skip("Skipping test because current_instances > {0}".format(license_instance_count))
         assert_instance_counts(api_config_pg, api_hosts_pg, license_instance_count, group)
 
+    @pytest.mark.ha_tower
     def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
         assert 'license_key' in conf.license_info
 
+    @pytest.mark.ha_tower
     def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
         with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
+    @pytest.mark.ha_tower
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
         job_template.launch_job().wait_until_completed()
 
+    @pytest.mark.ha_tower
     def test_post_multiple_organizations(self, api_organizations_pg):
         """Verify that multiple organizations may exist with an enterprise license."""
         # create second organization
@@ -1194,6 +1227,7 @@ class Test_Enterprise_License(Base_Api_Test):
         assert organizations_pg.count > 1, "Multiple organizations are supposed" \
             "to exist, but do not. Instead, only %s exist." % api_organizations_pg.count
 
+    @pytest.mark.ha_tower
     def test_create_survey(self, job_template_ping, required_survey_spec):
         """Verify that surveys may be enabled and created with an enterprise license."""
         job_template_ping.add_survey(spec=required_survey_spec)
@@ -1201,10 +1235,12 @@ class Test_Enterprise_License(Base_Api_Test):
         assert survey_spec.spec == required_survey_spec, \
             "Expected /api/v1/job_templates/N/survey_spec/ to reflect our survey_spec."
 
+    @pytest.mark.ha_tower
     def test_activity_stream_get(self, v1):
         """Verify that GET requests to /api/v1/activity_stream/ are allowed with an enterprise license."""
         v1.activity_stream.get()
 
+    @pytest.mark.ha_tower
     def test_post_scan_job_template(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
         """Verifies that scan job templates may be created with an enterprise license."""
         conf = api_config_pg.get()
@@ -1223,6 +1259,7 @@ class Test_Enterprise_License(Base_Api_Test):
         # post scan_job template
         api_job_templates_pg.post(payload)
 
+    @pytest.mark.ha_tower
     def test_launch_scan_job(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
         """Verifies that scan jobs may be launched with an enterprise license."""
         conf = api_config_pg.get()
@@ -1247,6 +1284,7 @@ class Test_Enterprise_License(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
+    @pytest.mark.ha_tower
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_able_to_cleanup_facts(self, cleanup_facts):
         """Verifies that cleanup_facts may be run with an enterprise license."""
@@ -1257,6 +1295,7 @@ class Test_Enterprise_License(Base_Api_Test):
         assert job_pg.is_successful, "cleanup_facts job unexpectedly failed " \
             "with an enterprise license - %s" % job_pg
 
+    @pytest.mark.ha_tower
     def test_able_to_get_facts(self, scan_job_with_status_completed):
         """Verify that that enterprise license users can GET fact endpoints."""
         host_pg = scan_job_with_status_completed.get_related('inventory').get_related('hosts').results[0]
@@ -1266,6 +1305,7 @@ class Test_Enterprise_License(Base_Api_Test):
         for fact_version in fact_versions_pg.results:
             fact_version.get_related('fact_view')
 
+    @pytest.mark.ha_tower
     def test_activity_stream_settings(self, api_settings_system_pg):
         """Verify that activity stream flags are visible with an enterprise license."""
         settings_pg = api_settings_system_pg.get()
@@ -1290,6 +1330,7 @@ class Test_Enterprise_License(Base_Api_Test):
         assert(resources.v1_settings_ldap in endpoints), \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
+    @pytest.mark.ha_tower
     def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
         """Verify that enterprise license users have access to our enterprise
         authentication settings pages.
@@ -1297,6 +1338,7 @@ class Test_Enterprise_License(Base_Api_Test):
         for service in ENTERPRISE_AUTH_SERVICES:
             api_settings_pg.get_endpoint(service)
 
+    @pytest.mark.ha_tower
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg):
         """Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg."""
         # Update the license
@@ -1317,6 +1359,7 @@ class Test_Enterprise_License(Base_Api_Test):
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
+    @pytest.mark.ha_tower
     def test_delete_license(self, api_config_pg):
         """Verify the license_info field is empty after deleting the license"""
         api_config_pg.delete()
@@ -1325,6 +1368,7 @@ class Test_Enterprise_License(Base_Api_Test):
 
 
 @pytest.mark.api
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Enterprise_License_Expired(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_expired')

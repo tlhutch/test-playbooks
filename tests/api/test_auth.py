@@ -14,6 +14,7 @@ def find_settings(setting_pg, substrings):
 
 @pytest.mark.api
 @pytest.mark.destructive
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Auth(Base_Api_Test):
 

@@ -19,8 +19,9 @@ def cleanup_jobs_template(request, api_system_job_templates_pg):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.ha_tower
+@pytest.mark.skip_selenium
 class Test_System_Job_Template(Base_Api_Test):
     """Verify actions with system_job_templates"""
 

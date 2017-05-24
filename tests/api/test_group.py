@@ -214,6 +214,7 @@ def some_group(request, authtoken, inventory):
 
 
 @pytest.mark.api
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Group(Base_Api_Test):

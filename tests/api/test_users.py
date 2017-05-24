@@ -21,6 +21,7 @@ def user_payload(**kwargs):
 
 @pytest.mark.api
 @pytest.mark.destructive
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Users(Base_Api_Test):
     """Verify the /users/ endpoint displays the expected information based on the current user."""

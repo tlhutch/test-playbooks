@@ -38,6 +38,7 @@ JOB_EVENT_TYPES = ['playbook_on_start',  # (once for each playbook file)
 
 
 @pytest.mark.api
+@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Events(Base_Api_Test):

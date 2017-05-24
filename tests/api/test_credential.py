@@ -46,6 +46,7 @@ class Test_Credential(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.Duplicate):
             api_credentials_pg.post(payload)
 
+    @pytest.mark.ha_tower
     def test_unicode(self, admin_user, api_credentials_pg):
         """Create an ssh credential where the password fields contain unicode."""
         payload = dict(name=fauxfactory.gen_utf8(),
@@ -60,6 +61,7 @@ class Test_Credential(Base_Api_Test):
         credential = api_credentials_pg.post(payload)
         credential.delete()
 
+    @pytest.mark.ha_tower
     def test_team_credentials_are_organization_credentials(self, factories):
         """Create a team credential and assert that the created credential
         is also an organization credential.

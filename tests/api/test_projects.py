@@ -42,6 +42,7 @@ class Test_Projects(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.ha_tower
     def test_manual_project(self, project_ansible_playbooks_manual):
         """Verify tower can successfully creates a manual project (scm_type='').
         This includes verifying UTF-8 local-path.
@@ -82,6 +83,7 @@ class Test_Projects(Base_Api_Test):
                 (related_pg.count, related_attr, 0, related_attr)
 
     # Override the project local_path to workaround unicode issues
+    @pytest.mark.ha_tower
     @pytest.mark.fixture_args(local_path="project_dir_%s" % fauxfactory.gen_alphanumeric())
     def test_change_from_manual_to_scm_project(self, project_ansible_playbooks_manual):
         """Verify tower can successfully convert a manual project, into a scm
@@ -119,6 +121,7 @@ class Test_Projects(Base_Api_Test):
             assert result['stat']['exists'], "The expected project directory was not found (%s)." % \
                 expected_project_path
 
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize('timeout, status, job_explanation', [
         (0, 'successful', ''),
         (60, 'successful', ''),
@@ -137,6 +140,7 @@ class Test_Projects(Base_Api_Test):
         assert update_pg.timeout == project.timeout, \
             "Update_pg has a different timeout value ({0}) than its project ({1}).".format(update_pg.timeout, project.timeout)
 
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize(
         "attr,value",
         [
@@ -192,6 +196,7 @@ class Test_Projects(Base_Api_Test):
             "After completing a project_update, the value of 'scm_delete_on_next_update' is unexpected (%s != False)" % \
             (project_ansible_playbooks_git.scm_delete_on_next_update)
 
+    @pytest.mark.ha_tower
     def test_cancel_queued_update(self, project_ansible_git_nowait):
         """Verify the project->current_update->cancel endpoint behaves as expected when canceling a
         queued project_update.  Note, the project_ansible_git repo is used
@@ -254,6 +259,7 @@ class Test_Projects(Base_Api_Test):
             "project status after cancelling project update (expected " \
             "status:canceled) - %s" % project_ansible_git_nowait
 
+    @pytest.mark.ha_tower
     def test_update_cascade_delete(self, project_ansible_playbooks_git, api_project_updates_pg):
         """Verify that associated project updates get cascade deleted with project
         deletion.
@@ -269,6 +275,7 @@ class Test_Projects(Base_Api_Test):
         assert api_project_updates_pg.get(project=project_id).count == 0, \
             "Unexpected number of project updates after deleting project. Expected zero updates."
 
+    @pytest.mark.ha_tower
     def test_conflict_exception_with_running_update(self, project_ansible_git_nowait):
         """Verify that deleting a project with a running update will
         raise a 409 exception
@@ -280,6 +287,7 @@ class Test_Projects(Base_Api_Test):
         result = exc_info.value[1]
         assert result == {'conflict': 'Resource is being used by running jobs', 'active_jobs': [{'type': '%s' % update_pg.type, 'id': update_pg.id}]}
 
+    @pytest.mark.ha_tower
     def test_delete_related_fields(self, install_enterprise_license_unlimited, project_ansible_playbooks_git):
         """Verify that related fields on a deleted resource respond as expected"""
         # delete all the projects

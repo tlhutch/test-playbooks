@@ -79,6 +79,7 @@ class Test_Job_Template(Base_Api_Test):
             return yaml.dump(launch_time_vars)
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch(self, job_template_ping):
         """Verify the job->launch endpoint behaves as expected"""
         launch_pg = job_template_ping.get_related('launch')
@@ -97,6 +98,7 @@ class Test_Job_Template(Base_Api_Test):
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_with_extra_vars_from_job_template(self, job_template_with_extra_vars):
         """Verify that when no launch-time extra_vars are provided, job extra_vars consist
         of job_template extra_vars.
@@ -120,6 +122,7 @@ class Test_Job_Template(Base_Api_Test):
         assert job_vars == job_template_vars
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_with_extra_vars_at_launch(self, job_template_with_extra_vars, launch_time_extra_vars):
         """Verify that when launch-time extra_vars are provided, job extra_vars consist
         of a union of the launch-time and JT extra_vars. Launch-time variables should
@@ -168,6 +171,7 @@ class Test_Job_Template(Base_Api_Test):
         assert job_extra_vars == {}, \
             "Unexpected value for job extra variables - {0}.".format(job.extra_vars)
 
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize("launch_time_vars", [
         "{'non_survey_variable': false, 'submitter_email': 'sample_email@maffenmox.edu'}",
         "---\nnon_survey_variable: false\nsubmitter_email: sample_email@maffenmox.edu"
@@ -194,6 +198,7 @@ class Test_Job_Template(Base_Api_Test):
             "Unexpected job extra_vars returned."
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_with_limit_in_payload(self, job_template_with_random_limit):
         """Verifies that a value for 'limit' may be passed at launch-time."""
         job_template_with_random_limit.patch(ask_limit_on_launch=True)
@@ -218,6 +223,7 @@ class Test_Job_Template(Base_Api_Test):
         assert '"-l", "local"' in job_pg.job_args, "Limit value not passed to job_args."
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize("patch_payload, launch_payload", [
         (
             {"ask_tags_on_launch": True, "ask_skip_tags_on_launch": False},
@@ -270,6 +276,7 @@ class Test_Job_Template(Base_Api_Test):
                 "Value for skip_tags not represented in job args."
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize("job_type", ["run", "scan", "check"])
     def test_launch_nonscan_job_template_with_job_type_in_payload(self, nonscan_job_template, job_type):
         """Verifies that "job_type" may be given at launch-time with run/check JTs."""
@@ -298,6 +305,7 @@ class Test_Job_Template(Base_Api_Test):
                 nonscan_job_template.launch(payload)
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize("job_type", ["run", "scan", "check"])
     def test_launch_scan_job_template_with_job_type_in_payload(self, scan_job_template, job_type):
         """Verifies that "job_type" may be given at launch-time with scan JTs."""
@@ -326,6 +334,7 @@ class Test_Job_Template(Base_Api_Test):
             assert job_pg.job_type == job_type, "Unexpected value for job_type. Expected %s, got %s." % (job_type, job_pg.job_type)
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_with_inventory_in_payload(self, job_template, another_inventory):
         """Verifies that 'inventory' may be given at launch-time."""
         job_template.patch(ask_inventory_on_launch=True)
@@ -351,6 +360,7 @@ class Test_Job_Template(Base_Api_Test):
             "Job ran with incorrect inventory. Expected %s but got %s." % (another_inventory.id, job_template.inventory)
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_ask_inventory_on_launch_with_scan_job_template(self, scan_job_template, api_job_templates_pg):
         """Verifies scan JTs may not have ask_inventory_on_launch."""
         # patch scan JT and assess results
@@ -376,6 +386,7 @@ class Test_Job_Template(Base_Api_Test):
         assert result == {u'inventory': [u'Scan jobs must be assigned a fixed inventory.']}, \
             "Unexpected API response after attempting to patch a scan JT with ask_inventory_on_launch enabled."
 
+    @pytest.mark.ha_tower
     def test_launch_with_ignored_payload(self, job_template, another_inventory, another_ssh_credential):
         """Verify that launch-time objects are ignored when their ask flag is set to false."""
         launch_pg = job_template.get_related('launch')
@@ -413,6 +424,7 @@ class Test_Job_Template(Base_Api_Test):
         assert job_pg.credential == job_template.credential, \
             "JT credential overriden. Expected credential %s, got %s." % (job_template.credential, job_pg.credential)
 
+    @pytest.mark.ha_tower
     def test_launch_without_credential(self, job_template_no_credential):
         """Verify the job->launch endpoint does not allow launching a job_template
         that has no associated credential.
@@ -430,6 +442,7 @@ class Test_Job_Template(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             launch_pg.post()
 
+    @pytest.mark.ha_tower
     def test_launch_with_credential_in_payload(self, job_template_no_credential, ssh_credential):
         """Verify the job->launch endpoint behaves as expected"""
         launch_pg = job_template_no_credential.get_related('launch')
@@ -454,6 +467,7 @@ class Test_Job_Template(Base_Api_Test):
             "the launched job does not have the same credential " \
             "(%s != %s)" % (job_pg.credential, ssh_credential.id)
 
+    @pytest.mark.ha_tower
     def test_launch_with_team_credential(self, job_template_no_credential, team_with_org_admin, team_ssh_credential, user_password):
         """Verifies that a team user can use a team credential to launch a job template."""
         team_user = team_with_org_admin.get_related('users').results[0]
@@ -480,6 +494,7 @@ class Test_Job_Template(Base_Api_Test):
                 "the launched job does not have the same credential " \
                 "(%s != %s)" % (job_pg.credential, team_ssh_credential.id)
 
+    @pytest.mark.ha_tower
     def test_launch_with_invalid_credential_in_payload(self, job_template_no_credential):
         """Verify the job->launch endpoint behaves as expected when launched with
         a bogus credential id.
@@ -499,6 +514,7 @@ class Test_Job_Template(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.BadRequest):
                 job_template_no_credential.launch(payload).wait_until_completed()
 
+    @pytest.mark.ha_tower
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_no_credential,
                                                                          ssh_credential_multi_ask):
         """Verify that attempts to launch a JT when providing an ask-credential at launch-time without
@@ -525,6 +541,7 @@ class Test_Job_Template(Base_Api_Test):
         # assert expected passwords_needed_to_start value
         assert ssh_credential_multi_ask.expected_passwords_needed_to_start == result['passwords_needed_to_start']
 
+    @pytest.mark.ha_tower
     def test_launch_with_ask_credential_and_with_passwords_in_payload(self, job_template_no_credential,
                                                                       ssh_credential_multi_ask):
         """Verify launching a JT when providing an ask-credential at launch-time with required
@@ -602,6 +619,7 @@ class Test_Job_Template(Base_Api_Test):
         else:
             assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
+    @pytest.mark.ha_tower
     def test_launch_without_ask_variables_on_launch(self, job_template_ask_variables_on_launch):
         """Verify behavior when ask_variables_on_launch is enabled but no variables are provided
         at launch-time.
@@ -624,6 +642,7 @@ class Test_Job_Template(Base_Api_Test):
             "No variables were provided at launch-time " \
             "but our job contains extra variables - {0}.".format(job.extra_vars)
 
+    @pytest.mark.ha_tower
     def test_launch_with_ask_variables_on_launch(self, job_template_ask_variables_on_launch,
             launch_time_extra_vars):
         """Verify behavior when ask_variables_on_launch is enabled and variables are provided
@@ -646,6 +665,7 @@ class Test_Job_Template(Base_Api_Test):
         job_vars = json.loads(job.extra_vars)
         assert launch_time_vars == job_vars
 
+    @pytest.mark.ha_tower
     def test_launch_without_variables_needed_to_start(self, job_template_variables_needed_to_start):
         """Verify the job->launch endpoint behaves as expected when launching a
         survey without required variables.
@@ -699,6 +719,7 @@ class Test_Job_Template(Base_Api_Test):
             assert variable in launch_pg.variables_needed_to_start, \
                 "Missing required variable: %s" % variable
 
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize("launch_time_vars", [
         "{'likes_chicken': ['yes'], 'favorite_color': 'green'}",
         "---\nlikes_chicken:\n  - 'yes'\nfavorite_color: green"
@@ -744,6 +765,7 @@ class Test_Job_Template(Base_Api_Test):
         assert job_vars['favorite_color'] == launch_time_vars['favorite_color']
         assert job_vars['intersection'] == survey_spec.get_variable_default('intersection')
 
+    @pytest.mark.ha_tower
     def test_launch_with_variables_needed_to_start_and_extra_vars_at_launch(self, job_template_with_extra_vars, required_survey_spec,
                                                                             launch_time_extra_vars):
         """Verify that when launch-time extra_vars are provided, that job
@@ -794,6 +816,7 @@ class Test_Job_Template(Base_Api_Test):
         assert job_vars['intersection'] == launch_time_vars['intersection'], \
             "A launch-time variable did not replace our JT and survey intersection variable."
 
+    @pytest.mark.ha_tower
     def test_launch_without_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         """Verify the job->launch endpoint behaves as expected when passwords are needed to start"""
         launch_pg = job_template_passwords_needed_to_start.get_related('launch')
@@ -820,6 +843,7 @@ class Test_Job_Template(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             launch_pg.post(payload)
 
+    @pytest.mark.ha_tower
     def test_launch_with_passwords_needed_to_start(self, job_template_passwords_needed_to_start):
         """Verify the job->launch endpoint behaves as expected when passwords are needed to start"""
         launch_pg = job_template_passwords_needed_to_start.get_related('launch')
@@ -848,6 +872,7 @@ class Test_Job_Template(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
+    @pytest.mark.ha_tower
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         """Verify that the job->launch endpoint does not allow launching a
         job_template whose related endpoints have been deleted.
@@ -872,6 +897,7 @@ class Test_Job_Template(Base_Api_Test):
             launch_pg.post()
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize("limit_value, expected_count", [
         ("", 12),
         ("all", 12),
@@ -948,6 +974,7 @@ print json.dumps(inv, indent=2)
             "Unexpected job_pg.result_stdout when launching a job_template with an unmatched limit."
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_with_matched_tag_value(self, job_template_with_random_tag):
         """Tests that target tasks are run when launching a job with job_tags."""
         # patch our JT such that its tag value matches a single playbook task
@@ -967,6 +994,7 @@ print json.dumps(inv, indent=2)
             "Unexpected number of task_events returned (expected 2)."
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_with_unmatched_tag_value(self, job_template_with_random_tag, ansible_version_cmp):
         """Tests launching jobs with an unmatched tag value."""
         job_pg = job_template_with_random_tag.launch().wait_until_completed()
@@ -981,6 +1009,7 @@ print json.dumps(inv, indent=2)
             assert job_pg.job_tags == job_template_with_random_tag.job_tags, \
                 "Value for job_tags inconsistent with job_template value."
 
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize('timeout, status, job_explanation', [
         (0, 'successful', ''),
         (60, 'successful', ''),
@@ -999,6 +1028,7 @@ print json.dumps(inv, indent=2)
         assert job_pg.timeout == job_template.timeout, \
             "Job_pg has a different timeout value ({0}) than its JT ({1}).".format(job_pg.timeout, job_template.timeout)
 
+    @pytest.mark.ha_tower
     def test_conflict_exception_with_running_job(self, job_template_sleep):
         """Verify that a conflict exception is raised when deleting either the JT
         or some of the JT's underlying resources when a job is still running.
@@ -1015,6 +1045,7 @@ print json.dumps(inv, indent=2)
                 tower_resource.delete()
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_check_job_template(self, job_template):
         """Launch check job template and assess results."""
         # patch job template
@@ -1043,6 +1074,7 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.ha_tower
     def test_post_with_missing_fields(self, job_template_ping, missing_field_survey_specs):
         """Verify the API does not allow survey creation when missing any or all
         of the spec, name, or description fields.
@@ -1054,6 +1086,7 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.BadRequest):
                 job_template_ping.get_related('survey_spec').post(payload)
 
+    @pytest.mark.ha_tower
     def test_post_with_empty_name(self, job_template_ping):
         """Verify the API allows a survey_spec with an empty name and description"""
         job_template_ping.patch(survey_enabled=True)
@@ -1068,6 +1101,7 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
         # assert successful post
         job_template_ping.get_related('survey_spec').post(payload)
 
+    @pytest.mark.ha_tower
     def test_post_multiple(self, job_template_ping, optional_survey_spec, required_survey_spec):
         """Verify the API allows posting survey_spec multiple times."""
         # post a survey
@@ -1104,6 +1138,7 @@ class Test_Job_Template_Survey_Spec(Base_Api_Test):
             "launch_pg.survey_enabled is False even though JT survey_enabled is True \
             and valid survey posted."
 
+    @pytest.mark.ha_tower
     def test_launch_with_optional_survey_spec(self, job_template_ping, optional_survey_spec):
         """Verify launch_pg attributes with an optional survey spec and job extra_vars."""
         # post a survey

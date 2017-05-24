@@ -105,6 +105,7 @@ class Test_Main_Setting(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.ha_tower
     def test_included_modules(self, host, ssh_credential, api_ad_hoc_commands_pg, ad_hoc_module_name_choices,
                               api_settings_jobs_pg, update_setting_pg):
         """Verifies that adding additional modules to AD_HOC_COMMANDS unlocks additional modules."""
@@ -131,6 +132,7 @@ class Test_Main_Setting(Base_Api_Test):
         # check that correct module run
         assert command_pg.module_name == "shell", "Incorrect module run. Expected 'shell' but got %s." % command_pg.module_name
 
+    @pytest.mark.ha_tower
     def test_excluded_modules(self, inventory, ssh_credential, api_ad_hoc_commands_pg, ad_hoc_module_name_choices,
                               api_settings_jobs_pg, update_setting_pg):
         """Verifies that removed modules from AD_HOC_COMMANDS are no longer callable."""
@@ -164,6 +166,7 @@ class Test_Main_Setting(Base_Api_Test):
                 "Unexpected response upon launching ad hoc command %s not included in AD_HOC_COMMANDS: %s." \
                 % (module_name, json.dumps(result))
 
+    @pytest.mark.ha_tower
     def test_relaunch_with_excluded_module(self, ad_hoc_with_status_completed, api_settings_jobs_pg, update_setting_pg):
         """Verifies that you cannot relaunch a command which has been removed from AD_HOC_COMMANDS."""
         # update allowed commands
@@ -181,6 +184,7 @@ class Test_Main_Setting(Base_Api_Test):
             "Unexpected response when relaunching ad hoc command whose module " \
             "has been removed from AD_HOC_COMMANDS: %s." % json.dumps(result)
 
+    @pytest.mark.ha_tower
     def test_stdout_max_bytes_display(self, unified_job_with_stdout, api_settings_jobs_pg, update_setting_pg):
         """Assert that all of our unified jobs include stdout by default. Then assert that
         stdout gets truncated once 'STDOUT_MAX_BYTES_DISPLAY' gets set to zero. We check
@@ -208,6 +212,7 @@ class Test_Main_Setting(Base_Api_Test):
                 "UJ related stdout censorship notice not displayed."
 
     @pytest.mark.skip(reason="Test flakiness detailed here: https://github.com/ansible/tower-qa/issues/882")
+    @pytest.mark.ha_tower
     def test_schedule_max_jobs(self, request, factories, api_settings_jobs_pg, update_setting_pg):
         """Verifies that number of spawned schedule jobs is capped by SCHEDULE_MAX_JOBS.
 
@@ -245,6 +250,7 @@ class Test_Main_Setting(Base_Api_Test):
         for job in jobs.results:
             job.wait_until_completed()
 
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize('timeout, default_job_timeout, status, job_explanation', [
         (0, 1, 'failed', 'Job terminated due to timeout'),
         (60, 1, 'successful', ''),
@@ -272,6 +278,7 @@ class Test_Main_Setting(Base_Api_Test):
         assert job_pg.timeout == job_template.timeout, \
             "Job_pg has a different timeout value ({0}) than its JT ({1}).".format(job_pg.timeout, job_template.timeout)
 
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize('timeout, default_update_timeout, status, job_explanation', [
         (0, 1, 'failed', 'Job terminated due to timeout'),
         (60, 1, 'successful', ''),
@@ -299,6 +306,7 @@ class Test_Main_Setting(Base_Api_Test):
         assert update_pg.timeout == custom_inventory_source.timeout, \
             "Update_pg has a different timeout value ({0}) than its inv_source ({1}).".format(update_pg.timeout, custom_inventory_source.timeout)
 
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize('timeout, default_update_timeout, status, job_explanation', [
         (0, 1, 'failed', 'Job terminated due to timeout'),
         (60, 1, 'successful', ''),
@@ -326,6 +334,7 @@ class Test_Main_Setting(Base_Api_Test):
         assert update_pg.timeout == project.timeout, \
             "Update_pg has a different timeout value ({0}) than its project ({1}).".format(update_pg.timeout, project.timeout)
 
+    @pytest.mark.ha_tower
     def test_activity_stream_enabled(self, factories, api_activity_stream_pg, api_settings_system_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED is enabled that Tower activity gets logged."""
         # find number of current activity stream elements
@@ -350,6 +359,7 @@ class Test_Main_Setting(Base_Api_Test):
         criteria = dict(operation="create", object1="setting", object2="")
         assess_created_elements(generated_elements, criteria, 1)
 
+    @pytest.mark.ha_tower
     def test_activity_stream_disabled(self, factories, api_activity_stream_pg, api_settings_system_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED is disabled that future activity is no longer logged."""
         # find number of current activity stream elements
@@ -367,6 +377,7 @@ class Test_Main_Setting(Base_Api_Test):
         assert old_activity_stream_count == new_activity_stream_count, \
             "New activity stream entry[ies] found after creating test organization with ACTIVITY_STREAM_ENABLED disabled."
 
+    @pytest.mark.ha_tower
     def test_activity_stream_enabled_for_inventory_sync(self, factories, custom_inventory_source, api_activity_stream_pg,
                                                         api_settings_system_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC is enabled that:
@@ -406,6 +417,7 @@ class Test_Main_Setting(Base_Api_Test):
         criteria = dict(operation="associate", object1="group", object2="host")
         assess_created_elements(generated_elements, criteria, 5)
 
+    @pytest.mark.ha_tower
     def test_activity_stream_disabled_for_inventory_sync(self, factories, custom_inventory_source, api_activity_stream_pg,
                                                          api_settings_system_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC is disabled that:
@@ -438,6 +450,7 @@ class Test_Main_Setting(Base_Api_Test):
         criteria = dict(operation="create", object1="setting", object2="")
         assess_created_elements(generated_elements, criteria, 1)
 
+    @pytest.mark.ha_tower
     def test_org_admins_can_see_all_users(self, org_users, non_org_users, org_admin, api_users_pg, user_password,
                                           api_settings_system_pg, update_setting_pg):
         """Tests that when ORG_ADMINS_CAN_SEE_ALL_USERS is enabled that org_admins can see all users systemwide."""
@@ -461,6 +474,7 @@ class Test_Main_Setting(Base_Api_Test):
                 "An Org Admin is unable to see users (%s) outside the organization, despite the default setting " \
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:True" % matching_non_org_users.count
 
+    @pytest.mark.ha_tower
     def test_org_admins_cannot_see_all_users(self, org_users, non_org_users, org_admin, api_users_pg, user_password,
                                              api_settings_system_pg, update_setting_pg):
         """Tests that when ORG_ADMINS_CAN_SEE_ALL_USERS is disabled that org_admins can only see users within
@@ -486,6 +500,7 @@ class Test_Main_Setting(Base_Api_Test):
                 "An org_admin is able to see users (%s) outside the organization, despite the setting " \
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:False" % matching_non_org_users.count
 
+    @pytest.mark.ha_tower
     def test_system_license(self, api_config_pg, api_settings_system_pg):
         """Verifies that our exact license contents gets displayed under /api/v1/settings/system/.
 
@@ -507,6 +522,7 @@ class Test_Main_Setting(Base_Api_Test):
             "Discrepancy between license and license displayed under /api/v1/settings/system/." \
             "\n\nLicense:\n{0}\n\nAPI returned:\n{1}\n".format(json.dumps(license_info), json.dumps(returned_license))
 
+    @pytest.mark.ha_tower
     def test_changed_settings(self, modify_settings, api_settings_changed_pg):
         """Verifies that changed entries show under /api/v1/settings/changed/.
         Note: "TOWER_URL_BASE" and "LICENSE" always show here regardless of
@@ -522,6 +538,7 @@ class Test_Main_Setting(Base_Api_Test):
         assert set(settings_changed.json.keys()) - set(payload.keys()) == set([u'TOWER_URL_BASE', u'LICENSE']), \
             "Unexpected additional items listed under /api/v1/settings/changed/."
 
+    @pytest.mark.ha_tower
     def test_setting_obfuscation(self, api_settings_pg, modify_obfuscated_settings):
         """Verifies that sensitive setting values get obfuscated."""
         payload = modify_obfuscated_settings()
