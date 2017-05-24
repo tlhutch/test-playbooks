@@ -120,21 +120,22 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             check_user_capabilities(job_template.get(), role)
             check_user_capabilities(api_job_templates_pg.get(id=job_template.id).results.pop(), role)
 
-    def test_autopopulated_admin_role_with_job_template_creator(self, factories, api_job_templates_pg):
+    def test_autopopulated_admin_role_with_job_template_creator(self, request, factories, api_job_templates_pg):
         """Verify that job template creators are added to the admin role of the
         created job template.
         """
         # make test user
         user = factories.user()
         # generate job template test payload
-        data, resources = factories.job_template.payload()
+        jt_payload = factories.job_template.payload()
         # set user resource role associations
-        resources['organization'].set_object_roles(user, 'admin')
+        jt_payload.ds.inventory.ds.organization.set_object_roles(user, 'admin')
         for name in ('credential', 'project', 'inventory'):
-            resources[name].set_object_roles(user, 'use')
+            jt_payload.ds[name].set_object_roles(user, 'use')
         # create a job template as the test user
         with self.current_user(username=user.username, password=user.password):
-            job_template = api_job_templates_pg.post(data)
+            job_template = api_job_templates_pg.post(jt_payload)
+            request.addfinalizer(job_template.silent_cleanup)
         # verify succesful job_template admin role association
         check_role_association(user, job_template, 'admin')
 
@@ -164,19 +165,20 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         """
         user = factories.user()
         organization = factories.organization()
-        job_template = factories.job_template(organization=organization)
+        job_template = factories.job_template(inventory=(True, dict(organization=organization)))
         organization.set_object_roles(user, 'member')
         job_template.set_object_roles(user, 'admin')
         # generate test request payload
-        data, resources = factories.job_template.payload(
-            organization=organization)
+
+        jt_payload = factories.job_template.payload(inventory=job_template.ds.inventory,
+                                                    credential=job_template.ds.credential)
         # assign test permissions
         for name, roles in payload_resource_roles.iteritems():
-            resources[name].set_object_roles(user, *roles)
+            jt_payload.ds[name].set_object_roles(user, *roles)
         # check access
         with self.current_user(username=user.username, password=user.password):
             for method, code in response_codes.iteritems():
-                check_request(job_template, method, code, data=data)
+                check_request(job_template, method, code, data=jt_payload)
 
     def test_job_template_post_request_without_network_credential_access(self,
             factories, api_job_templates_pg):
@@ -185,23 +187,23 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         permission for the network credential.
         """
         # set user resource role associations
-        data, resources = factories.job_template.payload()
-        organization = resources['organization']
+        jt_payload = factories.job_template.payload()
+        organization = jt_payload.ds.inventory.ds.organization
         user = factories.user(organization=organization)
         for name in ('credential', 'project', 'inventory'):
-            resources[name].set_object_roles(user, 'use')
+            jt_payload.ds[name].set_object_roles(user, 'use')
         # make network credential and add it to payload
         network_credential = factories.credential(kind='net', organization=organization)
-        data['network_credential'] = network_credential.id
+        jt_payload.network_credential = network_credential.id
         # check POST response code with network credential read permissions
         network_credential.set_object_roles(user, 'read')
         with self.current_user(user.username, password=user.password):
-            check_request(api_job_templates_pg, 'POST', httplib.FORBIDDEN, data)
+            check_request(api_job_templates_pg, 'POST', httplib.FORBIDDEN, jt_payload)
         # add network credential usage role permissions to test user
         network_credential.set_object_roles(user, 'use')
         # verify that the POST request is now permitted
         with self.current_user(user.username, password=user.password):
-            check_request(api_job_templates_pg, 'POST', httplib.CREATED, data)
+            check_request(api_job_templates_pg, 'POST', httplib.CREATED, jt_payload)
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_launch_job(self, factories, role):
