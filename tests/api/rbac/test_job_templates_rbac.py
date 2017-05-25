@@ -374,10 +374,10 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         Note: job deletion is organization scoped. A run JT's project determines its
         organization and a scan JT's inventory determines its organization.
         """
-        # create two JTs
-        inventory = factories.host().ds.inventory
-        run_job_template = factories.job_template(inventory=inventory)
-        scan_job_template = factories.job_template(inventory=inventory, job_type="scan", project=None)
+        # create two JTs from different orgs
+        run_job_template = factories.job_template(inventory=factories.host().ds.inventory)
+        scan_job_template = factories.job_template(inventory=factories.host().ds.inventory,
+                                                   job_type="scan", project=None)
 
         # sanity check
         run_jt_org = run_job_template.ds.project.ds.organization
