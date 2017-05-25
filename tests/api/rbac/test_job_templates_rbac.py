@@ -212,7 +212,8 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         ALLOWED_ROLES = ['admin', 'execute']
         REJECTED_ROLES = ['read']
 
-        job_template = factories.job_template()
+        inventory = factories.host().ds.inventory
+        job_template = factories.job_template(inventory=inventory)
         user = factories.user()
 
         job_template.set_object_roles(user, role)
@@ -242,7 +243,8 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         ALLOWED_ROLES = ['admin', 'execute']
         REJECTED_ROLES = ['read']
 
-        job_template = factories.job_template()
+        inventory = factories.host().ds.inventory
+        job_template = factories.job_template(inventory=inventory)
         user = factories.user()
 
         job_template.set_object_roles(user, role)
@@ -267,7 +269,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         job_template.patch(ask_inventory_on_launch=True)
 
         credential = job_template.ds.credential
-        inventory = factories.inventory()
+        inventory = factories.host().ds.inventory
         user1, user2 = factories.user(), factories.user()
 
         # set test permissions
@@ -344,7 +346,10 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         ALLOWED_ROLES = ['admin']
         REJECTED_ROLES = ['execute', 'read']
 
-        job_template = factories.job_template(playbook='sleep.yml', extra_vars=json.dumps(dict(sleep_interval=10)))
+        inventory = factories.host().ds.inventory
+        job_template = factories.job_template(inventory=inventory,
+                                              playbook='sleep.yml',
+                                              extra_vars=json.dumps(dict(sleep_interval=10)))
         user = factories.user()
 
         job_template.set_object_roles(user, role)
@@ -370,8 +375,9 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         organization and a scan JT's inventory determines its organization.
         """
         # create two JTs
-        run_job_template = factories.job_template()
-        scan_job_template = factories.job_template(job_type="scan", project=None)
+        inventory = factories.host().ds.inventory
+        run_job_template = factories.job_template(inventory=inventory)
+        scan_job_template = factories.job_template(inventory=inventory, job_type="scan", project=None)
 
         # sanity check
         run_jt_org = run_job_template.ds.project.ds.organization
@@ -404,7 +410,8 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     def test_delete_job_as_org_user(self, factories):
         """Tests ability to delete a job as a privileged org_user."""
-        job_template = factories.job_template()
+        inventory = factories.host().ds.inventory
+        job_template = factories.job_template(inventory=inventory)
         user = factories.user()
 
         job_template.set_object_roles(user, 'admin')
@@ -419,7 +426,8 @@ class Test_Job_Template_RBAC(Base_Api_Test):
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_job_user_capabilities(self, factories, api_jobs_pg, role):
         """Test user_capabilities given each JT role on spawned jobs."""
-        job_template = factories.job_template()
+        inventory = factories.host().ds.inventory
+        job_template = factories.job_template(inventory=inventory)
         user = factories.user()
 
         job_template.set_object_roles(user, role)
