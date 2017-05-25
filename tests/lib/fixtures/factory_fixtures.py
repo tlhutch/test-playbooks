@@ -53,9 +53,10 @@ class HasCreateFactory(object):
         for resource_type in payload.ds:
             try:
                 resource = payload.ds[resource_type]
-                resources.append(resource)
             except AttributeError:
-                pass
+                continue
+            else:
+                resources.append(resource)
 
         for resource in mixins.has_create.all_instantiated_dependencies(*resources):
             if resource not in provided_has_creates and resource not in cls._to_teardown:
