@@ -1083,7 +1083,7 @@ class Test_Basic_License(Base_Api_Test):
 
     def test_activity_stream_settings(self, api_settings_system_pg):
         """Verify that activity stream flags are not visible with a basic license."""
-        assert not any(flag in api_settings_system_pg.json for flag in ACTIVITY_STREAM_FLAGS), \
+        assert not any([flag in api_settings_system_pg.json for flag in ACTIVITY_STREAM_FLAGS]), \
             "Activity stream flags not visible under /api/v1/settings/system/ with a basic license."
 
     @pytest.mark.ha_tower
