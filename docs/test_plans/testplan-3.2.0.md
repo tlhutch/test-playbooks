@@ -39,17 +39,17 @@ When verifying acceptance we should ensure the following statements are true
 
 1. [ ] Basic testing should be able to demonstrate parity with a standalone instance for all integration testing.
 1. [ ] Basic playbook testing to verify routing differences, including:
-  1. [ ] Basic FQDN
-  1. [ ] Short-name name resolution
-  1. [ ] ip addresses
-  1. [ ] /etc/hosts static routing information
+    * [ ] Basic FQDN
+    * [ ] Short-name name resolution
+    * [ ] ip addresses
+    * [ ] /etc/hosts static routing information
 1. [ ] We should test behavior of large and small clusters. I would envision small clusters as 2 - 3 instances and large clusters as 10 - 15 instances
 1. [ ] Failure testing should involve killing single instances and killing multiple instances while the cluster is performing work. Job failures during the time period should be predictable and not catastrophic.
 1. [ ] Instance downtime testing should also include recoverability testing. Killing single services and ensuring the system can return itself to a working state
 1. [ ] Persistent failure should be tested by killing single services in such a way that the cluster instance cannot be recovered and ensuring that the instance is properly taken offline
 1. [ ] Network partitioning failures will be important also. In order to test this
-  1. [ ] Disallow a single instance from communicating with the other instances but allow it to communicate with the database
-  1. [ ] Break the link between instances such that it forms 2 or more groups where groupA and groupB can't communicate but all instances can communicate with the database.
+    * [ ] Disallow a single instance from communicating with the other instances but allow it to communicate with the database
+    * [ ] Break the link between instances such that it forms 2 or more groups where groupA and groupB can't communicate but all instances can communicate with the database.
 1. [ ] Crucially when network partitioning is resolved all instances should recover into a consistent state
 1. [ ] Upgrade Testing, verify behavior before and after are the same for the end user.
 1. [ ] Project Updates should be thoroughly tested for all scm types (git, svn, hg) and for manual projects.
