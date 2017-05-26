@@ -12,21 +12,19 @@ class TestChannels(Base_Api_Test):
         pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
         @pytest.mark.ansible_integration
-        def test_ad_hoc_command_events(self, request, v1):
+        def test_ad_hoc_command_events(self, request, factories, v2):
             """Confirm that (un)subscriptions to status changed events and event emits are functional
             for ad hoc commands, and that ad_hoc_command_events match what's available at the command's
             relative events endpoint.
             """
-            host = v1.hosts.create()
-            request.addfinalizer(host.teardown)
-            ws = WSClient(v1.get_authtoken()).connect()
+            inventory = factories.v2_host().ds.inventory
+            ws = WSClient(v2.get_authtoken()).connect()
             request.addfinalizer(ws.close)
             ws.pending_ad_hoc_stdout()
             utils.logged_sleep(3)  # give Tower some time to process subscription
             for m in ws:
                 pass  # empty user indentifier
-            ahc = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
-            request.addfinalizer(ahc.teardown)
+            ahc = factories.v2_ad_hoc_command(module_name='shell', module_args='true', inventory=inventory)
             ahc.wait_until_completed()
 
             # keys where ws event doesn't match retrieved event for subtle reasons
@@ -61,7 +59,7 @@ class TestChannels(Base_Api_Test):
             ahc.relaunch().wait_until_completed()
             assert(not [m for m in ws])  # no messages should be broadcasted to client
 
-        def test_inventory_update_status_changes(self, request, v1):
+        def test_inventory_update_status_changes(self, request, factories, v1):
             """Confirm that (un)subscriptions to status changed events and event emits are functional
             for inventory updates.
             """
@@ -71,8 +69,7 @@ class TestChannels(Base_Api_Test):
             utils.logged_sleep(3)  # give Tower some time to process subscription
             for m in ws:
                 pass  # empty user indentifier
-            group = v1.groups.create(source='custom', inventory_script=True)
-            request.addfinalizer(group.teardown)
+            group = factories.group(source='custom', inventory_script=True)
             update_id = group.related.inventory_source.get().update().wait_until_completed().id
             messages = [m for m in ws]
             base_status_change = dict(group_name='jobs', group_id=group.id, unified_job_id=update_id)
@@ -87,11 +84,12 @@ class TestChannels(Base_Api_Test):
             assert(not [m for m in ws])  # no messages should be broadcasted to client
 
         @pytest.mark.ansible_integration
-        def test_job_events(self, request, v1, factories):
+        def test_job_events(self, request, factories, v1):
             """Confirm that (un)subscriptions to status changed events and event emits are functional
             for launched jobs.
             """
-            jt = factories.job_template(playbook='debug.yml')
+            inventory = factories.host().ds.inventory
+            jt = factories.job_template(inventory=inventory, playbook='debug.yml')
             ws = WSClient(v1.get_authtoken()).connect()
             request.addfinalizer(ws.close)
             ws.pending_job_stdout()
@@ -164,8 +162,9 @@ class TestChannels(Base_Api_Test):
             """
             ws = WSClient(v1.get_authtoken()).connect()
             request.addfinalizer(ws.close)
-            success_jt = factories.job_template(playbook='debug.yml')
-            fail_jt = factories.job_template(playbook='fail_unless.yml')
+            inventory = factories.host().ds.inventory
+            success_jt = factories.job_template(inventory=inventory, playbook='debug.yml')
+            fail_jt = factories.job_template(inventory=inventory, playbook='fail_unless.yml')
             wfjt = factories.workflow_job_template()
             root = factories.workflow_job_template_node(workflow_job_template=wfjt,
                                                         unified_job_template=success_jt)
