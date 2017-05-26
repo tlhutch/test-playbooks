@@ -20,10 +20,10 @@ class HasCreateFactory(object):
     _to_teardown = set()
 
     @classmethod
-    def register_teardown(cls, request, teardown):
+    def register_teardown(cls, request, to_teardown):
         def teardown_and_clean():
-            teardown.silent_cleanup()
-            cls._to_teardown.remove(teardown)
+            to_teardown.silent_cleanup()
+            cls._to_teardown.remove(to_teardown)
         request.addfinalizer(teardown_and_clean)
 
     @classmethod
