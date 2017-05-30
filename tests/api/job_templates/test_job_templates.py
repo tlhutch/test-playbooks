@@ -1,4 +1,5 @@
 import logging
+import json
 
 import towerkit.tower.inventory
 import towerkit.exceptions
@@ -122,6 +123,44 @@ class TestJobTemplates(Base_Api_Test):
         if launch_payload["skip_tags"]:
             assert '\"--skip-tags=%s\"' % launch_payload['skip_tags'] in job_pg.job_args, \
                 "Value for skip_tags not represented in job args."
+
+    @pytest.mark.ha_tower
+    def test_launch_with_ignored_payload(self, job_template, another_inventory, another_ssh_credential):
+        """Verify that launch-time objects are ignored when their ask flag is set to false."""
+        launch_pg = job_template.get_related('launch')
+
+        # assert ask values on launch resource
+        assert not launch_pg.ask_variables_on_launch
+        assert not launch_pg.ask_tags_on_launch
+        assert not launch_pg.ask_skip_tags_on_launch
+        assert not launch_pg.ask_job_type_on_launch
+        assert not launch_pg.ask_limit_on_launch
+        assert not launch_pg.ask_inventory_on_launch
+        assert not launch_pg.ask_credential_on_launch
+
+        # launch JT with all possible artifacts in payload
+        payload = dict(extra_vars=dict(foo="bar"),
+                       job_tags="test job_tag",
+                       skip_tags="test skip_tag",
+                       job_type="check",
+                       inventory=another_inventory.id,
+                       credential=another_ssh_credential.id,)
+        job_pg = job_template.launch(payload).wait_until_completed()
+        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+
+        # assert that payload ignored
+        assert job_pg.extra_vars == json.dumps({}), \
+            "Unexpected value for job_pg.extra_vars - %s." % job_pg.extra_vars
+        assert job_pg.job_tags == job_template.job_tags, \
+            "JT job_tags overridden. Expected %s, got %s." % (job_template.job_tags, job_pg.job_tags)
+        assert job_pg.skip_tags == job_template.skip_tags, \
+            "JT skip_tags overriden. Expected %s, got %s." % (job_template.skip_tags, job_pg.skip_tags)
+        assert job_pg.job_type == job_template.job_type, \
+            "JT job_type overriden. Expected %s, got %s." % (job_template.job_type, job_pg.job_type)
+        assert job_pg.inventory == job_template.inventory, \
+            "JT inventory overriden. Expected inventory %s, got %s." % (job_template.inventory, job_pg.inventory)
+        assert job_pg.credential == job_template.credential, \
+            "JT credential overriden. Expected credential %s, got %s." % (job_template.credential, job_pg.credential)
 
     @pytest.mark.ansible_integration
     @pytest.mark.ha_tower

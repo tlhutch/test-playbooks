@@ -52,7 +52,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
     def test_matching_hosts_contains_member_in_member_query(self, ansible_runner, host_config_key, job_template,
                                                             host_with_default_ipv4_in_variables, callback_host):
-        """Assert a GET on the callback resource returns a list containimg a matching host if made by that host"""
+        """Assert a GET on the callback resource returns a list containing a matching host if made by that host"""
         job_template.host_config_key = host_config_key
 
         contacted = ansible_runner.uri(method="GET",
@@ -103,7 +103,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         for ipv4_addr in local_ipv4_addresses:
             host = factories.host(name=ipv4_addr, inventory=group.ds.inventory,
                                   variables=json.dumps(dict(ansible_ssh_host=utils.random_ipv4(),
-                                                             ansible_connection="local")))
+                                                            ansible_connection="local")))
             group.add_host(host)
             hosts.append(host)
 

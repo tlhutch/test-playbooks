@@ -154,11 +154,10 @@ class TestJobTemplateCredentials(Base_Api_Test):
             assert job.is_successful
 
     @pytest.mark.ha_tower
-    def test_launch_with_team_credential(self, factories, job_template_no_credential, team_with_org_admin,
-                                         team_ssh_credential):
+    def test_launch_with_team_credential(self, factories, job_template_no_credential, team, team_ssh_credential):
         """Verifies that a team user can use a team credential to launch a job template."""
         team_user = factories.user()
-        team_with_org_admin.add_user(team_user)
+        team.add_user(team_user)
         job_template_no_credential.set_object_roles(team_user, 'execute')
 
         with self.current_user(team_user.username, team_user.password):
