@@ -94,7 +94,7 @@ def job_template_with_json_vars(factories, organization, project, ssh_credential
     return factories.job_template(description="job_template with extra_vars - %s" % fauxfactory.gen_utf8(),
                                   organization=organization, project=project, credential=ssh_credential,
                                   inventory=host_local.ds.inventory, playbook='debug.yml',
-                                  extra_vars='{"jt_var": true, "intersection": "JT"}')
+                                  extra_vars='{"jt_var": true, "intersection": "jt"}')
 
 
 @pytest.fixture(scope="function")
@@ -103,7 +103,7 @@ def job_template_with_yaml_vars(factories, organization, project, ssh_credential
     return factories.job_template(description="job_template with extra_vars - %s" % fauxfactory.gen_utf8(),
                                   organization=organization, project=project, credential=ssh_credential,
                                   inventory=host_local.ds.inventory, playbook='debug.yml',
-                                  extra_vars="---\njt_var: true\nintersection: job template")
+                                  extra_vars="---\njt_var: true\nintersection: jt")
 
 
 @pytest.fixture(scope="function")
@@ -206,16 +206,16 @@ def required_survey_spec():
                  choices=['red', 'green', 'blue'],
                  default="green"),
             dict(required=False,
-                 question_name="Enter your email &mdash; &euro;",
+                 question_name="Enter your email.",
                  variable="submitter_email",
                  type="text"),
             dict(required=False,
-                 question_name="Test question",
+                 question_name="Survey variable.",
                  variable="survey_var",
                  type="text",
                  default="text"),
             dict(required=False,
-                 question_name="Test question",
+                 question_name="Intersection variable.",
                  variable="intersection",
                  type="text",
                  default="survey")]
@@ -224,7 +224,8 @@ def required_survey_spec():
 @pytest.fixture(scope="function")
 def job_template_variables_needed_to_start(job_template_ping, required_survey_spec):
     """job_template with variables needed to start"""
-    return job_template_ping.add_survey(spec=required_survey_spec)
+    job_template_ping.add_survey(spec=required_survey_spec)
+    return job_template_ping
 
 
 @pytest.fixture(scope="function")
