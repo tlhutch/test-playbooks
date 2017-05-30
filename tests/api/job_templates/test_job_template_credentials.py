@@ -16,6 +16,7 @@ class TestJobTemplateCredentials(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
+    @pytest.mark.ha_tower
     def test_launch_without_credential_and_credential_needed_to_start(self, job_template_no_credential):
         """Verify the job launch endpoint disallows launching a job template without a credential."""
         launch = job_template_no_credential.related.launch.get()
@@ -30,6 +31,7 @@ class TestJobTemplateCredentials(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             launch.post()
 
+    @pytest.mark.ha_tower
     def test_launch_with_linked_credential(self, job_template_no_credential, ssh_credential):
         """Verify the job template launch endpoint requires user input when using a linked credential and
         `ask_credential_on_launch`.
@@ -48,6 +50,7 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert job.is_successful
         assert job.credential == ssh_credential.id
 
+    @pytest.mark.ha_tower
     def test_launch_with_payload_credential_and_credential_needed_to_start(self, job_template_no_credential,
                                                                            ssh_credential):
         """Verify the job launch endpoint allows launching a job template when providing a credential."""
@@ -64,12 +67,14 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert job.is_successful
         assert job.credential == ssh_credential.id
 
+    @pytest.mark.ha_tower
     def test_launch_with_invalid_credential_in_payload(self, job_template_no_credential):
         """Verify the job launch endpoint throws 400 error when launching with invalid credential id"""
         for bogus in ['', 'one', 0, False, [], {}]:
             with pytest.raises(towerkit.exceptions.BadRequest):
                 job_template_no_credential.launch(dict(credential=bogus))
 
+    @pytest.mark.ha_tower
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_no_credential,
                                                                          ssh_credential_ask):
         """Verify that attempts to launch a JT when providing an 'ASK' credential at launch time without
@@ -85,6 +90,7 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert 'passwords_needed_to_start' in result
         assert result['passwords_needed_to_start'] == ssh_credential_ask.expected_passwords_needed_to_start
 
+    @pytest.mark.ha_tower
     def test_launch_with_ask_credential_and_passwords_in_payload(self, job_template_no_credential, ssh_credential_ask):
         """Verify launching a JT when providing an 'ASK' credential at launch time with required passwords
         is functional
@@ -97,6 +103,7 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert job.credential == ssh_credential_ask.id
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_with_unencrypted_ssh_credential(self, ansible_runner, job_template,
                                                     unencrypted_ssh_credential_with_ssh_key_data):
         (credential_type, credential) = unencrypted_ssh_credential_with_ssh_key_data
@@ -121,6 +128,7 @@ class TestJobTemplateCredentials(Base_Api_Test):
             assert job.is_successful
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_with_encrypted_ssh_credential(self, ansible_runner, job_template,
                                                   encrypted_ssh_credential_with_ssh_key_data):
         (credential_type, credential) = encrypted_ssh_credential_with_ssh_key_data
@@ -145,6 +153,7 @@ class TestJobTemplateCredentials(Base_Api_Test):
         else:
             assert job.is_successful
 
+    @pytest.mark.ha_tower
     def test_launch_with_team_credential(self, factories, job_template_no_credential, team_with_org_admin,
                                          team_ssh_credential):
         """Verifies that a team user can use a team credential to launch a job template."""

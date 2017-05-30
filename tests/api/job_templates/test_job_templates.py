@@ -46,6 +46,7 @@ class TestJobTemplates(Base_Api_Test):
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_with_limit_in_payload(self, job_template_with_random_limit):
         """Verifies that a value for 'limit' may be passed at launch-time."""
         job_template_with_random_limit.patch(ask_limit_on_launch=True)
@@ -233,6 +234,7 @@ class TestJobTemplates(Base_Api_Test):
         assert result == {u'inventory': [u'Scan jobs must be assigned a fixed inventory.']}, \
             "Unexpected API response after attempting to patch a scan JT with ask_inventory_on_launch enabled."
 
+    @pytest.mark.ha_tower
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         """Verify that the job->launch endpoint does not allow launching a
         job_template whose related endpoints have been deleted.
@@ -319,6 +321,7 @@ print json.dumps(inv, indent=2)
         assert job_host_summaries_pg.count == expected_count
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_with_unmatched_limit_value(self, job_template_with_random_limit):
         """Verify that launching a job template without matching hosts fails appropriately."""
         # check that our job_template limit is unmatched

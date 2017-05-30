@@ -45,6 +45,7 @@ class TestJobTemplateExtraVars(Base_Api_Test):
             return yaml.dump(launch_time_vars)
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_with_extra_vars_from_job_template(self, job_template_with_extra_vars):
         """Verify that when no launch-time extra_vars are provided, job extra_vars consist
         of job_template extra_vars.
@@ -68,6 +69,7 @@ class TestJobTemplateExtraVars(Base_Api_Test):
         assert job_vars == job_template_vars
 
     @pytest.mark.ansible_integration
+    @pytest.mark.ha_tower
     def test_launch_with_extra_vars_at_launch(self, job_template_with_extra_vars, launch_time_extra_vars):
         """Verify that when launch-time extra_vars are provided, job extra_vars consist
         of a union of the launch-time and JT extra_vars. Launch-time variables should
@@ -101,6 +103,7 @@ class TestJobTemplateExtraVars(Base_Api_Test):
         assert job_vars['intersection'] == launch_time_vars['intersection'], \
             "Our launch-time variable did not replace our colliding JT variable value."
 
+    @pytest.mark.ha_tower
     def test_launch_with_excluded_variables_in_payload(self, job_template, launch_time_extra_vars):
         """Tests that when ask_variables_at_launch is disabled that launch-time variables get
         ignored.
@@ -116,6 +119,7 @@ class TestJobTemplateExtraVars(Base_Api_Test):
         assert job_extra_vars == {}, \
             "Unexpected value for job extra variables - {0}.".format(job.extra_vars)
 
+    @pytest.mark.ha_tower
     def test_launch_with_ignored_payload(self, job_template, another_inventory, another_ssh_credential):
         """Verify that launch-time objects are ignored when their ask flag is set to false."""
         launch_pg = job_template.get_related('launch')
@@ -153,6 +157,7 @@ class TestJobTemplateExtraVars(Base_Api_Test):
         assert job_pg.credential == job_template.credential, \
             "JT credential overriden. Expected credential %s, got %s." % (job_template.credential, job_pg.credential)
 
+    @pytest.mark.ha_tower
     def test_launch_without_ask_variables_on_launch(self, job_template_ask_variables_on_launch):
         """Verify behavior when ask_variables_on_launch is enabled but no variables are provided
         at launch-time.
@@ -175,6 +180,7 @@ class TestJobTemplateExtraVars(Base_Api_Test):
             "No variables were provided at launch-time " \
             "but our job contains extra variables - {0}.".format(job.extra_vars)
 
+    @pytest.mark.ha_tower
     def test_launch_with_ask_variables_on_launch(self, job_template_ask_variables_on_launch,
             launch_time_extra_vars):
         """Verify behavior when ask_variables_on_launch is enabled and variables are provided
@@ -197,6 +203,7 @@ class TestJobTemplateExtraVars(Base_Api_Test):
         job_vars = json.loads(job.extra_vars)
         assert launch_time_vars == job_vars
 
+    @pytest.mark.ha_tower
     def test_launch_without_variables_needed_to_start(self, job_template_variables_needed_to_start):
         """Verify the job->launch endpoint behaves as expected when launching a
         survey without required variables.
@@ -250,6 +257,7 @@ class TestJobTemplateExtraVars(Base_Api_Test):
             assert variable in launch_pg.variables_needed_to_start, \
                 "Missing required variable: %s" % variable
 
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize("launch_time_vars", [
         "{'likes_chicken': ['yes'], 'favorite_color': 'green'}",
         "---\nlikes_chicken:\n  - 'yes'\nfavorite_color: green"
@@ -295,6 +303,7 @@ class TestJobTemplateExtraVars(Base_Api_Test):
         assert job_vars['favorite_color'] == launch_time_vars['favorite_color']
         assert job_vars['intersection'] == survey_spec.get_variable_default('intersection')
 
+    @pytest.mark.ha_tower
     def test_launch_with_variables_needed_to_start_and_extra_vars_at_launch(self, job_template_with_extra_vars, required_survey_spec,
                                                                             launch_time_extra_vars):
         """Verify that when launch-time extra_vars are provided, that job

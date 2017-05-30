@@ -19,6 +19,7 @@ class TestJobTemplateSurveys(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.ha_tower
     @pytest.mark.parametrize("launch_time_vars",
                              ["{'non_survey_variable': false, 'submitter_email': 'sample_email@maffenmox.edu'}",
                               "---\nnon_survey_variable: false\nsubmitter_email: sample_email@maffenmox.edu"],
@@ -41,6 +42,7 @@ class TestJobTemplateSurveys(Base_Api_Test):
         expected_job_vars = dict(submitter_email=launch_time_vars['submitter_email'])
         assert job_extra_vars == expected_job_vars
 
+    @pytest.mark.ha_tower
     def test_post_spec_with_missing_fields(self, job_template_ping):
         """Verify the API does not allow survey creation when missing any or all
         of the spec, name, or description fields.
@@ -68,6 +70,7 @@ class TestJobTemplateSurveys(Base_Api_Test):
             with pytest.raises(exc.BadRequest):
                 job_template_ping.related.survey_spec.post(spec)
 
+    @pytest.mark.ha_tower
     def test_post_spec_with_empty_name(self, job_template_ping):
         """Verify the API allows a survey_spec with an empty name and description"""
         job_template_ping.survey_enabled = True
@@ -79,6 +82,7 @@ class TestJobTemplateSurveys(Base_Api_Test):
                                                                    variable="submitter_email",
                                                                    type="text")]))
 
+    @pytest.mark.ha_tower
     def test_update_survey_spec(self, job_template_ping, optional_survey_spec, required_survey_spec):
         """Verify the API allows replacing a survey spec with subsequent posts"""
         job_template_ping.add_survey(spec=optional_survey_spec)
@@ -89,6 +93,7 @@ class TestJobTemplateSurveys(Base_Api_Test):
         survey_spec.get()
         assert survey_spec.spec == required_survey_spec
 
+    @pytest.mark.ha_tower
     def test_job_template_launch_survey_enabled(self, job_template_ping, required_survey_spec):
         """Assess launch_pg.survey_enabled behaves as expected."""
         # check that survey_enabled is false by default
@@ -111,6 +116,7 @@ class TestJobTemplateSurveys(Base_Api_Test):
             "launch_pg.survey_enabled is False even though JT survey_enabled is True \
             and valid survey posted."
 
+    @pytest.mark.ha_tower
     def test_launch_with_optional_survey_spec(self, job_template_ping, optional_survey_spec):
         """Verify launch_pg attributes with an optional survey spec and job extra_vars."""
         job_template_ping.add_survey(spec=optional_survey_spec)
