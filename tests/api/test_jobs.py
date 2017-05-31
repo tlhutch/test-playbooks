@@ -300,6 +300,7 @@ class Test_Job(Base_Api_Test):
             "The extra_vars on a relaunched job should match the extra_vars on the job being relaunched (%s != %s)" % \
             (relaunch_extra_vars, job_extra_vars)
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1249")
     @pytest.mark.ha_tower
     def test_password_survey_launched_with_empty_extra_vars(self, factories):
         """Confirms that password surveys with defaults are displayed (and encrypted) when
@@ -469,6 +470,7 @@ class Test_Scan_Job(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken')
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1251", raises=AssertionError)
     @pytest.mark.ansible_integration
     def test_scan_job(self, install_enterprise_license_unlimited, scan_job_template):
         """Verifies that a default scan job populates fact_versions with the default three scan modules."""
@@ -485,6 +487,7 @@ class Test_Scan_Job(Base_Api_Test):
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
         confirm_fact_modules_present(new_facts, ansible=1, packages=1, services=1)
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1251", raises=AssertionError)
     @pytest.mark.ansible_integration
     def test_file_scan_job(self, install_enterprise_license_unlimited, files_scan_job_template):
         """Tests file scan jobs."""
@@ -501,6 +504,7 @@ class Test_Scan_Job(Base_Api_Test):
         new_facts = set(final_fact_versions) - set(initial_fact_versions)
         confirm_fact_modules_present(new_facts, ansible=1, packages=1, services=1, files=1)
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1251", raises=AssertionError)
     @pytest.mark.ansible_integration
     def test_recursive_file_scan_job(self, install_enterprise_license_unlimited, scan_job_template):
         """Tests that recursive file scan jobs pick up nested files"""
@@ -527,6 +531,7 @@ class Test_Scan_Job(Base_Api_Test):
         assert any(fact.path == "/bin/ls" for fact in files_fact_view_pg.facts), \
             "Did not find target file 'bin/ls' after running recursive file scan. Results: %s." % files_fact_view_pg.fact
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1251", raises=AssertionError)
     @pytest.mark.ansible_integration
     def test_file_scan_job_with_checksums(self, install_enterprise_license_unlimited, scan_job_template):
         """Tests that checksum file scan jobs include checksums."""
@@ -553,6 +558,7 @@ class Test_Scan_Job(Base_Api_Test):
         file_checksums = [x for x in files_fact_view_pg.facts if 'checksum' in x]
         assert len(file_checksums) > 0, "No files with checksums found after running a checksum scan job - %s." % file_checksums
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1251", raises=AssertionError)
     @pytest.mark.ansible_integration
     @pytest.mark.ha_tower
     def test_custom_scan_job(self, install_enterprise_license_unlimited, job_template):

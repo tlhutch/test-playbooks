@@ -374,6 +374,7 @@ class Test_Inventory_Update(Base_Api_Test):
         assert cloud_group_supporting_source_regions.get().total_hosts == 0, \
             "Unexpected number of hosts returned (%s != 0)." % cloud_group_supporting_source_regions.total_hosts
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1247", raises=AssertionError)
     @pytest.mark.parametrize("instance_filter", ["tag-key=Name", "key-name=jenkins", "tag:Name=*"])
     @pytest.mark.ansible_integration
     def test_inventory_update_with_matched_aws_instance_filter(self, aws_group, instance_filter):
@@ -416,6 +417,7 @@ class Test_Inventory_Update(Base_Api_Test):
         # assert whether hosts were imported
         assert aws_group.get().total_hosts == 0, "Unexpected number of hosts returned (%s != 0)." % aws_group.total_hosts
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1246", raises=AssertionError)
     @pytest.mark.ansible_integration
     @pytest.mark.parametrize(
         "only_group_by, expected_group_names",

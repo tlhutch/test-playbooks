@@ -93,6 +93,7 @@ class TestChannelsRBAC(Base_Api_Test):
                 received.remove(message)
             assert not received  # confirm no other messages received
 
+        @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1241", raises=AssertionError)
         @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
         def test_job_events(self, request, factories, v2, role):
             """Confirm that a user is only alerted of job events when provided an allowed role"""

@@ -82,6 +82,7 @@ class Test_Credential(Base_Api_Test):
         assert owner_organizations[0].get("id", None) == team.organization, \
             "Credential organization and team organization do not align."
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1258", raises=AssertionError)
     @pytest.mark.parametrize("payload, expected_result", [
         (dict(password="foo", username="foo", host="foo"), {"project": ["Project name required for OpenStack credential."]}),
         (dict(project="foo", username="foo", host="foo"), {"password": ["Password or API key required for OpenStack credential."]}),

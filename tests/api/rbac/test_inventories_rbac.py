@@ -60,6 +60,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(custom_group, httplib.FORBIDDEN)
             assert_response_raised(inventory, httplib.FORBIDDEN)
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1243", raises=AssertionError)
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'admin' should be able to:
@@ -87,6 +88,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(group, httplib.OK)
             assert_response_raised(inventory, httplib.OK)
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1243", raises=AssertionError)
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_use_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'use' should be able to:
@@ -119,6 +121,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(group, httplib.FORBIDDEN)
             assert_response_raised(inventory, httplib.FORBIDDEN)
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1243", raises=AssertionError)
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_adhoc_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'adhoc' should be able to:
@@ -151,6 +154,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(group, httplib.FORBIDDEN)
             assert_response_raised(inventory, httplib.FORBIDDEN)
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1243", raises=AssertionError)
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_update_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'update' should be able to:
@@ -183,6 +187,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
             assert_response_raised(group, httplib.FORBIDDEN)
             assert_response_raised(inventory, httplib.FORBIDDEN)
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1243", raises=AssertionError)
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'read' should be able to:

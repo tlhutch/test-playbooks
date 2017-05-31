@@ -11,6 +11,7 @@ class TestChannels(Base_Api_Test):
 
         pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
+        @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1241", raises=AssertionError)
         @pytest.mark.ansible_integration
         def test_ad_hoc_command_events(self, request, factories, v2):
             """Confirm that (un)subscriptions to status changed events and event emits are functional

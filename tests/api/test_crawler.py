@@ -74,6 +74,7 @@ payment_required = (httplib.PAYMENT_REQUIRED, 'payment_required')
 unauthorized = (httplib.UNAUTHORIZED, 'unauthorized')
 
 
+@pytest.mark.github("https://github.com/ansible/tower-qa/issues/1245", raises=AssertionError)
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
@@ -146,6 +147,7 @@ def test_unauthenticated(api, resource, method, authtoken, no_license):
         api.session.auth = previous_auth
 
 
+@pytest.mark.github("https://github.com/ansible/tower-qa/issues/1245", raises=AssertionError)
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive

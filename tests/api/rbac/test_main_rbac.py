@@ -205,6 +205,7 @@ class Test_Main_RBAC(Base_Api_Test):
             else:
                 resource.organization = org2.id
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1256")
     @pytest.mark.parametrize(
         'resource_name, fixture_name',
         [

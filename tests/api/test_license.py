@@ -412,6 +412,7 @@ class Test_No_License(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.LicenseExceeded):
             job_template.launch_job()
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1252", raises=AssertionError)
     @pytest.mark.ha_tower
     def test_post_invalid_license(self, api_config_pg, invalid_license_json):
         """Verify that various bogus license formats fail to successfully install"""
@@ -1003,6 +1004,7 @@ class Test_Basic_License(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.PaymentRequired):
             factories.organization()
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1251", raises=AssertionError)
     def test_unable_to_create_survey(self, job_template_ping, required_survey_spec):
         """Verify that attempting to enable and create a survey with a basic license raises a 402."""
         # verify survey enablement

@@ -21,6 +21,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1256")
     def test_unprivileged_user(self, factories):
         """An unprivileged user/team should not be able to:
         * Get the JT details page
@@ -368,6 +369,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled job_template role.")
 
+    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1256")
     def test_delete_job_as_org_admin(self, factories):
         """Create a run and a scan JT and an org_admin for each of these JTs. Then check
         that each org_admin may only delete his org's job.
