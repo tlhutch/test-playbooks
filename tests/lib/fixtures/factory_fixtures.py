@@ -247,3 +247,9 @@ def factory_namespace(request):
 def factories(request):
     """Inject a function-scoped factory namespace into your test context"""
     return factory_namespace(request)
+
+
+@pytest.fixture(scope='class')
+def class_factories(request):
+    """Inject a class-scoped factory namespace into your test context"""
+    return factory_namespace(request)
