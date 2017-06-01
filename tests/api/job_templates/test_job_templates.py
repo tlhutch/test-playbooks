@@ -411,8 +411,8 @@ print json.dumps(inv, indent=2)
             assert job_pg.job_tags == job_template_with_random_tag.job_tags, \
                 "Value for job_tags inconsistent with job_template value."
 
-    def test_launch_with_base_fact_module(self, factories):
-        """Test a store_facts JT with stock scan modules."""
+    def test_launch_with_store_facts_and_gather_facts(self, factories):
+        """Test a store_facts JT with gather facts."""
         host = factories.v2_host()
         ansible_facts = host.related.ansible_facts.get()
         assert not ansible_facts.json
@@ -427,7 +427,7 @@ print json.dumps(inv, indent=2)
         for fact in ansible_facts:
             assert 'ansible' in fact
 
-    def test_launch_with_custom_fact_modules(self, request, factories, ansible_runner, encrypted_scm_credential):
+    def test_launch_with_store_facts_and_custom_scan_modules(self, request, factories, ansible_runner, encrypted_scm_credential):
         """Test a store_facts JT with custom scan modules."""
         host = factories.v2_host()
 
