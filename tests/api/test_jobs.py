@@ -311,7 +311,8 @@ class Test_Job(Base_Api_Test):
                        variable='secret{}'.format(i),
                        type='password',
                        default='visible' if i % 2 else None) for i in range(10)]
-        jt = factories.job_template().add_survey(spec=survey)
+        jt = factories.job_template()
+        jt.add_survey(spec=survey)
         job = jt.launch(dict(extra_vars={}))
         assert(job.wait_until_completed().is_successful)
         extra_vars = json.loads(job.extra_vars)
