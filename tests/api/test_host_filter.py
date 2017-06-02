@@ -228,6 +228,24 @@ class Test_Host_Filter(Base_Api_Test):
         response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
         assert self.find_hosts(response) == expected_hosts
 
+    @pytest.mark.parametrize('host_filter',
+        [
+            ('name=hostA or (groups__name=groupAA and ansible_facts__ansible_system=not_found)'),
+            ('name=hostA or (groups__name=not_found and ansible_facts__ansible_system=Linux)'),
+            ('name=not_found or (groups__name=groupAA and ansible_facts__ansible_system=Linux)'),
+            ('(name=hostA or groups__name=groupAA) and ansible_facts__ansible_system=not_found'),
+            ('(name=hostA or groups__name=not_found) and ansible_facts__ansible_system=Linux'),
+            ('(name=not_found or groups__name=groupAA) and ansible_facts__ansible_system=Linux'),
+        ]
+    )
+    def test_smart_inventory(self, factories, api_hosts_pg, host_filter):
+        """host_filter should determine a smart inventory's hosts."""
+        inventory = factories.inventory(kind='smart', host_filter=host_filter)
+        hosts = inventory.related.hosts.get()
+
+        response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+        assert self.find_hosts(response) == self.find_hosts(hosts)
+
     def test_smart_search(self, api_hosts_pg, factories):
         name, description = fauxfactory.gen_utf8(), fauxfactory.gen_utf8()
         host = factories.host(name=name, description=description)
