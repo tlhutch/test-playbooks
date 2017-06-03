@@ -8,7 +8,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.skip_selenium
 class TestHostFilterRBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'host_filter_setup')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'loaded_inventories')
 
     def filter_response(self, response):
         return [host.id for host in response.results]
@@ -18,9 +18,9 @@ class TestHostFilterRBAC(Base_Api_Test):
         return [host.id for host in hosts.results]
 
     @pytest.fixture(scope="class")
-    def host_filter_setup(self, class_factories):
-        orgA, orgB = class_factories.organization(), class_factories.organization()
-        invA, invB = class_factories.inventory(organization=orgA), class_factories.inventory(organization=orgB)
+    def loaded_inventories(self, class_factories):
+        orgA, orgB = [class_factories.organization() for _ in range(2)]
+        invA, invB = [class_factories.inventory(organization=org) for org in (orgA, orgB)]
 
         hostDupA = class_factories.host(name="hostDup", inventory=invA)
         hostDupB = class_factories.host(name="hostDup", inventory=invB)
@@ -40,8 +40,8 @@ class TestHostFilterRBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("host_filter",
         ["name=hostDup", "groups__name=groupDup", "ansible_facts__ansible_system=Linux"])
-    def test_with_inventory_read(self, factories, api_hosts_pg, host_filter_setup, host_filter):
-        invA, invB = host_filter_setup[0], host_filter_setup[1]
+    def test_with_inventory_read(self, factories, api_hosts_pg, loaded_inventories, host_filter):
+        invA, invB = loaded_inventories[0], loaded_inventories[1]
         userA, userB = factories.user(), factories.user()
         invA.set_object_roles(userA, 'read'), invB.set_object_roles(userB, 'read')
 
@@ -55,8 +55,8 @@ class TestHostFilterRBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("host_filter",
         ["name=hostDup", "groups__name=groupDup", "ansible_facts__ansible_system=Linux"])
-    def test_with_org_admin(self, factories, api_hosts_pg, host_filter_setup, host_filter):
-        invA, invB = host_filter_setup[0], host_filter_setup[1]
+    def test_with_org_admin(self, factories, api_hosts_pg, loaded_inventories, host_filter):
+        invA, invB = loaded_inventories[0], loaded_inventories[1]
         userA, userB = factories.user(), factories.user()
         invA.ds.organization.add_admin(userA), invB.ds.organization.add_admin(userB)
 
