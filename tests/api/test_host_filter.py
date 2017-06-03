@@ -11,7 +11,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.skip_selenium
 class Test_Host_Filter(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'host_filter_setup')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'loaded_inventory')
     test_hosts = ['hostA', 'hostAA', 'hostB', 'hostDup']
 
     def find_hosts(self, response):
@@ -19,7 +19,7 @@ class Test_Host_Filter(Base_Api_Test):
         return [host.name for host in response.results if host.name in self.test_hosts]
 
     @pytest.fixture(scope="class")
-    def host_filter_setup(self, class_factories):
+    def loaded_inventory(self, class_factories):
         """Setup for host filter tests."""
         inventory = class_factories.v2_inventory()
 
@@ -52,8 +52,8 @@ class Test_Host_Filter(Base_Api_Test):
             ('name=hostDup', ['hostDup']),
         ]
     )
-    def test_basic_host_search(self, api_hosts_pg, host_filter, expected_hosts):
-        response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+    def test_basic_host_search(self, v2, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == expected_hosts
 
     @pytest.mark.parametrize('host_filter, expected_hosts',
@@ -66,8 +66,8 @@ class Test_Host_Filter(Base_Api_Test):
             ('name=hostA or name=hostAA or name=not_found', ['hostA', 'hostAA'])
         ]
     )
-    def test_host_search_with_or(self, api_hosts_pg, host_filter, expected_hosts):
-        response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+    def test_host_search_with_or(self, v2, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == expected_hosts
 
     @pytest.mark.parametrize('host_filter, expected_hosts',
@@ -79,8 +79,8 @@ class Test_Host_Filter(Base_Api_Test):
             ('name=hostA and name=hostB and name=not_found', []),
         ]
     )
-    def test_host_search_with_and(self, api_hosts_pg, host_filter, expected_hosts):
-        response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+    def test_host_search_with_and(self, v2, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == expected_hosts
 
     @pytest.mark.parametrize('host_filter, expected_hosts',
@@ -90,8 +90,8 @@ class Test_Host_Filter(Base_Api_Test):
             ('groups__name=not_found', []),
         ]
     )
-    def test_basic_group_search(self, api_hosts_pg, host_filter, expected_hosts):
-        response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+    def test_basic_group_search(self, v2, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == expected_hosts
 
     @pytest.mark.parametrize('host_filter, expected_hosts',
@@ -103,8 +103,8 @@ class Test_Host_Filter(Base_Api_Test):
             ('groups__name=groupA or groups__name=groupAA or groups__name=not_found', ['hostA', 'hostAA', 'hostDup']) # 6233
         ]
     )
-    def test_group_search_with_or(self, api_hosts_pg, host_filter, expected_hosts):
-        response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+    def test_group_search_with_or(self, v2, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == expected_hosts
 
     @pytest.mark.parametrize('host_filter, expected_hosts',
@@ -115,8 +115,8 @@ class Test_Host_Filter(Base_Api_Test):
             ('groups__name=groupA and groups__name=groupB and groups__name=not_found', [])
         ]
     )
-    def test_group_search_with_and(self, api_hosts_pg, host_filter, expected_hosts):
-        response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+    def test_group_search_with_and(self, v2, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == expected_hosts
 
     @pytest.mark.parametrize('ansible_fact',
@@ -128,42 +128,42 @@ class Test_Host_Filter(Base_Api_Test):
             "ansible_default_ipv6" # empty dictionary # 6015
         ]
     )
-    def test_dictionary_fact_search(self, api_hosts_pg, host_filter_setup, ansible_fact):
-        host = host_filter_setup.related.hosts.get().results.pop()
+    def test_dictionary_fact_search(self, v2, loaded_inventory, ansible_fact):
+        host = loaded_inventory.related.hosts.get().results.pop()
         ansible_facts = host.related.ansible_facts.get()
 
         raw_value = getattr(ansible_facts, ansible_fact)
         expected_value = str(raw_value).lower() if isinstance(raw_value, types.BooleanType) else raw_value
 
         host_filter = "ansible_facts__{0}={1}".format(ansible_fact, expected_value)
-        response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+        response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == self.test_hosts
 
-    def test_list_fact_search(self, api_hosts_pg, host_filter_setup):
-        host = host_filter_setup.related.hosts.get().results.pop()
+    def test_list_fact_search(self, v2, loaded_inventory):
+        host = loaded_inventory.related.hosts.get().results.pop()
         ansible_interfaces = host.related.ansible_facts.get().ansible_interfaces
 
         for item in ansible_interfaces:
             host_filter = "ansible_facts__ansible_interfaces[]={0}".format(item)
-            response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+            response = v2.hosts.get(host_filter=host_filter, page_size=200)
             assert self.find_hosts(response) == self.test_hosts
 
-    def test_nested_dictionary_fact_search(self, api_hosts_pg, host_filter_setup):
-        host = host_filter_setup.related.hosts.get().results.pop()
+    def test_nested_dictionary_fact_search(self, v2, loaded_inventory):
+        host = loaded_inventory.related.hosts.get().results.pop()
         python_version = host.related.ansible_facts.get().ansible_python.version
 
         for item in python_version.items():
             host_filter = "ansible_facts__ansible_python__version__{0}={1}".format(item[0], item[1])
-            response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+            response = v2.hosts.get(host_filter=host_filter, page_size=200)
             assert self.find_hosts(response) == self.test_hosts
 
-    def test_nested_list_fact_search(self, api_hosts_pg, host_filter_setup):
-        host = host_filter_setup.related.hosts.get().results.pop()
+    def test_nested_list_fact_search(self, v2, loaded_inventory):
+        host = loaded_inventory.related.hosts.get().results.pop()
         version_info = host.related.ansible_facts.get().ansible_python.version_info
 
         for item in version_info:
             host_filter = "ansible_facts__ansible_python__version_info[]={0}".format(item)
-            response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+            response = v2.hosts.get(host_filter=host_filter, page_size=200)
             assert self.find_hosts(response) == self.test_hosts
 
     @pytest.mark.parametrize('host_filter, expected_results',
@@ -175,8 +175,8 @@ class Test_Host_Filter(Base_Api_Test):
                 or ansible_facts__ansible_system=not_found", True)
         ]
     )
-    def test_fact_search_with_or(self, api_hosts_pg, host_filter, expected_results):
-        response = api_hosts_pg.get(host_filter=host_filter)
+    def test_fact_search_with_or(self, v2, host_filter, expected_results):
+        response = v2.hosts.get(host_filter=host_filter)
         if expected_results:
             assert self.find_hosts(response) == self.test_hosts
         else:
@@ -191,8 +191,8 @@ class Test_Host_Filter(Base_Api_Test):
                 and ansible_facts__ansible_system=not_found", False)
         ]
     )
-    def test_fact_search_with_and(self, api_hosts_pg, host_filter, expected_results):
-        response = api_hosts_pg.get(host_filter=host_filter)
+    def test_fact_search_with_and(self, v2, host_filter, expected_results):
+        response = v2.hosts.get(host_filter=host_filter)
         if expected_results:
             assert self.find_hosts(response) == self.test_hosts
         else:
@@ -210,8 +210,8 @@ class Test_Host_Filter(Base_Api_Test):
             ('name=not_found and groups__name=not_found and ansible_facts__ansible_system=not_found', []),
         ]
     )
-    def test_basic_hyrid_search(self, api_hosts_pg, host_filter, expected_hosts):
-        response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+    def test_basic_hyrid_search(self, v2, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == expected_hosts
 
     @pytest.mark.parametrize('host_filter, expected_hosts',
@@ -224,8 +224,8 @@ class Test_Host_Filter(Base_Api_Test):
             ('(name=not_found or groups__name=groupAA) and ansible_facts__ansible_system=Linux', ['hostAA', 'hostDup']),
         ]
     )
-    def test_advanced_hybrid_search(self, api_hosts_pg, host_filter, expected_hosts):
-        response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+    def test_advanced_hybrid_search(self, v2, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == expected_hosts
 
     @pytest.mark.parametrize('host_filter',
@@ -238,15 +238,15 @@ class Test_Host_Filter(Base_Api_Test):
             ('(name=not_found or groups__name=groupAA) and ansible_facts__ansible_system=Linux'),
         ]
     )
-    def test_smart_inventory(self, factories, api_hosts_pg, host_filter):
+    def test_smart_inventory(self, factories, v2, host_filter):
         """host_filter should determine a smart inventory's hosts."""
         inventory = factories.inventory(kind='smart', host_filter=host_filter)
         hosts = inventory.related.hosts.get()
 
-        response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+        response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == self.find_hosts(hosts)
 
-    def test_smart_search(self, api_hosts_pg, factories):
+    def test_smart_search(self, v2, factories):
         name, description = fauxfactory.gen_utf8(), fauxfactory.gen_utf8()
         host = factories.host(name=name, description=description)
 
@@ -255,11 +255,11 @@ class Test_Host_Filter(Base_Api_Test):
                         u"search={0}".format(name)[:10],
                         u"search={0}".format(description)[:10]]
         for host_filter in host_filters:
-            response = api_hosts_pg.get(host_filter=host_filter)
+            response = v2.hosts.get(host_filter=host_filter)
             assert response.count == 1
             assert response.results.pop().id == host.id
 
-    def test_unicode_search(self, api_hosts_pg, factories):
+    def test_unicode_search(self, v2, factories):
         host_name = fauxfactory.gen_utf8()
         group_name = fauxfactory.gen_utf8()
         group = factories.group(name=group_name)
@@ -268,12 +268,12 @@ class Test_Host_Filter(Base_Api_Test):
 
         host_filters = [u"name={0}".format(host_name), u"groups__name={0}".format(group_name)]
         for host_filter in host_filters:
-            response = api_hosts_pg.get(host_filter=host_filter, page_size=1000)
+            response = v2.hosts.get(host_filter=host_filter, page_size=200)
             assert response.count == 1
             assert response.results.pop().id == host.id
 
     @pytest.mark.parametrize("invalid_search", ["string", 1, 1.0, (0, 0), [0], {"k": "v"}, True],
         ids=["string", "integer", "float", "tuple", "list", "dict", "bool"])
-    def test_invalid_search(self, api_hosts_pg, invalid_search):
+    def test_invalid_search(self, v2, invalid_search):
         with pytest.raises(towerkit.exceptions.BadRequest):
-            api_hosts_pg.get(host_filter=invalid_search)
+            v2.hosts.get(host_filter=invalid_search)
