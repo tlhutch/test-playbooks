@@ -411,6 +411,43 @@ print json.dumps(inv, indent=2)
             assert job_pg.job_tags == job_template_with_random_tag.job_tags, \
                 "Value for job_tags inconsistent with job_template value."
 
+    def test_launch_with_store_facts_and_gather_facts(self, factories):
+        """Test a store_facts JT with gather facts."""
+        host = factories.v2_host()
+        ansible_facts = host.related.ansible_facts.get()
+        assert not ansible_facts.json
+
+        jt = factories.job_template(playbook='gather_facts.yml', inventory=host.ds.inventory, store_facts=True)
+        assert jt.launch().wait_until_completed().is_successful
+
+        assert 'ansible_processor' in ansible_facts
+        assert 'ansible_distribution' in ansible_facts
+        assert 'ansible_system' in ansible_facts
+
+        for fact in ansible_facts:
+            assert 'ansible' in fact
+
+    def test_launch_with_store_facts_and_custom_scan_modules(self, request, factories, ansible_runner, encrypted_scm_credential):
+        """Test a store_facts JT with custom scan modules."""
+        host = factories.v2_host()
+
+        machine_id = "4da7d1f8-14f3-4cdc-acd5-a3465a41f25d"
+        ansible_runner.file(path='/etc/redhat-access-insights', state="directory")
+        ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(machine_id))
+        request.addfinalizer(lambda: ansible_runner.file(path='/etc/redhat-access-insights', state="absent"))
+
+        project = factories.project(scm_url="git@github.com:ansible/tower-fact-modules.git",
+                                    credential=encrypted_scm_credential, wait=True)
+        jt = factories.job_template(project=project, playbook='scan_facts.yml', inventory=host.ds.inventory,
+                                    store_facts=True)
+        assert jt.launch().wait_until_completed().is_successful
+
+        ansible_facts = host.related.ansible_facts.get()
+        assert 'ansible_processor' in ansible_facts.get()
+        assert ansible_facts.insights.get('system_id') == machine_id
+        assert filter(lambda service: service['name'] == "sshd.service", ansible_facts.services)
+        assert filter(lambda package: package['name'] == "ansible-tower", ansible_facts.packages)
+
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('timeout, status, job_explanation', [
         (0, 'successful', ''),
