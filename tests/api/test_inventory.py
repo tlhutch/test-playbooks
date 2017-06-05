@@ -516,7 +516,6 @@ class Test_Inventory_Update(Base_Api_Test):
         assert(updates.results.pop().status == 'failed')
 
 
-# Is tower-manage inventory_import using Ansible at any point?
 @pytest.mark.api
 @pytest.mark.ha_tower
 @pytest.mark.skip_selenium
