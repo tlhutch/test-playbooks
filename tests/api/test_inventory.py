@@ -124,6 +124,18 @@ class Test_Inventory(Base_Api_Test):
         factories.inventory(name="test-org", organization=org1)
         factories.inventory(name="test-org", organization=org2)
 
+    def test_host_update(self, factories):
+        """Smart inventory hosts should reflect host changes."""
+        host = factories.host()
+        inventory = factories.inventory(kind='smart', host_filter="name={0}".format(host.name))
+        hosts = inventory.related.hosts.get()
+
+        host.description = fauxfactory.gen_utf8()
+        assert hosts.get().results.pop().description == host.description
+
+        host.delete()
+        assert hosts.get().count == 0
+
     def test_host_without_group(self, host_without_group, tower_version_cmp):
         """Verify that /inventory/N/script includes hosts that are not a member of
         any group.
