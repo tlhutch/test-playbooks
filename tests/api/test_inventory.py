@@ -232,44 +232,51 @@ class Test_Inventory_Update(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.ha_tower
-    def test_success(self, cloud_group):
-        """Verify successful inventory_update for various cloud providers."""
-        # Assert that the cloud_group has not updated
-        inv_source_pg = cloud_group.get_related('inventory_source')
-        assert not inv_source_pg.is_successful, \
-            "Before issuing an inventory_update, the inventory_source " \
-            "is unexpectedly marked as successful - %s" % inv_source_pg
+    def test_v1_update_inventory_source(self, cloud_group):
+        """Verify successful inventory import using /api/v1/inventory_sources/N/update/."""
+        inv_source = cloud_group.get_related('inventory_source')
+        assert not inv_source.is_successful
 
-        # get launch page
-        launch_pg = inv_source_pg.get_related('update')
+        update = inv_source.get_related('update')
+        assert update.can_update
 
-        # assert can_update == True
-        assert launch_pg.can_update, \
-            "Inventory_source unexpectedly has can_update:%s" % \
-            (launch_pg.json['can_update'],)
+        inv_update = inv_source.update().wait_until_completed()
+        assert inv_update.is_successful
+        assert inv_source.get().is_successful
 
-        # launch update and wait for completion
-        update_pg = inv_source_pg.update().wait_until_completed()
+    def test_v2_update_inventory_source(self, cloud_inventory):
+        """Verify successful inventory import using /api/v2/inventory_sources/N/update/."""
+        inv_source = cloud_inventory.related.inventory_sources.get().results.pop()
+        assert not inv_source.is_successful
 
-        # assert successful inventory_update
-        assert update_pg.is_successful, "inventory_update failed - %s" % update_pg
+        update = inv_source.get_related('update')
+        assert update.can_update
 
-        # assert successful inventory_source
-        inv_source_pg.get()
-        assert inv_source_pg.is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+        inv_update = inv_source.update().wait_until_completed()
+        assert inv_update.is_successful
+        assert inv_source.get().is_successful
 
-        # NOTE: We can't guarantee that any cloud instances are running, so we
-        # don't assert that cloud hosts were imported.
-        # assert cloud_group.get_related('hosts').count > 0, "No hosts found " \
-        #    "after inventory_update.  An inventory_update was not triggered by " \
-        #    "the callback as expected"
+    def test_v2_update_all_inventory_sources(self, request, factories):
+        """Verify successful inventory imports using /api/v2/inventories/N/update_inventory_sources/."""
+        inventory = factories.v2_inventory()
+        gce_cred, vmware_cred = [request.getfixturevalue(fixture) for fixture in ('gce_credential', 'vmware_credential')]
+        gce_source = factories.v2_inventory_source(inventory=inventory, source='gce', credential=gce_cred)
+        vmware_source = factories.v2_inventory_source(inventory=inventory, source='vmware', credential=vmware_cred)
 
-        # NOTE: We can't guarantee that any cloud instances are running.
-        # Also, not all cloud inventory scripts create groups when no hosts are
-        # found. Therefore, we no longer assert that child groups were created.
-        # assert cloud_group.get_related('children').count > 0, "No child groups " \
-        #    "found after inventory_update.  An inventory_update was not " \
-        #    "triggered by the callback as expected"
+        response = inventory.update_inventory_sources()
+        gce_source.wait_until_completed(), vmware_source.wait_until_completed()
+        gce_update, vmware_update = [source.related.last_update.get() for source in (gce_source, vmware_source)]
+
+        assert len([entry for entry in response if entry['inventory_source'] == gce_source.id and
+                    entry['inventory_update'] == gce_update.id]) == 1
+        assert len([entry for entry in response if entry['inventory_source'] == gce_source.id and
+                    entry['inventory_update'] == gce_update.id]) == 1
+        assert len(response.json) == 2
+
+        assert gce_update.is_successful
+        assert gce_source.is_successful
+        assert vmware_update.is_successful
+        assert vmware_source.is_successful
 
     @pytest.mark.ha_tower
     def test_inventory_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):

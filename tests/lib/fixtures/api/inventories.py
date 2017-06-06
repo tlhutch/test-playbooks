@@ -273,15 +273,26 @@ def custom_inventory_source(request, authtoken, custom_group):
     return custom_group.related.inventory_source.get()
 
 
-# Convenience fixture that iterates through supported cloud_groups
 @pytest.fixture(scope="function", params=['aws', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware',
                                           'openstack_v2', 'openstack_v3'])
-def cloud_group(request, ansible_os_family, ansible_distribution_major_version):
-    # new-style azure inventory imports are not supported on EL6 systems
-    if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6'
-            and request.param in ['azure', 'azure_ad']):
-        pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
-    return request.getfuncargvalue(request.param + '_group')
+def cloud_group(request):
+    return request.getfixturevalue(request.param + '_group')
+
+
+@pytest.fixture(scope="function", params=[('ec2', 'aws_credential'),
+                                          ('azure', 'azure_classic_credential'),
+                                          ('azure_rm', 'azure_credential'),
+                                          ('azure_rm', 'azure_ad_credential'),
+                                          ('gce', 'gce_credential'),
+                                          ('vmware', 'vmware_credential'),
+                                          ('openstack', 'openstack_v2_credential'),
+                                          ('openstack', 'openstack_v3_credential')
+    ], ids=['aws', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2', 'openstack_v3'])
+def cloud_inventory(request, factories):
+    inv_source, cred_fixture = request.param
+    cred = request.getfixturevalue(cred_fixture)
+    inv_source = factories.v2_inventory_source(source=inv_source, credential=cred)
+    return inv_source.ds.inventory
 
 
 # Convenience fixture that returns all of our cloud_groups as a list
