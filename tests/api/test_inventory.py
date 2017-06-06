@@ -429,7 +429,7 @@ class Test_Inventory_Update(Base_Api_Test):
         # assert whether hosts were imported
         assert aws_group.get().total_hosts == 0, "Unexpected number of hosts returned (%s != 0)." % aws_group.total_hosts
 
-    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1246", raises=AssertionError)
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/6482", raises=AssertionError)
     @pytest.mark.ansible_integration
     @pytest.mark.parametrize(
         "only_group_by, expected_group_names",
@@ -445,21 +445,17 @@ class Test_Inventory_Update(Base_Api_Test):
             ("availability_zone,ami_id", ["ec2", "zones", "images"],),
         ], ids=["\"\"", "availability_zone", "ami_id", "instance_id", "instance_type", "key_pair", "region", "security_group", "availability_zone,ami_id"])
     def test_aws_only_group_by(self, aws_group, only_group_by, expected_group_names):
-        """Tests that expected groups are created when supplying value for 'only_group_by'"""
-        # update the inv_source_pg and launch the inventory update
-        inv_source_pg = aws_group.get_related('inventory_source')
-        inv_source_pg.patch(group_by=only_group_by)
-        update_pg = inv_source_pg.update().wait_until_completed()
+        """Tests that expected groups are created when supplying value for only_group_by."""
+        inv_source = aws_group.get_related('inventory_source')
+        inv_source.group_by = only_group_by
 
-        # assess that the update was successful
-        assert update_pg.is_successful, "inventory_update failed - %s" % update_pg
-        assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+        update = inv_source.update().wait_until_completed()
+        assert update.is_successful
+        assert inv_source.get().is_successful
 
-        # assess spawned groups
-        groups_pg = aws_group.get_related('children')
-        actual_group_names = [group_pg.name for group_pg in groups_pg.results]
-        assert set(actual_group_names) == set(expected_group_names), \
-            "Unexpected groups created.\n\nExpected group names: %s\nActual group names: %s\n" % (expected_group_names, actual_group_names)
+        groups = aws_group.get_related('children')
+        actual_group_names = [group.name for group in groups.results]
+        assert set(actual_group_names) == set(expected_group_names)
 
     @pytest.mark.ansible_integration
     @pytest.mark.ha_tower
