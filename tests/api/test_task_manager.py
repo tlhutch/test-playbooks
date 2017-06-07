@@ -229,6 +229,44 @@ class Test_Sequential_Jobs(Base_Api_Test):
         # check that we have overlapping jobs
         check_overlapping_jobs(jobs)
 
+    def test_workflow_job_template(self, workflow_job_template, factories):
+        """Launch several WFJs using the same WFJT. Check that:
+        * No WFJs ran simultaneously.
+        * No WFJN jobs ran simultaneously.
+        * Jobs ran in the order spawned.
+        """
+        factories.workflow_job_template_node(workflow_job_template=workflow_job_template)
+
+        # launch two workflow jobs
+        ordered_wfjs = [workflow_job_template.launch() for _ in range(2)]
+        wait_for_jobs_to_finish(ordered_wfjs)
+
+        wfj1_nodes, wfj2_nodes = [wfj.related.workflow_nodes.get() for wfj in ordered_wfjs]
+        ordered_node_jobs = [wfj_nodes.results.pop().related.job.get() for wfj_nodes in (wfj1_nodes, wfj2_nodes)]
+
+        # confirm unified jobs ran as expected
+        confirm_unified_jobs(ordered_wfjs)
+        confirm_unified_jobs(ordered_node_jobs)
+
+    def test_workflow_job_template_with_allow_simultaneous(self, factories):
+        """Launch two WFJs using the same WFJT with allow_simultaneous enabled. Assert that we have
+        overlapping WFJs and WFJN jobs.
+        """
+        wfjt = factories.workflow_job_template(allow_simultaneous=True)
+        jt = factories.job_template(allow_simultaneous=True)
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        # launch two workflow jobs
+        ordered_wfjs = [wfjt.launch() for _ in range(2)]
+        wait_for_jobs_to_finish(ordered_wfjs)
+
+        wfj1_nodes, wfj2_nodes = [wfj.related.workflow_nodes.get() for wfj in ordered_wfjs]
+        ordered_node_jobs = [wfj_nodes.results.pop().related.job.get() for wfj_nodes in (wfj1_nodes, wfj2_nodes)]
+
+        # confirm unified jobs ran as expected
+        check_overlapping_jobs(ordered_wfjs)
+        check_overlapping_jobs(ordered_node_jobs)
+
     def test_sequential_ad_hoc_commands(self, request, v1):
         """Launch three ad hoc commands on the same inventory. Check that:
         * No commands ran simultaneously.
