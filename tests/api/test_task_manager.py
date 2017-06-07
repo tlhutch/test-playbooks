@@ -238,13 +238,11 @@ class Test_Sequential_Jobs(Base_Api_Test):
         factories.workflow_job_template_node(workflow_job_template=workflow_job_template)
 
         # launch two workflow jobs
-        wfj1, wfj2 = [workflow_job_template.launch() for _ in range(2)]
-        ordered_wfjs = [wfj1, wfj2]
+        ordered_wfjs = [workflow_job_template.launch() for _ in range(2)]
         wait_for_jobs_to_finish(ordered_wfjs)
 
-        wfj1_nodes, wfj2_nodes = [wfj.related.workflow_nodes.get() for wfj in (wfj1, wfj2)]
-        node_job1, node_job2 = [wfj_nodes.results.pop().related.job.get() for wfj_nodes in (wfj1_nodes, wfj2_nodes)]
-        ordered_node_jobs = [node_job1, node_job2]
+        wfj1_nodes, wfj2_nodes = [wfj.related.workflow_nodes.get() for wfj in ordered_wfjs]
+        ordered_node_jobs = [wfj_nodes.results.pop().related.job.get() for wfj_nodes in (wfj1_nodes, wfj2_nodes)]
 
         # confirm unified jobs ran as expected
         confirm_unified_jobs(ordered_wfjs)
@@ -259,13 +257,11 @@ class Test_Sequential_Jobs(Base_Api_Test):
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         # launch two workflow jobs
-        wfj1, wfj2 = [wfjt.launch() for _ in range(2)]
-        ordered_wfjs = [wfj1, wfj2]
+        ordered_wfjs = [wfjt.launch() for _ in range(2)]
         wait_for_jobs_to_finish(ordered_wfjs)
 
-        wfj1_nodes, wfj2_nodes = [wfj.related.workflow_nodes.get() for wfj in (wfj1, wfj2)]
-        node_job1, node_job2 = [wfj_nodes.results.pop().related.job.get() for wfj_nodes in (wfj1_nodes, wfj2_nodes)]
-        ordered_node_jobs = [node_job1, node_job2]
+        wfj1_nodes, wfj2_nodes = [wfj.related.workflow_nodes.get() for wfj in ordered_wfjs]
+        ordered_node_jobs = [wfj_nodes.results.pop().related.job.get() for wfj_nodes in (wfj1_nodes, wfj2_nodes)]
 
         # confirm unified jobs ran as expected
         check_overlapping_jobs(ordered_wfjs)
