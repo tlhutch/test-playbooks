@@ -20,12 +20,12 @@ def pause_awx_task_system(request, ansible_runner):
         log.debug("calling supervisorctl teardown pause_awx_task_system")
         contacted = ansible_runner.supervisorctl(name='tower-processes:awx-celeryd', state='started')
         result = contacted.values()[0]
-        if 'failed' in result:
+        if result.get('failed'):
             pytest.exit("tower-processes:awx-celeryd failed to restart - {0}.".format(json.dumps(result, indent=2)))
     request.addfinalizer(teardown)
 
     log.debug("calling supervisorctl fixture pause_awx_task_system")
     contacted = ansible_runner.supervisorctl(name='tower-processes:awx-celeryd', state='stopped')
     result = contacted.values()[0]
-    assert('failed' not in result
+    assert(not result.get('failed')
            ), "Stopping tower-processes:awx-celeryd failed - {0}.".format(json.dumps(result, indent=2))

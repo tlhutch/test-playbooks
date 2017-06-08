@@ -71,7 +71,7 @@ def update_sshd_config(ansible_runner):
     contacted = ansible_runner.service(name="sshd", state="restarted")
     # Ubuntu calls the service: ssh
     for result in contacted.values():
-        if 'failed' in result and result['failed']:
+        if result.get('failed'):
             ansible_runner.service(name="ssh", state="restarted")
 
 
@@ -531,7 +531,7 @@ class Test_Quickstart_Scenario(Base_Api_Test):
                 force='no',
                 repo=_project['scm_url'],
                 dest=os.path.join(awx_config['project_base_dir'], _project['local_path']))
-            assert 'failed' not in results, "Clone failed\n%s" % json.dumps(results, indent=4)
+            assert not results.get('failed'), "Clone failed\n%s" % json.dumps(results, indent=4)
 
         # Find desired object identifiers
         org_id = api_organizations_pg.get(name__exact=_project['organization']).results[0].id

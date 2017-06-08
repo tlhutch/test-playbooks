@@ -700,7 +700,7 @@ cat <<EOF
 %s
 EOF""" % (json.dumps(json_inventory_before, indent=4),))
         for result in contacted.values():
-            assert 'failed' not in result, "Failed to create inventory file: %s" % result
+            assert not result.get('failed'), "Failed to create inventory file: %s" % result
 
         # Import inventory_before
         cmd = "tower-manage inventory_import --inventory-id %s --instance-id-var ec2_id " \
@@ -716,7 +716,7 @@ cat <<EOF
 %s
 EOF""" % (json.dumps(json_inventory_after, indent=4),))
         for result in contacted.values():
-            assert 'failed' not in result, "Failed to create inventory file: %s" % result
+            assert not result.get('failed'), "Failed to create inventory file: %s" % result
 
         # Import inventory_after
         cmd = "tower-manage inventory_import --inventory-id %s --instance-id-var ec2_id " \
@@ -737,7 +737,7 @@ cat <<EOF
 %s
 EOF""" % (json.dumps(json_inventory_ipv6, indent=4),))
         for result in contacted.values():
-            assert 'failed' not in result, "Failed to create inventory file: %s" % result
+            assert not result.get('failed'), "Failed to create inventory file: %s" % result
 
         # Import inventory_before
         cmd = "tower-manage inventory_import --inventory-id %s --source /tmp/inventory.sh" % import_inventory.id

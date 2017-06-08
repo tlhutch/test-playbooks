@@ -22172,7 +22172,7 @@ cat <<EOF
 %s
 EOF""" % (json.dumps(inventory_dict, indent=4),))
         for result in contacted.values():
-            assert 'failed' not in result, "Failed to create inventory file: %s" % result
+            assert not result.get('failed'), "Failed to create inventory file: %s" % result
 
         # Run tower-manage inventory_import
         contacted = ansible_runner.command('tower-manage inventory_import --inventory-id %s --source /tmp/inventory.sh' % inventory.id)
