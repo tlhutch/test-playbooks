@@ -66,7 +66,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         result = contacted.values().pop()
         assert result['status'] == httplib.OK
         assert not result['changed']
-        assert 'failed' not in result
+        assert not result.get('failed')
 
         matching_hosts = contacted.values()[0]['json']['matching_hosts']
         assert len(matching_hosts) == 1
@@ -88,7 +88,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
         result = contacted.values().pop()
         assert result['status'] == httplib.BAD_REQUEST
-        assert result['failed']
+        assert result.get('failed')
         assert result['json']['msg'] == 'No matching host could be found!'
 
     @pytest.fixture(scope="function")
@@ -127,7 +127,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         result = contacted.values().pop()
         assert 'status' in result
         assert result['status'] == httplib.BAD_REQUEST
-        assert result['failed']
+        assert result.get('failed')
         assert result['json']['msg'] == 'No matching host could be found!'
 
     def test_provision_failure_with_multiple_host_matches(self, ansible_runner, factories, ansible_default_ipv4,
@@ -154,7 +154,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
         result = contacted.values().pop()
         assert result['status'] == httplib.BAD_REQUEST
-        assert 'failed' in result and result['failed']
+        assert result.get('failed')
         assert result['json']['msg'] == 'Multiple hosts matched the request!'
 
     def test_provision_failure_with_incorrect_hostkey(self, ansible_runner, job_template,
@@ -172,7 +172,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
         result = contacted.values().pop()
         assert result['status'] == httplib.FORBIDDEN
-        assert result['failed']
+        assert result.get('failed')
         assert result['json']['detail'] == 'You do not have permission to perform this action.'
 
     def test_provision_failure_without_credential(self, ansible_runner, job_template_no_credential,
@@ -189,7 +189,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
         result = contacted.values().pop()
         assert result['status'] == httplib.BAD_REQUEST
-        assert result['failed']
+        assert result.get('failed')
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
     def test_provision_failure_with_ask_credential(self, ansible_runner, job_template_ask,
@@ -206,7 +206,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
         result = contacted.values().pop()
         assert result['status'] == httplib.BAD_REQUEST
-        assert result['failed']
+        assert result.get('failed')
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
     def test_provision_failure_with_unprovided_survey_variables_needed_to_start(self, ansible_runner,
@@ -226,7 +226,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
         result = contacted.values().pop()
         assert result['status'] == httplib.BAD_REQUEST
-        assert result['failed']
+        assert result.get('failed')
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
     def test_provision_with_provided_variables_needed_to_start(self, ansible_runner,
@@ -249,7 +249,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         result = contacted.values().pop()
         assert result['status'] == httplib.CREATED
         assert not result['changed']
-        assert 'failed' not in result
+        assert not result.get('failed')
 
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job = job_template_variables_needed_to_start.related.jobs.get(id=job_id).results.pop().wait_until_completed()
@@ -276,7 +276,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         result = contacted.values().pop()
         assert result['status'] == httplib.CREATED
         assert not result['changed']
-        assert 'failed' not in result
+        assert not result.get('failed')
 
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job = job_template_with_random_limit.related.jobs.get(id=job_id).results.pop().wait_until_completed()
@@ -312,7 +312,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         result = contacted.values().pop()
         assert result['status'] == httplib.CREATED
         assert not result['changed']
-        assert 'failed' not in result
+        assert not result.get('failed')
 
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
@@ -344,7 +344,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
         callback_result = contacted.values().pop()
         assert callback_result['status'] == httplib.BAD_REQUEST
-        assert callback_result['failed']
+        assert callback_result.get('failed')
         assert callback_result['json']['msg'] == 'Cannot start automatically, user input required!'
 
     def test_provision_failure_with_currently_running_and_simultaneous_disallowed(
@@ -370,11 +370,11 @@ class TestJobTemplateCallbacks(Base_Api_Test):
             if attempt == 0:
                 assert result['status'] == httplib.CREATED
                 assert not result['changed']
-                assert 'failed' not in result
+                assert not result.get('failed')
                 job_id = result['location'].split('jobs/')[1].split('/')[0]
             else:
                 assert result['status'] == httplib.BAD_REQUEST
-                assert 'failed' in result
+                assert result.get('failed')
 
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
         assert job.launch_type == "callback"
@@ -408,7 +408,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
                                        validate_certs=False)
 
         result = contacted.values().pop()
-        assert 'failed' not in result
+        assert not result.get('failed')
         assert result['status'] == httplib.CREATED
         assert not result['changed']
         job_id = result['location'].split('jobs/')[1].split('/')[0]
@@ -447,7 +447,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
         result = contacted.values().pop()
         assert result['status'] == httplib.CREATED
-        assert 'failed' not in result
+        assert not result.get('failed')
         assert not result['changed']
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()

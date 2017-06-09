@@ -48,7 +48,7 @@ def project_ansible_playbooks_manual(request, factories, ansible_runner, api_con
     local_path = 'project_dir_{0}'.format(fauxfactory.gen_alphanumeric())
     full_path = os.path.join(api_config_pg.project_base_dir, local_path)
     results = ansible_runner.git(repo='https://github.com/jlaska/ansible-playbooks.git', dest=full_path)
-    assert 'failed' not in results, "Clone failed\n{0}".format(json.dumps(results, indent=4))
+    assert not results.get('failed'), "Clone failed\n{0}".format(json.dumps(results, indent=4))
 
     project = factories.project(name="ansible-playbooks.manual - {0}".format(local_path),
                                 local_path=local_path, scm_type='', wait=False, organization=organization)

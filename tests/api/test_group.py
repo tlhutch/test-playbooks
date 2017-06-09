@@ -83,7 +83,7 @@ def root_variation(request, authtoken, inventory, ansible_runner):
         content="""# --inventory-id %s %s""" % (inventory.id, request.param['inventory'])
     )
     for results in contacted.values():
-        assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
+        assert results.get('changed') and not results.get('failed'), "Failed to create inventory file: %s" % results
 
     contacted = ansible_runner.shell(
         "tower-manage inventory_import --overwrite --inventory-id %s "
@@ -150,7 +150,7 @@ def non_root_variation(request, authtoken, inventory, ansible_runner):
         content="""# --inventory-id %s %s""" % (inventory.id, request.param['inventory'])
     )
     for results in contacted.values():
-        assert results['changed'] and 'failed' not in results, \
+        assert results.get('changed') and not results.get('failed'), \
             "Failed to create inventory file: %s" % \
             json.dumps(results, indent=2)
 
@@ -178,7 +178,7 @@ def variation(request, authtoken, inventory, ansible_runner):
         dest='/tmp/inventory.ini', force=True,
         content="""# --inventory-id %s %s""" % (inventory.id, request.param['inventory']))
     for results in contacted.values():
-        assert results['changed'] and 'failed' not in results, "Failed to create inventory file: %s" % results
+        assert results.get('changed') and not results.get('failed'), "Failed to create inventory file: %s" % results
 
     contacted = ansible_runner.shell(
         "tower-manage inventory_import --overwrite --inventory-id %s "
