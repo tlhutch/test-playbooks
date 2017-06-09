@@ -278,6 +278,71 @@ class Test_Inventory_Update(Base_Api_Test):
         assert vmware_update.is_successful
         assert vmware_source.is_successful
 
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/6523")
+    def test_update_with_overwrite(self, factories):
+        """Verify inventory update with overwrite.
+        * Hosts and groups created within our script-spawned group should get deleted.
+        * Hosts and groups created outside of our custom group should persist.
+        """
+        inv_source = factories.v2_inventory_source(overwrite=True)
+        inv_source.update().wait_until_completed()
+        custom_group = inv_source.related.groups.get().results.pop()
+
+        # create group with host as child of script-created group
+        included_group = factories.group(inventory=inv_source.ds.inventory)
+        included_host = factories.host(inventory=inv_source.ds.inventory)
+        custom_group.add_group(included_group)
+        custom_group.add_host(included_host)
+
+        # create excluded inventory resources
+        excluded_group = factories.group(inventory=inv_source.ds.inventory)
+        excluded_host = factories.host(inventory=inv_source.ds.inventory)
+        excluded_group.add_host(excluded_host)
+        isolated_host = factories.host(inventory=inv_source.ds.inventory)
+
+        inv_source.update().wait_until_completed()
+        for resource in [included_group, included_host]:
+            with pytest.raises(towerkit.exceptions.NotFound):
+                resource.get()
+        for resource in [excluded_group, excluded_host, isolated_host]:
+            with pytest.raises(towerkit.exceptions.NotFound):
+                resource.get()
+
+    def test_update_with_overwrite_vars(self, factories):
+        """Verify group and host variables overwritten when enabled."""
+        inv_source = factories.v2_inventory_source(overwrite_vars=True)
+        inv_source.update().wait_until_completed()
+        custom_group = inv_source.related.groups.get().results.pop()
+
+        custom_group.variables = "{'overwrite_me': true}"
+        hosts = custom_group.related.hosts.get()
+        for host in hosts.results:
+            host.variables = "{'overwrite_me': true}"
+
+        inv_source.update().wait_until_completed()
+
+        assert not json.loads(custom_group.get().variables)
+        for host in hosts.results:
+            assert not json.loads(host.get().variables)
+
+    def test_update_without_overwrite_vars(self, factories):
+        """Verify group and host variables persist when disabled."""
+        inv_source = factories.v2_inventory_source()
+        inv_source.update().wait_until_completed()
+        custom_group = inv_source.related.groups.get().results.pop()
+
+        variables = "{'overwrite_me': true}"
+        custom_group.variables = variables
+        hosts = custom_group.related.hosts.get()
+        for host in hosts.results:
+            host.variables = variables
+
+        inv_source.update().wait_until_completed()
+
+        assert custom_group.get().variables == variables
+        for host in hosts.results:
+            assert host.get().variables == variables
+
     @pytest.mark.ha_tower
     def test_inventory_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):
         """Assess inventory imports with all possible choices for source_regions.
