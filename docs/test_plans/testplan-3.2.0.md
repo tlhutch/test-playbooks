@@ -72,6 +72,30 @@ https://gist.github.com/michelleperz/fe3a0eb4eda888221229730e34b28b89
 
 Against 100+ hosts.
 
+### Host Filter
+
+Store facts:
+1. [x] Verify store_facts with gather_facts playbook.
+1. [x] Verify store_facts with custom scan modules.
+
+Filter functionality:
+1. [x] Verify filter by host name functionality.
+1. [x] Verify filter by group name functionality.
+1. [x] Verify filter by ansible_fact functionality transversing lists.
+1. [ ] Verify filter by ansible_fact functionality transversing dictionaries.
+1. [ ] Verify filter by ansible_fact functionality transversing nested lists and dictionaries.
+1. [x] Verify two-part filters with OR operator.
+1. [x] Verify two-part filters with AND operator.
+1. [x] Verify three-part filters with a mix of boolean operators.
+1. [x] Verify host_filter order of operations (parenthees support).
+1. [x] Verify host_filter against unicode.
+1. [x] Verify host_filter smart-search support.
+1. [x] Verify proper handling of invalid host_filter requests.
+
+RBAC:
+1. [x] Host filter should return resources for which a user has inventory-read permissions.
+1. [x] Host filter results are organization-scoped for organization admins.
+
 ### Insights integration 
 [Feature](https://docs.google.com/document/d/1gpjGumL5SVCSqcJKTkkFTQGWAQ6vLUxn_NOrE75TMtk/edit)
 
