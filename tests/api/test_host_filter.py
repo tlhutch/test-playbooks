@@ -240,7 +240,7 @@ class Test_Host_Filter(Base_Api_Test):
     )
     def test_smart_inventory(self, factories, v2, host_filter):
         """host_filter should determine a smart inventory's hosts."""
-        inventory = factories.inventory(kind='smart', host_filter=host_filter)
+        inventory = factories.v2_inventory(kind='smart', host_filter=host_filter)
         hosts = inventory.related.hosts.get()
 
         response = v2.hosts.get(host_filter=host_filter, page_size=200)
@@ -250,7 +250,7 @@ class Test_Host_Filter(Base_Api_Test):
         """host_filter changes should be immediately reflected in a
         smart inventory's hosts.
         """
-        inventory = factories.inventory(kind='smart', host_filter="name=hostA")
+        inventory = factories.v2_inventory(kind='smart', host_filter="name=hostA")
         hosts = inventory.related.hosts.get()
         assert self.find_hosts(hosts) == ['hostA']
 

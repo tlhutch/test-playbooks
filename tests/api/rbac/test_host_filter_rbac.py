@@ -40,30 +40,30 @@ class TestHostFilterRBAC(Base_Api_Test):
 
     @pytest.mark.parametrize("host_filter",
         ["name=hostDup", "groups__name=groupDup", "ansible_facts__ansible_system=Linux"])
-    def test_with_inventory_read(self, factories, api_hosts_pg, loaded_inventories, host_filter):
+    def test_with_inventory_read(self, factories, v2, loaded_inventories, host_filter):
         invA, invB = loaded_inventories[0], loaded_inventories[1]
         userA, userB = factories.user(), factories.user()
         invA.set_object_roles(userA, 'read'), invB.set_object_roles(userB, 'read')
 
         with self.current_user(username=userA.username, password=userA.password):
-            response = api_hosts_pg.get(host_filter=host_filter)
+            response = v2.hosts.get(host_filter=host_filter)
             assert self.filter_response(response) == self.find_hosts(invA)
 
         with self.current_user(username=userB.username, password=userB.password):
-            response = api_hosts_pg.get(host_filter=host_filter)
+            response = v2.hosts.get(host_filter=host_filter)
             assert self.filter_response(response) == self.find_hosts(invB)
 
     @pytest.mark.parametrize("host_filter",
         ["name=hostDup", "groups__name=groupDup", "ansible_facts__ansible_system=Linux"])
-    def test_with_org_admin(self, factories, api_hosts_pg, loaded_inventories, host_filter):
+    def test_with_org_admin(self, factories, v2, loaded_inventories, host_filter):
         invA, invB = loaded_inventories[0], loaded_inventories[1]
         userA, userB = factories.user(), factories.user()
         invA.ds.organization.add_admin(userA), invB.ds.organization.add_admin(userB)
 
         with self.current_user(username=userA.username, password=userA.password):
-            response = api_hosts_pg.get(host_filter=host_filter)
+            response = v2.hosts.get(host_filter=host_filter)
             assert self.filter_response(response) == self.find_hosts(invA)
 
         with self.current_user(username=userB.username, password=userB.password):
-            response = api_hosts_pg.get(host_filter=host_filter)
+            response = v2.hosts.get(host_filter=host_filter)
             assert self.filter_response(response) == self.find_hosts(invB)
