@@ -24,19 +24,25 @@ inventory_update:
   read: {delete: false, start: false}
   update: {delete: false, start: true}
   use: {delete: false, start: false}
-# NOTE: for groups with no inv_source, start and schedule should be 'false' but we test these in our unittests and not in integration
+# NOTE: for groups with no inventory source, start and schedule should be false but we test these in our unittests and not in integration
 group:
-  ad hoc: {copy: false, delete: false, edit: false, schedule: false, start: false}
-  admin: {copy: true, delete: true, edit: true, schedule: false, start: false}
-  read: {copy: false, delete: false, edit: false, schedule: false, start: false}
-  update: {copy: false, delete: false, edit: false, schedule: false, start: false}
-  use: {copy: false, delete: false, edit: false, schedule: false, start: false}
+  ad hoc: {copy: false, delete: false, edit: false}
+  admin: {copy: true, delete: true, edit: true}
+  read: {copy: false, delete: false, edit: false}
+  update: {copy: false, delete: false, edit: false}
+  use: {copy: false, delete: false, edit: false}
 host:
   ad hoc: {delete: false, edit: false}
   admin: {delete: true, edit: true}
   read: {delete: false, edit: false}
   update: {delete: false, edit: false}
   use: {delete: false, edit: false}
+inventory_source:
+  ad hoc: {edit: false, start: false, schedule: false, delete: false}
+  admin: {edit: true, start: true, schedule: true, delete: true}
+  read: {edit: false, start: false, schedule: false, delete: false}
+  update: {edit: false, start: true, schedule: true, delete: false}
+  use: {edit: false, start: false, schedule: false, delete: false}
 job:
   admin: {delete: false, start: true}
   execute: {delete: false, start: true}

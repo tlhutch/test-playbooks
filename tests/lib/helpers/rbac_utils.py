@@ -114,11 +114,15 @@ def check_user_capabilities(resource, role):
     # if given an inventory, additionally check child groups and hosts
     # child groups/hosts should have the same value for 'user_capabilities' as their inventory
     if resource.type == 'inventory':
-        groups_pg = resource.get_related('groups')
-        for group in groups_pg.results:
+        groups = resource.get_related('groups')
+        for group in groups.results:
             assert group.summary_fields['user_capabilities'] == user_capabilities['group'][role], \
-                "Unexpected response for 'user_capabilities' when testing groups with a user with inventory-%s." % role
-        hosts_pg = resource.get_related('hosts')
-        for host in hosts_pg.results:
+                "Unexpected response for 'user_capabilities' when testing groups with a user with inventory-{0}.".format(role)
+        hosts = resource.get_related('hosts')
+        for host in hosts.results:
             assert host.summary_fields['user_capabilities'] == user_capabilities['host'][role], \
-                "Unexpected response for 'user_capabilities' when testing hosts with a user with inventory-%s." % role
+                "Unexpected response for 'user_capabilities' when testing hosts with a user with inventory-{0}.".format(role)
+        inv_sources = resource.get_related('inventory_sources')
+        for inv_source in inv_sources.results:
+            assert inv_source.summary_fields['user_capabilities'] == user_capabilities['inventory_source'][role], \
+                "Unexpected response for 'user_capabilities' when testing inv_source with a user with inventory-{0}.".format(role)
