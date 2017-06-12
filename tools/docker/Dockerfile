@@ -9,6 +9,7 @@ RUN yum install -y \
     ca-certificates \
     gcc \
     gdb \
+    libffi-devel \
     openssl \
     openssl-devel \
     python \
