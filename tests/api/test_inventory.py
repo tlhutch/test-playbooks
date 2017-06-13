@@ -127,7 +127,7 @@ class Test_Inventory(Base_Api_Test):
     def test_host_update(self, factories):
         """Smart inventory hosts should reflect host changes."""
         host = factories.host()
-        inventory = factories.inventory(kind='smart', host_filter="name={0}".format(host.name))
+        inventory = factories.v2_inventory(kind='smart', host_filter="name={0}".format(host.name))
         hosts = inventory.related.hosts.get()
 
         host.description = fauxfactory.gen_utf8()
