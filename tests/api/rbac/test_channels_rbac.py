@@ -8,13 +8,10 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestChannelsRBAC(Base_Api_Test):
 
-        pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-
-        @pytest.mark.parametrize('role', ['ad hoc', 'admin', 'read', 'update', 'use'])
-        def test_ad_hoc_command_events(self, request, factories, v2, role):
-            """Confirm that a user is only alerted of ad hoc events when provided an allowed role"""
+        def test_ad_hoc_command_events_unauthorized_subscription(self, request, factories, v2):
             inventory = factories.v2_host().ds.inventory
             user = factories.v2_user()
             ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
@@ -23,21 +20,35 @@ class TestChannelsRBAC(Base_Api_Test):
             ws.pending_ad_hoc_stdout()
             utils.logged_sleep(3)
             for m in ws:
-                pass  # clear user identity
+                pass
 
             ahc = factories.v2_ad_hoc_command(module_name='shell', module_args='true', inventory=inventory)
             ahc.wait_until_completed()
             received = [m for m in ws]
             denied_error = dict(error='access denied to channel ad_hoc_command_events for resource id {0.id}'
-                                .format(ahc))
+                                      .format(ahc))
             assert denied_error in received
+            for msg in received:
+                if msg != denied_error:
+                    assert msg['group_name'] == 'jobs'
 
+        @pytest.mark.parametrize('role', ['ad hoc', 'admin', 'read', 'update', 'use'])
+        def test_ad_hoc_command_events_with_allowed_role(self, request, factories, v2, role):
+            """Confirm that a user is only alerted of ad hoc events when provided an allowed role"""
+            inventory = factories.v2_host().ds.inventory
+            user = factories.v2_user()
             assert inventory.set_object_roles(user, role)
 
-            # subscribe to ahc as user
+            ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
+            request.addfinalizer(ws.close)
+
             ws.pending_ad_hoc_stdout()
-            utils.logged_sleep(3)  # give Tower some time to process subscription
-            ahc = ahc.relaunch().wait_until_completed()
+            utils.logged_sleep(3)
+            for m in ws:
+                pass
+
+            ahc = factories.v2_ad_hoc_command(module_name='shell', module_args='true', inventory=inventory)
+            ahc.wait_until_completed()
 
             # keys where ws event doesn't match retrieved event for subtle reasons
             not_of_interest = set(('created', 'event_name', 'modified'))
@@ -64,9 +75,9 @@ class TestChannelsRBAC(Base_Api_Test):
                 filtered_received.remove(expected)
             assert not filtered_received  # confirm no other messages received
 
-        @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5158')
+        @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5158', skip=True)
         @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-        def test_inventory_update_status_changes(self, request, factories, v2, role):
+        def test_inventory_update_status_changes_with_allowed_role(self, request, factories, v2, role):
             """Confirm that a user is only alerted of inventory source updates statuses when provided an allowed role"""
             user = factories.v2_user()
             ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
@@ -93,10 +104,7 @@ class TestChannelsRBAC(Base_Api_Test):
                 received.remove(message)
             assert not received  # confirm no other messages received
 
-        @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1241", raises=AssertionError)
-        @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
-        def test_job_events(self, request, factories, v2, role):
-            """Confirm that a user is only alerted of job events when provided an allowed role"""
+        def test_job_events_unauthorized_subscription(self, request, factories, v2):
             user = factories.v2_user()
             inventory = factories.v2_host().ds.inventory
             jt = factories.v2_job_template(inventory=inventory)
@@ -106,18 +114,32 @@ class TestChannelsRBAC(Base_Api_Test):
             ws.pending_job_stdout()
             utils.logged_sleep(3)
             for m in ws:
-                pass  # clear user identity
+                pass
 
             job = jt.launch().wait_until_completed()
             received = [m for m in ws]
             denied_error = dict(error='access denied to channel job_events for resource id {0.id}'
                                 .format(job))
             assert denied_error in received
+            for msg in received:
+                if msg != denied_error:
+                    assert msg['group_name'] == 'jobs'
 
+        @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+        def test_job_events_with_allowed_role(self, request, factories, v2, role):
+            """Confirm that a user is only alerted of job events when provided an allowed role"""
+            user = factories.v2_user()
+            inventory = factories.v2_host().ds.inventory
+            jt = factories.v2_job_template(inventory=inventory)
             assert jt.set_object_roles(user, role)
 
+            ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
+            request.addfinalizer(ws.close)
             ws.pending_job_stdout()
             utils.logged_sleep(3)
+            for m in ws:
+                pass
+
             job = jt.launch().wait_until_completed()
 
             # keys where ws event doesn't match retrieved event for subtle reasons
@@ -144,13 +166,9 @@ class TestChannelsRBAC(Base_Api_Test):
                 assert expected in filtered_received
                 filtered_received.remove(expected)
 
-            ws.unsubscribe()
-            utils.logged_sleep(3)
-            job.relaunch().wait_until_completed()
-
-        @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5158')
+        @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5158', skip=True)
         @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-        def test_project_update_status_changes(self, request, factories, v2, role):
+        def test_project_update_status_changes_with_allowed_role(self, request, factories, v2, role):
             """Confirm that a user is only alerted of project updates statuses when provided an allowed role"""
             user = factories.v2_user()
             ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
@@ -176,48 +194,67 @@ class TestChannelsRBAC(Base_Api_Test):
                 received.remove(message)
             assert not received  # confirm no other messages received
 
-        @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
-        def test_workflow_events(self, request, factories, v2, role):
-            """Confirm that a user is only alerted of workflow events when provided an allowed role"""
+        def test_workflow_events_unauthorized_subscription(self, request, factories, v2):
             user = factories.v2_user()
             ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
             request.addfinalizer(ws.close)
             inventory = factories.v2_host().ds.inventory
-            success_jt = factories.job_template(inventory=inventory, playbook='debug.yml')
-            fail_jt = factories.job_template(inventory=inventory, playbook='fail_unless.yml')
-            wfjt = factories.workflow_job_template()
-            root = factories.workflow_job_template_node(workflow_job_template=wfjt,
+            success_jt = factories.v2_job_template(inventory=inventory, playbook='debug.yml')
+            fail_jt = factories.v2_job_template(inventory=inventory, playbook='fail_unless.yml')
+            wfjt = factories.v2_workflow_job_template()
+            root = factories.v2_workflow_job_template_node(workflow_job_template=wfjt,
                                                         unified_job_template=success_jt)
             failure = root.related.success_nodes.post(dict(unified_job_template=fail_jt.id))
-            success = failure.related.failure_nodes.post(dict(unified_job_template=success_jt.id))
+            failure.related.failure_nodes.post(dict(unified_job_template=success_jt.id))
             ws.pending_workflow_events()
             utils.logged_sleep(3)
             for m in ws:
                 pass  # empty user indentifier
 
             wfj = wfjt.launch().wait_until_completed()
-            ignored_success_ids = set(result.id for result in success_jt.related.jobs.get().results)
-            ignored_fail_id = fail_jt.related.jobs.get().results.pop().id
-
             received = [m for m in ws]
             denied_error = dict(error='access denied to channel workflow_events for resource id {0.id}'
                                 .format(wfj))
             assert denied_error in received
+            for msg in received:
+                if msg != denied_error:
+                    assert msg['group_name'] == 'jobs'
 
+        @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+        def test_workflow_events_with_allowed_role(self, request, factories, v2, role):
+            """Confirm that a user is only alerted of workflow events when provided an allowed role"""
+            user = factories.v2_user()
+            inventory = factories.v2_host().ds.inventory
+            success_jt = factories.v2_job_template(inventory=inventory, playbook='debug.yml')
+            fail_jt = factories.v2_job_template(inventory=inventory, playbook='fail_unless.yml')
+            wfjt = factories.v2_workflow_job_template()
             for resource in (fail_jt, success_jt, wfjt):
                 assert resource.set_object_roles(user, role)
+
+            root = factories.v2_workflow_job_template_node(workflow_job_template=wfjt,
+                                                        unified_job_template=success_jt)
+            failure = root.related.success_nodes.post(dict(unified_job_template=fail_jt.id))
+            success = failure.related.failure_nodes.post(dict(unified_job_template=success_jt.id))
+
+            ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
+            request.addfinalizer(ws.close)
+
+            ws.pending_workflow_events()
+            utils.logged_sleep(3)
+            for m in ws:
+                pass  # empty user indentifier
 
             ws.pending_workflow_events()
             utils.logged_sleep(3)
             wfj = wfjt.launch().wait_until_completed()
 
             with self.current_user(user.username, user.password):
-                success_job_ids = set(r.id for r in success_jt.related.jobs.get().results) - ignored_success_ids
-                failure_job_id = filter(lambda x: x.id is not ignored_fail_id,
-                                        fail_jt.related.jobs.get().results).pop().id
+                success_job_ids = [r.id for r in success_jt.related.jobs.get().results]
+                failure_job_id = fail_jt.related.jobs.get().results.pop().id
 
             mapper = WorkflowTreeMapper(WorkflowTree(wfjt), WorkflowTree(wfj)).map()
             base_workflow_event = dict(group_name='workflow_events', workflow_job_id=wfj.id)
+
             expected = []
             for workflow_node_id, job_id in zip((mapper[root.id], mapper[success.id]), success_job_ids):
                 for status in ('pending', 'waiting', 'running', 'successful'):

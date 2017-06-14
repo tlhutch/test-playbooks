@@ -2,6 +2,10 @@ from towerkit.utils import PseudoNamespace
 from towerkit.api import mixins, pages
 import pytest
 
+import logging
+
+log = logging.getLogger(__name__)
+
 
 def flattened_has_creates(*items):
     flattened = []
@@ -118,6 +122,10 @@ class V2InventoryScriptFactory(HasCreateFactory):
     model = pages.V2InventoryScript
 
 
+class V2InventorySourceFactory(HasCreateFactory):
+    model = pages.V2InventorySource
+
+
 class LabelFactory(HasCreateFactory):
     model = pages.Label
 
@@ -231,6 +239,7 @@ def factory_namespace(request):
         v2_host=FactoryFixture(request, V2HostFactory),
         v2_inventory=FactoryFixture(request, V2InventoryFactory),
         v2_inventory_script=FactoryFixture(request, V2InventoryScriptFactory),
+        v2_inventory_source=FactoryFixture(request, V2InventorySourceFactory),
         v2_job_template=FactoryFixture(request, V2JobTemplateFactory),
         v2_label=FactoryFixture(request, V2LabelFactory),
         v2_notification_template=FactoryFixture(request, V2NotificationTemplateFactory),
@@ -244,12 +253,12 @@ def factory_namespace(request):
 
 
 @pytest.fixture
-def factories(request):
+def factories(subrequest):
     """Inject a function-scoped factory namespace into your test context"""
-    return factory_namespace(request)
+    return factory_namespace(subrequest)
 
 
 @pytest.fixture(scope='class')
-def class_factories(request):
+def class_factories(class_subrequest):
     """Inject a class-scoped factory namespace into your test context"""
-    return factory_namespace(request)
+    return factory_namespace(class_subrequest)
