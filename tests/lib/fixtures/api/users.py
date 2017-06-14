@@ -72,25 +72,34 @@ def superuser(authtoken, factories):
     return user
 
 
+@pytest.fixture
+def system_auditor(authtoken, factories):
+    user = factories.user(username="system_auditor_%s" % fauxfactory.gen_alphanumeric(),
+                          first_name="Joe (%s)" % fauxfactory.gen_utf8(),
+                          last_name="System Auditor (%s)" % fauxfactory.gen_utf8(),
+                          is_system_auditor=True)
+    return user
+
+
 @pytest.fixture(scope="function")
-def all_users(superuser, org_admin, org_user, anonymous_user):
+def all_users(superuser, org_admin, org_user, anonymous_user, system_auditor):
     """Return a list of user types"""
-    return (superuser, org_admin, org_user, anonymous_user)
+    return (superuser, org_admin, org_user, anonymous_user, system_auditor)
 
 
-@pytest.fixture(scope="function", params=('superuser', 'org_admin', 'org_user', 'anonymous_user'))
+@pytest.fixture(scope="function", params=('superuser', 'org_admin', 'org_user', 'anonymous_user', 'system_auditor'))
 def all_user(request):
     """Return the fixture for the specified request.param"""
     return request.getfuncargvalue(request.param)
 
 
 @pytest.fixture(scope="function")
-def non_superusers(org_admin, org_user, anonymous_user):
+def non_superusers(org_admin, org_user, anonymous_user, system_auditor):
     """Return a list of non-superusers"""
-    return (org_admin, org_user, anonymous_user)
+    return (org_admin, org_user, anonymous_user, system_auditor)
 
 
-@pytest.fixture(scope="function", params=('org_admin', 'org_user', 'anonymous_user'))
+@pytest.fixture(scope="function", params=('org_admin', 'org_user', 'anonymous_user', 'system_auditor'))
 def non_superuser(request):
     """Return the fixture for the specified request.param"""
     return request.getfuncargvalue(request.param)

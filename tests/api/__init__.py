@@ -2,6 +2,7 @@ from StringIO import StringIO
 import logging
 import re
 
+from towerkit.api import User
 import contextlib
 import pytest
 
@@ -84,8 +85,11 @@ class Base_Api_Test(object):
         return True
 
     @contextlib.contextmanager
-    def current_user(self, username, password):
+    def current_user(self, username=None, password=None):
         """Context manager to allow running tests as an alternative login user."""
+        if isinstance(username, User):
+            password = username.password
+            username = username.username
         try:
             previous_auth = self.api.session.auth
             self.api.login(username, password)
