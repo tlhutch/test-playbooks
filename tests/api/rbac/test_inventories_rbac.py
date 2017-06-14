@@ -254,8 +254,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_update_custom_group(self, factories, role):
-        """Test ability to update a custom group."""
+    def test_update_custom_source(self, factories, role):
+        """Test ability to update a custom source."""
         ALLOWED_ROLES = ['admin', 'update']
         REJECTED_ROLES = ['use', 'ad hoc', 'read']
 
@@ -276,8 +276,8 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_update_cloud_group(self, request, factories, role):
-        """Test ability to update a cloud group. Note: only tested on AWS to save time.
+    def test_update_cloud_source(self, request, factories, role):
+        """Test ability to update a cloud source. Note: only tested on AWS to save time.
         Also, user should be able launch update even though cloud_credential is under
         admin user.
         """
@@ -297,6 +297,35 @@ class Test_Inventory_RBAC(Base_Api_Test):
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     inv_source.update()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_update_all_inventory_sources(self, request, factories, role):
+        """Test ability to update all inventory sources. User should be able to
+        launch update even though cloud_credential is owned by admin user.
+        """
+        ALLOWED_ROLES = ['admin', 'update']
+        REJECTED_ROLES = ['use', 'ad hoc', 'read']
+
+        inventory = factories.v2_inventory()
+        gce_cred, vmware_cred = [request.getfixturevalue(fixture) for fixture in ('gce_credential', 'vmware_credential')]
+        gce_source = factories.v2_inventory_source(inventory=inventory, source='gce', credential=gce_cred)
+        vmware_source = factories.v2_inventory_source(inventory=inventory, source='vmware', credential=vmware_cred)
+
+        user = factories.user()
+        inventory.set_object_roles(user, role)
+
+        with self.current_user(user):
+            if role in ALLOWED_ROLES:
+                inventory.update_inventory_sources()
+                gce_source.wait_until_completed(), vmware_source.wait_until_completed()
+                gce_update, vmware_update = [source.related.last_update.get() for source in (gce_source, vmware_source)]
+                assert gce_update.is_successful and vmware_update.is_successful
+                assert gce_source.get().is_successful and vmware_update.get().is_successful
+            elif role in REJECTED_ROLES:
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    inventory.update_inventory_sources()
             else:
                 raise ValueError("Received unhandled inventory role.")
 
