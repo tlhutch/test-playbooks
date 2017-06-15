@@ -1,6 +1,4 @@
-import towerkit.tower.inventory
-import towerkit.exceptions
-import towerkit.utils
+from towerkit import exceptions as exc
 import fauxfactory
 import pytest
 
@@ -17,11 +15,9 @@ class Test_Inventory(Base_Api_Test):
 
     def test_inventory_names(self, factories):
         """Test that we can have inventories with the same name in different organizations."""
-        org1 = factories.organization()
-        org2 = factories.organization()
-
-        factories.inventory(name="test-org", organization=org1)
-        factories.inventory(name="test-org", organization=org2)
+        name = fauxfactory.gen_alphanumeric()
+        factories.inventory(name=name)
+        factories.inventory(name=name)
 
     def test_host_update(self, factories):
         """Smart inventory hosts should reflect host changes."""
@@ -35,89 +31,69 @@ class Test_Inventory(Base_Api_Test):
         host.delete()
         assert hosts.get().count == 0
 
-    def test_host_without_group(self, host_without_group, tower_version_cmp):
-        """Verify that /inventory/N/script includes hosts that are not a member of
-        any group.
-            1) Create inventory with hosts, but no groups
-            2) Verify the hosts appear in related->hosts
-            2) Verify the hosts appear in related->script
+    def test_host_without_group(self, host_without_group):
+        """Verify that inventories/N/script includes hosts that are not a member of any group.
+        * Create inventory with host and no groups
+        * Verify host appears in related->hosts
+        * Verify host appears in related->script
         """
-        if tower_version_cmp('2.0.0') < 0:
-            pytest.xfail("Only supported on tower-2.0.0 (or newer)")
+        inventory = host_without_group.get_related('inventory')
+        assert inventory.get_related('groups').count == 0
+        assert inventory.get_related('root_groups').count == 0
 
-        inventory_pg = host_without_group.get_related('inventory')
+        hosts = inventory.get_related('hosts')
+        assert hosts.count == 1
 
-        # Verify /groups is empty
-        assert inventory_pg.get_related('groups').count == 0, \
-            "Inventory unexpectedly has groups (%s)" % inventory_pg.get_related('groups').count
-        # Verify /root_groups is empty
-        assert inventory_pg.get_related('root_groups').count == 0, \
-            "Inventory unexpectedly has root_groups (%s)" % inventory_pg.get_related('root_groups').count
+        script = inventory.get_related('script')
+        script_hosts_count = len(script.json['all']['hosts'])
+        assert hosts.count == script_hosts_count
 
-        all_hosts = inventory_pg.get_related('hosts')
-        assert all_hosts.count == 1
-
-        script = inventory_pg.get_related('script').json
-        script_all_hosts = len(script['all']['hosts'])
-
-        assert all_hosts.count == script_all_hosts, \
-            "The number of inventory hosts differs between endpoints " \
-            "/hosts (%s) and /script (%s)" % (all_hosts.count, script_all_hosts)
-
-    def test_conflict_exception_with_running_update(self, custom_inventory_source):
-        """Verify that deleting an inventory with a running update will
-        raise a 409 exception
+    def test_conflict_exception_with_running_update(self, factories):
+        """Verify that deleting an inventory with a running update will raise a 409
+        exception.
         """
-        inventory_pg = custom_inventory_source.get_related("inventory")
-        custom_inventory_source.get_related("update").post()
-        update_pg = custom_inventory_source.get().get_related("current_update")
+        inv_source = factories.v2_inventory_source()
+        inv_update = inv_source.update()
 
-        # delete the job_template
-        exc_info = pytest.raises(towerkit.exceptions.Conflict, inventory_pg.delete)
-        result = exc_info.value[1]
-        assert result == {'conflict': 'Resource is being used by running jobs', 'active_jobs': [{'type': '%s' % update_pg.type, 'id': update_pg.id}]}
+        with pytest.raises(exc.Conflict) as e:
+            inv_source.ds.inventory.delete()
+        assert e.value.message['conflict'] == 'Resource is being used by running jobs'
+        assert e.value.message['active_jobs'] == [{'type': 'inventory_update', 'id': inv_update.id}]
 
-    def test_update_cascade_delete(self, custom_inventory_source, api_inventory_updates_pg):
-        """Verify that associated inventory updates get cascade deleted with custom group
-        deletion.
-        """
-        inv_source_id = custom_inventory_source.id
-        custom_inventory_source.update().wait_until_completed()
+        # ensure clean test teardown
+        inv_update.wait_until_completed()
 
-        # assert that we have an inventory update
-        assert api_inventory_updates_pg.get(inventory_source=inv_source_id).count == 1, \
-            "Unexpected number of inventory updates. Expected one update."
+    def test_v1_update_cascade_delete(self, custom_inventory_source):
+        """Verify that v1 inventory updates get cascade deleted with their custom group."""
+        inv_update1, inv_update2 = [custom_inventory_source.update().wait_until_completed() for _ in range(2)]
 
-        # delete custom group and assert that inventory updates deleted
         custom_inventory_source.get_related('group').delete()
-        assert api_inventory_updates_pg.get(inventory_source=inv_source_id).count == 0, \
-            "Unexpected number of inventory updates after deleting custom group. Expected zero updates."
+        with pytest.raises(exc.NotFound):
+            inv_update1.get()
+        with pytest.raises(exc.NotFound):
+            inv_update2.get()
 
-    def test_child_cascade_delete(self, inventory, host_local, host_without_group, group, api_groups_pg, api_hosts_pg):
-        """Verify DELETE removes associated groups and hosts"""
-        # Verify inventory group/host counts
-        assert inventory.get_related('groups').count == 1
-        assert inventory.get_related('hosts').count == 2
+    def test_v2_update_cascade_delete(self, factories):
+        """Verify that v2 inventory updates get cascade deleted with their inventory source."""
+        inv_source = factories.v2_inventory_source()
+        inv_update1, inv_update2 = [inv_source.update().wait_until_completed() for _ in range(2)]
 
-        # Delete the inventory
+        inv_source.delete()
+        with pytest.raises(exc.NotFound):
+            inv_update1.get()
+        with pytest.raises(exc.NotFound):
+            inv_update2.get()
+
+    def test_resource_cascade_delete(self, factories, v2):
+        """Verify that inventory resources get cascade deleted with their inventory."""
+        inventory = factories.v2_inventory()
+        parent_group, child_group = [factories.v2_group(inventory=inventory) for i in range(2)]
+        parent_group.add_group(child_group)
+        isolated_host, group_host = [factories.v2_host(inventory=inventory) for i in range(2)]
+        parent_group.add_host(group_host)
+        inv_source = factories.v2_inventory_source(inventory=inventory)
+
         inventory.delete()
-
-        # Related resources should be forbidden
-        with pytest.raises(towerkit.exceptions.NotFound):
-            inventory.get_related('groups')
-
-        # Using main endpoint, find any matching groups
-        groups_pg = api_groups_pg.get(inventory=inventory.id)
-
-        # Assert no matching groups found
-        assert groups_pg.count == 0, "ERROR: not All inventory groups were deleted"
-
-        # Related resources should be forbidden
-        with pytest.raises(towerkit.exceptions.NotFound):
-            inventory.get_related('hosts')
-
-        # Using main endpoint, find any matching hosts
-        hosts_pg = api_hosts_pg.get(inventory=inventory.id)
-
-        # Assert no matching hosts found
-        assert hosts_pg.count == 0, "ERROR: not all inventory hosts were deleted"
+        for resource in [inventory, parent_group, child_group, group_host, isolated_host, inv_source]:
+            with pytest.raises(exc.NotFound):
+                resource.get()
