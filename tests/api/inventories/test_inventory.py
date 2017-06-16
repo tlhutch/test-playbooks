@@ -48,7 +48,7 @@ class Test_Inventory(Base_Api_Test):
         script_hosts_count = len(script.json['all']['hosts'])
         assert hosts.count == script_hosts_count
 
-    def test_host_with_groups(self, factories):
+    def test_host_related_groups(self, factories):
         """Verifies the hosts/N/groups related field."""
         inventory = factories.v2_inventory()
         parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]
@@ -56,11 +56,33 @@ class Test_Inventory(Base_Api_Test):
 
         isolated_host, parent_host, duplicate_host = [factories.v2_host(inventory=inventory) for _ in range(3)]
         parent_group.add_host(parent_host)
-        parent_group.add_host(duplicate_host), child_group.add_host(duplicate_host)
+        for group in [parent_group, child_group]:
+            group.add_host(duplicate_host)
 
         assert set([parent_group.id]) == set([group.id for group in parent_host.related.groups.get().results])
         assert set([parent_group.id, child_group.id]) == set([group.id for group in duplicate_host.related.groups.get().results])
         assert isolated_host.related.groups.get().count == 0
+
+    def test_host_summary_field_groups(self, factories):
+        """Verifies the host details groups summary field.
+        * Should only show five results.
+        * Results should be from parent groups only.
+        """
+        inventory = factories.v2_inventory()
+        host = factories.v2_host(inventory=inventory)
+
+        groups = [factories.v2_group(inventory=inventory) for i in range(6)]
+        for group in groups:
+            group.add_host(host)
+        parent_group = factories.v2_group(inventory=inventory)
+        parent_group.add_group(groups[0])
+
+        sf_groups = host.get().summary_fields.groups
+        assert sf_groups.count == 6
+
+        all_results = [{'id': group.id, 'name': group.name} for group in groups]
+        assert all([result in all_results for result in sf_groups.results])
+        assert len(sf_groups.results) == 5
 
     def test_conflict_exception_with_running_update(self, factories):
         """Verify that deleting an inventory with a running update will raise a 409
