@@ -63,7 +63,6 @@ class Test_Inventory_RBAC(Base_Api_Test):
             for resource in [host, group, aws_inv_source, inventory]:
                 assert_response_raised(resource, httplib.FORBIDDEN)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6592')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'admin' should be able to:
