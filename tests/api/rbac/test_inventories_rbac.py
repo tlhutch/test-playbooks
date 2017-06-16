@@ -301,7 +301,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
                 raise ValueError("Received unhandled inventory role.")
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_update_all_inventory_sources(self, request, factories, role):
+    def test_update_all_inventory_sources(self, factories, role):
         """Test ability to update all inventory sources. User should be able to
         launch update even though cloud_credential is owned by admin user.
         """
@@ -309,7 +309,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         REJECTED_ROLES = ['use', 'ad hoc', 'read']
 
         inventory = factories.v2_inventory()
-        gce_cred, vmware_cred = [request.getfixturevalue(fixture) for fixture in ('gce_credential', 'vmware_credential')]
+        gce_cred, vmware_cred = [factories.v2_credential(kind=kind) for kind in ('gce', 'vmware')]
         gce_source = factories.v2_inventory_source(inventory=inventory, source='gce', credential=gce_cred)
         vmware_source = factories.v2_inventory_source(inventory=inventory, source='vmware', credential=vmware_cred)
 
@@ -318,11 +318,10 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         with self.current_user(user):
             if role in ALLOWED_ROLES:
-                inventory.update_inventory_sources()
-                gce_source.wait_until_completed(), vmware_source.wait_until_completed()
-                gce_update, vmware_update = [source.related.last_update.get() for source in (gce_source, vmware_source)]
-                assert gce_update.is_successful and vmware_update.is_successful
-                assert gce_source.get().is_successful and vmware_update.get().is_successful
+                inv_updates = inventory.update_inventory_sources(wait=True)
+                for update in inv_updates:
+                    assert update.is_successful
+                assert gce_source.get().is_successful and vmware_source.get().is_successful
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     inventory.update_inventory_sources()

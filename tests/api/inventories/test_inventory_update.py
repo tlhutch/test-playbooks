@@ -1,5 +1,6 @@
 import json
 
+from towerkit import exceptions as exc
 import pytest
 
 from tests.api import Base_Api_Test
@@ -16,11 +17,6 @@ class Test_Inventory_Update(Base_Api_Test):
     def test_v1_update_inventory_source(self, cloud_group):
         """Verify successful inventory import using /api/v1/inventory_sources/N/update/."""
         inv_source = cloud_group.get_related('inventory_source')
-        assert not inv_source.is_successful
-
-        update = inv_source.get_related('update')
-        assert update.can_update
-
         inv_update = inv_source.update().wait_until_completed()
         assert inv_update.is_successful
         assert inv_source.get().is_successful
@@ -28,11 +24,6 @@ class Test_Inventory_Update(Base_Api_Test):
     def test_v2_update_inventory_source(self, cloud_inventory):
         """Verify successful inventory import using /api/v2/inventory_sources/N/update/."""
         inv_source = cloud_inventory.related.inventory_sources.get().results.pop()
-        assert not inv_source.is_successful
-
-        update = inv_source.get_related('update')
-        assert update.can_update
-
         inv_update = inv_source.update().wait_until_completed()
         assert inv_update.is_successful
         assert inv_source.get().is_successful
@@ -44,20 +35,78 @@ class Test_Inventory_Update(Base_Api_Test):
         gce_source = factories.v2_inventory_source(inventory=inventory, source='gce', credential=gce_cred)
         vmware_source = factories.v2_inventory_source(inventory=inventory, source='vmware', credential=vmware_cred)
 
-        response = inventory.update_inventory_sources()
-        gce_source.wait_until_completed(), vmware_source.wait_until_completed()
-        gce_update, vmware_update = [source.related.last_update.get() for source in (gce_source, vmware_source)]
+        prelaunch = inventory.related.update_inventory_sources.get()
+        assert dict(can_update=True, inventory_source=gce_source.id) in prelaunch
+        assert dict(can_update=True, inventory_source=vmware_source.id) in prelaunch
+        assert len(prelaunch.json) == 2
 
-        assert len([entry for entry in response if entry['inventory_source'] == gce_source.id and
-                    entry['inventory_update'] == gce_update.id]) == 1
-        assert len([entry for entry in response if entry['inventory_source'] == gce_source.id and
-                    entry['inventory_update'] == gce_update.id]) == 1
-        assert len(response.json) == 2
+        postlaunch = inventory.related.update_inventory_sources.post()
+        gce_update, vmware_update = [source.wait_until_completed().related.last_update.get()
+                                     for source in (gce_source, vmware_source)]
+        assert dict(inventory_source=gce_source.id, inventory_update=gce_update.id, status="started") in postlaunch
+        assert dict(inventory_source=vmware_source.id, inventory_update=vmware_update.id, status="started") in postlaunch
+        assert len(postlaunch.json) == 2
 
         assert gce_update.is_successful
         assert gce_source.is_successful
         assert vmware_update.is_successful
         assert vmware_source.is_successful
+
+    def test_v2_update_all_inventory_sources_with_semifunctional_sources(self, factories):
+        """Verify successful inventory import when given an inventory source that is ready for update
+        and one that is not.
+        """
+        inv_source1 = factories.v2_inventory_source()
+        inv_source1.ds.inventory_script.delete()
+        inventory = inv_source1.ds.inventory
+        inv_source2 = factories.v2_inventory_source(inventory=inventory)
+
+        prelaunch = inventory.related.update_inventory_sources.get()
+        assert dict(can_update=False, inventory_source=inv_source1.id) in prelaunch
+        assert dict(can_update=True, inventory_source=inv_source2.id) in prelaunch
+        assert len(prelaunch.json) == 2
+
+        postlaunch = inventory.related.update_inventory_sources.post()
+        inv_update = inv_source2.wait_until_completed().related.last_update.get()
+        assert dict(inventory_source=inv_source1.id, status="Could not start because `can_update` returned False") in postlaunch
+        assert dict(inventory_source=inv_source2.id, status="started", inventory_update=inv_update.id) in postlaunch
+        assert len(postlaunch.json) == 2
+
+        assert not inv_source1.last_updated
+        assert inv_source2.is_successful
+        assert inv_update.is_successful
+
+    def test_v2_update_all_inventory_sources_with_nonfunctional_sources(self, factories):
+        """Verify behavior when inventory has nonfunctional inventory sources."""
+        inv_source = factories.v2_inventory_source()
+        inv_source.ds.inventory_script.delete()
+        inventory = inv_source.ds.inventory
+
+        prelaunch = inventory.related.update_inventory_sources.get()
+        assert dict(can_update=False, inventory_source=inv_source.id) in prelaunch
+        assert len(prelaunch.json) == 1
+
+        postlaunch = inventory.related.update_inventory_sources.post()
+        assert dict(inventory_source=inv_source.id, status="Could not start because `can_update` returned False") in postlaunch
+        assert len(postlaunch.json) == 1
+
+        assert not inv_source.last_updated
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6564')
+    def test_v2_update_duplicate_inventory_sources(self, factories):
+        """Verify updating custom inventory sources under the same inventory with
+        the same custom script."""
+        inv_source1 = factories.v2_inventory_source()
+        inventory = inv_source1.ds.inventory
+        inv_source2 = factories.v2_inventory_source(inventory=inventory,
+                                                    inventory_script=inv_source1.ds.inventory_script)
+
+        inv_updates = inventory.update_inventory_sources(wait=True)
+
+        for update in inv_updates:
+            assert update.is_successful
+        assert inv_source1.get().is_successful
+        assert inv_source2.get().is_successful
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/6523")
     def test_update_with_overwrite(self, factories):
@@ -67,26 +116,26 @@ class Test_Inventory_Update(Base_Api_Test):
         """
         inv_source = factories.v2_inventory_source(overwrite=True)
         inv_source.update().wait_until_completed()
-        custom_group = inv_source.related.groups.get().results.pop()
+        spawned_group = inv_source.related.groups.get().results.pop()
 
-        # create group with host as child of script-created group
+        # associate group and host with script-spawned group
         included_group = factories.group(inventory=inv_source.ds.inventory)
         included_host = factories.host(inventory=inv_source.ds.inventory)
-        custom_group.add_group(included_group)
-        custom_group.add_host(included_host)
+        spawned_group.add_group(included_group)
+        for group in [spawned_group, included_group]:
+            group.add_host(included_host)
 
         # create excluded inventory resources
         excluded_group = factories.group(inventory=inv_source.ds.inventory)
-        excluded_host = factories.host(inventory=inv_source.ds.inventory)
+        excluded_host, isolated_host = [factories.host(inventory=inv_source.ds.inventory) for _ in range(2)]
         excluded_group.add_host(excluded_host)
-        isolated_host = factories.host(inventory=inv_source.ds.inventory)
 
         inv_source.update().wait_until_completed()
         for resource in [included_group, included_host]:
-            with pytest.raises(towerkit.exceptions.NotFound):
+            with pytest.raises(exc.NotFound):
                 resource.get()
         for resource in [excluded_group, excluded_host, isolated_host]:
-            with pytest.raises(towerkit.exceptions.NotFound):
+            with pytest.raises(exc.NotFound):
                 resource.get()
 
     def test_update_with_overwrite_vars(self, factories):
@@ -112,7 +161,7 @@ class Test_Inventory_Update(Base_Api_Test):
         inv_source.update().wait_until_completed()
         custom_group = inv_source.related.groups.get().results.pop()
 
-        variables = "{'overwrite_me': true}"
+        variables = "{'overwrite_me': false}"
         custom_group.variables = variables
         hosts = custom_group.related.hosts.get()
         for host in hosts.results:
@@ -123,6 +172,17 @@ class Test_Inventory_Update(Base_Api_Test):
         assert custom_group.get().variables == variables
         for host in hosts.results:
             assert host.get().variables == variables
+
+    @pytest.mark.parametrize('verbosity, stdout_lines',
+        [(0, 0), (1, 17), (2, 46)], ids=['0-warning', '1-info', '2-debug'])
+    def test_update_verbosity(self, factories, verbosity, stdout_lines):
+        """Verify inventory source verbosity."""
+        inv_source = factories.v2_inventory_source(verbosity=verbosity)
+        inv_update = inv_source.update().wait_until_completed()
+
+        assert inv_update.is_successful
+        assert inv_update.verbosity == inv_source.verbosity
+        assert inv_update.result_stdout.count('\n') == stdout_lines
 
     @pytest.mark.ha_tower
     def test_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):
@@ -238,14 +298,6 @@ class Test_Inventory_Update(Base_Api_Test):
         # assert that no hosts were imported
         assert cloud_group_supporting_source_regions.get().total_hosts == 0, \
             "Unexpected number of hosts returned (%s != 0)." % cloud_group_supporting_source_regions.total_hosts
-
-    @pytest.mark.parametrize('verbosity, stdout_lines',
-        [(0, 0), (1, 17), (2, 46)], ids=['0-warning', '1-info', '2-debug'])
-    def test_update_verbosity(self, factories, verbosity, stdout_lines):
-        inv_source = factories.v2_inventory_source(verbosity=verbosity)
-        inv_update = inv_source.update().wait_until_completed()
-        assert inv_update.is_successful
-        assert inv_update.verbosity == inv_source.verbosity
 
     @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1247", raises=AssertionError)
     @pytest.mark.parametrize("instance_filter", ["tag-key=Name", "key-name=jenkins", "tag:Name=*"])
