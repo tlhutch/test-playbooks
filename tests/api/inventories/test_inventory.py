@@ -48,6 +48,20 @@ class Test_Inventory(Base_Api_Test):
         script_hosts_count = len(script.json['all']['hosts'])
         assert hosts.count == script_hosts_count
 
+    def test_host_with_groups(self, factories):
+        """Verifies the hosts/N/groups related field."""
+        inventory = factories.v2_inventory()
+        parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]
+        parent_group.add_group(child_group)
+
+        isolated_host, parent_host, duplicate_host = [factories.v2_host(inventory=inventory) for _ in range(3)]
+        parent_group.add_host(parent_host)
+        parent_group.add_host(duplicate_host), child_group.add_host(duplicate_host)
+
+        assert set([parent_group.id]) == set([group.id for group in parent_host.related.groups.get().results])
+        assert set([parent_group.id, child_group.id]) == set([group.id for group in duplicate_host.related.groups.get().results])
+        assert isolated_host.related.groups.get().count == 0
+
     def test_conflict_exception_with_running_update(self, factories):
         """Verify that deleting an inventory with a running update will raise a 409
         exception.
