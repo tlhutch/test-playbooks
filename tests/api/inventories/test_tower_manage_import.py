@@ -143,6 +143,7 @@ class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
         for result in contacted.values():
             assert result['rc'] == 1, "Unexpected tower-manage inventory_import success." \
                 "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
+        "Number of licensed instances exceeded" in result['stderr']
 
         assert inventory.get_related('groups').count == 0
         assert inventory.get_related('hosts').count == 0

@@ -30,12 +30,9 @@ class Test_Inventory_RBAC(Base_Api_Test):
         inventory = factories.v2_inventory()
         group = factories.v2_group(inventory=inventory)
         host = factories.v2_host(inventory=inventory)
-        custom_inv_source = factories.v2_inventory_source()
-        aws_inv_source = factories.v2_inventory_source(kind='ec2')
+        custom_inv_source = factories.v2_inventory_source(inventory=inventory)
+        aws_inv_source = factories.v2_inventory_source(inventory=inventory, kind='ec2')
         user = factories.user()
-
-        custom_source_update = custom_inv_source.related['update'].get()
-        aws_source_update = aws_inv_source.related['update'].get()
 
         with self.current_user(username=user.username, password=user.password):
             # check GET as test user
@@ -43,9 +40,9 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # update inventory sources
             with pytest.raises(towerkit.exceptions.Forbidden):
-                aws_source_update.post()
+                aws_inv_source.related['update'].post()
             with pytest.raises(towerkit.exceptions.Forbidden):
-                custom_source_update.post()
+                custom_inv_source.related['update'].post()
 
             # post command
             with pytest.raises(towerkit.exceptions.Forbidden):
@@ -104,7 +101,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group = factories.v2_group(inventory=inventory)
         host = factories.v2_host(inventory=inventory)
         inv_source = factories.v2_inventory_source(inventory=inventory)
-        inv_script = factories.inventory_script()
+        inv_script = factories.inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent use_role
@@ -139,7 +136,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group = factories.v2_group(inventory=inventory)
         host = factories.v2_host(inventory=inventory)
         inv_source = factories.v2_inventory_source(inventory=inventory)
-        inv_script = factories.inventory_script()
+        inv_script = factories.inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent adhoc_role
@@ -174,7 +171,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group = factories.v2_group(inventory=inventory)
         host = factories.v2_host(inventory=inventory)
         inv_source = factories.v2_inventory_source(inventory=inventory)
-        inv_script = factories.inventory_script()
+        inv_script = factories.inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent update_role
@@ -209,7 +206,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
         group = factories.v2_group(inventory=inventory)
         host = factories.v2_host(inventory=inventory)
         inv_source = factories.v2_inventory_source(inventory=inventory)
-        inv_script = factories.inventory_script()
+        inv_script = factories.inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent read_role
@@ -275,7 +272,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_update_cloud_source(self, request, factories, role):
+    def test_update_cloud_source(self, factories, role):
         """Test ability to update a cloud source. Note: only tested on AWS to save time.
         Also, user should be able launch update even though cloud_credential is under
         admin user.
@@ -285,7 +282,7 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         user = factories.user()
 
-        aws_cred = request.getfixturevalue('aws_credential')
+        aws_cred = factories.credential(kind='aws')
         inv_source = factories.v2_inventory_source(kind='ec2', credential=aws_cred)
         inv_source.ds.inventory.set_object_roles(user, role)
 
@@ -351,14 +348,14 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_cancel_update(self, request, factories, role):
+    def test_cancel_update(self, factories, role):
         """Tests inventory update cancellation. Inventory admins can cancel other people's updates."""
         ALLOWED_ROLES = ['admin']
         REJECTED_ROLES = ['update', 'use', 'ad hoc', 'read']
 
         user = factories.user()
 
-        aws_cred = request.getfixturevalue('aws_credential')
+        aws_cred = factories.credential(kind='aws')
         inv_source = factories.v2_inventory_source(kind='ec2', credential=aws_cred)
         inv_source.ds.inventory.set_object_roles(user, role)
 

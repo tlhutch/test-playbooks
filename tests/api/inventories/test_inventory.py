@@ -120,12 +120,12 @@ class Test_Inventory(Base_Api_Test):
         with pytest.raises(exc.NotFound):
             inv_update2.get()
 
-    def test_resource_cascade_delete(self, factories, v2):
+    def test_resource_cascade_delete(self, factories):
         """Verify that inventory resources get cascade deleted with their inventory."""
         inventory = factories.v2_inventory()
-        parent_group, child_group = [factories.v2_group(inventory=inventory) for i in range(2)]
+        parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]
         parent_group.add_group(child_group)
-        isolated_host, group_host = [factories.v2_host(inventory=inventory) for i in range(2)]
+        isolated_host, group_host = [factories.v2_host(inventory=inventory) for _ in range(2)]
         parent_group.add_host(group_host)
         inv_source = factories.v2_inventory_source(inventory=inventory)
 

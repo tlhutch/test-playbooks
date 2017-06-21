@@ -28,10 +28,10 @@ class Test_Inventory_Update(Base_Api_Test):
         assert inv_update.is_successful
         assert inv_source.get().is_successful
 
-    def test_v2_update_all_inventory_sources(self, request, factories):
-        """Verify successful inventory imports using /api/v2/inventories/N/update_inventory_sources/."""
+    def test_v2_update_all_inventory_sources_with_functional_serouces(self, factories):
+        """Verify behavior when inventory has functional inventory sources."""
         inventory = factories.v2_inventory()
-        gce_cred, vmware_cred = [request.getfixturevalue(fixture) for fixture in ('gce_credential', 'vmware_credential')]
+        gce_cred, vmware_cred = [factories.v2_credential(kind=kind) for kind in ('gce', 'vmware')]
         gce_source = factories.v2_inventory_source(inventory=inventory, source='gce', credential=gce_cred)
         vmware_source = factories.v2_inventory_source(inventory=inventory, source='vmware', credential=vmware_cred)
 
@@ -53,7 +53,7 @@ class Test_Inventory_Update(Base_Api_Test):
         assert vmware_source.is_successful
 
     def test_v2_update_all_inventory_sources_with_semifunctional_sources(self, factories):
-        """Verify successful inventory import when given an inventory source that is ready for update
+        """Verify behavior when inventory has an inventory source that is ready for update
         and one that is not.
         """
         inv_source1 = factories.v2_inventory_source()
@@ -115,19 +115,20 @@ class Test_Inventory_Update(Base_Api_Test):
         * Hosts and groups created outside of our custom group should persist.
         """
         inv_source = factories.v2_inventory_source(overwrite=True)
+        inventory = inv_source.ds.inventory
         inv_source.update().wait_until_completed()
         spawned_group = inv_source.related.groups.get().results.pop()
 
         # associate group and host with script-spawned group
-        included_group = factories.group(inventory=inv_source.ds.inventory)
-        included_host = factories.host(inventory=inv_source.ds.inventory)
+        included_group = factories.group(inventory=inventory)
+        included_host = factories.host(inventory=inventory)
         spawned_group.add_group(included_group)
         for group in [spawned_group, included_group]:
             group.add_host(included_host)
 
         # create excluded inventory resources
-        excluded_group = factories.group(inventory=inv_source.ds.inventory)
-        excluded_host, isolated_host = [factories.host(inventory=inv_source.ds.inventory) for _ in range(2)]
+        excluded_group = factories.group(inventory=inventory)
+        excluded_host, isolated_host = [factories.host(inventory=inventory) for _ in range(2)]
         excluded_group.add_host(excluded_host)
 
         inv_source.update().wait_until_completed()
