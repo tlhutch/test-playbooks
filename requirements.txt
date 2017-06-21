@@ -1,3 +1,13 @@
+azure
+boto
+boto3
+botocore
+inflect
+junit-xml
+pip
+protobuf
+pyrax
+pysphere
 pytest
 pytest-ansible
 pytest-cache
