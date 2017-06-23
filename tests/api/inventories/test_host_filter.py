@@ -41,7 +41,7 @@ class Test_Host_Filter(Base_Api_Test):
 
         # populate hosts with ansible facts
         jt = class_factories.job_template(inventory=inventory, playbook='gather_facts.yml',
-                                          store_facts=True)
+                                          use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
         return inventory
 
@@ -94,6 +94,7 @@ class Test_Host_Filter(Base_Api_Test):
         response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == expected_hosts
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6233')
     @pytest.mark.parametrize('host_filter, expected_hosts',
         [
             ('groups__name=groupA or groups__name=groupB', ['hostA', 'hostB', 'hostDup']), # 6233
@@ -119,13 +120,14 @@ class Test_Host_Filter(Base_Api_Test):
         response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == expected_hosts
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6015')
     @pytest.mark.parametrize('ansible_fact',
         [
             "ansible_python_version", # string
             "ansible_processor_cores", # integer
             "ansible_fips", # boolean
             # FIXME: add in a simple empty list query
-            "ansible_default_ipv6" # empty dictionary # 6015
+            "ansible_default_ipv6" # empty dictionary
         ]
     )
     def test_dictionary_fact_search(self, v2, loaded_inventory, ansible_fact):
@@ -198,6 +200,7 @@ class Test_Host_Filter(Base_Api_Test):
         else:
             assert not self.find_hosts(response)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6233')
     @pytest.mark.parametrize('host_filter, expected_hosts',
         [
             ('name=hostA or groups__name=groupA or ansible_facts__ansible_system=Linux', ['hostA', 'hostAA', 'hostB', 'hostDup']),
