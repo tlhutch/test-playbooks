@@ -28,7 +28,7 @@ class Test_Inventory_Update(Base_Api_Test):
         assert inv_update.is_successful
         assert inv_source.get().is_successful
 
-    def test_v2_update_all_inventory_sources_with_functional_serouces(self, factories):
+    def test_v2_update_all_inventory_sources_with_functional_sources(self, factories):
         """Verify behavior when inventory has functional inventory sources."""
         inventory = factories.v2_inventory()
         gce_cred, vmware_cred = [factories.v2_credential(kind=kind) for kind in ('gce', 'vmware')]

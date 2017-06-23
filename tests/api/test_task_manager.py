@@ -369,11 +369,11 @@ class Test_Autospawned_Jobs(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_inventory(self, cloud_inventory_job_template, cloud_group):
+    def test_v1_inventory(self, cloud_inventory_job_template, cloud_group):
         """Verify that an inventory update is triggered by our job launch. Job ordering
         should be as follows:
         * Inventory update should run first.
-        * Job should run after the completion of inventory update.
+        * Job should run after the completion of our inventory update.
         """
         # set update_on_launch
         inv_src_pg = cloud_group.get_related('inventory_source')
@@ -398,6 +398,31 @@ class Test_Autospawned_Jobs(Base_Api_Test):
 
         # check that jobs ran sequentially and in the right order
         sorted_unified_jobs = [inv_update, job_pg]
+        confirm_unified_jobs(sorted_unified_jobs)
+
+    def test_v2_inventory(self, factories):
+        """Verify that an inventory update is triggered by our job launch. Job ordering
+        should be as follows:
+        * Inventory update should run first.
+        * Job should run after the completion of our inventory update.
+        """
+        gce_cred = factories.v2_credential(kind='gce')
+        inv_source = factories.v2_inventory_source(source='gce', credential=gce_cred,
+                                                   update_on_launch=True)
+        assert not inv_source.last_updated
+
+        jt = factories.v2_job_template(inventory=inv_source.ds.inventory, playbook='debug.yml')
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        inv_update = inv_source.get().related.last_update.get()
+        assert inv_source.get().last_updated
+        assert inv_source.last_job_run
+        assert inv_update.is_successful
+        assert inv_source.is_successful
+
+        # check that jobs ran sequentially and in the right order
+        sorted_unified_jobs = [inv_update, job]
         confirm_unified_jobs(sorted_unified_jobs)
 
     @pytest.mark.ha_tower

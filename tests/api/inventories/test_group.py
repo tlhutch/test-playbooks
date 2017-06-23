@@ -1,7 +1,6 @@
 import json
 
 from towerkit import exceptions as exc
-import fauxfactory
 import pytest
 
 from tests.api import Base_Api_Test
