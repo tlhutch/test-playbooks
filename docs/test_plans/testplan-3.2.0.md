@@ -115,7 +115,40 @@ RBAC:
 ### Inventory UX 
 [Feature](https://drive.google.com/open?id=1lvBf_Gf7peE4fucrdPUpRTMuTBz2SpS5Df273bd72Sk)
 
-1. [ ] ... 
+Smart inventories
+1. [x] Verify smart inventory CRUD.
+1. [x] Verify smart inventory host list updates for host edit.
+1. [x] Verify smart inventory host list updates for host deletion.
+1. [x] Verify smart inventory hosts reflects host_filter.
+1. [ ] Verify smart inventories group support.
+1. [ ] Verify smart inventories host support.
+1. [ ] Verify smart inventories inventory source support.
+1. [x] Test new host groups related endpoint.
+1. [x] Test new host groups summary field.
+1. [x] Test inventory resource cascade delete.
+1. [ ] Verify inventory CRUD against all inventory permissions.
+1. [x] Verify group CRUD against all inventory permissions.
+1. [x] Verify host CRUD against all inventory permissions.
+1. [x] Verify inventory source CRUD against all inventory permissions.
+1. [x] Verify updated group user_capabilities against all inventory permissions.
+1. [x] Verify inventory source user_capabilities against all inventory permissions.
+
+Inventory updates
+1. [x] Verify inventory update via inventory_sources/N/update.
+1. [x] Verify updating functional sources via inventories/N/update_inventory_sources.
+1. [x] Verify updating functional and nonfunctional sources via inventories/N/update_inventory_sources.
+1. [x] Verify updating nonfunctional sources via inventories/N/update_inventory_sources.
+1. [x] Verify updating duplicate inventory sources.
+1. [x] Verify host and group deletion with overwrite.
+1. [x] Verify variable overwrite with overwrite_vars.
+1. [x] Verify default variable behavior without overwrite_vars.
+1. [x] Verify inventory source update_on_launch.
+1. [x] Verify inventory update verbosity.
+1. [x] Test inventory update cascade delete.
+1. [x] Verify inventory update via inventory_sources/N/update/ against all inventory permissions.
+1. [x] Verify inventory update via inventories/N/update_inventory_sources/ against all inventory permissions.
+1. [x] Verify inventory update cancellation via all inventory permissions.
+1. [x] Verify inventory update deletion via all inventory permissions.
 
 ### Tower UX hitlist 
 [Feature](https://docs.google.com/a/redhat.com/document/d/1Nvtn6ShHNS2jgEyjl79HelAEO8747Z5yj5QKh0sQ4VM/edit?usp=sharing_eil&ts=58b86ab9)
