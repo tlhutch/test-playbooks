@@ -31,24 +31,24 @@ class TestInventoryUpdate(Base_Api_Test):
     def test_v2_update_all_inventory_sources_with_functional_sources(self, factories):
         """Verify behavior when inventory has functional inventory sources."""
         inventory = factories.v2_inventory()
-        gce_cred, vmware_cred = [factories.v2_credential(kind=kind) for kind in ('gce', 'vmware')]
-        gce_source = factories.v2_inventory_source(inventory=inventory, source='gce', credential=gce_cred)
+        azure_cred, vmware_cred = [factories.v2_credential(kind=kind) for kind in ('azure_classic', 'vmware')]
+        azure_source = factories.v2_inventory_source(inventory=inventory, source='azure', credential=azure_cred)
         vmware_source = factories.v2_inventory_source(inventory=inventory, source='vmware', credential=vmware_cred)
 
         prelaunch = inventory.related.update_inventory_sources.get()
-        assert dict(can_update=True, inventory_source=gce_source.id) in prelaunch
+        assert dict(can_update=True, inventory_source=azure_source.id) in prelaunch
         assert dict(can_update=True, inventory_source=vmware_source.id) in prelaunch
         assert len(prelaunch.json) == 2
 
         postlaunch = inventory.related.update_inventory_sources.post()
-        gce_update, vmware_update = [source.wait_until_completed().related.last_update.get()
-                                     for source in (gce_source, vmware_source)]
-        assert dict(inventory_source=gce_source.id, inventory_update=gce_update.id, status="started") in postlaunch
+        azure_update, vmware_update = [source.wait_until_completed().related.last_update.get()
+                                       for source in (azure_source, vmware_source)]
+        assert dict(inventory_source=azure_source.id, inventory_update=azure_update.id, status="started") in postlaunch
         assert dict(inventory_source=vmware_source.id, inventory_update=vmware_update.id, status="started") in postlaunch
         assert len(postlaunch.json) == 2
 
-        assert gce_update.is_successful
-        assert gce_source.is_successful
+        assert azure_update.is_successful
+        assert azure_source.is_successful
         assert vmware_update.is_successful
         assert vmware_source.is_successful
 
