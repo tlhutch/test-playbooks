@@ -172,7 +172,14 @@ class TestInventoryUpdate(Base_Api_Test):
             assert host.get().variables == variables
 
     @pytest.mark.parametrize('verbosity, stdout_lines',
-        [(0, 0), (1, 17), (2, 46)], ids=['0-warning', '1-info', '2-debug'])
+        [(0, ['stdout capture is missing']),
+         (1, ['Loaded 1 groups, 5 hosts', 'Inventory variables unmodified',
+              'Inventory import completed']),
+         (2, ['Reading Ansible inventory source',
+              'Finished loading from source',
+              'Loaded 1 groups, 5 hosts',
+              'Inventory variables unmodified',
+              'Inventory import completed'])], ids=['0-warning', '1-info', '2-debug'])
     def test_update_verbosity(self, factories, verbosity, stdout_lines):
         """Verify inventory source verbosity."""
         inv_source = factories.v2_inventory_source(verbosity=verbosity)
@@ -180,7 +187,8 @@ class TestInventoryUpdate(Base_Api_Test):
 
         assert inv_update.is_successful
         assert inv_update.verbosity == inv_source.verbosity
-        assert inv_update.result_stdout.count('\n') == stdout_lines
+        for line in stdout_lines:
+            assert line in inv_update.result_stdout
 
     @pytest.mark.ha_tower
     def test_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):
