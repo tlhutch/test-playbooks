@@ -10,7 +10,7 @@ from tests.api import Base_Api_Test
 
 def get_ec2_inventory():
     """Return inventory JSON with randomly generated ec2_id."""
-    return {  # NOQA
+    return {
       "_meta": {
         "hostvars": {
           "ec2.amazonaws.com": {

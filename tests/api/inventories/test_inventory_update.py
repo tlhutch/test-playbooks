@@ -132,10 +132,7 @@ class TestInventoryUpdate(Base_Api_Test):
         excluded_group.add_host(excluded_host)
 
         inv_source.update().wait_until_completed()
-        for resource in [included_group, included_host]:
-            with pytest.raises(exc.NotFound):
-                resource.get()
-        for resource in [excluded_group, excluded_host, isolated_host]:
+        for resource in [included_group, included_host, excluded_group, excluded_host, isolated_host]:
             with pytest.raises(exc.NotFound):
                 resource.get()
 
@@ -416,23 +413,16 @@ class TestInventoryUpdate(Base_Api_Test):
         assert update_pg.timeout == custom_inventory_source.timeout, \
             "Update_pg has a different timeout value ({0}) than its inv_source ({1}).".format(update_pg.timeout, custom_inventory_source.timeout)
 
-    def test_single_failed_update_on_launch(self, request, v1):
+    def test_single_failed_update_on_launch(self, factories):
         """Confirm that only a single inventory update is launched with job template despite failing."""
-        cred = v1.credentials.create('aws', user='shouldfail', password='shouldfail')
-        request.addfinalizer(cred.teardown)
+        cred = factories.v2_credential(kind='aws', inputs=dict(username="fake", password="fake"))
+        inv_source = factories.v2_inventory_source(source='ec2', credential=cred, update_on_launch=True)
+        jt = factories.v2_job_template(inventory=inv_source.ds.inventory)
 
-        group = v1.groups.create(source='ec2', credential=cred)
-        request.addfinalizer(group.teardown)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
 
-        group.related.inventory_source.patch(update_on_launch=True)
-        assert(group.related.inventory_source.get().update_on_launch)
-
-        inv = group.ds.inventory
-        jt = v1.job_templates.create(inventory=inv)
-        request.addfinalizer(jt.teardown)
-
-        jt.launch().wait_until_completed()
-        inv_source = inv.related.inventory_sources.get().results.pop()
         updates = inv_source.related.inventory_updates.get()
-        assert(updates.count == 1)
-        assert(updates.results.pop().status == 'failed')
+        assert updates.count == 1
+        assert updates.results.pop().status == 'failed'
+        assert inv_source.get().status == 'failed'
