@@ -79,10 +79,13 @@ class TestInventory(Base_Api_Test):
 
         sf_groups = host.get().summary_fields.groups
         assert sf_groups.count == 6
-
-        all_results = [{'id': group.id, 'name': group.name} for group in groups]
-        assert all([result in all_results for result in sf_groups.results])
         assert len(sf_groups.results) == 5
+
+        all_results = []
+        for group in groups:
+            result = {'id': group.id, 'name': group.name}
+            assert result not in all_results
+            all_results.append(result)
 
     def test_conflict_exception_with_running_update(self, factories):
         """Verify that deleting an inventory with a running update will raise a 409
@@ -95,9 +98,6 @@ class TestInventory(Base_Api_Test):
             inv_source.ds.inventory.delete()
         assert e.value.message['conflict'] == 'Resource is being used by running jobs'
         assert e.value.message['active_jobs'] == [{'type': 'inventory_update', 'id': inv_update.id}]
-
-        # ensure clean test teardown
-        inv_update.wait_until_completed()
 
     def test_v1_update_cascade_delete(self, custom_inventory_source):
         """Verify that v1 inventory updates get cascade deleted with their custom group."""
