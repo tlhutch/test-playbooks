@@ -9,7 +9,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Inventory(Base_Api_Test):
+class TestInventory(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
@@ -45,7 +45,7 @@ class Test_Inventory(Base_Api_Test):
         assert hosts.count == 1
 
         script = inventory.get_related('script')
-        script_hosts_count = len(script.json['all']['hosts'])
+        script_hosts_count = len(script.all.hosts)
         assert hosts.count == script_hosts_count
 
     def test_host_related_groups(self, factories):

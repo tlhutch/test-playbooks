@@ -1,6 +1,7 @@
 import json
 
 from towerkit import exceptions as exc
+from towerkit import utils
 import pytest
 
 from tests.api import Base_Api_Test
@@ -197,7 +198,7 @@ def variation(request, authtoken, inventory, ansible_runner):
 @pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Group(Base_Api_Test):
+class TestGroup(Base_Api_Test):
     """Verify DELETE and POST (disassociate) behaves as expected for groups and their hosts
 
     Top-level group
@@ -235,7 +236,7 @@ class Test_Group(Base_Api_Test):
 
         # disassociate top-level group
         payload = dict(id=group.id, disassociate=True)
-        with pytest.raises(exc.NoContent):
+        with utils.suppress(exc.NoContent):
             # POST to /inventories/N/groups
             root_variation.get_related('groups').post(payload)
 
@@ -278,7 +279,7 @@ class Test_Group(Base_Api_Test):
 
         # delete group, and promote it's children
         payload = dict(disassociate=True)
-        with pytest.raises(exc.NoContent):
+        with utils.suppress(exc.NoContent):
             # 1) FIXME - disassociate all matching groups - /inventories/N/groups
             # Would need to add variations to verify the above scenario
             # non_root_variation.get_related('groups').post(payload)
@@ -406,7 +407,7 @@ class Test_Group(Base_Api_Test):
 
         # To associate a root_group, dissociate the group from the parent_group
         payload = dict(id=group.id, disassociate=True)
-        with pytest.raises(exc.NoContent):
+        with utils.suppress(exc.NoContent):
             parent_group.get_related('children').post(payload)
 
         # Verify root_groups adjusts appropriately
@@ -472,7 +473,7 @@ class Test_Group(Base_Api_Test):
 
         # Associate group with dest_group
         payload = dict(id=group.id)
-        with pytest.raises(exc.NoContent):
+        with utils.suppress(exc.NoContent):
             dest_group.get_related('children').post(payload)
 
         # Verify root_groups adjusts appropriately
@@ -548,13 +549,13 @@ class Test_Group(Base_Api_Test):
 
         # Associate group with dest_group
         payload = dict(id=group.id)
-        with pytest.raises(exc.NoContent):
+        with utils.suppress(exc.NoContent):
             dest_group.get_related('children').post(payload)
 
         # Disassociate group from parent_group
         if parent_group:
             payload = dict(id=group.id, disassociate=True)
-            with pytest.raises(exc.NoContent):
+            with utils.suppress(exc.NoContent):
                 parent_group.get_related('children').post(payload)
 
         # Verify root_groups adjusts appropriately

@@ -406,10 +406,9 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         * Inventory update should run first.
         * Job should run after the completion of our inventory update.
         """
-        gce_cred = factories.v2_credential(kind='gce')
-        inv_source = factories.v2_inventory_source(source='gce', credential=gce_cred,
-                                                   update_on_launch=True)
+        inv_source = factories.v2_inventory_source(update_on_launch=True)
         assert not inv_source.last_updated
+        assert not inv_source.last_job_run
 
         jt = factories.v2_job_template(inventory=inv_source.ds.inventory, playbook='debug.yml')
         job = jt.launch().wait_until_completed()

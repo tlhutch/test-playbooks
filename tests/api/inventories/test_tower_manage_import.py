@@ -74,7 +74,7 @@ def get_ec2_inventory():
 @pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Tower_Manage_Inventory_Import(Base_Api_Test):
+class TestTowerManageInventoryImport(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 

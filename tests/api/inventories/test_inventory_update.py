@@ -9,7 +9,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Inventory_Update(Base_Api_Test):
+class TestInventoryUpdate(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
