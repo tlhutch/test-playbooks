@@ -69,7 +69,7 @@ class TestInventoryRBAC(Base_Api_Test):
         * Create/edit/delete inventory groups, hosts, and sources
         """
         inventory = factories.v2_inventory()
-        inv_script = factories.inventory_script(organization=inventory.ds.organization)
+        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent admin_role
@@ -101,7 +101,7 @@ class TestInventoryRBAC(Base_Api_Test):
         group = factories.v2_group(inventory=inventory)
         host = factories.v2_host(inventory=inventory)
         inv_source = factories.v2_inventory_source(inventory=inventory)
-        inv_script = factories.inventory_script(organization=inventory.ds.organization)
+        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent use_role
@@ -136,7 +136,7 @@ class TestInventoryRBAC(Base_Api_Test):
         group = factories.v2_group(inventory=inventory)
         host = factories.v2_host(inventory=inventory)
         inv_source = factories.v2_inventory_source(inventory=inventory)
-        inv_script = factories.inventory_script(organization=inventory.ds.organization)
+        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent adhoc_role
@@ -171,7 +171,7 @@ class TestInventoryRBAC(Base_Api_Test):
         group = factories.v2_group(inventory=inventory)
         host = factories.v2_host(inventory=inventory)
         inv_source = factories.v2_inventory_source(inventory=inventory)
-        inv_script = factories.inventory_script(organization=inventory.ds.organization)
+        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent update_role
@@ -206,7 +206,7 @@ class TestInventoryRBAC(Base_Api_Test):
         group = factories.v2_group(inventory=inventory)
         host = factories.v2_host(inventory=inventory)
         inv_source = factories.v2_inventory_source(inventory=inventory)
-        inv_script = factories.inventory_script(organization=inventory.ds.organization)
+        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent read_role
@@ -282,7 +282,7 @@ class TestInventoryRBAC(Base_Api_Test):
 
         user = factories.user()
 
-        aws_cred = factories.credential(kind='aws')
+        aws_cred = factories.v2_credential(kind='aws')
         inv_source = factories.v2_inventory_source(kind='ec2', credential=aws_cred)
         inv_source.ds.inventory.set_object_roles(user, role)
 
@@ -355,7 +355,7 @@ class TestInventoryRBAC(Base_Api_Test):
 
         user = factories.user()
 
-        aws_cred = factories.credential(kind='aws')
+        aws_cred = factories.v2_credential(kind='aws')
         inv_source = factories.v2_inventory_source(kind='ec2', credential=aws_cred)
         inv_source.ds.inventory.set_object_roles(user, role)
 
@@ -420,9 +420,9 @@ class TestInventoryRBAC(Base_Api_Test):
         ALLOWED_ROLES = ['admin', 'ad hoc']
         REJECTED_ROLES = ['use', 'update', 'read']
 
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
         user = factories.user()
-        credential = factories.credential(user=user, organization=None)
+        credential = factories.v2_credential(user=user, organization=None)
 
         inventory.set_object_roles(user, role)
 
@@ -447,9 +447,9 @@ class TestInventoryRBAC(Base_Api_Test):
         ALLOWED_ROLES = ['admin', 'ad hoc']
         REJECTED_ROLES = ['use', 'update', 'read']
 
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
         user = factories.user()
-        credential = factories.credential(user=user, organization=None)
+        credential = factories.v2_credential(user=user, organization=None)
 
         ahc = factories.v2_ad_hoc_command(inventory=inventory,
                                          credential=credential,
