@@ -109,50 +109,6 @@ class TestEnterpriseLicense(LicenseTest):
         v1.activity_stream.get()
 
     @pytest.mark.ha_tower
-    def test_post_scan_job_template(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
-        """Verifies that scan job templates may be created with an enterprise license."""
-        conf = api_config_pg.get()
-        if conf.license_info.free_instances < 0:
-            pytest.skip("Unable to test because there are no free_instances remaining")
-
-        # create payload
-        payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
-                       description="Random scan job_template - %s" % fauxfactory.gen_utf8(),
-                       inventory=host_local.inventory,
-                       job_type='scan',
-                       project=None,
-                       credential=ssh_credential.id,
-                       playbook='Default', )
-
-        # post scan_job template
-        api_job_templates_pg.post(payload)
-
-    @pytest.mark.ha_tower
-    def test_launch_scan_job(self, api_config_pg, api_job_templates_pg, ssh_credential, host_local):
-        """Verifies that scan jobs may be launched with an enterprise license."""
-        conf = api_config_pg.get()
-        if conf.license_info.free_instances < 0:
-            pytest.skip("Unable to test because there are no free_instances remaining")
-
-        # create payload
-        payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
-                       description="Random scan job_template - %s" % fauxfactory.gen_utf8(),
-                       inventory=host_local.inventory,
-                       job_type='scan',
-                       project=None,
-                       credential=ssh_credential.id,
-                       playbook='Default', )
-
-        # post scan_job template
-        scan_job_template_pg = api_job_templates_pg.post(payload)
-
-        # launch the job_template and wait for completion
-        job_pg = scan_job_template_pg.launch().wait_until_completed()
-
-        # assert success
-        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
-
-    @pytest.mark.ha_tower
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_able_to_cleanup_facts(self, cleanup_facts):
         """Verifies that cleanup_facts may be run with an enterprise license."""
@@ -162,16 +118,6 @@ class TestEnterpriseLicense(LicenseTest):
         # assert expected failure
         assert job_pg.is_successful, "cleanup_facts job unexpectedly failed " \
             "with an enterprise license - %s" % job_pg
-
-    @pytest.mark.ha_tower
-    def test_able_to_get_facts(self, scan_job_with_status_completed):
-        """Verify that that enterprise license users can GET fact endpoints."""
-        host_pg = scan_job_with_status_completed.get_related('inventory').get_related('hosts').results[0]
-
-        # test navigating to fact pages
-        fact_versions_pg = host_pg.get_related('fact_versions')
-        for fact_version in fact_versions_pg.results:
-            fact_version.get_related('fact_view')
 
     @pytest.mark.ha_tower
     def test_activity_stream_settings(self, api_settings_system_pg):

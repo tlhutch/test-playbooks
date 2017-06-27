@@ -89,38 +89,6 @@ class TestLegacyLicense(LicenseTest):
         """Verify that GET requests to /api/v1/activity_stream/ are allowed with a legacy license."""
         v1.activity_stream.get()
 
-    def test_unable_to_create_scan_job_template(self, api_config_pg, api_job_templates_pg, job_template):
-        """Verify that scan job templates may not be created with a legacy license."""
-        conf = api_config_pg.get()
-        if conf.license_info.free_instances < 0:
-            pytest.skip("Unable to test because there are no free_instances remaining")
-
-        # create playload
-        payload = dict(name="job_template-%s" % fauxfactory.gen_utf8(),
-                       description="Random job_template without credentials - %s" % fauxfactory.gen_utf8(),
-                       inventory=job_template.inventory,
-                       job_type='scan',
-                       project=None,
-                       credential=job_template.credential,
-                       playbook='Default', )
-
-        # post the scan job template and assess response
-        exc_info = pytest.raises(exc.PaymentRequired, api_job_templates_pg.post, payload)
-        result = exc_info.value[1]
-
-        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license.'}, (
-            "Unexpected API response when attempting to POST a scan job template with a legacy license - %s."
-            % json.dumps(result))
-
-        # attempt to patch job template into scan job template
-        payload = dict(job_type='scan', project=None)
-        exc_info = pytest.raises(exc.PaymentRequired, job_template.patch, **payload)
-        result = exc_info.value[1]
-
-        assert result == {u'detail': u'Feature system_tracking is not enabled in the active license.'}, (
-            "Unexpected API response when attempting to patch a job template into a scan job template with a "
-            "legacy license - %s." % json.dumps(result))
-
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
         """Verify that cleanup_facts may not be run with a legacy license."""
