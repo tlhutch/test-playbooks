@@ -13,63 +13,63 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
-class Test_Inventory_RBAC(Base_Api_Test):
+class TestInventoryRBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.ha_tower
-    def test_unprivileged_user(self, host_local, aws_inventory_source, custom_group, factories):
+    def test_unprivileged_user(self, factories):
         """An unprivileged user should not be able to:
-        * Get the inventory detail
-        * Get all of the inventory get_related
+        * Get the inventory detail page
+        * Get all of the inventory related pages
         * Update all groups that the inventory contains
         * Launch ad hoc commands against the inventory
         * Edit/delete the inventory
-        * Create/edit/delete inventory groups and hosts
+        * Create/edit/delete inventory groups, hosts, and sources
         """
-        inventory = host_local.ds.inventory
+        inventory = factories.v2_inventory()
+        group = factories.v2_group(inventory=inventory)
+        host = factories.v2_host(inventory=inventory)
+        custom_inv_source = factories.v2_inventory_source(inventory=inventory)
+        aws_inv_source = factories.v2_inventory_source(inventory=inventory, kind='ec2')
         user = factories.user()
-
-        aws_group_update = aws_inventory_source.get_related('update')
-        custom_group_update = custom_group.get_related('inventory_source').get_related('update')
 
         with self.current_user(username=user.username, password=user.password):
             # check GET as test user
             check_read_access(inventory, unprivileged=True)
 
-            # update aws_group
+            # update inventory sources
             with pytest.raises(towerkit.exceptions.Forbidden):
-                aws_group_update.post()
-
-            # update custom group
+                aws_inv_source.related['update'].post()
             with pytest.raises(towerkit.exceptions.Forbidden):
-                custom_group_update.post()
+                custom_inv_source.related['update'].post()
 
             # post command
             with pytest.raises(towerkit.exceptions.Forbidden):
                 inventory.related.ad_hoc_commands.post()
 
-            # check ability to create group and host
+            # check ability to create inventory resources
             with pytest.raises(towerkit.exceptions.Forbidden):
                 inventory.related.groups.post()
             with pytest.raises(towerkit.exceptions.Forbidden):
                 inventory.related.hosts.post()
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                inventory.related.inventory_sources.post()
 
-            # check put/patch/delete on inventory, custom_group, and host_local
-            assert_response_raised(host_local, httplib.FORBIDDEN)
-            assert_response_raised(custom_group, httplib.FORBIDDEN)
-            assert_response_raised(inventory, httplib.FORBIDDEN)
+            # check put/patch/delete on inventory and inventory resources
+            for resource in [host, group, aws_inv_source, inventory]:
+                assert_response_raised(resource, httplib.FORBIDDEN)
 
-    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1243", raises=AssertionError)
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'admin' should be able to:
-        * Get the inventory detail
-        * Get all of the inventory get_related
+        * Get the inventory detail page
+        * Get all of the inventory related pages
         * Edit/delete the inventory
-        * Create/edit/delete inventory groups and hosts
+        * Create/edit/delete inventory groups, hosts, and sources
         """
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
+        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent admin_role
@@ -80,27 +80,28 @@ class Test_Inventory_RBAC(Base_Api_Test):
             check_read_access(inventory, ["organization"])
 
             # check ability to create group and host
-            group = factories.group(inventory=inventory)
-            host = factories.host(inventory=inventory)
+            group = factories.v2_group(inventory=inventory)
+            host = factories.v2_host(inventory=inventory)
+            inv_source = factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
 
-            # check put/patch/delete on inventory, group, and host
-            assert_response_raised(host, httplib.OK)
-            assert_response_raised(group, httplib.OK)
-            assert_response_raised(inventory, httplib.OK)
+            # check put/patch/delete on inventory and inventory resources
+            for resource in [host, group, inv_source, inventory]:
+                assert_response_raised(resource, httplib.OK)
 
-    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1243", raises=AssertionError)
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_use_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'use' should be able to:
-        * Get the inventory detail
-        * Get all of the inventory get_related
+        * Get the inventory detail page
+        * Get all of the inventory related pages
         A user/team with inventory 'use' should not be able to:
         * Edit/delete the inventory
-        * Create/edit/delete inventory groups and hosts
+        * Create/edit/delete inventory groups, hosts, and sources
         """
-        inventory = factories.inventory()
-        group = factories.group(inventory=inventory)
-        host = factories.host(inventory=inventory)
+        inventory = factories.v2_inventory()
+        group = factories.v2_group(inventory=inventory)
+        host = factories.v2_host(inventory=inventory)
+        inv_source = factories.v2_inventory_source(inventory=inventory)
+        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent use_role
@@ -112,16 +113,16 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # check ability to create group and host
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.group(inventory=inventory)
+                factories.v2_group(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.host(inventory=inventory)
+                factories.v2_host(inventory=inventory)
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
 
-            # check put/patch/delete on inventory, group, and host
-            assert_response_raised(host, httplib.FORBIDDEN)
-            assert_response_raised(group, httplib.FORBIDDEN)
-            assert_response_raised(inventory, httplib.FORBIDDEN)
+            # check put/patch/delete on inventory and inventory resoures
+            for resource in [host, group, inv_source, inventory]:
+                assert_response_raised(resource, httplib.FORBIDDEN)
 
-    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1243", raises=AssertionError)
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_adhoc_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'adhoc' should be able to:
@@ -129,11 +130,13 @@ class Test_Inventory_RBAC(Base_Api_Test):
         * Get all of the inventory get_related
         A user/team with inventory 'adhoc' should not be able to:
         * Edit/delete the inventory
-        * Create/edit/delete inventory groups and hosts
+        * Create/edit/delete inventory groups, hosts, and sources
         """
-        inventory = factories.inventory()
-        group = factories.group(inventory=inventory)
-        host = factories.host(inventory=inventory)
+        inventory = factories.v2_inventory()
+        group = factories.v2_group(inventory=inventory)
+        host = factories.v2_host(inventory=inventory)
+        inv_source = factories.v2_inventory_source(inventory=inventory)
+        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent adhoc_role
@@ -145,28 +148,30 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # check ability to create group and host
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.group(inventory=inventory)
+                factories.v2_group(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.host(inventory=inventory)
+                factories.v2_host(inventory=inventory)
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
 
-            # check put/patch/delete on inventory, group, and host
-            assert_response_raised(host, httplib.FORBIDDEN)
-            assert_response_raised(group, httplib.FORBIDDEN)
-            assert_response_raised(inventory, httplib.FORBIDDEN)
+            # check put/patch/delete on inventory and inventory resources
+            for resource in [host, group, inv_source, inventory]:
+                assert_response_raised(resource, httplib.FORBIDDEN)
 
-    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1243", raises=AssertionError)
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_update_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'update' should be able to:
         * Get the inventory detail
-        * Get all of the inventory get_related
+        * Get all of the inventory related pages
         A user/team with inventory 'update' should not be able to:
         * Edit/delete the inventory
-        * Create/edit/delete inventory groups and hosts
+        * Create/edit/delete inventory groups, hosts, and sources
         """
-        inventory = factories.inventory()
-        group = factories.group(inventory=inventory)
-        host = factories.host(inventory=inventory)
+        inventory = factories.v2_inventory()
+        group = factories.v2_group(inventory=inventory)
+        host = factories.v2_host(inventory=inventory)
+        inv_source = factories.v2_inventory_source(inventory=inventory)
+        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent update_role
@@ -178,28 +183,30 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # check ability to create group and host
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.group(inventory=inventory)
+                factories.v2_group(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.host(inventory=inventory)
+                factories.v2_host(inventory=inventory)
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
 
             # check put/patch/delete on inventory, group, and host
-            assert_response_raised(host, httplib.FORBIDDEN)
-            assert_response_raised(group, httplib.FORBIDDEN)
-            assert_response_raised(inventory, httplib.FORBIDDEN)
+            for resource in [host, group, inv_source, inventory]:
+                assert_response_raised(resource, httplib.FORBIDDEN)
 
-    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1243", raises=AssertionError)
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'read' should be able to:
-        * Get the inventory detail
-        * Get all of the inventory get_related
+        * Get the inventory detail page
+        * Get all of the inventory related pages
         A user/team with inventory 'read' should not be able to:
         * Edit/delete the inventory
-        * Create/edit/delete inventory groups and hosts
+        * Create/edit/delete inventory groups, hosts, and sources
         """
-        inventory = factories.inventory()
-        group = factories.group(inventory=inventory)
-        host = factories.host(inventory=inventory)
+        inventory = factories.v2_inventory()
+        group = factories.v2_group(inventory=inventory)
+        host = factories.v2_host(inventory=inventory)
+        inv_source = factories.v2_inventory_source(inventory=inventory)
+        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent read_role
@@ -211,25 +218,27 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
             # check ability to create group and host
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.group(inventory=inventory)
+                factories.v2_group(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.host(inventory=inventory)
+                factories.v2_host(inventory=inventory)
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
 
             # check put/patch/delete on inventory, group, and host
-            assert_response_raised(host, httplib.FORBIDDEN)
-            assert_response_raised(group, httplib.FORBIDDEN)
-            assert_response_raised(inventory, httplib.FORBIDDEN)
+            for resource in [host, group, inv_source, inventory]:
+                assert_response_raised(resource, httplib.FORBIDDEN)
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('agent', ['user', 'team'])
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_user_capabilities(self, factories, api_inventories_pg, set_test_roles, agent, role):
+    def test_user_capabilities(self, factories, v2, set_test_roles, agent, role):
         """Test user_capabilities given each inventory role.
-        Note: this test serves as a smokescreen test with user_capabilites and team credentials.
+        Note: this test serves as a smoke test with user_capabilites and team credentials.
         This is the only place in tower-qa where we test user_capabilities with team credentials.
         """
-        inventory = factories.inventory()
-        factories.group(inventory=inventory)
+        inventory = factories.v2_inventory()
+        factories.v2_group(inventory=inventory)
+        factories.v2_inventory_source(inventory=inventory)
         user = factories.user()
 
         # give agent target role privileges
@@ -237,35 +246,34 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         with self.current_user(username=user.username, password=user.password):
             check_user_capabilities(inventory.get(), role)
-            check_user_capabilities(api_inventories_pg.get(id=inventory.id).results.pop(), role)
+            check_user_capabilities(v2.inventory.get(id=inventory.id).results.pop(), role)
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_update_custom_group(self, factories, custom_group, role):
-        """Test ability to update a custom group."""
+    def test_update_custom_source(self, factories, role):
+        """Test ability to update a custom source."""
         ALLOWED_ROLES = ['admin', 'update']
         REJECTED_ROLES = ['use', 'ad hoc', 'read']
 
         user = factories.user()
 
-        custom_inventory_source = custom_group.related.inventory_source.get()
-        inventory = custom_group.ds.inventory
-        inventory.set_object_roles(user, role)
+        inv_source = factories.v2_inventory_source()
+        inv_source.ds.inventory.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                update = custom_inventory_source.update().wait_until_completed()
+                update = inv_source.update().wait_until_completed()
                 assert update.is_successful, "Update unsuccessful - %s." % update
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    custom_inventory_source.update()
+                    inv_source.update()
             else:
                 raise ValueError("Received unhandled inventory role.")
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_update_cloud_group(self, factories, aws_inventory_source, role):
-        """Test ability to update a cloud group. Note: only tested on AWS to save time.
+    def test_update_cloud_source(self, factories, role):
+        """Test ability to update a cloud source. Note: only tested on AWS to save time.
         Also, user should be able launch update even though cloud_credential is under
         admin user.
         """
@@ -274,55 +282,84 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
         user = factories.user()
 
-        inventory = aws_inventory_source.related.inventory.get()
-        inventory.set_object_roles(user, role)
+        aws_cred = factories.v2_credential(kind='aws')
+        inv_source = factories.v2_inventory_source(kind='ec2', credential=aws_cred)
+        inv_source.ds.inventory.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                update = aws_inventory_source.update().wait_until_completed()
+                update = inv_source.update().wait_until_completed()
                 assert update.is_successful, "Update unsuccessful - %s." % update
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    aws_inventory_source.update()
+                    inv_source.update()
+            else:
+                raise ValueError("Received unhandled inventory role.")
+
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
+    def test_update_all_inventory_sources(self, factories, role):
+        """Test ability to update all inventory sources. User should be able to
+        launch update even though cloud_credential is owned by admin user.
+        """
+        ALLOWED_ROLES = ['admin', 'update']
+        REJECTED_ROLES = ['use', 'ad hoc', 'read']
+
+        inventory = factories.v2_inventory()
+        gce_cred, vmware_cred = [factories.v2_credential(kind=kind) for kind in ('gce', 'vmware')]
+        gce_source = factories.v2_inventory_source(inventory=inventory, source='gce', credential=gce_cred)
+        vmware_source = factories.v2_inventory_source(inventory=inventory, source='vmware', credential=vmware_cred)
+
+        user = factories.user()
+        inventory.set_object_roles(user, role)
+
+        with self.current_user(user):
+            if role in ALLOWED_ROLES:
+                inv_updates = inventory.update_inventory_sources(wait=True)
+                for update in inv_updates:
+                    assert update.is_successful
+                assert gce_source.get().is_successful and vmware_source.get().is_successful
+            elif role in REJECTED_ROLES:
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    inventory.update_inventory_sources()
             else:
                 raise ValueError("Received unhandled inventory role.")
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_schedule_update(self, factories, custom_group, role):
+    def test_schedule_update(self, factories, role):
         """Tests ability to schedule an inventory update."""
         ALLOWED_ROLES = ['admin', 'update']
         REJECTED_ROLES = ['use', 'ad hoc', 'read']
 
         user = factories.user()
 
-        custom_inventory_source = custom_group.related.inventory_source.get()
-        inventory = custom_group.ds.inventory
-        inventory.set_object_roles(user, role)
+        inv_source = factories.v2_inventory_source()
+        inv_source.ds.inventory.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                schedule = custom_inventory_source.add_schedule()
+                schedule = inv_source.add_schedule()
                 assert_response_raised(schedule, methods=('get', 'put', 'patch', 'delete'))
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    custom_inventory_source.add_schedule()
+                    inv_source.add_schedule()
             else:
                 raise ValueError("Received unhandled inventory role.")
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_cancel_update(self, factories, aws_inventory_source, role):
+    def test_cancel_update(self, factories, role):
         """Tests inventory update cancellation. Inventory admins can cancel other people's updates."""
         ALLOWED_ROLES = ['admin']
         REJECTED_ROLES = ['update', 'use', 'ad hoc', 'read']
 
         user = factories.user()
 
-        inventory = aws_inventory_source.related.inventory.get()
-        inventory.set_object_roles(user, role)
+        aws_cred = factories.v2_credential(kind='aws')
+        inv_source = factories.v2_inventory_source(kind='ec2', credential=aws_cred)
+        inv_source.ds.inventory.set_object_roles(user, role)
 
-        update = aws_inventory_source.update()
+        update = inv_source.update()
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
@@ -337,18 +374,17 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_delete_update(self, factories, custom_group, role):
+    def test_delete_update(self, factories, role):
         """Tests ability to delete an inventory update."""
         ALLOWED_ROLES = ['admin']
         REJECTED_ROLES = ['use', 'ad hoc', 'update', 'read']
 
         user = factories.user()
 
-        custom_inventory_source = custom_group.related.inventory_source.get()
-        inventory = custom_group.ds.inventory
-        inventory.set_object_roles(user, role)
+        inv_source = factories.v2_inventory_source()
+        inv_source.ds.inventory.set_object_roles(user, role)
 
-        update = custom_inventory_source.update().wait_until_completed()
+        update = inv_source.update().wait_until_completed()
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
@@ -361,22 +397,21 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-    def test_update_user_capabilities(self, factories, custom_group, api_inventory_updates_pg, role):
+    def test_update_user_capabilities(self, factories, v2, role):
         """Test user_capabilities given each inventory role on spawned
         inventory_updates.
         """
         user = factories.user()
 
-        custom_inventory_source = custom_group.related.inventory_source.get()
-        inventory = custom_group.ds.inventory
-        inventory.set_object_roles(user, role)
+        inv_source = factories.v2_inventory_source()
+        inv_source.ds.inventory.set_object_roles(user, role)
 
         # launch inventory_update
-        update = custom_inventory_source.update().wait_until_completed()
+        update = inv_source.update().wait_until_completed()
 
         with self.current_user(username=user.username, password=user.password):
             check_user_capabilities(update.get(), role)
-            check_user_capabilities(api_inventory_updates_pg.get(id=update.id).results.pop(), role)
+            check_user_capabilities(v2.inventory_updates.get(id=update.id).results.pop(), role)
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
@@ -385,23 +420,23 @@ class Test_Inventory_RBAC(Base_Api_Test):
         ALLOWED_ROLES = ['admin', 'ad hoc']
         REJECTED_ROLES = ['use', 'update', 'read']
 
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
         user = factories.user()
-        credential = factories.credential(user=user, organization=None)
+        credential = factories.v2_credential(user=user, organization=None)
 
         inventory.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                ahc = factories.ad_hoc_command(inventory=inventory,
-                                               credential=credential,
-                                               module_name="ping").wait_until_completed()
+                ahc = factories.v2_ad_hoc_command(inventory=inventory,
+                                                  credential=credential,
+                                                  module_name="ping").wait_until_completed()
                 assert ahc.is_successful, "Command unsuccessful - %s." % ahc
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    factories.ad_hoc_command(inventory=inventory,
-                                             credential=credential,
-                                             module_name="ping")
+                    factories.v2_ad_hoc_command(inventory=inventory,
+                                                credential=credential,
+                                                module_name="ping")
             else:
                 raise ValueError("Received unhandled inventory role.")
 
@@ -412,13 +447,13 @@ class Test_Inventory_RBAC(Base_Api_Test):
         ALLOWED_ROLES = ['admin', 'ad hoc']
         REJECTED_ROLES = ['use', 'update', 'read']
 
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
         user = factories.user()
-        credential = factories.credential(user=user, organization=None)
+        credential = factories.v2_credential(user=user, organization=None)
 
-        ahc = factories.ad_hoc_command(inventory=inventory,
-                                       credential=credential,
-                                       module_name="ping").wait_until_completed()
+        ahc = factories.v2_ad_hoc_command(inventory=inventory,
+                                         credential=credential,
+                                         module_name="ping").wait_until_completed()
         assert ahc.is_successful, "Command unsuccessful - %s." % ahc
 
         inventory.set_object_roles(user, role)
@@ -440,15 +475,10 @@ class Test_Inventory_RBAC(Base_Api_Test):
         ALLOWED_ROLES = ['admin']
         REJECTED_ROLES = ['ad hoc', 'use', 'update', 'read']
 
-        inventory = factories.inventory()
         user = factories.user()
-        credential = factories.credential(user=user, organization=None)
 
-        inventory.set_object_roles(user, role)
-
-        ahc = factories.ad_hoc_command(inventory=inventory,
-                                       credential=credential,
-                                       module_args="sleep 10")
+        ahc = factories.v2_ad_hoc_command(module_args="sleep 10")
+        ahc.ds.inventory.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
@@ -466,23 +496,14 @@ class Test_Inventory_RBAC(Base_Api_Test):
         Note: command deletion is organization scoped. A command's inventory determines
         its organization.
         """
-        # create items for command payloads
-        inv1, inv2 = factories.inventory(), factories.inventory()
-        inv1_org, inv2_org = inv1.ds.organization, inv2.ds.organization
-        cred1 = factories.credential(organization=inv1_org)
-        cred2 = factories.credential(organization=inv2_org)
-
-        # sanity check
-        assert inv1_org.id != inv2_org, "Test inventories unexpectedly in the same organization."
-
-        # create org_admins
-        org_admin1, org_admin2 = factories.user(), factories.user()
-        inv1_org.add_admin(org_admin1)
-        inv2_org.add_admin(org_admin2)
-
         # launch both commands
-        ahc1 = factories.ad_hoc_command(inventory=inv1, credential=cred1, module_name="ping")
-        ahc2 = factories.ad_hoc_command(inventory=inv2, credential=cred2, module_name="ping")
+        ahc1 = factories.v2_ad_hoc_command(module_name="ping")
+        ahc2 = factories.v2_ad_hoc_command(module_name="ping")
+
+        # create org admins
+        org_admin1, org_admin2 = [factories.user() for _ in range(2)]
+        ahc1.ds.inventory.ds.organization.add_admin(org_admin1)
+        ahc2.ds.inventory.ds.organization.add_admin(org_admin2)
 
         # assert that each org_admin cannot delete other organization's command
         with self.current_user(username=org_admin1.username, password=org_admin1.password):
@@ -501,15 +522,10 @@ class Test_Inventory_RBAC(Base_Api_Test):
     @pytest.mark.ha_tower
     def test_delete_command_as_org_user(self, factories):
         """Tests ability to delete an ad hoc command as a privileged org_user."""
-        inventory = factories.inventory()
         user = factories.user()
-        credential = factories.credential(user=user, organization=None)
 
-        inventory.set_object_roles(user, "admin")
-
-        ahc = factories.ad_hoc_command(inventory=inventory,
-                                       credential=credential,
-                                       module_name="ping").wait_until_completed()
+        ahc = factories.v2_ad_hoc_command(module_name="ping").wait_until_completed()
+        ahc.ds.inventory.set_object_roles(user, "admin")
 
         with self.current_user(username=user.username, password=user.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
@@ -517,26 +533,22 @@ class Test_Inventory_RBAC(Base_Api_Test):
 
     @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_command_user_capabilities(self, factories, api_ad_hoc_commands_pg, role):
+    def test_command_user_capabilities(self, factories, v2, role):
         """Test user_capabilities given each inventory role on spawned
         ad hoc commands.
         """
-        inventory = factories.inventory()
-        user = factories.user()
-        credential = factories.credential(user=user, organization=None)
+        ahc = factories.v2_ad_hoc_command(module_name="ping").wait_until_completed()
 
-        inventory.set_object_roles(user, role)
-
-        ahc = factories.ad_hoc_command(inventory=inventory,
-                                       credential=credential,
-                                       module_name="ping").wait_until_completed()
+        user = factories.user(organization=ahc.ds.credential.ds.organization)
+        ahc.ds.inventory.set_object_roles(user, role)
+        ahc.ds.credential.set_object_roles(user, "use")
 
         with self.current_user(username=user.username, password=user.password):
             check_user_capabilities(ahc.get(), role)
-            check_user_capabilities(api_ad_hoc_commands_pg.get(id=ahc.id).results.pop(), role)
+            check_user_capabilities(v2.ad_hoc_commands.get(id=ahc.id).results.pop(), role)
 
     @pytest.mark.ha_tower
-    def test_cloud_credential_reassignment(self, factories, openstack_v2_credential, admin_user):
+    def test_cloud_source_credential_reassignment(self, factories, openstack_v2_credential):
         """Test that a user with inventory-admin may not patch an inventory source with another user's
         personal user credential.
         """

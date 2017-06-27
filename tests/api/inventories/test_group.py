@@ -1,7 +1,7 @@
 import json
 
-import towerkit.exceptions
-import fauxfactory
+from towerkit import exceptions as exc
+from towerkit import utils
 import pytest
 
 from tests.api import Base_Api_Test
@@ -194,30 +194,11 @@ def variation(request, authtoken, inventory, ansible_runner):
     return inventory
 
 
-@pytest.fixture(scope="function")
-def another_inventory(request, authtoken, api_inventories_pg, organization):
-    payload = dict(name="inventory-%s" % fauxfactory.gen_alphanumeric(),
-                   description="Another random inventory - %s" % fauxfactory.gen_utf8(),
-                   organization=organization.id,)
-    obj = api_inventories_pg.post(payload)
-    request.addfinalizer(obj.delete)
-    return obj
-
-
-@pytest.fixture(scope="function")
-def some_group(request, authtoken, inventory):
-    payload = dict(name="group-%s" % fauxfactory.gen_utf8(),
-                   inventory=inventory.id,)
-    obj = inventory.get_related('groups').post(payload)
-    request.addfinalizer(obj.silent_delete)
-    return obj
-
-
 @pytest.mark.api
 @pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Group(Base_Api_Test):
+class TestGroup(Base_Api_Test):
     """Verify DELETE and POST (disassociate) behaves as expected for groups and their hosts
 
     Top-level group
@@ -255,7 +236,7 @@ class Test_Group(Base_Api_Test):
 
         # disassociate top-level group
         payload = dict(id=group.id, disassociate=True)
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with utils.suppress(exc.NoContent):
             # POST to /inventories/N/groups
             root_variation.get_related('groups').post(payload)
 
@@ -298,7 +279,7 @@ class Test_Group(Base_Api_Test):
 
         # delete group, and promote it's children
         payload = dict(disassociate=True)
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with utils.suppress(exc.NoContent):
             # 1) FIXME - disassociate all matching groups - /inventories/N/groups
             # Would need to add variations to verify the above scenario
             # non_root_variation.get_related('groups').post(payload)
@@ -426,7 +407,7 @@ class Test_Group(Base_Api_Test):
 
         # To associate a root_group, dissociate the group from the parent_group
         payload = dict(id=group.id, disassociate=True)
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with utils.suppress(exc.NoContent):
             parent_group.get_related('children').post(payload)
 
         # Verify root_groups adjusts appropriately
@@ -492,7 +473,7 @@ class Test_Group(Base_Api_Test):
 
         # Associate group with dest_group
         payload = dict(id=group.id)
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with utils.suppress(exc.NoContent):
             dest_group.get_related('children').post(payload)
 
         # Verify root_groups adjusts appropriately
@@ -568,13 +549,13 @@ class Test_Group(Base_Api_Test):
 
         # Associate group with dest_group
         payload = dict(id=group.id)
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with utils.suppress(exc.NoContent):
             dest_group.get_related('children').post(payload)
 
         # Disassociate group from parent_group
         if parent_group:
             payload = dict(id=group.id, disassociate=True)
-            with pytest.raises(towerkit.exceptions.NoContent):
+            with utils.suppress(exc.NoContent):
                 parent_group.get_related('children').post(payload)
 
         # Verify root_groups adjusts appropriately
@@ -605,88 +586,49 @@ class Test_Group(Base_Api_Test):
             # Verify that the parent.all_hosts has changed
             assert parent_group.get_related('all_hosts').count == total_parent_all_hosts - total_group_all_hosts
 
-    def test_circular_dependency(self, inventory):
-        """verify unable to add a circular dependency (top -> ... -> leaf -> top)"""
-        # Add parent_group
-        payload = dict(name="root-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
-        parent_group = inventory.get_related('groups').post(payload)
+    def test_circular_association(self, factories):
+        """Verify that child groups cannot list their parents and grandparents as a child."""
+        parent_group = factories.v2_group()
+        inventory = parent_group.ds.inventory
+        child_group, grandchild_group = [factories.v2_group(inventory=inventory) for group in range(2)]
+        parent_group.add_group(child_group)
+        child_group.add_group(grandchild_group)
 
-        # Add child_group
-        payload = dict(name="child-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
-        child_group = parent_group.get_related('children').post(payload)
+        with pytest.raises(exc.Forbidden):
+            for group in [child_group, grandchild_group]:
+                group.add_group(parent_group)
 
-        # Add grandchild_group
-        payload = dict(name="grandchild-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
-        grandchild_group = child_group.get_related('children').post(payload)
+    def test_self_association(self, factories):
+        """Verify that groups cannot list themselves as a child."""
+        group = factories.v2_group()
+        with pytest.raises(exc.Forbidden):
+            group.add_group(group)
 
-        # Attempt to associate circular dependency
-        payload = dict(id=parent_group.id)
-        with pytest.raises(towerkit.exceptions.Forbidden):
-            grandchild_group.get_related('children').post(payload)
+    def test_allowed_duplicates(self, factories):
+        """Verify that duplicate groups are allowed in different inventories."""
+        parent1 = factories.v2_group()
+        child1 = factories.v2_group(inventory=parent1.ds.inventory)
+        parent1.add_group(child1)
 
-    def test_unique(self, inventory, another_inventory):
-        """verify duplicate group names are allowed if in a different inventory"""
-        # Create inventory.parent_group
-        payload = dict(name="root-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
-        parent_group = inventory.get_related('groups').post(payload)
+        inventory = factories.v2_inventory()
+        parent2, child2 = [factories.v2_group(inventory=inventory, name=name) for name in (parent1.name, child1.name)]
+        parent2.add_group(child2)
 
-        # Create inventory.child_group
-        payload = dict(name="child-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
-        child_group = parent_group.get_related('children').post(payload)
+    def test_disallowed_duplicates(self, factories):
+        """Verify that duplicate groups are not allowed in the same inventory."""
+        parent = factories.v2_group()
+        inventory = parent.ds.inventory
+        child = factories.v2_group(inventory=inventory)
+        parent.add_group(child)
 
-        # Create another_inventory.parent_group (duplicate name, but different inventory)
-        payload = dict(name=parent_group.name, inventory=another_inventory.id)
-        new_parent = another_inventory.get_related('groups').post(payload)
+        for group in [parent, child]:
+            with pytest.raises(exc.Duplicate):
+                factories.v2_group(inventory=inventory, name=group.name)
 
-        # Create another_inventory.child_group (duplicate name, but different inventory)
-        # Create a child group with a duplicate name, in another inventory
-        payload = dict(name=child_group.name, inventory=another_inventory.id)
-        new_parent.get_related('children').post(payload)
+    def test_reused_names(self, factories):
+        """Verify that group names may be reused after group deletion."""
+        group = factories.v2_group()
+        inventory = group.ds.inventory
 
-    def test_duplicate(self, inventory):
-        """verify duplicate group names, in the same inventory, are not allowed"""
-        # Add parent_group
-        payload = dict(name="root-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
-        parent_group = inventory.get_related('groups').post(payload)
-
-        # Add child_group
-        payload = dict(name="child-%s" % fauxfactory.gen_alphanumeric(), inventory=inventory.id)
-        child_group = parent_group.get_related('children').post(payload)
-
-        # Attempt to create duplicate group as a root_group
-        payload = dict(name=child_group.name, inventory=inventory.id)
-        with pytest.raises(towerkit.exceptions.Duplicate):
-            inventory.get_related('groups').post(payload)
-
-        # Attempt to create duplicate group as a child_group
-        payload = dict(name=parent_group.name, inventory=inventory.id)
-        with pytest.raises(towerkit.exceptions.Duplicate):
-            parent_group.get_related('children').post(payload)
-
-    def test_name_reuse(self, some_group):
-        """verify one can re-use the name of a previously deleted group"""
-        groups_pg = some_group.get_related('inventory').get_related('groups')
-
-        # Delete the group
-        some_group.delete()
-
-        # The group should immediately be marked as inactive (aka deleted) by Tower
-        with pytest.raises(towerkit.exceptions.NotFound):
-            some_group.get()
-
-        # Create a new group, with the same name
-        # NOTE: Tower processes group DELETE's asynchronously, so it can take a
-        # bit for the group actually delete.  We'll attempt to create a new
-        # group, with the same name.  This should eventually succeed.
-        payload = dict(name=some_group.name, inventory=some_group.inventory)
-        tries = 1
-        max_tries = 10
-        while True:
-            try:
-                groups_pg.post(payload)
-            except towerkit.exceptions.Duplicate:
-                if tries > max_tries:
-                    raise Exception("The group '%s' (id: %s) wasn't cleaned up after %d attempts" % (some_group.name, some_group.id, tries))
-                tries += 1
-            else:
-                break
+        group.delete()
+        factories.v2_group(inventory=inventory, name=group.name)
