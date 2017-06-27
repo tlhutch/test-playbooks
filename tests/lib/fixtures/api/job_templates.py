@@ -7,12 +7,6 @@ import pytest
 from towerkit import rrule
 
 
-@pytest.fixture(scope="function", params=['job_template', 'check_job_template'])
-def nonscan_job_template(request):
-    """Convenience fixture that iterates through non-scan JTs"""
-    return request.getfuncargvalue(request.param)
-
-
 @pytest.fixture(scope="function")
 def job_template_no_credential(factories, organization, project, host_local):
     """job_template with no machine credential"""
