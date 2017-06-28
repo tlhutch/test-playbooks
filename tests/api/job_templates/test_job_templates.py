@@ -3,7 +3,6 @@ import json
 
 import towerkit.tower.inventory
 import towerkit.exceptions
-import fauxfactory
 import pytest
 
 from tests.api import Base_Api_Test
@@ -164,61 +163,25 @@ class TestJobTemplates(Base_Api_Test):
 
     @pytest.mark.ansible_integration
     @pytest.mark.ha_tower
-    @pytest.mark.parametrize("job_type", ["run", "scan", "check"])
-    def test_launch_nonscan_job_template_with_job_type_in_payload(self, nonscan_job_template, job_type):
+    @pytest.mark.parametrize("job_type", ["run", "check"])
+    def test_launch_with_job_type_in_payload(self, factories, job_type):
         """Verifies that "job_type" may be given at launch-time with run/check JTs."""
-        nonscan_job_template.patch(ask_job_type_on_launch=True)
-        launch_pg = nonscan_job_template.get_related('launch')
-        payload = dict(job_type=job_type)
+        jt = factories.v2_job_template(ask_job_type_on_launch=True)
+        launch = jt.get_related('launch')
 
         # assert values on launch resource
-        assert not launch_pg.can_start_without_user_input
-        assert not launch_pg.ask_variables_on_launch
-        assert not launch_pg.passwords_needed_to_start
-        assert not launch_pg.variables_needed_to_start
-        assert not launch_pg.credential_needed_to_start
-        assert launch_pg.ask_job_type_on_launch
+        assert not launch.can_start_without_user_input
+        assert not launch.ask_variables_on_launch
+        assert not launch.passwords_needed_to_start
+        assert not launch.variables_needed_to_start
+        assert not launch.credential_needed_to_start
+        assert launch.ask_job_type_on_launch
 
-        # assert that 'run/check' should result in successful jobs
-        if job_type in ['run', 'check']:
-            job_pg = nonscan_job_template.launch(payload).wait_until_completed()
-            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
-            assert job_pg.ask_job_type_on_launch
-            assert job_pg.job_type == job_type, "Unexpected value for job_type. Expected %s, got %s." % (job_type, job_pg.job_type)
+        job = jt.launch(dict(job_type=job_type)).wait_until_completed()
+        assert job.is_successful
 
-        # assert 'scan' should raise a 400
-        else:
-            with pytest.raises(towerkit.exceptions.BadRequest):
-                nonscan_job_template.launch(payload)
-
-    @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
-    @pytest.mark.parametrize("job_type", ["run", "scan", "check"])
-    def test_launch_scan_job_template_with_job_type_in_payload(self, scan_job_template, job_type):
-        """Verifies that "job_type" may be given at launch-time with scan JTs."""
-        scan_job_template.patch(ask_job_type_on_launch=True)
-        launch_pg = scan_job_template.get_related('launch')
-        payload = dict(job_type=job_type)
-
-        # assert values on launch resource
-        assert not launch_pg.can_start_without_user_input
-        assert not launch_pg.ask_variables_on_launch
-        assert not launch_pg.passwords_needed_to_start
-        assert not launch_pg.variables_needed_to_start
-        assert not launch_pg.credential_needed_to_start
-        assert launch_pg.ask_job_type_on_launch
-
-        # assert that 'run/check' should raise a 400
-        if job_type in ['run', 'check']:
-            with pytest.raises(towerkit.exceptions.BadRequest):
-                scan_job_template.launch(payload)
-
-        # assert that 'scan' should result in a regular scan job
-        else:
-            job_pg = scan_job_template.launch(payload).wait_until_completed()
-            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
-            assert job_pg.ask_job_type_on_launch
-            assert job_pg.job_type == job_type, "Unexpected value for job_type. Expected %s, got %s." % (job_type, job_pg.job_type)
+        assert job.ask_job_type_on_launch
+        assert job.job_type == job_type
 
     @pytest.mark.ansible_integration
     @pytest.mark.ha_tower
@@ -245,33 +208,6 @@ class TestJobTemplates(Base_Api_Test):
         assert job_pg.ask_inventory_on_launch
         assert job_pg.inventory == another_inventory.id, \
             "Job ran with incorrect inventory. Expected %s but got %s." % (another_inventory.id, job_template.inventory)
-
-    @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
-    def test_ask_inventory_on_launch_with_scan_job_template(self, scan_job_template, api_job_templates_pg):
-        """Verifies scan JTs may not have ask_inventory_on_launch."""
-        # patch scan JT and assess results
-        payload = dict(ask_inventory_on_launch=True)
-        exc_info = pytest.raises(towerkit.exceptions.BadRequest, scan_job_template.patch, **payload)
-        result = exc_info.value[1]
-        assert result == {u'inventory': [u'Scan jobs must be assigned a fixed inventory.']}, \
-            "Unexpected API response after attempting to patch a scan JT with ask_inventory_on_launch enabled."
-
-        # FIXME: implement put scan JT check
-
-        # post scan JT and assess results
-        payload = dict(name="scan_job_template-%s" % fauxfactory.gen_utf8(),
-                       description="Random scan job_template with machine credential - %s" % fauxfactory.gen_utf8(),
-                       inventory=scan_job_template.inventory,
-                       job_type='scan',
-                       project=None,
-                       credential=scan_job_template.credential,
-                       playbook='Default',
-                       ask_inventory_on_launch=True, )
-        exc_info = pytest.raises(towerkit.exceptions.BadRequest, api_job_templates_pg.post, payload)
-        result = exc_info.value[1]
-        assert result == {u'inventory': [u'Scan jobs must be assigned a fixed inventory.']}, \
-            "Unexpected API response after attempting to patch a scan JT with ask_inventory_on_launch enabled."
 
     @pytest.mark.ha_tower
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
