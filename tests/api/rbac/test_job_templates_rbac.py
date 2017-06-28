@@ -21,7 +21,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1256")
     def test_unprivileged_user(self, factories):
         """An unprivileged user/team should not be able to:
         * Get the JT details page
@@ -369,46 +368,36 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled job_template role.")
 
-    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1256")
     def test_delete_job_as_org_admin(self, factories):
-        """Create a run and a scan JT and an org_admin for each of these JTs. Then check
-        that each org_admin may only delete his org's job.
-        Note: job deletion is organization scoped. A run JT's project determines its
-        organization and a scan JT's inventory determines its organization.
+        """Create two JTs and launch each JT. Verify that each org admin can only
+        delete jobs from his own organization.
         """
         # create two JTs from different orgs
-        run_job_template = factories.job_template(inventory=factories.host().ds.inventory)
-        scan_job_template = factories.job_template(inventory=factories.host().ds.inventory,
-                                                   job_type="scan", project=None)
-
-        # sanity check
-        run_jt_org = run_job_template.ds.project.ds.organization
-        scan_jt_org = scan_job_template.ds.inventory.ds.organization
-        assert run_jt_org.id != scan_jt_org.id, "Test JTs unexpectedly in the same organization."
+        jt1, jt2 = [factories.v2_job_template() for _ in range(2)]
+        org1, org2 = [jt.ds.inventory.ds.organization for jt in (jt1, jt2)]
+        assert org1.id != org2.id  # sanity check
 
         # create org_admins
-        org_admin1 = factories.user(organization=run_jt_org)
-        org_admin2 = factories.user(organization=scan_jt_org)
-        run_jt_org.set_object_roles(org_admin1, 'admin')
-        scan_jt_org.set_object_roles(org_admin2, 'admin')
+        org_admin1, org_admin2 = [factories.user(organization=org) for org in (org1, org2)]
+        org1.add_admin(org_admin1)
+        org2.add_admin(org_admin2)
 
         # launch JTs
-        run_job = run_job_template.launch()
-        scan_job = scan_job_template.launch()
+        job1, job2 = [jt.launch() for jt in (jt1, jt2)]
 
         # assert that each org_admin cannot delete other organization's job
         with self.current_user(username=org_admin1.username, password=org_admin1.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
-                scan_job.delete()
+                job2.delete()
         with self.current_user(username=org_admin2.username, password=org_admin2.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
-                run_job.delete()
+                job1.delete()
 
         # assert that each org_admin can delete his own organization's job
         with self.current_user(username=org_admin1.username, password=org_admin1.password):
-            run_job.delete()
+            job1.delete()
         with self.current_user(username=org_admin2.username, password=org_admin2.password):
-            scan_job.delete()
+            job2.delete()
 
     def test_delete_job_as_org_user(self, factories):
         """Tests ability to delete a job as a privileged org_user."""
