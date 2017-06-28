@@ -176,8 +176,7 @@ class TestInventoryUpdate(Base_Api_Test):
         inv_script = factories.v2_inventory_script(script=("#!/usr/bin/env python\n"
                                                            "from __future__ import print_function\nimport sys\n"
                                                            "print('TEST', file=sys.stderr)\nprint('{}')"))
-        inventory = factories.v2_inventory(organization=inv_script.ds.organization)
-        inv_source = factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
+        inv_source = factories.v2_inventory_source(inventory_script=inv_script)
 
         inv_update = inv_source.update().wait_until_completed()
         assert inv_update.is_successful
