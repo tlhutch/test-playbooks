@@ -171,6 +171,18 @@ class TestInventoryUpdate(Base_Api_Test):
         for host in hosts.results:
             assert host.get().variables == variables
 
+    def test_update_with_stdout_injection(self, factories):
+        """Verify that we can inject text to update stdout through our script."""
+        inv_script = factories.v2_inventory_script(script=("#!/usr/bin/env python\n"
+                                                           "from __future__ import print_function\nimport sys\n"
+                                                           "print('TEST', file=sys.stderr)\nprint('{}')"))
+        inventory = factories.v2_inventory(organization=inv_script.ds.organization)
+        inv_source = factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
+
+        inv_update = inv_source.update().wait_until_completed()
+        assert inv_update.is_successful
+        assert "TEST" in inv_update.result_stdout
+
     @pytest.mark.parametrize('verbosity, stdout_lines',
         [(0, ['stdout capture is missing']),
          (1, ['Loaded 1 groups, 5 hosts', 'Inventory variables unmodified',
