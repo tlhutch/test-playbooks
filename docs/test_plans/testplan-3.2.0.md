@@ -72,7 +72,8 @@ https://gist.github.com/michelleperz/fe3a0eb4eda888221229730e34b28b89
 
 Against 100+ hosts.
 
-### Host Filter
+### Host Filter (Chris)
+[Feature](https://drive.google.com/open?id=1lvBf_Gf7peE4fucrdPUpRTMuTBz2SpS5Df273bd72Sk)
 
 Store facts:
 1. [x] Verify store_facts with gather_facts playbook.
@@ -96,13 +97,13 @@ RBAC:
 1. [x] Host filter should return resources for which a user has inventory-read permissions.
 1. [x] Host filter results are organization-scoped for organization admins.
 
-### Insights integration 
+### Insights integration (Chris)
 [Feature](https://docs.google.com/document/d/1gpjGumL5SVCSqcJKTkkFTQGWAQ6vLUxn_NOrE75TMtk/edit)
 
 1. [ ] ... 
 
-### TACACS authentication 
-[Feature](https://github.com/ansible/ansible-tower/issues/3400) (Jim)
+### TACACS authentication (Jim)
+[Feature](https://github.com/ansible/ansible-tower/issues/3400)
 
 1. [x] All specified Tower configuration fields should be shown and configurable as documented.
 1. [x] User defined by TACACS+ server should be able to log in Tower.
@@ -112,10 +113,10 @@ RBAC:
 1. [x] If exceptions occur on TACACS+ server side, the exception details should be logged in Tower, and Tower should not authenticate that user via TACACS+.
 1. [ ] TACACS+ authentication cannot be used to login as a user initially created in tower
 
-### Inventory UX 
+### Inventory UX
 [Feature](https://drive.google.com/open?id=1lvBf_Gf7peE4fucrdPUpRTMuTBz2SpS5Df273bd72Sk)
 
-Smart inventories
+Smart inventories (Chris)
 1. [x] Verify smart inventory CRUD.
 1. [x] Verify smart inventory host list updates for host edit.
 1. [x] Verify smart inventory host list updates for host deletion.
@@ -133,7 +134,7 @@ Smart inventories
 1. [x] Verify updated group user_capabilities against all inventory permissions.
 1. [x] Verify inventory source user_capabilities against all inventory permissions.
 
-Inventory updates
+Inventory updates (Chris)
 1. [x] Verify inventory update via inventory_sources/N/update.
 1. [x] Verify updating functional sources via inventories/N/update_inventory_sources.
 1. [x] Verify updating functional and nonfunctional sources via inventories/N/update_inventory_sources.
@@ -149,6 +150,12 @@ Inventory updates
 1. [x] Verify inventory update via inventories/N/update_inventory_sources/ against all inventory permissions.
 1. [x] Verify inventory update cancellation via all inventory permissions.
 1. [x] Verify inventory update deletion via all inventory permissions.
+
+Deprecated fields and v1 compatability (Jake)
+1. [ ] ....
+
+Migrations (Jake)
+1. [ ] ....
 
 ### Tower UX hitlist 
 [Feature](https://docs.google.com/a/redhat.com/document/d/1Nvtn6ShHNS2jgEyjl79HelAEO8747Z5yj5QKh0sQ4VM/edit?usp=sharing_eil&ts=58b86ab9)
