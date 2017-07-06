@@ -5,10 +5,12 @@
 {% endfor %}
 
 {% for group in groups %}
-{% if 'instance_group_' in group %}
+{% if 'instance_group_' in group or 'isolated_group_' in group %}
 [{{ group }}]
 {% for host in groups[group] %}
-{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
+{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }} {% if hostvars[host]['controller']|length > 0 %} controller={{ hostvars[host]['controller'] }}
+{% endif %}
+
 {% endfor %}
 
 {% endif %}
