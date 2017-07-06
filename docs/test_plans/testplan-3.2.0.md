@@ -23,14 +23,14 @@
 
 When verifying acceptance we should ensure the following statements are true
 
-1. [ ] Tower should install as a standalone Instance
-1. [ ] Tower should install in a Clustered fashion
+1. [x] Tower should install as a standalone Instance
+1. [x] Tower should install in a Clustered fashion
 1. [ ] Instance should, optionally, be able to be grouped arbitrarily into different Instance Groups
 1. [ ] Capacity should be tracked at the group level and capacity impact should make sense relative to what instance a job is running on and what groups that instance is a member of.
 1. [ ] Provisioning should be supported via the setup playbook
 1. [ ] De-provisioning should be supported via a management command
 1. [ ] All jobs, inventory updates, and project updates should run successfully
-1. [ ] Jobs should be able to run on hosts which it is targeted. If assigned implicitly or directly to groups then it should only run on instances in those Instance Groups.
+1. [x] Jobs should be able to run on hosts which it is targeted. If assigned implicitly or directly to groups then it should only run on instances in those Instance Groups.
 1. [ ] Project updates should manifest their data on the host that will run the job immediately prior to the job running
 1. [ ] Tower should be able to reasonably survive the removal of all instances in the cluster
 1. [ ] Tower should behave in a predictable fashiong during network partitioning
@@ -53,7 +53,7 @@ When verifying acceptance we should ensure the following statements are true
 1. [ ] Crucially when network partitioning is resolved all instances should recover into a consistent state
 1. [ ] Upgrade Testing, verify behavior before and after are the same for the end user.
 1. [ ] Project Updates should be thoroughly tested for all scm types (git, svn, hg) and for manual projects.
-1. [ ] Setting up instance groups in two scenarios: a) instances are shared between groups b) instances are isolated to particular groups Organizations, Inventories, and Job Templates should be variously assigned to one or many groups and jobs should execute in those groups in preferential order as resources are available.
+1. [x] Setting up instance groups in two scenarios: a) instances are shared between groups b) instances are isolated to particular groups Organizations, Inventories, and Job Templates should be variously assigned to one or many groups and jobs should execute in those groups in preferential order as resources are available.
 
 #### Performance Testing
 
