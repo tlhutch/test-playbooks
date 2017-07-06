@@ -193,7 +193,6 @@ class TestCredentialTypes(Base_Api_Test):
         assert vmware.password.secret is True
         assert vmware.username.label == 'Username'
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6385')
     def test_managed_by_tower_credential_types_are_read_only(self, v2):
         """Confirms that managed_by_tower credential types cannot be edited or deleted"""
         managed_by_tower = v2.credential_types.get(managed_by_tower=True).results
@@ -274,6 +273,7 @@ class TestCredentialTypes(Base_Api_Test):
         message = e.value.message[field][0]
         assert 'is not of type' in message or 'Additional properties are not allowed' in message
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6769')
     def test_confirm_inputs_persist_as_specified(self, factories):
         field_one = dict(id='field_one', type='string', label='FieldOne', secret=True,
                          help_text='FieldOne Help Text')
@@ -287,7 +287,8 @@ class TestCredentialTypes(Base_Api_Test):
                           help_text='FieldFive Help Text')
         field_six = dict(id='field_six', type='boolean', label='FieldSix', secret=True,
                         help_text='FieldSix Help Text')
-        inputs = dict(fields=[field_one, field_two, field_three, field_four, field_five, field_six])
+        inputs = dict(fields=[field_one, field_two, field_three, field_four, field_five, field_six],
+                      required=['field_one', 'field_two', 'field_three'])
 
         cred_type = factories.credential_type(inputs=inputs)
         assert cred_type.inputs == inputs
