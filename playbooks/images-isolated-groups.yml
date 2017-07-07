@@ -11,6 +11,7 @@ ec2_images:
     - {'name': 'ha-4-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'isolated_group_protected', 'controller': 'controller', 'security_group': 'tower-ha'}
     - {'name': 'ha-5-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'isolated_group_protected', 'controller': 'controller', 'security_group': 'tower-ha'}
     - {'name': 'ha-pg-rhel-7.2.-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'database', 'security_group': 'tower-ha'}
+    - {'name': 'ha-managed-host-rhel-7.2.-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'managed_hosts', 'security_group': 'tower-ha'}
 
 ec2_security_groups:
     - name: tower-ha

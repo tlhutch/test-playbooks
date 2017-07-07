@@ -8,7 +8,7 @@
       my_inventory_file: '{{inventory_dir}}/inventory.ha'
 
 - name: 'Add authorized keys on non-installer instances'
-  hosts: 'secondary:tower:instance_group_*:database:haproxy:!ha_installer'
+  hosts: 'secondary:tower:instance_group_*:database:haproxy:managed_hosts:!ha_installer'
   roles:
     - role: auth_keys
 
@@ -38,3 +38,10 @@
   gather_facts: no
   become: true
   become_method: sudo
+
+- name: 'Configure firewall rules for isolated groups'
+  hosts: 'isolated_group_protected:managed_hosts'
+  become: true
+  become_method: sudo
+  roles:
+    - role: isolated_group_firewall_rules
