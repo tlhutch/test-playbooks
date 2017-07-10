@@ -25,20 +25,20 @@ When verifying acceptance we should ensure the following statements are true
 
 1. [x] Tower should install as a standalone Instance
 1. [x] Tower should install in a Clustered fashion
-1. [ ] Instance should, optionally, be able to be grouped arbitrarily into different Instance Groups
+1. [x] Instances should, optionally, be able to be grouped arbitrarily into different Instance Groups
 1. [ ] Capacity should be tracked at the group level and capacity impact should make sense relative to what instance a job is running on and what groups that instance is a member of.
 1. [ ] Provisioning should be supported via the setup playbook
 1. [ ] De-provisioning should be supported via a management command
 1. [ ] All jobs, inventory updates, and project updates should run successfully
 1. [x] Jobs should be able to run on hosts which it is targeted. If assigned implicitly or directly to groups then it should only run on instances in those Instance Groups.
-1. [ ] Project updates should manifest their data on the host that will run the job immediately prior to the job running
+1. [ ] Project updates should manifest their data on the tower host that will run the job immediately prior to the job running
 1. [ ] Tower should be able to reasonably survive the removal of all instances in the cluster
 1. [ ] Tower should behave in a predictable fashiong during network partitioning
 
 #### Testing Considerations
 
 1. [ ] Basic testing should be able to demonstrate parity with a standalone instance for all integration testing.
-1. [ ] Basic playbook testing to verify routing differences, including:
+1. [ ] Basic setup playbook testing to verify routing differences, including:
     * [ ] Basic FQDN
     * [ ] Short-name name resolution
     * [ ] ip addresses
