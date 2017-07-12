@@ -594,9 +594,10 @@ class TestGroup(Base_Api_Test):
         parent_group.add_group(child_group)
         child_group.add_group(grandchild_group)
 
-        with pytest.raises(exc.BadRequest):
+        with pytest.raises(exc.BadRequest) as e:
             for group in [child_group, grandchild_group]:
                 group.add_group(parent_group)
+        assert e.value.message['error'] == 'Cyclical Group association.'
 
     def test_self_association(self, factories):
         """Verify that groups cannot list themselves as a child."""
