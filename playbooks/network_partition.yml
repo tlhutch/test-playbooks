@@ -1,0 +1,101 @@
+---
+# This playbook creates a network partition between two groups of hosts.
+# In the inventory file, the two partitions should be defined by groups
+# network_partition_1 and network_partition_2. 
+# 
+# Network partitions in which there are an equal number of hosts on
+# each side are especially difficult to recover from. Because of this,
+# the two partition groups should ideally be of different sizes. 
+#
+# To create a network partiton:
+#
+# ansible-playbook -i inventory network_partition.yml
+#
+# To restore the connection between partitions: 
+#
+# ansible-playbook -i inventory -e network_partition_state=disabled network_partition.yml
+#
+- hosts: network_partition_1:network_partition_2
+  tasks:
+    - block:
+      - name: install firewalld (yum)
+        yum:
+          name: firewalld
+          state: latest
+          update_cache: yes
+        when: ansible_pkg_mgr == 'yum'
+
+      - name: install firewalld (apt)
+        apt:
+          pkg: firewalld
+          state: latest
+          update_cache: yes
+        when: ansible_pkg_mgr == 'apt'
+
+      - name: enable firewalld
+        service:
+          name: firewalld
+          enabled: yes
+          state: started
+
+      - name: Add eth0 to trusted zone
+        firewalld:
+          interface: eth0
+          zone: trusted
+          state: enabled
+          permanent: true
+          immediate: true
+      become: true
+
+- hosts: network_partition_1
+  tasks:
+    - name: In first partition, set firewall rules for blocking instances of second partition
+      firewalld:
+        rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_default_ipv4.address }}/32" drop'
+        zone: trusted
+        state: "{{ network_partition_state|default('enabled') }}"
+        permanent: true
+        immediate: true
+      with_items: "{{ groups['network_partition_2'] }}"
+      become: true
+
+- hosts: network_partition_2
+  tasks:
+    - name: In second partition, set firewall rules for blocking instances of first partition
+      firewalld:
+        rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_default_ipv4.address }}/32" drop'
+        zone: trusted
+        state: "{{ network_partition_state|default('enabled') }}"
+        permanent: true
+        immediate: true
+      with_items: "{{ groups['network_partition_1'] }}"
+      become: true
+
+- hosts: network_partition_1:network_partition_2
+  tasks:
+    - name: Install tcpkill
+      become: true
+      yum:
+        name: dsniff
+        enablerepo: rhui-REGION-rhel-server-optional
+      when: network_partition_state|default('enabled') == 'enabled'
+
+- hosts: network_partition_1
+  tasks:
+    - name: In first partition, terminate connections to second partition
+      command: timeout 1 tcpkill -i eth0 -9 src "{{ hostvars[item].ansible_default_ipv4.address }}"
+      with_items: "{{ groups['network_partition_2'] }}"
+      become: true
+      register: tcpkill
+      when: network_partition_state|default('enabled') == 'enabled'
+      failed_when: "'listening on eth0' not in tcpkill.stderr"
+
+- hosts: network_partition_2
+  tasks:
+    - name: In second partition, terminate connections to first partition
+      command: timeout 1 tcpkill -i eth0 -9 src "{{ hostvars[item].ansible_default_ipv4.address }}"
+      with_items: "{{ groups['network_partition_1'] }}"
+      become: true
+      register: tcpkill
+      when: network_partition_state|default('enabled') == 'enabled'
+      failed_when: "'listening on eth0' not in tcpkill.stderr"

@@ -16,6 +16,7 @@ Ansible Tower and related services.
  * `deploy-tower-ldap.yml` - Create cloud instances, and install tower in an LDAP configuration
  * `deploy-tower-ha.yml` - Create cloud instances, and install tower in an HA configuration
  * `install-tower.yml` - Install Tower to an already provisioned system
+ * `network_partition.yml` - Creates a network partition between two sets of hosts
 
 ## Variable files
 
@@ -25,6 +26,8 @@ Ansible Tower and related services.
  * `images-gce.yml` - variables to describe supported Google Compute Engine instances
  * `images-rds.yml` - variables to describe an AWS RDS instance
  * `images-ha.yml` - variables to describe an AWS-based Tower HA deployment
+ * `images-instance-groups.yml` - variables to describe an AWS-based Tower HA deployment with instance groups
+ * `images-instance-isolated-groups.yml` - variables to describe an AWS-based Tower HA deployment with isolated groups
  * `images-ldap.yml` - variables to describe an AWS-based Tower LDAP deployment
 
 ## Inventory
