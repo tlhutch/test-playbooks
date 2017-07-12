@@ -594,7 +594,7 @@ class TestGroup(Base_Api_Test):
         parent_group.add_group(child_group)
         child_group.add_group(grandchild_group)
 
-        with pytest.raises(exc.Forbidden):
+        with pytest.raises(exc.BadRequest):
             for group in [child_group, grandchild_group]:
                 group.add_group(parent_group)
 
