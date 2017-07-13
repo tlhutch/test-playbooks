@@ -540,7 +540,7 @@ print json.dumps(inv, indent=2)
 
         # check command attributes
         assert ad_hoc_with_status_completed.job_type == 'check'
-        assert "\"--check\"" in ad_hoc_with_status_completed.job_args, \
+        assert "--check" in ad_hoc_with_status_completed.job_args, \
             "Launched a check command but '--check' not present in job_args."
 
         # check that target task skipped

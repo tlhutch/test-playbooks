@@ -68,7 +68,8 @@ class TestJobTemplates(Base_Api_Test):
         # assess job results for limit
         assert job_pg.ask_limit_on_launch
         assert job_pg.limit == "local", "Unexpected value for job_pg.limit. Expected 'local', got %s." % job_pg.limit
-        assert '"-l", "local"' in job_pg.job_args, "Limit value not passed to job_args."
+        limit_index = job_pg.job_args.index('-l') + 1
+        assert job_pg.job_args[limit_index] == "local", "Limit value not passed to job_args."
 
     @pytest.mark.ansible_integration
     @pytest.mark.ha_tower
@@ -106,21 +107,23 @@ class TestJobTemplates(Base_Api_Test):
         # check job_pg job_tags
         assert job_pg.ask_tags_on_launch == job_template.ask_tags_on_launch, \
             "Job and JT have different value for `ask_tags_on_launch'."
-        assert job_pg.job_tags == launch_payload["job_tags"], \
-            "Unexpected value for job_pg.job_tags. Expected '%s', got '%s'." % (launch_payload["job_tags"], job_pg.job_tags)
+        assert job_pg.job_tags == launch_payload["job_tags"], ("Unexpected value for job_pg.job_tags. Expected"
+                                                               " '%s', got '%s'." % (launch_payload["job_tags"],
+                                                                                     job_pg.job_tags))
 
         # check job_pg skip_tags
         assert job_pg.ask_skip_tags_on_launch == job_template.ask_skip_tags_on_launch, \
             "Job and JT have different value for 'ask_skip_tags_on_launch'."
-        assert job_pg.skip_tags == launch_payload["skip_tags"], \
-            "Unexpected value for job_pg.skip_tags. Expected '%s', got '%s'." % (launch_payload["skip_tags"], job_pg.skip_tags)
+        assert job_pg.skip_tags == launch_payload["skip_tags"], (
+            "Unexpected value for job_pg.skip_tags. Expected '%s', got '%s'." % (launch_payload["skip_tags"], job_pg.skip_tags))
 
         # check job_args
         if launch_payload["job_tags"]:
-            assert '\"-t\", \"%s\"' % launch_payload['job_tags'] in job_pg.job_args, \
+            tag_index = job_pg.job_args.index('-t') + 1
+            assert job_pg.job_args[tag_index] == launch_payload['job_tags'], \
                 "Value for job_tags not represented in job args."
         if launch_payload["skip_tags"]:
-            assert '\"--skip-tags=%s\"' % launch_payload['skip_tags'] in job_pg.job_args, \
+            assert '--skip-tags=%s' % launch_payload['skip_tags'] in job_pg.job_args, \
                 "Value for skip_tags not represented in job args."
 
     @pytest.mark.ha_tower
@@ -322,8 +325,8 @@ print json.dumps(inv, indent=2)
         # launch JT and assess results
         job_pg = job_template_with_random_tag.launch().wait_until_completed()
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
-        assert "\"-t\", \"tag\"" in job_pg.job_args, \
-            "Launched a tag JT but '-t tag' not found in job_args."
+        tag_index = job_pg.job_args.index('-t') + 1
+        assert job_pg.job_args[tag_index] == "tag", "Launched a tag JT but '-t tag' not found in job_args."
 
         # check that expected tasks run
         assert job_pg.get_related('job_events', event='playbook_on_task_start').count == 2, \
@@ -432,7 +435,7 @@ print json.dumps(inv, indent=2)
         job_pg = job_template.launch().wait_until_completed()
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
         assert job_pg.job_type == "check", "Unexpected job_type after launching check JT."
-        assert "\"--check\"" in job_pg.job_args, \
+        assert "--check" in job_pg.job_args, \
             "Launched a check JT but '--check' not present in job_args."
 
         # check that target task skipped

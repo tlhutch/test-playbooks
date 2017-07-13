@@ -213,7 +213,6 @@ class TestCredentialTypes(Base_Api_Test):
                 cred_type.delete()
             assert e.value.message['detail'] == self.managed_credential_type_deletion_disallowed
 
-
     def test_sourced_credential_type_cannot_be_deleted(self, factories):
         cred = factories.v2_credential(credential_type=True)
 
