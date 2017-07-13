@@ -83,7 +83,7 @@
 - hosts: network_partition_1
   tasks:
     - name: In first partition, terminate connections to second partition
-      command: timeout 1 tcpkill -i eth0 -9 src "{{ hostvars[item].ansible_default_ipv4.address }}"
+      command: timeout 5 tcpkill -i eth0 -9 src "{{ hostvars[item].ansible_default_ipv4.address }}"
       with_items: "{{ groups['network_partition_2'] }}"
       become: true
       register: tcpkill
@@ -93,7 +93,7 @@
 - hosts: network_partition_2
   tasks:
     - name: In second partition, terminate connections to first partition
-      command: timeout 1 tcpkill -i eth0 -9 src "{{ hostvars[item].ansible_default_ipv4.address }}"
+      command: timeout 5 tcpkill -i eth0 -9 src "{{ hostvars[item].ansible_default_ipv4.address }}"
       with_items: "{{ groups['network_partition_1'] }}"
       become: true
       register: tcpkill
