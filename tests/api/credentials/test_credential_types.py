@@ -103,11 +103,11 @@ class TestCredentialTypes(Base_Api_Test):
         assert gce.username.label == 'Service Account Email Address'
 
     def test_managed_by_tower_insights_credential_type(self, managed_by_tower_fields):
-        insights = managed_by_tower_fields['Insights Basic Auth']
+        insights = managed_by_tower_fields['Insights']
         assert insights.kind == 'insights'
-        assert insights.password.label == 'Basic Auth Password'
+        assert insights.password.label == 'Password'
         assert insights.password.secret is True
-        assert insights.username.label == 'Basic Auth Username'
+        assert insights.username.label == 'Username'
 
     def test_managed_by_tower_openstack_credential_type(self, managed_by_tower_fields):
         openstack = managed_by_tower_fields['OpenStack']
@@ -197,7 +197,7 @@ class TestCredentialTypes(Base_Api_Test):
         """Confirms that managed_by_tower credential types cannot be edited or deleted"""
         managed_by_tower = v2.credential_types.get(managed_by_tower=True).results
 
-        desired_modification_error = 'Modifications not allowed for credential types managed by Tower'
+        desired_modification_error = 'Modifications not allowed for managed credential types'
         for cred_type in managed_by_tower:
             with pytest.raises(exc.Forbidden) as e:
                 cred_type.patch(name='Uh-oh!')
@@ -209,22 +209,32 @@ class TestCredentialTypes(Base_Api_Test):
 
             with pytest.raises(exc.Forbidden) as e:
                 cred_type.delete()
-            assert e.value.message['detail'] == 'Deletion not allowed for credential types managed by Tower'
+            assert e.value.message['detail'] == 'Deletion not allowed for managed credential types'
 
     def test_sourced_credential_type_cannot_be_deleted(self, factories):
-        cred = factories.v2_credential()
+        cred = factories.v2_credential(credential_type=True)
 
         with pytest.raises(exc.Forbidden) as e:
             cred.ds.credential_type.delete()
         assert e.value.message['detail'] == 'Credential types that are in use cannot be deleted'
 
     def test_sourced_credential_type_inputs_are_read_only(self, factories):
-        cred = factories.v2_credential()
+        cred = factories.v2_credential(credential_type=True)
 
         with pytest.raises(exc.Forbidden) as e:
             cred.ds.credential_type.inputs = dict(test=True)
         assert e.value.message['detail'] == (
             'Modifications to inputs are not allowed for credential types that are in use')
+
+    def test_confirm_non_cloud_or_network_credential_kinds_disallowed(self, factories):
+        for kind in ('insights', 'scm', 'ssh', 'vault'):
+            with pytest.raises(exc.BadRequest) as e:
+                factories.credential_type(kind=kind)
+            assert e.value.message == {'kind': ["Must be 'cloud' or 'net', not {}".format(kind)]}
+
+        with pytest.raises(exc.BadRequest) as e:
+            factories.credential_type(kind='not_a_kind')
+        assert e.value.message == {'kind': ['"not_a_kind" is not a valid choice.']}
 
     @pytest.mark.parametrize('fields, expected_error', [[[dict(label='Label')], ["'id' is a required property"]],
                                                         [[dict(id='field_id')], ["'label' is a required property"]]])

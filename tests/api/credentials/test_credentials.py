@@ -91,7 +91,7 @@ class TestCredential(Base_Api_Test):
         payload = cred_factory.payload(team=team_factory(), organization=None)
         cred = version.credentials.post(payload)
         request.addfinalizer(cred.silent_delete)
-        with pytest.raises(exc.BadRequest):
+        with pytest.raises(exc.Duplicate):
             version.credentials.post(payload)
 
     @pytest.mark.parametrize("missing, expected_message",

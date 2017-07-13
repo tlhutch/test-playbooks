@@ -2,8 +2,7 @@ from distutils.version import LooseVersion
 import logging
 
 from towerkit.config import config
-import towerkit.tower.inventory
-import towerkit.exceptions
+import towerkit.exceptions as exc
 import pytest
 
 from tests.api import Base_Api_Test
@@ -12,11 +11,11 @@ from tests.api import Base_Api_Test
 log = logging.getLogger(__name__)
 
 
+@pytest.mark.ha_tower
 class TestJobTemplateCredentials(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    @pytest.mark.ha_tower
     def test_launch_without_credential_and_credential_needed_to_start(self, job_template_no_credential):
         """Verify the job launch endpoint disallows launching a job template without a credential."""
         launch = job_template_no_credential.related.launch.get()
@@ -28,10 +27,9 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert launch.credential_needed_to_start
 
         # launch the job_template without providing a credential
-        with pytest.raises(towerkit.exceptions.BadRequest):
+        with pytest.raises(exc.BadRequest):
             launch.post()
 
-    @pytest.mark.ha_tower
     def test_launch_with_linked_credential(self, job_template_no_credential, ssh_credential):
         """Verify the job template launch endpoint requires user input when using a linked credential and
         `ask_credential_on_launch`.
@@ -50,7 +48,6 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert job.is_successful
         assert job.credential == ssh_credential.id
 
-    @pytest.mark.ha_tower
     def test_launch_with_payload_credential_and_credential_needed_to_start(self, job_template_no_credential,
                                                                            ssh_credential):
         """Verify the job launch endpoint allows launching a job template when providing a credential."""
@@ -67,14 +64,12 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert job.is_successful
         assert job.credential == ssh_credential.id
 
-    @pytest.mark.ha_tower
     def test_launch_with_invalid_credential_in_payload(self, job_template_no_credential):
         """Verify the job launch endpoint throws 400 error when launching with invalid credential id"""
         for bogus in ['', 'one', 0, False, [], {}]:
-            with pytest.raises(towerkit.exceptions.BadRequest):
+            with pytest.raises(exc.BadRequest):
                 job_template_no_credential.launch(dict(credential=bogus))
 
-    @pytest.mark.ha_tower
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_no_credential,
                                                                          ssh_credential_ask):
         """Verify that attempts to launch a JT when providing an 'ASK' credential at launch time without
@@ -83,14 +78,13 @@ class TestJobTemplateCredentials(Base_Api_Test):
         launch = job_template_no_credential.related.launch.get()
 
         # launch the JT providing the credential in the payload, but no passwords_needed_to_start
-        with pytest.raises(towerkit.exceptions.BadRequest) as exc_info:
+        with pytest.raises(exc.BadRequest) as exc_info:
             launch.post(dict(credential=ssh_credential_ask.id))
         result = exc_info.value[1]
 
         assert 'passwords_needed_to_start' in result
         assert result['passwords_needed_to_start'] == ssh_credential_ask.expected_passwords_needed_to_start
 
-    @pytest.mark.ha_tower
     def test_launch_with_ask_credential_and_passwords_in_payload(self, job_template_no_credential, ssh_credential_ask):
         """Verify launching a JT when providing an 'ASK' credential at launch time with required passwords
         is functional
@@ -103,7 +97,6 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert job.credential == ssh_credential_ask.id
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch_with_unencrypted_ssh_credential(self, ansible_runner, job_template,
                                                     unencrypted_ssh_credential_with_ssh_key_data):
         (credential_type, credential) = unencrypted_ssh_credential_with_ssh_key_data
@@ -128,7 +121,6 @@ class TestJobTemplateCredentials(Base_Api_Test):
             assert job.is_successful
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch_with_encrypted_ssh_credential(self, ansible_runner, job_template,
                                                   encrypted_ssh_credential_with_ssh_key_data):
         (credential_type, credential) = encrypted_ssh_credential_with_ssh_key_data
@@ -153,7 +145,6 @@ class TestJobTemplateCredentials(Base_Api_Test):
         else:
             assert job.is_successful
 
-    @pytest.mark.ha_tower
     def test_launch_with_team_credential(self, factories, job_template_no_credential, team, team_ssh_credential):
         """Verifies that a team user can use a team credential to launch a job template."""
         team_user = factories.user()
@@ -164,3 +155,113 @@ class TestJobTemplateCredentials(Base_Api_Test):
             job = job_template_no_credential.launch(dict(credential=team_ssh_credential.id)).wait_until_completed()
             assert job.is_successful
             assert job.credential == team_ssh_credential.id
+
+
+@pytest.mark.ha_tower
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestJobTemplateExtraCredentials(Base_Api_Test):
+
+    @pytest.fixture(scope='class')
+    def custom_cloud_credentials(self, class_factories):
+        cred_types = [class_factories.credential_type(kind='cloud') for _ in range(3)]
+        return [class_factories.v2_credential(credential_type=cred_type) for cred_type in cred_types]
+
+    @pytest.fixture(scope='class')
+    def custom_network_credentials(self, class_factories):
+        cred_types = [class_factories.credential_type(kind='net') for _ in range(3)]
+        return [class_factories.v2_credential(credential_type=cred_type) for cred_type in cred_types]
+
+    @pytest.fixture(scope='class', params=('custom_cloud_credentials', 'custom_network_credentials'))
+    def custom_extra_credentials(self, request):
+        return request.getfixturevalue(request.param)
+
+    def test_job_template_with_added_and_removed_custom_extra_credentials(self, factories, custom_extra_credentials):
+        ssh_cred = factories.v2_credential()
+        jt = factories.v2_job_template(credential=ssh_cred)
+
+        assert jt.related.extra_credentials.get().count == 0
+
+        extra_credentials = set()
+        for cred in custom_extra_credentials:
+            jt.add_extra_credential(cred)
+            jt_extra_credentials = set([c.id for c in jt.related.extra_credentials.get().results])
+            assert extra_credentials < jt_extra_credentials
+            assert cred.id in jt_extra_credentials
+            extra_credentials.add(cred.id)
+
+        assert ssh_cred.id not in jt_extra_credentials
+
+        for cred in custom_extra_credentials:
+            jt.remove_extra_credential(cred)
+            jt_extra_credentials = set([c.id for c in jt.related.extra_credentials.get().results])
+            assert cred.id not in jt_extra_credentials
+            extra_credentials.remove(cred.id)
+            assert extra_credentials == jt_extra_credentials
+
+        assert not jt_extra_credentials
+
+    def test_confirm_scm_ssh_and_vault_credentials_disallowed(self, factories):
+        jt = factories.v2_job_template()
+        scm_cred = factories.v2_credential(kind='scm')
+        ssh_cred = factories.v2_credential()
+        vault_cred = factories.v2_credential(kind='vault')
+
+        for cred in (scm_cred, ssh_cred, vault_cred):
+            with pytest.raises(exc.BadRequest) as e:
+                jt.add_extra_credential(cred)
+            assert e.value.message == {'error': 'Extra credentials must be network or cloud.'}
+            assert not jt.related.extra_credentials.get().results
+
+    @pytest.fixture(scope='class')
+    def v2_job_template(self, class_factories):
+        return class_factories.v2_job_template()
+
+    @pytest.mark.parametrize('credential_kind, kind_name',
+                             [('aws', 'Amazon Web Services'),
+                              ('gce', 'Google Compute Engine'),
+                              ('azure_classic', 'Microsoft Azure Classic (deprecated)'),
+                              ('azure_rm', 'Microsoft Azure Resource Manager'),
+                              ('net', 'Network'),
+                              ('openstack_v3', 'OpenStack'),
+                              ('cloudforms', 'Red Hat CloudForms'),
+                              ('satellite6', 'Red Hat Satellite 6'),
+                              ('vmware', 'VMware vCenter')])
+    def test_confirm_only_single_managed_by_tower_extra_credential_allowed(self, factories, v2_job_template,
+                                                                           credential_kind, kind_name):
+        cred_one, cred_two = [factories.v2_credential(kind=credential_kind) for _ in range(2)]
+
+        v2_job_template.add_extra_credential(cred_one)
+
+        with pytest.raises(exc.BadRequest) as e:
+            v2_job_template.add_extra_credential(cred_two)
+        assert e.value.message == {'error': 'Cannot assign multiple {} credentials.'.format(kind_name)}
+
+        assert cred_two.id not in [c.id for c in v2_job_template.related.extra_credentials.get().results]
+
+        v2_job_template.remove_extra_credential(cred_one)
+        assert cred_one.id not in [c.id for c in v2_job_template.related.extra_credentials.get().results]
+
+        v2_job_template.add_extra_credential(cred_two)
+        assert cred_two.id in [c.id for c in v2_job_template.related.extra_credentials.get().results]
+
+    def test_confirm_extra_credentials_injectors_are_sourced(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
+
+        cloud_credentials = [factories.v2_credential(kind=cred_type) for cred_type in ('aws', 'azure_rm', 'gce')]
+        for cred in cloud_credentials:
+            jt.add_extra_credential(cred)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        env_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AZURE_CLIENT_ID', 'AZURE_SECRET',
+                    'AZURE_SUBSCRIPTION_ID', 'AZURE_TENANT', 'GCE_EMAIL', 'GCE_PEM_FILE_PATH', 'GCE_PROJECT')
+
+        for env_var in env_vars:
+            assert env_var in job.job_env
+
+        ansible_env = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.ansible_env
+
+        for env_var in env_vars:
+            assert env_var in ansible_env
