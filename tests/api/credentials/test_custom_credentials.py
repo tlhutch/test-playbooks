@@ -1,6 +1,5 @@
 import towerkit.exceptions as exc
 import pytest
-import yaml
 
 from tests.api import Base_Api_Test
 
