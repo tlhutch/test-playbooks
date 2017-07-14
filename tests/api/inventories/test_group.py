@@ -602,8 +602,9 @@ class TestGroup(Base_Api_Test):
     def test_self_association(self, factories):
         """Verify that groups cannot list themselves as a child."""
         group = factories.v2_group()
-        with pytest.raises(exc.Forbidden):
+        with pytest.raises(exc.BadRequest) as e:
             group.add_group(group)
+        assert e.value[1] == {u'error': u'Cyclical Group association.'}
 
     def test_allowed_duplicates(self, factories):
         """Verify that duplicate groups are allowed in different inventories."""
