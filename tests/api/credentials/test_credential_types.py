@@ -193,39 +193,39 @@ class TestCredentialTypes(Base_Api_Test):
         assert vmware.password.secret is True
         assert vmware.username.label == 'Username'
 
-    managed_credential_type_modification_disallowed = 'Modifications not allowed for managed credential types'
-    managed_credential_type_deletion_disallowed = 'Deletion not allowed for managed credential types'
-
     def test_managed_by_tower_credential_types_are_read_only(self, v2):
         """Confirms that managed_by_tower credential types cannot be edited or deleted"""
         managed_by_tower = v2.credential_types.get(managed_by_tower=True).results
 
+        managed_credential_type_modification_disallowed = 'Modifications not allowed for managed credential types'
+
         for cred_type in managed_by_tower:
             with pytest.raises(exc.Forbidden) as e:
                 cred_type.patch(name='Uh-oh!')
-            assert e.value.message['detail'] == self.managed_credential_type_modification_disallowed
+            assert e.value.message['detail'] == managed_credential_type_modification_disallowed
 
             with pytest.raises(exc.Forbidden) as e:
                 cred_type.put()
-            assert e.value.message['detail'] == self.managed_credential_type_modification_disallowed
+            assert e.value.message['detail'] == managed_credential_type_modification_disallowed
 
             with pytest.raises(exc.Forbidden) as e:
                 cred_type.delete()
-            assert e.value.message['detail'] == self.managed_credential_type_deletion_disallowed
+            assert e.value.message['detail'] == 'Deletion not allowed for managed credential types'
 
     def test_sourced_credential_type_cannot_be_deleted(self, factories):
         cred = factories.v2_credential(credential_type=True)
 
         with pytest.raises(exc.Forbidden) as e:
             cred.ds.credential_type.delete()
-        assert e.value.message['detail'] == self.managed_credential_type_deletion_disallowed
+        assert e.value.message['detail'] == 'Credential types that are in use cannot be deleted'
 
     def test_sourced_credential_type_inputs_are_read_only(self, factories):
         cred = factories.v2_credential(credential_type=True)
 
         with pytest.raises(exc.Forbidden) as e:
             cred.ds.credential_type.inputs = dict(test=True)
-        assert e.value.message['detail'] == self.managed_credential_type_modification_disallowed
+        assert e.value.message['detail'] == (
+            'Modifications to inputs are not allowed for credential types that are in use')
 
     def test_confirm_non_cloud_or_network_credential_kinds_disallowed(self, factories):
         for kind in ('insights', 'scm', 'ssh', 'vault'):
