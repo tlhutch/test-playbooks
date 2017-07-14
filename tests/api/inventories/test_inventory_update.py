@@ -78,19 +78,25 @@ class TestInventoryUpdate(Base_Api_Test):
 
     def test_v2_update_all_inventory_sources_with_nonfunctional_sources(self, factories):
         """Verify behavior when inventory has nonfunctional inventory sources."""
-        inv_source = factories.v2_inventory_source()
-        inv_source.ds.inventory_script.delete()
-        inventory = inv_source.ds.inventory
+        inventory = factories.v2_inventory()
+        inv_source1, inv_source2 = [factories.v2_inventory_source(inventory=inventory) for _ in range(2)]
+
+        inv_source1.ds.inventory_script.delete()
+        inv_source2.ds.inventory_script.delete()
 
         prelaunch = inventory.related.update_inventory_sources.get()
-        assert dict(can_update=False, inventory_source=inv_source.id) in prelaunch
-        assert len(prelaunch.json) == 1
+        assert dict(can_update=False, inventory_source=inv_source1.id) in prelaunch
+        assert dict(can_update=False, inventory_source=inv_source2.id) in prelaunch
+        assert len(prelaunch.json) == 2
 
-        postlaunch = inventory.related.update_inventory_sources.post()
-        assert dict(inventory_source=inv_source.id, status="Could not start because `can_update` returned False") in postlaunch
-        assert len(postlaunch.json) == 1
+        with pytest.raises(exc.BadRequest) as e:
+            inventory.update_inventory_sources()
+        assert dict(status='Could not start because `can_update` returned False', inventory_source=inv_source1.id) in e.value[1]
+        assert dict(status='Could not start because `can_update` returned False', inventory_source=inv_source2.id) in e.value[1]
+        assert len(e.value[1]) == 2
 
-        assert not inv_source.last_updated
+        assert not inv_source1.last_updated
+        assert not inv_source2.last_updated
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6564')
     def test_v2_update_duplicate_inventory_sources(self, factories):
