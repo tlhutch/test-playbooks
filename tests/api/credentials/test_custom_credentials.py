@@ -1,6 +1,5 @@
 import towerkit.exceptions as exc
 import pytest
-import yaml
 
 from tests.api import Base_Api_Test
 
@@ -51,18 +50,17 @@ class TestCustomCredentials(Base_Api_Test):
                                          extra_var_from_field_two='{{ field_two }}'))
         credential_type = factories.credential_type(inputs=inputs, injectors=injectors)
 
-        input_values = dict(field_one='FieldOneVal', field_two='123')
+        input_values = dict(field_one='FieldOneVal', field_two='True')
         field_to_var = dict(field_one='extra_var_from_field_one', field_two='extra_var_from_field_two')
         credential = factories.v2_credential(credential_type=credential_type, inputs=input_values)
 
         host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, credential=credential,
-                                       playbook='debug_hostvars.yml')
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
+        jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
-        job_args = [yaml.load(item) for item in yaml.load(job.job_args)]
-        assert dict(extra_var_from_field_one='**********', extra_var_from_field_two='123') in job_args
+        assert dict(extra_var_from_field_one='**********', extra_var_from_field_two='True') in job.job_args
 
         hostvars = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.hostvars
         for field, value in input_values.items():
@@ -79,8 +77,8 @@ class TestCustomCredentials(Base_Api_Test):
                                              inputs=dict(field_one='FieldOneVal', field_two='True'))
 
         host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, credential=credential,
-                                       playbook='ansible_env.yml')
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
+        jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
@@ -104,8 +102,8 @@ class TestCustomCredentials(Base_Api_Test):
         credential = factories.v2_credential(credential_type=credential_type)
 
         host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, credential=credential,
-                                       playbook='cat_file.yml')
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='cat_file.yml')
+        jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
