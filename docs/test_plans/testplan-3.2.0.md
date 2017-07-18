@@ -168,14 +168,44 @@ Migrations (Jake)
 1. [ ] ... 
 
 ### Arbitrary inventory/credential sources + Ansible 2.4 inventory 
-[Feature](https://docs.google.com/document/d/1dQObu1jV9zOz8FLlktipaySe9lbdT8-Jo99RL0bksok/edit)
+[Feature](https://docs.google.com/document/d/1z6vW9W1yd0SbD46610XUr7WbNDDOg0jEAk8eETW-c8E)
 
-1. [ ] ... 
+1. [x] Verify continued v1 credential api support
+1. [x] Verify managed-by-tower credential type content validity
+1. [x] Verify managed-by-tower credential type sourced credential functionality
+1. [x] Verify managed-by-tower credential types are read only
+1. [x] Verify sourced custom credential types are read only
+1. [x] Verify Credential Types activity stream history for basic object modification
+1. [ ] Verify SSH/Vault migration split
+1. [ ] Verify Rackspace migration
+1. [ ] Verify successful credential migrations
+1. [x] Verify superuser has sole credential type creation ability
+1. [x] Verify custom credential injection for jobs
+1. [ ] Verify custom credential injection for project updates
+1. [ ] Verify custom credential injection for ad-hoc commands
+1. [ ] Verify job with vault credential
+1. [x] Verify job with extra credentials
+1. [ ] Verify job with vault and extra credentials
 
-### SCM controlled static inventory 
+### SCM controlled inventory source
 [Feature](https://drive.google.com/open?id=1QCZDq0bgvkTu1udcskjn8NwxijTae9pbU_AMsA8Po84)
 
-1. [ ] ... 
+1. [x] Verify inventory sync including directory-provided host and group vars from static inventory file
+1. [x] Verify inventory sync including directory-provided host and group vars from dynamic inventory file
+1. [x] Verify desired inventory and yml files listed within project
+1. [x] Verify undesired var files exluded from project inventory file list
+1. [ ] Verify dynamic inventory scripts use environment variables provided by custom credential
+1. [ ] Verify functionality of multiple inventory sources sharing a project with different source files.
+1. [x] Verify file-related loading/syntax errors surface as inventory import failures
+1. [x] Verify dyanamic inventory script-related functional errors surface as inventory import failures
+1. [x] Verify inventory sync attempt w/ update_on_project_update triggers project update
+1. [x] Verify project update triggers inventory sync w/ update_on_project_update
+1. [x] Verify update_on_project_update triggers project update and no inventory syncs on unaltered project
+1. [x] Verify update_on_project_update triggers project update and inventory syncs on altered project
+1. [ ] Verify parent project update that encounters error doesn't trigger downstream inventory syncs
+1. [ ] Verify update_on_launch
+1. [ ] Verify update_on_launch and update_on_project_update forbidden
+1. [ ] Verify overwrite
 
 ## Regression
 1. [ ] UI regression completed
