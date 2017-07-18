@@ -1,3 +1,5 @@
+import os
+
 import towerkit.exceptions as exc
 import pytest
 
@@ -10,7 +12,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.skip_selenium
 class TestInsights(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'insights_inventory')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'insights_inventory')
     matched_machine_id = "84baf1a3-eee5-4f92-b5ee-42609e89a2cd"
     unmatched_machine_id = "aaaabbbb-cccc-dddd-eeee-ffffgggghhhh"
 
@@ -70,10 +72,9 @@ class TestInsights(Base_Api_Test):
         assert content.reports
         assert content.product == 'rhel'
         assert content.hostname == 'ip-10-156-20-161.ec2.internal'
-        assert content.system_id == '84baf1a3-eee5-4f92-b5ee-42609e89a2cd'
+        assert content.system_id == self.matched_machine_id
         assert content.type == 'machine'
 
-    # FIXME: fix line length
     def test_access_insights_with_credential_and_unmatched_host(self, factories, insights_inventory):
         """Verify that attempts to access Insights from an unmatched host with an Insights credential
         raises a 500.
@@ -84,7 +85,7 @@ class TestInsights(Base_Api_Test):
 
         with pytest.raises(exc.InternalServerError) as e:
             host.related.insights.get().insights_content
-        assert e.value[1] == {'error': 'Failed to gather reports and maintenance plans from Insights API at URL https://access.redhat.com/r/insights/v3/systems/aaaabbbb-cccc-dddd-eeee-ffffgggghhhh/reports/. Server responded with 404 status code and message {}'}
+        assert "Failed to gather reports and maintenance plans from Insights API" in e.value[1]['error']
 
     def test_insights_project_no_credential(self, factories):
         """Verify that attempts to create an Insights project without an Insights credential raise a 400."""
@@ -92,7 +93,6 @@ class TestInsights(Base_Api_Test):
             factories.v2_project(scm_type='insights', credential=None)
         assert e.value[1] == {'credential': ['Insights Credential is required for an Insights Project.']}
 
-    # FIXME: audit assertions here
     def test_insights_project_with_credential(self, factories):
         """Verify the creation of an Insights project with an Insights credential and its
         auto-spawned project update.
@@ -102,17 +102,29 @@ class TestInsights(Base_Api_Test):
         update = project.related.last_update.get()
 
         assert project.is_successful
-        assert not project.scm_branch
         assert project.credential == insights_cred.id
+        assert not project.scm_branch
         assert project.scm_type == 'insights'
         assert project.scm_url == 'https://access.redhat.com'
         assert project.scm_revision
 
         assert update.is_successful
-        assert not update.scm_branch
         assert not update.job_explanation
+        assert update.project == project.id
         assert update.credential == insights_cred.id
         assert update.job_type == 'check'
+        assert update.launch_type == 'manual'
         assert update.scm_type == 'insights'
         assert update.scm_url == 'https://access.redhat.com'
-        assert update.project == project.id
+        assert not update.scm_branch
+
+    def test_insights_project_contents(self, factories, v2, ansible_runner):
+        """Verify created project directory and playbook."""
+        insights_cred = factories.v2_credential(kind='insights')
+        project = factories.v2_project(scm_type='insights', credential=insights_cred, wait=True)
+        playbook_path = os.path.join(v2.config.get().project_base_dir, project.local_path, "chrwang-test-28315.yml")
+
+        # assert playbook created
+        contacted = ansible_runner.stat(path=playbook_path)
+        for result in contacted.values():
+            assert result['stat']['exists'], "Playbook not found under {0}.".format(playbook_path)
