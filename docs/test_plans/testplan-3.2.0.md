@@ -124,9 +124,15 @@ Smart inventories (Chris)
 1. [ ] Verify smart inventories group support.
 1. [ ] Verify smart inventories host support.
 1. [ ] Verify smart inventories inventory source support.
+1. [ ] Verify smart inventories inventory update support (/api/v2/inventories/N/update_inventory_sources/).
+1. [ ] Verify updating regular inventory into smart inventory.
 1. [x] Test new host groups related endpoint.
 1. [x] Test new host groups summary field.
-1. [x] Test inventory resource cascade delete.
+1. [x] Test v1 inventory resource cascade deletion.
+1. [x] Test v2 inventory resource cascade deletion.
+
+RBAC:
+
 1. [ ] Verify inventory CRUD against all inventory permissions.
 1. [x] Verify group CRUD against all inventory permissions.
 1. [x] Verify host CRUD against all inventory permissions.
@@ -140,12 +146,15 @@ Inventory updates (Chris)
 1. [x] Verify updating functional and nonfunctional sources via inventories/N/update_inventory_sources.
 1. [x] Verify updating nonfunctional sources via inventories/N/update_inventory_sources.
 1. [x] Verify updating duplicate inventory sources.
-1. [x] Verify host and group deletion with overwrite.
+1. [ ] Verify host and group deletion with overwrite.
 1. [x] Verify variable overwrite with overwrite_vars.
 1. [x] Verify default variable behavior without overwrite_vars.
 1. [x] Verify inventory source update_on_launch.
 1. [x] Verify inventory update verbosity.
-1. [x] Test inventory update cascade delete.
+1. [x] Test inventory update cascade deletion.
+
+RBAC:
+
 1. [x] Verify inventory update via inventory_sources/N/update/ against all inventory permissions.
 1. [x] Verify inventory update via inventories/N/update_inventory_sources/ against all inventory permissions.
 1. [x] Verify inventory update cancellation via all inventory permissions.
