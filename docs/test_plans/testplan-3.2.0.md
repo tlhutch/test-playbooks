@@ -100,7 +100,17 @@ RBAC:
 ### Insights integration (Chris)
 [Feature](https://docs.google.com/document/d/1gpjGumL5SVCSqcJKTkkFTQGWAQ6vLUxn_NOrE75TMtk/edit)
 
-1. [ ] ... 
+1. [x] Verify stock value for host insights_system_id.
+1. [x] Verify insights_system_id updates after scan job.
+1. [ ] Verify inventory details update for Insights credential.
+1. [ ] Verify Insights credentials not allowed with smart inventories.
+1. [x] Verify querying `/hosts/N/insights/` when host has no Insights credential.
+1. [ ] Verify querying `/hosts/N/insights/` when host has an Insights credential and is an Insights host.
+1. [ ] Verify querying `/hosts/N/insights/` when host has an Insights credential and is not an Insights host.
+1. [x] Verify Insights project CRUD.
+1. [x] Verify Insights project requires Insights credential as dependency.
+1. [ ] Verify Insights project update and downloaded playbooks.
+1. [ ] Verify remediation JT run on target host.
 
 ### TACACS authentication (Jim)
 [Feature](https://github.com/ansible/ansible-tower/issues/3400)
@@ -132,7 +142,6 @@ Smart inventories (Chris)
 1. [x] Test v2 inventory resource cascade deletion.
 
 RBAC:
-
 1. [ ] Verify inventory CRUD against all inventory permissions.
 1. [x] Verify group CRUD against all inventory permissions.
 1. [x] Verify host CRUD against all inventory permissions.
