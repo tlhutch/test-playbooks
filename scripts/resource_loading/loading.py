@@ -33,7 +33,7 @@ _inv_help = 'Inventory file with instance in "tower" group (default: playbooks/i
 parser.add_argument('--inventory', dest='inventory', help=_inv_help,
                     default=os.path.join(cwd, '..', '..', 'playbooks/inventory.log'))
 
-_cred_help = 'Credential file to be loaded (default: tests/credentials.yml).  Use "false" for none.'
+_cred_help = 'Credential file to be loaded (default: config/credentials.yml).  Use "false" for none.'
 parser.add_argument('--credentials', dest='credentials', help=_cred_help,
                     default=os.path.join(cwd, '..', '..', 'config/credentials.yml'))
 

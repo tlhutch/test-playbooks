@@ -102,49 +102,49 @@ for username, desired_user in desired_users.items():
 
     # password isn't exposed via the api
     for field in filter(lambda x: x != 'password', desired_user):
-        assert(getattr(found_user, field) == getattr(desired_user, field))
+        assert getattr(found_user, field) == getattr(desired_user, field)
 
 log.info('Verifying organizations')
 for name, desired_organization in desired_organizations.items():
     found_organization = found_organizations[name]
-    assert(confirm_field('description', found_organization, desired_organization))
+    assert confirm_field('description', found_organization, desired_organization)
 
     found_org_users = [user.username for user in found_organization.related.users.get().results]
     for user in desired_organization.users:
-        assert(user in found_org_users)
+        assert user in found_org_users
 
     found_org_admins = [admin.username for admin in found_organization.related.admins.get().results]
     for admin in desired_organization.admins:
-        assert(admin in found_org_admins)
+        assert admin in found_org_admins
 
     found_org_projects = [project.name for project in found_organization.related.projects.get().results]
     for project in desired_organization.projects:
-        assert(project in found_org_projects)
+        assert project in found_org_projects
 
 log.info('Verifying teams')
 for name, desired_team in desired_teams.items():
     found_team = found_teams[name]
     if 'description' in desired_team:
-        assert(confirm_field('description', found_team, desired_team))
+        assert confirm_field('description', found_team, desired_team)
 
-    assert(confirm_related_field('organization', found_team, desired_team))
+    assert confirm_related_field('organization', found_team, desired_team)
 
     found_team_users = [user.username for user in found_team.related.users.get().results]
     for user in desired_team.users:
-        assert(user in found_team_users)
+        assert user in found_team_users
 
 log.info('Verifying credentials')
 # note: content validity determined by successful updates of credential usage
 for name, desired_credential in desired_credentials.items():
     found_credential = found_credentials[name]
     for field in ('kind', 'description'):
-        assert(confirm_field(field, found_credential, desired_credential))
+        assert confirm_field(field, found_credential, desired_credential)
 
     if desired_credential.user:
-        assert(found_credential.related.owner_users.get().results.pop().username == desired_credential.user)
+        assert found_credential.related.owner_users.get().results.pop().username == desired_credential.user
 
     if desired_credential.team:
-        assert(found_credential.related.owner_teams.get().results.pop().name == desired_credential.team)
+        assert found_credential.related.owner_teams.get().results.pop().name == desired_credential.team
 
 log.info('Verifying projects')
 projects_to_update = []
@@ -152,9 +152,9 @@ for name, desired_project in desired_projects.items():
     found_project = found_projects[name]
     for field in filter(lambda x: x != 'name', desired_project):
         if field in ('organization', 'credential'):
-            assert(confirm_related_field(field, found_project, desired_project))
+            assert confirm_related_field(field, found_project, desired_project)
         else:
-            assert(confirm_field(field, found_project, desired_project))
+            assert confirm_field(field, found_project, desired_project)
     projects_to_update.append(found_project)
 
 log.info('Verifying inventory scripts')
@@ -162,38 +162,38 @@ for name, desired_script in desired_inventory_scripts.items():
     found_script = found_inventory_scripts[name]
     for field in filter(lambda x: x != 'name', desired_script):
         if field in ('organization',):
-            assert(confirm_related_field(field, found_script, desired_script))
+            assert confirm_related_field(field, found_script, desired_script)
         else:
-            assert(confirm_field(field, found_script, desired_script))
+            assert confirm_field(field, found_script, desired_script)
 
 log.info('Verifying inventories')
 for name, desired_inventory in desired_inventories.items():
     found_inventory = found_inventories[name]
     for field in filter(lambda x: x != 'name', desired_inventory):
         if field in ('organization',):
-            assert(confirm_related_field(field, found_inventory, desired_inventory))
+            assert confirm_related_field(field, found_inventory, desired_inventory)
         else:
-            assert(confirm_field(field, found_inventory, desired_inventory, field == 'variables'))
+            assert confirm_field(field, found_inventory, desired_inventory)
 
 log.info('Verifying groups')
 for name, desired_group in desired_groups.items():
     found_group = resolve_duplicates_by_description(found_groups[name], desired_group)
-    assert(confirm_related_field('inventory', found_group, desired_group))
+    assert confirm_related_field('inventory', found_group, desired_group)
     if 'parent' in desired_group:
-        assert(found_group.get_parents().pop().name == desired_group.parent)
+        assert found_group.get_parents().pop().name == desired_group.parent
 
 log.info('Verifying hosts')
 for name, desired_host in desired_hosts.items():
     found_host = resolve_duplicates_by_description(found_hosts[name], desired_host)
     for field in filter(lambda x: x not in ('name', 'description'), desired_host):
         if field == 'inventory':
-            assert(confirm_related_field('inventory', found_host, desired_host))
+            assert confirm_related_field('inventory', found_host, desired_host)
         elif field == 'groups':
             found_group_names = [group.name for group in found_host.related.groups.get().results]
             for group in desired_host.groups:
-                assert(group in found_group_names)
+                assert group in found_group_names
         else:
-            assert(confirm_field(field, found_host, desired_host, field == 'variables'))
+            assert confirm_field(field, found_host, desired_host)
 
 log.info('Verifying inventory sources')
 inventory_sources_to_update = []
@@ -206,12 +206,12 @@ for name, desired_inventory_source in desired_inventory_sources.items():
     for field in filter(lambda x: x not in ('update_interval', 'name'),
                         desired_inventory_source):
         if field in ('credential', 'group', 'inventory'):
-            assert(confirm_related_field(field, found_inventory_source, desired_inventory_source))
+            assert confirm_related_field(field, found_inventory_source, desired_inventory_source)
         elif field == 'source_script':
             desired_script_id = found_inventory_scripts[desired_inventory_source.source_script].id
-            assert(found_inventory_source.source_script == desired_script_id)
+            assert found_inventory_source.source_script == desired_script_id
         else:
-            assert(confirm_field(field, found_inventory_source, desired_inventory_source, field == 'source_vars'))
+            assert confirm_field(field, found_inventory_source, desired_inventory_source, field == 'source_vars')
     inventory_sources_to_update.append(found_inventory_source)
 
 log.info('Verifying job templates')
@@ -220,11 +220,11 @@ for name, desired_job_template in desired_job_templates.items():
     found_job_template = found_job_templates[name]
     for field in filter(lambda x: x != 'name', desired_job_template):
         if field in ('credential', 'group', 'inventory', 'project'):
-            assert(confirm_related_field(field, found_job_template, desired_job_template))
+            assert confirm_related_field(field, found_job_template, desired_job_template)
         elif field == 'playbook' and desired_job_template.playbook == 'Default':
-            assert(found_job_template.playbook == '')
+            assert found_job_template.playbook == ''
         else:
-            assert(confirm_field(field, found_job_template, desired_job_template, field == 'extra_vars'))
+            assert confirm_field(field, found_job_template, desired_job_template, field == 'extra_vars')
     job_templates_to_check.append(found_job_template)
 
 log.info('Verifying project updates are successful')
