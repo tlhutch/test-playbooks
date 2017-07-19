@@ -141,3 +141,21 @@ class TestInsights(Base_Api_Test):
         contacted = ansible_runner.stat(path=playbook_path)
         for result in contacted.values():
             assert result['stat']['exists'], "Playbook not found under {0}.".format(playbook_path)
+
+    def test_matching_insights_revision(self, factories, v2, ansible_runner):
+        """Verify that our revision tag matches between the following:
+        * Project details.
+        * Project update standard output.
+        * .verison under our project directory.
+        """
+        insights_cred = factories.v2_credential(kind='insights')
+        project = factories.v2_project(scm_type='insights', credential=insights_cred, wait=True)
+        update = project.related.last_update.get()
+
+        scm_revision = project.scm_revision
+        assert scm_revision in update.result_stdout
+
+        # verify contents of .version file
+        version_path = os.path.join(v2.config.get().project_base_dir, project.local_path, ".version")
+        contacted = ansible_runner.shell('cat {0}'.format(version_path))
+        assert contacted.values()[0]['stdout'] == project.scm_revision
