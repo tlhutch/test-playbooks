@@ -41,7 +41,7 @@ When verifying acceptance we should ensure the following statements are true
 1. [ ] Basic setup playbook testing to verify routing differences, including:
     * [x] Basic FQDN
     * [x] Hostname
-    * [ ] Short-name name resolution (XXXX not supported by EC2 DNS as far as I can tell)
+    * [ ] Short-name name resolution (really a duplicate of /etc/hosts routing)
     * [x] ip addresses
     * [x] /etc/hosts static routing information
 1. [ ] We should test behavior of large and small clusters. I would envision small clusters as 2 - 3 instances and large clusters as 10 - 15 instances
