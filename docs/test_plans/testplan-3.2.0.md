@@ -18,7 +18,7 @@
 
 1. [ ] ... 
 
-### Instance Groups / External Ramparts
+### Instance Groups / External Ramparts (Michael & Jim)
 [Feature](https://drive.google.com/open?id=11G1Khsy8PUxAM8b8b0e5WxkiDUttI0tE72VrxfkGMcw)
 
 When verifying acceptance we should ensure the following statements are true
@@ -183,7 +183,7 @@ Migrations (Jake)
 
 1. [ ] ... 
 
-### Named URL access in API (slug) 
+### Named URL access in API (slug) (Michael)
 [Feature](https://docs.google.com/document/d/1dQObu1jV9zOz8FLlktipaySe9lbdT8-Jo99RL0bksok/edit)
 
 1. [x] The classical way of getting objects via primary keys should behave the same.
