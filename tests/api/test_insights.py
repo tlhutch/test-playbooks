@@ -61,6 +61,7 @@ class TestInsights(Base_Api_Test):
 
         credential = factories.v2_credential(kind='insights')
         insights_inventory.insights_credential = credential.id
+
         assert insights_inventory.insights_credential == credential.id
         assert insights_inventory.summary_fields.insights_credential == dict(id=credential.id,
                                                                              name=credential.name,
