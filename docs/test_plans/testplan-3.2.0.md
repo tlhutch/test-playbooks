@@ -82,16 +82,16 @@ Store facts:
 Filter functionality:
 1. [x] Verify filter by host name functionality.
 1. [x] Verify filter by group name functionality.
-1. [x] Verify filter by ansible_fact functionality transversing lists.
-1. [ ] Verify filter by ansible_fact functionality transversing dictionaries.
-1. [ ] Verify filter by ansible_fact functionality transversing nested lists and dictionaries.
+1. [x] Verify filter by `ansible_fact` functionality transversing lists.
+1. [ ] Verify filter by `ansible_fact` functionality transversing dictionaries.
+1. [ ] Verify filter by `ansible_fact` functionality transversing nested lists and dictionaries.
 1. [x] Verify two-part filters with OR operator.
 1. [x] Verify two-part filters with AND operator.
 1. [x] Verify three-part filters with a mix of boolean operators.
 1. [x] Verify host_filter order of operations (parenthees support).
 1. [x] Verify host_filter against unicode.
 1. [x] Verify host_filter smart-search support.
-1. [x] Verify proper handling of invalid host_filter requests.
+1. [x] Verify proper handling of invalid `host_filter` requests.
 
 RBAC:
 1. [x] Host filter should return resources for which a user has inventory-read permissions.
@@ -100,8 +100,8 @@ RBAC:
 ### Insights integration (Chris)
 [Feature](https://docs.google.com/document/d/1gpjGumL5SVCSqcJKTkkFTQGWAQ6vLUxn_NOrE75TMtk/edit)
 
-1. [x] Verify stock value for host insights_system_id.
-1. [x] Verify insights_system_id updates after scan job.
+1. [x] Verify stock value for host `insights_system_id`.
+1. [x] Verify `insights_system_id` updates after scan job.
 1. [x] Verify inventory details update for Insights credential.
 1. [ ] Verify Insights credentials not allowed with smart inventories.
 1. [x] Verify querying `/hosts/N/insights/` when host has no Insights credential.
@@ -132,11 +132,11 @@ Smart inventories (Chris)
 1. [x] Verify smart inventory CRUD.
 1. [x] Verify smart inventory host list updates for host edit.
 1. [x] Verify smart inventory host list updates for host deletion.
-1. [x] Verify smart inventory hosts reflects host_filter.
+1. [x] Verify smart inventory hosts reflects `host_filter`.
 1. [ ] Verify smart inventories group support.
 1. [ ] Verify smart inventories host support.
 1. [ ] Verify smart inventories inventory source support.
-1. [ ] Verify smart inventories inventory update support (/api/v2/inventories/N/update_inventory_sources/).
+1. [ ] Verify smart inventories inventory update support (`/api/v2/inventories/N/update_inventory_sources/`).
 1. [ ] Verify updating regular inventory into smart inventory.
 1. [x] Test new host groups related endpoint.
 1. [x] Test new host groups summary field.
@@ -148,26 +148,26 @@ RBAC:
 1. [x] Verify group CRUD against all inventory permissions.
 1. [x] Verify host CRUD against all inventory permissions.
 1. [x] Verify inventory source CRUD against all inventory permissions.
-1. [x] Verify updated group user_capabilities against all inventory permissions.
-1. [x] Verify inventory source user_capabilities against all inventory permissions.
+1. [x] Verify updated group `user_capabilities` against all inventory permissions.
+1. [x] Verify inventory source `user_capabilities` against all inventory permissions.
 
 Inventory updates (Chris)
-1. [x] Verify inventory update via inventory_sources/N/update.
-1. [x] Verify updating functional sources via inventories/N/update_inventory_sources.
-1. [x] Verify updating functional and nonfunctional sources via inventories/N/update_inventory_sources.
-1. [x] Verify updating nonfunctional sources via inventories/N/update_inventory_sources.
+1. [x] Verify inventory update via `inventory_sources/N/update`.
+1. [x] Verify updating functional sources via `inventories/N/update_inventory_sources`.
+1. [x] Verify updating functional and nonfunctional sources via `inventories/N/update_inventory_sources`.
+1. [x] Verify updating nonfunctional sources via `inventories/N/update_inventory_sources`.
 1. [x] Verify updating duplicate inventory sources.
-1. [ ] Verify host and group deletion with overwrite.
-1. [x] Verify variable overwrite with overwrite_vars.
-1. [x] Verify default variable behavior without overwrite_vars.
-1. [x] Verify inventory source update_on_launch.
+1. [ ] Verify host and group deletion with `overwrite`.
+1. [x] Verify variable overwrite with `overwrite_vars`.
+1. [x] Verify default variable behavior without` overwrite_vars`.
+1. [x] Verify inventory source `update_on_launch`.
 1. [x] Verify inventory update verbosity.
 1. [x] Test inventory update cascade deletion.
 
 RBAC:
 
-1. [x] Verify inventory update via inventory_sources/N/update/ against all inventory permissions.
-1. [x] Verify inventory update via inventories/N/update_inventory_sources/ against all inventory permissions.
+1. [x] Verify inventory update via `inventory_sources/N/update/` against all inventory permissions.
+1. [x] Verify inventory update via `inventories/N/update_inventory_sources/` against all inventory permissions.
 1. [x] Verify inventory update cancellation via all inventory permissions.
 1. [x] Verify inventory update deletion via all inventory permissions.
 
