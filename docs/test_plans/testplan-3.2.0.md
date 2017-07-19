@@ -43,7 +43,7 @@ When verifying acceptance we should ensure the following statements are true
     * [x] Hostname
     * [ ] Short-name name resolution (XXXX not supported by EC2 DNS as far as I can tell)
     * [x] ip addresses
-    * [ ] /etc/hosts static routing information
+    * [x] /etc/hosts static routing information
 1. [ ] We should test behavior of large and small clusters. I would envision small clusters as 2 - 3 instances and large clusters as 10 - 15 instances
 1. [ ] Failure testing should involve killing single instances and killing multiple instances while the cluster is performing work. Job failures during the time period should be predictable and not catastrophic.
 1. [ ] Instance downtime testing should also include recoverability testing. Killing single services and ensuring the system can return itself to a working state
