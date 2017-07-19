@@ -19,3 +19,4 @@ reports
 *credentials.yml
 *credentials.yaml
 tools/docker/.build
+.DS_Store
