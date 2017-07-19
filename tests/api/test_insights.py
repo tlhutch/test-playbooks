@@ -54,6 +54,18 @@ class TestInsights(Base_Api_Test):
         assert matched_host.insights_system_id == self.matched_machine_id
         assert unmatched_host.insights_system_id == self.unmatched_machine_id
 
+    def test_inventory_with_insights_credential(self, factories, insights_inventory):
+        """Verify that various inventory fields update for our Insights credential."""
+        assert not insights_inventory.insights_credential
+        assert not insights_inventory.summary_fields.get('insights_credential')
+
+        credential = factories.v2_credential(kind='insights')
+        insights_inventory.insights_credential = credential.id
+        assert insights_inventory.insights_credential == credential.id
+        assert insights_inventory.summary_fields.insights_credential == dict(id=credential.id,
+                                                                             name=credential.name,
+                                                                             description=credential.description)
+
     def test_access_insights_with_no_credential(self, insights_inventory):
         """Verify that attempts to access Insights without a credential raises a 404."""
         hosts = insights_inventory.related.hosts.get().results
