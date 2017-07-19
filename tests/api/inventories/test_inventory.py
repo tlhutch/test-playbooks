@@ -19,18 +19,6 @@ class TestInventory(Base_Api_Test):
         factories.inventory(name=name)
         factories.inventory(name=name)
 
-    def test_host_update(self, factories):
-        """Smart inventory hosts should reflect host changes."""
-        host = factories.host()
-        inventory = factories.v2_inventory(kind='smart', host_filter="name={0}".format(host.name))
-        hosts = inventory.related.hosts.get()
-
-        host.description = fauxfactory.gen_utf8()
-        assert hosts.get().results.pop().description == host.description
-
-        host.delete()
-        assert hosts.get().count == 0
-
     def test_host_without_group(self, host_without_group):
         """Verify that inventories/N/script includes hosts that are not a member of any group.
         * Create inventory with host and no groups
