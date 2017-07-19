@@ -31,13 +31,13 @@ When verifying acceptance we should ensure the following statements are true
 1. [ ] De-provisioning should be supported via a management command
 1. [ ] All jobs, inventory updates, and project updates should run successfully
 1. [x] Jobs should be able to run on hosts which it is targeted. If assigned implicitly or directly to groups then it should only run on instances in those Instance Groups.
-1. [ ] Project updates should manifest their data on the tower host that will run the job immediately prior to the job running
+1. [x] Project updates should manifest their data on the tower host that will run the job immediately prior to the job running
 1. [ ] Tower should be able to reasonably survive the removal of all instances in the cluster
-1. [ ] Tower should behave in a predictable fashiong during network partitioning
+1. [x] Tower should behave in a predictable fashiong during network partitioning
 
 #### Testing Considerations
 
-1. [ ] Basic testing should be able to demonstrate parity with a standalone instance for all integration testing.
+1. [x] Basic testing should be able to demonstrate parity with a standalone instance for all integration testing.
 1. [ ] Basic setup playbook testing to verify routing differences, including:
     * [x] Basic FQDN
     * [x] Hostname
@@ -48,10 +48,10 @@ When verifying acceptance we should ensure the following statements are true
 1. [ ] Failure testing should involve killing single instances and killing multiple instances while the cluster is performing work. Job failures during the time period should be predictable and not catastrophic.
 1. [ ] Instance downtime testing should also include recoverability testing. Killing single services and ensuring the system can return itself to a working state
 1. [ ] Persistent failure should be tested by killing single services in such a way that the cluster instance cannot be recovered and ensuring that the instance is properly taken offline
-1. [ ] Network partitioning failures will be important also. In order to test this
-    * [ ] Disallow a single instance from communicating with the other instances but allow it to communicate with the database
-    * [ ] Break the link between instances such that it forms 2 or more groups where groupA and groupB can't communicate but all instances can communicate with the database.
-1. [ ] Crucially when network partitioning is resolved all instances should recover into a consistent state
+1. [x] Network partitioning failures will be important also. In order to test this
+    * [x] Disallow a single instance from communicating with the other instances but allow it to communicate with the database
+    * [x] Break the link between instances such that it forms 2 or more groups where groupA and groupB can't communicate but all instances can communicate with the database.
+1. [x] Crucially when network partitioning is resolved all instances should recover into a consistent state
 1. [ ] Upgrade Testing, verify behavior before and after are the same for the end user.
 1. [ ] Project Updates should be thoroughly tested for all scm types (git, svn, hg) and for manual projects.
 1. [x] Setting up instance groups in two scenarios: a) instances are shared between groups b) instances are isolated to particular groups Organizations, Inventories, and Job Templates should be variously assigned to one or many groups and jobs should execute in those groups in preferential order as resources are available.
