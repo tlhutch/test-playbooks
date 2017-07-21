@@ -12,7 +12,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.skip_selenium
 class TestInsights(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'insights_inventory')
+    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
     matched_machine_id = "84baf1a3-eee5-4f92-b5ee-42609e89a2cd"
     unmatched_machine_id = "aaaabbbb-cccc-dddd-eeee-ffffgggghhhh"
 
@@ -84,7 +84,7 @@ class TestInsights(Base_Api_Test):
         content = host.related.insights.get().insights_content
         assert content.reports
         assert content.product == 'rhel'
-        assert content.hostname == 'ip-10-156-20-161.ec2.internal'
+        assert content.hostname == 'ip-10-180-34-241.ec2.internal'
         assert content.system_id == self.matched_machine_id
         assert content.type == 'machine'
 
