@@ -195,7 +195,6 @@ def variation(request, authtoken, inventory, ansible_runner):
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class TestGroup(Base_Api_Test):

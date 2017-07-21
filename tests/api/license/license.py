@@ -217,7 +217,6 @@ class LicenseTest(Base_Api_Test):
         assert config.license_info.free_instances == 0
         assert config.license_info.available_instances == self.license_instance_count
 
-    @pytest.mark.ha_tower
     def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
         """Verify that hosts can be added up to the 'license_instance_count'"""
         license_info = api_config_pg.get().license_info

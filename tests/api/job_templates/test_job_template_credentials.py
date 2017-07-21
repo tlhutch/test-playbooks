@@ -11,7 +11,6 @@ from tests.api import Base_Api_Test
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.ha_tower
 class TestJobTemplateCredentials(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
@@ -157,7 +156,6 @@ class TestJobTemplateCredentials(Base_Api_Test):
             assert job.credential == team_ssh_credential.id
 
 
-@pytest.mark.ha_tower
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateExtraCredentials(Base_Api_Test):
 

@@ -32,7 +32,7 @@ def ensure_primary(request, ansible_module):
 
 
 @pytest.mark.api
-@pytest.mark.ha
+@pytest.mark.requires_ha
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_HA(Base_Api_Test):

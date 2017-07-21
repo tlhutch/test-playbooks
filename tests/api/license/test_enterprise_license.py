@@ -23,7 +23,6 @@ class TestEnterpriseLicense(LicenseTest):
                                         contact_email=fauxfactory.gen_email(),
                                         license_type="basic")
 
-    @pytest.mark.ha_tower
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
@@ -64,25 +63,21 @@ class TestEnterpriseLicense(LicenseTest):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for enterprise license: %s." % conf.license_info
 
-    @pytest.mark.ha_tower
     def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
         print json.dumps(conf.json, indent=4)
         assert 'license_key' in conf.license_info
 
-    @pytest.mark.ha_tower
     def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
         with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
             assert 'license_key' not in conf.license_info
 
-    @pytest.mark.ha_tower
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
         job_template.launch_job().wait_until_completed()
 
-    @pytest.mark.ha_tower
     def test_post_multiple_organizations(self, api_organizations_pg):
         """Verify that multiple organizations may exist with an enterprise license."""
         # create second organization
@@ -95,7 +90,6 @@ class TestEnterpriseLicense(LicenseTest):
         assert organizations_pg.count > 1, "Multiple organizations are supposed" \
             "to exist, but do not. Instead, only %s exist." % api_organizations_pg.count
 
-    @pytest.mark.ha_tower
     def test_create_survey(self, job_template_ping, required_survey_spec):
         """Verify that surveys may be enabled and created with an enterprise license."""
         job_template_ping.add_survey(spec=required_survey_spec)
@@ -103,12 +97,10 @@ class TestEnterpriseLicense(LicenseTest):
         assert survey_spec.spec == required_survey_spec, \
             "Expected /api/v1/job_templates/N/survey_spec/ to reflect our survey_spec."
 
-    @pytest.mark.ha_tower
     def test_activity_stream_get(self, v1):
         """Verify that GET requests to /api/v1/activity_stream/ are allowed with an enterprise license."""
         v1.activity_stream.get()
 
-    @pytest.mark.ha_tower
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_able_to_cleanup_facts(self, cleanup_facts):
         """Verifies that cleanup_facts may be run with an enterprise license."""
@@ -119,7 +111,6 @@ class TestEnterpriseLicense(LicenseTest):
         assert job_pg.is_successful, "cleanup_facts job unexpectedly failed " \
             "with an enterprise license - %s" % job_pg
 
-    @pytest.mark.ha_tower
     def test_activity_stream_settings(self, api_settings_system_pg):
         """Verify that activity stream flags are visible with an enterprise license."""
         settings_pg = api_settings_system_pg.get()
@@ -144,7 +135,6 @@ class TestEnterpriseLicense(LicenseTest):
         assert(resources.v1_settings_ldap in endpoints), \
             "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
 
-    @pytest.mark.ha_tower
     def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
         """Verify that enterprise license users have access to our enterprise
         authentication settings pages.
@@ -152,7 +142,6 @@ class TestEnterpriseLicense(LicenseTest):
         for service in self.ENTERPRISE_AUTH_SERVICES:
             api_settings_pg.get_endpoint(service)
 
-    @pytest.mark.ha_tower
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg):
         """Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg."""
         # Update the license
@@ -173,7 +162,6 @@ class TestEnterpriseLicense(LicenseTest):
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
-    @pytest.mark.ha_tower
     def test_delete_license(self, api_config_pg):
         """Verify the license_info field is empty after deleting the license"""
         api_config_pg.delete()
@@ -183,7 +171,6 @@ class TestEnterpriseLicense(LicenseTest):
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class TestEnterpriseLicenseExpired(LicenseTest):
 

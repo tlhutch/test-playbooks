@@ -18,7 +18,6 @@ class Test_Credential_RBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    @pytest.mark.ha_tower
     def test_unprivileged_user(self, factories):
         """An unprivileged user/team should not be able to:
         * Make GETs to the credential detail page
@@ -57,7 +56,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(credential, httplib.OK)
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_use_role(self, factories, set_test_roles, agent):
         """A user/team with credential 'use' should be able to:
@@ -80,7 +78,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(credential, httplib.FORBIDDEN)
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, factories, set_test_roles, agent):
         """A user/team with credential 'read' should be able to:
@@ -103,7 +100,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(credential, httplib.FORBIDDEN)
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'read'])
     def test_user_capabilities(self, factories, api_credentials_pg, role):
         """Test user_capabilities given each credential role."""
@@ -117,7 +113,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             check_user_capabilities(credential.get(), role)
             check_user_capabilities(api_credentials_pg.get(id=credential.id).results.pop(), role)
 
-    @pytest.mark.ha_tower
     def test_autopopulated_admin_role_with_user_credentials(self, factories):
         """Tests that when you create a credential with a value supplied for 'user'
         that your user is automatically given the admin role of your credential.
@@ -137,7 +132,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             "Unexpected admin role user returned. Expected user with ID %s, but one with ID %s." \
             % (user.id, admin_role_users.results.pop().id)
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize("agent_name", ["admin_user", "org_user"])
     def test_user_credential_role_assignment(self, request, factories, agent_name):
         """Tests that only superusers may grant user-credential roles to other users and that
@@ -170,7 +164,6 @@ class Test_Credential_RBAC(Base_Api_Test):
                     with pytest.raises(towerkit.exceptions.Forbidden):
                         credential.set_object_roles(team, role_name)
 
-    @pytest.mark.ha_tower
     def test_invalid_organization_credential_role_assignment(self, factories):
         """Tests that organization credentials may not have their roles assigned to users
         and teams who exist outside of their organization.
@@ -190,7 +183,6 @@ class Test_Credential_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.BadRequest):
                 credential.set_object_roles(team, role_name)
 
-    @pytest.mark.ha_tower
     def test_valid_organization_credential_role_assignment(self, factories):
         """Tests that organization credentials may have their roles assigned to users
         and teams who exist within their own organization.

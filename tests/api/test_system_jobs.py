@@ -56,7 +56,6 @@ class Test_System_Jobs(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    @pytest.mark.ha_tower
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_method_not_allowed(self, system_job):
         """Verify that PUT, POST and PATCH are unsupported request methods"""
@@ -119,7 +118,6 @@ class Test_System_Jobs(Base_Api_Test):
         assert set(unified_job_ids) == set(update_job_ids) | set([system_job_pg.id]), \
             "Unexpected unified_jobs returned. Expected only project/inventory updates and our system job."
 
-    @pytest.mark.ha_tower
     def test_cleanup_activitystream(self, cleanup_activitystream_template, multiple_jobs_with_status_completed, api_activity_stream_pg):
         """Launch jobs of different types, run cleanup_activitystreams, and verify that the activity_stream clears."""
         # launch job and assert job successful
@@ -132,7 +130,6 @@ class Test_System_Jobs(Base_Api_Test):
         assert activity_stream_pg.count == 0, \
             "After running cleanup_activitystream, activity_stream items still present (%s items found)." % activity_stream_pg.count
 
-    @pytest.mark.ha_tower
     def test_cleanup_facts(self, files_scan_job_with_status_completed, cleanup_facts_template):
         """Run a scan job, launch a cleanup_facts job, and assert that facts get deleted."""
         # assert scan job successful
@@ -153,7 +150,6 @@ class Test_System_Jobs(Base_Api_Test):
         assert fact_versions_pg.get().count == 0, \
             "Even though cleanup_facts was run, facts still exist (got %s)." % fact_versions_pg.count
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('job_type, extra_vars', [('cleanup_jobs', '{"days":"1000"}'),
                                                       ('cleanup_activitystream', '{"days":"1000"}'),
                                                       ('cleanup_facts', '{"older_than":"1000d","granularity":"1000w"}')])

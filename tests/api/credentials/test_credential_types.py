@@ -6,7 +6,6 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestCredentialTypes(Base_Api_Test):
 
@@ -328,7 +327,6 @@ class TestCredentialTypes(Base_Api_Test):
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestCredentialTypesActivityStream(Base_Api_Test):
 

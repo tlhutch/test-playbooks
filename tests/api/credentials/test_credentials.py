@@ -12,7 +12,6 @@ class TestCredential(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    @pytest.mark.ha_tower
     def test_v1_ssh_credential_with_unicode_fields(self, request, factories, v1):
         payload = factories.credential.payload(name=fauxfactory.gen_utf8(),
                                                description=fauxfactory.gen_utf8(),
@@ -27,7 +26,6 @@ class TestCredential(Base_Api_Test):
         for field in ('name', 'description', 'username', 'become_method', 'become_username'):
             assert credential[field] == payload[field]
 
-    @pytest.mark.ha_tower
     def test_v2_ssh_credential_with_unicode_fields(self, request, factories, v2):
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         payload = factories.v2_credential.payload(name=fauxfactory.gen_utf8(),
@@ -45,7 +43,6 @@ class TestCredential(Base_Api_Test):
         for field in ('username', 'become_method', 'become_username'):
             assert credential.inputs[field] == payload.inputs[field]
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('v', ('v1', 'v2'))
     def test_team_credentials_are_organization_credentials(self, factories, v):
         """confirm that a team credential's organization is sourced from the team"""
@@ -63,7 +60,6 @@ class TestCredential(Base_Api_Test):
 
         assert owner_organizations[0].get("id") == team.organization
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('v', ('v1', 'v2'))
     def test_duplicate_credential_creation(self, request, factories, v):
         """Confirms that duplicate credentials are allowed when an organization isn't shared (user only)

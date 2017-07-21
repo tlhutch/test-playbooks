@@ -6,7 +6,6 @@ from tests.lib.helpers.rbac_utils import check_user_capabilities
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
 class Test_Schedules_RBAC(Base_Api_Test):

@@ -15,7 +15,6 @@ class TestActivityStream(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
-    @pytest.mark.ha_tower
     def test_limited_view_of_unprivileged_user(self, factories, api_activity_stream_pg, user_password):
         """Confirms that unprivileged users only see their creation details in activity stream"""
         activity = api_activity_stream_pg
@@ -38,7 +37,6 @@ class TestActivityStream(Base_Api_Test):
                 # roll JSON_Wrapper Attribute errors in here too
                 raise(Exception("Unprivileged user has access to unexpected activity stream content."))
 
-    @pytest.mark.ha_tower
     def test_inventory_id_in_group_activity_stream(self, factories):
         """Confirms that inventory_id is included in the group summary_fields for all non-delete operations"""
         inventory = factories.inventory()

@@ -147,7 +147,6 @@ def multiple_management_job_schedules(request, system_job_template, rrule_minute
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken')
 class Test_Project_Schedules(Base_Api_Test):
@@ -438,7 +437,6 @@ class Test_Project_Schedules(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Inventory_Schedules(Base_Api_Test):
@@ -739,7 +737,6 @@ class Test_Inventory_Schedules(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 class Test_Job_Template_Schedules(Base_Api_Test):
@@ -790,7 +787,6 @@ class Test_Job_Template_Schedules(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken')
 class Test_System_Job_Template_Schedules(Base_Api_Test):

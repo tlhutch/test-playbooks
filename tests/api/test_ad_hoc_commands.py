@@ -72,7 +72,6 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, ho
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Ad_Hoc_Commands_Inventory(Base_Api_Test):
     """From /api/v1/inventories/{id}"""
@@ -105,7 +104,6 @@ class Test_Ad_Hoc_Commands_Inventory(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
     """From /api/v1/groups/{id}"""
@@ -137,7 +135,6 @@ class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Ad_Hoc_Commands_Host(Base_Api_Test):
     """From /api/v1/hosts/{id}/"""
@@ -175,14 +172,12 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    @pytest.mark.ha_tower
     def test_get(self, api_ad_hoc_commands_pg, all_users, user_password):
         """Verify that privileged users are able to GET from the ad_hoc_commands endpoint."""
         for user in all_users:
             with self.current_user(user.username, user_password):
                 api_ad_hoc_commands_pg.get()
 
-    @pytest.mark.ha_tower
     def test_post_as_privileged_user(self, host, ssh_credential, api_ad_hoc_commands_pg, privileged_users, user_password):
         """Verify that a superuser account is able to post to the ad_hoc_commands endpoint."""
         use_role_pg = ssh_credential.get_object_role('use_role')
@@ -204,7 +199,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                 command_pg.wait_until_completed()
                 assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
 
-    @pytest.mark.ha_tower
     def test_post_as_unprivileged_user(self, inventory, ssh_credential, api_ad_hoc_commands_pg, unprivileged_users, user_password):
         """Verify that unprivileged users cannot post to the ad_hoc_commands endpoint."""
         # create payload
@@ -220,7 +214,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                     api_ad_hoc_commands_pg.post(payload)
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch_without_module_name(self, host, ssh_credential, api_ad_hoc_commands_pg):
         """Verifies that if you post without specifiying module_name that the command module is run."""
         # create payload
@@ -239,7 +232,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         assert command_pg.module_name == "command"
         assert command_pg.module_args == "true"
 
-    @pytest.mark.ha_tower
     def test_launch_with_invalid_module_name(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
         """Verifies that if you post with an invalid module_name that a BadRequest exception is raised."""
         invalid_module_names = [-1, 0, 1, True, False, (), {}]
@@ -254,7 +246,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.BadRequest):
                 api_ad_hoc_commands_pg.post(payload)
 
-    @pytest.mark.ha_tower
     def test_launch_without_module_args(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
         """Verifies that if you post without specifiying module_args that the post fails with the command module."""
         # create poad
@@ -271,7 +262,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
             "Unexpected response upon launching ad hoc command 'command' without " \
             "specifying module_args. %s" % json.dumps(result)
 
-    @pytest.mark.ha_tower
     @pytest.mark.fixture_args(module_name='command', module_args='sleep 60s')
     def test_cancel_command(self, ad_hoc_with_status_pending):
         """Tests that posting to the cancel endpoint cancels a command."""
@@ -290,7 +280,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
             "status:canceled) - %s" % ad_hoc_with_status_pending
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch_with_ask_credential_and_passwords_in_payload(self, host, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
         """Verifies that launching a command with an ask credential succeeds when supplied with proper passwords."""
         # create payload
@@ -309,7 +298,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         assert command_pg.is_successful, "Command unsuccessful - %s" % command_pg
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
         """Verifies that launching a command with an ask credential fails when not supplied with required passwords."""
         # create payload
@@ -322,7 +310,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
             api_ad_hoc_commands_pg.post(payload)
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch_with_ask_credential_and_invalid_passwords_in_payload(self, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
         """Verifies that launching a command with an ask credential fails when supplied with invalid passwords."""
         # create payload
@@ -341,7 +328,6 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         assert not command_pg.is_successful, "Command successful, but was expected to fail - %s " % command_pg
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize("limit_value, expected_count", [
         ("", 11),
         ("all", 11),
@@ -437,7 +423,6 @@ print json.dumps(inv, indent=2)
             assert "[WARNING]: No hosts matched, nothing to do" in job_pg.result_stdout, \
                 "Unexpected job_pg.result_stdout when launching an ad hoc command with an unmatched limit."
 
-    @pytest.mark.ha_tower
     def test_relaunch_command_with_privileged_users(
         self, host,
         ssh_credential,
@@ -473,7 +458,6 @@ print json.dumps(inv, indent=2)
                 relaunched_command = command.relaunch().wait_until_completed()
                 assert relaunched_command.is_successful, "Command unsuccessful - %s " % relaunched_command
 
-    @pytest.mark.ha_tower
     def test_relaunch_command_with_unprivileged_users(self, ad_hoc_with_status_completed, unprivileged_users, user_password):
         """Verifies that unprivileged users cannot relaunch a command originally launched by admin."""
         relaunch_pg = ad_hoc_with_status_completed.get_related('relaunch')
@@ -484,7 +468,6 @@ print json.dumps(inv, indent=2)
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     relaunch_pg.post()
 
-    @pytest.mark.ha_tower
     def test_relaunch_command_with_ask_credential_and_passwords(
         self, request,
         ad_hoc_command_with_multi_ask_credential_and_password_in_payload,
@@ -501,7 +484,6 @@ print json.dumps(inv, indent=2)
         relaunched_command = ad_hoc_command_with_multi_ask_credential_and_password_in_payload.relaunch(payload).wait_until_completed()
         assert relaunched_command.is_successful, "Command unsuccessful - %s " % relaunched_command
 
-    @pytest.mark.ha_tower
     def test_relaunch_command_with_ask_credential_and_without_passwords(
         self, request,
         ad_hoc_command_with_multi_ask_credential_and_password_in_payload,
@@ -517,7 +499,6 @@ print json.dumps(inv, indent=2)
         with pytest.raises(towerkit.exceptions.BadRequest):
             relaunch_pg.post(payload)
 
-    @pytest.mark.ha_tower
     def test_relaunch_with_deleted_related(self, ad_hoc_with_status_completed, deleted_object):
         """Verify that relaunching a job with deleted related fails."""
         # verify that the first ad hoc command ran successfully
@@ -532,7 +513,6 @@ print json.dumps(inv, indent=2)
             relaunch_pg.post()
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     @pytest.mark.fixture_args(module_name='shell', module_args='exit 1', job_type='check')
     def test_launch_with_check(self, host, ssh_credential, ad_hoc_with_status_completed):
         """Verifies check command behavior."""
@@ -548,7 +528,6 @@ print json.dumps(inv, indent=2)
         assert matching_job_events.count == 1, \
             "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
 
-    @pytest.mark.ha_tower
     def test_ad_hoc_activity_stream(self, api_ad_hoc_commands_pg, ad_hoc_with_status_completed):
         """Verifies that launching an ad hoc command updates the activity stream."""
         # find command and navigate to command page
@@ -562,7 +541,6 @@ print json.dumps(inv, indent=2)
         activity_stream_pg = ad_hoc_command_pg.get_related('activity_stream')
         assert activity_stream_pg.count == 1, "Activity stream not populated."
 
-    @pytest.mark.ha_tower
     def test_command_page_update(self, org_admin, user_password, host, ssh_credential, api_ad_hoc_commands_pg):
         """Tests that deleting related objects will be reflected in the updated command page."""
         use_role_pg = ssh_credential.get_object_role('use_role')

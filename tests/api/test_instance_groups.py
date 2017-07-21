@@ -25,7 +25,6 @@ class Test_Instance_Groups(Base_Api_Test):
         else:
             raise ValueError("Unsupported resource: {0}".format(resource))
 
-    @pytest.mark.ha_tower
     def test_instance_group_creation(self, authtoken, v2, ansible_runner):
         inventory_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
         cmd = 'scripts/ansible_inventory_to_json.py --inventory {0} --group-filter tower,instance_group_'.format(inventory_path)
@@ -47,7 +46,7 @@ class Test_Instance_Groups(Base_Api_Test):
             assert len(instances) == len(group_mapping[group.name])
             assert set(instances) == set(group_mapping[group.name])
 
-    @pytest.mark.ha_tower
+    @pytest.mark.requires_ha
     @pytest.mark.parametrize('resource', ['job_template', 'inventory', 'organization'])
     def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource):
         instance_groups = v2.instance_groups.get().results
@@ -72,7 +71,7 @@ class Test_Instance_Groups(Base_Api_Test):
             assert any(execution_host in instance.hostname for instance in instances), \
                 "Job not run on instance in assigned instance group"
 
-    @pytest.mark.tower_ha
+    @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('base_resource, parent_resource', [('job_template', 'inventory'), ('job_template', 'organization'), ('inventory', 'organization')])
     def test_instance_group_hierarchy(self, v2, factories, base_resource, parent_resource):

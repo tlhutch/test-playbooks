@@ -4,7 +4,6 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Me(Base_Api_Test):
     """Verify the /me endpoint displays the expected information based on the current user"""

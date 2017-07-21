@@ -77,7 +77,6 @@ class Test_TACACS_Plus(Base_Api_Test):
                 api_me_pg.get()
         user.delete()
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
     def test_login_as_fake_user(self, protocol, enable_tacacs_auth, v1, api_me_pg):
         enable_tacacs_auth(protocol)
@@ -85,7 +84,6 @@ class Test_TACACS_Plus(Base_Api_Test):
             with pytest.raises(exc.Unauthorized):
                 api_me_pg.get()
 
-    @pytest.mark.ha_tower
     def test_timeout(self, enable_tacacs_auth, v1, api_me_pg, api_settings_tacacsplus_pg):
         enable_tacacs_auth()
         api_settings_tacacsplus_pg.patch(TACACSPLUS_HOST='169.254.1.0', TACACSPLUS_SESSION_TIMEOUT=20)

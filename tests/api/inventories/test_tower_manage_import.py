@@ -71,7 +71,6 @@ def get_ec2_inventory():
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class TestTowerManageInventoryImport(Base_Api_Test):

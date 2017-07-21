@@ -5,7 +5,6 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
 class Test_Notifications_RBAC(Base_Api_Test):

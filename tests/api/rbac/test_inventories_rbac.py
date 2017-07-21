@@ -17,7 +17,6 @@ class TestInventoryRBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    @pytest.mark.ha_tower
     def test_unprivileged_user(self, factories):
         """An unprivileged user should not be able to:
         * Get the inventory detail page
@@ -228,7 +227,6 @@ class TestInventoryRBAC(Base_Api_Test):
             for resource in [host, group, inv_source, inventory]:
                 assert_response_raised(resource, httplib.FORBIDDEN)
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('agent', ['user', 'team'])
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_user_capabilities(self, factories, v2, set_test_roles, agent, role):
@@ -248,7 +246,6 @@ class TestInventoryRBAC(Base_Api_Test):
             check_user_capabilities(inventory.get(), role)
             check_user_capabilities(v2.inventory.get(id=inventory.id).results.pop(), role)
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_update_custom_source(self, factories, role):
         """Test ability to update a custom source."""
@@ -270,7 +267,6 @@ class TestInventoryRBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled inventory role.")
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_update_cloud_source(self, factories, role):
         """Test ability to update a cloud source. Note: only tested on AWS to save time.
@@ -324,7 +320,6 @@ class TestInventoryRBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled inventory role.")
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_schedule_update(self, factories, role):
         """Tests ability to schedule an inventory update."""
@@ -346,7 +341,6 @@ class TestInventoryRBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled inventory role.")
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_cancel_update(self, factories, role):
         """Tests inventory update cancellation. Inventory admins can cancel other people's updates."""
@@ -372,7 +366,6 @@ class TestInventoryRBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled inventory role.")
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_delete_update(self, factories, role):
         """Tests ability to delete an inventory update."""
@@ -395,7 +388,6 @@ class TestInventoryRBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled inventory role.")
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_update_user_capabilities(self, factories, v2, role):
         """Test user_capabilities given each inventory role on spawned
@@ -413,7 +405,6 @@ class TestInventoryRBAC(Base_Api_Test):
             check_user_capabilities(update.get(), role)
             check_user_capabilities(v2.inventory_updates.get(id=update.id).results.pop(), role)
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_launch_command(self, factories, role):
         """Test ability to launch a command."""
@@ -440,7 +431,6 @@ class TestInventoryRBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled inventory role.")
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_relaunch_command(self, factories, role):
         """Tests ability to relaunch a command."""
@@ -468,7 +458,6 @@ class TestInventoryRBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled inventory role.")
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_cancel_command(self, factories, role):
         """Tests command cancellation. Inventory admins can cancel other people's commands."""
@@ -489,7 +478,6 @@ class TestInventoryRBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled inventory role.")
 
-    @pytest.mark.ha_tower
     def test_delete_command_as_org_admin(self, factories):
         """Create two ad hoc commands and an org_admin for each of these commands.
         Then check that each org_admin may only delete his org's command.
@@ -519,7 +507,6 @@ class TestInventoryRBAC(Base_Api_Test):
         with self.current_user(username=org_admin2.username, password=org_admin2.password):
             ahc2.delete()
 
-    @pytest.mark.ha_tower
     def test_delete_command_as_org_user(self, factories):
         """Tests ability to delete an ad hoc command as a privileged org_user."""
         user = factories.user()
@@ -531,7 +518,6 @@ class TestInventoryRBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 ahc.delete()
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
     def test_command_user_capabilities(self, factories, v2, role):
         """Test user_capabilities given each inventory role on spawned
@@ -547,7 +533,6 @@ class TestInventoryRBAC(Base_Api_Test):
             check_user_capabilities(ahc.get(), role)
             check_user_capabilities(v2.ad_hoc_commands.get(id=ahc.id).results.pop(), role)
 
-    @pytest.mark.ha_tower
     def test_cloud_source_credential_reassignment(self, factories, openstack_v2_credential):
         """Test that a user with inventory-admin may not patch an inventory source with another user's
         personal user credential.

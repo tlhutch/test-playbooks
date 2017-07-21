@@ -42,7 +42,6 @@ def team_payload(**kwargs):
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class Test_Teams(Base_Api_Test):
     """Tests related to the /api/v1/teams endpoint."""

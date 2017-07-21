@@ -162,7 +162,6 @@ class Test_Job(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_utf8(self, utf8_template):
         """Verify that a playbook full of UTF-8 successfully works through Tower"""
         # launch job
@@ -174,7 +173,6 @@ class Test_Job(Base_Api_Test):
         # assert successful completion of job
         assert job_pg.is_successful, "Job unsuccessful - %s " % job_pg
 
-    @pytest.mark.ha_tower
     def test_post_as_superuser(self, job_template, api_jobs_pg):
         """Verify a superuser is able to create a job by POSTing to the /api/v1/jobs endpoint."""
         # post a job
@@ -183,7 +181,6 @@ class Test_Job(Base_Api_Test):
         # assert successful post
         assert job_pg.status == 'new'
 
-    @pytest.mark.ha_tower
     def test_post_as_non_superuser(self, non_superusers, user_password, api_jobs_pg, job_template):
         """Verify a non-superuser is unable to create a job by POSTing to the /api/v1/jobs endpoint."""
         for non_superuser in non_superusers:
@@ -191,7 +188,6 @@ class Test_Job(Base_Api_Test):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     api_jobs_pg.post(job_template.json)
 
-    @pytest.mark.ha_tower
     def test_relaunch_with_credential(self, job_with_status_completed):
         """Verify relaunching a job with a valid credential no-ask credential."""
         relaunch_pg = job_with_status_completed.get_related('relaunch')
@@ -205,7 +201,6 @@ class Test_Job(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    @pytest.mark.ha_tower
     def test_relaunch_with_deleted_related(self, job_with_deleted_related):
         """Verify relaunching a job whose related information has been deleted."""
         # get relaunch page
@@ -218,7 +213,6 @@ class Test_Job(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             relaunch_pg.post()
 
-    @pytest.mark.ha_tower
     def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload, testsetup):  # NOQA
         """Verify that relaunching a job with a credential that includes ASK passwords, behaves as expected when
         supplying the necessary passwords in the relaunch payload.
@@ -241,7 +235,6 @@ class Test_Job(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    @pytest.mark.ha_tower
     def test_relaunch_with_multi_ask_credential_and_without_passwords(self, job_with_multi_ask_credential_and_password_in_payload):  # NOQA
         """Verify that relaunching a job with a multi-ask credential fails when not supplied with passwords."""
         # get relaunch page
@@ -266,7 +259,6 @@ class Test_Job(Base_Api_Test):
         # assert expected values in response
         assert credential.expected_passwords_needed_to_start == result['passwords_needed_to_start']
 
-    @pytest.mark.ha_tower
     def test_relaunch_uses_extra_vars_from_job(self, job_with_extra_vars):
         """Verify that when you relaunch a job containing extra_vars in the
         launch-time payload, the resulting extra_vars *and* the job_template
@@ -301,7 +293,6 @@ class Test_Job(Base_Api_Test):
             (relaunch_extra_vars, job_extra_vars)
 
     @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1249")
-    @pytest.mark.ha_tower
     def test_password_survey_launched_with_empty_extra_vars(self, factories):
         """Confirms that password surveys with defaults are displayed (and encrypted) when
         job template is launched with empty extra_vars, and those without defaults are not.
@@ -323,7 +314,6 @@ class Test_Job(Base_Api_Test):
         assert(all([val == "$encrypted$" for val in extra_vars.values()])
                ), "Undesired values for extra_vars detected: {0}".format(extra_vars)
 
-    @pytest.mark.ha_tower
     def test_survey_defaults_dont_meet_length_requirements(self, factories):
         """Confirms that default survey spec variables that don't meet length requirements aren't provided to job"""
         jt = factories.job_template()
@@ -338,8 +328,9 @@ class Test_Job(Base_Api_Test):
         assert job.is_successful
         assert job.extra_vars == json.dumps(dict(test_var_three='abc'))
 
+    @pytest.mark.requires_isolation
+    @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_cancel_pending_job(self, job_with_status_pending):
         """Verify the job->cancel endpoint behaves as expected when canceling a
         pending/queued job
@@ -369,7 +360,6 @@ class Test_Job(Base_Api_Test):
             "It appears that the job was not cancelled while in pending."
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_cancel_running_job(self, job_with_status_running):
         """Verify the job->cancel endpoint behaves as expected when canceling a
         running job
@@ -402,7 +392,6 @@ class Test_Job(Base_Api_Test):
         # output
         assert "PLAY RECAP ************" not in job_with_status_running.result_stdout
 
-    @pytest.mark.ha_tower
     def test_cancel_completed_job(self, job_with_status_completed):
         """Verify the job->cancel endpoint behaves as expected when canceling a
         completed job
@@ -418,7 +407,6 @@ class Test_Job(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             cancel_pg.post()
 
-    @pytest.mark.ha_tower
     def test_jobs_persist_beyond_job_template_deletion(self, job_template):
         """Verify that jobs presist beyond their JT deletion."""
         job = job_template.launch().wait_until_completed()
@@ -427,7 +415,6 @@ class Test_Job(Base_Api_Test):
         # verify that our job persists
         job.get()
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('resource', ['project', 'custom_inventory_source'])
     def test_cascade_delete_update_unified_jobs(self, request, resource):
         """Verify that project and inventory updates get cascade deleted with their UJT deletion."""
@@ -561,7 +548,6 @@ class Test_Scan_Job(Base_Api_Test):
 
     @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1251", raises=AssertionError)
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_custom_scan_job(self, install_enterprise_license_unlimited, job_template):
         """Tests custom scan jobs."""
         # obtain intial fact results
@@ -582,7 +568,6 @@ class Test_Scan_Job(Base_Api_Test):
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Env(Base_Api_Test):

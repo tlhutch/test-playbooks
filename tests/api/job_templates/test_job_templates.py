@@ -27,7 +27,6 @@ class TestJobTemplates(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch(self, job_template_ping):
         """Verify the job->launch endpoint behaves as expected"""
         launch_pg = job_template_ping.get_related('launch')
@@ -46,7 +45,6 @@ class TestJobTemplates(Base_Api_Test):
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch_with_limit_in_payload(self, job_template_with_random_limit):
         """Verifies that a value for 'limit' may be passed at launch-time."""
         job_template_with_random_limit.patch(ask_limit_on_launch=True)
@@ -72,7 +70,6 @@ class TestJobTemplates(Base_Api_Test):
         assert job_pg.job_args[limit_index] == "local", "Limit value not passed to job_args."
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize("patch_payload, launch_payload", [
         (
             {"ask_tags_on_launch": True, "ask_skip_tags_on_launch": False},
@@ -126,7 +123,6 @@ class TestJobTemplates(Base_Api_Test):
             assert '--skip-tags=%s' % launch_payload['skip_tags'] in job_pg.job_args, \
                 "Value for skip_tags not represented in job args."
 
-    @pytest.mark.ha_tower
     def test_launch_with_ignored_payload(self, job_template, another_inventory, another_ssh_credential):
         """Verify that launch-time objects are ignored when their ask flag is set to false."""
         launch_pg = job_template.get_related('launch')
@@ -165,7 +161,6 @@ class TestJobTemplates(Base_Api_Test):
             "JT credential overriden. Expected credential %s, got %s." % (job_template.credential, job_pg.credential)
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize("job_type", ["run", "check"])
     def test_launch_with_job_type_in_payload(self, factories, job_type):
         """Verifies that "job_type" may be given at launch-time with run/check JTs."""
@@ -187,7 +182,6 @@ class TestJobTemplates(Base_Api_Test):
         assert job.job_type == job_type
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch_with_inventory_in_payload(self, job_template, another_inventory):
         """Verifies that 'inventory' may be given at launch-time."""
         job_template.patch(ask_inventory_on_launch=True)
@@ -212,7 +206,6 @@ class TestJobTemplates(Base_Api_Test):
         assert job_pg.inventory == another_inventory.id, \
             "Job ran with incorrect inventory. Expected %s but got %s." % (another_inventory.id, job_template.inventory)
 
-    @pytest.mark.ha_tower
     def test_launch_template_with_deleted_related(self, job_template_with_deleted_related):
         """Verify that the job->launch endpoint does not allow launching a
         job_template whose related endpoints have been deleted.
@@ -237,7 +230,6 @@ class TestJobTemplates(Base_Api_Test):
             launch_pg.post()
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize("limit_value, expected_count", [
         ("", 12),
         ("all", 12),
@@ -299,7 +291,6 @@ print json.dumps(inv, indent=2)
         assert job_host_summaries_pg.count == expected_count
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch_with_unmatched_limit_value(self, job_template_with_random_limit):
         """Verify that launching a job template without matching hosts fails appropriately."""
         # check that our job_template limit is unmatched
@@ -315,7 +306,6 @@ print json.dumps(inv, indent=2)
             "Unexpected job_pg.result_stdout when launching a job_template with an unmatched limit."
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch_with_matched_tag_value(self, job_template_with_random_tag):
         """Tests that target tasks are run when launching a job with job_tags."""
         # patch our JT such that its tag value matches a single playbook task
@@ -335,7 +325,6 @@ print json.dumps(inv, indent=2)
             "Unexpected number of task_events returned (expected 2)."
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch_with_unmatched_tag_value(self, job_template_with_random_tag, ansible_version_cmp):
         """Tests launching jobs with an unmatched tag value."""
         job_pg = job_template_with_random_tag.launch().wait_until_completed()
@@ -366,6 +355,7 @@ print json.dumps(inv, indent=2)
         for fact in ansible_facts:
             assert 'ansible' in fact
 
+    @pytest.mark.requires_single_instance
     def test_launch_with_store_facts_and_custom_scan_modules(self, request, factories, ansible_runner, encrypted_scm_credential):
         """Test a store_facts JT with custom scan modules."""
         host = factories.v2_host()
@@ -387,7 +377,6 @@ print json.dumps(inv, indent=2)
         assert filter(lambda service: service['name'] == "sshd.service", ansible_facts.services)
         assert filter(lambda package: package['name'] == "ansible-tower", ansible_facts.packages)
 
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('timeout, status, job_explanation', [
         (0, 'successful', ''),
         (60, 'successful', ''),
@@ -406,7 +395,6 @@ print json.dumps(inv, indent=2)
         assert job_pg.timeout == job_template.timeout, \
             "Job_pg has a different timeout value ({0}) than its JT ({1}).".format(job_pg.timeout, job_template.timeout)
 
-    @pytest.mark.ha_tower
     def test_conflict_exception_with_running_job(self, job_template_sleep):
         """Verify that a conflict exception is raised when deleting either the JT
         or some of the JT's underlying resources when a job is still running.
@@ -423,7 +411,6 @@ print json.dumps(inv, indent=2)
                 tower_resource.delete()
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_launch_check_job_template(self, job_template):
         """Launch check job template and assess results."""
         # patch job template

@@ -5,7 +5,6 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class TestInventorySource(Base_Api_Test):

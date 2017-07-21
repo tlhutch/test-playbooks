@@ -23,7 +23,6 @@ log = logging.getLogger(__name__)
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Workflow_Nodes(Base_Api_Test):

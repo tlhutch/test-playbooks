@@ -84,6 +84,7 @@ def set_rootpw(ansible_runner, testsetup):
     ansible_runner.shell("echo '{username}:{password}' | chpasswd".format(**testsetup.credentials['ssh']))
 
 
+@pytest.mark.requires_single_instance
 @pytest.mark.incremental
 @pytest.mark.integration
 @pytest.mark.skip_selenium

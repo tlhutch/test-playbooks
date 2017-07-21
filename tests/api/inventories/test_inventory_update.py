@@ -13,7 +13,6 @@ class TestInventoryUpdate(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    @pytest.mark.ha_tower
     def test_v1_update_inventory_source(self, cloud_group):
         """Verify successful inventory import using /api/v1/inventory_sources/N/update/."""
         inv_source = cloud_group.get_related('inventory_source')
@@ -207,7 +206,6 @@ class TestInventoryUpdate(Base_Api_Test):
         for line in stdout_lines:
             assert line in inv_update.result_stdout
 
-    @pytest.mark.ha_tower
     def test_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):
         """Assess inventory imports with all possible choices for source_regions.
 
@@ -347,7 +345,6 @@ class TestInventoryUpdate(Base_Api_Test):
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=UNMATCHED", "key-name=UNMATCHED", "tag:Name=UNMATCHED"])
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_update_with_unmatched_aws_instance_filter(self, aws_group, instance_filter):
         """Tests inventory imports with unmatched AWS instance filters
 
@@ -394,7 +391,6 @@ class TestInventoryUpdate(Base_Api_Test):
         assert set(actual_group_names) == set(expected_group_names)
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     def test_aws_replace_dash_in_groups_source_variable(self, job_template, aws_group, host_local):
         """Tests that AWS inventory groups will be registered with underscores instead of hyphens
         when using "replace_dash_in_groups" source variable
@@ -419,7 +415,6 @@ class TestInventoryUpdate(Base_Api_Test):
                                          'but desired group with sanitized tag "{0}" not found.'.format(group_name))
 
     @pytest.mark.ansible_integration
-    @pytest.mark.ha_tower
     @pytest.mark.parametrize('timeout, status, job_explanation', [
         (0, 'successful', ''),
         (60, 'successful', ''),

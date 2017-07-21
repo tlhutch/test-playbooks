@@ -101,7 +101,7 @@ class TestSCMInventory(Base_Api_Test):
                 assert host_vars.is_in_group_three
 
     @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
-    def test_update_on_project_update_with_scm_change(self, ansible_runner, factories, v2, source_path):
+    def test_update_on_project_update_with_scm_change(self, factories, v2, source_path):
         """Verifies that an scm inventory sync runs after running a job that commits code to an upstream repo"""
         inputs = dict(fields=[dict(id='git_key', label='Git Key', format='ssh_private_key', secret=True)])
         injectors = dict(file=dict(template="{{ git_key }}"),

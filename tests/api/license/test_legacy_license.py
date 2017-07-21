@@ -13,7 +13,6 @@ log = logging.getLogger(__name__)
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class TestLegacyLicense(LicenseTest):
 
@@ -177,7 +176,6 @@ class TestLegacyLicense(LicenseTest):
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class TestLegacyLicenseWarning(LicenseTest):
 
@@ -231,7 +229,6 @@ class TestLegacyLicenseWarning(LicenseTest):
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class TestLegacyLicenseGracePeriod(LicenseTest):
 
@@ -273,7 +270,6 @@ class TestLegacyLicenseGracePeriod(LicenseTest):
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class TestLegacyLicenseExpired(LicenseTest):
 
@@ -381,7 +377,6 @@ class TestLegacyLicenseExpired(LicenseTest):
 
 
 @pytest.mark.api
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class TestLegacyTrialLicense(LicenseTest):
 
