@@ -161,6 +161,19 @@ def confirm_unified_jobs(jobs, check_sequential=True, check_order=True):
         check_job_order(jobs)
 
 
+def check_chain_canceled_job_explanation(canceled_job, chain_canceled_jobs):
+    for chain_job in chain_canceled_jobs:
+        assert chain_job.job_explanation.startswith(u'Previous Task Canceled:'), \
+            "Unexpected job_explanation: %s." % chain_job.job_explanation
+        try:
+            job_explanation = json.loads(chain_job.job_explanation[24:])
+        except Exception:
+            pytest.fail("job_explanation not stored as JSON data: %s." % chain_job.job_explanation)
+        assert job_explanation['job_type'] == canceled_job.type
+        assert job_explanation['job_name'] == canceled_job.name
+        assert job_explanation['job_id'] == str(canceled_job.id)
+
+
 @pytest.mark.api
 @pytest.mark.ha_tower
 @pytest.mark.skip_selenium
@@ -692,15 +705,7 @@ print json.dumps(inventory)
         assert job_pg.wait_until_completed().status == "canceled", "Unexpected job status - %s." % job_pg
 
         # assess job_explanation
-        assert job_pg.job_explanation.startswith(u'Previous Task Canceled:'), \
-            "Unexpected job_explanation: %s." % job_pg.job_explanation
-        try:
-            job_explanation = json.loads(job_pg.job_explanation[24:])
-        except Exception:
-            pytest.fail("job_explanation not stored as JSON data: %s.") % job_explanation
-        assert job_explanation['job_type'] == inv_update_pg.type
-        assert job_explanation['job_name'] == inv_update_pg.name
-        assert job_explanation['job_id'] == str(inv_update_pg.id)
+        check_chain_canceled_job_explanation(inv_update_pg, [job_pg])
 
         assert inv_source_pg.get().status == 'canceled', \
             "Unexpected inventory_source status after cancelling (expected 'canceled') - %s." % inv_source_pg.status
@@ -751,25 +756,15 @@ print json.dumps(inventory)
         # assert launched job failed
         assert job_pg.wait_until_completed().status == "canceled", "Unexpected job status - %s." % job_pg
 
-        # assess job_explanation
-        assert job_pg.job_explanation.startswith(u'Previous Task Canceled:'), \
-            "Unexpected job_explanation: %s." % job_pg.job_explanation
-        try:
-            job_explanation = json.loads(job_pg.job_explanation[24:])
-        except Exception:
-            pytest.fail("job_explanation not stored as JSON data: %s.") % job_explanation
-        assert job_explanation['job_type'] == first_inv_update_pg.type
-        assert job_explanation['job_name'] == first_inv_update_pg.name
-        assert job_explanation['job_id'] == str(first_inv_update_pg.id)
-
         assert first_inv_source_pg.get().status == 'canceled', \
             "Did not cancel job as expected (expected status:canceled) - %s." % first_inv_source_pg
 
         # assert second inventory update and source successful
-        assert second_inv_update_pg.wait_until_completed().is_successful, \
-            "Secondary inventory update not successful (status: %s)." % second_inv_update_pg.status
-        assert second_inv_source_pg.get().is_successful, \
-            "Secondary inventory update not successful (status: %s)." % second_inv_source_pg.status
+        assert second_inv_update_pg.wait_until_completed().status == 'canceled', \
+            "Did not cancel job as expected (expected status:canceled) - %s." % second_inv_update_pg
+
+        # assess job_explanation
+        check_chain_canceled_job_explanation(first_inv_update_pg, [job_pg, second_inv_update_pg])
 
     def test_cancel_project_update(self, job_template_with_project_django):
         """Tests that if you cancel a SCM update before it finishes that its
@@ -786,24 +781,14 @@ print json.dumps(inventory)
         assert cancel_pg.can_cancel, "The project update is not cancellable, it may have already completed - %s." % project_update_pg.get()
         cancel_pg.post()
 
-        assert project_update_pg.wait_until_completed().status == 'canceled'
+        assert project_update_pg.wait_until_completed().status == 'canceled', \
+            "Unexpected project status (expected status:canceled) - %s." % project_pg
 
-        # assert launched job failed
-        assert job_pg.wait_until_completed().status == "failed", "Unexpected job status - %s." % job_pg
+        # assert launched job canceled
+        assert job_pg.wait_until_completed().status == "canceled", "Unexpected job status - %s." % job_pg
 
         # assess job_explanation
-        assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
-            "Unexpected job_explanation: %s." % job_pg.job_explanation
-        try:
-            job_explanation = json.loads(job_pg.job_explanation[22:])
-        except Exception:
-            pytest.fail("job_explanation not stored as JSON data: %s.") % job_explanation
-        assert job_explanation['job_type'] == project_update_pg.type
-        assert job_explanation['job_name'] == project_update_pg.name
-        assert job_explanation['job_id'] == str(project_update_pg.id)
-
-        assert project_pg.get().status == 'canceled', \
-            "Unexpected project status (expected status:canceled) - %s." % project_pg
+        check_chain_canceled_job_explanation(project_update_pg, [job_pg])
 
     def test_cancel_project_update_with_inventory_and_project_updates(self, job_template_with_project_django, custom_group):
         """Tests that if you cancel a scm update before it finishes that its
@@ -825,29 +810,20 @@ print json.dumps(inventory)
         assert cancel_pg.can_cancel, "The project update is not cancellable, it may have already completed - %s." % project_update_pg.get()
         cancel_pg.post()
 
-        assert project_update_pg.wait_until_completed().status == 'canceled'
-
-        # assert launched job failed
-        assert job_pg.wait_until_completed().status == "failed", "Unexpected job status - %s." % job_pg
-
-        # assess job_explanation
-        assert job_pg.job_explanation.startswith(u'Previous Task Failed:'), \
-            "Unexpected job_explanation: %s" % job_pg.job_explanation
-        try:
-            job_explanation = json.loads(job_pg.job_explanation[22:])
-        except Exception:
-            pytest.fail("job_explanation not stored as JSON data: %s.") % job_explanation
-        assert job_explanation['job_type'] == project_update_pg.type
-        assert job_explanation['job_name'] == project_update_pg.name
-        assert job_explanation['job_id'] == str(project_update_pg.id)
-
-        assert project_pg.get().status == 'canceled', \
+        assert project_pg.wait_until_completed().status == 'canceled', \
             "Unexpected project status after cancelling (expected 'canceled') - %s." % project_pg
 
-        # assert inventory update and source successful
+        # assert launched job failed
+        assert job_pg.wait_until_completed().status == "canceled", "Unexpected job status - %s." % job_pg
+
         inv_update_pg = inv_source_pg.wait_until_completed().get_related('last_update')
-        assert inv_update_pg.is_successful, "Inventory update unexpectedly unsuccessful - %s." % inv_update_pg
-        assert inv_source_pg.get().is_successful, "inventory_source unexpectedly unsuccessful - %s." % inv_source_pg
+
+        # assess job_explanation
+        check_chain_canceled_job_explanation(project_update_pg, [job_pg, inv_update_pg])
+
+        # assert inventory update canceled and thus inventory source mark failed
+        assert inv_update_pg.status == "canceled", "Unexpected inventory_update status - %s." % job_pg
+        assert inv_source_pg.get().last_update_failed, "inventory_source expected to have failed - %s." % inv_source_pg
 
     @pytest.mark.ha_tower
     @pytest.mark.fixture_args(source_script="""#!/usr/bin/env python
@@ -857,23 +833,25 @@ time.sleep(30)
 inventory = dict()
 print json.dumps(inventory)
 """)
-    def test_cancel_inventory_update_with_inventory_and_project_updates(self, job_template, custom_group):
+    def test_cancel_inventory_update_with_inventory_and_project_updates(self, job_template_with_project_django, custom_group):
         """Tests that if you cancel an inventory update before it finishes that
         its dependent job fails. This test runs both inventory and SCM updates
         on job launch.
         """
-        project_pg = job_template.get_related('project')
-        project_pg.patch(update_on_launch=True)
+        project_pg = job_template_with_project_django.get_related('project')
         inv_source_pg = custom_group.get_related('inventory_source')
         inv_source_pg.patch(update_on_launch=True)
 
         assert not inv_source_pg.last_updated, "inv_source_pg unexpectedly updated."
 
         # launch job
-        job_pg = job_template.launch()
+        job_pg = job_template_with_project_django.launch()
 
         # wait for the inventory_source to start
         inv_source_pg.wait_until_started(interval=.5)
+
+        # wait for the project to start so we get a handle on it
+        project_update_pg = project_pg.wait_until_started(interval=.5).get_related('current_update')
 
         # cancel inventory update
         inv_update_pg = inv_source_pg.get_related('current_update')
@@ -883,24 +861,16 @@ print json.dumps(inventory)
 
         assert inv_update_pg.wait_until_completed().status == 'canceled'
 
-        # assert launched job failed
+        # assert launched job canceled
         assert job_pg.wait_until_completed().status == "canceled", "Unexpected job status - %s." % job_pg
 
-        # assess job_explanation
-        assert job_pg.job_explanation.startswith(u'Previous Task Canceled:'), \
-            "Unexpected job_explanation: %s." % job_pg.job_explanation
-        try:
-            job_explanation = json.loads(job_pg.job_explanation[24:])
-        except Exception:
-            pytest.fail("job_explanation not stored as JSON data: %s.") % job_explanation
-        assert job_explanation['job_type'] == inv_update_pg.type
-        assert job_explanation['job_name'] == inv_update_pg.name
-        assert job_explanation['job_id'] == str(inv_update_pg.id)
-
-        # assert project update and project successful
-        project_update_pg = project_pg.get_related('last_update')
-        assert project_update_pg.wait_until_completed().status == 'successful', "Project update unsuccessful - %s." % project_update_pg
-        assert project_pg.get().status == 'successful', "Project unsuccessful - %s." % project_pg
+        # assert project update and project canceled
+        assert project_update_pg.wait_until_completed().get().status == 'canceled', \
+            "Unexpected project status (expected status:canceled) - %s." % project_pg
+        assert project_pg.get().status == 'canceled', "Project expected to be canceled - %s." % project_pg
 
         assert inv_source_pg.get().status == "canceled", \
             "Unexpected inventory_source status after cancelling (expected 'canceled') - %s." % inv_source_pg
+
+        # assess job_explanation
+        check_chain_canceled_job_explanation(inv_update_pg, [job_pg, project_update_pg])
