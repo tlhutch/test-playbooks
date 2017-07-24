@@ -94,14 +94,13 @@ class TestHostFilter(Base_Api_Test):
         response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == expected_hosts
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6233')
     @pytest.mark.parametrize('host_filter, expected_hosts',
         [
-            ('groups__name=groupA or groups__name=groupB', ['hostA', 'hostB', 'hostDup']), # 6233
+            ('groups__name=groupA or groups__name=groupB', ['hostA', 'hostB', 'hostDup']),
             ('groups__name=groupA or groups__name=not_found', ['hostA', 'hostDup']),
             ('groups__name=not_found or groups__name=not_found', []),
             ('groups__name=groupA or groups__name=groupA', ['hostA', 'hostDup']),
-            ('groups__name=groupA or groups__name=groupAA or groups__name=not_found', ['hostA', 'hostAA', 'hostDup']) # 6233
+            ('groups__name=groupA or groups__name=groupAA or groups__name=not_found', ['hostA', 'hostAA', 'hostDup'])
         ]
     )
     def test_group_search_with_or(self, v2, host_filter, expected_hosts):
@@ -200,7 +199,6 @@ class TestHostFilter(Base_Api_Test):
         else:
             assert not self.find_hosts(response)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6233')
     @pytest.mark.parametrize('host_filter, expected_hosts',
         [
             ('name=hostA or groups__name=groupA or ansible_facts__ansible_system=Linux', ['hostA', 'hostAA', 'hostB', 'hostDup']),
