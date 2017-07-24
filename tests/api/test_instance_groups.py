@@ -27,15 +27,15 @@ class Test_Instance_Groups(Base_Api_Test):
 
     def test_instance_group_creation(self, authtoken, v2, ansible_runner):
         inventory_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
-        cmd = 'scripts/ansible_inventory_to_json.py --inventory {0} --group-filter tower,instance_group_'.format(inventory_path)
+        cmd = 'scripts/ansible_inventory_to_json.py --inventory {0} --group-filter tower,instance_group_,isolated_group_'.format(inventory_path)
         contacted = ansible_runner.script(cmd)
         assert len(contacted.values()) == 1, "Failed to run script against Tower instance"
 
         group_mapping = json.loads(contacted.values().pop()['stdout'])
         for group in group_mapping.keys():
-            match = re.search('instance_group_(.*)', group)
+            match = re.search('(instance_group_|isolated_group_)(.*)', group)
             if match:
-                group_mapping[match.group(1)] = group_mapping.pop(group)
+                group_mapping[match.group(2)] = group_mapping.pop(group)
 
         instance_groups = [group.name for group in v2.instance_groups.get().results]
         assert len(instance_groups) == len(group_mapping.keys())
