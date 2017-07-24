@@ -209,6 +209,7 @@ Migrations (Jake)
 1. [ ] Verify successful credential migrations
 1. [x] Verify superuser has sole credential type creation ability
 1. [x] Verify custom credential injection for jobs
+1. [x] Verify custom credential injection for inventory updates
 1. [ ] Verify custom credential injection for project updates
 1. [ ] Verify custom credential injection for ad-hoc commands
 1. [ ] Verify job with vault credential
@@ -222,18 +223,17 @@ Migrations (Jake)
 1. [x] Verify inventory sync including directory-provided host and group vars from dynamic inventory file
 1. [x] Verify desired inventory and yml files listed within project
 1. [x] Verify undesired var files exluded from project inventory file list
-1. [ ] Verify dynamic inventory scripts use environment variables provided by custom credential
-1. [ ] Verify functionality of multiple inventory sources sharing a project with different source files.
+1. [x] Verify dynamic inventory scripts use environment variables provided by custom credential
+1. [x] Verify functionality of multiple inventory sources sharing a project with different source files.
 1. [x] Verify file-related loading/syntax errors surface as inventory import failures
-1. [x] Verify dyanamic inventory script-related functional errors surface as inventory import failures
+1. [x] Verify dynamic inventory script-related functional errors surface as inventory import failures
 1. [x] Verify inventory sync attempt w/ update_on_project_update triggers project update
 1. [x] Verify project update triggers inventory sync w/ update_on_project_update
 1. [x] Verify update_on_project_update triggers project update and no inventory syncs on unaltered project
 1. [x] Verify update_on_project_update triggers project update and inventory syncs on altered project
-1. [ ] Verify parent project update that encounters error doesn't trigger downstream inventory syncs
-1. [ ] Verify update_on_launch
-1. [ ] Verify update_on_launch and update_on_project_update forbidden
-1. [ ] Verify overwrite
+1. [x] Verify parent project update that encounters error doesn't trigger downstream inventory syncs
+1. [x] Verify update_on_launch
+1. [x] Verify overwrite
 
 ## Regression
 1. [ ] UI regression completed

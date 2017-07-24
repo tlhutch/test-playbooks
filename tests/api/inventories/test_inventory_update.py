@@ -33,23 +33,29 @@ class TestInventoryUpdate(Base_Api_Test):
         azure_cred, vmware_cred = [factories.v2_credential(kind=kind) for kind in ('azure_classic', 'vmware')]
         azure_source = factories.v2_inventory_source(inventory=inventory, source='azure', credential=azure_cred)
         vmware_source = factories.v2_inventory_source(inventory=inventory, source='vmware', credential=vmware_cred)
+        scm_source = factories.v2_inventory_source(inventory=inventory, source='scm',
+                                                   source_path='inventories/inventory.ini')
 
         prelaunch = inventory.related.update_inventory_sources.get()
         assert dict(can_update=True, inventory_source=azure_source.id) in prelaunch
         assert dict(can_update=True, inventory_source=vmware_source.id) in prelaunch
-        assert len(prelaunch.json) == 2
+        assert dict(can_update=True, inventory_source=scm_source.id) in prelaunch
+        assert len(prelaunch.json) == 3
 
         postlaunch = inventory.related.update_inventory_sources.post()
-        azure_update, vmware_update = [source.wait_until_completed().related.last_update.get()
-                                       for source in (azure_source, vmware_source)]
+        azure_update, vmware_update, scm_update = [source.wait_until_completed(timeout=240).related.last_update.get()
+                                                   for source in (azure_source, vmware_source, scm_source)]
         assert dict(inventory_source=azure_source.id, inventory_update=azure_update.id, status="started") in postlaunch
         assert dict(inventory_source=vmware_source.id, inventory_update=vmware_update.id, status="started") in postlaunch
-        assert len(postlaunch.json) == 2
+        assert dict(inventory_source=scm_source.id, inventory_update=scm_update.id, status="started") in postlaunch
+        assert len(postlaunch.json) == 3
 
         assert azure_update.is_successful
         assert azure_source.is_successful
         assert vmware_update.is_successful
         assert vmware_source.is_successful
+        assert scm_update.is_successful
+        assert scm_source.is_successful
 
     def test_v2_update_all_inventory_sources_with_semifunctional_sources(self, factories):
         """Verify behavior when inventory has an inventory source that is ready for update
