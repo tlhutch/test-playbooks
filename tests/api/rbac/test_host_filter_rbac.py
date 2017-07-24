@@ -30,9 +30,9 @@ class TestHostFilterRBAC(Base_Api_Test):
         groupDupB.add_host(hostDupB)
 
         jtA = class_factories.job_template(inventory=invA, playbook='gather_facts.yml',
-                                           store_facts=True)
+                                           use_fact_cache=True)
         jtB = class_factories.job_template(inventory=invB, playbook='gather_facts.yml',
-                                           store_facts=True)
+                                           use_fact_cache=True)
         for jt in [jtA, jtB]:
             assert jt.launch().wait_until_completed().is_successful
 
