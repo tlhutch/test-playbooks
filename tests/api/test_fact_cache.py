@@ -15,7 +15,7 @@ class TestFactCache(Base_Api_Test):
         ansible_facts = host.related.ansible_facts.get()
         assert not ansible_facts.json
 
-        jt = factories.job_template(playbook='gather_facts.yml', inventory=host.ds.inventory, use_fact_cache=True)
+        jt = factories.v2_job_template(playbook='gather_facts.yml', inventory=host.ds.inventory, use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
         assert ansible_facts.get().module_setup
@@ -33,10 +33,10 @@ class TestFactCache(Base_Api_Test):
         ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(machine_id))
         request.addfinalizer(lambda: ansible_runner.file(path='/etc/redhat-access-insights', state="absent"))
 
-        project = factories.project(scm_url="git@github.com:ansible/tower-fact-modules.git",
-                                    credential=encrypted_scm_credential, wait=True)
-        jt = factories.job_template(project=project, playbook='scan_facts.yml', inventory=host.ds.inventory,
-                                    use_fact_cache=True)
+        project = factories.v2_project(scm_url="git@github.com:ansible/tower-fact-modules.git",
+                                       credential=encrypted_scm_credential, wait=True)
+        jt = factories.v2_job_template(project=project, playbook='scan_facts.yml', inventory=host.ds.inventory,
+                                       use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
         ansible_facts = host.related.ansible_facts.get()
@@ -44,3 +44,15 @@ class TestFactCache(Base_Api_Test):
         assert ansible_facts.insights['system_id'] == machine_id
         assert ansible_facts.services['sshd.service']
         assert ansible_facts.packages['ansible-tower']
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7302')
+    def test_clear_facts(self, factories):
+        host = factories.v2_host()
+        # update project and jt to source jlaska/ansible-playbooks
+        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git',
+                                       scm_branch='add_clear_facts_playbook', wait=True)
+        jt = factories.v2_job_template(playbook='clear_facts.yml', inventory=host.ds.inventory, project=project,
+                                       use_fact_cache=True)
+        assert jt.launch().wait_until_completed().is_successful
+
+        assert not ansible_facts.get().json
