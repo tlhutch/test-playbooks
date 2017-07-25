@@ -109,7 +109,8 @@ class Test_Workflow_Jobs(Base_Api_Test):
         Expect workflow job to be 'successful', job to be 'successful'
         """
         wfjt = factories.workflow_job_template()
-        jt = factories.job_template()
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory)
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         wf_job = wfjt.launch().wait_until_completed()
         assert wf_job.is_successful, "Workflow job {} unsuccessful".format(wfjt.id)
@@ -131,7 +132,8 @@ class Test_Workflow_Jobs(Base_Api_Test):
         Expect workflow job to be 'successful', job to be 'failure'
         """
         wfjt = factories.workflow_job_template()
-        jt = factories.job_template(playbook='fail_unless.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='fail_unless.yml')
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         wf_job = wfjt.launch().wait_until_completed()
         assert wf_job.is_successful, "Workflow job {} unsuccessful".format(wfjt.id)
@@ -166,8 +168,9 @@ class Test_Workflow_Jobs(Base_Api_Test):
         * -> Node not essential to test, added so that there could be a unique mapping (i.e. homomorphism) between
              the WFJT's nodes and the WFJ's nodes.
         """
-        jt = factories.job_template(allow_simultaneous=True)
-        failing_jt = factories.job_template(playbook='fail_unless.yml', allow_simultaneous=True)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, allow_simultaneous=True)
+        failing_jt = factories.job_template(inventory=host.ds.inventory, playbook='fail_unless.yml', allow_simultaneous=True)
 
         wfjt = factories.workflow_job_template()
         node_payload = dict(unified_job_template=jt.id)
@@ -221,7 +224,8 @@ class Test_Workflow_Jobs(Base_Api_Test):
     def test_cancel_workflow_job(self, factories, api_jobs_pg):
         """Confirm that cancelling a workflow job cancels spawned jobs."""
         # Build workflow
-        jt_sleep = factories.job_template(playbook='sleep.yml')  # Longer-running job
+        host = factories.host()
+        jt_sleep = factories.job_template(inventory=host.ds.inventory, playbook='sleep.yml')  # Longer-running job
         jt_sleep.extra_vars = '{"sleep_interval": 20}'
         wfjt = factories.workflow_job_template()
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_sleep)
@@ -252,7 +256,8 @@ class Test_Workflow_Jobs(Base_Api_Test):
         Workflow:
          n1     <--- cancelled
         """
-        jt_sleep = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 20}',
+        host = factories.host()
+        jt_sleep = factories.job_template(inventory=host.ds.inventory, playbook='sleep.yml', extra_vars='{"sleep_interval": 20}',
                                           allow_simultaneous=True)  # Longer-running job
 
         # Build workflow
@@ -301,8 +306,9 @@ class Test_Workflow_Jobs(Base_Api_Test):
         # canceled. We need n4 to still be running when n1 is cancelled so that we can verify that downstream jobs (n5)
         # are triggered *after* n1 is canceled.
 
-        jt = factories.job_template()                            # Default job template for all nodes
-        jt_sleep = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 20}',
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory)                            # Default job template for all nodes
+        jt_sleep = factories.job_template(inventory=host.ds.inventory, playbook='sleep.yml', extra_vars='{"sleep_interval": 20}',
                                           allow_simultaneous=True)  # Longer-running job
 
         # Build workflow
