@@ -83,7 +83,7 @@ class TestInsights(Base_Api_Test):
         content = host.related.insights.get().insights_content
         assert content.reports
         assert content.product == 'rhel'
-        assert content.hostname == 'ip-10-180-34-241.ec2.internal'
+        assert content.hostname == 'ip-10-180-34-241.ec2.internal' # non-existent instance
         assert content.system_id == self.registered_machine_id
         assert content.type == 'machine'
 
