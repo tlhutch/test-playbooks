@@ -14,6 +14,7 @@ class TestInventorySource(Base_Api_Test):
     def test_v1_post_disallowed(self, api_inventory_sources_pg):
         with pytest.raises(exc.MethodNotAllowed):
             api_inventory_sources_pg.post()
+
     def test_disallowed_manual_source(self, factories):
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_inventory_source(source="")
