@@ -28,10 +28,12 @@ class TestSmartInventory(Base_Api_Test):
     def test_smart_inventory_with_insights_credential(self, factories):
         """Smart inventories should not have Insights credentials."""
         credential = factories.v2_credential(kind='insights')
+        expected_error = ['Assignment not allowed for Smart Inventory']
 
-        with pytest.raises(exc.BadRequest):
+        with pytest.raises(exc.BadRequest) as e:
             factories.v2_inventory(host_filter='name=localhost', kind='smart', insights_credential=credential.id)
+        assert e.value.message['insights_credential'] == expected_error
 
         inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
-        with pytest.raises(exc.BadRequest):
-            inventory.insights_credential = credential.id
+        with pytest.raises(exc.BadRequest) as e:
+            inventory.insights_credential = expected_error
