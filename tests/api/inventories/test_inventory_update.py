@@ -211,9 +211,11 @@ class TestInventoryUpdate(Base_Api_Test):
         assert inv_source.update().wait_until_completed().is_successful
         custom_group = inv_source.related.groups.get().results.pop()
 
+        inserted_variables = "{'overwrite_me': true}"
+        custom_group.variables = inserted_variables
         hosts = custom_group.related.hosts.get()
         for host in hosts.results:
-            host.variables = "{'overwrite_me': true}"
+            host.variables = inserted_variables
 
         assert inv_source.update().wait_until_completed().is_successful
 
