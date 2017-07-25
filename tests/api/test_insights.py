@@ -30,11 +30,11 @@ class TestInsights(Base_Api_Test):
         jt = class_factories.v2_job_template(project=project, inventory=inventory, playbook='scan_facts.yml',
                                              credential=ssh_cred, use_fact_cache=True, limit="registered_host")
 
-        # update registered host with matched machine ID
+        # update registered host with registered machine ID
         ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.registered_machine_id))
         assert jt.launch().wait_until_completed().is_successful
 
-        # update unregistered host with unmatched machine ID
+        # update unregistered host with unregistered machine ID
         jt.limit = "unregistered_host"
         ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.unregistered_machine_id))
         assert jt.launch().wait_until_completed().is_successful
@@ -48,10 +48,10 @@ class TestInsights(Base_Api_Test):
 
     def test_insights_host_machine_id(self, insights_inventory):
         """Verify that Insights hosts have machine IDs."""
-        matched_host = insights_inventory.related.hosts.get(name='registered_host').results.pop()
-        unmatched_host = insights_inventory.related.hosts.get(name='unregistered_host').results.pop()
-        assert matched_host.insights_system_id == self.registered_machine_id
-        assert unmatched_host.insights_system_id == self.unregistered_machine_id
+        registered_host = insights_inventory.related.hosts.get(name='registered_host').results.pop()
+        unregistered_host = insights_inventory.related.hosts.get(name='unregistered_host').results.pop()
+        assert registered_host.insights_system_id == self.registered_machine_id
+        assert unregistered_host.insights_system_id == self.unregistered_machine_id
 
     def test_inventory_with_insights_credential(self, factories, insights_inventory):
         """Verify that various inventory fields update for our Insights credential."""
@@ -74,8 +74,8 @@ class TestInsights(Base_Api_Test):
                 host.related.insights.get()
         assert e.value[1] == {'error': 'The Insights Credential for "{0}" was not found.'.format(insights_inventory.name)}
 
-    def test_access_insights_with_credential_and_matched_host(self, factories, insights_inventory):
-        """Verify that attempts to access Insights from a matching host with an Insights credential succeed."""
+    def test_access_insights_with_credential_and_registered_host(self, factories, insights_inventory):
+        """Verify that attempts to access Insights from a registered host with an Insights credential succeed."""
         credential = factories.v2_credential(kind='insights')
         insights_inventory.insights_credential = credential.id
         host = insights_inventory.related.hosts.get(name="registered_host").results.pop()
@@ -88,8 +88,8 @@ class TestInsights(Base_Api_Test):
         assert content.type == 'machine'
 
     @pytest.mark.skip(reason="Behavior TBD: https://github.com/ansible/ansible-tower/issues/6916.")
-    def test_access_insights_with_credential_and_unmatched_host(self, factories, insights_inventory):
-        """Verify that attempts to access Insights from an unmatched host with an Insights credential
+    def test_access_insights_with_credential_and_unregistered_host(self, factories, insights_inventory):
+        """Verify that attempts to access Insights from an unregistered host with an Insights credential
         raises a 500.
         """
         credential = factories.v2_credential(kind='insights')
