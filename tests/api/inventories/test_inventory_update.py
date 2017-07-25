@@ -206,7 +206,10 @@ class TestInventoryUpdate(Base_Api_Test):
         assert excluded_host.id == excluded_group_hosts.results.pop().id
 
     def test_update_with_overwrite_vars(self, factories):
-        """Verify group and host variables overwritten when enabled."""
+        """Verify manually inserted group and host variables get deleted when
+        enabled. Final resource variables should be those sourced from the
+        inventory script.
+        """
         inv_source = factories.v2_inventory_source(overwrite_vars=True)
         assert inv_source.update().wait_until_completed().is_successful
         custom_group = inv_source.related.groups.get().results.pop()
@@ -224,9 +227,9 @@ class TestInventoryUpdate(Base_Api_Test):
             assert not host.get().variables
 
     def test_update_without_overwrite_vars(self, factories):
-        """Verify group and host variables persist when disabled. Variables
-        should be a union of variables sourced from our script and our manually
-        inserted variables.
+        """Verify manually inserted group and host variables persist when disabled.
+        Final resource variables should be a union of those sourced from the inventory
+        script and those manually inserted.
         """
         inv_source = factories.v2_inventory_source()
         assert inv_source.update().wait_until_completed().is_successful

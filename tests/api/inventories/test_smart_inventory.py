@@ -35,4 +35,5 @@ class TestSmartInventory(Base_Api_Test):
 
         inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
         with pytest.raises(exc.BadRequest) as e:
-            inventory.insights_credential = expected_error
+            inventory.insights_credential = credential.id
+        assert e.value.message['insights_credential'] == expected_error
