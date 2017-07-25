@@ -6,13 +6,22 @@ import pytest
 
 from tests.api import Base_Api_Test
 from towerkit import utils
+from towerkit.api import Connection, ApiV2
+from towerkit.config import config
+
+
+def v2_from_domain(domain, secure=True):
+    protocol = 'https' if secure else 'http'
+    conn = Connection('{}://{}'.format(protocol, domain))
+    api = ApiV2(conn)
+    api.load_default_authtoken()
+    return api
 
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-class Test_Instance_Groups(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestInstanceGroups(Base_Api_Test):
 
     @staticmethod
     def get_resource(jt, resource):
@@ -109,3 +118,41 @@ class Test_Instance_Groups(Base_Api_Test):
         assert job.execution_node in instance_group_to_hostnames_map[parent_instance_group.id]
         assert parent_instance_group.get().consumed_capacity > \
             base_instance_group.capacity - base_instance_group.consumed_capacity
+
+    @pytest.mark.requires_ha
+    def test_job_run_against_isolated_node_ensure_viewable_from_all_nodes(self, ansible_module_cls, factories, user_password, v2):
+        manager = ansible_module_cls.inventory_manager
+        hosts = manager.get_group_dict().get('tower')
+        managed = manager.get_group_dict().get('managed_hosts')[0]
+        protected = v2.instance_groups.get(name='protected').results[0]
+
+        username = manager.get_host(managed).get_vars().get('ansible_ssh_user')
+        cred = factories.v2_credential(username=username, password=user_password)
+        host = factories.host(name=managed, variables=dict(ansible_ssh_host=managed))
+        jt = factories.v2_job_template(inventory=host.ds.inventory, credential=cred)
+        jt.add_instance_group(protected)
+        jt.launch().wait_until_completed()
+
+        # update the job template and fetch the id of the job that just ran
+        job = jt.get().get_related('last_job')
+        job_id = job.id
+        assert not job.failed
+
+        # as the job ran on another node, fetch the standard out
+        job.related.stdout.get(format='txt_download')
+        stdout = job.get().result_stdout
+
+        # assert the managed host appears in the output, ensuring the job ran
+        # on the machine we specified
+        assert managed in stdout
+        # strip line endings and empty lines because output format varies
+        canonical_stdout = [line for line in stdout.splitlines() if line]
+
+        for host in hosts:
+            api = v2_from_domain(host)
+            job = api.get().jobs.get(id=job_id).results[0]
+            assert not job.failed
+
+            job.related.stdout.get(format='txt_download')
+            stdout = [line for line in job.get().result_stdout.splitlines() if line]
+            assert stdout == canonical_stdout
