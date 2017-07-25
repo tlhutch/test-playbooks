@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import re
 
 import pytest
@@ -7,7 +8,6 @@ import pytest
 from tests.api import Base_Api_Test
 from towerkit import utils
 from towerkit.api import Connection, ApiV2
-from towerkit.config import config
 
 
 def v2_from_domain(domain, secure=True):
@@ -120,6 +120,7 @@ class TestInstanceGroups(Base_Api_Test):
             base_instance_group.capacity - base_instance_group.consumed_capacity
 
     @pytest.mark.requires_ha
+    @pytest.mark.requires_isolation
     def test_job_run_against_isolated_node_ensure_viewable_from_all_nodes(self, ansible_module_cls, factories, user_password, v2):
         manager = ansible_module_cls.inventory_manager
         hosts = manager.get_group_dict().get('tower')
@@ -156,3 +157,29 @@ class TestInstanceGroups(Base_Api_Test):
             job.related.stdout.get(format='txt_download')
             stdout = [line for line in job.get().result_stdout.splitlines() if line]
             assert stdout == canonical_stdout
+
+    @pytest.mark.requires_isolation
+    @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
+    def test_capacity(self, factories, v2, run_on_isolated_group):
+        ig_filter = dict(name='protected') if run_on_isolated_group else dict(not__name='protected')
+        ig = random.choice(v2.instance_groups.get(**ig_filter).results)
+        # Ensure no capacity consumed initially
+        utils.poll_until(lambda: ig.get().consumed_capacity == 0, interval=10, timeout=60)
+
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='sleep.yml', extra_vars=dict(sleep_interval=600), allow_simultaneous=True)
+        jt.add_instance_group(ig)
+
+        previous_ig_consumed_capacity = 0
+        for _ in range(3):
+            job = jt.launch().wait_until_status('running')
+            utils.poll_until(lambda: getattr(job.get(), 'execution_node') != '', interval=10, timeout=45)
+
+            # Capacity should increase after each job launch
+            assert ig.get().consumed_capacity > previous_ig_consumed_capacity
+            previous_ig_consumed_capacity = ig.consumed_capacity
+            assert ig.percent_capacity_remaining == round(float(ig.capacity - ig.consumed_capacity) * 100 / ig.capacity, 1)
+            instance = [i for i in ig.get_related('instances').results if i.hostname == job.execution_node][0]
+
+            assert instance.get().consumed_capacity > 0
+            assert instance.percent_capacity_remaining == round(float(instance.capacity - instance.consumed_capacity) * 100 / instance.capacity, 1)
