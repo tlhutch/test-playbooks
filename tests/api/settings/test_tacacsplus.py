@@ -112,3 +112,23 @@ class Test_TACACS_Plus(Base_Api_Test):
         with pytest.raises(exc.Unauthorized):
             with self.current_user(username, password):
                 v1.users.get()
+
+    @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
+    def test_cannot_change_password_for_tacacs_user_in_tower(self, v1, enable_tacacs_auth, api_me_pg, protocol):
+        enable_tacacs_auth(protocol)
+        tacacs_config = config.credentials.tacacs_plus
+        username, password = (tacacs_config.user, getattr(tacacs_config, protocol + '_pass'))
+        assert not v1.users.get(username=username).count
+
+        with self.current_user(username, password):
+            user = v1.users.get(username=username).results.pop()
+            user.patch(password='shouldntw0rk')
+
+        with pytest.raises(exc.Unauthorized):
+            with self.current_user(username, 'shouldntw0rk'):
+                api_me_pg.get()
+
+        with self.current_user(username, password):
+            api_me_pg.get()
+
+        user.delete()
