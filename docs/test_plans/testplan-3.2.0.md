@@ -104,7 +104,7 @@ RBAC:
 1. [x] Verify stock value for host `insights_system_id`.
 1. [x] Verify `insights_system_id` updates after scan job.
 1. [x] Verify inventory details update for Insights credential.
-1. [ ] Verify Insights credentials not allowed with smart inventories.
+1. [x] Verify Insights credentials not allowed with smart inventories.
 1. [x] Verify querying `/hosts/N/insights/` when host has no Insights credential.
 1. [ ] Verify querying `/hosts/N/insights/` when host has an Insights credential and is an Insights host.
 1. [ ] Verify querying `/hosts/N/insights/` when host has an Insights credential and is not an Insights host.
