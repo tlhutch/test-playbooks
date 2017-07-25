@@ -97,3 +97,18 @@ class Test_TACACS_Plus(Base_Api_Test):
 
         assert (end - start).total_seconds() - 20 < 5
         user.delete()
+
+    @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
+    def test_tacacs_account_should_not_grant_access_to_existing_account(self, protocol, enable_tacacs_auth, v1, factories):
+        enable_tacacs_auth(protocol)
+        tacacs_config = config.credentials.tacacs_plus
+        username, password = (tacacs_config.user, getattr(tacacs_config, protocol + '_pass'))
+        assert not v1.users.get(username=username).count
+
+        factories.user(username=username, password='p4ssword', is_superuser=True)
+        with self.current_user(username, 'p4ssword'):
+            v1.users.get()
+
+        with pytest.raises(exc.Unauthorized):
+            with self.current_user(username, password):
+                v1.users.get()
