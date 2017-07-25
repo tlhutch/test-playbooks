@@ -8,13 +8,12 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.ha_tower
 @pytest.mark.skip_selenium
 class TestInsights(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-    matched_machine_id = "84baf1a3-eee5-4f92-b5ee-42609e89a2cd"
-    unmatched_machine_id = "aaaabbbb-cccc-dddd-eeee-ffffgggghhhh"
+    registered_machine_id = "84baf1a3-eee5-4f92-b5ee-42609e89a2cd"
+    unregistered_machine_id = "aaaabbbb-cccc-dddd-eeee-ffffgggghhhh"
 
     @pytest.fixture(scope="class")
     def insights_inventory(self, request, class_factories, ansible_runner):
@@ -32,12 +31,12 @@ class TestInsights(Base_Api_Test):
                                              credential=ssh_cred, use_fact_cache=True, limit="registered_host")
 
         # update registered host with matched machine ID
-        ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.matched_machine_id))
+        ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.registered_machine_id))
         assert jt.launch().wait_until_completed().is_successful
 
         # update unregistered host with unmatched machine ID
         jt.limit = "unregistered_host"
-        ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.unmatched_machine_id))
+        ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.unregistered_machine_id))
         assert jt.launch().wait_until_completed().is_successful
 
         return inventory
@@ -51,8 +50,8 @@ class TestInsights(Base_Api_Test):
         """Verify that Insights hosts have machine IDs."""
         matched_host = insights_inventory.related.hosts.get(name='registered_host').results.pop()
         unmatched_host = insights_inventory.related.hosts.get(name='unregistered_host').results.pop()
-        assert matched_host.insights_system_id == self.matched_machine_id
-        assert unmatched_host.insights_system_id == self.unmatched_machine_id
+        assert matched_host.insights_system_id == self.registered_machine_id
+        assert unmatched_host.insights_system_id == self.unregistered_machine_id
 
     def test_inventory_with_insights_credential(self, factories, insights_inventory):
         """Verify that various inventory fields update for our Insights credential."""
@@ -85,9 +84,10 @@ class TestInsights(Base_Api_Test):
         assert content.reports
         assert content.product == 'rhel'
         assert content.hostname == 'ip-10-180-34-241.ec2.internal'
-        assert content.system_id == self.matched_machine_id
+        assert content.system_id == self.registered_machine_id
         assert content.type == 'machine'
 
+    @pytest.mark.skip(reason="Behavior TBD: https://github.com/ansible/ansible-tower/issues/6916.")
     def test_access_insights_with_credential_and_unmatched_host(self, factories, insights_inventory):
         """Verify that attempts to access Insights from an unmatched host with an Insights credential
         raises a 500.
@@ -132,7 +132,9 @@ class TestInsights(Base_Api_Test):
         assert not update.scm_branch
 
     def test_insights_project_contents(self, factories, v2, ansible_runner):
-        """Verify created project directory and playbook."""
+        """Verify created project directory and playbook. Note: chrwang-test-28315.yml is an Insights
+        maintenance plan (playbook) stored under our test Insights account.
+        """
         insights_cred = factories.v2_credential(kind='insights')
         project = factories.v2_project(scm_type='insights', credential=insights_cred, wait=True)
         playbook_path = os.path.join(v2.config.get().project_base_dir, project.local_path, "chrwang-test-28315.yml")
