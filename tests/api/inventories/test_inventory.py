@@ -1,4 +1,5 @@
 from towerkit import exceptions as exc
+from towerkit import utils
 import fauxfactory
 import pytest
 
@@ -129,6 +130,7 @@ class TestInventory(Base_Api_Test):
         inv_source = factories.v2_inventory_source(inventory=inventory)
 
         inventory.delete()
+        utils.logged_sleep(2)
         for resource in [inventory, parent_group, child_group, group_host, isolated_host, inv_source]:
             with pytest.raises(exc.NotFound):
                 resource.get()
