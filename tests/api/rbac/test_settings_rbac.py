@@ -1,13 +1,13 @@
+from towerkit import exceptions as exc
 import pytest
 
-import towerkit.exceptions
 from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
-class Test_Settings_RBAC(Base_Api_Test):
+class TestSettingsRBAC(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
@@ -17,28 +17,34 @@ class Test_Settings_RBAC(Base_Api_Test):
         """
         with self.current_user(non_superuser.username, non_superuser.password):
             settings_count = api_settings_pg.get().count
-            assert settings_count == 0, \
-                "Unexpected number of settings returned. Expected zero, got {0}.".format(settings_count)
+            if non_superuser.is_system_auditor:
+                assert settings_count == 16
+            else:
+                assert settings_count == 0, \
+                    "Unexpected number of settings returned. Expected zero, got {0}.".format(settings_count)
 
     def test_get_nested_endpoint_as_non_superuser(self, non_superuser, api_settings_pg):
         """Verify that non_superusers cannot GET nested settings endpoints (/api/v1/settings/ui/)."""
-        for settings_pg in api_settings_pg.get().results:
+        for settings in api_settings_pg.get().results:
             with self.current_user(non_superuser.username, non_superuser.password):
-                with pytest.raises(towerkit.exceptions.Forbidden):
-                    settings_pg.get()
+                if non_superuser.is_system_auditor:
+                    settings.get()
+                else:
+                    with pytest.raises(exc.Forbidden):
+                        settings.get()
 
     def test_edit_nested_endpoint_as_non_superuser(self, non_superuser, api_settings_pg):
         """Verify that non_superusers cannot edit nested settings endpoints (/api/v1/settings/ui/)."""
-        for settings_pg in api_settings_pg.get().results:
+        for settings in api_settings_pg.get().results:
             with self.current_user(non_superuser.username, non_superuser.password):
-                with pytest.raises(towerkit.exceptions.Forbidden):
-                    settings_pg.put()
-                with pytest.raises(towerkit.exceptions.Forbidden):
-                    settings_pg.patch()
+                with pytest.raises(exc.Forbidden):
+                    settings.put()
+                with pytest.raises(exc.Forbidden):
+                    settings.patch()
 
     def test_delete_nested_endpoint_as_non_superuser(self, non_superuser, api_settings_pg):
         """Verify that non_superusers cannot delete nested settings endpoints (/api/v1/settings/ui/)."""
-        for settings_pg in api_settings_pg.get().results:
+        for settings in api_settings_pg.get().results:
             with self.current_user(non_superuser.username, non_superuser.password):
-                with pytest.raises(towerkit.exceptions.Forbidden):
-                    settings_pg.delete()
+                with pytest.raises(exc.Forbidden):
+                    settings.delete()
