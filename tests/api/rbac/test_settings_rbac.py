@@ -12,19 +12,14 @@ class TestSettingsRBAC(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get_main_endpoint_as_non_superuser(self, non_superuser, api_settings_pg):
-        """Verify that a non_superuser can GET the main settings endpoint but that no entries
-        are returned.
-        """
+        exp_settings_count = api_settings_pg.get().count
         with self.current_user(non_superuser.username, non_superuser.password):
-            settings_count = api_settings_pg.get().count
             if non_superuser.is_system_auditor:
-                assert settings_count == 16
+                assert api_settings_pg.get().count == exp_settings_count
             else:
-                assert settings_count == 0, \
-                    "Unexpected number of settings returned. Expected zero, got {0}.".format(settings_count)
+                assert api_settings_pg.get().count == 0
 
     def test_get_nested_endpoint_as_non_superuser(self, non_superuser, api_settings_pg):
-        """Verify that non_superusers cannot GET nested settings endpoints (/api/v1/settings/ui/)."""
         for settings in api_settings_pg.get().results:
             with self.current_user(non_superuser.username, non_superuser.password):
                 if non_superuser.is_system_auditor:
@@ -34,7 +29,6 @@ class TestSettingsRBAC(Base_Api_Test):
                         settings.get()
 
     def test_edit_nested_endpoint_as_non_superuser(self, non_superuser, api_settings_pg):
-        """Verify that non_superusers cannot edit nested settings endpoints (/api/v1/settings/ui/)."""
         for settings in api_settings_pg.get().results:
             with self.current_user(non_superuser.username, non_superuser.password):
                 with pytest.raises(exc.Forbidden):
@@ -43,7 +37,6 @@ class TestSettingsRBAC(Base_Api_Test):
                     settings.patch()
 
     def test_delete_nested_endpoint_as_non_superuser(self, non_superuser, api_settings_pg):
-        """Verify that non_superusers cannot delete nested settings endpoints (/api/v1/settings/ui/)."""
         for settings in api_settings_pg.get().results:
             with self.current_user(non_superuser.username, non_superuser.password):
                 with pytest.raises(exc.Forbidden):
