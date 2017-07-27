@@ -4,6 +4,7 @@ import types
 import json
 import re
 
+from towerkit import utils
 import towerkit.tower.inventory
 import towerkit.exceptions
 import fauxfactory
@@ -426,6 +427,7 @@ class Test_Job(Base_Api_Test):
             resource.delete()
         else:
             resource.related.inventory.delete()
+            utils.logged_sleep(2)
 
         # verify that update cascade deleted
         with pytest.raises(towerkit.exceptions.NotFound):
