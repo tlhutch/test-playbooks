@@ -13,24 +13,22 @@ class TestFactCache(Base_Api_Test):
     def assert_updated_facts(self, ansible_facts):
         """Perform basic validation on host details ansible_facts."""
         assert ansible_facts.get().module_setup
-        assert 'ansible_processor' in ansible_facts
         assert 'ansible_distribution' in ansible_facts
+        assert 'ansible_machine' in ansible_facts
         assert 'ansible_system' in ansible_facts
 
-    def test_use_fact_cache_with_gather_facts(self, factories):
-        """Test a use_fact_cache JT with gather facts."""
+    def test_ingest_facts_against_gather_facts_playbook(self, factories):
         host = factories.v2_host()
         ansible_facts = host.related.ansible_facts.get()
         assert not ansible_facts.json
 
-        jt = factories.v2_job_template(playbook='gather_facts.yml', inventory=host.ds.inventory, use_fact_cache=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
         self.assert_updated_facts(ansible_facts.get())
 
     @pytest.mark.requires_single_instance
-    def test_use_fact_cache_with_custom_scan_modules(self, request, factories, ansible_runner, encrypted_scm_credential):
-        """Test a use_fact_cache JT with Tower's custom scan modules."""
+    def test_ingest_facts_against_tower_scan_playbook(self, request, factories, ansible_runner, encrypted_scm_credential):
         host = factories.v2_host()
 
         machine_id = "4da7d1f8-14f3-4cdc-acd5-a3465a41f25d"
@@ -40,7 +38,7 @@ class TestFactCache(Base_Api_Test):
 
         project = factories.v2_project(scm_url="git@github.com:ansible/tower-fact-modules.git",
                                        credential=encrypted_scm_credential, wait=True)
-        jt = factories.v2_job_template(project=project, playbook='scan_facts.yml', inventory=host.ds.inventory,
+        jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='scan_facts.yml',
                                        use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
@@ -50,19 +48,81 @@ class TestFactCache(Base_Api_Test):
         assert ansible_facts.packages['ansible-tower']
         assert ansible_facts.insights['system_id'] == machine_id
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7308')
-    def test_use_fact_cache_with_unicode_hostname(self, factories):
+    def test_ingest_facts_with_host_with_unicode_hostname(self, factories):
         host = factories.v2_host(name=fauxfactory.gen_utf8())
-        jt = factories.v2_job_template(playbook='gather_facts.yml', inventory=host.ds.inventory, use_fact_cache=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
         ansible_facts = host.related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
 
-    def test_use_fact_cache_with_hostname_with_spaces(self, factories):
+    def test_ingest_facts_with_host_with_hostname_with_spaces(self, factories):
         host = factories.v2_host(name="hostname with spaces")
-        jt = factories.v2_job_template(playbook='gather_facts.yml', inventory=host.ds.inventory, use_fact_cache=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
         ansible_facts = host.related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
+
+    def test_consume_facts_with_single_host(self, factories):
+        host = factories.v2_host()
+        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_clear_facts_playbook')
+        jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='gather_facts.yml', use_fact_cache=True)
+        assert jt.launch().wait_until_completed().is_successful
+
+        jt.playbook = 'use_facts.yml'
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        ansible_facts = host.related.ansible_facts.get()
+        assert ansible_facts.ansible_distribution in job.result_stdout
+        assert ansible_facts.ansible_machine in job.result_stdout
+        assert ansible_facts.ansible_system in job.result_stdout
+
+    def test_consume_facts_with_multiple_hosts(self, factories):
+        inventory = factories.v2_inventory()
+        hosts = []
+        for _ in range(3):
+            host = factories.v2_host(inventory=inventory)
+            hosts.append(host)
+
+        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_clear_facts_playbook')
+        jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='gather_facts.yml', use_fact_cache=True)
+        assert jt.launch().wait_until_completed().is_successful
+
+        jt.playbook = 'use_facts.yml'
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        ansible_facts = hosts.pop().related.ansible_facts.get() # facts should be the same between hosts
+        assert job.result_stdout.count(ansible_facts.ansible_distribution) == 3
+        assert job.result_stdout.count(ansible_facts.ansible_machine) == 3
+        assert job.result_stdout.count(ansible_facts.ansible_system) == 3
+
+        # test host summaries
+
+    def test_consume_facts_with_multiple_hosts_and_limit(self, factories):
+        inventory = factories.v2_inventory()
+        hosts = []
+        for _ in range(3):
+            host = factories.v2_host(inventory=inventory)
+            hosts.append(host)
+        target_host = hosts.pop()
+
+        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_clear_facts_playbook')
+        jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='gather_facts.yml', use_fact_cache=True)
+        assert jt.launch().wait_until_completed().is_successful
+
+        jt.playbook = 'use_facts.yml'
+        jt.limit = target_host.name
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        ansible_facts = target_host.related.ansible_facts.get()
+        assert job.result_stdout.count(ansible_facts.ansible_distribution) == 1
+        assert job.result_stdout.count(ansible_facts.ansible_machine) == 1
+        assert job.result_stdout.count(ansible_facts.ansible_system) == 1
+
+        host_summaries = job.related.job_host_summaries.get()
+        assert host_summaries.count == 1
+        assert host_summaries.results.pop().host == target_host.id
