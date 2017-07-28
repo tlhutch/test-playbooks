@@ -595,21 +595,21 @@ class Test_Job_Env(Base_Api_Test):
         if cloud_credential.kind == 'aws':
             self.has_credentials('cloud', cloud_credential.kind, ['username'])
             expected_env_vars = dict(
-                AWS_ACCESS_KEY=self.credentials['cloud'][cloud_credential.kind]['username'],
-                AWS_SECRET_KEY=u'**********'
+                AWS_ACCESS_KEY_ID=self.credentials['cloud'][cloud_credential.kind]['username'],
+                AWS_SECRET_ACCESS_KEY=u'**********'
             )
         elif cloud_credential.kind == 'gce':
             self.has_credentials('cloud', cloud_credential.kind, ['username', 'project'])
             expected_env_vars = dict(
                 GCE_EMAIL=self.credentials['cloud'][cloud_credential.kind]['username'],
                 GCE_PROJECT=self.credentials['cloud'][cloud_credential.kind]['project'],
-                GCE_PEM_FILE_PATH=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
+                GCE_PEM_FILE_PATH=lambda x: re.match(r'^/tmp/awx_\w+/tmp\w+', x)
             )
         elif cloud_credential.kind == 'azure':
             self.has_credentials('cloud', 'azure_classic', ['username'])
             expected_env_vars = dict(
                 AZURE_SUBSCRIPTION_ID=self.credentials['cloud']['azure_classic']['username'],
-                AZURE_CERT_PATH=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
+                AZURE_CERT_PATH=lambda x: re.match(r'^/tmp/awx_\w+/tmp\w+', x)
             )
         elif cloud_credential.kind == 'azure_rm' and azure_type(cloud_credential) == 'azure':
             self.has_credentials('cloud', 'azure', ['subscription_id', 'client_id', 'secret', 'tenant'])
@@ -641,7 +641,7 @@ class Test_Job_Env(Base_Api_Test):
             else:
                 raise ValueError("Unhandled OpenStack credential: %s" % cloud_credential.name)
             expected_env_vars = dict(
-                OS_CLIENT_CONFIG_FILE=lambda x: re.match(r'^/tmp/ansible_tower_\w+/tmp\w+', x)
+                OS_CLIENT_CONFIG_FILE=lambda x: re.match(r'^/tmp/awx_\w+/tmp\w+', x)
             )
         elif cloud_credential.kind in ('cloudforms', 'satellite6'):
             self.has_credentials('cloud', cloud_credential.kind, ['host', 'username', 'password'])
