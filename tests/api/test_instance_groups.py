@@ -158,6 +158,7 @@ class TestInstanceGroups(Base_Api_Test):
             stdout = [line for line in job.get().result_stdout.splitlines() if line]
             assert stdout == canonical_stdout
 
+    @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
     def test_capacity(self, factories, v2, run_on_isolated_group):
