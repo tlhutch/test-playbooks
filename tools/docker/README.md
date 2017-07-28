@@ -17,8 +17,8 @@ docker run -v $(pwd):/tower-qa gcr.io/ansible-tower-engineering/tower-qe \
 
 ```shell
 # ensure the admin user exists with the expected password
-docker exec tools_tower_1 tower-manage createsuperuser --noinput --username admin --email a@b.com
-docker exec tools_tower_1 tower-manage update_password --username admin --password fo0m4nchU
+docker exec tools_tower_1 awx-manage createsuperuser --noinput --username admin --email a@b.com
+docker exec tools_tower_1 awx-manage update_password --username admin --password fo0m4nchU
 
 # decrypt credentials
 ansible-vault decrypt config/credentials.vault --output=config/credentials.yml
