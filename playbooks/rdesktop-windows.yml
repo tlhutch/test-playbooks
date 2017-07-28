@@ -7,8 +7,8 @@
   tasks:
     - name: open rdesktop
       local_action: command rdesktop
-        -u {{ hostvars[inventory_hostname]['ansible_ssh_user']|quote }}
-        -p {{ hostvars[inventory_hostname]['ansible_ssh_pass']|quote }}
+        -u {{ hostvars[inventory_hostname]['ansible_user']|quote }}
+        -p {{ hostvars[inventory_hostname]['ansible_pass']|quote }}
         -T {{ inventory_hostname|quote }} -0 -g 1280x800
-        '{{ ansible_ssh_host|default(inventory_hostname) }}'
+        '{{ ansible_host|default(inventory_hostname) }}'
       ignore_errors: true

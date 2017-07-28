@@ -37,7 +37,7 @@
     normal_pass: "morocco_mole"
     db: "qq"
   pre_tasks:
-     - debug: msg="Running on host {{ inventory_hostname }}, {{ hostvars[inventory_hostname]['ansible_ssh_host'] }}"
+     - debug: msg="Running on host {{ inventory_hostname }}, {{ hostvars[inventory_hostname]['ansible_host'] }}"
 
   roles:
      - { role: install_mongod

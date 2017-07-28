@@ -70,6 +70,6 @@ if __name__ == "__main__":
         # hostvars
         inventory['_meta'] = dict(hostvars={})
         for host in inventory.get('fusion', []):
-            inventory['_meta']['hostvars'][host] = dict(ansible_ssh_user='root')
+            inventory['_meta']['hostvars'][host] = dict(ansible_user='root')
 
     print json.dumps(inventory)

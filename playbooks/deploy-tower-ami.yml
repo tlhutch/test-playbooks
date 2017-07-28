@@ -89,8 +89,8 @@
       add_host:
         name: '{{ item.dns_name }}'
         group: tower
-        ansible_ssh_user: 'centos'
-        ansible_ssh_host: '{{ item.dns_name }}'
+        ansible_user: 'centos'
+        ansible_host: '{{ item.dns_name }}'
       with_items: '{{ tower_instance.tagged_instances }}'
 
     - name: Wait for SSH

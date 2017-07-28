@@ -4,7 +4,7 @@
 {% if host == '127.0.0.1' or host == 'localhost' %}
 {{ host }} ansible_connection=local ansible_python_interpreter="/usr/bin/env python"
 {% else %}
-{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }}
 {% endif %}
 {% endfor %}
 

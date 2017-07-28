@@ -27,7 +27,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
     def test_matching_hosts_empty_in_nonmember_query(self, factories, host_config_key):
         """Assert a GET on the callback resource returns an empty list of matching hosts when made by a nonmember"""
-        host = factories.host(variables=json.dumps(dict(ansible_ssh_host='169.254.1.0')))
+        host = factories.host(variables=json.dumps(dict(ansible_host='169.254.1.0')))
         job_template = factories.job_template(inventory=host.ds.inventory)
 
         job_template.host_config_key = host_config_key
@@ -94,7 +94,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         hosts = []
         for ipv4_addr in local_ipv4_addresses:
             host = factories.host(name=ipv4_addr, inventory=group.ds.inventory,
-                                  variables=json.dumps(dict(ansible_ssh_host=utils.random_ipv4(),
+                                  variables=json.dumps(dict(ansible_host=utils.random_ipv4(),
                                                             ansible_connection="local")))
             group.add_host(host)
             hosts.append(host)
@@ -104,7 +104,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
     def test_provision_failure_with_non_matching_ssh_host(self, ansible_runner, factories, host_config_key,
                                                           hosts_with_actual_ipv4_for_name_and_random_ssh_host,
                                                           callback_host):
-        """Verify launch failure when a matching host.name is found, but ansible_ssh_host is different."""
+        """Verify launch failure when a matching host.name is found, but ansible_host is different."""
         inventory = hosts_with_actual_ipv4_for_name_and_random_ssh_host[0].ds.inventory
         job_template = factories.job_template(inventory=inventory)
         job_template.host_config_key = host_config_key
@@ -128,10 +128,10 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         inventory = factories.inventory()
 
         # account for dev container
-        ansible_ssh_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
+        ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
         for name in ('matching_host', 'another_matching_host'):
             factories.host(name=name, inventory=inventory,
-                           variables=json.dumps(dict(ansible_ssh_host=ansible_ssh_host,
+                           variables=json.dumps(dict(ansible_host=ansible_host,
                                                      ansible_connection="local")))
 
         job_template = factories.job_template(inventory=inventory)
@@ -417,9 +417,9 @@ class TestJobTemplateCallbacks(Base_Api_Test):
                                                           custom_group, ansible_default_ipv4, callback_host):
         """Assert that a callback job against a job_template does not initiate an inventory_update"""
         inventory = custom_group.ds.inventory
-        ansible_ssh_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
+        ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
         factories.host(inventory=inventory,
-                       variables=json.dumps(dict(ansible_ssh_host=ansible_ssh_host,
+                       variables=json.dumps(dict(ansible_host=ansible_host,
                                                  ansible_connection="local")))
 
         job_template = factories.job_template(inventory=inventory)

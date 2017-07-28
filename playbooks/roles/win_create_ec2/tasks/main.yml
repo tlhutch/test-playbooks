@@ -112,10 +112,10 @@
   add_host:
     name: '{{ item.item.tagged_instances[0].public_dns_name }}'
     groups: 'cloud,ec2,windows,{{win_ec2_name_prefix}}-{{ item.item.item.name }}'
-    ansible_ssh_host: '{{ item.item.tagged_instances[0].public_ip }}'
-    ansible_ssh_port: 5986
-    ansible_ssh_user: '{{ item.item.item.user }}'
-    ansible_ssh_pass: '{{ item.win_password }}'
+    ansible_host: '{{ item.item.tagged_instances[0].public_ip }}'
+    ansible_port: 5986
+    ansible_user: '{{ item.item.item.user }}'
+    ansible_pass: '{{ item.win_password }}'
     ansible_connection: 'winrm'
   with_items: win_ec2_passwords.results
   when: win_ec2_images and win_ec2_passwords is defined

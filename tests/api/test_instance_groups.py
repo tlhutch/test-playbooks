@@ -127,9 +127,9 @@ class TestInstanceGroups(Base_Api_Test):
         managed = manager.get_group_dict().get('managed_hosts')[0]
         protected = v2.instance_groups.get(name='protected').results[0]
 
-        username = manager.get_host(managed).get_vars().get('ansible_ssh_user')
+        username = manager.get_host(managed).get_vars().get('ansible_user')
         cred = factories.v2_credential(username=username, password=user_password)
-        host = factories.host(name=managed, variables=dict(ansible_ssh_host=managed))
+        host = factories.host(name=managed, variables=dict(ansible_host=managed))
         jt = factories.v2_job_template(inventory=host.ds.inventory, credential=cred)
         jt.add_instance_group(protected)
         jt.launch().wait_until_completed()

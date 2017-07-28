@@ -63,7 +63,7 @@
     postgres_username: '{{item.instance.username}}'
     postgres_password: '{{rds_password}}'
     postgres_host: '{{item.instance.endpoint}}'
-    ansible_ssh_host: '{{item.instance.endpoint}}'
-    ansible_ssh_user: '{{item.instance.username}}'
+    ansible_host: '{{item.instance.endpoint}}'
+    ansible_user: '{{item.instance.username}}'
   with_items: '{{ (rds|default({})).results|default([]) }}'
   when: rds_images and rds is defined

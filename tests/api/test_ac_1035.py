@@ -12,8 +12,8 @@ from tests.api import Base_Api_Test
 def variables_yaml(request):
     return yaml.load("""
 variables: |
-    ansible_ssh_host: localhost
-    ansible_ssh_user: ubuntu
+    ansible_host: localhost
+    ansible_user: ubuntu
 """)['variables']
 
 

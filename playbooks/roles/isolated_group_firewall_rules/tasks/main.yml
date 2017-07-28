@@ -9,7 +9,7 @@
 
 - name: Set password for user
   user:
-    name: "{{ ansible_ssh_user }}"
+    name: "{{ ansible_user }}"
     password: "{{ admin_password|password_hash('sha512') }}"
 
 - name: Restart sshd

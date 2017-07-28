@@ -266,7 +266,7 @@ inv['group-2'] = [
 # Add _meta hostvars
 for grp, hosts in inv.items():
     for host in hosts:
-        inv['_meta']['hostvars'][host] = dict(ansible_ssh_host='127.0.0.1', ansible_connection='local')
+        inv['_meta']['hostvars'][host] = dict(ansible_host='127.0.0.1', ansible_connection='local')
 
 print json.dumps(inv, indent=2)
 """)

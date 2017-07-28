@@ -1,19 +1,19 @@
 {% if 'tower' in groups %}
 [tower]
 localhost ansible_connection=local
-{# {{ inventory_hostname }} ansible_ssh_user={{ hostvars[inventory_hostname]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[inventory_hostname]['ansible_ssh_host'] }} #}
+{# {{ inventory_hostname }} ansible_user={{ hostvars[inventory_hostname]['ansible_user'] }} ansible_host={{ hostvars[inventory_hostname]['ansible_host'] }} #}
 {% endif %}
 
 {% if 'primary' in groups %}
 [primary]
 localhost ansible_connection=local
-{# {{ inventory_hostname }} ansible_ssh_user={{ hostvars[inventory_hostname]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[inventory_hostname]['ansible_ssh_host'] }} #}
+{# {{ inventory_hostname }} ansible_user={{ hostvars[inventory_hostname]['ansible_user'] }} ansible_host={{ hostvars[inventory_hostname]['ansible_host'] }} #}
 {% endif %}
 
 {% if 'database' in groups %}
 [database]
 {% for host in groups['database'] %}
-{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }}
 {% endfor %}
 {% endif %}
 

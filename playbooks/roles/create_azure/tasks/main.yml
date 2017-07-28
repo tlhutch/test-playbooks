@@ -38,9 +38,9 @@
   add_host:
     name: '{{ item.deployment.name }}'
     groups: 'cloud,azure,{{ item.deployment.name }}'
-    ansible_ssh_user: '{{ item.user|default(azure_ssh_user) }}'
-    ansible_ssh_host: '{{ item.public_dns_name }}'
-    ansible_ssh_pass: '{{ item.password|default(azure_ssh_password) }}'
+    ansible_user: '{{ item.user|default(azure_ssh_user) }}'
+    ansible_host: '{{ item.public_dns_name }}'
+    ansible_pass: '{{ item.password|default(azure_ssh_password) }}'
     #ansible_ssh_private_key_file: '{{ azure_ssh_cert_path }}'
   with_items: '{{ (azure|default({})).results|default([]) }}'
   when: azure_images and azure is defined

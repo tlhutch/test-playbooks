@@ -41,7 +41,7 @@ def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups
     inventory_dict = {grp_name: dict(hosts=[], vars={})}
     inventory_dict[grp_name]['hosts'] = ['host-%s' % num for num in range(NUM_HOSTS)]
     inventory_dict[grp_name]['vars'] = dict(ansible_connection='local')
-    # inventory_dict['_meta'] = dict(hostvars=dict(ansible_ssh_host='localhost', connection='local'))
+    # inventory_dict['_meta'] = dict(hostvars=dict(ansible_host='localhost', connection='local'))
     # inventory_dict = {grp_name: dict(hosts=[], vars=[])}
 
     # Create an inventory script

@@ -1,14 +1,14 @@
 {% if 'ha_installer' in groups %}
 [tower]
 {% for host in groups['tower'] %}
-{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }}
 {% endfor %}
 
 {% for group in groups %}
 {% if 'instance_group_' in group or 'isolated_group_' in group %}
 [{{ group }}]
 {% for host in groups[group] %}
-{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }} {% if hostvars[host]['controller']|length > 0 %} controller={{ hostvars[host]['controller'] }}
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }} {% if hostvars[host]['controller']|length > 0 %} controller={{ hostvars[host]['controller'] }}
 {% endif %}
 
 {% endfor %}
@@ -20,7 +20,7 @@
 {% if 'secondary' in groups %}
 [primary]
 {% for host in groups['primary'] %}
-{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }}
 {% endfor %}
 
 [secondary]
@@ -28,7 +28,7 @@
 {% if host == '127.0.0.1' %}
 {{ host }} ansible_python_interpreter='/usr/bin/env python'
 {% else %}
-{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }}
 {% endif %}
 {% endfor %}
 {% endif %}
@@ -36,7 +36,7 @@
 {% if 'database' in groups %}
 [database]
 {% for host in groups['database'] %}
-{{ host }} ansible_ssh_user={{ hostvars[host]['ansible_ssh_user'] }} ansible_ssh_host={{ hostvars[host]['ansible_ssh_host'] }}
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }}
 {% endfor %}
 {% endif %}
 

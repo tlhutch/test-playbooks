@@ -76,9 +76,9 @@ def custom_inventory_update_with_status_completed(custom_inventory_source):
 
 @pytest.fixture(scope="function")
 def host_with_default_ipv4_in_variables(factories, group, ansible_default_ipv4):
-    """Create a random inventory host where ansible_ssh_host == ansible_default_ipv4."""
+    """Create a random inventory host where ansible_host == ansible_default_ipv4."""
     host = factories.host(inventory=group.ds.inventory,
-                          variables=json.dumps(dict(ansible_ssh_host=ansible_default_ipv4,
+                          variables=json.dumps(dict(ansible_host=ansible_default_ipv4,
                                                     ansible_connection="local")))
     group.add_host(host)
     return host
