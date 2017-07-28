@@ -60,6 +60,7 @@ class TestInventoryRBAC(Base_Api_Test):
             for resource in [host, group, aws_inv_source, inventory]:
                 assert_response_raised(resource, httplib.FORBIDDEN)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7330')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'admin' should be able to:
@@ -88,6 +89,7 @@ class TestInventoryRBAC(Base_Api_Test):
             for resource in [host, group, inv_source, inventory]:
                 assert_response_raised(resource, httplib.OK)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7329')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_use_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'use' should be able to:
@@ -123,6 +125,7 @@ class TestInventoryRBAC(Base_Api_Test):
             for resource in [host, group, inv_source, inventory]:
                 assert_response_raised(resource, httplib.FORBIDDEN)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7329')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_adhoc_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'adhoc' should be able to:
@@ -158,6 +161,7 @@ class TestInventoryRBAC(Base_Api_Test):
             for resource in [host, group, inv_source, inventory]:
                 assert_response_raised(resource, httplib.FORBIDDEN)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7329')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_update_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'update' should be able to:
@@ -193,6 +197,7 @@ class TestInventoryRBAC(Base_Api_Test):
             for resource in [host, group, inv_source, inventory]:
                 assert_response_raised(resource, httplib.FORBIDDEN)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7329')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, set_test_roles, agent, factories):
         """A user/team with inventory 'read' should be able to:
