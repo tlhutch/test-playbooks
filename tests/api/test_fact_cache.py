@@ -12,7 +12,7 @@ class TestFactCache(Base_Api_Test):
 
     def assert_updated_facts(self, ansible_facts):
         """Perform basic validation on host details ansible_facts."""
-        assert ansible_facts.get().module_setup
+        assert ansible_facts.module_setup
         assert 'ansible_distribution' in ansible_facts
         assert 'ansible_machine' in ansible_facts
         assert 'ansible_system' in ansible_facts
@@ -99,7 +99,8 @@ class TestFactCache(Base_Api_Test):
         assert job.result_stdout.count(ansible_facts.ansible_machine) == 3
         assert job.result_stdout.count(ansible_facts.ansible_system) == 3
 
-        # test host summaries
+        for host in hosts:
+            assert host.get().summary_fields.last_job.id == job.id
 
     def test_consume_facts_with_multiple_hosts_and_limit(self, factories):
         inventory = factories.v2_inventory()
@@ -111,18 +112,19 @@ class TestFactCache(Base_Api_Test):
 
         project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_clear_facts_playbook')
         jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='gather_facts.yml', use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
+        scan_job = jt.launch().wait_until_completed()
+        assert scan_job.is_successful
 
         jt.playbook = 'use_facts.yml'
         jt.limit = target_host.name
-        job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        fact_job = jt.launch().wait_until_completed()
+        assert fact_job.is_successful
 
         ansible_facts = target_host.related.ansible_facts.get()
-        assert job.result_stdout.count(ansible_facts.ansible_distribution) == 1
-        assert job.result_stdout.count(ansible_facts.ansible_machine) == 1
-        assert job.result_stdout.count(ansible_facts.ansible_system) == 1
+        assert fact_job.result_stdout.count(ansible_facts.ansible_distribution) == 1
+        assert fact_job.result_stdout.count(ansible_facts.ansible_machine) == 1
+        assert fact_job.result_stdout.count(ansible_facts.ansible_system) == 1
 
-        host_summaries = job.related.job_host_summaries.get()
-        assert host_summaries.count == 1
-        assert host_summaries.results.pop().host == target_host.id
+        assert target_host.get().summary_fields.last_job.id == fact_job.id
+        for host in hosts:
+            assert host.get().summary_fields.last_job.id == scan_job.id
