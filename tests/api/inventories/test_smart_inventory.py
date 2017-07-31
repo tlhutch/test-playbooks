@@ -36,6 +36,13 @@ class TestSmartInventory(Base_Api_Test):
             factories.v2_group(inventory=inventory)
         assert e.value[1]['inventory'] == {'detail': 'Cannot create Group for Smart Inventory'}
 
+    def test_unable_to_create_root_group(self, factories):
+        inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
+
+        with pytest.raises(exc.BadRequest) as e:
+            inventory.related.root_groups.post()
+        assert e.value[1]['inventory'] == {'detail': 'Cannot create Group for Smart Inventory'}
+
     def test_unable_to_create_inventory_source(self, factories):
         inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
         with pytest.raises(exc.BadRequest) as e:
