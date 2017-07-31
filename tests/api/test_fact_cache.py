@@ -128,3 +128,18 @@ class TestFactCache(Base_Api_Test):
         assert target_host.get().summary_fields.last_job.id == fact_job.id
         for host in hosts:
             assert host.get().summary_fields.last_job.id == scan_job.id
+
+    # FIXME: add in Ansible version check
+    def test_clear_facts(self, factories, v2):
+        host = factories.v2_host()
+        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_clear_facts_playbook')
+        jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='gather_facts.yml', use_fact_cache=True)
+        assert jt.launch().wait_until_completed().is_successful
+
+        jt.playbook = 'clear_facts.yml'
+        assert jt.launch().wait_until_completed().is_successful
+
+        jt.playbook = 'use_facts.yml'
+        job = jt.launch().wait_until_completed()
+        assert job.status == 'failed'
+        assert "The error was: 'ansible_distribution' is undefined" in job.result_stdout
