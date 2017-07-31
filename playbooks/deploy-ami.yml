@@ -36,12 +36,12 @@
     admin_password: fo0m4nchU
   tasks:
     - name: determine if awx is installed
-      shell: tower-manage --help
+      shell: awx-manage --help
       ignore_errors: true
       register: is_awx_installed
 
     - name: reset admin_password
-      shell: echo "from django.contrib.auth.models import User; usr = User.objects.get(username='admin'); usr.set_password('{{ admin_password }}'); usr.save();" | tower-manage shell
+      shell: echo "from django.contrib.auth.models import User; usr = User.objects.get(username='admin'); usr.set_password('{{ admin_password }}'); usr.save();" | awx-manage shell
       sudo_user: awx
       when: is_awx_installed|success
 

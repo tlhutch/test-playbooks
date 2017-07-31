@@ -24,7 +24,7 @@ def assert_instance_role(url, role='primary'):
 def ensure_primary(request, ansible_module):
     """Ensures the the HA primary is restored on teardown."""
     def teardown():
-        contacted = ansible_module.command('tower-manage update_instance --primary')
+        contacted = ansible_module.command('awx-manage update_instance --primary')
         for result in contacted.values():
             assert result['rc'] == 0, "Unexpected return code (%s != 0)" % result['rc']
             assert result['stdout'].startswith("Successfully updated instance role")
@@ -78,10 +78,10 @@ class Test_HA(Base_Api_Test):
 
     @pytest.mark.ansible(host_pattern='primary')
     def test_list_instances(self, ansible_module, api_ping_pg):
-        """Verifies that 'tower-manage list_instances' returns expected results"""
+        """Verifies that 'awx-manage list_instances' returns expected results"""
         expected_instances = len(api_ping_pg.get().instances['secondaries']) + 1
 
-        contacted = ansible_module.command('tower-manage list_instances')
+        contacted = ansible_module.command('awx-manage list_instances')
         for result in contacted.values():
             assert result['rc'] == 0, "Unexpected return code (%s != %s)" % (result['rc'], 0)
 
@@ -92,11 +92,11 @@ class Test_HA(Base_Api_Test):
 
     @pytest.mark.ansible(host_pattern='primary')
     def test_promote_secondary_instances(self, ansible_runner, api_ping_url, api_ping_pg, ensure_primary):
-        """Verify that 'tower-manage update_instance' can promote all configured
+        """Verify that 'awx-manage update_instance' can promote all configured
         secondary instances to a primary.  The primary instance is restored
         upon test completion.
         """
-        contacted = ansible_runner.command('tower-manage update_instance --primary')
+        contacted = ansible_runner.command('awx-manage update_instance --primary')
         for result in contacted.values():
             assert result['rc'] == 0, "Unexpected return code (%s != 0)" % result['rc']
             assert result['stdout'].startswith("Successfully updated instance role")
@@ -112,7 +112,7 @@ class Test_HA(Base_Api_Test):
             assert_instance_role("https://" + secondary + api_ping_url, role='secondary')
 
             # assert successful promotion
-            contacted = ansible_runner.command('tower-manage update_instance --hostname %s --primary' % secondary)
+            contacted = ansible_runner.command('awx-manage update_instance --hostname %s --primary' % secondary)
             for result in contacted.values():
                 assert result['rc'] == 0, "Unexpected return code (%s != 0)" % result['rc']
                 assert result['stdout'].startswith("Successfully updated instance role")
@@ -122,12 +122,12 @@ class Test_HA(Base_Api_Test):
 
     @pytest.mark.ansible(host_pattern='primary')
     def test_cannot_remove_primary_instance(self, ansible_module, api_ping_pg):
-        """Verify that 'tower-manage remove_instance' cannot remove the current primary instance."""
+        """Verify that 'awx-manage remove_instance' cannot remove the current primary instance."""
         api_ping_pg.get()
         primary = api_ping_pg.instances['primary']
 
         # assert failure when attempting to remove primary
-        contacted = ansible_module.command("tower-manage remove_instance --hostname %s" % primary)
+        contacted = ansible_module.command("awx-manage remove_instance --hostname %s" % primary)
         for result in contacted.values():
             assert result['rc'] == 1, "Unexpected return code (%s != 1)" % result['rc']
             assert result['stderr'].startswith("CommandError: Cannot remove primary instance")
@@ -135,7 +135,7 @@ class Test_HA(Base_Api_Test):
 
     @pytest.mark.ansible(host_pattern='primary')
     def test_remove_and_register_instances(self, ansible_module, api_ping_pg):
-        """Verifies the 'tower-manage remove_instance' command.  Caution, this
+        """Verifies the 'awx-manage remove_instance' command.  Caution, this
         test will remove all secondary instances from the HA configuration.
         """
         api_ping_pg.get()
@@ -146,7 +146,7 @@ class Test_HA(Base_Api_Test):
         # remove and register each secondary
         for count, secondary in enumerate(secondaries, 1):
             # assert successful removal
-            contacted = ansible_module.command('tower-manage remove_instance --hostname %s' % secondary)
+            contacted = ansible_module.command('awx-manage remove_instance --hostname %s' % secondary)
             for result in contacted.values():
                 assert result['rc'] == 0, "Unexpected return code (%s != 0)" % result['rc']
                 assert result['stdout'].startswith("Successfully removed instance")

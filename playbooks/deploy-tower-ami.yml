@@ -144,7 +144,7 @@
         port: 5432
 
     - name: Change admin password
-      shell: tower-manage update_password --username=admin --password={{ admin_password }}
+      shell: awx-manage update_password --username=admin --password={{ admin_password }}
       register: update_password
       changed_when: update_password.stdout != 'Password not updated'
 
@@ -161,7 +161,7 @@
       delay: 2
 
     - name: obtain tower version
-      command: tower-manage --version
+      command: awx-manage --version
       register: tower_version
 
     - name: turn off pendo tracking

@@ -36,7 +36,7 @@ def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups
     inventory = api_inventories_pg.post(payload)
     request.addfinalizer(inventory.delete)
 
-    # Batch create group+hosts using tower-manage
+    # Batch create group+hosts using awx-manage
     grp_name = "group-%s" % fauxfactory.gen_utf8()
     inventory_dict = {grp_name: dict(hosts=[], vars={})}
     inventory_dict[grp_name]['hosts'] = ['host-%s' % num for num in range(NUM_HOSTS)]
@@ -58,16 +58,16 @@ EOF
     remote_fname = '/tmp/%s' % os.path.basename(fname)
     ansible_runner.copy(src=fname, dest=remote_fname, mode='0755')
 
-    # Run tower-manage inventory_import
+    # Run awx-manage inventory_import
     contacted = ansible_runner.shell(
-        "tower-manage inventory_import --inventory-name %s --source %s"
+        "awx-manage inventory_import --inventory-name %s --source %s"
         % (inventory.name, remote_fname)
     )
 
     # Verify the import completed successfully
     for result in contacted.values():
         assert result['rc'] == 0, \
-            "tower-manage inventory_import failed: %s" % \
+            "awx-manage inventory_import failed: %s" % \
             json.dumps(result, indent=2)
 
     return inventory

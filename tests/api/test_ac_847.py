@@ -893,16 +893,16 @@ EOF
         # Copy script to test system
         ansible_runner.copy(src=fd.name, dest='/tmp/%s' % p.basename, mode='0755')
 
-        # Run tower-manage inventory_import
+        # Run awx-manage inventory_import
         contacted = ansible_runner.shell(
-            "tower-manage inventory_import --inventory-id %s --source /tmp/%s"
+            "awx-manage inventory_import --inventory-id %s --source /tmp/%s"
             % (inventory.id, p.basename)
         )
 
         # Verify the import completed successfully
         for result in contacted.values():
             assert result['rc'] == 0, \
-                "tower-manage inventory_import failed: %s" % \
+                "awx-manage inventory_import failed: %s" % \
                 json.dumps(result, indent=2)
 
         # The expected delta format is - H:MM:SS.SSSSS
