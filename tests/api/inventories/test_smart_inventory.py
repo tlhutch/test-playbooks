@@ -24,33 +24,32 @@ class TestSmartInventory(Base_Api_Test):
         host.delete()
         assert hosts.get().count == 0
 
-    def test_manual_host_creation(self, factories):
+    def test_unable_to_create_host(self, factories):
         inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_host(inventory=inventory)
         assert e.value[1]['inventory'] == {'detail': 'Cannot create Host for Smart Inventory'}
 
-    def test_manual_group_creation(self, factories):
+    def test_unable_to_create_group(self, factories):
         inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_group(inventory=inventory)
         assert e.value[1]['inventory'] == {'detail': 'Cannot create Group for Smart Inventory'}
 
-    def test_manual_inventory_source_creation(self, factories):
+    def test_unable_to_create_inventory_source(self, factories):
         inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_inventory_source(inventory=inventory)
         assert e.value[1]['inventory'] == {'detail': 'Cannot create Inventory Source for Smart Inventory'}
 
-    def test_smart_inventories_cannot_inventory_update(self, factories):
+    def test_unable_to_inventory_update(self, factories):
         """Smart inventories should reject a POST to /api/v2/inventories/N/update_inventory_sources/."""
         inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
         with pytest.raises(exc.BadRequest) as e:
             inventory.update_inventory_sources()
-        assert e.value[1] == {'error': 'Inventory Update cannot be completed with Smart Inventory.'}
+        assert e.value[1] == {'error': 'Inventory update cannot be completed with Smart Inventory.'}
 
-    def test_smart_inventories_cannot_have_insights_credentials(self, factories):
-        """Smart inventories should not have Insights credentials."""
+    def test_unable_to_have_insights_credential(self, factories):
         credential = factories.v2_credential(kind='insights')
         expected_error = ['Assignment not allowed for Smart Inventory']
 
@@ -62,3 +61,50 @@ class TestSmartInventory(Base_Api_Test):
         with pytest.raises(exc.BadRequest) as e:
             inventory.insights_credential = credential.id
         assert e.value.message['insights_credential'] == expected_error
+
+    def test_unable_to_update_regular_inventory_into_smart_inventory(self, factories):
+        inventory = factories.v2_inventory()
+        with pytest.raises(exc.MethodNotAllowed):
+            inventory.patch(host_filter="name=localhost", kind="smart")
+
+    def test_able_to_update_smart_inventory_into_regular_inventory(self, factories):
+        inventory = factories.v2_inventory(host_filter="name=localhost", kind="smart")
+        assert inventory.related.hosts.get().count == 1  # source stock localhost
+
+        inventory.patch(host_filter="", kind="")
+        assert inventory.related.hosts.get().count == 0
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7339')
+    def test_launch_ahc_with_smart_inventory(self, factories):
+        inventory = factories.v2_inventory()
+        hosts = []
+        for i in range(3):
+            host = factories.v2_host(inventory=inventory, name="test_host_{0}".format(i))
+            hosts.append(host)
+
+        smart_inventory = factories.v2_inventory(host_filter="search=test_host", kind="smart")
+        assert smart_inventory.related.hosts.get().count == 3
+
+        ahc = factories.v2_ad_hoc_command(inventory=smart_inventory).wait_until_completed()
+        assert ahc.is_successful
+
+        for host in hosts:
+            assert host.get().last_job == ahc.id
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7339')
+    def test_launch_job_template_with_smart_inventory(self, factories):
+        inventory = factories.v2_inventory()
+        hosts = []
+        for i in range(3):
+            host = factories.v2_host(inventory=inventory, name="test_host_{0}".format(i))
+            hosts.append(host)
+
+        smart_inventory = factories.v2_inventory(host_filter="search=test_host", kind="smart")
+        assert smart_inventory.related.hosts.get().count == 3
+
+        jt = factories.v2_job_template(inventory=smart_inventory)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        for host in hosts:
+            assert host.get().last_job == job.id
