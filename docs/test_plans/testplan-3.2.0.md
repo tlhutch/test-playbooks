@@ -98,7 +98,27 @@ RBAC:
 1. [x] Host filter should return resources for which a user has inventory-read permissions.
 1. [x] Host filter results are organization-scoped for organization admins.
 
-### Insights integration (Chris)
+### Set Facts (Chris)
+[Feature]()
+
+Fact ingestion:
+1. [x] `use_fact_cache` with gather_facts should update host `ansible_facts`.
+1. [x] `use_fact_cache` without gather_facts should update host `ansible_facts`.
+1. [x] `use_fact_cache` with Tower scan modules should return expected facts.
+1. [x] Host with spaces in hostname.
+1. [x] Host with unicode hostname.
+
+Fact use:
+1. [x] Verify that facts may be used in a playbook within timeout window (`ANSIBLE_FACT_CACHE_TIMEOUT`).
+1. [ ] Verify that facts may not be used outside of timeout window (`ANSIBLE_FACT_CACHE_TIMEOUT`).'
+1. [x] Verify fact use against multiple hosts.
+1. [x] Verify fact use against simple host with JT limit.
+
+Miscellaney:
+1. [ ] Verify fact cache ingestation and use over cluster.
+1. [ ] `clear_facts` should clear facts.
+
+### Insights Integration (Chris)
 [Feature](https://docs.google.com/document/d/1gpjGumL5SVCSqcJKTkkFTQGWAQ6vLUxn_NOrE75TMtk/edit)
 
 1. [x] Verify stock value for host `insights_system_id`.
