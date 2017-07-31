@@ -138,7 +138,12 @@ Smart inventories (Chris)
 1. [x] Verify smart inventories host support.
 1. [x] Verify smart inventories inventory source support.
 1. [x] Verify smart inventories inventory update support (`/api/v2/inventories/N/update_inventory_sources/`).
-1. [ ] Verify updating regular inventory into smart inventory.
+1. [ ] Verify launching a job against a smart inventory.
+1. [ ] Verify launching an AHC against a smart inventory.
+1. [ ] Verifying job launch with limit.
+1. [ ] Verify AHC launch with limit.
+1. [x] Verify updating regular inventory into smart inventory.
+1. [x] Verify updating smart inventory into regular inventory.
 1. [x] Test new host groups related endpoint.
 1. [x] Test new host groups summary field.
 1. [x] Test v1 inventory resource cascade deletion.
@@ -166,7 +171,6 @@ Inventory updates (Chris)
 1. [x] Test inventory update cascade deletion.
 
 RBAC:
-
 1. [x] Verify inventory update via `inventory_sources/N/update/` against all inventory permissions.
 1. [x] Verify inventory update via `inventories/N/update_inventory_sources/` against all inventory permissions.
 1. [x] Verify inventory update cancellation via all inventory permissions.
