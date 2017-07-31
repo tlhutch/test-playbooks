@@ -134,10 +134,10 @@ Smart inventories (Chris)
 1. [x] Verify smart inventory host list updates for host edit.
 1. [x] Verify smart inventory host list updates for host deletion.
 1. [x] Verify smart inventory hosts reflects `host_filter`.
-1. [ ] Verify smart inventories group support.
-1. [ ] Verify smart inventories host support.
-1. [ ] Verify smart inventories inventory source support.
-1. [ ] Verify smart inventories inventory update support (`/api/v2/inventories/N/update_inventory_sources/`).
+1. [x] Verify smart inventories group support.
+1. [x] Verify smart inventories host support.
+1. [x] Verify smart inventories inventory source support.
+1. [x] Verify smart inventories inventory update support (`/api/v2/inventories/N/update_inventory_sources/`).
 1. [ ] Verify updating regular inventory into smart inventory.
 1. [x] Test new host groups related endpoint.
 1. [x] Test new host groups summary field.
