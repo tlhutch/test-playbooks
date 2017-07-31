@@ -24,7 +24,32 @@ class TestSmartInventory(Base_Api_Test):
         host.delete()
         assert hosts.get().count == 0
 
-    def test_smart_inventory_with_insights_credential(self, factories):
+    def test_manual_host_creation(self, factories):
+        inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
+        with pytest.raises(exc.BadRequest) as e:
+            factories.v2_host(inventory=inventory)
+        assert e.value[1]['inventory'] == {'detail': 'Cannot create Host for Smart Inventory'}
+
+    def test_manual_group_creation(self, factories):
+        inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
+        with pytest.raises(exc.BadRequest) as e:
+            factories.v2_group(inventory=inventory)
+        assert e.value[1]['inventory'] == {'detail': 'Cannot create Group for Smart Inventory'}
+
+    def test_manual_inventory_source_creation(self, factories):
+        inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
+        with pytest.raises(exc.BadRequest) as e:
+            factories.v2_inventory_source(inventory=inventory)
+        assert e.value[1]['inventory'] == {'detail': 'Cannot create Inventory Source for Smart Inventory'}
+
+    def test_smart_inventories_cannot_inventory_update(self, factories):
+        """Smart inventories should reject a POST to /api/v2/inventories/N/update_inventory_sources/."""
+        inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
+        with pytest.raises(exc.BadRequest) as e:
+            inventory.update_inventory_sources()
+        assert e.value[1] == {'error': 'Inventory Update cannot be completed with Smart Inventory.'}
+
+    def test_smart_inventories_cannot_have_insights_credentials(self, factories):
         """Smart inventories should not have Insights credentials."""
         credential = factories.v2_credential(kind='insights')
         expected_error = ['Assignment not allowed for Smart Inventory']
