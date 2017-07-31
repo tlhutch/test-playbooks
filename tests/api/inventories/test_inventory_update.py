@@ -156,6 +156,8 @@ class TestInventoryUpdate(Base_Api_Test):
         included_group_hosts = included_group.related.hosts.get()
         assert included_group_hosts.count == 1
         assert included_host.id == included_group_hosts.results.pop().id
+        root_groups = inventory.related.root_groups.get()
+        assert included_group.id in [group.id for group in root_groups]
 
         excluded_group_hosts = excluded_group.related.hosts.get()
         assert excluded_group_hosts.count == 1
