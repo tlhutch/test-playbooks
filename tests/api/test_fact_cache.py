@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from towerkit.utils import to_str
+import towerkit.utils
 import fauxfactory
 import pytest
 
@@ -128,6 +132,29 @@ class TestFactCache(Base_Api_Test):
         assert target_host.get().summary_fields.last_job.id == fact_job.id
         for host in hosts:
             assert host.get().summary_fields.last_job.id == scan_job.id
+
+    def test_consume_facts_with_custom_ansible_module(self, factories):
+        host = factories.v2_host()
+        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_clear_facts_playbook')
+        jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='scan_custom.yml', use_fact_cache=True)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        target_job_events = job.related.job_events.get(event="runner_on_ok", task="scan_facts")
+        assert target_job_events.count == 1
+        target_job_event = target_job_events.results.pop()
+        ansible_facts = target_job_event.event_data.res.ansible_facts
+
+        assert ansible_facts.string == "abc"
+        assert to_str(ansible_facts.unicode_string) == "鵟犭酜귃ꔀꈛ竳䙭韽ࠔ"
+        assert ansible_facts.int == 1
+        assert ansible_facts.float == 1.0
+        assert ansible_facts.bool is True
+        assert ansible_facts.null is None
+        assert ansible_facts.list == ["abc", 1, 1.0, True, None, [], {}]
+        assert ansible_facts.obj == dict(string="abc", int=1, float=1.0, bool=True, null=None, list=[], obj={})
+        assert ansible_facts.empty_list == []
+        assert ansible_facts.empty_obj == {}
 
     # FIXME: add in Ansible version check
     def test_clear_facts(self, factories, v2):
