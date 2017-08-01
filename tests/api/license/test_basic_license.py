@@ -109,7 +109,7 @@ class TestBasicLicense(LicenseTest):
 
         # assert expected stdout
         assert job_pg.result_stdout == "CommandError: The System Tracking " \
-            "feature is not enabled for your Tower instance\r\n", \
+            "feature is not enabled for your instance\r\n", \
             "Unexpected stdout when running cleanup_facts with a basic license."
 
     def test_unable_to_get_fact_versions(self, host_local):
