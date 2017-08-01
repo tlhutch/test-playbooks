@@ -115,6 +115,7 @@ Fact use:
 1. [x] Verify fact use against simple host with JT limit.
 
 Miscellaney:
+1. [x] Verify fact ingestation and sourcing against all JSON data types.
 1. [ ] Verify fact cache ingestation and use over cluster.
 1. [ ] `clear_facts` should clear facts.
 
