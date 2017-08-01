@@ -117,7 +117,7 @@ Fact use:
 Miscellaney:
 1. [x] Verify fact ingestation and sourcing against all JSON data types.
 1. [ ] Verify fact cache ingestation and use over cluster.
-1. [ ] `clear_facts` should clear facts.
+1. [x] `clear_facts` should clear facts.
 
 ### Insights Integration (Chris)
 [Feature](https://docs.google.com/document/d/1gpjGumL5SVCSqcJKTkkFTQGWAQ6vLUxn_NOrE75TMtk/edit)
