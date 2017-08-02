@@ -59,10 +59,9 @@ class TestInstanceGroups(Base_Api_Test):
     @pytest.mark.parametrize('resource', ['job_template', 'inventory', 'organization'])
     def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource):
         instance_groups = v2.instance_groups.get().results
-        project = factories.v2_project()  # use the same project to save time
         job_template_to_instance_group_map = []
         for ig in instance_groups:
-            jt = factories.v2_job_template(project=project)
+            jt = factories.v2_job_template()
             self.get_resource(jt, resource).add_instance_group(ig)
             job_template_to_instance_group_map.append((jt, ig))
 
