@@ -96,15 +96,43 @@
     repo: '{{ansible_ppa}}'
     state: present
     mode: '0644'
-  when: ansible_pkg_mgr == 'apt' and ansible_ppa is defined
+  when: ansible_pkg_mgr == 'apt' and ansible_ppa is defined and ansible_install_method != 'nightly'
 
 # install ansible
 
-- name: install ansible rpm (stable or as above)
+- name: install ansible rpm (stable/testing)
   yum:
     name: '{{ ansible_package_name }}'
     state: latest
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method in ['stable', 'testing', 'nightly']
+  when: ansible_pkg_mgr == 'yum' and ansible_install_method in ['stable', 'testing']
+
+- name: gather ansible nightly dependencies
+  command: yum deplist --disablerepo=* --enablerepo=ansible-nightly ansible
+  register: nightly_dep_candidates
+  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
+
+- name: filter nightly ansible dependency candidates
+  set_fact:
+    nightly_ansible_dependencies: |
+      {{ nightly_dep_candidates.stdout_lines|map("regex_search", ".*dependency.*")
+      |select("string")|map("regex_replace", "  dependency: ", "")
+      |map("regex_search", "^[a-zA-Z0-9\-]+$")|select("string")|list }}
+  when: nightly_dep_candidates is defined
+
+- name: install ansible nightly dependencies
+  yum:
+    name: '{{ item }}'
+    state: latest
+  with_items: '{{ nightly_ansible_dependencies }}'
+  when: ansible_install_method == 'nightly'
+
+- name: install ansible rpm (nightly)
+  yum:
+    name: '{{ ansible_package_name }}'
+    state: latest
+    disablerepo: '*'
+    enablerepo: ansible-nightly
+  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
 
 - name: install ansible deb
   apt:
