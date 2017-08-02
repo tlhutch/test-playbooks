@@ -96,3 +96,39 @@ class Base_Api_Test(object):
             yield
         finally:
             self.api.session.auth = previous_auth
+
+    @contextlib.contextmanager
+    def current_instance(self, connection, v=None):
+        """
+        Context manager to allow running tests against alternative tower instance.
+
+        Set connection object (sets connection for factories):
+        >>> from towerkit.api.client import Connection
+        >>> connection = Connection('https://' + hostname)
+        >>> connection.login(user.username, user.password)
+        >>> with self.current_instance(connection):
+        >>>     jt = factories.job_template()
+
+        Set connection object and provide version object
+        (sets connection for factories and version object):
+        >>> from towerkit.api.client import Connection
+        >>> connection = Connection('https://' + hostname)
+        >>> connection.login(user.username, user.password)
+        >>> with self.current_instance(connection, v2):
+        >>>     ig = v2.instance_groups.get().results.pop()
+        >>>     jt = factories.job_template()
+        >>>     jt.add_instance_group(ig)
+        >>>     job = jt.launch()
+        >>>     assert ig.consumed_capacity > 0
+        """
+        try:
+            previous_testsetup_connection = self.testsetup.api
+            self.testsetup.api = connection
+            if v:
+                previous_v_connection = v.connection
+                v.connection = connection
+            yield
+        finally:
+            self.testsetup.api = previous_testsetup_connection
+            if v:
+                v.connection = previous_v_connection

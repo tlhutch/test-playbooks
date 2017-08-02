@@ -1,6 +1,6 @@
+from towerkit import utils
 from towerkit.config import config
 import towerkit.exceptions as exc
-from towerkit import utils
 import pytest
 
 from tests.api import Base_Api_Test
@@ -161,7 +161,7 @@ class TestSCMInventorySource(Base_Api_Test):
                                'inventories/more_inventories/even_more_inventories/inventory.ini'),
                               ('inventories/dyn_inventory.py', 'inventories/more_inventories/dyn_inventory.py',
                                'inventories/more_inventories/even_more_inventories/dyn_inventory.py')],
-                              ids=('static', 'dynamic'))
+                             ids=('static', 'dynamic'))
     def test_scm_inv_sources_with_shared_project(self, factories, source_paths):
         project = factories.v2_project()
         inventory = factories.v2_inventory(organization=project.ds.organization)
@@ -217,7 +217,7 @@ class TestSCMInventorySource(Base_Api_Test):
 
     def test_scm_inv_source_update_sources_custom_credential(self, factories):
         credential_type = factories.credential_type(inputs=dict(fields=[dict(id='test_env', label='TEST_ENV')]),
-                                                   injectors=dict(env=dict(TEST_ENV='{{ test_env }}')))
+                                                    injectors=dict(env=dict(TEST_ENV='{{ test_env }}')))
         credential = factories.v2_credential(credential_type=credential_type,
                                              inputs=dict(test_env='TEST_ENV_1'))
         inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/dyn_inventory_test_env.py',
@@ -246,8 +246,8 @@ class TestSCMInventorySource(Base_Api_Test):
         assert project.related.project_updates.get(launch_type='manual').count == 1
 
         inv_source = factories.v2_inventory_source(source='scm', project=project,
-                                                         source_path=source_path,
-                                                         update_on_project_update=True)
+                                                   source_path=source_path,
+                                                   update_on_project_update=True)
         inv_source.wait_until_completed()
 
         jt = factories.v2_job_template(inventory=inv_source.ds.inventory, project=project,
@@ -269,8 +269,8 @@ class TestSCMInventorySource(Base_Api_Test):
         project = factories.v2_project()
         assert project.related.project_updates.get(launch_type='manual').count == 1
         inv_source = factories.v2_inventory_source(source='scm', project=project,
-                                                         source_path=source_path,
-                                                         update_on_project_update=True)
+                                                   source_path=source_path,
+                                                   update_on_project_update=True)
         assert inv_source.wait_until_completed().is_successful
         assert project.related.project_updates.get(launch_type='manual').count == 2
         assert inv_source.related.inventory_updates.get().count == 1

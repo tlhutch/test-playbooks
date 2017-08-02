@@ -184,3 +184,29 @@ class TestInstanceGroups(Base_Api_Test):
 
             assert instance.get().consumed_capacity > 0
             assert instance.percent_capacity_remaining == round(float(instance.capacity - instance.consumed_capacity) * 100 / instance.capacity, 1)
+
+    @pytest.mark.requires_ha
+    @pytest.mark.requires_isolation
+    @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
+    def test_project_copied_to_separate_instance_on_job_run(self, v2, factories, mutually_exclusive_instance_groups,
+                                                            run_on_isolated_group):
+        if run_on_isolated_group:
+            ig1 = v2.instance_groups.get(name='tower').results.pop()
+            ig2 = v2.instance_groups.get(name='protected').results.pop()
+        else:
+            ig1, ig2 = mutually_exclusive_instance_groups(v2.instance_groups.get().results)
+
+        # Create project on first instance
+        org = factories.v2_organization()
+        org.add_instance_group(ig1)
+        proj = factories.v2_project(organization=org)
+
+        # Create and run job template on second instance
+        host = factories.v2_host()
+        jt = factories.v2_job_template(project=proj, inventory=host.ds.inventory)
+        jt.add_instance_group(ig2)
+
+        job = jt.launch().wait_until_completed()
+        ig2_hostnames = [i.hostname for i in ig2.get_related('instances').results]
+        assert job.execution_node in ig2_hostnames
+        assert job.is_successful
