@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from towerkit.utils import to_str
-import towerkit.utils
 import fauxfactory
 import pytest
 
@@ -21,7 +20,7 @@ class TestFactCache(Base_Api_Test):
         assert 'ansible_machine' in ansible_facts
         assert 'ansible_system' in ansible_facts
 
-    def test_ingest_facts_against_gather_facts_playbook(self, factories):
+    def test_ingest_facts_with_gather_facts_playbook(self, factories):
         host = factories.v2_host()
         ansible_facts = host.related.ansible_facts.get()
         assert not ansible_facts.json
@@ -32,7 +31,7 @@ class TestFactCache(Base_Api_Test):
         self.assert_updated_facts(ansible_facts.get())
 
     @pytest.mark.requires_single_instance
-    def test_ingest_facts_against_tower_scan_playbook(self, request, factories, ansible_runner, encrypted_scm_credential):
+    def test_ingest_facts_with_tower_scan_playbook(self, request, factories, ansible_runner, encrypted_scm_credential):
         host = factories.v2_host()
 
         machine_id = "4da7d1f8-14f3-4cdc-acd5-a3465a41f25d"
@@ -70,8 +69,7 @@ class TestFactCache(Base_Api_Test):
 
     def test_consume_facts_with_single_host(self, factories):
         host = factories.v2_host()
-        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_clear_facts_playbook')
-        jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='gather_facts.yml', use_fact_cache=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
         jt.playbook = 'use_facts.yml'
@@ -90,15 +88,14 @@ class TestFactCache(Base_Api_Test):
             host = factories.v2_host(inventory=inventory)
             hosts.append(host)
 
-        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_clear_facts_playbook')
-        jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='gather_facts.yml', use_fact_cache=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
         jt.playbook = 'use_facts.yml'
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
-        ansible_facts = hosts.pop().related.ansible_facts.get() # facts should be the same between hosts
+        ansible_facts = hosts.pop().related.ansible_facts.get()  # facts should be the same between hosts
         assert job.result_stdout.count(ansible_facts.ansible_distribution) == 3
         assert job.result_stdout.count(ansible_facts.ansible_machine) == 3
         assert job.result_stdout.count(ansible_facts.ansible_system) == 3
@@ -114,8 +111,7 @@ class TestFactCache(Base_Api_Test):
             hosts.append(host)
         target_host = hosts.pop()
 
-        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_clear_facts_playbook')
-        jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='gather_facts.yml', use_fact_cache=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         scan_job = jt.launch().wait_until_completed()
         assert scan_job.is_successful
 
@@ -135,12 +131,11 @@ class TestFactCache(Base_Api_Test):
 
     def test_consume_facts_with_custom_ansible_module(self, factories):
         host = factories.v2_host()
-        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_clear_facts_playbook')
-        jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='scan_custom.yml', use_fact_cache=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='scan_custom.yml', use_fact_cache=True)
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
-        target_job_events = job.related.job_events.get(event="runner_on_ok", task="scan_facts")
+        target_job_events = job.related.job_events.get(event="runner_on_ok", task="test_scan_facts")
         assert target_job_events.count == 1
         target_job_event = target_job_events.results.pop()
         ansible_facts = target_job_event.event_data.res.ansible_facts
@@ -156,11 +151,11 @@ class TestFactCache(Base_Api_Test):
         assert ansible_facts.empty_list == []
         assert ansible_facts.empty_obj == {}
 
-    # FIXME: add in Ansible version check
-    def test_clear_facts(self, factories, v2):
+    def test_clear_facts(self, factories, ansible_version_cmp):
+        if ansible_version_cmp("2.3") < 0:
+            pytest.skip("Not supported on Ansible-2.2.")
         host = factories.v2_host()
-        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_clear_facts_playbook')
-        jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='gather_facts.yml', use_fact_cache=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
         jt.playbook = 'clear_facts.yml'
