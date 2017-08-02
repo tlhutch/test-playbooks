@@ -103,7 +103,7 @@ RBAC:
 
 Fact ingestion:
 1. [x] `use_fact_cache` with gather_facts should update host `ansible_facts`.
-1. [x] `use_fact_cache` without gather_facts should update host `ansible_facts`.
+1. [x] `use_fact_cache` without gather_facts should not update host `ansible_facts`.
 1. [x] `use_fact_cache` with Tower scan modules should return expected facts.
 1. [x] Host with spaces in hostname.
 1. [x] Host with unicode hostname.
