@@ -242,6 +242,7 @@ class TestInventoryRBAC(Base_Api_Test):
         """
         inventory = factories.v2_inventory()
         factories.v2_group(inventory=inventory)
+        factories.v2_host(inventory=inventory)
         factories.v2_inventory_source(inventory=inventory)
         user = factories.user()
 
