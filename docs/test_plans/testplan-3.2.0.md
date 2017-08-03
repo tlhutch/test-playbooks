@@ -133,8 +133,8 @@ Miscellaney:
 1. [x] Verify Insights project requires Insights credential as dependency.
 1. [x] Verify Insights project update and downloaded playbooks.
 1. [x] Verify Insights project update `.version` tag.
-1. [ ] Verify remediation JT run on target host.
-1. [ ] Perform end-to-end test of complete Insights flow.
+1. [x] Verify remediation JT run on target host.
+1. [x] Perform end-to-end test of complete Insights flow.
 
 ### TACACS authentication (Jim)
 [Feature](https://github.com/ansible/ansible-tower/issues/3400)
