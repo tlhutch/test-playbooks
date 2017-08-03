@@ -68,6 +68,8 @@ class TestSCMInventorySource(Base_Api_Test):
         assert scm_inv_sources[0].id == inv_source.id
         return inv_source.get()
 
+    complex_var = [{"dir": "/opt/gwaf/logs", "sourcetype": "gwaf", "something_else": [1, 2, 3]}]
+
     @pytest.mark.ansible_integration
     def test_scm_inventory_hosts_and_host_vars(self, scm_inv_source_with_group_and_host_var_dirs):
         inv_source = scm_inv_source_with_group_and_host_var_dirs
@@ -80,6 +82,7 @@ class TestSCMInventorySource(Base_Api_Test):
         for group_one_host_01_vars in [group_one_host_01.variables, group_one_host_01.related.variable_data.get()]:
             assert group_one_host_01_vars.group_one_host_01_has_this_var
             assert group_one_host_01_vars.group_one_host_01_should_have_this_var
+            assert group_one_host_01_vars.complex_var == self.complex_var
             assert 'group_one_host_01_should_not_have_this_var' not in group_one_host_01_vars
 
         group_two_host_01 = inventory.related.hosts.get(name='group_two_host_01').results.pop()
@@ -116,6 +119,7 @@ class TestSCMInventorySource(Base_Api_Test):
             for host_vars in [host.variables, host.related.variable_data.get()]:
                 assert host_vars.is_in_group_one
                 assert host_vars.group_one_should_have_this_var
+                assert host_vars.complex_var == self.complex_var
                 assert 'group_one_should_not_have_this_var' not in host_vars
 
         group_two = inventory.related.groups.get(name='group_two').results.pop()
@@ -237,47 +241,62 @@ class TestSCMInventorySource(Base_Api_Test):
         pk = config.credentials.scm.rmfitzpatrick_ansible_playbooks.ssh_key_data
         return class_factories.v2_credential(credential_type=cred_type, inputs=dict(git_key=pk))
 
-    @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
-    def test_project_launch_using_update_on_project_update_with_scm_change(self, ansible_runner, factories, v2,
-                                                                           write_access_git_credential, source_path):
-        """Verifies that an scm inventory sync runs after running a job that commits code to its upstream repo"""
+    @pytest.fixture()
+    def jt_that_writes_to_source(self, factories, write_access_git_credential):
         project = factories.v2_project(scm_url='https://github.com/rmfitzpatrick/ansible-playbooks.git',
                                        scm_branch='inventory_additions')
+        jt = factories.v2_job_template(inventory=factories.v2_host().ds.inventory, project=project,
+                                       playbook='utils/trigger_update.yml')
+        jt.add_extra_credential(write_access_git_credential)
+        return jt
+
+    @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
+    def test_project_launch_using_update_on_project_update_with_scm_change(self, ansible_runner, factories, v2,
+                                                                           jt_that_writes_to_source, source_path):
+        """Verifies that an scm inventory sync runs after running a job that commits code to its upstream repo"""
+        project = jt_that_writes_to_source.ds.project
         assert project.related.project_updates.get(launch_type='manual').count == 1
+        assert project.related.project_updates.get(launch_type='sync').count == 0
 
         inv_source = factories.v2_inventory_source(source='scm', project=project,
                                                    source_path=source_path,
                                                    update_on_project_update=True)
         inv_source.wait_until_completed()
+        assert project.related.project_updates.get(launch_type='manual').count == 1
+        assert project.related.project_updates.get(launch_type='sync').count == 1
 
-        jt = factories.v2_job_template(inventory=inv_source.ds.inventory, project=project,
-                                       playbook='utils/trigger_update.yml', limit='ungrouped_host_01')
-        jt.add_extra_credential(write_access_git_credential)
-        assert jt.launch().wait_until_completed().is_successful
+        assert jt_that_writes_to_source.launch().wait_until_completed().is_successful
 
-        assert project.related.project_updates.get(launch_type='manual').count == 2
+        assert project.related.project_updates.get(launch_type='manual').count == 1
+        assert project.related.project_updates.get(launch_type='sync').count == 2  # addtl sync from job launch
         assert inv_source.related.inventory_updates.get().count == 1
 
         assert project.update().wait_until_completed().is_successful
-
         inv_source.wait_until_completed()
-        assert project.related.project_updates.get(launch_type='manual').count == 3
+
+        assert project.related.project_updates.get(launch_type='manual').count == 2
+        assert project.related.project_updates.get(launch_type='sync').count == 2
         assert inv_source.related.inventory_updates.get().count == 2
 
     @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
     def test_project_launch_using_update_on_project_update_without_scm_change(self, factories, source_path):
         project = factories.v2_project()
         assert project.related.project_updates.get(launch_type='manual').count == 1
+        assert project.related.project_updates.get(launch_type='sync').count == 0
+
         inv_source = factories.v2_inventory_source(source='scm', project=project,
                                                    source_path=source_path,
                                                    update_on_project_update=True)
         assert inv_source.wait_until_completed().is_successful
-        assert project.related.project_updates.get(launch_type='manual').count == 2
+
+        assert project.related.project_updates.get(launch_type='manual').count == 1
+        assert project.related.project_updates.get(launch_type='sync').count == 1
         assert inv_source.related.inventory_updates.get().count == 1
 
         assert project.update().wait_until_completed().is_successful
 
-        assert project.related.project_updates.get(launch_type='manual').count == 3
+        assert project.related.project_updates.get(launch_type='manual').count == 2
+        assert project.related.project_updates.get(launch_type='sync').count == 1
         assert inv_source.related.inventory_updates.get().count == 1
 
     def test_inventory_update_using_update_on_project_update_without_scm_change(self, ansible_runner, factories, v2,
@@ -288,12 +307,14 @@ class TestSCMInventorySource(Base_Api_Test):
         inv_source.wait_until_completed()
         project = inv_source.ds.project
 
-        assert project.related.project_updates.get(launch_type='manual').count == 2
+        assert project.related.project_updates.get(launch_type='manual').count == 1
+        assert project.related.project_updates.get(launch_type='sync').count == 1
         assert inv_source.related.inventory_updates.get().count == 1
 
         assert inv_source.update().wait_until_completed().is_successful
 
-        assert project.related.project_updates.get(launch_type='manual').count == 2
+        assert project.related.project_updates.get(launch_type='manual').count == 1
+        assert project.related.project_updates.get(launch_type='sync').count == 2
         assert inv_source.related.inventory_updates.get().count == 2
 
     def test_cancel_shared_parent_project_update_after_source_change(self, factories, write_access_git_credential):
@@ -431,18 +452,23 @@ class TestSCMInventorySource(Base_Api_Test):
         hostnames = set([summary.summary_fields.host.name for summary in job_host_summaries])
         assert hostnames == self.inventory_hostnames
 
-    def test_scm_inv_source_with_update_on_project_update_synced_within_parent_project_update(self, factories):
+    def test_scm_inv_source_with_update_on_project_update_synced_within_parent_project_update(self, factories,
+                                                                                              jt_that_writes_to_source):
+        assert jt_that_writes_to_source.launch().wait_until_completed().is_successful
+
+        project = jt_that_writes_to_source.ds.project
         scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
-                                                       update_on_project_update=True)
-        scm_inv_source.wait_until_completed()
-        assert scm_inv_source.is_successful
+                                                       project=project)
+        scm_inv_source.update_on_project_update = True
+
+        assert project.update().wait_until_completed().is_successful
+        assert scm_inv_source.get().is_successful
 
         inv_updates = scm_inv_source.related.inventory_updates.get().results
         assert len(inv_updates) == 1
         inv_update = inv_updates[0]
 
-        project = scm_inv_source.ds.project
-        project_updates = project.related.project_updates.get(order_by='id').results
+        project_updates = project.related.project_updates.get(launch_type='manual', order_by='id').results
         assert len(project_updates) == 2
         parent_update = project_updates[1]
 
@@ -458,15 +484,19 @@ class TestSCMInventorySource(Base_Api_Test):
         assert project.update().wait_until_completed().status == 'failed'
         assert inv_source.related.inventory_updates.get().count == 0
 
-    def test_project_update_for_scm_inv_source_with_running_update_on_project_update(self, factories):
-        """Confirms that when dependent project update runs upon update_on_project_update scm inv. source creation,
-        concurrent project update launches and queues another project update
-        """
+    def test_project_update_for_scm_inv_source_with_running_update_on_project_update(self, factories,
+                                                                                     jt_that_writes_to_source):
+        assert jt_that_writes_to_source.launch().wait_until_completed().is_successful
+        project = jt_that_writes_to_source.ds.project
         scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
-                                                       update_on_project_update=True)
-        project = scm_inv_source.ds.project
-        project.wait_until_status('running').update()
+                                                       project=project)
+        scm_inv_source.update_on_project_update = True
+
+        #  update the project and immediately schedule another update
+        project.update().wait_until_status('running')
+        project.update()
         assert scm_inv_source.wait_until_completed().is_successful
+
         inv_updates = scm_inv_source.related.inventory_updates.get().results
         assert len(inv_updates) == 1
         inv_update = inv_updates[0]
@@ -513,12 +543,17 @@ class TestSCMInventorySource(Base_Api_Test):
         hostnames = set([summary.summary_fields.host.name for summary in job_host_summaries])
         assert hostnames == self.inventory_hostnames
 
-    def test_deleted_inventory_during_project_update(self, factories):
+    def test_deleted_inventory_during_project_update(self, factories, jt_that_writes_to_source):
+        assert jt_that_writes_to_source.launch().wait_until_completed().is_successful
+        project = jt_that_writes_to_source.ds.project
         inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
-                                                   update_on_project_update=True)
-        project = inv_source.ds.project
+                                                   project=project)
+        inv_source.update_on_project_update = True
+
+        project.update()
         utils.poll_until(lambda: inv_source.related.inventory_updates.get().count == 1, interval=.5, timeout=30)
         inv_source.related.inventory_updates.get().results.pop().delete()
+
         assert project.wait_until_completed().is_successful
         assert not inv_source.related.inventory_updates.get().count
 
@@ -547,6 +582,6 @@ class TestSCMInventorySource(Base_Api_Test):
         inv_update = scm_inv_source.related.inventory_updates.get().results.pop()
         assert expected_error in inv_update.result_stdout
 
-        project_updates = project.related.project_updates.get(launch_type='manual', order_by='id').results
-        assert len(project_updates) == 2
-        assert project_updates[1].is_successful
+        project_updates = project.related.project_updates.get(launch_type='sync').results
+        assert len(project_updates) == 1
+        assert project_updates[0].is_successful
