@@ -50,11 +50,10 @@ class TestSmartInventory(Base_Api_Test):
         assert e.value[1]['inventory'] == {'detail': 'Cannot create Inventory Source for Smart Inventory'}
 
     def test_unable_to_inventory_update(self, factories):
-        """Smart inventories should reject a POST to /api/v2/inventories/N/update_inventory_sources/."""
         inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
         with pytest.raises(exc.BadRequest) as e:
             inventory.update_inventory_sources()
-        assert e.value[1] == {'error': 'Inventory update cannot be completed with Smart Inventory.'}
+        assert e.value[1] == {'detail': 'No inventory sources to update.'}
 
     def test_unable_to_have_insights_credential(self, factories):
         credential = factories.v2_credential(kind='insights')
@@ -81,7 +80,7 @@ class TestSmartInventory(Base_Api_Test):
         inventory.patch(host_filter="", kind="")
         assert inventory.related.hosts.get().count == 0
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7339')
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/7377")
     def test_launch_ahc_with_smart_inventory(self, factories):
         inventory = factories.v2_inventory()
         hosts = []
@@ -98,7 +97,7 @@ class TestSmartInventory(Base_Api_Test):
         for host in hosts:
             assert host.get().last_job == ahc.id
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7339')
+    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/7378")
     def test_launch_job_template_with_smart_inventory(self, factories):
         inventory = factories.v2_inventory()
         hosts = []

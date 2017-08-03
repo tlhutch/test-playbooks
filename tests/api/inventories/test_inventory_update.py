@@ -157,7 +157,7 @@ class TestInventoryUpdate(Base_Api_Test):
         assert included_group_hosts.count == 1
         assert included_host.id == included_group_hosts.results.pop().id
         root_groups = inventory.related.root_groups.get()
-        assert included_group.id in [group.id for group in root_groups]
+        assert included_group.id in [group.id for group in root_groups.results]
 
         excluded_group_hosts = excluded_group.related.hosts.get()
         assert excluded_group_hosts.count == 1
@@ -224,7 +224,7 @@ class TestInventoryUpdate(Base_Api_Test):
 
         assert inv_source.update().wait_until_completed().is_successful
 
-        assert custom_group.get().variables == {'ansible_ssh_host': '127.0.0.1', 'ansible_connection': 'local'}
+        assert custom_group.get().variables == {'ansible_host': '127.0.0.1', 'ansible_connection': 'local'}
         for host in hosts.results:
             assert not host.get().variables
 
@@ -245,8 +245,8 @@ class TestInventoryUpdate(Base_Api_Test):
 
         assert inv_source.update().wait_until_completed().is_successful
 
-        assert custom_group.get().variables == {'overwrite_me': False, 'ansible_ssh_host': '127.0.0.1',
-                                                                       'ansible_connection': 'local'}
+        assert custom_group.get().variables == {'overwrite_me': False, 'ansible_host': '127.0.0.1',
+                                                'ansible_connection': 'local'}
         for host in hosts.results:
             assert host.get().variables == load_json_or_yaml(inserted_variables)
 
