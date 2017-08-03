@@ -1,5 +1,6 @@
 import json
 
+from towerkit.utils import load_json_or_yaml
 from towerkit import exceptions as exc
 import pytest
 
@@ -103,7 +104,6 @@ class TestInventoryUpdate(Base_Api_Test):
         assert not inv_source1.last_updated
         assert not inv_source2.last_updated
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6564')
     def test_v2_update_duplicate_inventory_sources(self, factories):
         """Verify updating custom inventory sources under the same inventory with
         the same custom script."""
@@ -119,16 +119,16 @@ class TestInventoryUpdate(Base_Api_Test):
         assert inv_source1.get().is_successful
         assert inv_source2.get().is_successful
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/6523")
     def test_update_with_overwrite(self, factories):
         """Verify inventory update with overwrite.
-        * Hosts and groups created within our script-spawned group should get deleted.
+        * Hosts and groups created within our script-spawned group should get promoted.
         * Hosts and groups created outside of our custom group should persist.
         """
         inv_source = factories.v2_inventory_source(overwrite=True)
         inventory = inv_source.ds.inventory
         inv_source.update().wait_until_completed()
         spawned_group = inv_source.related.groups.get().results.pop()
+        spawned_host_ids = [host.id for host in spawned_group.related.hosts.get().results]
 
         # associate group and host with script-spawned group
         included_group = factories.group(inventory=inventory)
@@ -137,50 +137,118 @@ class TestInventoryUpdate(Base_Api_Test):
         for group in [spawned_group, included_group]:
             group.add_host(included_host)
 
-        # create excluded inventory resources
+        # create additional inventory resources
         excluded_group = factories.group(inventory=inventory)
         excluded_host, isolated_host = [factories.host(inventory=inventory) for _ in range(2)]
         excluded_group.add_host(excluded_host)
 
-        inv_source.update().wait_until_completed()
+        assert inv_source.update().wait_until_completed().is_successful
+
+        # verify our script-spawned group contents
+        assert spawned_group.related.children.get().count == 0
+        assert spawned_host_ids == [host.id for host in spawned_group.related.hosts.get().results]
+
+        # verify that additional inventory resources persist
         for resource in [included_group, included_host, excluded_group, excluded_host, isolated_host]:
-            with pytest.raises(exc.NotFound):
-                resource.get()
+            resource.get()
+
+        # verify associations between additional inventory resources
+        included_group_hosts = included_group.related.hosts.get()
+        assert included_group_hosts.count == 1
+        assert included_host.id == included_group_hosts.results.pop().id
+        root_groups = inventory.related.root_groups.get()
+        assert included_group.id in [group.id for group in root_groups.results]
+
+        excluded_group_hosts = excluded_group.related.hosts.get()
+        assert excluded_group_hosts.count == 1
+        assert excluded_host.id == excluded_group_hosts.results.pop().id
+
+    def test_update_without_overwrite(self, factories):
+        """Verify inventory update without overwrite.
+        * Hosts and groups created within our script-spawned group should persist.
+        * Hosts and groups created outside of our custom group should persist.
+        """
+        inv_source = factories.v2_inventory_source()
+        inventory = inv_source.ds.inventory
+        inv_source.update().wait_until_completed()
+        spawned_group = inv_source.related.groups.get().results.pop()
+        spawned_host_ids = [host.id for host in spawned_group.related.hosts.get().results]
+
+        # associate group and host with script-spawned group
+        included_group = factories.group(inventory=inventory)
+        included_host = factories.host(inventory=inventory)
+        spawned_group.add_group(included_group)
+        for group in [spawned_group, included_group]:
+            group.add_host(included_host)
+
+        # create additional inventory resources
+        excluded_group = factories.group(inventory=inventory)
+        excluded_host, isolated_host = [factories.host(inventory=inventory) for _ in range(2)]
+        excluded_group.add_host(excluded_host)
+
+        assert inv_source.update().wait_until_completed().is_successful
+
+        # verify our script-spawned group contents
+        spawned_group_children = spawned_group.related.children.get()
+        assert spawned_group_children.count == 1
+        assert spawned_group_children.results.pop().id == included_group.id
+        assert set(spawned_host_ids) | set([included_host.id]) == set([host.id for host in spawned_group.related.hosts.get().results])
+
+        # verify that additional inventory resources persist
+        for resource in [included_group, included_host, excluded_group, excluded_host, isolated_host]:
+            resource.get()
+
+        # verify associations between additional inventory resources
+        included_group_hosts = included_group.related.hosts.get()
+        assert included_group_hosts.count == 1
+        assert included_host.id == included_group_hosts.results.pop().id
+
+        excluded_group_hosts = excluded_group.related.hosts.get()
+        assert excluded_group_hosts.count == 1
+        assert excluded_host.id == excluded_group_hosts.results.pop().id
 
     def test_update_with_overwrite_vars(self, factories):
-        """Verify group and host variables overwritten when enabled."""
+        """Verify manually inserted group and host variables get deleted when
+        enabled. Final resource variables should be those sourced from the
+        inventory script.
+        """
         inv_source = factories.v2_inventory_source(overwrite_vars=True)
-        inv_source.update().wait_until_completed()
+        assert inv_source.update().wait_until_completed().is_successful
         custom_group = inv_source.related.groups.get().results.pop()
 
-        custom_group.variables = "{'overwrite_me': true}"
+        inserted_variables = "{'overwrite_me': true}"
+        custom_group.variables = inserted_variables
         hosts = custom_group.related.hosts.get()
         for host in hosts.results:
-            host.variables = "{'overwrite_me': true}"
+            host.variables = inserted_variables
 
-        inv_source.update().wait_until_completed()
+        assert inv_source.update().wait_until_completed().is_successful
 
-        assert not json.loads(custom_group.get().variables)
+        assert custom_group.get().variables == {'ansible_host': '127.0.0.1', 'ansible_connection': 'local'}
         for host in hosts.results:
-            assert not json.loads(host.get().variables)
+            assert not host.get().variables
 
     def test_update_without_overwrite_vars(self, factories):
-        """Verify group and host variables persist when disabled."""
+        """Verify manually inserted group and host variables persist when disabled.
+        Final resource variables should be a union of those sourced from the inventory
+        script and those manually inserted.
+        """
         inv_source = factories.v2_inventory_source()
-        inv_source.update().wait_until_completed()
+        assert inv_source.update().wait_until_completed().is_successful
         custom_group = inv_source.related.groups.get().results.pop()
 
-        variables = "{'overwrite_me': false}"
-        custom_group.variables = variables
+        inserted_variables = "{'overwrite_me': false}"
+        custom_group.variables = inserted_variables
         hosts = custom_group.related.hosts.get()
         for host in hosts.results:
-            host.variables = variables
+            host.variables = inserted_variables
 
-        inv_source.update().wait_until_completed()
+        assert inv_source.update().wait_until_completed().is_successful
 
-        assert custom_group.get().variables == variables
+        assert custom_group.get().variables == {'overwrite_me': False, 'ansible_host': '127.0.0.1',
+                                                'ansible_connection': 'local'}
         for host in hosts.results:
-            assert host.get().variables == variables
+            assert host.get().variables == load_json_or_yaml(inserted_variables)
 
     def test_update_with_stdout_injection(self, factories):
         """Verify that we can inject text to update stdout through our script."""
