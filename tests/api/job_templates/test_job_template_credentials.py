@@ -11,9 +11,8 @@ from tests.api import Base_Api_Test
 log = logging.getLogger(__name__)
 
 
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateCredentials(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_launch_without_credential_and_credential_needed_to_start(self, job_template_no_credential):
         """Verify the job launch endpoint disallows launching a job template without a credential."""
