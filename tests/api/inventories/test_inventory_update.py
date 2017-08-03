@@ -333,9 +333,9 @@ class TestInventoryUpdate(Base_Api_Test):
         if cloud_provider == 'aws':
             source_region = "us-east-1"
         elif cloud_provider == 'azure_rm':
-            source_region = "East_US_1"
+            source_region = "eastus"
         elif cloud_provider == 'gce':
-            source_region = "us-central1-f"
+            source_region = "all"
         else:
             raise NotImplementedError("Unexpected cloud_provider: %s." % cloud_provider)
 
@@ -351,10 +351,9 @@ class TestInventoryUpdate(Base_Api_Test):
         assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
 
         # assert that hosts were imported
-        assert cloud_group_supporting_source_regions.get().total_hosts > 0, \
+        assert cloud_group_supporting_source_regions.ds.inventory.get().total_hosts > 0, \
             "Unexpected number of hosts returned %s." % cloud_group_supporting_source_regions.total_hosts
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/625')
     @pytest.mark.ansible_integration
     def test_update_with_unpopulated_source_region(self, cloud_group_supporting_source_regions):
         """Tests that hosts are not imported when applying source regions not containing hosts.
@@ -372,8 +371,8 @@ class TestInventoryUpdate(Base_Api_Test):
         cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
         if cloud_provider == 'aws':
             source_region = "sa-east-1"
-        elif cloud_provider == 'azure':
-            source_region = "West_Japan"
+        elif cloud_provider == 'azure_rm':
+            source_region = "japanwest"
         elif cloud_provider == 'gce':
             source_region = "asia-east1-c"
         else:
@@ -391,7 +390,7 @@ class TestInventoryUpdate(Base_Api_Test):
         assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
 
         # assert that no hosts were imported
-        assert cloud_group_supporting_source_regions.get().total_hosts == 0, \
+        assert cloud_group_supporting_source_regions.ds.inventory.get().total_hosts == 0, \
             "Unexpected number of hosts returned (%s != 0)." % cloud_group_supporting_source_regions.total_hosts
 
     @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/6744", raises=AssertionError)
