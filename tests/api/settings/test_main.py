@@ -83,6 +83,7 @@ def modify_obfuscated_settings(api_settings_all_pg, update_setting_pg, unencrypt
         requests.
         """
         # update Tower settings
+        required_plaintext_fields = ['TACACSPLUS_HOST']
         payload = dict(SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET="test",  # /api/v1/settings/azuread-oauth2/
                        SOCIAL_AUTH_GITHUB_SECRET="test",  # /api/v1/settings/github/
                        SOCIAL_AUTH_GITHUB_ORG_SECRET="test",  # /api/v1/settings/github-org/
@@ -92,9 +93,10 @@ def modify_obfuscated_settings(api_settings_all_pg, update_setting_pg, unencrypt
                        LOG_AGGREGATOR_PASSWORD="test",  # /api/v1/settings/logging/
                        RADIUS_SECRET="test",  # /api/v1/settings/radius/
                        SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=unencrypted_rsa_ssh_key_data,  # /api/v1/settings/saml/
+                       TACACSPLUS_HOST="test",  # /api/v1/settings/tacasplus/ (required by TACACSPLUS_SECRET)
                        TACACSPLUS_SECRET="test")  # /api/v1/settings/tacasplus/
         update_setting_pg(api_settings_all_pg, payload)
-        return payload
+        return payload, required_plaintext_fields
     return func
 
 
@@ -524,7 +526,7 @@ class Test_Main_Setting(Base_Api_Test):
 
     def test_setting_obfuscation(self, api_settings_pg, modify_obfuscated_settings):
         """Verifies that sensitive setting values get obfuscated."""
-        payload = modify_obfuscated_settings()
+        payload, required_plaintext_fields = modify_obfuscated_settings()
 
         # check that all nested settings endpoints have sensitive values obfuscated
         api_settings_pg.get()
@@ -532,6 +534,8 @@ class Test_Main_Setting(Base_Api_Test):
             endpoint.get()
             relevant_keys = [key for key in endpoint.json.keys() if key in payload and key in endpoint.json]
             for key in relevant_keys:
+                if key in required_plaintext_fields:
+                    continue
                 assert endpoint.json[key] == "$encrypted$", \
                     "\"{0}\" not obfuscated in {1}.".format(key, endpoint.endpoint)
 
