@@ -114,3 +114,11 @@ class TestSmartInventory(Base_Api_Test):
 
         for host in hosts:
             assert host.get().last_job == job.id
+
+    def test_smart_inventory_deletion_does_not_cascade_delete_hosts(self, factories):
+        host = factories.v2_host()
+        inventory = factories.v2_inventory(kind='smart', host_filter='name={0}'.format(host.name))
+        assert inventory.related.hosts.get().count == 1
+
+        inventory.delete().wait_until_deleted()
+        host.get()
