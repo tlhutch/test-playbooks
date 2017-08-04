@@ -53,6 +53,13 @@ class TestInsights(Base_Api_Test):
         assert registered_host.insights_system_id == self.registered_machine_id
         assert unregistered_host.insights_system_id == self.unregistered_machine_id
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7392')
+    def test_insights_system_id_is_read_only(self, insights_inventory):
+        """Host details insights_system_id should be read-only."""
+        unregistered_host = insights_inventory.related.hosts.get(name='unregistered_host').results.pop()
+        unregistered_host.insights_system_id = "zzzzyyyy-xxxx-wwww-vvvv-uuuuttttssss"
+        assert unregistered_host.get().insights_system_id == self.unregistered_machine_id
+
     def test_inventory_with_insights_credential(self, factories, insights_inventory):
         """Verify that various inventory fields update for our Insights credential."""
         assert not insights_inventory.insights_credential
@@ -81,13 +88,8 @@ class TestInsights(Base_Api_Test):
         host = insights_inventory.related.hosts.get(name="registered_host").results.pop()
 
         content = host.related.insights.get().insights_content
-        assert content.reports
-        assert content.product == 'rhel'
-        assert content.hostname == 'ip-10-180-34-241.ec2.internal' # non-existent instance
-        assert content.system_id == self.registered_machine_id
-        assert content.type == 'machine'
+        assert len(content.reports) == 10
 
-    @pytest.mark.skip(reason="Behavior TBD: https://github.com/ansible/ansible-tower/issues/6916.")
     def test_access_insights_with_credential_and_unregistered_host(self, factories, insights_inventory):
         """Verify that attempts to access Insights from an unregistered host with an Insights credential
         raises a 500.
@@ -96,7 +98,7 @@ class TestInsights(Base_Api_Test):
         insights_inventory.insights_credential = credential.id
         host = insights_inventory.related.hosts.get(name="unregistered_host").results.pop()
 
-        with pytest.raises(exc.InternalServerError) as e:
+        with pytest.raises(exc.BadGateway) as e:
             host.related.insights.get().insights_content
         assert "Failed to gather reports and maintenance plans from Insights API" in e.value[1]['error']
 
