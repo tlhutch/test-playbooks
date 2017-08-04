@@ -1,29 +1,19 @@
 import pytest
 import httplib
 
-import towerkit.exceptions
-from tests.lib.helpers.rbac_utils import (
-    assert_response_raised,
-    check_read_access,
-    check_user_capabilities
-)
+import towerkit.exceptions as exc
+
+from tests.lib.helpers.rbac_utils import assert_response_raised, check_read_access
 from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestSmartInventoryRBAC(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-
     def test_unprivileged_user(self, factories):
-        """An unprivileged user should not be able to:
-        * Get the inventory detail page
-        * Get all of the inventory related pages
-        * Edit/delete the inventory
-        * Edit/delete inventory host
-        """
         host = factories.v2_host()
         inventory = factories.v2_inventory(kind='smart', host_filter='name={0}'.format(host.name))
         user = factories.user()
@@ -31,12 +21,13 @@ class TestSmartInventoryRBAC(Base_Api_Test):
         with self.current_user(username=user.username, password=user.password):
             check_read_access(inventory, unprivileged=True)
 
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 inventory.related.ad_hoc_commands.post()
 
-            for resource in [host, inventory]:
-                assert_response_raised(resource, httplib.FORBIDDEN)
+            assert_response_raised(host, httplib.FORBIDDEN)
+            assert_response_raised(inventory, httplib.FORBIDDEN)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7382')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, set_test_roles, agent, factories):
         host = factories.v2_host()
@@ -68,14 +59,11 @@ class TestSmartInventoryRBAC(Base_Api_Test):
         host = factories.v2_host()
         inventory = factories.v2_inventory(kind='smart', host_filter='name=localhost')
         user = factories.user()
-        credential = factories.v2_credential(user=user)
 
         set_test_roles(user, inventory, agent, "ad hoc")
 
         with self.current_user(username=user.username, password=user.password):
             check_read_access(inventory, ["organization"])
-            factories.v2_ad_hoc_command(inventory=inventory, credential=credential, module_name='shell',
-                                        module_args='true').wait_until_completed()
             assert_response_raised(host, httplib.FORBIDDEN)
             assert_response_raised(inventory, httplib.FORBIDDEN)
 
@@ -92,14 +80,28 @@ class TestSmartInventoryRBAC(Base_Api_Test):
             assert_response_raised(host, httplib.FORBIDDEN)
             assert_response_raised(inventory, httplib.FORBIDDEN)
 
-    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
-    def test_user_capabilities(self, factories, v2, role):
+    @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'read'])
+    def test_launch_command_with_smart_inventory(self, factories, role):
+        ALLOWED_ROLES = ['admin', 'ad hoc']
+        REJECTED_ROLES = ['use', 'read']
+
         host = factories.v2_host()
         inventory = factories.v2_inventory(kind='smart', host_filter='name={0}'.format(host.name))
         user = factories.user()
+        credential = factories.v2_credential(user=user)
 
         inventory.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
-            check_user_capabilities(inventory.get(), role)
-            check_user_capabilities(v2.inventory.get(id=inventory.id).results.pop(), role)
+            if role in ALLOWED_ROLES:
+                ahc = factories.v2_ad_hoc_command(inventory=inventory,
+                                                  credential=credential,
+                                                  module_name="ping").wait_until_completed()
+                assert ahc.is_successful
+            elif role in REJECTED_ROLES:
+                with pytest.raises(exc.Forbidden):
+                    factories.v2_ad_hoc_command(inventory=inventory,
+                                                credential=credential,
+                                                module_name="ping")
+            else:
+                raise ValueError("Received unhandled inventory role.")
