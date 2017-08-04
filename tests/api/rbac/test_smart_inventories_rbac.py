@@ -1,7 +1,7 @@
-import pytest
 import httplib
 
 import towerkit.exceptions as exc
+import pytest
 
 from tests.lib.helpers.rbac_utils import assert_response_raised, check_read_access
 from tests.api import Base_Api_Test
