@@ -220,7 +220,7 @@ Migrations (Jake)
 1. [x] A user should not be able to access specified resource objects if the given named URL is inaccurate. For example, reserved characters not correctly escaped, or components whose corresponding foreign key field pointing nowhere is not replaced by empty string.
 1. [ ] A user should be able to dynamically generate named URLs by utilizing `NAMED_URL_GRAPH_NODES`.
 
-### Arbitrary inventory/credential sources + Ansible 2.4 inventory 
+### Arbitrary inventory/credential sources (Ryan)
 [Feature](https://docs.google.com/document/d/1z6vW9W1yd0SbD46610XUr7WbNDDOg0jEAk8eETW-c8E)
 
 1. [x] Verify continued v1 credential api support
@@ -229,19 +229,17 @@ Migrations (Jake)
 1. [x] Verify managed-by-tower credential types are read only
 1. [x] Verify sourced custom credential types are read only
 1. [x] Verify Credential Types activity stream history for basic object modification
-1. [ ] Verify SSH/Vault migration split
-1. [ ] Verify Rackspace migration
-1. [ ] Verify successful credential migrations
+1. [x] Verify SSH/Vault migration split
+1. [x] Verify Rackspace migration
+1. [x] Verify successful credential migrations
 1. [x] Verify superuser has sole credential type creation ability
 1. [x] Verify custom credential injection for jobs
 1. [x] Verify custom credential injection for inventory updates
-1. [ ] Verify custom credential injection for project updates
-1. [ ] Verify custom credential injection for ad-hoc commands
-1. [ ] Verify job with vault credential
+1. [x] Verify job with vault credential
 1. [x] Verify job with extra credentials
-1. [ ] Verify job with vault and extra credentials
+1. [x] Verify job with vault and extra credentials
 
-### SCM controlled inventory source
+### SCM controlled inventory source + Ansible 2.4 inventory (Ryan)
 [Feature](https://drive.google.com/open?id=1QCZDq0bgvkTu1udcskjn8NwxijTae9pbU_AMsA8Po84)
 
 1. [x] Verify inventory sync including directory-provided host and group vars from static inventory file

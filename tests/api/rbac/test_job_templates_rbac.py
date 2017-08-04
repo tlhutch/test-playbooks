@@ -180,31 +180,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             for method, code in response_codes.iteritems():
                 check_request(job_template, method, code, data=jt_payload)
 
-    def test_job_template_post_request_without_network_credential_access(self,
-            factories, api_job_templates_pg):
-        """Verify that job_template post requests with network credentials in
-        the payload are only permitted if the user making the request has usage
-        permission for the network credential.
-        """
-        # set user resource role associations
-        jt_payload = factories.job_template.payload()
-        organization = jt_payload.ds.inventory.ds.organization
-        user = factories.user(organization=organization)
-        for name in ('credential', 'project', 'inventory'):
-            jt_payload.ds[name].set_object_roles(user, 'use')
-        # make network credential and add it to payload
-        network_credential = factories.credential(kind='net', organization=organization)
-        jt_payload.network_credential = network_credential.id
-        # check POST response code with network credential read permissions
-        network_credential.set_object_roles(user, 'read')
-        with self.current_user(user.username, password=user.password):
-            check_request(api_job_templates_pg, 'POST', httplib.FORBIDDEN, jt_payload)
-        # add network credential usage role permissions to test user
-        network_credential.set_object_roles(user, 'use')
-        # verify that the POST request is now permitted
-        with self.current_user(user.username, password=user.password):
-            check_request(api_job_templates_pg, 'POST', httplib.CREATED, jt_payload)
-
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_launch_job(self, factories, role):
         """Tests ability to launch a job."""
@@ -282,29 +257,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         with self.current_user(username=user1.username, password=user1.password):
             payload = dict(inventory=inventory.id)
             job = job_template.launch(payload).wait_until_completed()
-
-        # relaunch as user2 should raise 403
-        with self.current_user(username=user2.username, password=user2.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
-                job.relaunch()
-
-    def test_relaunch_with_ask_credential(self, factories, job_template_no_credential):
-        """Tests relaunch RBAC when ask_credential_on_launch is true."""
-        job_template_no_credential.patch(ask_credential_on_launch=True)
-
-        credential = factories.credential()
-        user1 = factories.user(organization=credential.ds.organization)
-        user2 = factories.user()
-
-        # set test permissions
-        job_template_no_credential.set_object_roles(user1, 'execute')
-        credential.set_object_roles(user1, 'use')
-        job_template_no_credential.set_object_roles(user2, 'execute')
-
-        # launch job as user1
-        with self.current_user(username=user1.username, password=user1.password):
-            payload = dict(credential=credential.id)
-            job = job_template_no_credential.launch(payload).wait_until_completed()
 
         # relaunch as user2 should raise 403
         with self.current_user(username=user2.username, password=user2.password):

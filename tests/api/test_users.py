@@ -2,6 +2,8 @@ import json
 import pytest
 import fauxfactory
 import towerkit.exceptions
+from towerkit.utils import to_str
+
 from tests.api import Base_Api_Test
 
 
@@ -103,3 +105,9 @@ class Test_Users(Base_Api_Test):
         with self.current_user(non_superuser.username, user_password):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 api_users_pg.post(user_payload())
+
+    def test_user_creation_doesnt_leak_password_into_activity_stream(self, v2, factories):
+        superuser = factories.v2_user(is_superuser=True)
+        user_activity_stream = to_str(superuser.related.activity_stream.get())
+        for secret in (superuser.password, 'md5'):
+            assert secret not in user_activity_stream

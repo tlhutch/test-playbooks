@@ -1,5 +1,6 @@
-from towerkit.utils import credential_type_kinds, PseudoNamespace
+from towerkit.utils import credential_type_kinds, to_str, PseudoNamespace
 from towerkit import exceptions as exc
+import fauxfactory
 import pytest
 
 from tests.api import Base_Api_Test
@@ -9,7 +10,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestCredentialTypes(Base_Api_Test):
 
-    def test_credential_type_options(self, v2):
+    def test_v2_credential_types_options(self, v2):
         """confirms that OPTIONS for credential types provides desired information for type creation and retrieval"""
         options = v2.credential_types.options()
 
@@ -31,6 +32,17 @@ class TestCredentialTypes(Base_Api_Test):
         assert injectors.required is False
         assert injectors.type == 'field'
         assert injectors.label == 'Injectors'
+
+        creating_help_text = options.description.split('Create Credential Types')[1].lower()
+        for desired_type in credential_type_kinds:
+            assert desired_type in creating_help_text
+        for undesired_type in ('insights', 'ssh', 'scm', 'vault'):
+            assert undesired_type not in creating_help_text
+
+    def test_v1_credential_options_dont_contain_credential_type(self, v1):
+        options = to_str(v1.credentials.options()).lower()
+        assert "credential type" not in options
+        assert "credential_type" not in options
 
     def test_confirm_empty_defaults_for_credential_type(self, factories):
         for kind in credential_type_kinds:
@@ -157,9 +169,9 @@ class TestCredentialTypes(Base_Api_Test):
         assert scm.username.label == 'Username'
 
     def test_managed_by_tower_ssh_credential_type(self, managed_by_tower_fields):
-        ssh = managed_by_tower_fields['SSH']
+        ssh = managed_by_tower_fields['Machine']
         assert ssh.kind == 'ssh'
-        assert set(ssh.become_method.choices) == set(['', 'sudo', 'su', 'pbrun', 'pfexec', 'dzdo', 'pmrun'])
+        assert set(ssh.become_method.choices) == set(['', 'runas', 'sudo', 'su', 'pbrun', 'pfexec', 'dzdo', 'pmrun'])
         assert ssh.become_method.label == 'Privilege Escalation Method'
         assert ssh.become_password.ask_at_runtime is True
         assert ssh.become_password.label == 'Privilege Escalation Password'
@@ -191,6 +203,10 @@ class TestCredentialTypes(Base_Api_Test):
         assert vmware.password.label == 'Password'
         assert vmware.password.secret is True
         assert vmware.username.label == 'Username'
+
+    def test_managed_by_tower_rackspace_doesnt_exist(self, v2):
+        rackspace = v2.credential_types.get(managed_by_tower=True, name__icontains='rackspace').results
+        assert not rackspace
 
     def test_managed_by_tower_credential_types_are_read_only(self, v2):
         """Confirms that managed_by_tower credential types cannot be edited or deleted"""
@@ -243,9 +259,21 @@ class TestCredentialTypes(Base_Api_Test):
             factories.credential_type(inputs=dict(fields=fields))
         assert e.value.message['inputs'] == expected_error
 
+    def test_confirm_input_with_choices_enforced(self, factories):
+        inputs = dict(fields=[dict(id='field_one', label='FieldOne', choices=['one', 'two', 'three'])])
+        cred_type = factories.credential_type(inputs=inputs)
+
+        factories.v2_credential(credential_type=cred_type, inputs=dict(field_one='one'))
+
+        with pytest.raises(exc.BadRequest) as e:
+            factories.v2_credential(credential_type=cred_type, inputs=dict(field_one='NotAChoice'))
+
+        assert e.value.message == {'inputs': {'field_one': ["'NotAChoice' is not one of ['one', 'two', 'three']"]}}
+
     @pytest.mark.parametrize('field, value', [('multiline', True), ('multiline', False),
                                               ('format', 'ssh_private_key'),
-                                              ('choices', ['1', '2', '3', '4'])])
+                                              ('choices', ['1', '2', '3', '4']),
+                                              ('secret', True), ('secret', False)])
     def test_confirm_invalid_input_fields_with_boolean(self, factories, field, value):
         invalid = {}
         invalid[field] = value
@@ -283,7 +311,34 @@ class TestCredentialTypes(Base_Api_Test):
         message = e.value.message[field][0]
         assert 'is not of type' in message or 'Additional properties are not allowed' in message
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6769')
+    invalid_vars = ('!In??Valid', '0In**<<Valid', '--invalid--', '.in.valid.', fauxfactory.gen_utf8())
+
+    def test_confirm_inputs_must_be_valid(self, factories, v2):
+        ct_payload = factories.credential_type.payload(inputs={})
+
+        invalid_fields = [[dict(id=to_str(var), label=fauxfactory.gen_utf8())] for var in self.invalid_vars]
+
+        for invalid_field in invalid_fields:
+            ct_payload.inputs.fields = invalid_field
+            with pytest.raises(exc.BadRequest) as e:
+                v2.credential_types.post(ct_payload)
+            assert e.value.message == {'inputs': ['%s is an invalid variable name'
+                                                  % invalid_field[0]['id'].decode('utf8')]}
+
+    @pytest.mark.parametrize('var_type', ('extra_vars', 'env'))
+    def test_confirm_injector_vars_must_be_valid(self, factories, v2, var_type):
+        ct_payload = factories.credential_type.payload(inputs=dict(fields=[dict(id='input_one', label='InputOne')]),
+                                                       injectors={var_type: {}})
+
+        for invalid_var in self.invalid_vars:
+            ct_payload.injectors[var_type][invalid_var] = '{{ input_one }}'
+            with pytest.raises(exc.BadRequest) as e:
+                v2.credential_types.post(ct_payload)
+            assert e.value.message == {u'injectors': ["'%s' does not match any of the regexes: "
+                                                      "'^[a-zA-Z_]+[a-zA-Z0-9_]*$'"
+                                                      % invalid_var.encode('ascii', 'backslashreplace')]}
+            del ct_payload.injectors[var_type][invalid_var]
+
     def test_confirm_inputs_persist_as_specified(self, factories):
         field_one = dict(id='field_one', type='string', label='FieldOne', secret=True,
                          help_text='FieldOne Help Text')
@@ -293,10 +348,8 @@ class TestCredentialTypes(Base_Api_Test):
                            help_text='FieldThree Help Text')
         field_four = dict(id='field_four', type='string', label='FieldFour', secret=False,
                           multiline=True, help_text='FieldFour Help Text')
-        field_five = dict(id='field_five', type='boolean', label='FieldFive', secret=False,
-                          help_text='FieldFive Help Text')
-        field_six = dict(id='field_six', type='boolean', label='FieldSix', secret=True,
-                        help_text='FieldSix Help Text')
+        field_five = dict(id='field_five', type='boolean', label='FieldFive', help_text='FieldFive Help Text')
+        field_six = dict(id='field_six', type='boolean', label='FieldSix', help_text='FieldSix Help Text')
         inputs = dict(fields=[field_one, field_two, field_three, field_four, field_five, field_six],
                       required=['field_one', 'field_two', 'field_three'])
 

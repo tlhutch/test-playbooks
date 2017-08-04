@@ -14,6 +14,14 @@ log = logging.getLogger(__name__)
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateCredentials(Base_Api_Test):
 
+    def test_job_template_creation_without_credential(self, v2, factories):
+        payload = factories.v2_job_template.payload()
+        del payload['credential']
+
+        with pytest.raises(exc.BadRequest) as e:
+            v2.job_templates.post(payload)
+        assert e.value.message == {'credential': ['Must either set a default value or ask to prompt on launch.']}
+
     def test_launch_without_credential_and_credential_needed_to_start(self, job_template_no_credential):
         """Verify the job launch endpoint disallows launching a job template without a credential."""
         launch = job_template_no_credential.related.launch.get()
@@ -25,8 +33,9 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert launch.credential_needed_to_start
 
         # launch the job_template without providing a credential
-        with pytest.raises(exc.BadRequest):
+        with pytest.raises(exc.BadRequest) as e:
             launch.post()
+        assert e.value.message == {'credential': ["Job Template 'credential' is missing or undefined."]}
 
     def test_launch_with_linked_credential(self, job_template_no_credential, ssh_credential):
         """Verify the job template launch endpoint requires user input when using a linked credential and
@@ -64,9 +73,16 @@ class TestJobTemplateCredentials(Base_Api_Test):
 
     def test_launch_with_invalid_credential_in_payload(self, job_template_no_credential):
         """Verify the job launch endpoint throws 400 error when launching with invalid credential id"""
-        for bogus in ['', 'one', 0, False, [], {}]:
-            with pytest.raises(exc.BadRequest):
-                job_template_no_credential.launch(dict(credential=bogus))
+        invalid_and_error = [('', "Job Template 'credential' is missing or undefined."),
+                             ('one', "Incorrect type. Expected pk value, received unicode."),
+                             (0, 'Invalid pk "0" - object does not exist.'),
+                             (False, 'Invalid pk "False" - object does not exist.'),
+                             ([], 'Incorrect type. Expected pk value, received list.'),
+                             ({}, 'Incorrect type. Expected pk value, received OrderedDict.')]
+        for invalid, error in invalid_and_error:
+            with pytest.raises(exc.BadRequest) as e:
+                job_template_no_credential.launch(dict(credential=invalid))
+            assert e.value.message['credential'] == [error]
 
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_no_credential,
                                                                          ssh_credential_ask):
@@ -153,6 +169,65 @@ class TestJobTemplateCredentials(Base_Api_Test):
             job = job_template_no_credential.launch(dict(credential=team_ssh_credential.id)).wait_until_completed()
             assert job.is_successful
             assert job.credential == team_ssh_credential.id
+
+    def test_job_template_creation_with_lone_vault_credential(self, request, v2, factories):
+        payload = factories.v2_job_template.payload()
+        del payload['credential']
+
+        vault_credential = factories.v2_credential(kind='vault', vault_password='tower')
+        payload['vault_credential'] = vault_credential.id
+
+        jt = v2.job_templates.post(payload)
+        request.addfinalizer(jt.delete)
+
+        assert not jt.credential
+        assert jt.vault_credential == vault_credential.id
+
+    @pytest.mark.parametrize('v, cred_args', [['v1', dict(vault_password='tower', username='', password='',
+                                                          ssh_key_data='', become_password='')],
+                                              ['v2', dict(kind='vault', vault_password='tower')]])
+    def test_decrypt_vaulted_playbook_with_vault_credential(self, factories, v, cred_args):
+        host_factory = getattr(factories, 'host' if v == 'v1' else 'v2_host')
+        cred_factory = getattr(factories, 'credential' if v == 'v1' else 'v2_credential')
+        jt_factory = getattr(factories, 'job_template' if v == 'v1' else 'v2_job_template')
+
+        host = host_factory()
+        jt = jt_factory(inventory=host.ds.inventory, playbook='vaulted_debug_hostvars.yml')
+
+        vault_cred = cred_factory(**cred_args)
+        jt.vault_credential = vault_cred.id
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        debug_tasks = job.related.job_events.get(host_name=host.name, task='debug').results
+        assert len(debug_tasks) == 1
+        assert debug_tasks[0].event_data.res.hostvars.keys() == [host.name]
+
+    @pytest.mark.parametrize('v, cred_args', [['v1', dict(vault_password='ASK', username='', password='',
+                                                          ssh_key_data='', become_password='')],
+                                              ['v2', dict(kind='vault', vault_password='ASK')]])
+    def test_decrypt_vaulted_playbook_with_lone_ask_on_launch_vault_credential(self, factories, v, cred_args):
+        host_factory = getattr(factories, 'host' if v == 'v1' else 'v2_host')
+        cred_factory = getattr(factories, 'credential' if v == 'v1' else 'v2_credential')
+        jt_factory = getattr(factories, 'job_template' if v == 'v1' else 'v2_job_template')
+
+        host = host_factory()
+        vault_cred = cred_factory(**cred_args)
+        jt = jt_factory(inventory=host.ds.inventory, playbook='vaulted_debug_hostvars.yml')
+        jt.vault_credential = vault_cred.id
+        jt.credential = None
+
+        with pytest.raises(exc.BadRequest) as e:
+            jt.launch().wait_until_completed()
+        assert e.value.message == {'passwords_needed_to_start': ['vault_password']}
+
+        job = jt.launch(dict(vault_password='tower')).wait_until_completed()
+        assert job.is_successful
+
+        debug_tasks = job.related.job_events.get(host_name=host.name, task='debug').results
+        assert len(debug_tasks) == 1
+        assert debug_tasks[0].event_data.res.hostvars.keys() == [host.name]
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
@@ -244,6 +319,61 @@ class TestJobTemplateExtraCredentials(Base_Api_Test):
     def test_confirm_extra_credentials_injectors_are_sourced(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
+
+        cloud_credentials = [factories.v2_credential(kind=cred_type) for cred_type in ('aws', 'azure_rm', 'gce')]
+        for cred in cloud_credentials:
+            jt.add_extra_credential(cred)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        env_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AZURE_CLIENT_ID', 'AZURE_SECRET',
+                    'AZURE_SUBSCRIPTION_ID', 'AZURE_TENANT', 'GCE_EMAIL', 'GCE_PEM_FILE_PATH', 'GCE_PROJECT')
+
+        for env_var in env_vars:
+            assert env_var in job.job_env
+
+        ansible_env = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.ansible_env
+
+        for env_var in env_vars:
+            assert env_var in ansible_env
+
+    def test_confirm_ask_on_launch_extra_credential_values_are_sourced(self, factories):
+        input_one = dict(fields=[dict(id='field_one', label='FieldOne')])
+        input_two = dict(fields=[dict(id='field_two', label='FieldTwo')])
+        input_three = dict(fields=[dict(id='field_three', label='FieldThree')])
+        input_four = dict(fields=[dict(id='field_four', label='FieldFour')])
+
+        injector_one = dict(env=dict(EXTRA_VAR_FROM_FIELD_ONE='{{ field_one }}'))
+        injector_two = dict(env=dict(EXTRA_VAR_FROM_FIELD_TWO='{{ field_two }}'))
+        injector_three = dict(env=dict(EXTRA_VAR_FROM_FIELD_THREE='{{ field_three }}'))
+        injector_four = dict(env=dict(EXTRA_VAR_FROM_FIELD_FOUR='{{ field_four }}'))
+
+        desired_value = 'SomeDesiredValue'
+
+        credentials = []
+        for inp, inj in zip([input_one, input_two, input_three, input_four],
+                            [injector_one, injector_two, injector_three, injector_four]):
+            ct = factories.credential_type(inputs=inp, injectors=inj)
+            credentials.append(factories.v2_credential(credential_type=ct,
+                                                       inputs={inp['fields'][0]['id']: desired_value}))
+
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml',
+                                       ask_credential_on_launch=True)
+
+        job = jt.launch(dict(extra_credentials=[cred.id for cred in credentials])).wait_until_completed()
+        assert job.is_successful
+
+        ansible_env = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.ansible_env
+        for var in ('EXTRA_VAR_FROM_FIELD_ONE', 'EXTRA_VAR_FROM_FIELD_TWO',
+                    'EXTRA_VAR_FROM_FIELD_THREE', 'EXTRA_VAR_FROM_FIELD_FOUR'):
+            assert getattr(ansible_env, var) == desired_value
+
+    def test_confirm_extra_credentials_injectors_are_sourced_with_vault_credentials(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='vaulted_ansible_env.yml')
+        jt.vault_credential = factories.v2_credential(kind='vault', vault_password='tower').id
 
         cloud_credentials = [factories.v2_credential(kind=cred_type) for cred_type in ('aws', 'azure_rm', 'gce')]
         for cred in cloud_credentials:
