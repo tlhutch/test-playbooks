@@ -117,8 +117,7 @@ class TestInventory(Base_Api_Test):
         parent_group.add_host(group_host)
         inv_source = factories.v2_inventory_source(inventory=inventory)
 
-        inventory.delete()
-        utils.logged_sleep(2)
+        inventory.delete().wait_until_deleted()
         for resource in [inventory, parent_group, child_group, group_host, isolated_host, inv_source]:
             with pytest.raises(exc.NotFound):
                 resource.get()

@@ -4,7 +4,6 @@ import types
 import json
 import re
 
-from towerkit import utils
 import towerkit.tower.inventory
 import towerkit.exceptions
 import fauxfactory
@@ -426,8 +425,7 @@ class Test_Job(Base_Api_Test):
         if resource.type == 'project':
             resource.delete()
         else:
-            resource.related.inventory.delete()
-            utils.logged_sleep(2)
+            resource.related.inventory.delete().wait_until_deleted()
 
         # verify that update cascade deleted
         with pytest.raises(towerkit.exceptions.NotFound):
