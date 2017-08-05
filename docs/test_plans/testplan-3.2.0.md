@@ -99,7 +99,7 @@ RBAC:
 1. [x] Host filter results are organization-scoped for organization admins.
 
 ### Set Facts (Chris)
-[Feature]()
+[Feature](https://github.com/ansible/ansible-tower/blob/devel/docs/fact_cache.md)
 
 Fact ingestion:
 1. [x] `use_fact_cache` with gather_facts should update host `ansible_facts`.
@@ -117,13 +117,14 @@ Fact use:
 Miscellaney:
 1. [x] Verify fact ingestation and sourcing against all JSON data types.
 1. [ ] Verify fact cache ingestation and use over cluster.
-1. [x] `clear_facts` should clear facts.
+1. [ ] `clear_facts` should clear facts.
 
 ### Insights Integration (Chris)
 [Feature](https://docs.google.com/document/d/1gpjGumL5SVCSqcJKTkkFTQGWAQ6vLUxn_NOrE75TMtk/edit)
 
 1. [x] Verify stock value for host `insights_system_id`.
 1. [x] Verify `insights_system_id` updates after scan job.
+1. [ ] Verify that `insights_system_id` is read-only.
 1. [x] Verify inventory details update for Insights credential.
 1. [x] Verify Insights credentials not allowed with smart inventories.
 1. [x] Verify querying `/hosts/N/insights/` when host has no Insights credential.
@@ -150,48 +151,59 @@ Miscellaney:
 ### Inventory UX
 [Feature](https://drive.google.com/open?id=1lvBf_Gf7peE4fucrdPUpRTMuTBz2SpS5Df273bd72Sk)
 
-Smart inventories (Chris)
+Smart inventories (Chris):
 1. [x] Verify smart inventory CRUD.
 1. [x] Verify smart inventory host list updates for host edit.
 1. [x] Verify smart inventory host list updates for host deletion.
 1. [x] Verify smart inventory hosts reflects `host_filter`.
-1. [x] Verify smart inventories group support.
-1. [x] Verify smart inventories host support.
-1. [x] Verify smart inventories inventory source support.
-1. [x] Verify smart inventories inventory update support (`/api/v2/inventories/N/update_inventory_sources/`).
+1. [x] Verify smart inventories group creation disallowed.
+1. [x] Verify smart inventories host creation disallowed.
+1. [x] Verify smart inventories inventory source creation disallowed.
+1. [x] Verify smart inventories inventory update disallowed (`/api/v2/inventories/N/update_inventory_sources/`).
 1. [ ] Verify launching a job against a smart inventory.
 1. [ ] Verify launching an AHC against a smart inventory.
 1. [ ] Verifying job launch with limit.
 1. [ ] Verify AHC launch with limit.
 1. [x] Verify updating regular inventory into smart inventory.
 1. [x] Verify updating smart inventory into regular inventory.
+1. [x] Verify that smart inventory deletion does not cascade delete hosts.
+
+Inventories (Chris):
 1. [x] Test new host groups related endpoint.
 1. [x] Test new host groups summary field.
 1. [x] Test v1 inventory resource cascade deletion.
 1. [x] Test v2 inventory resource cascade deletion.
 
-RBAC:
-1. [ ] Verify inventory CRUD against all inventory permissions.
-1. [x] Verify group CRUD against all inventory permissions.
-1. [x] Verify host CRUD against all inventory permissions.
-1. [x] Verify inventory source CRUD against all inventory permissions.
-1. [x] Verify updated group `user_capabilities` against all inventory permissions.
+RBAC (Chris):
+1. [ ] Verify regular inventory CRUD against all inventory permissions.
+1. [x] Verify regular inventory group CRUD against all inventory permissions.
+1. [x] Verify regular inventory host CRUD against all inventory permissions.
+1. [x] Verify regular inventory inventory source CRUD against all inventory permissions.
+1. [x] Verify inv-admin against both smart and regular inventories.
+1. [x] Verify inv-update against both smart and regular inventories.
+1. [x] Verify inv-ahc against both smart and regular inventories.
+1. [x] Verify inv-read against both smart and regular inventories.
+1. [x] Verify inv-update against both smart and regular inventories.
+1. [x] Verify inventory `user_capabilities` against all inventory permissions.
+1. [x] Verify group `user_capabilities` against all inventory permissions.
+1. [x] Verify host `user_capabilities` against all inventory permissions.
 1. [x] Verify inventory source `user_capabilities` against all inventory permissions.
 
-Inventory updates (Chris)
+Inventory updates (Chris):
 1. [x] Verify inventory update via `inventory_sources/N/update`.
 1. [x] Verify updating functional sources via `inventories/N/update_inventory_sources`.
 1. [x] Verify updating functional and nonfunctional sources via `inventories/N/update_inventory_sources`.
 1. [x] Verify updating nonfunctional sources via `inventories/N/update_inventory_sources`.
 1. [x] Verify updating duplicate inventory sources.
-1. [ ] Verify host and group deletion with `overwrite`.
+1. [x] Verify host and group promotion with `overwrite`.
+1. [x] Verify default host and group behavior without `overwrite`.
 1. [x] Verify variable overwrite with `overwrite_vars`.
 1. [x] Verify default variable behavior without` overwrite_vars`.
 1. [x] Verify inventory source `update_on_launch`.
 1. [x] Verify inventory update verbosity.
 1. [x] Test inventory update cascade deletion.
 
-RBAC:
+RBAC (Chris):
 1. [x] Verify inventory update via `inventory_sources/N/update/` against all inventory permissions.
 1. [x] Verify inventory update via `inventories/N/update_inventory_sources/` against all inventory permissions.
 1. [x] Verify inventory update cancellation via all inventory permissions.
