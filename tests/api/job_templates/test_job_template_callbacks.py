@@ -384,7 +384,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
     def test_provision_with_inventory_update_on_launch(self, api_jobs_url, ansible_runner, host_config_key,
                                                        custom_group, job_template, ansible_default_ipv4,
-                                                       tower_version_cmp, callback_host):
+                                                       callback_host):
         """Assert that a callback job against a job_template also initiates an inventory_update (when configured)."""
         job_template.host_config_key = host_config_key
 
