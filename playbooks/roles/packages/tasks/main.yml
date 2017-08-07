@@ -23,13 +23,6 @@
         - 'default.yml'
       paths: '../vars'
 
-- name: install playbook dependency rpms
-  yum:
-    name: '{{item}}'
-    state: installed
-  with_items: '{{ rpm_role_dependencies }}'
-  when: ansible_pkg_mgr == 'yum'
-
 - name: install playbook dependency debs
   apt:
     pkg: '{{item}}'
@@ -48,6 +41,13 @@
 - name: include epel tasks
   include: epel.yml
   when: ansible_os_family == 'RedHat' and ansible_install_method in ['stable', 'testing', 'nightly', 'pip']
+
+- name: install playbook dependency rpms
+  yum:
+    name: '{{item}}'
+    state: installed
+  with_items: '{{ rpm_role_dependencies }}'
+  when: ansible_pkg_mgr == 'yum'
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1405175
 - name: update selinux-policy
