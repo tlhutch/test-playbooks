@@ -26,6 +26,15 @@ class TestInstanceGroups(Base_Api_Test):
         else:
             raise ValueError("Unsupported resource: {0}".format(resource))
 
+    def mutually_exclusive_instance_groups(self, instance_groups):
+        instance_group_to_instances_map = [(instance_group, set([instance.id for instance in instance_group.get_related('instances').results]))
+                                           for instance_group in instance_groups]
+        for first in instance_group_to_instances_map:
+            for second in instance_group_to_instances_map:
+                if not (first[1] & second[1]):
+                    return first[0], second[0]
+        pytest.skip("Unable to find two mutually exclusive instance groups")
+
     def test_instance_group_creation(self, authtoken, v2, ansible_runner):
         inventory_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
         cmd = 'scripts/ansible_inventory_to_json.py --inventory {0} --group-filter tower,instance_group_,isolated_group_'.format(inventory_path)
@@ -81,16 +90,7 @@ class TestInstanceGroups(Base_Api_Test):
         if len(instance_groups) == 1:
             pytest.skip('Test requires multiple instance groups')
 
-        def mutually_exclusive_instance_groups():
-            instance_group_to_instances_map = [(instance_group, set([instance.id for instance in instance_group.get_related('instances').results]))
-                                               for instance_group in instance_groups]
-            for first in instance_group_to_instances_map:
-                for second in instance_group_to_instances_map:
-                    if not (first[1] & second[1]):
-                        return first[0], second[0]
-            pytest.skip("Unable to find two mutually exclusive instance groups")
-
-        base_instance_group, parent_instance_group = mutually_exclusive_instance_groups()
+        base_instance_group, parent_instance_group = self.mutually_exclusive_instance_groups(instance_groups)
         jt = factories.v2_job_template(playbook='sleep.yml', extra_vars=dict(sleep_interval=600), allow_simultaneous=True)
         factories.v2_host(inventory=jt.ds.inventory)
 
@@ -196,13 +196,12 @@ class TestInstanceGroups(Base_Api_Test):
     @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
-    def test_project_copied_to_separate_instance_on_job_run(self, v2, factories, mutually_exclusive_instance_groups,
-                                                            run_on_isolated_group):
+    def test_project_copied_to_separate_instance_on_job_run(self, v2, factories, run_on_isolated_group):
         if run_on_isolated_group:
             ig1 = v2.instance_groups.get(name='tower').results.pop()
             ig2 = v2.instance_groups.get(name='protected').results.pop()
         else:
-            ig1, ig2 = mutually_exclusive_instance_groups(v2.instance_groups.get().results)
+            ig1, ig2 = self.mutually_exclusive_instance_groups(v2.instance_groups.get().results)
 
         # Create project on first instance
         org = factories.v2_organization()
