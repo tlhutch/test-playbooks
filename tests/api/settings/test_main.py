@@ -516,13 +516,14 @@ class Test_Main_Setting(Base_Api_Test):
         """
         payload = modify_settings()
         settings_changed = api_settings_changed_pg.get()
+        optional_read_only_fields = [u'AWX_ISOLATED_PRIVATE_KEY', 'AWX_ISOLATED_PUBLIC_KEY']
 
         # check that all of our updated settings are present under /api/v1/settings/changed/
         assert all([item in settings_changed.json.items() for item in payload.items()]), \
             "Not all changed entries listed under /api/v1/settings/changed/."
         # check for two additional entries under /api/v1/settings/changed/
-        assert set(settings_changed.json.keys()) - set(payload.keys()) == set([u'TOWER_URL_BASE', u'LICENSE']), \
-            "Unexpected additional items listed under /api/v1/settings/changed/."
+        assert set(settings_changed.json.keys()) - set(payload.keys()) - set(optional_read_only_fields) == \
+            set([u'TOWER_URL_BASE', u'LICENSE']), "Unexpected additional items listed under /api/v1/settings/changed/."
 
     def test_setting_obfuscation(self, api_settings_pg, modify_obfuscated_settings):
         """Verifies that sensitive setting values get obfuscated."""
