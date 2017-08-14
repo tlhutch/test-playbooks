@@ -1,5 +1,4 @@
 import json
-import yaml
 
 from towerkit.exceptions import BadRequest
 import fauxfactory
@@ -245,12 +244,3 @@ class Test_AC_1035(Base_Api_Test):
             json.loads(job_templates_json.extra_vars)
         except Exception:
             pytest.fail("job_templates extra_vars not stored as JSON data: %s" % job_templates_json.extra_vars)
-
-    def test_job_templates_extra_var_attr_invalid(self, job_templates_yaml):
-        """Assert that no data validation happens updating extra_vars with invalid JSON/YAML"""
-        payload = dict(extra_vars="{")
-        exc_info = pytest.raises(BadRequest, job_templates_yaml.patch, **payload)
-        result = exc_info.value[1]
-
-        assert result == {u'extra_vars': [u'Must be valid JSON or YAML.']}, \
-            "Unexpected API response when patching a JT with invalid JSON/YAML extra_vars: %s." % json.dumps(result)
