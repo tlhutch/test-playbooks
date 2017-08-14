@@ -96,7 +96,8 @@ class TestInstanceGroups(Base_Api_Test):
             pytest.skip('Test requires multiple instance groups')
 
         base_instance_group, parent_instance_group = self.mutually_exclusive_instance_groups(instance_groups)
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars=dict(sleep_interval=600), allow_simultaneous=True)
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='sleep.yml', extra_vars=dict(sleep_interval=600), allow_simultaneous=True)
         factories.v2_host(inventory=jt.ds.inventory)
 
         self.get_resource(jt, base_resource).add_instance_group(base_instance_group)
@@ -402,3 +403,104 @@ class TestInstanceGroups(Base_Api_Test):
         ig2_hostnames = [i.hostname for i in ig2.get_related('instances').results]
         assert job.execution_node in ig2_hostnames
         assert job.is_successful
+
+    @pytest.mark.last
+    @pytest.mark.requires_ha
+    @pytest.mark.requires_isolation
+    def test_network_partition(self, ansible_module_cls, v2, factories, admin_user):
+        """
+        Tests tower's ability to recover from a network partition using the following steps:
+
+        1. Start a job that will continue to run while the partitioning event takes place.
+        2. Create a network partition using network_partition.yml. While tower instances cannot
+           communicate across the partition, all instances can communicate with the database.
+        3. Launch a second job during the partition.
+        4. Restore connectivity between the tower hosts. Restart tower services on all hosts (excepted isolated hosts).
+        5. Confirm that new jobs can be launched on each host.
+        6. Confirm previous jobs complete (can be successful or failed, but not pending or waiting).
+           Confirm no jobs were relaunched.
+        """
+        # Launch job across partition
+        inventory_file = ansible_module_cls.inventory
+        manager = ansible_module_cls.inventory_manager
+        instance_hostname = manager.get_group_dict().get('instance_group_partition_1')[0]
+        ig = v2.instance_groups.get(name='partition_2').results.pop()
+
+        connection = Connection('https://' + instance_hostname)
+        connection.login(admin_user.username, admin_user.password)
+        with self.current_instance(connection, v2):
+            # License not immediately propagated across cluster instances:
+            # https://github.com/ansible/ansible-tower/issues/7389
+            utils.poll_until(lambda: len(v2.config.get().license_info), interval=1, timeout=3)
+            host = factories.v2_host()
+            jt_before_partition = factories.v2_job_template(inventory=host.ds.inventory, playbook='sleep.yml', extra_vars=dict(sleep_interval=300))
+            jt_before_partition.add_instance_group(ig)
+            job_before_partition = jt_before_partition.launch()
+
+        try:
+            # Create network partition
+            cmd = "ansible-playbook -i {} playbooks/network_partition.yml".format(inventory_file)
+            rc = subprocess.call(cmd, shell=True)
+            assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
+
+            # Launch second job across partition
+            with self.current_instance(connection, v2):
+                host = factories.v2_host()
+                jt_during_partition = factories.v2_job_template(inventory=host.ds.inventory)
+                jt_during_partition.add_instance_group(ig)
+                job_during_partition = jt_during_partition.launch()
+
+            # Confirm rabbitmq shows drop in number of running nodes
+            num_tower_hosts = len(manager.get_group_dict().get('tower'))
+            for partition in ('instance_group_partition_1', 'instance_group_partition_2'):
+                def decrease_in_rabbitmq_nodes():
+                    hosts = manager.get_group_dict().get(partition)
+                    cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'rabbitmqctl cluster_status'".format(hosts[0], inventory_file)
+                    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                    stdout, stderr = proc.communicate()
+                    rc = proc.returncode
+                    assert rc == 0, "Received non-zero response code from '{}'\n[stdout]\n{}\n[stderr]\n{}".format(cmd, stdout, stderr)
+                    node_count = re.search('running_nodes,\[([^\]]*)\]', stdout.replace('\n', '')).group(1).count('rabbitmq@')
+                    return node_count < num_tower_hosts
+                utils.poll_until(decrease_in_rabbitmq_nodes, interval=10, timeout=60)
+        finally:
+            cmd = "ansible-playbook -i {} -e network_partition_state=disabled playbooks/network_partition.yml".format(inventory_file)
+            rc = subprocess.call(cmd, shell=True)
+            assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
+
+            # Restart tower services on all hosts
+            for host in manager.get_group_dict().get('tower'):
+                cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'ansible-tower-service restart'".format(host, inventory_file)
+                rc = subprocess.call(cmd, shell=True)
+                assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
+
+            for host in manager.get_group_dict().get('tower'):
+                def tower_serving_homepage():
+                    contacted = ansible_module_cls.uri(url='https://' + host + '/api', validate_certs='no')
+                    return contacted.values()[0]['status'] == 200
+                utils.poll_until(tower_serving_homepage, interval=10, timeout=60)
+
+        # Confirm that new jobs can be launched on each instance
+        for hostname in manager.get_group_dict().get('tower'):
+            connection = Connection('https://' + hostname)
+            connection.login(admin_user.username, admin_user.password)
+            with self.current_instance(connection, v2):
+                host = factories.v2_host()
+                jt = factories.v2_job_template(inventory=host.ds.inventory)
+                job = jt.launch().wait_until_completed()
+                assert job.is_successful
+
+        # Confirm that previous jobs resume or are marked failed
+        job_before_partition.wait_until_completed()
+        log.debug("Job started before partition ({j.id}) completed with status '{j.status}' and job_explanation '{j.job_explanation}'"
+                  .format(j=job_before_partition))
+        job_during_partition.wait_until_completed()
+        log.debug("Job started during partition ({j.id}) completed with status '{j.status}' and job_explanation '{j.job_explanation}'"
+                  .format(j=job_during_partition))
+        celery_error_msg = 'Task was marked as running in Tower but was not present in Celery, so it has been marked as failed.'
+        assert job_before_partition.job_explanation == ('' if job_before_partition.status == 'successful' else celery_error_msg)
+        assert job_during_partition.job_explanation == ('' if job_before_partition.status == 'successful' else celery_error_msg)
+
+        # Confirm that no jobs were relaunched
+        assert jt_before_partition.get().get_related('last_job').id == job_before_partition.id
+        assert jt_during_partition.get().get_related('last_job').id == job_during_partition.id
