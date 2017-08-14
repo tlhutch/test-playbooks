@@ -81,8 +81,8 @@ class TestInsights(Base_Api_Test):
                 host.related.insights.get()
         assert e.value[1] == {'error': 'The Insights Credential for "{0}" was not found.'.format(insights_inventory.name)}
 
-    def test_access_insights_with_credential_and_registered_host(self, factories, insights_inventory):
-        """Verify that attempts to access Insights from a registered host with an Insights credential succeed."""
+    def test_access_insights_with_valid_credential_and_registered_host(self, factories, insights_inventory):
+        """Verify that attempts to access Insights from a registered host with a valid Insights credential succeed."""
         credential = factories.v2_credential(kind='insights')
         insights_inventory.insights_credential = credential.id
         host = insights_inventory.related.hosts.get(name="registered_host").results.pop()
@@ -90,17 +90,28 @@ class TestInsights(Base_Api_Test):
         content = host.related.insights.get().insights_content
         assert len(content.reports) == 10
 
-    def test_access_insights_with_credential_and_unregistered_host(self, factories, insights_inventory):
-        """Verify that attempts to access Insights from an unregistered host with an Insights credential
-        raises a 500.
+    def test_access_insights_with_valid_credential_and_unregistered_host(self, factories, insights_inventory):
+        """Verify that attempts to access Insights from an unregistered host with a valid Insights credential
+        raises a 502.
         """
         credential = factories.v2_credential(kind='insights')
         insights_inventory.insights_credential = credential.id
         host = insights_inventory.related.hosts.get(name="unregistered_host").results.pop()
 
         with pytest.raises(exc.BadGateway) as e:
-            host.related.insights.get().insights_content
+            host.related.insights.get()
         assert "Failed to gather reports and maintenance plans from Insights API" in e.value[1]['error']
+
+    def test_access_insights_with_invalid_credential(self, factories, insights_inventory):
+        """Verify that attempts to access Insights with a bad Insights credential raises a 502."""
+        credential = factories.v2_credential(kind='insights', inputs=dict(username="fake", password="fake"))
+        insights_inventory.insights_credential = credential.id
+        hosts = insights_inventory.related.hosts.get().results
+
+        for host in hosts:
+            with pytest.raises(exc.BadGateway) as e:
+                host.related.insights.get()
+            assert "Failed to gather reports and maintenance plans from Insights API" in e.value[1]['error']
 
     def test_insights_project_no_credential(self, factories):
         """Verify that attempts to create an Insights project without an Insights credential raise a 400."""
@@ -108,8 +119,8 @@ class TestInsights(Base_Api_Test):
             factories.v2_project(scm_type='insights', credential=None)
         assert e.value[1] == {'credential': ['Insights Credential is required for an Insights Project.']}
 
-    def test_insights_project_with_credential(self, factories):
-        """Verify the creation of an Insights project with an Insights credential and its
+    def test_insights_project_with_valid_credential(self, factories):
+        """Verify the creation of an Insights project with a valid Insights credential and its
         auto-spawned project update.
         """
         insights_cred = factories.v2_credential(kind='insights')
@@ -132,6 +143,20 @@ class TestInsights(Base_Api_Test):
         assert update.scm_type == 'insights'
         assert update.scm_url == 'https://access.redhat.com'
         assert not update.scm_branch
+
+    def test_insights_project_with_invalid_credential(self, factories):
+        """Verify the creation of an Insights project with an invalid Insights credential and its
+        auto-spawned project update.
+        """
+        insights_cred = factories.v2_credential(kind='insights', inputs=dict(username="fake", password="fake"))
+        project = factories.v2_project(scm_type='insights', credential=insights_cred, wait=True)
+        update = project.related.last_update.get()
+
+        assert project.status == "failed"
+        assert project.last_job_failed
+        assert project.last_update_failed
+        assert update.status == "failed"
+        assert update.failed is True
 
     def test_insights_project_contents(self, factories, v2, ansible_runner):
         """Verify created project directory and playbook. Note: chrwang-test-28315.yml is an Insights
