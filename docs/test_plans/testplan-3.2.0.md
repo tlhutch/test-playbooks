@@ -32,7 +32,7 @@ When verifying acceptance we should ensure the following statements are true
 1. [ ] All jobs, inventory updates, and project updates should run successfully
 1. [x] Jobs should be able to run on hosts which it is targeted. If assigned implicitly or directly to groups then it should only run on instances in those Instance Groups.
 1. [x] Project updates should manifest their data on the tower host that will run the job immediately prior to the job running
-1. [ ] Tower should be able to reasonably survive the removal of all instances in the cluster
+1. [x] Tower should be able to reasonably survive the removal of all instances in the cluster
 1. [x] Tower should behave in a predictable fashiong during network partitioning
 
 #### Testing Considerations
@@ -47,7 +47,7 @@ When verifying acceptance we should ensure the following statements are true
 1. [ ] We should test behavior of large and small clusters. I would envision small clusters as 2 - 3 instances and large clusters as 10 - 15 instances
 1. [ ] Failure testing should involve killing single instances and killing multiple instances while the cluster is performing work. Job failures during the time period should be predictable and not catastrophic.
 1. [ ] Instance downtime testing should also include recoverability testing. Killing single services and ensuring the system can return itself to a working state
-1. [ ] Persistent failure should be tested by killing single services in such a way that the cluster instance cannot be recovered and ensuring that the instance is properly taken offline
+1. [x] Persistent failure should be tested by killing single services in such a way that the cluster instance cannot be recovered and ensuring that the instance is properly taken offline
 1. [x] Network partitioning failures will be important also. In order to test this
     * [x] Disallow a single instance from communicating with the other instances but allow it to communicate with the database
     * [x] Break the link between instances such that it forms 2 or more groups where groupA and groupB can't communicate but all instances can communicate with the database.
