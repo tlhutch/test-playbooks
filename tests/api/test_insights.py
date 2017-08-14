@@ -53,7 +53,6 @@ class TestInsights(Base_Api_Test):
         assert registered_host.insights_system_id == self.registered_machine_id
         assert unregistered_host.insights_system_id == self.unregistered_machine_id
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7392')
     def test_insights_system_id_is_read_only(self, insights_inventory):
         """Host details insights_system_id should be read-only."""
         unregistered_host = insights_inventory.related.hosts.get(name='unregistered_host').results.pop()
