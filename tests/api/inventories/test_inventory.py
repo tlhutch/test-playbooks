@@ -122,3 +122,6 @@ class TestInventory(Base_Api_Test):
         for resource in [inventory, parent_group, child_group, group_host, isolated_host, inv_source]:
             with pytest.raises(exc.NotFound):
                 resource.get()
+
+    def test_confirm_inventory_not_in_host_put_options(self, v2, factories):
+        assert 'inventory' not in factories.v2_host().options().actions.PUT
