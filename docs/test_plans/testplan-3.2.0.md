@@ -105,12 +105,13 @@ Fact ingestion:
 1. [x] `use_fact_cache` with gather_facts should update host `ansible_facts`.
 1. [x] `use_fact_cache` without gather_facts should not update host `ansible_facts`.
 1. [x] `use_fact_cache` with Tower scan modules should return expected facts.
+1. [x] `use_fact_cache` updates host `ansible_facts` after each scan job.
 1. [x] Host with spaces in hostname.
 1. [x] Host with unicode hostname.
 
 Fact use:
 1. [x] Verify that facts may be used in a playbook within timeout window (`ANSIBLE_FACT_CACHE_TIMEOUT`).
-1. [ ] Verify that facts may not be used outside of timeout window (`ANSIBLE_FACT_CACHE_TIMEOUT`).'
+1. [x] Verify that facts may not be used outside of timeout window (`ANSIBLE_FACT_CACHE_TIMEOUT`).'
 1. [x] Verify fact use against multiple hosts.
 1. [x] Verify fact use against simple host with JT limit.
 
@@ -124,15 +125,17 @@ Miscellaney:
 
 1. [x] Verify stock value for host `insights_system_id`.
 1. [x] Verify `insights_system_id` updates after scan job.
-1. [ ] Verify that `insights_system_id` is read-only.
+1. [x] Verify that `insights_system_id` is read-only.
 1. [x] Verify inventory details update for Insights credential.
 1. [x] Verify Insights credentials not allowed with smart inventories.
 1. [x] Verify querying `/hosts/N/insights/` when host has no Insights credential.
-1. [ ] Verify querying `/hosts/N/insights/` when host has an Insights credential and is an Insights host.
-1. [ ] Verify querying `/hosts/N/insights/` when host has an Insights credential and is not an Insights host.
+1. [x] Verify querying `/hosts/N/insights/` when host has an Insights credential and is an Insights host.
+1. [x] Verify querying `/hosts/N/insights/` when host has an Insights credential and is not an Insights host.
+1. [x] Verify querying `/hosts/N/insights/` when host has an invalid Insights credential.
 1. [x] Verify Insights project CRUD.
 1. [x] Verify Insights project requires Insights credential as dependency.
 1. [x] Verify Insights project update and downloaded playbooks.
+1. [x] Verify Insights project update with invalid Insights credential.
 1. [x] Verify Insights project update `.version` tag.
 1. [x] Verify remediation JT run on target host.
 1. [x] Perform end-to-end test of complete Insights flow.
