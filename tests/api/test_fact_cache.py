@@ -51,6 +51,19 @@ class TestFactCache(Base_Api_Test):
         assert ansible_facts.packages['ansible-tower']
         assert ansible_facts.insights['system_id'] == machine_id
 
+    def test_ansible_facts_update(self, factories):
+        """Verify that hosts/N/ansible_facts/ updates between scan jobs."""
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        assert jt.launch().wait_until_completed().is_successful
+
+        ansible_facts = host.related.ansible_facts.get()
+        first_time = ansible_facts.ansible_date_time.time
+
+        assert jt.launch().wait_until_completed().is_successful
+        second_time = ansible_facts.get().ansible_date_time.time
+        assert second_time > first_time
+
     def test_ingest_facts_with_host_with_unicode_hostname(self, factories):
         host = factories.v2_host(name=fauxfactory.gen_utf8())
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
