@@ -34,6 +34,7 @@ When verifying acceptance we should ensure the following statements are true
 1. [x] Project updates should manifest their data on the tower host that will run the job immediately prior to the job running
 1. [x] Tower should be able to reasonably survive the removal of all instances in the cluster
 1. [x] Tower should behave in a predictable fashiong during network partitioning
+1. [ ] Users should not be able to assign instance groups to a job without the correct RBACS role
 
 #### Testing Considerations
 
@@ -41,7 +42,7 @@ When verifying acceptance we should ensure the following statements are true
 1. [x] Basic setup playbook testing to verify routing differences, including:
     * [x] Basic FQDN
     * [x] Hostname
-    * [ ] Short-name name resolution (really a duplicate of /etc/hosts routing)
+    * ~~[ ] Short-name name resolution~~ (really a duplicate of `/etc/hosts` routing)
     * [x] ip addresses
     * [x] /etc/hosts static routing information
 1. [ ] We should test behavior of large and small clusters. I would envision small clusters as 2 - 3 instances and large clusters as 10 - 15 instances
