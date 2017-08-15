@@ -123,18 +123,43 @@ class TestJobTemplates(Base_Api_Test):
             assert '--skip-tags=%s' % launch_payload['skip_tags'] in job_pg.job_args, \
                 "Value for skip_tags not represented in job args."
 
+    @pytest.mark.parametrize('verbosity, stdout_lines',
+        [(0, ['TASK [ping]', 'PLAY RECAP']),
+         (1, ['TASK [ping]', 'PLAY RECAP', '{"changed": false, "ping": "pong"}']),
+         (2, ['TASK [ping]', 'PLAY RECAP', '{"changed": false, "ping": "pong"}', 'PLAYBOOK: ping.yml',
+              'META: ran handlers']),
+         (3, ['TASK [ping]', 'PLAY RECAP', 'PLAYBOOK: ping.yml', 'META: ran handlers',
+              "EXEC /bin/sh -c 'echo ~ && sleep 0'"]),
+         (4, ['TASK [ping]', 'PLAY RECAP', 'PLAYBOOK: ping.yml', 'META: ran handlers',
+              "EXEC /bin/sh -c 'echo ~ && sleep 0'", 'Loading callback plugin awx_display']),
+         (5, ['TASK [ping]', 'PLAY RECAP', 'PLAYBOOK: ping.yml', 'META: ran handlers',
+              "EXEC /bin/sh -c 'echo ~ && sleep 0'", 'Loading callback plugin awx_display'])],
+         ids=['0-normal', '1-verbose', '2-more verbose', '3-debug', '4-connection debug', '5-winrm debug'])
+    def test_launch_with_verbosity_in_payload(self, factories, verbosity, stdout_lines):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, ask_verbosity_on_launch=True)
+        job = jt.launch(dict(verbosity=verbosity)).wait_until_completed()
+        assert job.is_successful
+
+        assert jt.verbosity == 0
+        assert job.ask_verbosity_on_launch
+        assert job.verbosity == verbosity
+        for line in stdout_lines:
+            assert line in job.result_stdout
+
     def test_launch_with_ignored_payload(self, job_template, another_inventory, another_ssh_credential):
         """Verify that launch-time objects are ignored when their ask flag is set to false."""
-        launch_pg = job_template.get_related('launch')
+        launch = job_template.get_related('launch')
 
         # assert ask values on launch resource
-        assert not launch_pg.ask_variables_on_launch
-        assert not launch_pg.ask_tags_on_launch
-        assert not launch_pg.ask_skip_tags_on_launch
-        assert not launch_pg.ask_job_type_on_launch
-        assert not launch_pg.ask_limit_on_launch
-        assert not launch_pg.ask_inventory_on_launch
-        assert not launch_pg.ask_credential_on_launch
+        assert not launch.ask_variables_on_launch
+        assert not launch.ask_tags_on_launch
+        assert not launch.ask_skip_tags_on_launch
+        assert not launch.ask_job_type_on_launch
+        assert not launch.ask_limit_on_launch
+        assert not launch.ask_inventory_on_launch
+        assert not launch.ask_credential_on_launch
+        assert not launch.ask_verbosity_on_launch
 
         # launch JT with all possible artifacts in payload
         payload = dict(extra_vars=dict(foo="bar"),
@@ -142,23 +167,26 @@ class TestJobTemplates(Base_Api_Test):
                        skip_tags="test skip_tag",
                        job_type="check",
                        inventory=another_inventory.id,
-                       credential=another_ssh_credential.id,)
-        job_pg = job_template.launch(payload).wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+                       credential=another_ssh_credential.id,
+                       verbosity=5)
+        job = job_template.launch(payload).wait_until_completed()
+        assert job.is_successful
 
         # assert that payload ignored
-        assert job_pg.extra_vars == json.dumps({}), \
-            "Unexpected value for job_pg.extra_vars - %s." % job_pg.extra_vars
-        assert job_pg.job_tags == job_template.job_tags, \
-            "JT job_tags overridden. Expected %s, got %s." % (job_template.job_tags, job_pg.job_tags)
-        assert job_pg.skip_tags == job_template.skip_tags, \
-            "JT skip_tags overriden. Expected %s, got %s." % (job_template.skip_tags, job_pg.skip_tags)
-        assert job_pg.job_type == job_template.job_type, \
-            "JT job_type overriden. Expected %s, got %s." % (job_template.job_type, job_pg.job_type)
-        assert job_pg.inventory == job_template.inventory, \
-            "JT inventory overriden. Expected inventory %s, got %s." % (job_template.inventory, job_pg.inventory)
-        assert job_pg.credential == job_template.credential, \
-            "JT credential overriden. Expected credential %s, got %s." % (job_template.credential, job_pg.credential)
+        assert job.extra_vars == json.dumps({}), \
+            "Unexpected value for job_pg.extra_vars - %s." % job.extra_vars
+        assert job.job_tags == job_template.job_tags, \
+            "JT job_tags overridden. Expected %s, got %s." % (job_template.job_tags, job.job_tags)
+        assert job.skip_tags == job_template.skip_tags, \
+            "JT skip_tags overriden. Expected %s, got %s." % (job_template.skip_tags, job.skip_tags)
+        assert job.job_type == job_template.job_type, \
+            "JT job_type overriden. Expected %s, got %s." % (job_template.job_type, job.job_type)
+        assert job.inventory == job_template.inventory, \
+            "JT inventory overriden. Expected inventory %s, got %s." % (job_template.inventory, job.inventory)
+        assert job.credential == job_template.credential, \
+            "JT credential overriden. Expected credential %s, got %s." % (job_template.credential, job.credential)
+        assert job.verbosity == job_template.verbosity, \
+            "JT verbosity overridden. Expected verbosity {0}, received {1}.".format(job_template.verbosity, job.verbosity)
 
     @pytest.mark.ansible_integration
     @pytest.mark.parametrize("job_type", ["run", "check"])
