@@ -54,9 +54,12 @@ class TestChannelsRBAC(Base_Api_Test):
             not_of_interest = set(('created', 'event_name', 'modified'))
             received = [m for m in ws]
             filtered_received = [{k: message[k] for k in set(message) - not_of_interest} for message in received]
-            statuses = ('pending', 'waiting', 'running', 'successful')
-            expected_status_changes = [dict(status=status,
-                                            **dict(group_name='jobs', unified_job_id=ahc.id)) for status in statuses]
+            expected_status_changes = []
+            for status in ('pending', 'waiting', 'running', 'successful'):
+                expected_msg = dict(status=status, group_name='jobs', unified_job_id=ahc.id)
+                if status == 'waiting':
+                    expected_msg['instance_group_name'] = 'tower'
+                expected_status_changes.append(expected_msg)
             for expected in expected_status_changes:
                 assert expected in filtered_received
                 filtered_received.remove(expected)
@@ -95,11 +98,15 @@ class TestChannelsRBAC(Base_Api_Test):
 
             update_id = group.related.inventory_source.get().update().wait_until_completed().id
             base_status_change = dict(group_name='jobs', group_id=group.id, unified_job_id=update_id)
-            statuses = ('pending', 'waiting', 'running', 'successful')
-            expected = [dict(status=status, **base_status_change) for status in statuses]
+            expected_status_changes = []
+            for status in ('pending', 'waiting', 'running', 'successful'):
+                expected_msg = dict(status=status, **base_status_change)
+                if status == 'waiting':
+                    expected_msg['instance_group_name'] = 'tower'
+                expected_status_changes.append(expected_msg)
 
             received = [m for m in ws]
-            for message in expected:
+            for message in expected_status_changes:
                 assert message in received
                 received.remove(message)
             assert not received  # confirm no other messages received
@@ -148,8 +155,13 @@ class TestChannelsRBAC(Base_Api_Test):
             filtered_received = [{k: message[k] for k in set(message) - not_of_interest} for message in received]
 
             base_status_change = dict(group_name='jobs', unified_job_id=job.id)
-            statuses = ('pending', 'waiting', 'running', 'successful')
-            expected_status_changes = [dict(status=status, **base_status_change) for status in statuses]
+            expected_status_changes = []
+            for status in ('pending', 'waiting', 'running', 'successful'):
+                expected_msg = dict(status=status, **base_status_change)
+                if status == 'waiting':
+                    expected_msg['instance_group_name'] = 'tower'
+                expected_status_changes.append(expected_msg)
+
             for expected in expected_status_changes:
                 assert expected in filtered_received
                 filtered_received.remove(expected)
@@ -185,11 +197,15 @@ class TestChannelsRBAC(Base_Api_Test):
 
             update_id = project.update().wait_until_completed().id
             base_status_change = dict(group_name='jobs', project_id=project.id, unified_job_id=update_id)
-            statuses = ('pending', 'waiting', 'running', 'successful')
-            expected = [dict(status=status, **base_status_change) for status in statuses]
+            expected_status_changes = []
+            for status in ('pending', 'waiting', 'running', 'successful'):
+                expected_msg = dict(status=status, **base_status_change)
+                if status == 'waiting':
+                    expected_msg['instance_group_name'] = 'tower'
+                expected_status_changes.append(expected_msg)
 
             received = [m for m in ws]
-            for message in expected:
+            for message in expected_status_changes:
                 assert message in received
                 received.remove(message)
             assert not received  # confirm no other messages received
@@ -258,11 +274,17 @@ class TestChannelsRBAC(Base_Api_Test):
             expected = []
             for workflow_node_id, job_id in zip((mapper[root.id], mapper[success.id]), success_job_ids):
                 for status in ('pending', 'waiting', 'running', 'successful'):
-                    expected.append(dict(status=status, workflow_node_id=workflow_node_id,
-                                         unified_job_id=job_id, **base_workflow_event))
+                    expected_msg = dict(status=status, workflow_node_id=workflow_node_id,
+                                        unified_job_id=job_id, **base_workflow_event)
+                    if status == 'waiting':
+                        expected_msg['instance_group_name'] = 'tower'
+                    expected.append(expected_msg)
             for status in ('pending', 'waiting', 'running', 'failed'):
-                expected.append(dict(status=status, workflow_node_id=mapper[failure.id],
-                                     unified_job_id=failure_job_id, **base_workflow_event))
+                expected_msg = dict(status=status, workflow_node_id=mapper[failure.id],
+                                    unified_job_id=failure_job_id, **base_workflow_event)
+                if status == 'waiting':
+                    expected_msg['instance_group_name'] = 'tower'
+                expected.append(expected_msg)
 
             received = [m for m in ws if m.get('group_name') == 'workflow_events']
             for message in expected:

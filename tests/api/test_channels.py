@@ -4,9 +4,6 @@ import pytest
 from tests.lib.helpers.workflow_utils import WorkflowTree, WorkflowTreeMapper
 from tests.api import Base_Api_Test
 
-import logging
-log = logging.getLogger(__name__)
-
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -24,7 +21,6 @@ class TestChannels(Base_Api_Test):
 
         @pytest.fixture(scope='class')
         def ahc_and_ws_events(self, request, class_factories, v2_class):
-            log.error('IN AHC_AND_WS_EVENTS')
             host = class_factories.v2_host()
 
             ws = WSClient(v2_class.get_authtoken()).connect()
@@ -48,6 +44,8 @@ class TestChannels(Base_Api_Test):
         def test_ad_hoc_command_status_changes(self, ahc_and_ws_events, desired_status):
             ahc, events = ahc_and_ws_events
             desired_msg = dict(group_name='jobs', status=desired_status, unified_job_id=ahc.id)
+            if desired_status == 'waiting':
+                desired_msg['instance_group_name'] = 'tower'
             assert desired_msg in events
 
         @pytest.mark.ansible_integration
@@ -114,6 +112,8 @@ class TestChannels(Base_Api_Test):
         def test_job_command_status_changes(self, job_and_ws_events, desired_status):
             job, events = job_and_ws_events
             desired_msg = dict(group_name='jobs', status=desired_status, unified_job_id=job.id)
+            if desired_status == 'waiting':
+                desired_msg['instance_group_name'] = 'tower'
             assert desired_msg in events
 
         @pytest.mark.ansible_integration
@@ -180,14 +180,20 @@ class TestChannels(Base_Api_Test):
             expected = []
             for workflow_node_id, job_id in zip((mapper[root.id], mapper[success.id]), success_job_ids):
                 for status in ('pending', 'waiting', 'running', 'successful'):
-                    expected.append(dict(status=status, workflow_node_id=workflow_node_id,
-                                         unified_job_id=job_id, **base_workflow_event))
+                    expected_msg = dict(status=status, workflow_node_id=workflow_node_id,
+                                        unified_job_id=job_id, **base_workflow_event)
+                    if status == 'waiting':
+                        expected_msg['instance_group_name'] = 'tower'
+                    expected.append(expected_msg)
             for status in ('pending', 'waiting', 'running', 'failed'):
-                expected.append(dict(status=status, workflow_node_id=mapper[failure.id],
-                                     unified_job_id=failure_job_id, **base_workflow_event))
+                expected_msg = dict(status=status, workflow_node_id=mapper[failure.id],
+                                    unified_job_id=failure_job_id, **base_workflow_event)
+                if status == 'waiting':
+                    expected_msg['instance_group_name'] = 'tower'
+                expected.append(expected_msg)
 
             for message in expected:
-                assert(message in messages)
+                assert message in messages
 
             ws.unsubscribe()
             utils.logged_sleep(3)
@@ -220,6 +226,8 @@ class TestChannels(Base_Api_Test):
                                unified_job_id=inv_update.id,
                                inventory_source_id=inv_update.inventory_source,
                                inventory_id=inv_update.related.inventory_source.get().inventory)
+            if desired_status == 'waiting':
+                desired_msg['instance_group_name'] = 'tower'
             assert desired_msg in events
 
         def test_inventory_update_events_unsubscribe(self, request, v2, factories):
@@ -262,6 +270,8 @@ class TestChannels(Base_Api_Test):
             update, events = project_update_and_ws_events
             desired_msg = dict(group_name='jobs', project_id=update.project, unified_job_id=update.id,
                                status=desired_status)
+            if desired_status == 'waiting':
+                desired_msg['instance_group_name'] = 'tower'
             assert desired_msg in events
 
         @pytest.mark.ansible_integration
