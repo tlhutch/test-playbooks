@@ -329,7 +329,7 @@ class TestLegacyLicenseExpired(LicenseTest):
         if system_job.job_type == 'cleanup_facts':
             assert system_job.status == 'failed', "System job unexpectedly succeeded - %s" % system_job
             assert system_job.result_stdout == ("CommandError: The System Tracking feature is not enabled for "
-                                                "your Tower instance\r\n")
+                                                "your instance\r\n")
         # all other system_jobs are expected to succeed
         else:
             assert system_job.is_successful, "System job unexpectedly failed - %s" % system_job
