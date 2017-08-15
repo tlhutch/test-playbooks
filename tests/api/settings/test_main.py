@@ -328,6 +328,31 @@ class Test_Main_Setting(Base_Api_Test):
         assert update_pg.timeout == project.timeout, \
             "Update_pg has a different timeout value ({0}) than its project ({1}).".format(update_pg.timeout, project.timeout)
 
+    @pytest.mark.parametrize('timeout, status', [
+        (1, 'failed'),
+        (60, 'successful'),
+    ], ids=['timeout executed', 'timeout not executed'])
+    def test_ansible_fact_cache_timeout(self, factories, api_settings_jobs_pg, update_setting_pg, timeout, status):
+        # update job timeout flag
+        payload = dict(ANSIBLE_FACT_CACHE_TIMEOUT=timeout)
+        update_setting_pg(api_settings_jobs_pg, payload)
+
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        assert jt.launch().wait_until_completed().is_successful
+
+        jt.playbook = 'use_facts.yml'
+        job = jt.launch().wait_until_completed()
+        assert job.status == status
+
+        if status == "successful":
+            ansible_facts = host.related.ansible_facts.get()
+            assert ansible_facts.ansible_distribution in job.result_stdout
+            assert ansible_facts.ansible_machine in job.result_stdout
+            assert ansible_facts.ansible_system in job.result_stdout
+        else:
+            assert "The error was: 'ansible_distribution' is undefined" in job.result_stdout
+
     def test_activity_stream_enabled(self, factories, api_activity_stream_pg, api_settings_system_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED is enabled that Tower activity gets logged."""
         # find number of current activity stream elements
