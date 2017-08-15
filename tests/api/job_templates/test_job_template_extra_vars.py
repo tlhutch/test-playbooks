@@ -44,6 +44,15 @@ class TestJobTemplateExtraVars(Base_Api_Test):
             launch_time_vars.update(update)
             return yaml.dump(launch_time_vars)
 
+    def test_confirm_invalid_extra_vars_rejected(self, factories):
+        jt = factories.v2_job_template()
+        for invalid in ('"{"', ('a', 'b'), ('one=1', 'two=2'), 0, 0.1, True, [1, 2, 3],
+                        ['a', 'b', 'c'], '["a", "b", "c"]'):
+            with pytest.raises(towerkit.exceptions.BadRequest) as e:
+                print utils.to_str(invalid)
+                jt.extra_vars = utils.to_str(invalid)
+            assert e.value.message == {'extra_vars': ['Must be valid JSON or YAML.']}
+
     @pytest.mark.ansible_integration
     def test_launch_with_extra_vars_from_job_template(self, job_template_with_extra_vars):
         """Verify that when no launch-time extra_vars are provided, job extra_vars consist
