@@ -329,6 +329,15 @@ class Test_Job(Base_Api_Test):
         assert job.is_successful
         assert job.extra_vars == json.dumps(dict(test_var_three='abc'))
 
+    def test_encrypted_disallowed_as_survey_default_answer(self, factories):
+        jt = factories.v2_job_template()
+        spec = [dict(required=True, question_name="With $encrypted$ as default.",
+                     variable='test', type='password', default='$encrypted$')]
+
+        with pytest.raises(towerkit.exceptions.BadRequest) as e:
+            jt.add_survey(spec=spec)
+        assert e.value[1]['error'] == "$encrypted$ is reserved keyword and may not be used as a default for password 0."
+
     @pytest.mark.requires_isolation
     @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
