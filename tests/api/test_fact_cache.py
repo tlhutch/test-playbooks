@@ -96,10 +96,7 @@ class TestFactCache(Base_Api_Test):
 
     def test_consume_facts_with_multiple_hosts(self, factories):
         inventory = factories.v2_inventory()
-        hosts = []
-        for _ in range(3):
-            host = factories.v2_host(inventory=inventory)
-            hosts.append(host)
+        hosts = [factories.v2_host(inventory=inventory) for _ in range(3)]
 
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
@@ -118,10 +115,7 @@ class TestFactCache(Base_Api_Test):
 
     def test_consume_facts_with_multiple_hosts_and_limit(self, factories):
         inventory = factories.v2_inventory()
-        hosts = []
-        for _ in range(3):
-            host = factories.v2_host(inventory=inventory)
-            hosts.append(host)
+        hosts = [factories.v2_host(inventory=inventory) for _ in range(3)]
         target_host = hosts.pop()
 
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
