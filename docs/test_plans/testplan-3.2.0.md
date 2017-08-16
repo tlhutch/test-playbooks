@@ -84,9 +84,9 @@ Store facts:
 Filter functionality:
 1. [x] Verify filter by host name functionality.
 1. [x] Verify filter by group name functionality.
-1. [x] Verify filter by `ansible_fact` functionality transversing lists.
-1. [ ] Verify filter by `ansible_fact` functionality transversing dictionaries.
-1. [ ] Verify filter by `ansible_fact` functionality transversing nested lists and dictionaries.
+1. [x] Verify filter by `ansible_fact` functionality traversing lists.
+1. [ ] Verify filter by `ansible_fact` functionality traversing dictionaries.
+1. [ ] Verify filter by `ansible_fact` functionality traversing nested lists and dictionaries.
 1. [x] Verify two-part filters with OR operator.
 1. [x] Verify two-part filters with AND operator.
 1. [x] Verify three-part filters with a mix of boolean operators.
