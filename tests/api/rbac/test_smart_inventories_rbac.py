@@ -27,7 +27,6 @@ class TestSmartInventoryRBAC(Base_Api_Test):
             assert_response_raised(host, httplib.FORBIDDEN)
             assert_response_raised(inventory, httplib.FORBIDDEN)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7382')
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, set_test_roles, agent, factories):
         host = factories.v2_host()
