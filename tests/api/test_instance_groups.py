@@ -382,7 +382,8 @@ class TestInstanceGroups(Base_Api_Test):
     @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
-    def test_project_copied_to_separate_instance_on_job_run(self, v2, factories, run_on_isolated_group):
+    @pytest.mark.parametrize('scm_type', ['git', 'svn', 'hg'])
+    def test_project_copied_to_separate_instance_on_job_run(self, v2, factories, run_on_isolated_group, scm_type):
         if run_on_isolated_group:
             ig1 = v2.instance_groups.get(name='tower').results.pop()
             ig2 = v2.instance_groups.get(name='protected').results.pop()
@@ -392,11 +393,17 @@ class TestInstanceGroups(Base_Api_Test):
         # Create project on first instance
         org = factories.v2_organization()
         org.add_instance_group(ig1)
-        proj = factories.v2_project(organization=org)
+        # Workaround for https://github.com/ansible/ansible/issues/17720#issuecomment-322628667
+        if scm_type == 'svn':
+            proj = factories.v2_project(organization=org, scm_type='svn', scm_url='https://github.com/jladdjr/ansible-playbooks', scm_branch='44')
+            playbook = 'trunk/sleep.yml'
+        else:
+            proj = factories.v2_project(organization=org, scm_type=scm_type)
+            playbook = 'sleep.yml'
 
-        # Create and run job template on second instance
+        # Run job template on second instance
         host = factories.v2_host()
-        jt = factories.v2_job_template(project=proj, inventory=host.ds.inventory)
+        jt = factories.v2_job_template(project=proj, inventory=host.ds.inventory, playbook=playbook)
         jt.add_instance_group(ig2)
 
         job = jt.launch().wait_until_completed()
