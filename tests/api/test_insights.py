@@ -110,7 +110,7 @@ class TestInsights(Base_Api_Test):
         for host in hosts:
             with pytest.raises(exc.BadGateway) as e:
                 host.related.insights.get()
-            assert "Failed to gather reports and maintenance plans from Insights API" in e.value[1]['error']
+            assert e.value[1]['error'] == 'Unauthorized access. Please check your Insights Credential username and password.'
 
     def test_insights_project_no_credential(self, factories):
         """Verify that attempts to create an Insights project without an Insights credential raise a 400."""
