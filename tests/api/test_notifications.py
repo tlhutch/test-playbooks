@@ -1,7 +1,7 @@
 import logging
 
 from towerkit.notification_services import (confirm_notification, can_confirm_notification)
-import towerkit.exceptions
+import towerkit.exceptions as exc
 import pytest
 
 from tests.api import Base_Api_Test
@@ -17,7 +17,7 @@ def associate_notification_template(notification_template_pg, resource_pg, job_r
     nt_count = resource_nt_pg.get().count
 
     # Associate notification template
-    with pytest.raises(towerkit.exceptions.NoContent):
+    with pytest.raises(exc.NoContent):
         payload = dict(id=nt_id)
         resource_nt_pg.post(payload)
 
@@ -132,6 +132,21 @@ def _expected_webhook_job_notification(tower_url, notification_template_pg, job_
                         'limit': job_pg.limit,
                         'inventory': job_pg.summary_fields['inventory']['name']})
     return job_msg
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+class Test_Notification_Templates(Base_Api_Test):
+
+    def test_notification_template_unique_by_org(self, factories):
+        nt_a = factories.v2_notification_template(name='SharedName')
+        factories.v2_notification_template(name='SharedName')
+
+        shared_org = nt_a.ds.organization
+        with pytest.raises(exc.BadRequest) as e:
+            factories.v2_notification_template(name='SharedName', organization=shared_org)
+        assert e.value.message == {'__all__': ['Notification template with this Organization and Name already exists.']}
 
 
 @pytest.mark.api
