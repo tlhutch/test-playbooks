@@ -131,3 +131,20 @@ class TestJobTemplateSurveys(Base_Api_Test):
                 expected_extra_vars[question['variable']] = question['default']
 
         assert set(job_extra_vars) == set(expected_extra_vars)
+
+    def test_confirm_survey_secret_extra_vars_not_in_activity_stream(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, ask_variables_on_launch=True)
+        jt.add_survey()
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        assert json.loads(job.extra_vars) == dict(secret="$encrypted$")
+
+        job_activity_stream = job.related.activity_stream.get().results.pop()
+        assert json.loads(job_activity_stream.changes.extra_vars) == dict(secret="$encrypted$")
+
+        job = jt.launch(dict(extra_vars=dict(secret='123', one=234, two=dict(three=345, four=dict(five=456))))).wait_until_completed()
+        assert job.is_successful
+        job_activity_stream = job.related.activity_stream.get().results.pop()
+        assert json.loads(job_activity_stream.changes.extra_vars)['secret'] == "$encrypted$"
