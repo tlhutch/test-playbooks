@@ -46,7 +46,7 @@ When verifying acceptance we should ensure the following statements are true
     * [x] ip addresses
     * [x] /etc/hosts static routing information
 1. [ ] We should test behavior of large and small clusters. I would envision small clusters as 2 - 3 instances and large clusters as 10 - 15 instances
-1. [ ] Failure testing should involve killing single instances and killing multiple instances while the cluster is performing work. Job failures during the time period should be predictable and not catastrophic.
+1. [x] Failure testing should involve killing single instances and killing multiple instances while the cluster is performing work. Job failures during the time period should be predictable and not catastrophic.
 1. [ ] Instance downtime testing should also include recoverability testing. Killing single services and ensuring the system can return itself to a working state
 1. [x] Persistent failure should be tested by killing single services in such a way that the cluster instance cannot be recovered and ensuring that the instance is properly taken offline
 1. [x] Network partitioning failures will be important also. In order to test this
