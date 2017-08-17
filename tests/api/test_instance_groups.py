@@ -506,7 +506,7 @@ class TestInstanceGroups(Base_Api_Test):
                   .format(j=job_during_partition))
         celery_error_msg = 'Task was marked as running in Tower but was not present in Celery, so it has been marked as failed.'
         assert job_before_partition.job_explanation == ('' if job_before_partition.status == 'successful' else celery_error_msg)
-        assert job_during_partition.job_explanation == ('' if job_before_partition.status == 'successful' else celery_error_msg)
+        assert job_during_partition.job_explanation == ('' if job_during_partition.status == 'successful' else celery_error_msg)
 
         # Confirm that no jobs were relaunched
         assert jt_before_partition.get().get_related('last_job').id == job_before_partition.id
