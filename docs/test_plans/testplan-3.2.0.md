@@ -39,7 +39,7 @@ When verifying acceptance we should ensure the following statements are true
 #### Testing Considerations
 
 1. [x] Basic testing should be able to demonstrate parity with a standalone instance for all integration testing.
-1. [ ] Run existing integration tests verifying job (etc) behaviour, but targetting an isolated instance group.
+1. [ ] Run existing integration tests verifying job (etc) behaviour, specifically targetting an isolated instance group.
 1. [x] Basic setup playbook testing to verify routing differences, including:
     * [x] Basic FQDN
     * [x] Hostname
