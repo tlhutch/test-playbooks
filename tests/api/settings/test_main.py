@@ -584,3 +584,38 @@ class Test_Main_Setting(Base_Api_Test):
         assert initial_json == setting_pg.get().json, \
             "Expected {0} to be reverted to initial state after submitting DELETE request.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
                 setting_pg.endpoint, initial_json, setting_pg.json)
+
+    def test_job_settings_awx_task_env_var_in_unified_job_env(self, request, api_settings_pg, factories):
+        job_settings = api_settings_pg.get_endpoint('jobs')
+
+        original_task_env = job_settings.AWX_TASK_ENV
+        request.addfinalizer(lambda: job_settings.patch(AWX_TASK_ENV=original_task_env))
+
+        updated_task_env = original_task_env.copy()
+        desired_val = 'some_val'
+        updated_task_env['SOME_TEST_ENV_VAR'] = desired_val
+        job_settings.AWX_TASK_ENV = updated_task_env
+
+        custom_source = factories.v2_inventory_source(source='custom')
+        inv_update = custom_source.update().wait_until_completed()
+        assert inv_update.is_successful
+        assert inv_update.job_env.SOME_TEST_ENV_VAR == desired_val
+
+        inventory = custom_source.ds.inventory
+        host = inventory.related.hosts.get().results[0]
+
+        jt = factories.v2_job_template(inventory=inventory, playbook='ansible_env.yml')
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        assert job.job_env.SOME_TEST_ENV_VAR == desired_val
+        debug_event = job.related.job_events.get(task='debug', host=host.id).results[0]
+        assert debug_event.event_data.res.ansible_env.SOME_TEST_ENV_VAR == desired_val
+
+        project_update = jt.ds.project.related.project_updates.get().results[0]
+        assert project_update.job_env.SOME_TEST_ENV_VAR == desired_val
+
+        ahc = factories.v2_ad_hoc_command(inventory=inventory, limit=host.name)
+        ahc.wait_until_completed()
+        assert ahc.is_successful
+        assert ahc.job_env.SOME_TEST_ENV_VAR == desired_val
