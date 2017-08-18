@@ -98,7 +98,7 @@ class TestFactCache(Base_Api_Test):
         inventory = factories.v2_inventory()
         hosts = [factories.v2_host(inventory=inventory) for _ in range(3)]
 
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        jt = factories.v2_job_template(inventory=hosts[0].ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
         jt.playbook = 'use_facts.yml'
@@ -118,7 +118,7 @@ class TestFactCache(Base_Api_Test):
         hosts = [factories.v2_host(inventory=inventory) for _ in range(3)]
         target_host = hosts.pop()
 
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        jt = factories.v2_job_template(inventory=target_host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         scan_job = jt.launch().wait_until_completed()
         assert scan_job.is_successful
 
