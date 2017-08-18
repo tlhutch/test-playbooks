@@ -435,21 +435,20 @@ class TestInventoryUpdate(Base_Api_Test):
         # assert whether hosts were imported
         assert aws_group.get().total_hosts == 0, "Unexpected number of hosts returned (%s != 0)." % aws_group.total_hosts
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/6482", raises=AssertionError)
     @pytest.mark.ansible_integration
-    @pytest.mark.parametrize(
-        "only_group_by, expected_group_names",
-        [
-            ("", ["ec2", "images", "keys", "regions", "security_groups", "tags", "types", "vpcs", "zones"],),
-            ("availability_zone", ["ec2", "zones"],),
-            ("ami_id", ["ec2", "images"],),
-            ("instance_id", ["ec2", "instances"],),
-            ("instance_type", ["ec2", "types"],),
-            ("key_pair", ["ec2", "keys"],),
-            ("region", ["ec2", "regions"],),
-            ("security_group", ["ec2", "security_groups"],),
-            ("availability_zone,ami_id", ["ec2", "zones", "images"],),
-        ], ids=["\"\"", "availability_zone", "ami_id", "instance_id", "instance_type", "key_pair", "region", "security_group", "availability_zone,ami_id"])
+    @pytest.mark.parametrize("only_group_by, expected_group_names",
+                             [("", ["accounts", "ec2", "images", "instance_states", "keys", "regions",
+                                    "security_groups", "tags", "types", "vpcs", "zones"],),
+                              ("availability_zone", ["ec2", "zones"],),
+                              ("ami_id", ["ec2", "images"],),
+                              ("instance_id", ["ec2", "instances"],),
+                              ("instance_type", ["ec2", "types"],),
+                              ("key_pair", ["ec2", "keys"],),
+                              ("region", ["ec2", "regions"],),
+                              ("security_group", ["ec2", "security_groups"],),
+                              ("availability_zone,ami_id", ["ec2", "zones", "images"],)],
+                             ids=['""', "availability_zone", "ami_id", "instance_id", "instance_type", "key_pair",
+                                  "region", "security_group", "availability_zone,ami_id"])
     def test_aws_update_with_only_group_by(self, aws_group, only_group_by, expected_group_names):
         """Tests that expected groups are created when supplying value for only_group_by."""
         inv_source = aws_group.get_related('inventory_source')
@@ -459,9 +458,13 @@ class TestInventoryUpdate(Base_Api_Test):
         assert update.is_successful
         assert inv_source.get().is_successful
 
-        groups = aws_group.get_related('children')
-        actual_group_names = [group.name for group in groups.results]
+        groups = aws_group.ds.inventory.related.root_groups.get()
+        actual_group_names = [group.name for group in groups.results if group.name != aws_group.name]
         assert set(actual_group_names) == set(expected_group_names)
+
+        # confirm desired auth env vars are in update context
+        assert 'AWS_ACCESS_KEY_ID' in update.job_env
+        assert 'AWS_SECRET_ACCESS_KEY' in update.job_env
 
     @pytest.mark.ansible_integration
     def test_aws_replace_dash_in_groups_source_variable(self, job_template, aws_group, host_local):
