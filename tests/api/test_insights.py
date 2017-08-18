@@ -102,7 +102,7 @@ class TestInsights(Base_Api_Test):
         assert "Failed to gather reports and maintenance plans from Insights API" in e.value[1]['error']
 
     def test_access_insights_with_invalid_credential(self, factories, insights_inventory):
-        """Verify that attempts to access Insights with a bad Insights credential raises a 502."""
+        """Verify that attempts to access Insights with a bad Insights credential raise a 502."""
         credential = factories.v2_credential(kind='insights', inputs=dict(username="fake", password="fake"))
         insights_inventory.insights_credential = credential.id
         hosts = insights_inventory.related.hosts.get().results
