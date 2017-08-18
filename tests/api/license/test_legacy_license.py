@@ -67,7 +67,11 @@ class TestLegacyLicense(LicenseTest):
         with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
-            assert 'license_key' not in conf.license_info
+
+            if non_superuser.is_system_auditor:
+                assert 'license_key' in conf.license_info
+            else:
+                assert 'license_key' not in conf.license_info
 
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
@@ -416,7 +420,11 @@ class TestLegacyTrialLicense(LicenseTest):
         with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
-            assert 'license_key' not in conf.license_info
+
+            if non_superuser.is_system_auditor:
+                assert 'license_key' in conf.license_info
+            else:
+                assert 'license_key' not in conf.license_info
 
     def test_update_license(self, api_config_pg, trial_legacy_license_json):
         """Verify that the license can be updated by issuing a POST to the /config endpoint"""
