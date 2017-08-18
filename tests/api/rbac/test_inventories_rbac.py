@@ -492,8 +492,7 @@ class TestInventoryRBAC(Base_Api_Test):
         its organization.
         """
         # launch both commands
-        ahc1 = factories.v2_ad_hoc_command(module_name="ping")
-        ahc2 = factories.v2_ad_hoc_command(module_name="ping")
+        ahc1, ahc2 = [factories.v2_ad_hoc_command(module_name="ping").wait_until_completed() for _ in range(2)]
 
         # create org admins
         org_admin1, org_admin2 = [factories.user() for _ in range(2)]

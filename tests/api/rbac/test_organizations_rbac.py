@@ -154,8 +154,8 @@ class Test_Organization_RBAC(Base_Api_Test):
         inv2 = factories.inventory()
 
         # ahc organization is determined by its inventory
-        ahc1 = factories.ad_hoc_command(module_name='shell', module_args='true', inventory=inv1)
-        ahc2 = factories.ad_hoc_command(module_name='shell', module_args='true', inventory=inv2)
+        ahc1, ahc2 = [factories.ad_hoc_command(module_name='shell', module_args='true', inventory=inv).wait_until_completed()
+                      for inv in (inv1, inv2)]
 
         with self.current_user(username=org_admin.username, password=org_admin.password):
             ahc1.delete()
