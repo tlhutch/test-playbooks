@@ -72,7 +72,11 @@ class TestEnterpriseLicense(LicenseTest):
         with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
             print json.dumps(conf.json, indent=4)
-            assert 'license_key' not in conf.license_info
+
+            if non_superuser.is_system_auditor:
+                assert 'license_key' in conf.license_info
+            else:
+                assert 'license_key' not in conf.license_info
 
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
