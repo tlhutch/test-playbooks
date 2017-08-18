@@ -60,4 +60,4 @@ class Test_Api_Basics(Base_Api_Test):
         r = api.get('/api/')
         data = r.json()
         description = data.get('description')
-        assert description == 'Ansible Tower REST API'
+        assert description == 'AWX REST API'
