@@ -867,3 +867,42 @@ print json.dumps(inventory)
 
         # assess job_explanation
         check_chain_canceled_job_explanation(inv_update_pg, [job_pg, project_update_pg])
+
+    def test_fail_dependent_job_with_failed_inventory_update(self, factories):
+        aws_cred = factories.v2_credential(kind='aws', inputs=dict(username='fake', password='fake'))
+        inv_source = factories.v2_inventory_source(source='ec2', credential=aws_cred, update_on_launch=True)
+        jt = factories.v2_job_template(inventory=inv_source.ds.inventory)
+        job = jt.launch().wait_until_completed()
+
+        inv_updates = inv_source.related.inventory_updates.get()
+        assert inv_updates.count == 1
+        inv_update = inv_updates.results.pop()
+
+        assert job.status == 'failed'
+        assert job.failed
+        assert job.job_explanation == 'Previous Task Failed: {"job_type": "inventory_update", "job_name": "%s", "job_id": "%s"}' \
+                                      % (inv_source.ds.inventory.name, inv_update.id)
+        assert jt.get().status == 'failed'
+        assert jt.last_job_failed
+
+        assert inv_update.status == 'failed'
+        assert inv_update.failed
+        assert inv_source.get().status == 'failed'
+        assert inv_source.last_job_failed
+
+    def test_fail_dependent_job_with_failed_project_update(self, factories):
+        jt = factories.v2_job_template()
+        project = jt.ds.project
+        project.scm_url = "will_fail"
+        job = jt.launch().wait_until_completed()
+        sync_update = project.related.project_updates.get(launch_type='sync').results.pop()
+
+        assert job.status == 'error'
+        assert job.failed
+        assert job.job_explanation == 'Previous Task Failed: {"job_type": "project_update", "job_name": "%s", "job_id": "%s"}' \
+                                      % (project.name, sync_update.id)
+        assert jt.get().status == 'failed'
+        assert jt.last_job_failed
+
+        assert sync_update.status == 'failed'
+        assert sync_update.failed
