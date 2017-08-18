@@ -335,7 +335,7 @@ class Test_Job_Template_RBAC(Base_Api_Test):
         org2.add_admin(org_admin2)
 
         # launch JTs
-        job1, job2 = [jt.launch() for jt in (jt1, jt2)]
+        job1, job2 = [jt.launch().wait_until_completed() for jt in (jt1, jt2)]
 
         # assert that each org_admin cannot delete other organization's job
         with self.current_user(username=org_admin1.username, password=org_admin1.password):
