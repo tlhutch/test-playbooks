@@ -107,7 +107,7 @@ Fact ingestion:
 1. [x] `use_fact_cache` with gather_facts should update host `ansible_facts`.
 1. [x] `use_fact_cache` without gather_facts should not update host `ansible_facts`.
 1. [x] `use_fact_cache` with Tower scan modules should return expected facts.
-1. [x] `use_fact_cache` updates host `ansible_facts` after each scan job.
+1. [ ] `use_fact_cache` updates host `ansible_facts` after each scan job.
 1. [x] Host with spaces in hostname.
 1. [x] Host with unicode hostname.
 
@@ -118,7 +118,7 @@ Fact use:
 1. [x] Verify fact use against simple host with JT limit.
 
 Miscellaney:
-1. [x] Verify fact ingestation and sourcing against all JSON data types.
+1. [ ] Verify fact ingestation and sourcing against all JSON data types.
 1. [ ] Verify fact cache ingestation and use over cluster.
 1. [ ] `clear_facts` should clear facts.
 
