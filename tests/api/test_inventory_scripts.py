@@ -22,8 +22,6 @@ print json.dumps({})
 """]
 
 
-# @pytest.mark.fixture_args(script_source='#!env python\nraise Exception("fail!")\n') # traceback
-# @pytest.mark.fixture_args(script_source='#!env python\nimport sys\nsys.exit(1)\n')
 @pytest.fixture(scope="function", params=enumerate(bad_scripts))
 def bad_inventory_script(request, inventory_script):
     inventory_script.script = request.param[1]
@@ -40,10 +38,7 @@ def custom_inventory_source_vars_good(request):
 
 @pytest.fixture(scope="function")
 def custom_inventory_source_vars_bad(request):
-    return dict(HOME='BOGUS',
-                PATH='BOGUS',
-                USER='BOGUS',
-                TERM='BOGUS',)
+    return dict(PATH='BOGUS')
 
 
 @pytest.fixture(scope="function")
@@ -55,10 +50,9 @@ def custom_inventory_source_with_vars(request, custom_inventory_source, custom_i
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Inventory_Scripts(Base_Api_Test):
     """Verifies basic CRUD operations against the /inventory_scripts endpoint"""
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_post_as_privileged_user(self, request, script_source, organization, api_inventory_scripts_pg, privileged_user, user_password):
         """Verify succesful POST to /inventory_scripts as privileged user."""
@@ -269,11 +263,10 @@ class Test_Inventory_Scripts(Base_Api_Test):
 
         # assert existing shell environment variables are *not* replaced
         for key, val in custom_inventory_source_vars_bad.items():
-            if key in update_pg.job_env:
-                # assert existing shell environment variables are *not* replaced
-                assert update_pg.job_env[key] != val, "The reserved environment " \
-                    "variable '%s' was incorrectly set ('%s')" % \
-                    (key, update_pg.job_env[key])
+            assert key in update_pg.job_env
+            assert update_pg.job_env[key] != val, "The reserved environment " \
+                "variable '%s' was incorrectly set ('%s')" % \
+                (key, update_pg.job_env[key])
 
         # assert environment variables are replaced
         for key, val in custom_inventory_source_vars_good.items():
@@ -285,8 +278,12 @@ class Test_Inventory_Scripts(Base_Api_Test):
                 "variable '%s' was incorrectly set ('%s' != '%s')" % \
                 (key, update_pg.job_env[key], val)
 
-    # @pytest.mark.fixture_args(script_source='#!env python\nraise Exception("fail!")\n') # traceback
-    # @pytest.mark.fixture_args(script_source='#!env python\nimport sys\nsys.exit(1)\n')
+    def test_confirm_prohibited_source_vars_rejected(self, custom_inventory_source_with_vars):
+        for forbidden in ('TERM', 'USER', 'HOME'):
+            with pytest.raises(towerkit.exceptions.BadRequest) as e:
+                custom_inventory_source_with_vars.patch(source_vars=json.dumps({forbidden: 'should_not_allow'}))
+            assert e.value.message == {'source_vars': ['`{}` is a prohibited environment variable'.format(forbidden)]}
+
     @pytest.mark.ansible_integration
     def test_import_script_failure(self, custom_inventory_source, api_unified_jobs_pg, bad_inventory_script):
         """Verify an inventory_update fails when using various bad inventory_scripts"""
