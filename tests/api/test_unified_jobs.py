@@ -26,3 +26,5 @@ class TestUnifiedJobs(Base_Api_Test):
         with pytest.raises(exc.Forbidden) as e:
             uj.delete()
         assert e.value[1]['detail'] == 'Cannot delete running job resource.'
+
+        assert uj.wait_until_completed().is_successful
