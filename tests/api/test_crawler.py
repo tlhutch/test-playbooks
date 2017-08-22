@@ -74,7 +74,6 @@ payment_required = (httplib.PAYMENT_REQUIRED, 'payment_required')
 unauthorized = (httplib.UNAUTHORIZED, 'unauthorized')
 
 
-@pytest.mark.github("https://github.com/ansible/tower-qa/issues/1245", raises=AssertionError)
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
@@ -106,26 +105,26 @@ def test_unauthenticated(api, resource, method, authtoken, no_license):
                             'POST': (httplib.METHOD_NOT_ALLOWED, 'post'),
                             'PUT': (httplib.METHOD_NOT_ALLOWED, 'put')},
                   'workflow_job_nodes/': {'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
-                                          'GET': payment_required,
-                                          'OPTIONS': payment_required,
+                                          'GET': unauthorized,
+                                          'OPTIONS': unauthorized,
                                           'PATCH': payment_required,
                                           'POST': payment_required,
                                           'PUT': payment_required},
                   'workflow_job_template_nodes/': {'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
-                                                   'GET': payment_required,
-                                                   'OPTIONS': payment_required,
+                                                   'GET': unauthorized,
+                                                   'OPTIONS': unauthorized,
                                                    'PATCH': payment_required,
                                                    'POST': payment_required,
                                                    'PUT': payment_required},
                   'workflow_job_templates/': {'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
-                                              'GET': payment_required,
-                                              'OPTIONS': payment_required,
+                                              'GET': unauthorized,
+                                              'OPTIONS': unauthorized,
                                               'PATCH': payment_required,
                                               'POST': payment_required,
                                               'PUT': payment_required},
                   'workflow_jobs/': {'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
-                                     'GET': payment_required,
-                                     'OPTIONS': payment_required,
+                                     'GET': unauthorized,
+                                     'OPTIONS': unauthorized,
                                      'PATCH': payment_required,
                                      'POST': payment_required,
                                      'PUT': payment_required}}
@@ -147,7 +146,6 @@ def test_unauthenticated(api, resource, method, authtoken, no_license):
         api.session.auth = previous_auth
 
 
-@pytest.mark.github("https://github.com/ansible/tower-qa/issues/1245", raises=AssertionError)
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
@@ -170,7 +168,9 @@ def test_authenticated(api, resource, method, authtoken, no_license):
                                  'GET': method_not_allowed},
                   'config/': {'POST': (httplib.BAD_REQUEST, 'license_invalid')},
                   'dashboard/': {'POST': method_not_allowed},
-                  'inventory_sources/': {'POST': method_not_allowed},
+                  'instance_groups/': {'POST': method_not_allowed},
+                  'instances/': {'POST': method_not_allowed},
+                  '/api/v1/inventory_sources/': {'POST': method_not_allowed},
                   'inventory_updates/': {'POST': method_not_allowed},
                   'job_events/': {'POST': method_not_allowed},
                   'me/': {'POST': method_not_allowed},
@@ -185,26 +185,18 @@ def test_authenticated(api, resource, method, authtoken, no_license):
                   'unified_jobs/': {'POST': method_not_allowed},
                   'unified_job_templates/': {'POST': method_not_allowed},
                   'workflow_job_nodes/': {'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
-                                          'GET': payment_required,
-                                          'OPTIONS': payment_required,
                                           'PATCH': payment_required,
                                           'POST': payment_required,
                                           'PUT': payment_required},
                   'workflow_job_template_nodes/': {'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
-                                                   'GET': payment_required,
-                                                   'OPTIONS': payment_required,
                                                    'PATCH': payment_required,
                                                    'POST': payment_required,
                                                    'PUT': payment_required},
                   'workflow_job_templates/': {'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
-                                              'GET': payment_required,
-                                              'OPTIONS': payment_required,
                                               'PATCH': payment_required,
                                               'POST': payment_required,
                                               'PUT': payment_required},
                   'workflow_jobs/': {'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
-                                     'GET': payment_required,
-                                     'OPTIONS': payment_required,
                                      'PATCH': payment_required,
                                      'POST': payment_required,
                                      'PUT': payment_required}}
@@ -213,8 +205,11 @@ def test_authenticated(api, resource, method, authtoken, no_license):
     (expected_response_code, expected_response_schema) = expected[method]
 
     # Check if any api link requires special handling
-    versionless_endpoint = resource[8:]
-    if versionless_endpoint in exceptions and method in exceptions[versionless_endpoint]:
-        expected_response_code, expected_response_schema = exceptions[versionless_endpoint][method]
+    if resource in exceptions and method in exceptions[resource]:
+        expected_response_code, expected_response_schema = exceptions[resource][method]
+    else:
+        versionless_endpoint = resource[8:]
+        if versionless_endpoint in exceptions and method in exceptions[versionless_endpoint]:
+            expected_response_code, expected_response_schema = exceptions[versionless_endpoint][method]
 
     assert_response(api, resource, method, expected_response_code, expected_response_schema)
