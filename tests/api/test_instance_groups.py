@@ -511,3 +511,28 @@ class TestInstanceGroups(Base_Api_Test):
         # Confirm that no jobs were relaunched
         assert jt_before_partition.get().get_related('last_job').id == job_before_partition.id
         assert jt_during_partition.get().get_related('last_job').id == job_during_partition.id
+
+    @pytest.mark.parametrize('setting_endpoint', ['all', 'jobs'])
+    @pytest.mark.requires_ha
+    def test_ensure_awx_isolated_key_fields_are_read_only(self, ansible_module_cls, factories, admin_user, user_password, v2, setting_endpoint):
+        settings = v2.settings.get().get_endpoint(setting_endpoint)
+        assert settings.AWX_ISOLATED_PUBLIC_KEY != '$encrypted$' and len(settings.AWX_ISOLATED_PUBLIC_KEY)
+        assert settings.AWX_ISOLATED_PRIVATE_KEY == '$encrypted$'
+
+        initial_value_public_key = settings.AWX_ISOLATED_PUBLIC_KEY
+        initial_value_private_key = settings.AWX_ISOLATED_PRIVATE_KEY
+
+        def check_settings():
+            settings.get()
+            assert settings.AWX_ISOLATED_PUBLIC_KEY == initial_value_public_key
+            assert settings.AWX_ISOLATED_PRIVATE_KEY == initial_value_private_key
+
+        settings.delete()
+        check_settings()
+        settings.patch(AWX_ISOLATED_PUBLIC_KEY='changed', AWX_ISOLATED_PRIVATE_KEY='changed')
+        check_settings()
+        payload = settings.get().json
+        payload.AWX_ISOLATED_PUBLIC_KEY = 'changed'
+        payload.AWX_ISOLATED_PRIVATE_KEY = 'changed'
+        settings.put(payload)
+        check_settings()
