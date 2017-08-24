@@ -193,7 +193,7 @@ class TestInstanceGroups(Base_Api_Test):
             # Capacity should increase after each job launch
             assert ig.get().consumed_capacity > previous_ig_consumed_capacity
             previous_ig_consumed_capacity = ig.consumed_capacity
-            assert ig.percent_capacity_remaining == round(float(ig.capacity - ig.consumed_capacity) * 100 / ig.capacity, 1)
+            assert ig.percent_capacity_remaining == round(float(ig.capacity - ig.consumed_capacity) * 100 / ig.capacity, 2)
             instance = [i for i in ig.get_related('instances').results if i.hostname == job.execution_node][0]
 
             assert instance.get().consumed_capacity > 0
