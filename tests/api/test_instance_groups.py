@@ -330,7 +330,7 @@ class TestInstanceGroups(Base_Api_Test):
 
                         # Check the job we started is marked as failed
                         long_job = v2.jobs.get(id=long_job.id).results[0]
-                        long_job.wait_until_status('failed', interval=5, timeout=120)
+                        long_job.wait_until_status('failed', interval=5, timeout=120, since_job_created=False)
 
                         # Should fail with explanation:
                         explanation = "Task was marked as running in Tower but was not present in Celery, so it has been marked as failed."
@@ -373,7 +373,7 @@ class TestInstanceGroups(Base_Api_Test):
                 assert instance.capacity == instance_capacity
 
                 # Check that the waiting job is picked up and completes
-                job.wait_until_completed()
+                job.wait_until_completed(since_job_created=False)
 
                 # Check that we can run a new job against the node
                 job = jt.launch().wait_until_completed()
