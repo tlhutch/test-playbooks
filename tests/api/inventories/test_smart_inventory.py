@@ -80,16 +80,20 @@ class TestSmartInventory(Base_Api_Test):
         inventory.patch(host_filter="", kind="")
         assert inventory.related.hosts.get().count == 0
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/7377")
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7377')
     def test_launch_ahc_with_smart_inventory(self, factories):
+        """Verify against isolated host, host in parent group, and host in child group."""
         inventory = factories.v2_inventory()
-        hosts = []
-        for i in range(3):
-            host = factories.v2_host(inventory=inventory, name="test_host_{0}".format(i))
-            hosts.append(host)
+        parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]
+        parent_group.add_group(child_group)
+        for group in (parent_group, child_group):
+            host = factories.v2_host(name="test_host_{0}".format(group.name), inventory=inventory)
+            group.add_host(host)
+        factories.v2_host(name="test_host_root", inventory=inventory)
 
         smart_inventory = factories.v2_inventory(host_filter="search=test_host", kind="smart")
-        assert smart_inventory.related.hosts.get().count == 3
+        hosts = smart_inventory.related.hosts.get().results
+        assert len(hosts) == 3
 
         ahc = factories.v2_ad_hoc_command(inventory=smart_inventory).wait_until_completed()
         assert ahc.is_successful
@@ -97,16 +101,20 @@ class TestSmartInventory(Base_Api_Test):
         for host in hosts:
             assert host.get().last_job == ahc.id
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/7378")
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7487')
     def test_launch_job_template_with_smart_inventory(self, factories):
+        """Verify against isolated host, host in parent group, and host in child group."""
         inventory = factories.v2_inventory()
-        hosts = []
-        for i in range(3):
-            host = factories.v2_host(inventory=inventory, name="test_host_{0}".format(i))
-            hosts.append(host)
+        parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]
+        parent_group.add_group(child_group)
+        for group in (parent_group, child_group):
+            host = factories.v2_host(name="test_host_{0}".format(group.name), inventory=inventory)
+            group.add_host(host)
+        factories.v2_host(name="test_host_root", inventory=inventory)
 
         smart_inventory = factories.v2_inventory(host_filter="search=test_host", kind="smart")
-        assert smart_inventory.related.hosts.get().count == 3
+        hosts = smart_inventory.related.hosts.get().results
+        assert len(hosts) == 3
 
         jt = factories.v2_job_template(inventory=smart_inventory)
         job = jt.launch().wait_until_completed()
