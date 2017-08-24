@@ -4,7 +4,6 @@ from tests.api import Base_Api_Test
 
 
 @pytest.fixture(scope="function", params=['job_template',
-                                          'scan_job_template',
                                           'check_job_template',
                                           'org_user',
                                           'team',

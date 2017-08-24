@@ -1,10 +1,8 @@
 import dateutil.rrule
-import json
-
-import fauxfactory
-import pytest
 
 from towerkit import rrule
+import fauxfactory
+import pytest
 
 
 @pytest.fixture(scope="function")
@@ -104,15 +102,6 @@ def job_template_with_yaml_vars(factories, organization, project, ssh_credential
 def check_job_template(job_template):
     """basic check job_template"""
     return job_template.patch(job_type="check")
-
-
-@pytest.fixture(scope="function")
-def scan_job_template(factories, organization, ssh_credential, host_local):
-    """basic scan job_template"""
-    return factories.job_template(description="scan job_template with machine credential - %s" % fauxfactory.gen_utf8(),
-                                  organization=organization, project=None, credential=ssh_credential,
-                                  inventory=host_local.ds.inventory, playbook='Default',
-                                  job_type='scan')
 
 
 @pytest.fixture(scope="function")
@@ -226,12 +215,6 @@ def job_template_variables_needed_to_start(job_template_ping, required_survey_sp
 def job_template_passwords_needed_to_start(job_template_ping, ssh_credential_multi_ask):
     """job_template with passwords needed to start"""
     return job_template_ping.patch(credential=ssh_credential_multi_ask.id)
-
-
-@pytest.fixture(scope="function")
-def files_scan_job_template(scan_job_template):
-    """Scan job template with files enabled"""
-    return scan_job_template.patch(extra_vars=json.dumps(dict(scan_file_paths="/tmp,/bin")))
 
 
 @pytest.fixture(scope="function")

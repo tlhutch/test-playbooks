@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 
 from towerkit.utils import to_str
 import fauxfactory
@@ -9,9 +10,8 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestFactCache(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def assert_updated_facts(self, ansible_facts):
         """Perform basic validation on host details ansible_facts."""
@@ -30,25 +30,33 @@ class TestFactCache(Base_Api_Test):
 
         self.assert_updated_facts(ansible_facts.get())
 
-    @pytest.mark.requires_single_instance
-    def test_ingest_facts_with_tower_scan_playbook(self, request, factories, ansible_runner, encrypted_scm_credential):
+    @pytest.fixture
+    def scan_facts_job_template(self, factories):
         host = factories.v2_host()
+        inventory = host.ds.inventory
+        organization = inventory.ds.organization
+        scm_cred, ssh_cred = [factories.v2_credential(kind=k, organization=organization) for k in ('scm', 'ssh')]
+        project = factories.v2_project(scm_url='git@github.com:ansible/tower-fact-modules.git', credential=scm_cred)
+        ssh_cred = factories.v2_credential(kind='ssh', organization=organization)
+        return factories.v2_job_template(description="3.2 scan_facts JT %s" % fauxfactory.gen_utf8(),
+                                         project=project, credential=ssh_cred, inventory=inventory,
+                                         playbook='scan_facts.yml', use_fact_cache=True)
 
+    @pytest.mark.requires_single_instance
+    def test_ingest_facts_with_tower_scan_playbook(self, request, factories, ansible_runner, is_docker,
+                                                   scan_facts_job_template):
         machine_id = "4da7d1f8-14f3-4cdc-acd5-a3465a41f25d"
         ansible_runner.file(path='/etc/redhat-access-insights', state="directory")
         ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(machine_id))
         request.addfinalizer(lambda: ansible_runner.file(path='/etc/redhat-access-insights', state="absent"))
 
-        project = factories.v2_project(scm_url="git@github.com:ansible/tower-fact-modules.git",
-                                       credential=encrypted_scm_credential, wait=True)
-        jt = factories.v2_job_template(inventory=host.ds.inventory, project=project, playbook='scan_facts.yml',
-                                       use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
+        assert scan_facts_job_template.launch().wait_until_completed().is_successful
 
-        ansible_facts = host.related.ansible_facts.get()
+        ansible_facts = scan_facts_job_template.ds.inventory.related.hosts.get().results[0].related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
-        assert ansible_facts.services['sshd.service']
-        assert ansible_facts.packages['ansible-tower']
+
+        assert ansible_facts.services['network'] if is_docker else ansible_facts.services['sshd.service']
+        assert ansible_facts.packages['which'] if is_docker else ansible_facts.packages['ansible-tower']
         assert ansible_facts.insights['system_id'] == machine_id
 
     def test_ansible_facts_update(self, factories):
@@ -172,3 +180,61 @@ class TestFactCache(Base_Api_Test):
         job = jt.launch().wait_until_completed()
         assert job.status == 'failed'
         assert "The error was: 'ansible_distribution' is undefined" in job.result_stdout
+
+    @pytest.mark.ansible_integration
+    def test_scan_file_paths_are_sourced(self, scan_facts_job_template):
+        scan_file_paths = ('/tmp', '/bin')
+        scan_facts_job_template.extra_vars = json.dumps(dict(scan_file_paths=','.join(scan_file_paths)))
+
+        job = scan_facts_job_template.launch().wait_until_completed()
+        assert job.is_successful
+
+        host = scan_facts_job_template.related.inventory.get().related.hosts.get().results[0]
+        files = host.related.ansible_facts.get().files
+
+        for file_path in [f.path for f in files]:
+            assert any([file_path.startswith(path) for path in scan_file_paths])
+
+    @pytest.mark.requires_isolation
+    @pytest.mark.ansible_integration
+    def test_scan_file_paths_are_traversed(self, v2, request, ansible_runner, scan_facts_job_template):
+        jobs_settings = v2.settings.get().get_endpoint('jobs')
+        prev_proot_show_paths = jobs_settings.AWX_PROOT_SHOW_PATHS
+        jobs_settings.AWX_PROOT_SHOW_PATHS = prev_proot_show_paths + ["/tmp/test"]
+        request.addfinalizer(lambda: jobs_settings.patch(AWX_PROOT_SHOW_PATHS=prev_proot_show_paths))
+
+        dir_path = '/tmp/test/directory/traversal/is/working'
+        res = ansible_runner.file(path=dir_path, state='directory').values()[0]
+        assert not res.get('failed') and res.get('changed')
+
+        test_dir = '/tmp/test'
+        request.addfinalizer(lambda: ansible_runner.file(path=test_dir, state='absent'))
+
+        file_path = dir_path + '/some_file'
+        res = ansible_runner.file(path=file_path, state='touch').values()[0]
+        assert not res.get('failed') and res.get('changed')
+
+        extra_vars = dict(scan_file_paths=test_dir, scan_use_recursive=True)
+        scan_facts_job_template.patch(extra_vars=json.dumps(extra_vars))
+
+        job = scan_facts_job_template.launch().wait_until_completed()
+        assert job.is_successful
+
+        host = scan_facts_job_template.related.inventory.get().related.hosts.get().results[0]
+        files = host.related.ansible_facts.get().files
+        assert len(files) == 1
+        assert files[0].path == file_path
+
+    @pytest.mark.ansible_integration
+    def test_file_scan_job_provides_checksums(self, scan_facts_job_template):
+        scan_facts_job_template.extra_vars = json.dumps(dict(scan_file_paths='/tmp,/bin', scan_use_checksum=True))
+
+        job = scan_facts_job_template.launch().wait_until_completed()
+        assert job.is_successful
+
+        host = scan_facts_job_template.related.inventory.get().related.hosts.get().results[0]
+        files = host.related.ansible_facts.get().files
+
+        for file in files:
+            if not file.isdir:
+                assert file.checksum

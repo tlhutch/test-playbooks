@@ -103,5 +103,5 @@ class Test_System_Job_Template(Base_Api_Test):
                                                                     cleanup_activitystream_template):
         for template in (cleanup_jobs_template, cleanup_activitystream_template):
             with pytest.raises(towerkit.exceptions.BadRequest) as e:
-                daily_template.add_schedule(extra_data=dict(days='-100'))
+                template.add_schedule(extra_data=dict(days='-100'))
             assert e.value.message == {'extra_data': ['days must be a positive integer.']}

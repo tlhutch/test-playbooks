@@ -7,18 +7,6 @@ def job_with_status_completed(job_template_ping):
     return job_template_ping.launch().wait_until_completed()
 
 
-@pytest.fixture(scope="function")
-def scan_job_with_status_completed(scan_job_template):
-    """Launch scan_job_template and return the job resource."""
-    return scan_job_template.launch().wait_until_completed()
-
-
-@pytest.fixture(scope="function")
-def files_scan_job_with_status_completed(files_scan_job_template):
-    """Launch files_scan_job_template and return the job resource."""
-    return files_scan_job_template.launch().wait_until_completed()
-
-
 @pytest.fixture(scope="function", params=['json_launch_time_vars', 'yaml_launch_time_vars'])
 def launch_time_extra_vars(request):
     return request.getfuncargvalue(request.param)

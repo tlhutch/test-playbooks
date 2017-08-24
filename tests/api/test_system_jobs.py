@@ -130,25 +130,12 @@ class Test_System_Jobs(Base_Api_Test):
         assert activity_stream_pg.count == 0, \
             "After running cleanup_activitystream, activity_stream items still present (%s items found)." % activity_stream_pg.count
 
-    def test_cleanup_facts(self, files_scan_job_with_status_completed, cleanup_facts_template):
-        """Run a scan job, launch a cleanup_facts job, and assert that facts get deleted."""
-        # assert scan job successful
-        assert files_scan_job_with_status_completed.is_successful, \
-            "Job unsuccessful - %s." % files_scan_job_with_status_completed
-
-        # assert facts in fact_versions
-        host_pg = files_scan_job_with_status_completed.get_related('inventory').get_related('hosts').results[0]
-        fact_versions_pg = host_pg.get_related('fact_versions')
-        assert fact_versions_pg.count > 0, "Even though scan job was run, facts do not exist (got %s)." % fact_versions_pg.count
-
-        # launch job and assert job successful
+    def test_cleanup_facts(self, cleanup_facts_template):
+        #  3.2 does not load fact_versions, so this test is now a sanity on mgmt job run.
+        #  TODO: Remove when mgmt job is removed from Tower.
         payload = dict(extra_vars=dict(granularity='0d', older_than='0d'))
         system_jobs_pg = cleanup_facts_template.launch(payload).wait_until_completed()
         assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
-
-        # assert no facts in fact_versions
-        assert fact_versions_pg.get().count == 0, \
-            "Even though cleanup_facts was run, facts still exist (got %s)." % fact_versions_pg.count
 
     @pytest.mark.parametrize('job_type, extra_vars', [('cleanup_jobs', '{"days":"1000"}'),
                                                       ('cleanup_activitystream', '{"days":"1000"}'),
