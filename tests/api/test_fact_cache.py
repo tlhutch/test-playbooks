@@ -236,5 +236,5 @@ class TestFactCache(Base_Api_Test):
         files = host.related.ansible_facts.get().files
 
         for file in files:
-            if not file.isdir:
+            if not file.isdir and file.roth:
                 assert file.checksum
