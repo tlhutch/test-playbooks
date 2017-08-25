@@ -208,7 +208,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
 
         # post payload as unprivileged user
         for unprivileged_user in unprivileged_users:
-            ssh_credential.patch(user=unprivileged_user.id)
+            ssh_credential.set_object_roles(unprivileged_user, 'admin')
             with self.current_user(unprivileged_user.username, user_password):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     api_ad_hoc_commands_pg.post(payload)
