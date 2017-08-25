@@ -322,8 +322,7 @@ class Test_Projects(Base_Api_Test):
         request.addfinalizer(lambda: ansible_runner.file(path=path, state='absent'))
         sync = ansible_runner.git(repo='git://github.com/jlaska/ansible-playbooks.git', dest=path)
         rev = sync.values().pop()['after']
-        assert(rev)
+        assert rev
         project = factories.project(scm_url='file://{0}'.format(path))
-        update = project.related.current_update.get().wait_until_completed()
-        assert(update.is_successful)
-        assert(project.get().scm_revision == rev)
+        assert project.is_successful
+        assert project.scm_revision == rev
