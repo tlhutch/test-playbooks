@@ -63,6 +63,8 @@ def job_with_deleted_related(request, job_with_status_completed):
     """Creates and deletes an related attribute of a job"""
     related_pg = job_with_status_completed.get_related(request.param)
     related_pg.delete()
+    if request.param == 'inventory':
+        related_pg.wait_until_deleted()
     return job_with_status_completed
 
 

@@ -46,6 +46,8 @@ def deleted_object(request):
     """
     obj = request.getfuncargvalue(request.param)
     obj.delete()
+    if request.param == 'inventory':
+        obj.wait_until_deleted()
     return obj
 
 
