@@ -206,17 +206,14 @@ class TestCredentials(Base_Api_Test):
         ("net", "passphrase"),
         ("net", "ASK")
     ], ids=["ssh-passphrase", "ssh-ASK", "net-passphrase", "net-ASK"])
-    def test_ssh_key_unlock_with_unencrypted_key_data(self, admin_user, api_credentials_pg, kind, ssh_key_unlock):
+    def test_ssh_key_unlock_with_unencrypted_key_data(self, v2, factories, kind, ssh_key_unlock):
         """Credentials with unencrypted key data should reject both passphrases and passphrase-ASK."""
-        payload = dict(name="credential-%s." % fauxfactory.gen_utf8(),
-                       kind=kind,
-                       user=admin_user.id,
-                       ssh_key_data=self.credentials['ssh']['ssh_key_data'],
-                       ssh_key_unlock=ssh_key_unlock)
+        user = factories.v2_user()
+        payload = factories.v2_credential.payload(kind=kind, user=user, ssh_key_unlock=ssh_key_unlock)
 
         with pytest.raises(exc.BadRequest) as e:
-            api_credentials_pg.post(payload)
-        assert e.value.message == {'ssh_key_unlock': ['should not be set when SSH key is not encrypted.']}
+            v2.credentials.post(payload)
+        assert e.value.message['inputs'] == {'ssh_key_unlock': ['should not be set when SSH key is not encrypted.']}
 
     @pytest.mark.parametrize('cred_args, scm_url',
                              [[dict(password=''), 'git@github.com:/ansible/tower-qa.git'],
