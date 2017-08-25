@@ -1,5 +1,4 @@
 from towerkit import exceptions as exc
-from towerkit import utils
 import fauxfactory
 import pytest
 

@@ -1,3 +1,8 @@
+from base64 import b64decode
+import logging
+import re
+import os
+
 from towerkit.config import config
 import towerkit.exceptions as exc
 import fauxfactory
@@ -231,3 +236,81 @@ class TestCredentials(Base_Api_Test):
         update = inv_source.update().wait_until_completed()
         assert update.failed
         assert 'NoAuthHandlerFound' in update.result_stdout
+
+    @pytest.fixture
+    def get_pg_dump(self, request, ansible_runner, is_docker):
+        if is_docker:
+            pytest.skip('Test not compatible w/o access to db container.')
+
+        def _pg_dump():
+            inv_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
+            contacted = ansible_runner.shell("""PGPASSWORD=`grep {} -e "pg_password=.*" """
+                                             """| sed \'s/pg_password="//\' | sed \'s/"//\'` """
+                                             """pg_dump -U awx -d awx -f pg.txt -w""".format(inv_path))
+            for res in contacted.values():
+                assert res.get('changed') and not res.get('failed')
+
+            pg_dump_path = '/home/{0}/pg.txt'.format(ansible_runner.options['user'])
+            request.addfinalizer(lambda: ansible_runner.file(path=pg_dump_path, state='absent'))
+
+            # Don't log the dumped db.
+            pa_logger = logging.getLogger('pytest_ansible')
+            prev_level = pa_logger.level
+            pa_logger.setLevel('INFO')
+            restored = [False]
+
+            def restore_log_level():
+                if not restored[0]:
+                    pa_logger.setLevel(prev_level)
+                    restored[0] = True
+
+            request.addfinalizer(restore_log_level)
+
+            contacted = ansible_runner.slurp(src=pg_dump_path)
+            restore_log_level()
+
+            res = contacted.values().pop()
+
+            assert not res.get('failed') and res['content']
+            return b64decode(res['content'])
+
+        return _pg_dump
+
+    @pytest.mark.requires_standalone
+    def test_confirm_no_plaintext_secrets_in_db(self, v2, factories, get_pg_dump):
+        cred_payloads = [factories.v2_credential.payload(kind=k) for k in ('aws', 'azure_rm', 'gce', 'net', 'ssh')]
+        secrets = set()
+        for payload in cred_payloads:
+            for field in ('password', 'ssh_key_data', 'authorize_password', 'become_password', 'secret'):
+                if field in payload.inputs:
+                    secrets.add(payload.inputs[field])
+            v2.credentials.post(payload)
+
+        pg_dump = get_pg_dump()
+
+        undesired_locations = []
+        for secret in secrets:
+            try:
+                undesired_locations.append(pg_dump.index(secret))
+            except ValueError:
+                pass
+
+        if undesired_locations:
+            locations = '\n'.join(pg_dump[location - 200:location + 200] for location in undesired_locations)
+            pytest.fail('Found plaintext secret in db: {}'.format(locations))
+
+    @pytest.mark.requires_standalone
+    def test_confirm_desired_encryption_schemes_in_db(self, v2, factories, get_pg_dump):
+        for kind in ('aws', 'azure_rm', 'gce', 'net', 'ssh'):
+            factories.v2_credential(kind=kind)
+
+        encrypted_content_pat = re.compile('\$encrypted\$[a-zA-Z0-9$]*=*')
+        encrypted_content = encrypted_content_pat.findall(get_pg_dump())
+        assert encrypted_content
+
+        def is_of_desired_form(encrypted_string):
+            return any([encrypted_string.startswith(pref) for pref in ('$encrypted$UTF8$AESCBC$', '$encrypted$AESCBC$')]) \
+                   or encrypted_string == '$encrypted$'
+
+        for item in encrypted_content:
+            assert is_of_desired_form(item)

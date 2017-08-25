@@ -17,6 +17,9 @@ def class_subrequest(request):
 
 @pytest.fixture(scope='class')
 def is_docker(ansible_module_cls):
-    manager = ansible_module_cls.inventory_manager
-    tower_hosts = manager.get_group_dict().get('tower')
-    return manager.get_host(tower_hosts[0]).get_vars().get('ansible_connection') == 'docker'
+    try:
+        manager = ansible_module_cls.inventory_manager
+        tower_hosts = manager.get_group_dict().get('tower')
+        return manager.get_host(tower_hosts[0]).get_vars().get('ansible_connection') == 'docker'
+    except (TypeError, IndexError):
+        return False

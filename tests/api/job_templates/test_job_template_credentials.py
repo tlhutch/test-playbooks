@@ -316,7 +316,7 @@ class TestJobTemplateExtraCredentials(Base_Api_Test):
         v2_job_template.add_extra_credential(cred_two)
         assert cred_two.id in [c.id for c in v2_job_template.related.extra_credentials.get().results]
 
-    def test_confirm_extra_credentials_injectors_are_sourced(self, factories):
+    def test_confirm_extra_credentials_injectors_are_sourced(self, request, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
 
@@ -325,6 +325,8 @@ class TestJobTemplateExtraCredentials(Base_Api_Test):
             jt.add_extra_credential(cred)
 
         job = jt.launch().wait_until_completed()
+        request.addfinalizer(job.delete)  # Noisy neighbor
+
         assert job.is_successful
 
         env_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AZURE_CLIENT_ID', 'AZURE_SECRET',
@@ -370,7 +372,7 @@ class TestJobTemplateExtraCredentials(Base_Api_Test):
                     'EXTRA_VAR_FROM_FIELD_THREE', 'EXTRA_VAR_FROM_FIELD_FOUR'):
             assert getattr(ansible_env, var) == desired_value
 
-    def test_confirm_extra_credentials_injectors_are_sourced_with_vault_credentials(self, factories):
+    def test_confirm_extra_credentials_injectors_are_sourced_with_vault_credentials(self, request, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='vaulted_ansible_env.yml')
         jt.vault_credential = factories.v2_credential(kind='vault', vault_password='tower').id
@@ -380,6 +382,7 @@ class TestJobTemplateExtraCredentials(Base_Api_Test):
             jt.add_extra_credential(cred)
 
         job = jt.launch().wait_until_completed()
+        request.addfinalizer(job.delete)  # Noisy neighbor
         assert job.is_successful
 
         env_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AZURE_CLIENT_ID', 'AZURE_SECRET',
