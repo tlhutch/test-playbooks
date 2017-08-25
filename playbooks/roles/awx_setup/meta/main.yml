@@ -1,5 +1,5 @@
 dependencies:
 - { role: auth_keys }
-- { role: remove_pip_modules }
-- { role: packages }
-- { role: ntp }
+- { role: remove_pip_modules, when: not out_of_box_os }
+- { role: packages, when: not out_of_box_os }
+- { role: ntp, when: not out_of_box_os }
