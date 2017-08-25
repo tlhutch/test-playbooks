@@ -46,6 +46,7 @@ class TestInsights(Base_Api_Test):
         host = factories.v2_host()
         assert not host.insights_system_id
 
+    @pytest.mark.requires_single_instance
     def test_insights_host_machine_id(self, insights_inventory):
         """Verify that Insights hosts have machine IDs."""
         registered_host = insights_inventory.related.hosts.get(name='registered_host').results.pop()
@@ -53,12 +54,14 @@ class TestInsights(Base_Api_Test):
         assert registered_host.insights_system_id == self.registered_machine_id
         assert unregistered_host.insights_system_id == self.unregistered_machine_id
 
+    @pytest.mark.requires_single_instance
     def test_insights_system_id_is_read_only(self, insights_inventory):
         """Host details insights_system_id should be read-only."""
         unregistered_host = insights_inventory.related.hosts.get(name='unregistered_host').results.pop()
         unregistered_host.insights_system_id = "zzzzyyyy-xxxx-wwww-vvvv-uuuuttttssss"
         assert unregistered_host.get().insights_system_id == self.unregistered_machine_id
 
+    @pytest.mark.requires_single_instance
     def test_inventory_with_insights_credential(self, factories, insights_inventory):
         """Verify that various inventory fields update for our Insights credential."""
         assert not insights_inventory.insights_credential
@@ -72,6 +75,7 @@ class TestInsights(Base_Api_Test):
                                                                              name=credential.name,
                                                                              description=credential.description)
 
+    @pytest.mark.requires_single_instance
     def test_access_insights_with_no_credential(self, insights_inventory):
         """Verify that attempts to access Insights without a credential raises a 404."""
         hosts = insights_inventory.related.hosts.get().results
@@ -80,6 +84,7 @@ class TestInsights(Base_Api_Test):
                 host.related.insights.get()
         assert e.value[1] == {'error': 'The Insights Credential for "{0}" was not found.'.format(insights_inventory.name)}
 
+    @pytest.mark.requires_single_instance
     def test_access_insights_with_valid_credential_and_registered_host(self, factories, insights_inventory):
         """Verify that attempts to access Insights from a registered host with a valid Insights credential succeed."""
         credential = factories.v2_credential(kind='insights')
@@ -88,6 +93,7 @@ class TestInsights(Base_Api_Test):
 
         assert host.related.insights.get().insights_content == {'last_check_in': '2017-07-20T12:47:59.000Z', 'reports': []}
 
+    @pytest.mark.requires_single_instance
     def test_access_insights_with_valid_credential_and_unregistered_host(self, factories, insights_inventory):
         """Verify that attempts to access Insights from an unregistered host with a valid Insights credential
         raises a 502.
@@ -100,6 +106,7 @@ class TestInsights(Base_Api_Test):
             host.related.insights.get()
         assert "Failed to gather reports and maintenance plans from Insights API" in e.value[1]['error']
 
+    @pytest.mark.requires_single_instance
     def test_access_insights_with_invalid_credential(self, factories, insights_inventory):
         """Verify that attempts to access Insights with a bad Insights credential raise a 502."""
         credential = factories.v2_credential(kind='insights', inputs=dict(username="fake", password="fake"))
@@ -156,6 +163,7 @@ class TestInsights(Base_Api_Test):
         assert update.status == "failed"
         assert update.failed is True
 
+    @pytest.mark.requires_single_instance
     def test_insights_project_directory(self, factories, v2, ansible_runner):
         """Verify created project directory."""
         insights_cred = factories.v2_credential(kind='insights')
@@ -167,6 +175,7 @@ class TestInsights(Base_Api_Test):
         for result in contacted.values():
             assert result['stat']['exists'], "Directory not found under {0}.".format(directory_path)
 
+    @pytest.mark.requires_single_instance
     def test_matching_insights_revision(self, factories, v2, ansible_runner):
         """Verify that our revision tag matches between the following:
         * Project details.
