@@ -79,7 +79,9 @@ class Test_Job_Events(Base_Api_Test):
         """Launch a linear playbook of several plays and confirm desired events are at its related job events"""
         # ensure desired verbose events regarding authentication
         cred = factories.credential(password='passphrase')
+        host = factories.v2_host()
         jt = factories.job_template(credential=cred,
+                                    inventory=host.ds.inventory,
                                     playbook='dynamic_inventory.yml',
                                     extra_vars=json.dumps(dict(num_hosts=5)))
         job = jt.launch().wait_until_completed(interval=20)
@@ -199,7 +201,7 @@ class Test_Job_Events(Base_Api_Test):
         """Runs a single play with async tasks and confirms desired events at related endpoint"""
         credential = factories.credential(password='passphrase')
         inventory = factories.inventory()
-        for _ in range(4):
+        for _ in range(5):
             factories.host(inventory=inventory)
         jt = factories.job_template(credential=credential,
                                     inventory=inventory,
@@ -248,7 +250,7 @@ class Test_Job_Events(Base_Api_Test):
         """Runs a single play with free strategy and confirms desired events at related endpoint"""
         credential = factories.credential(password='passphrase')
         inventory = factories.inventory()
-        for _ in range(4):
+        for _ in range(5):
             factories.host(inventory=inventory)
         jt = factories.job_template(credential=credential,
                                     inventory=inventory,
