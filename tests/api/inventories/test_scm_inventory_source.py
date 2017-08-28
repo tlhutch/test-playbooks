@@ -411,9 +411,9 @@ class TestSCMInventorySource(Base_Api_Test):
         bad_payload = factories.v2_inventory_source.payload(source='scm', source_path='inventories/inventory.ini',
                                                             update_on_launch=True, update_on_project_update=True,
                                                             inventory=inventory, project=project)
-        desired_error = {'detail': ['Cannot update SCM-based inventory source on launch if set to update '
-                                    'on project update. Instead, configure the corresponding source project '
-                                    'to update on launch.']}
+        desired_error = {'update_on_launch': ['Cannot update SCM-based inventory source on launch if set to update '
+                                              'on project update. Instead, configure the corresponding source project '
+                                              'to update on launch.']}
         with pytest.raises(exc.BadRequest) as e:
             v2.inventory_sources.post(bad_payload)
         assert e.value.message == desired_error
@@ -543,7 +543,8 @@ class TestSCMInventorySource(Base_Api_Test):
         hostnames = set([summary.summary_fields.host.name for summary in job_host_summaries])
         assert hostnames == self.inventory_hostnames
 
-    def test_deleted_inventory_during_project_update(self, factories, jt_that_writes_to_source):
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7533', raises=AssertionError)
+    def test_canceled_inventory_update_during_project_update(self, factories, jt_that_writes_to_source):
         assert jt_that_writes_to_source.launch().wait_until_completed().is_successful
         project = jt_that_writes_to_source.ds.project
         inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
@@ -552,10 +553,11 @@ class TestSCMInventorySource(Base_Api_Test):
 
         project.update()
         utils.poll_until(lambda: inv_source.related.inventory_updates.get().count == 1, interval=.5, timeout=30)
-        inv_source.related.inventory_updates.get().results.pop().delete()
+        inv_update = inv_source.related.inventory_updates.get().results.pop()
+        inv_update.related.cancel.post()
+        assert inv_update.wait_until_completed().status == 'canceled'
 
         assert project.wait_until_completed().is_successful
-        assert not inv_source.related.inventory_updates.get().count
 
     @pytest.mark.parametrize('scm_url, source_path, expected_error',
                              [('https://github.com/jlaska/ansible-playbooks.git', 'inventories/invalid_inventory.ini',
