@@ -15,6 +15,7 @@ chromedriver
 /playbooks/credentials.yml
 /playbooks/*vars.*
 /playbooks/inventory.*
+/playbooks/files/tower-backup-latest.tar.gz
 reports
 *credentials.yml
 *credentials.yaml
