@@ -167,21 +167,6 @@ class Test_Job(Base_Api_Test):
         # assert successful completion of job
         assert job_pg.is_successful, "Job unsuccessful - %s " % job_pg
 
-    def test_post_as_superuser(self, job_template, api_jobs_pg):
-        """Verify a superuser is able to create a job by POSTing to the /api/v1/jobs endpoint."""
-        # post a job
-        job_pg = api_jobs_pg.post(job_template.json)
-
-        # assert successful post
-        assert job_pg.status == 'new'
-
-    def test_post_as_non_superuser(self, non_superusers, user_password, api_jobs_pg, job_template):
-        """Verify a non-superuser is unable to create a job by POSTing to the /api/v1/jobs endpoint."""
-        for non_superuser in non_superusers:
-            with self.current_user(non_superuser.username, user_password):
-                with pytest.raises(towerkit.exceptions.Forbidden):
-                    api_jobs_pg.post(job_template.json)
-
     def test_relaunch_with_credential(self, job_with_status_completed):
         """Verify relaunching a job with a valid credential no-ask credential."""
         relaunch_pg = job_with_status_completed.get_related('relaunch')
