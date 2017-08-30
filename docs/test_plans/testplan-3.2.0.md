@@ -78,10 +78,6 @@ Against 100+ hosts.
 ### Host Filter (Chris)
 [Feature](https://drive.google.com/open?id=1lvBf_Gf7peE4fucrdPUpRTMuTBz2SpS5Df273bd72Sk)
 
-Store facts:
-1. [x] Verify store_facts with gather_facts playbook.
-1. [x] Verify store_facts with custom scan modules.
-
 Filter functionality:
 1. [x] Verify filter by host name functionality.
 1. [x] Verify filter by group name functionality.
@@ -95,6 +91,7 @@ Filter functionality:
 1. [x] Verify host_filter against unicode.
 1. [x] Verify host_filter smart-search support.
 1. [x] Verify proper handling of invalid `host_filter` requests.
+1. [ ] Verify host_filter performance.
 
 RBAC:
 1. [x] Host filter should return resources for which a user has inventory-read permissions.
@@ -107,7 +104,7 @@ Fact ingestion:
 1. [x] `use_fact_cache` with gather_facts should update host `ansible_facts`.
 1. [x] `use_fact_cache` without gather_facts should not update host `ansible_facts`.
 1. [x] `use_fact_cache` with Tower scan modules should return expected facts.
-1. [ ] `use_fact_cache` updates host `ansible_facts` after each scan job.
+1. [x] `use_fact_cache` updates host `ansible_facts` after each scan job.
 1. [x] Host with spaces in hostname.
 1. [x] Host with unicode hostname.
 
@@ -118,8 +115,8 @@ Fact use:
 1. [x] Verify fact use against simple host with JT limit.
 
 Miscellaney:
-1. [ ] Verify fact ingestation and sourcing against all JSON data types.
-1. [ ] Verify fact cache ingestation and use over cluster.
+1. [x] Verify fact ingestation and sourcing against all JSON data types.
+1. [x] Verify fact cache ingestation and use over cluster.
 1. [ ] `clear_facts` should clear facts.
 
 ### Insights Integration (Chris)
