@@ -13,7 +13,6 @@ class TestSmartInventory(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_host_update(self, factories):
-        """Smart inventory hosts should reflect host changes."""
         host = factories.host()
         inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
                                            host_filter="name={0}".format(host.name))
@@ -24,6 +23,15 @@ class TestSmartInventory(Base_Api_Test):
 
         host.delete()
         assert hosts.get().count == 0
+
+    def test_host_filter_is_organization_scoped(self, factories):
+        host1, host2 = [factories.v2_host(name="test_host_{0}".format(i)) for i in range(2)]
+        inventory = factories.v2_inventory(organization=host1.ds.inventory.ds.organization, kind='smart',
+                                           host_filter='search=test_host')
+
+        hosts = inventory.related.hosts.get()
+        assert hosts.count == 1
+        assert hosts.results.pop().id == host1.id
 
     def test_unable_to_create_host(self, factories):
         inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
@@ -84,7 +92,6 @@ class TestSmartInventory(Base_Api_Test):
         assert inventory.related.hosts.get().count == 0
 
     def test_launch_ahc_with_smart_inventory(self, factories):
-        """Verify against isolated host, host in parent group, and host in child group."""
         inventory = factories.v2_inventory()
         parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]
         parent_group.add_group(child_group)
@@ -102,7 +109,6 @@ class TestSmartInventory(Base_Api_Test):
         assert ahc.is_successful
 
     def test_launch_job_template_with_smart_inventory(self, factories):
-        """Verify against isolated host, host in parent group, and host in child group."""
         inventory = factories.v2_inventory()
         parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]
         parent_group.add_group(child_group)
