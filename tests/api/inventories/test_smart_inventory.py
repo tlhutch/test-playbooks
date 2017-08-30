@@ -123,6 +123,19 @@ class TestSmartInventory(Base_Api_Test):
         for host in hosts:
             assert host.get().last_job == job.id
 
+    def test_duplicate_hosts(self, factories):
+        org = factories.v2_organization()
+        inv1, inv2 = [factories.v2_inventory(organization=org) for _ in range(2)]
+        hosts = []
+        for inv in (inv1, inv2):
+            host = factories.v2_host(name='test_host', inventory=inv)
+            hosts.append(host)
+        inventory = factories.v2_inventory(organization=org, host_filter="name=test_host", kind="smart")
+
+        inv_hosts = inventory.related.hosts.get()
+        assert inv_hosts.count == 1
+        assert inv_hosts.results.pop().id == min([host.id for host in hosts])
+
     def test_smart_inventory_deletion_should_not_cascade_delete_hosts(self, factories):
         host = factories.v2_host()
         inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
