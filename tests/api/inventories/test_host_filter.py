@@ -239,9 +239,10 @@ class TestHostFilter(Base_Api_Test):
             ('(name=not_found or groups__name=groupAA) and ansible_facts__ansible_system=Linux'),
         ]
     )
-    def test_smart_inventory(self, factories, v2, host_filter):
+    def test_smart_inventory(self, factories, v2, loaded_inventory, host_filter):
         """host_filter should determine a smart inventory's hosts."""
-        inventory = factories.v2_inventory(kind='smart', host_filter=host_filter)
+        inventory = factories.v2_inventory(organization=loaded_inventory.ds.organization, kind='smart',
+                                           host_filter=host_filter)
         hosts = inventory.related.hosts.get()
 
         response = v2.hosts.get(host_filter=host_filter, page_size=200)

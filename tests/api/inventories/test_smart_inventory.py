@@ -15,7 +15,8 @@ class TestSmartInventory(Base_Api_Test):
     def test_host_update(self, factories):
         """Smart inventory hosts should reflect host changes."""
         host = factories.host()
-        inventory = factories.v2_inventory(kind='smart', host_filter="name={0}".format(host.name))
+        inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
+                                           host_filter="name={0}".format(host.name))
         hosts = inventory.related.hosts.get()
 
         host.description = fauxfactory.gen_utf8()
@@ -74,13 +75,14 @@ class TestSmartInventory(Base_Api_Test):
             inventory.patch(host_filter="name=localhost", kind="smart")
 
     def test_able_to_update_smart_inventory_into_regular_inventory(self, factories):
-        inventory = factories.v2_inventory(host_filter="name=localhost", kind="smart")
+        host = factories.v2_host()
+        inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization,
+                                           host_filter="name={0}".format(host.name), kind="smart")
         assert inventory.related.hosts.get().count == 1  # source stock localhost
 
         inventory.patch(host_filter="", kind="")
         assert inventory.related.hosts.get().count == 0
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7377')
     def test_launch_ahc_with_smart_inventory(self, factories):
         """Verify against isolated host, host in parent group, and host in child group."""
         inventory = factories.v2_inventory()
@@ -91,17 +93,14 @@ class TestSmartInventory(Base_Api_Test):
             group.add_host(host)
         factories.v2_host(name="test_host_root", inventory=inventory)
 
-        smart_inventory = factories.v2_inventory(host_filter="search=test_host", kind="smart")
+        smart_inventory = factories.v2_inventory(organization=inventory.ds.organization, host_filter="search=test_host",
+                                                 kind="smart")
         hosts = smart_inventory.related.hosts.get().results
         assert len(hosts) == 3
 
         ahc = factories.v2_ad_hoc_command(inventory=smart_inventory).wait_until_completed()
         assert ahc.is_successful
 
-        for host in hosts:
-            assert host.get().last_job == ahc.id
-
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7487')
     def test_launch_job_template_with_smart_inventory(self, factories):
         """Verify against isolated host, host in parent group, and host in child group."""
         inventory = factories.v2_inventory()
@@ -112,7 +111,8 @@ class TestSmartInventory(Base_Api_Test):
             group.add_host(host)
         factories.v2_host(name="test_host_root", inventory=inventory)
 
-        smart_inventory = factories.v2_inventory(host_filter="search=test_host", kind="smart")
+        smart_inventory = factories.v2_inventory(organization=inventory.ds.organization, host_filter="search=test_host",
+                                                 kind="smart")
         hosts = smart_inventory.related.hosts.get().results
         assert len(hosts) == 3
 
@@ -125,7 +125,8 @@ class TestSmartInventory(Base_Api_Test):
 
     def test_smart_inventory_deletion_should_not_cascade_delete_hosts(self, factories):
         host = factories.v2_host()
-        inventory = factories.v2_inventory(kind='smart', host_filter='name={0}'.format(host.name))
+        inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
+                                           host_filter='name={0}'.format(host.name))
         assert inventory.related.hosts.get().count == 1
 
         inventory.delete().wait_until_deleted()
