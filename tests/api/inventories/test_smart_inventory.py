@@ -86,7 +86,7 @@ class TestSmartInventory(Base_Api_Test):
         host = factories.v2_host()
         inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization,
                                            host_filter="name={0}".format(host.name), kind="smart")
-        assert inventory.related.hosts.get().count == 1  # source stock localhost
+        assert inventory.related.hosts.get().count == 1
 
         inventory.patch(host_filter="", kind="")
         assert inventory.related.hosts.get().count == 0
@@ -107,6 +107,14 @@ class TestSmartInventory(Base_Api_Test):
 
         ahc = factories.v2_ad_hoc_command(inventory=smart_inventory).wait_until_completed()
         assert ahc.is_successful
+        assert ahc.summary_fields.inventory.id == smart_inventory.id
+        assert ahc.inventory == smart_inventory.id
+
+        assert ahc.related.inventory.get().id == smart_inventory.id
+        assert ahc.related.events.get().count > 0
+        activity_stream = ahc.related.activity_stream.get()
+        assert activity_stream.count == 1
+        assert activity_stream.results.pop().operation == 'create'
 
     def test_launch_job_template_with_smart_inventory(self, factories):
         inventory = factories.v2_inventory()
@@ -125,18 +133,25 @@ class TestSmartInventory(Base_Api_Test):
         jt = factories.v2_job_template(inventory=smart_inventory)
         job = jt.launch().wait_until_completed()
         assert job.is_successful
+        assert job.summary_fields.inventory.id == smart_inventory.id
+        assert job.inventory == smart_inventory.id
 
-        for host in hosts:
-            assert host.get().last_job == job.id
+        assert job.related.inventory.get().id == smart_inventory.id
+        assert job.related.job_host_summaries.get().count == 3
+        assert job.related.job_events.get().count > 0
+        activity_stream = job.related.activity_stream.get()
+        assert activity_stream.count == 1
+        assert activity_stream.results.pop().operation == 'create'
 
     def test_duplicate_hosts(self, factories):
         org = factories.v2_organization()
         inv1, inv2 = [factories.v2_inventory(organization=org) for _ in range(2)]
+        inventory = factories.v2_inventory(organization=org, host_filter="name=test_host", kind="smart")
+
         hosts = []
         for inv in (inv1, inv2):
             host = factories.v2_host(name='test_host', inventory=inv)
             hosts.append(host)
-        inventory = factories.v2_inventory(organization=org, host_filter="name=test_host", kind="smart")
 
         inv_hosts = inventory.related.hosts.get()
         assert inv_hosts.count == 1
