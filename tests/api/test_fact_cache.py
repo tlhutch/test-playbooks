@@ -147,7 +147,7 @@ class TestFactCache(Base_Api_Test):
         assert job.is_successful
 
         self.assert_updated_facts(ansible_facts)
-        assert ansible_facts.ansible_date_time.time in job.result_stdout
+        assert second_time in job.result_stdout
 
     def test_consume_facts_with_custom_ansible_module(self, factories):
         host = factories.v2_host()
