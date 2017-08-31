@@ -123,6 +123,17 @@ class TestJobTemplates(Base_Api_Test):
             assert '--skip-tags=%s' % launch_payload['skip_tags'] in job_pg.job_args, \
                 "Value for skip_tags not represented in job args."
 
+    @pytest.mark.parametrize('diff_mode', [True, False])
+    def test_launch_with_diff_mode_in_payload(self, factories, diff_mode):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='file.yml', ask_diff_mode_on_launch=True)
+        job = jt.launch(dict(diff_mode=diff_mode)).wait_until_completed()
+
+        assert job.is_successful
+        assert job.diff_mode is diff_mode
+        assert ('--- before' in job.result_stdout) is diff_mode
+        assert ('+++ after' in job.result_stdout) is diff_mode
+
     @pytest.mark.parametrize('verbosity, stdout_lines',
         [(0, ['TASK [ping]', 'PLAY RECAP']),
          (1, ['TASK [ping]', 'PLAY RECAP', '{"changed": false, "ping": "pong"}']),
@@ -159,6 +170,7 @@ class TestJobTemplates(Base_Api_Test):
         assert not launch.ask_limit_on_launch
         assert not launch.ask_inventory_on_launch
         assert not launch.ask_credential_on_launch
+        assert not launch.ask_diff_mode_on_launch
         assert not launch.ask_verbosity_on_launch
 
         # launch JT with all possible artifacts in payload
@@ -168,6 +180,7 @@ class TestJobTemplates(Base_Api_Test):
                        job_type="check",
                        inventory=another_inventory.id,
                        credential=another_ssh_credential.id,
+                       diff_mode=True,
                        verbosity=5)
         job = job_template.launch(payload).wait_until_completed()
         assert job.is_successful
@@ -180,11 +193,13 @@ class TestJobTemplates(Base_Api_Test):
         assert job.skip_tags == job_template.skip_tags, \
             "JT skip_tags overriden. Expected %s, got %s." % (job_template.skip_tags, job.skip_tags)
         assert job.job_type == job_template.job_type, \
-            "JT job_type overriden. Expected %s, got %s." % (job_template.job_type, job.job_type)
+            "JT job_type overridden. Expected %s, got %s." % (job_template.job_type, job.job_type)
         assert job.inventory == job_template.inventory, \
-            "JT inventory overriden. Expected inventory %s, got %s." % (job_template.inventory, job.inventory)
+            "JT inventory overridden. Expected inventory %s, got %s." % (job_template.inventory, job.inventory)
         assert job.credential == job_template.credential, \
-            "JT credential overriden. Expected credential %s, got %s." % (job_template.credential, job.credential)
+            "JT credential overridden. Expected credential %s, got %s." % (job_template.credential, job.credential)
+        assert job.diff_mode == job_template.diff_mode, \
+            "JT diff_mode overridden. Expected %s, got %s." % (job_template.diff_mode, job.diff_mode)
         assert job.verbosity == job_template.verbosity, \
             "JT verbosity overridden. Expected verbosity {0}, received {1}.".format(job_template.verbosity, job.verbosity)
 
@@ -399,6 +414,16 @@ print json.dumps(inv, indent=2)
         for tower_resource in [job_template_sleep, inventory_pg, project_pg]:
             with pytest.raises(towerkit.exceptions.Conflict):
                 tower_resource.delete()
+
+    def test_launch_with_diff_mode(self, factories):
+        host = factories.v2_host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='file.yml', diff_mode=True)
+        job = jt.launch().wait_until_completed()
+
+        assert job.is_successful
+        assert job.diff_mode
+        assert '--- before' in job.result_stdout
+        assert '+++ after' in job.result_stdout
 
     @pytest.mark.ansible_integration
     def test_launch_check_job_template(self, job_template):

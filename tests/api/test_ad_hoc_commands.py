@@ -530,6 +530,18 @@ print json.dumps(inv, indent=2)
         assert matching_job_events.count == 1, \
             "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
 
+    def test_launch_ahc_with_diff(self, factories, api_settings_jobs_pg, update_setting_pg):
+        host = factories.v2_host()
+        payload = dict(AD_HOC_COMMANDS=['file'])
+        update_setting_pg(api_settings_jobs_pg, payload)
+        ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='file', module_args='dest=/tmp/test_directory, state=touch',
+                                          diff_mode=True).wait_until_completed()
+
+        assert ahc.is_successful
+        assert ahc.diff_mode
+        assert '--- before' in ahc.result_stdout
+        assert '+++ after' in ahc.result_stdout
+
     def test_ad_hoc_activity_stream(self, api_ad_hoc_commands_pg, ad_hoc_with_status_completed):
         """Verifies that launching an ad hoc command updates the activity stream."""
         # find command and navigate to command page
