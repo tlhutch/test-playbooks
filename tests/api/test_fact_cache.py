@@ -37,7 +37,6 @@ class TestFactCache(Base_Api_Test):
         organization = inventory.ds.organization
         scm_cred, ssh_cred = [factories.v2_credential(kind=k, organization=organization) for k in ('scm', 'ssh')]
         project = factories.v2_project(scm_url='git@github.com:ansible/tower-fact-modules.git', credential=scm_cred)
-        ssh_cred = factories.v2_credential(kind='ssh', organization=organization)
         return factories.v2_job_template(description="3.2 scan_facts JT %s" % fauxfactory.gen_utf8(),
                                          project=project, credential=ssh_cred, inventory=inventory,
                                          playbook='scan_facts.yml', use_fact_cache=True)
@@ -58,19 +57,6 @@ class TestFactCache(Base_Api_Test):
         assert ansible_facts.services['network'] if is_docker else ansible_facts.services['sshd.service']
         assert ansible_facts.packages['which'] if is_docker else ansible_facts.packages['ansible-tower']
         assert ansible_facts.insights['system_id'] == machine_id
-
-    def test_ansible_facts_update(self, factories):
-        """Verify that hosts/N/ansible_facts/ updates between scan jobs."""
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
-
-        ansible_facts = host.related.ansible_facts.get()
-        first_time = ansible_facts.ansible_date_time.time
-
-        assert jt.launch().wait_until_completed().is_successful
-        second_time = ansible_facts.get().ansible_date_time.time
-        assert second_time > first_time
 
     def test_ingest_facts_with_host_with_unicode_hostname(self, factories):
         host = factories.v2_host(name=fauxfactory.gen_utf8())
@@ -93,7 +79,7 @@ class TestFactCache(Base_Api_Test):
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
-        jt.playbook = 'use_facts.yml'
+        jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
@@ -109,7 +95,7 @@ class TestFactCache(Base_Api_Test):
         jt = factories.v2_job_template(inventory=hosts[0].ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
-        jt.playbook = 'use_facts.yml'
+        jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
@@ -130,7 +116,7 @@ class TestFactCache(Base_Api_Test):
         scan_job = jt.launch().wait_until_completed()
         assert scan_job.is_successful
 
-        jt.playbook = 'use_facts.yml'
+        jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
         jt.limit = target_host.name
         fact_job = jt.launch().wait_until_completed()
         assert fact_job.is_successful
@@ -144,6 +130,25 @@ class TestFactCache(Base_Api_Test):
         for host in hosts:
             assert host.get().summary_fields.last_job.id == scan_job.id
 
+    def test_consume_updated_facts(self, factories):
+        host = factories.v2_host()
+
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        assert jt.launch().wait_until_completed().is_successful
+        ansible_facts = host.related.ansible_facts.get()
+        first_time = ansible_facts.ansible_date_time.time
+
+        assert jt.launch().wait_until_completed().is_successful
+        second_time = ansible_facts.get().ansible_date_time.time
+        assert second_time > first_time
+
+        jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        self.assert_updated_facts(ansible_facts)
+        assert second_time in job.result_stdout
+
     def test_consume_facts_with_custom_ansible_module(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='scan_custom.yml', use_fact_cache=True)
@@ -155,6 +160,7 @@ class TestFactCache(Base_Api_Test):
         target_job_event = target_job_events.results.pop()
         ansible_facts = target_job_event.event_data.res.ansible_facts
 
+        # verify ingested facts
         assert ansible_facts.string == "abc"
         assert to_str(ansible_facts.unicode_string) == "鵟犭酜귃ꔀꈛ竳䙭韽ࠔ"
         assert ansible_facts.int == 1
@@ -166,6 +172,22 @@ class TestFactCache(Base_Api_Test):
         assert ansible_facts.empty_list == []
         assert ansible_facts.empty_obj == {}
 
+        jt.patch(playbook='use_facts.yml', job_tags='custom_facts')
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        # verify facts consumption
+        assert '"msg": "abc"' in job.json.result_stdout
+        assert '"msg": "鵟犭酜귃ꔀꈛ竳䙭韽ࠔ"' in to_str(job.json.result_stdout)
+        assert '"msg": 1' in job.json.result_stdout
+        assert '"msg": 1.0' in job.json.result_stdout
+        assert '"msg": true' in job.json.result_stdout
+        assert '"msg": null' in job.json.result_stdout
+        assert '"msg": [\r\n' in job.json.result_stdout
+        assert '"msg": {\r\n' in job.json.result_stdout
+        assert '"msg": []' in job.json.result_stdout
+        assert '"msg": {}' in job.json.result_stdout
+
     def test_clear_facts(self, factories, ansible_version_cmp):
         if ansible_version_cmp("2.3") < 0:
             pytest.skip("Not supported on Ansible-2.2.")
@@ -176,7 +198,7 @@ class TestFactCache(Base_Api_Test):
         jt.playbook = 'clear_facts.yml'
         assert jt.launch().wait_until_completed().is_successful
 
-        jt.playbook = 'use_facts.yml'
+        jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
         job = jt.launch().wait_until_completed()
         assert job.status == 'failed'
         assert "The error was: 'ansible_distribution' is undefined" in job.result_stdout
