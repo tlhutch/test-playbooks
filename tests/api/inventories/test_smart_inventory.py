@@ -143,6 +143,51 @@ class TestSmartInventory(Base_Api_Test):
         assert activity_stream.count == 1
         assert activity_stream.results.pop().operation == 'create'
 
+    def test_host_update_after_ahc(self, factories):
+        host = factories.v2_host()
+        smart_inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind="smart",
+                                                 host_filter="name={0}".format(host.name))
+        ahc = factories.v2_ad_hoc_command(inventory=smart_inventory).wait_until_completed()
+
+        ahcs = host.related.ad_hoc_commands.get()
+        assert ahcs.count == 1
+        assert ahcs.results.pop().id == ahc.id
+        assert host.get().related.ad_hoc_command_events.get().count > 0
+
+    def test_host_update_after_job(self, factories):
+        host = factories.v2_host()
+        smart_inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind="smart",
+                                                 host_filter="name={0}".format(host.name))
+        job = factories.v2_job_template(inventory=smart_inventory).launch().wait_until_completed()
+
+        assert job.is_successful
+        job_host_summaries = job.related.job_host_summaries.get()
+        assert job_host_summaries.count == 1
+        jhs = job_host_summaries.results.pop()
+
+        assert host.get().summary_fields.last_job.id == job.id
+        assert host.summary_fields.last_job_host_summary.id == jhs.id
+        recent_jobs = host.summary_fields.recent_jobs
+        assert len(recent_jobs) == 1
+        assert recent_jobs.pop().id == job.id
+
+        assert host.last_job == job.id
+        assert host.last_job_host_summary == jhs.id
+
+        assert host.get().related.job_host_summaries.get().results.pop().id == jhs.id
+        assert host.related.job_events.get().count > 0
+        assert host.related.last_job.get().id == job.id
+        assert host.related.last_job_host_summary.get().id == jhs.id
+
+    def test_host_sources_original_inventory(self, factories):
+        host = factories.v2_host()
+        smart_inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind="smart",
+                                                 host_filter="name={0}".format(host.name))
+
+        assert host.related.inventory.get().id == host.ds.inventory.id
+        assert host.summary_fields.inventory.id == host.ds.inventory.id
+        assert host.inventory == host.ds.inventory.id
+
     def test_duplicate_hosts(self, factories):
         org = factories.v2_organization()
         inv1, inv2 = [factories.v2_inventory(organization=org) for _ in range(2)]
