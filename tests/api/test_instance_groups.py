@@ -4,7 +4,9 @@ import os
 import random
 import re
 import subprocess
+import sys
 import time
+import traceback
 
 import pytest
 
@@ -13,6 +15,66 @@ from towerkit import utils
 from towerkit.api import Connection
 
 log = logging.getLogger(__name__)
+
+
+class SafeStop(object):
+    """A context manager that stops tower services on a single or multiple hosts
+    and guarantees to restart the tower services on exit."""
+
+    def __init__(self, stoppers, starters):
+        if not isinstance(stoppers, list):
+            stoppers = [stoppers]
+        if not isinstance(starters, list):
+            starters = [starters]
+        self.stoppers = stoppers
+        self.starters = starters
+        self.stop_exceptions = []
+        self.start_exceptions = []
+
+    def __enter__(self):
+        for stop in self.stoppers:
+            self.safe_call(stop, self.stop_exceptions)
+        if self.stop_exceptions:
+            # Ensure we call starters if any stoppers failed
+            self.__exit__()
+        return self
+
+    def __exit__(self, *exc_info):
+        for start in self.starters:
+            self.safe_call(start, self.start_exceptions)
+        # Check if we have an exceptional exit
+        self.raise_errors(exc_info)
+        return False
+
+    def safe_call(self, func, exceptions):
+        try:
+            func()
+        except:
+            exceptions.append(sys.exc_info())
+
+    def raise_errors(self, final_error=()):
+        have_exceptions = self.stop_exceptions or self.start_exceptions
+        if not have_exceptions and not any(final_error):
+            # No exceptions, normal exit
+            return
+        stop_message = self.build_error_message(self.stop_exceptions, during_stop=True)
+        start_message = self.build_error_message(self.start_exceptions)
+        final_error_message = ''
+
+        if any(final_error):
+            msg = 'Exception raised during test:\n\n{}\n\n'
+            error_info = traceback.format_exc(final_error)
+            final_error_message = msg.format(error_info)
+
+        raise Exception(stop_message + start_message + final_error_message)
+
+    def build_error_message(self, errors, during_stop=True):
+        if not errors:
+            return ''
+        # We have an exceptional exit
+        event = 'starting' if during_stop is False else 'stopping'
+        error_info = '\n\n'.join([traceback.format_exc(info[2]) for info in errors])
+        return 'Exceptions raised {} nodes:\n\n{}\n\n'.format(event, error_info)
 
 
 @pytest.mark.api
@@ -39,6 +101,60 @@ class TestInstanceGroups(Base_Api_Test):
                 if not (first[1] & second[1]):
                     return first[0], second[0]
         pytest.skip("Unable to find two mutually exclusive instance groups")
+
+    def get_stop_and_start_funcs_for_node(self, admin_user, manager, hostname, v2):
+        username = manager.get_host(hostname).get_vars()['ansible_user']
+        # "-t" (twice) gives us a tty which is needed for sudo
+        ssh_template = "ssh -o StrictHostKeyChecking=no -t -t {} 'sudo ansible-tower-service {}' 1>&2"
+        ssh_invocation = "{}@{}".format(username, hostname)
+
+        def offline():
+            try:
+                v2.get()
+            except:
+                # Possible errors here include ConnectionError, UnknownTowerState and
+                # exc.Unknown, so we assume any exception means the tower node is
+                # offline.
+                return True
+            return False
+
+        connection = Connection('https://' + hostname)
+        connection.login(admin_user.username, admin_user.password)
+
+        def stop_node():
+            with self.current_instance(connection, v2):
+                log.debug("Shutting down node {}".format(hostname))
+                # Stop the tower node
+                cmd = ssh_template.format(ssh_invocation, "stop")
+                ret = subprocess.call(cmd, shell=True)
+                assert ret == 0
+                # Wait until it goes offline
+                utils.poll_until(offline, interval=5, timeout=120)
+
+        def start_node():
+            with self.current_instance(connection, v2):
+                # Start the tower node
+                cmd = ssh_template.format(ssh_invocation, "start")
+                ret = subprocess.call(cmd, shell=True)
+                assert ret == 0
+                # Wait until it comes online
+                utils.poll_until(lambda: not offline(), interval=5, timeout=120)
+
+        return stop_node, start_node
+
+    def assert_job_stays_pending(self, job):
+        pending_statuses = set(('pending', 'waiting'))
+        start_time = time.time()
+        timeout = 60
+        interval = 5
+        while True:
+            job.get()
+            assert job.status in pending_statuses
+
+            elapsed = time.time() - start_time
+            if elapsed > timeout:
+                break
+            time.sleep(interval)
 
     def test_instance_group_creation(self, authtoken, v2, ansible_runner):
         inventory_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
@@ -221,6 +337,76 @@ class TestInstanceGroups(Base_Api_Test):
 
     @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
+    def test_controller_removal(self, admin_user, ansible_module_cls, factories, user_password, v2):
+        """
+        Test that shutting down tower services on both controller nodes prevents us from launching
+        jobs against an isolated node. This also tests that a cluster can successfully recover after
+        shutting down more than one node simultaneously."""
+        manager = ansible_module_cls.inventory_manager
+        hosts = manager.get_group_dict()['tower']
+        controllers = manager.get_group_dict()['instance_group_controller']
+
+        online_hostname = None
+        stoppers, starters = [], []
+        for host in hosts:
+            if host not in controllers:
+                online_hostname = host
+                continue
+            stop, start = self.get_stop_and_start_funcs_for_node(admin_user, manager, host, v2)
+            starters.append(start)
+            stoppers.append(stop)
+
+        assert online_hostname is not None
+        assert len(stoppers) == len(starters) == len(controllers)
+
+        connection = Connection('https://' + online_hostname)
+        connection.login(admin_user.username, admin_user.password)
+        with self.current_instance(connection, v2):
+            # Store original controller group capacity for later verification
+            controller_group = v2.instance_groups.get(name="controller").results[0]
+            original_capacity = controller_group.capacity
+
+            # Start a long running job against the isolated node
+            protected_group = v2.instance_groups.get(name="protected").results[0]
+
+            host = factories.v2_host()
+            jt = factories.v2_job_template(playbook='sleep.yml',
+                                           extra_vars=dict(sleep_interval=600),
+                                           inventory=host.ds.inventory)
+            jt.add_instance_group(protected_group)
+            long_job = jt.launch().wait_until_started()
+
+            # Stop controller nodes
+            with SafeStop(stoppers, starters):
+                # Wait until controller group capacity is set to zero
+                utils.poll_until(lambda: controller_group.get().capacity == 0, interval=5, timeout=120)
+
+                # Check the long running job fails
+                long_job.wait_until_status('failed', interval=5, timeout=180, since_job_created=False)
+
+                # Should fail with explanation:
+                explanation = "Task was marked as running in Tower but was not present in Celery, so it has been marked as failed."
+                assert long_job.job_explanation == explanation
+
+                # Start a new job and check it remains pending
+                jt = factories.v2_job_template(inventory=host.ds.inventory)
+                jt.add_instance_group(protected_group)
+                job = jt.launch()
+
+                # Check it stays in pending
+                self.assert_job_stays_pending(job)
+
+            # Check group capacity is restored
+            utils.poll_until(lambda: controller_group.get().capacity == original_capacity, interval=5, timeout=120)
+
+            # Check the pending job is picked up
+            job.wait_until_completed(since_job_created=False)
+            # Check we can successfully launch a new job against the isolated node
+            job = jt.launch().wait_until_completed()
+            assert job.is_successful
+
+    @pytest.mark.requires_ha
+    @pytest.mark.requires_isolation
     def test_instance_removal(self, admin_user, ansible_module_cls, factories, user_password, v2):
         """
         This test checks the behaviour of a cluster as nodes are removed and restored.
@@ -236,6 +422,7 @@ class TestInstanceGroups(Base_Api_Test):
         * We restart the node
         * We check that the pending job starts running and completes
         * We check that group and instance capacity for the now-online node are restored
+        * We check a new job against the now-back-online node starts and completes
         """
         manager = ansible_module_cls.inventory_manager
         hosts = manager.get_group_dict()['tower']
@@ -262,7 +449,6 @@ class TestInstanceGroups(Base_Api_Test):
             online_hosts = [hostname for hostname in hosts if hostname != name]
             return random.choice(online_hosts)
 
-        ssh_template = "ssh -o StrictHostKeyChecking=no -t -t {} sudo ansible-tower-service {}"
         for hostname in hosts:
             # Store the capacity of the group and instance for later verification
             ig = hostname_to_instance_group[hostname]
@@ -270,117 +456,81 @@ class TestInstanceGroups(Base_Api_Test):
             instance_capacity = ig.related.instances.get().results.pop().capacity
 
             online_hostname = fetch_node_not_matching_name(hostname)
-            username = manager.get_host(hostname).get_vars()['ansible_user']
-            connection = Connection('https://' + hostname)
+
+            def get_heartbeats():
+                """
+                return a dictionary of heartbeats of all online nodes in the tower group
+                and the heartbeat of the offline node"""
+                instances = v2.ping.get().instances
+                heartbeats = {}
+                offline_heartbeat = None
+                for instance in instances:
+                    this_host = instance['node']
+                    this_heartbeat = instance['heartbeat']
+                    if this_host not in hosts:
+                        # ignore nodes not in the tower group
+                        continue
+                    if this_host == hostname:
+                        # this is the node we took offline
+                        offline_heartbeat = this_heartbeat
+                    else:
+                        heartbeats[this_host] = this_heartbeat
+                return heartbeats, offline_heartbeat
+
+            connection = Connection('https://' + online_hostname)
             connection.login(admin_user.username, admin_user.password)
             with self.current_instance(connection, v2):
-                ssh_invocation = "{}@{}".format(username, hostname)
-
-                def offline():
-                    try:
-                        v2.get()
-                    except:
-                        # Possible errors here include ConnectionError, UnknownTowerState and
-                        # exc.Unknown, so we assume any exception means the tower node is
-                        # offline.
-                        return True
-                    return False
-
-                def get_heartbeats():
-                    """
-                    return a dictionary of heartbeats of all online nodes in the tower group
-                    and the heartbeat of the offline node"""
-                    instances = v2.ping.get().instances
-                    heartbeats = {}
-                    offline_heartbeat = None
-                    for instance in instances:
-                        this_host = instance['node']
-                        this_heartbeat = instance['heartbeat']
-                        if this_host not in hosts:
-                            # ignore nodes not in the tower group
-                            continue
-                        if this_host == hostname:
-                            # this is the node we took offline
-                            offline_heartbeat = this_heartbeat
-                        else:
-                            heartbeats[this_host] = this_heartbeat
-                    return heartbeats, offline_heartbeat
-
                 # Start a long running job from the node we're going to take offline
                 long_job = job_templates[hostname].launch().wait_until_status('running')
-                try:
-                    log.debug("Shutting down node {}".format(hostname))
+
+                # Stop the tower node.
+                stop, start = self.get_stop_and_start_funcs_for_node(admin_user, manager, hostname, v2)
+                with SafeStop(stop, start):
                     log.debug("Using online node {}".format(online_hostname))
-                    # Stop the tower node, "-t" (twice) gives us a tty which is needed for sudo
-                    cmd = ssh_template.format(ssh_invocation, "stop")
-                    ret = subprocess.call(cmd, shell=True)
-                    assert ret == 0
-                    # Wait until it goes offline
-                    utils.poll_until(offline, interval=5, timeout=120)
 
-                    connection = Connection('https://' + online_hostname)
-                    connection.login(admin_user.username, admin_user.password)
-                    with self.current_instance(connection, v2):
-                        # Check that the heartbeat of all nodes except the stopped one advance
-                        heartbeats, offline_heartbeat = get_heartbeats()
-                        assert offline_heartbeat is not None
+                    # Check that the heartbeat of all nodes except the stopped one advance
+                    heartbeats, offline_heartbeat = get_heartbeats()
+                    assert offline_heartbeat is not None
 
-                        def heartbeats_changed():
-                            new_heartbeats, _ = get_heartbeats()
-                            for host, beat in new_heartbeats.items():
-                                if heartbeats[host] == new_heartbeats[host]:
-                                    return False
-                            return True
+                    def heartbeats_changed():
+                        new_heartbeats, _ = get_heartbeats()
+                        for host, beat in new_heartbeats.items():
+                            if heartbeats[host] == new_heartbeats[host]:
+                                return False
+                        return True
 
-                        utils.poll_until(heartbeats_changed, interval=10, timeout=120)
-                        _, current_offline_heartbeat = get_heartbeats()
-                        # assert the offline heartbeat is unchanged
-                        assert current_offline_heartbeat == offline_heartbeat
+                    utils.poll_until(heartbeats_changed, interval=10, timeout=120)
+                    _, current_offline_heartbeat = get_heartbeats()
+                    # assert the offline heartbeat is unchanged
+                    assert current_offline_heartbeat == offline_heartbeat
 
-                        ig = hostname_to_instance_group[hostname]
-                        # we have to fetch the group from an online instance
-                        group = v2.instance_groups.get(id=ig.id).results.pop()
+                    ig = hostname_to_instance_group[hostname]
+                    # we have to fetch the group from an online instance
+                    group = v2.instance_groups.get(id=ig.id).results.pop()
 
-                        def check_group_capacity_zeroed():
-                            group.get()
-                            return group.capacity == 0
-                        utils.poll_until(check_group_capacity_zeroed, interval=5, timeout=120)
-                        instance = group.related.instances.get().results.pop()
-                        assert instance.capacity == 0
+                    def check_group_capacity_zeroed():
+                        group.get()
+                        return group.capacity == 0
+                    utils.poll_until(check_group_capacity_zeroed, interval=5, timeout=120)
+                    instance = group.related.instances.get().results.pop()
+                    assert instance.capacity == 0
 
-                        # Check the job we started is marked as failed
-                        long_job = v2.jobs.get(id=long_job.id).results[0]
-                        long_job.wait_until_status('failed', interval=5, timeout=120, since_job_created=False)
+                    # Check the job we started is marked as failed
+                    long_job = v2.jobs.get(id=long_job.id).results[0]
+                    long_job.wait_until_status('failed', interval=5, timeout=180, since_job_created=False)
 
-                        # Should fail with explanation:
-                        explanation = "Task was marked as running in Tower but was not present in Celery, so it has been marked as failed."
-                        assert long_job.job_explanation == explanation
+                    # Should fail with explanation:
+                    explanation = "Task was marked as running in Tower but was not present in Celery, so it has been marked as failed."
+                    assert long_job.job_explanation == explanation
 
-                        # Start a new job against the offline node
-                        host = factories.v2_host()
-                        jt = factories.v2_job_template(inventory=host.ds.inventory)
-                        jt.add_instance_group(hostname_to_instance_group[hostname])
-                        job = jt.launch()
+                    # Start a new job against the offline node
+                    host = factories.v2_host()
+                    jt = factories.v2_job_template(inventory=host.ds.inventory)
+                    jt.add_instance_group(hostname_to_instance_group[hostname])
+                    job = jt.launch()
 
-                        # Check it stays in pending
-                        start_time = time.time()
-                        timeout = 60
-                        interval = 5
-                        while True:
-                            job.get()
-                            assert job.status == 'pending'
-
-                            elapsed = time.time() - start_time
-                            if elapsed > timeout:
-                                break
-                            time.sleep(interval)
-
-                finally:
-                    # Start the node again
-                    cmd = ssh_template.format(ssh_invocation, "start")
-                    ret = subprocess.call(cmd, shell=True)
-                    assert ret == 0
-                    utils.poll_until(lambda: not offline(), interval=5, timeout=120)
+                    # Check it stays in pending
+                    self.assert_job_stays_pending(job)
 
                 # Capacity of the instance and the group should be restored
                 group = v2.instance_groups.get(id=ig.id).results.pop()
