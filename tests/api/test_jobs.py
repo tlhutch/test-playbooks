@@ -295,13 +295,18 @@ class Test_Job(Base_Api_Test):
 
     def test_survey_defaults_dont_meet_length_requirements(self, factories):
         """Confirms that default survey spec variables that don't meet length requirements aren't provided to job"""
-        jt = factories.job_template()
+        host = factories.v2_host()
+        jt = factories.job_template(inventory=host.ds.inventory)
         spec = [dict(required=False, question_name="Question the First.",
                      variable='test_var_one', type='text', min=3, default=''),
                 dict(required=False, question_name="Question the Second.",
                      variable='test_var_two', type='text', max=3, default='four'),
                 dict(required=False, question_name="Question the Third.",
-                     variable='test_var_three', type='text', min=0, default='abc')]
+                     variable='test_var_three', type='text', min=0, default='abc'),
+                dict(required=False, question_name="Question the Fourth.",
+                     variable='test_var_four', type='password', min=5, default='four'),
+                dict(required=False, question_name="Question the Fifth.",
+                     variable='test_var_five', type='password', max=5, default='abcdef')]
         jt.add_survey(spec=spec)
         job = jt.launch().wait_until_completed()
         assert job.is_successful
