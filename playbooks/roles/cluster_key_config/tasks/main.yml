@@ -1,54 +1,54 @@
 ---
 - name: "Ensure user .ssh directory exists"
-  when: inventory_hostname in groups['ha_installer']
+  when: inventory_hostname in groups[install_group]
   file:
     path: "/home/{{ ansible_user }}/.ssh"
     state: directory
 
 - name: "Ensure user cluster key doesn't exist"
-  when: inventory_hostname in groups['ha_installer']
+  when: inventory_hostname in groups[install_group]
   file:
     path: "/home/{{ ansible_user }}/.ssh/cluster_key"
     state: absent
 
 - name: "Generate key material"
-  when: inventory_hostname in groups['ha_installer']
+  when: inventory_hostname in groups[install_group]
   command: "ssh-keygen -b 2048 -t rsa -f ~/.ssh/cluster_key -q -N ''"
 
 - name: "Get generated public key"
-  when: inventory_hostname in groups['ha_installer']
+  when: inventory_hostname in groups[install_group]
   slurp:
     src: "/home/{{ ansible_user }}/.ssh/cluster_key.pub"
-  register: ha_installer_public_key
+  register: install_group_public_key
 
 - name: "Configure user ssh_config"
-  when: inventory_hostname in groups['ha_installer']
+  when: inventory_hostname in groups[install_group]
   template:
     src: ssh_config.j2
     dest: "/home/{{ ansible_user }}/.ssh/config"
     mode: '0600'
 
 - name: "Ensure root .ssh directory exists"
-  when: inventory_hostname in groups['ha_installer']
+  when: inventory_hostname in groups[install_group]
   file:
     path: "/root/.ssh"
     state: directory
   become: true
 
 - name: "Ensure root cluster key doesn't exist"
-  when: inventory_hostname in groups['ha_installer']
+  when: inventory_hostname in groups[install_group]
   file:
     path: "/root/.ssh/cluster_key"
     state: absent
   become: true
 
 - name: "Copy cluster_key to root's .ssh"
-  when: inventory_hostname in groups['ha_installer']
+  when: inventory_hostname in groups[install_group]
   command: "cp /home/{{ ansible_user }}/.ssh/cluster_key /root/.ssh/cluster_key"
   become: true
 
 - name: "Configure root ssh_config"
-  when: inventory_hostname in groups['ha_installer']
+  when: inventory_hostname in groups[install_group]
   template:
     src: ssh_config.j2
     dest: "/root/.ssh/config"
@@ -59,4 +59,4 @@
   authorized_key:
     state: 'present'
     user: '{{ ansible_user }}'
-    key: "{{ hostvars[groups['ha_installer'][0]]['ha_installer_public_key'].content.decode('base64') }}"
+    key: "{{ hostvars[groups[install_group][0]]['install_group_public_key'].content.decode('base64') }}"
