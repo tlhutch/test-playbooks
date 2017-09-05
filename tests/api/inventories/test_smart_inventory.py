@@ -13,10 +13,11 @@ class TestSmartInventory(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_host_update(self, factories):
-        host = factories.host()
+        host = factories.v2_host()
         inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
                                            host_filter="name={0}".format(host.name))
         hosts = inventory.related.hosts.get()
+        assert hosts.count == 1
 
         host.description = fauxfactory.gen_utf8()
         assert hosts.get().results.pop().description == host.description
@@ -58,12 +59,6 @@ class TestSmartInventory(Base_Api_Test):
             factories.v2_inventory_source(inventory=inventory)
         assert e.value[1]['inventory'] == {'detail': 'Cannot create Inventory Source for Smart Inventory'}
 
-    def test_unable_to_inventory_update(self, factories):
-        inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
-        with pytest.raises(exc.BadRequest) as e:
-            inventory.update_inventory_sources()
-        assert e.value[1] == {'detail': 'No inventory sources to update.'}
-
     def test_unable_to_have_insights_credential(self, factories):
         credential = factories.v2_credential(kind='insights')
         expected_error = ['Assignment not allowed for Smart Inventory']
@@ -102,8 +97,8 @@ class TestSmartInventory(Base_Api_Test):
 
         smart_inventory = factories.v2_inventory(organization=inventory.ds.organization, host_filter="search=test_host",
                                                  kind="smart")
-        hosts = smart_inventory.related.hosts.get().results
-        assert len(hosts) == 3
+        hosts = smart_inventory.related.hosts.get()
+        assert hosts.count == 3
 
         ahc = factories.v2_ad_hoc_command(inventory=smart_inventory).wait_until_completed()
         assert ahc.is_successful
@@ -127,8 +122,8 @@ class TestSmartInventory(Base_Api_Test):
 
         smart_inventory = factories.v2_inventory(organization=inventory.ds.organization, host_filter="search=test_host",
                                                  kind="smart")
-        hosts = smart_inventory.related.hosts.get().results
-        assert len(hosts) == 3
+        hosts = smart_inventory.related.hosts.get()
+        assert hosts.count == 3
 
         jt = factories.v2_job_template(inventory=smart_inventory)
         job = jt.launch().wait_until_completed()
@@ -152,7 +147,7 @@ class TestSmartInventory(Base_Api_Test):
         ahcs = host.related.ad_hoc_commands.get()
         assert ahcs.count == 1
         assert ahcs.results.pop().id == ahc.id
-        assert host.get().related.ad_hoc_command_events.get().count > 0
+        assert host.related.ad_hoc_command_events.get().count > 0
 
     def test_host_update_after_job(self, factories):
         host = factories.v2_host()
@@ -161,9 +156,7 @@ class TestSmartInventory(Base_Api_Test):
         job = factories.v2_job_template(inventory=smart_inventory).launch().wait_until_completed()
 
         assert job.is_successful
-        job_host_summaries = job.related.job_host_summaries.get()
-        assert job_host_summaries.count == 1
-        jhs = job_host_summaries.results.pop()
+        jhs = job.related.job_host_summaries.get().results.pop()
 
         assert host.get().summary_fields.last_job.id == job.id
         assert host.summary_fields.last_job_host_summary.id == jhs.id
@@ -174,29 +167,26 @@ class TestSmartInventory(Base_Api_Test):
         assert host.last_job == job.id
         assert host.last_job_host_summary == jhs.id
 
-        assert host.get().related.job_host_summaries.get().results.pop().id == jhs.id
+        assert host.related.job_host_summaries.get().results.pop().id == jhs.id
         assert host.related.job_events.get().count > 0
         assert host.related.last_job.get().id == job.id
         assert host.related.last_job_host_summary.get().id == jhs.id
 
     def test_host_sources_original_inventory(self, factories):
         host = factories.v2_host()
-        smart_inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind="smart",
-                                                 host_filter="name={0}".format(host.name))
+        inventory = host.ds.inventory
+        factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind="smart",
+                               host_filter="name={0}".format(host.name))
 
-        assert host.related.inventory.get().id == host.ds.inventory.id
-        assert host.summary_fields.inventory.id == host.ds.inventory.id
-        assert host.inventory == host.ds.inventory.id
+        assert host.get().related.inventory.get().id == inventory.id
+        assert host.summary_fields.inventory.id == inventory.id
+        assert host.inventory == inventory.id
 
     def test_duplicate_hosts(self, factories):
         org = factories.v2_organization()
         inv1, inv2 = [factories.v2_inventory(organization=org) for _ in range(2)]
         inventory = factories.v2_inventory(organization=org, host_filter="name=test_host", kind="smart")
-
-        hosts = []
-        for inv in (inv1, inv2):
-            host = factories.v2_host(name='test_host', inventory=inv)
-            hosts.append(host)
+        hosts = [factories.v2_host(name='test_host', inventory=inv) for inv in (inv1, inv2)]
 
         inv_hosts = inventory.related.hosts.get()
         assert inv_hosts.count == 1

@@ -248,17 +248,6 @@ class TestHostFilter(Base_Api_Test):
         response = v2.hosts.get(host_filter=host_filter, page_size=200)
         assert self.find_hosts(response) == self.find_hosts(hosts)
 
-    def test_host_filter_update(self, factories, loaded_inventory):
-        """host_filter changes should be immediately reflected in a
-        smart inventory's hosts.
-        """
-        inventory = factories.v2_inventory(kind='smart', host_filter="name=hostA")
-        hosts = inventory.related.hosts.get()
-        assert self.find_hosts(hosts) == ['hostA']
-
-        inventory.host_filter = "name=hostB"
-        assert self.find_hosts(hosts.get()) == ['hostB']
-
     def test_smart_search(self, v2, factories):
         name, description = fauxfactory.gen_utf8(), fauxfactory.gen_utf8()
         host = factories.host(name=name, description=description)
