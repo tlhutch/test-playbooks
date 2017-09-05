@@ -138,6 +138,50 @@ class TestSmartInventory(Base_Api_Test):
         assert activity_stream.count == 1
         assert activity_stream.results.pop().operation == 'create'
 
+    def test_launch_ahc_with_limit(self, factories):
+        inventory = factories.v2_inventory()
+        parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]
+        parent_group.add_group(child_group)
+        for group in (parent_group, child_group):
+            group.add_host(factories.v2_host(name="test_host_{0}".format(group.name), inventory=inventory))
+        factories.v2_host(name="test_host_root", inventory=inventory)
+
+        smart_inventory = factories.v2_inventory(organization=inventory.ds.organization, host_filter="search=test_host",
+                                                 kind="smart")
+        host_names = [host.name for host in smart_inventory.related.hosts.get().results]
+        assert len(host_names) == 3
+
+        for name in host_names:
+            ahc = factories.v2_ad_hoc_command(inventory=smart_inventory, limit=name).wait_until_completed()
+            assert ahc.is_successful
+
+            runner_events = ahc.related.events.get(event__startswith='runner_on')
+            assert runner_events.count == 1
+            assert runner_events.results[0].host_name == name
+
+    def test_launch_job_with_limit(self, factories):
+        inventory = factories.v2_inventory()
+        parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]
+        parent_group.add_group(child_group)
+        for group in (parent_group, child_group):
+            group.add_host(factories.v2_host(name="test_host_{0}".format(group.name), inventory=inventory))
+        factories.v2_host(name="test_host_root", inventory=inventory)
+
+        smart_inventory = factories.v2_inventory(organization=inventory.ds.organization, host_filter="search=test_host",
+                                                 kind="smart")
+        host_names = [host.name for host in smart_inventory.related.hosts.get().results]
+        assert len(host_names) == 3
+        jt = factories.v2_job_template(inventory=smart_inventory)
+
+        for name in host_names:
+            jt.limit = name
+            job = jt.launch().wait_until_completed()
+            assert job.is_successful
+
+            runner_events = job.related.job_events.get(event__startswith='runner_on')
+            assert runner_events.count == 1
+            assert runner_events.results[0].host_name == name
+
     def test_host_update_after_ahc(self, factories):
         host = factories.v2_host()
         smart_inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind="smart",
