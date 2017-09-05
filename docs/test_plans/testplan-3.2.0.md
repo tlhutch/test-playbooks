@@ -34,12 +34,12 @@ When verifying acceptance we should ensure the following statements are true
 1. [x] Project updates should manifest their data on the tower host that will run the job immediately prior to the job running
 1. [x] Tower should be able to reasonably survive the removal of all instances in the cluster
 1. [x] Tower should behave in a predictable fashiong during network partitioning
-1. [ ] Users should not be able to assign instance groups to a job without the correct RBACS role
+1. [x] Users should not be able to assign instance groups to a job without the correct RBACS role
 
 #### Testing Considerations
 
 1. [x] Basic testing should be able to demonstrate parity with a standalone instance for all integration testing.
-1. [ ] Run existing integration tests verifying job (etc) behaviour, specifically targetting an isolated instance group.
+1. [x] Run existing integration tests verifying job (etc) behaviour, specifically targetting an isolated instance group.
 1. [x] Basic setup playbook testing to verify routing differences, including:
     * [x] Basic FQDN
     * [x] Hostname
