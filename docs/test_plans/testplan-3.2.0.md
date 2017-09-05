@@ -148,7 +148,7 @@ Miscellaney:
 1. [x] A user existing in TACACS+ server but not in Tower should be created after the first success log in.
 1. [x] TACACS+ backend should stop authentication attempt after configured timeout and should not block the authentication pipeline in any case.
 1. [x] If exceptions occur on TACACS+ server side, the exception details should be logged in Tower, and Tower should not authenticate that user via TACACS+.
-1. [ ] TACACS+ authentication cannot be used to login as a user initially created in tower
+1. [x] TACACS+ authentication cannot be used to login as a user initially created in tower
 
 ### Inventory UX
 [Feature](https://drive.google.com/open?id=1lvBf_Gf7peE4fucrdPUpRTMuTBz2SpS5Df273bd72Sk)
