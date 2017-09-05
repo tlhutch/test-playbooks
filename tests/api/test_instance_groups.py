@@ -257,7 +257,7 @@ class TestInstanceGroups(Base_Api_Test):
     def test_job_run_against_isolated_node_ensure_viewable_from_all_nodes(self, ansible_module_cls, factories,
                                                                           admin_user, user_password, v2):
         manager = ansible_module_cls.inventory_manager
-        hosts = manager.get_group_dict().get('tower')
+        hosts = manager.get_group_dict().get('ordinary_instances')
         managed = manager.get_group_dict().get('managed_hosts')[0]
         protected = v2.instance_groups.get(name='protected').results[0]
 
@@ -343,7 +343,7 @@ class TestInstanceGroups(Base_Api_Test):
         jobs against an isolated node. This also tests that a cluster can successfully recover after
         shutting down more than one node simultaneously."""
         manager = ansible_module_cls.inventory_manager
-        hosts = manager.get_group_dict()['tower']
+        hosts = manager.get_group_dict()['ordinary_instances']
         controllers = manager.get_group_dict()['instance_group_controller']
 
         online_hostname = None
@@ -411,7 +411,7 @@ class TestInstanceGroups(Base_Api_Test):
         """
         This test checks the behaviour of a cluster as nodes are removed and restored.
 
-        For each node in the 'tower' instance group:
+        For each ordinary node in the cluster:
 
         * A long running job is started assigned to run on the node
         * The node is taken offline
@@ -425,10 +425,10 @@ class TestInstanceGroups(Base_Api_Test):
         * We check a new job against the now-back-online node starts and completes
         """
         manager = ansible_module_cls.inventory_manager
-        hosts = manager.get_group_dict()['tower']
+        hosts = manager.get_group_dict()['ordinary_instances']
 
-        # fetch the instance groups containing the tower nodes
-        # we name the instance groups 1...n where n is the number of tower nodes
+        # fetch the instance groups containing each ordinary node
+        # we name the instance groups 1...n where n is the number of ordinary nodes in the cluster
         hostname_to_instance_group = {}
         for i in range(1, len(hosts) + 1):
             group = v2.instance_groups.get(name=str(i)).results[0]
@@ -459,7 +459,7 @@ class TestInstanceGroups(Base_Api_Test):
 
             def get_heartbeats():
                 """
-                return a dictionary of heartbeats of all online nodes in the tower group
+                return a dictionary of heartbeats of all ordinary nodes that are online
                 and the heartbeat of the offline node"""
                 instances = v2.ping.get().instances
                 heartbeats = {}
@@ -468,7 +468,7 @@ class TestInstanceGroups(Base_Api_Test):
                     this_host = instance['node']
                     this_heartbeat = instance['heartbeat']
                     if this_host not in hosts:
-                        # ignore nodes not in the tower group
+                        # ignore nodes not in the ordinary_instances group
                         continue
                     if this_host == hostname:
                         # this is the node we took offline
@@ -555,7 +555,7 @@ class TestInstanceGroups(Base_Api_Test):
     @pytest.mark.parametrize('scm_type', ['git', 'svn', 'hg'])
     def test_project_copied_to_separate_instance_on_job_run(self, v2, factories, run_on_isolated_group, scm_type):
         if run_on_isolated_group:
-            ig1 = v2.instance_groups.get(name='tower').results.pop()
+            ig1 = v2.instance_groups.get(name='ordinary_instances').results.pop()
             ig2 = v2.instance_groups.get(name='protected').results.pop()
         else:
             ig1, ig2 = self.mutually_exclusive_instance_groups(v2.instance_groups.get().results)
@@ -628,7 +628,7 @@ class TestInstanceGroups(Base_Api_Test):
                 job_during_partition = jt_during_partition.launch()
 
             # Confirm rabbitmq shows drop in number of running nodes
-            num_tower_hosts = len(manager.get_group_dict().get('tower'))
+            num_ordinary_instances = len(manager.get_group_dict().get('ordinary_instances'))
             for partition in ('instance_group_partition_1', 'instance_group_partition_2'):
                 def decrease_in_rabbitmq_nodes():
                     hosts = manager.get_group_dict().get(partition)
@@ -638,7 +638,7 @@ class TestInstanceGroups(Base_Api_Test):
                     rc = proc.returncode
                     assert rc == 0, "Received non-zero response code from '{}'\n[stdout]\n{}\n[stderr]\n{}".format(cmd, stdout, stderr)
                     node_count = re.search('running_nodes,\[([^\]]*)\]', stdout.replace('\n', '')).group(1).count('rabbitmq@')
-                    return node_count < num_tower_hosts
+                    return node_count < num_ordinary_instances
                 utils.poll_until(decrease_in_rabbitmq_nodes, interval=10, timeout=60)
         finally:
             cmd = "ansible-playbook -i {} -e network_partition_state=disabled playbooks/network_partition.yml".format(inventory_file)
@@ -646,19 +646,19 @@ class TestInstanceGroups(Base_Api_Test):
             assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
 
             # Restart tower services on all hosts
-            for host in manager.get_group_dict().get('tower'):
+            for host in manager.get_group_dict().get('ordinary_instances'):
                 cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'ansible-tower-service restart'".format(host, inventory_file)
                 rc = subprocess.call(cmd, shell=True)
                 assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
 
-            for host in manager.get_group_dict().get('tower'):
+            for host in manager.get_group_dict().get('ordinary_instances'):
                 def tower_serving_homepage():
                     contacted = ansible_module_cls.uri(url='https://' + host + '/api', validate_certs='no')
                     return contacted.values()[0]['status'] == 200
                 utils.poll_until(tower_serving_homepage, interval=10, timeout=60)
 
         # Confirm that new jobs can be launched on each instance
-        for hostname in manager.get_group_dict().get('tower'):
+        for hostname in manager.get_group_dict().get('ordinary_instances'):
             connection = Connection('https://' + hostname)
             connection.login(admin_user.username, admin_user.password)
             with self.current_instance(connection, v2):
