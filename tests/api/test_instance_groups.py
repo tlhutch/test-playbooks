@@ -257,7 +257,7 @@ class TestInstanceGroups(Base_Api_Test):
     def test_job_run_against_isolated_node_ensure_viewable_from_all_nodes(self, ansible_module_cls, factories,
                                                                           admin_user, user_password, v2):
         manager = ansible_module_cls.inventory_manager
-        hosts = manager.get_group_dict().get('ordinary_instances')
+        hosts = manager.get_group_dict()['instance_group_ordinary_instances']
         managed = manager.get_group_dict().get('managed_hosts')[0]
         protected = v2.instance_groups.get(name='protected').results[0]
 
@@ -343,7 +343,7 @@ class TestInstanceGroups(Base_Api_Test):
         jobs against an isolated node. This also tests that a cluster can successfully recover after
         shutting down more than one node simultaneously."""
         manager = ansible_module_cls.inventory_manager
-        hosts = manager.get_group_dict()['ordinary_instances']
+        hosts = manager.get_group_dict()['instance_group_ordinary_instances']
         controllers = manager.get_group_dict()['instance_group_controller']
 
         online_hostname = None
@@ -425,7 +425,7 @@ class TestInstanceGroups(Base_Api_Test):
         * We check a new job against the now-back-online node starts and completes
         """
         manager = ansible_module_cls.inventory_manager
-        hosts = manager.get_group_dict()['ordinary_instances']
+        hosts = manager.get_group_dict()['instance_group_ordinary_instances']
 
         # fetch the instance groups containing each ordinary node
         # we name the instance groups 1...n where n is the number of ordinary nodes in the cluster
@@ -628,7 +628,7 @@ class TestInstanceGroups(Base_Api_Test):
                 job_during_partition = jt_during_partition.launch()
 
             # Confirm rabbitmq shows drop in number of running nodes
-            num_ordinary_instances = len(manager.get_group_dict().get('ordinary_instances'))
+            num_ordinary_instances = len(manager.get_group_dict()['instance_group_ordinary_instances'])
             for partition in ('instance_group_partition_1', 'instance_group_partition_2'):
                 def decrease_in_rabbitmq_nodes():
                     hosts = manager.get_group_dict().get(partition)
@@ -646,19 +646,19 @@ class TestInstanceGroups(Base_Api_Test):
             assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
 
             # Restart tower services on all hosts
-            for host in manager.get_group_dict().get('ordinary_instances'):
+            for host in manager.get_group_dict()['instance_group_ordinary_instances']:
                 cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'ansible-tower-service restart'".format(host, inventory_file)
                 rc = subprocess.call(cmd, shell=True)
                 assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
 
-            for host in manager.get_group_dict().get('ordinary_instances'):
+            for host in manager.get_group_dict()['instance_group_ordinary_instances']:
                 def tower_serving_homepage():
                     contacted = ansible_module_cls.uri(url='https://' + host + '/api', validate_certs='no')
                     return contacted.values()[0]['status'] == 200
                 utils.poll_until(tower_serving_homepage, interval=10, timeout=60)
 
         # Confirm that new jobs can be launched on each instance
-        for hostname in manager.get_group_dict().get('ordinary_instances'):
+        for hostname in manager.get_group_dict()['instance_group_ordinary_instances']:
             connection = Connection('https://' + hostname)
             connection.login(admin_user.username, admin_user.password)
             with self.current_instance(connection, v2):
