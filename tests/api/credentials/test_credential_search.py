@@ -100,7 +100,6 @@ class TestCredentialSearch(Base_Api_Test):
         cred = factories.v2_credential()
         jt = factories.v2_job_template(credential=cred)
         wfjtn = factories.v2_workflow_job_template_node(unified_job_template=jt)
-        wfjt = wfjtn.ds.workflow_job_template
 
         self.confirm_sole_credential_in_related_search(v2, cred, workflowjobtemplatenodes__search=wfjtn.id)
 

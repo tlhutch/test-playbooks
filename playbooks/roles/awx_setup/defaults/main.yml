@@ -22,6 +22,9 @@ pg_database: 'awx'
 pg_username: 'awx'
 pg_password: 'password'
 
+# Default for redis variable
+redis_password: 9CJCSUtePvE
+
 # Defaults for mongo variables (comes from ansible-tower/setup/inventory)
 mongo_database: 'system_tracking'
 mongo_username: 'awx'
@@ -41,7 +44,6 @@ rabbitmq_enable_manager: '{{ ha_install }}'
 # pg_password: 9CJCSUtePvE
 # rabbitmq_password: 9CJCSUtePvE
 # munin_password: 9CJCSUtePvE
-# redis_password: 9CJCSUtePvE
 
 # Default minimum var space (disabled with '0'):
 minimum_var_space: 0
