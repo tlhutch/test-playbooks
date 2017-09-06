@@ -199,7 +199,7 @@ Inventory updates (Chris):
 1. [x] Verify host and group promotion with `overwrite`.
 1. [x] Verify default host and group behavior without `overwrite`.
 1. [x] Verify variable overwrite with `overwrite_vars`.
-1. [x] Verify default variable behavior without` overwrite_vars`.
+1. [x] Verify default variable behavior without `overwrite_vars`.
 1. [x] Verify inventory source `update_on_launch`.
 1. [x] Verify inventory update verbosity.
 1. [x] Test inventory update cascade deletion.
