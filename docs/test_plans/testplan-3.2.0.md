@@ -158,6 +158,7 @@ Smart inventories (Chris):
 1. [x] Verify smart inventory host list updates for host edit.
 1. [x] Verify smart inventory host list updates for host deletion.
 1. [x] Verify smart inventory hosts reflects `host_filter`.
+1. [x] Verify smart inventory `host_filter` is organization-scoped.
 1. [x] Verify smart inventories group creation disallowed.
 1. [x] Verify smart inventories host creation disallowed.
 1. [x] Verify smart inventories inventory source creation disallowed.
@@ -170,20 +171,14 @@ Smart inventories (Chris):
 1. [x] Verify host update after AHC.
 1. [x] Verify updating regular inventory into smart inventory.
 1. [x] Verify updating smart inventory into regular inventory.
-1. [x] Verify that only one host shows under smart inventory when duplicate hosts exist.
+1. [x] Verify that only one host shows when duplicate hosts sourced.
 1. [x] Verify that smart inventory deletion does not cascade delete hosts.
 
-Inventories (Chris):
-1. [x] Test new host groups related endpoint.
-1. [x] Test new host groups summary field.
-1. [x] Test v1 inventory resource cascade deletion.
-1. [x] Test v2 inventory resource cascade deletion.
-
 RBAC (Chris):
-1. [ ] Verify regular inventory CRUD against all inventory permissions.
-1. [x] Verify regular inventory group CRUD against all inventory permissions.
-1. [x] Verify regular inventory host CRUD against all inventory permissions.
-1. [x] Verify regular inventory inventory source CRUD against all inventory permissions.
+1. [ ] Verify inventory CRUD against all inventory permissions.
+1. [x] Verify group CRUD against all inventory permissions.
+1. [x] Verify host CRUD against all inventory permissions.
+1. [x] Verify inventory source CRUD against all inventory permissions.
 1. [x] Verify inv-admin against both smart and regular inventories.
 1. [x] Verify inv-update against both smart and regular inventories.
 1. [x] Verify inv-ahc against both smart and regular inventories.
@@ -195,11 +190,12 @@ RBAC (Chris):
 1. [x] Verify inventory source `user_capabilities` against all inventory permissions.
 
 Inventory updates (Chris):
-1. [x] Verify inventory update via `inventory_sources/N/update`.
-1. [x] Verify updating functional sources via `inventories/N/update_inventory_sources`.
-1. [x] Verify updating functional and nonfunctional sources via `inventories/N/update_inventory_sources`.
-1. [x] Verify updating nonfunctional sources via `inventories/N/update_inventory_sources`.
-1. [x] Verify updating duplicate inventory sources.
+1. [x] Verify inventory updates via `/inventory_sources/N/update/`.
+1. [x] Verify updating functional sources via `/inventories/N/update_inventory_sources/`.
+1. [x] Verify updating functional and nonfunctional sources via `/inventories/N/update_inventory_sources/`.
+1. [x] Verify updating nonfunctional sources via `/inventories/N/update_inventory_sources/`.
+1. [x] Verify updating duplicate custom inventory sources via `/inventories/N/update_inventory_sources/`.
+1. [x] Verify updating `/inventories/N/update_inventory_sources/` when no inventory sources present.
 1. [x] Verify host and group promotion with `overwrite`.
 1. [x] Verify default host and group behavior without `overwrite`.
 1. [x] Verify variable overwrite with `overwrite_vars`.
@@ -209,8 +205,8 @@ Inventory updates (Chris):
 1. [x] Test inventory update cascade deletion.
 
 RBAC (Chris):
-1. [x] Verify inventory update via `inventory_sources/N/update/` against all inventory permissions.
-1. [x] Verify inventory update via `inventories/N/update_inventory_sources/` against all inventory permissions.
+1. [x] Verify inventory update via `/inventory_sources/N/update/` against all inventory permissions.
+1. [x] Verify inventory update via `/inventories/N/update_inventory_sources/` against all inventory permissions.
 1. [x] Verify inventory update cancellation via all inventory permissions.
 1. [x] Verify inventory update deletion via all inventory permissions.
 
