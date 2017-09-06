@@ -161,13 +161,16 @@ Smart inventories (Chris):
 1. [x] Verify smart inventories group creation disallowed.
 1. [x] Verify smart inventories host creation disallowed.
 1. [x] Verify smart inventories inventory source creation disallowed.
-1. [x] Verify smart inventories inventory update disallowed (`/api/v2/inventories/N/update_inventory_sources/`).
-1. [ ] Verify launching a job against a smart inventory.
-1. [ ] Verify launching an AHC against a smart inventory.
-1. [ ] Verifying job launch with limit.
-1. [ ] Verify AHC launch with limit.
+1. [x] Verify smart inventories inventory update disallowed.
+1. [x] Verify launching a job against a smart inventory.
+1. [x] Verify launching an AHC against a smart inventory.
+1. [x] Verify job launch with limit.
+1. [x] Verify AHC launch with limit.
+1. [x] Verify host update after job.
+1. [x] Verify host update after AHC.
 1. [x] Verify updating regular inventory into smart inventory.
 1. [x] Verify updating smart inventory into regular inventory.
+1. [x] Verify that only one host shows under smart inventory when duplicate hosts exist.
 1. [x] Verify that smart inventory deletion does not cascade delete hosts.
 
 Inventories (Chris):
