@@ -82,7 +82,7 @@ unset OFS
 #     *)
 #         # Including GIT_BRANCH allows using an aw_repo_url to install builds
 #         # from branches
-#         echo "aw_repo_url: http://jenkins.testing.ansible.com/ansible-tower_nightlies_f8b8c5588b2505970227a7b0900ef69040ad5a00/${GIT_BRANCH#*/}" >> ${PLAYBOOK_DIR}/vars.yml
+#         echo "aw_repo_url: http://jenkins.testing.ansible.com/ansible-tower_nightlies_v16jn0ez3t7k07/${GIT_BRANCH#*/}" >> ${PLAYBOOK_DIR}/vars.yml
 #         ;;
 # esac
 
