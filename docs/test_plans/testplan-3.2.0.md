@@ -91,7 +91,7 @@ Filter functionality:
 1. [x] Verify host_filter against unicode.
 1. [x] Verify host_filter smart-search support.
 1. [x] Verify proper handling of invalid `host_filter` requests.
-1. [ ] Verify host_filter performance.
+1. [x] Verify host_filter performance.
 
 RBAC:
 1. [x] Host filter should return resources for which a user has inventory-read permissions.
