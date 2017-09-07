@@ -111,7 +111,6 @@ class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
         org_instance_group_ids = set([ig.id for ig in all_instance_groups if ig.id not in [org_ig.id for org_ig in org_instance_groups]])
         assert resource_instance_group_ids == org_instance_group_ids
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7540', raises=AssertionError)
     def test_org_admin_managing_organization_instance_groups(self, v2, factories):
         """An org admin should not be able to (un)set instance groups on their own
         organization (or any other).
