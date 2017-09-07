@@ -172,6 +172,8 @@ Smart inventories (Chris):
 1. [x] Verify updating regular inventory into smart inventory.
 1. [x] Verify updating smart inventory into regular inventory.
 1. [x] Verify that only one host shows when duplicate hosts sourced.
+1. [x] Verify source inventory variables ignored.
+1. [x] Verify smart inventory variable precedence.
 1. [x] Verify that smart inventory deletion does not cascade delete hosts.
 
 RBAC (Chris):
