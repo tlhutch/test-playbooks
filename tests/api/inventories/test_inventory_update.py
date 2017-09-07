@@ -119,6 +119,12 @@ class TestInventoryUpdate(Base_Api_Test):
         assert inv_source1.get().is_successful
         assert inv_source2.get().is_successful
 
+    def test_v2_update_with_no_inventory_sources(self, factories):
+        inventory = factories.v2_inventory()
+        with pytest.raises(exc.BadRequest) as e:
+            inventory.update_inventory_sources()
+        assert e.value[1] == {'detail': 'No inventory sources to update.'}
+
     def test_update_with_overwrite(self, factories):
         """Verify inventory update with overwrite.
         * Hosts and groups created within our script-spawned group should get promoted.

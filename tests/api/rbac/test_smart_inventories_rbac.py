@@ -13,9 +13,19 @@ from tests.api import Base_Api_Test
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestSmartInventoryRBAC(Base_Api_Test):
 
+    def check_host_filter_edit(self, smart_inventory, allowed=False):
+        new_filter = "name=new_host_filter"
+        if allowed:
+            smart_inventory.host_filter = new_filter
+            assert smart_inventory.host_filter == new_filter
+        else:
+            with pytest.raises(exc.Forbidden):
+                smart_inventory.host_filter = new_filter
+
     def test_unprivileged_user(self, factories):
         host = factories.v2_host()
-        inventory = factories.v2_inventory(kind='smart', host_filter='name={0}'.format(host.name))
+        inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
+                                           host_filter='name={0}'.format(host.name))
         user = factories.user()
 
         with self.current_user(username=user.username, password=user.password):
@@ -24,58 +34,80 @@ class TestSmartInventoryRBAC(Base_Api_Test):
             with pytest.raises(exc.Forbidden):
                 inventory.related.ad_hoc_commands.post()
 
+            self.check_host_filter_edit(inventory, allowed=False)
             assert_response_raised(host, httplib.FORBIDDEN)
             assert_response_raised(inventory, httplib.FORBIDDEN)
+
+    def test_organization_admin(self, factories):
+        host = factories.v2_host()
+        inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
+                                           host_filter='name={0}'.format(host.name))
+        user = factories.user()
+        inventory.ds.organization.set_object_roles(user, "admin")
+
+        with self.current_user(user):
+            check_read_access(inventory)
+            self.check_host_filter_edit(inventory, allowed=True)
+            assert_response_raised(host, httplib.OK)
+            assert_response_raised(inventory, httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, set_test_roles, agent, factories):
         host = factories.v2_host()
-        inventory = factories.v2_inventory(kind='smart', host_filter='name={0}'.format(host.name))
+        inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
+                                           host_filter='name={0}'.format(host.name))
         user = factories.user()
 
         set_test_roles(user, inventory, agent, "admin")
 
         with self.current_user(username=user.username, password=user.password):
             check_read_access(inventory, ["organization"])
+            self.check_host_filter_edit(inventory, allowed=False)
             assert_response_raised(host, httplib.FORBIDDEN)
             assert_response_raised(inventory, httplib.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_use_role(self, set_test_roles, agent, factories):
         host = factories.v2_host()
-        inventory = factories.v2_inventory(kind='smart', host_filter='name={0}'.format(host.name))
+        inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
+                                           host_filter='name={0}'.format(host.name))
         user = factories.user()
 
         set_test_roles(user, inventory, agent, "use")
 
         with self.current_user(username=user.username, password=user.password):
             check_read_access(inventory, ["organization"])
+            self.check_host_filter_edit(inventory, allowed=False)
             assert_response_raised(host, httplib.FORBIDDEN)
             assert_response_raised(inventory, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_adhoc_role(self, set_test_roles, agent, factories):
         host = factories.v2_host()
-        inventory = factories.v2_inventory(kind='smart', host_filter='name=localhost')
+        inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
+                                           host_filter='name=localhost')
         user = factories.user()
 
         set_test_roles(user, inventory, agent, "ad hoc")
 
         with self.current_user(username=user.username, password=user.password):
             check_read_access(inventory, ["organization"])
+            self.check_host_filter_edit(inventory, allowed=False)
             assert_response_raised(host, httplib.FORBIDDEN)
             assert_response_raised(inventory, httplib.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, set_test_roles, agent, factories):
         host = factories.v2_host()
-        inventory = factories.v2_inventory(kind='smart', host_filter='name={0}'.format(host.name))
+        inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
+                                           host_filter='name={0}'.format(host.name))
         user = factories.user()
 
         set_test_roles(user, inventory, agent, "read")
 
         with self.current_user(username=user.username, password=user.password):
             check_read_access(inventory, ["organization"])
+            self.check_host_filter_edit(inventory, allowed=False)
             assert_response_raised(host, httplib.FORBIDDEN)
             assert_response_raised(inventory, httplib.FORBIDDEN)
 
@@ -85,7 +117,8 @@ class TestSmartInventoryRBAC(Base_Api_Test):
         REJECTED_ROLES = ['use', 'read']
 
         host = factories.v2_host()
-        inventory = factories.v2_inventory(kind='smart', host_filter='name={0}'.format(host.name))
+        inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
+                                           host_filter='name={0}'.format(host.name))
         user = factories.user()
         credential = factories.v2_credential(user=user)
 
