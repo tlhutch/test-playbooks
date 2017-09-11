@@ -596,6 +596,8 @@ class TestInstanceGroups(Base_Api_Test):
         5. Confirm that new jobs can be launched on each host.
         6. Confirm previous jobs complete (can be successful or failed, but not pending or waiting).
            Confirm no jobs were relaunched.
+
+        Note: Test is designed to run from an instance in the `instance_group_partition_1` instance group.
         """
         # Launch job across partition
         inventory_file = ansible_module_cls.inventory
@@ -622,8 +624,12 @@ class TestInstanceGroups(Base_Api_Test):
 
             # Launch second job across partition
             with self.current_instance(connection, v2):
+                org = factories.organization()
+                ig_partition_1 = v2.instance_groups.get(name='partition_1').results.pop()
+                org.add_instance_group(ig_partition_1)
+                project = factories.project(organization=org)  # Ensure project update runs on instance from partition_1
                 host = factories.v2_host()
-                jt_during_partition = factories.v2_job_template(inventory=host.ds.inventory)
+                jt_during_partition = factories.v2_job_template(inventory=host.ds.inventory, project=project)
                 jt_during_partition.add_instance_group(ig)
                 job_during_partition = jt_during_partition.launch()
 
