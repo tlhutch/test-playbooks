@@ -139,7 +139,13 @@ class TestNamedURLs(Base_Api_Test):
     def test_instances_instance_groups(self, v2):
         # select the first default instance and instance group
         instance = v2.instances.get().results[0]
-        instance_group = v2.instance_groups.get().results[0]
+        instance_group = None
+        for group in v2.instance_groups.get().results:
+            # In HA, some of the instance groups have integer names which don't work with named urls
+            if not group.name.isdigit():
+                instance_group = group
+                break
+        assert instance_group is not None
 
         instance_url = make_api_url('instances', '{1}', instance.hostname)
         instance_group_url = make_api_url('instance_groups', '{1}', instance_group.name)
