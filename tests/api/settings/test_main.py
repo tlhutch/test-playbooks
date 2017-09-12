@@ -341,7 +341,7 @@ class Test_Main_Setting(Base_Api_Test):
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
 
-        jt.playbook = 'use_facts.yml'
+        jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
         job = jt.launch().wait_until_completed()
         assert job.status == status
 
