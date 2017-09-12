@@ -514,17 +514,3 @@ class TestInventoryUpdate(Base_Api_Test):
             "Unexpected update job_explanation. Expected '{0}' but received '{1}.'".format(job_explanation, update_pg.job_explanation)
         assert update_pg.timeout == custom_inventory_source.timeout, \
             "Update_pg has a different timeout value ({0}) than its inv_source ({1}).".format(update_pg.timeout, custom_inventory_source.timeout)
-
-    def test_single_failed_update_on_launch(self, factories):
-        """Confirm that only a single inventory update is launched with job template despite failing."""
-        cred = factories.v2_credential(kind='aws', inputs=dict(username="fake", password="fake"))
-        inv_source = factories.v2_inventory_source(source='ec2', credential=cred, update_on_launch=True)
-        jt = factories.v2_job_template(inventory=inv_source.ds.inventory)
-
-        job = jt.launch().wait_until_completed()
-        assert job.is_successful
-
-        updates = inv_source.related.inventory_updates.get()
-        assert updates.count == 1
-        assert updates.results.pop().status == 'failed'
-        assert inv_source.get().status == 'failed'
