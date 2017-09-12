@@ -189,19 +189,19 @@ class TestFactCache(Base_Api_Test):
         assert '"msg": {}' in job.json.result_stdout
 
     def test_clear_facts(self, factories, ansible_version_cmp):
-        if ansible_version_cmp("2.3") < 0:
-            pytest.skip("Not supported on Ansible-2.2.")
+        if ansible_version_cmp("2.3.2") < 0:
+            pytest.skip("Not support on Ansible versions predating 2.3.2.")
         host = factories.v2_host()
+
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         assert jt.launch().wait_until_completed().is_successful
+        ansible_facts = host.related.ansible_facts.get()
+        self.assert_updated_facts(ansible_facts)
 
         jt.playbook = 'clear_facts.yml'
         assert jt.launch().wait_until_completed().is_successful
 
-        jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
-        job = jt.launch().wait_until_completed()
-        assert job.status == 'failed'
-        assert "The error was: 'ansible_distribution' is undefined" in job.result_stdout
+        assert not host.related.ansible_facts.get().json
 
     @pytest.mark.ansible_integration
     def test_scan_file_paths_are_sourced(self, scan_facts_job_template):
