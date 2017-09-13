@@ -4,8 +4,7 @@ import types
 import json
 import re
 
-import towerkit.tower.inventory
-import towerkit.exceptions
+from towerkit import exceptions as exc
 import fauxfactory
 import pytest
 
@@ -189,7 +188,7 @@ class Test_Job(Base_Api_Test):
         assert not relaunch_pg.passwords_needed_to_start
 
         # attempt to relaunch the job, should raise exception
-        with pytest.raises(towerkit.exceptions.BadRequest):
+        with pytest.raises(exc.BadRequest):
             relaunch_pg.post()
 
     def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload, testsetup):  # NOQA
@@ -226,7 +225,7 @@ class Test_Job(Base_Api_Test):
         assert credential.expected_passwords_needed_to_start == relaunch_pg.passwords_needed_to_start
 
         # relaunch the job
-        exc_info = pytest.raises(towerkit.exceptions.BadRequest, relaunch_pg.post, {})
+        exc_info = pytest.raises(exc.BadRequest, relaunch_pg.post, {})
         result = exc_info.value[1]
 
         # assert expected error responses
@@ -270,6 +269,19 @@ class Test_Job(Base_Api_Test):
         assert set(relaunch_extra_vars) == set(job_extra_vars), \
             "The extra_vars on a relaunched job should match the extra_vars on the job being relaunched (%s != %s)" % \
             (relaunch_extra_vars, job_extra_vars)
+
+    def test_cannot_relaunch_with_inventory_with_pending_deletion(self, factories):
+        jt = factories.v2_job_template()
+        inv = jt.ds.inventory
+        factories.v2_host(inventory=inv)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        inv.delete()
+        with pytest.raises(exc.BadRequest) as e:
+            job.relaunch()
+        assert e.value[1]['errors'] == ['Job Template Inventory is missing or undefined.']
 
     @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1249")
     def test_password_survey_launched_with_empty_extra_vars(self, factories):
@@ -317,7 +329,7 @@ class Test_Job(Base_Api_Test):
         spec = [dict(required=True, question_name="With $encrypted$ as default.",
                      variable='test', type='password', default='$encrypted$')]
 
-        with pytest.raises(towerkit.exceptions.BadRequest) as e:
+        with pytest.raises(exc.BadRequest) as e:
             jt.add_survey(spec=spec)
         assert e.value[1]['error'] == "$encrypted$ is reserved keyword and may not be used as a default for password 0."
 
@@ -397,7 +409,7 @@ class Test_Job(Base_Api_Test):
             cancel_pg.can_cancel
 
         # assert MethodNotAllowed when attempting to cancel
-        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
+        with pytest.raises(exc.MethodNotAllowed):
             cancel_pg.post()
 
     def test_jobs_persist_beyond_job_template_deletion(self, job_template):
@@ -421,7 +433,7 @@ class Test_Job(Base_Api_Test):
             resource.related.inventory.delete().wait_until_deleted()
 
         # verify that update cascade deleted
-        with pytest.raises(towerkit.exceptions.NotFound):
+        with pytest.raises(exc.NotFound):
             update.get()
 
     def test_delete_running_job_with_orphaned_project(self, factories, user_password):
@@ -439,7 +451,7 @@ class Test_Job(Base_Api_Test):
         job_template.set_object_roles(operator, "execute")
         with self.current_user(operator.username, user_password):
             job = job_template.launch()
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 job.delete()
 
 
