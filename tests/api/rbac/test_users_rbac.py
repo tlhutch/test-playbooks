@@ -57,3 +57,12 @@ class Test_User_RBAC(Base_Api_Test):
             user.last_name = 'Last'
         assert(user.get().first_name == 'First')
         assert(user.last_name == 'Last')
+
+    def test_all_users_can_change_their_own_password(self, all_users):
+        new_pass = "new_password"
+
+        for user in all_users:
+            with self.current_user(user):
+                user.patch(password=new_pass, password_confirm=new_pass)
+            with self.current_user(username=user.username, password=new_pass):
+                user.get()
