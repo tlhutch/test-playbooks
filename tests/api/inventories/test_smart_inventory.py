@@ -237,21 +237,22 @@ class TestSmartInventory(Base_Api_Test):
         assert inv_hosts.results.pop().id == min([host.id for host in hosts])
 
     def test_source_inventory_variables_ignored(self, factories):
-        inventory = factories.v2_inventory(variables="ansible_connection: ssh")
-        group = factories.v2_group(inventory=inventory, variables="ansible_connection: ssh")
+        inventory = factories.v2_inventory(variables="ansible_connection: local")
+        group = factories.v2_group(inventory=inventory, variables="ansible_connection: local")
         host = factories.v2_host(inventory=inventory, variables="")
         group.add_host(host)
 
         jt = factories.v2_job_template(inventory=inventory)
-        assert jt.launch().wait_until_completed().status == 'failed'
+        assert jt.launch().wait_until_completed().is_successful
 
         smart_inventory = factories.v2_inventory(organization=inventory.ds.organization, kind="smart",
-                                                 host_filter="name={0}".format(host.name))
+                                                 host_filter="name={0}".format(host.name), variables="")
         assert smart_inventory.related.hosts.get().count == 1
-        smart_inventory.variables = "ansible_connection: local"
 
         jt.inventory = smart_inventory.id
-        assert jt.launch().wait_until_completed().is_successful
+        job = jt.launch().wait_until_completed()
+        assert job.status == 'failed'
+        assert 'Failed to connect to the host via ssh' in job.result_stdout
 
     def test_overriden_smart_inventory_variables(self, factories):
         host = factories.v2_host(variables="ansible_connection: local")
