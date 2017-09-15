@@ -64,7 +64,10 @@ def assert_response_raised(tower_object, response=httplib.OK, methods=('put', 'p
     exc = exc_dict[response]
     for method in methods:
         if exc is None:
-            getattr(tower_object, method)()
+            if method == 'delete':
+                tower_object.delete().wait_until_deleted()
+            else:
+                getattr(tower_object, method)()
         else:
             with pytest.raises(exc):
                 getattr(tower_object, method)()
