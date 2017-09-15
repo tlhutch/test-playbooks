@@ -276,7 +276,7 @@ class TestJobTemplateExtraCredentials(Base_Api_Test):
         jt = factories.v2_job_template()
         scm_cred = factories.v2_credential(kind='scm')
         ssh_cred = factories.v2_credential()
-        vault_cred = factories.v2_credential(kind='vault')
+        vault_cred = factories.v2_credential(kind='vault', inputs=dict(vault_password='fake'))
 
         for cred in (scm_cred, ssh_cred, vault_cred):
             with pytest.raises(exc.BadRequest) as e:
