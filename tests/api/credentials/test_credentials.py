@@ -228,6 +228,7 @@ class TestCredentials(Base_Api_Test):
 
     def test_changing_credential_type_not_allowed(self, factories, v2):
         cred = factories.v2_credential()
+        factories.v2_job_template(credential=cred)
         ids = [ctype.id for ctype in v2.credential_types.get().results]
         ids.remove(cred.credential_type)
 
