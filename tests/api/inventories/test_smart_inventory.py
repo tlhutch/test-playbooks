@@ -236,6 +236,33 @@ class TestSmartInventory(Base_Api_Test):
         assert inv_hosts.count == 1
         assert inv_hosts.results.pop().id == min([host.id for host in hosts])
 
+    def test_source_inventory_variables_ignored(self, factories):
+        inventory = factories.v2_inventory(variables="ansible_connection: local")
+        group = factories.v2_group(inventory=inventory, variables="ansible_connection: local")
+        host = factories.v2_host(inventory=inventory, variables="")
+        group.add_host(host)
+
+        jt = factories.v2_job_template(inventory=inventory)
+        assert jt.launch().wait_until_completed().is_successful
+
+        smart_inventory = factories.v2_inventory(organization=inventory.ds.organization, kind="smart",
+                                                 host_filter="name={0}".format(host.name), variables="")
+        assert smart_inventory.related.hosts.get().count == 1
+
+        jt.inventory = smart_inventory.id
+        job = jt.launch().wait_until_completed()
+        assert job.status == 'failed'
+        assert 'Failed to connect to the host via ssh' in job.result_stdout
+
+    def test_overriden_smart_inventory_variables(self, factories):
+        host = factories.v2_host(variables="ansible_connection: local")
+        smart_inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind="smart",
+                                                 host_filter="name={0}".format(host.name), variables="ansible_connection: ssh")
+        assert smart_inventory.related.hosts.get().count == 1
+
+        jt = factories.v2_job_template(inventory=smart_inventory)
+        assert jt.launch().wait_until_completed().is_successful
+
     def test_smart_inventory_deletion_should_not_cascade_delete_hosts(self, factories):
         host = factories.v2_host()
         inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
