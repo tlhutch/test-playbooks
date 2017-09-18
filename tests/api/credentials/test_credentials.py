@@ -226,6 +226,17 @@ class TestCredentials(Base_Api_Test):
         assert project.is_successful
         assert len(project.related.playbooks.get().json)
 
+    def test_changing_credential_type_not_allowed(self, factories, v2):
+        cred = factories.v2_credential()
+        factories.v2_job_template(credential=cred)
+        ids = [ctype.id for ctype in v2.credential_types.get().results]
+        ids.remove(cred.credential_type)
+
+        for id in ids:
+            with pytest.raises(exc.BadRequest) as e:
+                cred.credential_type = id
+        assert "You cannot change the credential type of the credential" in e.value[1]['credential_type'][0]
+
     def test_confirm_boto_exception_in_ec2_inv_sync_without_credential(self, factories):
         inv_source = factories.v2_inventory_source(source='ec2')
         assert not inv_source.credential
