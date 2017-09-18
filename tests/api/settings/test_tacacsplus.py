@@ -1,10 +1,11 @@
-import logging
 from datetime import datetime
+import logging
 
 import pytest
 
 from tests.api import Base_Api_Test
 from towerkit import exceptions as exc
+from towerkit import utils
 from towerkit.config import config
 
 log = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ def enable_tacacs_auth(request, v1, api_settings_tacacsplus_pg):
                    'TACACSPLUS_SESSION_TIMEOUT': 5,
                    'TACACSPLUS_AUTH_PROTOCOL': protocol}
         api_settings_tacacsplus_pg.put(payload)
+        utils.logged_sleep(1)  # Give auth settings time to take effect
         request.addfinalizer(api_settings_tacacsplus_pg.delete)
     return _enable_tacacs_auth
 
@@ -65,7 +67,6 @@ class Test_TACACS_Plus(Base_Api_Test):
                 'Change to user (first_name) did not persist across logins'
         user.delete()
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6169')
     @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
     def test_login_as_existing_user(self, protocol, enable_tacacs_auth, v1, api_me_pg):
         enable_tacacs_auth(protocol)
