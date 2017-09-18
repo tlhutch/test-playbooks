@@ -301,7 +301,7 @@ Migrations (Jake)
     * [ ] rhel-7.latest
     * [ ] centos-7.latest
     * [ ] ol-7.latest
-1. Bundled installation completes successfully for HA deployment
+1. [ ] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
 1. [ ] Upgrade completes on all supported platforms from `3.1.*`
