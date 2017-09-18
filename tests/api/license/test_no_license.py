@@ -47,12 +47,9 @@ class TestNoLicense(LicenseTest):
         assert job_pg.is_successful, "project_update was unsuccessful - %s" % job_pg
 
     def test_can_launch_inventory_update_but_it_should_fail(self, custom_inventory_source):
-        """Verify that inventory_updates can be launched, but they fail because
-        no license is installed.
-        """
-        job_pg = custom_inventory_source.update().wait_until_completed()
-        assert job_pg.status == 'failed', "inventory_update was unexpectedly successful - %s" % job_pg
-        assert 'CommandError: No Tower license found!' in job_pg.result_stdout
+        job = custom_inventory_source.update().wait_until_completed()
+        assert job.status == 'failed'
+        assert 'CommandError: No license found!' in job.result_stdout
 
     def test_cannot_launch_job(self, install_basic_license, api_config_pg, job_template):
         """Verify that job_templates cannot be launched"""
