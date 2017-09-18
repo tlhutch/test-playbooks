@@ -66,7 +66,7 @@ Performance testing should be twofold:
 1. [ ] Jobs that generate a large amount of output.
 
 These should also be benchmarked against the same playbooks using:
-1. [ ] 3.0.3 Tower release, and 
+1. [ ] 3.1.5 Tower release, and 
 1. [ ] a stable Ansible version. 
 
 For a large volume playbook I might recommend a customer provided one that we've seen recently:
