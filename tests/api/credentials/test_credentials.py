@@ -257,7 +257,9 @@ class TestCredentials(Base_Api_Test):
             for res in contacted.values():
                 assert res.get('changed') and not res.get('failed')
 
-            pg_dump_path = '/home/{0}/pg.txt'.format(ansible_runner.options['user'])
+            user = ansible_runner.options['user'] \
+                   or ansible_runner.inventory_manager.get_vars(ansible_runner.options['host_pattern'])['ansible_user']
+            pg_dump_path = '/home/{0}/pg.txt'.format(user)
             request.addfinalizer(lambda: ansible_runner.file(path=pg_dump_path, state='absent'))
 
             # Don't log the dumped db.
@@ -289,7 +291,7 @@ class TestCredentials(Base_Api_Test):
         secrets = set()
         for payload in cred_payloads:
             for field in ('password', 'ssh_key_data', 'authorize_password', 'become_password', 'secret'):
-                if field in payload.inputs:
+                if payload.inputs.get(field, False):
                     secrets.add(payload.inputs[field])
             v2.credentials.post(payload)
 
