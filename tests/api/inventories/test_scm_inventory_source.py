@@ -59,7 +59,8 @@ class TestSCMInventorySource(Base_Api_Test):
             assert 'host_vars/' not in listed_file
             assert 'group_vars/' not in listed_file
 
-    @pytest.fixture(scope='class', params=['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
+    @pytest.fixture(scope='class', params=['inventories/inventory.ini', 'inventories/dyn_inventory.py',
+                                           'inventories/metaless_dyn_inventory.py'])
     def scm_inv_source_with_group_and_host_var_dirs(self, request, class_factories):
         inv_source = class_factories.v2_inventory_source(source='scm', source_path=request.param)
         assert inv_source.update().wait_until_completed().is_successful
