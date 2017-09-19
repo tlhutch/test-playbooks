@@ -513,14 +513,14 @@ class Test_Main_Setting(Base_Api_Test):
                 "An org_admin is able to see users (%s) outside the organization, despite the setting " \
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:False" % matching_non_org_users.count
 
-    def test_system_license(self, api_config_pg, api_settings_system_pg):
+    def test_displayed_system_license(self, api_config_pg, api_settings_system_pg):
         """Verifies that our exact license contents gets displayed under /api/v1/settings/system/.
 
         Note: the towerkit license generator auto-appends a 'eula_accepted' field which is not
         actually part of the license so we remove that manually below.
         """
         # install test license
-        log.debug("Installing test enterprise license test_system_license.")
+        log.debug("Installing enterprise license for test_system_license.")
         license_info = generate_license(
             days=365,
             instance_count=sys.maxint,
@@ -533,6 +533,14 @@ class Test_Main_Setting(Base_Api_Test):
         assert license_info == returned_license, \
             "Discrepancy between license and license displayed under /api/v1/settings/system/." \
             "\n\nLicense:\n{0}\n\nAPI returned:\n{1}\n".format(json.dumps(license_info), json.dumps(returned_license))
+
+    def test_unable_to_change_system_license(self, v2):
+        system_settings = v2.settings.get().get_endpoint('system')
+        license = system_settings.LICENSE
+
+        system_settings.LICENSE = {}
+        system_settings.delete()
+        assert system_settings.get().LICENSE == license
 
     def test_changed_settings(self, modify_settings, api_settings_changed_pg):
         """Verifies that changed entries show under /api/v1/settings/changed/.
