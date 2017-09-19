@@ -33,13 +33,9 @@ class TestFactCache(Base_Api_Test):
     @pytest.fixture
     def scan_facts_job_template(self, factories):
         host = factories.v2_host()
-        inventory = host.ds.inventory
-        organization = inventory.ds.organization
-        scm_cred, ssh_cred = [factories.v2_credential(kind=k, organization=organization) for k in ('scm', 'ssh')]
-        project = factories.v2_project(scm_url='git@github.com:ansible/tower-fact-modules.git', credential=scm_cred)
-        return factories.v2_job_template(description="3.2 scan_facts JT %s" % fauxfactory.gen_utf8(),
-                                         project=project, credential=ssh_cred, inventory=inventory,
-                                         playbook='scan_facts.yml', use_fact_cache=True)
+        project = factories.v2_project(scm_url='https://github.com/ansible/awx-facts-playbooks', wait=True)
+        return factories.v2_job_template(description="3.2 scan_facts JT %s" % fauxfactory.gen_utf8(), project=project,
+                                         inventory=host.ds.inventory, playbook='scan_facts.yml', use_fact_cache=True)
 
     @pytest.mark.requires_single_instance
     def test_ingest_facts_with_tower_scan_playbook(self, request, factories, ansible_runner, is_docker,

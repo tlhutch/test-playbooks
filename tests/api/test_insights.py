@@ -24,11 +24,9 @@ class TestInsights(Base_Api_Test):
         ansible_runner.file(path='/etc/redhat-access-insights', state="directory")
         request.addfinalizer(lambda: ansible_runner.file(path='/etc/redhat-access-insights', state="absent"))
 
-        scm_cred, ssh_cred = [class_factories.v2_credential(kind=kind) for kind in ('scm', 'ssh')]
-        project = class_factories.v2_project(scm_url="git@github.com:ansible/tower-fact-modules.git",
-                                             credential=scm_cred, wait=True)
+        project = class_factories.v2_project(scm_url="https://github.com/ansible/awx-facts-playbooks", wait=True)
         jt = class_factories.v2_job_template(project=project, inventory=inventory, playbook='scan_facts.yml',
-                                             credential=ssh_cred, use_fact_cache=True, limit="registered_host")
+                                             use_fact_cache=True, limit="registered_host")
 
         # update registered host with registered machine ID
         ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.registered_machine_id))
