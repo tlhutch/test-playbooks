@@ -1,5 +1,6 @@
-import pytest
+from towerkit.utils import logged_sleep
 import fauxfactory
+import pytest
 
 
 @pytest.fixture
@@ -15,7 +16,11 @@ def update_setting_pg(request):
         (Pdb) update_setting_pg(api_settings_ui_pg, {'PENDO_TRACKING_STATE': 'off'})
         {"PENDO_TRACKING_STATE": "off"}
         """
-        request.addfinalizer(setting_pg.delete)
+        def teardown_settings():
+            setting_pg.silent_delete()
+            logged_sleep(1)  # Tower cache updates are a source of flakiness during settings tests.
+
+        request.addfinalizer(teardown_settings)
         return setting_pg.patch(**payload)
     return func
 

@@ -1,18 +1,15 @@
 from datetime import datetime
-import logging
 
+from towerkit import exceptions as exc
+from towerkit.config import config
+from towerkit import utils
 import pytest
 
 from tests.api import Base_Api_Test
-from towerkit import exceptions as exc
-from towerkit import utils
-from towerkit.config import config
-
-log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="function")
-def enable_tacacs_auth(request, v1, api_settings_tacacsplus_pg):
+def enable_tacacs_auth(update_setting_pg, api_settings_tacacsplus_pg):
     def _enable_tacacs_auth(protocol='ascii'):
         tacacs_config = config.credentials.tacacs_plus
         payload = {'TACACSPLUS_HOST': tacacs_config.host,
@@ -20,35 +17,33 @@ def enable_tacacs_auth(request, v1, api_settings_tacacsplus_pg):
                    'TACACSPLUS_SECRET': tacacs_config.secret,
                    'TACACSPLUS_SESSION_TIMEOUT': 5,
                    'TACACSPLUS_AUTH_PROTOCOL': protocol}
-        api_settings_tacacsplus_pg.put(payload)
+        update_setting_pg(api_settings_tacacsplus_pg, payload)
         utils.logged_sleep(1)  # Give auth settings time to take effect
-        request.addfinalizer(api_settings_tacacsplus_pg.delete)
     return _enable_tacacs_auth
 
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_TACACS_Plus(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestTACACSPlus(Base_Api_Test):
 
     @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
-    def test_login_as_new_user(self, protocol, enable_tacacs_auth, v1, api_me_pg):
+    def test_login_as_new_user(self, request, protocol, enable_tacacs_auth, v1, api_me_pg):
         enable_tacacs_auth(protocol)
         tacacs_config = config.credentials.tacacs_plus
         assert not v1.users.get(username=tacacs_config.user).count
 
         with self.current_user(tacacs_config.user, getattr(tacacs_config, protocol + '_pass')):
-            api_me_pg.get()
+            tacacs_user = api_me_pg.get().results.pop()
+            request.addfinalizer(tacacs_user.silent_delete)
 
         users = v1.users.get(username=tacacs_config.user).results
         assert len(users) == 1, \
             "User {0} should be created after authenticating with TACACS+ server".format(tacacs_config.user)
-        users.pop().delete()
 
     @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
-    def test_repeated_login_with_tacacs_auth(self, protocol, enable_tacacs_auth, v1):
+    def test_repeated_login_with_tacacs_auth(self, request, protocol, enable_tacacs_auth, v1):
         enable_tacacs_auth(protocol)
         tacacs_config = config.credentials.tacacs_plus
         username, password = (tacacs_config.user, getattr(tacacs_config, protocol + '_pass'))
@@ -56,6 +51,7 @@ class Test_TACACS_Plus(Base_Api_Test):
 
         with self.current_user(username, password):
             user = v1.me.get().results.pop()
+            request.addfinalizer(user.silent_delete)
             assert user.username == username
             user_id = user.id
             user.first_name = 'changed'
@@ -65,18 +61,16 @@ class Test_TACACS_Plus(Base_Api_Test):
             assert user_id == v1.me.get().results.pop().id, "Found different user_id on second login"
             assert user.get().first_name == 'changed', \
                 'Change to user (first_name) did not persist across logins'
-        user.delete()
 
     @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
-    def test_login_as_existing_user(self, protocol, enable_tacacs_auth, v1, api_me_pg):
+    def test_login_as_existing_user(self, factories, protocol, enable_tacacs_auth, api_me_pg):
         enable_tacacs_auth(protocol)
         tacacs_config = config.credentials.tacacs_plus
-        user = v1.users.create(username=tacacs_config.user)
+        factories.v2_user(username=tacacs_config.user)
 
         with self.current_user(tacacs_config.user, getattr(tacacs_config, protocol + '_pass')):
             with pytest.raises(exc.Unauthorized):
                 api_me_pg.get()
-        user.delete()
 
     @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
     def test_login_as_fake_user(self, protocol, enable_tacacs_auth, v1, api_me_pg):
@@ -85,10 +79,10 @@ class Test_TACACS_Plus(Base_Api_Test):
             with pytest.raises(exc.Unauthorized):
                 api_me_pg.get()
 
-    def test_timeout(self, enable_tacacs_auth, v1, api_me_pg, api_settings_tacacsplus_pg):
+    def test_timeout(self, factories, enable_tacacs_auth, api_me_pg, api_settings_tacacsplus_pg):
         enable_tacacs_auth()
         api_settings_tacacsplus_pg.patch(TACACSPLUS_HOST='169.254.1.0', TACACSPLUS_SESSION_TIMEOUT=20)
-        user = v1.users.create()
+        user = factories.v2_user()
 
         start = datetime.now()
         # Tower should first attempt to authenticate using TACACS+ server, then use local login
@@ -97,10 +91,10 @@ class Test_TACACS_Plus(Base_Api_Test):
         end = datetime.now()
 
         assert (end - start).total_seconds() - 20 < 5
-        user.delete()
 
     @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
-    def test_tacacs_account_should_not_grant_access_to_existing_account(self, protocol, enable_tacacs_auth, v1, factories):
+    def test_tacacs_account_should_not_grant_access_to_existing_account(self, factories, v1, protocol,
+                                                                        enable_tacacs_auth):
         enable_tacacs_auth(protocol)
         tacacs_config = config.credentials.tacacs_plus
         username, password = (tacacs_config.user, getattr(tacacs_config, protocol + '_pass'))
@@ -115,7 +109,7 @@ class Test_TACACS_Plus(Base_Api_Test):
                 v1.users.get()
 
     @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
-    def test_cannot_change_password_for_tacacs_user_in_tower(self, v1, enable_tacacs_auth, api_me_pg, protocol):
+    def test_cannot_change_password_for_tacacs_user_in_tower(self, request, v1, enable_tacacs_auth, protocol):
         enable_tacacs_auth(protocol)
         tacacs_config = config.credentials.tacacs_plus
         username, password = (tacacs_config.user, getattr(tacacs_config, protocol + '_pass'))
@@ -123,13 +117,17 @@ class Test_TACACS_Plus(Base_Api_Test):
 
         with self.current_user(username, password):
             user = v1.users.get(username=username).results.pop()
+            request.addfinalizer(user.silent_delete)
             user.patch(password='shouldntw0rk')
 
         with pytest.raises(exc.Unauthorized):
             with self.current_user(username, 'shouldntw0rk'):
-                api_me_pg.get()
+                v1.me.get()
 
         with self.current_user(username, password):
-            api_me_pg.get()
+            v1.me.get()
 
-        user.delete()
+    def test_confirm_tacacs_host_and_secret_required(self, update_setting_pg, api_settings_tacacsplus_pg):
+        with pytest.raises(exc.BadRequest) as e:
+            update_setting_pg(api_settings_tacacsplus_pg, dict(TACACSPLUS_HOST='127.0.0.1'))
+        assert e.value.message == {'__all__': ['TACACSPLUS_SECRET is required when TACACSPLUS_HOST is provided.']}
