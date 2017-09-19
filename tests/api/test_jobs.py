@@ -491,12 +491,6 @@ class Test_Job_Env(Base_Api_Test):
                 GCE_PROJECT=self.credentials['cloud'][cloud_credential.kind]['project'],
                 GCE_PEM_FILE_PATH=lambda x: re.match(r'^/tmp/awx_\w+/tmp\w+', x)
             )
-        elif cloud_credential.kind == 'azure':
-            self.has_credentials('cloud', 'azure_classic', ['username'])
-            expected_env_vars = dict(
-                AZURE_SUBSCRIPTION_ID=self.credentials['cloud']['azure_classic']['username'],
-                AZURE_CERT_PATH=lambda x: re.match(r'^/tmp/awx_\w+/tmp\w+', x)
-            )
         elif cloud_credential.kind == 'azure_rm' and azure_type(cloud_credential) == 'azure':
             self.has_credentials('cloud', 'azure', ['subscription_id', 'client_id', 'secret', 'tenant'])
             expected_env_vars = dict(

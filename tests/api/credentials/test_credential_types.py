@@ -74,15 +74,6 @@ class TestCredentialTypes(Base_Api_Test):
         assert aws.security_token.secret is True
         assert aws.username.label == 'Access Key'
 
-    def test_managed_by_tower_azure_classic_credential_type(self, managed_by_tower_fields):
-        azure = managed_by_tower_fields['Microsoft Azure Classic (deprecated)']
-        assert azure.kind == 'cloud'
-        assert azure.ssh_key_data.format == 'ssh_private_key'
-        assert azure.ssh_key_data.label == 'Management Certificate'
-        assert azure.ssh_key_data.multiline is True
-        assert azure.ssh_key_data.secret is True
-        assert azure.username.label == 'Subscription ID'
-
     def test_managed_by_tower_azure_rm_credential_type(self, managed_by_tower_fields):
         azure = managed_by_tower_fields['Microsoft Azure Resource Manager']
         assert azure.kind == 'cloud'
