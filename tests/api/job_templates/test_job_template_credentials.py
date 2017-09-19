@@ -291,7 +291,6 @@ class TestJobTemplateExtraCredentials(Base_Api_Test):
     @pytest.mark.parametrize('credential_kind, kind_name',
                              [('aws', 'Amazon Web Services'),
                               ('gce', 'Google Compute Engine'),
-                              ('azure_classic', 'Microsoft Azure Classic (deprecated)'),
                               ('azure_rm', 'Microsoft Azure Resource Manager'),
                               ('net', 'Network'),
                               ('openstack_v3', 'OpenStack'),

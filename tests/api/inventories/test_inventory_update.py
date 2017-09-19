@@ -31,8 +31,8 @@ class TestInventoryUpdate(Base_Api_Test):
     def test_v2_update_all_inventory_sources_with_functional_sources(self, factories):
         """Verify behavior when inventory has functional inventory sources."""
         inventory = factories.v2_inventory()
-        azure_cred, vmware_cred = [factories.v2_credential(kind=kind) for kind in ('azure_classic', 'vmware')]
-        azure_source = factories.v2_inventory_source(inventory=inventory, source='azure', credential=azure_cred)
+        azure_cred, vmware_cred = [factories.v2_credential(kind=kind) for kind in ('azure_rm', 'vmware')]
+        azure_source = factories.v2_inventory_source(inventory=inventory, source='azure_rm', credential=azure_cred)
         vmware_source = factories.v2_inventory_source(inventory=inventory, source='vmware', credential=vmware_cred)
         scm_source = factories.v2_inventory_source(inventory=inventory, source='scm',
                                                    source_path='inventories/inventory.ini')
