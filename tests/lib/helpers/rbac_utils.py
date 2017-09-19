@@ -65,7 +65,9 @@ def assert_response_raised(tower_object, response=httplib.OK, methods=('put', 'p
     for method in methods:
         if exc is None:
             if method == 'delete':
-                tower_object.delete().wait_until_deleted()
+                tower_object.delete()
+                if hasattr(tower_object, 'wait_until_deleted'):
+                    tower_object.wait_until_deleted()
             else:
                 getattr(tower_object, method)()
         else:
