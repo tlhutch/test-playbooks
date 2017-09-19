@@ -588,3 +588,15 @@ class TestSCMInventorySource(Base_Api_Test):
         project_updates = project.related.project_updates.get(launch_type='sync').results
         assert len(project_updates) == 1
         assert project_updates[0].is_successful
+
+    @pytest.mark.parametrize('source', ('custom', 'ec2'))
+    def test_confirm_non_scm_inventory_source_disallows_scm_fields(self, factories, source):
+        inv_src = factories.v2_inventory_source(source=source)
+        project = factories.v2_project()
+
+        for field, forbidden in [('source_project', lambda: inv_src.patch(source_project=project.id)),
+                                 ('source_path', lambda: inv_src.patch(source_path='No!')),
+                                 ('update_on_project_update', lambda: inv_src.patch(update_on_project_update=True))]:
+            with pytest.raises(exc.BadRequest) as e:
+                forbidden()
+            assert e.value.message == {'detail': ['Cannot set {} if not SCM type.'.format(field)]}
