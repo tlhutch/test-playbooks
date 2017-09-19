@@ -163,19 +163,6 @@ def aws_inventory_source(aws_group):
 
 
 @pytest.fixture(scope="function")
-def azure_classic_group(factories, inventory, azure_classic_credential):
-    group = factories.group(name="azure-classic-group-%s" % fauxfactory.gen_alphanumeric(),
-                            description="Microsoft Azure %s" % fauxfactory.gen_utf8(),
-                            source='azure', inventory=inventory, credential=azure_classic_credential)
-    return group
-
-
-@pytest.fixture(scope="function")
-def azure_classic_inventory_source(azure_classic_group):
-    return azure_classic_group.related.inventory_source.get()
-
-
-@pytest.fixture(scope="function")
 def azure_group(factories, inventory, azure_credential):
     group = factories.group(name="azure-group-%s" % fauxfactory.gen_alphanumeric(),
                             description="Microsoft Azure %s" % fauxfactory.gen_utf8(),
@@ -273,21 +260,20 @@ def custom_inventory_source(request, authtoken, custom_group):
     return custom_group.related.inventory_source.get()
 
 
-@pytest.fixture(scope="function", params=['aws', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware',
+@pytest.fixture(scope="function", params=['aws', 'azure', 'azure_ad', 'gce', 'vmware',
                                           'openstack_v2', 'openstack_v3'])
 def cloud_group(request):
     return request.getfixturevalue(request.param + '_group')
 
 
 @pytest.fixture(scope="function", params=[('ec2', 'aws_credential'),
-                                          ('azure', 'azure_classic_credential'),
                                           ('azure_rm', 'azure_credential'),
                                           ('azure_rm', 'azure_ad_credential'),
                                           ('gce', 'gce_credential'),
                                           ('vmware', 'vmware_credential'),
                                           ('openstack', 'openstack_v2_credential'),
                                           ('openstack', 'openstack_v3_credential')
-    ], ids=['aws', 'azure_classic', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2', 'openstack_v3'])
+    ], ids=['aws', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2', 'openstack_v3'])
 def cloud_inventory(request, factories):
     inv_source, cred_fixture = request.param
     cred = request.getfixturevalue(cred_fixture)
@@ -297,15 +283,12 @@ def cloud_inventory(request, factories):
 
 # Convenience fixture that returns all of our cloud_groups as a list
 @pytest.fixture(scope="function")
-def cloud_groups(ansible_os_family, ansible_distribution_major_version, aws_group,
-                 azure_classic_group, azure_group, azure_ad_group, gce_group, vmware_group,
-                 openstack_v2_group, openstack_v3_group):
+def cloud_groups(ansible_os_family, ansible_distribution_major_version, aws_group, azure_group, azure_ad_group,
+                 gce_group, vmware_group, openstack_v2_group, openstack_v3_group):
     if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6'):
-        return [aws_group, azure_classic_group, gce_group, vmware_group, openstack_v2_group,
-                openstack_v3_group]
+        return [aws_group, gce_group, vmware_group, openstack_v2_group, openstack_v3_group]
     else:
-        return [aws_group, azure_classic_group, azure_group, azure_ad_group, gce_group, vmware_group,
-                openstack_v2_group, openstack_v3_group]
+        return [aws_group, azure_group, azure_ad_group, gce_group, vmware_group, openstack_v2_group, openstack_v3_group]
 
 
 # Convenience fixture that iterates through cloud_groups that support source_regions
