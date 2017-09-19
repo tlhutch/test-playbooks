@@ -1,3 +1,4 @@
+import fauxfactory
 import pytest
 
 from tests.api import Base_Api_Test
@@ -29,7 +30,7 @@ class TestCredentialSearch(Base_Api_Test):
         self.confirm_sole_credential_in_related_search(v2, cred, ad_hoc_commands__search=ahc.name)
 
     def test_search_by_organization(self, v2, factories):
-        cred = factories.v2_credential()
+        cred = factories.v2_credential(organization=(True, dict(name=u'unique_org_{}'.format(fauxfactory.gen_utf8()))))
         self.confirm_sole_credential_in_related_search(v2, cred, organization__search=cred.ds.organization.name)
 
     def test_search_by_creator(self, v2, factories):
@@ -78,7 +79,7 @@ class TestCredentialSearch(Base_Api_Test):
 
     def test_search_by_sourcing_job_template_and_job(self, v2, factories):
         cred = factories.v2_credential()
-        jt = factories.v2_job_template(credential=cred)
+        jt = factories.v2_job_template(name=u'unique_jt_{}'.format(fauxfactory.gen_utf8()), credential=cred)
 
         self.confirm_sole_credential_in_related_search(v2, cred, jobtemplates__search=jt.name)
 
@@ -98,11 +99,16 @@ class TestCredentialSearch(Base_Api_Test):
 
     def test_search_by_sourcing_workflow_job_template_node_and_workflow_job_node(self, v2, factories):
         cred = factories.v2_credential()
-        jt = factories.v2_job_template(credential=cred)
-        wfjtn = factories.v2_workflow_job_template_node(unified_job_template=jt)
+        jt = factories.v2_job_template(name=u'unique_jt_{}'.format(fauxfactory.gen_utf8()))
+        wfjt = factories.v2_workflow_job_template(name=u'unique_wfjt_{}'.format(fauxfactory.gen_utf8()))
+        wfjtn = factories.v2_workflow_job_template_node(workflow_job_template=wfjt,
+                                                        credential=cred,
+                                                        unified_job_template=jt)
 
-        self.confirm_sole_credential_in_related_search(v2, cred, workflowjobtemplatenodes__search=wfjtn.id)
+        self.confirm_sole_credential_in_related_search(
+            v2, cred, workflowjobtemplatenodes__workflow_job_template__search=wfjt.name
+        )
 
         wfjtn.ds.workflow_job_template.launch().wait_until_completed()
 
-        self.confirm_sole_credential_in_related_search(v2, cred, workflowjobnodes__search=wfjtn.id)
+        self.confirm_sole_credential_in_related_search(v2, cred, workflowjobnodes__unified_job_template__search=jt.name)
