@@ -278,7 +278,7 @@ Migrations (Jake)
 1. [ ] API regression completed
 1. [ ] Tower HA installation regression completed
 1. [ ] Tower LDAP Integration regression completed
-1. [ ] Tower RADIUS Integration regression completed
+1. [x] Tower RADIUS Integration regression completed
 1. [ ] Social authentication regression completed
 1. [ ] Verify logging
 1. [ ] Backup/restore successful
