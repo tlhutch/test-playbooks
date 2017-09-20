@@ -58,20 +58,13 @@ class TestLegacyLicense(LicenseTest):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for legacy license: %s." % conf.license_info
 
-    def test_key_visibility_superuser(self, api_config_pg):
-        conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
-        assert 'license_key' in conf.license_info
+    def test_duplicate_hosts_counted_once(self, factories, v2):
+        config = v2.config.get()
+        current_instances = config.license_info.current_instances
 
-    def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
-        with self.current_user(non_superuser.username, user_password):
-            conf = api_config_pg.get()
-            print json.dumps(conf.json, indent=4)
-
-            if non_superuser.is_system_auditor:
-                assert 'license_key' in conf.license_info
-            else:
-                assert 'license_key' not in conf.license_info
+        for _ in range(2):
+            factories.v2_host(name="host")
+        assert config.get().license_info.current_instances == current_instances + 1
 
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
@@ -87,6 +80,11 @@ class TestLegacyLicense(LicenseTest):
         job_template_ping.add_survey(spec=required_survey_spec)
         assert job_template_ping.get_related('survey_spec').spec == required_survey_spec, \
             "Expected /api/v1/job_templates/N/survey_spec/ to reflect our survey_spec."
+
+    def test_unable_to_create_workflow_job_template(self, factories, default_organization):
+        with pytest.raises(exc.PaymentRequired) as e:
+            factories.v2_workflow_job_template(organization=default_organization)
+        assert e.value[1]['detail'] == 'Your license does not allow use of workflows.'
 
     def test_activity_stream_get(self, v1):
         """Verify that GET requests to /api/v1/activity_stream/ are allowed with a legacy license."""

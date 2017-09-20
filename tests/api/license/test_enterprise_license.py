@@ -63,21 +63,6 @@ class TestEnterpriseLicense(LicenseTest):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for enterprise license: %s." % conf.license_info
 
-    def test_key_visibility_superuser(self, api_config_pg):
-        conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
-        assert 'license_key' in conf.license_info
-
-    def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
-        with self.current_user(non_superuser.username, user_password):
-            conf = api_config_pg.get()
-            print json.dumps(conf.json, indent=4)
-
-            if non_superuser.is_system_auditor:
-                assert 'license_key' in conf.license_info
-            else:
-                assert 'license_key' not in conf.license_info
-
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
         job_template.launch_job().wait_until_completed()
@@ -104,6 +89,9 @@ class TestEnterpriseLicense(LicenseTest):
     def test_activity_stream_get(self, v1):
         """Verify that GET requests to /api/v1/activity_stream/ are allowed with an enterprise license."""
         v1.activity_stream.get()
+
+    def test_able_to_create_workflow_job_template(self, factories):
+        factories.v2_workflow_job_template()
 
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_able_to_cleanup_facts(self, cleanup_facts):
