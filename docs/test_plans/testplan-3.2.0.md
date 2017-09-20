@@ -280,6 +280,7 @@ Migrations (Jake)
 1. [ ] Tower LDAP Integration regression completed
 1. [ ] Tower RADIUS Integration regression completed
 1. [ ] Social authentication regression completed
+1. [ ] Verify logging
 1. [ ] Backup/restore successful
 
 ### Installation
