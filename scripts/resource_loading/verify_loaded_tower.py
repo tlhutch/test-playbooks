@@ -17,17 +17,45 @@ handler.setLevel('DEBUG')
 log.addHandler(handler)
 
 
-v1 = api.ApiV1().load_default_authtoken().get()
+root = api.Api().load_default_authtoken().get()
+v = root.current_version.get()
+
+use_v2 = 'v2' in root.available_versions
+
+if use_v2:
+    from towerkit.api.pages.credentials import credential_type_name_to_config_kind_map
+    ctypes = v.credential_types.get(managed_by_tower=True, page_size=200).results
+
+    ctid_to_name = {ct.id: ct.name.lower() for ct in ctypes}
+    name_to_ctid = {ct.name.lower(): ct.id for ct in ctypes}
+    name_to_kind = {ct.name.lower(): credential_type_name_to_config_kind_map[ct.name.lower()] for ct in ctypes}
+    kind_to_name = {credential_type_name_to_config_kind_map[ct.name.lower()]: ct.name.lower() for ct in ctypes}
+
+    def ctid_to_kind(ctid):
+        return name_to_kind[ctid_to_name[ctid]]
+
+    def kind_to_ctid(kind):
+        return name_to_ctid[kind_to_name[kind]]
 
 
-def desired_resources(resource_type, identifier='name'):
-    return {item[identifier]: item for item in resources[resource_type]}
+def desired_resources(resource_type, identifier='name', additional_keys=[]):
+    results = {}
+    for result in resources[resource_type]:
+        keys = [result[identifier]]
+        keys.extend([result[addtl_key] for addtl_key in additional_keys])
+        cur = results
+        for key in keys[:-1]:
+            if key not in cur:
+                cur[key] = {}
+            cur = cur[key]
+        cur[keys[-1]] = result
+    return results
 
 
 desired_users = desired_resources('users', 'username')
 desired_organizations = desired_resources('organizations')
 desired_teams = desired_resources('teams')
-desired_credentials = desired_resources('credentials')
+desired_credentials = desired_resources('credentials', additional_keys=['kind'])
 desired_projects = desired_resources('projects')
 desired_inventory_scripts = desired_resources('inventory_scripts')
 desired_inventories = desired_resources('inventories')
@@ -37,42 +65,59 @@ desired_hosts = desired_resources('hosts')
 desired_job_templates = desired_resources('job_templates')
 
 
-def find_resources(endpoint, identifier='name'):
+def find_resources(endpoint, identifier='name', additional_keys=[]):
     results = {}
     resources = endpoint.get(order_by=identifier)
     while True:
-        results.update({item[identifier]: item for item in resources.results})
+        for result in resources.results:
+            keys = [result[identifier]]
+            keys.extend([result[addtl_key] for addtl_key in additional_keys])
+            cur = results
+            for key in keys[:-1]:
+                if key not in cur:
+                    cur[key] = {}
+                cur = cur[key]
+            cur[keys[-1]] = result
         if not resources.next:
             return results
         resources = resources.next.get()
 
 
-found_users = find_resources(v1.users, 'username')
-found_organizations = find_resources(v1.organizations)
-found_teams = find_resources(v1.teams)
-found_credentials = find_resources(v1.credentials)
-found_projects = find_resources(v1.projects)
-found_inventory_scripts = find_resources(v1.inventory_scripts)
-found_inventories = find_resources(v1.inventory)
+found_users = find_resources(v.users, 'username')
+found_organizations = find_resources(v.organizations)
+found_teams = find_resources(v.teams)
+if use_v2:
+    found_credentials = find_resources(v.credentials, additional_keys=['credential_type'])
+    for found_credential in found_credentials:
+        for ctid in list(found_credentials[found_credential]):
+            val = found_credentials[found_credential][ctid]
+            v1_kind = ctid_to_kind(ctid)
+            found_credentials[found_credential][v1_kind] = val
+            del found_credentials[found_credential][ctid]
+else:
+    found_credentials = find_resources(v.credentials)
+found_projects = find_resources(v.projects)
+found_inventory_scripts = find_resources(v.inventory_scripts)
+found_inventories = find_resources(v.inventory)
 
 # Groups don't have unique names
 found_groups = {}
-for _id, group in find_resources(v1.groups, 'id').items():
+for _id, group in find_resources(v.groups, 'id').items():
     if group.name not in found_groups:
         found_groups[group.name] = {}
     found_groups[group.name][_id] = group
 
-found_inventory_sources = find_resources(v1.inventory_sources)
+found_inventory_sources = find_resources(v.inventory_sources)
 
 # Hosts don't have unique names
 found_hosts = {}
-for _id, host in find_resources(v1.hosts, 'id').items():
+for _id, host in find_resources(v.hosts, 'id').items():
     if host.name not in found_hosts:
         found_hosts[host.name] = {}
     found_hosts[host.name][_id] = host
 
-found_job_templates = find_resources(v1.job_templates)
-found_jobs = find_resources(v1.jobs)
+found_job_templates = find_resources(v.job_templates)
+found_jobs = find_resources(v.jobs)
 
 
 def confirm_field(field, found, desired, desired_to_json=False):
@@ -135,17 +180,18 @@ for name, desired_team in desired_teams.items():
         assert user in found_team_users
 
 log.info('Verifying credentials')
-# note: content validity determined by successful updates of credential usage
-for name, desired_credential in desired_credentials.items():
-    found_credential = found_credentials[name]
-    for field in ('kind', 'description'):
-        assert confirm_field(field, found_credential, desired_credential)
+for name in desired_credentials:
+    for kind, desired_credential in desired_credentials[name].items():
+        found_credential = found_credentials[name][kind]
 
-    if desired_credential.user:
-        assert found_credential.related.owner_users.get().results.pop().username == desired_credential.user
+        for field in ('description',):
+            assert confirm_field(field, found_credential, desired_credential)
 
-    if desired_credential.team:
-        assert found_credential.related.owner_teams.get().results.pop().name == desired_credential.team
+        if desired_credential.user:
+            assert found_credential.related.owner_users.get().results.pop().username == desired_credential.user
+
+        if desired_credential.team:
+            assert found_credential.related.owner_teams.get().results.pop().name == desired_credential.team
 
 log.info('Verifying projects')
 projects_to_update = []
@@ -160,7 +206,7 @@ for name, desired_project in desired_projects.items():
 
 log.info('Verifying inventory scripts')
 for name, desired_script in desired_inventory_scripts.items():
-    found_script = found_inventory_scripts[name]
+    found_script = found_inventory_scripts[name].get()
     for field in filter(lambda x: x != 'name', desired_script):
         if field in ('organization',):
             assert confirm_related_field(field, found_script, desired_script)
@@ -201,12 +247,17 @@ inventory_sources_to_update = []
 for name, desired_inventory_source in desired_inventory_sources.items():
     # We need to filter by what the inventory source will likely be named in tower
     internal_name = re.compile('^{0} \({1}'.format(desired_inventory_source.group,
-                                                 desired_inventory_source.name.split('/')[0]))
+                                                   desired_inventory_source.name.split('/')[0]))
     source_name = filter(lambda x: internal_name.match(x), found_inventory_sources)[0]
     found_inventory_source = found_inventory_sources[source_name]
-    for field in filter(lambda x: x not in ('update_interval', 'name'),
-                        desired_inventory_source):
-        if field in ('credential', 'group', 'inventory'):
+    if use_v2:
+        inclusion = ('credential', 'inventory')
+        exclusion = ('update_interval', 'name', 'group')
+    else:
+        inclusion = ('credential', 'inventory', 'group')
+        exclusion = ('update_interval', 'name')
+    for field in filter(lambda x: x not in exclusion, desired_inventory_source):
+        if field in inclusion:
             assert confirm_related_field(field, found_inventory_source, desired_inventory_source)
         elif field == 'source_script':
             desired_script_id = found_inventory_scripts[desired_inventory_source.source_script].id
