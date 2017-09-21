@@ -16,6 +16,8 @@ from towerkit.api import Connection
 
 log = logging.getLogger(__name__)
 
+FAIL_STATUSES = ('error', 'failed')
+
 
 class SafeStop(object):
     """A context manager that stops tower services on a single or multiple hosts
@@ -382,7 +384,7 @@ class TestInstanceGroups(Base_Api_Test):
                 utils.poll_until(lambda: controller_group.get().capacity == 0, interval=5, timeout=120)
 
                 # Check the long running job fails
-                long_job.wait_until_status('failed', interval=5, timeout=180, since_job_created=False)
+                long_job.wait_until_status(FAIL_STATUSES, interval=5, timeout=180, since_job_created=False)
 
                 # Should fail with explanation:
                 explanation = "Task was marked as running in Tower but was not present in Celery, so it has been marked as failed."
@@ -517,7 +519,7 @@ class TestInstanceGroups(Base_Api_Test):
 
                     # Check the job we started is marked as failed
                     long_job = v2.jobs.get(id=long_job.id).results[0]
-                    long_job.wait_until_status('failed', interval=5, timeout=180, since_job_created=False)
+                    long_job.wait_until_status(FAIL_STATUSES, interval=5, timeout=180, since_job_created=False)
 
                     # Should fail with explanation:
                     explanation = "Task was marked as running in Tower but was not present in Celery, so it has been marked as failed."
