@@ -43,6 +43,9 @@ parser.add_argument('--resources', dest='resources', help=_resource_help,
 
 _validate_help = 'Enable schema validation (default: False)'
 parser.add_argument('--validate', '-v', dest='validate', action='store_true', help=_validate_help)
+
+_azure_help = "Don't fail if azure-related inventory resources are missing."
+parser.add_argument('--no-azure', dest='no_azure', action='store_true')
 args = parser.parse_args()
 
 inventory_manager = Inventory(loader=DataLoader(), variable_manager=VariableManager(), host_list=args.inventory)

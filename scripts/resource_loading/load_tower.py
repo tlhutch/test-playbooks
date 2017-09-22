@@ -155,7 +155,7 @@ for update in inventory_source_updates:
     update.wait_until_completed(timeout=1200, interval=30)
 
 for update in inventory_source_updates:
-    update.is_successful
+    assert update.is_successful
 
 # Create job templates
 job_templates = {}

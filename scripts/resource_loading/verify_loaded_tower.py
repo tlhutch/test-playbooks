@@ -7,7 +7,7 @@ import re
 
 from towerkit import api
 
-from loading import resources, delete_all_created  # noqa
+from loading import args, resources, delete_all_created  # noqa
 
 
 logging.basicConfig(level='DEBUG')
@@ -213,7 +213,14 @@ for name, desired_script in desired_inventory_scripts.items():
 
 log.info('Verifying inventories')
 for name, desired_inventory in desired_inventories.items():
-    found_inventory = found_inventories[name]
+    try:
+        found_inventory = found_inventories[name]
+    except KeyError:
+        if 'azure' in name.lower() and args.no_azure:
+            continue
+        else:
+            raise
+
     for field in filter(lambda x: x != 'name', desired_inventory):
         if field in ('organization',):
             assert confirm_related_field(field, found_inventory, desired_inventory)
@@ -222,7 +229,13 @@ for name, desired_inventory in desired_inventories.items():
 
 log.info('Verifying groups')
 for name, desired_group in desired_groups.items():
-    found_group = resolve_duplicates_by_description(found_groups[name], desired_group)
+    try:
+        found_group = resolve_duplicates_by_description(found_groups[name], desired_group)
+    except KeyError:
+        if 'azure' in name.lower() and args.no_azure:
+            continue
+        else:
+            raise
     assert confirm_related_field('inventory', found_group, desired_group)
     if 'parent' in desired_group:
         assert found_group.get_parents().pop().name == desired_group.parent
@@ -243,11 +256,19 @@ for name, desired_host in desired_hosts.items():
 log.info('Verifying inventory sources')
 inventory_sources_to_update = []
 for name, desired_inventory_source in desired_inventory_sources.items():
-    # We need to filter by what the inventory source will likely be named in tower
-    internal_name = re.compile('^{0} \({1}'.format(desired_inventory_source.group,
-                                                   desired_inventory_source.name.split('/')[0]))
-    source_name = filter(lambda x: internal_name.match(x), found_inventory_sources)[0]
-    found_inventory_source = found_inventory_sources[source_name]
+    try:
+        found_inventory_source = found_inventory_sources[desired_inventory_source.name]
+    except IndexError:
+        try:  # We need to filter by what the inventory source will likely be named in tower for implicit inv srcs
+            internal_name = re.compile('^{0} \({1}'.format(desired_inventory_source.group,
+                                                           desired_inventory_source.name.split('/')[0]))
+            source_name = filter(lambda x: internal_name.match(x), found_inventory_sources)[0]
+            found_inventory_source = found_inventory_sources[source_name]
+        except IndexError:
+            if 'azure' in desired_inventory_source.name.lower() and args.no_azure:
+                continue
+            else:
+                raise
     if use_v2:
         inclusion = ('credential', 'inventory')
         exclusion = ('update_interval', 'name', 'group')
@@ -277,36 +298,36 @@ for name, desired_job_template in desired_job_templates.items():
             assert confirm_field(field, found_job_template, desired_job_template, field == 'extra_vars')
     job_templates_to_check.append(found_job_template)
 
-# log.info('Verifying project updates are successful')
-# project_updates = []
-# for project in projects_to_update:
-#     project_updates.append(project.update())
+log.info('Verifying project updates are successful')
+project_updates = []
+for project in projects_to_update:
+    project_updates.append(project.update())
 
-# for update in project_updates:
-#     update.wait_until_completed(timeout=300, interval=30)
-#     assert update.is_successful
+for update in project_updates:
+    update.wait_until_completed(timeout=300, interval=30)
+    assert update.is_successful
 
-# log.info('Verifying updated inventory sources are successful')
-# source_updates = []
-# for source in inventory_sources_to_update:
-#     source_updates.append(source.update())
+log.info('Verifying updated inventory sources are successful')
+source_updates = []
+for source in inventory_sources_to_update:
+    source_updates.append(source.update())
 
-# for update in source_updates:
-#     update.wait_until_completed(timeout=1200, interval=30)
-#     assert update.is_successful
+for update in source_updates:
+    update.wait_until_completed(timeout=1200, interval=30)
+    assert update.is_successful
 
-# log.info('Verify job templates can be launched')
-# jobs = []
-# for job_template in job_templates_to_check:
-#     jobs.append(job_template.launch())
+log.info('Verify job templates can be launched')
+jobs = []
+for job_template in job_templates_to_check:
+    jobs.append(job_template.launch())
 
-# for job in jobs:
-#     job.wait_until_completed(timeout=1800, interval=30)
+for job in jobs:
+    job.wait_until_completed(timeout=1800, interval=30)
 
-# for job in jobs:
-#     if job.name in ('ansible-playbooks.git/dynamic_inventory.yml',
-#                     'ansible-tower.git/setup/install.yml'):
-#         assert job.status == 'failed'
-#         assert job.job_explanation == ''
-#     else:
-#         assert job.is_successful
+for job in jobs:
+    if job.name in ('ansible-playbooks.git/dynamic_inventory.yml',
+                    'ansible-tower.git/setup/install.yml'):
+        assert job.status == 'failed'
+        assert job.job_explanation == ''
+    else:
+        assert job.is_successful
