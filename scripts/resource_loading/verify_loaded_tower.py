@@ -38,24 +38,28 @@ if use_v2:
         return name_to_ctid[kind_to_name[kind]]
 
 
-def desired_resources(resource_type, identifier='name', additional_keys=[]):
+def _build_results(item, results, *indices):
+    keys = [item[index] for index in indices]
+    cur = results
+    for key in keys[:-1]:
+        if key not in cur:
+            cur[key] = {}
+        cur = cur[key]
+    cur[keys[-1]] = item
+
+
+def desired_resources(resource_type, *indices):
+    indices = indices or ('name',)
     results = {}
     for result in resources[resource_type]:
-        keys = [result[identifier]]
-        keys.extend([result[addtl_key] for addtl_key in additional_keys])
-        cur = results
-        for key in keys[:-1]:
-            if key not in cur:
-                cur[key] = {}
-            cur = cur[key]
-        cur[keys[-1]] = result
+        _build_results(result, results, *indices)
     return results
 
 
 desired_users = desired_resources('users', 'username')
 desired_organizations = desired_resources('organizations')
 desired_teams = desired_resources('teams')
-desired_credentials = desired_resources('credentials', additional_keys=['kind'])
+desired_credentials = desired_resources('credentials', 'name', 'kind')
 desired_projects = desired_resources('projects')
 desired_inventory_scripts = desired_resources('inventory_scripts')
 desired_inventories = desired_resources('inventories')
@@ -65,19 +69,13 @@ desired_hosts = desired_resources('hosts')
 desired_job_templates = desired_resources('job_templates')
 
 
-def find_resources(endpoint, identifier='name', additional_keys=[]):
+def find_resources(endpoint, *indices):
+    indices = indices or ('name',)
     results = {}
-    resources = endpoint.get(order_by=identifier)
+    resources = endpoint.get(order_by=indices[0])
     while True:
         for result in resources.results:
-            keys = [result[identifier]]
-            keys.extend([result[addtl_key] for addtl_key in additional_keys])
-            cur = results
-            for key in keys[:-1]:
-                if key not in cur:
-                    cur[key] = {}
-                cur = cur[key]
-            cur[keys[-1]] = result
+            _build_results(result, results, *indices)
         if not resources.next:
             return results
         resources = resources.next.get()
@@ -87,7 +85,7 @@ found_users = find_resources(v.users, 'username')
 found_organizations = find_resources(v.organizations)
 found_teams = find_resources(v.teams)
 if use_v2:
-    found_credentials = find_resources(v.credentials, additional_keys=['credential_type'])
+    found_credentials = find_resources(v.credentials, 'name', 'credential_type')
     for found_credential in found_credentials:
         for ctid in list(found_credentials[found_credential]):
             val = found_credentials[found_credential][ctid]
@@ -279,36 +277,36 @@ for name, desired_job_template in desired_job_templates.items():
             assert confirm_field(field, found_job_template, desired_job_template, field == 'extra_vars')
     job_templates_to_check.append(found_job_template)
 
-log.info('Verifying project updates are successful')
-project_updates = []
-for project in projects_to_update:
-    project_updates.append(project.update())
+# log.info('Verifying project updates are successful')
+# project_updates = []
+# for project in projects_to_update:
+#     project_updates.append(project.update())
 
-for update in project_updates:
-    update.wait_until_completed(timeout=300, interval=30)
-    assert update.is_successful
+# for update in project_updates:
+#     update.wait_until_completed(timeout=300, interval=30)
+#     assert update.is_successful
 
-log.info('Verifying updated inventory sources are successful')
-source_updates = []
-for source in inventory_sources_to_update:
-    source_updates.append(source.update())
+# log.info('Verifying updated inventory sources are successful')
+# source_updates = []
+# for source in inventory_sources_to_update:
+#     source_updates.append(source.update())
 
-for update in source_updates:
-    update.wait_until_completed(timeout=1200, interval=30)
-    assert update.is_successful
+# for update in source_updates:
+#     update.wait_until_completed(timeout=1200, interval=30)
+#     assert update.is_successful
 
-log.info('Verify job templates can be launched')
-jobs = []
-for job_template in job_templates_to_check:
-    jobs.append(job_template.launch())
+# log.info('Verify job templates can be launched')
+# jobs = []
+# for job_template in job_templates_to_check:
+#     jobs.append(job_template.launch())
 
-for job in jobs:
-    job.wait_until_completed(timeout=1800, interval=30)
+# for job in jobs:
+#     job.wait_until_completed(timeout=1800, interval=30)
 
-for job in jobs:
-    if job.name in ('ansible-playbooks.git/dynamic_inventory.yml',
-                    'ansible-tower.git/setup/install.yml'):
-        assert job.status == 'failed'
-        assert job.job_explanation == ''
-    else:
-        assert job.is_successful
+# for job in jobs:
+#     if job.name in ('ansible-playbooks.git/dynamic_inventory.yml',
+#                     'ansible-tower.git/setup/install.yml'):
+#         assert job.status == 'failed'
+#         assert job.job_explanation == ''
+#     else:
+#         assert job.is_successful
