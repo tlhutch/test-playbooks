@@ -702,6 +702,8 @@ inventory_sources:
       credential: 'VMware vCenter (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
+      source_vars:
+        validate_certs: false
       overwrite: true
       overwrite_vars: true
       update_on_launch: true
@@ -760,6 +762,8 @@ inventory_sources:
       credential: 'VMware vCenter (team:IT)'
       # source_username: # stored in credentials.yaml
       # source_password: # stored in credentials.yaml
+      source_vars:
+        validate_certs: false
       overwrite: false
       overwrite_vars: false
       update_on_launch: false
