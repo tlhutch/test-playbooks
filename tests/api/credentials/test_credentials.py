@@ -285,7 +285,7 @@ class TestCredentials(Base_Api_Test):
 
         return _pg_dump
 
-    @pytest.mark.requires_standalone
+    @pytest.mark.requires_single_instance
     def test_confirm_no_plaintext_secrets_in_db(self, v2, factories, get_pg_dump):
         cred_payloads = [factories.v2_credential.payload(kind=k) for k in ('aws', 'azure_rm', 'gce', 'net', 'ssh')]
         secrets = set()
@@ -308,7 +308,7 @@ class TestCredentials(Base_Api_Test):
             locations = '\n'.join(pg_dump[location - 200:location + 200] for location in undesired_locations)
             pytest.fail('Found plaintext secret in db: {}'.format(locations))
 
-    @pytest.mark.requires_standalone
+    @pytest.mark.requires_single_instance
     def test_confirm_desired_encryption_schemes_in_db(self, v2, factories, get_pg_dump):
         for kind in ('aws', 'azure_rm', 'gce', 'net', 'ssh'):
             factories.v2_credential(kind=kind)
