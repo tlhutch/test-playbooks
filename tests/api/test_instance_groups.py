@@ -387,7 +387,7 @@ class TestInstanceGroups(Base_Api_Test):
                 long_job.wait_until_status(FAIL_STATUSES, interval=5, timeout=180, since_job_created=False)
 
                 # Should fail with explanation:
-                explanation = "Task was marked as running in Tower but was not present in Celery, so it has been marked as failed."
+                explanation = "Task was marked as running in Tower but its  controller management daemon was not present in Celery, so it has been marked as failed. Task may still be running, but contactability is unknown."
                 assert long_job.job_explanation == explanation
 
                 # Start a new job and check it remains pending
