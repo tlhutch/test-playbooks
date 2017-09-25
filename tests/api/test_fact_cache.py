@@ -214,6 +214,7 @@ class TestFactCache(Base_Api_Test):
             assert any([file_path.startswith(path) for path in scan_file_paths])
 
     @pytest.mark.requires_isolation
+    @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
     def test_scan_file_paths_are_traversed(self, v2, request, ansible_runner, scan_facts_job_template):
         jobs_settings = v2.settings.get().get_endpoint('jobs')

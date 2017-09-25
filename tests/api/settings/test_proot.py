@@ -47,6 +47,7 @@ class Test_Proot(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.requires_single_instance
     def test_job_isolation(self, job_template_proot_1, job_template_proot_2, api_settings_jobs_pg, update_setting_pg):
         """Launch 2 jobs and verify that they each:
          - complete successfully
