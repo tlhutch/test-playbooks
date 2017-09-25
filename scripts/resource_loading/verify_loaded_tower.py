@@ -258,7 +258,7 @@ inventory_sources_to_update = []
 for name, desired_inventory_source in desired_inventory_sources.items():
     try:
         found_inventory_source = found_inventory_sources[desired_inventory_source.name]
-    except IndexError:
+    except KeyError:
         try:  # We need to filter by what the inventory source will likely be named in tower for implicit inv srcs
             internal_name = re.compile('^{0} \({1}'.format(desired_inventory_source.group,
                                                            desired_inventory_source.name.split('/')[0]))
