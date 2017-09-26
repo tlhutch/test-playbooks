@@ -10,13 +10,13 @@
 ### OSS-ification: repo splits, build fixes, etc
 [Feature](https://docs.google.com/document/d/11rZAP7oi7aE7ZfNYirjCqqXgtifnYDifnFRHFQRGWFs/edit)
 
-1. [ ] ... 
+1. [ ] Verify successful installations w/ tower-packaging split
 
 
 ### Headless Tower and ramparts packaging requirements
 [Feature](https://docs.google.com/document/d/1r-Hf3JztX68R9X2dTUERcVG31LlgzLdfPaqXvkRNqeA/edit#)
 
-1. [ ] ... 
+1. [x] Verify successful instance group and isolated instance group installations w/ tower-packaging split
 
 ### Instance Groups / External Ramparts (Michael & Jim)
 [Feature](https://drive.google.com/open?id=11G1Khsy8PUxAM8b8b0e5WxkiDUttI0tE72VrxfkGMcw)
@@ -280,7 +280,7 @@ Migrations (Jake)
 1. [X] Tower LDAP Integration regression completed
 1. [x] Tower RADIUS Integration regression completed
 1. [ ] Social authentication regression completed
-1. [ ] SAML authentication
+1. [x] SAML authentication
 1. [ ] Verify logging (incl. cluster)
 1. [ ] Backup/restore successful
 
@@ -300,15 +300,15 @@ Migrations (Jake)
     * [ ] AMI (unlicensed)
     * [ ] Vagrant
 1. Bundled installation completes successfully on all supported platforms (Automated)
-    * [ ] rhel-7.latest
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] rhel-7.latest
+    * [x] centos-7.latest
+    * [x] ol-7.latest
 1. [ ] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
 1. [ ] Upgrade completes on all supported platforms from `3.1.*`
-1. [ ] Verify the following functions work as intended after upgrade
-    * [ ] Launch project_updates for existing projects
-    * [ ] Launch inventory_updates for existing inventory_source
-    * [ ] Launch, and relaunch, existing job_templates
-    * [ ] Migrations were successful
+1. [x] Verify the following functions work as intended after upgrade
+    * [x] Launch project_updates for existing projects
+    * [x] Launch inventory_updates for existing inventory_source
+    * [x] Launch, and relaunch, existing job_templates
+    * [x] Migrations were successful
