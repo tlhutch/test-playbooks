@@ -578,7 +578,7 @@ print json.dumps(inv, indent=2)
         assert ad_hoc_command_pg.is_successful, "Ad hoc command unsuccessful - %s" % ad_hoc_command_pg
 
         # delete related objects
-        inventory_pg.delete()
+        inventory_pg.delete().wait_until_deleted()
         ssh_credential.delete()
         org_admin.delete()
 
