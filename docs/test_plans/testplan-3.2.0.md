@@ -29,7 +29,7 @@ When verifying acceptance we should ensure the following statements are true
 1. [x] Capacity should be tracked at the group level and capacity impact should make sense relative to what instance a job is running on and what groups that instance is a member of.
 1. [x] Provisioning should be supported via the setup playbook
 1. [ ] De-provisioning should be supported via a management command
-1. [ ] All jobs, inventory updates, and project updates should run successfully
+1. [x] All jobs, inventory updates, and project updates should run successfully
 1. [x] Jobs should be able to run on hosts which it is targeted. If assigned implicitly or directly to groups then it should only run on instances in those Instance Groups.
 1. [x] Project updates should manifest their data on the tower host that will run the job immediately prior to the job running
 1. [x] Tower should be able to reasonably survive the removal of all instances in the cluster
@@ -48,26 +48,26 @@ When verifying acceptance we should ensure the following statements are true
     * [x] /etc/hosts static routing information
 1. [ ] We should test behavior of large and small clusters. I would envision small clusters as 2 - 3 instances and large clusters as 10 - 15 instances
 1. [x] Failure testing should involve killing single instances and killing multiple instances while the cluster is performing work. Job failures during the time period should be predictable and not catastrophic.
-1. [ ] Instance downtime testing should also include recoverability testing. Killing single services and ensuring the system can return itself to a working state
+1. [x] Instance downtime testing should also include recoverability testing. Killing single services and ensuring the system can return itself to a working state
 1. [x] Persistent failure should be tested by killing single services in such a way that the cluster instance cannot be recovered and ensuring that the instance is properly taken offline
 1. [x] Network partitioning failures will be important also. In order to test this
     * [x] Disallow a single instance from communicating with the other instances but allow it to communicate with the database
     * [x] Break the link between instances such that it forms 2 or more groups where groupA and groupB can't communicate but all instances can communicate with the database.
 1. [x] Crucially when network partitioning is resolved all instances should recover into a consistent state
-1. [ ] Upgrade Testing, verify behavior before and after are the same for the end user.
-1. [ ] Project Updates should be thoroughly tested for all scm types (git, svn, hg) and for manual projects.
+1. [x] Upgrade Testing, verify behavior before and after are the same for the end user.
+1. [x] Project Updates should be thoroughly tested for all scm types (git, svn, hg) and for manual projects.
 1. [x] Setting up instance groups in two scenarios: a) instances are shared between groups b) instances are isolated to particular groups Organizations, Inventories, and Job Templates should be variously assigned to one or many groups and jobs should execute in those groups in preferential order as resources are available.
 
 #### Performance Testing
 
 Performance testing should be twofold:
 
-1. [ ] Large volume of simultaneous jobs.
+1. [x] Large volume of simultaneous jobs.
 1. [ ] Jobs that generate a large amount of output.
 
 These should also be benchmarked against the same playbooks using:
-1. [ ] 3.1.5 Tower release, and 
-1. [ ] a stable Ansible version. 
+1. [x] 3.1.5 Tower release, and 
+1. [x] a stable Ansible version. 
 
 For a large volume playbook I might recommend a customer provided one that we've seen recently:
 
