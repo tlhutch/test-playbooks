@@ -282,7 +282,7 @@ Migrations (Jake)
 1. [ ] Social authentication regression completed
 1. [x] SAML authentication
 1. [ ] Verify logging (incl. cluster)
-1. [ ] Backup/restore successful
+1. [x] Backup/restore successful
 
 ### Installation
 1. Installation completes successfully on all supported platforms
