@@ -10,7 +10,7 @@
 ### OSS-ification: repo splits, build fixes, etc
 [Feature](https://docs.google.com/document/d/11rZAP7oi7aE7ZfNYirjCqqXgtifnYDifnFRHFQRGWFs/edit)
 
-1. [ ] Verify successful installations w/ tower-packaging split
+1. [x] Verify successful installations w/ tower-packaging split
 
 
 ### Headless Tower and ramparts packaging requirements
