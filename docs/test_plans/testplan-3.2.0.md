@@ -295,7 +295,6 @@ Migrations (Jake)
     * [x] ansible-2.4 (devel branch)
     * [x] ansible-2.3
     * [x] ansible-2.2
-    * [ ] ansible-2.1
 1. Installation completes successfully on supported images
     * [x] AMI (unlicensed)
     * [ ] Vagrant
@@ -306,7 +305,8 @@ Migrations (Jake)
 1. [ ] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
-1. [ ] Upgrade completes on all supported platforms from `3.1.*`
+1. [] Upgrade completes on all supported platforms from `3.0.*`
+1. [x] Upgrade completes on all supported platforms from `3.1.*`
 1. [x] Verify the following functions work as intended after upgrade
     * [x] Launch project_updates for existing projects
     * [x] Launch inventory_updates for existing inventory_source
