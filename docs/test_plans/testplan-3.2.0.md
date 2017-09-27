@@ -305,7 +305,7 @@ Migrations (Jake)
 1. [ ] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
-1. [ ] Upgrade completes on all supported platforms from `3.0.*`
+1. [x] Upgrade completes on all supported platforms from `3.0.*`
 1. [x] Upgrade completes on all supported platforms from `3.1.*`
 1. [x] Verify the following functions work as intended after upgrade
     * [x] Launch project_updates for existing projects
