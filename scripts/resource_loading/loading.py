@@ -12,6 +12,7 @@ except ImportError:
     from ansible.inventory.manager import InventoryManager
     ansible_24 = True
 
+
 def delete_all(endpoint):
     resource = endpoint
     while True:
