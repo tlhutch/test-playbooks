@@ -177,7 +177,7 @@ Smart inventories (Chris):
 1. [x] Verify that smart inventory deletion does not cascade delete hosts.
 
 RBAC (Chris):
-1. [ ] Verify inventory CRUD against all inventory permissions.
+1. [x] Verify inventory CRUD against all inventory permissions.
 1. [x] Verify group CRUD against all inventory permissions.
 1. [x] Verify host CRUD against all inventory permissions.
 1. [x] Verify inventory source CRUD against all inventory permissions.
