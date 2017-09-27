@@ -233,7 +233,7 @@ Migrations (Jake)
 1. [x] A user following the rules specified in `NAMED_URL_FORMATS` should be able to generate named URL exactly the same as the `named_url` field.
 1. [x] A user should be able to access specified resource objects via accurately generated named URL. This includes not only the object itself but also its related URLs, like if `/api/v2/res_name/obj_slug/` is valid, `/api/v2/res_name/obj_slug/related_res_name/` should also be valid.
 1. [x] A user should not be able to access specified resource objects if the given named URL is inaccurate. For example, reserved characters not correctly escaped, or components whose corresponding foreign key field pointing nowhere is not replaced by empty string.
-1. [ ] A user should be able to dynamically generate named URLs by utilizing `NAMED_URL_GRAPH_NODES`.
+1. ~~~[ ] A user should be able to dynamically generate named URLs by utilizing `NAMED_URL_GRAPH_NODES`.~~~
 
 ### Arbitrary inventory/credential sources (Ryan)
 [Feature](https://docs.google.com/document/d/1z6vW9W1yd0SbD46610XUr7WbNDDOg0jEAk8eETW-c8E)
