@@ -213,15 +213,15 @@ RBAC (Chris):
 1. [x] Verify inventory update deletion via all inventory permissions.
 
 Deprecated fields and v1 compatability (Jake)
-1. [ ] ....
+1. [x] ....
 
 Migrations (Jake)
-1. [ ] ....
+1. [x] ....
 
 ### Tower UX hitlist 
 [Feature](https://docs.google.com/a/redhat.com/document/d/1Nvtn6ShHNS2jgEyjl79HelAEO8747Z5yj5QKh0sQ4VM/edit?usp=sharing_eil&ts=58b86ab9)
 
-1. [ ] ... 
+1. [x] ... 
 
 ### Named URL access in API (slug) (Michael)
 [Feature](https://docs.google.com/document/d/1dQObu1jV9zOz8FLlktipaySe9lbdT8-Jo99RL0bksok/edit)
@@ -274,7 +274,7 @@ Migrations (Jake)
 1. [x] Verify overwrite
 
 ## Regression
-1. [ ] UI regression completed
+1. [x] UI regression completed
 1. [ ] API regression completed
 1. [ ] Tower HA installation regression completed
 1. [X] Tower LDAP Integration regression completed
