@@ -268,7 +268,7 @@ class TestInventoryUpdate(Base_Api_Test):
         assert "TEST" in inv_update.result_stdout
 
     @pytest.mark.parametrize('verbosity, stdout_lines',
-        [(0, ['stdout capture is missing']),
+        [(0, ['Re-calling script for hostvars individually.']),
          (1, ['Loaded 1 groups, 5 hosts', 'Inventory variables unmodified',
               'Inventory import completed']),
          (2, ['Reading Ansible inventory source',
