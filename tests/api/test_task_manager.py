@@ -230,7 +230,7 @@ class Test_Sequential_Jobs(Base_Api_Test):
         overlapping jobs.
         """
         job_template.patch(allow_simultaneous=True, playbook="sleep.yml",
-                           extra_vars=json.dumps(dict(sleep_interval=10)))
+                           extra_vars=json.dumps(dict(sleep_interval=20)))
 
         # launch two jobs
         job_1 = job_template.launch()
