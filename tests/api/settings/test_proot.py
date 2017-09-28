@@ -1,42 +1,9 @@
 import json
 
 from dateutil.parser import parse as du_parse
-import fauxfactory
 import pytest
 
 from tests.api import Base_Api_Test
-
-
-@pytest.fixture(scope="function")
-def job_template_proot_1(request, job_template_ansible_playbooks_git, host_local):
-    """Return a job_template for running the test_proot.yml playbook."""
-    payload = dict(name="playbook:test_proot.yml, random:%s" % (fauxfactory.gen_utf8()),
-                   description="test_proot.yml - %s" % (fauxfactory.gen_utf8()),
-                   playbook='test_proot.yml')
-    return job_template_ansible_playbooks_git.patch(**payload)
-
-
-@pytest.fixture(scope="function")
-def job_template_proot_2(request, factories, api_job_templates_pg, job_template_proot_1):
-    """Create a job_template that uses the same playbook as job_template_proot_1,
-    but runs against a different inventory. By using a different inventory,
-    Tower will run job_template_proot_1 and job_template_proot_2 to run at the
-    same time.
-    """
-    inventory = factories.inventory()
-    factories.host(inventory=inventory)
-
-    # create duplicate job_template
-    payload = job_template_proot_1.json.copy()
-    for key in ('created', 'id', 'modified', 'related', 'summary_fields', 'url'):
-        payload.pop(key, None)
-    payload.update(dict(name="playbook:test_proot.yml, random:%s" % (fauxfactory.gen_utf8()),
-                        description="test_proot.yml - %s" % (fauxfactory.gen_utf8()),
-                        inventory=inventory.id))
-
-    job_template_proot_2 = api_job_templates_pg.post(payload)
-    request.addfinalizer(job_template_proot_2.cleanup)
-    return job_template_proot_2
 
 
 @pytest.mark.api
@@ -48,7 +15,7 @@ class Test_Proot(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.requires_single_instance
-    def test_job_isolation(self, job_template_proot_1, job_template_proot_2, api_settings_jobs_pg, update_setting_pg):
+    def test_job_isolation(self, factories, api_settings_jobs_pg, update_setting_pg):
         """Launch 2 jobs and verify that they each:
          - complete successfully
          - ran at the same time
@@ -63,33 +30,31 @@ class Test_Proot(Base_Api_Test):
          - /var/log/supervisor/* - Permission Denied
         """
         # enable proot
-        payload = dict(AWX_PROOT_ENABLED=True)
-        update_setting_pg(api_settings_jobs_pg, payload)
+        update_setting_pg(api_settings_jobs_pg, dict(AWX_PROOT_ENABLED=True))
 
-        # launch jobs
-        job_proot_1 = job_template_proot_1.launch()
-        job_proot_2 = job_template_proot_2.launch()
+        project = factories.v2_project()
+        host = factories.v2_host()
+        proot_1, proot_2 = [factories.v2_job_template(inventory=host.ds.inventory,
+                                                      project=project, playbook='test_proot.yml',
+                                                      verbosity=3) for _ in range(2)]
 
-        # wait for completion
-        job_proot_1 = job_proot_1.wait_until_completed(timeout=60 * 2)
-        job_proot_2 = job_proot_2.wait_until_completed(timeout=60 * 2)
+        jobs = [jt.launch() for jt in (proot_1, proot_2)]
+        for job in jobs:
+            job.wait_until_completed()
+            assert job.is_successful
 
-        # assert successful completion of job
-        assert job_proot_1.is_successful, "Job unsuccessful - %s " % job_proot_1
-
-        # assert successful completion of job
-        assert job_proot_2.is_successful, "Job unsuccessful - %s " % job_proot_2
+        job_1, job_2 = jobs
 
         # assert that the two jobs ran at the same time
         # assert that job#1 started before job#2 finished
-        assert du_parse(job_proot_1.started) < du_parse(job_proot_2.finished), \
+        assert du_parse(job_1.started) < du_parse(job_2.finished), \
             "Job#1 (id:%s) started (%s) after job#2 (id:%s) finished (%s)" % \
-            (job_proot_1.id, job_proot_1.started, job_proot_2.id, job_proot_2.finished)
+            (job_1.id, job_1.started, job_2.id, job_2.finished)
 
         # assert that job#1 finished after job#2 started
-        assert du_parse(job_proot_1.finished) > du_parse(job_proot_2.started), \
+        assert du_parse(job_1.finished) > du_parse(job_2.started), \
             "Job#1 (id:%s) finished (%s) before job#2 (id:%s) started (%s)" % \
-            (job_proot_1.id, job_proot_1.finished, job_proot_2.id, job_proot_2.started)
+            (job_1.id, job_1.finished, job_2.id, job_2.started)
 
     @pytest.mark.fixture_args(source_script="""#!/usr/bin/env python
 import os
@@ -101,7 +66,7 @@ errors = list()
 # assert that only one ansible_tower_XXXXX tempfile is visible
 for tmpdir in ('/tmp', '/var/tmp'):
     for files in os.listdir(tmpdir):
-        matches = [f for f in files if re.search(r'^ansible_tower_', f)]
+        matches = [f for f in files if re.search(r'^awx_proot_', f)]
         if matches:
             files = map(lambda f: os.path.join(tmpdir, f), files)
             errors.append(("Tower temporary files", files))
@@ -152,7 +117,8 @@ if errors:
 
 print json.dumps({})
 """)
-    def test_inventory_script_isolation(self, api_unified_jobs_pg, custom_inventory_source, api_settings_jobs_pg, update_setting_pg):
+    def test_inventory_script_isolation(self, api_unified_jobs_pg, custom_inventory_source, api_settings_jobs_pg,
+                                        update_setting_pg):
         """Launch a custom inventory_script verify it:
          - completes successfully
          - is unable to view the following directories
