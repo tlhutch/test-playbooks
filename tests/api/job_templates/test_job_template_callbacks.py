@@ -322,6 +322,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert host_summaries.results[0].host == desired_id
         assert json.loads(job.extra_vars) == expected_extra_vars
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7693', raises=AssertionError)
     def test_provision_without_required_extra_vars(self, ansible_runner, job_template,
                                                    host_with_default_ipv4_in_variables,
                                                    host_config_key, callback_host):
@@ -382,15 +383,31 @@ class TestJobTemplateCallbacks(Base_Api_Test):
             desired_id = inventory.related.hosts.get(name='local').results.pop().id
         assert host_summaries.results[0].host == desired_id
 
-    def test_provision_with_inventory_update_on_launch(self, api_jobs_url, ansible_runner, host_config_key,
-                                                       custom_group, job_template, ansible_default_ipv4,
-                                                       callback_host):
-        """Assert that a callback job against a job_template also initiates an inventory_update (when configured)."""
+    def test_synced_host_provision_with_inventory_update_on_launch(self, ansible_runner, factories, host_config_key,
+                                                                    ansible_default_ipv4, callback_host):
+        """Confirms that when a provisioning host is loaded from an update_on_launch-generated inventory sync
+        the job runs successfully against that host.
+        """
+        ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
+        script = '\n'.join([
+            u'#!/usr/bin/env python',
+            u'# -*- coding: utf-8 -*-',
+            u'import json',
+            u'inventory = dict()',
+            u'inventory["some_group"] = dict()',
+            u'inventory["some_group"]["hosts"] = ["{}"]',
+            u'inventory["some_group"]["vars"] = dict(ansible_connection="local")',
+            u'print json.dumps(inventory)'
+        ]).format(ansible_host)
+
+        inv_script = factories.v2_inventory_script(script=script)
+        custom_source = factories.v2_inventory_source(inventory_script=inv_script)
+        custom_source.update_on_launch = True
+
+        job_template = factories.v2_job_template(inventory=custom_source.ds.inventory)
         job_template.host_config_key = host_config_key
 
-        custom_group.related.inventory_source.patch(update_on_launch=True)
-
-        assert custom_group.get_related('inventory_source').last_updated is None
+        assert custom_source.last_updated is None
 
         contacted = ansible_runner.uri(method="POST",
                                        status_code=httplib.CREATED,
@@ -407,18 +424,69 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
         assert job.is_successful
 
-        inv_source_pg = custom_group.get_related('inventory_source')
-        assert inv_source_pg.is_successful
+        assert custom_source.get().is_successful
+        assert custom_source.related.last_update.get().is_successful
 
-        inv_update_pg = inv_source_pg.get_related('last_update')
-        assert inv_update_pg.is_successful
+        host_summaries = job.related.job_host_summaries.get().results
+        assert len(host_summaries) == 1
+        assert host_summaries[0].related.host.get().name == ansible_host
+
+    def test_member_host_provision_with_inventory_update_on_launch(self, ansible_runner, factories, host_config_key,
+                                                                    ansible_default_ipv4, callback_host):
+        """Confirms that when a provisioning host is already in an inventory an update_on_launch inventory sync
+        still runs and the job runs successfully against that host.
+        """
+        script = '\n'.join([
+            u'#!/usr/bin/env python',
+            u'# -*- coding: utf-8 -*-',
+            u'import json',
+            u'inventory = dict()',
+            u'inventory["some_group"] = dict()',
+            u'inventory["some_group"]["hosts"] = ["169.254.1.0"]',
+            u'print json.dumps(inventory)'
+        ])
+
+        inv_script = factories.v2_inventory_script(script=script)
+        custom_source = factories.v2_inventory_source(inventory_script=inv_script)
+        custom_source.update_on_launch = True
+
+        ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
+        factories.v2_host(name=ansible_host, inventory=custom_source.ds.inventory,
+                          variables=dict(ansible_host=ansible_host, ansible_connection='local'))
+
+        job_template = factories.v2_job_template(inventory=custom_source.ds.inventory)
+        job_template.host_config_key = host_config_key
+
+        assert custom_source.last_updated is None
+
+        contacted = ansible_runner.uri(method="POST",
+                                       status_code=httplib.CREATED,
+                                       url='{0}{1.related.callback}'.format(callback_host, job_template),
+                                       body_format='json',
+                                       body=dict(host_config_key=host_config_key),
+                                       validate_certs=False)
+
+        result = contacted.values().pop()
+        assert not result.get('failed')
+        assert result['status'] == httplib.CREATED
+        assert not result['changed']
+        job_id = result['location'].split('jobs/')[1].split('/')[0]
+        job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
+        assert job.is_successful
+
+        assert custom_source.get().is_successful
+        assert custom_source.related.last_update.get().is_successful
+
+        host_summaries = job.related.job_host_summaries.get().results
+        assert len(host_summaries) == 1
+        assert host_summaries[0].related.host.get().name == ansible_host
 
     def test_provision_without_inventory_update_on_launch(self, ansible_runner, factories, host_config_key,
                                                           custom_group, ansible_default_ipv4, callback_host):
         """Assert that a callback job against a job_template does not initiate an inventory_update"""
         inventory = custom_group.ds.inventory
         ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
-        factories.host(inventory=inventory,
+        factories.host(name='callback_host', inventory=inventory,
                        variables=json.dumps(dict(ansible_host=ansible_host,
                                                  ansible_connection="local")))
 
