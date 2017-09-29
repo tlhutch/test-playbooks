@@ -10,6 +10,7 @@ from tests.api.license import LicenseTest
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.mp_group(group="TestEnterpriseLicense", strategy="isolated_serial")
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 class TestEnterpriseLicense(LicenseTest):
 
@@ -166,10 +167,10 @@ class TestEnterpriseLicense(LicenseTest):
 
 
 @pytest.mark.api
+@pytest.mark.mp_group(group="TestEnterpriseLicenseExpired", strategy='isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_expired')
 @pytest.mark.skip_selenium
 class TestEnterpriseLicenseExpired(LicenseTest):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_expired')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()

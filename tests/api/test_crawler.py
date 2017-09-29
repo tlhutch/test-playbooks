@@ -77,8 +77,8 @@ unauthorized = (httplib.UNAUTHORIZED, 'unauthorized')
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
+@pytest.mark.mp_group(group='TestCrawler', strategy='isolated_serial')
 def test_unauthenticated(connection, resource, method, authtoken, no_license):
-
     expected = {'HEAD': (httplib.UNAUTHORIZED, 'head'),
                 'GET': unauthorized,
                 'OPTIONS': unauthorized,
@@ -149,6 +149,7 @@ def test_unauthenticated(connection, resource, method, authtoken, no_license):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
+@pytest.mark.mp_group(group='TestCrawler')
 def test_authenticated(connection, resource, method, authtoken, no_license):
 
     expected = {'HEAD': (httplib.OK, 'head'),

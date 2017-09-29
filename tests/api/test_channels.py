@@ -5,19 +5,23 @@ from tests.lib.helpers.workflow_utils import WorkflowTree, WorkflowTreeMapper
 from tests.api import Base_Api_Test
 
 
+class ChannelsTest(object):
+
+    def filtered_events(self, events, not_of_interest):
+        filtered = []
+        for event in events:
+            filtered.append({k: event[k] for k in set(event) - set(not_of_interest)})
+        return filtered
+
+    def expected_events(self, events, base_event):
+        return [{k: v for d in [event, base_event] for k, v in d.items()} for event in events]
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.mp_group('TestAdHocCommandChannels', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestChannels(Base_Api_Test):
-
-        def filtered_events(self, events, not_of_interest):
-            filtered = []
-            for event in events:
-                filtered.append({k: event[k] for k in set(event) - set(not_of_interest)})
-            return filtered
-
-        def expected_events(self, events, base_event):
-            return [{k: v for d in [event, base_event] for k, v in d.items()} for event in events]
+class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.fixture(scope='class')
         def ahc_and_ws_events(self, request, class_factories, v2_class):
@@ -86,6 +90,13 @@ class TestChannels(Base_Api_Test):
             assert ahc.relaunch().wait_until_completed().is_successful
             assert not [m for m in ws]
 
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.mp_group('TestJobChannels', 'serial')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestJobChannels(ChannelsTest, Base_Api_Test):
+
         @pytest.fixture(scope='class')
         def job_and_ws_events(self, request, class_factories, v2_class):
             host = class_factories.v2_host()
@@ -153,6 +164,13 @@ class TestChannels(Base_Api_Test):
             assert job.relaunch().wait_until_completed().is_successful
             assert not [m for m in ws]
 
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.mp_group('TestWorkflowChannels', 'serial')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
+
         @pytest.mark.ansible_integration
         def test_workflow_events(self, request, v1, factories):
             ws = WSClient(v1.get_authtoken()).connect()
@@ -200,6 +218,13 @@ class TestChannels(Base_Api_Test):
             wfjt.launch().wait_until_completed()
             assert not [m for m in ws]
 
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.mp_group('TestInventoryChannels', 'serial')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestInventoryChannels(ChannelsTest, Base_Api_Test):
+
         @pytest.fixture(scope='class')
         def inv_update_and_ws_events(self, request, class_factories, v2_class):
             ws = WSClient(v2_class.get_authtoken()).connect()
@@ -246,6 +271,13 @@ class TestChannels(Base_Api_Test):
             utils.logged_sleep(3)
             assert inv_source.update().wait_until_completed().is_successful
             assert not [m for m in ws]
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.mp_group('TestProjectUpdateChannels', 'serial')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.fixture(scope='class')
         def project_update_and_ws_events(self, request, class_factories, v2_class):

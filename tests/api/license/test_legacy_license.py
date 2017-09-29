@@ -14,6 +14,7 @@ log = logging.getLogger(__name__)
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.mp_group(group="TestLegacyLicense", strategy='isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license')
 class TestLegacyLicense(LicenseTest):
 
@@ -181,10 +182,10 @@ class TestLegacyLicense(LicenseTest):
 
 
 @pytest.mark.api
+@pytest.mark.mp_group(group="TestLegacyLicenseWarning", strategy='isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_legacy_license_warning')
 @pytest.mark.skip_selenium
 class TestLegacyLicenseWarning(LicenseTest):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license_warning')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -237,10 +238,10 @@ class TestLegacyLicenseWarning(LicenseTest):
 
 
 @pytest.mark.api
+@pytest.mark.mp_group(group="TestLegacyLicenseGracePeriod", strategy='isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_legacy_license_grace_period')
 @pytest.mark.skip_selenium
 class TestLegacyLicenseGracePeriod(LicenseTest):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license_grace_period')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -282,10 +283,10 @@ class TestLegacyLicenseGracePeriod(LicenseTest):
 
 
 @pytest.mark.api
+@pytest.mark.mp_group(group="TestLegacyLicenseExpired", strategy='isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_legacy_license_expired')
 @pytest.mark.skip_selenium
 class TestLegacyLicenseExpired(LicenseTest):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license_expired')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -393,10 +394,10 @@ class TestLegacyLicenseExpired(LicenseTest):
 
 
 @pytest.mark.api
+@pytest.mark.mp_group(group="TestLegacyTrialLicense", strategy='isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_trial_legacy_license')
 @pytest.mark.skip_selenium
 class TestLegacyTrialLicense(LicenseTest):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_trial_legacy_license')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()

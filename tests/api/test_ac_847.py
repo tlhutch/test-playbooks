@@ -873,8 +873,9 @@ inventory_dict = {
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_AC_847(Base_Api_Test):
-    @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+
     def test_import(self, ansible_runner, tmpdir, inventory):
         """Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner

@@ -121,7 +121,7 @@ class LicenseTest(Base_Api_Test):
         with apply_license(license_type='legacy', instance_count=self.license_instance_count, days=1):
             yield
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def install_legacy_license_expired(self, apply_license):
         with apply_license(license_type='legacy', instance_count=self.license_instance_count, days=-61):
             yield

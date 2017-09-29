@@ -9,6 +9,7 @@ from tests.api.license import LicenseTest
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.mp_group(group="TestNoLicense", strategy="isolated_serial")
 @pytest.mark.usefixtures('authtoken', 'no_license')
 class TestNoLicense(LicenseTest):
 

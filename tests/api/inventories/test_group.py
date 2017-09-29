@@ -2,6 +2,7 @@ import json
 
 from towerkit import exceptions as exc
 from towerkit import utils
+import fauxfactory
 import pytest
 
 from tests.api import Base_Api_Test
@@ -77,8 +78,9 @@ uk-host-1
 
 @pytest.fixture(scope="function", params=root_variations)
 def root_variation(request, authtoken, inventory, ansible_runner):
+    inv_filename = '/tmp/inventory_{}.ini'.format(fauxfactory.gen_alphanumeric())
     contacted = ansible_runner.copy(
-        dest='/tmp/inventory.ini',
+        dest=inv_filename,
         force=True, mode='0644',
         content="""# --inventory-id %s %s""" % (inventory.id, request.param['inventory'])
     )
@@ -87,7 +89,7 @@ def root_variation(request, authtoken, inventory, ansible_runner):
 
     contacted = ansible_runner.shell(
         "awx-manage inventory_import --overwrite --inventory-id %s "
-        "--source /tmp/inventory.ini" % inventory.id
+        "--source %s" % (inventory.id, inv_filename)
     )
     for results in contacted.values():
         assert results['rc'] == 0, "awx-manage inventory_import failed: %s" % results
@@ -144,8 +146,9 @@ non_root_variations = [dict(name=item['name'], inventory=inventory_prefix + item
 
 @pytest.fixture(scope="function", params=non_root_variations)
 def non_root_variation(request, authtoken, inventory, ansible_runner):
+    inv_filename = '/tmp/inventory_{}.ini'.format(fauxfactory.gen_alphanumeric())
     contacted = ansible_runner.copy(
-        dest='/tmp/inventory.ini',
+        dest=inv_filename,
         force=True, mode='0644',
         content="""# --inventory-id %s %s""" % (inventory.id, request.param['inventory'])
     )
@@ -156,7 +159,7 @@ def non_root_variation(request, authtoken, inventory, ansible_runner):
 
     contacted = ansible_runner.shell(
         "awx-manage inventory_import --overwrite --inventory-id %s "
-        "--source /tmp/inventory.ini" % inventory.id
+        "--source %s" % (inventory.id, inv_filename)
     )
     for results in contacted.values():
         assert results['rc'] == 0, "awx-manage inventory_import failed: %s" % \
@@ -174,15 +177,16 @@ all_variations = root_variations + non_root_variations
 
 @pytest.fixture(scope="function", params=all_variations)
 def variation(request, authtoken, inventory, ansible_runner):
+    inv_filename = '/tmp/inventory_{}.ini'.format(fauxfactory.gen_alphanumeric())
     contacted = ansible_runner.copy(
-        dest='/tmp/inventory.ini', force=True,
+        dest=inv_filename, force=True,
         content="""# --inventory-id %s %s""" % (inventory.id, request.param['inventory']))
     for results in contacted.values():
         assert results.get('changed') and not results.get('failed'), "Failed to create inventory file: %s" % results
 
     contacted = ansible_runner.shell(
         "awx-manage inventory_import --overwrite --inventory-id %s "
-        "--source /tmp/inventory.ini" % inventory.id
+        "--source %s" % (inventory.id, inv_filename)
     )
     for results in contacted.values():
         assert results['rc'] == 0, "awx-manage inventory_import failed: %s" % results
