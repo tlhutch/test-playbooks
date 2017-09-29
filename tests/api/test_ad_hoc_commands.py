@@ -1,6 +1,7 @@
 import json
 
 from towerkit import exceptions as exc
+from towerkit.config import config
 import fauxfactory
 import pytest
 
@@ -20,15 +21,15 @@ def deleted_object(request):
 
 
 @pytest.fixture(scope="function")
-def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, host, ssh_credential_multi_ask, api_ad_hoc_commands_pg, testsetup):
+def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, host, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
     """Launch command with multi_ask credential and passwords in the payload."""
     # create payload
     payload = dict(inventory=host.inventory,
                    credential=ssh_credential_multi_ask.id,
                    module_name="ping",
-                   ssh_password=testsetup.credentials['ssh']['password'],
-                   ssh_key_unlock=testsetup.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                   become_password=testsetup.credentials['ssh']['become_password'], )
+                   ssh_password=config.credentials['ssh']['password'],
+                   ssh_key_unlock=config.credentials['ssh']['encrypted']['ssh_key_unlock'],
+                   become_password=config.credentials['ssh']['become_password'], )
 
     # post the command
     command_pg = api_ad_hoc_commands_pg.post(payload)

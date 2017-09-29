@@ -40,5 +40,5 @@ def pytest_addoption(parser):
 
 
 # Manually add other plugins
-pytest_plugins += (plugins.pytest_restqa.pytest_restqa.__name__,)
+pytest_plugins += (plugins.pytest_restqa.plugin.__name__,)
 pytest_plugins += (fixtures.api.__name__,)

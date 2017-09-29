@@ -5,6 +5,7 @@ import tempfile
 import time
 import datetime
 import fauxfactory
+
 from tests.api import Base_Api_Test
 
 
@@ -12,27 +13,11 @@ NUM_HOSTS = 100
 
 
 @pytest.fixture(scope="class")
-def credential(request, testsetup, api_credentials_pg, api_users_pg):
-    testsetup.api.login(*testsetup.credentials['default'].values())
-
-    payload = dict(name="credential-%s" % fauxfactory.gen_utf8(), kind='ssh')
-    # Add user id
-    admin = api_users_pg.get(username__exact='admin').results.pop()
-    payload['user'] = admin.id
-
-    obj = api_credentials_pg.post(payload)
-    request.addfinalizer(obj.delete)
-
-    return obj
-
-
-@pytest.fixture(scope="class")
-def inventory(request, testsetup, ansible_runner, api_inventories_pg, api_groups_pg, api_hosts_pg, random_organization):
+def inventory(request, ansible_runner, api_inventories_pg, api_groups_pg, api_hosts_pg, random_organization):
     # Create inventory
     payload = dict(name="inventory-%s" % fauxfactory.gen_utf8(),
                    organization=random_organization.id,
                    variables=json.dumps(dict(ansible_connection='local')))
-    testsetup.api.login(*testsetup.credentials['default'].values())
     inventory = api_inventories_pg.post(payload)
     request.addfinalizer(inventory.delete)
 
@@ -83,7 +68,7 @@ EOF
         {'playbook': 'debug-50.yml', 'forks': 400, },
     ]
 )
-def job_template(request, testsetup, api_job_templates_pg, inventory, random_project, credential):
+def job_template(request, api_job_templates_pg, inventory, random_project, credential):
     payload = dict(name="template-%s-%s" % (request.param, fauxfactory.gen_utf8()),
                    job_type='run',
                    playbook=request.param['playbook'],
@@ -96,7 +81,6 @@ def job_template(request, testsetup, api_job_templates_pg, inventory, random_pro
                    verbosity=0,
                    forks=request.param['forks'])
 
-    testsetup.api.login(*testsetup.credentials['default'].values())
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
