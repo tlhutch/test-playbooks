@@ -43,7 +43,7 @@ def apply_license(api):
             else:
                 log.info('Applying {} license...'.format(license_type))
                 config.install_license(license_type=license_type, days=days, **kwargs)
-            yield
+            yield config.get().license_info
 
         finally:
             log.info('Restoring initial license.')

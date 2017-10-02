@@ -14,9 +14,8 @@ log = logging.getLogger(__name__)
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_legacy_license')
 class TestLegacyLicense(LicenseTest):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_legacy_license')
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -176,6 +175,9 @@ class TestLegacyLicense(LicenseTest):
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info,
                                                                                                indent=2)
 
+    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
+        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -229,6 +231,9 @@ class TestLegacyLicenseWarning(LicenseTest):
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
+    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
+        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
+
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
@@ -269,6 +274,9 @@ class TestLegacyLicenseGracePeriod(LicenseTest):
             pytest.skip("Unable to test because there are no free_instances remaining")
         else:
             job_template.launch_job().wait_until_completed()
+
+    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
+        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
 
 
 @pytest.mark.api
@@ -315,9 +323,11 @@ class TestLegacyLicenseExpired(LicenseTest):
         with pytest.raises(exc.LicenseExceeded):
             api_hosts_pg.post(payload)
 
-    def test_job_launch(self, request, install_basic_license, job_template):
+    def test_job_launch(self, request, factories, apply_generated_license):
         """Verify that job_templates cannot be launched"""
-        request.getfuncargvalue('install_legacy_license_expired')()
+        with apply_generated_license(self.legacy_license_json()):
+            job_template = factories.v2_job_template()
+
         with pytest.raises(exc.LicenseExceeded):
             job_template.launch_job()
 
@@ -336,10 +346,11 @@ class TestLegacyLicenseExpired(LicenseTest):
         else:
             assert system_job.is_successful, "System job unexpectedly failed - %s" % system_job
 
-    def test_unable_to_launch_ad_hoc_command(self, request, api_ad_hoc_commands_pg, install_basic_license, host_local,
+    def test_unable_to_launch_ad_hoc_command(self, request, apply_generated_license, api_ad_hoc_commands_pg,
                                              ssh_credential):
         """Verify that ad hoc commands cannot be launched from all four ad hoc endpoints."""
-        request.getfuncargvalue('install_legacy_license_expired')()
+        with apply_generated_license(self.legacy_license_json()):
+            host_local = request.getfixturevalue('host_local')
 
         ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
         inventory_pg = host_local.get_related('inventory')
@@ -443,3 +454,6 @@ class TestLegacyTrialLicense(LicenseTest):
         expected_license_key = trial_legacy_license_json['license_key']
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
+
+    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
+        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)

@@ -17,6 +17,5 @@ pytest-github
 pytest-html
 pytest-instafail
 pytest-ordering
-pytest-xdist
 python-dateutil
 git+ssh://git@github.com/ansible/towerkit.git

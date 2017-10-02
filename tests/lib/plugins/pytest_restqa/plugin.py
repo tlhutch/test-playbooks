@@ -50,9 +50,7 @@ connections = {}
 
 
 def pytest_configure(config):
-    log.error('IN RESTQA PYTEST_CONFIGURE')
     if not hasattr(config, 'slaveinput'):
-
         config.addinivalue_line(
             'markers', 'nondestructive: mark the test as nondestructive. '
             'Tests are assumed to be destructive unless this marker is '

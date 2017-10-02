@@ -10,9 +10,8 @@ from tests.api.license import LicenseTest
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 class TestEnterpriseLicense(LicenseTest):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     @pytest.fixture
     def basic_license_json(self):
@@ -160,6 +159,9 @@ class TestEnterpriseLicense(LicenseTest):
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info,
                                                                                                indent=2)
+
+    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
+        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
 
 
 @pytest.mark.api
