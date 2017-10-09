@@ -469,11 +469,10 @@ print json.dumps(inv, indent=2)
         with pytest.raises(exc.BadRequest):
             relaunch_pg.post(payload)
 
-    @pytest.mark.parametrize("extra_vars", ["{'ansible_connection': 'local'}", "{'ansible_connection': 'local', 'ansible_ssh': '127.0.0.1'}",
-        "---\nansible_connection: local", "---\nansible_connection: local\nansible_ssh: 127.0.0.1"])
-    def test_launch_with_blacklisted_extra_vars(self, factories, extra_vars):
-        with pytest.raises(exc.BadRequest):
-            factories.v2_ad_hoc_command(extra_vars=extra_vars)
+    def test_launch_with_blacklisted_extra_vars(self, factories):
+        with pytest.raises(exc.BadRequest) as e:
+            factories.v2_ad_hoc_command(extra_vars="{'ansible_connection': 'local', 'ansible_ssh': 127.0.0.1}")
+        assert e.value[1]['extra_vars'] == ['ansible_ssh, ansible_connection are prohibited from use in ad hoc commands.']
 
     def test_relaunch_with_deleted_related(self, ad_hoc_with_status_completed, deleted_object):
         """Verify that relaunching a job with deleted related fails."""
