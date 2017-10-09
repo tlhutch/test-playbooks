@@ -322,7 +322,6 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert host_summaries.results[0].host == desired_id
         assert json.loads(job.extra_vars) == expected_extra_vars
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7693', raises=AssertionError)
     def test_provision_without_required_extra_vars(self, ansible_runner, job_template,
                                                    host_with_default_ipv4_in_variables,
                                                    host_config_key, callback_host):
@@ -331,7 +330,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         job_template.ask_variables_on_launch = True
 
         contacted = ansible_runner.uri(method="POST", timeout=90, status_code=httplib.CREATED,
-                                       url='{0}/{1.related.callback}'.format(callback_host, job_template),
+                                       url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json', validate_certs=False,
                                        body=dict(host_config_key=host_config_key))
 
