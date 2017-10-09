@@ -469,6 +469,14 @@ print json.dumps(inv, indent=2)
         with pytest.raises(exc.BadRequest):
             relaunch_pg.post(payload)
 
+    @pytest.mark.parametrize('extra_vars, exp_stdout', [("{'test': 'json'}", "json"), ("---\ntest: yaml", "yaml")])
+    def test_launch_ahc_with_extra_vars(self, factories, extra_vars, exp_stdout):
+        host = factories.v2_host()
+        ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='shell', module_args='echo {{test}}',
+                                          extra_vars=extra_vars).wait_until_completed()
+        assert ahc.is_successful
+        assert exp_stdout in ahc.result_stdout
+
     def test_launch_with_blacklisted_extra_vars(self, factories):
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_ad_hoc_command(extra_vars="{'ansible_connection': 'local', 'ansible_ssh': 127.0.0.1}")
