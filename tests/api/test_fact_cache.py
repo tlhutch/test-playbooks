@@ -184,6 +184,20 @@ class TestFactCache(Base_Api_Test):
         assert '"msg": []' in job.json.result_stdout
         assert '"msg": {}' in job.json.result_stdout
 
+    def test_deleted_hosts_not_reused_by_cache(self, factories):
+        jt = factories.v2_job_template(playbook='gather_facts.yml', use_fact_cache=True)
+        inv = jt.ds.inventory
+        deleted_host = factories.v2_host(inventory=inv)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        deleted_host.delete()
+        job = job.relaunch().wait_until_completed()
+        assert job.is_successful
+
+        assert job.related.job_host_summaries.get().count == 0
+
     def test_clear_facts(self, factories, ansible_version_cmp):
         if ansible_version_cmp("2.3.2") < 0:
             pytest.skip("Not support on Ansible versions predating 2.3.2.")
