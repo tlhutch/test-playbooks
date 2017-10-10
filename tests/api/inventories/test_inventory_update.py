@@ -399,28 +399,18 @@ class TestInventoryUpdate(Base_Api_Test):
         assert cloud_group_supporting_source_regions.ds.inventory.get().total_hosts == 0, \
             "Unexpected number of hosts returned (%s != 0)." % cloud_group_supporting_source_regions.total_hosts
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/6744", raises=AssertionError)
     @pytest.mark.parametrize("instance_filter", ["tag-key=Name", "key-name=jenkins", "tag:Name=*"])
     @pytest.mark.ansible_integration
-    def test_update_with_matched_aws_instance_filter(self, aws_group, instance_filter):
-        """Tests inventory imports with matched AWS instance filters
-
-        NOTE: test may fail if our expected test hosts are down.
+    def test_update_with_matched_aws_instance_filter(self, factories, instance_filter):
+        """Tests inventory imports with matched AWS instance filters. NOTE: test may fail
+        if our expected test hosts are down.
         """
-        # patch the inv_source_pg and launch the update
-        inv_source_pg = aws_group.get_related('inventory_source')
-        inv_source_pg.patch(instance_filters=instance_filter)
-        update_pg = inv_source_pg.update().wait_until_completed()
+        aws_inventory_source = factories.v2_inventory_source(kind='ec2', instance_filters=instance_filter)
+        update = aws_inventory_source.update().wait_until_completed()
+        assert update.is_successful
+        assert aws_inventory_source.get().is_successful
 
-        # assert that the update was successful
-        assert update_pg.is_successful, "inventory_update failed - %s" % update_pg
-        assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
-
-        # assert whether hosts were imported
-        # TODO: Assert specific cloud instance is now listed in group
-        # (We can probably create our test instance in such a way that
-        #  the instance filters only give the test instance - e.g. creating a unique key/value pair).
-        assert aws_group.get().total_hosts > 0, "Unexpected number of hosts returned %s." % aws_group.total_hosts
+        assert aws_inventory_source.ds.inventory.related.hosts.get().count > 0
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=UNMATCHED", "key-name=UNMATCHED", "tag:Name=UNMATCHED"])
     @pytest.mark.ansible_integration
