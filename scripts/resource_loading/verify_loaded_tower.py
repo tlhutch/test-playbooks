@@ -180,7 +180,10 @@ for name, desired_team in desired_teams.items():
 log.info('Verifying credentials')
 for name in desired_credentials:
     for kind, desired_credential in desired_credentials[name].items():
-        found_credential = found_credentials[name][kind]
+        if use_v2:
+            found_credential = found_credentials[name][kind]
+        else:
+            found_credential = found_credentials[name]
 
         for field in ('description',):
             assert confirm_field(field, found_credential, desired_credential)
