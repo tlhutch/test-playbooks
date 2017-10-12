@@ -1,42 +1,10 @@
 import json
 
-import towerkit.exceptions
+from towerkit import exceptions as exc
 import fauxfactory
 import pytest
 
 from tests.api import Base_Api_Test
-
-
-"""Tests that span all four endpoints
--[X] Four tests - that super user can GET from all four ad hoc endpoints. Tests will be housed in respective modules.
--[X] Test that POST works for superuser on all four endpoints
-
-Tests for the main api/v1/ad_hoc_commands endpoint
--[X] Verify that privileged users can launch a command from api/v1/ad_hoc_commands
--[X] Verify that unprivileged users cannot launch commands
-
--[X] Test that posts without specifying module defaults to command
--[X] Test that posts without specifying module_args fails with certain commands
--[X] Verify that cancelling a command works
--[X] Launching with ask-credential (valid passwords, without passwords, with invalid passwords)
--[X] Launching with no limit
--[X] With limit=all
--[X] with limit=$hosts
--[X] with limit=$groups
--[X] with limit=no match
--[] Launching with args => that the args are passed correctly (TODO: discussion church passing args as string/JSON file???)
-
--[X] Verify that privileged users can relaunch a command
--[X] Verify that unprivileged users cannot relaunch a command
--[X] Verify that command relaunches with deleted related fail
--[X] Verify relaunches with ask credential with both negative and positive cases
-
-Stranger situations
--[X] Simple test: launch a command and assert that the activity stream gets populated
--[X] test changes to settings.py
--[] Launching a command with an invalid payload <= loop through required in options
--[X] Verify that deleting related is reflected correctly in the command page
-"""
 
 
 @pytest.fixture(scope="function", params=['inventory', 'ssh_credential'])
@@ -192,7 +160,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         # post payload as privileged user
         for privileged_user in privileged_users:
             # give privileged user 'use_role' permissions
-            with pytest.raises(towerkit.exceptions.NoContent):
+            with pytest.raises(exc.NoContent):
                 use_role_pg.get_related('users').post(dict(id=privileged_user.id))
             with self.current_user(privileged_user.username, user_password):
                 command_pg = api_ad_hoc_commands_pg.post(payload)
@@ -212,7 +180,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
         for unprivileged_user in unprivileged_users:
             ssh_credential.set_object_roles(unprivileged_user, 'admin')
             with self.current_user(unprivileged_user.username, user_password):
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(exc.Forbidden):
                     api_ad_hoc_commands_pg.post(payload)
 
     @pytest.mark.ansible_integration
@@ -245,7 +213,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                            module_name=invalid_module_name, )
 
             # post the command
-            with pytest.raises(towerkit.exceptions.BadRequest):
+            with pytest.raises(exc.BadRequest):
                 api_ad_hoc_commands_pg.post(payload)
 
     def test_launch_without_module_args(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
@@ -256,7 +224,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                        module_name="command", )
 
         # post the command
-        exc_info = pytest.raises(towerkit.exceptions.BadRequest, api_ad_hoc_commands_pg.post, payload)
+        exc_info = pytest.raises(exc.BadRequest, api_ad_hoc_commands_pg.post, payload)
         result = exc_info.value[1]
 
         # assess result
@@ -308,7 +276,7 @@ class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
                        module_name="ping", )
 
         # post the command
-        with pytest.raises(towerkit.exceptions.BadRequest):
+        with pytest.raises(exc.BadRequest):
             api_ad_hoc_commands_pg.post(payload)
 
     @pytest.mark.ansible_integration
@@ -437,7 +405,7 @@ print json.dumps(inv, indent=2)
         use_role_pg = ssh_credential.get_object_role('use_role')
         for privileged_user in privileged_users:
             # give privileged user 'use_role' permissions
-            with pytest.raises(towerkit.exceptions.NoContent):
+            with pytest.raises(exc.NoContent):
                 use_role_pg.get_related('users').post(dict(id=privileged_user.id))
 
             # create payload
@@ -467,7 +435,7 @@ print json.dumps(inv, indent=2)
         # relaunch the job and assert success
         for unprivileged_user in unprivileged_users:
             with self.current_user(unprivileged_user.username, user_password):
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(exc.Forbidden):
                     relaunch_pg.post()
 
     def test_relaunch_command_with_ask_credential_and_passwords(
@@ -498,8 +466,21 @@ print json.dumps(inv, indent=2)
         payload = dict(extra_vars={}, )
 
         # post to relaunch_pg
-        with pytest.raises(towerkit.exceptions.BadRequest):
+        with pytest.raises(exc.BadRequest):
             relaunch_pg.post(payload)
+
+    @pytest.mark.parametrize('extra_vars, exp_stdout', [("{'test': 'json'}", "json"), ("---\ntest: yaml", "yaml")])
+    def test_launch_ahc_with_extra_vars(self, factories, extra_vars, exp_stdout):
+        host = factories.v2_host()
+        ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='shell', module_args='echo {{test}}',
+                                          extra_vars=extra_vars).wait_until_completed()
+        assert ahc.is_successful
+        assert exp_stdout in ahc.result_stdout
+
+    def test_launch_with_blacklisted_extra_vars(self, factories):
+        with pytest.raises(exc.BadRequest) as e:
+            factories.v2_ad_hoc_command(extra_vars="{'ansible_connection': 'local', 'ansible_ssh': 127.0.0.1}")
+        assert e.value[1]['extra_vars'] == ['ansible_ssh, ansible_connection are prohibited from use in ad hoc commands.']
 
     def test_relaunch_with_deleted_related(self, ad_hoc_with_status_completed, deleted_object):
         """Verify that relaunching a job with deleted related fails."""
@@ -511,7 +492,7 @@ print json.dumps(inv, indent=2)
         assert not relaunch_pg.passwords_needed_to_start
 
         # relaunch the command
-        with pytest.raises(towerkit.exceptions.BadRequest):
+        with pytest.raises(exc.BadRequest):
             relaunch_pg.post()
 
     @pytest.mark.ansible_integration
@@ -561,7 +542,7 @@ print json.dumps(inv, indent=2)
         inventory_pg = host.get_related('inventory')
 
         # associate ssh_credential with org_admin
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with pytest.raises(exc.NoContent):
             use_role_pg.get_related('users').post(dict(id=org_admin.id))
 
         # create payload
