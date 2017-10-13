@@ -116,7 +116,7 @@
     nightly_ansible_dependencies: |
       {{ nightly_dep_candidates.stdout_lines|map("regex_search", ".*dependency.*")
       |select("string")|map("regex_replace", "  dependency: ", "")
-      |map("regex_search", "^[a-zA-Z0-9\-]+$")|select("string")|list }}
+      |map("regex_search", "^[a-zA-Z0-9\-]+$")|select("string")|list|unique }}
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly' and nightly_dep_candidates is defined
 
 - name: install ansible nightly dependencies
