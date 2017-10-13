@@ -152,10 +152,8 @@ for inventory_source in resources.inventory_sources:
     inventory_source_updates.append(created_inventory_source.update())
 
 for update in inventory_source_updates:
+    #  TODO: check for success based on type and cert verification
     update.wait_until_completed(timeout=1200, interval=30)
-
-# for update in inventory_source_updates:
-#     assert update.is_successful
 
 # Create job templates
 job_templates = {}
