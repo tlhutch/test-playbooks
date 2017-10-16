@@ -2,10 +2,10 @@
 
 ## Overview
 
-* Estimating 3 days of work (due to job/test rot, dependency changes, and potential build issues)
+* Estimating 3 days of work (due to job/test rot, dependency changes, and potential build issues).
 * Release involved significant packaging changes. Warrants more careful attention to upgrade testing (including HA upgrades).
 * Release also involves [security fix](https://github.com/ansible/ansible-tower/issues/7558) to be verified manually.
-* 3.0.4 issues available [here](https://github.com/ansible/ansible-tower/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_3.0.4)
+* 3.0.4 issues available [here](https://github.com/ansible/ansible-tower/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_3.0.4).
 
 ## Resources
 * 4 full-time quality engineers - cwang/jladd/mfoord/rfitzpat
