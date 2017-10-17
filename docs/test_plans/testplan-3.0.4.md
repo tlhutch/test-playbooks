@@ -23,7 +23,7 @@
 * [x] API regression completed
 * [ ] Tower HA regression completed
 * [x] Backup/restore playbook
-* [ ] Third party authentication
+* [x] Third party authentication
 
 ### Installation
 1. Installation completes successfully on all supported platforms
