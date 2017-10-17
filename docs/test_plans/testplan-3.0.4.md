@@ -52,12 +52,12 @@
     * [ ] AMI (unlicensed)
     * [ ] Vagrant
 1. Bundled installation completes successfully on all supported platforms (Automated)
-    * [ ] rhel-6.latest
-    * [ ] rhel-7.latest
-    * [ ] centos-6.latest
-    * [ ] centos-7.latest
-    * [ ] ol-6.latest
-    * [ ] ol-7.latest
+    * [x] rhel-6.latest
+    * [x] rhel-7.latest
+    * [x] centos-6.latest
+    * [x] centos-7.latest
+    * [x] ol-6.latest
+    * [x] ol-7.latest
 
 ### Upgrades
 1. Verify the following functions work as intended after upgrade
