@@ -38,6 +38,7 @@ rpm_role_dependencies:
     - git
     - yum-utils
     - python-crypto
+    - openssl
 
 # DEB dependencies needed for the role
 deb_role_dependencies:
