@@ -27,15 +27,10 @@ if use_v2:
     ctypes = v.credential_types.get(managed_by_tower=True, page_size=200).results
 
     ctid_to_name = {ct.id: ct.name.lower() for ct in ctypes}
-    name_to_ctid = {ct.name.lower(): ct.id for ct in ctypes}
     name_to_kind = {ct.name.lower(): credential_type_name_to_config_kind_map[ct.name.lower()] for ct in ctypes}
-    kind_to_name = {credential_type_name_to_config_kind_map[ct.name.lower()]: ct.name.lower() for ct in ctypes}
 
     def ctid_to_kind(ctid):
         return name_to_kind[ctid_to_name[ctid]]
-
-    def kind_to_ctid(kind):
-        return name_to_ctid[kind_to_name[kind]]
 
 
 def _build_results(item, results, *indices):
