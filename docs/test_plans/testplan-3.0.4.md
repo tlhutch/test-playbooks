@@ -36,6 +36,7 @@
     * [x] centos-7.latest
     * [x] ol-6.latest
     * [x] ol-7.latest
+    * Results available [here](http://jenkins.testing.ansible.com/job/Test_Tower_Integration_3.0.4/) (Builds 1-24)
 1. HA installation completes successfully on all supported platforms
     * [x] ubuntu-12.04
     * [x] ubuntu-14.04
@@ -45,6 +46,7 @@
     * [x] centos-7.latest
     * [x] ol-6.latest
     * [x] ol-7.latest
+    * Installs performed manually
 1. Installation completes successfully using supported ansible releases
     * [x] ansible-2.3
     * [x] ansible-2.2
@@ -59,6 +61,7 @@
     * [x] centos-7.latest
     * [x] ol-6.latest
     * [x] ol-7.latest
+    * Results available [here](http://jenkins.testing.ansible.com/job/Test_Tower_Bundle_Install_3.0.x/) (Builds 7, 8, 13)
 
 ### Upgrades
 1. Verify the following functions work as intended after upgrade
@@ -66,5 +69,5 @@
     1. Launch inventory_udpates for existing inventory_source
     1. Launch, and relaunch, existing job_templates
     1. Migrations were successful
-    * [x] Standalone upgrade completes on all supported platforms from `3.0.3`
-    * [ ] HA upgrade completes on all supported platforms from `3.0.3`
+    * [x] Standalone upgrade completes on all supported platforms from `3.0.3` (Builds available [here](http://jenkins.testing.ansible.com/job/Test_Tower_Upgrade/) (Builds 1810 - 1818)
+    * [x] HA upgrade completes on all supported platforms from `3.0.3`
