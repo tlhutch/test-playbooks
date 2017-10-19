@@ -6,6 +6,7 @@
 * Release involved significant packaging changes. Warrants more careful attention to upgrade testing (including HA upgrades).
 * Release also involves [security fix](https://github.com/ansible/ansible-tower/issues/7558) to be verified manually.
 * 3.0.4 issues available [here](https://github.com/ansible/ansible-tower/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_3.0.4).
+* HA integration consisted of basic sanity check on installs and job runs
 
 ## Resources
 * 4 full-time quality engineers - cwang/jladd/mfoord/rfitzpat
@@ -21,7 +22,7 @@
 ## Regression
 * [x] Limited manual UI testing completed
 * [x] API regression completed
-* [ ] Tower HA regression completed
+* [x] Tower HA regression completed
 * [x] Backup/restore playbook
 * [x] Third party authentication
 
@@ -42,8 +43,8 @@
     * [x] rhel-7.latest
     * [x] centos-6.latest
     * [x] centos-7.latest
-    * [ ] ol-6.latest
-    * [ ] ol-7.latest
+    * [x] ol-6.latest
+    * [x] ol-7.latest
 1. Installation completes successfully using supported ansible releases
     * [x] ansible-2.3
     * [x] ansible-2.2
