@@ -26,7 +26,7 @@
   roles:
     - role: awx_setup
   vars:
-    aw_repo_url: 'http://jenkins.testing.ansible.com/ansible-tower_nightlies_v16jn0ez3t7k07/release_3.0.3'
+    aw_repo_url: 'http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/release_3.0.3'
 
 - name: 'Populate Tower instance with settings'
   hosts: 'tower,primary'
@@ -44,5 +44,5 @@
   roles:
     - role: awx_setup
   vars:
-    aw_repo_url: 'http://jenkins.testing.ansible.com/ansible-tower_nightlies_v16jn0ez3t7k07/release_3.1.0'
+    aw_repo_url: 'http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/release_3.1.0'
     awx_upgrade: true
