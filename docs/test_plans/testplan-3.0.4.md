@@ -7,6 +7,7 @@
 * Release also involves [security fix](https://github.com/ansible/ansible-tower/issues/7558) to be verified manually.
 * 3.0.4 issues available [here](https://github.com/ansible/ansible-tower/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_3.0.4).
 * HA integration consisted of basic sanity check on installs and job runs
+* AMI / Vagrant images not created given that 3.0.x is nearly EOL and those images are generally created so users can get a trial copy of the most recent version of tower
 
 ## Resources
 * 4 full-time quality engineers - cwang/jladd/mfoord/rfitzpat
@@ -51,9 +52,6 @@
     * [x] ansible-2.3
     * [x] ansible-2.2
     * [x] ansible-1.9
-1. Installation completes successfully on supported images
-    * [ ] AMI (unlicensed)
-    * [ ] Vagrant
 1. Bundled installation completes successfully on all supported platforms (Automated)
     * [x] rhel-6.latest
     * [x] rhel-7.latest
