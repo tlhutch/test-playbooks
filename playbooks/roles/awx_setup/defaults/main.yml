@@ -47,3 +47,4 @@ rabbitmq_enable_manager: '{{ ha_install }}'
 
 # Default minimum var space (disabled with '0'):
 minimum_var_space: 0
+disable_ssl: false
