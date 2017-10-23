@@ -8,7 +8,7 @@ ha_install: false
 out_of_box_os: false
 
 # Choose location for ansible-tower package repository
-aw_repo_url: 'http://jenkins.testing.ansible.com/ansible-tower_nightlies_v16jn0ez3t7k07/devel'
+aw_repo_url: 'http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/devel'
 # aw_repo_url: 'http://releases.ansible.com/ansible-tower'
 
 # Choose location for awx-setup

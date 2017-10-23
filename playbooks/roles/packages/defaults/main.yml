@@ -9,7 +9,7 @@ ansible_install_method: 'stable'
 ansible_package_name: 'ansible'
 
 # Specify a nightly package repository url, used when ansible_install_method == 'nightly'
-ansible_nightly_repo: 'http://jenkins.testing.ansible.com/ansible_nightlies_QcGXFZKv5VfQHi'
+ansible_nightly_repo: 'http://nightlies.testing.ansible.com/ansible_nightlies_QcGXFZKv5VfQHi'
 
 # Specify the PPA that provides 'ansible' stable releases
 ansible_ppa: 'ppa:ansible/ansible'

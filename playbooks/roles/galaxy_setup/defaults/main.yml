@@ -4,7 +4,7 @@
 galaxy_upgrade: false
 
 # Choose location for galaxy package repository
-aw_repo_url: http://jenkins.testing.ansible.com/galaxy_nightlies_Y6ptm6ES82A5h79V/
+aw_repo_url: http://nightlies.testing.ansible.com/galaxy_nightlies_Y6ptm6ES82A5h79V/
 # aw_repo_url: http://ansibleworks.com/releases/galaxy
 
 # Choose location for galaxy-setup
@@ -18,4 +18,4 @@ galaxy_setup_path: /setup/galaxy-setup-latest.tar.gz
 # pg_password: 9CJCSUtePvE
 
 # Choose location for ansible package repository (optional)
-# ansible_nightly_repo: http://jenkins.testing.ansible.com/ansible_nightlies_QcGXFZKv5VfQHi
+# ansible_nightly_repo: http://nightlies.testing.ansible.com/ansible_nightlies_QcGXFZKv5VfQHi
