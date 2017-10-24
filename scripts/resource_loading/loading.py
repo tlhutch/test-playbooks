@@ -3,8 +3,14 @@ import os
 
 from towerkit import config, utils, yaml_file
 from ansible.parsing.dataloader import DataLoader
-from ansible.vars import VariableManager
-from ansible.inventory import Inventory
+try:
+    from ansible.vars import VariableManager
+    from ansible.inventory import Inventory
+    ansible_24 = False
+except ImportError:
+    from ansible.vars.manager import VariableManager
+    from ansible.inventory.manager import InventoryManager
+    ansible_24 = True
 
 
 def delete_all(endpoint):
@@ -43,9 +49,19 @@ parser.add_argument('--resources', dest='resources', help=_resource_help,
 
 _validate_help = 'Enable schema validation (default: False)'
 parser.add_argument('--validate', '-v', dest='validate', action='store_true', help=_validate_help)
+
+_azure_help = "Don't fail if azure-related inventory resources are missing."
+parser.add_argument('--no-azure', dest='no_azure', action='store_true', help=_azure_help)
 args = parser.parse_args()
 
-inventory_manager = Inventory(loader=DataLoader(), variable_manager=VariableManager(), host_list=args.inventory)
+loader = DataLoader()
+
+if ansible_24:
+    variable_manager = VariableManager(loader=loader)
+    inventory_manager = InventoryManager(loader=loader, sources=args.inventory)
+else:
+    inventory_manager = Inventory(loader=loader, variable_manager=VariableManager(), host_list=args.inventory)
+
 resources = utils.PseudoNamespace(yaml_file.load_file(args.resources))
 
 config.validate_schema = args.validate
