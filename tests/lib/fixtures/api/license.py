@@ -32,9 +32,18 @@ def apply_license(api):
             >>>     org.delete()
             >>> *** PaymentRequired_Exception
         """
-        config = api.current_version.get().config.get()
+        request = kwargs.pop('request', False)
 
+        config = api.current_version.get().config.get()
         initial_info = config.license_info
+
+        def teardown_license():
+            log.info('Restoring initial license.')
+            if not initial_info:
+                config.delete()
+            else:
+                initial_info['eula_accepted'] = True
+                config.post(initial_info)
 
         try:
             if license_type is None:
@@ -43,45 +52,44 @@ def apply_license(api):
             else:
                 log.info('Applying {} license...'.format(license_type))
                 config.install_license(license_type=license_type, days=days, **kwargs)
+            if request:
+                # We need to explictly register teardowns instead of yield-driven
+                # teardown for class_factory teardown ordering
+                request.addfinalizer(teardown_license)
             yield config.get().license_info
-
         finally:
-            log.info('Restoring initial license.')
-            if not initial_info:
-                config.delete()
-            else:
-                initial_info['eula_accepted'] = True
-                config.post(initial_info)
+            if not request:
+                teardown_license()
 
     return _apply_license
 
 
 @pytest.fixture(scope='class')
-def no_license(apply_license):
+def no_license(apply_license, class_subrequest):
     """Remove an active license"""
-    with apply_license(None):
+    with apply_license(None, request=class_subrequest):
         yield
 
 
 @pytest.fixture(scope='class')
-def install_legacy_license(apply_license):
-    with apply_license('legacy'):
+def install_legacy_license(apply_license, class_subrequest):
+    with apply_license('legacy', request=class_subrequest):
         yield
 
 
 @pytest.fixture(scope='class')
-def install_basic_license(apply_license):
-    with apply_license('basic'):
+def install_basic_license(apply_license, class_subrequest):
+    with apply_license('basic', request=class_subrequest):
         yield
 
 
 @pytest.fixture(scope='class')
-def install_enterprise_license(apply_license):
-    with apply_license('enterprise'):
+def install_enterprise_license(apply_license, class_subrequest):
+    with apply_license('enterprise', request=class_subrequest):
         yield
 
 
 @pytest.fixture(scope='class')
-def install_enterprise_license_unlimited(apply_license):
-    with apply_license('enterprise'):
+def install_enterprise_license_unlimited(apply_license, class_subrequest):
+    with apply_license('enterprise', request=class_subrequest):
         yield
