@@ -51,8 +51,9 @@
 1. [ ] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
-1. [ ] Upgrade completes on all supported platforms from `3.0.4`
-1. [ ] Upgrade completes on all supported platforms from `3.1.5`
+1. [ ] Upgrade completes on all supported platforms from `3.0.0` - `3.0.4`
+1. [ ] Upgrade completes on all supported platforms from `3.1.0` - `3.1.5`
+1. [ ] Upgrade completes on all supported platforms from `3.2.0` - `3.2.1`
 1. [ ] Verify the following functions work as intended after upgrade
     * [ ] Launch project_updates for existing projects
     * [ ] Launch inventory_updates for existing inventory_source
