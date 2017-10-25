@@ -74,6 +74,29 @@ class TestInventory(Base_Api_Test):
             assert result not in all_results
             all_results.append(result)
 
+    def test_jobs_run_on_enabled_hosts_only(self, factories):
+        inventory = factories.v2_inventory()
+        enabled_host, disabled_host = [factories.v2_host(inventory=inventory, enabled=enabled) for enabled in (True, False)]
+        jt = factories.v2_job_template(inventory=inventory)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        jhs = job.related.job_host_summaries.get()
+        assert jhs.count == 1
+        assert jhs.results.pop().host == enabled_host.id
+
+    def test_jobs_not_run_on_disabled_hosts(self, factories):
+        inventory = factories.v2_inventory()
+        for _ in range(3):
+            factories.v2_host(inventory=inventory, enabled=False)
+        jt = factories.v2_job_template(inventory=inventory)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        assert job.related.job_host_summaries.get().count == 0
+
     def test_conflict_exception_with_running_update(self, factories):
         """Verify that deleting an inventory with a running update will raise a 409
         exception.
