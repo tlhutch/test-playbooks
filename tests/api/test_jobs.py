@@ -188,8 +188,8 @@ class Test_Job(Base_Api_Test):
         payload['vault_credential'] = vault_credential.id
 
         jt = v2.job_templates.post(payload)
-        factories.v2_host(inventory=jt.ds.inventory)
         request.addfinalizer(jt.delete)
+        factories.v2_host(inventory=jt.ds.inventory)
 
         job = jt.launch().wait_until_completed()
         assert job.is_successful
