@@ -41,3 +41,18 @@ class TestInventorySource(Base_Api_Test):
             with pytest.raises(exc.BadRequest) as e:
                 inv_source.credential = cred.id
             assert e.value[1] == error
+
+    def test_delete_sublist_resources(self, factories):
+        inv_source = factories.v2_inventory_source()
+        assert inv_source.update().wait_until_completed().is_successful
+
+        groups = inv_source.related.groups.get()
+        hosts = inv_source.related.hosts.get()
+        assert groups.count
+        assert hosts.count
+
+        groups.delete()
+        hosts.delete()
+
+        assert groups.get().count == 0
+        assert hosts.get().count == 0
