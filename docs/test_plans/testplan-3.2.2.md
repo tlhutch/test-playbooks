@@ -11,7 +11,8 @@
 
 ## Features Tested
 
-[ ] Tower inventory source [PR](https://github.com/ansible/tower/pull/551)
+* [ ] Tower inventory source [Issue](https://github.com/ansible/ansible-tower/issues/6297) ([PR](https://github.com/ansible/tower/pull/551))
+* [ ] ovirt4.py dynamic inventory support [Issue](https://github.com/ansible/ansible-tower/issues/6522) 
 
 ## Targeted Testing
 
