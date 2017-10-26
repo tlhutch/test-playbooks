@@ -215,46 +215,58 @@ class TestInventoryUpdate(Base_Api_Test):
 
     def test_update_with_overwrite_vars(self, factories):
         """Verify manually inserted group and host variables get deleted when
-        enabled. Final resource variables should be those sourced from the
-        inventory script.
+        enabled. Final group and host variables should be those sourced from
+        the script. Inventory variables should persist.
         """
         inv_source = factories.v2_inventory_source(overwrite_vars=True)
+        inventory = inv_source.ds.inventory
         assert inv_source.update().wait_until_completed().is_successful
         custom_group = inv_source.related.groups.get().results.pop()
 
         inserted_variables = "{'overwrite_me': true}"
-        custom_group.variables = inserted_variables
+        for resource in [inventory, custom_group]:
+            resource.variables = inserted_variables
         hosts = custom_group.related.hosts.get()
         for host in hosts.results:
             host.variables = inserted_variables
 
         assert inv_source.update().wait_until_completed().is_successful
 
-        assert custom_group.get().variables == {'ansible_host': '127.0.0.1', 'ansible_connection': 'local'}
+        assert inventory.get().variables == load_json_or_yaml(inserted_variables)
+        expected_vars = {'ansible_host': '127.0.0.1', 'ansible_connection': 'local'}
+        assert custom_group.get().variables == expected_vars
         for host in hosts.results:
-            assert not host.get().variables
+            assert set(host.get().variables[custom_group.name]['hosts']) == set([host.name for host in hosts.results])
+            assert host.variables[custom_group.name]['vars'] == expected_vars
 
     def test_update_without_overwrite_vars(self, factories):
-        """Verify manually inserted group and host variables persist when disabled.
-        Final resource variables should be a union of those sourced from the inventory
-        script and those manually inserted.
+        """Verify manually inserted group and host variables persist when disabled. Final
+        group and host variables should be a union of those sourced from the inventory
+        script and those manually inserted. Inventory variables should persist.
         """
         inv_source = factories.v2_inventory_source()
+        inventory = inv_source.ds.inventory
         assert inv_source.update().wait_until_completed().is_successful
         custom_group = inv_source.related.groups.get().results.pop()
 
         inserted_variables = "{'overwrite_me': false}"
-        custom_group.variables = inserted_variables
+        for resource in [inventory, custom_group]:
+            resource.variables = inserted_variables
         hosts = custom_group.related.hosts.get()
         for host in hosts.results:
             host.variables = inserted_variables
 
         assert inv_source.update().wait_until_completed().is_successful
 
-        assert custom_group.get().variables == {'overwrite_me': False, 'ansible_host': '127.0.0.1',
-                                                'ansible_connection': 'local'}
+        assert inventory.get().variables == load_json_or_yaml(inserted_variables)
+        expected_vars = {'overwrite_me': False, 'ansible_host': '127.0.0.1', 'ansible_connection': 'local'}
+        assert custom_group.get().variables == expected_vars
         for host in hosts.results:
-            assert host.get().variables == load_json_or_yaml(inserted_variables)
+            assert host.get().variables['overwrite_me'] is False
+            assert set(host.variables[custom_group.name]['hosts']) == set([host.name for host in hosts.results])
+            # update once https://github.com/ansible/ansible/issues/30877 lands
+            # assert host.variables[custom_group.name]['vars'] == expected_vars
+            assert host.variables[custom_group.name]['vars'] == {'ansible_host': '127.0.0.1', 'ansible_connection': 'local'}
 
     def test_update_with_stdout_injection(self, factories):
         """Verify that we can inject text to update stdout through our script."""
