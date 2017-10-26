@@ -38,7 +38,7 @@ def pytest_generate_tests(metafunc):
                 metafunc.parametrize(fixture, test_set, ids=list(test_set))
 
 
-def assert_response(api, resource, method, response_code=httplib.OK, response_schema='unauthorized', data={}):
+def assert_response(connection, resource, method, response_code=httplib.OK, response_schema='unauthorized', data={}):
     """Issue the desired API method on the provided resource.  Assert that the
     http response and JSON schema are valid
     """
@@ -48,9 +48,9 @@ def assert_response(api, resource, method, response_code=httplib.OK, response_sc
     # Call the desired API $method on the provided $resource (e.g.
     # api.get('/api/v1/me/')
     if method in ['get', 'head', 'options']:
-        r = getattr(api, method)(resource)
+        r = getattr(connection, method)(resource)
     else:
-        r = getattr(api, method)(resource, data)
+        r = getattr(connection, method)(resource, data)
 
     # Assert api response code matches expected
     assert r.status_code == response_code
@@ -77,7 +77,7 @@ unauthorized = (httplib.UNAUTHORIZED, 'unauthorized')
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
-def test_unauthenticated(api, resource, method, authtoken, no_license):
+def test_unauthenticated(connection, resource, method, authtoken, no_license):
 
     expected = {'HEAD': (httplib.UNAUTHORIZED, 'head'),
                 'GET': unauthorized,
@@ -139,17 +139,17 @@ def test_unauthenticated(api, resource, method, authtoken, no_license):
 
     # Query API with no auth credentials
     try:
-        previous_auth = api.session.auth
-        api.logout()
-        assert_response(api, resource, method, expected_response_code, expected_response_schema)
+        previous_auth = connection.session.auth
+        connection.logout()
+        assert_response(connection, resource, method, expected_response_code, expected_response_schema)
     finally:
-        api.session.auth = previous_auth
+        connection.session.auth = previous_auth
 
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
-def test_authenticated(api, resource, method, authtoken, no_license):
+def test_authenticated(connection, resource, method, authtoken, no_license):
 
     expected = {'HEAD': (httplib.OK, 'head'),
                 'GET': (httplib.OK, 'get'),
@@ -213,4 +213,4 @@ def test_authenticated(api, resource, method, authtoken, no_license):
         if versionless_endpoint in exceptions and method in exceptions[versionless_endpoint]:
             expected_response_code, expected_response_schema = exceptions[versionless_endpoint][method]
 
-    assert_response(api, resource, method, expected_response_code, expected_response_schema)
+    assert_response(connection, resource, method, expected_response_code, expected_response_schema)

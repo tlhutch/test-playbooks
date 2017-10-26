@@ -1,48 +1,19 @@
 from contextlib import contextmanager
 import logging
-import sys
-
 import pytest
-
-from towerkit.tower.license import generate_license
 
 
 log = logging.getLogger(__name__)
 
 
-def install_license(api_config_pg, **license_info):
-    """Install a Tower license
-
-    :param api_config_pg: A Tower API configuration endpoint model
-    :param license_info: key-value pairs for the configuration endpoint request
-
-    Usage::
-        >>> # install a basic license with 100 days remaining
-        >>> install_license(api_config_pg, license_type='basic', days=100)
-    """
-    # install license
-    api_config_pg.post(license_info)
-    # confirm that license is present
-    conf = api_config_pg.get()
-    assert conf.is_valid_license, 'Invalid license found'
-    # confirm license type
-    expected_license_type = license_info['license_type']
-    assert conf.license_info.license_type == expected_license_type, (
-        'expected {0} license, found {1}'.format(
-            expected_license_type, conf.license_info.license_type))
-    # confirm license key
-    expected_license_key = license_info['license_key']
-    assert conf.license_info.license_key == expected_license_key, (
-        'License found differs from license applied')
-
-
-@pytest.fixture
-def apply_license(api_config_pg):
+@pytest.fixture(scope='session')
+def apply_license(api):
     """Create a context manager for on-the-fly license switching. The initial
     license intallation state is retained after exiting.
     """
+
     @contextmanager
-    def _apply_license(license_type, days=365, **kwargs):
+    def _apply_license(license_type=None, days=365, **kwargs):
         """Switch the license installation to one with the provided license
         information.
 
@@ -61,75 +32,64 @@ def apply_license(api_config_pg):
             >>>     org.delete()
             >>> *** PaymentRequired_Exception
         """
-        if license_type is None and kwargs:
-            raise ValueError('No additional data may be provided for deletions')
+        request = kwargs.pop('request', False)
 
-        initial_info = getattr(api_config_pg.get(), 'license_info', None)
+        config = api.current_version.get().config.get()
+        initial_info = config.license_info
 
-        if license_type is None:
-            api_config_pg.delete()
-        else:
-            info = generate_license(license_type=license_type, days=days, **kwargs)
-            install_license(api_config_pg, **info)
-        yield
-        if not initial_info:
-            api_config_pg.delete()
-        else:
-            install_license(api_config_pg, eula_accepted=True, **initial_info)
+        def teardown_license():
+            log.info('Restoring initial license.')
+            if not initial_info:
+                config.delete()
+            else:
+                initial_info['eula_accepted'] = True
+                config.post(initial_info)
+
+        try:
+            if license_type is None:
+                log.info('Deleting current license...')
+                config.delete()
+            else:
+                log.info('Applying {} license...'.format(license_type))
+                config.install_license(license_type=license_type, days=days, **kwargs)
+            if request:
+                # We need to explictly register teardowns instead of yield-driven
+                # teardown for class_factory teardown ordering
+                request.addfinalizer(teardown_license)
+            yield config.get().license_info
+        finally:
+            if not request:
+                teardown_license()
+
     return _apply_license
 
 
-@pytest.fixture
-def no_license(subrequest, api_config_pg):
+@pytest.fixture(scope='class')
+def no_license(apply_license, class_subrequest):
     """Remove an active license"""
-    log.debug('deleting any active license')
-    api_config_pg.delete()
-    subrequest.addfinalizer(api_config_pg.delete)
-
-
-@pytest.fixture
-def install_legacy_license(subrequest, api_config_pg):
-    """Install legacy license"""
-    log.debug('calling fixture install_legacy_license')
-    license_info = generate_license(
-        days=365,
-        instance_count=sys.maxint,
-        license_type='legacy')
-    install_license(api_config_pg, **license_info)
-    subrequest.addfinalizer(api_config_pg.delete)
-
-
-@pytest.fixture
-def install_basic_license(subrequest, api_config_pg):
-    """Install basic license"""
-    log.debug('calling fixture install_basic_license')
-    license_info = generate_license(
-        days=365,
-        instance_count=sys.maxint,
-        license_type='basic')
-    install_license(api_config_pg, **license_info)
-    subrequest.addfinalizer(api_config_pg.delete)
-
-
-@pytest.fixture
-def install_enterprise_license(subrequest, api_config_pg):
-    """Install enterprise license"""
-    log.debug('calling fixture install_enterprise_license')
-    license_info = generate_license(
-        days=365,
-        instance_count=sys.maxint,
-        license_type='enterprise')
-    install_license(api_config_pg, **license_info)
-    subrequest.addfinalizer(api_config_pg.delete)
+    with apply_license(None, request=class_subrequest):
+        yield
 
 
 @pytest.fixture(scope='class')
-def install_enterprise_license_unlimited(class_subrequest, api_config_pg):
-    """Install enterprise license at the class fixture scope"""
-    log.error('calling fixture install_enterprise_license_unlimited')
-    license_info = generate_license(
-        days=365,
-        instance_count=sys.maxint,
-        license_type='enterprise')
-    install_license(api_config_pg, **license_info)
-    class_subrequest.addfinalizer(api_config_pg.delete)
+def install_legacy_license(apply_license, class_subrequest):
+    with apply_license('legacy', request=class_subrequest):
+        yield
+
+
+@pytest.fixture(scope='class')
+def install_basic_license(apply_license, class_subrequest):
+    with apply_license('basic', request=class_subrequest):
+        yield
+
+
+@pytest.fixture(scope='class')
+def install_enterprise_license(apply_license, class_subrequest):
+    with apply_license('enterprise', request=class_subrequest):
+        yield
+
+
+@pytest.fixture(scope='class')
+def install_enterprise_license_unlimited(apply_license, class_subrequest):
+    with apply_license('enterprise', request=class_subrequest):
+        yield

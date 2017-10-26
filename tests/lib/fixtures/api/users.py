@@ -142,14 +142,14 @@ def unprivileged_user(request):
 
 
 @pytest.fixture(scope="function")
-def current_user(testsetup):
+def current_user(connection):
     """Return a context manager to allow performing operations as an alternate user"""
     @contextlib.contextmanager
     def ctx(username=None, password=None):
         try:
-            previous_auth = testsetup.api.session.auth
-            testsetup.api.login(username, password)
+            previous_auth = connection.session.auth
+            connection.login(username, password)
             yield
         finally:
-            testsetup.api.session.auth = previous_auth
+            connection.session.auth = previous_auth
     return ctx

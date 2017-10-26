@@ -9,9 +9,8 @@ from tests.api.license import LicenseTest
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'no_license')
 class TestNoLicense(LicenseTest):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'no_license')
 
     @pytest.fixture
     def missing_eula_legacy_license_json(self, legacy_license_json):

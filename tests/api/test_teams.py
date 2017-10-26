@@ -2,14 +2,16 @@
 # 2) Verify credentials, owned by the team, are removed upon DELETE
 """
 
-import pytest
-import fauxfactory
+from towerkit.config import config
 import towerkit.exceptions
+import fauxfactory
+import pytest
+
 from tests.api import Base_Api_Test
 
 
 @pytest.fixture(scope="function")
-def some_team(request, testsetup, authtoken, organization):
+def some_team(request, authtoken, organization):
     payload = dict(name="some_team: %s" % fauxfactory.gen_utf8(),
                    organization=organization.id)
     obj = organization.get_related('teams').post(payload)
@@ -18,14 +20,14 @@ def some_team(request, testsetup, authtoken, organization):
 
 
 @pytest.fixture(scope="function")
-def some_team_credential(request, testsetup, authtoken, some_team):
+def some_team_credential(request, authtoken, some_team):
     """Create ssh credential"""
     payload = dict(name="credential-%s" % fauxfactory.gen_utf8(),
                    description="machine credential for team:%s" % some_team.name,
                    kind='ssh',
                    team=some_team.id,
-                   username=testsetup.credentials['ssh']['username'],
-                   password=testsetup.credentials['ssh']['password'],)
+                   username=config.credentials['ssh']['username'],
+                   password=config.credentials['ssh']['password'],)
     obj = some_team.get_related('credentials').post(payload)
     request.addfinalizer(obj.silent_delete)
     return obj

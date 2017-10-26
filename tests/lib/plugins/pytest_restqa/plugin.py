@@ -14,6 +14,9 @@ from towerkit import config as qe_config
 __version__ = '1.0'
 
 
+log = logging.getLogger(__name__)
+
+
 def pytest_addoption(parser):
     group = parser.getgroup('rest', 'rest')
     group.addoption('--api-untrusted',
@@ -43,9 +46,11 @@ def pytest_addoption(parser):
                     help='location of yaml file containing user credentials.')
 
 
+connections = {}
+
+
 def pytest_configure(config):
     if not hasattr(config, 'slaveinput'):
-
         config.addinivalue_line(
             'markers', 'nondestructive: mark the test as nondestructive. '
             'Tests are assumed to be destructive unless this marker is '
@@ -82,20 +87,25 @@ def pytest_configure(config):
                 "Base URL did not return status code %s. (URL: %s, Response: %s)" % \
                 (httplib.OK, config.option.base_url, r.status_code)
 
-            qe_config.base_url = TestSetup.base_url = config.option.base_url
+            qe_config.base_url = config.option.base_url
 
             # Load credentials.yaml
             if config.option.credentials_file:
                 qe_config.credentials = load_credentials(config.option.credentials_file)
-                TestSetup.credentials = qe_config.credentials
 
             qe_config.assume_untrusted = config.getvalue('assume_untrusted')
 
-            TestSetup.api = Connection(qe_config.base_url, verify=not qe_config.assume_untrusted)
+            connections['root'] = Connection(qe_config.base_url, verify=not qe_config.assume_untrusted)
+
             if config.option.debug_rest and hasattr(config, '_debug_rest_hdlr'):
                 logger = logging.getLogger('towerkit.api.client')
                 logger.setLevel('DEBUG')
                 logger.addHandler(config._debug_rest_hdlr)
+
+
+@pytest.fixture(scope='session')
+def connection():
+    return connections['root']
 
 
 @pytest.mark.trylast
@@ -105,19 +115,9 @@ def pytest_unconfigure(config):
         sys.stderr.write("Wrote pytest-rest information to %s\n" % config._debug_rest_hdlr.baseFilename)
 
 
-@pytest.fixture(scope="session")
-def testsetup(request):
-    """Return initialized REST QA TestSetup object"""
-    testsetup = TestSetup(request)
-    testsetup.request = request
-    return testsetup
-
-
 @pytest.mark.hookwrapper
 def pytest_runtest_makereport(item, call):
     if 'skip_restqa' in item.keywords:
-        return
-    if not getattr(TestSetup, 'api', None):
         return
 
     if call.when == 'setup':
@@ -146,10 +146,3 @@ def _debug_summary(debug):
     if debug['urls']:
         summary.append('Failing URL: %s' % debug['urls'][-1])
     return '\n'.join(summary)
-
-
-class TestSetup:
-    """This class is just used for monkey patching"""
-
-    def __init__(self, request):
-        self.request = request

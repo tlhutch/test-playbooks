@@ -1,3 +1,3 @@
-import pytest_restqa
+import plugin
 
-__version__ = pytest_restqa.__version__
+__version__ = plugin.__version__

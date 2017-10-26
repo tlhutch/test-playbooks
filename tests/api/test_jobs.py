@@ -4,6 +4,7 @@ import types
 import json
 import re
 
+from towerkit.config import config
 from towerkit import exceptions as exc
 import fauxfactory
 import pytest
@@ -33,7 +34,7 @@ def job_with_status_running(request, job_sleep):
 
 
 @pytest.fixture(scope="function")
-def job_with_multi_ask_credential_and_password_in_payload(request, job_template_multi_ask, testsetup):
+def job_with_multi_ask_credential_and_password_in_payload(request, job_template_multi_ask):
     """Launch job_template_multi_ask with passwords in the payload."""
     launch_pg = job_template_multi_ask.get_related("launch")
 
@@ -44,9 +45,9 @@ def job_with_multi_ask_credential_and_password_in_payload(request, job_template_
     assert credential.expected_passwords_needed_to_start == launch_pg.passwords_needed_to_start
 
     # build launch payload
-    payload = dict(ssh_password=testsetup.credentials['ssh']['password'],
-                   ssh_key_unlock=testsetup.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                   become_password=testsetup.credentials['ssh']['become_password'])
+    payload = dict(ssh_password=config.credentials['ssh']['password'],
+                   ssh_key_unlock=config.credentials['ssh']['encrypted']['ssh_key_unlock'],
+                   become_password=config.credentials['ssh']['become_password'])
 
     # launch job_template
     result = launch_pg.post(payload)
@@ -99,12 +100,12 @@ def job_template_with_network_credential(request, job_template, network_credenti
 
 
 @pytest.fixture(scope="function")
-def expected_net_env_vars(testsetup):
+def expected_net_env_vars():
     """Returns a list of our expected network job env variables."""
     def func(network_credential):
         expected_env_vars = dict()
         if getattr(network_credential, "username", None):
-            expected_env_vars["ANSIBLE_NET_USERNAME"] = testsetup.credentials['network']['username']
+            expected_env_vars["ANSIBLE_NET_USERNAME"] = config.credentials['network']['username']
         if getattr(network_credential, "password", None):
             expected_env_vars["ANSIBLE_NET_PASSWORD"] = u"**********"
         if getattr(network_credential, "ssh_key_data", None):
@@ -191,7 +192,7 @@ class Test_Job(Base_Api_Test):
         with pytest.raises(exc.BadRequest):
             relaunch_pg.post()
 
-    def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload, testsetup):  # NOQA
+    def test_relaunch_with_multi_ask_credential_and_passwords_in_payload(self, job_with_multi_ask_credential_and_password_in_payload):  # NOQA
         """Verify that relaunching a job with a credential that includes ASK passwords, behaves as expected when
         supplying the necessary passwords in the relaunch payload.
         """
@@ -205,9 +206,9 @@ class Test_Job(Base_Api_Test):
         assert credential.expected_passwords_needed_to_start == relaunch_pg.passwords_needed_to_start
 
         # relaunch the job and wait for completion
-        payload = dict(ssh_password=testsetup.credentials['ssh']['password'],
-                       ssh_key_unlock=testsetup.credentials['ssh']['encrypted']['ssh_key_unlock'],
-                       become_password=testsetup.credentials['ssh']['become_password'])
+        payload = dict(ssh_password=config.credentials['ssh']['password'],
+                       ssh_key_unlock=config.credentials['ssh']['encrypted']['ssh_key_unlock'],
+                       become_password=config.credentials['ssh']['become_password'])
         job_pg = job_with_multi_ask_credential_and_password_in_payload.relaunch(payload).wait_until_completed()
 
         # assert success

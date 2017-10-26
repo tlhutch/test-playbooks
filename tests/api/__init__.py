@@ -2,6 +2,7 @@ from StringIO import StringIO
 import logging
 import re
 
+from towerkit.config import config
 from towerkit.api import User
 import contextlib
 import pytest
@@ -16,13 +17,8 @@ class Base_Api_Test(object):
     """Base class"""
 
     @classmethod
-    def setup_class(self):
-        """setup any state specific to the execution of the given class (which
-        usually contains tests).
-        """
-        plugin = pytest.config.pluginmanager.getplugin("plugins.pytest_restqa.pytest_restqa")
-        assert plugin, 'Unable to find pytest_restqa plugin'
-        self.testsetup = plugin.TestSetup
+    def setup_class(cls):
+        cls.connections = pytest.config.pluginmanager.getplugin('plugins.pytest_restqa.plugin').connections
 
     @pytest.fixture(autouse=True)
     def attach_stream_handler_and_validate_schema_on_teardown(self, request):
@@ -51,23 +47,14 @@ class Base_Api_Test(object):
     @property
     def credentials(self):
         """convenient access to credentials"""
-        return self.testsetup.credentials
-
-    @property
-    def api(self):
-        """convenient access to api"""
-        return self.testsetup.api
-
-    @classmethod
-    def teardown_class(self):
-        """Perform any required test teardown"""
+        return config.credentials
 
     def has_credentials(self, ctype, sub_ctype=None, fields=[]):
         """assert whether requested credentials are present"""
         # Make sure credentials.yaml has ctype we need
-        assert ctype in self.testsetup.credentials, \
+        assert ctype in self.credentials, \
             "No '%s' credentials defined in credentals.yaml" % ctype
-        creds = self.testsetup.credentials[ctype]
+        creds = self.credentials[ctype]
 
         # Ensure requested sub-type is present
         if sub_ctype:
@@ -91,11 +78,11 @@ class Base_Api_Test(object):
             password = username.password
             username = username.username
         try:
-            previous_auth = self.api.session.auth
-            self.api.login(username, password)
+            previous_auth = self.connections['root'].session.auth
+            self.connections['root'].login(username, password)
             yield
         finally:
-            self.api.session.auth = previous_auth
+            self.connections['root'].session.auth = previous_auth
 
     @contextlib.contextmanager
     def current_instance(self, connection, v=None):
@@ -122,13 +109,13 @@ class Base_Api_Test(object):
         >>>     assert ig.consumed_capacity > 0
         """
         try:
-            previous_testsetup_connection = self.testsetup.api
-            self.testsetup.api = connection
+            previous_connection = self.connections['root']
+            self.connections['root'] = connection
             if v:
                 previous_v_connection = v.connection
                 v.connection = connection
             yield
         finally:
-            self.testsetup.api = previous_testsetup_connection
+            self.connections['root'] = previous_connection
             if v:
                 v.connection = previous_v_connection

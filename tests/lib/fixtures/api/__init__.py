@@ -3,34 +3,14 @@ import towerkit.tower
 import pytest
 
 
-def navigate(api, url, field):
-    """Return a json attribute from the given url.  While one can simply
-    concatenate strings to form a URL, this method is preferred to ensure the
-    API is capable of self-referencing.
-
-    Examples:
-     * navigate(api, '/api/', 'current_version') returns '/api/v1'
-     * navigate(api, '/api/v1/, 'config') returns '/api/v1/config'
-
-    Update: towerkit traces the api in its functionality and is the preferred
-    resource object builder.  `navigate` is just used for api_v1_url and test will
-    be done by towerkit `Base` subclasses.
-    """
-    if not url.endswith('/'):
-        url += '/'
-    data = api.get(url).json()
-    return data.get(field)
-
-
-@pytest.fixture(scope="session")
-def api(testsetup):
-    """Convenience fixture that returns api object"""
-    return testsetup.api
+@pytest.fixture(scope='session')
+def api(connection):
+    return get_registered_page('/api/')(connection).get()
 
 
 @pytest.fixture(scope='session')
 def available_versions(api):
-    return navigate(api, '/api', 'available_versions')
+    return api.available_versions
 
 
 @pytest.fixture(scope='session')
@@ -49,8 +29,8 @@ def api_v1_url(get_api_version):
 
 
 @pytest.fixture(scope="class")
-def api_v1_pg(testsetup, api_v1_url):
-    return get_registered_page(api_v1_url)(testsetup.api, endpoint=api_v1_url).get()
+def api_v1_pg(connection, api_v1_url):
+    return get_registered_page(api_v1_url)(connection, endpoint=api_v1_url).get()
 
 
 @pytest.fixture(scope='class')
@@ -69,8 +49,8 @@ def api_v2_url(get_api_version):
 
 
 @pytest.fixture(scope="class")
-def api_v2_pg(testsetup, api_v2_url):
-    return get_registered_page(api_v2_url)(testsetup.api, endpoint=api_v2_url).get()
+def api_v2_pg(connection, api_v2_url):
+    return get_registered_page(api_v2_url)(connection, endpoint=api_v2_url).get()
 
 
 @pytest.fixture(scope='class')
@@ -95,10 +75,10 @@ def api_authtoken_pg(api_authtoken_url):
 
 
 @pytest.fixture(scope="class")
-def authtoken(testsetup, v1_class):
+def authtoken(connection, v1_class):
     """Logs in to the application with default credentials"""
     authtoken = v1_class.get_authtoken()
-    testsetup.api.login(token=authtoken)
+    connection.login(token=authtoken)
     return authtoken
 
 

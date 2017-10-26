@@ -1,6 +1,7 @@
 import logging
 
 from towerkit.notification_services import (confirm_notification, can_confirm_notification)
+from towerkit.config import config
 import towerkit.exceptions as exc
 import pytest
 
@@ -157,7 +158,7 @@ class Test_Notifications(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     @pytest.mark.destructive
-    def test_test_notification(self, request, testsetup, notification_template):
+    def test_test_notification(self, request, notification_template):
         """Generate test notifications for each notification type"""
         # Trigger test notification
         notification_pg = notification_template.test().wait_until_completed()
@@ -166,7 +167,7 @@ class Test_Notifications(Base_Api_Test):
 
         # Confirm test notification delivered
         if can_confirm_notification(notification_template):
-            msg = expected_test_notification(testsetup.base_url, notification_template)
+            msg = expected_test_notification(config.base_url, notification_template)
             notification_type = notification_template.notification_type
             assert confirm_notification(notification_template, msg), \
                 "Failed to find %s test notification (%s)" %\
@@ -174,8 +175,7 @@ class Test_Notifications(Base_Api_Test):
 
     @pytest.mark.destructive
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
-    def test_system_job_notifications(self, request, system_job_template, notification_template, job_result,
-                                      testsetup):
+    def test_system_job_notifications(self, request, system_job_template, notification_template, job_result):
         """Test notification templates attached to system job templates"""
         existing_notifications = system_job_template.get_related('notification_templates_any').count + \
             system_job_template.get_related('notification_templates_success').count
@@ -195,7 +195,7 @@ class Test_Notifications(Base_Api_Test):
             "Expected job to have %s notifications, found %s" % (notifications_expected, notifications_pg.count)
         if job_result in ('any', 'success'):
             notification_pg = notifications_pg.results[0].wait_until_completed()
-            tower_msg = expected_job_notification(testsetup.base_url, notification_template, job, job_result, tower_message=True)
+            tower_msg = expected_job_notification(config.base_url, notification_template, job, job_result, tower_message=True)
             assert notification_pg.notification_template == notification_template.id, \
                 "Expected notification to be associated with notification template %s, found %s" % \
                 (notification_template.id, notification_pg.notification_template)
@@ -210,7 +210,7 @@ class Test_Notifications(Base_Api_Test):
         # Check notification in notification service
         if can_confirm_notification(notification_template):
             notification_expected = (True if job_result in ('any', 'success') else False)
-            msg = expected_job_notification(testsetup.base_url, notification_template, job, job_result)
+            msg = expected_job_notification(config.base_url, notification_template, job, job_result)
             assert confirm_notification(notification_template, msg, is_present=notification_expected), \
                 notification_template.notification_type + " notification " + \
                 ("not " if notification_expected else "") + "present (%s)" % msg
@@ -218,7 +218,7 @@ class Test_Notifications(Base_Api_Test):
     @pytest.mark.destructive
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
     @pytest.mark.parametrize("resource", ['organization', 'project', 'job_template'])
-    def test_notification_inheritance(self, request, resource, job_template, notification_template, job_result, testsetup):
+    def test_notification_inheritance(self, request, resource, job_template, notification_template, job_result):
         """Test inheritance of notifications when notification template attached to various tower resources"""
         # Get reference to resource
         if resource == "organization":
@@ -244,7 +244,7 @@ class Test_Notifications(Base_Api_Test):
             "Expected job to have %s notifications, found %s" % (notifications_expected, notifications_pg.count)
         if job_result in ('any', 'success'):
             notification_pg = notifications_pg.results[0].wait_until_completed()
-            tower_msg = expected_job_notification(testsetup.base_url, notification_template, job, job_result, tower_message=True)
+            tower_msg = expected_job_notification(config.base_url, notification_template, job, job_result, tower_message=True)
             assert notification_pg.notification_template == notification_template.id, \
                 "Expected notification to be associated with notification template %s, found %s" % \
                 (notification_template.id, notification_pg.notification_template)
@@ -259,7 +259,7 @@ class Test_Notifications(Base_Api_Test):
         # Check notification in notification service
         if can_confirm_notification(notification_template):
             notification_expected = (True if job_result == 'any' or job_result == 'success' else False)
-            msg = expected_job_notification(testsetup.base_url, notification_template, job, job_result)
+            msg = expected_job_notification(config.base_url, notification_template, job, job_result)
             assert confirm_notification(notification_template, msg) == notification_expected, \
                 notification_template.notification_type + " notification " + \
                 ("not " if notification_expected else "") + "present (%s)" % msg

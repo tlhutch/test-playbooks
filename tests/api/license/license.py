@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import logging
 
 from towerkit.tower import license
@@ -19,135 +20,116 @@ class LicenseTest(Base_Api_Test):
 
     license_instance_count = 10
 
+    @pytest.fixture()
+    def apply_generated_license(self, api):
+
+        @contextmanager
+        def _apply_license_info(license_info):
+            config = api.current_version.get().config.get()
+            initial_info = config.license_info
+
+            try:
+                log.info('Applying {} license...'.format(license_info['license_type']))
+                config.post(license_info)
+                yield
+
+            finally:
+                log.info('Restoring initial license.')
+                if not initial_info:
+                    config.delete()
+                else:
+                    initial_info['eula_accepted'] = True
+                    config.post(initial_info)
+
+        return _apply_license_info
+
     @pytest.fixture
     def legacy_license_json(self):
-        return license.generate_license(instance_count=self.license_instance_count,
-                                        days=31,
-                                        company_name=fauxfactory.gen_utf8(),
-                                        contact_name=fauxfactory.gen_utf8(),
+        return license.generate_license(license_type='legacy', instance_count=self.license_instance_count, days=31,
+                                        company_name=fauxfactory.gen_utf8(), contact_name=fauxfactory.gen_utf8(),
                                         contact_email=fauxfactory.gen_email())
 
     @pytest.fixture
     def enterprise_license_json(self):
-        return license.generate_license(instance_count=self.license_instance_count,
-                                        days=31,
-                                        company_name=fauxfactory.gen_utf8(),
-                                        contact_name=fauxfactory.gen_utf8(),
-                                        contact_email=fauxfactory.gen_email(),
-                                        license_type="enterprise")
-
-    @pytest.fixture
-    def trial_legacy_license_json(self):
-        return license.generate_license(instance_count=self.license_instance_count,
-                                        days=31,
-                                        trial=True,
-                                        company_name=fauxfactory.gen_utf8(),
-                                        contact_name=fauxfactory.gen_utf8(),
+        return license.generate_license(license_type='enterprise', instance_count=self.license_instance_count, days=31,
+                                        company_name=fauxfactory.gen_utf8(), contact_name=fauxfactory.gen_utf8(),
                                         contact_email=fauxfactory.gen_email())
 
     @pytest.fixture
-    def install_legacy_license(self, request, api_config_pg, legacy_license_json):
-        # Apply license
-        log.debug("calling fixture install_legacy_license")
-        api_config_pg.post(legacy_license_json)
-        request.addfinalizer(api_config_pg.delete)
-
-        # Confirm that license is present
-        conf = api_config_pg.get()
-        assert conf.is_valid_license, 'Expected valid license, invalid license found'
-
-        # Confirm license type, license_key have expected values
-        assert conf.is_legacy_license, \
-            "Expected legacy license, found %s." % conf.license_info.license_type
-        assert conf.license_info.license_key == legacy_license_json['license_key'], \
-            "License found differs from license applied"
+    def trial_legacy_license_json(self):
+        return license.generate_license(license_type='legacy', instance_count=self.license_instance_count, days=31,
+                                        company_name=fauxfactory.gen_utf8(), contact_name=fauxfactory.gen_utf8(),
+                                        contact_email=fauxfactory.gen_email(), trial=True)
 
     @pytest.fixture
-    def install_trial_legacy_license(self, request, api_config_pg):
-        log.debug("calling fixture install_trial_legacy_license")
-        license_info = license.generate_license(instance_count=self.license_instance_count, days=31, trial=True)
-        api_config_pg.post(license_info)
-        request.addfinalizer(api_config_pg.delete)
-
-        # Confirm that license is present
-        conf = api_config_pg.get()
-        assert conf.is_valid_license, 'Expected valid license, invalid license found'
-
-        # Confirm license type, license_key have expected values
-        assert conf.is_legacy_license, \
-            "Expected legacy license, found %s." % conf.license_info.license_type
-        assert conf.is_trial_license, \
-            "Expected trial license, found regular license"
-        assert conf.license_info.license_key == license_info['license_key'], \
-            "License found differs from license applied"
+    def install_legacy_license(self, apply_generated_license, api_config_pg, legacy_license_json):
+        with apply_generated_license(legacy_license_json):
+            conf = api_config_pg.get()
+            assert conf.is_valid_license, 'Expected valid license, invalid license found'
+            assert conf.is_legacy_license, \
+                "Expected legacy license, found %s." % conf.license_info.license_type
+            assert conf.license_info.license_key == legacy_license_json['license_key'], \
+                "License found differs from license applied"
+            yield
 
     @pytest.fixture
-    def install_basic_license(self, request, api_config_pg):
-        log.debug("calling fixture install_basic_license")
-        license_info = license.generate_license(instance_count=self.license_instance_count,
-                                                days=31, license_type="basic")
-        api_config_pg.post(license_info)
-        request.addfinalizer(api_config_pg.delete)
-
-        # Confirm that license is present
-        conf = api_config_pg.get()
-        assert conf.is_valid_license, 'Expected valid license, invalid license found'
-
-        # Confirm license type, license_key have expected values
-        assert conf.is_basic_license, \
-            "Expected basic license, found %s." % conf.license_info.license_type
-        assert conf.license_info.license_key == license_info['license_key'], \
-            "License found differs from license applied"
+    def install_trial_legacy_license(self, apply_generated_license, api_config_pg):
+        license_info = license.generate_license(license_type='legacy', instance_count=self.license_instance_count,
+                                                days=31, trial=True)
+        with apply_generated_license(license_info):
+            conf = api_config_pg.get()
+            assert conf.is_valid_license, 'Expected valid license, invalid license found'
+            assert conf.is_legacy_license, \
+                "Expected legacy license, found %s." % conf.license_info.license_type
+            assert conf.is_trial_license, \
+                "Expected trial license, found regular license"
+            assert conf.license_info.license_key == license_info['license_key'], \
+                "License found differs from license applied"
+            yield
 
     @pytest.fixture
-    def install_enterprise_license(self, request, api_config_pg, enterprise_license_json):
-        log.debug("calling license fixture install_enterprise_license")
-        api_config_pg.post(enterprise_license_json)
-        request.addfinalizer(api_config_pg.delete)
-
-        # Confirm that license is present
-        conf = api_config_pg.get()
-        assert conf.is_valid_license, 'Expected valid license, invalid license found'
-
-        # Confirm license type, license_key have expected values
-        assert conf.is_enterprise_license, \
-            "Expected enterprise license, %s." % conf.license_info.license_type
-        assert conf.license_info.license_key == enterprise_license_json['license_key'], \
-            "License found differs from license applied"
+    def install_basic_license(self, apply_generated_license, api_config_pg):
+        license_info = license.generate_license(license_type='basic', instance_count=self.license_instance_count,
+                                                days=31)
+        with apply_generated_license(license_info):
+            conf = api_config_pg.get()
+            assert conf.is_valid_license, 'Expected valid license, invalid license found'
+            assert conf.is_basic_license, \
+                "Expected basic license, found %s." % conf.license_info.license_type
+            assert conf.license_info.license_key == license_info['license_key'], \
+                "License found differs from license applied"
+            yield
 
     @pytest.fixture
-    def install_enterprise_license_expired(self, request, api_config_pg):
-        log.debug("calling fixture install_enterprise_license_expired")
-        license_info = license.generate_license(license_type='enterprise', instance_count=self.license_instance_count,
-                                                days=-61)
-        api_config_pg.post(license_info)
-        request.addfinalizer(api_config_pg.delete)
+    def install_enterprise_license(self, apply_generated_license, api_config_pg, enterprise_license_json):
+        with apply_generated_license(enterprise_license_json):
+            conf = api_config_pg.get()
+            assert conf.is_valid_license, 'Expected valid license, invalid license found'
+            assert conf.is_enterprise_license, \
+                "Expected enterprise license, %s." % conf.license_info.license_type
+            assert conf.license_info.license_key == enterprise_license_json['license_key'], \
+                "License found differs from license applied"
+            yield
 
     @pytest.fixture
-    def install_legacy_license_warning(self, request, api_config_pg):
-        log.debug("calling fixture install_legacy_license_warning")
-        license_info = license.generate_license(instance_count=self.license_instance_count, days=1)
-        api_config_pg.post(license_info)
-        request.addfinalizer(api_config_pg.delete)
+    def install_enterprise_license_expired(self, apply_license, api_config_pg):
+        with apply_license(license_type='enterprise', instance_count=self.license_instance_count, days=-61):
+            yield
+
+    @pytest.fixture
+    def install_legacy_license_warning(self, apply_license):
+        with apply_license(license_type='legacy', instance_count=self.license_instance_count, days=1):
+            yield
 
     @pytest.yield_fixture
-    def install_legacy_license_expired(self, request, api_config_pg):
-        log.debug("calling fixture install_legacy_license_expired")
-
-        def apply_license():
-            license_info = license.generate_license(instance_count=self.license_instance_count, days=-61)
-            api_config_pg.post(license_info)
-
-        apply_license()
-        yield apply_license
-        api_config_pg.delete()
+    def install_legacy_license_expired(self, apply_license):
+        with apply_license(license_type='legacy', instance_count=self.license_instance_count, days=-61):
+            yield
 
     @pytest.fixture
-    def install_legacy_license_grace_period(self, request, api_config_pg):
-        log.debug("calling fixture install_legacy_license_grace_period")
-        license_info = license.generate_license(instance_count=self.license_instance_count, days=-1)
-        api_config_pg.post(license_info)
-        request.addfinalizer(api_config_pg.delete)
+    def install_legacy_license_grace_period(self, apply_license):
+        with apply_license(license_type='legacy', instance_count=self.license_instance_count, days=-1):
+            yield
 
     @pytest.fixture
     def inventory_no_free_instances(self, request, authtoken, api_config_pg, api_inventories_pg, organization):
@@ -216,14 +198,3 @@ class LicenseTest(Base_Api_Test):
         assert config.license_info.current_instances == self.license_instance_count
         assert config.license_info.free_instances == 0
         assert config.license_info.available_instances == self.license_instance_count
-
-    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
-        """Verify that hosts can be added up to the 'license_instance_count'"""
-        license_info = api_config_pg.get().license_info
-        if not license_info:
-            pytest.skip("Skipping test because no license is installed.")
-
-        if license_info.date_expired:
-            pytest.skip("Skipping test because license is expired.")
-
-        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
