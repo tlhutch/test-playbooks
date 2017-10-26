@@ -11,6 +11,8 @@
 
 ## Features Tested
 
+[ ] Tower inventory source [PR](https://github.com/ansible/tower/pull/551)
+
 ## Targeted Testing
 
 ## Regression
