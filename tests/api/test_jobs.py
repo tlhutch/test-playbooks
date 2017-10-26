@@ -180,6 +180,23 @@ class Test_Job(Base_Api_Test):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
+    def test_relaunch_with_vault_credential_only(self, request, factories, v2):
+        payload = factories.v2_job_template.payload()
+        del payload['credential']
+
+        vault_credential = factories.v2_credential(kind='vault', vault_password='fake')
+        payload['vault_credential'] = vault_credential.id
+
+        jt = v2.job_templates.post(payload)
+        factories.v2_host(inventory=jt.ds.inventory)
+        request.addfinalizer(jt.delete)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        relaunched_job = job.relaunch().wait_until_completed()
+        assert job.is_successful
+
     def test_relaunch_with_deleted_related(self, job_with_deleted_related):
         """Verify relaunching a job whose related information has been deleted."""
         # get relaunch page
