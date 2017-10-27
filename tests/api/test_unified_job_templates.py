@@ -21,15 +21,15 @@ class TestUnifiedJobTemplates(Base_Api_Test):
         ujt_factory_kwargs = dict(name=fauxfactory.gen_utf8())
 
         if ujt_type == 'v2_job_template':
-            unique_together = '(polymorphic_ctype, name)'
+            unique_together = '(name)'
         elif ujt_type == 'v2_inventory_source':
             org = factories.v2_organization()
             ujt_factory_kwargs['inventory'] = factories.v2_inventory(organization=org)
             ujt_factory_kwargs['inventory_script'] = (True, dict(organization=org))
-            unique_together = '(polymorphic_ctype, name, inventory)'
+            unique_together = '(inventory, name)'
         else:
             ujt_factory_kwargs['organization'] = factories.v2_organization()
-            unique_together = '(polymorphic_ctype, name, organization)'
+            unique_together = '(organization, name)'
 
         ujt_factory(**ujt_factory_kwargs)
 
