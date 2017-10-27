@@ -140,14 +140,14 @@ def _expected_webhook_job_notification(tower_url, notification_template_pg, job_
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 class Test_Notification_Templates(Base_Api_Test):
 
-    def test_notification_template_unique_by_org(self, factories):
+    def test_duplicate_notification_templates_disallowed_by_organization(self, factories):
         nt_a = factories.v2_notification_template(name='SharedName')
         factories.v2_notification_template(name='SharedName')
 
         shared_org = nt_a.ds.organization
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_notification_template(name='SharedName', organization=shared_org)
-        assert e.value.message == {'__all__': ['Notification template with this Organization and Name already exists.']}
+        assert e.value.message['__all__'] == ['Notification template with this Organization and Name already exists.']
 
 
 @pytest.mark.api

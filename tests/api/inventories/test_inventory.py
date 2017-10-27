@@ -132,5 +132,12 @@ class TestInventory(Base_Api_Test):
             with pytest.raises(exc.NotFound):
                 resource.get()
 
+    def test_duplicate_inventories_disallowed_by_organization(self, factories):
+        inv = factories.v2_inventory()
+
+        with pytest.raises(exc.BadRequest) as e:
+            factories.v2_inventory(name=inv.name, organization=inv.ds.organization)
+        assert e.value[1]['__all__'] == ['Inventory with this Name and Organization already exists.']
+
     def test_confirm_inventory_not_in_host_put_options(self, v2, factories):
         assert 'inventory' not in factories.v2_host().options().actions.PUT

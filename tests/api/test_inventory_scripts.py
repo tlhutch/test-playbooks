@@ -1,7 +1,7 @@
 import json
 
+import towerkit.exceptions as exc
 import towerkit.tower.inventory
-import towerkit.exceptions
 import fauxfactory
 import pytest
 
@@ -71,7 +71,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
                        organization=organization.id,
                        script=script_source)
         with self.current_user(unprivileged_user.username, user_password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 api_inventory_scripts_pg.post(payload)
 
     def test_post_without_required_fields(self, api_inventory_scripts_pg, organization, script_source):
@@ -79,7 +79,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # without name
         payload = dict(script=script_source,
                        organization=organization.id)
-        exc_info = pytest.raises(towerkit.exceptions.BadRequest, api_inventory_scripts_pg.post, payload)
+        exc_info = pytest.raises(exc.BadRequest, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
         assert result == {u'name': [u'This field is required.']}, \
             "Unexpected API response when posting an inventory_script with a missing value for 'name': %s." % json.dumps(result)
@@ -87,7 +87,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # without script
         payload = dict(name=fauxfactory.gen_utf8(),
                        organization=organization.id)
-        exc_info = pytest.raises(towerkit.exceptions.BadRequest, api_inventory_scripts_pg.post, payload)
+        exc_info = pytest.raises(exc.BadRequest, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
         assert result == {u'script': [u'This field is required.']}, \
             "Unexpected API response when posting an inventory_script with a missing value for 'script': %s." % json.dumps(result)
@@ -96,7 +96,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         payload = dict(name=fauxfactory.gen_utf8(),
                        organization=organization.id,
                        script='import json\nprint json.dumps({})')
-        exc_info = pytest.raises(towerkit.exceptions.BadRequest, api_inventory_scripts_pg.post, payload)
+        exc_info = pytest.raises(exc.BadRequest, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
         assert result == {u'script': [u'Script must begin with a hashbang sequence: i.e.... #!/usr/bin/env python']}, \
             "Unexpected API response when posting an inventory_script with a script that does not begin with a hashbang sequence: %s." % json.dumps(result)
@@ -104,7 +104,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         # without organization
         payload = dict(name=fauxfactory.gen_utf8(),
                        script=script_source)
-        exc_info = pytest.raises(towerkit.exceptions.BadRequest, api_inventory_scripts_pg.post, payload)
+        exc_info = pytest.raises(exc.BadRequest, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
         assert result == {u'organization': [u'This field is required.']}, \
             "Unexpected API response when posting an inventory_script with a missing value for 'organization': %s." % json.dumps(result)
@@ -134,14 +134,15 @@ class Test_Inventory_Scripts(Base_Api_Test):
         inventory_scripts associated with an organization.
         """
         with self.current_user(anonymous_user.username, user_password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 inventory_script.get()
 
-    def test_duplicate(self, api_inventory_scripts_pg, inventory_script):
-        """Verify response when POSTing a duplicate to /inventory_scripts"""
-        # assert duplicate error
-        with pytest.raises(towerkit.exceptions.Duplicate):
-            api_inventory_scripts_pg.post(inventory_script.json)
+    def test_duplicate_inventory_scripts_disallowed_by_organization(self, factories):
+        inv_script = factories.v2_inventory_script()
+
+        with pytest.raises(exc.Duplicate) as e:
+            factories.v2_inventory_script(name=inv_script.name, organization=inv_script.ds.organization)
+        assert e.value[1]['__all__'] == ['Custom inventory script with this Name and Organization already exists.']
 
     def test_unique(self, request, api_inventory_scripts_pg, inventory_script, another_organization):
         """Verify response when POSTing a duplicate to /inventory_scripts"""
@@ -201,7 +202,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
             inventory_script.delete()
 
             # attempt to GET script
-            with pytest.raises(towerkit.exceptions.NotFound):
+            with pytest.raises(exc.NotFound):
                 inventory_script.get()
 
             # query /inventory_sources endpoint for matching id
@@ -210,7 +211,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
     def test_delete_as_unprivileged_user(self, inventory_script, unprivileged_user, user_password):
         """Verify unsuccesful DELETE to /inventory_scripts/N as an unprivileged user."""
         with self.current_user(unprivileged_user.username, user_password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 inventory_script.delete()
 
     def test_inventory_update_after_delete(self, custom_inventory_source_with_vars, inventory_script):
@@ -225,7 +226,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
         inventory_script.delete()
 
         # POST inventory_update
-        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
+        with pytest.raises(exc.MethodNotAllowed):
             update_pg.post()
 
         # reload the update_pg
@@ -280,7 +281,7 @@ class Test_Inventory_Scripts(Base_Api_Test):
 
     def test_confirm_prohibited_source_vars_rejected(self, custom_inventory_source_with_vars):
         for forbidden in ('TERM', 'USER', 'HOME'):
-            with pytest.raises(towerkit.exceptions.BadRequest) as e:
+            with pytest.raises(exc.BadRequest) as e:
                 custom_inventory_source_with_vars.patch(source_vars=json.dumps({forbidden: 'should_not_allow'}))
             assert e.value.message == {'source_vars': ['`{}` is a prohibited environment variable'.format(forbidden)]}
 

@@ -166,6 +166,13 @@ class Test_Project_Schedules(Base_Api_Test):
       1. project.next_update is expected
       2. project is updated at desired time
     """
+    def test_duplicate_schedules_disallowed_by_project(self, factories):
+        project = factories.v2_project()
+        schedule = project.add_schedule()
+
+        with pytest.raises(exc.Duplicate) as e:
+            project.add_schedule(name=schedule.name)
+        assert e.value[1]['name'] == ['Schedule with this Name already exists.']
 
     def test_empty(self, project):
         """assert a fresh project has no schedules"""

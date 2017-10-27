@@ -4,9 +4,11 @@
 """
 
 import os
+
+import towerkit.exceptions as exc
 import pytest
 import fauxfactory
-import towerkit.exceptions
+
 from tests.api import Base_Api_Test
 
 
@@ -38,7 +40,6 @@ def project_with_galaxy_requirements(request, authtoken, organization):
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Projects(Base_Api_Test):
-    """Verify various activities on /projects endpoint"""
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
@@ -290,7 +291,7 @@ class Test_Projects(Base_Api_Test):
 
         # assert related resources are notfound (404)
         for related in ('last_job', 'last_update', 'schedules', 'activity_stream', 'project_updates', 'teams', 'playbooks', 'update'):
-            with pytest.raises(towerkit.exceptions.NotFound):
+            with pytest.raises(exc.NotFound):
                 assert project_ansible_playbooks_git.get_related(related)
 
     @pytest.mark.requires_single_instance
