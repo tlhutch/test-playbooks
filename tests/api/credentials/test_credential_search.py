@@ -67,7 +67,6 @@ class TestCredentialSearch(Base_Api_Test):
 
         self.confirm_sole_credential_in_related_search(v2, cred, insights_inventories__search=inventory.name)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7756', raises=AssertionError)
     def test_search_by_sourcing_inventory_and_inventory_update(self, v2, factories):
         cred = factories.v2_credential(kind='aws')
         inv_source = factories.v2_inventory_source(source='ec2', credential=cred)
@@ -76,7 +75,7 @@ class TestCredentialSearch(Base_Api_Test):
 
         inv_source.update().wait_until_completed()
 
-        self.confirm_sole_credential_in_related_search(v2, cred, inventoryupdates__search=inv_source.name)
+        self.confirm_sole_credential_in_related_search(v2, cred, inventoryupdates__inventory_source__search=inv_source.name)
 
     def test_search_by_sourcing_job_template_and_job(self, v2, factories):
         cred = factories.v2_credential()
