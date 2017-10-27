@@ -184,8 +184,9 @@ class Test_Job(Base_Api_Test):
         payload = factories.v2_job_template.payload()
         del payload['credential']
 
-        vault_credential = factories.v2_credential(kind='vault', vault_password='fake')
+        vault_credential = factories.v2_credential(kind='vault', vault_password='tower')
         payload['vault_credential'] = vault_credential.id
+        payload['playbook'] = 'vaulted_debug_hostvars.yml'
 
         jt = v2.job_templates.post(payload)
         request.addfinalizer(jt.delete)
@@ -195,7 +196,7 @@ class Test_Job(Base_Api_Test):
         assert job.is_successful
 
         relaunched_job = job.relaunch().wait_until_completed()
-        assert job.is_successful
+        assert relaunched_job.is_successful
 
     def test_relaunch_with_deleted_related(self, job_with_deleted_related):
         """Verify relaunching a job whose related information has been deleted."""
