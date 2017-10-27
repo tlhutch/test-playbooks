@@ -27,6 +27,7 @@ class Test_Organizations(Base_Api_Test):
         org = factories.v2_organization()
         with pytest.raises(towerkit.exceptions.Duplicate) as e:
             factories.v2_organization(name=org.name)
+        assert e.value[1]['name'] == ['Organization with this Name already exists.']
 
     def test_delete(self, api_organizations_pg, organization):
         """Verify that deleting an organization actually works."""

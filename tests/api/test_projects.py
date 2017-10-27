@@ -277,7 +277,7 @@ class Test_Projects(Base_Api_Test):
         project = factories.v2_project()
         update = project.update()
 
-        with pytest.raises(towerkit.exceptions.Conflict) as e:
+        with pytest.raises(exc.Conflict) as e:
             project.delete()
         assert e.value[1] == {'conflict': 'Resource is being used by running jobs.', 'active_jobs': [{'type': 'project_update', 'id': update.id}]}
 

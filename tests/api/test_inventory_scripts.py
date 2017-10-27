@@ -1,7 +1,6 @@
 import json
 
 import towerkit.exceptions as exc
-import towerkit.tower.inventory
 import fauxfactory
 import pytest
 
