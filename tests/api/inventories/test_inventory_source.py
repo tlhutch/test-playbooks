@@ -54,5 +54,11 @@ class TestInventorySource(Base_Api_Test):
         groups.delete()
         hosts.delete()
 
+        for group in groups.results:
+            with pytest.raises(exc.NotFound):
+                group.get()
+        for host in hosts.results:
+            with pytest.raises(exc.NotFound):
+                host.get()
         assert groups.get().count == 0
         assert hosts.get().count == 0
