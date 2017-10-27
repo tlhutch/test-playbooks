@@ -10,39 +10,39 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.nondestructive
 class Test_Api_Basics(Base_Api_Test):
-    def test_get_200(self, api):
-        r = api.get('/api/')
+    def test_get_200(self, connection):
+        r = connection.get('/api/')
         assert r.status_code == httplib.OK, "Unable to connect"
 
-    def test_get_404(self, api):
-        r = api.get('/api/%s/' % fauxfactory.gen_utf8())
+    def test_get_404(self, connection):
+        r = connection.get('/api/%s/' % fauxfactory.gen_utf8())
         assert r.status_code == httplib.NOT_FOUND
 
-    def test_get_schema(self, api):
-        r = api.get('/api/')
+    def test_get_schema(self, connection):
+        r = connection.get('/api/')
         assert r.status_code == httplib.OK
         validate(r.json(), '/api/', 'get')
 
-    def test_options_schema(self, api):
-        r = api.options('/api/')
+    def test_options_schema(self, connection):
+        r = connection.options('/api/')
         assert r.status_code == httplib.OK
         validate(r.json(), '/api/', 'options')
 
-    def test_head_empty(self, api):
-        r = api.head('/api/')
+    def test_head_empty(self, connection):
+        r = connection.head('/api/')
         assert r.text == '', 'Expected no output from HEAD request'
         assert r.status_code == httplib.OK
 
-    def test_post_fail(self, api):
-        r = api.post('/api/', {})
+    def test_post_fail(self, connection):
+        r = connection.post('/api/', {})
         assert r.status_code == httplib.METHOD_NOT_ALLOWED
 
-    def test_patch_fail(self, api):
-        r = api.patch('/api/', {})
+    def test_patch_fail(self, connection):
+        r = connection.patch('/api/', {})
         assert r.status_code == httplib.METHOD_NOT_ALLOWED
 
-    def test_current_version(self, api):
-        r = api.get('/api/')
+    def test_current_version(self, connection):
+        r = connection.get('/api/')
         data = r.json()
         current_version = data.get('current_version')
         available_versions = data.get('available_versions')
@@ -52,12 +52,12 @@ class Test_Api_Basics(Base_Api_Test):
             (current_version, available_versions.values())
 
         # Does current_version path work?
-        r = api.get(current_version)
+        r = connection.get(current_version)
         assert r.status_code == httplib.OK, 'Unexpected response code'
         assert isinstance(r.json(), dict), 'Unexpected response data'
 
-    def test_description(self, api):
-        r = api.get('/api/')
+    def test_description(self, connection):
+        r = connection.get('/api/')
         data = r.json()
         description = data.get('description')
         assert description == 'AWX REST API'
