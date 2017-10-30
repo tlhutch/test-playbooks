@@ -11,7 +11,7 @@ ec2_images:
 
 ec2_security_groups:
     - name: tower-ha
-      description: Security group for Tower HA instances
+      description: Security group for Tower instances
       rules:
         - proto: tcp
           from_port: 22
