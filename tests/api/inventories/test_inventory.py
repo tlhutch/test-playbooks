@@ -97,18 +97,6 @@ class TestInventory(Base_Api_Test):
 
         assert job.related.job_host_summaries.get().count == 0
 
-    def test_conflict_exception_with_running_update(self, factories):
-        """Verify that deleting an inventory with a running update will raise a 409
-        exception.
-        """
-        inv_source = factories.v2_inventory_source()
-        inv_update = inv_source.update()
-
-        with pytest.raises(exc.Conflict) as e:
-            inv_source.ds.inventory.delete()
-        assert e.value.message['conflict'] == 'Resource is being used by running jobs'
-        assert e.value.message['active_jobs'] == [{'type': 'inventory_update', 'id': inv_update.id}]
-
     def test_v1_update_cascade_delete(self, custom_inventory_source):
         """Verify that v1 inventory updates get cascade deleted with their custom group."""
         inv_update1, inv_update2 = [custom_inventory_source.update().wait_until_completed() for _ in range(2)]

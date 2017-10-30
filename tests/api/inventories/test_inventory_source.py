@@ -42,6 +42,17 @@ class TestInventorySource(Base_Api_Test):
                 inv_source.credential = cred.id
             assert e.value[1] == error
 
+    def test_conflict_exception_with_running_inventory_update(self, factories):
+        inv_source = factories.v2_inventory_source()
+        inv_update = inv_source.update()
+
+        with pytest.raises(exc.Conflict) as e:
+            inv_source.delete()
+        assert e.value[1] == {'conflict': 'Resource is being used by running jobs.', 'active_jobs': [{'type': 'inventory_update', u'id': inv_update.id}]}
+
+        assert inv_source.wait_until_completed().is_successful
+        assert inv_update.get().is_successful
+
     def test_delete_sublist_resources(self, factories):
         inv_source = factories.v2_inventory_source()
         assert inv_source.update().wait_until_completed().is_successful

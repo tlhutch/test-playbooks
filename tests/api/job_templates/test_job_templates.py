@@ -403,16 +403,18 @@ print json.dumps(inv, indent=2)
         """Verify that a conflict exception is raised when deleting either the JT
         or some of the JT's underlying resources when a job is still running.
         """
-        inventory_pg = job_template_sleep.get_related("inventory")
-        project_pg = job_template_sleep.get_related("project")
+        inventory = job_template_sleep.ds.inventory
+        project = job_template_sleep.ds.project
 
         # launch the job_template
-        job_template_sleep.launch().wait_until_started()
+        job = job_template_sleep.launch().wait_until_started()
 
         # delete target object and assert 409 raised
-        for tower_resource in [job_template_sleep, inventory_pg, project_pg]:
+        for tower_resource in [job_template_sleep, inventory, project]:
             with pytest.raises(towerkit.exceptions.Conflict):
                 tower_resource.delete()
+
+        assert job.wait_until_completed().is_successful
 
     def test_launch_with_diff_mode(self, factories):
         host = factories.v2_host()

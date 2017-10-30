@@ -272,16 +272,16 @@ class Test_Projects(Base_Api_Test):
         assert api_project_updates_pg.get(project=project_id).count == 0, \
             "Unexpected number of project updates after deleting project. Expected zero updates."
 
-    def test_conflict_exception_with_running_update(self, project_ansible_git_nowait):
-        """Verify that deleting a project with a running update will
-        raise a 409 exception
-        """
-        update_pg = project_ansible_git_nowait.get_related("current_update")
+    def test_conflict_exception_with_running_project_update(self, factories):
+        project = factories.v2_project()
+        update = project.update()
 
-        # delete the job_template
-        exc_info = pytest.raises(towerkit.exceptions.Conflict, project_ansible_git_nowait.delete)
-        result = exc_info.value[1]
-        assert result == {'conflict': 'Resource is being used by running jobs', 'active_jobs': [{'type': '%s' % update_pg.type, 'id': update_pg.id}]}
+        with pytest.raises(towerkit.exceptions.Conflict) as e:
+            project.delete()
+        assert e.value[1] == {'conflict': 'Resource is being used by running jobs.', 'active_jobs': [{'type': 'project_update', 'id': update.id}]}
+
+        assert update.wait_until_completed().is_successful
+        assert project.get().is_successful
 
     def test_delete_related_fields(self, install_enterprise_license_unlimited, project_ansible_playbooks_git):
         """Verify that related fields on a deleted resource respond as expected"""
