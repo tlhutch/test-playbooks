@@ -1,9 +1,5 @@
-"""# 1) Verify teams with unicode names
-# 2) Verify credentials, owned by the team, are removed upon DELETE
-"""
-
 from towerkit.config import config
-import towerkit.exceptions
+import towerkit.exceptions as exc
 import fauxfactory
 import pytest
 
@@ -46,16 +42,15 @@ def team_payload(**kwargs):
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
 class Test_Teams(Base_Api_Test):
-    """Tests related to the /api/v1/teams endpoint."""
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
-    def test_duplicate(self, api_teams_pg, some_team):
-        """Verify that teamnames are unique"""
-        payload = dict(name=some_team.name,
-                       organization=some_team.organization)
-        with pytest.raises(towerkit.exceptions.Duplicate):
-            api_teams_pg.post(payload)
+    def test_duplicate_teams_disallowed_by_organization(self, factories):
+        team = factories.v2_team()
+
+        with pytest.raises(exc.Duplicate) as e:
+            factories.v2_team(name=team.name, organization=team.ds.organization)
+        assert e.value[1]['__all__'] == ['Team with this Organization and Name already exists.']
 
     def test_privileged_user_can_create_team(self, request, api_teams_pg, privileged_user, user_password, organization):
         """Verify that a privileged user can create teams."""
@@ -66,7 +61,7 @@ class Test_Teams(Base_Api_Test):
     def test_unprivileged_user_cannot_create_team(self, api_teams_pg, unprivileged_user, user_password, organization):
         """Verify that a normal unprivileged user cannot create teams."""
         with self.current_user(unprivileged_user.username, user_password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 api_teams_pg.post(team_payload(organization=organization.id))
 
     def test_non_superuser_cannot_create_team_in_another_organization(self, api_teams_pg, non_superuser, user_password, organization,
@@ -75,11 +70,11 @@ class Test_Teams(Base_Api_Test):
         their organization.
         """
         with self.current_user(non_superuser.username, user_password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 api_teams_pg.post(team_payload(organization=another_organization.id))
 
     def test_organization_cascade_delete(self, team):
         """Verifies that teams get cascade deleted along with their organization."""
         team.get_related("organization").delete()
-        with pytest.raises(towerkit.exceptions.NotFound):
+        with pytest.raises(exc.NotFound):
             team.get()

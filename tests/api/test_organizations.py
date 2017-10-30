@@ -23,19 +23,11 @@ class Test_Organizations(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
-    # TODO - test_post_as_superuser
-    # TODO - test_patch_as_superuser
-    # TODO - test_put_as_superuser
-
-    # TODO - test_post_as_non_superuser
-    # TODO - test_put_as_non_superuser
-    # TODO - test_patch_as_non_superuser
-
-    def test_duplicate(self, api_organizations_pg, organization):
-        """Verify that organization names are unique."""
-        payload = dict(name=organization.name)
-        with pytest.raises(towerkit.exceptions.Duplicate):
-            api_organizations_pg.post(payload)
+    def test_duplicate_organizations_disallowed(self, factories):
+        org = factories.v2_organization()
+        with pytest.raises(towerkit.exceptions.Duplicate) as e:
+            factories.v2_organization(name=org.name)
+        assert e.value[1]['name'] == ['Organization with this Name already exists.']
 
     def test_delete(self, api_organizations_pg, organization):
         """Verify that deleting an organization actually works."""

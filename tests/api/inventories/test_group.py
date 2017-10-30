@@ -605,7 +605,7 @@ class TestGroup(Base_Api_Test):
             group.add_group(group)
         assert e.value[1] == {u'error': u'Cyclical Group association.'}
 
-    def test_allowed_duplicates(self, factories):
+    def test_duplicate_groups_allowed_in_different_inventories(self, factories):
         """Verify that duplicate groups are allowed in different inventories."""
         parent1 = factories.v2_group()
         child1 = factories.v2_group(inventory=parent1.ds.inventory)
@@ -615,7 +615,7 @@ class TestGroup(Base_Api_Test):
         parent2, child2 = [factories.v2_group(inventory=inventory, name=name) for name in (parent1.name, child1.name)]
         parent2.add_group(child2)
 
-    def test_disallowed_duplicates(self, factories):
+    def test_duplicate_groups_disallowed_in_same_inventory(self, factories):
         """Verify that duplicate groups are not allowed in the same inventory."""
         parent = factories.v2_group()
         inventory = parent.ds.inventory

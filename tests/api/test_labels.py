@@ -1,6 +1,6 @@
 import json
 
-import towerkit.exceptions
+import towerkit.exceptions as exc
 import fauxfactory
 import pytest
 
@@ -14,11 +14,11 @@ class Test_Labels(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_duplicate(self, label, api_labels_pg):
-        """Verify that labels must be unique."""
-        payload = label.json
-        with pytest.raises(towerkit.exceptions.Duplicate):
-            api_labels_pg.post(payload)
+    def test_duplicate_labels_disallowed_by_organization(self, factories):
+        label = factories.v2_label()
+        with pytest.raises(exc.Duplicate) as e:
+            factories.v2_label(name=label.name, organization=label.ds.organization)
+        assert e.value[1]['__all__'] == ['Label with this Name and Organization already exists.']
 
     def test_duplicate_across_different_organizations(self, label, another_organization, api_labels_pg):
         """Verify that labels with the same name may be created across different organizations."""
@@ -66,7 +66,7 @@ class Test_Labels(Base_Api_Test):
 
         # Associate a label with the JT and assess results
         payload = dict(associate=True, id=label.id)
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with pytest.raises(exc.NoContent):
             labels_pg.post(payload)
 
         assert labels_pg.get().count == 1, \
@@ -82,7 +82,7 @@ class Test_Labels(Base_Api_Test):
         # Disassociate a label with the JT and assess results
         label_pg = labels_pg.results[0]
         payload = dict(disassociate=True, id=label_pg.id)
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with pytest.raises(exc.NoContent):
             labels_pg.post(payload)
 
         assert labels_pg.get().count == 0, \
@@ -95,7 +95,7 @@ class Test_Labels(Base_Api_Test):
         organization_pg.delete()
 
         # check that label gets deleted
-        with pytest.raises(towerkit.exceptions.NotFound):
+        with pytest.raises(exc.NotFound):
             label.get()
 
     def test_reference_delete_with_job_template_deletion(self, job_template, another_job_template, label):
@@ -107,9 +107,9 @@ class Test_Labels(Base_Api_Test):
         another_labels_pg = another_job_template.get_related('labels')
 
         payload = dict(associate=True, id=label.id)
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with pytest.raises(exc.NoContent):
             labels_pg.post(payload)
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with pytest.raises(exc.NoContent):
             another_labels_pg.post(payload)
 
         # check that labels associated
@@ -122,7 +122,7 @@ class Test_Labels(Base_Api_Test):
 
         # label should get reference deleted with final JT deletion
         another_job_template.delete()
-        with pytest.raises(towerkit.exceptions.NotFound):
+        with pytest.raises(exc.NotFound):
             label.get()
 
     def test_reference_delete_with_job_template_disassociation(self, job_template, another_job_template, label):
@@ -134,9 +134,9 @@ class Test_Labels(Base_Api_Test):
         another_labels_pg = another_job_template.get_related('labels')
 
         payload = dict(associate=True, id=label.id)
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with pytest.raises(exc.NoContent):
             labels_pg.post(payload)
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with pytest.raises(exc.NoContent):
             another_labels_pg.post(payload)
 
         # check that labels associated
@@ -144,14 +144,14 @@ class Test_Labels(Base_Api_Test):
         assert another_labels_pg.get().count == 1, "Unexpected number of labels found."
 
         # label should not get reference deleted with first JT disassociation
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with pytest.raises(exc.NoContent):
             labels_pg.post(dict(id=label.id, disassociate=True))
         label.get()
 
         # label should get reference deleted with final JT disassociation
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with pytest.raises(exc.NoContent):
             another_labels_pg.post(dict(id=label.id, disassociate=True))
-        with pytest.raises(towerkit.exceptions.NotFound):
+        with pytest.raises(exc.NotFound):
             label.get()
 
     def test_job_reference_delete(self, job_template_with_label, api_labels_pg):
@@ -245,7 +245,7 @@ class Test_Labels(Base_Api_Test):
         are not a member.
         """
         with self.current_user(org_admin.username, user_password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 label.patch(organization=another_organization.id)
 
     def test_able_to_assign_label_to_different_org(self, org_admin, user_password, label, another_organization):
@@ -254,7 +254,7 @@ class Test_Labels(Base_Api_Test):
         """
         # make org_admin a member of another_organization
         org_users_pg = another_organization.get_related('users')
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with pytest.raises(exc.NoContent):
             org_users_pg.post(dict(id=org_admin.id))
 
         # assert that org_admin can reassign label
@@ -266,10 +266,10 @@ class Test_Labels(Base_Api_Test):
         for unprivileged_user in unprivileged_users:
             # make unprivileged user a member of another_organization
             users_pg = another_organization.get_related('users')
-            with pytest.raises(towerkit.exceptions.NoContent):
+            with pytest.raises(exc.NoContent):
                 users_pg.post(dict(id=unprivileged_user.id))
 
             # assert that unprivileged user cannot reassign label
             with self.current_user(unprivileged_user.username, user_password):
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(exc.Forbidden):
                     label.patch(organization=another_organization.id)
