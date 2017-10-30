@@ -350,7 +350,7 @@ class Test_Job(Base_Api_Test):
 
         with pytest.raises(exc.BadRequest) as e:
             jt.add_survey(spec=spec)
-        assert e.value[1]['error'] == "$encrypted$ is reserved keyword and may not be used as a default for password 0."
+        assert e.value[1]['error'] == "$encrypted$ is reserved keyword for password questions and may not be used as a default for 'test' in survey question 0."
 
     @pytest.mark.requires_isolation
     @pytest.mark.requires_single_instance
