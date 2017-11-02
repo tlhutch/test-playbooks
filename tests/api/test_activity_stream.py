@@ -1,5 +1,6 @@
 import logging
 
+from towerkit import utils
 import towerkit.exceptions
 import pytest
 
@@ -79,3 +80,22 @@ class TestActivityStream(Base_Api_Test):
         assert activity.type == "activity_stream"
         assert activity.operation == "create"
         assert activity.object_association == ""
+
+    def test_survey_password_defaults_not_exposed_upon_jt_deletion(self, v2, factories):
+        jt = factories.v2_job_template()
+        survey = [dict(required=False,
+                       question_name='Test',
+                       variable='var',
+                       type='password',
+                       default="don't expose me")]
+        jt.add_survey(spec=survey)
+        jt.delete()
+
+        activity = v2.activity_stream.get(order_by='-id').results[0]
+        spec = utils.load_json_or_yaml(activity.changes.survey_spec)
+        assert spec['spec'][0]['default'] == '$encrypted$'
+
+        assert activity.object1 == jt.type
+        assert activity.object2 == ''
+        assert activity.operation == 'delete'
+        assert activity.object_association == ''
