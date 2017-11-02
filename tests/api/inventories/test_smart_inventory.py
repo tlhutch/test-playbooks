@@ -34,6 +34,25 @@ class TestSmartInventory(Base_Api_Test):
         assert hosts.count == 1
         assert hosts.results.pop().id == host1.id
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7763')
+    def test_smart_inventory_updates_for_dependent_resources(self, factories):
+        host = factories.v2_host()
+        inv = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
+                                     host_filter='name={0}'.format(host.name))
+
+        assert inv.total_hosts == 1
+        assert inv.total_groups == 0
+        assert inv.total_inventory_sources == 0
+        assert not inv.has_inventory_sources
+
+        jt = factories.v2_job_template(inventory=inv, playbook='fail_unless.yml')
+        assert jt.launch().wait_until_completed().status == 'failed'
+
+        assert inv.get().hosts_with_active_failures == 1
+        assert inv.groups_with_active_failures == 0
+        assert inv.inventory_sources_with_failures == 0
+        assert inv.has_active_failures
+
     def test_unable_to_create_host(self, factories):
         inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
         with pytest.raises(exc.BadRequest) as e:
