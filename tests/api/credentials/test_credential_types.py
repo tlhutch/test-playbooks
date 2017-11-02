@@ -121,6 +121,19 @@ class TestCredentialTypes(Base_Api_Test):
         assert openstack.project.label == 'Project (Tenant Name)'
         assert openstack.username.label == 'Username'
 
+    def test_managed_by_tower_ovirt_credential_type(self, managed_by_tower_fields):
+        ovirt = managed_by_tower_fields['oVirt4']
+        assert ovirt.kind == 'cloud'
+        assert ovirt.username.label == 'Username'
+        assert ovirt.username.type == 'string'
+        assert ovirt.password.label == 'Password'
+        assert ovirt.password.type == 'string'
+        assert ovirt.password.secret is True
+        assert ovirt.ca_file.label == 'CA File'
+        assert ovirt.ca_file.type == 'string'
+        assert ovirt.host.label == 'Host (Authentication URL)'
+        assert ovirt.host.type == 'string'
+
     def test_managed_by_tower_network_credential_type(self, managed_by_tower_fields):
         net = managed_by_tower_fields['Network']
         assert net.kind == 'net'
@@ -179,6 +192,17 @@ class TestCredentialTypes(Base_Api_Test):
         assert ssh.ssh_key_unlock.label == 'Private Key Passphrase'
         assert ssh.ssh_key_unlock.secret is True
         assert ssh.username.label == 'Username'
+
+    def test_managed_by_tower_tower_credential_type(self, managed_by_tower_fields):
+        tower = managed_by_tower_fields['Ansible Tower']
+        assert tower.kind == 'cloud'
+        assert tower.username.label == 'Username'
+        assert tower.username.type == 'string'
+        assert tower.password.label == 'Password'
+        assert tower.password.type == 'string'
+        assert tower.password.secret is True
+        assert tower.host.label == 'Ansible Tower Hostname'
+        assert tower.host.type == 'string'
 
     def test_managed_by_tower_vault_credential_type(self, managed_by_tower_fields):
         vault = managed_by_tower_fields['Vault']
