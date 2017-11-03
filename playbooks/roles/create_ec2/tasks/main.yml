@@ -32,6 +32,7 @@
         ANSIBLE_INSTALL_METHOD: '{{ ansible_install_method|default("nightly") }}'
         controller: "{{ item.controller|default('') }}"
         Test-Flag-2202: 'Replace-Dash-In-Groups'
+        Ice: '{{ec2_name_prefix}}-{{item.name}}'
     group: '{{ item.security_group|default(ec2_security_group) }}'
     key_name: '{{ ec2_key_name }}'
     image: '{{ item.id }}'
