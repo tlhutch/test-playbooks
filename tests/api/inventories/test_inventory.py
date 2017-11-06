@@ -97,7 +97,7 @@ class TestInventory(Base_Api_Test):
 
         assert job.related.job_host_summaries.get().count == 0
 
-    def test_inventory_updates_for_dependent_resources_and_jobs(self, factories):
+    def test_inventory_reflects_dependent_resources_and_active_failures(self, factories):
         inv = factories.v2_inventory()
         group = factories.v2_group(inventory=inv)
         group.add_host(factories.v2_host(inventory=inv))

@@ -35,7 +35,7 @@ class TestSmartInventory(Base_Api_Test):
         assert hosts.results.pop().id == host1.id
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7763')
-    def test_smart_inventory_updates_for_dependent_resources(self, factories):
+    def test_smart_inventory_reflects_dependent_resources(self, factories):
         host = factories.v2_host()
         inv = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
                                      host_filter='name={0}'.format(host.name))
