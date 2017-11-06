@@ -240,6 +240,7 @@ class TestCredentials(Base_Api_Test):
         with pytest.raises(exc.BadRequest) as e:
             cred.credential_type = insights_type_id
         assert "You cannot change the credential type of the credential" in e.value[1]['credential_type'][0]
+        assert cred.credential_type == machine_type_id
 
     def test_confirm_boto_exception_in_ec2_inv_sync_without_credential(self, factories):
         inv_source = factories.v2_inventory_source(source='ec2')
