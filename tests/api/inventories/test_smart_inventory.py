@@ -12,7 +12,22 @@ class TestSmartInventory(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    def test_host_update(self, factories):
+    def test_host_sourced_by_ansible_facts(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        assert jt.launch().wait_until_completed()
+
+        facts = host.related.ansible_facts.get()
+        inv = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
+                                     host_filter=('ansible_facts__ansible_distribution={0} and'
+            'ansible_facts__ansible_distribution_version="{1}"')
+            .format(facts.ansible_distribution, facts.ansible_distribution_version))
+
+        hosts = inv.related.hosts.get()
+        assert hosts.count == 1
+        assert hosts.results.pop().id == host.id
+
+    def test_host_updates_for_edit_and_deletion(self, factories):
         host = factories.v2_host()
         inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind='smart',
                                            host_filter="name={0}".format(host.name))
