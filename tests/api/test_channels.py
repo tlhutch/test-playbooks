@@ -19,7 +19,6 @@ class ChannelsTest(object):
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-@pytest.mark.mp_group('TestAdHocCommandChannels', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
 
@@ -44,6 +43,7 @@ class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
             return ahc, messages
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestAdHocCommandChannelsSerialGroup', 'serial')
         @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
         def test_ad_hoc_command_status_changes(self, ahc_and_ws_events, desired_status):
             ahc, events = ahc_and_ws_events
@@ -53,6 +53,7 @@ class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
             assert desired_msg in events
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestAdHocCommandChannelsSerialGroup', 'serial')
         def test_ad_hoc_command_events(self, ahc_and_ws_events):
             ahc, ws_events = ahc_and_ws_events
 
@@ -87,13 +88,14 @@ class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
 
             ws.unsubscribe()
             utils.logged_sleep(3)
+            for m in ws:
+                pass
             assert ahc.relaunch().wait_until_completed().is_successful
             assert not [m for m in ws]
 
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-@pytest.mark.mp_group('TestJobChannels', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobChannels(ChannelsTest, Base_Api_Test):
 
@@ -119,6 +121,7 @@ class TestJobChannels(ChannelsTest, Base_Api_Test):
             return job, messages
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestJobChannelsSerialGroup', 'serial')
         @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
         def test_job_command_status_changes(self, job_and_ws_events, desired_status):
             job, events = job_and_ws_events
@@ -128,6 +131,7 @@ class TestJobChannels(ChannelsTest, Base_Api_Test):
             assert desired_msg in events
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestJobChannelsSerialGroup', 'serial')
         def test_job_events(self, job_and_ws_events):
             job, ws_events = job_and_ws_events
 
@@ -161,13 +165,14 @@ class TestJobChannels(ChannelsTest, Base_Api_Test):
 
             ws.unsubscribe()
             utils.logged_sleep(3)
+            for m in ws:
+                pass
             assert job.relaunch().wait_until_completed().is_successful
             assert not [m for m in ws]
 
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-@pytest.mark.mp_group('TestWorkflowChannels', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
 
@@ -215,13 +220,14 @@ class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
 
             ws.unsubscribe()
             utils.logged_sleep(3)
+            for m in ws:
+                pass
             wfjt.launch().wait_until_completed()
             assert not [m for m in ws]
 
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-@pytest.mark.mp_group('TestInventoryChannels', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventoryChannels(ChannelsTest, Base_Api_Test):
 
@@ -243,6 +249,7 @@ class TestInventoryChannels(ChannelsTest, Base_Api_Test):
             return inv_update, messages
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestInventoryChannelsSerialGroup', 'serial')
         @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
         def test_inventory_update_status_changes(self, inv_update_and_ws_events, desired_status):
             inv_update, events = inv_update_and_ws_events
@@ -269,13 +276,14 @@ class TestInventoryChannels(ChannelsTest, Base_Api_Test):
 
             ws.unsubscribe()
             utils.logged_sleep(3)
+            for m in ws:
+                pass
             assert inv_source.update().wait_until_completed().is_successful
             assert not [m for m in ws]
 
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-@pytest.mark.mp_group('TestProjectUpdateChannels', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
 
@@ -297,6 +305,7 @@ class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
             return project_update, messages
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestProjectUpdateChannelsSerialGroup', 'serial')
         @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
         def test_project_update_status_changes(self, project_update_and_ws_events, desired_status):
             update, events = project_update_and_ws_events
@@ -321,5 +330,7 @@ class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
 
             ws.unsubscribe()
             utils.logged_sleep(3)
+            for m in ws:
+                pass
             assert project.update().wait_until_completed().is_successful
             assert not [m for m in ws]
