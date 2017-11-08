@@ -59,21 +59,20 @@ class TestActivityStream(Base_Api_Test):
         assert(not operations
                ), "Failed to find activity for all operations.  Missing: {}".format(operations)
 
-    def test_verify_configure_tower_edit_entry(self, v2, update_setting_pg):
+    def test_verify_configure_tower_edit_entry(self, v2, superuser, update_setting_pg):
         jobs_settings = v2.settings.get().get_endpoint('jobs')
-
         payload = dict(SCHEDULE_MAX_JOBS=777)
-        update_setting_pg(jobs_settings, payload)
+        with self.current_user(superuser):
+            update_setting_pg(jobs_settings, payload)
 
-        activity = v2.activity_stream.get(order_by='-id').results[0]
+        activity = v2.activity_stream.get(actor=superuser.id).results.pop()
         summary_fields = activity.summary_fields
 
         assert summary_fields.setting == [dict(category='jobs', name='SCHEDULE_MAX_JOBS')]
-        me = v2.me.get().results.pop()
-        assert summary_fields.actor.username == me.username
-        assert summary_fields.actor.first_name == me.first_name
-        assert summary_fields.actor.last_name == me.last_name
-        assert summary_fields.actor.id == me.id
+        assert summary_fields.actor.username == superuser.username
+        assert summary_fields.actor.first_name == superuser.first_name
+        assert summary_fields.actor.last_name == superuser.last_name
+        assert summary_fields.actor.id == superuser.id
 
         assert activity.object1 == "setting"
         assert activity.object2 == ""
