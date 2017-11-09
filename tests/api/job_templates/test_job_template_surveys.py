@@ -149,3 +149,24 @@ class TestJobTemplateSurveys(Base_Api_Test):
         assert job.is_successful
         job_activity_stream = job.related.activity_stream.get().results.pop()
         assert json.loads(job_activity_stream.changes.extra_vars)['secret'] == "$encrypted$"
+
+    @pytest.mark.requires_single_instance
+    @pytest.mark.parametrize('template', ['job', 'workflow_job'])
+    def test_confirm_no_plaintext_survey_passwords_in_db(self, v2, factories, get_pg_dump, template):
+        resource = getattr(factories, template + '_template')()
+        password = "don't expose me"
+        survey = [dict(required=False,
+                       question_name='Test',
+                       variable='var',
+                       type='password',
+                       default=password)]
+        resource.add_survey(spec=survey)
+
+        pg_dump = get_pg_dump()
+
+        try:
+            undesired_location = pg_dump.index(password)
+            target_text = pg_dump[undesired_location - 200:undesired_location + 200]
+            pytest.fail('Found plaintext survey password secret in db:\n\n{}'.format(target_text))
+        except ValueError:
+            pass
