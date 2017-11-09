@@ -97,6 +97,26 @@ class TestInventory(Base_Api_Test):
 
         assert job.related.job_host_summaries.get().count == 0
 
+    def test_inventory_reflects_dependent_resources_and_active_failures(self, factories):
+        inv = factories.v2_inventory()
+        group = factories.v2_group(inventory=inv)
+        group.add_host(factories.v2_host(inventory=inv))
+        inv_source = factories.v2_inventory_source(inventory=inv, source='ec2')
+
+        inv_source.update().wait_until_completed()
+        jt = factories.v2_job_template(inventory=inv, playbook='fail_unless.yml')
+        assert jt.launch().wait_until_completed().status == 'failed'
+
+        assert inv.get().total_hosts == 1
+        assert inv.total_groups == 1
+        assert inv.total_inventory_sources == 1
+        assert inv.has_inventory_sources
+
+        assert inv.hosts_with_active_failures == 1
+        assert inv.groups_with_active_failures == 1
+        assert inv.inventory_sources_with_failures == 1
+        assert inv.has_active_failures
+
     def test_v1_update_cascade_delete(self, custom_inventory_source):
         """Verify that v1 inventory updates get cascade deleted with their custom group."""
         inv_update1, inv_update2 = [custom_inventory_source.update().wait_until_completed() for _ in range(2)]
