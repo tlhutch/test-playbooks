@@ -231,17 +231,17 @@ class TestFactCache(Base_Api_Test):
     @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
     def test_scan_file_paths_are_traversed(self, v2, request, ansible_runner, scan_facts_job_template):
+        test_dir = '/tmp/test{}'.format(fauxfactory.gen_alphanumeric())
+        request.addfinalizer(lambda: ansible_runner.file(path=test_dir, state='absent'))
+
         jobs_settings = v2.settings.get().get_endpoint('jobs')
         prev_proot_show_paths = jobs_settings.AWX_PROOT_SHOW_PATHS
-        jobs_settings.AWX_PROOT_SHOW_PATHS = prev_proot_show_paths + ["/tmp/test"]
+        jobs_settings.AWX_PROOT_SHOW_PATHS = prev_proot_show_paths + [test_dir]
         request.addfinalizer(lambda: jobs_settings.patch(AWX_PROOT_SHOW_PATHS=prev_proot_show_paths))
 
-        dir_path = '/tmp/test/directory/traversal/is/working'
+        dir_path = '{}/directory/traversal/is/working'.format(test_dir)
         res = ansible_runner.file(path=dir_path, state='directory').values()[0]
         assert not res.get('failed') and res.get('changed')
-
-        test_dir = '/tmp/test'
-        request.addfinalizer(lambda: ansible_runner.file(path=test_dir, state='absent'))
 
         file_path = dir_path + '/some_file'
         res = ansible_runner.file(path=file_path, state='touch').values()[0]
