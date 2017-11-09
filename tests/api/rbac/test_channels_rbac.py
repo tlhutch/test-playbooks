@@ -11,18 +11,21 @@ from tests.api import Base_Api_Test
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestChannelsRBAC(Base_Api_Test):
 
+        def sleep_and_clear_messages(self, ws):
+            utils.logged_sleep(3)
+            for m in ws:
+                pass
+
         def test_ad_hoc_command_events_unauthorized_subscription(self, request, factories, v2):
             inventory = factories.v2_host().ds.inventory
             user = factories.v2_user()
             ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
             request.addfinalizer(ws.close)
-
-            ws.pending_ad_hoc_stdout()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
             ahc = factories.v2_ad_hoc_command(module_name='shell', module_args='true', inventory=inventory)
+            ws.ad_hoc_stdout(ahc.id)
             ahc.wait_until_completed()
             received = [m for m in ws]
             denied_error = dict(error='access denied to channel ad_hoc_command_events for resource id {0.id}'
@@ -41,13 +44,11 @@ class TestChannelsRBAC(Base_Api_Test):
 
             ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
             request.addfinalizer(ws.close)
-
-            ws.pending_ad_hoc_stdout()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
             ahc = factories.v2_ad_hoc_command(module_name='shell', module_args='true', inventory=inventory)
+            ws.ad_hoc_stdout(ahc.id)
             ahc.wait_until_completed()
 
             # keys where ws event doesn't match retrieved event for subtle reasons
@@ -62,7 +63,6 @@ class TestChannelsRBAC(Base_Api_Test):
                 expected_status_changes.append(expected_msg)
             for expected in expected_status_changes:
                 assert expected in filtered_received
-                filtered_received.remove(expected)
 
             with self.current_user(user.username, user.password):
                 ahc_events = [result for result in ahc.related.events.get().results]
@@ -75,8 +75,6 @@ class TestChannelsRBAC(Base_Api_Test):
                                    for event in filtered_ahc_events]
             for expected in expected_ahc_events:
                 assert expected in filtered_received
-                filtered_received.remove(expected)
-            assert not filtered_received  # confirm no other messages received
 
         @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5158', skip=True)
         @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
@@ -86,9 +84,7 @@ class TestChannelsRBAC(Base_Api_Test):
             ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
             request.addfinalizer(ws.close)
             ws.status_changes()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass  # clear user identity
+            self.sleep_and_clear_messages(ws)
 
             group = factories.v2_group(source='custom', inventory_script=True)
             group.related.inventory_source.get().update().wait_until_completed()
@@ -108,8 +104,6 @@ class TestChannelsRBAC(Base_Api_Test):
             received = [m for m in ws]
             for message in expected_status_changes:
                 assert message in received
-                received.remove(message)
-            assert not received  # confirm no other messages received
 
         def test_job_events_unauthorized_subscription(self, request, factories, v2):
             user = factories.v2_user()
@@ -118,12 +112,12 @@ class TestChannelsRBAC(Base_Api_Test):
 
             ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
             request.addfinalizer(ws.close)
-            ws.pending_job_stdout()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
-            job = jt.launch().wait_until_completed()
+            job = jt.launch()
+            ws.job_stdout(job.id)
+            job.wait_until_completed()
             received = [m for m in ws]
             denied_error = dict(error='access denied to channel job_events for resource id {0.id}'
                                 .format(job))
@@ -142,12 +136,12 @@ class TestChannelsRBAC(Base_Api_Test):
 
             ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
             request.addfinalizer(ws.close)
-            ws.pending_job_stdout()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
-            job = jt.launch().wait_until_completed()
+            job = jt.launch()
+            ws.job_stdout(job.id)
+            job.wait_until_completed()
 
             # keys where ws event doesn't match retrieved event for subtle reasons
             not_of_interest = set(('created', 'event_name', 'modified', 'summary_fields', 'related'))
@@ -164,7 +158,6 @@ class TestChannelsRBAC(Base_Api_Test):
 
             for expected in expected_status_changes:
                 assert expected in filtered_received
-                filtered_received.remove(expected)
 
             with self.current_user(user.username, user.password):
                 job_events = [result.json for result in job.related.job_events.get().results]
@@ -176,7 +169,6 @@ class TestChannelsRBAC(Base_Api_Test):
                                    for event in filtered_job_events]
             for expected in expected_job_events:
                 assert expected in filtered_received
-                filtered_received.remove(expected)
 
         @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5158', skip=True)
         @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
@@ -186,9 +178,7 @@ class TestChannelsRBAC(Base_Api_Test):
             ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
             request.addfinalizer(ws.close)
             ws.status_changes()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass  # clear user identity
+            self.sleep_and_clear_messages(ws)
 
             project = factories.v2_project()
             assert not [m for m in ws]  # no messages should be broadcasted to client
@@ -207,13 +197,14 @@ class TestChannelsRBAC(Base_Api_Test):
             received = [m for m in ws]
             for message in expected_status_changes:
                 assert message in received
-                received.remove(message)
-            assert not received  # confirm no other messages received
 
         def test_workflow_events_unauthorized_subscription(self, request, factories, v2):
             user = factories.v2_user()
             ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
             request.addfinalizer(ws.close)
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
+
             inventory = factories.v2_host().ds.inventory
             success_jt = factories.v2_job_template(inventory=inventory, playbook='debug.yml')
             fail_jt = factories.v2_job_template(inventory=inventory, playbook='fail_unless.yml')
@@ -222,12 +213,11 @@ class TestChannelsRBAC(Base_Api_Test):
                                                         unified_job_template=success_jt)
             failure = root.related.success_nodes.post(dict(unified_job_template=fail_jt.id))
             failure.related.failure_nodes.post(dict(unified_job_template=success_jt.id))
-            ws.pending_workflow_events()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass  # empty user indentifier
 
-            wfj = wfjt.launch().wait_until_completed()
+            wfj = wfjt.launch()
+            ws.workflow_events(wfj.id)
+            wfj.wait_until_completed()
+
             received = [m for m in ws]
             denied_error = dict(error='access denied to channel workflow_events for resource id {0.id}'
                                 .format(wfj))
@@ -254,15 +244,12 @@ class TestChannelsRBAC(Base_Api_Test):
 
             ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
             request.addfinalizer(ws.close)
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
-            ws.pending_workflow_events()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass  # empty user indentifier
-
-            ws.pending_workflow_events()
-            utils.logged_sleep(3)
-            wfj = wfjt.launch().wait_until_completed()
+            wfj = wfjt.launch()
+            ws.workflow_events(wfj.id)
+            wfj.wait_until_completed()
 
             with self.current_user(user.username, user.password):
                 success_job_ids = [r.id for r in success_jt.related.jobs.get().results]
@@ -289,4 +276,3 @@ class TestChannelsRBAC(Base_Api_Test):
             received = [m for m in ws if m.get('group_name') == 'workflow_events']
             for message in expected:
                 assert message in received
-                received.remove(message)

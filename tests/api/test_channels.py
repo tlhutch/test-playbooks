@@ -7,6 +7,11 @@ from tests.api import Base_Api_Test
 
 class ChannelsTest(object):
 
+    def sleep_and_clear_messages(self, ws):
+        utils.logged_sleep(3)
+        for m in ws:
+            pass
+
     def filtered_events(self, events, not_of_interest):
         filtered = []
         for event in events:
@@ -28,18 +33,16 @@ class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
 
             ws = WSClient(v2_class.get_authtoken()).connect()
             request.addfinalizer(ws.close)
-            ws.pending_ad_hoc_stdout()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
             ahc = class_factories.v2_ad_hoc_command(module_name='shell', module_args='true',
-                                                    inventory=host.ds.inventory).wait_until_completed()
-            assert ahc.is_successful
+                                                    inventory=host.ds.inventory)
+            ws.ad_hoc_stdout(ahc.id)
+            assert ahc.wait_until_completed().is_successful
+
             messages = [m for m in ws]
-
             ws.unsubscribe()
-
             return ahc, messages
 
         @pytest.mark.ansible_integration
@@ -76,20 +79,18 @@ class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
 
             ws = WSClient(v2.get_authtoken()).connect()
             request.addfinalizer(ws.close)
-            ws.pending_ad_hoc_stdout()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
             ahc = factories.v2_ad_hoc_command(module_name='shell', module_args='true',
                                               inventory=host.ds.inventory).wait_until_completed()
-            assert ahc.is_successful
+            ws.ad_hoc_stdout(ahc.id)
+            assert ahc.wait_until_completed().is_successful
             assert [m for m in ws]
 
             ws.unsubscribe()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
+
             assert ahc.relaunch().wait_until_completed().is_successful
             assert not [m for m in ws]
 
@@ -105,19 +106,16 @@ class TestJobChannels(ChannelsTest, Base_Api_Test):
 
             ws = WSClient(v2_class.get_authtoken()).connect()
             request.addfinalizer(ws.close)
-            ws.pending_job_stdout()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
             job = class_factories.v2_job_template(playbook='debug.yml',
-                                                  inventory=host.ds.inventory).launch().wait_until_completed()
-            assert job.is_successful
+                                                  inventory=host.ds.inventory).launch()
+            ws.job_stdout(job.id)
+            assert job.wait_until_completed().is_successful
 
             messages = [m for m in ws]
-
             ws.unsubscribe()
-
             return job, messages
 
         @pytest.mark.ansible_integration
@@ -153,20 +151,18 @@ class TestJobChannels(ChannelsTest, Base_Api_Test):
 
             ws = WSClient(v2.get_authtoken()).connect()
             request.addfinalizer(ws.close)
-            ws.pending_ad_hoc_stdout()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
             job = factories.v2_job_template(playbook='debug.yml',
-                                            inventory=host.ds.inventory).launch().wait_until_completed()
-            assert job.is_successful
+                                            inventory=host.ds.inventory).launch()
+            ws.job_stdout(job.id)
+            assert job.wait_until_completed().is_successful
             assert [m for m in ws]
 
             ws.unsubscribe()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
+
             assert job.relaunch().wait_until_completed().is_successful
             assert not [m for m in ws]
 
@@ -188,11 +184,13 @@ class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
                                                            unified_job_template=success_jt)
             failure = root.related.success_nodes.post(dict(unified_job_template=fail_jt.id))
             success = failure.related.failure_nodes.post(dict(unified_job_template=success_jt.id))
-            ws.pending_workflow_events()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
-            wfj = wfjt.launch().wait_until_completed()
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
+
+            wfj = wfjt.launch()
+            ws.workflow_events(wfj.id)
+            wfj.wait_until_completed()
+
             mapper = WorkflowTreeMapper(WorkflowTree(wfjt), WorkflowTree(wfj)).map()
 
             success_job_ids = [result.id for result in success_jt.related.jobs.get().results]
@@ -219,9 +217,8 @@ class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
                 assert message in messages
 
             ws.unsubscribe()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
+
             wfjt.launch().wait_until_completed()
             assert not [m for m in ws]
 
@@ -236,9 +233,7 @@ class TestInventoryChannels(ChannelsTest, Base_Api_Test):
             ws = WSClient(v2_class.get_authtoken()).connect()
             request.addfinalizer(ws.close)
             ws.status_changes()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
 
             inv_update = class_factories.v2_inventory_source(source='custom').update().wait_until_completed()
             assert inv_update.is_successful
@@ -266,18 +261,15 @@ class TestInventoryChannels(ChannelsTest, Base_Api_Test):
             ws = WSClient(v2.get_authtoken()).connect()
             request.addfinalizer(ws.close)
             ws.status_changes()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
 
             inv_source = factories.v2_inventory_source(source='custom')
             assert inv_source.update().wait_until_completed().is_successful
             assert [m for m in ws]
 
             ws.unsubscribe()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
+
             assert inv_source.update().wait_until_completed().is_successful
             assert not [m for m in ws]
 
@@ -292,9 +284,7 @@ class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
             ws = WSClient(v2_class.get_authtoken()).connect()
             request.addfinalizer(ws.close)
             ws.status_changes()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
 
             project_update = class_factories.v2_project().update().wait_until_completed()
             assert project_update.is_successful
@@ -320,17 +310,14 @@ class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
             ws = WSClient(v2.get_authtoken()).connect()
             request.addfinalizer(ws.close)
             ws.status_changes()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
 
             project = factories.v2_project()
             assert project.update().wait_until_completed().is_successful
             assert [m for m in ws]
 
             ws.unsubscribe()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
+
             assert project.update().wait_until_completed().is_successful
             assert not [m for m in ws]
