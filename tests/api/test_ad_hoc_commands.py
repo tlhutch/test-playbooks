@@ -504,6 +504,7 @@ print json.dumps(inv, indent=2)
         assert matching_job_events.count == 1, \
             "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
 
+    @pytest.mark.mp_group('AHCFileGroup', 'isolated_serial')
     def test_launch_ahc_with_diff(self, factories, api_settings_jobs_pg, update_setting_pg):
         host = factories.v2_host()
         payload = dict(AD_HOC_COMMANDS=['file'])

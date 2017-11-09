@@ -1,5 +1,7 @@
+import fauxfactory
 import pytest
 import json
+
 from tests.api import Base_Api_Test
 
 
@@ -22158,23 +22160,26 @@ inventory_dict = {
 class Test_AC_1235(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6492')
-    def test_import(self, ansible_runner, tmpdir, inventory):
+    def test_import(self, request, ansible_runner, tmpdir, inventory):
         """Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner
         """
         # Copy inventory to test system
+        inv_filename = '/tmp/inventory{}.sh'.format(fauxfactory.gen_alphanumeric())
         contacted = ansible_runner.copy(
-            dest='/tmp/inventory.sh',
+            dest=inv_filename,
             mode='0755',
             content="""#!/bin/bash
 cat <<EOF
 %s
-EOF""" % (json.dumps(inventory_dict, indent=4),))
+EOF""" % (json.dumps(inventory_dict, indent=4)))
+        request.addfinalizer(lambda: ansible_runner.file(path=inv_filename, state='absent'))
         for result in contacted.values():
             assert not result.get('failed'), "Failed to create inventory file: %s" % result
 
         # Run awx-manage inventory_import
-        contacted = ansible_runner.command('awx-manage inventory_import --inventory-id %s --source /tmp/inventory.sh' % inventory.id)
+        contacted = ansible_runner.command('awx-manage inventory_import --inventory-id {0.id} --source {1}'
+                                           .format(inventory, inv_filename))
         for result in contacted.values():
             assert result['rc'] == 0, "awx-manage inventory_import failed: %s" % json.dumps(result, indent=2)
             print json.dumps(result, indent=2)
