@@ -325,24 +325,31 @@ class Test_Job(Base_Api_Test):
                ), "Undesired values for extra_vars detected: {0}".format(extra_vars)
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7764')
-    def test_survey_defaults_dont_meet_length_requirements(self, factories):
-        """Confirms that default survey spec variables that don't meet length requirements aren't provided to job"""
+    def test_passed_survey_defaults_must_meet_length_requirements(self, factories):
         host = factories.v2_host()
-        jt = factories.job_template(inventory=host.ds.inventory)
-        spec = [dict(required=False, question_name="Question the First.",
-                     variable='test_var_one', type='text', min=3, default=''),
-                dict(required=False, question_name="Question the Second.",
-                     variable='test_var_two', type='text', max=3, default='four'),
-                dict(required=False, question_name="Question the Third.",
+        jt = factories.v2_job_template(inventory=host.ds.inventory)
+        spec = [dict(required=False, question_name="Text-default too short.",
+                     variable='test_var_one', type='text', min=7, default=''),
+                dict(required=False, question_name="Text-default too long.",
+                     variable='test_var_two', type='text', max=1, default='four'),
+                dict(required=False, question_name="Text-passed default with minimum.",
                      variable='test_var_three', type='text', min=0, default='abc'),
-                dict(required=False, question_name="Question the Fourth.",
-                     variable='test_var_four', type='password', min=5, default='four'),
-                dict(required=False, question_name="Question the Fifth.",
-                     variable='test_var_five', type='password', max=5, default='abcdef')]
+                dict(required=False, question_name="Text-passed default with maximum.",
+                     variable='test_var_four', type='text', max=7, default='1'),
+                dict(required=False, question_name="Password-default too short.",
+                     variable='test_var_five', type='password', min=7, default='four'),
+                dict(required=False, question_name="Password-default too long.",
+                     variable='test_var_six', type='password', max=1, default='four'),
+                dict(required=False, question_name="Password-passed default with minimum.",
+                     variable='test_var_seven', type='password', min=1, default='abc'),
+                dict(required=False, question_name='Password-passed default with maximum.',
+                     variable='test_var_eight', type='password', max=7, default='abc')]
         jt.add_survey(spec=spec)
+
         job = jt.launch().wait_until_completed()
         assert job.is_successful
-        assert job.extra_vars == json.dumps(dict(test_var_three='abc'))
+        assert job.extra_vars == json.dumps(dict(test_var_three='abc', test_var_four='1',
+                                                 test_var_seven='abc', test_var_eight='abc'))
 
     def test_encrypted_disallowed_as_survey_default_answer(self, factories):
         jt = factories.v2_job_template()
