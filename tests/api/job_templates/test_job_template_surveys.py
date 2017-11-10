@@ -158,6 +158,18 @@ class TestJobTemplateSurveys(Base_Api_Test):
 
         assert set(job_extra_vars) == set(expected_extra_vars)
 
+    def test_confirm_survey_spec_password_defaults_censored(self, factories):
+        jt = factories.v2_job_template()
+        survey = [dict(required=False,
+                       question_name='Test',
+                       variable='var',
+                       type='password',
+                       default="don't expose me")]
+        jt.add_survey(spec=survey)
+
+        survey_spec = jt.related.survey_spec.get().spec
+        assert survey_spec.pop()['default'] == '$encrypted$'
+
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7796')
     def test_confirm_survey_secret_extra_vars_not_in_activity_stream(self, factories):
         host = factories.v2_host()
