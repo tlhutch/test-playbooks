@@ -324,6 +324,7 @@ class Test_Job(Base_Api_Test):
         assert(all([val == "$encrypted$" for val in extra_vars.values()])
                ), "Undesired values for extra_vars detected: {0}".format(extra_vars)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7764')    
     def test_survey_defaults_dont_meet_length_requirements(self, factories):
         """Confirms that default survey spec variables that don't meet length requirements aren't provided to job"""
         host = factories.v2_host()
