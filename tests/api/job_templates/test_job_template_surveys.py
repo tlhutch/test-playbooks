@@ -41,6 +41,32 @@ class TestJobTemplateSurveys(Base_Api_Test):
         expected_job_vars = dict(submitter_email=launch_time_vars['submitter_email'])
         assert job_extra_vars == expected_job_vars
 
+    def test_jt_survey_password_defaults_passed_to_jobs(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+
+        survey = [dict(required=False,
+                       question_name='Test-1',
+                       variable='var1',
+                       type='password',
+                       default='var1_default'),
+                  dict(required=False,
+                       question_name='Test-2',
+                       variable='var2',
+                       type='password',
+                       default='var2_default')]
+        jt.add_survey(spec=survey)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+        assert '\"var1\": \"var1_default\"' in job.result_stdout
+        assert '\"var2\": \"var2_default\"' in job.result_stdout
+
+        relaunched_job = job.relaunch().wait_until_completed()
+        assert relaunched_job.is_successful
+        assert '\"var1\": \"var1_default\"' in relaunched_job.result_stdout
+        assert '\"var2\": \"var2_default\"' in relaunched_job.result_stdout
+
     def test_post_spec_with_missing_fields(self, job_template_ping):
         """Verify the API does not allow survey creation when missing any or all
         of the spec, name, or description fields.
