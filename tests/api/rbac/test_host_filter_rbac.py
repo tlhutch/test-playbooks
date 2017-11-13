@@ -6,6 +6,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
+@pytest.mark.mp_group('HostFilterRBACGroup', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestHostFilterRBAC(Base_Api_Test):
 
@@ -37,7 +38,6 @@ class TestHostFilterRBAC(Base_Api_Test):
 
         return invA, invB
 
-    @pytest.mark.mp_group('HostFilterRBACGroup', 'serial')
     @pytest.mark.parametrize("host_filter",
         ["name=hostDup", "groups__name=groupDup", "ansible_facts__ansible_system=Linux"])
     def test_with_inventory_read(self, factories, v2, loaded_inventories, host_filter):
@@ -53,7 +53,6 @@ class TestHostFilterRBAC(Base_Api_Test):
             response = v2.hosts.get(host_filter=host_filter)
             assert self.filter_response(response) == self.find_hosts(invB)
 
-    @pytest.mark.mp_group('HostFilterRBACGroup', 'serial')
     @pytest.mark.parametrize("host_filter",
         ["name=hostDup", "groups__name=groupDup", "ansible_facts__ansible_system=Linux"])
     def test_with_org_admin(self, factories, v2, loaded_inventories, host_filter):

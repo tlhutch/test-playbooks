@@ -41,9 +41,8 @@ log = logging.getLogger(__name__)
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Workflow_Job_Templates(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     # Graph Topology Validation
     # Graphs should not (1) converge (2) contain cycles or

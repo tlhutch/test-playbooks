@@ -6,9 +6,8 @@ import pytest
 from tests.api import Base_Api_Test
 
 
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestWorkflowExtraVars(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_launch_with_workflow_extra_vars(self, factories, workflow_job_template_with_extra_vars):
         """Verify that WFJs and WFN jobs inherit WFJT extra_vars."""
