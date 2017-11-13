@@ -9,7 +9,9 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.nondestructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Api_Basics(Base_Api_Test):
+
     def test_get_200(self, connection):
         r = connection.get('/api/')
         assert r.status_code == httplib.OK, "Unable to connect"

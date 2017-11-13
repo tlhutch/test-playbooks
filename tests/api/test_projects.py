@@ -39,9 +39,8 @@ def project_with_galaxy_requirements(request, authtoken, organization):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Projects(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.requires_single_instance
     def test_manual_project(self, project_ansible_playbooks_manual):

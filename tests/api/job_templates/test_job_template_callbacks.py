@@ -13,9 +13,8 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 class TestJobTemplateCallbacks(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     def test_assignment_of_host_config_key(self, job_template, host_config_key):
         """Confirm that when a job template's host config key is set, it is exposed through JT and callback endpoint"""

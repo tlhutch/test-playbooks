@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestActivityStream(Base_Api_Test):
 
     def test_limited_view_of_unprivileged_user(self, factories, api_activity_stream_pg, user_password):

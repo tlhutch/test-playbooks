@@ -94,7 +94,7 @@ pytestmark = [pytest.mark.performance, pytest.mark.skip_selenium]
 
 
 @pytest.mark.api
-@pytest.mark.usefixtures('install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Host_Fork(Base_Api_Test):
 
     @pytest.mark.usefixtures('authtoken')

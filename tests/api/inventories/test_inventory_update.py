@@ -10,9 +10,8 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventoryUpdate(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_v1_update_inventory_source(self, cloud_group):
         """Verify successful inventory import using /api/v1/inventory_sources/N/update/."""

@@ -10,9 +10,8 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_User_RBAC(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_user_admin_role_application_forbidden(self, factories, api_roles_pg):
         """Confirms that users are not able to have any admin role (dis)associated with themselves."""

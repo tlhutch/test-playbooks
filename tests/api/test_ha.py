@@ -35,8 +35,8 @@ def ensure_primary(request, ansible_module):
 @pytest.mark.requires_ha
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_HA(Base_Api_Test):
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     @pytest.mark.ansible(host_pattern='primary')
     def test_primary_ping_endpoint(self, api_ping_pg, ansible_module):

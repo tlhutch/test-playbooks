@@ -7,9 +7,9 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
+@pytest.mark.mp_group('LicenseRBAC', 'isolated_serial')
+@pytest.mark.usefixtures('authtoken')
 class Test_License_RBAC(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken')
 
     def test_delete_as_non_superuser(self, non_superuser, api_config_pg):
         """Verify that DELETE to /api/v1/config/ as a non-superuser raises a 403."""

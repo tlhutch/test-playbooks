@@ -73,9 +73,8 @@ def get_ec2_inventory():
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestTowerManageInventoryImport(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_unrecognized_id(self, ansible_runner, inventory):
         """Verify failed import with unrecognized '--inventory-id' value."""
@@ -152,7 +151,8 @@ class TestTowerManageInventoryImport(Base_Api_Test):
         and different instance IDs succeed.
         """
         # copy first inventory file to system
-        contacted = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content="""#!/bin/bash
+        inv_filename = '/tmp/inventory{}.sh'.format(fauxfactory.gen_alphanumeric())
+        contacted = ansible_runner.copy(dest=inv_filename, mode='0755', content="""#!/bin/bash
 cat <<EOF
 %s
 EOF""" % (json.dumps(get_ec2_inventory(), indent=4)))
@@ -160,14 +160,14 @@ EOF""" % (json.dumps(get_ec2_inventory(), indent=4)))
             assert not result.get('failed'), "Failed to create inventory file: {0}".format(result)
 
         # import first inventory file
-        contacted = ansible_runner.command("awx-manage inventory_import --inventory-id {0} --instance-id-var ec2_id \
-            --source /tmp/inventory.sh".format(inventory.id))
+        contacted = ansible_runner.command("awx-manage inventory_import --inventory-id {0.id} --instance-id-var ec2_id \
+            --source {1}".format(inventory, inv_filename))
         for result in contacted.values():
             assert result['rc'] == 0, "awx-manage inventory_import failed." \
                 "\n[stdout]\n%s\n[stderr]\n%s".format(result['stdout'], result['stderr'])
 
         # copy second inventory file to system
-        contacted = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content="""#!/bin/bash
+        contacted = ansible_runner.copy(dest=inv_filename, mode='0755', content="""#!/bin/bash
 cat <<EOF
 %s
 EOF""" % (json.dumps(get_ec2_inventory(), indent=4)))
@@ -175,8 +175,8 @@ EOF""" % (json.dumps(get_ec2_inventory(), indent=4)))
             assert not result.get('failed'), "Failed to create inventory file: {0}".format(result)
 
         # import second inventory file
-        contacted = ansible_runner.command("awx-manage inventory_import --inventory-id {0} --instance-id-var ec2_id \
-            --source /tmp/inventory.sh".format(inventory.id))
+        contacted = ansible_runner.command("awx-manage inventory_import --inventory-id {0.id} --instance-id-var ec2_id \
+            --source {1}".format(inventory, inv_filename))
         for result in contacted.values():
             assert result['rc'] == 0, "awx-manage inventory_import failed." \
                 "\n[stdout]\n%s\n[stderr]\n%s".format(result['stdout'], result['stderr'])
@@ -190,14 +190,15 @@ EOF""" % (json.dumps(get_ec2_inventory(), indent=4)))
 
     def test_import_with_ipv6_hosts(self, ansible_runner, inventory, json_inventory_ipv6):
         """Verify ipv6 inventory import."""
-        contacted = ansible_runner.copy(dest='/tmp/inventory.sh', mode='0755', content="""#!/bin/bash
+        inv_filename = '/tmp/inventory{}.sh'.format(fauxfactory.gen_alphanumeric())
+        contacted = ansible_runner.copy(dest=inv_filename, mode='0755', content="""#!/bin/bash
 cat <<EOF
 %s
 EOF""" % (json.dumps(json_inventory_ipv6, indent=4)))
         for result in contacted.values():
             assert not result.get('failed'), "Failed to create inventory file: {0}.".format(result)
 
-        contacted = ansible_runner.command('awx-manage inventory_import --inventory-id {0} --source /tmp/inventory.sh'.format(inventory.id))
+        contacted = ansible_runner.command('awx-manage inventory_import --inventory-id {0.id} --source {1}'.format(inventory, inv_filename))
         for result in contacted.values():
             assert result['rc'] == 0, "awx-manage inventory_import failed:" \
                 "\n[stdout]\n%s\n[stderr]\n%s".format(result['stdout'], result['stderr'])

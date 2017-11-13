@@ -41,9 +41,8 @@ def team_payload(**kwargs):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Teams(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     def test_duplicate_teams_disallowed_by_organization(self, factories):
         team = factories.v2_team()

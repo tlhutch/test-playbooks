@@ -51,10 +51,9 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.first
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_System_Jobs(Base_Api_Test):
     """Verify actions with system_job_templates"""
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_method_not_allowed(self, system_job):

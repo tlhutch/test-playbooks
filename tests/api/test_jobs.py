@@ -151,9 +151,8 @@ def azure_type(azure_credential):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Job(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     @pytest.mark.ansible_integration

@@ -9,9 +9,9 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInsights(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
     registered_machine_id = "84baf1a3-eee5-4f92-b5ee-42609e89a2cd"
     unregistered_machine_id = "aaaabbbb-cccc-dddd-eeee-ffffgggghhhh"
 
