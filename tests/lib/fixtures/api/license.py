@@ -35,7 +35,10 @@ def apply_license(api, mp_trail, mp_message_board):
         """
         request = kwargs.pop('request', False)
 
-        license_hash = str(license_type) # TODO: make a license-specific hash
+        instance_count = kwargs.get('instance_count', 0)
+        trial = kwargs.get('trial', False)
+        license_hash = str(license_type) + str(days) + str(instance_count) + str(trial)
+
         initial_info_key = license_hash + '_initial_info'
 
         def teardown_license():

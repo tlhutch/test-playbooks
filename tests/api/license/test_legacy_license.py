@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-@pytest.mark.mp_group(group="TestLegacyLicense", strategy='isolated_serial')
+@pytest.mark.mp_group(group="LegacyLicense", strategy='isolated_free')
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license')
 class TestLegacyLicense(LicenseTest):
 
@@ -57,14 +57,6 @@ class TestLegacyLicense(LicenseTest):
         # Assess default features
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for legacy license: %s." % conf.license_info
-
-    def test_duplicate_hosts_counted_once(self, factories, v2):
-        config = v2.config.get()
-        current_instances = config.license_info.current_instances
-
-        for _ in range(2):
-            factories.v2_host(name="host")
-        assert config.get().license_info.current_instances == current_instances + 1
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     def test_job_launch(self, job_template):
@@ -150,6 +142,24 @@ class TestLegacyLicense(LicenseTest):
                 with pytest.raises(exc.NotFound):
                     api_settings_pg.get_endpoint(service)
 
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.mp_group(group="LegacyLicenseSerial", strategy='isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_legacy_license')
+class TestLegacyLicenseSerial(LicenseTest):
+
+    def test_duplicate_hosts_counted_once(self, factories, v2):
+        config = v2.config.get()
+        current_instances = config.license_info.current_instances
+
+        for _ in range(2):
+            factories.v2_host(name="host")
+        assert config.get().license_info.current_instances == current_instances + 1
+
+    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
+        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
+
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
         """Verify that a legacy license can get upgraded to an enterprise license."""
         # Update the license
@@ -177,12 +187,9 @@ class TestLegacyLicense(LicenseTest):
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info,
                                                                                                indent=2)
 
-    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
-        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
-
 
 @pytest.mark.api
-@pytest.mark.mp_group(group="TestLegacyLicenseWarning", strategy='isolated_serial')
+@pytest.mark.mp_group(group="LegacyLicenseWarning", strategy='isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license_warning')
 @pytest.mark.skip_selenium
 class TestLegacyLicenseWarning(LicenseTest):
@@ -213,6 +220,9 @@ class TestLegacyLicenseWarning(LicenseTest):
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
 
+    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
+        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
+
     def test_update_license(self, api_config_pg, legacy_license_json):
         """Verify that the license can be updated by issuing a POST to the /config endpoint"""
         # Record license_key
@@ -233,12 +243,9 @@ class TestLegacyLicenseWarning(LicenseTest):
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
-    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
-        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
-
 
 @pytest.mark.api
-@pytest.mark.mp_group(group="TestLegacyLicenseGracePeriod", strategy='isolated_serial')
+@pytest.mark.mp_group(group="LegacyLicenseGracePeriod", strategy='isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license_grace_period')
 @pytest.mark.skip_selenium
 class TestLegacyLicenseGracePeriod(LicenseTest):
@@ -283,7 +290,7 @@ class TestLegacyLicenseGracePeriod(LicenseTest):
 
 
 @pytest.mark.api
-@pytest.mark.mp_group(group="TestLegacyLicenseExpired", strategy='isolated_serial')
+@pytest.mark.mp_group(group="LegacyLicenseExpired", strategy='isolated_free')
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license_expired')
 @pytest.mark.skip_selenium
 class TestLegacyLicenseExpired(LicenseTest):
@@ -326,15 +333,6 @@ class TestLegacyLicenseExpired(LicenseTest):
         with pytest.raises(exc.LicenseExceeded):
             api_hosts_pg.post(payload)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
-    def test_job_launch(self, request, factories, apply_generated_license):
-        """Verify that job_templates cannot be launched"""
-        with apply_generated_license(self.legacy_license_json()):
-            job_template = factories.v2_job_template()
-
-        with pytest.raises(exc.LicenseExceeded):
-            job_template.launch_job()
-
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job):
         """Verify that system jobs can be launched"""
@@ -349,6 +347,22 @@ class TestLegacyLicenseExpired(LicenseTest):
         # all other system_jobs are expected to succeed
         else:
             assert system_job.is_successful, "System job unexpectedly failed - %s" % system_job
+
+
+@pytest.mark.api
+@pytest.mark.mp_group(group="LegacyLicenseExpiredSerial", strategy='isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_legacy_license_expired')
+@pytest.mark.skip_selenium
+class TestLegacyLicenseExpiredSerial(LicenseTest):
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
+    def test_job_launch(self, request, factories, apply_generated_license):
+        """Verify that job_templates cannot be launched"""
+        with apply_generated_license(self.legacy_license_json()):
+            job_template = factories.v2_job_template()
+
+        with pytest.raises(exc.LicenseExceeded):
+            job_template.launch_job()
 
     def test_unable_to_launch_ad_hoc_command(self, request, apply_generated_license, api_ad_hoc_commands_pg,
                                              ssh_credential):
@@ -394,7 +408,7 @@ class TestLegacyLicenseExpired(LicenseTest):
 
 
 @pytest.mark.api
-@pytest.mark.mp_group(group="TestLegacyTrialLicense", strategy='isolated_serial')
+@pytest.mark.mp_group(group="LegacyTrialLicense", strategy='isolated_free')
 @pytest.mark.usefixtures('authtoken', 'install_trial_legacy_license')
 @pytest.mark.skip_selenium
 class TestLegacyTrialLicense(LicenseTest):
@@ -439,6 +453,16 @@ class TestLegacyTrialLicense(LicenseTest):
             else:
                 assert 'license_key' not in conf.license_info
 
+
+@pytest.mark.api
+@pytest.mark.mp_group(group="LegacyTrialLicenseSerial", strategy='isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_trial_legacy_license')
+@pytest.mark.skip_selenium
+class TestLegacyTrialLicenseSerial(LicenseTest):
+
+    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
+        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
+
     def test_update_license(self, api_config_pg, trial_legacy_license_json):
         """Verify that the license can be updated by issuing a POST to the /config endpoint"""
         # Record license_key
@@ -458,6 +482,3 @@ class TestLegacyTrialLicense(LicenseTest):
         expected_license_key = trial_legacy_license_json['license_key']
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
-
-    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
-        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)

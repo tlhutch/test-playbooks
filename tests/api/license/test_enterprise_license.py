@@ -10,18 +10,9 @@ from tests.api.license import LicenseTest
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-@pytest.mark.mp_group(group="TestEnterpriseLicense", strategy="isolated_serial")
+@pytest.mark.mp_group(group="EnterpriseLicense", strategy="isolated_free")
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 class TestEnterpriseLicense(LicenseTest):
-
-    @pytest.fixture
-    def basic_license_json(self):
-        return license.generate_license(instance_count=self.license_instance_count,
-                                        days=31,
-                                        company_name=fauxfactory.gen_utf8(),
-                                        contact_name=fauxfactory.gen_utf8(),
-                                        contact_email=fauxfactory.gen_email(),
-                                        license_type="basic")
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
@@ -135,6 +126,25 @@ class TestEnterpriseLicense(LicenseTest):
         for service in self.ENTERPRISE_AUTH_SERVICES:
             api_settings_pg.get_endpoint(service)
 
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.mp_group(group="EnterpriseLicenseSerial", strategy="isolated_serial")
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+class TestEnterpriseLicenseSerial(LicenseTest):
+
+    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
+        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
+
+    @pytest.fixture
+    def basic_license_json(self):
+        return license.generate_license(instance_count=self.license_instance_count,
+                                        days=31,
+                                        company_name=fauxfactory.gen_utf8(),
+                                        contact_name=fauxfactory.gen_utf8(),
+                                        contact_email=fauxfactory.gen_email(),
+                                        license_type="basic")
+
     def test_downgrade_to_basic(self, basic_license_json, api_config_pg):
         """Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg."""
         # Update the license
@@ -162,12 +172,9 @@ class TestEnterpriseLicense(LicenseTest):
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info,
                                                                                                indent=2)
 
-    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
-        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
-
 
 @pytest.mark.api
-@pytest.mark.mp_group(group="TestEnterpriseLicenseExpired", strategy='isolated_serial')
+@pytest.mark.mp_group(group="EnterpriseLicenseExpired", strategy='isolated_free')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_expired')
 @pytest.mark.skip_selenium
 class TestEnterpriseLicenseExpired(LicenseTest):

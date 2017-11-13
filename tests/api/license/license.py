@@ -62,53 +62,23 @@ class LicenseTest(Base_Api_Test):
                                         contact_email=fauxfactory.gen_email(), trial=True)
 
     @pytest.fixture
-    def install_legacy_license(self, apply_generated_license, api_config_pg, legacy_license_json):
-        with apply_generated_license(legacy_license_json):
-            conf = api_config_pg.get()
-            assert conf.is_valid_license, 'Expected valid license, invalid license found'
-            assert conf.is_legacy_license, \
-                "Expected legacy license, found %s." % conf.license_info.license_type
-            assert conf.license_info.license_key == legacy_license_json['license_key'], \
-                "License found differs from license applied"
+    def install_legacy_license(self, apply_license):
+        with apply_license('legacy', days=31, instance_count=self.license_instance_count):
             yield
 
     @pytest.fixture
-    def install_trial_legacy_license(self, apply_generated_license, api_config_pg):
-        license_info = license.generate_license(license_type='legacy', instance_count=self.license_instance_count,
-                                                days=31, trial=True)
-        with apply_generated_license(license_info):
-            conf = api_config_pg.get()
-            assert conf.is_valid_license, 'Expected valid license, invalid license found'
-            assert conf.is_legacy_license, \
-                "Expected legacy license, found %s." % conf.license_info.license_type
-            assert conf.is_trial_license, \
-                "Expected trial license, found regular license"
-            assert conf.license_info.license_key == license_info['license_key'], \
-                "License found differs from license applied"
+    def install_trial_legacy_license(self, apply_license):
+        with apply_license('legacy', days=31, instance_count=self.license_instance_count, trial=True):
             yield
 
     @pytest.fixture
-    def install_basic_license(self, apply_generated_license, api_config_pg):
-        license_info = license.generate_license(license_type='basic', instance_count=self.license_instance_count,
-                                                days=31)
-        with apply_generated_license(license_info):
-            conf = api_config_pg.get()
-            assert conf.is_valid_license, 'Expected valid license, invalid license found'
-            assert conf.is_basic_license, \
-                "Expected basic license, found %s." % conf.license_info.license_type
-            assert conf.license_info.license_key == license_info['license_key'], \
-                "License found differs from license applied"
+    def install_basic_license(self, apply_license):
+        with apply_license('basic', days=31, instance_count=self.license_instance_count):
             yield
 
     @pytest.fixture
-    def install_enterprise_license(self, apply_generated_license, api_config_pg, enterprise_license_json):
-        with apply_generated_license(enterprise_license_json):
-            conf = api_config_pg.get()
-            assert conf.is_valid_license, 'Expected valid license, invalid license found'
-            assert conf.is_enterprise_license, \
-                "Expected enterprise license, %s." % conf.license_info.license_type
-            assert conf.license_info.license_key == enterprise_license_json['license_key'], \
-                "License found differs from license applied"
+    def install_enterprise_license(self, apply_license):
+        with apply_license('enterprise', days=31, instance_count=self.license_instance_count):
             yield
 
     @pytest.fixture

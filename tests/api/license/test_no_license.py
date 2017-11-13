@@ -9,7 +9,7 @@ from tests.api.license import LicenseTest
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-@pytest.mark.mp_group(group="TestNoLicense", strategy="isolated_serial")
+@pytest.mark.mp_group(group="NoLicense", strategy="isolated_free")
 @pytest.mark.usefixtures('authtoken', 'no_license')
 class TestNoLicense(LicenseTest):
 
@@ -51,12 +51,15 @@ class TestNoLicense(LicenseTest):
         assert job.status == 'failed'
         assert 'CommandError: No license found!' in job.result_stdout
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
-    def test_cannot_launch_job(self, install_basic_license, api_config_pg, job_template):
-        """Verify that job_templates cannot be launched"""
-        api_config_pg.delete()
-        with pytest.raises(exc.LicenseExceeded):
-            job_template.launch_job()
+    def test_post_legacy_license_without_eula_accepted(self, api_config_pg, missing_eula_legacy_license_json):
+        """Verify failure while POSTing a license with no `eula_accepted` attribute."""
+        with pytest.raises(exc.LicenseInvalid):
+            api_config_pg.post(missing_eula_legacy_license_json)
+
+    def test_post_legacy_license_with_rejected_eula(self, api_config_pg, eula_rejected_legacy_license_json):
+        """Verify failure while POSTing a license with `eula_accepted:false` attribute."""
+        with pytest.raises(exc.LicenseInvalid):
+            api_config_pg.post(eula_rejected_legacy_license_json)
 
     @pytest.mark.parametrize('invalid_license_json',
                              [None, 0, 1, -1, True, fauxfactory.gen_utf8(), (), {}, {'eula_accepted': True}])
@@ -75,15 +78,12 @@ class TestNoLicense(LicenseTest):
         conf = api_config_pg.get()
         assert conf.license_info == {}, "No license was expected, found %s" % conf.license_info
 
-    def test_post_legacy_license_without_eula_accepted(self, api_config_pg, missing_eula_legacy_license_json):
-        """Verify failure while POSTing a license with no `eula_accepted` attribute."""
-        with pytest.raises(exc.LicenseInvalid):
-            api_config_pg.post(missing_eula_legacy_license_json)
 
-    def test_post_legacy_license_with_rejected_eula(self, api_config_pg, eula_rejected_legacy_license_json):
-        """Verify failure while POSTing a license with `eula_accepted:false` attribute."""
-        with pytest.raises(exc.LicenseInvalid):
-            api_config_pg.post(eula_rejected_legacy_license_json)
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.mp_group(group="NoLicenseSerial", strategy="isolated_serial")
+@pytest.mark.usefixtures('authtoken', 'no_license')
+class TestNoLicenseSerial(LicenseTest):
 
     def test_post_legacy_license(self, api_config_pg, legacy_license_json):
         """Verify that a license can be installed by issuing a POST to the /config endpoint"""
@@ -98,3 +98,10 @@ class TestNoLicense(LicenseTest):
         conf = api_config_pg.get()
         assert conf.license_info != {}, "License expected, but none found"
         assert conf.license_info.license_key == legacy_license_json['license_key']
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
+    def test_cannot_launch_job(self, install_basic_license, api_config_pg, job_template):
+        """Verify that job_templates cannot be launched"""
+        api_config_pg.delete()
+        with pytest.raises(exc.LicenseExceeded):
+            job_template.launch_job()

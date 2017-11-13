@@ -137,7 +137,7 @@ def _expected_webhook_job_notification(tower_url, notification_template_pg, job_
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Notification_Templates(Base_Api_Test):
 
     def test_duplicate_notification_templates_disallowed_by_organization(self, factories):
