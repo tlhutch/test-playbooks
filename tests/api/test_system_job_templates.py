@@ -21,10 +21,9 @@ def cleanup_jobs_template(request, api_system_job_templates_pg):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_System_Job_Template(Base_Api_Test):
     """Verify actions with system_job_templates"""
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_get_as_superuser(self, api_system_job_templates_pg):
         """Verify that a superuser account is able to GET the system_job_template

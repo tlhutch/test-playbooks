@@ -2,25 +2,15 @@ import json
 
 from towerkit import utils
 from dateutil.parser import parse as du_parse
-import fauxfactory
 import pytest
 
 from tests.api import Base_Api_Test
 
 
 @pytest.fixture(scope="function")
-def another_custom_group(request, authtoken, api_groups_pg, inventory, inventory_script):
-    payload = dict(name="custom-group-%s" % fauxfactory.gen_alphanumeric(),
-                   description="Custom Group %s" % fauxfactory.gen_utf8(),
-                   inventory=inventory.id,
-                   variables=json.dumps(dict(my_group_variable=True)))
-    obj = api_groups_pg.post(payload)
-    request.addfinalizer(obj.delete)
-
-    inv_source = obj.get_related('inventory_source')
-    inv_source.patch(source='custom',
-                     source_script=inventory_script.id)
-    return obj
+def another_custom_group(factories):
+    return factories.group(inventory_script=True,
+                           variables=json.dumps(dict(my_group_variable=True)))
 
 
 @pytest.fixture(scope="function")
@@ -158,9 +148,8 @@ def check_chain_canceled_job_explanation(canceled_job, chain_canceled_jobs):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Sequential_Jobs(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_project_update(self, project):
         """Test a project may only have one project update running at a time. Here, we launch
@@ -358,9 +347,8 @@ class Test_Sequential_Jobs(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Autospawned_Jobs(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     def test_v1_inventory(self, cloud_inventory_job_template, cloud_group):
@@ -377,7 +365,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
             "Not expecting our inventory source to have been updated - %s." % inv_src_pg
 
         # launch job_template and assert successful
-        job_pg = cloud_inventory_job_template.launch_job().wait_until_completed()
+        job_pg = cloud_inventory_job_template.launch_job().wait_until_completed(timeout=600)
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that inventory update triggered
@@ -445,7 +433,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         job_template.patch(inventory=aws_inventory_source.inventory, playbook='debug.yml')
 
         # launch job_template and assert successful
-        job_pg = job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        job_pg = job_template.launch_job().wait_until_completed(timeout=600)
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that inventory updates were triggered
@@ -482,7 +470,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
             "Not expecting inventory source to have been updated - %s." % custom_inventory_source
 
         # launch inventory update and wait for completion
-        inv_update_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        inv_update_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=600)
 
         # check that inventory source reports our inventory update
         custom_inventory_source.get()
@@ -491,7 +479,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         last_updated, last_job_run = custom_inventory_source.last_updated, custom_inventory_source.last_job_run
 
         # launch job_template and assert successful
-        job_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        job_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=600)
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that inventory update not triggered
@@ -530,7 +518,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
             "Unexpected job_type for our initial project update: {0}.".format(initial_project_update.job_type)
 
         # launch job_template and assert successful
-        job_pg = job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        job_pg = job_template.launch_job().wait_until_completed(timeout=600)
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that our new project updates are successful
@@ -575,7 +563,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
             "Unexpected job_type for our initial project update: {0}.".format(initial_project_update.job_type)
 
         # launch job_template and assert successful
-        job_pg = job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=50 * 10)
+        job_pg = job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=600)
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that our new project update completes successfully and is of the right type
@@ -616,7 +604,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
             "Unexpected job_type for our initial project update: {0}.".format(initial_project_update.job_type)
 
         # launch job_template and assert successful
-        job_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        job_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=600)
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check our new project updates are successful
@@ -648,9 +636,8 @@ class Test_Autospawned_Jobs(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Cascade_Fail_Dependent_Jobs(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.fixture
     def sleeping_inventory_script(self, factories):
@@ -682,12 +669,6 @@ print json.dumps(inventory)
 
         check_chain_canceled_job_explanation(inv_update, [job])
 
-    @pytest.mark.fixture_args(source_script="""#!/usr/bin/env python
-import json, time
-time.sleep(30)
-inventory = dict()
-print json.dumps(inventory)
-""")
     def test_cancel_inventory_update_with_multiple_inventory_updates(self, job_template, custom_group, another_custom_group):
         """Tests that if you cancel an inventory update before it finishes that
         its dependent jobs fail.
@@ -705,7 +686,7 @@ print json.dumps(inventory)
 
         # wait for the inventory sources to start
         inv_update_pg = inv_source_pg.wait_until_started(interval=.5).get_related('current_update')
-        another_inv_update_pg = another_inv_source_pg.wait_until_started(interval=.5).get_related('current_update')
+        another_inv_update_pg = another_inv_source_pg.wait_until_started(interval=.5, timeout=300).get_related('current_update')
         inv_update_pg_started = du_parse(inv_update_pg.created)
         another_inv_update_pg_started = du_parse(another_inv_update_pg.created)
 
