@@ -7,24 +7,59 @@ from tests.api import Base_Api_Test
 @pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestWorkflowJobTemplateSurveys(Base_Api_Test):
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7769')
+
+    survey = [dict(required=False,
+                   question_name='Test-1',
+                   variable='var1',
+                   type='password',
+                   default='var1_default'),
+              dict(required=False,
+                   question_name='Test-2',
+                   variable='var2',
+                   type='password',
+                   default='var2_default')]
+
     def test_wfjt_survey_password_defaults_passed_to_jobs(self, factories):
         host = factories.v2_host()
         wfjt = factories.v2_workflow_job_template()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
         factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
-        survey = [dict(required=False,
-                       question_name='Test-1',
-                       variable='var1',
-                       type='password',
-                       default='var1_default'),
-                  dict(required=False,
-                       question_name='Test-2',
-                       variable='var2',
-                       type='password',
-                       default='var2_default')]
-        wfjt.add_survey(spec=survey)
+        wfjt.add_survey(spec=self.survey)
+
+        wfj = wfjt.launch().wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert wfj.is_successful
+        assert job.is_successful
+        assert '\"var1\": \"var1_default\"' in job.result_stdout
+        assert '\"var2\": \"var2_default\"' in job.result_stdout
+
+    def test_wfjn_jt_survey_password_defaults_passed_to_jobs(self, factories):
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        jt.add_survey(spec=self.survey)
+
+        wfj = wfjt.launch().wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert wfj.is_successful
+        assert job.is_successful
+        assert '\"var1\": \"var1_default\"' in job.result_stdout
+        assert '\"var2\": \"var2_default\"' in job.result_stdout
+
+    def test_wfjt_and_wfjn_jt_survey_password_defaults_passed_to_jobs(self, factories):
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        wfjt.add_survey(spec=self.survey)
+
+        self.survey[0]['default'] = 'wfjn_var1_default'
+        self.survey[1]['default'] = 'wfjn_var2_default'
+        jt.add_survey(self.survey)
 
         wfj1 = wfjt.launch().wait_until_completed()
         job1 = jt.get().related.last_job.get()
