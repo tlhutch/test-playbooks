@@ -12,7 +12,8 @@
 ## Features Tested
 
 * [ ] Tower inventory source [Issue](https://github.com/ansible/ansible-tower/issues/6297) ([PR](https://github.com/ansible/tower/pull/551))
-* [ ] ovirt4.py dynamic inventory support [Issue](https://github.com/ansible/ansible-tower/issues/6522) 
+* [ ] ovirt4.py dynamic inventory support [Issue](https://github.com/ansible/ansible-tower/issues/6522)
+* [ ] Encrypted survey password defaults in the database [Issue](https://github.com/ansible/ansible-tower/issues/7046)
 
 ## Targeted Testing
 
