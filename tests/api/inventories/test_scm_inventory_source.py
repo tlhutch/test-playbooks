@@ -544,7 +544,6 @@ class TestSCMInventorySource(Base_Api_Test):
         hostnames = set([summary.summary_fields.host.name for summary in job_host_summaries])
         assert hostnames == self.inventory_hostnames
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7533', raises=AssertionError)
     def test_canceled_inventory_update_during_project_update(self, factories, jt_that_writes_to_source):
         assert jt_that_writes_to_source.launch().wait_until_completed().is_successful
         project = jt_that_writes_to_source.ds.project
