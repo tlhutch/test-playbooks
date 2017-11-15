@@ -33,8 +33,8 @@ When verifying acceptance we should ensure the following statements are true
 1. [x] Jobs should be able to run on hosts which it is targeted. If assigned implicitly or directly to groups then it should only run on instances in those Instance Groups.
 1. [x] Project updates should manifest their data on the tower host that will run the job immediately prior to the job running
 1. [x] Tower should be able to reasonably survive the removal of all instances in the cluster
-1. [x] Tower should behave in a predictable fashiong during network partitioning
-1. [x] Users should not be able to assign instance groups to a job without the correct RBACS role
+1. [x] Tower should behave in a predictable fashion during network partitioning
+1. [x] Users should not be able to assign instance groups to a job without the correct RBAC role
 
 #### Testing Considerations
 
