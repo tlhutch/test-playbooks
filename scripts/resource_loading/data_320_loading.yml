@@ -707,6 +707,9 @@ groups:
     - name: Custom Inventory
       inventory: inventory-custom
 
+    - name: unresolvable host group
+      inventory: inventory-custom
+
 inventory_sources:
     - name: inventory-all/aws # name is used for internal purposes
       group: aws
@@ -815,7 +818,7 @@ inventory_sources:
         NUM_HOSTS: '5'
       overwrite: true
       overwrite_vars: false
-      update_on_launch: false
+      update_on_launch: true
       update_interval: 0
 
 hosts:
@@ -833,12 +836,12 @@ hosts:
 
     - name: unresolvable-name.example.com
       description: localhost (ansible_host)
-      inventory: inventory-all
+      inventory: inventory-custom
       variables:
         ansible_user: root
         ansible_host: 127.0.0.1
       groups:
-        - local
+        - unresolvable host group
 
     - name: not a valid hostname
       description: localhost (ansible_host)
@@ -1051,7 +1054,7 @@ job_templates:
       job_type: check
       playbook: language_features/tags.yml
       project: ansible-examples.git (github, ssh_key_data)
-      inventory: inventory-all
+      inventory: inventory-custom
       credential: 'SSH (user:bender_eng_user, password:***)'
       job_tags: foo
       limit: unresolvable-name.example.com

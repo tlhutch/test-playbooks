@@ -183,7 +183,8 @@ for job in jobs:
 
 for job in jobs:
     try:
-        if job.name in ('ansible-playbooks.git/dynamic_inventory.yml',
+        if job.name in ('language_features/tags.yml (tags:foo, limit:unresolvable-name.example.com)',
+                        'ansible-playbooks.git/dynamic_inventory.yml',
                         'ansible-tower.git/setup/install.yml'):
             assert job.status == 'failed'
             assert job.job_explanation == ''
