@@ -41,7 +41,7 @@ def ssh_credential_ask(admin_user, factories):
 @pytest.fixture(scope="function")
 def ssh_credential_with_ssh_key_data_and_sudo(ansible_facts, admin_user, factories):
     """Create ssh credential with sudo user from ansible facts"""
-    sudo_user = ansible_facts.values()[0]['ansible_facts']['ansible_env']['SUDO_USER']
+    sudo_user = ansible_facts.values()[0]['ansible_facts']['ansible_env'].get('SUDO_USER', 'root')
     cred = factories.credential(kind='ssh', user=admin_user, username=sudo_user, become_method="sudo", password=None,
                                 become_password=None)
     return cred
