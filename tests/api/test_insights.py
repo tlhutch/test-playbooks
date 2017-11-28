@@ -9,6 +9,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
+@pytest.mark.mp_group('Insights', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInsights(Base_Api_Test):
 
@@ -16,25 +17,25 @@ class TestInsights(Base_Api_Test):
     unregistered_machine_id = "aaaabbbb-cccc-dddd-eeee-ffffgggghhhh"
 
     @pytest.fixture(scope="class")
-    def insights_inventory(self, request, class_factories, ansible_runner, is_docker):
+    def insights_inventory(self, request, class_factories, ansible_module_cls, is_docker):
         inventory = class_factories.v2_inventory()
         for name in ('registered_host', 'unregistered_host'):
             class_factories.v2_host(name=name, inventory=inventory)
 
-        ansible_runner.file(path='/etc/redhat-access-insights', state="directory")
-        request.addfinalizer(lambda: ansible_runner.file(path='/etc/redhat-access-insights', state="absent"))
+        ansible_module_cls.file(path='/etc/redhat-access-insights', state="directory")
+        request.addfinalizer(lambda: ansible_module_cls.file(path='/etc/redhat-access-insights', state="absent"))
 
         project = class_factories.v2_project(scm_url="https://github.com/ansible/awx-facts-playbooks", wait=True)
         jt = class_factories.v2_job_template(project=project, inventory=inventory, playbook='scan_facts.yml',
                                              use_fact_cache=True, limit="registered_host")
 
         # update registered host with registered machine ID
-        ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.registered_machine_id))
+        ansible_module_cls.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.registered_machine_id))
         assert jt.launch().wait_until_completed().is_successful
 
         # update unregistered host with unregistered machine ID
         jt.limit = "unregistered_host"
-        ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.unregistered_machine_id))
+        ansible_module_cls.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.unregistered_machine_id))
         assert jt.launch().wait_until_completed().is_successful
 
         return inventory
