@@ -50,6 +50,7 @@ class TestAnsibleTowerInventorySource(Base_Api_Test):
         assert tower_group_vars == custom_group_vars
 
     @pytest.mark.requires_isolation
+    @pytest.mark.mp_group('AnsibleTowerInventorySource', 'isolated_serial')
     def test_tower_inv_src_update_doesnt_affect_instance_count(self, v2, factories, tower_cred):
         custom_inv_src = factories.v2_inventory_source()
         assert custom_inv_src.update().wait_until_completed().is_successful
