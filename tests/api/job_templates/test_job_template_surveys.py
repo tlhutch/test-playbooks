@@ -132,6 +132,7 @@ class TestJobTemplateSurveys(Base_Api_Test):
 
         assert set(job_extra_vars) == set(expected_extra_vars)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7796')
     def test_confirm_survey_secret_extra_vars_not_in_activity_stream(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, ask_variables_on_launch=True)
