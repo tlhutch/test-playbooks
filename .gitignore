@@ -12,12 +12,11 @@ results.xml
 .tox
 .cache
 chromedriver
-/playbooks/credentials.yml
 /playbooks/*vars.*
 /playbooks/inventory.*
 /playbooks/files/tower-backup-latest.tar.gz
 reports
-*credentials.yml
-*credentials.yaml
+*credentials.yml*
+*credentials.yaml*
 tools/docker/.build
 .DS_Store
