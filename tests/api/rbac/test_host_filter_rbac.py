@@ -6,7 +6,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
-@pytest.mark.mp_group('HostFilterRBACGroup', 'serial')
+@pytest.mark.mp_group('HostFilterRBAC', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestHostFilterRBAC(Base_Api_Test):
 

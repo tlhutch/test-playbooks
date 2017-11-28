@@ -16,7 +16,7 @@ class TestInsights(Base_Api_Test):
     unregistered_machine_id = "aaaabbbb-cccc-dddd-eeee-ffffgggghhhh"
 
     @pytest.fixture(scope="class")
-    def insights_inventory(self, request, class_factories, ansible_runner):
+    def insights_inventory(self, request, class_factories, ansible_runner, is_docker):
         inventory = class_factories.v2_inventory()
         for name in ('registered_host', 'unregistered_host'):
             class_factories.v2_host(name=name, inventory=inventory)

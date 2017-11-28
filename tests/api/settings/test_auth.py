@@ -15,7 +15,7 @@ def find_settings(setting_pg, substrings):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
-@pytest.mark.mp_group('TestAuthGroup', 'isolated_serial')
+@pytest.mark.mp_group('TestAuth', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Auth(Base_Api_Test):
 

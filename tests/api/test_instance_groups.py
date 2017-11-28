@@ -158,7 +158,9 @@ class TestInstanceGroups(Base_Api_Test):
                 break
             time.sleep(interval)
 
-    def test_instance_group_creation(self, authtoken, v2, ansible_runner):
+    def test_instance_group_creation(self, authtoken, v2, ansible_runner, is_docker):
+        if is_docker:
+            pytest.skip('Dev Container has no inventory file')
         inventory_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
         cmd = 'scripts/ansible_inventory_to_json.py --inventory {0} --group-filter tower,instance_group_,isolated_group_'.format(inventory_path)
         contacted = ansible_runner.script(cmd)
