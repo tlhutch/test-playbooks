@@ -907,9 +907,10 @@ print json.dumps(inventory)
         assert sync_update.status == 'failed'
         assert sync_update.failed
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7766')
-    def test_sync_project_update_canceled_after_job_cancelation(self, factories, project_ansible_git):
-        jt = factories.v2_job_template(project=project_ansible_git, playbook='test/integration/targets/unicode/unicode.yml')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7797')
+    def test_sync_project_update_canceled_after_job_cancelation(self, factories):
+        project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git', scm_delete_on_update=True)
+        jt = factories.v2_job_template(project=project, playbook='test/integration/targets/unicode/unicode.yml')
         job = jt.launch().cancel().wait_until_completed()
 
         project_update = job.get().related.project_update.get().wait_until_completed()
