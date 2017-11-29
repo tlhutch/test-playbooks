@@ -59,13 +59,13 @@ class TestJobTemplateSurveys(Base_Api_Test):
 
         job = jt.launch().wait_until_completed()
         assert job.is_successful
-        assert '\"var1\": \"var1_default\"' in job.result_stdout
-        assert '\"var2\": \"var2_default\"' in job.result_stdout
+        assert '"var1": "var1_default"' in job.result_stdout
+        assert '"var2": "var2_default"' in job.result_stdout
 
         relaunched_job = job.relaunch().wait_until_completed()
         assert relaunched_job.is_successful
-        assert '\"var1\": \"var1_default\"' in relaunched_job.result_stdout
-        assert '\"var2\": \"var2_default\"' in relaunched_job.result_stdout
+        assert '"var1": "var1_default"' in relaunched_job.result_stdout
+        assert '"var2": "var2_default"' in relaunched_job.result_stdout
 
     def test_post_spec_with_missing_fields(self, job_template_ping):
         """Verify the API does not allow survey creation when missing any or all
@@ -164,7 +164,7 @@ class TestJobTemplateSurveys(Base_Api_Test):
                        question_name='Test',
                        variable='var',
                        type='password',
-                       default="don't expose me")]
+                       default="don't expose me - {0}".format(fauxfactory.gen_utf8(3).encode('utf8')))]
         jt.add_survey(spec=survey)
 
         survey_spec = jt.related.survey_spec.get().spec
@@ -191,8 +191,8 @@ class TestJobTemplateSurveys(Base_Api_Test):
     @pytest.mark.requires_single_instance
     @pytest.mark.parametrize('template', ['job', 'workflow_job'])
     def test_confirm_no_plaintext_survey_passwords_in_db(self, v2, factories, get_pg_dump, template):
-        resource = getattr(factories, template + '_template')()
-        password = "don't expose me"
+        resource = getattr(factories, 'v2_' + template + '_template')()
+        password = "don't expose me - {0}".format(fauxfactory.gen_utf8(3).encode('utf8'))
         survey = [dict(required=False,
                        question_name='Test',
                        variable='var',
@@ -204,7 +204,8 @@ class TestJobTemplateSurveys(Base_Api_Test):
 
         try:
             undesired_location = pg_dump.index(password)
+        except ValueError:
+            return
+        else:
             target_text = pg_dump[undesired_location - 200:undesired_location + 200]
             pytest.fail('Found plaintext survey password secret in db:\n\n{}'.format(target_text))
-        except ValueError:
-            pass

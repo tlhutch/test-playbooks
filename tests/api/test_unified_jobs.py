@@ -1,6 +1,7 @@
 import json
 
 from towerkit import exceptions as exc
+import fauxfactory
 import pytest
 
 from tests.api import Base_Api_Test
@@ -33,12 +34,12 @@ class TestUnifiedJobs(Base_Api_Test):
 
     @pytest.mark.parametrize('template', ['job', 'workflow_job'])
     def test_confirm_survey_password_defaults_censored_in_unified_job_extra_vars(self, factories, template):
-        resource = getattr(factories, template + '_template')()
-        password = "don't expose me"
+        resource = getattr(factories, 'v2_' + template + '_template')()
+        password = "don't expose me - {0}".format(fauxfactory.gen_utf8(3).encode('utf8'))
         survey = [dict(required=False,
                        question_name='Test',
                        variable='var',
-                       type='password',
+                       type=password,
                        default=password)]
         resource.add_survey(spec=survey)
 
