@@ -148,7 +148,7 @@ def multiple_management_job_schedules(request, system_job_template, rrule_minute
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
-@pytest.mark.usefixtures('authtoken')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Project_Schedules(Base_Api_Test):
     """Test basic schedule CRUD operations: [GET, POST, PUT, PATCH, DELETE]
 
@@ -166,8 +166,8 @@ class Test_Project_Schedules(Base_Api_Test):
       1. project.next_update is expected
       2. project is updated at desired time
     """
-    def test_duplicate_schedules_disallowed_by_project(self, factories, default_organization):
-        project = factories.v2_project(organization=default_organization)
+    def test_duplicate_schedules_disallowed_by_project(self, factories):
+        project = factories.v2_project()
         schedule = project.add_schedule()
 
         with pytest.raises(exc.Duplicate) as e:
