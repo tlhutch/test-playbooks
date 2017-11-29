@@ -71,3 +71,18 @@ def is_docker(ansible_module_cls):
         return manager.get_host(tower_hosts[0]).get_vars().get('ansible_connection') == 'docker'
     except (TypeError, IndexError):
         return False
+
+
+docker_skip_msg = "Test doesn't support dev container"
+
+
+@pytest.fixture(scope='class')
+def skip_docker(is_docker):
+    if is_docker:
+        pytest.skip(docker_skip_msg)
+
+
+@pytest.fixture(autouse=True)
+def _skip_docker(request, is_docker):
+    if request.node.get_marker('skip_docker') and is_docker:
+        pytest.skip(docker_skip_msg)
