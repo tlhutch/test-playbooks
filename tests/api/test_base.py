@@ -61,3 +61,22 @@ class Test_Api_Basics(Base_Api_Test):
         data = r.json()
         description = data.get('description')
         assert description == 'AWX REST API'
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestResourceBasics(Base_Api_Test):
+
+    @pytest.mark.parametrize('resource', ['credential_type', 'v2_credential', 'v2_group',
+                                          'v2_host', 'v2_inventory', 'v2_inventory_script',
+                                          'v2_inventory_source', 'v2_job_template', 'v2_label',
+                                          'v2_notification_template', 'v2_organization',
+                                          'v2_project', 'v2_team', 'v2_user',
+                                          'v2_workflow_job_template', 'v2_workflow_job_template_node'])
+    def test_all_resources_can_have_name_and_descriptions_changed(self, factories, resource):
+        instance = getattr(factories, resource)()
+        instance.name = "TestName"
+        instance.description = "TestDescription"
+        assert instance.get().name == "TestName"
+        assert instance.description == "TestDescription"
