@@ -1,7 +1,4 @@
-from base64 import b64decode
-import logging
 import re
-import os
 
 from towerkit.config import config
 import towerkit.exceptions as exc
@@ -248,47 +245,6 @@ class TestCredentials(Base_Api_Test):
         update = inv_source.update().wait_until_completed()
         assert update.failed
         assert 'NoAuthHandlerFound' in update.result_stdout
-
-    @pytest.fixture
-    def get_pg_dump(self, request, ansible_runner, is_docker):
-        if is_docker:
-            pytest.skip('Test not compatible w/o access to db container.')
-
-        def _pg_dump():
-            inv_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
-            contacted = ansible_runner.shell("""PGPASSWORD=`grep {} -e "pg_password=.*" """
-                                             """| sed \'s/pg_password="//\' | sed \'s/"//\'` """
-                                             """pg_dump -U awx -d awx -f pg.txt -w""".format(inv_path))
-            for res in contacted.values():
-                assert res.get('changed') and not res.get('failed')
-
-            user = ansible_runner.options['user'] \
-                   or ansible_runner.inventory_manager.get_vars(ansible_runner.options['host_pattern'])['ansible_user']
-            pg_dump_path = '/home/{0}/pg.txt'.format(user)
-            request.addfinalizer(lambda: ansible_runner.file(path=pg_dump_path, state='absent'))
-
-            # Don't log the dumped db.
-            pa_logger = logging.getLogger('pytest_ansible')
-            prev_level = pa_logger.level
-            pa_logger.setLevel('INFO')
-            restored = [False]
-
-            def restore_log_level():
-                if not restored[0]:
-                    pa_logger.setLevel(prev_level)
-                    restored[0] = True
-
-            request.addfinalizer(restore_log_level)
-
-            contacted = ansible_runner.slurp(src=pg_dump_path)
-            restore_log_level()
-
-            res = contacted.values().pop()
-
-            assert not res.get('failed') and res['content']
-            return b64decode(res['content'])
-
-        return _pg_dump
 
     @pytest.mark.requires_single_instance
     def test_confirm_no_plaintext_secrets_in_db(self, v2, factories, get_pg_dump):

@@ -41,6 +41,32 @@ class TestJobTemplateSurveys(Base_Api_Test):
         expected_job_vars = dict(submitter_email=launch_time_vars['submitter_email'])
         assert job_extra_vars == expected_job_vars
 
+    def test_jt_survey_password_defaults_passed_to_jobs(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+
+        survey = [dict(required=False,
+                       question_name='Test-1',
+                       variable='var1',
+                       type='password',
+                       default='var1_default'),
+                  dict(required=False,
+                       question_name='Test-2',
+                       variable='var2',
+                       type='password',
+                       default='var2_default')]
+        jt.add_survey(spec=survey)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+        assert '"var1": "var1_default"' in job.result_stdout
+        assert '"var2": "var2_default"' in job.result_stdout
+
+        relaunched_job = job.relaunch().wait_until_completed()
+        assert relaunched_job.is_successful
+        assert '"var1": "var1_default"' in relaunched_job.result_stdout
+        assert '"var2": "var2_default"' in relaunched_job.result_stdout
+
     def test_post_spec_with_missing_fields(self, job_template_ping):
         """Verify the API does not allow survey creation when missing any or all
         of the spec, name, or description fields.
@@ -132,6 +158,18 @@ class TestJobTemplateSurveys(Base_Api_Test):
 
         assert set(job_extra_vars) == set(expected_extra_vars)
 
+    def test_confirm_survey_spec_password_defaults_censored(self, factories):
+        jt = factories.v2_job_template()
+        survey = [dict(required=False,
+                       question_name='Test',
+                       variable='var',
+                       type='password',
+                       default="don't expose me - {0}".format(fauxfactory.gen_utf8(3).encode('utf8')))]
+        jt.add_survey(spec=survey)
+
+        survey_spec = jt.related.survey_spec.get().spec
+        assert survey_spec.pop()['default'] == '$encrypted$'
+
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7796')
     def test_confirm_survey_secret_extra_vars_not_in_activity_stream(self, factories):
         host = factories.v2_host()
@@ -149,3 +187,25 @@ class TestJobTemplateSurveys(Base_Api_Test):
         assert job.is_successful
         job_activity_stream = job.related.activity_stream.get().results.pop()
         assert json.loads(job_activity_stream.changes.extra_vars)['secret'] == "$encrypted$"
+
+    @pytest.mark.requires_single_instance
+    @pytest.mark.parametrize('template', ['job', 'workflow_job'])
+    def test_confirm_no_plaintext_survey_passwords_in_db(self, v2, factories, get_pg_dump, template):
+        resource = getattr(factories, 'v2_' + template + '_template')()
+        password = "don't expose me - {0}".format(fauxfactory.gen_utf8(3).encode('utf8'))
+        survey = [dict(required=False,
+                       question_name='Test',
+                       variable='var',
+                       type='password',
+                       default=password)]
+        resource.add_survey(spec=survey)
+
+        pg_dump = get_pg_dump()
+
+        try:
+            undesired_location = pg_dump.index(password)
+        except ValueError:
+            return
+        else:
+            target_text = pg_dump[undesired_location - 200:undesired_location + 200]
+            pytest.fail('Found plaintext survey password secret in db:\n\n{}'.format(target_text))
