@@ -39,7 +39,7 @@ class TestUnifiedJobs(Base_Api_Test):
         survey = [dict(required=False,
                        question_name='Test',
                        variable='var',
-                       type=password,
+                       type='password',
                        default=password)]
         resource.add_survey(spec=survey)
 
