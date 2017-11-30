@@ -349,7 +349,7 @@ class Test_Job(Base_Api_Test):
         job = jt.launch().wait_until_completed()
         assert job.is_successful
         assert job.extra_vars == json.dumps(dict(test_var_three='abc', test_var_four='1',
-                                                 test_var_seven='abc', test_var_eight='abc'))
+                                                 test_var_seven='$encrypted$', test_var_eight='$encrypted$'))
 
     def test_passed_survey_defaults_must_meet_length_requirements(self, factories):
         host = factories.v2_host()
