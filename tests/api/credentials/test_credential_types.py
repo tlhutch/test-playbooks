@@ -121,18 +121,18 @@ class TestCredentialTypes(Base_Api_Test):
         assert openstack.project.label == 'Project (Tenant Name)'
         assert openstack.username.label == 'Username'
 
-    def test_managed_by_tower_ovirt_credential_type(self, managed_by_tower_fields):
-        ovirt = managed_by_tower_fields['oVirt4']
-        assert ovirt.kind == 'cloud'
-        assert ovirt.username.label == 'Username'
-        assert ovirt.username.type == 'string'
-        assert ovirt.password.label == 'Password'
-        assert ovirt.password.type == 'string'
-        assert ovirt.password.secret is True
-        assert ovirt.ca_file.label == 'CA File'
-        assert ovirt.ca_file.type == 'string'
-        assert ovirt.host.label == 'Host (Authentication URL)'
-        assert ovirt.host.type == 'string'
+    def test_managed_by_tower_rhv_credential_type(self, managed_by_tower_fields):
+        rhv = managed_by_tower_fields['Red Hat Virtualization']
+        assert rhv.kind == 'cloud'
+        assert rhv.username.label == 'Username'
+        assert rhv.username.type == 'string'
+        assert rhv.password.label == 'Password'
+        assert rhv.password.type == 'string'
+        assert rhv.password.secret is True
+        assert rhv.ca_file.label == 'CA File'
+        assert rhv.ca_file.type == 'string'
+        assert rhv.host.label == 'Host (Authentication URL)'
+        assert rhv.host.type == 'string'
 
     def test_managed_by_tower_network_credential_type(self, managed_by_tower_fields):
         net = managed_by_tower_fields['Network']
