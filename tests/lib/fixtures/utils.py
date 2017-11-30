@@ -2,7 +2,7 @@ from base64 import b64decode
 import os
 import logging
 
-
+import fauxfactory
 import pytest
 
 
@@ -21,21 +21,20 @@ def class_subrequest(request):
 
 
 @pytest.fixture
-def get_pg_dump(request, ansible_runner, is_docker):
-    if is_docker:
-        pytest.skip('Test not compatible w/o access to db container.')
+def get_pg_dump(request, ansible_runner, skip_docker):
 
     def _pg_dump():
         inv_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
+        dump_filename = 'pg_{}.txt'.format(fauxfactory.gen_alphanumeric())
         contacted = ansible_runner.shell("""PGPASSWORD=`grep {} -e "pg_password=.*" """
                                          """| sed \'s/pg_password="//\' | sed \'s/"//\'` """
-                                         """pg_dump -U awx -d awx -f pg.txt -w""".format(inv_path))
+                                         """pg_dump -U awx -d awx -f {} -w""".format(inv_path, dump_filename))
         for res in contacted.values():
             assert res.get('changed') and not res.get('failed')
 
         user = ansible_runner.options['user'] \
                or ansible_runner.inventory_manager.get_host(ansible_runner.options['host_pattern']).get_vars()['ansible_user']
-        pg_dump_path = '/home/{0}/pg.txt'.format(user)
+        pg_dump_path = '/home/{0}/{1}'.format(user, dump_filename)
         request.addfinalizer(lambda: ansible_runner.file(path=pg_dump_path, state='absent'))
 
         # Don't log the dumped db.
