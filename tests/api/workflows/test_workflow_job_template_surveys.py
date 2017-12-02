@@ -1,3 +1,4 @@
+import towerkit.exceptions as exc
 import pytest
 
 from tests.api import Base_Api_Test
@@ -63,3 +64,33 @@ class TestWorkflowJobTemplateSurveys(Base_Api_Test):
         assert job2.is_successful
         assert '"var1": "var1_default"' in job2.result_stdout
         assert '"var2": "var2_default"' in job2.result_stdout
+
+    def test_only_select_wfjt_survey_fields_editable(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        wfjt = factories.v2_workflow_job_template()
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        survey = [dict(required=True,
+                       question_name='Q',
+                       variable='var1',
+                       type='password',
+                       default="don't update me")]
+        wfjt.add_survey(spec=survey)
+
+        question = survey[0]
+        for update in [dict(variable='var2', default='$encrypted$'),
+                       dict(variable='var1', type='text')]:
+            question.update(update)
+            with pytest.raises(exc.BadRequest):
+                wfjt.add_survey(spec=survey)
+
+        question.update(dict(type='password', required=False, question_name='Q-new'))
+        updated_survey = wfjt.add_survey(spec=survey)
+        assert updated_survey['spec'][0]['required'] is False
+        assert updated_survey['spec'][0]['question_name'] == 'Q-new'
+
+        wfjt.launch().wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert job.is_successful
+        assert '"var1": "don\'t update me"' in job.result_stdout

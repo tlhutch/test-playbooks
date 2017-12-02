@@ -115,6 +115,32 @@ class TestJobTemplateSurveys(Base_Api_Test):
         survey_spec.get()
         assert survey_spec.spec == required_survey_spec
 
+    def test_only_select_jt_survey_fields_editable(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        survey = [dict(required=True,
+                       question_name='Q',
+                       variable='var1',
+                       type='password',
+                       default="don't update me")]
+        jt.add_survey(spec=survey)
+
+        question = survey[0]
+        for update in [dict(variable='var2', default='$encrypted$'),
+                       dict(variable='var1', type='text')]:
+            question.update(update)
+            with pytest.raises(exc.BadRequest):
+                jt.add_survey(spec=survey)
+
+        question.update(dict(type='password', required=False, question_name='Q-new'))
+        updated_survey = jt.add_survey(spec=survey)
+        assert updated_survey['spec'][0]['required'] is False
+        assert updated_survey['spec'][0]['question_name'] == 'Q-new'
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+        assert '"var1": "don\'t update me"' in job.result_stdout
+
     def test_job_template_launch_survey_enabled(self, job_template_ping, required_survey_spec):
         """Assess launch_pg.survey_enabled behaves as expected."""
         # check that survey_enabled is false by default
