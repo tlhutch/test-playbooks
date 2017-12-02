@@ -83,13 +83,13 @@ class TestWorkflowJobTemplateSurveys(Base_Api_Test):
                        default='var2_default')]
         wfjt.add_survey(spec=survey)
 
-        wfj1 = wfjt.launch(dict(extra_vars=dict(var1='var1_launch',
-                                                var2='var2_launch'))).wait_until_completed()
-        job1 = jt.get().related.last_job.get()
-        assert wfj1.is_successful
-        assert job1.is_successful
-        assert '"var1": "var1_launch"' in job1.result_stdout
-        assert '"var2": "var2_launch"' in job1.result_stdout
+        wfj = wfjt.launch(dict(extra_vars=dict(var1='var1_launch',
+                                               var2='var2_launch'))).wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert wfj.is_successful
+        assert job.is_successful
+        assert '"var1": "var1_launch"' in job.result_stdout
+        assert '"var2": "var2_launch"' in job.result_stdout
 
     def test_only_select_wfjt_survey_fields_editable(self, factories):
         host = factories.v2_host()
