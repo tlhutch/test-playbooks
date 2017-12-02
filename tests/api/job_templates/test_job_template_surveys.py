@@ -87,7 +87,7 @@ class TestJobTemplateSurveys(Base_Api_Test):
         assert job.is_successful
         assert '"var1": "var1_default"' in job.result_stdout
         assert '"var2": "var2_default"' in job.result_stdout
-        assert utils.load_json_or_yaml(job.extra_vars) == dict(var1='$encrypted$', var2='var2_default', var3='launch')
+        assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='var2_default', var3='launch')
 
     def test_null_jt_survey_defaults_passed_to_jobs(self, factories):
         host = factories.v2_host()
