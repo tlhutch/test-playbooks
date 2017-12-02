@@ -65,6 +65,32 @@ class TestWorkflowJobTemplateSurveys(Base_Api_Test):
         assert '"var1": "var1_default"' in job2.result_stdout
         assert '"var2": "var2_default"' in job2.result_stdout
 
+    def test_survey_variables_overriden_when_supplied_at_launch(self, factories):
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        survey = [dict(required=True,
+                       question_name='Test-1',
+                       variable='var1',
+                       type='password',
+                       default='var1_default'),
+                  dict(required=False,
+                       question_name='Test-2',
+                       variable='var2',
+                       type='password',
+                       default='var2_default')]
+        wfjt.add_survey(spec=survey)
+
+        wfj1 = wfjt.launch(dict(extra_vars=dict(var1='var1_launch',
+                                                var2='var2_launch'))).wait_until_completed()
+        job1 = jt.get().related.last_job.get()
+        assert wfj1.is_successful
+        assert job1.is_successful
+        assert '"var1": "var1_launch"' in job1.result_stdout
+        assert '"var2": "var2_launch"' in job1.result_stdout
+
     def test_only_select_wfjt_survey_fields_editable(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
