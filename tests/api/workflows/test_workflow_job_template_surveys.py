@@ -69,6 +69,7 @@ class TestWorkflowJobTemplateSurveys(Base_Api_Test):
         assert '"var1": "var1_default"' in job2.result_stdout
         assert '"var2": "var2_default"' in job2.result_stdout
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7808')
     def test_survey_variables_and_launch_variables_passed_to_jobs(self, factories):
         host = factories.v2_host()
         wfjt = factories.v2_workflow_job_template()
