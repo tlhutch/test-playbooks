@@ -67,6 +67,26 @@ class TestJobTemplateSurveys(Base_Api_Test):
         assert '"var1": "var1_default"' in relaunched_job.result_stdout
         assert '"var2": "var2_default"' in relaunched_job.result_stdout
 
+    def test_null_jt_survey_defaults_passed_to_jobs(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        survey = [dict(required=False,
+                       question_name='Q1',
+                       variable='var1',
+                       type='password',
+                       default=""),
+                  dict(required=False,
+                       question_name='Q2',
+                       variable='var2',
+                       type='text',
+                       default="")]
+        jt.add_survey(spec=survey)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+        assert '"var1": ""' in job.result_stdout
+        assert '"var2": ""' in job.result_stdout
+
     def test_post_spec_with_missing_fields(self, job_template_ping):
         """Verify the API does not allow survey creation when missing any or all
         of the spec, name, or description fields.
