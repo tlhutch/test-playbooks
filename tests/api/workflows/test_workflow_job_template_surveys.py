@@ -65,6 +65,35 @@ class TestWorkflowJobTemplateSurveys(Base_Api_Test):
         assert '"var1": "var1_default"' in job2.result_stdout
         assert '"var2": "var2_default"' in job2.result_stdout
 
+    def test_null_wfjt_survey_defaults_passed_to_jobs(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        wfjt = factories.v2_workflow_job_template()
+        factories = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        survey = [dict(required=False,
+                       question_name='Q1',
+                       variable='var1',
+                       type='password',
+                       default=""),
+                  dict(required=False,
+                       question_name='Q2',
+                       variable='var2',
+                       type='text',
+                       default="")]
+        wfjt.add_survey(spec=survey)
+
+        survey[0]['default'] = 'jt_default1'
+        survey[1]['default'] = 'jt_default2'
+        jt.add_survey(spec=survey)
+
+        wfj = wfjt.launch().wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert wfj.is_successful
+        assert job.is_successful
+        assert '"var1": ""' in job.result_stdout
+        assert '"var2": ""' in job.result_stdout
+
     def test_survey_variables_overriden_when_supplied_at_launch(self, factories):
         host = factories.v2_host()
         wfjt = factories.v2_workflow_job_template()
@@ -79,7 +108,7 @@ class TestWorkflowJobTemplateSurveys(Base_Api_Test):
                   dict(required=False,
                        question_name='Test-2',
                        variable='var2',
-                       type='password',
+                       type='text',
                        default='var2_default')]
         wfjt.add_survey(spec=survey)
 
