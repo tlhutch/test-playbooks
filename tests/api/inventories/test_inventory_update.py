@@ -516,3 +516,16 @@ class TestInventoryUpdate(Base_Api_Test):
             "Unexpected update job_explanation. Expected '{0}' but received '{1}.'".format(job_explanation, update_pg.job_explanation)
         assert update_pg.timeout == custom_inventory_source.timeout, \
             "Update_pg has a different timeout value ({0}) than its inv_source ({1}).".format(update_pg.timeout, custom_inventory_source.timeout)
+
+    def test_azure_rm_inventory_update_has_desired_environment_variables(self, factories):
+        azure_cred = factories.v2_credential(kind='azure_rm', client='SomeClient', cloud_environment='SomeCloudEnvironment',
+                                             password='SomePassword', secret='SomeSecret', subscription='SomeSubscription',
+                                             tenant='SomeTenant', username='SomeUsername')
+        azure = factories.v2_inventory_source(source='azure_rm', credential=azure_cred)
+        update = azure.update().wait_until_completed()
+        job_env = update.job_env
+        assert job_env.AZURE_CLIENT_ID == 'SomeClient'
+        assert job_env.AZURE_CLOUD_ENVIRONMENT == 'SomeCloudEnvironment'
+        assert job_env.AZURE_SECRET == '**********'
+        assert job_env.AZURE_SUBSCRIPTION_ID == 'SomeSubscription'
+        assert job_env.AZURE_TENANT == 'SomeTenant'

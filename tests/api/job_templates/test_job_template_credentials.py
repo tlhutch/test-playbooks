@@ -319,7 +319,8 @@ class TestJobTemplateExtraCredentials(Base_Api_Test):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
 
-        cloud_credentials = [factories.v2_credential(kind=cred_type) for cred_type in ('aws', 'azure_rm', 'gce')]
+        cloud_credentials = [factories.v2_credential(kind=cred_type) for cred_type in ('aws', 'gce')]
+        cloud_credentials.append(factories.v2_credential(kind='azure_rm', cloud_environment='SomeEnvironment'))
         for cred in cloud_credentials:
             jt.add_extra_credential(cred)
 
@@ -328,7 +329,7 @@ class TestJobTemplateExtraCredentials(Base_Api_Test):
 
         assert job.is_successful
 
-        env_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AZURE_CLIENT_ID', 'AZURE_SECRET',
+        env_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AZURE_CLIENT_ID', 'AZURE_CLOUD_ENVIRONMENT', 'AZURE_SECRET',
                     'AZURE_SUBSCRIPTION_ID', 'AZURE_TENANT', 'GCE_EMAIL', 'GCE_PEM_FILE_PATH', 'GCE_PROJECT')
 
         for env_var in env_vars:

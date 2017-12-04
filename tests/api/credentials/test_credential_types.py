@@ -85,6 +85,8 @@ class TestCredentialTypes(Base_Api_Test):
         assert azure.subscription.label == 'Subscription ID'
         assert azure.tenant.label == 'Tenant ID'
         assert azure.username.label == 'Username'
+        assert azure.cloud_environment.label == 'Azure Cloud Environment'
+        assert azure.cloud_environment.type == 'string'
 
     def test_managed_by_tower_cloudforms_credential_type(self, managed_by_tower_fields):
         cloudforms = managed_by_tower_fields['Red Hat CloudForms']
