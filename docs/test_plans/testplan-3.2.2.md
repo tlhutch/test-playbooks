@@ -11,8 +11,8 @@
 
 ## Features Tested
 
-* [ ] Tower inventory source [Issue](https://github.com/ansible/ansible-tower/issues/6297) ([PR](https://github.com/ansible/tower/pull/551))
-* [ ] ovirt4.py dynamic inventory support [Issue](https://github.com/ansible/ansible-tower/issues/6522)
+* [x] Tower inventory source [Issue](https://github.com/ansible/ansible-tower/issues/6297) ([PR](https://github.com/ansible/tower/pull/551))
+* [x] ovirt4.py dynamic inventory support [Issue](https://github.com/ansible/ansible-tower/issues/6522)
 * [ ] Encrypted survey password defaults in the database [Issue](https://github.com/ansible/ansible-tower/issues/7046)
 * [ ] Cluster-safe backup and restore [Issue](https://github.com/ansible/ansible-tower/issues/7709)
 
@@ -25,7 +25,7 @@
 1. [ ] Tower LDAP Integration regression completed
 1. [ ] Tower RADIUS Integration regression completed
 1. [ ] Social authentication regression completed
-1. [ ] SAML authentication
+1. [x] SAML authentication
 1. [ ] Verify logging (incl. cluster)
 1. [ ] Backup/restore successful
 
@@ -56,11 +56,11 @@
 1. [ ] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
-1. [ ] Upgrade completes on all supported platforms from `3.0.0` - `3.0.4`
-1. [ ] Upgrade completes on all supported platforms from `3.1.0` - `3.1.5`
-1. [ ] Upgrade completes on all supported platforms from `3.2.0` - `3.2.1`
-1. [ ] Verify the following functions work as intended after upgrade
-    * [ ] Launch project_updates for existing projects
-    * [ ] Launch inventory_updates for existing inventory_source
-    * [ ] Launch, and relaunch, existing job_templates
-    * [ ] Migrations were successful
+1. [x] Upgrade completes on all supported platforms from `3.0.0` - `3.0.4`
+1. [x] Upgrade completes on all supported platforms from `3.1.0` - `3.1.5`
+1. [x] Upgrade completes on all supported platforms from `3.2.0` - `3.2.1`
+1. [x] Verify the following functions work as intended after upgrade
+    * [x] Launch project_updates for existing projects
+    * [x] Launch inventory_updates for existing inventory_source
+    * [x] Launch, and relaunch, existing job_templates
+    * [x] Migrations were successful
