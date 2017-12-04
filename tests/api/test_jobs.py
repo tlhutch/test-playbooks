@@ -324,7 +324,6 @@ class Test_Job(Base_Api_Test):
         assert(all([val == "$encrypted$" for val in extra_vars.values()])
                ), "Undesired values for extra_vars detected: {0}".format(extra_vars)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7784')
     def test_survey_defaults_must_meet_length_requirements(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory)
@@ -336,20 +335,29 @@ class Test_Job(Base_Api_Test):
                      variable='test_var_three', type='text', min=0, default='abc'),
                 dict(required=False, question_name="Text-passed default with maximum.",
                      variable='test_var_four', type='text', max=7, default='1'),
+                dict(required=False, question_name="Text-passed default with compatible minimum and maximum.",
+                     variable='test_var_five', type='text', min=1, max=5, default='four'),
+                dict(required=False, question_name="Text-passed default with conflicting minimum and maximum.",
+                     variable='test_var_six', type='text', min=4, max=4, default='asdfasdf'),
                 dict(required=False, question_name="Password-default too short.",
-                     variable='test_var_five', type='password', min=7, default='four'),
+                     variable='test_var_seven', type='password', min=7, default='four'),
                 dict(required=False, question_name="Password-default too long.",
-                     variable='test_var_six', type='password', max=1, default='four'),
+                     variable='test_var_eight', type='password', max=1, default='four'),
                 dict(required=False, question_name="Password-passed default with minimum.",
-                     variable='test_var_seven', type='password', min=1, default='abc'),
+                     variable='test_var_nine', type='password', min=1, default='abc'),
                 dict(required=False, question_name='Password-passed default with maximum.',
-                     variable='test_var_eight', type='password', max=7, default='abc')]
+                     variable='test_var_ten', type='password', max=7, default='abc'),
+                dict(required=False, question_name="Password-passed default with compatible minimum and maximum.",
+                     variable='test_var_eleven', type='password', min=1, max=5, default='four'),
+                dict(required=False, question_name="Password-passed default with conflicting minimum and maximum.",
+                     variable='test_var_twelve', type='password', min=4, max=4, default='asdfasdf')]
         jt.add_survey(spec=spec)
 
         job = jt.launch().wait_until_completed()
         assert job.is_successful
-        assert job.extra_vars == json.dumps(dict(test_var_three='abc', test_var_four='1',
-                                                 test_var_seven='$encrypted$', test_var_eight='$encrypted$'))
+        assert json.loads(job.extra_vars) == dict(test_var_three='abc', test_var_four='1', test_var_five='four',
+                                                  test_var_nine='$encrypted$', test_var_ten='$encrypted$',
+                                                  test_var_eleven='$encrypted$')
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7810')
     def test_passed_survey_defaults_must_meet_length_requirements(self, factories):
@@ -363,28 +371,35 @@ class Test_Job(Base_Api_Test):
                      variable='test_var_three', type='text', min=0, default='abc'),
                 dict(required=False, question_name="Text-passed default with maximum.",
                      variable='test_var_four', type='text', max=7, default='1'),
+                dict(required=False, question_name="Text-passed default with compatible minimum and maximum.",
+                     variable='test_var_five', type='text', min=1, max=5, default='four'),
+                dict(required=False, question_name="Text-passed default with conflicting minimum and maximum.",
+                     variable='test_var_six', type='text', min=4, max=4, default='asdfasdf'),
                 dict(required=False, question_name="Password-default too short.",
-                     variable='test_var_five', type='password', min=7, default='four'),
+                     variable='test_var_seven', type='password', min=7, default='four'),
                 dict(required=False, question_name="Password-default too long.",
-                     variable='test_var_six', type='password', max=1, default='four'),
+                     variable='test_var_eight', type='password', max=1, default='four'),
                 dict(required=False, question_name="Password-passed default with minimum.",
-                     variable='test_var_seven', type='password', min=1, default='abc'),
+                     variable='test_var_nine', type='password', min=1, default='abc'),
                 dict(required=False, question_name='Password-passed default with maximum.',
-                     variable='test_var_eight', type='password', max=7, default='abc')]
+                     variable='test_var_ten', type='password', max=7, default='abc'),
+                dict(required=False, question_name="Password-passed default with compatible minimum and maximum.",
+                     variable='test_var_eleven', type='password', min=1, max=5, default='four'),
+                dict(required=False, question_name="Password-passed default with conflicting minimum and maximum.",
+                     variable='test_var_twelve', type='password', min=4, max=4, default='asdfasdf')]
         jt.add_survey(spec=spec)
 
         payload = dict(extra_vars=dict(test_var_one='', test_var_two='four', test_var_three='abc',
-                                       test_var_four='1', test_var_five='$encrypted$',
-                                       test_var_six='$encrypted$', test_var_seven='$encrypted$',
-                                       test_var_eight='$encrypted$'))
-
+                                       test_var_four='1', test_var_five='four', test_var_six='asdfasdf',
+                                       test_var_seven='$encrypted$', test_var_eight='$encrypted$',
+                                       test_var_nine='$encrypted$', test_var_ten='$encrypted$',
+                                       test_var_eleven='$encrypted$', test_var_twelve='$encrypted$'))
         with pytest.raises(exc.BadRequest) as e:
             jt.launch(payload)
         assert e.value[1]['variables_needed_to_start'] == \
             ["'test_var_one' value  is too small (length is 0 must be at least 7).",
              "'test_var_two' value four is too large (must be no more than 1).",
-             "'test_var_five' value four is too small (length is 4 must be at least 7).",
-             "'test_var_six' value four is too large (must be no more than 1)."]
+             "'test_var_six' value asdfasdf is too large (must be no more than 4)."]
 
     def test_encrypted_disallowed_as_survey_default_answer(self, factories):
         jt = factories.v2_job_template()
