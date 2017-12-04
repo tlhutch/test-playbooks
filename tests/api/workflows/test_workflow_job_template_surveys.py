@@ -69,8 +69,7 @@ class TestWorkflowJobTemplateSurveys(Base_Api_Test):
         assert '"var1": "var1_default"' in job2.result_stdout
         assert '"var2": "var2_default"' in job2.result_stdout
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7808')
-    def test_survey_variables_and_launch_variables_passed_to_jobs(self, factories):
+    def test_survey_variables_passed_to_jobs_and_launch_variables_ignored(self, factories):
         host = factories.v2_host()
         wfjt = factories.v2_workflow_job_template()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
@@ -81,7 +80,7 @@ class TestWorkflowJobTemplateSurveys(Base_Api_Test):
         jt_survey = copy.deepcopy(self.survey)
         jt_survey[0]['default'] = 'wfjn_var1_default'
         jt_survey[1]['default'] = 'wfjn_var2_default'
-        jt.add_survey(jt_survey)
+        jt.add_survey(spec=jt_survey)
 
         wfj = wfjt.launch(dict(extra_vars=dict(var3='launch'))).wait_until_completed()
         job = jt.get().related.last_job.get()
@@ -89,8 +88,8 @@ class TestWorkflowJobTemplateSurveys(Base_Api_Test):
         assert job.is_successful
         assert '"var1": "var1_default"' in job.result_stdout
         assert '"var2": "var2_default"' in job.result_stdout
-        assert json.loads(wfj.extra_vars) == dict(var1='$encrypted$', var2='var2_default', var3='launch')
-        assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='var2_default', var3='launch')
+        assert json.loads(wfj.extra_vars) == dict(var1='$encrypted$', var2='var2_default')
+        assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='var2_default')
 
     def test_null_wfjt_survey_defaults_passed_to_jobs(self, factories):
         host = factories.v2_host()
