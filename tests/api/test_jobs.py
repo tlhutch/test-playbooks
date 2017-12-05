@@ -351,6 +351,7 @@ class Test_Job(Base_Api_Test):
         assert job.extra_vars == json.dumps(dict(test_var_three='abc', test_var_four='1',
                                                  test_var_seven='$encrypted$', test_var_eight='$encrypted$'))
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7810')
     def test_passed_survey_defaults_must_meet_length_requirements(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory)
