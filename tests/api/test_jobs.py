@@ -359,7 +359,6 @@ class Test_Job(Base_Api_Test):
                                                   test_var_nine='$encrypted$', test_var_ten='$encrypted$',
                                                   test_var_eleven='$encrypted$')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7810')
     def test_passed_survey_defaults_must_meet_length_requirements(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory)
