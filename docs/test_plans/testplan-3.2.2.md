@@ -22,9 +22,9 @@
 1. [ ] Limited manual UI testing completed
 1. [ ] API regression completed
 1. [ ] Tower HA regression completed
-1. [ ] Tower LDAP Integration regression completed
-1. [ ] Tower RADIUS Integration regression completed
-1. [ ] Social authentication regression completed
+1. [x] Tower LDAP Integration regression completed
+1. [x] Tower RADIUS Integration regression completed
+1. [x] Social authentication regression completed
 1. [x] SAML authentication
 1. [ ] Verify logging (incl. cluster)
 1. [ ] Backup/restore successful
