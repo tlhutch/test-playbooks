@@ -89,6 +89,28 @@ class TestJobTemplateSurveys(Base_Api_Test):
         assert '"var2": "var2_default"' in job.result_stdout
         assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='var2_default', var3='launch')
 
+    def test_jt_survey_with_required_and_optional_fields(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+
+        survey = [dict(required=True,
+                       question_name='Test-1',
+                       variable='var1',
+                       type='password',
+                       default='var1_default'),
+                  dict(required=False,
+                       question_name='Test-2',
+                       variable='var2',
+                       type='password',
+                       default='var2_default')]
+        jt.add_survey(spec=survey)
+
+        job = jt.launch(dict(extra_vars=dict(var1='launch'))).wait_until_completed()
+        assert job.is_successful
+        assert '"var1": "launch"' in job.result_stdout
+        assert '"var2": "var2_default"' in job.result_stdout
+        assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='$encrypted$')
+
     def test_null_jt_survey_defaults_passed_to_jobs(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
