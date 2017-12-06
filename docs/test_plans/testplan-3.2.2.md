@@ -13,7 +13,7 @@
 
 * [x] Tower inventory source [Issue](https://github.com/ansible/ansible-tower/issues/6297) ([PR](https://github.com/ansible/tower/pull/551))
 * [x] ovirt4.py dynamic inventory support [Issue](https://github.com/ansible/ansible-tower/issues/6522)
-* [ ] Encrypted survey password defaults in the database [Issue](https://github.com/ansible/ansible-tower/issues/7046)
+* [x] Encrypted survey password defaults in the database [Issue](https://github.com/ansible/ansible-tower/issues/7046)
 * [ ] Cluster-safe backup and restore [Issue](https://github.com/ansible/ansible-tower/issues/7709)
 
 ## Targeted Testing
