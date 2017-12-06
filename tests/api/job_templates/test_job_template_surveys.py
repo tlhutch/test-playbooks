@@ -169,7 +169,7 @@ class TestJobTemplateSurveys(Base_Api_Test):
 
         survey[0]['default'] = '$encrypted$'
         updated_survey = jt.add_survey(spec=survey)
-        assert updated_survey.spec[0]['default'] is u""
+        assert updated_survey.spec[0]['default'] == ""
 
         job = jt.launch().wait_until_completed()
         assert job.is_successful
