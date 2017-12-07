@@ -34,7 +34,7 @@ def get_pg_dump(request, ansible_runner, is_docker):
             assert res.get('changed') and not res.get('failed')
 
         user = ansible_runner.options['user'] \
-               or ansible_runner.inventory_manager.get_vars(ansible_runner.options['host_pattern'])['ansible_user']
+               or ansible_runner.inventory_manager.get_host(ansible_runner.options['host_pattern']).get_vars()['ansible_user']
         pg_dump_path = '/home/{0}/pg.txt'.format(user)
         request.addfinalizer(lambda: ansible_runner.file(path=pg_dump_path, state='absent'))
 
