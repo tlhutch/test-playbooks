@@ -179,6 +179,24 @@ class TestJobTemplateSurveys(Base_Api_Test):
         survey_spec.get()
         assert survey_spec.spec == required_survey_spec
 
+    def test_updating_survey_password_default_with_reserved_password_keyword_is_idempotent(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        survey = [dict(required=False,
+                       question_name='Q',
+                       variable='var1',
+                       type='password',
+                       default="")]
+        jt.add_survey(spec=survey)
+
+        survey[0]['default'] = '$encrypted$'
+        updated_survey = jt.add_survey(spec=survey)
+        assert updated_survey.spec[0]['default'] == ""
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+        assert '"var1": ""' in job.result_stdout
+
     def test_only_select_jt_survey_fields_editable(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
