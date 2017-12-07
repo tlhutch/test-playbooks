@@ -31,30 +31,30 @@ class TestInventoryUpdate(Base_Api_Test):
     def test_v2_update_all_inventory_sources_with_functional_sources(self, factories):
         """Verify behavior when inventory has functional inventory sources."""
         inventory = factories.v2_inventory()
-        azure_cred, vmware_cred = [factories.v2_credential(kind=kind) for kind in ('azure_rm', 'vmware')]
+        azure_cred, aws_cred = [factories.v2_credential(kind=kind) for kind in ('azure_rm', 'aws')]
         azure_source = factories.v2_inventory_source(inventory=inventory, source='azure_rm', credential=azure_cred)
-        vmware_source = factories.v2_inventory_source(inventory=inventory, source='vmware', credential=vmware_cred)
+        ec2_source = factories.v2_inventory_source(inventory=inventory, source='ec2', credential=aws_cred)
         scm_source = factories.v2_inventory_source(inventory=inventory, source='scm',
                                                    source_path='inventories/inventory.ini')
 
         prelaunch = inventory.related.update_inventory_sources.get()
         assert dict(can_update=True, inventory_source=azure_source.id) in prelaunch
-        assert dict(can_update=True, inventory_source=vmware_source.id) in prelaunch
+        assert dict(can_update=True, inventory_source=ec2_source.id) in prelaunch
         assert dict(can_update=True, inventory_source=scm_source.id) in prelaunch
         assert len(prelaunch.json) == 3
 
         postlaunch = inventory.related.update_inventory_sources.post()
-        azure_update, vmware_update, scm_update = [source.wait_until_completed(timeout=240).related.last_update.get()
-                                                   for source in (azure_source, vmware_source, scm_source)]
+        azure_update, ec2_update, scm_update = [source.wait_until_completed(timeout=240).related.last_update.get()
+                                                   for source in (azure_source, ec2_source, scm_source)]
         assert dict(inventory_source=azure_source.id, inventory_update=azure_update.id, status="started") in postlaunch
-        assert dict(inventory_source=vmware_source.id, inventory_update=vmware_update.id, status="started") in postlaunch
+        assert dict(inventory_source=ec2_source.id, inventory_update=ec2_update.id, status="started") in postlaunch
         assert dict(inventory_source=scm_source.id, inventory_update=scm_update.id, status="started") in postlaunch
         assert len(postlaunch.json) == 3
 
         assert azure_update.is_successful
         assert azure_source.is_successful
-        assert vmware_update.is_successful
-        assert vmware_source.is_successful
+        assert ec2_update.is_successful
+        assert ec2_source.is_successful
         assert scm_update.is_successful
         assert scm_source.is_successful
 

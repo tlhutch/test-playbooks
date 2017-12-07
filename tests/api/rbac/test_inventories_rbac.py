@@ -308,9 +308,9 @@ class TestInventoryRBAC(Base_Api_Test):
         REJECTED_ROLES = ['use', 'ad hoc', 'read']
 
         inventory = factories.v2_inventory()
-        gce_cred, vmware_cred = [factories.v2_credential(kind=kind) for kind in ('gce', 'vmware')]
+        gce_cred, aws_cred = [factories.v2_credential(kind=kind) for kind in ('gce', 'aws')]
         gce_source = factories.v2_inventory_source(inventory=inventory, source='gce', credential=gce_cred)
-        vmware_source = factories.v2_inventory_source(inventory=inventory, source='vmware', credential=vmware_cred)
+        ec2_source = factories.v2_inventory_source(inventory=inventory, source='ec2', credential=aws_cred)
 
         user = factories.user()
         inventory.set_object_roles(user, role)
@@ -320,7 +320,7 @@ class TestInventoryRBAC(Base_Api_Test):
                 inv_updates = inventory.update_inventory_sources(wait=True)
                 for update in inv_updates:
                     assert update.is_successful
-                assert gce_source.get().is_successful and vmware_source.get().is_successful
+                assert gce_source.get().is_successful and ec2_source.get().is_successful
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     inventory.update_inventory_sources()
