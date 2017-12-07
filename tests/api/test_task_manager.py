@@ -1,8 +1,9 @@
-import pytest
 import json
-import fauxfactory
-from dateutil.parser import parse as du_parse
 
+import fauxfactory
+import pytest
+
+from dateutil.parser import parse as du_parse
 from tests.api import Base_Api_Test
 
 
@@ -15,31 +16,10 @@ def another_custom_group(request, authtoken, api_groups_pg, inventory, inventory
     obj = api_groups_pg.post(payload)
     request.addfinalizer(obj.delete)
 
-    # Set the inventory_source
     inv_source = obj.get_related('inventory_source')
     inv_source.patch(source='custom',
                      source_script=inventory_script.id)
     return obj
-
-
-@pytest.fixture(scope="function")
-def project_django(request, authtoken, organization):
-    # Create project
-    payload = dict(name="django.git - %s" % fauxfactory.gen_utf8(),
-                   scm_type='git',
-                   scm_url='https://github.com/ansible-test/django.git',
-                   scm_clean=False,
-                   scm_delete_on_update=True,
-                   scm_update_on_launch=True,)
-    obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.silent_delete)
-    return obj
-
-
-@pytest.fixture(scope="function")
-def job_template_with_project_django(job_template, project_django):
-    project_django.wait_until_completed()
-    return job_template.patch(project=project_django.id, playbook='ping.yml')
 
 
 @pytest.fixture(scope="function")
@@ -396,7 +376,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
             "Not expecting our inventory source to have been updated - %s." % inv_src_pg
 
         # launch job_template and assert successful
-        job_pg = cloud_inventory_job_template.launch_job().wait_until_completed(timeout=50 * 10)
+        job_pg = cloud_inventory_job_template.launch_job().wait_until_completed()
         assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
 
         # check that inventory update triggered
@@ -671,48 +651,41 @@ class Test_Cascade_Fail_Dependent_Jobs(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
-    @pytest.mark.fixture_args(source_script="""#!/usr/bin/env python
+    @pytest.fixture
+    def sleep_inventory_script(self, factories):
+        source_script = """#!/usr/bin/env python
 import json, time
-# sleep helps us cancel the inventory update
 time.sleep(30)
 inventory = dict()
 print json.dumps(inventory)
-""")
-    def test_cancel_inventory_update(self, job_template, custom_group):
-        """Tests that if you cancel an inventory update before it finishes that
-        its dependent job fails.
-        """
-        inv_source_pg = custom_group.get_related('inventory_source')
-        inv_source_pg.patch(update_on_launch=True)
+"""
+        return factories.v2_inventory_script(script=source_script)
 
-        assert not inv_source_pg.last_updated, "inv_source_pg unexpectedly updated."
+    def test_canceling_inventory_update_should_cascade_cancel_dependent_job(self, factories, sleep_inventory_script):
+        inventory = factories.v2_inventory(organization=sleep_inventory_script.ds.organization)
+        inv_source = factories.v2_inventory_source(inventory=inventory, inventory_script=sleep_inventory_script,
+                                                   update_on_launch=True)
+        jt = factories.v2_job_template(inventory=inventory)
 
-        # launch job
-        job_pg = job_template.launch()
+        job = jt.launch()
 
-        # wait for the inventory_source to start
-        inv_source_pg.wait_until_started(interval=.5)
+        inv_update = inv_source.wait_until_started(interval=1).related.current_update.get()
+        assert inv_update.related.cancel.get().can_cancel
+        inv_update.cancel()
 
-        # cancel inventory update
-        inv_update_pg = inv_source_pg.get_related('current_update')
-        cancel_pg = inv_update_pg.get_related('cancel')
-        assert cancel_pg.can_cancel, "The inventory_update is not cancellable, it may have already completed - %s." % inv_update_pg.get()
-        cancel_pg.post()
+        assert inv_update.wait_until_completed().status == 'canceled'
+        assert inv_update.failed
+        assert inv_source.get().status == 'canceled'
+        assert inv_source.last_job_failed
+        assert inv_source.last_update_failed
 
-        assert inv_update_pg.wait_until_completed().status == 'canceled'
+        assert job.wait_until_completed().status == "canceled"
+        assert job.failed
 
-        # assert launched job failed
-        assert job_pg.wait_until_completed().status == "canceled", "Unexpected job status - %s." % job_pg
-
-        # assess job_explanation
-        check_chain_canceled_job_explanation(inv_update_pg, [job_pg])
-
-        assert inv_source_pg.get().status == 'canceled', \
-            "Unexpected inventory_source status after cancelling (expected 'canceled') - %s." % inv_source_pg.status
+        check_chain_canceled_job_explanation(inv_update, [job])
 
     @pytest.mark.fixture_args(source_script="""#!/usr/bin/env python
 import json, time
-# sleep helps us cancel the inventory update
 time.sleep(30)
 inventory = dict()
 print json.dumps(inventory)
@@ -766,115 +739,97 @@ print json.dumps(inventory)
         # assess job_explanation
         check_chain_canceled_job_explanation(first_inv_update_pg, [job_pg, second_inv_update_pg])
 
-    def test_cancel_project_update(self, job_template_with_project_django):
-        """Tests that if you cancel a SCM update before it finishes that its
-        dependent job fails.
-        """
-        project_pg = job_template_with_project_django.get_related('project')
+    def test_canceling_project_update_should_cascade_cancel_dependent_job(self, factories):
+        project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
+                                       scm_delete_on_update=True, scm_update_on_launch=True)
+        jt = factories.v2_job_template(project=project, playbook='test/integration/targets/unicode/unicode.yml')
 
-        # launch job
-        job_pg = job_template_with_project_django.launch()
+        job = jt.launch()
 
-        # wait for new update to start and cancel it
-        project_update_pg = project_pg.wait_until_started(interval=.5).get_related('current_update')
-        cancel_pg = project_update_pg.get_related('cancel')
-        assert cancel_pg.can_cancel, "The project update is not cancellable, it may have already completed - %s." % project_update_pg.get()
-        cancel_pg.post()
+        project_update = project.wait_until_started(interval=1).related.current_update.get()
+        assert project_update.related.cancel.get().can_cancel
+        project_update.cancel()
 
-        assert project_update_pg.wait_until_completed().status == 'canceled', \
-            "Unexpected project status (expected status:canceled) - %s." % project_pg
+        assert project.wait_until_completed().status == 'canceled'
+        assert project.last_job_failed
+        assert project.last_update_failed
+        assert project_update.get().status == 'canceled'
+        assert project_update.failed
 
-        # assert launched job canceled
-        assert job_pg.wait_until_completed().status == "canceled", "Unexpected job status - %s." % job_pg
+        assert job.wait_until_completed().status == 'canceled'
+        assert job.failed
 
-        # assess job_explanation
-        check_chain_canceled_job_explanation(project_update_pg, [job_pg])
+        check_chain_canceled_job_explanation(project_update, [job])
 
-    def test_cancel_project_update_with_inventory_and_project_updates(self, job_template_with_project_django, custom_group):
-        """Tests that if you cancel a scm update before it finishes that its
-        dependent job fails. This test runs both inventory and SCM updates
-        on job launch.
-        """
-        project_pg = job_template_with_project_django.get_related('project')
-        inv_source_pg = custom_group.get_related('inventory_source')
-        inv_source_pg.patch(update_on_launch=True)
+    def test_canceling_project_update_should_cascade_cancel_inventory_update_and_dependent_job(self, factories, sleep_inventory_script):
+        project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
+                                       scm_delete_on_update=True, scm_update_on_launch=True)
+        inventory = factories.v2_inventory(organization=sleep_inventory_script.ds.organization)
+        jt = factories.v2_job_template(project=project, inventory=inventory,
+                                       playbook='test/integration/targets/unicode/unicode.yml')
+        inv_source = factories.v2_inventory_source(inventory=inventory, inventory_script=sleep_inventory_script,
+                                                   update_on_launch=True)
 
-        assert not inv_source_pg.last_updated, "inv_source_pg unexpectedly updated."
+        job = jt.launch()
 
-        # launch job
-        job_pg = job_template_with_project_django.launch()
+        inv_update = inv_source.wait_until_started(interval=1).related.current_update.get()
+        project_update = project.wait_until_started(interval=1).related.current_update.get()
+        assert project_update.related.cancel.get().can_cancel
+        project_update.cancel()
 
-        # wait for new update to start and cancel it
-        project_update_pg = project_pg.wait_until_started(interval=.5).get_related('current_update')
-        cancel_pg = project_update_pg.get_related('cancel')
-        assert cancel_pg.can_cancel, "The project update is not cancellable, it may have already completed - %s." % project_update_pg.get()
-        cancel_pg.post()
+        assert project.wait_until_completed().status == 'canceled'
+        assert project.last_job_failed
+        assert project.last_update_failed
+        assert project_update.get().status == 'canceled'
+        assert project_update.failed
 
-        assert project_pg.wait_until_completed().status == 'canceled', \
-            "Unexpected project status after cancelling (expected 'canceled') - %s." % project_pg
+        inv_update = inv_source.wait_until_completed().related.last_update.get()
+        assert inv_update.status == "canceled"
+        assert inv_update.failed
+        assert inv_source.get().status == "canceled"
+        assert inv_source.last_job_failed
+        assert inv_source.last_update_failed
 
-        # assert launched job failed
-        assert job_pg.wait_until_completed().status == "canceled", "Unexpected job status - %s." % job_pg
+        assert job.wait_until_completed().status == "canceled"
+        assert job.failed
 
-        inv_update_pg = inv_source_pg.wait_until_completed().get_related('last_update')
+        check_chain_canceled_job_explanation(project_update, [job, inv_update])
 
-        # assess job_explanation
-        check_chain_canceled_job_explanation(project_update_pg, [job_pg, inv_update_pg])
+    def test_canceling_inventory_update_should_cascade_cancel_project_update_and_dependent_job(self, factories,
+            sleep_inventory_script):
+        project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
+                                       scm_delete_on_update=True, scm_update_on_launch=True)
+        inventory = factories.v2_inventory(organization=sleep_inventory_script.ds.organization)
+        jt = factories.v2_job_template(project=project, inventory=inventory,
+                                       playbook='test/integration/targets/unicode/unicode.yml')
+        inv_source = factories.v2_inventory_source(inventory=inventory, inventory_script=sleep_inventory_script,
+                                                   update_on_launch=True)
 
-        # assert inventory update canceled and thus inventory source mark failed
-        assert inv_update_pg.status == "canceled", "Unexpected inventory_update status - %s." % job_pg
-        assert inv_source_pg.get().last_update_failed, "inventory_source expected to have failed - %s." % inv_source_pg
+        job = jt.launch()
 
-    @pytest.mark.fixture_args(source_script="""#!/usr/bin/env python
-import json, time
-# sleep helps us cancel the inventory update
-time.sleep(30)
-inventory = dict()
-print json.dumps(inventory)
-""")
-    def test_cancel_inventory_update_with_inventory_and_project_updates(self, job_template_with_project_django, custom_group):
-        """Tests that if you cancel an inventory update before it finishes that
-        its dependent job fails. This test runs both inventory and SCM updates
-        on job launch.
-        """
-        project_pg = job_template_with_project_django.get_related('project')
-        inv_source_pg = custom_group.get_related('inventory_source')
-        inv_source_pg.patch(update_on_launch=True)
+        inv_update = inv_source.wait_until_started(interval=1).related.current_update.get()
+        project_update = project.wait_until_started(interval=1).related.current_update.get()
+        assert inv_update.related.cancel.get().can_cancel
+        inv_update.cancel()
 
-        assert not inv_source_pg.last_updated, "inv_source_pg unexpectedly updated."
+        assert inv_update.wait_until_completed().status == 'canceled'
+        assert inv_update.failed
+        assert inv_source.get().status == "canceled"
+        assert inv_source.last_job_failed
+        assert inv_source.last_update_failed
 
-        # launch job
-        job_pg = job_template_with_project_django.launch()
+        assert project.wait_until_completed().status == 'canceled'
+        assert project.last_job_failed
+        assert project.last_update_failed
+        assert project_update.get().status == 'canceled'
+        assert project_update.failed
 
-        # wait for the inventory_source to start
-        inv_source_pg.wait_until_started(interval=.5)
+        assert job.wait_until_completed().status == 'canceled'
+        assert job.failed
 
-        # wait for the project to start so we get a handle on it
-        project_update_pg = project_pg.wait_until_started(interval=.5).get_related('current_update')
+        check_chain_canceled_job_explanation(inv_update, [job, project_update])
 
-        # cancel inventory update
-        inv_update_pg = inv_source_pg.get_related('current_update')
-        cancel_pg = inv_update_pg.get_related('cancel')
-        assert cancel_pg.can_cancel, "The inventory_update is not cancellable, it may have already completed - %s." % inv_update_pg.get()
-        cancel_pg.post()
-
-        assert inv_update_pg.wait_until_completed().status == 'canceled'
-
-        # assert launched job canceled
-        assert job_pg.wait_until_completed().status == "canceled", "Unexpected job status - %s." % job_pg
-
-        # assert project update and project canceled
-        assert project_update_pg.wait_until_completed().get().status == 'canceled', \
-            "Unexpected project status (expected status:canceled) - %s." % project_pg
-        assert project_pg.get().status == 'canceled', "Project expected to be canceled - %s." % project_pg
-
-        assert inv_source_pg.get().status == "canceled", \
-            "Unexpected inventory_source status after cancelling (expected 'canceled') - %s." % inv_source_pg
-
-        # assess job_explanation
-        check_chain_canceled_job_explanation(inv_update_pg, [job_pg, project_update_pg])
-
-    def test_fail_dependent_job_with_failed_inventory_update(self, factories):
+    def test_failed_inventory_update_should_cascade_fail_dependent_job(self, factories):
         aws_cred = factories.v2_credential(kind='aws', inputs=dict(username='fake', password='fake'))
         inv_source = factories.v2_inventory_source(source='ec2', credential=aws_cred, update_on_launch=True)
         jt = factories.v2_job_template(inventory=inv_source.ds.inventory)
@@ -896,7 +851,7 @@ print json.dumps(inventory)
         assert inv_source.get().status == 'failed'
         assert inv_source.last_job_failed
 
-    def test_fail_dependent_job_with_failed_project_update(self, factories):
+    def test_failed_project_update_should_cascade_fail_dependent_job(self, factories):
         jt = factories.v2_job_template()
         project = jt.ds.project
         project.scm_url = "will_fail"
@@ -914,19 +869,24 @@ print json.dumps(inventory)
         assert sync_update.failed
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7797')
-    def test_sync_project_update_canceled_after_job_cancelation(self, factories):
-        project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git', scm_delete_on_update=True)
+    def test_canceling_job_should_cascade_cancel_sync_project_update(self, factories):
+        project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
+                                       scm_delete_on_update=True, scm_update_on_launch=True)
         jt = factories.v2_job_template(project=project, playbook='test/integration/targets/unicode/unicode.yml')
+
         job = jt.launch().cancel().wait_until_completed()
 
-        project_update = job.get().related.project_update.get().wait_until_completed()
+        assert project.wait_until_completed().status == 'canceled'
+        assert project.last_job_failed
+        assert project.last_update_failed
+
+        project_update = job.get().related.project_update.get()
         assert project_update.launch_type == 'sync'
         assert project_update.status == 'canceled'
-        assert project_update.job_explanation == \
-            'Previous Task Canceled: {"job_type": "%s", "job_name": "%s", "job_id": "%s"}' \
-            % (job.type, job.name, job.id)
+        assert project_update.job_explanation == 'Previous Task Canceled: {"job_type": "%s", "job_name": "%s", "job_id": "%s"}' \
+                                                 % (job.type, job.name, job.id)
         assert project_update.failed
 
-        assert job.get().failed
-        assert job.status == 'canceled'
-        assert not job.job_explanation
+        assert job.get().status == 'canceled'
+        assert job.failed
+        assert job.job_explanation == ""
