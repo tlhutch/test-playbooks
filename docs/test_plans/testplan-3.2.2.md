@@ -19,7 +19,7 @@
 ## Targeted Testing
 
 ## Regression
-1. [ ] Limited manual UI testing completed
+1. [x] Limited manual UI testing completed
 1. [ ] API regression completed
 1. [ ] Tower HA regression completed
 1. [x] Tower LDAP Integration regression completed
@@ -43,9 +43,9 @@
     * [x] ansible-2.3
     * [x] ansible-2.2
 1. Bundled installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.1/html/installandreference/tower_installer.html#bundled-install)
-    * [ ] rhel-7.latest
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] rhel-7.latest
+    * [x] centos-7.latest
+    * [x] ol-7.latest
 1. [x] Tower installation completes successfully (RHEL-7.2)
 1. [ ] Bundled installation completes successfully for HA deployment
 
