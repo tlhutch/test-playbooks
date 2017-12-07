@@ -30,19 +30,6 @@
 1. [ ] Backup/restore successful
 
 ### Installation
-1. Installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.1/html/installandreference/requirements_refguide.html)
-    * [x] ubuntu-14.04
-    * [x] ubuntu-16.04
-    * [x] rhel-7.2
-    * [x] rhel-7.4 (latest)
-    * [x] centos-7.latest
-    * [x] ol-7.latest
-1. HA installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.1/html/administration/clustering.html#setup-considerations)
-    * [ ] ubuntu-16.04
-    * [x] rhel-7.2
-    * [ ] rhel-7.4 (latest)
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
 1. Installation completes successfully using supported ansible releases
     * [ ] ansible-2.5 (devel branch)
     * [x] ansible-2.4
@@ -52,6 +39,7 @@
     * [ ] rhel-7.latest
     * [ ] centos-7.latest
     * [ ] ol-7.latest
+1. [x] Tower installation completes successfully (RHEL-7.2)
 1. [ ] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
