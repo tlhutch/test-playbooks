@@ -11,6 +11,7 @@ log = logging.getLogger(__name__)
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.second_to_last
+@pytest.mark.mp_group('AnsibleTowerService', 'isolated_serial')
 class Test_Ansible_Tower_Service(Base_Api_Test):
     """Executes ansible-tower-service commands and checks process statuses.
     Note: we check process output with systemctl on EL7 systems and with
