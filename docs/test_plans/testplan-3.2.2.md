@@ -26,7 +26,7 @@
 1. [x] Tower RADIUS Integration regression completed
 1. [x] Social authentication regression completed
 1. [x] SAML authentication
-1. [ ] Verify logging (incl. cluster)
+1. [x] Verify logging (incl. cluster)
 1. [ ] Backup/restore successful
 
 ### Installation
