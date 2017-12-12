@@ -242,7 +242,7 @@ class TestInventoryUpdate(Base_Api_Test):
             assert set(host.get().variables[custom_group.name]['hosts']) == set([host.name for host in hosts.results])
             assert host.variables[custom_group.name]['vars'] == expected_vars
 
-    def test_update_without_overwrite_vars(self, factories):
+    def test_update_without_overwrite_vars(self, factories, ansible_version_cmp):
         """Verify manually inserted group and host variables persist when disabled. Final
         group and host variables should be a union of those sourced from the inventory
         script and those manually inserted. Inventory variables should persist.
