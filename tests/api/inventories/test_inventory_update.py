@@ -269,7 +269,7 @@ class TestInventoryUpdate(Base_Api_Test):
             assert host.variables[custom_group.name]['vars'] == {'ansible_host': '127.0.0.1', 'ansible_connection': 'local'}
 
     @pytest.mark.ansible_integration
-    def test_update_with_stdout_injection(self, factories, github_mark_if, ansible_version_cmp):
+    def test_update_with_stdout_injection(self, factories, ansible_version_cmp):
         """Verify that we can inject text to update stdout through our script."""
         if ansible_version_cmp('2.4.0') >= 1:
             # stderr is not mirrored to the update with ansible-inventory from ansible 2.4
