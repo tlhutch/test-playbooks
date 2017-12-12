@@ -297,8 +297,11 @@ class TestInventoryUpdate(Base_Api_Test):
               'Loaded 1 groups, 5 hosts',
               'Inventory variables unmodified',
               'Inventory import completed'])], ids=['0-warning', '1-info', '2-debug'])
-    def test_update_verbosity(self, ansible_version_cmp, factories, verbosity, stdout_lines):
+    def test_update_verbosity(self, is_docker, ansible_version_cmp, factories, verbosity, stdout_lines):
         """Verify inventory source verbosity."""
+        if is_docker and verbosity == 0:
+            pytest.skip('Dev Container has debug logging so this test will likely fail')
+
         inv_source = factories.v2_inventory_source(verbosity=verbosity)
         inv_update = inv_source.update().wait_until_completed()
 
