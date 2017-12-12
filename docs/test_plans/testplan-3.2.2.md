@@ -14,7 +14,7 @@
 * [x] Tower inventory source [Issue](https://github.com/ansible/ansible-tower/issues/6297) ([PR](https://github.com/ansible/tower/pull/551))
 * [x] ovirt4.py dynamic inventory support [Issue](https://github.com/ansible/ansible-tower/issues/6522)
 * [x] Encrypted survey password defaults in the database [Issue](https://github.com/ansible/ansible-tower/issues/7046)
-* [ ] Cluster-safe backup and restore [Issue](https://github.com/ansible/ansible-tower/issues/7709)
+* [x] Cluster-safe backup and restore [Issue](https://github.com/ansible/ansible-tower/issues/7709)
 
 ## Targeted Testing
 
@@ -27,7 +27,7 @@
 1. [x] Social authentication regression completed
 1. [x] SAML authentication
 1. [x] Verify logging (incl. cluster)
-1. [ ] Backup/restore successful
+1. [x] Backup/restore successful
 
 ### Installation
 1. Installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.1/html/installandreference/requirements_refguide.html)
