@@ -213,7 +213,7 @@ class TestInventoryUpdate(Base_Api_Test):
         assert excluded_group_hosts.count == 1
         assert excluded_host.id == excluded_group_hosts.results.pop().id
 
-    def test_update_with_overwrite_vars(self, factories):
+    def test_update_with_overwrite_vars(self, factories, ansible_version_cmp):
         """Verify manually inserted group and host variables get deleted when
         enabled. Final group and host variables should be those sourced from
         the script. Inventory variables should persist.
@@ -234,12 +234,15 @@ class TestInventoryUpdate(Base_Api_Test):
 
         assert inventory.get().variables == load_json_or_yaml(inserted_variables)
         expected_vars = {'ansible_host': '127.0.0.1', 'ansible_connection': 'local'}
-        assert custom_group.get().variables == expected_vars
+        if ansible_version_cmp('2.4.0') < 1:
+            # ansible 2.4 doesn't set group variables
+            # https://github.com/ansible/ansible/issues/30877
+            assert custom_group.get().variables == expected_vars
         for host in hosts.results:
             assert set(host.get().variables[custom_group.name]['hosts']) == set([host.name for host in hosts.results])
             assert host.variables[custom_group.name]['vars'] == expected_vars
 
-    def test_update_without_overwrite_vars(self, factories):
+    def test_update_without_overwrite_vars(self, factories, ansible_version_cmp):
         """Verify manually inserted group and host variables persist when disabled. Final
         group and host variables should be a union of those sourced from the inventory
         script and those manually inserted. Inventory variables should persist.
@@ -260,7 +263,10 @@ class TestInventoryUpdate(Base_Api_Test):
 
         assert inventory.get().variables == load_json_or_yaml(inserted_variables)
         expected_vars = {'overwrite_me': False, 'ansible_host': '127.0.0.1', 'ansible_connection': 'local'}
-        assert custom_group.get().variables == expected_vars
+        if ansible_version_cmp('2.4.0') < 1:
+            # ansible 2.4 doesn't set group variables
+            # https://github.com/ansible/ansible/issues/30877
+            assert custom_group.get().variables == expected_vars
         for host in hosts.results:
             assert host.get().variables['overwrite_me'] is False
             assert set(host.variables[custom_group.name]['hosts']) == set([host.name for host in hosts.results])
