@@ -1,5 +1,6 @@
 import json
 
+from towerkit import utils
 import fauxfactory
 import pytest
 
@@ -746,7 +747,10 @@ print json.dumps(inventory)
 
         job = jt.launch()
 
-        project_update = project.wait_until_started(interval=1).related.current_update.get()
+        project.wait_until_started(interval=1)
+        utils.logged_sleep(1)  # wait for project's related fields to update
+        project_update = project.get().related.current_update.get()
+
         assert project_update.related.cancel.get().can_cancel
         project_update.cancel()
 
@@ -772,8 +776,9 @@ print json.dumps(inventory)
 
         job = jt.launch()
 
-        inv_update = inv_source.wait_until_started(interval=1).related.current_update.get()
-        project_update = project.wait_until_started(interval=1).related.current_update.get()
+        project.wait_until_started(interval=1)
+        utils.logged_sleep(1)  # wait for project's related fields to update
+        project_update = project.get().related.current_update.get()
         assert project_update.related.cancel.get().can_cancel
         project_update.cancel()
 
