@@ -381,6 +381,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     def test_v1_inventory(self, cloud_inventory_job_template, cloud_group):
         """Verify that an inventory update is triggered by our job launch. Job ordering
         should be as follows:
@@ -436,6 +437,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [inv_update, job]
         confirm_unified_jobs(sorted_unified_jobs)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     def test_inventory_multiple(self, job_template, aws_inventory_source, gce_inventory_source):
         """Verify that multiple inventory updates are triggered by job launch. Job ordering
         should be as follows:
@@ -484,6 +486,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [[aws_update, gce_update], job_pg]
         confirm_unified_jobs(sorted_unified_jobs)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     def test_inventory_cache_timeout(self, custom_inventory_job_template, custom_inventory_source):
         """Verify that an inventory update is not triggered by the job launch if the
         cache is still valid. Job ordering should be as follows:
@@ -521,6 +524,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [inv_update_pg, job_pg]
         confirm_unified_jobs(sorted_unified_jobs)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     @pytest.mark.parametrize('project', ['project_ansible_playbooks_git', 'project_ansible_helloworld_hg'])
     def test_project_update_on_launch(self, request, factories, project):
         """Verify that two project updates are triggered by a job launch when we
@@ -565,6 +569,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [initial_project_update, spawned_check_update, [job_pg, spawned_run_update]]
         confirm_unified_jobs(sorted_unified_jobs)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     def test_project_cache_timeout(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
         """Verify that one project update is triggered by a job launch when we enable
         project update_on_launch and launch a job within the timeout window. Job ordering
@@ -603,6 +608,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [initial_project_update, [job_pg, spawned_project_update]]
         confirm_unified_jobs(sorted_unified_jobs)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     def test_inventory_and_project(self, custom_inventory_job_template, custom_inventory_source):
         """Verify that two project updates and an inventory update get triggered
         by a job launch when we enable update_on_launch for both our project and
