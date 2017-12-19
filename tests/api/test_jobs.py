@@ -155,6 +155,7 @@ class Test_Job(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     @pytest.mark.ansible_integration
     def test_utf8(self, utf8_template):
         """Verify that a playbook full of UTF-8 successfully works through Tower"""
