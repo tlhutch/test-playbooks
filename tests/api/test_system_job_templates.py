@@ -99,6 +99,7 @@ class Test_System_Job_Template(Base_Api_Test):
             "The system_job extra_vars do not match the values provided at launch (%s != %s)" % \
             (extra_vars, payload['extra_vars'])
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7835')
     def test_cannot_be_scheduled_with_negative_values_in_extra_data(self, cleanup_jobs_template,
                                                                     cleanup_activitystream_template):
         for template in (cleanup_jobs_template, cleanup_activitystream_template):
