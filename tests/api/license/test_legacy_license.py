@@ -65,6 +65,7 @@ class TestLegacyLicense(LicenseTest):
             factories.v2_host(name="host")
         assert config.get().license_info.current_instances == current_instances + 1
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
         job_template.launch_job().wait_until_completed()
@@ -267,6 +268,7 @@ class TestLegacyLicenseGracePeriod(LicenseTest):
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     def test_job_launch(self, api_config_pg, job_template):
         """Verify that job_templates can be launched while there are remaining free_instances"""
         conf = api_config_pg.get()
@@ -323,6 +325,7 @@ class TestLegacyLicenseExpired(LicenseTest):
         with pytest.raises(exc.LicenseExceeded):
             api_hosts_pg.post(payload)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     def test_job_launch(self, request, factories, apply_generated_license):
         """Verify that job_templates cannot be launched"""
         with apply_generated_license(self.legacy_license_json()):
