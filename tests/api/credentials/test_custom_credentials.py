@@ -17,7 +17,7 @@ class TestCustomCredentials(Base_Api_Test):
 
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_credential(credential_type=credential_type, inputs={})
-        assert e.value.message == {'inputs': {'field': ["required for {0.name}".format(credential_type)]}}
+        assert e.value.message == {'inputs': {'field': [u"required for {0.name}".format(credential_type)]}}
 
     def test_ssh_private_key_input_field_validated(self, factories):
         credential_type = factories.credential_type(inputs=dict(fields=[dict(id='field_name',
