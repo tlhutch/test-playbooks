@@ -50,6 +50,7 @@ class TestNoLicense(LicenseTest):
         assert job.status == 'failed'
         assert 'CommandError: No license found!' in job.result_stdout
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     def test_cannot_launch_job(self, install_basic_license, api_config_pg, job_template):
         """Verify that job_templates cannot be launched"""
         api_config_pg.delete()

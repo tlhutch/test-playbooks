@@ -52,6 +52,7 @@ class TestBasicLicense(LicenseTest):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for basic license: %s." % conf.license_info
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
         job_template.launch_job().wait_until_completed()
