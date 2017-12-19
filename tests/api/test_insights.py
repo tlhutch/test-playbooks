@@ -80,7 +80,7 @@ class TestInsights(Base_Api_Test):
         for host in hosts:
             with pytest.raises(exc.NotFound) as e:
                 host.related.insights.get()
-        assert e.value[1] == {'error': 'The Insights Credential for "{0}" was not found.'.format(insights_inventory.name)}
+        assert e.value[1] == {'error': u'The Insights Credential for "{0}" was not found.'.format(insights_inventory.name)}
 
     @pytest.mark.requires_single_instance
     def test_access_insights_with_valid_credential_and_registered_host(self, factories, insights_inventory):
