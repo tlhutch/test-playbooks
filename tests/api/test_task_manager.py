@@ -1,10 +1,10 @@
 import json
 
 from towerkit import utils
+from dateutil.parser import parse as du_parse
 import fauxfactory
 import pytest
 
-from dateutil.parser import parse as du_parse
 from tests.api import Base_Api_Test
 
 
@@ -653,7 +653,7 @@ class Test_Cascade_Fail_Dependent_Jobs(Base_Api_Test):
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.fixture
-    def sleep_inventory_script(self, factories):
+    def sleeping_inventory_script(self, factories):
         source_script = """#!/usr/bin/env python
 import json, time
 time.sleep(30)
@@ -662,19 +662,16 @@ print json.dumps(inventory)
 """
         return factories.v2_inventory_script(script=source_script)
 
-    def test_canceling_inventory_update_should_cascade_cancel_dependent_job(self, factories, sleep_inventory_script):
-        inventory = factories.v2_inventory(organization=sleep_inventory_script.ds.organization)
-        inv_source = factories.v2_inventory_source(inventory=inventory, inventory_script=sleep_inventory_script,
-                                                   update_on_launch=True)
-        jt = factories.v2_job_template(inventory=inventory)
+    def test_canceling_inventory_update_should_cascade_cancel_dependent_job(self, factories, sleeping_inventory_script):
+        inv_source = factories.v2_inventory_source(inventory_script=sleeping_inventory_script, update_on_launch=True)
+        jt = factories.v2_job_template(inventory=inv_source.ds.inventory)
 
         job = jt.launch()
 
-        inv_update = inv_source.wait_until_started(interval=1).related.current_update.get()
-        assert inv_update.related.cancel.get().can_cancel
-        inv_update.cancel()
+        inv_update = inv_source.wait_until_started().related.current_update.get()
+        inv_update.cancel().wait_until_completed()
 
-        assert inv_update.wait_until_completed().status == 'canceled'
+        assert inv_update.status == 'canceled'
         assert inv_update.failed
         assert inv_source.get().status == 'canceled'
         assert inv_source.last_job_failed
@@ -747,17 +744,15 @@ print json.dumps(inventory)
 
         job = jt.launch()
 
-        project.wait_until_started(interval=1)
-        utils.logged_sleep(1)  # wait for project's related fields to update
-        project_update = project.get().related.current_update.get()
+        utils.poll_until(lambda: project.related.project_updates.get(launch_type='dependency').count == 1, interval=.1,
+                                                                     timeout=30)
+        project_update = project.related.project_updates.get(launch_type='dependency').results.pop()
+        project_update.cancel().wait_until_completed()
 
-        assert project_update.related.cancel.get().can_cancel
-        project_update.cancel()
-
-        assert project.wait_until_completed().status == 'canceled'
+        assert project.get().status == 'canceled'
         assert project.last_job_failed
         assert project.last_update_failed
-        assert project_update.get().status == 'canceled'
+        assert project_update.status == 'canceled'
         assert project_update.failed
 
         assert job.wait_until_completed().status == 'canceled'
@@ -765,27 +760,25 @@ print json.dumps(inventory)
 
         check_chain_canceled_job_explanation(project_update, [job])
 
-    def test_canceling_project_update_should_cascade_cancel_inventory_update_and_dependent_job(self, factories, sleep_inventory_script):
+    def test_canceling_project_update_should_cascade_cancel_inventory_update_and_dependent_job(self, factories, sleeping_inventory_script):
         project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
                                        scm_delete_on_update=True, scm_update_on_launch=True)
-        inventory = factories.v2_inventory(organization=sleep_inventory_script.ds.organization)
-        jt = factories.v2_job_template(project=project, inventory=inventory,
+        inv_source = factories.v2_inventory_source(inventory_script=sleeping_inventory_script, update_on_launch=True)
+        jt = factories.v2_job_template(project=project, inventory=inv_source.ds.inventory,
                                        playbook='test/integration/targets/unicode/unicode.yml')
-        inv_source = factories.v2_inventory_source(inventory=inventory, inventory_script=sleep_inventory_script,
-                                                   update_on_launch=True)
 
         job = jt.launch()
 
-        project.wait_until_started(interval=1)
-        utils.logged_sleep(1)  # wait for project's related fields to update
-        project_update = project.get().related.current_update.get()
-        assert project_update.related.cancel.get().can_cancel
-        project_update.cancel()
+        utils.poll_until(lambda: project.related.project_updates.get(launch_type='dependency').count == 1, interval=.1,
+                                                                     timeout=30)
+        utils.poll_until(lambda: inv_source.related.inventory_updates.get().count == 1, interval=.1, timeout=30)
+        project_update = project.related.project_updates.get(launch_type='dependency').results.pop()
+        project_update.cancel().wait_until_completed()
 
-        assert project.wait_until_completed().status == 'canceled'
+        assert project.get().status == 'canceled'
         assert project.last_job_failed
         assert project.last_update_failed
-        assert project_update.get().status == 'canceled'
+        assert project_update.status == 'canceled'
         assert project_update.failed
 
         inv_update = inv_source.wait_until_completed().related.last_update.get()
@@ -801,33 +794,34 @@ print json.dumps(inventory)
         check_chain_canceled_job_explanation(project_update, [job, inv_update])
 
     def test_canceling_inventory_update_should_cascade_cancel_project_update_and_dependent_job(self, factories,
-            sleep_inventory_script):
+            sleeping_inventory_script):
         project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
                                        scm_delete_on_update=True, scm_update_on_launch=True)
-        inventory = factories.v2_inventory(organization=sleep_inventory_script.ds.organization)
-        jt = factories.v2_job_template(project=project, inventory=inventory,
+        inv_source = factories.v2_inventory_source(inventory_script=sleeping_inventory_script, update_on_launch=True)
+        jt = factories.v2_job_template(project=project, inventory=inv_source.ds.inventory,
                                        playbook='test/integration/targets/unicode/unicode.yml')
-        inv_source = factories.v2_inventory_source(inventory=inventory, inventory_script=sleep_inventory_script,
-                                                   update_on_launch=True)
 
         job = jt.launch()
 
-        inv_update = inv_source.wait_until_started(interval=1).related.current_update.get()
-        project_update = project.wait_until_started(interval=1).related.current_update.get()
-        assert inv_update.related.cancel.get().can_cancel
-        inv_update.cancel()
+        utils.poll_until(lambda: project.related.project_updates.get(launch_type='dependency').count == 1, interval=.1,
+                                                                     timeout=30)
+        utils.poll_until(lambda: inv_source.related.inventory_updates.get().count == 1, interval=.1, timeout=30)
+        inv_update = inv_source.related.inventory_updates.get().results.pop()
+        inv_update.cancel().wait_until_completed()
 
-        assert inv_update.wait_until_completed().status == 'canceled'
+        assert inv_update.status == 'canceled'
         assert inv_update.failed
         assert inv_source.get().status == "canceled"
         assert inv_source.last_job_failed
         assert inv_source.last_update_failed
 
-        assert project.wait_until_completed().status == 'canceled'
+        project_update = project.related.project_updates.get(launch_type='dependency').results.pop() \
+                                                        .wait_until_completed()
+        assert project_update.status == 'canceled'
+        assert project_update.failed
+        assert project.get().status == 'canceled'
         assert project.last_job_failed
         assert project.last_update_failed
-        assert project_update.get().status == 'canceled'
-        assert project_update.failed
 
         assert job.wait_until_completed().status == 'canceled'
         assert job.failed
