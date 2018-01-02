@@ -13,7 +13,6 @@ pytest
 git+ssh://git@github.com/ansible/pytest-mp.git
 git+ssh://git@github.com/rmfitzpatrick/pytest-ansible.git@handle_ansible_vars_restructuring
 pytest-cache
-pytest-catchlog
 pytest-cov
 pytest-github
 pytest-ordering
