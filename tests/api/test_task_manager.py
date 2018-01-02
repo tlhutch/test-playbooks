@@ -4,10 +4,18 @@ from towerkit import utils
 from dateutil.parser import parse as du_parse
 import pytest
 
-from towerkit.utils import random_title
-import pytest
-
 from tests.api import Base_Api_Test
+
+
+@pytest.fixture
+def sleeping_inventory_script(factories):
+    source_script = """#!/usr/bin/env python
+import json, time
+time.sleep(300)
+inventory = dict()
+print json.dumps(inventory)
+"""
+    return factories.v2_inventory_script(script=source_script)
 
 
 @pytest.fixture(scope="function")
@@ -642,16 +650,6 @@ class Test_Autospawned_Jobs(Base_Api_Test):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Cascade_Fail_Dependent_Jobs(Base_Api_Test):
 
-    @pytest.fixture
-    def sleeping_inventory_script(self, factories):
-        source_script = """#!/usr/bin/env python
-import json, time
-time.sleep(30)
-inventory = dict()
-print json.dumps(inventory)
-"""
-        return factories.v2_inventory_script(script=source_script)
-
     def test_canceling_inventory_update_should_cascade_cancel_dependent_job(self, factories, sleeping_inventory_script):
         inv_source = factories.v2_inventory_source(inventory_script=sleeping_inventory_script, update_on_launch=True)
         jt = factories.v2_job_template(inventory=inv_source.ds.inventory)
@@ -672,36 +670,33 @@ print json.dumps(inventory)
 
         check_chain_canceled_job_explanation(inv_update, [job])
 
-    def test_cancel_inventory_update_with_multiple_inventory_updates(self, job_template, custom_group, another_custom_group):
+    def test_cancel_inventory_update_with_multiple_inventory_updates(self, factories, sleeping_inventory_script):
         """Tests that if you cancel an inventory update before it finishes that
         its dependent jobs fail.
         """
-        inv_source_pg = custom_group.get_related('inventory_source')
-        inv_source_pg.patch(update_on_launch=True)
-        another_inv_source_pg = another_custom_group.get_related('inventory_source')
-        another_inv_source_pg.patch(update_on_launch=True)
+        inventory = factories.v2_inventory(organization=sleeping_inventory_script.ds.organization)
+        sources = [factories.v2_inventory_source(inventory=inventory, inventory_script=sleeping_inventory_script,
+                                                 update_on_launch=True) for _ in range(2)]
+        for source in sources:
+            assert not source.get().last_updated
 
-        assert not inv_source_pg.last_updated, "inv_source_pg unexpectedly updated."
-        assert not another_inv_source_pg.last_updated, "another_inv_source_pg unexpectedly updated."
-
-        # launch job
+        job_template = factories.v2_job_template(inventory=inventory)
         job_pg = job_template.launch()
 
-        # wait for the inventory sources to start
-        inv_update_pg = inv_source_pg.wait_until_started(interval=.5).get_related('current_update')
-        another_inv_update_pg = another_inv_source_pg.wait_until_started(interval=.5, timeout=300).get_related('current_update')
-        inv_update_pg_started = du_parse(inv_update_pg.created)
-        another_inv_update_pg_started = du_parse(another_inv_update_pg.created)
+        update_1, update_2 = [src.wait_until_started(interval=.5,
+                                                     timeout=300).related.current_update.get() for src in sources]
+        update_1_started = du_parse(update_1.created)
+        update_2_started = du_parse(update_2.created)
 
         # identify the sequence of the inventory updates and navigate to cancel_pg
-        another = inv_update_pg_started > another_inv_update_pg_started
-        update_page = another_inv_update_pg if another else inv_update_pg
-        assert update_page.related.cancel.get().can_cancel, \
-            "Inventory update is not cancellable, it may have already completed - %s." % update_page.get()
-        inv_pgs = inv_update_pg, inv_source_pg
-        another_pgs = another_inv_update_pg, another_inv_source_pg
-        first_inv_update_pg, first_inv_source_pg = another_pgs if another else inv_pgs
-        second_inv_update_pg, second_inv_source_pg = inv_pgs if another else another_pgs
+        second_first = update_1_started > update_2_started
+        update_page = update_2 if second_first else update_1
+        assert update_page.related.cancel.get().can_cancel, utils.to_str(
+            u"Inventory update is not cancelable, it may have already completed - {}.".format(update_page.get()))
+        inv_1_pgs = update_1, sources[0]
+        inv_2_pgs = update_2, sources[1]
+        first_inv_update_pg, first_inv_source_pg = inv_2_pgs if second_first else inv_1_pgs
+        second_inv_update_pg, second_inv_source_pg = inv_1_pgs if second_first else inv_2_pgs
 
         # cancel the first inventory update
         first_inv_update_pg.related.cancel.post()
