@@ -4,6 +4,9 @@ from towerkit import utils
 from dateutil.parser import parse as du_parse
 import pytest
 
+from towerkit.utils import random_title
+import pytest
+
 from tests.api import Base_Api_Test
 
 

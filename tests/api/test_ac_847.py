@@ -888,11 +888,11 @@ class Test_AC_847(Base_Api_Test):
             mode='0755',
             content="""#!/bin/bash
 cat <<EOF
-%s
-EOF""" % (json.dumps(inventory_dict, indent=4)))
+{}
+EOF""".format(json.dumps(inventory_dict, indent=4)))
         request.addfinalizer(lambda: ansible_runner.file(path=inv_filename, state='absent'))
         for result in contacted.values():
-            assert not result.get('failed'), "Failed to create inventory file: %s" % result
+            assert not result.get('failed'), "Failed to create inventory file: {}".format(result)
 
         # Run awx-manage inventory_import
         contacted = ansible_runner.command("awx-manage inventory_import --inventory-id {0.id} --source {1}"

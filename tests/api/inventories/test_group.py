@@ -88,8 +88,8 @@ def root_variation(request, authtoken, inventory, ansible_runner):
         assert results.get('changed') and not results.get('failed'), "Failed to create inventory file: %s" % results
 
     contacted = ansible_runner.shell(
-        "awx-manage inventory_import --overwrite --inventory-id %s "
-        "--source %s" % (inventory.id, inv_filename)
+        "awx-manage inventory_import --overwrite --inventory-id {0.id} "
+        "--source {1}".format(inventory, inv_filename)
     )
     for results in contacted.values():
         assert results['rc'] == 0, "awx-manage inventory_import failed: %s" % results
@@ -158,8 +158,8 @@ def non_root_variation(request, authtoken, inventory, ansible_runner):
             json.dumps(results, indent=2)
 
     contacted = ansible_runner.shell(
-        "awx-manage inventory_import --overwrite --inventory-id %s "
-        "--source %s" % (inventory.id, inv_filename)
+        "awx-manage inventory_import --overwrite --inventory-id {0.id} "
+        "--source {1}".format(inventory, inv_filename)
     )
     for results in contacted.values():
         assert results['rc'] == 0, "awx-manage inventory_import failed: %s" % \
@@ -185,8 +185,8 @@ def variation(request, authtoken, inventory, ansible_runner):
         assert results.get('changed') and not results.get('failed'), "Failed to create inventory file: %s" % results
 
     contacted = ansible_runner.shell(
-        "awx-manage inventory_import --overwrite --inventory-id %s "
-        "--source %s" % (inventory.id, inv_filename)
+        "awx-manage inventory_import --overwrite --inventory-id {0.id} "
+        "--source {1}".format(inventory, inv_filename)
     )
     for results in contacted.values():
         assert results['rc'] == 0, "awx-manage inventory_import failed: %s" % results
