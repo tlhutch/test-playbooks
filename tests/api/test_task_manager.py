@@ -745,15 +745,15 @@ print json.dumps(inventory)
         job = jt.launch()
 
         utils.poll_until(lambda: project.related.project_updates.get(launch_type='dependency').count == 1, interval=.1,
-                                                                     timeout=30)
+                         timeout=30)
         project_update = project.related.project_updates.get(launch_type='dependency').results.pop()
         project_update.cancel().wait_until_completed()
 
+        assert project_update.status == 'canceled'
+        assert project_update.failed
         assert project.get().status == 'canceled'
         assert project.last_job_failed
         assert project.last_update_failed
-        assert project_update.status == 'canceled'
-        assert project_update.failed
 
         assert job.wait_until_completed().status == 'canceled'
         assert job.failed
@@ -770,16 +770,16 @@ print json.dumps(inventory)
         job = jt.launch()
 
         utils.poll_until(lambda: project.related.project_updates.get(launch_type='dependency').count == 1, interval=.1,
-                                                                     timeout=30)
+                         timeout=30)
         utils.poll_until(lambda: inv_source.related.inventory_updates.get().count == 1, interval=.1, timeout=30)
         project_update = project.related.project_updates.get(launch_type='dependency').results.pop()
         project_update.cancel().wait_until_completed()
 
+        assert project_update.status == 'canceled'
+        assert project_update.failed
         assert project.get().status == 'canceled'
         assert project.last_job_failed
         assert project.last_update_failed
-        assert project_update.status == 'canceled'
-        assert project_update.failed
 
         inv_update = inv_source.wait_until_completed().related.last_update.get()
         assert inv_update.status == "canceled"
