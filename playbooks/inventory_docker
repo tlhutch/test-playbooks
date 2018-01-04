@@ -3,4 +3,3 @@
 
 [tower]
 tools_awx_1 ansible_connection=docker ansible_user=root
-
