@@ -103,9 +103,9 @@ def modify_obfuscated_settings(api_settings_all_pg, update_setting_pg, unencrypt
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
-class Test_Main_Setting(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.mp_group('GeneralSettings', 'isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestGeneralSettings(Base_Api_Test):
 
     def test_included_modules(self, host, ssh_credential, api_ad_hoc_commands_pg, ad_hoc_module_name_choices,
                               api_settings_jobs_pg, update_setting_pg):

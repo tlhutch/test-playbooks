@@ -3,6 +3,7 @@ import httplib
 from towerkit.utils import version_from_endpoint
 from towerkit.api.client import Connection
 from towerkit.api.schema import validate
+from towerkit.config import config
 import pytest
 
 
@@ -26,7 +27,7 @@ def pytest_generate_tests(metafunc):
 
             if fixture == 'resource':
                 # Discover available API resources
-                api = Connection(pytest.config.option.base_url)
+                api = Connection(config.base_url)
                 r = api.get('/api/')
                 data = r.json()
                 for version in data.get('available_versions').values():
@@ -77,8 +78,8 @@ unauthorized = (httplib.UNAUTHORIZED, 'unauthorized')
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
-def test_unauthenticated(connection, resource, method, authtoken, no_license):
-
+@pytest.mark.mp_group('TestCrawler', 'isolated_free')
+def test_unauthenticated(authtoken, no_license, resource, method):
     expected = {'HEAD': (httplib.UNAUTHORIZED, 'head'),
                 'GET': unauthorized,
                 'OPTIONS': unauthorized,
@@ -137,19 +138,16 @@ def test_unauthenticated(connection, resource, method, authtoken, no_license):
     if versionless_endpoint in exceptions and method in exceptions[versionless_endpoint]:
         expected_response_code, expected_response_schema = exceptions[versionless_endpoint][method]
 
-    # Query API with no auth credentials
-    try:
-        previous_auth = connection.session.auth
-        connection.logout()
-        assert_response(connection, resource, method, expected_response_code, expected_response_schema)
-    finally:
-        connection.session.auth = previous_auth
+    # use new Connection() instances for their lack of valid session
+    assert_response(Connection(config.base_url, verify=not config.assume_untrusted), resource, method,
+                    expected_response_code, expected_response_schema)
 
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
-def test_authenticated(connection, resource, method, authtoken, no_license):
+@pytest.mark.mp_group('TestCrawler')
+def test_authenticated(connection, authtoken, no_license, resource, method):
 
     expected = {'HEAD': (httplib.OK, 'head'),
                 'GET': (httplib.OK, 'get'),

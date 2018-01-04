@@ -13,9 +13,8 @@ from tests.api import Base_Api_Test
 log = logging.getLogger(__name__)
 
 
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateExtraVars(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def get_required_survey_vars(self, survey_spec):
         required_vars = []

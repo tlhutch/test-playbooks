@@ -32,13 +32,13 @@ def ansible_distribution_major_version(request, ansible_facts):
 
 
 @pytest.fixture(scope="function")
-def restart_tower_on_teardown(request, ansible_runner, ansible_os_family):
+def restart_tower_on_teardown(request, ansible_runner, ansible_os_family, skip_docker):
     """Restarts Tower upon teardown."""
     log.debug("calling fixture restart_tower")
 
     # FIXME: implement with Ubuntu systems
     if ansible_os_family == "Debian":
-        pytest.skip("Only supported on EL distributions")
+        pytest.skip("Only supported on production EL distributions")
 
     def teardown():
         # determine Tower processes

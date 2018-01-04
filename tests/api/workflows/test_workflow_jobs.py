@@ -83,9 +83,8 @@ log = logging.getLogger(__name__)
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Workflow_Jobs(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_inventory_source_correctly_referenced_in_related_job_endpoint(self, factories):
         """Confirms that inventory sources are treated as unified job templates in addition to confirming

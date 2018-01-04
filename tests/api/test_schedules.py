@@ -745,7 +745,7 @@ class Test_Inventory_Schedules(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Job_Template_Schedules(Base_Api_Test):
     """TODO - Validation of job_template schedules
 
@@ -795,7 +795,7 @@ class Test_Job_Template_Schedules(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
-@pytest.mark.usefixtures('authtoken')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_System_Job_Template_Schedules(Base_Api_Test):
     """Tests system job schedules."""
 

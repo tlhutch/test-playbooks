@@ -25,9 +25,8 @@ log = logging.getLogger(__name__)
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Workflow_Nodes(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     # Node cannot point to Workflow Job Template or System Job
 

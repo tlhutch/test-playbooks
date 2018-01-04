@@ -29,9 +29,8 @@ log = logging.getLogger(__name__)
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Workflow_Job_Template_RBAC(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.parametrize('wfjt_state', ['wfjt_has_org', 'wfjt_org_null'])
     def test_system_admin_access(self, factories, wfjt_state):

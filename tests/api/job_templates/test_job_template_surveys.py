@@ -15,9 +15,8 @@ log = logging.getLogger(__name__)
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateSurveys(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.parametrize("launch_time_vars",
                              ["{'non_survey_variable': false, 'submitter_email': 'sample_email@maffenmox.edu'}",

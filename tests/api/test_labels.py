@@ -10,9 +10,8 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Labels(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_duplicate_labels_disallowed_by_organization(self, factories):
         label = factories.v2_label()

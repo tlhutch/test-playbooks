@@ -9,6 +9,7 @@ from tests.api.license import LicenseTest
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.mp_group(group="TestBasicLicense", strategy="isolated_free")
 @pytest.mark.usefixtures('authtoken', 'install_basic_license')
 class TestBasicLicense(LicenseTest):
 
@@ -146,6 +147,16 @@ class TestBasicLicense(LicenseTest):
             with pytest.raises(exc.NotFound):
                 api_settings_pg.get_endpoint(service)
 
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.mp_group(group="TestBasicLicenseSerial", strategy="isolated_serial")
+@pytest.mark.usefixtures('authtoken', 'install_basic_license')
+class TestBasicLicenseSerial(LicenseTest):
+
+    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
+        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
+
     def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
         """Verify that a basic license can get upgraded to an enterprise license."""
         # Update the license
@@ -172,6 +183,3 @@ class TestBasicLicense(LicenseTest):
         conf = api_config_pg.get()
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info,
                                                                                                indent=2)
-
-    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
-        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)

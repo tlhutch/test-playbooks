@@ -81,6 +81,7 @@ class SafeStop(object):
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.skip_docker
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroups(Base_Api_Test):
 

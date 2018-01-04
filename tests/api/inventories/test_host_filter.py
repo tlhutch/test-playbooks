@@ -9,28 +9,46 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestHostFilter(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'loaded_inventory')
-    test_hosts = ['hostA', 'hostAA', 'hostB', 'hostDup']
+    @classmethod
+    def setup_class(cls):
+        super(TestHostFilter, cls).setup_class()
+        random_suffix = 'xx' + fauxfactory.gen_alphanumeric()
+        cls.host_a_name = 'hostA{}'.format(random_suffix)
+        cls.host_aa_name = 'hostAA{}'.format(random_suffix)
+        cls.host_b_name = 'hostB{}'.format(random_suffix)
+        cls.host_dup_name = 'hostDup{}'.format(random_suffix)
+        cls.group_a_name = 'groupA{}'.format(random_suffix)
+        cls.group_aa_name = 'groupAA{}'.format(random_suffix)
+        cls.group_b_name = 'groupB{}'.format(random_suffix)
+        cls.name_formatter = dict(host_a_name=cls.host_a_name, host_aa_name=cls.host_aa_name,
+                                   host_b_name=cls.host_b_name, host_dup_name=cls.host_dup_name,
+                                   group_a_name=cls.group_a_name, group_aa_name=cls.group_aa_name,
+                                   group_b_name=cls.group_b_name)
+        cls.test_hosts = [cls.host_a_name, cls.host_aa_name, cls.host_b_name, cls.host_dup_name]
+
+    def items_from_item_list(self, item_list):
+        return set([getattr(self, item) for item in item_list])
 
     def find_hosts(self, response):
         # filter the stock localhost as well as any hosts resulting from incomplete test teardown
-        return [host.name for host in response.results if host.name in self.test_hosts]
+        return set([host.name for host in response.results if host.name in self.test_hosts])
 
     @pytest.fixture(scope="class")
     def loaded_inventory(self, class_factories):
         """Setup for host filter tests."""
         inventory = class_factories.v2_inventory()
 
-        groupA = class_factories.group(inventory=inventory, name="groupA")
-        groupAA = class_factories.group(inventory=inventory, name="groupAA")
-        groupB = class_factories.group(inventory=inventory, name="groupB")
+        groupA = class_factories.group(inventory=inventory, name=self.group_a_name)
+        groupAA = class_factories.group(inventory=inventory, name=self.group_aa_name)
+        groupB = class_factories.group(inventory=inventory, name=self.group_b_name)
 
-        hostA = class_factories.host(inventory=inventory, name="hostA")
-        hostAA = class_factories.host(inventory=inventory, name="hostAA")
-        hostB = class_factories.host(inventory=inventory, name="hostB")
-        hostDup = class_factories.host(inventory=inventory, name="hostDup")
+        hostA = class_factories.host(inventory=inventory, name=self.host_a_name)
+        hostAA = class_factories.host(inventory=inventory, name=self.host_aa_name)
+        hostB = class_factories.host(inventory=inventory, name=self.host_b_name)
+        hostDup = class_factories.host(inventory=inventory, name=self.host_dup_name)
 
         groupA.add_host(hostA)
         groupAA.add_host(hostAA)
@@ -39,86 +57,96 @@ class TestHostFilter(Base_Api_Test):
             group.add_host(hostDup)
         groupA.add_group(groupAA)
 
-        # populate hosts with ansible facts
-        jt = class_factories.job_template(inventory=inventory, playbook='gather_facts.yml',
-                                          use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
         return inventory
 
+    @pytest.fixture(scope='class')
+    def populate_ansible_facts(self, class_factories, loaded_inventory):
+        jt = class_factories.job_template(inventory=loaded_inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        assert jt.launch().wait_until_completed().is_successful
+
+    @pytest.mark.mp_group('HostSearch', 'serial')
     @pytest.mark.parametrize('host_filter, expected_hosts',
         [
-            ('name=hostA', ['hostA']),
+            ('name={host_a_name}', ['host_a_name']),
             ('name=not_found', []),
-            ('name=hostDup', ['hostDup']),
+            ('name={host_dup_name}', ['host_dup_name']),
         ]
     )
-    def test_basic_host_search(self, v2, host_filter, expected_hosts):
-        response = v2.hosts.get(host_filter=host_filter, page_size=200)
-        assert self.find_hosts(response) == expected_hosts
+    def test_basic_host_search(self, v2, loaded_inventory, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
+        assert self.find_hosts(response) == self.items_from_item_list(expected_hosts)
 
+    @pytest.mark.mp_group('HostSearchOr', 'serial')
     @pytest.mark.parametrize('host_filter, expected_hosts',
         [
-            ('name=hostA or name=hostB', ['hostA', 'hostB']),
-            ('name=hostA or name=not_found', ['hostA']),
+            ('name={host_a_name} or name={host_b_name}', ['host_a_name', 'host_b_name']),
+            ('name={host_a_name} or name=not_found', ['host_a_name']),
             ('name=not_found or name=not_found', []),
-            ('name=hostA or name=hostA', ['hostA']),
-            ('name=hostDup or name=hostDup', ['hostDup']),
-            ('name=hostA or name=hostAA or name=not_found', ['hostA', 'hostAA'])
+            ('name={host_a_name} or name={host_a_name}', ['host_a_name']),
+            ('name={host_dup_name} or name={host_dup_name}', ['host_dup_name']),
+            ('name={host_a_name} or name={host_aa_name} or name=not_found', ['host_a_name', 'host_aa_name'])
         ]
     )
-    def test_host_search_with_or(self, v2, host_filter, expected_hosts):
-        response = v2.hosts.get(host_filter=host_filter, page_size=200)
-        assert self.find_hosts(response) == expected_hosts
+    def test_host_search_with_or(self, v2, loaded_inventory, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
+        assert self.find_hosts(response) == self.items_from_item_list(expected_hosts)
 
+    @pytest.mark.mp_group('HostSearch', 'serial')
     @pytest.mark.parametrize('host_filter, expected_hosts',
         [
-            ('name=hostA and name=hostB', []),
-            ('name=hostA and name=hostA', ['hostA']),
+            ('name={host_a_name} and name={host_b_name}', []),
+            ('name={host_a_name} and name={host_a_name}', ['host_a_name']),
             ('name=not_found and name=not_found', []),
-            ('name=hostDup and name=hostDup', ['hostDup']),
-            ('name=hostA and name=hostB and name=not_found', []),
+            ('name={host_dup_name} and name={host_dup_name}', ['host_dup_name']),
+            ('name={host_a_name} and name={host_b_name} and name=not_found', []),
         ]
     )
-    def test_host_search_with_and(self, v2, host_filter, expected_hosts):
-        response = v2.hosts.get(host_filter=host_filter, page_size=200)
-        assert self.find_hosts(response) == expected_hosts
+    def test_host_search_with_and(self, v2, loaded_inventory, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
+        assert self.find_hosts(response) == self.items_from_item_list(expected_hosts)
 
+    @pytest.mark.mp_group('GroupSearch', 'serial')
     @pytest.mark.parametrize('host_filter, expected_hosts',
         [
-            ('groups__name=groupA', ['hostA', 'hostDup']),
-            ('groups__name=groupAA', ['hostAA', 'hostDup']),
+            ('groups__name={group_a_name}', ['host_a_name', 'host_dup_name']),
+            ('groups__name={group_aa_name}', ['host_aa_name', 'host_dup_name']),
             ('groups__name=not_found', []),
         ]
     )
-    def test_basic_group_search(self, v2, host_filter, expected_hosts):
-        response = v2.hosts.get(host_filter=host_filter, page_size=200)
-        assert self.find_hosts(response) == expected_hosts
+    def test_basic_group_search(self, v2, loaded_inventory, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
+        assert self.find_hosts(response) == self.items_from_item_list(expected_hosts)
 
+    @pytest.mark.mp_group('GroupSearch', 'serial')
     @pytest.mark.parametrize('host_filter, expected_hosts',
         [
-            ('groups__name=groupA or groups__name=groupB', ['hostA', 'hostB', 'hostDup']),
-            ('groups__name=groupA or groups__name=not_found', ['hostA', 'hostDup']),
+            ('groups__name={group_a_name} or groups__name={group_b_name}',
+             ['host_a_name', 'host_b_name', 'host_dup_name']),
+            ('groups__name={group_a_name} or groups__name=not_found', ['host_a_name', 'host_dup_name']),
             ('groups__name=not_found or groups__name=not_found', []),
-            ('groups__name=groupA or groups__name=groupA', ['hostA', 'hostDup']),
-            ('groups__name=groupA or groups__name=groupAA or groups__name=not_found', ['hostA', 'hostAA', 'hostDup'])
+            ('groups__name={group_a_name} or groups__name={group_a_name}', ['host_a_name', 'host_dup_name']),
+            ('groups__name={group_a_name} or groups__name={group_aa_name} or groups__name=not_found',
+             ['host_a_name', 'host_aa_name', 'host_dup_name'])
         ]
     )
-    def test_group_search_with_or(self, v2, host_filter, expected_hosts):
-        response = v2.hosts.get(host_filter=host_filter, page_size=200)
-        assert self.find_hosts(response) == expected_hosts
+    def test_group_search_with_or(self, v2, loaded_inventory, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
+        assert self.find_hosts(response) == self.items_from_item_list(expected_hosts)
 
+    @pytest.mark.mp_group('GroupSearch', 'serial')
     @pytest.mark.parametrize('host_filter, expected_hosts',
         [
-            ('groups__name=groupA and groups__name=groupB', ['hostDup']),
-            ('groups__name=groupA and groups__name=groupA', ['hostA', 'hostDup']),
-            ('groups__name=non_found and groups__name=not_found', []),
-            ('groups__name=groupA and groups__name=groupB and groups__name=not_found', [])
+            ('groups__name={group_a_name} and groups__name={group_b_name}', ['host_dup_name']),
+            ('groups__name={group_a_name} and groups__name={group_a_name}', ['host_a_name', 'host_dup_name']),
+            ('groups__name=not_found and groups__name=not_found', []),
+            ('groups__name={group_a_name} and groups__name={group_b_name} and groups__name=not_found', [])
         ]
     )
-    def test_group_search_with_and(self, v2, host_filter, expected_hosts):
-        response = v2.hosts.get(host_filter=host_filter, page_size=200)
-        assert self.find_hosts(response) == expected_hosts
+    def test_group_search_with_and(self, v2, loaded_inventory, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
+        assert self.find_hosts(response) == self.items_from_item_list(expected_hosts)
 
+    @pytest.mark.mp_group('HostFactSearch', 'serial')
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6015')
     @pytest.mark.parametrize('ansible_fact',
         [
@@ -129,7 +157,7 @@ class TestHostFilter(Base_Api_Test):
             "ansible_default_ipv6" # empty dictionary
         ]
     )
-    def test_dictionary_fact_search(self, v2, loaded_inventory, ansible_fact):
+    def test_dictionary_fact_search(self, v2, loaded_inventory, populate_ansible_facts, ansible_fact):
         host = loaded_inventory.related.hosts.get().results.pop()
         ansible_facts = host.related.ansible_facts.get()
 
@@ -137,36 +165,40 @@ class TestHostFilter(Base_Api_Test):
         expected_value = str(raw_value).lower() if isinstance(raw_value, types.BooleanType) else raw_value
 
         host_filter = "ansible_facts__{0}={1}".format(ansible_fact, expected_value)
-        response = v2.hosts.get(host_filter=host_filter, page_size=200)
+        response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
         assert self.find_hosts(response) == self.test_hosts
 
-    def test_list_fact_search(self, v2, loaded_inventory):
+    @pytest.mark.mp_group('HostFactSearch', 'serial')
+    def test_list_fact_search(self, v2, loaded_inventory, populate_ansible_facts):
         host = loaded_inventory.related.hosts.get().results.pop()
         ansible_interfaces = host.related.ansible_facts.get().ansible_interfaces
 
         for item in ansible_interfaces:
             host_filter = "ansible_facts__ansible_interfaces[]={0}".format(item)
-            response = v2.hosts.get(host_filter=host_filter, page_size=200)
-            assert self.find_hosts(response) == self.test_hosts
+            response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
+            assert self.find_hosts(response) == set(self.test_hosts)
 
-    def test_nested_dictionary_fact_search(self, v2, loaded_inventory):
+    @pytest.mark.mp_group('HostFactSearch', 'serial')
+    def test_nested_dictionary_fact_search(self, v2, loaded_inventory, populate_ansible_facts):
         host = loaded_inventory.related.hosts.get().results.pop()
         python_version = host.related.ansible_facts.get().ansible_python.version
 
         for item in python_version.items():
             host_filter = "ansible_facts__ansible_python__version__{0}={1}".format(item[0], item[1])
-            response = v2.hosts.get(host_filter=host_filter, page_size=200)
-            assert self.find_hosts(response) == self.test_hosts
+            response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
+            assert self.find_hosts(response) == set(self.test_hosts)
 
-    def test_nested_list_fact_search(self, v2, loaded_inventory):
+    @pytest.mark.mp_group('HostFactSearch', 'serial')
+    def test_nested_list_fact_search(self, v2, loaded_inventory, populate_ansible_facts):
         host = loaded_inventory.related.hosts.get().results.pop()
         version_info = host.related.ansible_facts.get().ansible_python.version_info
 
         for item in version_info:
             host_filter = "ansible_facts__ansible_python__version_info[]={0}".format(item)
-            response = v2.hosts.get(host_filter=host_filter, page_size=200)
-            assert self.find_hosts(response) == self.test_hosts
+            response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
+            assert self.find_hosts(response) == set(self.test_hosts)
 
+    @pytest.mark.mp_group('HostFactSearch', 'serial')
     @pytest.mark.parametrize('host_filter, expected_results',
         [
             ("ansible_facts__ansible_system=Linux or ansible_facts__ansible_system=Linux", True),
@@ -176,13 +208,14 @@ class TestHostFilter(Base_Api_Test):
                 or ansible_facts__ansible_system=not_found", True)
         ]
     )
-    def test_fact_search_with_or(self, v2, host_filter, expected_results):
-        response = v2.hosts.get(host_filter=host_filter)
+    def test_fact_search_with_or(self, v2, populate_ansible_facts, host_filter, expected_results):
+        response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter))
         if expected_results:
-            assert self.find_hosts(response) == self.test_hosts
+            assert self.find_hosts(response) == set(self.test_hosts)
         else:
             assert not self.find_hosts(response)
 
+    @pytest.mark.mp_group('HostFactSearch', 'serial')
     @pytest.mark.parametrize('host_filter, expected_results',
         [
             ("ansible_facts__ansible_system=Linux and ansible_facts__ansible_system=Linux", True),
@@ -192,60 +225,67 @@ class TestHostFilter(Base_Api_Test):
                 and ansible_facts__ansible_system=not_found", False)
         ]
     )
-    def test_fact_search_with_and(self, v2, host_filter, expected_results):
-        response = v2.hosts.get(host_filter=host_filter)
+    def test_fact_search_with_and(self, v2, populate_ansible_facts, host_filter, expected_results):
+        response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter))
         if expected_results:
-            assert self.find_hosts(response) == self.test_hosts
+            assert self.find_hosts(response) == set(self.test_hosts)
         else:
             assert not self.find_hosts(response)
 
+    @pytest.mark.mp_group('HostFactSearch', 'serial')
     @pytest.mark.parametrize('host_filter, expected_hosts',
         [
-            ('name=hostA or groups__name=groupA or ansible_facts__ansible_system=Linux', ['hostA', 'hostAA', 'hostB', 'hostDup']),
-            ('name=hostA or groups__name=groupA or ansible_facts__ansible_system=not_found', ['hostA', 'hostDup']),
-            ('name=hostA or groups__name=not_found or ansible_facts__ansible_system=not_found', ['hostA']),
-            ('name=not_found or groups__name=not_found or ansible_facts__ansible_system=not_found', []),
-            ('name=hostA and groups__name=groupA and ansible_facts__ansible_system=Linux', ['hostA']),
-            ('name=hostA and groups__name=groupA and ansible_facts__ansible_system=not_found', []),
-            ('name=hostA and groups__name=not_found and ansible_facts__ansible_system=not_found', []),
+            ('name={host_a_name} or groups__name={group_a_name} or ansible_facts__ansible_system=Linux',
+             ['host_a_name', 'host_aa_name', 'host_b_name', 'host_dup_name']),
+            ('name={host_a_name} or groups__name={group_a_name} or ansible_facts__ansible_system=not_found',
+             ['host_a_name', 'host_dup_name']),
+            ('name={host_a_name} or groups__name=not_found or ansible_facts__ansible_system=not_found',
+             ['host_a_name']),
+            ('name={host_a_name} and groups__name={group_a_name} and ansible_facts__ansible_system=not_found', []),
+            ('name={host_a_name} and groups__name=not_found and ansible_facts__ansible_system=not_found', []),
             ('name=not_found and groups__name=not_found and ansible_facts__ansible_system=not_found', []),
         ]
     )
-    def test_basic_hyrid_search(self, v2, host_filter, expected_hosts):
-        response = v2.hosts.get(host_filter=host_filter, page_size=200)
-        assert self.find_hosts(response) == expected_hosts
+    def test_basic_hyrid_search(self, v2, populate_ansible_facts, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
+        assert self.find_hosts(response) == self.items_from_item_list(expected_hosts)
 
+    @pytest.mark.mp_group('HostFactSearch', 'serial')
     @pytest.mark.parametrize('host_filter, expected_hosts',
         [
-            ('name=hostA or (groups__name=groupAA and ansible_facts__ansible_system=not_found)', ['hostA']),
-            ('name=hostA or (groups__name=not_found and ansible_facts__ansible_system=Linux)', ['hostA']),
-            ('name=not_found or (groups__name=groupAA and ansible_facts__ansible_system=Linux)', ['hostAA', 'hostDup']),
-            ('(name=hostA or groups__name=groupAA) and ansible_facts__ansible_system=not_found', []),
-            ('(name=hostA or groups__name=not_found) and ansible_facts__ansible_system=Linux', ['hostA']),
-            ('(name=not_found or groups__name=groupAA) and ansible_facts__ansible_system=Linux', ['hostAA', 'hostDup']),
+            ('name={host_a_name} or (groups__name={group_aa_name} and ansible_facts__ansible_system=not_found)',
+             ['host_a_name']),
+            ('name={host_a_name} or (groups__name=not_found and ansible_facts__ansible_system=Linux)', ['host_a_name']),
+            ('name=not_found or (groups__name={group_aa_name} and ansible_facts__ansible_system=Linux)',
+             ['host_aa_name', 'host_dup_name']),
+            ('(name={host_a_name} or groups__name={group_aa_name}) and ansible_facts__ansible_system=not_found', []),
+            ('(name={host_a_name} or groups__name=not_found) and ansible_facts__ansible_system=Linux', ['host_a_name']),
+            ('(name=not_found or groups__name={group_aa_name}) and ansible_facts__ansible_system=Linux',
+             ['host_aa_name', 'host_dup_name']),
         ]
     )
-    def test_advanced_hybrid_search(self, v2, host_filter, expected_hosts):
-        response = v2.hosts.get(host_filter=host_filter, page_size=200)
-        assert self.find_hosts(response) == expected_hosts
+    def test_advanced_hybrid_search(self, v2, populate_ansible_facts, host_filter, expected_hosts):
+        response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
+        assert self.find_hosts(response) == self.items_from_item_list(expected_hosts)
 
+    @pytest.mark.mp_group('HostSearch', 'serial')
     @pytest.mark.parametrize('host_filter',
         [
-            ('name=hostA or (groups__name=groupAA and ansible_facts__ansible_system=not_found)'),
-            ('name=hostA or (groups__name=not_found and ansible_facts__ansible_system=Linux)'),
-            ('name=not_found or (groups__name=groupAA and ansible_facts__ansible_system=Linux)'),
-            ('(name=hostA or groups__name=groupAA) and ansible_facts__ansible_system=not_found'),
-            ('(name=hostA or groups__name=not_found) and ansible_facts__ansible_system=Linux'),
-            ('(name=not_found or groups__name=groupAA) and ansible_facts__ansible_system=Linux'),
+            'name={host_a_name} or (groups__name={group_aa_name} and ansible_facts__ansible_system=not_found)',
+            'name={host_a_name} or (groups__name=not_found and ansible_facts__ansible_system=Linux)',
+            'name=not_found or (groups__name={group_aa_name} and ansible_facts__ansible_system=Linux)',
+            '(name={host_a_name} or groups__name={group_aa_name}) and ansible_facts__ansible_system=not_found',
+            '(name={host_a_name} or groups__name=not_found) and ansible_facts__ansible_system=Linux',
+            '(name=not_found or groups__name={group_aa_name}) and ansible_facts__ansible_system=Linux'
         ]
     )
     def test_smart_inventory(self, factories, v2, loaded_inventory, host_filter):
         """host_filter should determine a smart inventory's hosts."""
         inventory = factories.v2_inventory(organization=loaded_inventory.ds.organization, kind='smart',
-                                           host_filter=host_filter)
+                                           host_filter=host_filter.format(**self.name_formatter))
         hosts = inventory.related.hosts.get()
 
-        response = v2.hosts.get(host_filter=host_filter, page_size=200)
+        response = v2.hosts.get(host_filter=host_filter.format(**self.name_formatter), page_size=200)
         assert self.find_hosts(response) == self.find_hosts(hosts)
 
     def test_smart_search(self, v2, factories):

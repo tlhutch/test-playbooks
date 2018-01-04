@@ -39,9 +39,8 @@ def project_with_galaxy_requirements(request, authtoken, organization):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Projects(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.requires_single_instance
     def test_manual_project(self, project_ansible_playbooks_manual):
@@ -111,11 +110,11 @@ class Test_Projects(Base_Api_Test):
 
     @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
-    def test_update_with_private_git_repository(self, ansible_runner, project_ansible_docsite_git):
+    def test_update_with_private_git_repository(self, ansible_runner, api_config_pg, project_ansible_docsite_git):
         """Tests that project updates succeed with private git repositories."""
         # find project path
         local_path = project_ansible_docsite_git.local_path
-        expected_project_path = os.path.join('/var/lib/awx/projects/', local_path)
+        expected_project_path = os.path.join(api_config_pg.project_base_dir, local_path)
 
         # assert project directory created
         contacted = ansible_runner.stat(path=expected_project_path)

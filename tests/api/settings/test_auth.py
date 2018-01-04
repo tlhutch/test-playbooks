@@ -15,9 +15,9 @@ def find_settings(setting_pg, substrings):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
+@pytest.mark.mp_group('TestAuth', 'isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Auth(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7838')
     def test_default_entries(self, v1):

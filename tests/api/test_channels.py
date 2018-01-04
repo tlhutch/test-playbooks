@@ -5,19 +5,27 @@ from tests.lib.helpers.workflow_utils import WorkflowTree, WorkflowTreeMapper
 from tests.api import Base_Api_Test
 
 
+class ChannelsTest(object):
+
+    def sleep_and_clear_messages(self, ws):
+        utils.logged_sleep(3)
+        for m in ws:
+            pass
+
+    def filtered_events(self, events, not_of_interest):
+        filtered = []
+        for event in events:
+            filtered.append({k: event[k] for k in set(event) - set(not_of_interest)})
+        return filtered
+
+    def expected_events(self, events, base_event):
+        return [{k: v for d in [event, base_event] for k, v in d.items()} for event in events]
+
+
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestChannels(Base_Api_Test):
-
-        def filtered_events(self, events, not_of_interest):
-            filtered = []
-            for event in events:
-                filtered.append({k: event[k] for k in set(event) - set(not_of_interest)})
-            return filtered
-
-        def expected_events(self, events, base_event):
-            return [{k: v for d in [event, base_event] for k, v in d.items()} for event in events]
+class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.fixture(scope='class')
         def ahc_and_ws_events(self, request, class_factories, v2_class):
@@ -25,21 +33,20 @@ class TestChannels(Base_Api_Test):
 
             ws = WSClient(v2_class.get_authtoken()).connect()
             request.addfinalizer(ws.close)
-            ws.pending_ad_hoc_stdout()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
             ahc = class_factories.v2_ad_hoc_command(module_name='shell', module_args='true',
-                                                    inventory=host.ds.inventory).wait_until_completed()
-            assert ahc.is_successful
+                                                    inventory=host.ds.inventory)
+            ws.ad_hoc_stdout(ahc.id)
+            assert ahc.wait_until_completed().is_successful
+
             messages = [m for m in ws]
-
             ws.unsubscribe()
-
             return ahc, messages
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestAdHocCommandChannelsSerial', 'serial')
         @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
         def test_ad_hoc_command_status_changes(self, ahc_and_ws_events, desired_status):
             ahc, events = ahc_and_ws_events
@@ -49,6 +56,7 @@ class TestChannels(Base_Api_Test):
             assert desired_msg in events
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestAdHocCommandChannelsSerial', 'serial')
         def test_ad_hoc_command_events(self, ahc_and_ws_events):
             ahc, ws_events = ahc_and_ws_events
 
@@ -71,20 +79,26 @@ class TestChannels(Base_Api_Test):
 
             ws = WSClient(v2.get_authtoken()).connect()
             request.addfinalizer(ws.close)
-            ws.pending_ad_hoc_stdout()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
             ahc = factories.v2_ad_hoc_command(module_name='shell', module_args='true',
                                               inventory=host.ds.inventory).wait_until_completed()
-            assert ahc.is_successful
+            ws.ad_hoc_stdout(ahc.id)
+            assert ahc.wait_until_completed().is_successful
             assert [m for m in ws]
 
             ws.unsubscribe()
-            utils.logged_sleep(3)
+            self.sleep_and_clear_messages(ws)
+
             assert ahc.relaunch().wait_until_completed().is_successful
             assert not [m for m in ws]
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestJobChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.fixture(scope='class')
         def job_and_ws_events(self, request, class_factories, v2_class):
@@ -92,22 +106,20 @@ class TestChannels(Base_Api_Test):
 
             ws = WSClient(v2_class.get_authtoken()).connect()
             request.addfinalizer(ws.close)
-            ws.pending_job_stdout()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
             job = class_factories.v2_job_template(playbook='debug.yml',
-                                                  inventory=host.ds.inventory).launch().wait_until_completed()
-            assert job.is_successful
+                                                  inventory=host.ds.inventory).launch()
+            ws.job_stdout(job.id)
+            assert job.wait_until_completed().is_successful
 
             messages = [m for m in ws]
-
             ws.unsubscribe()
-
             return job, messages
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestJobChannelsSerial', 'serial')
         @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
         def test_job_command_status_changes(self, job_and_ws_events, desired_status):
             job, events = job_and_ws_events
@@ -117,6 +129,7 @@ class TestChannels(Base_Api_Test):
             assert desired_msg in events
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestJobChannelsSerial', 'serial')
         def test_job_events(self, job_and_ws_events):
             job, ws_events = job_and_ws_events
 
@@ -138,20 +151,26 @@ class TestChannels(Base_Api_Test):
 
             ws = WSClient(v2.get_authtoken()).connect()
             request.addfinalizer(ws.close)
-            ws.pending_ad_hoc_stdout()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
 
             job = factories.v2_job_template(playbook='debug.yml',
-                                            inventory=host.ds.inventory).launch().wait_until_completed()
-            assert job.is_successful
+                                            inventory=host.ds.inventory).launch()
+            ws.job_stdout(job.id)
+            assert job.wait_until_completed().is_successful
             assert [m for m in ws]
 
             ws.unsubscribe()
-            utils.logged_sleep(3)
+            self.sleep_and_clear_messages(ws)
+
             assert job.relaunch().wait_until_completed().is_successful
             assert not [m for m in ws]
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.mark.ansible_integration
         def test_workflow_events(self, request, v1, factories):
@@ -165,11 +184,13 @@ class TestChannels(Base_Api_Test):
                                                            unified_job_template=success_jt)
             failure = root.related.success_nodes.post(dict(unified_job_template=fail_jt.id))
             success = failure.related.failure_nodes.post(dict(unified_job_template=success_jt.id))
-            ws.pending_workflow_events()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
-            wfj = wfjt.launch().wait_until_completed()
+            ws.status_changes()
+            self.sleep_and_clear_messages(ws)
+
+            wfj = wfjt.launch()
+            ws.workflow_events(wfj.id)
+            wfj.wait_until_completed()
+
             mapper = WorkflowTreeMapper(WorkflowTree(wfjt), WorkflowTree(wfj)).map()
 
             success_job_ids = [result.id for result in success_jt.related.jobs.get().results]
@@ -196,18 +217,23 @@ class TestChannels(Base_Api_Test):
                 assert message in messages
 
             ws.unsubscribe()
-            utils.logged_sleep(3)
+            self.sleep_and_clear_messages(ws)
+
             wfjt.launch().wait_until_completed()
             assert not [m for m in ws]
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestInventoryChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.fixture(scope='class')
         def inv_update_and_ws_events(self, request, class_factories, v2_class):
             ws = WSClient(v2_class.get_authtoken()).connect()
             request.addfinalizer(ws.close)
             ws.status_changes()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
 
             inv_update = class_factories.v2_inventory_source(source='custom').update().wait_until_completed()
             assert inv_update.is_successful
@@ -218,6 +244,7 @@ class TestChannels(Base_Api_Test):
             return inv_update, messages
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestInventoryChannelsSerial', 'serial')
         @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
         def test_inventory_update_status_changes(self, inv_update_and_ws_events, desired_status):
             inv_update, events = inv_update_and_ws_events
@@ -234,27 +261,30 @@ class TestChannels(Base_Api_Test):
             ws = WSClient(v2.get_authtoken()).connect()
             request.addfinalizer(ws.close)
             ws.status_changes()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
 
             inv_source = factories.v2_inventory_source(source='custom')
             assert inv_source.update().wait_until_completed().is_successful
             assert [m for m in ws]
 
             ws.unsubscribe()
-            utils.logged_sleep(3)
+            self.sleep_and_clear_messages(ws)
+
             assert inv_source.update().wait_until_completed().is_successful
             assert not [m for m in ws]
+
+
+@pytest.mark.api
+@pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.fixture(scope='class')
         def project_update_and_ws_events(self, request, class_factories, v2_class):
             ws = WSClient(v2_class.get_authtoken()).connect()
             request.addfinalizer(ws.close)
             ws.status_changes()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
 
             project_update = class_factories.v2_project().update().wait_until_completed()
             assert project_update.is_successful
@@ -265,6 +295,7 @@ class TestChannels(Base_Api_Test):
             return project_update, messages
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestProjectUpdateChannelsSerial', 'serial')
         @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
         def test_project_update_status_changes(self, project_update_and_ws_events, desired_status):
             update, events = project_update_and_ws_events
@@ -279,15 +310,14 @@ class TestChannels(Base_Api_Test):
             ws = WSClient(v2.get_authtoken()).connect()
             request.addfinalizer(ws.close)
             ws.status_changes()
-            utils.logged_sleep(3)
-            for m in ws:
-                pass
+            self.sleep_and_clear_messages(ws)
 
             project = factories.v2_project()
             assert project.update().wait_until_completed().is_successful
             assert [m for m in ws]
 
             ws.unsubscribe()
-            utils.logged_sleep(3)
+            self.sleep_and_clear_messages(ws)
+
             assert project.update().wait_until_completed().is_successful
             assert not [m for m in ws]

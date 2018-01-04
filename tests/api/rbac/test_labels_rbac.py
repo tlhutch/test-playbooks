@@ -7,9 +7,8 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Label_RBAC(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     def test_label_post_with_unprivileged_user(self, factories):
         """Unprivileged users cannot create labels."""

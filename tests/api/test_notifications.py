@@ -137,7 +137,7 @@ def _expected_webhook_job_notification(tower_url, notification_template_pg, job_
 
 @pytest.mark.api
 @pytest.mark.skip_selenium
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Notification_Templates(Base_Api_Test):
 
     def test_duplicate_notification_templates_disallowed_by_organization(self, factories):
@@ -151,13 +151,12 @@ class Test_Notification_Templates(Base_Api_Test):
 
 
 @pytest.mark.api
+@pytest.mark.destructive
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Notifications(Base_Api_Test):
     """Notification tests"""
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-
-    @pytest.mark.destructive
     def test_test_notification(self, request, notification_template):
         """Generate test notifications for each notification type"""
         # Trigger test notification
@@ -173,10 +172,11 @@ class Test_Notifications(Base_Api_Test):
                 "Failed to find %s test notification (%s)" %\
                 (notification_type, msg)
 
-    @pytest.mark.destructive
+    @pytest.mark.mp_group('SystemJobNotifications', 'serial')
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
-    def test_system_job_notifications(self, request, system_job_template, notification_template, job_result):
+    def test_system_job_notifications(self, request, system_job_template, irc_notification_template, job_result):
         """Test notification templates attached to system job templates"""
+        notification_template = irc_notification_template
         existing_notifications = system_job_template.get_related('notification_templates_any').count + \
             system_job_template.get_related('notification_templates_success').count
         notifications_expected = existing_notifications + (1 if job_result in ('any', 'success') else 0)
@@ -215,12 +215,12 @@ class Test_Notifications(Base_Api_Test):
                 notification_template.notification_type + " notification " + \
                 ("not " if notification_expected else "") + "present (%s)" % msg
 
-    @pytest.mark.destructive
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
     @pytest.mark.parametrize("resource", ['organization', 'project', 'job_template'])
-    def test_notification_inheritance(self, request, resource, job_template, notification_template, job_result):
+    def test_notification_inheritance(self, request, resource, job_template, irc_notification_template, job_result):
         """Test inheritance of notifications when notification template attached to various tower resources"""
         # Get reference to resource
+        notification_template = irc_notification_template
         if resource == "organization":
             resource = job_template.get_related('project').get_related('organization')
         elif resource == "project":

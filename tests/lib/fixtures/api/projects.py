@@ -44,9 +44,9 @@ def project_update_with_status_completed(project_ansible_playbooks_git):
 
 
 @pytest.fixture(scope="function")
-def project_ansible_playbooks_manual(request, factories, ansible_runner, api_config_pg, organization, is_docker):
+def project_ansible_playbooks_manual(request, factories, ansible_runner, api_config_pg, organization):
     local_path = 'project_dir_{0}'.format(fauxfactory.gen_alphanumeric())
-    base_dir = '/projects' if is_docker else api_config_pg.project_base_dir
+    base_dir = api_config_pg.project_base_dir
     full_path = os.path.join(base_dir, local_path)
     results = ansible_runner.git(repo='https://github.com/jlaska/ansible-playbooks.git', dest=full_path)
     assert not results.get('failed'), "Clone failed\n{0}".format(json.dumps(results, indent=4))

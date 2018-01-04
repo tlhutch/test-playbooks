@@ -9,10 +9,10 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.mp_group('Proot', 'isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Proot(Base_Api_Test):
     """Tests to assert correctness while running with AWX_PROOT_ENABLED=True"""
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.requires_single_instance
     def test_job_isolation(self, factories, api_settings_jobs_pg, update_setting_pg):

@@ -1,5 +1,7 @@
+import fauxfactory
 import pytest
 import json
+
 from tests.api import Base_Api_Test
 
 
@@ -873,31 +875,28 @@ inventory_dict = {
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.nondestructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_AC_847(Base_Api_Test):
-    @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-    def test_import(self, ansible_runner, tmpdir, inventory):
+
+    def test_import(self, request, ansible_runner, tmpdir, inventory):
         """Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner
         """
-        # Create an inventory script
-        sh_script = """#!/bin/bash
+        inv_filename = '/tmp/inventory{}.sh'.format(fauxfactory.gen_alphanumeric())
+        contacted = ansible_runner.copy(
+            dest=inv_filename,
+            mode='0755',
+            content="""#!/bin/bash
 cat <<EOF
-%s
-EOF
-""" % json.dumps(inventory_dict)
-        p = tmpdir.mkdir("ansible").join("ec2.sh")
-        fd = p.open('w+')
-        fd.write(sh_script)
-        fd.close()
-
-        # Copy script to test system
-        ansible_runner.copy(src=fd.name, dest='/tmp/%s' % p.basename, mode='0755')
+{}
+EOF""".format(json.dumps(inventory_dict, indent=4)))
+        request.addfinalizer(lambda: ansible_runner.file(path=inv_filename, state='absent'))
+        for result in contacted.values():
+            assert not result.get('failed'), "Failed to create inventory file: {}".format(result)
 
         # Run awx-manage inventory_import
-        contacted = ansible_runner.shell(
-            "awx-manage inventory_import --inventory-id %s --source /tmp/%s"
-            % (inventory.id, p.basename)
-        )
+        contacted = ansible_runner.command("awx-manage inventory_import --inventory-id {0.id} --source {1}"
+                                           .format(inventory, inv_filename))
 
         # Verify the import completed successfully
         for result in contacted.values():

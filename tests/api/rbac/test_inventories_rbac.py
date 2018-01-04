@@ -13,9 +13,8 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventoryRBAC(Base_Api_Test):
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7321')
     def test_unprivileged_user(self, factories):

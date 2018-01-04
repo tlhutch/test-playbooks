@@ -40,6 +40,7 @@ JOB_EVENT_TYPES = ['playbook_on_start',  # (once for each playbook file)
 @pytest.mark.api
 @pytest.mark.skip_selenium
 @pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Job_Events(Base_Api_Test):
 
     def get_job_events(self, job, query=None):

@@ -18,10 +18,9 @@ def related_organization_object(request):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_selenium
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Organizations(Base_Api_Test):
     """Verify the /users endpoint displays the expected information based on the current user"""
-
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 
     def test_duplicate_organizations_disallowed(self, factories):
         org = factories.v2_organization()
