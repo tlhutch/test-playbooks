@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 
-from towerkit.utils import to_str
+from towerkit.utils import random_title, to_str
 import fauxfactory
 import pytest
 
@@ -271,3 +271,23 @@ class TestFactCache(Base_Api_Test):
         for file in files:
             if not file.isdir and file.roth:
                 assert file.checksum
+
+    @pytest.mark.ansible_integration
+    def test_use_fact_cache_for_host_with_large_hostvars(self, factories):
+        script = """#!/usr/bin/env python
+import json
+inv = dict(somegroup{0}=dict(hosts=['somehost{0}'],
+                             vars=dict(ansible_host='127.0.0.1',
+                                       ansible_connection='local',
+                                       cruft='x' * 1024 ** 2)))
+
+print json.dumps(inv)""".format(random_title(non_ascii=False))
+        inv_src = factories.v2_inventory_source(inventory_script=(True, dict(script=script)))
+        assert inv_src.update().wait_until_completed().is_successful
+        jt = factories.v2_job_template(inventory=inv_src.ds.inventory,
+                                       use_fact_cache=True,
+                                       playbook='scan_custom.yml')
+        assert jt.launch().wait_until_completed().is_successful
+        host = inv_src.ds.inventory.related.hosts.get().results.pop()
+        facts = host.related.ansible_facts.get()
+        assert facts.string == "abc"
