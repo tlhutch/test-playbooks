@@ -1,6 +1,7 @@
 import pytest
 
-import towerkit.exceptions
+from towerkit import exceptions as exc
+
 from tests.api import Base_Api_Test
 from tests.lib.helpers.rbac_utils import check_user_capabilities
 
@@ -44,18 +45,18 @@ class Test_Schedules_RBAC(Base_Api_Test):
 
         with self.current_user(org_admin.username, org_admin.password):
             # test get
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 schedule.get()
             # test put/patch
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 schedule.put()
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 schedule.patch()
             # test post
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 schedules.post()
             # test delete
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 schedule.delete()
 
     def test_crud_as_org_user(self, org_user, resource_with_schedule):
@@ -65,18 +66,18 @@ class Test_Schedules_RBAC(Base_Api_Test):
 
         with self.current_user(org_user.username, org_user.password):
             # test get
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 schedule.get()
             # test put/patch
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 schedule.put()
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 schedule.patch()
             # test create
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 schedules.post()
             # test delete
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 schedule.delete()
 
     def test_schedule_reassignment(self, org_user, schedulable_resource_as_org_admin, cleanup_jobs_template):
@@ -91,8 +92,26 @@ class Test_Schedules_RBAC(Base_Api_Test):
         schedule = schedulable_resource_as_org_admin.add_schedule()
 
         with self.current_user(username=org_user.username, password=org_user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(exc.Forbidden):
                 schedule.patch(unified_job_template=cleanup_jobs_template.id)
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7845')
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_create_schedule_with_jt_job(self, factories, role):
+        jt = factories.v2_job_template()
+        user = factories.v2_user()
+        jt.set_object_roles(user, role)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        with self.current_user(user):
+            if role in ['admin', 'execute']:
+                job.related.create_schedule.post()
+            else:
+                with pytest.raises(exc.Forbidden) as e:
+                    job.related.create_schedule.post()
+                # assert e.value[1] == ???
 
     def test_user_capabilities_as_superuser(self, resource_with_schedule, api_schedules_pg):
         """Tests 'user_capabilities' against schedules of all types of UJT as superuser."""

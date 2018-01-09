@@ -178,6 +178,25 @@ class TestPrompts(Base_Api_Test):
         for cred in schedule_creds.results:
             assert cred.id in launch_cred_ids
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7844')
+    def test_cannot_create_schedule_with_jt_with_ask_credential(self, factories):
+        cred = factories.v2_credential(ssh_key_data=self.credentials.ssh.encrypted.ssh_key_data, password='ASK',
+                                       become_password='ASK', ssh_key_unlock='ASK')
+        jt = factories.v2_job_template(credential=cred)
+
+        payload = dict(credential_passwords=dict(ssh_password='fake', become_password='fake',
+                                                 ssh_key_unlock=self.credentials.ssh.encrypted.ssh_key_unlock))
+        job = jt.launch(payload).wait_until_completed()
+        assert job.is_successful
+
+        create_schedule = job.related.create_schedule.get()
+        assert create_schedule.prompts == {}
+        assert not create_schedule.can_schedule
+
+        with pytest.raises(exc.BadRequest) as e:
+            create_schedule.post()
+        # assert e.value[1]['error'] == ???
+
     def test_created_schedule_with_jt_with_survey_with_defaults(self, factories):
         jt = factories.v2_job_template()
         survey = [dict(required=False,
