@@ -44,3 +44,17 @@ Run the setup playbook:
 ```
 Simfarm@ovpn-125-95:~/Git/tower-packaging/setup_cluster$ ansible-playbook -i inventory install.yml -e openshift_password=very_secret -v
 ```
+
+Delete resources as follows:
+```
+cluster_installer ✗ $ oc delete dc --all
+deploymentconfig "postgresql" deleted
+deploymentconfig "tower" deleted
+
+cluster_installer ✗ $ oc delete svc --all
+service "postgresql" deleted
+service "tower-web-svc" deleted
+
+cluster_installer ✗ $ oc delete route --all
+route "tower-web-svc" deleted
+```
