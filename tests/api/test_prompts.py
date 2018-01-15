@@ -400,7 +400,7 @@ class TestPrompts(Base_Api_Test):
         assert json.loads(wfj.extra_vars) == dict(var1='$encrypted$', var2='$encrypted$', var3='$encrypted$')
         assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='$encrypted$', var3='$encrypted$')
 
-    def test_created_schedule_from_wfj_with_default_wfjt(self, factories):
+    def test_created_schedule_from_wfj_with_default_jt(self, factories):
         host = factories.v2_host()
         wfjt = factories.v2_workflow_job_template()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
@@ -434,6 +434,84 @@ class TestPrompts(Base_Api_Test):
         rrule_dtstart = utils.to_str(schedule.dtstart).translate(None, '-:')
         assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(rrule_dtstart)
         assert not schedule.dtend
+
+    def test_created_schedule_from_wfj_with_ask_jt(self, factories):
+        inventory= factories.v2_inventory()
+        credential = factories.v2_credential()
+
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml',
+                                       **self.ask_jt_attrs)
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+                                                extra_data=dict(var1='wfjtn'), job_type='check', job_tags='wfjtn',
+                                                skip_tags='wfjtn', limit='wfjtn', diff_mode=True, verbosity=2,
+                                                inventory=inventory, credential=credential)
+
+        wfj = wfjt.launch().wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert wfj.is_successful
+        assert job.is_successful
+
+        create_schedule = job.related.create_schedule.get()
+        prompts = create_schedule.prompts
+        assert prompts.inventory.id == inventory.id
+        assert len(prompts.credentials) == 1
+        assert prompts.credentials.pop().id == credential.id
+        assert prompts.diff_mode
+        assert prompts.extra_vars == dict(var1='wfjtn')
+        assert prompts.job_tags == 'wfjtn'
+        assert prompts.job_type == 'check'
+        assert prompts.limit == 'wfjtn'
+        assert prompts.skip_tags == 'wfjtn'
+        assert prompts.verbosity == 2
+        assert create_schedule.can_schedule
+
+        schedule = create_schedule.post()
+        assert schedule.name == 'Auto-generated schedule from job {}'.format(job.id)
+        assert schedule.description == ''
+        assert schedule.unified_job_template == jt.id
+        assert not schedule.enabled
+
+        assert schedule.diff_mode
+        assert schedule.extra_data == dict(var1='wfjtn')
+        assert schedule.limit == 'wfjtn'
+        assert schedule.job_tags == 'wfjtn'
+        assert schedule.skip_tags == 'wfjtn'
+        assert schedule.job_type == 'check'
+        assert schedule.verbosity == 2
+        assert schedule.inventory == inventory.id
+        schedule_creds = schedule.related.credentials.get()
+        assert schedule_creds.count == 1
+        assert schedule_creds.results.pop().id == credential.id
+
+        rrule_dtstart = utils.to_str(schedule.dtstart).translate(None, '-:')
+        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(rrule_dtstart)
+        assert not schedule.dtend
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7848')
+    def test_workflow_node_creation_rejected_when_source_jt_has_ask_disabled(self, factories):
+        inventory = factories.v2_inventory()
+        credential = factories.v2_credential()
+
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+
+        with pytest.raises(exc.BadRequest) as e:
+            factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+                                                    extra_data=dict(var1='wfjtn'), job_type='check', job_tags='wfjtn',
+                                                    skip_tags='wfjtn', limit='wfjtn', diff_mode=True, verbosity=2,
+                                                    inventory=inventory, credential=credential)
+        assert e.value[1] == {'job_tags': ['Field is not configured to prompt on launch.'],
+                              'verbosity': ['Field is not configured to prompt on launch.'],
+                              'job_type': ['Field is not configured to prompt on launch.'],
+                              'diff_mode': ['Field is not configured to prompt on launch.'],
+                              'skip_tags': ['Field is not configured to prompt on launch.'],
+                              'limit': ['Field is not configured to prompt on launch.'],
+                              'inventory': ['Field is not configured to prompt on launch.'],
+                              # 'credential': ['Field is not configured to prompt on launch.'],
+                              'extra_data': ['Variables var1 are not allowed on launch.']}
 
     @pytest.mark.parametrize('required', [True, False])
     def test_created_schedule_from_wfj_with_ask_variables_on_launch_and_surveys(self, factories, required):
