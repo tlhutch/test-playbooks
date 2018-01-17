@@ -94,18 +94,9 @@ class TestBasicLicense(LicenseTest):
 
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
-        """Verify that cleanup_facts may not be run with a basic license."""
-        # wait for cleanup_facts to finish
-        job_pg = cleanup_facts.wait_until_completed()
-
-        # assert expected failure
-        assert job_pg.status == 'failed', "cleanup_facts job " \
-            "unexpectedly passed with a basic license - %s" % job_pg
-
-        # assert expected stdout
-        assert job_pg.result_stdout == "CommandError: The System Tracking " \
-            "feature is not enabled for your instance\r\n", \
-            "Unexpected stdout when running cleanup_facts with a basic license."
+        job = cleanup_facts.wait_until_completed()
+        assert job.status == 'failed'
+        assert 'CommandError: The System Tracking feature is not enabled for your instance' in job.result_stdout
 
     def test_unable_to_get_fact_versions(self, host_local):
         """Verify that GET requests are rejected from fact_versions."""
