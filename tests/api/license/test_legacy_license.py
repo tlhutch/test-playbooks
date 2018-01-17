@@ -85,18 +85,9 @@ class TestLegacyLicense(LicenseTest):
 
     @pytest.mark.fixture_args(older_than='1y', granularity='1y')
     def test_unable_to_cleanup_facts(self, cleanup_facts):
-        """Verify that cleanup_facts may not be run with a legacy license."""
-        # wait for cleanup_facts to finish
-        job_pg = cleanup_facts.wait_until_completed()
-
-        # assert expected failure
-        assert job_pg.status == 'failed', "cleanup_facts job " \
-            "unexpectedly passed with a legacy license - %s" % job_pg
-
-        # assert expected stdout
-        assert job_pg.result_stdout == "CommandError: The System Tracking " \
-            "feature is not enabled for your instance\r\n", \
-            "Unexpected stdout when running cleanup_facts with a legacy license."
+        job = cleanup_facts.wait_until_completed()
+        assert job.status == 'failed'
+        assert 'CommandError: The System Tracking feature is not enabled for your instance' in job.result_stdout
 
     def test_unable_to_get_fact_versions(self, host_local):
         """Verify that GET requests are rejected from fact_versions."""
@@ -335,18 +326,13 @@ class TestLegacyLicenseExpired(LicenseTest):
 
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job):
-        """Verify that system jobs can be launched"""
-        # launch job and assess success
         system_job.wait_until_completed()
 
-        # cleanup_facts jobs will fail if the license does not support it
         if system_job.job_type == 'cleanup_facts':
-            assert system_job.status == 'failed', "System job unexpectedly succeeded - %s" % system_job
-            assert system_job.result_stdout == ("CommandError: The System Tracking feature is not enabled for "
-                                                "your instance\r\n")
-        # all other system_jobs are expected to succeed
+            assert system_job.status == 'failed'
+            assert 'CommandError: The System Tracking feature is not enabled for your instance' in system_job.result_stdout
         else:
-            assert system_job.is_successful, "System job unexpectedly failed - %s" % system_job
+            assert system_job.is_successful
 
 
 @pytest.mark.api
