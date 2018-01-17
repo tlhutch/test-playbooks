@@ -399,6 +399,7 @@ class TestSCMInventorySource(Base_Api_Test):
         assert e.value.message == {'update_on_project_update': ['Setting not compatible with existing schedules.']}
         assert not scm_inv_source.update_on_project_update
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7853')
     def test_scm_inv_source_isnt_schedulable_with_update_on_project_update(self, factories):
         scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                        update_on_project_update=True)
