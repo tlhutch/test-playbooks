@@ -14,28 +14,27 @@ log = logging.getLogger(__name__)
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateCredentials(Base_Api_Test):
 
-    def test_job_template_creation_without_credential(self, v2, factories):
+    def test_job_template_creation_without_credential(self, request, v2, factories):
         payload = factories.v2_job_template.payload()
         del payload['credential']
+        jt = v2.job_templates.post(payload)
+        request.addfinalizer(jt.silent_delete)
 
-        with pytest.raises(exc.BadRequest) as e:
-            v2.job_templates.post(payload)
-        assert e.value.message == {'credential': ['Must either set a default value or ask to prompt on launch.']}
-
-    def test_launch_without_credential_and_credential_needed_to_start(self, job_template_no_credential):
-        """Verify the job launch endpoint disallows launching a job template without a credential."""
+    def test_launch_without_credential(self, job_template_no_credential):
+        """Verify the job launch endpoint allows launching a job template without a credential."""
         launch = job_template_no_credential.related.launch.get()
 
-        assert not launch.can_start_without_user_input
+        assert launch.can_start_without_user_input
+        assert launch.ask_credential_on_launch
         assert not launch.ask_variables_on_launch
         assert not launch.passwords_needed_to_start
         assert not launch.variables_needed_to_start
-        assert launch.credential_needed_to_start
+        assert not launch.credential_needed_to_start
 
         # launch the job_template without providing a credential
-        with pytest.raises(exc.BadRequest) as e:
-            launch.post()
-        assert e.value.message == {'credential': ["Job Template 'credential' is missing or undefined."]}
+        job = job_template_no_credential.launch().wait_until_completed()
+        assert job.is_successful
+        assert job.credential is None
 
     def test_launch_with_linked_credential(self, job_template_no_credential, ssh_credential):
         """Verify the job template launch endpoint requires user input when using a linked credential and
@@ -55,34 +54,33 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert job.is_successful
         assert job.credential == ssh_credential.id
 
-    def test_launch_with_payload_credential_and_credential_needed_to_start(self, job_template_no_credential,
-                                                                           ssh_credential):
+    def test_launch_with_payload_credential(self, job_template_no_credential, ssh_credential):
         """Verify the job launch endpoint allows launching a job template when providing a credential."""
         launch = job_template_no_credential.related.launch.get()
 
-        assert not launch.can_start_without_user_input
+        assert launch.can_start_without_user_input
+        assert launch.ask_credential_on_launch
         assert not launch.ask_variables_on_launch
         assert not launch.passwords_needed_to_start
         assert not launch.variables_needed_to_start
-        assert launch.credential_needed_to_start
+        assert not launch.credential_needed_to_start
 
         job = job_template_no_credential.launch(dict(credential=ssh_credential.id)).wait_until_completed()
 
         assert job.is_successful
         assert job.credential == ssh_credential.id
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7842')
     def test_launch_with_invalid_credential_in_payload(self, job_template_no_credential):
         """Verify the job launch endpoint throws 400 error when launching with invalid credential id"""
-        invalid_and_error = [('', "Job Template 'credential' is missing or undefined."),
-                             ('one', "Incorrect type. Expected pk value, received unicode."),
+        invalid_and_error = [('one', "Incorrect type. Expected pk value, received unicode."),
                              (0, 'Invalid pk "0" - object does not exist.'),
                              (False, 'Invalid pk "False" - object does not exist.'),
-                             ([], 'Incorrect type. Expected pk value, received list.'),
                              ({}, 'Incorrect type. Expected pk value, received OrderedDict.')]
         for invalid, error in invalid_and_error:
             with pytest.raises(exc.BadRequest) as e:
                 job_template_no_credential.launch(dict(credential=invalid))
-            assert e.value.message['credential'] == [error]
+            assert e.value.message['credentials'] == [error]
 
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_no_credential,
                                                                          ssh_credential_ask):
