@@ -25,7 +25,7 @@ docker exec -it tools_tower_1 bash
 awx-manage createsuperuser
 awx-manage create_preload_data
 ```
-* You will need to clone the license writer into `tools_tower_1`:
+* You will need to clone the license writer inside `tools_tower_1`:
 ```
 git clone https://github.com/ansible/tower-license
 
@@ -42,7 +42,7 @@ py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-
 * `-vs` will give you a REST log.
 * `-k` determines which tests will run.
 
-Run test with four processes to increase speed:
+Run tests with four processes to increase speed:
 ```
 py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-destructive --api-credentials=config/credentials.yml --ansible-sudo --pdb -vs --mp --np 4 -k test_labels.py
 ``` 
