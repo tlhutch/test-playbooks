@@ -286,7 +286,7 @@ class Test_Job_Events(Base_Api_Test):
         assert not filter(lambda x: x.playbook != 'free_waiter.yml', non_verbose)
 
     @pytest.mark.ansible_integration
-    def test_no_log(self, factories):
+    def test_no_log(self, ansible_version_cmp, factories):
         """Runs Ansible's no_log integration test playbook and confirms Tower's callback receiver offers
         near equivalent censoring.
         """
@@ -318,8 +318,13 @@ class Test_Job_Events(Base_Api_Test):
                     continue
                 results = [data.res]
 
+            if ansible_version_cmp('2.4.3.0') >= 0:
+                desired_result_keys = {'changed', 'censored'}
+            else:
+                desired_result_keys = {'censored'}
+
             for result in results:
-                if result.get('_ansible_no_log') is False:  # censored results only contain 'censored' key
+                if result.get('_ansible_no_log') is False:
                     assert 'censored' not in data.res
                     assert hidden_prefix not in data.task_args
                     result = data.res.get('result', data.res)
@@ -328,5 +333,5 @@ class Test_Job_Events(Base_Api_Test):
                     assert hidden_prefix not in result.get('stdout_lines', '')
                 else:
                     assert hidden_prefix in data.task_args
-                    assert result.keys() == ['censored']
+                    assert set(result.keys()) | desired_result_keys == desired_result_keys
                     assert hidden_prefix in result.censored
