@@ -3,7 +3,7 @@
 Welcome to `tower-qa`! Herein lies our beloved API integration tests, playbooks, and scripts.
 
 ##### Getting Started with API Tests 
-Install dependencies:
+We recommend using virtual environments to manage dependencies:
 * [virtualenv](https://virtualenv.pypa.io/en/stable/installation/)
 * [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/install.html)
 
@@ -50,7 +50,7 @@ py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-
 
 ##### Getting Started with Playbooks
 * The "deploy" playbooks deploy Tower in various configurations (with LDAP, with cluster, via bundle installer etc.).
-* The "images" files provide extra variables needed for our playbooks to run.
+* The "images" files provide extra variables needed for certain playbooks to run.
 
 It may be helpful to create a `vars.yml` file to house additional ansible variables:
 ```
