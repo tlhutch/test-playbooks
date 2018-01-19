@@ -13,7 +13,6 @@ log = logging.getLogger(__name__)
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.mp_group(group="LegacyLicense", strategy='isolated_free')
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license')
 class TestLegacyLicense(LicenseTest):
@@ -135,7 +134,6 @@ class TestLegacyLicense(LicenseTest):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.mp_group(group="LegacyLicenseSerial", strategy='isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license')
 class TestLegacyLicenseSerial(LicenseTest):
@@ -182,7 +180,6 @@ class TestLegacyLicenseSerial(LicenseTest):
 @pytest.mark.api
 @pytest.mark.mp_group(group="LegacyLicenseWarning", strategy='isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license_warning')
-@pytest.mark.skip_selenium
 class TestLegacyLicenseWarning(LicenseTest):
 
     def test_metadata(self, api_config_pg):
@@ -238,7 +235,6 @@ class TestLegacyLicenseWarning(LicenseTest):
 @pytest.mark.api
 @pytest.mark.mp_group(group="LegacyLicenseGracePeriod", strategy='isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license_grace_period')
-@pytest.mark.skip_selenium
 class TestLegacyLicenseGracePeriod(LicenseTest):
 
     def test_metadata(self, api_config_pg):
@@ -283,7 +279,6 @@ class TestLegacyLicenseGracePeriod(LicenseTest):
 @pytest.mark.api
 @pytest.mark.mp_group(group="LegacyLicenseExpired", strategy='isolated_free')
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license_expired')
-@pytest.mark.skip_selenium
 class TestLegacyLicenseExpired(LicenseTest):
 
     def test_metadata(self, api_config_pg):
@@ -338,7 +333,6 @@ class TestLegacyLicenseExpired(LicenseTest):
 @pytest.mark.api
 @pytest.mark.mp_group(group="LegacyLicenseExpiredSerial", strategy='isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license_expired')
-@pytest.mark.skip_selenium
 class TestLegacyLicenseExpiredSerial(LicenseTest):
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
@@ -396,7 +390,6 @@ class TestLegacyLicenseExpiredSerial(LicenseTest):
 @pytest.mark.api
 @pytest.mark.mp_group(group="LegacyTrialLicense", strategy='isolated_free')
 @pytest.mark.usefixtures('authtoken', 'install_trial_legacy_license')
-@pytest.mark.skip_selenium
 class TestLegacyTrialLicense(LicenseTest):
 
     def test_metadata(self, api_config_pg):
@@ -443,7 +436,6 @@ class TestLegacyTrialLicense(LicenseTest):
 @pytest.mark.api
 @pytest.mark.mp_group(group="LegacyTrialLicenseSerial", strategy='isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_trial_legacy_license')
-@pytest.mark.skip_selenium
 class TestLegacyTrialLicenseSerial(LicenseTest):
 
     def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):

@@ -38,7 +38,6 @@ def project_with_galaxy_requirements(request, authtoken, organization):
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Projects(Base_Api_Test):
 

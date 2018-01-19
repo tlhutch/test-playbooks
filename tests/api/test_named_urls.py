@@ -23,7 +23,6 @@ def make_api_url(resource_name, format_string, *params):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestNamedURLs(Base_Api_Test):
 

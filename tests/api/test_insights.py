@@ -8,7 +8,6 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.skip_selenium
 @pytest.mark.mp_group('Insights', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInsights(Base_Api_Test):

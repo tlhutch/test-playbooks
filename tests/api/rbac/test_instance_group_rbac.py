@@ -9,7 +9,6 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.requires_ha
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroupRBAC(Base_Api_Test):
 
@@ -52,7 +51,6 @@ class TestInstanceGroupRBAC(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.requires_ha
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
 

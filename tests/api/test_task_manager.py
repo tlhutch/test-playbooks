@@ -157,7 +157,6 @@ def check_chain_canceled_job_explanation(canceled_job, chain_canceled_jobs):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Sequential_Jobs(Base_Api_Test):
@@ -356,7 +355,6 @@ class Test_Sequential_Jobs(Base_Api_Test):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Autospawned_Jobs(Base_Api_Test):
@@ -645,7 +643,6 @@ class Test_Autospawned_Jobs(Base_Api_Test):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Cascade_Fail_Dependent_Jobs(Base_Api_Test):

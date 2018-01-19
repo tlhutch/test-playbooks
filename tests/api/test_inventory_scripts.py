@@ -47,7 +47,6 @@ def custom_inventory_source_with_vars(request, custom_inventory_source, custom_i
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Inventory_Scripts(Base_Api_Test):

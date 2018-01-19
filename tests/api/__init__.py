@@ -12,7 +12,6 @@ error_pattern = re.compile('SchemaValidationError\:.*\n')
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 class Base_Api_Test(object):
     """Base class"""
 

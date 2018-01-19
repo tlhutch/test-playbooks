@@ -23,7 +23,6 @@ class ChannelsTest(object):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
 
@@ -96,7 +95,6 @@ class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobChannels(ChannelsTest, Base_Api_Test):
 
@@ -168,7 +166,6 @@ class TestJobChannels(ChannelsTest, Base_Api_Test):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
 
@@ -224,7 +221,6 @@ class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventoryChannels(ChannelsTest, Base_Api_Test):
 
@@ -275,7 +271,6 @@ class TestInventoryChannels(ChannelsTest, Base_Api_Test):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
 

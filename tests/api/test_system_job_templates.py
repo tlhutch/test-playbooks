@@ -20,7 +20,6 @@ def cleanup_jobs_template(request, api_system_job_templates_pg):
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_System_Job_Template(Base_Api_Test):
     """Verify actions with system_job_templates"""

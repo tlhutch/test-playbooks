@@ -149,7 +149,6 @@ def azure_type(azure_credential):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Job(Base_Api_Test):
@@ -532,7 +531,6 @@ class Test_Job(Base_Api_Test):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.destructive
 class Test_Job_Env(Base_Api_Test):
     """Verify that credentials are properly passed to playbooks as

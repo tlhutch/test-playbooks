@@ -6,7 +6,6 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.rbac
-@pytest.mark.skip_selenium
 @pytest.mark.mp_group('LicenseRBAC', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken')
 class Test_License_RBAC(Base_Api_Test):

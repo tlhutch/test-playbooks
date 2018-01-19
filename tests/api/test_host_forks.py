@@ -89,8 +89,7 @@ def job_template(request, api_job_templates_pg, inventory, random_project, crede
 # For some reason, the following 'mark' causes all subsequent tests to skip as
 # well.  Setting 'pytestmark' works around this issue.
 # @pytest.mark.performance
-# @pytest.mark.skip_selenium
-pytestmark = [pytest.mark.performance, pytest.mark.skip_selenium]
+pytestmark = [pytest.mark.performance]
 
 
 @pytest.mark.api

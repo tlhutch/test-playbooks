@@ -8,7 +8,6 @@ log = logging.getLogger(__name__)
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.second_to_last
 @pytest.mark.mp_group('AnsibleTowerService', 'isolated_serial')
