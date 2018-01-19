@@ -1,0 +1,13 @@
+{
+  "name": "tower-qa",
+  "version": "0.0.1",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "nightwatch": "^0.9.19"
+  },
+  "scripts": {
+    "postinstall": "scripts/postinstall.sh"
+  }
+}
