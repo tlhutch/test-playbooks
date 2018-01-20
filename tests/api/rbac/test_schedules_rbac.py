@@ -109,9 +109,8 @@ class Test_Schedules_RBAC(Base_Api_Test):
             if role in ['admin', 'execute']:
                 job.related.create_schedule.post()
             else:
-                with pytest.raises(exc.Forbidden) as e:
+                with pytest.raises(exc.Forbidden):
                     job.related.create_schedule.post()
-                # assert e.value[1] == ???
 
     def test_user_capabilities_as_superuser(self, resource_with_schedule, api_schedules_pg):
         """Tests 'user_capabilities' against schedules of all types of UJT as superuser."""
