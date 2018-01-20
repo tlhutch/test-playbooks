@@ -106,11 +106,32 @@ class Test_Schedules_RBAC(Base_Api_Test):
         assert job.is_successful
 
         with self.current_user(user):
-            if role in ['admin', 'execute']:
+            if role in ('admin', 'execute'):
                 job.related.create_schedule.post()
             else:
                 with pytest.raises(exc.Forbidden):
                     job.related.create_schedule.post()
+
+    @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
+    def test_create_schedule_with_wfn_job(self, factories, role):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory)
+        wfjt = factories.v2_workflow_job_template()
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        user = factories.v2_user()
+        wfjt.set_object_roles(user, role)
+
+        wfj = wfjt.launch().wait_until_completed()
+        assert wfj.is_successful
+
+        create_schedule = jt.get().related.last_job.get().related.create_schedule.get()
+        with self.current_user(user):
+            if role in ('admin', 'execute'):
+                create_schedule.post()
+            else:
+                with pytest.raises(exc.Forbidden):
+                    create_schedule.post()
 
     def test_user_capabilities_as_superuser(self, resource_with_schedule, api_schedules_pg):
         """Tests 'user_capabilities' against schedules of all types of UJT as superuser."""
