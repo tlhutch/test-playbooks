@@ -43,7 +43,6 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, ho
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Inventory(Base_Api_Test):
 
@@ -73,7 +72,6 @@ class Test_Ad_Hoc_Commands_Inventory(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
 
@@ -102,7 +100,6 @@ class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Host(Base_Api_Test):
 
@@ -131,7 +128,6 @@ class Test_Ad_Hoc_Commands_Host(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
 

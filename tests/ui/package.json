@@ -1,0 +1,19 @@
+{
+  "name": "tower-qa",
+  "version": "0.0.1",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "nightwatch": "^0.9.19"
+  },
+  "devDependencies": {
+    "eslint": "^4.6.1",
+    "eslint-config-airbnb-base": "^12.0.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-disable": "^0.3.0"
+  },
+  "scripts": {
+    "postinstall": "scripts/postinstall.sh"
+  }
+}

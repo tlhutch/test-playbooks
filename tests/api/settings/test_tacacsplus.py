@@ -23,7 +23,6 @@ def enable_tacacs_auth(update_setting_pg, api_settings_tacacsplus_pg):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.mp_group('TACACSPlus', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')

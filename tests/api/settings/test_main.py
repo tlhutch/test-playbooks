@@ -101,7 +101,6 @@ def modify_obfuscated_settings(api_settings_all_pg, update_setting_pg, unencrypt
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.mp_group('GeneralSettings', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')

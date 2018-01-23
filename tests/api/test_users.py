@@ -24,7 +24,6 @@ def user_payload(**kwargs):
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Users(Base_Api_Test):
 

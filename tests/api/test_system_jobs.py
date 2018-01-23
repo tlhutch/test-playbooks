@@ -48,7 +48,6 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.destructive
 @pytest.mark.first
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')

@@ -17,7 +17,6 @@ def hostnames_from_group_prefixes(prefixes, start=1, finish=5):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestSCMInventorySource(Base_Api_Test):
 

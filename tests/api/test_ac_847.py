@@ -873,7 +873,6 @@ inventory_dict = {
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_AC_847(Base_Api_Test):

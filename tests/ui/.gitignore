@@ -1,0 +1,5 @@
+node_modules
+awx
+reports
+bin/selenium-server-standalone.jar
+selenium-debug.log

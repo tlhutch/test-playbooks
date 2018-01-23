@@ -76,7 +76,6 @@ unauthorized = (httplib.UNAUTHORIZED, 'unauthorized')
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 @pytest.mark.mp_group('TestCrawler', 'isolated_free')
 def test_unauthenticated(authtoken, no_license, resource, method):
@@ -144,7 +143,6 @@ def test_unauthenticated(authtoken, no_license, resource, method):
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
 @pytest.mark.nondestructive
 @pytest.mark.mp_group('TestCrawler')
 def test_authenticated(connection, authtoken, no_license, resource, method):

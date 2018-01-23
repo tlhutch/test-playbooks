@@ -39,7 +39,6 @@ def cleanup_ldap_info(request, api_users_pg, api_teams_pg, api_organizations_pg)
 @pytest.mark.ldap
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.skip_selenium
 class Test_LDAP(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken')
