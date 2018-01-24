@@ -4,7 +4,6 @@ Here are additional resources in `tower-qa` and `towerkit` that may be helpful t
 * Use our tests to see how the Tower API is supposed to work. For instance, how to create an [Insights inventory](https://github.com/ansible/tower-qa/blob/master/tests/api/test_insights.py#L20) or how Tower is supposed to behave interacting with Insights under [various scenarios](https://github.com/ansible/tower-qa/blob/master/tests/api/test_insights.py#L78) (see "test_access_insights_with" tests).
 * Credentials for the [majority](https://github.com/ansible/tower-qa/blob/master/config/credentials.vault) of our cloud integrations and additional authentication services.
 * Schema files [documentating](https://github.com/ansible/towerkit/tree/master/towerkit/api/schema) expected API JSON.
-* Using Towerkit to instantiate resources using [scripts](https://github.com/ansible/tower-qa/blob/master/scripts/resource_loading/load_tower.py).
 * Using Towerkit to instantiate resources using `tkit`:
 ```
 tkit -t https://ec2-54-205-221-75.compute-1.amazonaws.com -c ~/Git/tower-qa/config/credentials.yml -l

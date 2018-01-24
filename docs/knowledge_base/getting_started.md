@@ -44,7 +44,7 @@ py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-
 
 Run tests with four processes to increase speed:
 ```
-py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-destructive --api-credentials=config/credentials.yml --ansible-sudo --pdb -vs --mp --np 4 -k test_labels.py
+py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-destructive --api-credentials=config/credentials.yml --ansible-sudo -vs --mp --np 4 -k test_labels.py
 ``` 
 
 
