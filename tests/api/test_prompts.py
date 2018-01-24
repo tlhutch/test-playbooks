@@ -460,6 +460,45 @@ class TestPrompts(Base_Api_Test):
         assert e.value[1] == {'passwords_needed_to_start':
                              ['Saved launch configurations cannot provide passwords needed to start.']}
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7864')
+    def test_workflow_nodes_must_abide_to_jt_survey_requirements(self, factories):
+        wfjt = factories.v2_workflow_job_template()
+        jt = factories.v2_job_template()
+        spec = [dict(required=False, question_name="Text-default too short.",
+                     variable='test_var_one', type='text', min=7, default=''),
+                dict(required=False, question_name="Text-default too long.",
+                     variable='test_var_two', type='text', max=1, default='four'),
+                dict(required=False, question_name="Text-passed default with minimum.",
+                     variable='test_var_three', type='text', min=0, default='abc'),
+                dict(required=False, question_name="Text-passed default with maximum.",
+                     variable='test_var_four', type='text', max=7, default='1'),
+                dict(required=False, question_name="Text-passed default with compatible minimum and maximum.",
+                     variable='test_var_five', type='text', min=1, max=5, default='four'),
+                dict(required=False, question_name="Text-passed default with conflicting minimum and maximum.",
+                     variable='test_var_six', type='text', min=4, max=4, default='asdfasdf'),
+                dict(required=False, question_name="Password-default too short.",
+                     variable='test_var_seven', type='password', min=7, default='four'),
+                dict(required=False, question_name="Password-default too long.",
+                     variable='test_var_eight', type='password', max=1, default='four'),
+                dict(required=False, question_name="Password-passed default with minimum.",
+                     variable='test_var_nine', type='password', min=1, default='abc'),
+                dict(required=False, question_name='Password-passed default with maximum.',
+                     variable='test_var_ten', type='password', max=7, default='abc'),
+                dict(required=False, question_name="Password-passed default with compatible minimum and maximum.",
+                     variable='test_var_eleven', type='password', min=1, max=5, default='four'),
+                dict(required=False, question_name="Password-passed default with conflicting minimum and maximum.",
+                     variable='test_var_twelve', type='password', min=4, max=4, default='asdfasdf')]
+        jt.add_survey(spec=spec)
+
+        with pytest.raises(exc.BadRequest) as e:
+            factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+                extra_data=dict(test_var_one='', test_var_two='four', test_var_three='abc',
+                                test_var_four='1', test_var_five='four', test_var_six='asdfasdf',
+                                test_var_seven='$encrypted$', test_var_eight='$encrypted$',
+                                test_var_nine='$encrypted$', test_var_ten='$encrypted$',
+                                test_var_eleven='$encrypted$', test_var_twelve='$encrypted$'))
+        # assert e.value[1] == ???
+
     def test_extra_vars_passed_with_wfjt_when_ask_variables_enabled_and_launch_vars_supplied(self, factories):
         host = factories.v2_host()
         wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)

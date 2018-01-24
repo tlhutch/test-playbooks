@@ -359,3 +359,21 @@ class Test_Workflow_Jobs(Base_Api_Test):
             job_node.get()
             assert not getattr(job_node, 'job', None), \
                 'Found job listed on node {} (even though parent job node cancelled)'.format(job_node)
+
+    @pytest.mark.parametrize('dependency', ['inventory', 'project'])
+    def test_downstream_jt_jobs_fail_appropriately_when_missing_deleted_resources(self, factories, dependency):
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template()
+        jt = factories.v2_job_template(inventory=host.ds.inventory)
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        getattr(jt.ds, dependency).delete()
+
+        wfj = wfjt.launch().wait_until_completed()
+        assert wfj.status == 'failed'
+        assert wfj.failed
+        job = jt.get().related.last_job.get()
+        assert job.status == 'failed'
+        assert job.failed
+        assert job.job_explanation == 'Job spawned from workflow could not start because it was missing a related resource ' \
+                                      'such as project or inventory'

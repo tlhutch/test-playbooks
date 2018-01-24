@@ -114,13 +114,12 @@ class Test_Schedules_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_create_schedule_with_wfn_job(self, factories, role):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory)
+        jt = factories.v2_job_template()
         wfjt = factories.v2_workflow_job_template()
         factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         user = factories.v2_user()
-        wfjt.set_object_roles(user, role)
+        jt.set_object_roles(user, role)
 
         wfj = wfjt.launch().wait_until_completed()
         assert wfj.is_successful
