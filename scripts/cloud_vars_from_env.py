@@ -132,15 +132,13 @@ def variables_from_env_vars():
 
 def main():
     args = parse_args()
+    image_path = ''
     if args.image_vars is not None:
         image_path = args.image_vars
-    else:
-        if args.cloud_provider == 'all':
-            image_path = ''
-        else:
-            tqa_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../')
-            image_path = os.path.join(tqa_root, 'playbooks/images-{0.cloud_provider}.yml'
-                                                .format(args))
+    elif args.cloud_provider != 'all':
+        tqa_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../')
+        image_path = os.path.join(tqa_root, 'playbooks/images-{0.cloud_provider}.yml'
+                                            .format(args))
 
     image_vars = yaml.load(open(image_path)) if image_path else {}
     image_vars = cloud_image_vars(image_vars, args)
