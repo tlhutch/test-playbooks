@@ -6,12 +6,14 @@ Here are additional resources in `tower-qa` and `towerkit` that may be helpful t
 * Schema files [documentating](https://github.com/ansible/towerkit/tree/master/towerkit/api/schema) expected API JSON.
 * Using Towerkit to instantiate resources using `tkit`:
 ```
-tkit -t https://ec2-54-205-221-75.compute-1.amazonaws.com -c ~/Git/tower-qa/config/credentials.yml -l
+tkit -l -c config/credentials.yml -t http://127.0.0.1:8013
 
-In [3]: for i in range(10): v2.teams.create()
+In [1]: for i in range(10): v2.teams.create()
 DEBUG:towerkit.api.pages.page:Retrieved <class 'towerkit.api.pages.teams.V2Teams'> by url: /api/v2/teams/
-DEBUG:urllib3.connectionpool:https://ec2-54-205-221-75.compute-1.amazonaws.com:443 "POST /api/v2/organizations/ HTTP/1.1" 201 2074
-DEBUG:towerkit.api.client:"POST https://ec2-54-205-221-75.compute-1.amazonaws.com/api/v2/organizations/" elapsed: 0:00:00.892896
+DEBUG:urllib3.connectionpool:http://127.0.0.1:8013 "POST /api/v2/organizations/ HTTP/1.1" 201 2078
+DEBUG:towerkit.api.client:"POST http://127.0.0.1:8013/api/v2/organizations/" elapsed: 0:00:00.163769
+DEBUG:urllib3.connectionpool:http://127.0.0.1:8013 "POST /api/v2/teams/ HTTP/1.1" 201 1345
+DEBUG:towerkit.api.client:"POST http://127.0.0.1:8013/api/v2/teams/" elapsed: 0:00:00.099482
 ...
 ...
 ```
