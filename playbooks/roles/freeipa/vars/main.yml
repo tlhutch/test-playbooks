@@ -1,5 +1,9 @@
 ---
 freeipa_users:
+- username: saml_user
+  first: SAML
+  last: User
+  cn: SAML User
 - username: bbelcher
   first: Bob
   last: Belcher
@@ -20,9 +24,65 @@ freeipa_users:
   first: Tina
   last: Belcher
   cn: Tina Belcher
+- username: hfarnsworth
+  first: Hubert
+  last: Farnsworth
+  cn: Hubert Farnsworth
+- username: pfry
+  first: Philip
+  last: Fry
+  cn: Philip Fry
+- username: tleela
+  first: Turanga
+  last: Leela
+  cn: Turanga Leela
+- username: awong
+  first: Amy
+  last: Wong
+  cn: Amy Wong
+- username: brodriguez
+  first: Bender
+  last: Rodriguez
+  cn: Bender Rodriguez
+- username: marcher
+  first: Mallory
+  last: Archer
+  cn: Mallory Archer
+- username: lkane
+  first: Lana
+  last: Kane
+  cn: Lana Kane
+- username: sarcher
+  first: Sterling
+  last: Archer
+  cn: Sterling Archer
+- username: bstrickland
+  first: Buck
+  last: Strickland
+  cn: Buck Strickland
+- username: hhill
+  first: Hank
+  last: Hill
+  cn: Hank Hill
+- username: jjack
+  first: Joe
+  last: Jack
+  cn: Joe Jack
 
 freeipa_groups:
 - name: bobsburgers
   members: ['bbelcher', 'gbelcher', 'libelcher', 'lobelcher', 'tbelcher']
 - name: bobsburgers_admins
   members: ['bbelcher', 'libelcher']
+- name: planetexpress
+  members: ['hfarnsworth', 'tleela', 'pfry', 'awong', 'brodriguez']
+- name: planetexpress_admins
+  members: ['hfarnsworth', 'tleela']
+- name: dreamland
+  members: ['marcher', 'sarcher', 'lkane']
+- name: dreamland_admins
+  members: ['marcher']
+- name: stricklandpropane
+  members: ['bstrickland', 'hhill', 'jjack']
+- name: stricklandpropane_admins
+  members: ['bstrickland', 'hhill']
