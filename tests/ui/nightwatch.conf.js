@@ -1,14 +1,15 @@
 import path from 'path';
 
-const resolve = location => path.resolve(__dirname, location);
+import {
+    AWX_E2E_LAUNCH_URL,
+    AWX_E2E_USERNAME,
+    AWX_E2E_PASSWORD,
+    AWX_E2E_TIMEOUT_LONG,
+    AWX_E2E_TIMEOUT_MEDIUM,
+    AWX_E2E_TIMEOUT_SHORT
+} from './awx/awx/ui/test/e2e/settings';
 
-const { AWX_E2E_LAUNCH_URL } = process.env;
-const { AWX_E2E_PASSWORD } = process.env;
-const { AWX_E2E_USERNAME } = process.env;
-const AWX_E2E_TIMEOUT_ASYNC = 30000;
-const AWX_E2E_TIMEOUT_LONG = 10000;
-const AWX_E2E_TIMEOUT_MEDIUM = 5000;
-const AWX_E2E_TIMEOUT_SHORT = 1000;
+const resolve = location => path.resolve(__dirname, location);
 
 module.exports = {
     custom_commands_path: resolve('./awx/awx/ui/test/e2e/commands'),
@@ -27,9 +28,12 @@ module.exports = {
     },
     test_settings: {
         default: {
+            exclude: ['tests/node_modules/*'],
             globals: {
                 waitForConditionTimeout: AWX_E2E_TIMEOUT_MEDIUM,
                 launch_url: AWX_E2E_LAUNCH_URL,
+                username: AWX_E2E_USERNAME,
+                password: AWX_E2E_PASSWORD,
                 AWX_E2E_TIMEOUT_LONG,
                 AWX_E2E_TIMEOUT_MEDIUM,
                 AWX_E2E_TIMEOUT_SHORT
