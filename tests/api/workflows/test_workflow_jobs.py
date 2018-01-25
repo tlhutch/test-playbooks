@@ -362,9 +362,8 @@ class Test_Workflow_Jobs(Base_Api_Test):
 
     @pytest.mark.parametrize('dependency', ['inventory', 'project'])
     def test_downstream_jt_jobs_fail_appropriately_when_missing_deleted_resources(self, factories, dependency):
-        host = factories.v2_host()
         wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template(inventory=host.ds.inventory)
+        jt = factories.v2_job_template()
         factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         getattr(jt.ds, dependency).delete()

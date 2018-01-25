@@ -651,3 +651,31 @@ class TestPrompts(Base_Api_Test):
 
         assert json.loads(wfj.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
         assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7866')
+    def test_cannot_create_schedule_from_job_with_missing_jt_dependency(self, factories):
+        jt = factories.v2_job_template()
+        job = jt.launch().wait_until_completed()
+
+        jt.ds.inventory.delete().wait_until_deleted()
+
+        create_schedule = job.related.create_schedule.get()
+        assert create_schedule.prompts == dict()
+        assert not create_schedule.can_schedule
+
+        with pytest.raises(exc.BadRequest) as e:
+            create_schedule.post()
+
+    def test_cannot_create_schedule_from_job_with_missing_ask_jt_dependency(self, factories):
+        inv = factories.v2_inventory()
+        jt = factories.v2_job_template(inventory=None, ask_inventory_on_launch=True)
+        job = jt.launch(dict(inventory=inv.id)).wait_until_completed()
+
+        inv.delete().wait_until_deleted()
+
+        create_schedule = job.related.create_schedule.get()
+        assert create_schedule.prompts == dict()
+        assert not create_schedule.can_schedule
+
+        with pytest.raises(exc.BadRequest):
+            create_schedule.post()

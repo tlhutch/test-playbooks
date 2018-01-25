@@ -54,3 +54,11 @@ class Test_Workflow_Nodes(Base_Api_Test):
             api_workflow_job_template_nodes_pg.post(dict(workflow_job_template=wfjt.id))
         assert 'unified_job_template' in str(exception.value)
         assert 'This field cannot be blank.' in str(exception.value)
+
+    def test_cannot_create_wfn_from_jt_with_missing_dependencies(self, factories):
+        jt = factories.v2_job_template(inventory=None, ask_inventory_on_launch=True)
+        wfjt = factories.v2_workflow_job_template()
+
+        with pytest.raises(exc.BadRequest) as e:
+            factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        assert e.value[1]['resources_needed_to_start'] == ['Job Template inventory is missing or undefined.']
