@@ -35,7 +35,6 @@ class TestJobsRBAC(Base_Api_Test):
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
-        jt.delete()
         relaunched_job = job.relaunch().wait_until_completed()
         assert relaunched_job.is_successful
 
@@ -48,8 +47,6 @@ class TestJobsRBAC(Base_Api_Test):
         job2 = jt2.launch().wait_until_completed()
         for job in [job1, job2]:
             assert job.is_successful
-        for jt in [jt1, jt2]:
-            jt.delete()
 
         with self.current_user(user):
             relaunched_job = job1.relaunch().wait_until_completed()
