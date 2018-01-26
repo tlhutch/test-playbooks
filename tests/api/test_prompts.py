@@ -1,5 +1,4 @@
 import copy
-import json
 
 from towerkit import utils
 from towerkit import exceptions as exc
@@ -9,7 +8,7 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
-@pytest.mark.skip_selenium
+@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestPrompts(Base_Api_Test):
 
@@ -426,232 +425,6 @@ class TestPrompts(Base_Api_Test):
         for cred in schedule_creds.results:
             assert cred.id in launch_cred_ids
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7848')
-    def test_workflow_node_creation_rejected_when_source_jt_has_ask_disabled(self, factories):
-        inventory = factories.v2_inventory()
-        credential = factories.v2_credential()
-
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template()
-
-        with pytest.raises(exc.BadRequest) as e:
-            factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
-                                                    extra_data=dict(var1='wfjtn'), job_type='check', job_tags='wfjtn',
-                                                    skip_tags='wfjtn', limit='wfjtn', diff_mode=True, verbosity=2,
-                                                    inventory=inventory, credential=credential)
-        assert e.value[1] == {'job_tags': ['Field is not configured to prompt on launch.'],
-                              'verbosity': ['Field is not configured to prompt on launch.'],
-                              'job_type': ['Field is not configured to prompt on launch.'],
-                              'diff_mode': ['Field is not configured to prompt on launch.'],
-                              'skip_tags': ['Field is not configured to prompt on launch.'],
-                              'limit': ['Field is not configured to prompt on launch.'],
-                              'inventory': ['Field is not configured to prompt on launch.'],
-                              # 'credential': ['Field is not configured to prompt on launch.'],
-                              'extra_data': ['Variables var1 are not allowed on launch. ' \
-                                             'Check the Prompt on Launch setting on the Job Template to include Extra Variables.']}
-
-    def test_workflow_node_creation_rejected_when_jt_has_ask_credential(self, factories):
-        wfjt = factories.v2_workflow_job_template()
-        cred = factories.v2_credential(ssh_key_data=self.credentials.ssh.encrypted.ssh_key_data, password='ASK',
-                                       become_password='ASK', ssh_key_unlock='ASK')
-        jt = factories.v2_job_template(credential=cred)
-        with pytest.raises(exc.BadRequest) as e:
-            factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
-        assert e.value[1] == {'passwords_needed_to_start':
-                             ['Saved launch configurations cannot provide passwords needed to start.']}
-
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7864')
-    def test_workflow_nodes_must_abide_to_jt_survey_requirements(self, factories):
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template()
-        spec = [dict(required=False, question_name="Text-default too short.",
-                     variable='test_var_one', type='text', min=7, default=''),
-                dict(required=False, question_name="Text-default too long.",
-                     variable='test_var_two', type='text', max=1, default='four'),
-                dict(required=False, question_name="Text-passed default with minimum.",
-                     variable='test_var_three', type='text', min=0, default='abc'),
-                dict(required=False, question_name="Text-passed default with maximum.",
-                     variable='test_var_four', type='text', max=7, default='1'),
-                dict(required=False, question_name="Text-passed default with compatible minimum and maximum.",
-                     variable='test_var_five', type='text', min=1, max=5, default='four'),
-                dict(required=False, question_name="Text-passed default with conflicting minimum and maximum.",
-                     variable='test_var_six', type='text', min=4, max=4, default='asdfasdf'),
-                dict(required=False, question_name="Password-default too short.",
-                     variable='test_var_seven', type='password', min=7, default='four'),
-                dict(required=False, question_name="Password-default too long.",
-                     variable='test_var_eight', type='password', max=1, default='four'),
-                dict(required=False, question_name="Password-passed default with minimum.",
-                     variable='test_var_nine', type='password', min=1, default='abc'),
-                dict(required=False, question_name='Password-passed default with maximum.',
-                     variable='test_var_ten', type='password', max=7, default='abc'),
-                dict(required=False, question_name="Password-passed default with compatible minimum and maximum.",
-                     variable='test_var_eleven', type='password', min=1, max=5, default='four'),
-                dict(required=False, question_name="Password-passed default with conflicting minimum and maximum.",
-                     variable='test_var_twelve', type='password', min=4, max=4, default='asdfasdf')]
-        jt.add_survey(spec=spec)
-
-        with pytest.raises(exc.BadRequest) as e:
-            factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
-                extra_data=dict(test_var_one='', test_var_two='four', test_var_three='abc',
-                                test_var_four='1', test_var_five='four', test_var_six='asdfasdf',
-                                test_var_seven='$encrypted$', test_var_eight='$encrypted$',
-                                test_var_nine='$encrypted$', test_var_ten='$encrypted$',
-                                test_var_eleven='$encrypted$', test_var_twelve='$encrypted$'))
-        # assert e.value[1] == ???
-
-    def test_extra_vars_passed_with_wfjt_when_ask_variables_enabled_and_launch_vars_supplied(self, factories):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
-
-        wfj = wfjt.launch(dict(extra_vars=dict(var1='launch', var2='$encrypted$'))).wait_until_completed()
-        job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
-        assert '"var1": "launch"' in job.result_stdout
-        assert '"var2": "$encrypted$"' in job.result_stdout
-
-        assert json.loads(wfj.extra_vars) == dict(var1='launch', var2='$encrypted$')
-        assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$')
-
-    def test_extra_vars_not_passed_with_wfjt_when_ask_variables_enabled_and_none_supplied(self, factories):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
-
-        wfj = wfjt.launch(dict(extra_vars=dict())).wait_until_completed()
-        job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
-
-        assert json.loads(wfj.extra_vars) == dict()
-        assert json.loads(job.extra_vars) == dict()
-
-    def test_extra_vars_passed_with_wfjt_when_encrypted_keywords_supplied_at_launch(self, factories):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
-
-        survey = [dict(required=False,
-                       question_name='Q1',
-                       variable='var1',
-                       type='text',
-                       default='survey'),
-                  dict(required=False,
-                       question_name='Q2',
-                       variable='var2',
-                       type='password',
-                       default='survey')]
-        wfjt.add_survey(spec=survey)
-
-        payload = dict(var1='$encrypted$', var2='$encrypted$', var3='$encrypted$')
-        wfj = wfjt.launch(dict(extra_vars=payload)).wait_until_completed()
-        job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
-        assert '"var1": "$encrypted$"' in job.result_stdout
-        assert '"var2": "survey"' in job.result_stdout
-
-        assert json.loads(wfj.extra_vars) == dict(var1='$encrypted$', var2='$encrypted$', var3='$encrypted$')
-        assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='$encrypted$', var3='$encrypted$')
-
-    @pytest.mark.parametrize('required', [True, False])
-    def test_launch_vars_passed_with_wfjt_when_launch_vars_and_survey_defaults_present(self, factories, required):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
-
-        survey = [dict(required=required,
-                       question_name='Q1',
-                       variable='var1',
-                       type='text',
-                       default='survey'),
-                  dict(required=required,
-                       question_name='Q2',
-                       variable='var2',
-                       type='password',
-                       default='survey')]
-        wfjt.add_survey(spec=survey)
-
-        payload = dict(var1='launch', var2='launch', var3='$encrypted$')
-        wfj = wfjt.launch(dict(extra_vars=payload)).wait_until_completed()
-        job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
-        assert '"var1": "launch"' in job.result_stdout
-        assert '"var2": "launch"' in job.result_stdout
-
-        assert json.loads(wfj.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='$encrypted$')
-        assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='$encrypted$')
-
-    @pytest.mark.parametrize('required', [True, False])
-    def test_survey_vars_passed_with_wfjt_when_launch_vars_absent_and_survey_defaults_present(self, factories, required):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
-
-        survey = [dict(required=required,
-                       question_name='Q1',
-                       variable='var1',
-                       type='text',
-                       default='survey'),
-                  dict(required=required,
-                       question_name='Q2',
-                       variable='var2',
-                       type='password',
-                       default='survey')]
-        wfjt.add_survey(spec=survey)
-
-        wfj = wfjt.launch(dict(extra_vars=dict())).wait_until_completed()
-        job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
-        assert '"var1": "survey"' in job.result_stdout
-        assert '"var2": "survey"' in job.result_stdout
-
-        assert json.loads(wfj.extra_vars) == dict(var1='survey', var2='$encrypted$')
-        assert json.loads(job.extra_vars) == dict(var1='survey', var2='$encrypted$')
-
-    def test_launch_vars_passed_with_wfjt_when_launch_vars_and_multiple_surveys_present(self, factories):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True, extra_vars=dict(var1='wfjt', var2='wfjt'))
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml',
-                                       extra_vars=dict(var1='jt', var2='jt'))
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
-
-        wfjt_survey = [dict(required=False,
-                            question_name='Q1',
-                            variable='var1',
-                            type='text',
-                            default='survey'),
-                       dict(required=False,
-                            question_name='Q2',
-                            variable='var2',
-                            type='password',
-                            default='survey')]
-        wfjt.add_survey(spec=wfjt_survey)
-
-        jt_survey = copy.deepcopy(wfjt_survey)
-        jt_survey[0]['default'] = 'wfjn_var1_default'
-        jt_survey[1]['default'] = 'wfjn_var2_default'
-        jt.add_survey(spec=jt_survey)
-
-        payload = dict(extra_vars=dict(var1='launch', var2='launch', var3='launch'))
-        wfj = wfjt.launch(payload).wait_until_completed()
-        job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
-        assert '"var1": "launch"' in job.result_stdout
-        assert '"var2": "launch"' in job.result_stdout
-
-        assert json.loads(wfj.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
-        assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
-
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7866')
     def test_cannot_create_schedule_from_job_with_missing_jt_dependency(self, factories):
         jt = factories.v2_job_template()
@@ -663,7 +436,7 @@ class TestPrompts(Base_Api_Test):
         assert create_schedule.prompts == dict()
         assert not create_schedule.can_schedule
 
-        with pytest.raises(exc.BadRequest) as e:
+        with pytest.raises(exc.BadRequest):
             create_schedule.post()
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7866')

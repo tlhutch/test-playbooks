@@ -1,4 +1,5 @@
 import json
+import copy
 
 from towerkit import utils
 import pytest
@@ -262,3 +263,156 @@ class TestWorkflowExtraVars(Base_Api_Test):
         assert node_job_vars['wfjt_var'] == wfjt_vars['wfjt_var']
         assert node_job_vars['wfjt_survey'] == wfjt_survey_vars['wfjt_survey']
         assert node_job_vars['intersection'] == wfjt_survey_vars['intersection']
+
+    def test_extra_vars_passed_with_wfjt_when_ask_variables_enabled_and_launch_vars_supplied(self, factories):
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        wfj = wfjt.launch(dict(extra_vars=dict(var1='launch', var2='$encrypted$'))).wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert wfj.is_successful
+        assert job.is_successful
+        assert '"var1": "launch"' in job.result_stdout
+        assert '"var2": "$encrypted$"' in job.result_stdout
+
+        assert json.loads(wfj.extra_vars) == dict(var1='launch', var2='$encrypted$')
+        assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$')
+
+    def test_extra_vars_not_passed_with_wfjt_when_ask_variables_enabled_and_none_supplied(self, factories):
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        wfj = wfjt.launch(dict(extra_vars=dict())).wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert wfj.is_successful
+        assert job.is_successful
+
+        assert json.loads(wfj.extra_vars) == dict()
+        assert json.loads(job.extra_vars) == dict()
+
+    def test_extra_vars_passed_with_wfjt_when_encrypted_keywords_supplied_at_launch(self, factories):
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        survey = [dict(required=False,
+                       question_name='Q1',
+                       variable='var1',
+                       type='text',
+                       default='survey'),
+                  dict(required=False,
+                       question_name='Q2',
+                       variable='var2',
+                       type='password',
+                       default='survey')]
+        wfjt.add_survey(spec=survey)
+
+        payload = dict(var1='$encrypted$', var2='$encrypted$', var3='$encrypted$')
+        wfj = wfjt.launch(dict(extra_vars=payload)).wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert wfj.is_successful
+        assert job.is_successful
+        assert '"var1": "$encrypted$"' in job.result_stdout
+        assert '"var2": "survey"' in job.result_stdout
+
+        assert json.loads(wfj.extra_vars) == dict(var1='$encrypted$', var2='$encrypted$', var3='$encrypted$')
+        assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='$encrypted$', var3='$encrypted$')
+
+    @pytest.mark.parametrize('required', [True, False])
+    def test_launch_vars_passed_with_wfjt_when_launch_vars_and_survey_defaults_present(self, factories, required):
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        survey = [dict(required=required,
+                       question_name='Q1',
+                       variable='var1',
+                       type='text',
+                       default='survey'),
+                  dict(required=required,
+                       question_name='Q2',
+                       variable='var2',
+                       type='password',
+                       default='survey')]
+        wfjt.add_survey(spec=survey)
+
+        payload = dict(var1='launch', var2='launch', var3='$encrypted$')
+        wfj = wfjt.launch(dict(extra_vars=payload)).wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert wfj.is_successful
+        assert job.is_successful
+        assert '"var1": "launch"' in job.result_stdout
+        assert '"var2": "launch"' in job.result_stdout
+
+        assert json.loads(wfj.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='$encrypted$')
+        assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='$encrypted$')
+
+    @pytest.mark.parametrize('required', [True, False])
+    def test_survey_vars_passed_with_wfjt_when_launch_vars_absent_and_survey_defaults_present(self, factories, required):
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        survey = [dict(required=required,
+                       question_name='Q1',
+                       variable='var1',
+                       type='text',
+                       default='survey'),
+                  dict(required=required,
+                       question_name='Q2',
+                       variable='var2',
+                       type='password',
+                       default='survey')]
+        wfjt.add_survey(spec=survey)
+
+        wfj = wfjt.launch(dict(extra_vars=dict())).wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert wfj.is_successful
+        assert job.is_successful
+        assert '"var1": "survey"' in job.result_stdout
+        assert '"var2": "survey"' in job.result_stdout
+
+        assert json.loads(wfj.extra_vars) == dict(var1='survey', var2='$encrypted$')
+        assert json.loads(job.extra_vars) == dict(var1='survey', var2='$encrypted$')
+
+    def test_launch_vars_passed_with_wfjt_when_launch_vars_and_multiple_surveys_present(self, factories):
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True, extra_vars=dict(var1='wfjt', var2='wfjt'))
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml',
+                                       extra_vars=dict(var1='jt', var2='jt'))
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        wfjt_survey = [dict(required=False,
+                            question_name='Q1',
+                            variable='var1',
+                            type='text',
+                            default='survey'),
+                       dict(required=False,
+                            question_name='Q2',
+                            variable='var2',
+                            type='password',
+                            default='survey')]
+        wfjt.add_survey(spec=wfjt_survey)
+
+        jt_survey = copy.deepcopy(wfjt_survey)
+        jt_survey[0]['default'] = 'wfjn_var1_default'
+        jt_survey[1]['default'] = 'wfjn_var2_default'
+        jt.add_survey(spec=jt_survey)
+
+        payload = dict(extra_vars=dict(var1='launch', var2='launch', var3='launch'))
+        wfj = wfjt.launch(payload).wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert wfj.is_successful
+        assert job.is_successful
+        assert '"var1": "launch"' in job.result_stdout
+        assert '"var2": "launch"' in job.result_stdout
+
+        assert json.loads(wfj.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
+        assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')

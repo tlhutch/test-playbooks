@@ -6,6 +6,7 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
+@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestWorkflowJobTemplateNodeRBAC(Base_Api_Test):
     def test_credential_association_requires_wfjt_admin_and_jt_execute(self, factories):
