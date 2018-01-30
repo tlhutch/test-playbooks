@@ -19,6 +19,7 @@ class TestWorkflowJobTemplateNodeRBAC(Base_Api_Test):
         vault_cred = factories.v2_credential(kind='vault', organization=org, inputs=dict(vault_password='fake'))
         aws_cred, vmware_cred = [factories.v2_credential(kind=kind, organization=org) for kind in ('aws', 'vmware')]
         creds = (ssh_cred, vault_cred, aws_cred, vmware_cred)
+        cred_ids = [cred.id for cred in creds]
 
         user = factories.v2_user()
         wfjt.set_object_roles(user, 'admin')
@@ -37,4 +38,4 @@ class TestWorkflowJobTemplateNodeRBAC(Base_Api_Test):
         wfn_creds = wfn.related.credentials.get()
         assert wfn_creds.count == 4
         for cred in wfn_creds.results:
-            assert cred.id in [cred.id for cred in creds]
+            assert cred.id in cred_ids
