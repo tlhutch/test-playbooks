@@ -1,4 +1,9 @@
 ---
+
+create_ec2_assign_public_ip: true
+create_ec2_vpc_id: vpc-552da032
+create_ec2_vpc_subnet_id: subnet-9cdddbb0
+
 user_data_install_py2: &install_py2
   "{{ lookup('file', 'files/install_py2.sh') }}"
 
@@ -24,23 +29,40 @@ ec2_images:
     - {'name': 'ol-6.7-x86_64',          'user': 'ec2-user',    'id': 'ami-e9c98683', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     - {'name': 'ol-7.2-x86_64',          'user': 'ec2-user',    'id': 'ami-b9c38ad3', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
 
+_ec2_elastic_ips:
+    - {'name': 'rhel-7.2-x86_64', 'eip': '35.169.222.27'}
+    - {'name': 'rhel-7.4-x86_64', 'eip': '35.170.40.126'}
+    - {'name': 'centos-7.latest-x86_64', 'eip': '54.86.26.131'}
+
 ec2_security_groups:
     - name: Tower
       description: Security group for Tower instances
       rules:
         - proto: tcp
-          from_port: 80
-          to_port: 80
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
           from_port: 22
           to_port: 22
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 80
+          to_port: 80
           cidr_ip: 0.0.0.0/0
         - proto: tcp
           from_port: 443
           to_port: 443
           cidr_ip: 0.0.0.0/0
         - proto: tcp
+          from_port: 5432
+          to_port: 5432
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
           from_port: 8080
           to_port: 8080
+          cidr_ip: 0.0.0.0/0
+        - proto: udp
+          from_port: 9001
+          to_port: 9001
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 9001
+          to_port: 9001
           cidr_ip: 0.0.0.0/0
