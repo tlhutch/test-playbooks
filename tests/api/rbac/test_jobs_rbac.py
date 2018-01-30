@@ -66,3 +66,9 @@ class TestJobsRBAC(Base_Api_Test):
         with self.current_user(user):
             with pytest.raises(exc.Forbidden):
                 job.relaunch()
+
+    def test_relaunch_job_as_system_auditor(self, factories, job_with_status_completed):
+        user = factories.user(is_system_auditor=True)
+        with self.current_user(user):
+            with pytest.raises(exc.Forbidden):
+                job_with_status_completed.relaunch().wait_until_completed()
