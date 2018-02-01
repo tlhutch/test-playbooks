@@ -317,8 +317,8 @@ class Test_Job_Events(Base_Api_Test):
                     continue
                 results = [data.res]
 
-            if ansible_version_cmp('2.4.3.0') >= 0:
-                desired_result_keys = {'changed', 'censored'}
+            if ansible_version_cmp('2.4.3.0') >= 0:  # should match whitelist at ansible/lib/ansible/executor/task_result.py
+                desired_result_keys = {'censored', 'attempts', 'changed', 'retries', 'failed', 'unreachable', 'skipped'}
             else:
                 desired_result_keys = {'censored'}
 
