@@ -141,8 +141,7 @@ class TestPrompts(Base_Api_Test):
 
         jt = factories.v2_job_template(vault_credential=jt_vault.id, ask_credential_on_launch=True)
         for cred in (jt_aws, jt_vmware):
-            with utils.suppress(exc.NoContent):
-                jt.related.extra_credentials.post(dict(id=cred.id))
+            jt.add_extra_credential(cred)
 
         launch_ssh = factories.v2_credential()
         launch_creds = [launch_ssh, launch_aws, launch_vmware, launch_vault]
@@ -151,6 +150,7 @@ class TestPrompts(Base_Api_Test):
         assert job.is_successful
 
         create_schedule = job.related.create_schedule.get()
+        assert len(create_schedule.prompts.credentials) == 4
         for cred in create_schedule.prompts.credentials:
             assert cred.id in launch_cred_ids
         assert create_schedule.can_schedule
@@ -400,13 +400,12 @@ class TestPrompts(Base_Api_Test):
         wfjt = factories.v2_workflow_job_template()
         jt = factories.v2_job_template(vault_credential=jt_vault.id, ask_credential_on_launch=True)
         for cred in (jt_aws, jt_vmware):
-            with utils.suppress(exc.NoContent):
-                jt.related.extra_credentials.post(dict(id=cred.id))
-        wfn = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
-                                                      credential=launch_ssh)
+            jt.add_extra_credential(cred)
+        wfjtn = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+                                                        credential=launch_ssh)
         for cred in (launch_aws, launch_vmware, launch_vault):
             with utils.suppress(exc.NoContent):
-                wfn.related.credentials.post(dict(id=cred.id))
+                wfjtn.related.credentials.post(dict(id=cred.id))
 
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
