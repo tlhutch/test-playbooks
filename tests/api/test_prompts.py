@@ -18,6 +18,9 @@ class TestPrompts(Base_Api_Test):
                         ask_verbosity_on_launch=True, ask_inventory_on_launch=True,
                         ask_credential_on_launch=True)
 
+    def format_dtstart(self, schedule):
+        return utils.to_str(schedule.dtstart).translate(None, '-:')
+
     def test_created_schedule_with_default_jt(self, factories):
         jt = factories.v2_job_template()
         job = jt.launch().wait_until_completed()
@@ -43,8 +46,7 @@ class TestPrompts(Base_Api_Test):
         assert not schedule.inventory
         assert schedule.related.credentials.get().count == 0
 
-        rrule_dtstart = utils.to_str(schedule.dtstart).translate(None, '-:')
-        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(rrule_dtstart)
+        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(self.format_dtstart(schedule))
         assert not schedule.dtend
 
     def test_created_schedule_with_ask_jt_and_launch_values(self, factories):
@@ -76,8 +78,7 @@ class TestPrompts(Base_Api_Test):
         assert not schedule.inventory
         assert schedule.related.credentials.get().count == 0
 
-        rrule_dtstart = utils.to_str(schedule.dtstart).translate(None, '-:')
-        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(rrule_dtstart)
+        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(self.format_dtstart(schedule))
         assert not schedule.dtend
 
     def test_created_schedule_with_ask_jt_when_jt_defaults_supplied(self, factories):
@@ -107,8 +108,7 @@ class TestPrompts(Base_Api_Test):
         assert not schedule.inventory
         assert schedule.related.credentials.get().count == 0
 
-        rrule_dtstart = utils.to_str(schedule.dtstart).translate(None, '-:')
-        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(rrule_dtstart)
+        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(self.format_dtstart(schedule))
         assert not schedule.dtend
 
     def test_created_schedule_with_ask_inventory_and_credential_and_launch_resources(self, factories):
@@ -260,8 +260,7 @@ class TestPrompts(Base_Api_Test):
         assert not schedule.inventory
         assert schedule.related.credentials.get().count == 0
 
-        rrule_dtstart = utils.to_str(schedule.dtstart).translate(None, '-:')
-        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(rrule_dtstart)
+        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(self.format_dtstart(schedule))
         assert not schedule.dtend
 
     def test_created_schedule_from_wfj_with_ask_jt(self, factories):
@@ -312,8 +311,7 @@ class TestPrompts(Base_Api_Test):
         assert schedule_creds.count == 1
         assert schedule_creds.results.pop().id == credential.id
 
-        rrule_dtstart = utils.to_str(schedule.dtstart).translate(None, '-:')
-        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(rrule_dtstart)
+        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(self.format_dtstart(schedule))
         assert not schedule.dtend
 
     def test_created_schedule_from_wfj_with_ask_jt_when_jt_defaults_supplied(self, factories):
@@ -349,8 +347,7 @@ class TestPrompts(Base_Api_Test):
         assert not schedule.inventory
         assert schedule.related.credentials.get().count == 0
 
-        rrule_dtstart = utils.to_str(schedule.dtstart).translate(None, '-:')
-        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(rrule_dtstart)
+        assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(self.format_dtstart(schedule))
         assert not schedule.dtend
 
     @pytest.mark.parametrize('required', [True, False])
