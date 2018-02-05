@@ -20,6 +20,10 @@ class TestJobTemplateCredentials(Base_Api_Test):
         jt = v2.job_templates.post(payload)
         request.addfinalizer(jt.silent_delete)
 
+
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestJobTemplateLaunchCredentials(Base_Api_Test):
+
     def test_launch_without_credential(self, job_template_no_credential):
         """Verify the job launch endpoint allows launching a job template without a credential."""
         launch = job_template_no_credential.related.launch.get()
@@ -36,12 +40,12 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert job.is_successful
         assert job.credential is None
 
-    def test_launch_with_linked_credential(self, job_template_no_credential, ssh_credential):
+    def test_launch_with_linked_credential(self, job_template_prompt_for_credential, ssh_credential):
         """Verify the job template launch endpoint requires user input when using a linked credential and
         `ask_credential_on_launch`.
         """
-        job_template_no_credential.credential = ssh_credential.id
-        launch = job_template_no_credential.related.launch.get()
+        job_template_prompt_for_credential.credential = ssh_credential.id
+        launch = job_template_prompt_for_credential.related.launch.get()
 
         assert not launch.can_start_without_user_input
         assert not launch.ask_variables_on_launch
@@ -49,14 +53,14 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert not launch.variables_needed_to_start
         assert not launch.credential_needed_to_start
 
-        job = job_template_no_credential.launch().wait_until_completed()
+        job = job_template_prompt_for_credential.launch().wait_until_completed()
 
         assert job.is_successful
         assert job.credential == ssh_credential.id
 
-    def test_launch_with_payload_credential(self, job_template_no_credential, ssh_credential):
+    def test_launch_with_payload_credential(self, job_template_prompt_for_credential, ssh_credential):
         """Verify the job launch endpoint allows launching a job template when providing a credential."""
-        launch = job_template_no_credential.related.launch.get()
+        launch = job_template_prompt_for_credential.related.launch.get()
 
         assert launch.can_start_without_user_input
         assert launch.ask_credential_on_launch
@@ -65,13 +69,13 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert not launch.variables_needed_to_start
         assert not launch.credential_needed_to_start
 
-        job = job_template_no_credential.launch(dict(credential=ssh_credential.id)).wait_until_completed()
+        job = job_template_prompt_for_credential.launch(dict(credential=ssh_credential.id)).wait_until_completed()
 
         assert job.is_successful
         assert job.credential == ssh_credential.id
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/809')
-    def test_launch_with_invalid_credential_in_payload(self, job_template_no_credential):
+    def test_launch_with_invalid_credential_in_payload(self, job_template_prompt_for_credential):
         """Verify the job launch endpoint throws 400 error when launching with invalid credential id"""
         invalid_and_error = [('one', "Incorrect type. Expected pk value, received unicode."),
                              (0, 'Invalid pk "0" - object does not exist.'),
@@ -79,15 +83,15 @@ class TestJobTemplateCredentials(Base_Api_Test):
                              ({}, 'Incorrect type. Expected pk value, received OrderedDict.')]
         for invalid, error in invalid_and_error:
             with pytest.raises(exc.BadRequest) as e:
-                job_template_no_credential.launch(dict(credential=invalid))
+                job_template_prompt_for_credential.launch(dict(credential=invalid))
             assert e.value.message['credentials'] == [error]
 
-    def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_no_credential,
+    def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_prompt_for_credential,
                                                                          ssh_credential_ask):
         """Verify that attempts to launch a JT when providing an 'ASK' credential at launch time without
         providing the required passwords raise 400 error.
         """
-        launch = job_template_no_credential.related.launch.get()
+        launch = job_template_prompt_for_credential.related.launch.get()
 
         # launch the JT providing the credential in the payload, but no passwords_needed_to_start
         with pytest.raises(exc.BadRequest) as exc_info:
@@ -97,14 +101,14 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert 'passwords_needed_to_start' in result
         assert result['passwords_needed_to_start'] == ssh_credential_ask.expected_passwords_needed_to_start
 
-    def test_launch_with_ask_credential_and_passwords_in_payload(self, job_template_no_credential, ssh_credential_ask):
+    def test_launch_with_ask_credential_and_passwords_in_payload(self, job_template_prompt_for_credential, ssh_credential_ask):
         """Verify launching a JT when providing an 'ASK' credential at launch time with required passwords
         is functional
         """
-        job = job_template_no_credential.launch(dict(credential=ssh_credential_ask.id,
-                                                     ssh_password=config.credentials.ssh.password,
-                                                     ssh_key_unlock=config.credentials.ssh.encrypted.ssh_key_unlock,
-                                                     become_password=config.credentials.ssh.become_password))
+        job = job_template_prompt_for_credential.launch(dict(credential=ssh_credential_ask.id,
+                                                        ssh_password=config.credentials.ssh.password,
+                                                        ssh_key_unlock=config.credentials.ssh.encrypted.ssh_key_unlock,
+                                                        become_password=config.credentials.ssh.become_password))
         assert job.wait_until_completed().is_successful
         assert job.credential == ssh_credential_ask.id
 
@@ -157,16 +161,20 @@ class TestJobTemplateCredentials(Base_Api_Test):
         else:
             assert job.is_successful
 
-    def test_launch_with_team_credential(self, factories, job_template_no_credential, team, team_ssh_credential):
+    def test_launch_with_team_credential(self, factories, job_template_prompt_for_credential, team, team_ssh_credential):
         """Verifies that a team user can use a team credential to launch a job template."""
         team_user = factories.user()
         team.add_user(team_user)
-        job_template_no_credential.set_object_roles(team_user, 'execute')
+        job_template_prompt_for_credential.set_object_roles(team_user, 'execute')
 
         with self.current_user(team_user.username, team_user.password):
-            job = job_template_no_credential.launch(dict(credential=team_ssh_credential.id)).wait_until_completed()
+            job = job_template_prompt_for_credential.launch(dict(credential=team_ssh_credential.id)).wait_until_completed()
             assert job.is_successful
             assert job.credential == team_ssh_credential.id
+
+
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestJobTemplateVaultCredentials(Base_Api_Test):
 
     def test_job_template_creation_with_lone_vault_credential(self, request, v2, factories):
         payload = factories.v2_job_template.payload()
@@ -228,22 +236,25 @@ class TestJobTemplateCredentials(Base_Api_Test):
         assert debug_tasks[0].event_data.res.hostvars.keys() == [host.name]
 
 
+@pytest.fixture(scope='class')
+def custom_cloud_credentials(class_factories):
+    cred_types = [class_factories.credential_type(kind='cloud') for _ in range(3)]
+    return [class_factories.v2_credential(credential_type=cred_type) for cred_type in cred_types]
+
+
+@pytest.fixture(scope='class')
+def custom_network_credentials(class_factories):
+    cred_types = [class_factories.credential_type(kind='net') for _ in range(3)]
+    return [class_factories.v2_credential(credential_type=cred_type) for cred_type in cred_types]
+
+
+@pytest.fixture(scope='class', params=('custom_cloud_credentials', 'custom_network_credentials'))
+def custom_extra_credentials(request):
+    return request.getfixturevalue(request.param)
+
+
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateExtraCredentials(Base_Api_Test):
-
-    @pytest.fixture(scope='class')
-    def custom_cloud_credentials(self, class_factories):
-        cred_types = [class_factories.credential_type(kind='cloud') for _ in range(3)]
-        return [class_factories.v2_credential(credential_type=cred_type) for cred_type in cred_types]
-
-    @pytest.fixture(scope='class')
-    def custom_network_credentials(self, class_factories):
-        cred_types = [class_factories.credential_type(kind='net') for _ in range(3)]
-        return [class_factories.v2_credential(credential_type=cred_type) for cred_type in cred_types]
-
-    @pytest.fixture(scope='class', params=('custom_cloud_credentials', 'custom_network_credentials'))
-    def custom_extra_credentials(self, request):
-        return request.getfixturevalue(request.param)
 
     def test_job_template_with_added_and_removed_custom_extra_credentials(self, factories, custom_extra_credentials):
         ssh_cred = factories.v2_credential()
@@ -393,3 +404,221 @@ class TestJobTemplateExtraCredentials(Base_Api_Test):
 
         for env_var in env_vars:
             assert env_var in ansible_env
+
+
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestJobTemplateRelatedCredentials(Base_Api_Test):
+
+    def test_add_machine_creds_check_backwards_compatibility(self, factories, v1, job_template_no_credential):
+        jt = job_template_no_credential
+        v1_jt_view = v1.job_templates.get(id=job_template_no_credential.id).results[0].get()
+        cred = factories.credential()
+
+        jt.add_credential(cred)
+        jt.get()
+        v1_jt_view.get()
+        assert v1_jt_view.credential == cred.id
+        assert v1_jt_view.vault_credential is None
+        assert v1_jt_view.cloud_credential is None
+        assert v1_jt_view.network_credential is None
+
+        assert jt.credential == cred.id
+        assert jt.vault_credential is None
+        assert jt.related.extra_credentials.get().count == 0
+        assert jt.related.credentials.get().results.pop().id == cred.id
+
+        jt.remove_credential(cred)
+        jt.get()
+        v1_jt_view.get()
+        assert v1_jt_view.credential is None
+        assert v1_jt_view.vault_credential is None
+        assert v1_jt_view.cloud_credential is None
+        assert v1_jt_view.network_credential is None
+
+        assert jt.credential is None
+        assert jt.vault_credential is None
+        assert jt.related.extra_credentials.get().count == 0
+        assert jt.related.credentials.get().count == 0
+
+    def test_add_vault_creds_check_backwards_compatibility(self, factories, v1, job_template_no_credential):
+        jt = job_template_no_credential
+        v1_jt_view = v1.job_templates.get(id=job_template_no_credential.id).results[0].get()
+        cred = factories.v2_credential(kind='vault', vault_password='tower')
+
+        jt.add_credential(cred)
+        jt.get()
+        v1_jt_view.get()
+        assert v1_jt_view.credential is None
+        assert v1_jt_view.vault_credential == cred.id
+        assert v1_jt_view.cloud_credential is None
+        assert v1_jt_view.network_credential is None
+
+        assert jt.credential is None
+        assert jt.vault_credential == cred.id
+        assert jt.related.extra_credentials.get().count == 0
+        assert jt.related.credentials.get().results.pop().id == cred.id
+
+        jt.remove_credential(cred)
+        jt.get()
+        v1_jt_view.get()
+        assert v1_jt_view.credential is None
+        assert v1_jt_view.vault_credential is None
+        assert v1_jt_view.cloud_credential is None
+        assert v1_jt_view.network_credential is None
+
+        assert jt.credential is None
+        assert jt.vault_credential is None
+        assert jt.related.extra_credentials.get().count == 0
+        assert jt.related.credentials.get().count == 0
+
+    def test_add_cloud_creds_check_backwards_compatibility(self, factories, v1, job_template_no_credential):
+        jt = job_template_no_credential
+        v1_jt_view = v1.job_templates.get(id=job_template_no_credential.id).results[0].get()
+        creds = []
+        for i in range(3):
+            cred_type = factories.credential_type(kind='cloud')
+            creds.append(factories.v2_credential(credential_type=cred_type))
+
+        # remove after https://github.com/ansible/ansible-tower/issues/7935 is resolved
+        creds = sorted(creds, key=lambda cred: cred.name, reverse=True)
+
+        for cred in creds:
+            jt.add_credential(cred)
+        jt.get()
+        v1_jt_view.get()
+        assert v1_jt_view.credential is None
+        assert v1_jt_view.vault_credential is None
+        assert v1_jt_view.cloud_credential == creds[0].id
+        assert v1_jt_view.network_credential is None
+
+        assert jt.credential is None
+        assert jt.vault_credential is None
+        extra_creds = jt.related.extra_credentials.get().results
+        assert set([cred.id for cred in extra_creds]) == set([cred.id for cred in creds])
+        related_creds = jt.related.credentials.get().results
+        assert set([cred.id for cred in related_creds]) == set([cred.id for cred in creds])
+
+        for cred in creds:
+            jt.remove_credential(cred)
+        jt.get()
+        v1_jt_view.get()
+        assert v1_jt_view.credential is None
+        assert v1_jt_view.vault_credential is None
+        assert v1_jt_view.cloud_credential is None
+        assert v1_jt_view.network_credential is None
+
+        assert jt.credential is None
+        assert jt.vault_credential is None
+        assert jt.related.extra_credentials.get().count == 0
+        assert jt.related.credentials.get().count == 0
+
+    def test_add_network_creds_check_backwards_compatibility(self, factories, v1, job_template_no_credential):
+        jt = job_template_no_credential
+        v1_jt_view = v1.job_templates.get(id=job_template_no_credential.id).results[0].get()
+        creds = []
+        for i in range(3):
+            cred_type = factories.credential_type(kind='net')
+            creds.append(factories.v2_credential(credential_type=cred_type))
+
+        # remove after https://github.com/ansible/ansible-tower/issues/7935 is resolved
+        creds = sorted(creds, key=lambda cred: cred.name, reverse=True)
+
+        for cred in creds:
+            jt.add_credential(cred)
+        jt.get()
+        v1_jt_view.get()
+        assert v1_jt_view.credential is None
+        assert v1_jt_view.vault_credential is None
+        assert v1_jt_view.cloud_credential is None
+        assert v1_jt_view.network_credential == creds[0].id
+
+        assert jt.credential is None
+        assert jt.vault_credential is None
+        extra_creds = jt.related.extra_credentials.get().results
+        assert set([cred.id for cred in extra_creds]) == set([cred.id for cred in creds])
+        related_creds = jt.related.credentials.get().results
+        assert set([cred.id for cred in related_creds]) == set([cred.id for cred in creds])
+
+        for cred in creds:
+            jt.remove_credential(cred)
+        jt.get()
+        v1_jt_view.get()
+        assert v1_jt_view.credential is None
+        assert v1_jt_view.vault_credential is None
+        assert v1_jt_view.cloud_credential is None
+        assert v1_jt_view.network_credential is None
+
+        assert jt.credential is None
+        assert jt.vault_credential is None
+        assert jt.related.extra_credentials.get().count == 0
+        assert jt.related.credentials.get().count == 0
+
+    def test_patch_machine_credential_check_related_credentials(self, factories):
+        cred = factories.credential()
+        jt = factories.v2_job_template(credential=None)
+        jt.credential = cred.id
+
+        related_creds = jt.related.credentials.get()
+        assert related_creds.count == 1
+        assert related_creds.results.pop().id == cred.id
+
+        jt.credential = None
+        related_creds = jt.related.credentials.get()
+        assert jt.related.credentials.get().count == 0
+
+    def test_patch_vault_credential_check_related_credentials(self, factories):
+        cred = factories.v2_credential(kind='vault', vault_password='tower')
+        jt = factories.v2_job_template(credential=None)
+        jt.vault_credential = cred.id
+
+        related_creds = jt.related.credentials.get()
+        assert related_creds.count == 1
+        assert related_creds.results.pop().id == cred.id
+
+        jt.vault_credential = None
+        related_creds = jt.related.credentials.get()
+        assert jt.related.credentials.get().count == 0
+
+    def test_patch_cloud_credential_check_related_credentials(self, factories, v2):
+        cred_type = factories.credential_type(kind='cloud')
+        cred = factories.v2_credential(credential_type=cred_type)
+        jt = factories.job_template(credential=None)
+        jt.cloud_credential = cred.id
+
+        v2_jt_view = v2.job_templates.get(id=jt.id).results.pop()
+        related_creds = v2_jt_view.related.credentials.get()
+        assert related_creds.count == 1
+        assert related_creds.results.pop().id == cred.id
+
+        jt.cloud_credential = None
+        related_creds = v2_jt_view.related.credentials.get()
+        assert v2_jt_view.related.credentials.get().count == 0
+
+    def test_patch_net_credential_check_related_credentials(self, factories, v2):
+        cred_type = factories.credential_type(kind='net')
+        cred = factories.v2_credential(credential_type=cred_type)
+        jt = factories.job_template(credential=None)
+        jt.network_credential = cred.id
+
+        v2_jt_view = v2.job_templates.get(id=jt.id).results.pop()
+        related_creds = v2_jt_view.related.credentials.get()
+        assert related_creds.count == 1
+        assert related_creds.results.pop().id == cred.id
+
+        jt.network_credential = None
+        related_creds = v2_jt_view.related.credentials.get()
+        assert v2_jt_view.related.credentials.get().count == 0
+
+    def test_add_extra_credentials_check_related_credentials(self, factories, custom_extra_credentials):
+        jt = factories.v2_job_template(credential=None)
+        for cred in custom_extra_credentials:
+            jt.add_extra_credential(cred)
+
+        related_creds = jt.related.credentials.get()
+        assert related_creds.count == len(custom_extra_credentials)
+        assert set([cred.id for cred in related_creds.results]) == set([cred.id for cred in custom_extra_credentials])
+
+        for cred in custom_extra_credentials:
+            jt.remove_extra_credential(cred)
+        related_creds = jt.related.credentials.get()
+        assert jt.related.credentials.get().count == 0

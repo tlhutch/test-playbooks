@@ -6,14 +6,25 @@ import pytest
 
 
 @pytest.fixture(scope="function")
-def job_template_no_credential(factories, organization, project, host_local):
-    """job_template with no machine credential"""
-    return factories.job_template(description="job_template without credentials - %s" % fauxfactory.gen_utf8(),
+def job_template_prompt_for_credential(factories, organization, project, host_local):
+    """job_template with no machine credential and ask_credential_on_launch set to True"""
+    return factories.job_template(description="job_template without credentials and "
+                                              "ask_credential_on_launch set to True- %s" % fauxfactory.gen_utf8(),
                                   organization=organization, project=project,
                                   inventory=host_local.ds.inventory,
                                   playbook='debug.yml',
                                   credential=None,
                                   ask_credential_on_launch=True)
+
+
+@pytest.fixture(scope="function")
+def job_template_no_credential(factories, organization, project, host_local):
+    """job_template with no machine credential"""
+    return factories.v2_job_template(description="job_template without credentials - %s" % fauxfactory.gen_utf8(),
+                                     organization=organization, project=project,
+                                     inventory=host_local.ds.inventory,
+                                     playbook='debug.yml',
+                                     credential=None)
 
 
 @pytest.fixture(scope="function")
