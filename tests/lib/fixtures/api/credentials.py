@@ -276,15 +276,6 @@ def encrypted_scm_credential(admin_user, factories):
     return cred
 
 
-@pytest.fixture(scope="function")
-def scm_credential_key_unlock_ASK(admin_user, factories):
-    cred = factories.credential(name="scm credentials-%s" % fauxfactory.gen_utf8(),
-                                description="SCM credential %s (ssh_key_unlock:ASK)" % fauxfactory.gen_utf8(),
-                                kind='scm', ssh_key_data=config.credentials.scm.encrypted.ssh_key_data,
-                                ssh_key_unlock='ASK', user=admin_user, password=None)
-    return cred
-
-
 # Cloud credentials
 @pytest.fixture(scope="function")
 def aws_credential(admin_user, factories):
