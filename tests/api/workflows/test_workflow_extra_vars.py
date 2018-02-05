@@ -312,6 +312,7 @@ class TestWorkflowExtraVars(Base_Api_Test):
                        default='survey')]
         wfjt.add_survey(spec=survey)
 
+        # with var1, verify that a string survey variable passes $encrypted$ placeholder
         payload = dict(var1='$encrypted$', var2='$encrypted$', var3='$encrypted$')
         wfj = wfjt.launch(dict(extra_vars=payload)).wait_until_completed()
         job = jt.get().related.last_job.get()
