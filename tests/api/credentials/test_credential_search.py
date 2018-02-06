@@ -66,6 +66,7 @@ class TestCredentialSearch(Base_Api_Test):
 
         self.confirm_sole_credential_in_related_search(v2, cred, insights_inventories__search=inventory.name)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7889')
     def test_search_by_sourcing_inventory_and_inventory_update(self, v2, factories):
         cred = factories.v2_credential(kind='aws')
         inv_source = factories.v2_inventory_source(source='ec2', credential=cred)
