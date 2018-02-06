@@ -182,6 +182,7 @@ class TestGeneralSettings(Base_Api_Test):
             "Unexpected response when relaunching ad hoc command whose module " \
             "has been removed from AD_HOC_COMMANDS: %s." % json.dumps(result)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7890')
     def test_stdout_max_bytes_display(self, unified_job_with_stdout, api_settings_jobs_pg, update_setting_pg):
         """Assert that all of our unified jobs include stdout by default. Then assert that
         stdout gets truncated once 'STDOUT_MAX_BYTES_DISPLAY' gets set to zero. We check
