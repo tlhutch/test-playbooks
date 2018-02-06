@@ -301,6 +301,17 @@ class Test_Job(Base_Api_Test):
             job.relaunch()
         assert e.value[1]['errors'] == ['Job Template Inventory is missing or undefined.']
 
+    def test_relaunched_jobs_are_based_on_job_itself_and_not_source_template(self, factories):
+        jt = factories.v2_job_template()
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+        assert json.loads(job.extra_vars) == {}
+
+        jt.extra_vars = '{"key": "value"}'
+        relaunched_job = job.relaunch().wait_until_completed()
+        assert relaunched_job.is_successful
+        assert json.loads(relaunched_job.extra_vars) == {}
+
     @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1249")
     def test_password_survey_launched_with_empty_extra_vars(self, factories):
         """Confirms that password surveys with defaults are displayed (and encrypted) when

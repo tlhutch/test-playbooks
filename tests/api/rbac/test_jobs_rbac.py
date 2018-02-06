@@ -30,3 +30,46 @@ class TestJobsRBAC(Base_Api_Test):
             with self.current_user(user):
                 with pytest.raises(exc.MethodNotAllowed):
                     v2.jobs.post()
+
+    def test_relaunch_job_as_superuser(self, factories):
+        jt = factories.v2_job_template()
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        relaunched_job = job.relaunch().wait_until_completed()
+        assert relaunched_job.is_successful
+
+    def test_relaunch_job_as_organization_admin(self, factories):
+        jt1, jt2 = [factories.v2_job_template() for _ in range(2)]
+        user = factories.v2_user()
+        jt1.ds.inventory.ds.organization.set_object_roles(user, 'admin')
+
+        job1 = jt1.launch().wait_until_completed()
+        job2 = jt2.launch().wait_until_completed()
+        for job in [job1, job2]:
+            assert job.is_successful
+
+        with self.current_user(user):
+            relaunched_job = job1.relaunch().wait_until_completed()
+            assert relaunched_job.is_successful
+
+            with pytest.raises(exc.Forbidden):
+                job2.relaunch()
+
+    def test_relaunch_as_organization_user(self, factories):
+        jt = factories.v2_job_template()
+        user = factories.v2_user()
+        jt.ds.inventory.ds.organization.set_object_roles(user, 'member')
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        with self.current_user(user):
+            with pytest.raises(exc.Forbidden):
+                job.relaunch()
+
+    def test_relaunch_job_as_system_auditor(self, factories, job_with_status_completed):
+        user = factories.user(is_system_auditor=True)
+        with self.current_user(user):
+            with pytest.raises(exc.Forbidden):
+                job_with_status_completed.relaunch().wait_until_completed()

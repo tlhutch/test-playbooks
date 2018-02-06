@@ -261,14 +261,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 job.relaunch()
 
-    def test_relaunch_job_as_auditor(self, factories, job_with_status_completed):
-        """Confirms that a system auditor cannot relaunch a job"""
-        user = factories.user()
-        user.is_system_auditor = True
-        with self.current_user(user.username, user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
-                job_with_status_completed.relaunch().wait_until_completed()
-
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_schedule_job(self, factories, role):
         """Tests ability to schedule a job."""
