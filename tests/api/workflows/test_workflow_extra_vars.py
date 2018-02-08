@@ -418,11 +418,9 @@ class TestWorkflowExtraVars(Base_Api_Test):
         assert json.loads(wfj.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
         assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
 
-    def test_wfjtns_source_variables_with_set_stats(self, factories):
+    def test_wfjt_nodes_source_variables_with_set_stats(self, factories):
         host = factories.v2_host()
-        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_stats_coverage')
-
-        set_stats_jt = factories.v2_job_template(project=project, playbook='test_set_stats.yml')
+        set_stats_jt = factories.v2_job_template(playbook='test_set_stats.yml')
         success_jt = factories.v2_job_template()
         failure_jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='fail_unless.yml')
 
