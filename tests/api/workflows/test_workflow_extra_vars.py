@@ -417,3 +417,35 @@ class TestWorkflowExtraVars(Base_Api_Test):
 
         assert json.loads(wfj.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
         assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
+
+    def test_wfjtns_source_variables_with_set_stats(self, factories):
+        host = factories.v2_host()
+        project = factories.v2_project(scm_url='https://github.com/simfarm/ansible-playbooks.git', scm_branch='add_stats_coverage')
+
+        set_stats_jt = factories.v2_job_template(project=project, playbook='test_set_stats.yml')
+        success_jt = factories.v2_job_template()
+        failure_jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='fail_unless.yml')
+
+        wfjt = factories.v2_workflow_job_template()
+        stats_node = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=set_stats_jt)
+        stats_node.add_always_node(unified_job_template=success_jt).add_success_node(unified_job_template=failure_jt) \
+            .add_failure_node(unified_job_template=success_jt)
+
+        wfj = wfjt.launch().wait_until_completed()
+        assert wfj.is_successful
+        assert wfj.extra_vars == '{}'
+        assert set_stats_jt.get().related.last_job.get().extra_vars == '{}'
+
+        for job in success_jt.related.jobs.get().results + failure_jt.related.jobs.get().results:
+            sourced_vars = json.loads(job.extra_vars)
+            assert sourced_vars['string'] == 'abc'
+            assert sourced_vars['unicode'] == u'\u7af3\u466d\u97fd'
+            assert sourced_vars['float'] == 1.0
+            assert sourced_vars['integer'] == 123
+            assert sourced_vars['boolean']
+            assert not sourced_vars['none']
+            assert sourced_vars['list'] == ['abc', 123, 1.0, u'\u7af3\u466d\u97fd', True, None, [], {}]
+            assert sourced_vars['object'] == dict(string='abc', unicode=u'\u7af3\u466d\u97fd', float=1.0, integer=123, boolean=True,
+                                                  none=None, list=[], object={})
+            assert sourced_vars['empty_list'] == []
+            assert sourced_vars['empty_object'] == {}
