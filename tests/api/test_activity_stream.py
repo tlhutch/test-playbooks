@@ -2,7 +2,6 @@ import logging
 
 from towerkit import utils
 import towerkit.exceptions
-import fauxfactory
 import pytest
 
 from tests.api import Base_Api_Test
@@ -83,7 +82,7 @@ class TestActivityStream(Base_Api_Test):
     @pytest.mark.parametrize('template', ['job', 'workflow_job'])
     def test_survey_password_defaults_not_exposed_upon_template_deletion(self, v2, factories, superuser, template):
         resource = getattr(factories, template + '_template')()
-        password = "don't expose me - {0}".format(fauxfactory.gen_utf8(3).encode('utf8'))
+        password = "don't expose me - {0}".format(utils.random_utf8().encode('utf8'))
         survey = [dict(required=False,
                        question_name='Test',
                        variable='var',
