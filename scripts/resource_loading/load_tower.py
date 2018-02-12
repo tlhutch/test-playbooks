@@ -93,7 +93,8 @@ for update in project_updates:
     update.wait_until_completed(timeout=300, interval=30)
 
 for update in project_updates:
-    assert update.is_successful
+    if not update.is_successful:
+        assert update.get().is_successful
 
 # Create inventory scripts
 inventory_scripts = {}
