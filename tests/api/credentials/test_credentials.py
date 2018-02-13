@@ -222,34 +222,27 @@ class TestCredentials(Base_Api_Test):
         assert project.is_successful
         assert len(project.related.playbooks.get().json)
 
-    def test_changing_machine_credential_credential_types_only_allowed_when_unused(self, factories, v2):
+    @pytest.mark.parametrize('cred_type', ['Machine', 'Vault'])
+    def test_changing_jt_credential_credential_types_not_allowed(self, factories, v2, cred_type):
         cred = factories.v2_credential(kind='insights')
-        insights_type_id = cred.credential_type
+        cred_type_id = cred.credential_type
 
-        machine_cred_id = v2.credential_types.get(name='Machine').results.pop().id
-        cred.credential_type = machine_cred_id
-        assert cred.credential_type == machine_cred_id
+        vault_type_id = v2.credential_types.get(name=cred_type).results.pop().id
+        if cred_type == 'Machine':
+            payload = dict(credential_type=vault_type_id)
+        else:
+            payload = dict(credential_type=vault_type_id, inputs=dict(vault_password='fake'))
+        cred.patch(**payload)
+        assert cred.credential_type == vault_type_id
 
         project = factories.v2_project()
-        factories.v2_job_template(project=project, credential=cred)
+        if cred_type == 'Machine':
+            factories.v2_job_template(project=project, credential=cred)
+        else:
+            factories.v2_job_template(project=project, vault_credential=cred.id)
 
         with pytest.raises(exc.BadRequest) as e:
-            cred.credential_type = insights_type_id
-        assert "You cannot change the credential type of the credential" in e.value[1]['credential_type'][0]
-        assert cred.credential_type == machine_cred_id
-
-    def test_changing_vault_credential_credential_types_only_allowed_when_unused(self, factories, v2):
-        cred = factories.v2_credential(kind='insights')
-        insights_type_id = cred.credential_type
-
-        vault_type_id = v2.credential_types.get(name='Vault').results.pop().id
-        payload = dict(credential_type=vault_type_id, inputs=dict(vault_password='fake'))
-        cred.patch(**payload)
-
-        factories.v2_job_template(vault_credential=cred.id)
-
-        with pytest.raises(exc.BadRequest) as e:
-            cred.credential_type = insights_type_id
+            cred.credential_type = cred_type_id
         assert "You cannot change the credential type of the credential" in e.value[1]['credential_type'][0]
         assert cred.credential_type == vault_type_id
 
@@ -260,10 +253,10 @@ class TestCredentials(Base_Api_Test):
         jt = factories.v2_job_template()
         jt.add_extra_credential(cred)
 
-        machine_cred_id = v2.credential_types.get(name='Machine').results.pop().id
+        machine_type_id = v2.credential_types.get(name='Machine').results.pop().id
 
         with pytest.raises(exc.BadRequest) as e:
-            cred.credential_type = machine_cred_id
+            cred.credential_type = machine_type_id
         assert "You cannot change the credential type of the credential" in e.value[1]['credential_type'][0]
         assert cred.credential_type == aws_type_id
 
