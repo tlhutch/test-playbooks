@@ -15,14 +15,16 @@
 
 ## Regression
 1. [ ] Limited manual UI testing completed
-1. [ ] API regression completed
-1. [ ] Tower HA regression completed
-1. [ ] Tower LDAP Integration regression completed
-1. [ ] Tower RADIUS Integration regression completed
-1. [ ] Social authentication regression completed
+1. [ ] API integration - standalone
+1. [ ] API integration - HA
+1. [ ] Tower/LDAP integration
+1. [ ] Tower/RADIUS integration
+1. [ ] Social authentication
 1. [ ] SAML authentication
-1. [ ] Verify logging (incl. cluster)
-1. [ ] Backup/restore successful
+1. [ ] Logging - standalone
+1. [ ] Logging - HA
+1. [ ] Backup/restore - standalone
+1. [ ] Backup/restore - HA
 
 ### Installation
 1. Installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.2/html/installandreference/requirements_refguide.html)
@@ -45,14 +47,15 @@
 1. [ ] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
-1. [ ] Upgrade completes on all supported platforms from `3.0.0` - `3.0.4`
-1. [ ] Upgrade completes on all supported platforms from `3.1.0` - `3.1.5`
-1. [ ] Upgrade completes on all supported platforms from `3.2.0` - `3.2.2`
-1. [ ] Verify the following functions work as intended after upgrade
+1. [ ] Successful migrations from `3.0.0` - `3.0.4`
+1. [ ] Successful migrations from `3.1.0` - `3.1.5`
+1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.2` - standalone
+1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.2` - HA
+1. [ ] Verify the following functionality after upgrade
+    * [ ] Resource migrations
     * [ ] Launch project_updates for existing projects
     * [ ] Launch inventory_updates for existing inventory_source
     * [ ] Launch, and relaunch, existing job_templates
-    * [ ] Migrations were successful
     
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed)
