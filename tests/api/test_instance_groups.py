@@ -714,3 +714,21 @@ class TestInstanceGroups(Base_Api_Test):
         payload.AWX_ISOLATED_PRIVATE_KEY = 'changed'
         settings.put(payload)
         check_settings()
+
+    @pytest.mark.requires_ha
+    def test_inventory_script_serialization_preserves_escaped_characters(self, factories, v2):
+        """Inventory scripts are printed to a file and sent to isolated nodes.
+        Test ensures that escaped characters are preserved in the process.
+        """
+        host = factories.v2_host(variables=dict(ansible_host='127.0.0.1', ansible_connection='local', should_be_preserved='\f"'))
+        jt = factories.v2_job_template(playbook='debug_hostvars.yml', inventory=host.ds.inventory)
+        ig_protected = v2.instance_groups.get(name='protected').results.pop()
+        jt.add_instance_group(ig_protected)
+        job = jt.launch().wait_until_completed()
+        job_events = job.get_related('job_events').results
+        for job_event in job_events:
+            if job_event.event == 'runner_on_ok':
+                assert job_event.event_data.res.hostvars.values()[0].should_be_preserved == u'\x0c"'  # \x0c is equivalent to \f
+                break
+        else:
+            pytest.fail('Failed to find job event with hostvar information')
