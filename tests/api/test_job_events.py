@@ -335,10 +335,10 @@ class Test_Job_Events(Base_Api_Test):
                     assert set(result.keys()) | desired_result_keys == desired_result_keys
                     assert hidden_prefix in result.censored
 
-    def test_include_role_job_events(self, factories, ansible_version_cmp):
-        """See https://github.com/ansible/ansible-tower/issues/7829."""
+    def test_warning_statements_absent_with_include_role_playbook(self, factories, ansible_version_cmp):
+        # context: https://github.com/ansible/ansible-tower/issues/7829
         if ansible_version_cmp('2.4.2.0') == 0:
-            pytest.skip('Known regression under Ansible-2.4.2.')
+            pytest.skip('Known regression under Ansible-2.4.2.0')
 
         jt = factories.v2_job_template(playbook='test_include_role.yml')
         job = jt.launch().wait_until_completed()
