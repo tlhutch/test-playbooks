@@ -223,17 +223,17 @@ class TestCredentials(Base_Api_Test):
         assert len(project.related.playbooks.get().json)
 
     @pytest.mark.parametrize('cred_type', ['Machine', 'Vault'])
-    def test_changing_jt_credential_credential_types_not_allowed(self, factories, v2, cred_type):
+    def test_changing_credential_types_only_allowed_for_unused_credentials(self, factories, v2, cred_type):
         cred = factories.v2_credential(kind='insights')
-        cred_type_id = cred.credential_type
+        insights_type_id = cred.credential_type
 
-        vault_type_id = v2.credential_types.get(name=cred_type).results.pop().id
+        cred_type_id = v2.credential_types.get(name=cred_type).results.pop().id
         if cred_type == 'Machine':
-            payload = dict(credential_type=vault_type_id)
+            payload = dict(credential_type=cred_type_id)
         else:
-            payload = dict(credential_type=vault_type_id, inputs=dict(vault_password='fake'))
+            payload = dict(credential_type=cred_type_id, inputs=dict(vault_password='fake'))
         cred.patch(**payload)
-        assert cred.credential_type == vault_type_id
+        assert cred.credential_type == cred_type_id
 
         project = factories.v2_project()
         if cred_type == 'Machine':
@@ -242,11 +242,11 @@ class TestCredentials(Base_Api_Test):
             factories.v2_job_template(project=project, vault_credential=cred.id)
 
         with pytest.raises(exc.BadRequest) as e:
-            cred.credential_type = cred_type_id
+            cred.credential_type = insights_type_id
         assert "You cannot change the credential type of the credential" in e.value[1]['credential_type'][0]
-        assert cred.credential_type == vault_type_id
+        assert cred.credential_type == cred_type_id
 
-    def test_changing_jt_extra_credential_credential_types_not_allowed(self, factories, v2):
+    def test_changing_extra_credential_types_only_allowed_for_unused_credentials(self, factories, v2):
         cred = factories.v2_credential(kind='aws')
         aws_type_id = cred.credential_type
 
