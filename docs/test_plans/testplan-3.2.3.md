@@ -17,7 +17,7 @@
 1. [x] Limited manual UI testing completed
 1. [x] API integration - standalone
 1. [ ] API integration - HA
-1. [ ] Tower/LDAP integration
+1. [x] Tower/LDAP integration
 1. [ ] Tower/RADIUS integration
 1. [ ] Social authentication
 1. [ ] SAML authentication
@@ -47,16 +47,19 @@
 1. [ ] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
-1. [ ] Successful migrations from `3.0.0` - `3.0.4`
-1. [ ] Successful migrations from `3.1.0` - `3.1.5`
+1. [x] Successful migrations from `3.0.0` - `3.0.4`
+1. [x] Successful migrations from `3.1.0` - `3.1.5`
+1. [ ] Successful upgrades on all supported platforms from `3.0.4` - standalone
+1. [x] Successful upgrades on all supported platforms from `3.1.5` - standalone
 1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.2` - standalone
 1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.2` - HA
-1. [ ] Verify the following functionality after upgrade
-    * [ ] Resource migrations
-    * [ ] Launch project_updates for existing projects
-    * [ ] Launch inventory_updates for existing inventory_source
-    * [ ] Launch, and relaunch, existing job_templates
-    
+1. Verify the following functionality after upgrade
+    * Resource migrations
+    * Launch project_updates for existing projects
+    * Launch inventory_updates for existing inventory_source
+    * Launch, and relaunch, existing job_templates
+
+### Provided Images
 1. Installation completes successfully on supported images
     * [x] AMI (unlicensed)
     * [x] Vagrant
