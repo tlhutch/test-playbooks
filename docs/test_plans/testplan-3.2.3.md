@@ -14,8 +14,8 @@
 ## Targeted Testing
 
 ## Regression
-1. [ ] Limited manual UI testing completed
-1. [ ] API integration - standalone
+1. [x] Limited manual UI testing completed
+1. [x] API integration - standalone
 1. [ ] API integration - HA
 1. [ ] Tower/LDAP integration
 1. [ ] Tower/RADIUS integration
