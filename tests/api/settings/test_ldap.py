@@ -1,84 +1,91 @@
-import towerkit.exceptions
+from copy import deepcopy
+
+from towerkit.utils import random_title
 import pytest
 
 from tests.api import Base_Api_Test
 
 
-@pytest.fixture(params=["install_legacy_license", "install_enterprise_license"])
-def ldap_enabled_license(request):
-    return request.getfuncargvalue(request.param)
-
-
-@pytest.fixture(params=["no_license", "install_basic_license"])
-def ldap_disabled_license(request):
-    return request.getfuncargvalue(request.param)
-
-
-@pytest.fixture
-def cleanup_ldap_info(request, api_users_pg, api_teams_pg, api_organizations_pg):
-    def purge_info():
-        # Delete Users
-        users = api_users_pg.get(username__in=['it_user1', 'eng_admin1'])
-        for user in users.results:
-            user.delete()
-
-        # Delete team
-        teams = api_teams_pg.get(name='LDAP IT')
-        for team in teams.results:
-            team.delete()
-
-        # Delete organization
-        orgs = api_organizations_pg.get(name='LDAP Organization')
-        for org in orgs.results:
-            org.delete()
-
-    purge_info()
-    request.addfinalizer(purge_info)
-
-
-@pytest.mark.ldap
 @pytest.mark.api
-@pytest.mark.destructive
-class Test_LDAP(Base_Api_Test):
+@pytest.mark.ldap
+@pytest.mark.mp_group('LDAP', 'isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestLDAP(Base_Api_Test):
 
-    pytestmark = pytest.mark.usefixtures('authtoken')
+    base_ldap_settings = dict(
+        AUTH_LDAP_SERVER_URI='ldap://idp.testing.ansible.com',
+        AUTH_LDAP_BIND_DN='uid=ldap_binder,cn=sysaccounts,cn=etc,dc=testing,dc=ansible,dc=com',
+        AUTH_LDAP_BIND_PASSWORD='secret123',
+        AUTH_LDAP_USER_SEARCH=[],
+        AUTH_LDAP_USER_DN_TEMPLATE='uid=%(user)s,cn=users,cn=accounts,dc=testing,dc=ansible,dc=com',
+        AUTH_LDAP_USER_ATTR_MAP=dict(first_name='givenName', last_name='sn', email='mail'),
+        AUTH_LDAP_GROUP_SEARCH=[
+            'cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com',
+            'SCOPE_SUBTREE',
+            '(objectClass=posixGroup)'
+        ],
+        AUTH_LDAP_GROUP_TYPE='MemberDNGroupType',
+        AUTH_LDAP_REQUIRE_GROUP=None,
+        AUTH_LDAP_DENY_GROUP=None,
+        AUTH_LDAP_USER_FLAGS_BY_GROUP={}
+    )
+    ldap_password = 'Th1sP4ssd'
 
-    def test_objects_created_after_successful_login(self, install_legacy_license, cleanup_ldap_info, api_users_pg, user_password):
-        """Verify that related LDAP objects are created after a successful
-        login. For example, the LDAP User, associated teams and
-        organizations.
-        """
-        # Login as an LDAP user
-        with self.current_user(username='it_user1', password=user_password):
-            api_users_pg.get(username='it_user1')
+    def test_ldap_user_creation(self, v2, api_settings_ldap_pg, update_setting_pg):
+        update_setting_pg(api_settings_ldap_pg, self.base_ldap_settings)
+        with self.current_user('bbelcher', self.ldap_password):
+            bob = v2.me.get().results.pop()
+            assert bob.first_name == 'Bob'
+            assert bob.last_name == 'Belcher'
+            assert bob.related.organizations.get().count == 0
+            assert bob.related.teams.get().count == 0
+        bob.delete()
 
-        # Verify the expected user was created
-        users = api_users_pg.get(username='it_user1')
-        assert users.count == 1
-        user = users.results[0]
+    def test_ldap_organization_creation_and_user_sourcing(self, v2, api_settings_ldap_pg, update_setting_pg):
+        org_name = u'LDAP_Organization_{}'.format(random_title())
+        ldap_settings = deepcopy(self.base_ldap_settings)
+        ldap_settings['AUTH_LDAP_ORGANIZATION_MAP'] = {
+            org_name: dict(admins='cn=bobsburgers_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com',
+                           users=['cn=bobsburgers,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com'],
+                           remove_admins=False, remove_users=True)
+        }
+        update_setting_pg(api_settings_ldap_pg, ldap_settings)
+        assert v2.organizations.get(name=org_name).count == 0
+        with self.current_user('libelcher', self.ldap_password):
+            linda = v2.me.get().results.pop()
+            org = v2.organizations.get(name=org_name).results.pop()
+            users = org.related.users.get()
+            assert users.count == 1
+            assert users.results.pop().id == linda.id
+            admins = org.related.admins.get()
+            assert admins.count == 1
+            assert admins.results.pop().id == linda.id
+        linda.delete()
+        org.delete()
 
-        # Verify the expected team was created
-        teams = user.get_related('teams', name='LDAP IT')
-        assert teams.count == 1
-
-        # Verify expected organization was created
-        orgs = user.get_related('organizations', name='LDAP Organization')
-        assert orgs.count == 1
-
-    def test_org_admin_ldap_user(self, install_legacy_license, cleanup_ldap_info, api_users_pg, user_password):
-        """Verified that an LDAP organization admin relationship is created at login."""
-        with self.current_user(username='eng_admin1', password=user_password):
-            user = api_users_pg.get(username='eng_admin1').results[0]
-            orgs = user.get_related('admin_of_organizations', name="LDAP Organization")
-            assert orgs.count == 1
-
-    def test_license_enables_ldap_authentication(self, api_users_pg, user_password, ldap_enabled_license):
-        """Verified Tower supports LDAP authentication with a supported license."""
-        with self.current_user(username='eng_user1', password=user_password):
-            api_users_pg.get(username='eng_user1')
-
-    def test_license_disables_ldap_authentication(self, api_users_pg, user_password, ldap_disabled_license):
-        """Verified Tower disables LDAP authentication with an unsupported license."""
-        with pytest.raises(towerkit.exceptions.Unauthorized):
-            with self.current_user(username='sales_user1', password=user_password):
-                api_users_pg.get(username='sales_user1')
+    def test_ldap_team_creation_and_user_sourcing(self, v2, api_settings_ldap_pg, update_setting_pg):
+        org_name = u'Bobs Burgers {}'.format(random_title())
+        team_name = u'Bobs Burgers Admin Club {}'.format(random_title())
+        ldap_settings = deepcopy(self.base_ldap_settings)
+        ldap_settings['AUTH_LDAP_ORGANIZATION_MAP'] = {
+            org_name: dict(admins='cn=bobsburgers_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com',
+                           users=['cn=bobsburgers,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com'],
+                           remove_admins=False, remove_users=True)
+        }
+        ldap_settings['AUTH_LDAP_TEAM_MAP'] = {
+           team_name: dict(organization=org_name,
+                           users=['cn=bobsburgers_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com'],
+                           remove=True)
+        }
+        update_setting_pg(api_settings_ldap_pg, ldap_settings)
+        assert v2.teams.get(name=team_name).count == 0
+        with self.current_user('libelcher', self.ldap_password):
+            linda = v2.me.get().results.pop()
+            org = v2.organizations.get(name=org_name).results.pop()
+            team = v2.teams.get(name=team_name).results.pop()
+            users = team.related.users.get()
+            assert users.count == 1
+            assert users.results.pop().id == linda.id
+        linda.delete()
+        team.delete()
+        org.delete()
