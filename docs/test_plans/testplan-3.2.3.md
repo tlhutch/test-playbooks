@@ -23,7 +23,7 @@
 1. [ ] SAML authentication
 1. [ ] Logging - standalone
 1. [ ] Logging - HA
-1. [ ] Backup/restore - standalone
+1. [x] Backup/restore - standalone
 1. [ ] Backup/restore - HA
 
 ### Installation
@@ -58,5 +58,5 @@
     * [ ] Launch, and relaunch, existing job_templates
     
 1. Installation completes successfully on supported images
-    * [ ] AMI (unlicensed)
-    * [ ] Vagrant
+    * [x] AMI (unlicensed)
+    * [x] Vagrant
