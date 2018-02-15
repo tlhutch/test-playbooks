@@ -325,6 +325,7 @@ for job_template in job_templates_to_check:
 
 for job in jobs:
     job.wait_until_completed(timeout=1800, interval=30)
+    job.get()
 
 for job in jobs:
     if job.name in ('language_features/tags.yml (tags:foo, limit:unresolvable-name.example.com)',
