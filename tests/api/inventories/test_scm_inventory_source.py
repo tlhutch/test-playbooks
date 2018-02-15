@@ -68,6 +68,11 @@ class TestSCMInventorySource(Base_Api_Test):
         assert scm_inv_sources[0].id == inv_source.id
         return inv_source.get()
 
+    @pytest.fixture(scope='class')
+    def uses_group_vars(self, ansible_version_cmp):
+        #  Uses a nonexistent 2.4 version to account for 2.5.0 beta and rc
+        return ansible_version_cmp('2.4.999') > 0
+
     complex_var = [{"dir": "/opt/gwaf/logs", "sourcetype": "gwaf", "something_else": [1, 2, 3]}]
 
     @pytest.mark.ansible_integration
@@ -82,7 +87,6 @@ class TestSCMInventorySource(Base_Api_Test):
         for group_one_host_01_vars in [group_one_host_01.variables, group_one_host_01.related.variable_data.get()]:
             assert group_one_host_01_vars.group_one_host_01_has_this_var
             assert group_one_host_01_vars.group_one_host_01_should_have_this_var
-            assert group_one_host_01_vars.complex_var == self.complex_var
             assert 'group_one_host_01_should_not_have_this_var' not in group_one_host_01_vars
 
         group_two_host_01 = inventory.related.hosts.get(name='group_two_host_01').results.pop()
@@ -94,14 +98,10 @@ class TestSCMInventorySource(Base_Api_Test):
                                          group_three_host_01.related.variable_data.get()]:
             assert group_three_host_01_vars.group_three_host_01_has_this_var
 
-        for host in hosts:
-            for host_vars in [host.variables, host.related.variable_data.get()]:
-                assert host_vars.inventories_var
-
     @pytest.mark.ansible_integration
-    def test_scm_inventory_groups_and_group_vars(self, scm_inv_source_with_group_and_host_var_dirs):
+    def test_scm_inventory_groups_and_group_vars(self, scm_inv_source_with_group_and_host_var_dirs, uses_group_vars):
         inv_source = scm_inv_source_with_group_and_host_var_dirs
-        inventory = inv_source.ds.inventory
+        inventory = inv_source.ds.inventory.get()
 
         desired_groups = set(['group_one', 'group_two', 'group_three'])
         for related_groups in (inventory.related.groups, inv_source.related.groups):
@@ -109,40 +109,56 @@ class TestSCMInventorySource(Base_Api_Test):
             assert set([group.name for group in groups]) == desired_groups
 
         group_one = inventory.related.groups.get(name='group_one').results.pop()
-
         group_one_hosts = group_one.related.hosts.get(page_size=200).results
-
         desired_hosts = hostnames_from_group_prefixes(['group_one', 'group_one_and_two', 'group_one_two_and_three'])
         assert set([host.name for host in group_one_hosts]) == desired_hosts
 
+        if uses_group_vars:
+            group_one_vars = [group_one.variables, group_one.related.variable_data.get()]
+        else:
+            group_one_vars = [host.variables, host.related.variable_data.get()]
         for host in group_one_hosts:
-            for host_vars in [host.variables, host.related.variable_data.get()]:
-                assert host_vars.is_in_group_one
-                assert host_vars.group_one_should_have_this_var
-                assert host_vars.complex_var == self.complex_var
-                assert 'group_one_should_not_have_this_var' not in host_vars
+            for group_vars in group_one_vars:
+                assert group_vars.is_in_group_one
+                assert group_vars.group_one_should_have_this_var
+                assert group_vars.complex_var == self.complex_var
+                assert 'group_one_should_not_have_this_var' not in group_vars
 
         group_two = inventory.related.groups.get(name='group_two').results.pop()
-
         group_two_hosts = group_two.related.hosts.get(page_size=200).results
-
         desired_hosts = hostnames_from_group_prefixes(['group_two', 'group_one_and_two', 'group_two_and_three',
                                                        'group_one_two_and_three'])
         assert set([host.name for host in group_two_hosts]) == desired_hosts
 
+        if uses_group_vars:
+            group_two_vars = [group_two.variables, group_two.related.variable_data.get()]
+        else:
+            group_two_vars = [host.variables, host.related.variable_data.get()]
         for host in group_two_hosts:
-            for host_vars in [host.variables, host.related.variable_data.get()]:
-                assert host_vars.is_in_group_two
+            for group_vars in group_two_vars:
+                assert group_vars.is_in_group_two
 
         group_three = inventory.related.groups.get(name='group_three').results.pop()
-
         group_three_hosts = group_three.related.hosts.get(page_size=200).results
         desired_hosts = hostnames_from_group_prefixes(['group_three', 'group_two_and_three', 'group_one_two_and_three'])
         assert set([host.name for host in group_three_hosts]) == desired_hosts
 
+        if uses_group_vars:
+            group_three_vars = [group_three.variables, group_three.related.variable_data.get()]
+        else:
+            group_three_vars = [host.variables, host.related.variable_data.get()]
         for host in group_three_hosts:
-            for host_vars in [host.variables, host.related.variable_data.get()]:
-                assert host_vars.is_in_group_three
+            for group_vars in group_three_vars:
+                assert group_vars.is_in_group_three
+
+        if uses_group_vars:
+            assert inventory.variables.inventories_var
+            assert inventory.related.variable_data.get().inventories_var
+        else:
+            hosts = inventory.related.hosts.get(page_size=100).results
+            for host in hosts:
+                assert host.variables.inventories_var
+                assert host.related.variable_data.get().inventories_var
 
     def test_scm_inv_source_with_overwrite(self, factories):
         inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
@@ -166,7 +182,7 @@ class TestSCMInventorySource(Base_Api_Test):
                               ('inventories/dyn_inventory.py', 'inventories/more_inventories/dyn_inventory.py',
                                'inventories/more_inventories/even_more_inventories/dyn_inventory.py')],
                              ids=('static', 'dynamic'))
-    def test_scm_inv_sources_with_shared_project(self, factories, source_paths):
+    def test_scm_inv_sources_with_shared_project(self, factories, source_paths, uses_group_vars):
         project = factories.v2_project()
         inventory = factories.v2_inventory(organization=project.ds.organization)
         inv_sources = [factories.v2_inventory_source(source='scm', inventory=inventory, project=project,
@@ -182,18 +198,25 @@ class TestSCMInventorySource(Base_Api_Test):
         for hostname in ('group_one_host_01', 'group_four_host_01', 'group_seven_host_01'):
             host = [host for host in hosts if host.name == hostname].pop()
             group_name = hostname.split('_host_01')[0]
-            for host_vars in [host.variables, host.related.variable_data.get()]:
+            host_var_ls = [host.variables, host.related.variable_data.get()]
+            if uses_group_vars:
+                group = host.related.groups.get(name=group_name).results.pop().get()
+                group_var_ls = [group.variables, group.related.variable_data.get()]
+            else:
+                group_var_ls = host_var_ls
+
+            for host_vars, group_vars in zip(host_var_ls, group_var_ls):
                 assert host_vars['{}_should_have_this_var'.format(hostname)]
                 assert '{}_should_not_have_this_var'.format(hostname) not in host_vars
 
-                assert host_vars['is_in_{}'.format(group_name)]
-                assert host_vars['{}_should_have_this_var'.format(group_name)]
-                assert '{}_should_not_have_this_var'.format(group_name) not in host_vars
+                assert group_vars['is_in_{}'.format(group_name)]
+                assert group_vars['{}_should_have_this_var'.format(group_name)]
+                assert '{}_should_not_have_this_var'.format(group_name) not in group_vars
 
         desired_groups = set(['group_one', 'group_two', 'group_three', 'group_four', 'group_five', 'group_six',
                               'group_seven', 'group_eight', 'group_nine'])
         groups = inventory.related.groups.get().results
-        assert set([group.name for group in groups]) == desired_groups
+        assert set([g.name for g in groups]) == desired_groups
 
         hosts = inv_sources[0].related.hosts.get(page_size=200).results
         assert set([h.name for h in hosts]) == self.inventory_hostnames
@@ -208,7 +231,7 @@ class TestSCMInventorySource(Base_Api_Test):
                                                             set(['group_four', 'group_five', 'group_six']),
                                                             set(['group_seven', 'group_eight', 'group_nine'])]):
             groups = inv_source.related.groups.get().results
-            assert set([group.name for group in groups]) == desired_groups
+            assert set([g.name for g in groups]) == desired_groups
 
     def test_scm_inv_source_multiple_updates_without_update_on_project_update(self, factories):
         scm_inv_source = factories.v2_inventory_source(source='scm')
