@@ -303,7 +303,10 @@ for project in projects_to_update:
 
 for update in project_updates:
     update.wait_until_completed(timeout=300, interval=30)
-    assert update.is_successful
+    if not update.is_successful:
+        update.get()
+        if '429 Too Many Requests' not in update.result_stdout:  # GH rate limit
+            assert update.is_successful
 
 log.info('Verifying updated inventory sources are successful')
 source_updates = []
