@@ -22,7 +22,7 @@
 1. [x] Tower/LDAP integration
 1. [x] Tower/RADIUS integration
 1. [ ] Social authentication
-1. [ ] SAML authentication
+1. [x] SAML authentication
 1. [x] Logging - standalone
 1. [x] Logging - HA
 1. [x] Backup/restore - standalone
@@ -51,11 +51,12 @@
 ### Upgrades
 1. [x] Successful migrations from `3.0.0` - `3.0.4`
 1. [x] Successful migrations from `3.1.0` - `3.1.5`
-1. [ ] Successful upgrades on all supported platforms from `3.0.4` - standalone
+1. [x] Successful upgrades on all supported platforms from `3.0.4` - standalone
 1. [x] Successful upgrades on all supported platforms from `3.1.5` - standalone
-1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.2` - standalone
+1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.2` - standalone
 1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.2` - HA
-1. Verify the following functionality after upgrade
+
+* Verify the following functionality after upgrade
     * Resource migrations
     * Launch project_updates for existing projects
     * Launch inventory_updates for existing inventory_source
