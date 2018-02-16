@@ -20,7 +20,7 @@
 1. [x] API integration - standalone
 1. [ ] API integration - HA
 1. [x] Tower/LDAP integration
-1. [ ] Tower/RADIUS integration
+1. [x] Tower/RADIUS integration
 1. [ ] Social authentication
 1. [ ] SAML authentication
 1. [x] Logging - standalone
