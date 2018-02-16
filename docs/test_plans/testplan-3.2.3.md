@@ -11,6 +11,8 @@
 
 ## Features Tested
 
+* [x] Backup and restore (with focus on external database) [Issue](https://github.com/ansible/ansible-tower/issues/7872)
+
 ## Targeted Testing
 
 ## Regression
@@ -24,7 +26,7 @@
 1. [ ] Logging - standalone
 1. [ ] Logging - HA
 1. [x] Backup/restore - standalone
-1. [ ] Backup/restore - HA
+1. [x] Backup/restore - HA
 
 ### Installation
 1. Installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.2/html/installandreference/requirements_refguide.html)
