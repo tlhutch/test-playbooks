@@ -70,8 +70,7 @@ class TestSCMInventorySource(Base_Api_Test):
 
     @pytest.fixture(scope='class')
     def uses_group_vars(self, ansible_version_cmp):
-        #  Uses a nonexistent 2.4 version to account for 2.5.0 beta and rc
-        return ansible_version_cmp('2.4.999') > 0
+        return ansible_version_cmp('2.5.0') >= 0
 
     complex_var = [{"dir": "/opt/gwaf/logs", "sourcetype": "gwaf", "something_else": [1, 2, 3]}]
 
