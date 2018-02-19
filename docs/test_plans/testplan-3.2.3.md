@@ -1,4 +1,4 @@
-# Toweradoption 3.2.3 Release Test Plan
+# Tower 3.2.3 Release Test Plan
 
 ## Overview
 
