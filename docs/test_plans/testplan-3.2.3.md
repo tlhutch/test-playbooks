@@ -18,7 +18,7 @@
 ## Regression
 1. [x] Limited manual UI testing completed
 1. [x] API integration - standalone
-1. [ ] API integration - HA
+1. [x] API integration - HA
 1. [x] Tower/LDAP integration
 1. [x] Tower/RADIUS integration
 1. [ ] Social authentication
