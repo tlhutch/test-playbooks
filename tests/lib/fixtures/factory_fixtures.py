@@ -78,6 +78,10 @@ class V2OrganizationFactory(HasCreateFactory):
     model = pages.V2Organization
 
 
+class InstanceGroupFactory(HasCreateFactory):
+    model = pages.InstanceGroup
+
+
 class UserFactory(HasCreateFactory):
     model = pages.User
 
@@ -232,6 +236,7 @@ def factory_namespace(request):
         credential_type=FactoryFixture(request, CredentialTypeFactory),
         group=FactoryFixture(request, GroupFactory),
         host=FactoryFixture(request, HostFactory),
+        instance_group=FactoryFixture(request, InstanceGroupFactory),
         inventory=FactoryFixture(request, InventoryFactory),
         inventory_script=FactoryFixture(request, InventoryScriptFactory),
         job_template=FactoryFixture(request, JobTemplateFactory),
