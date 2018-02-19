@@ -47,7 +47,7 @@
     * [x] centos-7.latest
     * [x] ol-7.latest
 1. [x] Installation completes successfully for HA deployment (RHEL-7.2)
-1. [ ] Bundled installation completes successfully for HA deployment
+1. [x] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
 1. [x] Successful migrations from `3.0.0` - `3.0.4`
