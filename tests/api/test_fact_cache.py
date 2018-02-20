@@ -37,8 +37,8 @@ class TestFactCache(Base_Api_Test):
                                          inventory=host.ds.inventory, playbook='scan_facts.yml', use_fact_cache=True)
 
     @pytest.mark.requires_single_instance
-    def test_ingest_facts_with_tower_scan_playbook(self, request, factories, ansible_runner, is_docker,
-                                                   scan_facts_job_template):
+    def test_ingest_facts_with_tower_scan_playbook(self, request, factories, ansible_runner, ansible_os_family,
+                                                   is_docker, scan_facts_job_template):
         machine_id = "4da7d1f8-14f3-4cdc-acd5-a3465a41f25d"
         ansible_runner.file(path='/etc/redhat-access-insights', state="directory")
         ansible_runner.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(machine_id))
@@ -49,7 +49,14 @@ class TestFactCache(Base_Api_Test):
         ansible_facts = scan_facts_job_template.ds.inventory.related.hosts.get().results[0].related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
 
-        assert ansible_facts.services['network'] if is_docker else ansible_facts.services['sshd.service']
+        if is_docker:
+            assert ansible_facts.services['network']
+        elif ansible_os_family == 'RedHat':
+            assert ansible_facts.services['sshd.service']
+        # for ubuntu systems
+        else:
+            assert ansible_facts.services['ssh']
+
         assert ansible_facts.packages['which'] if is_docker else ansible_facts.packages['ansible-tower']
         assert ansible_facts.insights['system_id'] == machine_id
 
