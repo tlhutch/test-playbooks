@@ -1,3 +1,4 @@
+from towerkit.config import config as qe_config
 from towerkit import utils, WSClient
 import pytest
 
@@ -22,16 +23,35 @@ class ChannelsTest(object):
         return [{k: v for d in [event, base_event] for k, v in d.items()} for event in events]
 
 
+def _ws_client(request, v2):
+    if qe_config.use_sessions:
+        kwargs = dict(session_id=v2.connection.session_id)
+    else:
+        kwargs = dict(token=v2.get_authtoken())
+    ws = WSClient(**kwargs)
+    request.addfinalizer(ws.close)
+    return ws
+
+
+@pytest.fixture(scope='class')
+def class_ws_client(request, v2_class):
+    return _ws_client(request, v2_class)
+
+
+@pytest.fixture
+def ws_client(request, v2):
+    return _ws_client(request, v2)
+
+
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.fixture(scope='class')
-        def ahc_and_ws_events(self, request, class_factories, v2_class):
+        def ahc_and_ws_events(self, class_factories, class_ws_client):
             host = class_factories.v2_host()
 
-            ws = WSClient(v2_class.get_authtoken()).connect()
-            request.addfinalizer(ws.close)
+            ws = class_ws_client.connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -73,11 +93,10 @@ class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
             for expected in expected_ahc_events:
                 assert expected in filtered_ws_events
 
-        def test_ad_hoc_command_events_unsubscribe(self, request, factories, v2):
+        def test_ad_hoc_command_events_unsubscribe(self, factories, ws_client):
             host = factories.v2_host()
 
-            ws = WSClient(v2.get_authtoken()).connect()
-            request.addfinalizer(ws.close)
+            ws = ws_client.connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -99,11 +118,10 @@ class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
 class TestJobChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.fixture(scope='class')
-        def job_and_ws_events(self, request, class_factories, v2_class):
+        def job_and_ws_events(self, class_factories, class_ws_client):
             host = class_factories.v2_host()
 
-            ws = WSClient(v2_class.get_authtoken()).connect()
-            request.addfinalizer(ws.close)
+            ws = class_ws_client.connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -144,11 +162,10 @@ class TestJobChannels(ChannelsTest, Base_Api_Test):
             for expected in expected_ahc_events:
                 assert expected in filtered_ws_events
 
-        def test_job_events_unsubscribe(self, request, factories, v2):
+        def test_job_events_unsubscribe(self, factories, ws_client):
             host = factories.v2_host()
 
-            ws = WSClient(v2.get_authtoken()).connect()
-            request.addfinalizer(ws.close)
+            ws = ws_client.connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -170,9 +187,8 @@ class TestJobChannels(ChannelsTest, Base_Api_Test):
 class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.mark.ansible_integration
-        def test_workflow_events(self, request, v1, factories):
-            ws = WSClient(v1.get_authtoken()).connect()
-            request.addfinalizer(ws.close)
+        def test_workflow_events(self, factories, ws_client):
+            ws = ws_client.connect()
             inventory = factories.v2_host().ds.inventory
             success_jt = factories.v2_job_template(inventory=inventory, playbook='debug.yml')
             fail_jt = factories.v2_job_template(inventory=inventory, playbook='fail_unless.yml')
@@ -225,9 +241,8 @@ class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
 class TestInventoryChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.fixture(scope='class')
-        def inv_update_and_ws_events(self, request, class_factories, v2_class):
-            ws = WSClient(v2_class.get_authtoken()).connect()
-            request.addfinalizer(ws.close)
+        def inv_update_and_ws_events(self, class_factories, class_ws_client):
+            ws = class_ws_client.connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -253,9 +268,8 @@ class TestInventoryChannels(ChannelsTest, Base_Api_Test):
                 desired_msg['instance_group_name'] = 'tower'
             assert desired_msg in events
 
-        def test_inventory_update_events_unsubscribe(self, request, v2, factories):
-            ws = WSClient(v2.get_authtoken()).connect()
-            request.addfinalizer(ws.close)
+        def test_inventory_update_events_unsubscribe(self, factories, ws_client):
+            ws = ws_client.connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -275,9 +289,8 @@ class TestInventoryChannels(ChannelsTest, Base_Api_Test):
 class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.fixture(scope='class')
-        def project_update_and_ws_events(self, request, class_factories, v2_class):
-            ws = WSClient(v2_class.get_authtoken()).connect()
-            request.addfinalizer(ws.close)
+        def project_update_and_ws_events(self, class_factories, class_ws_client):
+            ws = class_ws_client.connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -301,9 +314,8 @@ class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
             assert desired_msg in events
 
         @pytest.mark.ansible_integration
-        def test_project_update_events_unsubscribe(self, request, v2, factories):
-            ws = WSClient(v2.get_authtoken()).connect()
-            request.addfinalizer(ws.close)
+        def test_project_update_events_unsubscribe(self, factories, ws_client):
+            ws = ws_client.connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 

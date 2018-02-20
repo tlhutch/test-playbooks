@@ -1,8 +1,24 @@
+from towerkit.config import config as qe_config
 from towerkit import utils, WSClient
+from towerkit.api import Api
 import pytest
 
 from tests.lib.helpers.workflow_utils import WorkflowTree, WorkflowTreeMapper
 from tests.api import Base_Api_Test
+
+
+@pytest.fixture
+def user_ws_client(request, v2):
+    def _ws_client(user):
+        if qe_config.use_sessions:
+            user_api = Api().load_session(user.username, user.password)
+            kwargs = dict(session_id=user_api.connection.session_id)
+        else:
+            kwargs = dict(token=v2.get_authtoken(user.username, user.password))
+        ws = WSClient(**kwargs)
+        request.addfinalizer(ws.close)
+        return ws
+    return _ws_client
 
 
 @pytest.mark.api
@@ -15,11 +31,10 @@ class TestChannelsRBAC(Base_Api_Test):
             for m in ws:
                 pass
 
-        def test_ad_hoc_command_events_unauthorized_subscription(self, request, factories, v2):
+        def test_ad_hoc_command_events_unauthorized_subscription(self, factories, user_ws_client):
             inventory = factories.v2_host().ds.inventory
             user = factories.v2_user()
-            ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
-            request.addfinalizer(ws.close)
+            ws = user_ws_client(user).connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -35,14 +50,13 @@ class TestChannelsRBAC(Base_Api_Test):
                     assert msg['group_name'] == 'jobs'
 
         @pytest.mark.parametrize('role', ['ad hoc', 'admin', 'read', 'update', 'use'])
-        def test_ad_hoc_command_events_with_allowed_role(self, request, factories, v2, role):
+        def test_ad_hoc_command_events_with_allowed_role(self, factories, user_ws_client, role):
             """Confirm that a user is only alerted of ad hoc events when provided an allowed role"""
             inventory = factories.v2_host().ds.inventory
             user = factories.v2_user()
             assert inventory.set_object_roles(user, role)
 
-            ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
-            request.addfinalizer(ws.close)
+            ws = user_ws_client(user).connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -77,11 +91,10 @@ class TestChannelsRBAC(Base_Api_Test):
 
         @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5158', skip=True)
         @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-        def test_inventory_update_status_changes_with_allowed_role(self, request, factories, v2, role):
+        def test_inventory_update_status_changes_with_allowed_role(self, factories, user_ws_client, role):
             """Confirm that a user is only alerted of inventory source updates statuses when provided an allowed role"""
             user = factories.v2_user()
-            ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
-            request.addfinalizer(ws.close)
+            ws = user_ws_client(user).connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -104,13 +117,12 @@ class TestChannelsRBAC(Base_Api_Test):
             for message in expected_status_changes:
                 assert message in received
 
-        def test_job_events_unauthorized_subscription(self, request, factories, v2):
+        def test_job_events_unauthorized_subscription(self, factories, user_ws_client):
             user = factories.v2_user()
             inventory = factories.v2_host().ds.inventory
             jt = factories.v2_job_template(inventory=inventory)
 
-            ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
-            request.addfinalizer(ws.close)
+            ws = user_ws_client(user).connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -126,15 +138,14 @@ class TestChannelsRBAC(Base_Api_Test):
                     assert msg['group_name'] == 'jobs'
 
         @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
-        def test_job_events_with_allowed_role(self, request, factories, v2, role):
+        def test_job_events_with_allowed_role(self, factories, user_ws_client, role):
             """Confirm that a user is only alerted of job events when provided an allowed role"""
             user = factories.v2_user()
             inventory = factories.v2_host().ds.inventory
             jt = factories.v2_job_template(inventory=inventory)
             assert jt.set_object_roles(user, role)
 
-            ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
-            request.addfinalizer(ws.close)
+            ws = user_ws_client(user).connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -171,11 +182,10 @@ class TestChannelsRBAC(Base_Api_Test):
 
         @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5158', skip=True)
         @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-        def test_project_update_status_changes_with_allowed_role(self, request, factories, v2, role):
+        def test_project_update_status_changes_with_allowed_role(self, factories, user_ws_client, role):
             """Confirm that a user is only alerted of project updates statuses when provided an allowed role"""
             user = factories.v2_user()
-            ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
-            request.addfinalizer(ws.close)
+            ws = user_ws_client(user).connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -197,10 +207,9 @@ class TestChannelsRBAC(Base_Api_Test):
             for message in expected_status_changes:
                 assert message in received
 
-        def test_workflow_events_unauthorized_subscription(self, request, factories, v2):
+        def test_workflow_events_unauthorized_subscription(self, factories, user_ws_client):
             user = factories.v2_user()
-            ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
-            request.addfinalizer(ws.close)
+            ws = user_ws_client(user).connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
@@ -226,7 +235,7 @@ class TestChannelsRBAC(Base_Api_Test):
                     assert msg['group_name'] == 'jobs'
 
         @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
-        def test_workflow_events_with_allowed_role(self, request, factories, v2, role):
+        def test_workflow_events_with_allowed_role(self, factories, user_ws_client, role):
             """Confirm that a user is only alerted of workflow events when provided an allowed role"""
             user = factories.v2_user()
             inventory = factories.v2_host().ds.inventory
@@ -241,8 +250,7 @@ class TestChannelsRBAC(Base_Api_Test):
             failure = root.related.success_nodes.post(dict(unified_job_template=fail_jt.id))
             success = failure.related.failure_nodes.post(dict(unified_job_template=success_jt.id))
 
-            ws = WSClient(v2.get_authtoken(user.username, user.password)).connect()
-            request.addfinalizer(ws.close)
+            ws = user_ws_client(user).connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 

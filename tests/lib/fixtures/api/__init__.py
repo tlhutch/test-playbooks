@@ -1,4 +1,5 @@
 from towerkit.api import get_registered_page
+from towerkit.config import config as qe_config
 import towerkit.tower
 import pytest
 
@@ -75,11 +76,14 @@ def api_authtoken_pg(api_authtoken_url):
 
 
 @pytest.fixture(scope="class")
-def authtoken(connection, v1_class):
+def authtoken(v1_class):
     """Logs in to the application with default credentials"""
-    authtoken = v1_class.get_authtoken()
-    connection.login(token=authtoken)
-    return authtoken
+    if qe_config.use_sessions:
+        v1_class.load_session()
+        return v1_class.connection.session_id
+    token = v1_class.get_authtoken()
+    v1_class.connection.login(token=token)
+    return token
 
 
 # /api/v1/dashboard

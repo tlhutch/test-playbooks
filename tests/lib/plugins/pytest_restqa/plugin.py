@@ -6,6 +6,7 @@ import requests
 import pytest
 import py
 
+from towerkit.tower.utils import uses_sessions
 from towerkit.utils import load_credentials
 from towerkit.api.client import Connection
 from towerkit import config as qe_config
@@ -96,6 +97,7 @@ def pytest_configure(config):
             qe_config.assume_untrusted = config.getvalue('assume_untrusted')
 
             connections['root'] = Connection(qe_config.base_url, verify=not qe_config.assume_untrusted)
+            qe_config.use_sessions = uses_sessions(connections['root'])
 
             if config.option.debug_rest and hasattr(config, '_debug_rest_hdlr'):
                 logger = logging.getLogger('towerkit.api.client')
