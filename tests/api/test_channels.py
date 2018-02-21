@@ -34,12 +34,12 @@ def _ws_client(request, v2):
 
 
 @pytest.fixture(scope='class')
-def class_ws_client(request, v2_class):
+def class_ws_client(request, v2_class, authtoken):
     return _ws_client(request, v2_class)
 
 
 @pytest.fixture
-def ws_client(request, v2):
+def ws_client(request, v2, authtoken):
     return _ws_client(request, v2)
 
 
