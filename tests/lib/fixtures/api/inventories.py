@@ -177,7 +177,6 @@ def azure_inventory_source(azure_group):
 
 @pytest.fixture(scope="function")
 def azure_ad_group(factories, inventory, azure_ad_credential):
-    pytest.skip('Currently without access to Azure AD test account.')
     group = factories.group(name="azure-ad-group-%s" % fauxfactory.gen_alphanumeric(),
                             description="Microsoft Azure %s" % fauxfactory.gen_utf8(),
                             source='azure_rm', inventory=inventory, credential=azure_ad_credential)
@@ -278,9 +277,7 @@ def cloud_group(request):
     ], ids=['aws', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2', 'openstack_v3'])
 def cloud_inventory(request, factories):
     inv_source, cred_fixture = request.param
-    if cred_fixture == 'azure_ad_credential':
-        pytest.skip('Cannot update inventory w/ current Azure AD credential')
-    elif inv_source == 'vmware':
+    if inv_source == 'vmware':
         pytest.skip('Currently without publicly-facing VMware')
 
     cred = request.getfixturevalue(cred_fixture)
@@ -290,8 +287,8 @@ def cloud_inventory(request, factories):
 
 # Convenience fixture that returns all of our cloud_groups as a list
 @pytest.fixture(scope="function")
-def cloud_groups(ansible_os_family, ansible_distribution_major_version, aws_group, azure_group,
-                 openstack_v2_group, openstack_v3_group):  # TODO: Add VMware and Azure AD when possible
+def cloud_groups(ansible_os_family, ansible_distribution_major_version, aws_group, azure_group, azure_ad_group,
+                 openstack_v2_group, openstack_v3_group):  # TODO: Add VMware when possible
     if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6'):
         return [aws_group, gce_group, openstack_v2_group, openstack_v3_group]
     else:
