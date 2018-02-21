@@ -161,7 +161,6 @@ class TestPrompts(Base_Api_Test):
         for cred in schedule_creds.results:
             assert cred.id in launch_cred_ids
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7844')
     def test_cannot_create_schedule_with_jt_with_ask_credential(self, factories):
         cred = factories.v2_credential(ssh_key_data=self.credentials.ssh.encrypted.ssh_key_data, password='ASK',
                                        become_password='ASK', ssh_key_unlock='ASK')
@@ -178,7 +177,7 @@ class TestPrompts(Base_Api_Test):
 
         with pytest.raises(exc.BadRequest) as e:
             create_schedule.post()
-        assert e.value[1]['error'] == 'Information needed to schedule this job is missing.'
+        assert e.value[1]['error'] == 'Cannot create schedule because job requires credential passwords.'
 
     def test_created_schedule_with_jt_with_survey_with_defaults(self, factories):
         jt = factories.v2_job_template()
@@ -421,7 +420,6 @@ class TestPrompts(Base_Api_Test):
         for cred in schedule_creds.results:
             assert cred.id in launch_cred_ids
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7866')
     def test_cannot_create_schedule_from_job_with_missing_jt_dependency(self, factories):
         jt = factories.v2_job_template()
         job = jt.launch().wait_until_completed()
@@ -432,8 +430,9 @@ class TestPrompts(Base_Api_Test):
         assert create_schedule.prompts == dict()
         assert not create_schedule.can_schedule
 
-        with pytest.raises(exc.BadRequest):
+        with pytest.raises(exc.BadRequest) as e:
             create_schedule.post()
+        assert e.value[1]['error'] == 'Cannot create schedule because a related resource is missing.'
 
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7866')
     def test_cannot_create_schedule_from_job_with_missing_ask_jt_dependency(self, factories):
