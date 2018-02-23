@@ -45,7 +45,7 @@
 - name: install playbook dependency rpms
   yum:
     name: '{{item}}'
-    state: installed
+    state: latest
   with_items: '{{ rpm_role_dependencies }}'
   when: ansible_pkg_mgr == 'yum'
 
