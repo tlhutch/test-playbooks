@@ -96,8 +96,12 @@ def pytest_configure(config):
 
             qe_config.assume_untrusted = config.getvalue('assume_untrusted')
 
+            # Making requests with the shared connection is destructive to multiprocessed page fixtures
+            # for an undetermined reason. All pre-run env checks must be done with separate requests session.
+            env_connection = Connection(qe_config.base_url, verify=not qe_config.assume_untrusted)
+            qe_config.use_session = uses_sessions(env_connection)
+
             connections['root'] = Connection(qe_config.base_url, verify=not qe_config.assume_untrusted)
-            qe_config.use_sessions = uses_sessions(connections['root'])
 
             if config.option.debug_rest and hasattr(config, '_debug_rest_hdlr'):
                 logger = logging.getLogger('towerkit.api.client')
