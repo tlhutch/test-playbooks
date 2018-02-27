@@ -76,12 +76,23 @@ class Base_Api_Test(object):
         if isinstance(username, User):
             password = username.password
             username = username.username
+
+        connection = self.connections['root']
         try:
-            previous_auth = self.connections['root'].session.auth
-            self.connections['root'].login(username, password)
+            if config.use_sessions:
+                previous_auth = connection.session.cookies.pop('sessionid')
+                kwargs = connection.get_session_requirements()
+            else:
+                previous_auth = connection.session.auth
+                kwargs = dict()
+            connection.login(username, password, **kwargs)
             yield
         finally:
-            self.connections['root'].session.auth = previous_auth
+            if config.use_sessions:
+                del connection.session.cookies['sessionid']
+                connection.session.cookies['sessionid'] = previous_auth
+            else:
+                connection.session.auth = previous_auth
 
     @contextlib.contextmanager
     def current_instance(self, connection, v=None):
