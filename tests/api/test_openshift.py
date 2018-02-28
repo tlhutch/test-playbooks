@@ -297,10 +297,9 @@ class TestOpenShift(Base_Api_Test):
         tower_pods = self.get_tower_pods()
         assert job.execution_node in tower_pods
 
-    # FIXME: provide teardown
-    # FIXME: we are disabling 100% of the instances, so the pre-job project sync stays pending indefinitely
-    # FIXME: update test plan if necessary
-    def test_jobs_should_not_run_on_disabled_instances(self, factories, v2, tower_instance_group):
+    def test_jobs_should_not_run_on_disabled_instances(self, request, factories, v2):
+        project = factories.v2_project()
+
         self.scale_dc(dc='tower', replicas=2)
         utils.poll_until(lambda: self.get_tower_pods_number() == 2, interval=5, timeout=180)
         utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == 2, interval=5, timeout=600)
@@ -309,18 +308,17 @@ class TestOpenShift(Base_Api_Test):
         instances = v2.instances.get().results
         for instance in instances:
             ig.add_instance(instance)
+            request.addfinalizer(lambda: instance.patch(enabled=True))
             instance.enabled = False
         utils.poll_until(lambda: ig.get().instances == 2, interval=5, timeout=300)
 
-        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True, extra_vars='{"sleep_interval": 60}')
+        jt = factories.v2_job_template(project=project)
         factories.v2_host(inventory=jt.ds.inventory)
         jt.add_instance_group(ig)
-        for _ in range(5):
-            jt.launch()
-        jobs = jt.related.jobs.get()
+        job = jt.launch()
 
         utils.logged_sleep(30)
-        assert jobs.get(status='pending').count == 5
+        assert job.get().status == 'pending'
 
     def test_jobs_should_resume_on_newly_enabled_instances(self, request, v2, factories):
         self.scale_dc(dc='tower', replicas=2)
