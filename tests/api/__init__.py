@@ -3,7 +3,7 @@ import logging
 import re
 
 from towerkit.config import config
-from towerkit.api import User
+from towerkit.tower import utils
 import contextlib
 import pytest
 
@@ -72,27 +72,8 @@ class Base_Api_Test(object):
 
     @contextlib.contextmanager
     def current_user(self, username=None, password=None):
-        """Context manager to allow running tests as an alternative login user."""
-        if isinstance(username, User):
-            password = username.password
-            username = username.username
-
-        connection = self.connections['root']
-        try:
-            if config.use_sessions:
-                previous_auth = connection.session.cookies.pop('sessionid')
-                kwargs = connection.get_session_requirements()
-            else:
-                previous_auth = connection.session.auth
-                kwargs = dict()
-            connection.login(username, password, **kwargs)
+        with utils.as_user(self.connections['root'], username, password):
             yield
-        finally:
-            if config.use_sessions:
-                del connection.session.cookies['sessionid']
-                connection.session.cookies['sessionid'] = previous_auth
-            else:
-                connection.session.auth = previous_auth
 
     @contextlib.contextmanager
     def current_instance(self, connection, v=None):
