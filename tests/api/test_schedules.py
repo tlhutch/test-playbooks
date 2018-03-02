@@ -167,17 +167,24 @@ class TestSchedules(APITest):
         assert schedule.dtend == self.strftime(next_week)
         assert schedule.next_run == rule.next_run
 
-    def test_expected_fields_are_readonly(self, v2, factories):
-        jt = factories.v2_job_template()
-        schedule = jt.add_schedule()
-        schedule.dtstart = 'A new dtstart'
-        schedule.dtend = 'Some dtend'
-        schedule.next_run = 'Next run please'
+    def test_expected_fields_are_readonly(self, factories):
+        schedule = factories.v2_job_template().add_schedule()
+        original_dtstart = schedule.dtstart
+        schedule.dtstart = 'Undesired dtstart'
+        assert schedule.dtstart == original_dtstart
+        original_dtend = schedule.dtend
+        schedule.dtend = 'Undesired dtend'
+        assert schedule.dtend == original_dtend
+        original_next_run = schedule.next_run
+        schedule.next_run = 'Undesired next_run'
+        assert schedule.next_run == original_next_run
+        schedule.json.update(dict(dtstart='Undesired dtstart',
+                                  dtend='Undesired dtend',
+                                  next_run='Undesired next_run'))
         schedule.put()
-        ro_schedule = v2.schedules.get(id=schedule.id).results[0]
-        assert schedule.dtstart == ro_schedule.dtstart
-        assert schedule.dtend == ro_schedule.dtend
-        assert schedule.next_run == ro_schedule.next_run
+        assert schedule.dtstart == original_dtstart
+        assert schedule.dtend == original_dtend
+        assert schedule.next_run == original_next_run
 
     def test_successful_schedule_deletions(self, v2_unified_job_template):
         added_schedules = [v2_unified_job_template.add_schedule() for _ in range(5)]
