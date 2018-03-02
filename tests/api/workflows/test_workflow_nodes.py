@@ -127,11 +127,14 @@ class Test_Workflow_Nodes(Base_Api_Test):
                      variable='test_var_twelve', type='password', min=4, max=4, default='asdfasdf')]
         jt.add_survey(spec=spec)
 
-        with pytest.raises(BadRequest):
+        with pytest.raises(BadRequest) as e:
             factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
                 extra_data=dict(test_var_one='', test_var_two='four', test_var_three='abc',
                                 test_var_four='1', test_var_five='four', test_var_six='asdfasdf',
                                 test_var_seven='$encrypted$', test_var_eight='$encrypted$',
                                 test_var_nine='$encrypted$', test_var_ten='$encrypted$',
                                 test_var_eleven='$encrypted$', test_var_twelve='$encrypted$'))
-        # assert e.value[1] == ???
+        assert e.value[1] == dict(variables_needed_to_start=[
+            "'test_var_one' value  is too small (length is 0 must be at least 7).",
+            "'test_var_two' value four is too large (must be no more than 1).",
+            "'test_var_six' value asdfasdf is too large (must be no more than 4)."])
