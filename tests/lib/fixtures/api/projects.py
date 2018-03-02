@@ -94,14 +94,6 @@ def project_ansible_docsite_git(project_ansible_docsite_git_nowait):
 
 
 @pytest.fixture(scope="function")
-def project_with_credential_prompt(factories, organization, scm_credential_key_unlock_ASK):
-    project = factories.project(scm_type='git', scm_url='git@github.com:ansible/ansible-examples.git',
-                                scm_key_unlock='ASK', credential=scm_credential_key_unlock_ASK,
-                                organization=organization, wait=False)
-    return project
-
-
-@pytest.fixture(scope="function")
 def project_with_schedule(project_ansible_playbooks_git):
     rrule = RRule(dateutil.rrule.DAILY, count=1, byminute='', bysecond='', byhour='')
     project_ansible_playbooks_git.add_schedule(rrule=rrule)
