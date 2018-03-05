@@ -2,7 +2,7 @@ import httplib
 
 from towerkit.utils import version_from_endpoint
 from towerkit.api.client import Connection
-from towerkit.api.schema import validate
+from towerkit.api.schema.schema import validate
 from towerkit.config import config
 import pytest
 

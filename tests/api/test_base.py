@@ -1,6 +1,6 @@
 import httplib
 
-from towerkit.api.schema import validate
+from towerkit.api.schema.schema import validate
 import fauxfactory
 import pytest
 
