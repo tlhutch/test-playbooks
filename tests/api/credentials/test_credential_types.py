@@ -328,6 +328,54 @@ class TestCredentialTypes(Base_Api_Test):
         message = e.value.message[field][0]
         assert 'is not of type' in message or 'Additional properties are not allowed' in message
 
+    @pytest.mark.parametrize('malformed, expected',
+                             [(dict(file=''), "'' is not of type 'object'"),
+                              (dict(file=dict(not_template='123')),
+                               "'not_template' does not match any of the regexes: "
+                               "'^template(\\\\.[a-zA-Z_]+[a-zA-Z0-9_]*)?$'"),
+                              (dict(file=dict(template_not_valid='123')),
+                               "'template_not_valid' does not match any of the regexes: "
+                               "'^template(\\\\.[a-zA-Z_]+[a-zA-Z0-9_]*)?$'"),
+                              (dict(file={'template.not.valid': '123'}),
+                               "'template.not.valid' does not match any of the regexes: "
+                               "'^template(\\\\.[a-zA-Z_]+[a-zA-Z0-9_]*)?$'"),
+                              (dict(file={'template.999': '123'}),
+                               "'template.999' does not match any of the regexes: "
+                               "'^template(\\\\.[a-zA-Z_]+[a-zA-Z0-9_]*)?$'"),
+                              (dict(file={'template': '123', 'template.multi': '234'}),
+                              'Must use multi-file syntax when injecting multiple files'),
+                              (dict(file={'template.multi': '123', 'template.999': '234'}),
+                               "'template.999' does not match any of the regexes: "
+                               "'^template(\\\\.[a-zA-Z_]+[a-zA-Z0-9_]*)?$'")],
+                              ids=('file is empty string', 'not_template', 'template_not_valid',
+                                   'template.not.valid', 'template.999', 'template and template.multi',
+                                   'template.multi and template.999'))
+    def test_confirm_bad_request_on_malformed_file_injectors(self, factories, malformed, expected):
+        with pytest.raises(exc.BadRequest) as e:
+            factories.credential_type(injectors=malformed)
+        assert e.value.message['injectors'][0] == expected
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1265')
+    @pytest.mark.parametrize('injectors, expected',
+                             [(dict(file={'template.exists': '123'},
+                                    extra_vars=dict(extra_var_one='{{ tower.filename.does_not_exist }}')),
+                               "extra_var_one uses an undefined field ('awx.main.fields.TowerNamespace object' "
+                               "has no attribute 'does_not_exist')"),
+                              (dict(file={'template.exists': '123'},
+                                    extra_vars=dict(extra_var_one='{{ tower.filename }}')),
+                               "extra_var_one uses an undefined field ('awx.main.fields.TowerNamespace object' "
+                               "has no attribute 'does_not_exist')"),
+                              (dict(file={'template.exists': '123', 'template.also_exists': '234'},
+                                    extra_vars=dict(extra_var_one='{{ tower.filename }}')),
+                               "extra_var_one uses an undefined field ('awx.main.fields.TowerNamespace object' "
+                               "has no attribute 'does_not_exist')")],
+                             ids=('missing filename', 'tower.filename with multifile templates',
+                                  'tower.filename with multifile templates'))
+    def test_confirm_injector_sourced_tower_files_must_exist(self, factories, injectors, expected):
+        with pytest.raises(exc.BadRequest) as e:
+            factories.credential_type(injectors=injectors)
+        assert e.value.message['injectors'][0] == expected
+
     invalid_vars = ('!In??Valid', '0In**<<Valid', '--invalid--', '.in.valid.', fauxfactory.gen_utf8())
 
     def test_confirm_inputs_must_be_valid(self, factories, v2):

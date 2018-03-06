@@ -1,5 +1,5 @@
 import towerkit.exceptions as exc
-from towerkit.utils import to_str
+from towerkit.utils import to_str, random_title
 import pytest
 
 from tests.api import Base_Api_Test
@@ -117,7 +117,7 @@ class TestCustomCredentials(Base_Api_Test):
                               dict(env=dict(AP_FILE_TO_CAT='{{ tower.filename }}'))],
                              ids=('extra_var', 'env_var'))
     def test_file_injector_path_from_variable(self, factories, injector_var):
-        file_contents = 'THIS IS A FILE!'
+        file_contents = random_title(10000, False)
         injectors = dict(file=dict(template=file_contents))
         injectors.update(injector_var)
         credential_type = factories.credential_type(injectors=injectors)
@@ -132,6 +132,30 @@ class TestCustomCredentials(Base_Api_Test):
 
         stdout = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.cat.stdout
         assert stdout == file_contents
+
+    @pytest.mark.parametrize('injector_var',
+                             [dict(extra_vars=dict(file_to_cat='{{ tower.filename.one }}')),
+                              dict(extra_vars=dict(file_to_cat='{{ tower.filename.two }}')),
+                              dict(env=dict(AP_FILE_TO_CAT='{{ tower.filename.one }}')),
+                              dict(env=dict(AP_FILE_TO_CAT='{{ tower.filename.two }}'))],
+                             ids=('extra_var_file_one', 'extra_var_file_two',
+                                  'env_var_file_one', 'env_var_file_two'))
+    def test_multifile_injector_paths_from_variables(self, factories, injector_var):
+        one_contents, two_contents = [random_title(10000, False) for _ in range(2)]
+        injectors = dict(file={'template.one': one_contents, 'template.two': two_contents})
+        injectors.update(injector_var)
+        credential_type = factories.credential_type(injectors=injectors)
+
+        credential = factories.v2_credential(credential_type=credential_type)
+
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='cat_file.yml')
+        jt.add_extra_credential(credential)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        stdout = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.cat.stdout
+        assert stdout == (one_contents if 'one' in injector_var.values().pop().values().pop() else two_contents)
 
     def test_credential_creation_and_usage_dont_leak_fields_into_activity_stream(self, factories):
         inputs = dict(fields=[dict(id='field_one', label='FieldOne', secret=True),
