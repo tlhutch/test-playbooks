@@ -81,7 +81,7 @@ class SafeStop(object):
 
 @pytest.mark.api
 @pytest.mark.skip_docker
-@pytest.mark.traditional_ha
+@pytest.mark.requires_traditional_ha
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestTraditionalHA(Base_Api_Test):
 
@@ -180,7 +180,6 @@ class TestTraditionalHA(Base_Api_Test):
             assert len(instances) == len(group_mapping[group.name])
             assert set(instances) == set(group_mapping[group.name])
 
-    @pytest.mark.requires_ha
     @pytest.mark.parametrize('resource', ['job_template', 'inventory', 'organization'])
     def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource):
         instance_groups = v2.instance_groups.get().results
@@ -204,7 +203,6 @@ class TestTraditionalHA(Base_Api_Test):
             assert any(execution_host in instance.hostname for instance in instances), \
                 "Job not run on instance in assigned instance group"
 
-    @pytest.mark.requires_ha
     def test_use_fact_cache_with_mutually_exclusive_instance_groups(self, v2, factories):
         instance_groups = v2.instance_groups.get().results
         ig1, ig2 = self.mutually_exclusive_instance_groups(instance_groups)
@@ -224,7 +222,6 @@ class TestTraditionalHA(Base_Api_Test):
         assert use_facts_job.result_stdout.count(ansible_facts.ansible_machine) == 1
         assert use_facts_job.result_stdout.count(ansible_facts.ansible_system) == 1
 
-    @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('base_resource, parent_resource', [('job_template', 'inventory'), ('job_template', 'organization'), ('inventory', 'organization')])
     def test_instance_group_hierarchy(self, v2, factories, base_resource, parent_resource):
@@ -255,7 +252,6 @@ class TestTraditionalHA(Base_Api_Test):
         assert parent_instance_group.get().consumed_capacity > \
             base_instance_group.capacity - base_instance_group.consumed_capacity
 
-    @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
     def test_job_run_against_isolated_node_ensure_viewable_from_all_nodes(self, ansible_module_cls, factories,
                                                                           admin_user, user_password, v2):
@@ -297,7 +293,6 @@ class TestTraditionalHA(Base_Api_Test):
                 stdout = [line for line in job.get().result_stdout.splitlines() if line]
                 assert stdout == canonical_stdout
 
-    @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
     def test_running_jobs_consume_capacity(self, factories, v2, run_on_isolated_group):
@@ -324,7 +319,6 @@ class TestTraditionalHA(Base_Api_Test):
             assert instance.get().consumed_capacity > 0
             assert instance.percent_capacity_remaining == round(float(instance.capacity - instance.consumed_capacity) * 100 / instance.capacity, 1)
 
-    @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
     def test_controller_removal(self, admin_user, ansible_module_cls, factories, user_password, v2):
         """
@@ -394,7 +388,6 @@ class TestTraditionalHA(Base_Api_Test):
             job = jt.launch().wait_until_completed()
             assert job.is_successful
 
-    @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
     def test_instance_removal(self, admin_user, ansible_module_cls, factories, user_password, v2):
         """
@@ -538,7 +531,6 @@ class TestTraditionalHA(Base_Api_Test):
                 job = jt.launch().wait_until_completed()
                 assert job.is_successful
 
-    @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
     @pytest.mark.parametrize('scm_type', ['git', 'svn', 'hg'])
@@ -571,7 +563,6 @@ class TestTraditionalHA(Base_Api_Test):
         assert job.is_successful
 
     @pytest.mark.last
-    @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
     def test_network_partition(self, ansible_module_cls, v2, factories, admin_user):
         """
@@ -678,7 +669,6 @@ class TestTraditionalHA(Base_Api_Test):
         assert jt_during_partition.get().get_related('last_job').id == job_during_partition.id
 
     @pytest.mark.parametrize('setting_endpoint', ['all', 'jobs'])
-    @pytest.mark.requires_ha
     def test_ensure_awx_isolated_key_fields_are_read_only(self, ansible_module_cls, factories, admin_user, user_password, v2, setting_endpoint):
         settings = v2.settings.get().get_endpoint(setting_endpoint)
         assert settings.AWX_ISOLATED_PUBLIC_KEY != '$encrypted$' and len(settings.AWX_ISOLATED_PUBLIC_KEY)
@@ -694,15 +684,16 @@ class TestTraditionalHA(Base_Api_Test):
 
         settings.delete()
         check_settings()
+
         settings.patch(AWX_ISOLATED_PUBLIC_KEY='changed', AWX_ISOLATED_PRIVATE_KEY='changed')
         check_settings()
+
         payload = settings.get().json
         payload.AWX_ISOLATED_PUBLIC_KEY = 'changed'
         payload.AWX_ISOLATED_PRIVATE_KEY = 'changed'
         settings.put(payload)
         check_settings()
 
-    @pytest.mark.requires_ha
     def test_inventory_script_serialization_preserves_escaped_characters(self, factories, v2):
         """Inventory scripts are printed to a file and sent to isolated nodes.
         Test ensures that escaped characters are preserved in the process.
