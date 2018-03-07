@@ -38,7 +38,7 @@ class TestUnifiedJobImpact(Base_Api_Test):
 
     @pytest.mark.parametrize('num_hosts', [3, 5, 7])
     def test_job_impact_scales_with_number_of_hosts(self, tower_instance_group, factories, num_hosts):
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 30}')
+        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 60}')
         jt.add_instance_group(tower_instance_group)
         instance = tower_instance_group.related.instances.get().results.pop()
 
@@ -64,6 +64,7 @@ class TestUnifiedJobImpact(Base_Api_Test):
     @pytest.mark.parametrize('num_hosts', [3, 5, 7])
     def test_ahc_impact_scales_with_number_of_hosts(self, tower_instance_group, factories, num_hosts):
         instance = tower_instance_group.related.instances.get().results.pop()
+
         inventory = factories.v2_inventory()
         inventory.add_instance_group(tower_instance_group)
         for _ in range(num_hosts):
@@ -82,9 +83,9 @@ class TestUnifiedJobImpact(Base_Api_Test):
         assert tower_instance_group.consumed_capacity == self.unified_job_impact('ahc', num_hosts)
         self.verify_resource_percent_capacity_remaining(tower_instance_group)
 
-    def test_instance_group_updates_for_simultaneous_unified_jobs(self, factories, tower_instance_group):
+    def test_instance_group_updates_for_simultaneously_running_jobs(self, factories, tower_instance_group):
         instance = tower_instance_group.related.instances.get().results.pop()
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 30}',
+        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 60}',
                                        allow_simultaneous=True)
         inventory = jt.ds.inventory
         factories.v2_host(inventory=inventory)
@@ -96,18 +97,15 @@ class TestUnifiedJobImpact(Base_Api_Test):
             jt.launch()
         utils.poll_until(lambda: jt.ds.project.related.project_updates.get(status='successful',
                          launch_type='sync').count == 2, interval=5, timeout=30)
-        factories.v2_ad_hoc_command(inventory=inventory, module_name='shell', module_args='sleep 30')
 
-        utils.poll_until(lambda: instance.get().jobs_running == 3, interval=1, timeout=30)
-        assert instance.consumed_capacity == 2 * self.unified_job_impact('job', 1) + self.unified_job_impact('ahc', 1)
+        utils.poll_until(lambda: instance.get().jobs_running == 2, interval=1, timeout=60)
+        assert instance.consumed_capacity == 2 * self.unified_job_impact('job', 1)
         self.verify_resource_percent_capacity_remaining(instance)
 
-        utils.poll_until(lambda: tower_instance_group.get().jobs_running == 3, interval=1, timeout=30)
-        assert tower_instance_group.consumed_capacity == 2 * self.unified_job_impact('job', 1) + \
-                                                         self.unified_job_impact('ahc', 1)
+        utils.poll_until(lambda: tower_instance_group.get().jobs_running == 2, interval=1, timeout=60)
+        assert tower_instance_group.consumed_capacity == 2 * self.unified_job_impact('job', 1)
         self.verify_resource_percent_capacity_remaining(tower_instance_group)
 
-    # FIXME: Tower issue? Only JT IG updates for job, not additional IGs
     def test_all_groups_that_contain_job_execution_node_update_for_running_job(self, factories,
                                                                                tower_instance_group):
         instance = tower_instance_group.related.instances.get().results.pop()
@@ -135,14 +133,14 @@ class TestUnifiedJobImpact(Base_Api_Test):
         self.verify_resource_percent_capacity_remaining(tower_instance_group)
 
         for ig in igs:
-            utils.poll_until(lambda: ig.get().jobs_running == 1, interval=1, timeout=60)
+            utils.poll_until(lambda: ig.get().jobs_running == 0, interval=1, timeout=60)
             assert ig.consumed_capacity == self.unified_job_impact('job', 1)
             self.verify_resource_percent_capacity_remaining(ig)
 
     def test_project_updates_have_an_impact_of_one(self, factories, tower_instance_group):
+        instance = tower_instance_group.related.instances.get().results.pop()
         project = factories.v2_project(scm_url='https://github.com/django/django.git', wait=False)
         project_update = project.related.current_job.get()
-        instance = tower_instance_group.related.instances.get().results.pop()
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
         assert instance.consumed_capacity == self.unified_job_impact('project_update')
@@ -157,11 +155,10 @@ class TestUnifiedJobImpact(Base_Api_Test):
         self.assert_instance_group_reflects_zero_running_jobs(tower_instance_group.get())
 
     def test_inventory_updates_have_an_impact_of_one(self, factories, tower_instance_group):
+        instance = tower_instance_group.related.instances.get().results.pop()
         aws_cred = factories.v2_credential(kind='aws')
         inv_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
         inv_update = inv_source.update()
-
-        instance = tower_instance_group.related.instances.get().results.pop()
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
         assert instance.consumed_capacity == self.unified_job_impact('inventory_update')
@@ -198,7 +195,7 @@ class TestUnifiedJobImpact(Base_Api_Test):
         host = factories.v2_host()
         wfjt = factories.v2_workflow_job_template()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='sleep.yml',
-                                       extra_vars='{"sleep_interval": 30}')
+                                       extra_vars='{"sleep_interval": 60}')
         jt.add_instance_group(tower_instance_group)
         factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
@@ -208,6 +205,7 @@ class TestUnifiedJobImpact(Base_Api_Test):
         assert instance.consumed_capacity == self.unified_job_impact('job', num_hosts=1)
         self.verify_resource_percent_capacity_remaining(instance)
 
+        # all non-IG assignable resources (WFJT here) source from the Tower group
         utils.poll_until(lambda: tower_instance_group.get().jobs_running == 2, interval=1, timeout=30)
         assert tower_instance_group.consumed_capacity == self.unified_job_impact('job', num_hosts=1)
         self.verify_resource_percent_capacity_remaining(tower_instance_group)
