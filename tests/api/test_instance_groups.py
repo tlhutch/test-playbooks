@@ -17,7 +17,7 @@ class TestInstanceGroups(Base_Api_Test):
         ig.percent_capacity_remaining = 77.7
         ig.jobs_running = 777
         ig.instances = 777
-        ig.controller = 'ec2-fake-instance.com'  # FIXME: do we want this?
+        ig.controller = 'ec2-fake-instance.com'
 
         ig.get()
         for field in ('capacity', 'committed_capacity', 'consumed_capacity', 'percent_capacity_remaining',
