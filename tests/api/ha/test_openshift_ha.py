@@ -43,7 +43,7 @@ class TestOpenShiftHA(Base_Api_Test):
         assert ret == 0
 
     @pytest.fixture
-    def tower_ig_contains_all_instances(v2, tower_instance_group):
+    def tower_ig_contains_all_instances(self, v2, tower_instance_group):
         def func():
             return set(instance.id for instance in v2.instances.get().results) == \
                    set(instance.id for instance in tower_instance_group.related.instances.get().results)
@@ -121,7 +121,7 @@ class TestOpenShiftHA(Base_Api_Test):
 
         # verify that jobs run
         jt = factories.v2_job_template()
-        jt.add_instance_group()
+        jt.add_instance_group(tower_instance_group)
         job = jt.launch().wait_until_completed(timeout=180)
         assert job.is_successful
         assert job.execution_node == tower_pod
@@ -158,21 +158,29 @@ class TestOpenShiftHA(Base_Api_Test):
         assert job.is_successful
         assert job.execution_node == tower_pod
 
-    # FIXME: report tower issue
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7934')
     def test_verify_jobs_fail_with_execution_node_death(self, v2, factories):
+        self.scale_dc(dc='tower', replicas=2)
+        utils.poll_until(lambda: self.get_tower_pods_number() == 2, interval=5, timeout=180)
+        utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == 2, interval=5, timeout=600)
+        execution_node = self.get_tower_pods().pop()
+
         ig = factories.instance_group()
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(hostname=execution_node).results.pop()
         ig.add_instance(instance)
 
-        jt = factories.v2_job_template()
+        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 180}')
         jt.add_instance_group(ig)
+        factories.v2_host(inventory=jt.ds.inventory)
+
         job = jt.launch()
 
-        # kill pod
-        ret = subprocess.call('oc delete pod {0}'.format(instance.hostname), shell=True)
+        ret = subprocess.call('oc delete pod {0}'.format(execution_node), shell=True)
         assert ret == 0
 
-        assert job.wait_until_completed().status == 'failed'
+        assert job.wait_until_completed(timeout=600).status == 'failed'
+        assert job.job_explanation == 'Task was marked as running in Tower but was not present in the job queue, ' \
+                                      'so it has been marked as failed.'
 
     def test_jobs_should_distribute_among_tower_instance_group_members(self, factories, v2, tower_instance_group):
         self.scale_dc(dc='tower', replicas=2)
