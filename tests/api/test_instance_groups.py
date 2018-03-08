@@ -10,7 +10,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroups(Base_Api_Test):
 
-    @pytest.raises.github('https://github.com/ansible/ansible-tower/issues/7936')
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7936')
     def test_conflict_exception_when_attempting_to_delete_ig_with_running_job(self, v2, factories):
         instance = v2.instances.get().results.pop()
         ig = factories.instance_group()
