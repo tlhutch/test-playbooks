@@ -17,6 +17,7 @@ class TestInstanceGroups(Base_Api_Test):
         ig.add_instance(instance)
 
         jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 30}')
+        jt.launch()
 
         with pytest.raises(exc.Conflict):
             ig.delete()
