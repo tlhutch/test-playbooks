@@ -9,9 +9,10 @@ from tests.api import Base_Api_Test
 class TestCredentialSearch(Base_Api_Test):
 
     related_search_fields = set(['ad_hoc_commands__search', 'created_by__search', 'credential_type__search',
-                                 'insights_inventories__search', 'inventorysources__search', 'inventoryupdates__search',
-                                 'jobs__search', 'jobtemplates__search', 'modified_by__search', 'organization__search',
-                                 'projects__search', 'projectupdates__search', 'workflowjobnodes__search',
+                                 'insights_inventories__search', 'joblaunchconfigs__search',
+                                 'modified_by__search', 'organization__search',
+                                 'projects__search', 'projectupdates__search', 'schedules__search',
+                                 'unifiedjobs__search', 'unifiedjobtemplates__search', 'workflowjobnodes__search',
                                  'workflowjobtemplatenodes__search'])
 
     def test_desired_related_search_fields(self, v2):
@@ -71,21 +72,21 @@ class TestCredentialSearch(Base_Api_Test):
         cred = factories.v2_credential(kind='aws')
         inv_source = factories.v2_inventory_source(source='ec2', credential=cred)
 
-        self.confirm_sole_credential_in_related_search(v2, cred, inventorysources__search=inv_source.name)
+        self.confirm_sole_credential_in_related_search(v2, cred, unifiedjobtemplates__search=inv_source.name)
 
         inv_source.update().wait_until_completed()
 
-        self.confirm_sole_credential_in_related_search(v2, cred, inventoryupdates__inventory_source__search=inv_source.name)
+        self.confirm_sole_credential_in_related_search(v2, cred, unifiedjobs__search=inv_source.name)
 
     def test_search_by_sourcing_job_template_and_job(self, v2, factories):
         cred = factories.v2_credential()
-        jt = factories.v2_job_template(name=u'unique_jt_{}'.format(fauxfactory.gen_utf8()), credential=cred)
+        jt = factories.v2_job_template(credential=cred)
 
-        self.confirm_sole_credential_in_related_search(v2, cred, jobtemplates__search=jt.name)
+        self.confirm_sole_credential_in_related_search(v2, cred, unifiedjobtemplates__search=jt.name)
 
         jt.launch().wait_until_completed()
 
-        self.confirm_sole_credential_in_related_search(v2, cred, jobs__search=jt.name)
+        self.confirm_sole_credential_in_related_search(v2, cred, unifiedjobs__search=jt.name)
 
     def test_search_by_sourcing_project_and_project_update(self, v2, factories):
         cred = factories.v2_credential(kind='scm')
@@ -99,8 +100,8 @@ class TestCredentialSearch(Base_Api_Test):
 
     def test_search_by_sourcing_workflow_job_template_node_and_workflow_job_node(self, v2, factories):
         cred = factories.v2_credential()
-        jt = factories.v2_job_template(name=u'unique_jt_{}'.format(fauxfactory.gen_utf8()))
-        wfjt = factories.v2_workflow_job_template(name=u'unique_wfjt_{}'.format(fauxfactory.gen_utf8()))
+        jt = factories.v2_job_template(ask_credential_on_launch=True)
+        wfjt = factories.v2_workflow_job_template()
         wfjtn = factories.v2_workflow_job_template_node(workflow_job_template=wfjt,
                                                         credential=cred,
                                                         unified_job_template=jt)

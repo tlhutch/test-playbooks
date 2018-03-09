@@ -33,7 +33,7 @@ class TestCredentialTypes(Base_Api_Test):
         assert injectors.type == 'field'
         assert injectors.label == 'Injectors'
 
-        creating_help_text = options.description.split('Create Credential Types')[1].lower()
+        creating_help_text = options.description.split('Create a Credential Type')[1].lower()
         for desired_type in credential_type_kinds:
             assert desired_type in creating_help_text
         for undesired_type in ('insights', 'ssh', 'scm', 'vault'):
