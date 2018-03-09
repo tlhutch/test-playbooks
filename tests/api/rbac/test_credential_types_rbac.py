@@ -5,6 +5,8 @@ import pytest
 from tests.api import Base_Api_Test
 
 
+@pytest.mark.api
+@pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestCredentialTypesRBAC(Base_Api_Test):
 

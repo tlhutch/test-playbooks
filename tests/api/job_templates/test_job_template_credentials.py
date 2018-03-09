@@ -11,6 +11,7 @@ from tests.api import Base_Api_Test
 log = logging.getLogger(__name__)
 
 
+@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateCredentials(Base_Api_Test):
 

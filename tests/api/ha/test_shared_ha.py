@@ -9,16 +9,15 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.requires_ha
 @pytest.mark.mp_group('SharedHA', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestSharedHA(Base_Api_Test):
 
     @pytest.fixture(autouse=True)
-    def prepare_openshift_environment(self, request, authtoken, v2):
-        # if not any([keyword for keyword in request.keywords.items() if 'requires_openshift_ha' in keyword]):
-        #     return
+    def prepare_openshift_environment(self, authtoken, v2, is_docker):
+        if not is_docker:
+            return
 
         # FIXME: remove 'fo0m4nchU' and update vault file
         ret = subprocess.call('oc login -u jenkins -p fo0m4nchU --insecure-skip-tls-verify=true '
