@@ -99,10 +99,6 @@ class TestSharedHA(Base_Api_Test):
 
     # VERIFY
     def test_jobs_should_distribute_among_partially_overlapping_instance_groups(self, factories, v2):
-        openshift_utils.scale_dc(dc='tower', replicas=3)
-        utils.poll_until(lambda: openshift_utils.get_tower_pods_number() == 3, interval=5, timeout=180)
-        utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == 3, interval=5, timeout=600)
-
         ig1, ig2 = [factories.instance_group() for _ in range(2)]
         instances = v2.instances.get().results
         ig1.add_instance(instances[0])
@@ -129,10 +125,6 @@ class TestSharedHA(Base_Api_Test):
 
     # VERIFY
     def test_jobs_should_distribute_among_completely_overlapping_instance_groups(self, factories, v2):
-        openshift_utils.scale_dc(dc='tower', replicas=2)
-        utils.poll_until(lambda: openshift_utils.get_tower_pods_number() == 2, interval=5, timeout=180)
-        utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == 2, interval=5, timeout=600)
-
         ig1, ig2 = [factories.instance_group() for _ in range(2)]
         instances = v2.instances.get().results
         for ig in (ig1, ig2):
