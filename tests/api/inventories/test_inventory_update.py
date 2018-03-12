@@ -43,10 +43,15 @@ class TestInventoryUpdate(Base_Api_Test):
 
         postlaunch = inventory.related.update_inventory_sources.post()
         azure_update, ec2_update, scm_update = [source.wait_until_completed(timeout=240).related.last_update.get()
-                                                   for source in (azure_source, ec2_source, scm_source)]
-        assert dict(inventory_source=azure_source.id, inventory_update=azure_update.id, status="started") in postlaunch
-        assert dict(inventory_source=ec2_source.id, inventory_update=ec2_update.id, status="started") in postlaunch
-        assert dict(inventory_source=scm_source.id, inventory_update=scm_update.id, status="started") in postlaunch
+                                                for source in (azure_source, ec2_source, scm_source)]
+        filtered_postlaunch = []
+        for launched in postlaunch:
+            filtered_postlaunch.append(dict(inventory_source=launched['inventory_source'],
+                                            inventory_update=launched['inventory_update'],
+                                            status=launched['status']))
+        assert dict(inventory_source=azure_source.id, inventory_update=azure_update.id, status="started") in filtered_postlaunch
+        assert dict(inventory_source=ec2_source.id, inventory_update=ec2_update.id, status="started") in filtered_postlaunch
+        assert dict(inventory_source=scm_source.id, inventory_update=scm_update.id, status="started") in filtered_postlaunch
         assert len(postlaunch.json) == 3
 
         assert azure_update.is_successful
@@ -72,8 +77,12 @@ class TestInventoryUpdate(Base_Api_Test):
 
         postlaunch = inventory.related.update_inventory_sources.post()
         inv_update = inv_source2.wait_until_completed().related.last_update.get()
-        assert dict(inventory_source=inv_source1.id, status="Could not start because `can_update` returned False") in postlaunch
-        assert dict(inventory_source=inv_source2.id, status="started", inventory_update=inv_update.id) in postlaunch
+        for launched in postlaunch:
+            if launched.get('inventory_source') == inv_source1.id:
+                assert launched.get('status') == "Could not start because `can_update` returned False"
+            if launched.get('inventory_source') == inv_source2.id:
+                assert launched.get('status') == "started"
+                assert launched.get('inventory_update', None) == inv_update.id
         assert len(postlaunch.json) == 2
 
         assert not inv_source1.last_updated
@@ -288,14 +297,14 @@ class TestInventoryUpdate(Base_Api_Test):
         assert "TEST" in inv_update.result_stdout
 
     @pytest.mark.parametrize('verbosity, stdout_lines',
-        [(0, ['Re-calling script for hostvars individually.']),
-         (1, ['Loaded 1 groups, 5 hosts', 'Inventory variables unmodified',
-              'Inventory import completed']),
-         (2, ['Reading Ansible inventory source',
-              'Finished loading from source',
-              'Loaded 1 groups, 5 hosts',
-              'Inventory variables unmodified',
-              'Inventory import completed'])], ids=['0-warning', '1-info', '2-debug'])
+                             [(0, ['Re-calling script for hostvars individually.']),
+                              (1, ['Loaded 1 groups, 5 hosts', 'Inventory variables unmodified',
+                                   'Inventory import completed']),
+                              (2, ['Reading Ansible inventory source',
+                                   'Finished loading from source',
+                                   'Loaded 1 groups, 5 hosts',
+                                   'Inventory variables unmodified',
+                                   'Inventory import completed'])], ids=['0-warning', '1-info', '2-debug'])
     def test_update_verbosity(self, is_docker, ansible_version_cmp, factories, verbosity, stdout_lines):
         """Verify inventory source verbosity."""
         if is_docker and verbosity == 0:
@@ -460,7 +469,7 @@ class TestInventoryUpdate(Base_Api_Test):
 
     @pytest.mark.ansible_integration
     @pytest.mark.parametrize("only_group_by, expected_group_names",
-                             [("", ["accounts", "ec2", "images", "instance_states", "keys", "regions",
+                             [("", ["accounts", "ec2", "images", "instance_states", "keys", "platforms", "regions",
                                     "security_groups", "tags", "types", "vpcs", "zones"],),
                               ("availability_zone", ["ec2", "zones"],),
                               ("ami_id", ["ec2", "images"],),
