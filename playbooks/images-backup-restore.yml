@@ -1,13 +1,13 @@
 ---
 ec2_images:
     - name: tower-backup-centos-7.latest
-      id: ami-61bbf104
+      id: ami-4bf3d731
       type: m3.medium
       groups: 'tower,backup'
       user: centos
       security_group: Tower
     - name: tower-restore-centos-7.latest
-      id: ami-61bbf104
+      id: ami-4bf3d731
       type: m3.medium
       groups: 'tower,restore'
       user: centos

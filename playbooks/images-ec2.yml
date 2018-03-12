@@ -14,7 +14,7 @@ ec2_images:
     - {'name': 'centos-6.latest-x86_64', 'user': 'centos',      'id': 'ami-57cd8732', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     - {'name': 'centos-7.0-x86_64',      'user': 'centos',      'id': 'ami-96a818fe', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     # Latest CentOS7: need to confirm that the ami id remains valid when the image is updated
-    - {'name': 'centos-7.latest-x86_64', 'user': 'centos',      'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
+    - {'name': 'centos-7.latest-x86_64', 'user': 'centos',      'id': 'ami-4bf3d731', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     - {'name': 'rhel-6.5-x86_64',        'user': 'ec2-user',    'id': 'ami-8d756fe4', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     - {'name': 'rhel-6.6-x86_64',        'user': 'ec2-user',    'id': 'ami-aed06ac6', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     - {'name': 'rhel-6.7-x86_64',        'user': 'ec2-user',    'id': 'ami-0d28fe66', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
