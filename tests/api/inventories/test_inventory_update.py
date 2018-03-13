@@ -78,11 +78,13 @@ class TestInventoryUpdate(Base_Api_Test):
         postlaunch = inventory.related.update_inventory_sources.post()
         inv_update = inv_source2.wait_until_completed().related.last_update.get()
         for launched in postlaunch:
-            if launched.get('inventory_source') == inv_source1.id:
-                assert launched.get('status') == "Could not start because `can_update` returned False"
-            if launched.get('inventory_source') == inv_source2.id:
-                assert launched.get('status') == "started"
-                assert launched.get('inventory_update', None) == inv_update.id
+            if launched['inventory_source'] == inv_source1.id:
+                assert launched['status'] == "Could not start because `can_update` returned False"
+            elif launched['inventory_source'] == inv_source2.id:
+                assert launched['status'] == "started"
+                assert launched['inventory_update'] == inv_update.id
+            else:
+                pytest.fail('Found unexpected inventory source update: {}'.format(launched))
         assert len(postlaunch.json) == 2
 
         assert not inv_source1.last_updated
