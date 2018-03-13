@@ -55,7 +55,7 @@ class TestSharedHA(Base_Api_Test):
         job_execution_nodes = set([job.execution_node for job in jobs.results])
         assert set(tower_pods) == set(job_execution_nodes)
 
-    def test_jobs_should_distribute_among_new_instance_group_members(self, factories, v2, tower_instance_group):
+    def test_jobs_should_distribute_among_new_instance_group_members(self, factories, v2):
         ig = factories.instance_group()
         instances = random.sample(v2.instances.get().results, 3)
         for instance in instances:
@@ -68,6 +68,24 @@ class TestSharedHA(Base_Api_Test):
             jt.launch()
         jobs = jt.related.jobs.get()
         utils.poll_until(lambda: jobs.get(status='successful').count == 9, interval=5, timeout=300)
+
+        job_execution_nodes = set([job.execution_node for job in jobs.results])
+        assert set([instance.hostname for instance in instances]) == set(job_execution_nodes)
+
+    def test_ahcs_should_distribute_among_new_instance_group_members(self, factories, v2):
+        import pdb; pdb.set_trace()
+        ig = factories.instance_group()
+        instances = random.sample(v2.instances.get().results, 3)
+        for instance in instances:
+            ig.add_instance(instance)
+
+        host = factories.v2_host()
+        host.ds.inventory.add_instance_group(ig)
+
+        for _ in range(9):
+            factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='ping')
+        utils.poll_until(lambda: jobs.get(status='successful').count == 9, interval=5, timeout=300)
+        import pdb; pdb.set_trace()
 
         job_execution_nodes = set([job.execution_node for job in jobs.results])
         assert set([instance.hostname for instance in instances]) == set(job_execution_nodes)
@@ -253,3 +271,17 @@ class TestSharedHA(Base_Api_Test):
 
         assert job.wait_until_completed(timeout=180).is_successful
         assert job.execution_node == instance.hostname
+
+    @pytest.mark.parametrize('instance_percentage, expected_num_instances', [(0, 0), (50, 3), (100, 5)])
+    def test_correct_instances_with_newly_ig_with_policy_instance_percentage(self, factories, instance_percentage,
+                                                                             expected_num_instances):
+        ig = factories.instance_group(policy_instance_percentage=instance_percentage)
+        assert ig.instances == expected_num_instances
+        assert ig.related.instances.get().count == expected_num_instances
+
+    @pytest.mark.parametrize('instance_minimum, expected_num_instances', [(0, 0), (3, 2), (5, 5)])
+    def test_correct_instances_with_new_ig_with_policy_instance_minimum(self, factories, instance_minimum,
+                                                                        expected_num_instances):
+        ig = factories.instance_group(policy_instance_minimum=instance_minimum)
+        assert ig.instances == expected_num_instances
+        assert ig.related.instances.get().count == expected_num_instances
