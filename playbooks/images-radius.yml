@@ -4,8 +4,8 @@ instance_name_prefix: "{{ lookup('env','USER') }}-tower-radius"
 my_inventory_file: '{{ inventory_dir }}/inventory.radius'
 
 ec2_images:
-    - {'name': 'centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'Tower' }
-    - {'name': 'freeradius-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-61bbf104', 'type': 'm3.medium', 'groups': 'radius', 'security_group': 'RADIUS'}
+    - {'name': 'centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-4bf3d731', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'Tower' }
+    - {'name': 'freeradius-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-4bf3d731', 'type': 'm3.medium', 'groups': 'radius', 'security_group': 'RADIUS'}
 
 ec2_security_groups:
     - name: Tower
