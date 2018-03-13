@@ -28,6 +28,7 @@ ec2_images:
     - {'name': 'ubuntu-16.04-x86_64',    'user': 'ubuntu',      'id': 'ami-e3c3b8f4', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower', 'user_data': *install_py2 }
     - {'name': 'ol-6.7-x86_64',          'user': 'ec2-user',    'id': 'ami-e9c98683', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     - {'name': 'ol-7.2-x86_64',          'user': 'ec2-user',    'id': 'ami-b9c38ad3', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
+    - {'name': 'ol-7.4-x86_64',          'user': 'ec2-user',    'id': 'ami-75bde60f', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
 
 _ec2_elastic_ips:
     - {'name': 'rhel-7.2-x86_64', 'eip': '35.169.222.27'}
