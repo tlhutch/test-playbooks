@@ -41,6 +41,7 @@ class Test_Workflow_Nodes(Base_Api_Test):
 
         for sjt in system_jts.results:
             wfjt.related.workflow_nodes.post(dict(unified_job_template=sjt.id))
+        assert wfjt.related.workflow_nodes.get().count == system_jts.count
 
     def test_workflow_job_template_node_cannot_be_created_without_wfjt(self, factories, api_workflow_job_template_nodes_pg):
         jt = factories.job_template()
