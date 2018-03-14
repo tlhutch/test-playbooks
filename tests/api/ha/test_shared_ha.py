@@ -271,17 +271,3 @@ class TestSharedHA(Base_Api_Test):
 
         assert job.wait_until_completed(timeout=180).is_successful
         assert job.execution_node == instance.hostname
-
-    @pytest.mark.parametrize('instance_percentage, expected_num_instances', [(0, 0), (50, 3), (100, 5)])
-    def test_correct_instances_with_newly_ig_with_policy_instance_percentage(self, factories, instance_percentage,
-                                                                             expected_num_instances):
-        ig = factories.instance_group(policy_instance_percentage=instance_percentage)
-        assert ig.instances == expected_num_instances
-        assert ig.related.instances.get().count == expected_num_instances
-
-    @pytest.mark.parametrize('instance_minimum, expected_num_instances', [(0, 0), (3, 2), (5, 5)])
-    def test_correct_instances_with_new_ig_with_policy_instance_minimum(self, factories, instance_minimum,
-                                                                        expected_num_instances):
-        ig = factories.instance_group(policy_instance_minimum=instance_minimum)
-        assert ig.instances == expected_num_instances
-        assert ig.related.instances.get().count == expected_num_instances
