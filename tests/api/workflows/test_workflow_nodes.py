@@ -34,13 +34,13 @@ class Test_Workflow_Nodes(Base_Api_Test):
         with pytest.raises(BadRequest):
             wfjt.related.workflow_nodes.post(dict(unified_job_template=wfjt.id))
 
-    def test_workflow_job_template_node_cannot_contain_system_job_template(self, factories, api_system_job_templates_pg):
+    def test_workflow_job_template_nodes_can_contain_system_job_templates(self, factories, api_system_job_templates_pg):
         wfjt = factories.workflow_job_template()
         system_jts = api_system_job_templates_pg.get()
-        assert system_jts.results, 'Failed to locate any system job templates'
-        system_jt = system_jts.results.pop()
-        with pytest.raises(BadRequest):
-            wfjt.related.workflow_nodes.post(dict(unified_job_template=system_jt.id))
+        assert system_jts.results, 'Failed to locate any system job templates.'
+
+        for sjt in system_jts.results:
+            wfjt.related.workflow_nodes.post(dict(unified_job_template=sjt.id))
 
     def test_workflow_job_template_node_cannot_be_created_without_wfjt(self, factories, api_workflow_job_template_nodes_pg):
         jt = factories.job_template()
