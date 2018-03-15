@@ -65,7 +65,7 @@ class TestSchedules(APITest):
             ('FREQ=MINUTELY;INTERVAL=10;COUNT=5',
              'Valid DTSTART required in rrule. Value should start with: DTSTART:YYYYMMDDTHHMMSSZ'),
             ('DTSTART:20240331T075000Z RRULE:FREQ=DAILY;INTERVAL=1;COUNT=10000000', 'COUNT > 999 is unsupported.'),
-            ('DTSTART;TZID=US-Eastern:19961105T090000 RRULE:FREQ=MINUTELY;INTERVAL=10;COUNT=5',
+            ('DTSTART;TZID=Not-A-Real-Timezone:19961105T090000 RRULE:FREQ=MINUTELY;INTERVAL=10;COUNT=5',
              'rrule parsing failed validation: Offset must be tzinfo subclass, tz string, or int offset.'),
             ('DTSTART:20140331T055000Z RRULE:FREQ=SECONDLY;INTERVAL=1', 'SECONDLY is not supported.'),
             ('DTSTART:20140331T055000Z RRULE:FREQ=SECONDLY', 'INTERVAL required in rrule.'),
