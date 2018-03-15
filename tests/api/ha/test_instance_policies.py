@@ -1,3 +1,4 @@
+from collections import Counter
 import random
 
 from towerkit import utils
@@ -79,8 +80,7 @@ class TestInstancePolicies(Base_Api_Test):
         assert ig_instances.count == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
-    def test_correct_instances_with_existing_ig_with_updated_policity_instance_list(self, factories,
-                                                                                    tower_instance_hostnames):
+    def test_correct_instances_with_existing_ig_with_updated_policy_instance_list(self, factories, tower_instance_hostnames):
         ig = factories.instance_group()
         assert ig.instances == 0
 
@@ -90,6 +90,52 @@ class TestInstancePolicies(Base_Api_Test):
         ig_instance_hostnames = [instance.hostname for instance in ig_instances]
         assert ig_instances.count == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
+
+    def test_single_instances_are_distributed_evenly_with_ig_with_policy_instance_percentage(self, factories,
+                                                                                             tower_instance_hostnames):
+        sourced_instances = []
+        for _ in range(5):
+            ig = factories.instance_group(policy_instance_percentage=20)
+            utils.poll_until(lambda: ig.get().instances == 1, interval=1, timeout=30)
+            sourced_instances.append(ig.related.instances.get().results.pop().hostname)
+        assert set(sourced_instances) == set(tower_instance_hostnames)
+
+    def test_single_instances_are_distributed_evenly_with_ig_with_policy_instance_minimum(self, factories,
+                                                                                          tower_instance_hostnames):
+        sourced_instances = []
+        for _ in range(5):
+            ig = factories.instance_group(policy_instance_minimum=1)
+            utils.poll_until(lambda: ig.get().instances == 1, interval=1, timeout=30)
+            sourced_instances.append(ig.related.instances.get().results.pop().hostname)
+        assert set(sourced_instances) == set(tower_instance_hostnames)
+
+    def test_multiple_instances_are_distributed_evenly_with_ig_with_policy_instance_percentage(self, factories,
+                                                                                               tower_instance_hostnames):
+        total_hostnames = []
+        for _ in range(5):
+            ig = factories.instance_group(policy_instance_percentage=60)
+            utils.poll_until(lambda: ig.get().instances == 3, interval=1, timeout=30)
+            ig_hostnames = [i.hostname for i in ig.related.instances.get().results]
+            total_hostnames += ig_hostnames
+            assert len(set(ig_hostnames)) == 3
+
+        counter = Counter(total_hostnames)
+        for hostname in counter:
+            assert counter[hostname] == 3
+
+    def test_multiple_instances_are_distributed_evenly_with_ig_with_policy_instance_minimum(self, factories,
+                                                                                            tower_instance_hostnames):
+        total_hostnames = []
+        for _ in range(5):
+            ig = factories.instance_group(policy_instance_minimum=3)
+            utils.poll_until(lambda: ig.get().instances == 3, interval=1, timeout=30)
+            ig_hostnames = [i.hostname for i in ig.related.instances.get().results]
+            total_hostnames += ig_hostnames
+            assert len(set(ig_hostnames)) == 3
+
+        counter = Counter(total_hostnames)
+        for hostname in counter:
+            assert counter[hostname] == 3
 
     def test_manual_instance_association_updates_instance_group_attributes(self, factories, v2):
         ig = factories.instance_group()
