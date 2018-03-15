@@ -1,5 +1,7 @@
 import random
 
+from towerkit import utils
+from tests.lib.helpers import openshift_utils
 import pytest
 
 from tests.api import Base_Api_Test
@@ -7,6 +9,7 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.requires_ha
+@pytest.mark.mp_group('TestInstancePolicies', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstancePolicies(Base_Api_Test):
 
@@ -117,3 +120,41 @@ class TestInstancePolicies(Base_Api_Test):
         assert ig_instances.count == 4
         assert len(ig_instances.results) == 4
         assert instance.hostname not in ig_instance_hostnames
+
+    @pytest.mark.requires_openshift_ha
+    def test_instance_groups_update_for_newly_spawned_instance(self, factories, v2):
+        assert v2.instances.get().count == 5
+
+        pct_ig = factories.instance_group(policy_instance_percentage=100)
+        min_ig = factories.instance_group(policy_instance_minimum=5)
+        mixed_policy_ig = factories.instance_group(policy_instance_percentage=100,
+                                                   policy_instance_minimum=5)
+
+        assert pct_ig.instances == 5
+        assert min_ig.instances == 5
+        assert mixed_policy_ig.instances == 5
+
+        openshift_utils.scale_dc(dc='tower', replicas=6)
+
+        utils.poll_until(lambda: pct_ig.get().instances == 6, interval=1, timeout=60)
+        utils.poll_until(lambda: min_ig.get().instances == 6, interval=1, timeout=60)
+        utils.poll_until(lambda: mixed_policy_ig.get().instances == 6, interval=1, timeout=60
+
+    @pytest.mark.requires_openshift_ha
+    def test_instance_groups_update_for_newly_spawned_instance(self, factories, v2):
+        assert v2.instances.get().count == 6
+
+        pct_ig = factories.instance_group(policy_instance_percentage=100)
+        min_ig = factories.instance_group(policy_instance_minimum=5)
+        mixed_policy_ig = factories.instance_group(policy_instance_percentage=100,
+                                                   policy_instance_minimum=5)
+
+        assert pct_ig.instances == 6
+        assert min_ig.instances == 6
+        assert mixed_policy_ig.instances == 6
+
+        openshift_utils.scale_dc(dc='tower', replicas=5)
+
+        utils.poll_until(lambda: pct_ig.get().instances == 5, interval=1, timeout=60)
+        utils.poll_until(lambda: min_ig.get().instances == 5, interval=1, timeout=60)
+        utils.poll_until(lambda: mixed_policy_ig.get().instances == 5, interval=1, timeout=60
