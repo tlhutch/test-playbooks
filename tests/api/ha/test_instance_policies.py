@@ -83,7 +83,6 @@ class TestInstancePolicies(Base_Api_Test):
                                                                                     tower_instance_hostnames):
         ig = factories.instance_group()
         assert ig.instances == 0
-        assert ig.policy_instance_list == []
 
         ig.policy_instance_list = tower_instance_hostnames
 
@@ -121,6 +120,43 @@ class TestInstancePolicies(Base_Api_Test):
         assert len(ig_instances.results) == 4
         assert instance.hostname not in ig_instance_hostnames
 
+    def test_manual_association_removes_instance_from_consideration_from_other_igs(self, factories, v2):
+        pct_ig = factories.instance_group(policy_instance_percentage=100)
+        min_ig = factories.instance_group(policy_instance_minimum=5)
+        mixed_policy_ig = factories.instance_group(policy_instance_percentage=100,
+                                                   policy_instance_minimum=5)
+
+        for ig in (pct_ig, min_ig, mixed_policy_ig):
+            assert ig.get().instances == 5
+
+        ig = factories.instance_group()
+        instance = v2.instances.get().results.pop()
+        ig.add_instance(instance)
+
+        for ig in (pct_ig, min_ig, mixed_policy_ig):
+            assert ig.get().instances == 4
+            assert instance.hostname not in [i.hostname for i in ig.results]
+
+    def test_manual_disassociation_instroduces_instance_to_consideration_from_other_igs(self, factories, v2):
+        ig = factories.instance_group()
+        instance = v2.instances.get().results.pop()
+        ig.add_instance(instance)
+
+        pct_ig = factories.instance_group(policy_instance_percentage=100)
+        min_ig = factories.instance_group(policy_instance_minimum=5)
+        mixed_policy_ig = factories.instance_group(policy_instance_percentage=100,
+                                                   policy_instance_minimum=5)
+
+        for ig in (pct_ig, min_ig, mixed_policy_ig):
+            assert ig.get().instances == 4
+            assert instance.hostname not in [i.hostname for i in ig.results]
+
+        ig.remove_instance(instance)
+
+        for ig in (pct_ig, min_ig, mixed_policy_ig):
+            assert ig.get().instances == 5
+            assert instance.hostname in [i.hostname for i in ig.results]
+
     @pytest.mark.requires_openshift_ha
     def test_instance_groups_update_for_newly_spawned_instance(self, factories, v2):
         assert v2.instances.get().count == 5
@@ -138,10 +174,10 @@ class TestInstancePolicies(Base_Api_Test):
 
         utils.poll_until(lambda: pct_ig.get().instances == 6, interval=1, timeout=60)
         utils.poll_until(lambda: min_ig.get().instances == 6, interval=1, timeout=60)
-        utils.poll_until(lambda: mixed_policy_ig.get().instances == 6, interval=1, timeout=60
+        utils.poll_until(lambda: mixed_policy_ig.get().instances == 6, interval=1, timeout=60)
 
     @pytest.mark.requires_openshift_ha
-    def test_instance_groups_update_for_newly_spawned_instance(self, factories, v2):
+    def test_instance_groups_update_for_newly_removed_instance(self, factories, v2):
         assert v2.instances.get().count == 6
 
         pct_ig = factories.instance_group(policy_instance_percentage=100)
@@ -157,4 +193,4 @@ class TestInstancePolicies(Base_Api_Test):
 
         utils.poll_until(lambda: pct_ig.get().instances == 5, interval=1, timeout=60)
         utils.poll_until(lambda: min_ig.get().instances == 5, interval=1, timeout=60)
-        utils.poll_until(lambda: mixed_policy_ig.get().instances == 5, interval=1, timeout=60
+        utils.poll_until(lambda: mixed_policy_ig.get().instances == 5, interval=1, timeout=60)
