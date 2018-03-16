@@ -63,6 +63,25 @@ class TestInstancePolicies(Base_Api_Test):
         assert len(ig_instance_hostnames) == len(instances)
         assert set(ig_instance_hostnames) < set(tower_instance_hostnames)
 
+    def test_correct_instances_with_new_ig_with_multiple_rules(self, factories, v2, tower_instance_hostnames):
+        ig = factories.instance_group(policy_instance_percentage=20, policy_instance_minimum=3,
+                                      policy_instance_list=tower_instance_hostnames)
+        utils.poll_until(lambda: ig.get().instances == 5, interval=1, timeout=30)
+        assert set(ig.policy_instance_list) == set(tower_instance_hostnames)
+
+        ig_instances = ig.related.instances.get()
+        ig_instance_hostnames = [instance.hostname for instance in ig_instances.results]
+        assert ig_instances.count == 5
+        assert len(ig_instance_hostnames) == 5
+        assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
+
+        instances = v2.instances.get().results
+        for instance in instances:
+            ig.remove_instance(instance)
+        utils.poll_until(lambda: ig.get().instances == 0, interval=1, timeout=30)
+        assert ig_instances.get().count == 0
+        assert ig.policy_instance_list == []
+
     @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7950')
     def test_correct_instances_with_existing_ig_with_updated_policy_instance_percentage(self, factories,
                                                                                         tower_instance_hostnames):
@@ -113,6 +132,7 @@ class TestInstancePolicies(Base_Api_Test):
             sourced_instances.append(ig.related.instances.get().results.pop().hostname)
         assert set(sourced_instances) == set(tower_instance_hostnames)
 
+    # fails sometimes
     def test_single_instances_are_distributed_evenly_with_ig_with_policy_instance_minimum(self, factories,
                                                                                           tower_instance_hostnames):
         sourced_instances = []
@@ -218,7 +238,6 @@ class TestInstancePolicies(Base_Api_Test):
             utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
             assert instance.hostname in [i.hostname for i in igroup.related.instances.get().results]
 
-    # FIXME
     @pytest.mark.requires_openshift_ha
     def test_instance_groups_update_for_newly_spawned_instance(self, factories, v2):
         assert v2.instances.get().count == 5
@@ -231,13 +250,13 @@ class TestInstancePolicies(Base_Api_Test):
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
             utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
 
+        openshift_utils.prep_environment()
         openshift_utils.scale_dc(dc='tower', replicas=6)
         utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == 6, interval=5, timeout=600)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
             utils.poll_until(lambda: igroup.get().instances == 6, interval=1, timeout=30)
 
-    # FIXME
     @pytest.mark.requires_openshift_ha
     def test_instance_groups_update_for_newly_removed_instance(self, factories, v2):
         assert v2.instances.get().count == 6
@@ -250,6 +269,7 @@ class TestInstancePolicies(Base_Api_Test):
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
             utils.poll_until(lambda: igroup.get().instances == 6, interval=1, timeout=30)
 
+        openshift_utils.prep_environment()
         openshift_utils.scale_dc(dc='tower', replicas=5)
         utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == 5, interval=5, timeout=600)
 

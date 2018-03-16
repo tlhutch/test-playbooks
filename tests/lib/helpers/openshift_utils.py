@@ -3,6 +3,15 @@ import subprocess
 from openshift.helper.openshift import OpenShiftObjectHelper
 
 
+def prep_environment():
+    ret = subprocess.call('oc login -u jenkins -p fo0m4nchU --insecure-skip-tls-verify=true '
+                          'https://console.openshift.ansible.eng.rdu2.redhat.com', shell=True)
+    assert ret == 0
+
+    ret = subprocess.call('oc project tower-qe', shell=True)
+    assert ret == 0
+
+
 def get_pods():
     client = OpenShiftObjectHelper(api_version='v1', kind='pod_list')
     ret = client.get_object(namespace='tower-qe')
