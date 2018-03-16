@@ -17,4 +17,5 @@ pytest-cov
 pytest-github
 pytest-ordering
 python-dateutil
+pytz
 git+ssh://git@github.com/ansible/towerkit.git

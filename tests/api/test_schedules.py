@@ -8,6 +8,7 @@ import pytest
 from towerkit import exceptions as exc
 from towerkit.rrule import RRule
 from towerkit.utils import poll_until, random_title
+import pytz
 
 from tests.api import APITest
 
@@ -66,7 +67,7 @@ class TestSchedules(APITest):
              'Valid DTSTART required in rrule. Value should start with: DTSTART:YYYYMMDDTHHMMSSZ'),
             ('DTSTART:20240331T075000Z RRULE:FREQ=DAILY;INTERVAL=1;COUNT=10000000', 'COUNT > 999 is unsupported.'),
             ('DTSTART;TZID=Not-A-Real-Timezone:19961105T090000 RRULE:FREQ=MINUTELY;INTERVAL=10;COUNT=5',
-             'rrule parsing failed validation: Offset must be tzinfo subclass, tz string, or int offset.'),
+             'rrule parsing failed validation: A valid TZID must be provided (e.g., America/New_York)'),
             ('DTSTART:20140331T055000Z RRULE:FREQ=SECONDLY;INTERVAL=1', 'SECONDLY is not supported.'),
             ('DTSTART:20140331T055000Z RRULE:FREQ=SECONDLY', 'INTERVAL required in rrule.'),
             ('DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYDAY=20MO;INTERVAL=1',
@@ -223,6 +224,74 @@ class TestSchedules(APITest):
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
         assert schedule.get().next_run is None
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7970')
+    def test_schedule_preview_accounts_for_missing_dst_hour(self, v2):
+        schedules = v2.schedules.get()
+        dst_starts = ('20190310', '20200308', '20210314', '20220313',
+                      '20230312', '20240310', '20250309', '20260308',
+                      '20270314', '20280312', '20290311')
+        for dst_start in dst_starts:
+            rule = 'DTSTART;TZID=America/New_York:{}T013000 RRULE:FREQ=HOURLY;INTERVAL=1;COUNT=3'.format(dst_start)
+            prev = schedules.preview(rule)
+            assert '06:30:00Z' in prev.utc[0]
+            assert '07:30:00Z' in prev.utc[1]
+            assert '08:30:00Z' in prev.utc[2]
+            assert '01:30:00-05:00' in prev.local[0]
+            assert '03:30:00-04:00' in prev.local[1]
+            assert '04:30:00-04:00' in prev.local[2]
+
+    def test_schedule_preview_accounts_for_repeated_dst_hour(self, v2):
+        schedules = v2.schedules.get()
+        dst_ends = ('20191103', '20211107', '20221106', '20231105',
+                    '20241103', '20251102', '20261101', '20271107',
+                    '20281105', '20291104')
+        for dst_end in dst_ends:
+            rule = 'DTSTART;TZID=America/New_York:{}T013000 RRULE:FREQ=HOURLY;INTERVAL=1;COUNT=3'.format(dst_end)
+            prev = schedules.preview(rule)
+            assert '05:30:00Z' in prev.utc[0]
+            assert '07:30:00Z' in prev.utc[1]
+            assert '08:30:00Z' in prev.utc[2]
+            assert '01:30:00-04:00' in prev.local[0]
+            assert '02:30:00-05:00' in prev.local[1]
+            assert '03:30:00-05:00' in prev.local[2]
+
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7971')
+    def test_schedule_preview_supports_all_zoneinfo_provided_zones(self, v2):
+        schedules = v2.schedules.get()
+        zones = [zi['name'] for zi in schedules.get_zoneinfo()]
+        assert zones
+
+        dt = datetime(2400, 1, 1, 0, 0, 1)
+
+        from towerkit.utils import UTC
+        utc = UTC()
+
+        offsets = ['+0000', '+0100', '+0200', '+0300', '+0330', '+0400', '+0430', '+0500', '+0530', '+0545', '+0600', '+0630',
+                   '+0700', '+0800', '+0830', '+0845', '+0900', '+0930', '+1000', '+1030', '+1100', '+1200', '+1300', '+1345',
+                   '+1400', '-0100', '-0200', '-0300', '-0330', '-0400', '-0500', '-0600', '-0700', '-0800', '-0900', '-0930',
+                   '-1000', '-1100', '-1200']
+
+        def expected_utc(offset):
+            return parse('2400 1 1 0:0:1 {}'.format(offset)).astimezone(utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        def expected_local(offset):
+            return '2400-01-01T00:00:01{}:{}'.format(offset[:3], offset[3:]) if offset != '+0000' else '2400-01-01T00:00:01Z'
+
+        expected_times = {offset: (expected_utc(offset), expected_local(offset)) for offset in offsets}
+
+        for zone in zones:
+            rule = 'DTSTART;TZID={}:24000101T000001 RRULE:FREQ=HOURLY;INTERVAL=1;COUNT=1'.format(zone)
+            prev = schedules.preview(rule)
+            try:
+                expected_offset = pytz.timezone(zone).localize(dt).strftime('%z')
+            except pytz.UnknownTimeZoneError:
+                continue
+            expected = expected_times[expected_offset]
+            assert prev.utc[0] == expected[0]
+            assert prev.local[0] == expected[1]
+            assert len(prev.utc) == 1
+            assert len(prev.local) == 1
 
 
 @pytest.mark.api
