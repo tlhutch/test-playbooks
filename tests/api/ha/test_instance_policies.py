@@ -238,6 +238,26 @@ class TestInstancePolicies(Base_Api_Test):
             utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
             assert instance.hostname in [i.hostname for i in igroup.related.instances.get().results]
 
+    def test_tower_instance_group_unaffected_by_manual_association_to_other_igs(self, factories, v2,
+                                                                                tower_instance_group):
+        tower_ig_instances = tower_instance_group.related.instances.get()
+        assert tower_instance_group.instances == 5
+        assert tower_ig_instances.count == 5
+
+        ig = factories.instance_group()
+        instance = v2.instances.get().results.pop()
+        ig.add_instance(instance)
+        utils.poll_until(lambda: ig.get().instances == 1, interval=1, timeout=30)
+
+        assert tower_instance_group.get().instances == 5
+        assert tower_ig_instances.get().count == 5
+
+        ig.remove_instance(instance)
+        utils.poll_until(lambda: ig.get().instances == 0, interval=1, timeout=30)
+
+        assert tower_instance_group.get().instances == 5
+        assert tower_ig_instances.get().count == 5
+
     @pytest.mark.requires_openshift_ha
     def test_instance_groups_update_for_newly_spawned_instance(self, factories, v2):
         assert v2.instances.get().count == 5
