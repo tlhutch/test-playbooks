@@ -1,23 +1,23 @@
 ---
 ad_hoc_command:
-  ad hoc: {delete: false, start: true}
-  admin: {delete: false, start: true}
-  read: {delete: false, start: false}
-  update: {delete: false, start: false}
-  use: {delete: false, start: false}
+  ad hoc: {copy: false, delete: false, start: true}
+  admin: {copy: false, delete: false, start: true}
+  read: {copy: false, delete: false, start: false}
+  update: {copy: false, delete: false, start: false}
+  use: {copy: false, delete: false, start: false}
 credential:
-  admin: {delete: true, edit: true}
-  read: {delete: false, edit: false}
-  use: {delete: false, edit: false}
+  admin: {copy: false, delete: true, edit: true}
+  read: {copy: false, delete: false, edit: false}
+  use: {copy: false, delete: false, edit: false}
 custom_inventory_script:
-  admin: {delete: true, edit: true}
-  read: {delete: false, edit: false}
+  admin: {copy: false, delete: true, edit: true}
+  read: {copy: false, delete: false, edit: false}
 inventory:
-  ad hoc: {adhoc: true, delete: false, edit: false}
-  admin: {adhoc: true, delete: true, edit: true}
-  read: {adhoc: false, delete: false, edit: false}
-  update: {adhoc: false, delete: false, edit: false}
-  use: {adhoc: false, delete: false, edit: false}
+  ad hoc: {adhoc: true, copy:false, delete: false, edit: false}
+  admin: {adhoc: true, copy: false, delete: true, edit: true}
+  read: {adhoc: false, copy: false, delete: false, edit: false}
+  update: {adhoc: false, copy: false, delete: false, edit: false}
+  use: {adhoc: false, copy: false, delete: false, edit: false}
 inventory_update:
   ad hoc: {delete: false, start: false}
   admin: {delete: true, start: true}
@@ -52,8 +52,8 @@ job_template:
   execute: {copy: false, delete: false, edit: false, schedule: true, start: true}
   read: {copy: false, delete: false, edit: false, schedule: false, start: false}
 notification_template:
-  org_admin: {delete: true, edit: true}
-  superuser: {delete: true, edit: true}
+  org_admin: {copy: false, delete: true, edit: true}
+  superuser: {copy: false, delete: true, edit: true}
 organization:
   admin: {delete: true, edit: true}
   auditor: {delete: false, edit: false}
@@ -61,10 +61,10 @@ organization:
   read: {delete: false, edit: false}
 # NOTE: for manual projects, start and schedule should be 'false' but we test these in our unittests and not in integration
 project:
-  admin: {delete: true, edit: true, schedule: true, start: true}
-  read: {delete: false, edit: false, schedule: false, start: false}
-  update: {delete: false, edit: false, schedule: true, start: true}
-  use: {delete: false, edit: false, schedule: false, start: false}
+  admin: {copy: false, delete: true, edit: true, schedule: true, start: true}
+  read: {copy: false, delete: false, edit: false, schedule: false, start: false}
+  update: {copy: false, delete: false, edit: false, schedule: true, start: true}
+  use: {copy: false, delete: false, edit: false, schedule: false, start: false}
 project_update:
   admin: {delete: true, start: true}
   read: {delete: false, start: false}

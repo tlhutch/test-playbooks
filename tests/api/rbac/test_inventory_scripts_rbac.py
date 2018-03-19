@@ -86,6 +86,7 @@ class Test_Inventory_Script_RBAC(Base_Api_Test):
             # check put/patch/delete
             assert_response_raised(inventory_script, httplib.FORBIDDEN)
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7973')
     @pytest.mark.parametrize('role', ['admin', 'read'])
     def test_user_capabilities(self, factories, inventory_script, api_inventory_scripts_pg, role):
         """Test user_capabilities given each inventory_script role."""
