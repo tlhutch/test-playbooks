@@ -208,6 +208,7 @@ class Test_Workflow_Job_Template_RBAC(Base_Api_Test):
             with pytest.raises(Forbidden):
                 other_wfjt.delete()
 
+    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7974')
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_user_capabilities(self, factories, api_workflow_job_templates_pg, role):
         """Test user_capabilities given each WFJT role."""
