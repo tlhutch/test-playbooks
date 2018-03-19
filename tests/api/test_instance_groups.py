@@ -38,3 +38,18 @@ class TestInstanceGroups(Base_Api_Test):
         for field in ('capacity', 'committed_capacity', 'consumed_capacity', 'percent_capacity_remaining',
                       'jobs_running', 'instances', 'controller'):
             assert getattr(ig, field) == original_json[field]
+
+    def test_verify_tower_instance_group_is_a_protected_group(self, v2, tower_instance_group):
+        instances = [instance.hostname for instance in v2.instances.get().results]
+
+        with pytest.raises(exc.Forbidden):
+            tower_instance_group.policy_instance_percentage = 100
+        with pytest.raises(exc.Forbidden):
+            tower_instance_group.policy_instance_minimum = 0
+        with pytest.raises(exc.Forbidden):
+            tower_instance_group.policy_instance_list = instances
+        with pytest.raises(exc.Forbidden):
+            tower_instance_group.put()
+
+        with pytest.raises(exc.Forbidden):
+            tower_instance_group.delete()
