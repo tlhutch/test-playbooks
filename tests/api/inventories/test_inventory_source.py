@@ -40,7 +40,7 @@ class TestInventorySource(Base_Api_Test):
                 inv_source.credential = cred.id
             assert e.value[1] == error
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7897')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/837')
     def test_conflict_exception_with_running_inventory_update(self, factories):
         inv_source = factories.v2_inventory_source()
         inv_update = inv_source.update()

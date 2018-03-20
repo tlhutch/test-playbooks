@@ -502,7 +502,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [inv_update_pg, job_pg]
         confirm_unified_jobs(sorted_unified_jobs)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/806')
     @pytest.mark.parametrize('project', ['project_ansible_playbooks_git', 'project_ansible_helloworld_hg'])
     def test_project_update_on_launch(self, request, factories, project):
         """Verify that two project updates are triggered by a job launch when we
@@ -547,7 +547,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [initial_project_update, spawned_check_update, [job_pg, spawned_run_update]]
         confirm_unified_jobs(sorted_unified_jobs)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/806')
     def test_project_cache_timeout(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
         """Verify that one project update is triggered by a job launch when we enable
         project update_on_launch and launch a job within the timeout window. Job ordering
@@ -586,7 +586,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [initial_project_update, [job_pg, spawned_project_update]]
         confirm_unified_jobs(sorted_unified_jobs)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/806')
     def test_inventory_and_project(self, custom_inventory_job_template, custom_inventory_source):
         """Verify that two project updates and an inventory update get triggered
         by a job launch when we enable update_on_launch for both our project and
@@ -826,7 +826,7 @@ class Test_Cascade_Fail_Dependent_Jobs(Base_Api_Test):
         assert inv_source.get().status == 'failed'
         assert inv_source.last_job_failed
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7875')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/823')
     def test_failed_project_update_should_cascade_fail_dependent_job(self, factories):
         jt = factories.v2_job_template()
         project = jt.ds.project
@@ -844,7 +844,7 @@ class Test_Cascade_Fail_Dependent_Jobs(Base_Api_Test):
         assert sync_update.status == 'failed'
         assert sync_update.failed
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7797')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/797')
     def test_canceling_job_should_cascade_cancel_sync_project_update(self, factories):
         project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
                                        scm_delete_on_update=True, scm_update_on_launch=True)

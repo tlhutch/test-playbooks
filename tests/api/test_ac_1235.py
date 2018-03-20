@@ -22158,7 +22158,6 @@ inventory_dict = {
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_AC_1235(Base_Api_Test):
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6492')
     def test_import(self, request, ansible_runner, tmpdir, inventory):
         """Invoke an inventory import for a *large* dataset.  Verify the
         operation completes successfully and in a timely manner
