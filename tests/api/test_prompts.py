@@ -124,7 +124,7 @@ class TestPrompts(Base_Api_Test):
 
         create_schedule = job.related.create_schedule.get()
         assert create_schedule.prompts.inventory.id == inventory.id
-        assert [cred.id for cred in create_schedule.prompts.credentials] == cred_ids
+        assert set([cred.id for cred in create_schedule.prompts.credentials]) == set(cred_ids)
         assert create_schedule.can_schedule
 
         schedule = create_schedule.post()
