@@ -124,6 +124,7 @@ class Test_Workflow_Jobs(Base_Api_Test):
         assert re.match(towerkit.resources.v1_job, wfjn.related.job)
         assert wfjn.get_related('job').endpoint == jt.get().get_related('last_job').endpoint
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/899')
     @pytest.mark.ansible_integration
     def test_workflow_job_single_node_failure(self, factories):
         """Workflow with single node with failing job template.
