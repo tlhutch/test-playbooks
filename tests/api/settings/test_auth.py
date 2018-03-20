@@ -18,14 +18,14 @@ def find_settings(setting_pg, substrings):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Auth(Base_Api_Test):
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7838')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/807')
     def test_default_entries(self, v1):
         """By default /api/v1/auth/ should not contain any entries."""
         auth = v1.walk('/api/v1/auth/')
         assert auth.json == {}, \
             "Unexpected value for /api/v1/auth/."
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7838')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/807')
     def test_updated_entries(self, v1, configured_auth):
         """Update sso settings page and verify that /api/v1/auth/ updates accordingly."""
         # assert expected entry found
@@ -41,7 +41,7 @@ class Test_Auth(Base_Api_Test):
         callback_setting = find_settings(configured_auth, ['CALLBACK']).pop()
         assert auth.json[endpoint_name]["complete_url"] == configured_auth.json[callback_setting]
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7838')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/807')
     def test_reset_entries(self, v1):
         """Our /api/v1/auth/ endpoint should not contain any entries after settings reset."""
         auth = v1.walk('/api/v1/auth/')
