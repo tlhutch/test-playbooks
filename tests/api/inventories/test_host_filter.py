@@ -146,7 +146,7 @@ class TestHostFilter(Base_Api_Test):
         assert self.find_hosts(response) == self.items_from_item_list(expected_hosts)
 
     @pytest.mark.mp_group('HostFactSearch', 'serial')
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/6015')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/702')
     @pytest.mark.parametrize('ansible_fact',
         [
             "ansible_python_version", # string
