@@ -13,7 +13,7 @@ custom_inventory_script:
   admin: {copy: false, delete: true, edit: true}
   read: {copy: false, delete: false, edit: false}
 inventory:
-  ad hoc: {adhoc: true, copy:false, delete: false, edit: false}
+  ad hoc: {adhoc: true, copy: false, delete: false, edit: false}
   admin: {adhoc: true, copy: false, delete: true, edit: true}
   read: {adhoc: false, copy: false, delete: false, edit: false}
   update: {adhoc: false, copy: false, delete: false, edit: false}
@@ -52,8 +52,8 @@ job_template:
   execute: {copy: false, delete: false, edit: false, schedule: true, start: true}
   read: {copy: false, delete: false, edit: false, schedule: false, start: false}
 notification_template:
-  org_admin: {copy: false, delete: true, edit: true}
-  superuser: {copy: false, delete: true, edit: true}
+  org_admin: {copy: true, delete: true, edit: true}
+  superuser: {copy: true, delete: true, edit: true}
 organization:
   admin: {delete: true, edit: true}
   auditor: {delete: false, edit: false}
