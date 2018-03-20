@@ -434,7 +434,6 @@ class TestPrompts(Base_Api_Test):
             create_schedule.post()
         assert e.value[1]['error'] == 'Cannot create schedule because a related resource is missing.'
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7866')
     def test_cannot_create_schedule_from_job_with_missing_ask_jt_dependency(self, factories):
         inv = factories.v2_inventory()
         jt = factories.v2_job_template(inventory=None, ask_inventory_on_launch=True)

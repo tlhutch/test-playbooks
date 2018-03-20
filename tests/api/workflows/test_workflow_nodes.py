@@ -59,7 +59,7 @@ class Test_Workflow_Nodes(Base_Api_Test):
         assert 'unified_job_template' in str(exception.value)
         assert 'This field cannot be blank.' in str(exception.value)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7848')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/812')
     def test_workflow_node_creation_rejected_when_source_jt_has_ask_disabled(self, factories):
         inventory = factories.v2_inventory()
         credential = factories.v2_credential()
@@ -101,7 +101,6 @@ class Test_Workflow_Nodes(Base_Api_Test):
             factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         assert e.value[1]['resources_needed_to_start'] == ['Job Template inventory is missing or undefined.']
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7864')
     def test_workflow_nodes_must_abide_to_jt_survey_requirements(self, factories):
         wfjt = factories.v2_workflow_job_template()
         jt = factories.v2_job_template()

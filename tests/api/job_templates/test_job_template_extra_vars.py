@@ -109,7 +109,6 @@ class TestJobTemplateExtraVars(Base_Api_Test):
         assert job_vars['intersection'] == launch_time_vars['intersection'], \
             "Our launch-time variable did not replace our colliding JT variable value."
 
-    @pytest.mark.github("https://github.com/ansible/tower-qa/issues/1260")
     def test_launch_with_excluded_variables_in_payload(self, job_template, launch_time_extra_vars):
         """Tests that when ask_variables_at_launch is disabled that launch-time variables get
         ignored.
