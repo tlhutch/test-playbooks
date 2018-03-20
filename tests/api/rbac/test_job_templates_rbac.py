@@ -234,7 +234,6 @@ class Test_Job_Template_RBAC(Base_Api_Test):
             else:
                 raise ValueError("Received unhandled job_template role.")
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7322')
     def test_relaunch_with_ask_inventory(self, factories, job_template):
         """Tests relaunch RBAC when ask_inventory_on_launch is true."""
         # FIXME: update for factories when towerkit-210 gets resolved

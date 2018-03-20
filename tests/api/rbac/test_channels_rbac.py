@@ -89,7 +89,7 @@ class TestChannelsRBAC(Base_Api_Test):
             for expected in expected_ahc_events:
                 assert expected in filtered_received
 
-        @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5158', skip=True)
+        @pytest.mark.github('https://github.com/ansible/tower/issues/669', skip=True)
         @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
         def test_inventory_update_status_changes_with_allowed_role(self, factories, user_ws_client, role):
             """Confirm that a user is only alerted of inventory source updates statuses when provided an allowed role"""
@@ -180,7 +180,7 @@ class TestChannelsRBAC(Base_Api_Test):
             for expected in expected_job_events:
                 assert expected in filtered_received
 
-        @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/5158', skip=True)
+        @pytest.mark.github('https://github.com/ansible/tower/issues/669', skip=True)
         @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
         def test_project_update_status_changes_with_allowed_role(self, factories, user_ws_client, role):
             """Confirm that a user is only alerted of project updates statuses when provided an allowed role"""

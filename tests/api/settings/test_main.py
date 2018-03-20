@@ -182,7 +182,7 @@ class TestGeneralSettings(Base_Api_Test):
             "Unexpected response when relaunching ad hoc command whose module " \
             "has been removed from AD_HOC_COMMANDS: %s." % json.dumps(result)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7890')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/831')
     def test_stdout_max_bytes_display(self, unified_job_with_stdout, api_settings_jobs_pg, update_setting_pg):
         """Assert that all of our unified jobs include stdout by default. Then assert that
         stdout gets truncated once 'STDOUT_MAX_BYTES_DISPLAY' gets set to zero. We check
@@ -542,7 +542,7 @@ class TestGeneralSettings(Base_Api_Test):
         system_settings.delete()
         assert system_settings.get().LICENSE == license
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7794')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/795')
     def test_changed_settings(self, modify_settings, api_settings_changed_pg):
         """Verifies that changed entries show under /api/v1/settings/changed/.
         Note: "TOWER_URL_BASE" and "LICENSE" always show here regardless of
