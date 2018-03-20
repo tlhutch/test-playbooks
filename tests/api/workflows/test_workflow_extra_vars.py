@@ -135,7 +135,6 @@ class TestWorkflowExtraVars(Base_Api_Test):
         assert not wfj_vars
         assert node_job_vars == survey_vars
 
-    @pytest.mark.github("https://github.com/ansible/ansible-tower/issues/6344")
     def test_launch_with_job_template_and_job_template_survey_extra_vars(self, factories, job_template_with_extra_vars,
                                                                          required_survey_spec):
         """Verify that WFN jobs inerhit JT and JT survey extra_vars. JT survey extra_vars
@@ -418,7 +417,6 @@ class TestWorkflowExtraVars(Base_Api_Test):
         assert json.loads(wfj.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
         assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7910')
     def test_wfjt_nodes_source_variables_with_set_stats(self, factories):
         host = factories.v2_host()
         set_stats_jt = factories.v2_job_template(playbook='test_set_stats.yml')

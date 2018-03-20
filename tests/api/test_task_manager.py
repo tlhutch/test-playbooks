@@ -359,7 +359,7 @@ class Test_Sequential_Jobs(Base_Api_Test):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Autospawned_Jobs(Base_Api_Test):
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/806')
     def test_v1_inventory(self, cloud_inventory_job_template, cloud_group):
         """Verify that an inventory update is triggered by our job launch. Job ordering
         should be as follows:
@@ -415,7 +415,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [inv_update, job]
         confirm_unified_jobs(sorted_unified_jobs)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/806')
     def test_inventory_multiple(self, job_template, aws_inventory_source, gce_inventory_source):
         """Verify that multiple inventory updates are triggered by job launch. Job ordering
         should be as follows:
@@ -464,7 +464,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
         sorted_unified_jobs = [[aws_update, gce_update], job_pg]
         confirm_unified_jobs(sorted_unified_jobs)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7834')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/806')
     def test_inventory_cache_timeout(self, custom_inventory_job_template, custom_inventory_source):
         """Verify that an inventory update is not triggered by the job launch if the
         cache is still valid. Job ordering should be as follows:
