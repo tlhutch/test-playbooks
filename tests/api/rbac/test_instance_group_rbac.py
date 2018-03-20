@@ -197,7 +197,6 @@ class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
 
     def test_instance_assignment_and_unassignment_to_tower_ig_only_allowed_as_superuser(self, factories, v2,
                                                                                         tower_instance_group):
-        instances = v2.instances.get().results
         user = factories.user()
 
         tower_ig_instances = tower_instance_group.related.instances.get().results
