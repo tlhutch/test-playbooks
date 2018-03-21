@@ -19,19 +19,25 @@ class TestInstanceGroupRBAC(Base_Api_Test):
         * Create instance groups.
         * See instance groups.
         * Edit instance groups.
+        * Assign/unassign instances to instance groups.
         * Delete instance groups.
         """
         ig = factories.instance_group()
+        instance = v2.instances.get().results.pop()
         user = factories.v2_user()
 
         with self.current_user(user):
             with pytest.raises(exc.Forbidden):
                 factories.instance_group()
-
-            # check GET as test user
             check_read_access(ig, unprivileged=True)
+            with pytest.raises(exc.Forbidden):
+                ig.add_instance(instance)
 
-            # check put/patch/delete
+        ig.add_instance(instance)
+
+        with self.current_user(user):
+            with pytest.raises(exc.Forbidden):
+                ig.remove_instance(instance)
             assert_response_raised(ig, httplib.FORBIDDEN)
 
     def test_org_admin(self, v2, factories):
@@ -41,11 +47,11 @@ class TestInstanceGroupRBAC(Base_Api_Test):
         * Create instance groups.
         * See instance groups outside of his organization.
         * Edit instance groups.
+        * Assign/unassign instances to instance groups.
         * Delete intance groups.
         """
         ig = factories.instance_group()
         instance = random.sample(v2.instances.get().results, 1).pop()
-        ig.add_instance(instance)
 
         excluded_ig = factories.instance_group()
 
@@ -57,17 +63,18 @@ class TestInstanceGroupRBAC(Base_Api_Test):
         with self.current_user(user):
             with pytest.raises(exc.Forbidden):
                 factories.instance_group()
-
-            # check GET as test user
             check_read_access(ig)
             check_read_access(excluded_ig, unprivileged=True)
+            with pytest.raises(exc.Forbidden):
+                ig.add_instance(instance)
 
+        ig.add_instance(instance)
+
+        with self.current_user(user):
             instances = v2.instances.get()
             assert instances.count == 1
             assert len(instances.results) == 1
             check_read_access(instance)
-
-            # check put/patch/delete
             assert_response_raised(ig, httplib.FORBIDDEN)
 
 
@@ -76,7 +83,6 @@ class TestInstanceGroupRBAC(Base_Api_Test):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
 
-    @pytest.mark.requires_ha
     @pytest.mark.parametrize('resource_type', ['job_template', 'inventory', 'organization'])
     def test_superuser(self, v2, factories, resource_type):
         """A superuser should be able to (un)assign any instance group to a resource."""
@@ -87,6 +93,7 @@ class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
             resource.add_instance_group(ig)
             assert resource.get_related('instance_groups').count == 1
             assert resource.get_related('instance_groups').results.pop().id == ig.id
+
             resource.remove_instance_group(ig)
             assert resource.get_related('instance_groups').count == 0
 
@@ -174,28 +181,25 @@ class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
             assert org.get_related('instance_groups').count == len(org_instance_groups)
             assert other_org.get_related('instance_groups').count == len(org_instance_groups)
 
-    @pytest.mark.requires_ha
-    @pytest.mark.parametrize('resource_type', ['job_template', 'inventory', 'organization'])
+    @pytest.mark.parametrize('resource_type', ['v2_job_template', 'v2_inventory', 'v2_organization'])
     def test_regular_user(self, v2, factories, resource_type):
-        """A regular user should not be able to (un)assign instance_groups to any resources"""
+        """A regular user should not be able to (un)assign instance groups to any resources."""
         user = factories.user()
-        jt = factories.job_template()
-        jt.set_object_roles(user, 'admin')
+        resource = getattr(factories, resource_type)()
+        resource.set_object_roles(user, 'admin')
 
-        instance_groups = v2.instance_groups.get().results
-        with self.current_user(username=user.username, password=user.password):
-            for ig in instance_groups:
-                with pytest.raises(exc.Forbidden):
-                    jt.add_instance_group(ig)
-        assert jt.get_related('instance_groups').count == 0
+        ig = factories.instance_group()
 
-        for ig in instance_groups:
-            jt.add_instance_group(ig)
-        with self.current_user(username=user.username, password=user.password):
-            for ig in instance_groups:
-                with pytest.raises(exc.Forbidden):
-                    jt.remove_instance_group(ig)
-        assert jt.get_related('instance_groups').count == len(instance_groups)
+        with self.current_user(user):
+            with pytest.raises(exc.Forbidden):
+                resource.add_instance_group(ig)
+        assert resource.related.instance_groups.get().count == 0
+
+        resource.add_instance_group(ig)
+        with self.current_user(user):
+            with pytest.raises(exc.Forbidden):
+                resource.remove_instance_group(ig)
+        assert resource.related.instance_groups.get().count == 1
 
     def test_instance_assignment_and_unassignment_to_tower_ig_only_allowed_as_superuser(self, request, factories,
                                                                                         v2, tower_instance_group):
