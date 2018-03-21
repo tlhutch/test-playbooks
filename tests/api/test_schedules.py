@@ -225,7 +225,7 @@ class TestSchedules(APITest):
         assert job.wait_until_completed().is_successful
         assert schedule.get().next_run is None
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7970')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/891')
     def test_schedule_preview_accounts_for_missing_dst_hour(self, v2):
         schedules = v2.schedules.get()
         dst_starts = ('20190310', '20200308', '20210314', '20220313',
@@ -256,7 +256,7 @@ class TestSchedules(APITest):
             assert '02:30:00-05:00' in prev.local[1]
             assert '03:30:00-05:00' in prev.local[2]
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7971')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/892')
     def test_schedule_preview_supports_all_zoneinfo_provided_zones(self, v2):
         schedules = v2.schedules.get()
         zones = [zi['name'] for zi in schedules.get_zoneinfo()]
