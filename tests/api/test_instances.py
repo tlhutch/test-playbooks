@@ -4,7 +4,6 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
-@pytest.mark.nondestructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstances(Base_Api_Test):
     def test_verify_instance_read_only_fields(self, v2):

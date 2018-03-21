@@ -80,7 +80,6 @@ class SafeStop(object):
 
 
 @pytest.mark.api
-@pytest.mark.skip_docker
 @pytest.mark.requires_traditional_ha
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestTraditionalHA(Base_Api_Test):
