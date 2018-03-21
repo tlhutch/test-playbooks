@@ -62,7 +62,9 @@ class TestInstanceGroupRBAC(Base_Api_Test):
             check_read_access(ig)
             check_read_access(excluded_ig, unprivileged=True)
 
-            assert v2.instances.get().count == 1
+            instances = v2.instances.get()
+            assert instances.count == 1
+            assert len(instances.results) == 1
             check_read_access(instance)
 
             # check put/patch/delete
@@ -88,7 +90,7 @@ class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
             resource.remove_instance_group(ig)
             assert resource.get_related('instance_groups').count == 0
 
-    @pytest.mark.requires_ha
+    @pytest.mark.requires_traditional_ha
     @pytest.mark.parametrize('resource_type', ['job_template', 'inventory'])
     def test_org_admin(self, v2, factories, resource_type):
         """An org admin should only be able to (un)assign instance groups associated
@@ -131,7 +133,7 @@ class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
         org_instance_group_ids = set([ig.id for ig in all_instance_groups if ig.id not in [org_ig.id for org_ig in org_instance_groups]])
         assert resource_instance_group_ids == org_instance_group_ids
 
-    @pytest.mark.requires_ha
+    @pytest.mark.requires_traditional_ha
     def test_org_admin_managing_organization_instance_groups(self, v2, factories):
         """An org admin should not be able to (un)set instance groups on their own
         organization (or any other).
@@ -195,14 +197,21 @@ class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
                     jt.remove_instance_group(ig)
         assert jt.get_related('instance_groups').count == len(instance_groups)
 
-    def test_instance_assignment_and_unassignment_to_tower_ig_only_allowed_as_superuser(self, factories, v2,
-                                                                                        tower_instance_group):
+    def test_instance_assignment_and_unassignment_to_tower_ig_only_allowed_as_superuser(self, request, factories,
+                                                                                        v2, tower_instance_group):
+        tower_ig_instances = tower_instance_group.related.instances.get().results
+
+        def teardown():
+            for instance in tower_ig_instances:
+                tower_instance_group.add_instance(instance)
+        request.addfinalizer(teardown)
+
         user = factories.user()
 
-        tower_ig_instances = tower_instance_group.related.instances.get().results
         for instance in tower_ig_instances:
             tower_instance_group.remove_instance(instance)
         utils.poll_until(lambda: tower_instance_group.get().instances == 0, interval=1, timeout=30)
+
         for instance in tower_ig_instances:
             tower_instance_group.add_instance(instance)
         utils.poll_until(lambda: tower_instance_group.get().instances == len(tower_ig_instances), interval=1,
