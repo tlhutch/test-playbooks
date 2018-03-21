@@ -198,6 +198,14 @@ class V2WorkflowJobTemplateNodeFactory(HasCreateFactory):
     model = pages.V2WorkflowJobTemplateNode
 
 
+class ApplicationFactory(HasCreateFactory):
+    model = pages.OAuth2Application
+
+
+class AccessTokenFactory(HasCreateFactory):
+    model = pages.OAuth2AccessToken
+
+
 class FactoryFixture(object):
     """This class is used within the factory fixture definitions below to wrap
     up the request fixture with a factory class so we don't need to explicitly
@@ -217,7 +225,9 @@ class FactoryFixture(object):
 
 def factory_namespace(request):
     return PseudoNamespace(
+        access_token=FactoryFixture(request, AccessTokenFactory),
         ad_hoc_command=FactoryFixture(request, AdHocCommandFactory),
+        application=FactoryFixture(request, ApplicationFactory),
         credential=FactoryFixture(request, CredentialFactory),
         credential_type=FactoryFixture(request, CredentialTypeFactory),
         group=FactoryFixture(request, GroupFactory),
