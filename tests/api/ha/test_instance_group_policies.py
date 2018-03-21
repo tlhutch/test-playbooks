@@ -10,9 +10,9 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.requires_ha
-@pytest.mark.mp_group('InstancePolicies', 'serial')
+@pytest.mark.mp_group('InstanceGroupPolicies', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestInstancePolicies(Base_Api_Test):
+class TestInstanceGroupPolicies(Base_Api_Test):
 
     def find_ig_instances(self, ig):
         return [instance.hostname for instance in ig.related.instances.get().results]
@@ -128,22 +128,29 @@ class TestInstancePolicies(Base_Api_Test):
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
     def test_single_instances_are_distributed_evenly_with_igs_with_policy_instance_percentage(self, factories,
-                                                                                             tower_instance_hostnames):
-        sourced_instances = []
+                                                                                              tower_instance_hostnames):
+        igs = []
         for _ in range(5):
             ig = factories.instance_group(policy_instance_percentage=20)
             utils.poll_until(lambda: ig.get().instances == 1, interval=1, timeout=30)
-            sourced_instances.append(ig.related.instances.get().results.pop().hostname)
+            igs.append(ig)
+
+        sourced_instances = []
+        for ig in igs:
+            sourced_instances += self.find_ig_instances(ig)
         assert set(sourced_instances) == set(tower_instance_hostnames)
 
-    # FIXME: fails sometimes
     def test_single_instances_are_distributed_evenly_with_igs_with_policy_instance_minimum(self, factories,
-                                                                                          tower_instance_hostnames):
-        sourced_instances = []
+                                                                                           tower_instance_hostnames):
+        igs = []
         for _ in range(5):
             ig = factories.instance_group(policy_instance_minimum=1)
             utils.poll_until(lambda: ig.get().instances == 1, interval=1, timeout=30)
-            sourced_instances.append(ig.related.instances.get().results.pop().hostname)
+            igs.append(ig)
+
+        sourced_instances = []
+        for ig in igs:
+            sourced_instances += self.find_ig_instances(ig)
         assert set(sourced_instances) == set(tower_instance_hostnames)
 
     def test_single_instances_are_distributed_evenly_with_igs_with_different_rules(self, factories,
@@ -161,33 +168,42 @@ class TestInstancePolicies(Base_Api_Test):
         assert set(sourced_instances) == set(tower_instance_hostnames)
 
     def test_multiple_instances_are_distributed_evenly_with_igs_with_policy_instance_percentage(self, factories,
-                                                                                               tower_instance_hostnames):
-        total_hostnames = []
+                                                                                                tower_instance_hostnames):
+        igs = []
         for _ in range(5):
             ig = factories.instance_group(policy_instance_percentage=60)
             utils.poll_until(lambda: ig.get().instances == 3, interval=1, timeout=30)
+            igs.append(ig)
 
             ig_hostnames = self.find_ig_instances(ig)
             assert len(set(ig_hostnames)) == 3
-            total_hostnames += ig_hostnames
+            assert set(ig_hostnames) < set(tower_instance_hostnames)
 
-        counter = Counter(total_hostnames)
+        sourced_instances = []
+        for ig in igs:
+            sourced_instances += self.find_ig_instances(ig)
+
+        counter = Counter(sourced_instances)
         for hostname in counter:
             assert counter[hostname] == 3
 
-    # FIXME
     def test_multiple_instances_are_distributed_evenly_with_igs_with_policy_instance_minimum(self, factories,
-                                                                                            tower_instance_hostnames):
-        total_hostnames = []
+                                                                                             tower_instance_hostnames):
+        igs = []
         for _ in range(5):
             ig = factories.instance_group(policy_instance_minimum=3)
             utils.poll_until(lambda: ig.get().instances == 3, interval=1, timeout=30)
+            igs.append(ig)
 
             ig_hostnames = self.find_ig_instances(ig)
             assert len(set(ig_hostnames)) == 3
-            total_hostnames += ig_hostnames
+            assert set(ig_hostnames) < set(tower_instance_hostnames)
 
-        counter = Counter(total_hostnames)
+        sourced_instances = []
+        for ig in igs:
+            sourced_instances += self.find_ig_instances(ig)
+
+        counter = Counter(sourced_instances)
         for hostname in counter:
             assert counter[hostname] == 3
 
@@ -234,7 +250,7 @@ class TestInstancePolicies(Base_Api_Test):
         assert len(ig_instances.results) == 4
         assert instance.hostname not in ig_instance_hostnames
 
-    def test_manual_association_removes_instance_from_consideration_from_other_igs(self, factories, v2):
+    def test_manual_instance_association_removes_instance_from_consideration_from_other_igs(self, factories, v2):
         pct_ig = factories.instance_group(policy_instance_percentage=100)
         min_ig = factories.instance_group(policy_instance_minimum=5)
         mixed_policy_ig = factories.instance_group(policy_instance_percentage=100,
@@ -251,7 +267,7 @@ class TestInstancePolicies(Base_Api_Test):
             utils.poll_until(lambda: igroup.get().instances == 4, interval=1, timeout=30)
             assert instance.hostname not in self.find_ig_instances(igroup)
 
-    def test_manual_disassociation_instroduces_instance_to_consideration_from_other_igs(self, factories, v2):
+    def test_manual_instance_disassociation_introduces_instance_for_consideration_to_other_igs(self, factories, v2):
         ig = factories.instance_group()
         instance = v2.instances.get().results.pop()
         ig.add_instance(instance)
