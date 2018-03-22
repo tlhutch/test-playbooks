@@ -4,6 +4,7 @@
 *.swp
 *.pyc
 __pycache__
+*.pytest_cache
 results
 results.xml
 *.log
