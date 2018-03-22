@@ -55,7 +55,7 @@ class TestTACACSPlus(Base_Api_Test):
             assert user.username == username
             user_id = user.id
             user.first_name = 'changed'
-            v1.authtoken.delete()
+            v1.connection.logout()
 
         with self.current_user(username, password):
             assert user_id == v1.me.get().results.pop().id, "Found different user_id on second login"
