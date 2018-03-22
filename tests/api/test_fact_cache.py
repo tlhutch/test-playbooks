@@ -37,6 +37,7 @@ class TestFactCache(Base_Api_Test):
                                          inventory=host.ds.inventory, playbook='scan_facts.yml', use_fact_cache=True)
 
     @pytest.mark.requires_single_instance
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1102')
     def test_ingest_facts_with_tower_scan_playbook(self, request, factories, ansible_runner, ansible_os_family,
                                                    is_docker, scan_facts_job_template):
         machine_id = "4da7d1f8-14f3-4cdc-acd5-a3465a41f25d"
@@ -179,16 +180,17 @@ class TestFactCache(Base_Api_Test):
         assert job.is_successful
 
         # verify facts consumption
-        assert '"msg": "abc"' in job.json.result_stdout
-        assert '"msg": "鵟犭酜귃ꔀꈛ竳䙭韽ࠔ"' in to_str(job.json.result_stdout)
-        assert '"msg": 1' in job.json.result_stdout
-        assert '"msg": 1.0' in job.json.result_stdout
-        assert '"msg": true' in job.json.result_stdout
-        assert '"msg": null' in job.json.result_stdout
-        assert '"msg": [\r\n' in job.json.result_stdout
-        assert '"msg": {\r\n' in job.json.result_stdout
-        assert '"msg": []' in job.json.result_stdout
-        assert '"msg": {}' in job.json.result_stdout
+        result_stdout = job.result_stdout
+        assert '"msg": "abc"' in result_stdout
+        assert '"msg": "鵟犭酜귃ꔀꈛ竳䙭韽ࠔ"' in to_str(result_stdout)
+        assert '"msg": 1' in result_stdout
+        assert '"msg": 1.0' in result_stdout
+        assert '"msg": true' in result_stdout
+        assert '"msg": null' in result_stdout
+        assert any(('"msg": [\r\n' in result_stdout, '"msg": [\n' in result_stdout))
+        assert any(('"msg": {\r\n' in result_stdout, '"msg": {\n' in result_stdout))
+        assert '"msg": []' in result_stdout
+        assert '"msg": {}' in result_stdout
 
     def test_deleted_hosts_not_reused_by_cache(self, factories):
         jt = factories.v2_job_template(playbook='gather_facts.yml', use_fact_cache=True)
