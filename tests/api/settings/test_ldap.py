@@ -43,14 +43,13 @@ class Test_LDAP(Base_Api_Test):
 
     pytestmark = pytest.mark.usefixtures('authtoken')
 
-    def test_objects_created_after_successful_login(self, install_legacy_license, cleanup_ldap_info, api_users_pg, user_password,
-                                                    current_user):
+    def test_objects_created_after_successful_login(self, install_legacy_license, cleanup_ldap_info, api_users_pg, user_password):
         """Verify that related LDAP objects are created after a successful
         login. For example, the LDAP User, associated teams and
         organizations.
         """
         # Login as an LDAP user
-        with current_user(username='it_user1', password=user_password):
+        with self.current_user(username='it_user1', password=user_password):
             api_users_pg.get(username='it_user1')
 
         # Verify the expected user was created
@@ -66,20 +65,20 @@ class Test_LDAP(Base_Api_Test):
         orgs = user.get_related('organizations', name='LDAP Organization')
         assert orgs.count == 1
 
-    def test_org_admin_ldap_user(self, install_legacy_license, cleanup_ldap_info, api_users_pg, current_user, user_password):
+    def test_org_admin_ldap_user(self, install_legacy_license, cleanup_ldap_info, api_users_pg, user_password):
         """Verified that an LDAP organization admin relationship is created at login."""
-        with current_user(username='eng_admin1', password=user_password):
+        with self.current_user(username='eng_admin1', password=user_password):
             user = api_users_pg.get(username='eng_admin1').results[0]
             orgs = user.get_related('admin_of_organizations', name="LDAP Organization")
             assert orgs.count == 1
 
-    def test_license_enables_ldap_authentication(self, api_users_pg, user_password, ldap_enabled_license, current_user):
+    def test_license_enables_ldap_authentication(self, api_users_pg, user_password, ldap_enabled_license):
         """Verified Tower supports LDAP authentication with a supported license."""
-        with current_user(username='eng_user1', password=user_password):
+        with self.current_user(username='eng_user1', password=user_password):
             api_users_pg.get(username='eng_user1')
 
-    def test_license_disables_ldap_authentication(self, api_users_pg, user_password, ldap_disabled_license, current_user):
+    def test_license_disables_ldap_authentication(self, api_users_pg, user_password, ldap_disabled_license):
         """Verified Tower disables LDAP authentication with an unsupported license."""
         with pytest.raises(towerkit.exceptions.Unauthorized):
-            with current_user(username='sales_user1', password=user_password):
+            with self.current_user(username='sales_user1', password=user_password):
                 api_users_pg.get(username='sales_user1')

@@ -1,5 +1,3 @@
-import contextlib
-
 from towerkit.config import config
 import fauxfactory
 import pytest
@@ -139,17 +137,3 @@ def unprivileged_users(org_user, anonymous_user):
 def unprivileged_user(request):
     """Return the fixture for the specified request.param"""
     return request.getfuncargvalue(request.param)
-
-
-@pytest.fixture(scope="function")
-def current_user(connection):
-    """Return a context manager to allow performing operations as an alternate user"""
-    @contextlib.contextmanager
-    def ctx(username=None, password=None):
-        try:
-            previous_auth = connection.session.auth
-            connection.login(username, password)
-            yield
-        finally:
-            connection.session.auth = previous_auth
-    return ctx
