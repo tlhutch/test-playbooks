@@ -159,3 +159,27 @@ class TestInventory(Base_Api_Test):
 
     def test_confirm_inventory_not_in_host_put_options(self, v2, factories):
         assert 'inventory' not in factories.v2_host().options().actions.PUT
+
+    def test_confirm_computed_fields_tasks_dont_overwhelm_system(self, factories):
+        """Verify that numerous individual inventory modifications don't affect system's ability to run jobs"""
+        jt = factories.v2_job_template()
+        invs = [factories.v2_inventory() for _ in range(10)]
+        hosts = {inv: [inv.add_host() for _ in range(20)] for inv in invs}
+        groups = [factories.v2_group(inventory=inv) for inv in invs]
+        for group in groups:
+            for host in hosts[group.ds.inventory]:
+                group.add_host(host)
+        for inv in invs:
+            for host in hosts[inv]:
+                host.delete()
+
+        def noop(*a, **kw):
+            pass
+
+        for group in groups:
+            group.silent_delete = noop  # prevent redundant deletion requests.
+            group.delete()
+        for inv in invs:
+            inv.silent_delete = noop
+            inv.delete()
+        assert jt.launch().wait_until_completed().is_successful
