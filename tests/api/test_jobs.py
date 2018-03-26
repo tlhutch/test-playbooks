@@ -312,6 +312,7 @@ class Test_Job(Base_Api_Test):
         assert relaunched_job.is_successful
         assert json.loads(relaunched_job.extra_vars) == {}
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1112')
     def test_password_survey_launched_with_empty_extra_vars(self, factories):
         """Confirms that password surveys with defaults are displayed (and encrypted) when
         job template is launched with empty extra_vars, and those without defaults are not.
@@ -324,14 +325,14 @@ class Test_Job(Base_Api_Test):
         jt = factories.job_template()
         jt.add_survey(spec=survey)
         job = jt.launch(dict(extra_vars={}))
-        assert(job.wait_until_completed().is_successful)
+        assert job.wait_until_completed().is_successful
         extra_vars = json.loads(job.extra_vars)
 
         # only half of passwords had default values
-        assert(len(extra_vars) == 5), "extra_vars found to be undesired length: {0}".format(extra_vars)
+        assert len(extra_vars) == 5, "extra_vars found to be undesired length: {0}".format(extra_vars)
 
-        assert(all([val == "$encrypted$" for val in extra_vars.values()])
-               ), "Undesired values for extra_vars detected: {0}".format(extra_vars)
+        assert all([val == "$encrypted$" for val in extra_vars.values()]), (
+               "Undesired values for extra_vars detected: {0}".format(extra_vars))
 
     def test_survey_defaults_must_meet_length_requirements(self, factories):
         host = factories.v2_host()
