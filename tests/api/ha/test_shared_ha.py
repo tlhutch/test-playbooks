@@ -1,4 +1,3 @@
-import subprocess
 import random
 
 from towerkit import utils
@@ -18,17 +17,8 @@ class TestSharedHA(Base_Api_Test):
     def prepare_openshift_environment(self, authtoken, v2, is_docker):
         if not is_docker:
             return
-
-        # FIXME: remove 'fo0m4nchU' and update vault file
-        ret = subprocess.call('oc login -u jenkins -p fo0m4nchU --insecure-skip-tls-verify=true '
-                              'https://console.openshift.ansible.eng.rdu2.redhat.com', shell=True)
-        assert ret == 0
-
-        ret = subprocess.call('oc project tower-qe', shell=True)
-        assert ret == 0
-
-        openshift_utils.scale_dc('tower', replicas=5)
-        utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == 5, interval=5, timeout=600)
+        else:
+            openshift_utils.prep_environment()
 
     def test_jobs_should_distribute_among_tower_instance_group_members(self, factories, v2, tower_instance_group):
         jt = factories.v2_job_template(allow_simultaneous=True)
@@ -39,11 +29,12 @@ class TestSharedHA(Base_Api_Test):
         jobs = jt.related.jobs.get()
         utils.poll_until(lambda: jobs.get(status='successful').count == 15, interval=5, timeout=300)
 
-        tower_pods = openshift_utils.get_tower_pods()
+        instances = v2.instances.get().results
         job_execution_nodes = set([job.execution_node for job in jobs.results])
-        assert set(tower_pods) == set(job_execution_nodes)
+        assert set(instances) == set(job_execution_nodes)
 
-    def test_jt_with_no_instance_groups_defaults_to_tower_instance_group_instance(self, factories, tower_instance_group):
+    def test_jt_with_no_instance_groups_defaults_to_tower_instance_group_instance(self, factories, v2,
+                                                                                  tower_instance_group):
         jt = factories.v2_job_template(allow_simultaneous=True)
 
         for _ in range(15):
@@ -51,10 +42,11 @@ class TestSharedHA(Base_Api_Test):
         jobs = jt.related.jobs.get()
         utils.poll_until(lambda: jobs.get(status='successful').count == 15, interval=5, timeout=300)
 
-        tower_pods = openshift_utils.get_tower_pods()
+        instances = v2.instances.get().results
         job_execution_nodes = set([job.execution_node for job in jobs.results])
-        assert set(tower_pods) == set(job_execution_nodes)
+        assert set(instances) == set(job_execution_nodes)
 
+    # VERIFY
     def test_jobs_should_distribute_among_new_instance_group_members(self, factories, v2):
         ig = factories.instance_group()
         instances = random.sample(v2.instances.get().results, 3)
@@ -73,6 +65,7 @@ class TestSharedHA(Base_Api_Test):
         assert set([instance.hostname for instance in instances]) == set(job_execution_nodes)
 
     # VERIFY
+    @pytest.mark.skip(reason="no way of currently testing this")
     def test_jobs_should_distribute_among_mutually_exclusive_instance_groups(self, factories, v2):
         ig1, ig2 = [factories.instance_group() for _ in range(2)]
         instances = v2.instances.get().results
@@ -91,13 +84,14 @@ class TestSharedHA(Base_Api_Test):
         jobs = jt.related.jobs.get()
         utils.poll_until(lambda: jobs.get(status='successful').count == 15, interval=5, timeout=300)
 
-        tower_pods = openshift_utils.get_tower_pods()
-        pod1_jobs = [job for job in jobs.results if job.execution_node == tower_pods[0]]
-        pod2_jobs = [job for job in jobs.results if job.execution_node == tower_pods[1]]
+        instances = v2.instances.get().results
+        pod1_jobs = [job for job in jobs.results if job.execution_node == instances[0]]
+        pod2_jobs = [job for job in jobs.results if job.execution_node == instances[1]]
         assert len(pod1_jobs) > 0
         assert len(pod2_jobs) > 0
 
     # VERIFY
+    @pytest.mark.skip(reason="no way of currently testing this")
     def test_jobs_should_distribute_among_partially_overlapping_instance_groups(self, factories, v2):
         ig1, ig2 = [factories.instance_group() for _ in range(2)]
         instances = v2.instances.get().results
@@ -115,15 +109,16 @@ class TestSharedHA(Base_Api_Test):
         jobs = jt.related.jobs.get()
         utils.poll_until(lambda: jobs.get(status='successful').count == 15, interval=5, timeout=300)
 
-        tower_pods = openshift_utils.get_tower_pods()
-        pod1_jobs = [job for job in jobs.results if job.execution_node == tower_pods[0]]
-        pod2_jobs = [job for job in jobs.results if job.execution_node == tower_pods[1]]
-        pod3_jobs = [job for job in jobs.results if job.execution_node == tower_pods[2]]
+        instances = v2.instances.get().results
+        pod1_jobs = [job for job in jobs.results if job.execution_node == instances[0]]
+        pod2_jobs = [job for job in jobs.results if job.execution_node == instances[1]]
+        pod3_jobs = [job for job in jobs.results if job.execution_node == instances[2]]
         assert len(pod1_jobs) > 0
         assert len(pod2_jobs) > 0
         assert len(pod3_jobs) > 0
 
     # VERIFY
+    @pytest.mark.skip(reason="no way of currently testing this")
     def test_jobs_should_distribute_among_completely_overlapping_instance_groups(self, factories, v2):
         ig1, ig2 = [factories.instance_group() for _ in range(2)]
         instances = v2.instances.get().results
@@ -140,9 +135,9 @@ class TestSharedHA(Base_Api_Test):
         jobs = jt.related.jobs.get()
         utils.poll_until(lambda: jobs.get(status='successful').count == 15, interval=5, timeout=300)
 
-        tower_pods = openshift_utils.get_tower_pods()
-        pod1_jobs = [job for job in jobs.results if job.execution_node == tower_pods[0]]
-        pod2_jobs = [job for job in jobs.results if job.execution_node == tower_pods[1]]
+        instances = v2.instances.get().results
+        pod1_jobs = [job for job in jobs.results if job.execution_node == instances[0]]
+        pod2_jobs = [job for job in jobs.results if job.execution_node == instances[1]]
         assert len(pod1_jobs) > 0
         assert len(pod2_jobs) > 0
 
