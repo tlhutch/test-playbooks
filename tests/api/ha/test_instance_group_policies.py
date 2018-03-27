@@ -21,7 +21,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
     def tower_instance_hostnames(self, v2):
         return [instance.hostname for instance in v2.instances.get().results]
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7958')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/881')
     @pytest.mark.parametrize('instance_percentage, expected_num_instances',
         [(0, 0), (20, 1), (41, 2), (79, 3), (100, 5)])
     def test_correct_instances_with_new_ig_with_policy_instance_percentage(self, factories, tower_instance_hostnames,
@@ -86,7 +86,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert ig_instances.get().count == 0
         assert ig.policy_instance_list == []
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7950')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/873')
     def test_correct_instances_with_existing_ig_with_updated_policy_instance_percentage(self, factories,
                                                                                         tower_instance_hostnames):
         ig = factories.instance_group(policy_instance_percentage=0)
@@ -100,7 +100,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert ig_instances.count == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7950')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/873')
     def test_correct_instances_with_existing_ig_with_updated_policy_instance_minimum(self, factories,
                                                                                      tower_instance_hostnames):
         ig = factories.instance_group(policy_instance_minimum=0)
@@ -114,7 +114,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert ig_instances.count == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7950')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/873')
     def test_correct_instances_with_existing_ig_with_updated_policy_instance_list(self, factories, tower_instance_hostnames):
         ig = factories.instance_group()
         assert ig.instances == 0
