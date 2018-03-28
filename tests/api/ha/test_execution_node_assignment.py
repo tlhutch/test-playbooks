@@ -9,12 +9,12 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.requires_ha
-@pytest.mark.mp_group('SharedHA', 'serial')
+@pytest.mark.mp_group('ExecutionNodeAssignment', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestExecutionNodeAssignment(Base_Api_Test):
 
     @pytest.fixture(autouse=True)
-    def prepare_openshift_environment(self, authtoken, v2, is_docker):
+    def prepare_openshift_environment(self, is_docker):
         if not is_docker:
             return
         else:
@@ -29,9 +29,9 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         jobs = jt.related.jobs.get()
         utils.poll_until(lambda: jobs.get(status='successful').count == 15, interval=5, timeout=300)
 
-        instances = v2.instances.get().results
-        job_execution_nodes = set([job.execution_node for job in jobs.results])
-        assert set(instances) == set(job_execution_nodes)
+        instances = [instance.hostname for instance in v2.instances.get().results]
+        job_execution_nodes = [job.execution_node for job in jobs.results]
+        assert set(job_execution_nodes) == set(instances)
 
     def test_jt_with_no_instance_groups_defaults_to_tower_instance_group_instance(self, factories, v2,
                                                                                   tower_instance_group):
@@ -42,11 +42,84 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         jobs = jt.related.jobs.get()
         utils.poll_until(lambda: jobs.get(status='successful').count == 15, interval=5, timeout=300)
 
-        instances = v2.instances.get().results
-        job_execution_nodes = set([job.execution_node for job in jobs.results])
-        assert set(instances) == set(job_execution_nodes)
+        instances = [instance.hostname for instance in v2.instances.get().results]
+        job_execution_nodes = [job.execution_node for job in jobs.results]
+        assert set(job_execution_nodes) == set(instances)
 
-    # VERIFY
+    def test_jobs_should_distribute_among_mutually_exclusive_instance_groups(self, request, factories, v2):
+        ig1, ig2 = [factories.instance_group() for _ in range(2)]
+        instances = random.sample(v2.instances.get().results, 2)
+        for instance in instances:
+            request.addfinalizer(lambda: instance.patch(capacity_adjustment=1))
+            instance.capacity_adjustment = 0
+        ig1.add_instance(instances[0])
+        ig2.add_instance(instances[1])
+        utils.poll_until(lambda: ig1.get().instances == 1 and ig2.get().instances == 1, interval=5, timeout=300)
+
+        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True, extra_vars='{"sleep_interval": 60}')
+        factories.v2_host(inventory=jt.ds.inventory)
+        for ig in (ig1, ig2):
+            jt.add_instance_group(ig)
+
+        for _ in range(10):
+            jt.launch()
+        jobs = jt.related.jobs.get()
+        utils.poll_until(lambda: len([job.execution_node for job in jobs.get().results if job.execution_node != '']) == 10,
+                         interval=5, timeout=300)
+
+        job_execution_nodes = [job.execution_node for job in jobs.results]
+        assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1179')
+    def test_jobs_should_distribute_among_partially_overlapping_instance_groups(self, request, factories, v2):
+        ig1, ig2 = [factories.instance_group() for _ in range(2)]
+        instances = random.sample(v2.instances.get().results, 3)
+        for instance in instances:
+            request.addfinalizer(lambda: instance.patch(capacity_adjustment=1))
+            instance.capacity_adjustment = 0
+
+        ig1.add_instance(instances[0])
+        ig2.add_instance(instances[1])
+        for ig in (ig1, ig2):
+            ig.add_instance(instances[2])
+        utils.poll_until(lambda: ig1.get().instances == 2 and ig2.get().instances == 2, interval=5, timeout=300)
+
+        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True, extra_vars='{"sleep_interval": 60}')
+        factories.v2_host(inventory=jt.ds.inventory)
+        for _ in range(15):
+            jt.launch()
+        jobs = jt.related.jobs.get()
+        utils.poll_until(lambda: len([job.execution_node for job in jobs.get().results if job.execution_node != '']) == 15,
+                         interval=5, timeout=300)
+
+        job_execution_nodes = [job.execution_node for job in jobs.results]
+        assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1180')
+    def test_jobs_should_distribute_among_completely_overlapping_instance_groups(self, request, factories, v2):
+        ig1, ig2 = [factories.instance_group() for _ in range(2)]
+        instances = random.sample(v2.instances.get().results, 2)
+        for instance in instances:
+            request.addfinalizer(lambda: instance.patch(capacity_adjustment=1))
+            instance.capacity_adjustment = 0
+
+        for ig in (ig1, ig2):
+            for instance in instances:
+                ig.add_instance(instance)
+        utils.poll_until(lambda: ig1.get().instances == 2 and ig2.get().instances == 2, interval=5, timeout=300)
+
+        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True, extra_vars='{"sleep_interval": 60}')
+        factories.v2_host(inventory=jt.ds.inventory)
+        for _ in range(10):
+            jt.launch()
+        jobs = jt.related.jobs.get()
+        utils.poll_until(lambda: len([job.execution_node for job in jobs.get().results if job.execution_node != '']) == 10,
+                         interval=5, timeout=300)
+
+        job_execution_nodes = [job.execution_node for job in jobs.results]
+        assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1177')
     def test_jobs_should_distribute_among_new_instance_group_members(self, factories, v2):
         ig = factories.instance_group()
         instances = random.sample(v2.instances.get().results, 3)
@@ -61,85 +134,8 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         jobs = jt.related.jobs.get()
         utils.poll_until(lambda: jobs.get(status='successful').count == 9, interval=5, timeout=300)
 
-        job_execution_nodes = set([job.execution_node for job in jobs.results])
-        assert set([instance.hostname for instance in instances]) == set(job_execution_nodes)
-
-    # VERIFY
-    @pytest.mark.skip(reason="no way of currently testing this")
-    def test_jobs_should_distribute_among_mutually_exclusive_instance_groups(self, factories, v2):
-        ig1, ig2 = [factories.instance_group() for _ in range(2)]
-        instances = v2.instances.get().results
-        ig1.add_instance(instances[0])
-        ig2.add_instance(instances[1])
-        utils.poll_until(lambda: ig1.get().instances == 1, interval=5, timeout=300)
-        utils.poll_until(lambda: ig2.get().instances == 1, interval=5, timeout=300)
-
-        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True, extra_vars='{"sleep_interval": 60}')
-        factories.v2_host(inventory=jt.ds.inventory)
-        for ig in (ig1, ig2):
-            jt.add_instance_group(ig)
-
-        for _ in range(15):
-            jt.launch()
-        jobs = jt.related.jobs.get()
-        utils.poll_until(lambda: jobs.get(status='successful').count == 15, interval=5, timeout=300)
-
-        instances = v2.instances.get().results
-        pod1_jobs = [job for job in jobs.results if job.execution_node == instances[0]]
-        pod2_jobs = [job for job in jobs.results if job.execution_node == instances[1]]
-        assert len(pod1_jobs) > 0
-        assert len(pod2_jobs) > 0
-
-    # VERIFY
-    @pytest.mark.skip(reason="no way of currently testing this")
-    def test_jobs_should_distribute_among_partially_overlapping_instance_groups(self, factories, v2):
-        ig1, ig2 = [factories.instance_group() for _ in range(2)]
-        instances = v2.instances.get().results
-        ig1.add_instance(instances[0])
-        ig2.add_instance(instances[1])
-        for ig in (ig1, ig2):
-            ig.add_instance(instances[2])
-        utils.poll_until(lambda: ig1.get().instances == 2, interval=5, timeout=300)
-        utils.poll_until(lambda: ig2.get().instances == 2, interval=5, timeout=300)
-
-        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True, extra_vars='{"sleep_interval": 60}')
-        factories.v2_host(inventory=jt.ds.inventory)
-        for _ in range(15):
-            jt.launch()
-        jobs = jt.related.jobs.get()
-        utils.poll_until(lambda: jobs.get(status='successful').count == 15, interval=5, timeout=300)
-
-        instances = v2.instances.get().results
-        pod1_jobs = [job for job in jobs.results if job.execution_node == instances[0]]
-        pod2_jobs = [job for job in jobs.results if job.execution_node == instances[1]]
-        pod3_jobs = [job for job in jobs.results if job.execution_node == instances[2]]
-        assert len(pod1_jobs) > 0
-        assert len(pod2_jobs) > 0
-        assert len(pod3_jobs) > 0
-
-    # VERIFY
-    @pytest.mark.skip(reason="no way of currently testing this")
-    def test_jobs_should_distribute_among_completely_overlapping_instance_groups(self, factories, v2):
-        ig1, ig2 = [factories.instance_group() for _ in range(2)]
-        instances = v2.instances.get().results
-        for ig in (ig1, ig2):
-            for instance in instances:
-                ig.add_instance(instance)
-        utils.poll_until(lambda: ig1.get().instances == 1, interval=5, timeout=300)
-        utils.poll_until(lambda: ig2.get().instances == 1, interval=5, timeout=300)
-
-        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True, extra_vars='{"sleep_interval": 60}')
-        factories.v2_host(inventory=jt.ds.inventory)
-        for _ in range(15):
-            jt.launch()
-        jobs = jt.related.jobs.get()
-        utils.poll_until(lambda: jobs.get(status='successful').count == 15, interval=5, timeout=300)
-
-        instances = v2.instances.get().results
-        pod1_jobs = [job for job in jobs.results if job.execution_node == instances[0]]
-        pod2_jobs = [job for job in jobs.results if job.execution_node == instances[1]]
-        assert len(pod1_jobs) > 0
-        assert len(pod2_jobs) > 0
+        job_execution_nodes = [job.execution_node for job in jobs.results]
+        assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
 
     @pytest.mark.parametrize('resource', ['inventory', 'organization', 'both'])
     def test_ahcs_run_on_target_instance_with_resource_ig_assignment(self, factories, v2, resource):
@@ -147,8 +143,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         instance = v2.instances.get().results.pop()
         ig.add_instance(instance)
 
-        host = factories.v2_host()
-        inv = host.ds.inventory
+        inv = factories.v2_inventory()
 
         if resource == 'inventory':
             inv.add_instance_group(ig)
@@ -168,8 +163,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         for instance in instances:
             ig.add_instance(instance)
 
-        host = factories.v2_host()
-        inv = host.ds.inventory
+        inv = factories.v2_inventory()
         inv.add_instance_group(ig)
 
         for _ in range(9):
@@ -206,7 +200,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
             project.update()
         project_updates = project.related.project_updates.get()
         utils.poll_until(lambda: project_updates.get(status='successful', not__id=initial_update.id).count == 9,
-                                 interval=5, timeout=300)
+                         interval=5, timeout=300)
 
         update_execution_nodes = [update.execution_node for update in project_updates.results]
         assert set(update_execution_nodes) == set([instance.hostname for instance in instances])
@@ -272,8 +266,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         assert inv_source.get().related.last_update.get().execution_node == instance.hostname
         assert project.get().related.last_update.get().execution_node == instance.hostname
 
-    # FIXME
-    def test_no_execution_node_assignment_with_jt_with_ig_with_no_instances(self, factories):
+    def test_no_execution_node_assigned_with_jt_with_ig_with_no_instances(self, factories):
         ig = factories.instance_group()
         assert ig.instances == 0
         assert ig.capacity == 0
@@ -284,11 +277,11 @@ class TestExecutionNodeAssignment(Base_Api_Test):
 
         utils.logged_sleep(30)
 
-        assert job.get().status == 'pending'
+        assert job.get().execution_node == ''
+        assert job.status == 'pending'
 
-    # FIXME
-    def test_execution_node_assignment_with_jt_with_ig_with_recently_added_instance(self, factories,
-                                                                                    tower_instance_group):
+    def test_execution_node_assigned_with_jt_with_ig_with_recently_added_instance(self, factories,
+                                                                                  tower_instance_group):
         ig = factories.instance_group()
         assert ig.instances == 0
         assert ig.capacity == 0
@@ -302,5 +295,5 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         instance = tower_instance_group.related.instances.get().results.pop()
         ig.add_instance(instance)
 
-        assert job.wait_until_completed(timeout=180).is_successful
+        assert job.wait_until_completed(timeout=300).is_successful
         assert job.execution_node == instance.hostname
