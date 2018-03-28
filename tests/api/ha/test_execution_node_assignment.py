@@ -11,7 +11,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.requires_ha
 @pytest.mark.mp_group('SharedHA', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestSharedHA(Base_Api_Test):
+class TestExecutionNodeAssignment(Base_Api_Test):
 
     @pytest.fixture(autouse=True)
     def prepare_openshift_environment(self, authtoken, v2, is_docker):
@@ -272,84 +272,8 @@ class TestSharedHA(Base_Api_Test):
         assert inv_source.get().related.last_update.get().execution_node == instance.hostname
         assert project.get().related.last_update.get().execution_node == instance.hostname
 
-    def test_jobs_should_not_run_on_disabled_instances(self, request, v2, factories):
-        ig = factories.instance_group()
-        instance = v2.instances.get().results.pop()
-        ig.add_instance(instance)
-
-        request.addfinalizer(lambda: instance.patch(enabled=True))
-        instance.enabled = False
-
-        utils.poll_until(lambda: ig.get().instances == 1, interval=5, timeout=300)
-
-        jt = factories.v2_job_template()
-        factories.v2_host(inventory=jt.ds.inventory)
-        jt.add_instance_group(ig)
-        job = jt.launch()
-
-        utils.logged_sleep(30)
-        assert job.get().status == 'pending'
-
-    def test_jobs_should_resume_on_newly_enabled_instances(self, request, v2, factories):
-        ig = factories.instance_group()
-        instance = v2.instances.get().results.pop()
-        ig.add_instance(instance)
-
-        request.addfinalizer(lambda: instance.patch(enabled=True))
-        instance.enabled = False
-
-        utils.poll_until(lambda: ig.get().instances == 1, interval=5, timeout=300)
-
-        jt = factories.v2_job_template()
-        factories.v2_host(inventory=jt.ds.inventory)
-        jt.add_instance_group(ig)
-        job = jt.launch()
-
-        utils.logged_sleep(30)
-        assert job.get().status == 'pending'
-
-        instance.enabled = True
-        assert job.wait_until_completed(timeout=300).is_successful
-
-    def test_disabiling_instance_should_not_impact_currently_running_jobs(self, request, v2, factories):
-        ig = factories.instance_group()
-        instance = v2.instances.get().results.pop()
-        ig.add_instance(instance)
-
-        request.addfinalizer(lambda: instance.patch(enabled=True))
-        utils.poll_until(lambda: ig.related.instances.get(cpu__gt=0).count == 1, interval=5, timeout=600)
-
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 30}')
-        factories.v2_host(inventory=jt.ds.inventory)
-        jt.add_instance_group(ig)
-
-        job = jt.launch()
-        assert job.wait_until_started().execution_node == instance.hostname
-
-        instance.enabled = False
-        assert job.wait_until_completed().is_successful
-
-    def test_disabiling_instance_should_set_capacity_to_zero(self, request, v2, factories):
-        instance = v2.instances.get().results.pop()
-        initial_mem_capacity = instance.mem_capacity
-        initial_cpu_capacity = instance.cpu_capacity
-        request.addfinalizer(lambda: instance.patch(enabled=True))
-
-        assert initial_mem_capacity > 0
-        assert initial_cpu_capacity > 0
-        assert instance.capacity == max(instance.mem_capacity, instance.cpu_capacity)
-
-        instance.enabled = False
-        assert instance.mem_capacity == initial_mem_capacity
-        assert instance.cpu_capacity == initial_cpu_capacity
-        assert instance.capacity == 0
-
-        instance.enabled = True
-        assert instance.mem_capacity == initial_mem_capacity
-        assert instance.cpu_capacity == initial_cpu_capacity
-        assert instance.capacity == max(instance.mem_capacity, instance.cpu_capacity)
-
-    def test_jobs_should_not_run_with_jt_with_empty_instance_group(self, factories):
+    # FIXME
+    def test_no_execution_node_assignment_with_jt_with_ig_with_no_instances(self, factories):
         ig = factories.instance_group()
         assert ig.instances == 0
         assert ig.capacity == 0
@@ -362,8 +286,9 @@ class TestSharedHA(Base_Api_Test):
 
         assert job.get().status == 'pending'
 
-    def test_jobs_should_resume_when_capacity_becomes_available_to_an_empty_instance_group(self, factories,
-                                                                                           tower_instance_group):
+    # FIXME
+    def test_execution_node_assignment_with_jt_with_ig_with_recently_added_instance(self, factories,
+                                                                                    tower_instance_group):
         ig = factories.instance_group()
         assert ig.instances == 0
         assert ig.capacity == 0
