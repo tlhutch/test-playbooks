@@ -21,6 +21,7 @@
 
 ### SAML/LDAP/etc hitlist catchall
 [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/saml.md)
+[Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/ldap.md)
 
 ### Update GCP credentials
 [Feature]()
@@ -129,7 +130,7 @@
     * [ ] rhel-7.latest
     * [ ] centos-7.latest
     * [ ] ol-7.latest
-1. [ ] Installation completes successfully for HA deployment (RHEL-7.2)
+1. [ ] Installation completes successfully for HA deployment (RHEL-7.4)
 1. [ ] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
