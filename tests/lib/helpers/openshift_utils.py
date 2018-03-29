@@ -1,11 +1,15 @@
 import subprocess
 
 from openshift.helper.openshift import OpenShiftObjectHelper
+from towerkit.config import config
 
 
 def prep_environment():
-    ret = subprocess.call('oc login -u jenkins -p fo0m4nchU --insecure-skip-tls-verify=true '
-                          'https://console.openshift.ansible.eng.rdu2.redhat.com', shell=True)
+    ret = subprocess.call('oc login -u {0} -p {1} {2} --insecure-skip-tls-verify={3}'.format(
+        config.credentials.openshift.username,
+        config.credentials.openshift.password,
+        config.credentials.openshift.url,
+        config.credentials.openshift.use_tls), shell=True)
     assert ret == 0
 
     ret = subprocess.call('oc project tower-qe', shell=True)
