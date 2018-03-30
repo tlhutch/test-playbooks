@@ -23,7 +23,7 @@
 1. [ ] SAML authentication
 1. [ ] Logging - standalone
 1. [ ] Logging - HA
-1. [ ] Backup/restore - standalone
+1. [x] Backup/restore - standalone
 1. [ ] Backup/restore - HA
 
 ### Installation
