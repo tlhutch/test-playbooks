@@ -24,7 +24,7 @@
 1. [ ] Logging - standalone
 1. [ ] Logging - HA
 1. [x] Backup/restore - standalone
-1. [ ] Backup/restore - HA
+1. [x] Backup/restore - HA
 
 ### Installation
 1. Installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/requirements_refguide.html)
