@@ -28,17 +28,17 @@
 
 ### Installation
 1. Installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/requirements_refguide.html)
-    * [ ] ubuntu-14.04
-    * [ ] ubuntu-16.04
-    * [ ] rhel-7.2
-    * [ ] rhel-7.4 (latest)
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] ubuntu-14.04
+    * [x] ubuntu-16.04
+    * [x] rhel-7.2
+    * [x] rhel-7.4 (latest)
+    * [x] centos-7.latest
+    * [x] ol-7.latest
 1. Installation completes successfully using supported ansible releases
-    * [ ] ansible-2.6 (devel)
-    * [ ] ansible-2.5
-    * [ ] ansible-2.4
-    * [ ] ansible-2.3
+    * [x] ansible-2.6 (devel)
+    * [x] ansible-2.5
+    * [x] ansible-2.4
+    * [x] ansible-2.3
     * [ ] ansible-2.2
 1. Bundled installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/tower_installer.html#bundled-install)
     * [ ] rhel-7.latest
