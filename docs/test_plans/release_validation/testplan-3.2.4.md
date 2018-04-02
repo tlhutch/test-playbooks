@@ -53,7 +53,7 @@
 1. [ ] Successful upgrades on all supported platforms from `3.0.4` - standalone
 1. [ ] Successful upgrades on all supported platforms from `3.1.5` - standalone
 1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.3` - standalone
-1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.3` - HA
+1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.3` - HA
 
 * Verify the following functionality after upgrade
     * Resource migrations
