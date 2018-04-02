@@ -1,0 +1,3 @@
+---
+letsencrypt_domain: '{{ idp_hostname }}'
+letsencrypt_email: ''

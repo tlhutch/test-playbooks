@@ -1,0 +1,30 @@
+---
+- name: create instance(s)
+  hosts: local
+  roles:
+    - role: create_ec2
+    - role: save_inventory
+      my_inventory_file: '{{inventory_dir}}/inventory.freeipa'
+
+- name: Add authorized keys on non-installer instances
+  hosts: freeipa
+  roles:
+    - role: auth_keys
+
+- name: Configure LetsEncrypt
+  hosts: freeipa
+  roles:
+    - role: letsencrypt
+      when: '{{ configure_letsencrypt|default(False)|bool }}'
+
+- name: Configure FreeIPA
+  hosts: freeipa
+  roles:
+    - role: freeipa
+      when: '{{ configure_freeipa|default(True)|bool }}'
+
+- name: Configure Ipsilon
+  hosts: freeipa
+  roles:
+    - role: ipsilon
+      when: '{{ configure_ipsilon|default(False)|bool }}'

@@ -1,0 +1,28 @@
+---
+freeipa_users:
+- username: bbelcher
+  first: Bob
+  last: Belcher
+  cn: Bob Belcher
+- username: gbelcher
+  first: Gene
+  last: Belcher
+  cn: Gene Belcher
+- username: libelcher
+  first: Linda
+  last: Belcher
+  cn: Linda Belcher
+- username: lobelcher
+  first: Louise
+  last: Belcher
+  cn: Louise Belcher
+- username: tbelcher
+  first: Tina
+  last: Belcher
+  cn: Tina Belcher
+
+freeipa_groups:
+- name: bobsburgers
+  members: ['bbelcher', 'gbelcher', 'libelcher', 'lobelcher', 'tbelcher']
+- name: bobsburgers_admins
+  members: ['bbelcher', 'libelcher']

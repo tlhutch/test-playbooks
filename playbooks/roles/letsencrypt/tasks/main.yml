@@ -1,0 +1,26 @@
+---
+- name: Install EPEL
+  yum:
+    name: epel-release
+    state: latest
+  become: true
+
+- name: Install LetsEncrypt
+  yum:
+    name: letsencrypt
+    state: latest
+  become: true
+
+- name: Generate certificate
+  command: "letsencrypt certonly -n --standalone --agree-tos --email {{ letsencrypt_email }} -d {{ letsencrypt_domain }}"
+  become: true
+
+- name: Update cert_path
+  set_fact:
+    letsencrypt_cert_path: '/etc/letsencrypt/live/{{ letsencrypt_domain }}'
+
+- name: Copy IdenTrust cert
+  copy:
+    src: DSTRootCAX3.pem
+    dest: '{{ letsencrypt_cert_path }}/DSTRootCAX3.pem'
+  become: true
