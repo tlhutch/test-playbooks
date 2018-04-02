@@ -39,13 +39,13 @@
     * [x] ansible-2.5
     * [x] ansible-2.4
     * [x] ansible-2.3
-    * [ ] ansible-2.2
+    * [x] ansible-2.2
 1. Bundled installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/tower_installer.html#bundled-install)
     * [ ] rhel-7.latest
     * [ ] centos-7.latest
     * [ ] ol-7.latest
-1. [ ] Installation completes successfully for HA deployment (RHEL-7.2)
-1. [ ] Bundled installation completes successfully for HA deployment
+1. [x] Installation completes successfully for HA deployment (RHEL-7.2)
+1. [x] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
 1. [ ] Successful migrations from `3.0.0` - `3.0.4`
@@ -64,4 +64,4 @@
 ### Provided Images
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed)
-    * [ ] Vagrant
+    * [x] Vagrant
