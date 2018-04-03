@@ -22,7 +22,7 @@
 1. [ ] Social authentication (rfitz)
 1. [ ] SAML authentication (rfitz)
 1. [x] Logging - standalone (cwang)
-1. [ ] Logging - HA (cwang)
+1. [x] Logging - HA (cwang)
 1. [x] Backup/restore - standalone (jladd)
 1. [x] Backup/restore - HA (jladd)
 
