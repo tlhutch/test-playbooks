@@ -14,46 +14,46 @@
 ## Targeted Testing
 
 ## Regression
-1. [ ] Limited manual UI testing completed
-1. [ ] API integration - standalone
-1. [ ] API integration - HA
-1. [ ] Tower/LDAP integration
-1. [ ] Tower/RADIUS integration
-1. [ ] Social authentication
-1. [ ] SAML authentication
-1. [x] Logging - standalone
-1. [ ] Logging - HA
-1. [x] Backup/restore - standalone
-1. [x] Backup/restore - HA
+1. [ ] Limited manual UI testing completed (jhill)
+1. [ ] API integration - standalone (jladd)
+1. [ ] API integration - HA (jladd)
+1. [ ] Tower/LDAP integration (rfitz)
+1. [ ] Tower/RADIUS integration (rfitz)
+1. [ ] Social authentication (rfitz)
+1. [ ] SAML authentication (rfitz)
+1. [x] Logging - standalone (cwang)
+1. [ ] Logging - HA (cwang)
+1. [x] Backup/restore - standalone (jladd)
+1. [x] Backup/restore - HA (jladd)
 
 ### Installation
-1. Installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/requirements_refguide.html)
+1. Installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/requirements_refguide.html) (jladd)
     * [x] ubuntu-14.04
     * [x] ubuntu-16.04
     * [x] rhel-7.2
     * [x] rhel-7.4 (latest)
     * [x] centos-7.latest
     * [x] ol-7.latest
-1. Installation completes successfully using supported ansible releases
+1. Installation completes successfully using supported ansible releases (jladd)
     * [x] ansible-2.6 (devel)
     * [x] ansible-2.5
     * [x] ansible-2.4
     * [x] ansible-2.3
     * [x] ansible-2.2
-1. Bundled installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/tower_installer.html#bundled-install)
+1. Bundled installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/tower_installer.html#bundled-install) (needs_owner)
     * [ ] rhel-7.latest
     * [ ] centos-7.latest
     * [ ] ol-7.latest
-1. [x] Installation completes successfully for HA deployment (RHEL-7.2)
-1. [x] Bundled installation completes successfully for HA deployment
+1. [x] Installation completes successfully for HA deployment (RHEL-7.2) (jladd)
+1. [x] Bundled installation completes successfully for HA deployment (jladd)
 
 ### Upgrades
-1. [x] Successful migrations from `3.0.0` - `3.0.4`
-1. [ ] Successful migrations from `3.1.0` - `3.1.5`
-1. [ ] Successful upgrades on all supported platforms from `3.0.4` - standalone
-1. [ ] Successful upgrades on all supported platforms from `3.1.5` - standalone
-1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.3` - standalone
-1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.3` - HA
+1. [x] Successful migrations from `3.0.0` - `3.0.4` (needs_owner)
+1. [ ] Successful migrations from `3.1.0` - `3.1.5` (needs_owner)
+1. [ ] Successful upgrades on all supported platforms from `3.0.4` - standalone (needs_owner)
+1. [ ] Successful upgrades on all supported platforms from `3.1.5` - standalone (needs_owner)
+1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.3` - standalone (needs_owner)
+1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.3` - HA (cwang)
 
 * Verify the following functionality after upgrade
     * Resource migrations
@@ -63,5 +63,5 @@
 
 ### Provided Images
 1. Installation completes successfully on supported images
-    * [x] AMI (unlicensed)
-    * [x] Vagrant
+    * [x] AMI (unlicensed) (jladd)
+    * [x] Vagrant (jladd)
