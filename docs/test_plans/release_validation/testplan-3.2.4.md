@@ -15,8 +15,8 @@
 
 ## Regression
 1. [ ] Limited manual UI testing completed (jhill)
-1. [ ] API integration - standalone (jladd)
-1. [ ] API integration - HA (jladd)
+1. [x] API integration - standalone (jladd)
+1. [x] API integration - HA (jladd)
 1. [ ] Tower/LDAP integration (rfitz)
 1. [ ] Tower/RADIUS integration (rfitz)
 1. [ ] Social authentication (rfitz)
