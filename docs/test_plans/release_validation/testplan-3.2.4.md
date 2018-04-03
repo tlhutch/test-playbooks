@@ -21,7 +21,7 @@
 1. [ ] Tower/RADIUS integration
 1. [ ] Social authentication
 1. [ ] SAML authentication
-1. [ ] Logging - standalone
+1. [x] Logging - standalone
 1. [ ] Logging - HA
 1. [x] Backup/restore - standalone
 1. [x] Backup/restore - HA
