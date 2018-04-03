@@ -48,7 +48,7 @@
 1. [x] Bundled installation completes successfully for HA deployment
 
 ### Upgrades
-1. [ ] Successful migrations from `3.0.0` - `3.0.4`
+1. [x] Successful migrations from `3.0.0` - `3.0.4`
 1. [ ] Successful migrations from `3.1.0` - `3.1.5`
 1. [ ] Successful upgrades on all supported platforms from `3.0.4` - standalone
 1. [ ] Successful upgrades on all supported platforms from `3.1.5` - standalone
