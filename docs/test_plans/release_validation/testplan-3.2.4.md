@@ -19,7 +19,7 @@
 1. [x] API integration - HA (jladd)
 1. [ ] Tower/LDAP integration (rfitz)
 1. [ ] Tower/RADIUS integration (rfitz)
-1. [ ] Social authentication (rfitz)
+1. [ ] Social authentication (rfitz/jladd)
 1. [ ] SAML authentication (rfitz)
 1. [x] Logging - standalone (cwang)
 1. [x] Logging - HA (cwang)
