@@ -1,5 +1,9 @@
 # Tower 3.1.6 Release Test Plan
 
+## Overview
+
+* 3.1.6 issues available [here](https://github.com/ansible/tower/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_3.1.6)
+
 ## Resources
 * 4 full-time automation engineers - cwang/jladd/rfitzpat/jhill
 
