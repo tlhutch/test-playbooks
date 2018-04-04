@@ -113,6 +113,43 @@ class TestUnifiedJobImpact(Base_Api_Test):
         assert ig_with_single_instance.consumed_capacity == 2 * self.unified_job_impact('job', 1)
         self.verify_resource_percent_capacity_remaining(ig_with_single_instance)
 
+    @pytest.mark.requires_ha
+    def test_instance_group_updates_for_simultaneously_running_unified_jobs(self, factories, v2):
+        ig = factories.instance_group()
+        instances = v2.instances.get().results
+        for instance in instances:
+            ig.add_instance(instance)
+
+        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_inverval": 120}')
+        factories.v2_host(inventory=jt.ds.inventory)
+        jt.add_instance_group(ig)
+
+        ahc_host = factories.v2_host()
+        ahc_host.ds.inventory.add_instance_group(ig)
+
+        project = factories.v2_project(scm_url='https://github.com/django/django.git')
+        project.ds.organization.add_instance_group(ig)
+
+        cred = factories.v2_credential(kind='aws')
+        inv_source = factories.v2_inventory_source(source='ec2', credential=cred)
+        inv = inv_source.ds.inventory
+        inv.add_instance_group(ig)
+
+        for instance in instances:
+            self.assert_instance_reflects_zero_running_jobs(instance.get())
+        self.assert_instance_group_reflects_zero_running_jobs(ig.get())
+
+        jt.launch()
+        factories.v2_ad_hoc_command(inventory=ahc_host.ds.inventory, module_name='shell', module_args='sleep 120')
+        project.update()
+        inv_source.update()
+
+        utils.poll_until(lambda: ig.get().jobs_running == 4, interval=1, timeout=120)
+        utils.poll_until(lambda: ig.get().consumed_capacity == self.unified_job_impact('job', 1) +
+                                 self.unified_job_impact('ahc', 1) + self.unified_job_impact('project_update') +
+                                 self.unified_job_impact('inventory_update'), interval=1, timeout=120)
+        self.verify_resource_percent_capacity_remaining(ig)
+
     def test_all_groups_that_contain_job_execution_node_update_for_running_job(self, factories, v2,
                                                                                ig_with_single_instance):
         jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 120}',
