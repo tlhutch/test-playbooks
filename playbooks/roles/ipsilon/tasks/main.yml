@@ -1,0 +1,61 @@
+---
+- name: Ensure pip is installed
+  yum:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - lasso-python
+    - m2crypto
+    - mod_intercept_form_submit
+    - python-pip
+  become: true
+
+- name: Install Ipsilon
+  shell: "pip install python-pam sqlalchemy>=0.8 cherrypy python-fedora python-openid https://releases.pagure.org/ipsilon/ipsilon-2.1.0.tar.gz" 
+  become: true
+
+- name: establish kerberos session
+  shell: 'echo {{ freeipa_password }} | kinit admin'
+  no_log: true
+  become: true
+
+- name: Create Ipsilon user
+  user:
+    name: ipsilon
+    state: present
+  become: true
+
+- name: Configure Ipsilon
+  shell: "ipsilon-server-install --ipa=yes --info-sssd=yes --form=yes --pam=yes"
+  become: true
+
+- name: Apply pam configuration
+  shell: 'cp /usr/share/ipsilon/templates/install/pam/ipsilon.pamd /etc/pam.d/ipsilon'
+  become: true
+
+- name: Move redundant ssl config
+  shell: 'mv /etc/httpd/conf.d/ssl.conf /etc/httpd/conf.d/ssl.conf.orig'
+  become: true
+  ignore_errors: true
+
+- name: Use mod_nss if necessary 
+  shell: "sed -i 's/\\<SSL/NSS/' /etc/ipsilon/idp/idp.conf"
+  become: true
+
+- name: link ipsilon executable
+  shell: "ln -sf /usr/bin/ipsilon /usr/libexec/ipsilon"
+  become: true
+
+- name: Set ipsilon configuration permissions
+  shell: 'chmod -R 755 /etc/ipsilon'
+  become: true
+
+- name: Restart httpd
+  service:
+    name: httpd
+    state: restarted 
+  become: true
+
+- name: reset auth
+  shell: 'ipa-getkeytab -s {{ freeipa_hostname }} -p HTTP/{{ freeipa_hostname }} -k /var/lib/ipa/gssproxy/http.keytab'
+  become: true

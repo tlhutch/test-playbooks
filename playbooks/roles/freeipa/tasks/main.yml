@@ -1,0 +1,87 @@
+---
+- name: Determine desired hostname and private ip
+  gather_facts: true
+  set_fact:
+    freeipa_hostname: "{{ idp_hostname|default(inventory_hostname) }}"
+    private_ip: "{{ ansible_default_ipv4.address }}"
+
+- name: Derive common variables from fully qualified domain name
+  set_fact:
+    freeipa_domain: "{{ freeipa_hostname|regex_replace('^(.*?)\\.(.*)$', '\\2') }}"
+    freeipa_realm: "{{ freeipa_hostname|regex_replace('^(.*?)\\.(.*)$', '\\2')|upper }}"
+    freeipa_dirname: "{{ freeipa_hostname|regex_replace('^(.*?)\\.(.*)$', '\\2')|regex_replace('\\.', '-')|upper }}"
+    freeipa_dn: "{{ freeipa_hostname.split('.') | join(',dc=') | regex_replace('^(.*?)\\,(.*)$', '\\2') }}"
+    freeipa_root: "{{ freeipa_hostname.split('.')[-2:] | join('.') }}"
+
+- name: Add host ip and name to hosts file
+  lineinfile:
+    path: "/etc/hosts"
+    line: '{{ item }} {{ freeipa_hostname }}'
+    insertafter: "^127.0.0.1"
+    state: present
+  with_items:
+    - "{{ private_ip }}"
+    - "{{ ansible_hostname }}"
+    - "{{ ansible_fqdn }}"
+  become: true
+
+- name: set hostname
+  block:
+    - command: 'hostnamectl set-hostname --static {{ freeipa_hostname }}'
+    - lineinfile:
+        path: /etc/cloud/cloud.cfg
+        line: 'preserve_hostname: true'
+        insertafter: '^# vim:syntax=yaml'
+        state: present
+  become: true
+
+- name: Install EPEL
+  yum:
+    name: epel-release
+    state: latest
+  become: true
+
+- name: Install freeipa server packages
+  yum:
+    name: freeipa-server
+    state: latest
+  become: true
+
+- name: Uninstall freeipa configuration
+  shell: "ipa-server-install --uninstall -U || true"
+  become: true
+
+- name: Set ipa-server-install cert vars
+  block: 
+    - assemble:
+        src: "{{ letsencrypt_cert_path }}"
+        dest: "{{ letsencrypt_cert_path }}/ssl_cert.pem"
+        regexp: "(DSTRootCAX3.pem|fullchain.pem|privkey.pem)"
+      become: true
+    - set_fact:
+        cert_file: "{{ letsencrypt_cert_path }}/ssl_cert.pem"
+    - set_fact:
+        freeipa_cert_args: "--http-cert-file={{ cert_file }} --http-pin= --no-pkinit --dirsrv-cert-file={{ cert_file }} --dirsrv-pin=  "
+  when: letsencrypt_cert_path is defined
+    
+- name: Install freeipa configuration
+  shell:  "ipa-server-install -p {{ freeipa_password }} -a {{ freeipa_password }} -n {{ freeipa_domain }} -r {{ freeipa_realm }} --hostname {{ freeipa_hostname }} -v -U {{ freeipa_cert_args|default('') }}"
+
+- name: Create freeipa users
+  shell: 'echo {{ freeipa_user_password }} | ipa user-add {{ item.username }} --first={{ item.first }} --last={{ item.last }} --cn="{{ item.cn }}" --password'
+  with_items: '{{ freeipa_users }}'
+  become: true
+  ignore_errors: true
+
+- name: Create freeipa groups
+  shell: 'ipa group-add {{ item.name }}'
+  with_items: '{{ freeipa_groups }}'
+  become: true
+  ignore_errors: true
+
+- name: Add members to groups
+  shell: 'ipa group-add-member {{ item.0.name }} --users={{ item.1 }}'
+  with_subelements:
+    - '{{ freeipa_groups }}'
+    - members
+  become: true
