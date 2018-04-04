@@ -40,10 +40,10 @@
     * [x] ansible-2.4
     * [x] ansible-2.3
     * [x] ansible-2.2
-1. Bundled installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/tower_installer.html#bundled-install) (needs_owner)
-    * [ ] rhel-7.latest
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
+1. Bundled installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/tower_installer.html#bundled-install) (jladd)
+    * [x] rhel-7.latest
+    * [x] centos-7.latest
+    * [x] ol-7.latest
 1. [x] Installation completes successfully for HA deployment (RHEL-7.2) (jladd)
 1. [x] Bundled installation completes successfully for HA deployment (jladd)
 
