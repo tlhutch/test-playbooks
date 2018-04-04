@@ -7,6 +7,10 @@ from tests.api import Base_Api_Test
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstances(Base_Api_Test):
+    def find_expected_capacity(self, instance):
+        return int(float(instance.capacity_adjustment) * (instance.mem_capacity - instance.cpu_capacity) +
+               min(instance.mem_capacity, instance.cpu_capacity))
+
     def test_jobs_should_not_run_on_disabled_instances(self, request, v2, factories):
         ig = factories.instance_group()
         instance = v2.instances.get().results.pop()
@@ -81,6 +85,14 @@ class TestInstances(Base_Api_Test):
         assert instance.mem_capacity == initial_mem_capacity
         assert instance.cpu_capacity == initial_cpu_capacity
         assert instance.capacity == max(instance.mem_capacity, instance.cpu_capacity)
+
+    @pytest.mark.parametrize('capacity_adjustment', ['0', '.25', '.5', '.75', '1'])
+    def test_instance_capacity_updates_for_percent_capacity_remaining(self, request, v2, capacity_adjustment):
+        instance = v2.instances.get().results.pop()
+        request.addfinalizer(lambda: instance.patch(capacity_adjustment='1'))
+        instance.capacity_adjustment = capacity_adjustment
+
+        assert instance.capacity == self.find_expected_capacity(instance)
 
     def test_verify_instance_read_only_fields(self, v2):
         instance = v2.instances.get().results.pop()
