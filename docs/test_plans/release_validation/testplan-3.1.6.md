@@ -12,13 +12,13 @@
 1. [ ] Org admins can gain control of any other user [Issue](https://github.com/ansible/tower/issues/1237)
 
 ## Regression
-1. [ ] UI regression completed
+1. [x] UI regression completed
 1. [ ] API regression completed - standalone
 1. [ ] API regression completed - HA
-1. [ ] Tower HA installation regression completed
+1. [x] Tower HA installation regression completed
 1. [ ] Tower LDAP Integration regression completed
 1. [ ] Tower RADIUS Integration regression completed
-1. [ ] Social authentication regression completed
+1. [x] Social authentication regression completed
 1. [ ] Backup/restore successful
 
 ### Installation
