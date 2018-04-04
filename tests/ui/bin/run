@@ -12,12 +12,11 @@ def parse_args():
     parser.add_argument('-u', '--username', dest='username', required=True)
     parser.add_argument('-p', '--password', dest='password', required=True)
     parser.add_argument('-v', dest='verbose', action='store_true')
-    return parser.parse_args()
+    return parser.parse_known_args()
 
 
 def main():
-    args = parse_args()
-
+    args, unknown = parse_args()
     logging.basicConfig(level='DEBUG' if args.verbose else 'INFO')
     log = logging.getLogger()
 
@@ -29,7 +28,7 @@ def main():
     project_root = '{}/../'.format(dir_path)
     log.debug('Starting a babel-node run...')
     Popen(['{}/node_modules/babel-cli/bin/babel-node.js'.format(project_root),
-           '{}/nightwatch.js'.format(project_root)], env=env).wait()
+           '{}/nightwatch.js'.format(project_root)] + unknown, env=env).wait()
 
 
 if __name__ == '__main__':

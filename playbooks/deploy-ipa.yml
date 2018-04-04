@@ -6,7 +6,7 @@
     - role: save_inventory
       my_inventory_file: '{{inventory_dir}}/inventory.freeipa'
 
-- name: Add authorized keys on non-installer instances
+- name: Add authorized keys on idp instance
   hosts: freeipa
   roles:
     - role: auth_keys

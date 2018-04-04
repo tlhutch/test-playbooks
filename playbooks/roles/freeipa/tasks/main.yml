@@ -67,6 +67,24 @@
 - name: Install freeipa configuration
   shell:  "ipa-server-install -p {{ freeipa_password }} -a {{ freeipa_password }} -n {{ freeipa_domain }} -r {{ freeipa_realm }} --hostname {{ freeipa_hostname }} -v -U {{ freeipa_cert_args|default('') }}"
 
+- name: establish kerberos session
+  shell: 'echo {{ freeipa_password }} | kinit admin'
+  no_log: true
+  become: true
+
+- name: Remove passwd expiration
+  shell: 'ipa pwpolicy-mod global_policy --maxlife=20000'
+  become: true
+
+- name: Transfer bind dn definition
+  template:
+    src: "templates/bind_dn.j2"
+    dest: "/tmp/bind_dn"
+
+- name: load bind dn
+  shell: 'ipa-ldap-updater /tmp/bind_dn'
+  become: true
+
 - name: Create freeipa users
   shell: 'echo {{ freeipa_user_password }} | ipa user-add {{ item.username }} --first={{ item.first }} --last={{ item.last }} --cn="{{ item.cn }}" --password'
   with_items: '{{ freeipa_users }}'
