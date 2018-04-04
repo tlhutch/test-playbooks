@@ -12,7 +12,7 @@
 1. [ ] Org admins can gain control of any other user [Issue](https://github.com/ansible/tower/issues/1237) (cwang)
 
 ## Regression
-1. [x] UI regression completed (needs_owner)
+1. [x] UI regression completed (cwang)
 1. [ ] API regression completed - standalone (jladd)
 1. [ ] API regression completed - HA (cwang)
 1. [x] Tower HA installation regression completed (cwang)
