@@ -27,8 +27,8 @@
 
 ### Installation
 1. Installation completes successfully on all supported platforms (jladd)
-    * [ ] ubuntu-14.04
-    * [ ] ubuntu-16.04
+    * [x] ubuntu-14.04
+    * [x] ubuntu-16.04
     * [x] rhel-7.2
     * [x] rhel-7.4
     * [x] centos-7.latest
