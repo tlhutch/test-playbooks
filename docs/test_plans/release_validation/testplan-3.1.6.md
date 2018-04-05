@@ -6,7 +6,7 @@
 
 ## Notes
 
-* Vagrant / AMI images not created for 3.1.6. (Generally omitted for older releases)
+* Vagrant image not created for 3.1.6. (Generally omitted for older releases)
 
 ## Resources
 * 4 full-time automation engineers - cwang/jladd/rfitzpat/jhill
@@ -38,6 +38,8 @@
     * [x] ansible-2.4
     * [x] ansible-2.3
     * [x] ansible-2.2
+1. Installation completes successfully on supported images (jladd)
+    * [ ] AMI (unlicensed)
 1. Bundled installation completes successfully on all supported platforms (Automated)  (jladd)
     * [ ] rhel-7.latest
     * [ ] centos-7.latest
