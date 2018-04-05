@@ -48,11 +48,11 @@
 1. [x] Bundled installation completes successfully for HA deployment (jladd)
 
 ### Upgrades
-1. [x] Successful migrations from `3.0.0` - `3.0.4` (rfitz / jhill)
-1. [x] Successful migrations from `3.1.0` - `3.1.5` (rfitz / jhill)
+1. [x] Successful migrations from `3.0.0` - `3.0.4` (jhill)
+1. [x] Successful migrations from `3.1.0` - `3.1.5` (jhill)
 1. [ ] Successful upgrades on all supported platforms from `3.0.4` - standalone (rfitz / jhill)
-1. [ ] Successful upgrades on all supported platforms from `3.1.5` - standalone (rfitz / jhill)
-1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.3` - standalone (rfitz / jhill)
+1. [x] Successful upgrades on all supported platforms from `3.1.5` - standalone (rfitz)
+1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.3` - standalone (rfitz)
 1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.3` - HA (cwang)
 
 * Verify the following functionality after upgrade
