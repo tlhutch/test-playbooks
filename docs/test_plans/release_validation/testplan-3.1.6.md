@@ -4,6 +4,10 @@
 
 * 3.1.6 issues available [here](https://github.com/ansible/tower/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_3.1.6)
 
+## Notes
+
+* Vagrant image not created for 3.1.6. (Generally omitted for older releases)
+
 ## Resources
 * 4 full-time automation engineers - cwang/jladd/rfitzpat/jhill
 
@@ -36,7 +40,6 @@
     * [x] ansible-2.2
 1. Installation completes successfully on supported images (jladd)
     * [ ] AMI (unlicensed)
-    * [ ] Vagrant
 1. Bundled installation completes successfully on all supported platforms (Automated)  (jladd)
     * [ ] rhel-7.latest
     * [ ] centos-7.latest
