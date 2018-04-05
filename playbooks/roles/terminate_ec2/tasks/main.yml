@@ -17,7 +17,7 @@
     count_tag:
         Name: '{{ec2_name_prefix}}-{{item.name}}'
         ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
-    wait: '{{ terminate_ec2_wait_upon_creation|default(true) }}'
+    wait: '{{ terminate_ec2_wait_upon_termination|default(true) }}'
     wait_timeout: '600'
   with_items: '{{ ec2_images }}'
   when: '{{ delete_on_start }}'
