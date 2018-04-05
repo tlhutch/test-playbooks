@@ -25,13 +25,15 @@
 1. Installation completes successfully on all supported platforms (jladd)
     * [ ] ubuntu-14.04
     * [ ] ubuntu-16.04
-    * [ ] rhel-7.latest
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] rhel-7.2
+    * [x] rhel-7.4
+    * [x] centos-7.latest
+    * [x] ol-7.latest
 1. Installation completes successfully using supported ansible releases (jladd)
-    * [ ] ansible-2.3 (devel branch)
-    * [ ] ansible-2.2
-    * [ ] ansible-2.1
+    * [x] ansible-2.5 (devel branch)
+    * [x] ansible-2.4
+    * [x] ansible-2.3
+    * [x] ansible-2.2
 1. Installation completes successfully on supported images (jladd)
     * [ ] AMI (unlicensed)
     * [ ] Vagrant
