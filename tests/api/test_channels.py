@@ -76,14 +76,14 @@ class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.mark.ansible_integration
         @pytest.mark.mp_group('TestAdHocCommandChannelsSerial', 'serial')
-        def test_ad_hoc_command_events(self, ahc_and_ws_events):
+        def test_ad_hoc_command_events_subscribe(self, ahc_and_ws_events):
             ahc, ws_events = ahc_and_ws_events
 
             # keys where ws event doesn't match retrieved event due to post-processing
             not_of_interest = ('created', 'event_name', 'modified')
             filtered_ws_events = self.filtered_events(ws_events, not_of_interest)
 
-            ahc_events = [result for result in ahc.related.events.get().results]
+            ahc_events = ahc.related.events.get().results
             assert ahc_events
 
             filtered_ahc_events = self.filtered_events(ahc_events, not_of_interest)
@@ -146,13 +146,13 @@ class TestJobChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.mark.ansible_integration
         @pytest.mark.mp_group('TestJobChannelsSerial', 'serial')
-        def test_job_events(self, job_and_ws_events):
+        def test_job_events_subscribe(self, job_and_ws_events):
             job, ws_events = job_and_ws_events
 
             not_of_interest = ('created', 'event_name', 'modified', 'summary_fields', 'related')
             filtered_ws_events = self.filtered_events(ws_events, not_of_interest)
 
-            job_events = [result for result in job.related.job_events.get().results]
+            job_events = job.related.job_events.get().results
             assert job_events
 
             filtered_ahc_events = self.filtered_events(job_events, not_of_interest)
@@ -246,8 +246,9 @@ class TestInventoryChannels(ChannelsTest, Base_Api_Test):
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
-            inv_update = class_factories.v2_inventory_source(source='custom').update().wait_until_completed()
-            assert inv_update.is_successful
+            inv_update = class_factories.v2_inventory_source(source='custom').update()
+            ws.inventory_update_stdout(inv_update.id)
+            assert inv_update.wait_until_completed().is_successful
             messages = [m for m in ws]
 
             ws.unsubscribe()
@@ -268,13 +269,33 @@ class TestInventoryChannels(ChannelsTest, Base_Api_Test):
                 desired_msg['instance_group_name'] = 'tower'
             assert desired_msg in events
 
+        @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestInventoryChannelsSerial', 'serial')
+        def test_inventory_update_events_subscribe(self, inv_update_and_ws_events):
+            inv_update, ws_events = inv_update_and_ws_events
+
+            not_of_interest = ('created', 'event_name', 'modified', 'summary_fields', 'related')
+            filtered_ws_events = self.filtered_events(ws_events, not_of_interest)
+
+            inv_update_events = inv_update.related.events.get().results
+            assert inv_update_events
+
+            filtered_ahc_events = self.filtered_events(inv_update_events, not_of_interest)
+            expected_ahc_events = self.expected_events(filtered_ahc_events, dict(inventory_update=inv_update.id,
+                                                                                 group_name='inventory_update_events',
+                                                                                 type='inventory_update_event'))
+            for expected in expected_ahc_events:
+                assert expected in filtered_ws_events
+
         def test_inventory_update_events_unsubscribe(self, factories, ws_client):
             ws = ws_client.connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
             inv_source = factories.v2_inventory_source(source='custom')
-            assert inv_source.update().wait_until_completed().is_successful
+            inv_update = inv_source.update()
+            ws.inventory_update_stdout(inv_update.id)
+            assert inv_update.wait_until_completed().is_successful
             assert [m for m in ws]
 
             ws.unsubscribe()
@@ -294,8 +315,9 @@ class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
-            project_update = class_factories.v2_project().update().wait_until_completed()
-            assert project_update.is_successful
+            project_update = class_factories.v2_project().update()
+            ws.project_update_stdout(project_update.id)
+            assert project_update.wait_until_completed().is_successful
             messages = [m for m in ws]
 
             ws.unsubscribe()
@@ -314,13 +336,33 @@ class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
             assert desired_msg in events
 
         @pytest.mark.ansible_integration
+        @pytest.mark.mp_group('TestProjectUpdateChannelsSerial', 'serial')
+        def test_project_update_events_subscribe(self, project_update_and_ws_events):
+            project_update, ws_events = project_update_and_ws_events
+
+            not_of_interest = ('created', 'event_name', 'modified', 'summary_fields', 'related')
+            filtered_ws_events = self.filtered_events(ws_events, not_of_interest)
+
+            project_update_events = project_update.related.events.get().results
+            assert project_update_events
+
+            filtered_ahc_events = self.filtered_events(project_update_events, not_of_interest)
+            expected_ahc_events = self.expected_events(filtered_ahc_events, dict(project_update=project_update.id,
+                                                                                 group_name='project_update_events',
+                                                                                 type='project_update_event'))
+            for expected in expected_ahc_events:
+                assert expected in filtered_ws_events
+
+        @pytest.mark.ansible_integration
         def test_project_update_events_unsubscribe(self, factories, ws_client):
             ws = ws_client.connect()
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
             project = factories.v2_project()
-            assert project.update().wait_until_completed().is_successful
+            project_update = project.update()
+            ws.project_update_stdout(project_update.id)
+            assert project_update.wait_until_completed().is_successful
             assert [m for m in ws]
 
             ws.unsubscribe()
