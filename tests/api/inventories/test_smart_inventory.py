@@ -213,6 +213,22 @@ class TestSmartInventory(Base_Api_Test):
             assert runner_events.count == 1
             assert runner_events.results[0].host_name == name
 
+    def test_ahcs_should_not_run_on_disabled_smart_inventory_hosts(self, factories):
+        host = factories.v2_host(enabled=False)
+        smart_inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind="smart",
+                                                 host_filter="name={0}".format(host.name))
+        ahc = factories.v2_ad_hoc_command(inventory=smart_inventory, module_name='ping').wait_until_completed()
+        assert ahc.is_successful
+        assert 'provided hosts list is empty' in ahc.result_stdout
+
+    def test_jobs_should_not_run_on_disabled_smart_inventory_hosts(self, factories):
+        host = factories.v2_host(enabled=False)
+        smart_inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind="smart",
+                                                 host_filter="name={0}".format(host.name))
+        job = factories.v2_job_template(inventory=smart_inventory).launch().wait_until_completed()
+        assert job.is_successful
+        assert 'skipping: no hosts matched' in job.result_stdout
+
     def test_host_update_after_ahc(self, factories):
         host = factories.v2_host()
         smart_inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind="smart",
