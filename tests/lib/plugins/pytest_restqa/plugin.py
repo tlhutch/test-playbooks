@@ -104,9 +104,10 @@ def pytest_configure(config):
             connections['root'] = Connection(qe_config.base_url, verify=not qe_config.assume_untrusted)
 
             if config.option.debug_rest and hasattr(config, '_debug_rest_hdlr'):
-                logger = logging.getLogger('towerkit.api.client')
-                logger.setLevel('DEBUG')
-                logger.addHandler(config._debug_rest_hdlr)
+                for mod in ('towerkit.api.client', 'towerkit.ws'):
+                    logger = logging.getLogger(mod)
+                    logger.setLevel('DEBUG')
+                    logger.addHandler(config._debug_rest_hdlr)
 
 
 @pytest.fixture(scope='session')
