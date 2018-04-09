@@ -16,8 +16,8 @@ Tower 3.3.0 brings the pub/sub job event model to all unified job templates, as 
 ### Test suites and cases
 * [ ] API
     * [ ] Websocket event pub/sub
-        * [ ] Project update
-        * [ ] Inventory update
+        * [x] Project update
+        * [x] Inventory update
         * [ ] System job
     * [ ] Serial directive job event test additions
         * [ ] linear strategy

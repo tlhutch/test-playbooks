@@ -9,15 +9,15 @@ Tower 3.3.0 corrects and improves upon a number of scheduling and time zone bugs
 * [Recommended time zone presentation](https://pganssle.github.io/pybay-2017-timezones-talk/#/)
 
 ### Test case prerequisites
-* [ ] Towerkit RRule TZID support
+* [.] Towerkit RRule TZID support - Not feasible overall, impractical in general: https://github.com/dateutil/dateutil/issues/637#issuecomment-372845042
 
 ### Test suites and cases
-* [ ] API
-    * [ ] Existing schedule suite refactor and expansion for all unified job templates
-    * [ ] Functional TZID RRule support
-    * [ ] Functional TZID invalid input handling
-    * [ ] Schedule preview endpoint functionality
-    * [ ] Schedule preview invalid input handling
+* [x] API
+    * [x] Existing schedule suite refactor and expansion for all unified job templates
+    * [x] Functional TZID RRule support
+    * [x] Functional TZID invalid input handling
+    * [x] Schedule preview endpoint functionality
+    * [x] Schedule preview invalid input handling
 * [ ] UI (manual testing anticipated)
     * [ ] Schedule CRUD
     * [ ] Edgce case schedule creation

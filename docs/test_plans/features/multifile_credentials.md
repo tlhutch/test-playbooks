@@ -8,11 +8,11 @@ Tower 3.3.0 expands on file-sourcing custom credential types by supporting an ar
 * [Initial PR](https://github.com/ansible/awx/pull/696)
 
 ### Test suites and cases
-* [ ] API
-    * [ ] Credential type with valid injectors
-    * [ ] Credential type with invalid injectors
-    * [ ] Custom credential's multiple files are functional
-    * [ ] Custom credentials with partial/invalid arguments
-    * [ ] No regressions in current credential suites
+* [x] API
+    * [x] Credential type with valid injectors
+    * [x] Credential type with invalid injectors
+    * [x] Custom credential's multiple files are functional
+    * [x] Custom credentials with partial/invalid arguments
+    * [x] No regressions in current credential suites
 * [ ] UI (manual testing anticipated)
     * [ ] Same as API 
