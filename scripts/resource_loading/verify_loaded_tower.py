@@ -6,6 +6,7 @@ import sys
 import re
 
 from towerkit import api, config, utils
+from towerkit.tower.utils import uses_sessions
 
 from loading import args, resources, delete_all_created  # noqa
 
@@ -18,7 +19,7 @@ log.addHandler(handler)
 
 
 root = api.Api()
-if utils.uses_sessions(root.connection):
+if uses_sessions(root.connection):
     config.use_sessions = True
     root.load_session().get()
 else:

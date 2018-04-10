@@ -5,6 +5,7 @@ import json
 import sys
 
 from towerkit import api, config, exceptions, utils
+from towerkit.tower.utils import uses_sessions
 
 from loading import resources, delete_all_created  # noqa
 
@@ -17,7 +18,7 @@ log.addHandler(handler)
 
 
 v1 = api.ApiV1()
-if utils.uses_sessions(v1.connection):
+if uses_sessions(v1.connection):
     config.use_sessions = True
     v1.load_session().get()
 else:
