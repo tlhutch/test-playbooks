@@ -5,7 +5,7 @@ import json
 import sys
 import re
 
-from towerkit import api
+from towerkit import api, config, utils
 
 from loading import args, resources, delete_all_created  # noqa
 
@@ -17,7 +17,12 @@ handler.setLevel('DEBUG')
 log.addHandler(handler)
 
 
-root = api.Api().load_default_authtoken().get()
+root = api.Api()
+if utils.uses_sessions(root.connection):
+    config.use_sessions = True
+    root.load_session().get()
+else:
+    root.load_authtoken().get()
 v = root.current_version.get()
 
 use_v2 = 'v2' in root.available_versions

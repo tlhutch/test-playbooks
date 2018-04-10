@@ -16,7 +16,12 @@ handler.setLevel('DEBUG')
 log.addHandler(handler)
 
 
-v1 = api.ApiV1().load_default_authtoken().get()
+v1 = api.ApiV1()
+if utils.uses_sessions(v1.connection):
+    config.use_sessions = True
+    v1.load_session().get()
+else:
+    v1.load_authtoken().get()
 v1.config.get().install_license()
 
 
