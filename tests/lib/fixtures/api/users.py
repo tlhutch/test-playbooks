@@ -91,6 +91,11 @@ def all_user(request):
     return request.getfuncargvalue(request.param)
 
 
+@pytest.fixture
+def system_users(superuser, system_auditor):
+    return (superuser, system_auditor)
+
+
 @pytest.fixture(scope="function")
 def non_superusers(org_admin, org_user, anonymous_user, system_auditor):
     """Return a list of non-superusers"""
