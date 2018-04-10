@@ -148,6 +148,26 @@ class Test_User_RBAC(Base_Api_Test):
             with self.current_user(username=org_user.username, password=new_pass):
                 org_user.get()
 
+    def test_org_admins_cannot_edit_passwords_of_users_who_are_system_users_and_org_members(self, factories,
+                                                                                            system_users):
+        new_pass = utils.random_title()
+
+        org = factories.v2_organization()
+        org_admin = factories.v2_user()
+        org.add_admin(org_admin)
+
+        for system_user in system_users:
+            org.add_user(system_user)
+
+        for system_user in system_users:
+            with self.current_user(org_admin):
+                with pytest.raises(exc.Forbidden):
+                    system_user.patch(password=new_pass, password_confirm=new_pass)
+
+        for system_user in system_users:
+            with self.current_user(system_user):
+                system_user.get()
+
     def test_all_users_can_change_their_own_password(self, all_users):
         new_pass = utils.random_title()
 
