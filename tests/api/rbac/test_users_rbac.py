@@ -117,7 +117,7 @@ class Test_User_RBAC(Base_Api_Test):
 
         org2 = factories.v2_organization()
         for user in org_users:
-            org2.add_admin(user)
+            org2.add_user(user)
 
         # org admin shouldn't be able to edit users
         for org_user in org_users:
