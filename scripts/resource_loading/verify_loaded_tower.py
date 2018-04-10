@@ -5,7 +5,7 @@ import json
 import sys
 import re
 
-from towerkit import api, config, utils
+from towerkit import api, config
 from towerkit.tower.utils import uses_sessions
 
 from loading import args, resources, delete_all_created  # noqa
