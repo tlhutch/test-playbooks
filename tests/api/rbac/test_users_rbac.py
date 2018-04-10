@@ -68,15 +68,6 @@ class Test_User_RBAC(Base_Api_Test):
             with self.current_user(username=user.username, password=new_pass):
                 user.get()
 
-    def test_superusers_can_edit_system_user_passwords(self, system_users):
-        new_pass = utils.random_title()
-        for user in system_users:
-            user.patch(password=new_pass, password_confirm=new_pass)
-
-        for user in system_users:
-            with self.current_user(username=user.username, password=new_pass):
-                user.get()
-
     def test_non_superusers_cannot_edit_system_user_passwords(self, factories, non_superusers):
         new_pass = utils.random_title()
         system_users = [factories.v2_user(is_superuser=True), factories.v2_user(is_system_auditor=True)]
