@@ -34,6 +34,7 @@ ec2_images:
 _ec2_elastic_ips:
     - {'name': 'rhel-7.2-x86_64', 'eip': '35.169.222.27'}
     - {'name': 'rhel-7.4-x86_64', 'eip': '35.170.40.126'}
+    - {'name': 'rhel-7.5-x86_64', 'eip': '52.54.81.210'}
     - {'name': 'centos-7.latest-x86_64', 'eip': '54.86.26.131'}
 
 ec2_security_groups:
