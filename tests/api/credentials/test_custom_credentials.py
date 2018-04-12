@@ -73,9 +73,6 @@ class TestCustomCredentials(Base_Api_Test):
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
-        assert dict(extra_var_from_field_one='**********', extra_var_from_field_two='True',
-                    extra_var_from_field_three='False', extra_var_from_field_four='True') in job.job_args
-
         hostvars = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.hostvars
         for field, value in input_values.items():
             assert hostvars[host.name][field_to_var[field]] == str(value)
@@ -117,7 +114,7 @@ class TestCustomCredentials(Base_Api_Test):
                               dict(env=dict(AP_FILE_TO_CAT='{{ tower.filename }}'))],
                              ids=('extra_var', 'env_var'))
     def test_file_injector_path_from_variable(self, factories, injector_var):
-        file_contents = random_title(10000, False)
+        file_contents = random_title(10000)
         injectors = dict(file=dict(template=file_contents))
         injectors.update(injector_var)
         credential_type = factories.credential_type(injectors=injectors)
@@ -141,7 +138,7 @@ class TestCustomCredentials(Base_Api_Test):
                              ids=('extra_var_file_one', 'extra_var_file_two',
                                   'env_var_file_one', 'env_var_file_two'))
     def test_multifile_injector_paths_from_variables(self, factories, injector_var):
-        one_contents, two_contents = [random_title(10000, False) for _ in range(2)]
+        one_contents, two_contents = [random_title(10000) for _ in range(2)]
         injectors = dict(file={'template.one': one_contents, 'template.two': two_contents})
         injectors.update(injector_var)
         credential_type = factories.credential_type(injectors=injectors)
