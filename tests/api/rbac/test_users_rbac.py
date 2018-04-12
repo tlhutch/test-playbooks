@@ -15,19 +15,6 @@ from tests.api import Base_Api_Test
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_User_RBAC(Base_Api_Test):
 
-    def test_user_admin_role_application_forbidden(self, factories, api_roles_pg):
-        """Confirms that users are not able to have any admin role (dis)associated with themselves."""
-        user_one, user_two = [factories.user() for _ in range(2)]
-        user_one_admin_role = api_roles_pg.get(object_id=user_one.id,
-                                               role_field='admin_role',
-                                               members__in=user_one.id).results[0]
-
-        for user in [user_one, user_two]:
-            for disassociate in [True, False]:
-                with pytest.raises(exc.Forbidden):
-                    user.related.roles.post(dict(id=user_one_admin_role.id,
-                                                 disassociate=disassociate))
-
     def test_user_capabilities_as_superuser(self, factories, api_users_pg):
         """Tests 'user_capabilities' with a superuser."""
         superuser = factories.user(is_superuser=True)
