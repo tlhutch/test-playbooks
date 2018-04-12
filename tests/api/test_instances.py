@@ -1,6 +1,7 @@
 import pytest
 
 from towerkit import utils
+
 from tests.api import Base_Api_Test
 
 
@@ -8,7 +9,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstances(Base_Api_Test):
     def find_expected_capacity(self, instance):
-        return int(float(instance.capacity_adjustment) * (instance.mem_capacity - instance.cpu_capacity) +
+        return int(float(instance.capacity_adjustment) * abs(instance.mem_capacity - instance.cpu_capacity) +
                min(instance.mem_capacity, instance.cpu_capacity))
 
     def test_jobs_should_not_run_on_disabled_instances(self, request, v2, factories):

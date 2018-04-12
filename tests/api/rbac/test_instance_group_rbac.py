@@ -76,6 +76,8 @@ class TestInstanceGroupRBAC(Base_Api_Test):
             assert len(instances.results) == 1
             check_read_access(instance)
             assert_response_raised(ig, httplib.FORBIDDEN)
+            with pytest.raises(exc.Forbidden):
+                ig.remove_instance(instance)
 
 
 @pytest.mark.api

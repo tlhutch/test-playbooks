@@ -2,9 +2,9 @@ from collections import Counter
 import random
 
 from towerkit import utils
-from tests.lib.helpers import openshift_utils
 import pytest
 
+from tests.lib.helpers import openshift_utils
 from tests.api import Base_Api_Test
 
 
@@ -14,7 +14,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroupPolicies(Base_Api_Test):
 
-    def find_ig_instances(self, ig):
+    def get_ig_instances(self, ig):
         return [instance.hostname for instance in ig.related.instances.get().results]
 
     @pytest.fixture
@@ -30,7 +30,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         utils.poll_until(lambda: ig.get().instances == expected_num_instances, interval=1, timeout=30)
 
         ig_instances = ig.related.instances.get()
-        ig_instance_hostnames = self.find_ig_instances(ig)
+        ig_instance_hostnames = self.get_ig_instances(ig)
         assert ig_instances.count == expected_num_instances
         assert len(ig_instance_hostnames) == expected_num_instances
         if instance_percentage != 100:
@@ -46,7 +46,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         utils.poll_until(lambda: ig.get().instances == expected_num_instances, interval=1, timeout=30)
 
         ig_instances = ig.related.instances.get()
-        ig_instance_hostnames = self.find_ig_instances(ig)
+        ig_instance_hostnames = self.get_ig_instances(ig)
         assert ig_instances.count == expected_num_instances
         assert len(ig_instance_hostnames) == expected_num_instances
         if instance_minimum not in (5, 777):
@@ -61,7 +61,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert set(ig.policy_instance_list) == set(instances)
 
         ig_instances = ig.related.instances.get()
-        ig_instance_hostnames = self.find_ig_instances(ig)
+        ig_instance_hostnames = self.get_ig_instances(ig)
         assert ig_instances.count == len(instances)
         assert len(ig_instance_hostnames) == len(instances)
         assert set(ig_instance_hostnames) < set(tower_instance_hostnames)
@@ -73,7 +73,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert set(ig.policy_instance_list) == set(tower_instance_hostnames)
 
         ig_instances = ig.related.instances.get()
-        ig_instance_hostnames = self.find_ig_instances(ig)
+        ig_instance_hostnames = self.get_ig_instances(ig)
         assert ig_instances.count == 5
         assert len(ig_instance_hostnames) == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
@@ -96,7 +96,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         utils.poll_until(lambda: ig.get().instances == 5, interval=1, timeout=30)
 
         ig_instances = ig.related.instances.get()
-        ig_instance_hostnames = self.find_ig_instances(ig)
+        ig_instance_hostnames = self.get_ig_instances(ig)
         assert ig_instances.count == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
@@ -110,7 +110,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         utils.poll_until(lambda: ig.get().instances == 5, interval=1, timeout=30)
 
         ig_instances = ig.related.instances.get()
-        ig_instance_hostnames = self.find_ig_instances(ig)
+        ig_instance_hostnames = self.get_ig_instances(ig)
         assert ig_instances.count == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
@@ -123,7 +123,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         utils.poll_until(lambda: ig.get().instances == 5, interval=1, timeout=30)
 
         ig_instances = ig.related.instances.get()
-        ig_instance_hostnames = self.find_ig_instances(ig)
+        ig_instance_hostnames = self.get_ig_instances(ig)
         assert ig_instances.count == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
@@ -137,7 +137,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
 
         sourced_instances = []
         for ig in igs:
-            sourced_instances += self.find_ig_instances(ig)
+            sourced_instances += self.get_ig_instances(ig)
         assert set(sourced_instances) == set(tower_instance_hostnames)
 
     def test_single_instances_are_distributed_evenly_with_igs_with_policy_instance_minimum(self, factories,
@@ -150,7 +150,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
 
         sourced_instances = []
         for ig in igs:
-            sourced_instances += self.find_ig_instances(ig)
+            sourced_instances += self.get_ig_instances(ig)
         assert set(sourced_instances) == set(tower_instance_hostnames)
 
     def test_single_instances_are_distributed_evenly_with_igs_with_different_rules(self, factories,
@@ -164,7 +164,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
 
         sourced_instances = []
         for ig in (ig1, ig2, ig3, ig4, ig5):
-            sourced_instances += self.find_ig_instances(ig)
+            sourced_instances += self.get_ig_instances(ig)
         assert set(sourced_instances) == set(tower_instance_hostnames)
 
     def test_multiple_instances_are_distributed_evenly_with_igs_with_policy_instance_percentage(self, factories,
@@ -175,13 +175,13 @@ class TestInstanceGroupPolicies(Base_Api_Test):
             utils.poll_until(lambda: ig.get().instances == 3, interval=1, timeout=30)
             igs.append(ig)
 
-            ig_hostnames = self.find_ig_instances(ig)
+            ig_hostnames = self.get_ig_instances(ig)
             assert len(set(ig_hostnames)) == 3
             assert set(ig_hostnames) < set(tower_instance_hostnames)
 
         sourced_instances = []
         for ig in igs:
-            sourced_instances += self.find_ig_instances(ig)
+            sourced_instances += self.get_ig_instances(ig)
 
         counter = Counter(sourced_instances)
         for hostname in counter:
@@ -195,13 +195,13 @@ class TestInstanceGroupPolicies(Base_Api_Test):
             utils.poll_until(lambda: ig.get().instances == 3, interval=1, timeout=30)
             igs.append(ig)
 
-            ig_hostnames = self.find_ig_instances(ig)
+            ig_hostnames = self.get_ig_instances(ig)
             assert len(set(ig_hostnames)) == 3
             assert set(ig_hostnames) < set(tower_instance_hostnames)
 
         sourced_instances = []
         for ig in igs:
-            sourced_instances += self.find_ig_instances(ig)
+            sourced_instances += self.get_ig_instances(ig)
 
         counter = Counter(sourced_instances)
         for hostname in counter:
@@ -218,7 +218,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
             utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
-            ig_instances = self.find_ig_instances(igroup)
+            ig_instances = self.get_ig_instances(igroup)
             assert set(ig_instances) == set(tower_instance_hostnames)
 
     def test_manual_instance_association_updates_instance_group_attributes(self, factories, v2):
@@ -245,7 +245,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert ig.get().instances == 4
 
         ig_instances = ig.related.instances.get()
-        ig_instance_hostnames = self.find_ig_instances(ig)
+        ig_instance_hostnames = self.get_ig_instances(ig)
         assert ig_instances.count == 4
         assert len(ig_instances.results) == 4
         assert instance.hostname not in ig_instance_hostnames
@@ -265,7 +265,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
             utils.poll_until(lambda: igroup.get().instances == 4, interval=1, timeout=30)
-            assert instance.hostname not in self.find_ig_instances(igroup)
+            assert instance.hostname not in self.get_ig_instances(igroup)
 
     def test_manual_instance_disassociation_introduces_instance_for_consideration_to_other_igs(self, factories, v2):
         ig = factories.instance_group()
@@ -279,13 +279,13 @@ class TestInstanceGroupPolicies(Base_Api_Test):
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
             utils.poll_until(lambda: igroup.get().instances == 4, interval=1, timeout=30)
-            assert instance.hostname not in self.find_ig_instances(igroup)
+            assert instance.hostname not in self.get_ig_instances(igroup)
 
         ig.remove_instance(instance)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
             utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
-            assert instance.hostname in self.find_ig_instances(igroup)
+            assert instance.hostname in self.get_ig_instances(igroup)
 
     def test_tower_ig_unaffected_by_manual_instance_association_and_disassociation_in_other_igs(self, factories, v2,
                                                                                                 tower_instance_group):
