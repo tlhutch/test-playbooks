@@ -24,7 +24,7 @@ class TestOpenShiftHA(Base_Api_Test):
 
     def test_scale_up_tower_pod(self, v2, tower_instance_group, tower_version, tower_ig_contains_all_instances):
         openshift_utils.scale_dc(dc='tower', replicas=7)
-        utils.poll_until(lambda: openshift_utils.get_tower_pods_number() == 7, interval=5, timeout=180)
+        utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 7, interval=5, timeout=180)
         tower_pods = set(openshift_utils.get_tower_pods())
 
         instances = v2.instances.get()
@@ -44,7 +44,7 @@ class TestOpenShiftHA(Base_Api_Test):
 
     def test_scale_down_tower_pod(self, v2, tower_instance_group, tower_version, tower_ig_contains_all_instances):
         openshift_utils.scale_dc(dc='tower', replicas=3)
-        utils.poll_until(lambda: openshift_utils.get_tower_pods_number() == 3, interval=5, timeout=180)
+        utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 3, interval=5, timeout=180)
         tower_pods = set(openshift_utils.get_tower_pods())
 
         instances = v2.instances.get()
@@ -65,10 +65,10 @@ class TestOpenShiftHA(Base_Api_Test):
     def test_tower_web_service_should_be_able_to_recover_from_zero_tower_pods(self, factories, v2, tower_instance_group,
                                                                               tower_version, tower_ig_contains_all_instances):
         openshift_utils.scale_dc(dc='tower', replicas=0)
-        utils.poll_until(lambda: openshift_utils.get_tower_pods_number() == 0, interval=5, timeout=180)
+        utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 0, interval=5, timeout=180)
 
         openshift_utils.scale_dc(dc='tower', replicas=1)
-        utils.poll_until(lambda: openshift_utils.get_tower_pods_number() == 1, interval=5, timeout=180)
+        utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 1, interval=5, timeout=180)
         tower_pod = openshift_utils.get_tower_pods().pop()
 
         utils.logged_sleep(60)
@@ -128,7 +128,7 @@ class TestOpenShiftHA(Base_Api_Test):
 
     def test_verify_jobs_fail_with_execution_node_death(self, factories, v2):
         openshift_utils.scale_dc(dc='tower', replicas=5)
-        utils.poll_until(lambda: openshift_utils.get_tower_pods_number() == 5, interval=5, timeout=180)
+        utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 5, interval=5, timeout=180)
         utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == 5, interval=5, timeout=600)
 
         ig = factories.instance_group()
@@ -147,5 +147,5 @@ class TestOpenShiftHA(Base_Api_Test):
         assert job.job_explanation == 'Task was marked as running in Tower but was not present in the job queue, ' \
                                       'so it has been marked as failed.'
 
-        utils.poll_until(lambda: openshift_utils.get_tower_pods_number() == 5, interval=5, timeout=180)
+        utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 5, interval=5, timeout=180)
         utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == 5, interval=5, timeout=600)
