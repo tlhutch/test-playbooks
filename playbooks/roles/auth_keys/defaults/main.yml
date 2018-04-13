@@ -8,7 +8,6 @@ authorized_keys:
     - 'https://github.com/jimi-c.keys'
     - 'https://github.com/jlaska.keys'
     - 'https://github.com/matburt.keys'
-    - 'https://github.com/rmfitzpatrick.keys'
     - 'https://github.com/simfarm.keys'
     - 'https://github.com/jladdjr.keys'
     - 'https://github.com/jakemcdermott.keys'
