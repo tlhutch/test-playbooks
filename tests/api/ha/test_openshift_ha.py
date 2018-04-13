@@ -23,12 +23,13 @@ class TestOpenShiftHA(Base_Api_Test):
         return func
 
     def test_scale_up_tower_pod(self, v2, tower_instance_group, tower_version, tower_ig_contains_all_instances):
-        openshift_utils.scale_dc(dc='tower', replicas=7)
-        utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 7, interval=5, timeout=180)
+        num_instances = v2.instances.get().count + 2
+        openshift_utils.scale_dc(dc='tower', replicas=num_instances)
+        utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == num_instances, interval=5, timeout=180)
         tower_pods = set(openshift_utils.get_tower_pods())
 
         instances = v2.instances.get()
-        utils.poll_until(lambda: instances.get(cpu__gt=0).count == 7, interval=5, timeout=600)
+        utils.poll_until(lambda: instances.get(cpu__gt=0).count == num_instances, interval=5, timeout=600)
         assert set([instance.hostname for instance in instances.get().results]) == tower_pods
         for instance in instances.results:
             assert instance.enabled
@@ -36,7 +37,7 @@ class TestOpenShiftHA(Base_Api_Test):
             assert instance.capacity
 
         ping = v2.ping.get()
-        utils.poll_until(lambda: len(ping.get().instances) == 7, interval=5, timeout=180)
+        utils.poll_until(lambda: len(ping.get().instances) == num_instances, interval=5, timeout=180)
         assert set([instance.node for instance in ping.instances]) == tower_pods
         for instance in instances.results:
             assert instance.version == tower_version
@@ -45,12 +46,13 @@ class TestOpenShiftHA(Base_Api_Test):
         assert tower_ig_contains_all_instances()
 
     def test_scale_down_tower_pod(self, v2, tower_instance_group, tower_version, tower_ig_contains_all_instances):
-        openshift_utils.scale_dc(dc='tower', replicas=3)
-        utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 3, interval=5, timeout=180)
+        num_instances = v2.instances.get().count - 2
+        openshift_utils.scale_dc(dc='tower', replicas=num_instances)
+        utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == num_instances, interval=5, timeout=180)
         tower_pods = set(openshift_utils.get_tower_pods())
 
         instances = v2.instances.get()
-        utils.poll_until(lambda: instances.get(cpu__gt=0).count == 3, interval=5, timeout=600)
+        utils.poll_until(lambda: instances.get(cpu__gt=0).count == num_instances, interval=5, timeout=600)
         assert set([instance.hostname for instance in instances.get().results]) == tower_pods
         for instance in instances.results:
             assert instance.enabled
@@ -58,7 +60,7 @@ class TestOpenShiftHA(Base_Api_Test):
             assert instance.capacity
 
         ping = v2.ping.get()
-        utils.poll_until(lambda: len(ping.get().instances) == 3, interval=5, timeout=180)
+        utils.poll_until(lambda: len(ping.get().instances) == num_instances, interval=5, timeout=180)
         assert set([instance.node for instance in ping.instances]) == tower_pods
         for instance in instances.results:
             assert instance.version == tower_version
@@ -97,6 +99,7 @@ class TestOpenShiftHA(Base_Api_Test):
         # verify that jobs run
         jt = factories.v2_job_template()
         jt.add_instance_group(tower_instance_group)
+
         job = jt.launch().wait_until_completed(timeout=180)
         assert job.is_successful
         assert job.execution_node == tower_pod
