@@ -203,16 +203,14 @@ class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
                 resource.remove_instance_group(ig)
         assert resource.related.instance_groups.get().count == 1
 
-    def test_instance_assignment_and_unassignment_to_tower_ig_only_allowed_as_superuser(self, request, factories,
-                                                                                        v2, tower_instance_group):
+    def test_instance_assignment_and_unassignment_to_tower_ig_only_allowed_as_superuser(self, request, non_superusers,
+                                                                                        tower_instance_group):
         tower_ig_instances = tower_instance_group.related.instances.get().results
 
         def teardown():
             for instance in tower_ig_instances:
                 tower_instance_group.add_instance(instance)
         request.addfinalizer(teardown)
-
-        user = factories.user()
 
         for instance in tower_ig_instances:
             tower_instance_group.remove_instance(instance)
@@ -223,9 +221,16 @@ class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
         utils.poll_until(lambda: tower_instance_group.get().instances == len(tower_ig_instances), interval=1,
                                  timeout=30)
 
-        with self.current_user(user):
-            for instance in tower_ig_instances:
-                with pytest.raises(exc.Forbidden):
-                    tower_instance_group.remove_instance(instance)
-                with pytest.raises(exc.Forbidden):
-                    tower_instance_group.add_instance(instance)
+        for non_superuser in non_superusers:
+            with self.current_user(non_superuser):
+                for instance in tower_ig_instances:
+                    with pytest.raises(exc.Forbidden):
+                        tower_instance_group.remove_instance(instance)
+        assert tower_instance_group.get().instances == len(tower_ig_instances)
+
+        for non_superuser in non_superusers:
+            with self.current_user(non_superuser):
+                for instance in tower_ig_instances:
+                    with pytest.raises(exc.Forbidden):
+                        tower_instance_group.add_instance(instance)
+        assert tower_instance_group.get().instances == len(tower_ig_instances)
