@@ -101,37 +101,6 @@ class TestOpenShiftHA(Base_Api_Test):
         assert job.is_successful
         assert job.execution_node == tower_pod
 
-    def test_tower_stability_while_scaling_etcd_pod(self, factories, v2):
-        jt = factories.v2_job_template()
-
-        # assess tower functionality with multiple etcd pods
-        openshift_utils.scale_dc(dc='etcd', replicas=2)
-        utils.poll_until(lambda: len([pod for pod in openshift_utils.get_pods() if 'etcd' in pod]) == 2, interval=5, timeout=180)
-        v2.ping.get()
-        assert jt.launch().wait_until_completed().is_successful
-
-        # assess tower functionality with one etcd pod
-        openshift_utils.scale_dc(dc='etcd', replicas=1)
-        utils.poll_until(lambda: len([pod for pod in openshift_utils.get_pods() if 'etcd' in pod]) == 1, interval=5, timeout=180)
-        v2.ping.get()
-        assert jt.launch().wait_until_completed().is_successful
-
-    def test_tower_should_be_able_to_recover_from_zero_etcd_pods(self, v2, factories):
-        openshift_utils.scale_dc(dc='etcd', replicas=0)
-        utils.poll_until(lambda: len([pod for pod in openshift_utils.get_pods() if 'etcd' in pod]) == 0, interval=5, timeout=180)
-
-        openshift_utils.scale_dc(dc='etcd', replicas=1)
-        utils.poll_until(lambda: len([pod for pod in openshift_utils.get_pods() if 'etcd' in pod]) == 1, interval=5, timeout=180)
-        tower_pod = openshift_utils.get_tower_pods().pop()
-
-        # assess tower functionality
-        v2.ping.get()
-
-        jt = factories.v2_job_template()
-        job = jt.launch().wait_until_completed()
-        assert job.is_successful
-        assert job.execution_node == tower_pod
-
     def test_verify_jobs_fail_with_execution_node_death(self, factories, v2):
         openshift_utils.scale_dc(dc='tower', replicas=5)
         utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 5, interval=5, timeout=180)
