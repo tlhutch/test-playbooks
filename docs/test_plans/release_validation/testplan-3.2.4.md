@@ -14,7 +14,7 @@
 ## Targeted Testing
 
 ## Regression
-1. [ ] Limited manual UI testing completed (jhill)
+1. [x] Limited manual UI testing completed (jhill)
 1. [x] API integration - standalone (jladd)
 1. [x] API integration - HA (jladd)
 1. [x] Tower/LDAP integration (rfitz)
