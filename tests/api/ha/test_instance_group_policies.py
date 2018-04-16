@@ -18,8 +18,8 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         return [instance.hostname for instance in ig.related.instances.get().results]
 
     @pytest.fixture
-    def tower_instance_hostnames(self, v2):
-        return [instance.hostname for instance in v2.instances.get().results]
+    def tower_instance_hostnames(self, tower_instance_group):
+        return [instance.hostname for instance in tower_instance_group.related.instances.get().results]
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/881')
     @pytest.mark.parametrize('instance_percentage, expected_num_instances',
@@ -54,8 +54,10 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         else:
             assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
-    def test_correct_instances_with_new_ig_with_policy_instance_list(self, factories, tower_instance_hostnames):
-        instances = random.sample(tower_instance_hostnames, 3)
+    @pytest.mark.parametrize('tower_instances', [0, 1, 2, 3])
+    def test_correct_instances_with_new_ig_with_policy_instance_list(self, factories, tower_instance_hostnames,
+                                                                     tower_instances):
+        instances = random.sample(tower_instance_hostnames, tower_instances)
         ig = factories.instance_group(policy_instance_list=instances)
         utils.poll_until(lambda: ig.get().instances == len(instances), interval=1, timeout=30)
         assert set(ig.policy_instance_list) == set(instances)
@@ -228,8 +230,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
 
         ig.add_instance(instance)
         assert ig.get().instances == 1
-        assert len(ig.policy_instance_list) == 1
-        assert ig.policy_instance_list.pop() == instance.hostname
+        assert ig.policy_instance_list == [instance.hostname]
 
         ig_instances = ig.related.instances.get()
         assert ig_instances.count == 1
@@ -308,8 +309,8 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert tower_ig_instances.get().count == 5
 
     @pytest.mark.requires_openshift_ha
-    def test_instance_groups_update_for_newly_spawned_instance(self, factories, v2):
-        assert v2.instances.get().count == 5
+    def test_instance_groups_update_for_newly_spawned_instance(self, factories, v2, tower_instance_hostnames):
+        num_instances = len(tower_instance_hostnames)
 
         pct_ig = factories.instance_group(policy_instance_percentage=100)
         min_ig = factories.instance_group(policy_instance_minimum=777)
@@ -317,18 +318,18 @@ class TestInstanceGroupPolicies(Base_Api_Test):
                                                    policy_instance_minimum=777)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
-            utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
+            utils.poll_until(lambda: igroup.get().instances == num_instances, interval=1, timeout=30)
 
         openshift_utils.prep_environment()
-        openshift_utils.scale_dc(dc='tower', replicas=6)
-        utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == 6, interval=5, timeout=600)
+        openshift_utils.scale_dc(dc='tower', replicas=num_instances + 1)
+        utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == num_instances + 1, interval=5, timeout=600)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
-            utils.poll_until(lambda: igroup.get().instances == 6, interval=1, timeout=30)
+            utils.poll_until(lambda: igroup.get().instances == num_instances + 1, interval=1, timeout=30)
 
     @pytest.mark.requires_openshift_ha
-    def test_instance_groups_update_for_newly_removed_instance(self, factories, v2):
-        assert v2.instances.get().count == 6
+    def test_instance_groups_update_for_newly_removed_instance(self, factories, v2, tower_instance_hostnames):
+        num_instances = len(tower_instance_hostnames)
 
         pct_ig = factories.instance_group(policy_instance_percentage=100)
         min_ig = factories.instance_group(policy_instance_minimum=777)
@@ -336,11 +337,11 @@ class TestInstanceGroupPolicies(Base_Api_Test):
                                                    policy_instance_minimum=777)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
-            utils.poll_until(lambda: igroup.get().instances == 6, interval=1, timeout=30)
+            utils.poll_until(lambda: igroup.get().instances == num_instances, interval=1, timeout=30)
 
         openshift_utils.prep_environment()
-        openshift_utils.scale_dc(dc='tower', replicas=5)
-        utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == 5, interval=5, timeout=600)
+        openshift_utils.scale_dc(dc='tower', replicas=num_instances - 1)
+        utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == num_instances - 1, interval=5, timeout=600)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
-            utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
+            utils.poll_until(lambda: igroup.get().instances == num_instances - 1, interval=1, timeout=30)
