@@ -24,6 +24,14 @@ class TestExecutionNodeAssignment(Base_Api_Test):
     def tower_ig_instances(self, tower_instance_group):
         return tower_instance_group.related.instances.get().results
 
+    @pytest.fixture
+    def reset_instance(self, request):
+        def func(instance):
+            def teardown():
+                instance.patch(capacity_adjustment=1)
+            request.addfinalizer(teardown)
+        return func
+
     def find_num_jobs(self, instances):
         # find number of jobs to distribute among a set of instances
         return 3 * len(instances)
@@ -61,12 +69,12 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         job_execution_nodes = [job.execution_node for job in jobs.results]
         assert set(job_execution_nodes) == set([instance.hostname for instance in tower_ig_instances])
 
-    def test_jobs_should_distribute_among_mutually_exclusive_instance_groups(self, request, factories,
-                                                                             tower_ig_instances):
+    def test_jobs_should_distribute_among_mutually_exclusive_instance_groups(self, factories, tower_ig_instances,
+                                                                             reset_instance):
         ig1, ig2 = [factories.instance_group() for _ in range(2)]
         instances = random.sample(tower_ig_instances, 2)
         for instance in instances:
-            request.addfinalizer(lambda: instance.patch(capacity_adjustment=1))
+            reset_instance(instance)
             instance.capacity_adjustment = 0
         ig1.add_instance(instances[0])
         ig2.add_instance(instances[1])
@@ -80,7 +88,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         for ig in (ig1, ig2):
             jt.add_instance_group(ig)
 
-        num_jobs = self.find_ig_overflow_jobs(ig1, 5)
+        num_jobs = self.find_ig_overflow_jobs(ig1, 4)
         for _ in range(num_jobs):
             jt.launch()
         jobs = jt.related.jobs.get()
@@ -90,12 +98,13 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         job_execution_nodes = [job.execution_node for job in jobs.results]
         assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
 
-    def test_jobs_should_distribute_among_partially_overlapping_instance_groups(self, request, factories,
-                                                                                tower_ig_instances):
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1418')
+    def test_jobs_should_distribute_among_partially_overlapping_instance_groups(self, factories, tower_ig_instances,
+                                                                                reset_instance):
         ig1, ig2 = [factories.instance_group() for _ in range(2)]
         instances = random.sample(tower_ig_instances, 3)
         for instance in instances:
-            request.addfinalizer(lambda: instance.patch(capacity_adjustment=1))
+            reset_instance(instance)
             instance.capacity_adjustment = 0
 
         ig1.add_instance(instances[0])
@@ -112,7 +121,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         for ig in (ig1, ig2):
             jt.add_instance_group(ig)
 
-        num_jobs = self.find_ig_overflow_jobs(ig1, uj_impact=5)
+        num_jobs = self.find_ig_overflow_jobs(ig1, 4)
         for _ in range(num_jobs):
             jt.launch()
         jobs = jt.related.jobs.get()
@@ -122,12 +131,13 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         job_execution_nodes = [job.execution_node for job in jobs.results]
         assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
 
-    def test_jobs_should_distribute_among_completely_overlapping_instance_groups(self, request, factories,
-                                                                                 tower_ig_instances):
+    def test_jobs_should_distribute_among_completely_overlapping_instance_groups(self, factories, tower_ig_instances,
+                                                                                 reset_instance):
+
         ig1, ig2 = [factories.instance_group() for _ in range(2)]
         instances = random.sample(tower_ig_instances, 2)
         for instance in instances:
-            request.addfinalizer(lambda: instance.patch(capacity_adjustment=1))
+            reset_instance(instance)
             instance.capacity_adjustment = 0
 
         for ig in (ig1, ig2):
@@ -143,7 +153,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         for ig in (ig1, ig2):
             jt.add_instance_group(ig)
 
-        num_jobs = self.find_ig_overflow_jobs(ig1, uj_impact=5)
+        num_jobs = self.find_ig_overflow_jobs(ig1, 4)
         for _ in range(num_jobs):
             jt.launch()
         jobs = jt.related.jobs.get()
