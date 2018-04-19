@@ -9,13 +9,19 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
-@pytest.mark.requires_ha
+@pytest.mark.requires_openshift_ha
 @pytest.mark.mp_group('InstanceGroupPolicies', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroupPolicies(Base_Api_Test):
 
     def get_ig_instances(self, ig):
         return [instance.hostname for instance in ig.related.instances.get().results]
+
+    @pytest.fixture(autouse=True, scope='class')
+    def preflight_check(self, authtoken, v2_class):
+        tower_ig = v2_class.instance_groups.get(name='tower').results.pop()
+        if tower_ig.related.instances.get().count != 5:
+            pytest.skip('Tests require five non-isolated instances.')
 
     @pytest.fixture
     def tower_instance_hostnames(self, tower_instance_group):
