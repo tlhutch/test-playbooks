@@ -480,9 +480,10 @@ class TestInventoryUpdate(Base_Api_Test):
                               ("key_pair", ["ec2", "keys"],),
                               ("region", ["ec2", "regions"],),
                               ("security_group", ["ec2", "security_groups"],),
-                              ("availability_zone,ami_id", ["ec2", "zones", "images"],)],
+                              ("availability_zone,ami_id", ["ec2", "zones", "images"],),
+                              ("platform", ["ec2", "platforms"],)],
                              ids=['""', "availability_zone", "ami_id", "instance_id", "instance_type", "key_pair",
-                                  "region", "security_group", "availability_zone,ami_id"])
+                                  "region", "security_group", "availability_zone,ami_id", "platform"])
     def test_aws_update_with_only_group_by(self, aws_group, only_group_by, expected_group_names):
         """Tests that expected groups are created when supplying value for only_group_by."""
         inv_source = aws_group.get_related('inventory_source')
