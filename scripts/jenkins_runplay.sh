@@ -60,7 +60,7 @@ for LINE in $(env) ; do
         DELETE_ON_START|MINIMUM_VAR_SPACE)
             echo "${VARNAME,,}: ${!VARNAME}" >> ${PLAYBOOK_DIR}/vars.yml
             ;;
-        AWX*|AW_*|GALAXY*|ANSIBLE*|AWS*|EC2*|RAX*|GCE*|AZURE*|INSTANCE*|CREATE_EC2*|TERMINATE_EC2*)
+        AWX*|AW_*|GALAXY*|ANSIBLE*|AWS*|EC2*|GCE*|AZURE*|INSTANCE*|CREATE_EC2*|TERMINATE_EC2*)
             echo "${VARNAME,,}: '${!VARNAME}'" >> ${PLAYBOOK_DIR}/vars.yml
             ;;
         *)
@@ -90,13 +90,11 @@ unset OFS
 case ${CLOUD_PROVIDER}-${PLATFORM} in
     # All ec2 distros
     ec2-all)
-        RAX_IMAGES="[]"
         GCE_IMAGES="[]"
         AZURE_IMAGES="[]"
         ;;
     # A specific ec2 distro
     ec2-*)
-        RAX_IMAGES="[]"
         GCE_IMAGES="[]"
         AZURE_IMAGES="[]"
         # use desired ec2 distro
@@ -105,13 +103,11 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
     # All gce distros
     gce-all)
         EC2_IMAGES="[]"
-        RAX_IMAGES="[]"
         AZURE_IMAGES="[]"
         ;;
     # A specific gce distro
     gce-*)
         EC2_IMAGES="[]"
-        RAX_IMAGES="[]"
         AZURE_IMAGES="[]"
         # use desired gce distro
         GCE_IMAGES=$(filter_images gce ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
@@ -119,13 +115,11 @@ case ${CLOUD_PROVIDER}-${PLATFORM} in
     # All azure distros
     azure-all)
         EC2_IMAGES="[]"
-        RAX_IMAGES="[]"
         GCE_IMAGES="[]"
         ;;
     # A specific azure distro
     azure-*)
         EC2_IMAGES="[]"
-        RAX_IMAGES="[]"
         GCE_IMAGES="[]"
         # use desired azure distro
         AZURE_IMAGES=$(filter_images azure ${PLATFORM} ${ANSIBLE_NIGHTLY_BRANCH} "${FILTER_IMAGE_EXTRA_ARGS}")
