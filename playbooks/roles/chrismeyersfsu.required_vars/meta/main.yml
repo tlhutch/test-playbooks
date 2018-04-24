@@ -53,7 +53,6 @@ galaxy_info:
   - cloud
   #- cloud:ec2
   #- cloud:gce
-  #- cloud:rax
   #- clustering
   #- database
   #- database:nosql

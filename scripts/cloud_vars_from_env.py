@@ -71,7 +71,7 @@ def cloud_image_vars(image_vars, args):
     if args.cloud_provider == 'all' and args.platform == 'all':
         return image_vars
 
-    cloud_image_vars = dict(azure_images=[], ec2_images=[], gce_images=[], rax_images=[])
+    cloud_image_vars = dict(azure_images=[], ec2_images=[], gce_images=[])
 
     provider_images_key = '{0.cloud_provider}_images'.format(args)
     if args.platform == 'all':
