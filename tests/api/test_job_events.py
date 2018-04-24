@@ -187,6 +187,9 @@ class Test_Job_Events(Base_Api_Test):
         self.verify_desired_tasks(job, 'runner_item_on_ok', task_counts)
 
         desired_stdout_contents = ["SSH password:", "Identity added:", "SUDO password"]
+        # https://github.com/ansible/tower/issues/1441
+        if ansible_version_cmp('2.5.1') == 0:
+            desired_stdout_contents.extend([' [ERROR]:', ''])
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
         assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
@@ -197,7 +200,7 @@ class Test_Job_Events(Base_Api_Test):
         assert not filter(lambda x: x.playbook != 'dynamic_inventory.yml', non_verbose)
 
     @pytest.mark.ansible_integration
-    def test_async_tasks(self, factories):
+    def test_async_tasks(self, factories, ansible_version_cmp):
         """Runs a single play with async tasks and confirms desired events at related endpoint"""
         credential = factories.credential(password='passphrase')
         inventory = factories.inventory()
@@ -238,6 +241,9 @@ class Test_Job_Events(Base_Api_Test):
         assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
 
         desired_stdout_contents = ["SSH password:", "Identity added:", "SUDO password"]
+        # https://github.com/ansible/tower/issues/1441
+        if ansible_version_cmp('2.5.1') == 0:
+            desired_stdout_contents.extend([' [ERROR]:', ''])
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
         events = self.get_job_events(job)
@@ -246,7 +252,7 @@ class Test_Job_Events(Base_Api_Test):
         assert not filter(lambda x: x.playbook != 'async_tasks.yml', non_verbose)
 
     @pytest.mark.ansible_integration
-    def test_free_strategy(self, factories):
+    def test_free_strategy(self, factories, ansible_version_cmp):
         """Runs a single play with free strategy and confirms desired events at related endpoint"""
         credential = factories.credential(password='passphrase')
         inventory = factories.inventory()
@@ -277,6 +283,9 @@ class Test_Job_Events(Base_Api_Test):
         assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
 
         desired_stdout_contents = ["SSH password:", "Identity added:", "SUDO password"]
+        # https://github.com/ansible/tower/issues/1441
+        if ansible_version_cmp('2.5.1') == 0:
+            desired_stdout_contents.extend([' [ERROR]:', ''])
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
         events = self.get_job_events(job)
