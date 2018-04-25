@@ -49,7 +49,7 @@
     * [x] ol-7.latest
 
 ### Upgrades
-1. [ ] Upgrade completes on all supported platforms from `3.0.5` to `3.1.6` (jhill)
+1. [ ] Upgrade completes on all supported platforms from `3.0.4` to `3.1.6` (jhill)
 1. [ ] Upgrade completes on all supported platforms from `3.1.5` to `3.1.6` (jhill)
 1. [ ] Verify the following functions work as intended after upgrade
     * [ ] Launch project_updates for existing projects
