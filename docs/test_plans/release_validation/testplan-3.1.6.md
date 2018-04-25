@@ -48,7 +48,7 @@
     * [x] ol-7.latest
 
 ### Upgrades
-1. [ ] Upgrade completes on all supported platforms from `3.0.*` (needs_owner)
+1. [ ] Upgrade completes on all supported platforms from `3.0.*` (jhill)
 1. [ ] Verify the following functions work as intended after upgrade
     * [ ] Launch project_updates for existing projects
     * [ ] Launch inventory_updates for existing inventory_source
