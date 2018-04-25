@@ -41,9 +41,11 @@
 1. Installation completes successfully on supported images (jladd)
     * [ ] AMI (unlicensed)
 1. Bundled installation completes successfully on all supported platforms (Automated)  (jladd)
-    * [ ] rhel-7.latest
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] rhel-7.2
+    * [x] rhel-7.3
+    * [x] rhel-7.4
+    * [x] centos-7.latest
+    * [x] ol-7.latest
 
 ### Upgrades
 1. [ ] Upgrade completes on all supported platforms from `3.0.*` (needs_owner)
