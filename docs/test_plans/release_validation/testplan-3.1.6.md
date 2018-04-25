@@ -7,6 +7,7 @@
 ## Notes
 
 * Vagrant image not created for 3.1.6. (Generally omitted for older releases)
+* Only running upgrades from latest point releases due to low risk / low return. Past migrations issues tend to affect major/minor releases more than patch releases.
 
 ## Resources
 * 4 full-time automation engineers - cwang/jladd/rfitzpat/jhill
@@ -39,7 +40,7 @@
     * [x] ansible-2.3
     * [x] ansible-2.2
 1. Installation completes successfully on supported images (jladd)
-    * [ ] AMI (unlicensed)
+    * [x] AMI (unlicensed)
 1. Bundled installation completes successfully on all supported platforms (Automated)  (jladd)
     * [x] rhel-7.2
     * [x] rhel-7.3
