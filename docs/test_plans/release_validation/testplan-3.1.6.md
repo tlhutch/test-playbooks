@@ -14,11 +14,11 @@
 
 ## Hotfixes 
 
-1. [ ] Org admins can gain control of any other user [Issue](https://github.com/ansible/tower/issues/1237) (cwang)
+1. [x] Org admins can gain control of any other user [Issue](https://github.com/ansible/tower/issues/1237) (cwang)
 
 ## Regression
 1. [x] UI regression completed (cwang)
-1. [ ] API regression completed - standalone (jladd)
+1. [ ] API regression completed - standalone (cwang)
 1. [ ] API regression completed - HA (cwang)
 1. [x] Tower HA installation regression completed (cwang)
 1. [x] Tower LDAP Integration regression completed (cwang)
