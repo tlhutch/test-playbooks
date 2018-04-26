@@ -24,7 +24,7 @@
 1. [x] Tower LDAP Integration regression completed (cwang)
 1. [x] Tower RADIUS Integration regression completed (cwang)
 1. [x] Social authentication regression completed (cwang)
-1. [ ] Backup/restore successful (jladd)
+1. [x] Backup/restore successful (jladd)
 
 ### Installation
 1. Installation completes successfully on all supported platforms (jladd)
