@@ -9,7 +9,7 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
-@pytest.mark.requires_openshift_ha
+@pytest.mark.requires_ha
 @pytest.mark.mp_group('InstanceGroupPolicies', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroupPolicies(Base_Api_Test):
