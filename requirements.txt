@@ -5,6 +5,7 @@ botocore
 inflect
 junit2html
 junit-xml
+openshift
 pip
 protobuf
 pysphere

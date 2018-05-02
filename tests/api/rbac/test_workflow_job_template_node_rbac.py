@@ -6,6 +6,7 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
+@pytest.mark.rbac
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestWorkflowJobTemplateNodeRBAC(Base_Api_Test):
