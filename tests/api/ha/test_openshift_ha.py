@@ -34,14 +34,14 @@ class TestOpenShiftHA(Base_Api_Test):
         for instance in instances.results:
             assert instance.enabled
             assert instance.version == tower_version
-            assert instance.capacity
+            assert instance.capacity > 0
 
         ping = v2.ping.get()
         utils.poll_until(lambda: len(ping.get().instances) == num_instances, interval=5, timeout=180)
         assert set([instance.node for instance in ping.instances]) == tower_pods
         for instance in instances.results:
             assert instance.version == tower_version
-            assert instance.capacity
+            assert instance.capacity > 0
 
         assert tower_ig_contains_all_instances()
 
@@ -57,14 +57,14 @@ class TestOpenShiftHA(Base_Api_Test):
         for instance in instances.results:
             assert instance.enabled
             assert instance.version == tower_version
-            assert instance.capacity
+            assert instance.capacity > 0
 
         ping = v2.ping.get()
         utils.poll_until(lambda: len(ping.get().instances) == num_instances, interval=5, timeout=180)
         assert set([instance.node for instance in ping.instances]) == tower_pods
         for instance in instances.results:
             assert instance.version == tower_version
-            assert instance.capacity
+            assert instance.capacity > 0
 
         assert tower_ig_contains_all_instances()
 
@@ -85,14 +85,14 @@ class TestOpenShiftHA(Base_Api_Test):
         utils.poll_until(lambda: instance.get().cpu > 0, interval=5, timeout=180)
         assert instance.enabled
         assert instance.version == tower_version
-        assert instance.capacity
+        assert instance.capacity > 0
 
         ping = v2.ping.get()
         utils.poll_until(lambda: len(ping.get().instances) == 1, interval=5, timeout=180)
         instance = ping.instances.pop()
         assert instance.node == tower_pod
         assert instance.version == tower_version
-        assert instance.capacity
+        assert instance.capacity > 0
 
         assert tower_ig_contains_all_instances()
 
