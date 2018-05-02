@@ -1,3 +1,5 @@
+import random
+
 from towerkit import utils
 import towerkit.exceptions as exc
 import pytest
@@ -30,11 +32,11 @@ class TestInstanceGroups(Base_Api_Test):
         assert ig.capacity == self.find_expected_capacity(ig)
         assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
 
-    def test_instance_group_capacity_should_update_for_removed_instances(self, factories):
+    def test_instance_group_capacity_should_update_for_removed_instances(self, factories, tower_instance_group):
         ig = factories.instance_group(policy_instance_percentage=100)
         utils.poll_until(lambda: ig.get().instances > 0, interval=1, timeout=30)
 
-        for instance in ig.related.instances.get().results:
+        for instance in tower_instance_group.related.instances.get().results:
             ig.remove_instance(instance)
             assert ig.get().capacity == self.find_expected_capacity(ig)
             assert ig.get().consumed_capacity == self.find_expected_consumed_capacity(ig)
@@ -42,27 +44,55 @@ class TestInstanceGroups(Base_Api_Test):
         assert ig.get().capacity == 0
         assert ig.get().consumed_capacity == 0
 
-    def test_instance_group_capacity_should_update_for_added_instances(self, factories, v2):
+    def test_instance_group_capacity_should_update_for_added_instances(self, factories, tower_instance_group):
         ig = factories.instance_group()
         utils.poll_until(lambda: ig.get().instances == 0, interval=1, timeout=30)
 
-        for instance in v2.instances.get().results:
+        for instance in tower_instance_group.related.instances.get().results:
             ig.add_instance(instance)
             assert ig.get().capacity == self.find_expected_capacity(ig)
             assert ig.get().consumed_capacity == self.find_expected_consumed_capacity(ig)
 
-    @pytest.mark.github('https://github.com/ansible/ansible-tower/issues/7936')
-    def test_conflict_exception_when_attempting_to_delete_ig_with_running_job(self, v2, factories):
-        instance = v2.instances.get().results.pop()
+    @pytest.mark.parametrize('resource_name, method', [('job_template', 'launch'),
+                                                       ('project', 'update'),
+                                                       ('inventory_source', 'update')],
+    ids=['job', 'project_update', 'inventory_update'])
+    def test_conflict_exception_when_attempting_to_delete_ig_with_running_uj(self, factories, tower_instance_group,
+                                                                             resource_name, method):
+        instance = random.sample(tower_instance_group.related.instances.get().results, 1).pop()
         ig = factories.instance_group()
         ig.add_instance(instance)
 
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 30}')
-        jt.add_instance_group(ig)
-        jt.launch()
+        resource = getattr(factories, 'v2_' + resource_name)()
 
-        with pytest.raises(exc.Conflict):
+        if resource_name == 'job_template':
+            resource.add_instance_group(ig)
+        elif resource_name == 'project':
+            resource.ds.organization.add_instance_group(ig)
+        else:
+            resource.ds.inventory.add_instance_group(ig)
+
+        uj = getattr(resource, method)()
+
+        with pytest.raises(exc.Conflict) as e:
             ig.delete()
+        assert e.value[1] == dict(active_jobs=[dict(type=uj.type, id=str(uj.id))],
+                                  error='Resource is being used by running jobs.')
+
+    def test_verify_tower_instance_group_is_a_partially_protected_group(self, tower_instance_group):
+        instances = [instance for instance in tower_instance_group.related.instances.get().results]
+
+        tower_instance_group.policy_instance_percentage = tower_instance_group.policy_instance_percentage
+        tower_instance_group.policy_instance_minimum = tower_instance_group.policy_instance_minimum
+        tower_instance_group.policy_instance_list = tower_instance_group.policy_instance_list
+        tower_instance_group.put()
+
+        for instance in instances:
+            tower_instance_group.remove_instance(instance)
+            tower_instance_group.add_instance(instance)
+
+        with pytest.raises(exc.Forbidden):
+            tower_instance_group.delete()
 
     def test_verify_instance_group_read_only_fields(self, factories):
         ig = factories.instance_group()
@@ -80,18 +110,3 @@ class TestInstanceGroups(Base_Api_Test):
         for field in ('capacity', 'committed_capacity', 'consumed_capacity', 'percent_capacity_remaining',
                       'jobs_running', 'instances', 'controller'):
             assert getattr(ig, field) == original_json[field]
-
-    def test_verify_tower_instance_group_is_a_protected_group(self, v2, tower_instance_group):
-        instances = [instance.hostname for instance in v2.instances.get().results]
-
-        with pytest.raises(exc.Forbidden):
-            tower_instance_group.policy_instance_percentage = 100
-        with pytest.raises(exc.Forbidden):
-            tower_instance_group.policy_instance_minimum = 0
-        with pytest.raises(exc.Forbidden):
-            tower_instance_group.policy_instance_list = instances
-        with pytest.raises(exc.Forbidden):
-            tower_instance_group.put()
-
-        with pytest.raises(exc.Forbidden):
-            tower_instance_group.delete()
