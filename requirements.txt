@@ -10,7 +10,7 @@ pip
 protobuf
 pysphere
 pytest
-git+ssh://git@github.com/ansible/pytest-mp.git
+pytest-mp
 git+ssh://git@github.com/rmfitzpatrick/pytest-ansible.git@handle_ansible_vars_restructuring
 pytest-cache
 pytest-cov
