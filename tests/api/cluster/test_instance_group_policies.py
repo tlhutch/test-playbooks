@@ -135,6 +135,18 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert ig_instances.count == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
+    def test_correct_instances_with_existing_ig_with_multiple_rules_updated(self, factories, tower_instance_hostnames):
+        ig = factories.instance_group()
+        assert ig.instances == 0
+
+        ig.patch(policy_instance_percentage=40, policy_instance_minimum=1, policy_instance_list=tower_instance_hostnames)
+        utils.poll_until(lambda: ig.get().instances == 5, interval=1, timeout=30)
+
+        ig_instances = ig.related.instances.get()
+        ig_instance_hostnames = self.get_ig_instances(ig)
+        assert ig_instances.count == 5
+        assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
+
     def test_single_instances_are_distributed_evenly_with_igs_with_policy_instance_percentage(self, factories,
                                                                                               tower_instance_hostnames):
         igs = []
