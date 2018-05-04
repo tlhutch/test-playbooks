@@ -33,10 +33,12 @@ class TestInstanceGroups(Base_Api_Test):
         assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
 
     def test_instance_group_capacity_should_update_for_removed_instances(self, factories, tower_instance_group):
-        ig = factories.instance_group(policy_instance_percentage=100)
-        utils.poll_until(lambda: ig.get().instances > 0, interval=1, timeout=30)
+        instances = tower_instance_group.related.instances.get().results
 
-        for instance in tower_instance_group.related.instances.get().results:
+        ig = factories.instance_group(policy_instance_percentage=100)
+        utils.poll_until(lambda: ig.get().instances == len(instances), interval=1, timeout=30)
+
+        for instance in instances:
             ig.remove_instance(instance)
             assert ig.get().capacity == self.find_expected_capacity(ig)
             assert ig.get().consumed_capacity == self.find_expected_consumed_capacity(ig)
@@ -46,7 +48,7 @@ class TestInstanceGroups(Base_Api_Test):
 
     def test_instance_group_capacity_should_update_for_added_instances(self, factories, tower_instance_group):
         ig = factories.instance_group()
-        utils.poll_until(lambda: ig.get().instances == 0, interval=1, timeout=30)
+        assert ig.instances == 0
 
         for instance in tower_instance_group.related.instances.get().results:
             ig.add_instance(instance)
