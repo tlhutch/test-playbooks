@@ -25,6 +25,7 @@ class TestInstanceGroups(Base_Api_Test):
             consumed_capacity += instance.consumed_capacity
         return consumed_capacity
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1709')
     def test_instance_group_capacity_should_be_sum_of_individual_instances(self, factories):
         ig = factories.instance_group(policy_instance_percentage=100)
         utils.poll_until(lambda: ig.get().instances > 0, interval=1, timeout=30)

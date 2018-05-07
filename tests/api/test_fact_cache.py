@@ -37,7 +37,6 @@ class TestFactCache(Base_Api_Test):
                                          inventory=host.ds.inventory, playbook='scan_facts.yml', use_fact_cache=True)
 
     @pytest.mark.requires_single_instance
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1102')
     def test_ingest_facts_with_tower_scan_playbook(self, request, factories, ansible_runner, ansible_os_family,
                                                    is_docker, scan_facts_job_template):
         machine_id = "4da7d1f8-14f3-4cdc-acd5-a3465a41f25d"
