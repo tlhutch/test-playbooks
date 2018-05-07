@@ -16,16 +16,16 @@ class TestInstances(Base_Api_Test):
         ig = factories.instance_group()
         instance = v2.instances.get().results.pop()
         ig.add_instance(instance)
-
-        request.addfinalizer(lambda: instance.patch(enabled=True))
-        instance.enabled = False
         utils.poll_until(lambda: ig.get().instances == 1, interval=5, timeout=300)
 
         jt = factories.v2_job_template()
         factories.v2_host(inventory=jt.ds.inventory)
         jt.add_instance_group(ig)
-        job = jt.launch()
 
+        request.addfinalizer(lambda: instance.patch(enabled=True))
+        instance.enabled = False
+
+        job = jt.launch()
         utils.logged_sleep(30)
         assert job.get().status == 'pending'
 
