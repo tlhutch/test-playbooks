@@ -16,7 +16,7 @@ class TestInstances(Base_Api_Test):
         ig = factories.instance_group()
         instance = v2.instances.get().results.pop()
         ig.add_instance(instance)
-        utils.poll_until(lambda: ig.get().instances == 1, interval=5, timeout=300)
+        utils.poll_until(lambda: ig.get().instances == 1, interval=5, timeout=30)
 
         jt = factories.v2_job_template()
         factories.v2_host(inventory=jt.ds.inventory)
@@ -33,29 +33,27 @@ class TestInstances(Base_Api_Test):
         ig = factories.instance_group()
         instance = v2.instances.get().results.pop()
         ig.add_instance(instance)
-
-        request.addfinalizer(lambda: instance.patch(enabled=True))
-        instance.enabled = False
-        utils.poll_until(lambda: ig.get().instances == 1, interval=5, timeout=300)
+        utils.poll_until(lambda: ig.get().instances == 1, interval=5, timeout=30)
 
         jt = factories.v2_job_template()
         factories.v2_host(inventory=jt.ds.inventory)
         jt.add_instance_group(ig)
+
+        request.addfinalizer(lambda: instance.patch(enabled=True))
+        instance.enabled = False
         job = jt.launch()
 
         utils.logged_sleep(30)
         assert job.get().status == 'pending'
 
         instance.enabled = True
-        assert job.wait_until_completed(timeout=300).is_successful
+        assert job.wait_until_completed(timeout=120).is_successful
 
     def test_disabiling_instance_should_not_impact_currently_running_jobs(self, request, v2, factories):
         ig = factories.instance_group()
         instance = v2.instances.get().results.pop()
         ig.add_instance(instance)
-
-        request.addfinalizer(lambda: instance.patch(enabled=True))
-        utils.poll_until(lambda: ig.related.instances.get(cpu__gt=0).count == 1, interval=5, timeout=600)
+        utils.poll_until(lambda: ig.related.instances.get(cpu__gt=0).count == 1, interval=5, timeout=30)
 
         jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 30}')
         factories.v2_host(inventory=jt.ds.inventory)
@@ -64,6 +62,7 @@ class TestInstances(Base_Api_Test):
         job = jt.launch()
         utils.poll_until(lambda: job.get().execution_node == instance.hostname, interval=1, timeout=30)
 
+        request.addfinalizer(lambda: instance.patch(enabled=True))
         instance.enabled = False
         assert job.wait_until_completed().is_successful
 

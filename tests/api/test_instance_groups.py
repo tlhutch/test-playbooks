@@ -32,6 +32,7 @@ class TestInstanceGroups(Base_Api_Test):
         assert ig.capacity == self.find_expected_capacity(ig)
         assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1709')
     def test_instance_group_capacity_should_update_for_removed_instances(self, factories, tower_instance_group):
         instances = tower_instance_group.related.instances.get().results
 
