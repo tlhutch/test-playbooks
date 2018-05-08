@@ -126,7 +126,6 @@ class TestApplications(APITest):
         app.put(app_body)
         assert app.get().redirect_uris == app_body['redirect_uris']
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1288')
     @pytest.mark.parametrize('field', ('client_id', 'client_secret', 'authorization_grant_type'))
     def test_read_only_application_fields_have_forbidden_writes(self, factories, field):
         app = factories.application(organization=True, client_type='confidential')
