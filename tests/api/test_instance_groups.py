@@ -25,40 +25,47 @@ class TestInstanceGroups(Base_Api_Test):
             consumed_capacity += instance.consumed_capacity
         return consumed_capacity
 
-    def test_instance_group_capacity_should_be_sum_of_individual_instances(self, factories):
-        ig = factories.instance_group(policy_instance_percentage=100)
-        utils.poll_until(lambda: ig.get().instances > 0, interval=1, timeout=30)
+    def test_instance_group_capacity_should_be_sum_of_individual_instances(self, factories, tower_instance_group):
+        tower_hostnames = [instance.hostname for instance in tower_instance_group.related.instances.get().results]
+        ig = factories.instance_group(policy_instance_list=tower_hostnames)
+        utils.poll_until(lambda: ig.get().instances == len(tower_hostnames), interval=1, timeout=30)
 
-        assert ig.capacity == self.find_expected_capacity(ig)
+        assert ig.get().capacity == self.find_expected_capacity(ig)
         assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
-
-    def test_instance_group_capacity_should_update_for_removed_instances(self, factories, tower_instance_group):
-        instances = tower_instance_group.related.instances.get().results
-
-        ig = factories.instance_group(policy_instance_percentage=100)
-        utils.poll_until(lambda: ig.get().instances == len(instances), interval=1, timeout=30)
-
-        for instance in instances:
-            ig.remove_instance(instance)
-            assert ig.get().capacity == self.find_expected_capacity(ig)
-            assert ig.get().consumed_capacity == self.find_expected_consumed_capacity(ig)
-
-        assert ig.get().capacity == 0
-        assert ig.get().consumed_capacity == 0
 
     def test_instance_group_capacity_should_update_for_added_instances(self, factories, tower_instance_group):
         ig = factories.instance_group()
         assert ig.instances == 0
 
+        num_instances = 0
         for instance in tower_instance_group.related.instances.get().results:
+            num_instances += 1
             ig.add_instance(instance)
-            assert ig.get().capacity == self.find_expected_capacity(ig)
-            assert ig.get().consumed_capacity == self.find_expected_consumed_capacity(ig)
+            assert ig.get().instances == num_instances
+            assert ig.capacity == self.find_expected_capacity(ig)
+            assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
+
+    def test_instance_group_capacity_should_update_for_removed_instances(self, factories, tower_instance_group):
+        ig = factories.instance_group()
+        num_instances = 0
+        for instance in tower_instance_group.related.instances.get().results:
+            num_instances += 1
+            ig.add_instance(instance)
+            assert ig.get().instances == num_instances
+            assert ig.capacity == self.find_expected_capacity(ig)
+            assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
+
+        for instance in tower_instance_group.related.instances.get().results:
+            num_instances -= 1
+            ig.remove_instance(instance)
+            assert ig.get().instances == num_instances
+            assert ig.capacity == self.find_expected_capacity(ig)
+            assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
 
     @pytest.mark.parametrize('resource_name, method', [('job_template', 'launch'),
                                                        ('project', 'update'),
                                                        ('inventory_source', 'update')],
-    ids=['job', 'project_update', 'inventory_update'])
+                             ids=['job', 'project_update', 'inventory_update'])
     def test_conflict_exception_when_attempting_to_delete_ig_with_running_uj(self, factories, tower_instance_group,
                                                                              resource_name, method):
         instance = random.sample(tower_instance_group.related.instances.get().results, 1).pop()
