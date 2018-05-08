@@ -5,11 +5,10 @@ from towerkit.config import config
 
 
 def prep_environment():
-    ret = subprocess.call('oc login -u {0} -p {1} {2} --insecure-skip-tls-verify={3}'.format(
+    ret = subprocess.call('oc login -u {0} -p {1} {2} --insecure-skip-tls-verify'.format(
         config.credentials.openshift.username,
         config.credentials.openshift.password,
-        config.credentials.openshift.url,
-        config.credentials.openshift.use_tls), shell=True)
+        config.credentials.openshift.url), shell=True)
     assert ret == 0
 
     ret = subprocess.call('oc project tower-qe', shell=True)
