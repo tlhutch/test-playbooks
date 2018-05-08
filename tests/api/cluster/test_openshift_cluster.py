@@ -109,29 +109,6 @@ class TestOpenShiftCluster(Base_Api_Test):
         assert job.is_successful
         assert job.execution_node == tower_pod
 
-    def test_use_fact_cache_with_mutually_exclusive_instance_groups(self, v2, factories):
-        ig1, ig2 = [factories.instance_group() for _ in range(2)]
-        instances = random.sample(v2.instances.get().results, 2)
-        ig1.add_instance(instances[0])
-        ig2.add_instance(instances[1])
-
-        host = factories.v2_host()
-        gather_facts_jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        use_facts_jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='use_facts.yml', job_tags='ansible_facts',
-                                                 use_fact_cache=True)
-        gather_facts_jt.add_instance_group(ig1)
-        use_facts_jt.add_instance_group(ig2)
-
-        gather_facts_job, use_facts_job = [jt.launch().wait_until_completed() for jt in (gather_facts_jt, use_facts_jt)]
-        assert gather_facts_job.is_successful
-        assert use_facts_job.is_successful
-
-        ansible_facts = host.related.ansible_facts.get()
-        assert use_facts_job.result_stdout.count(ansible_facts.ansible_distribution) == 1
-        assert use_facts_job.result_stdout.count(ansible_facts.ansible_machine) == 1
-        assert use_facts_job.result_stdout.count(ansible_facts.ansible_system) == 1
-
-
     def test_verify_jobs_fail_with_execution_node_death(self, factories, v2):
         openshift_utils.scale_dc(dc='ansible-tower', replicas=5)
         utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 5, interval=5, timeout=180)
