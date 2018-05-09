@@ -643,12 +643,15 @@ class TestTraditionalHA(Base_Api_Test):
                 utils.poll_until(tower_serving_homepage, interval=10, timeout=60)
 
         # Confirm that new jobs can be launched on each instance
-        for hostname in manager.get_group_dict()['instance_group_ordinary_instances']:
+
+        for index, hostname in enumerate(manager.get_group_dict()['instance_group_ordinary_instances'], start=1):
             connection = Connection('https://' + hostname)
             connection.login(admin_user.username, admin_user.password)
             with self.current_instance(connection, v2):
                 host = factories.v2_host()
                 jt = factories.v2_job_template(inventory=host.ds.inventory)
+                ig = v2.instance_groups.get(name=str(index)).results.pop()
+                jt.add_instance_group(ig)
                 job = jt.launch().wait_until_completed()
                 assert job.is_successful
 
