@@ -571,7 +571,7 @@ class TestTraditionalHA(Base_Api_Test):
         2. Create a network partition using network_partition.yml. While tower instances cannot
            communicate across the partition, all instances can communicate with the database.
         3. Launch a second job during the partition.
-        4. Restore connectivity between the tower hosts. Restart tower services on all hosts (excepted isolated hosts).
+        4. Restore connectivity between the tower hosts.
         5. Confirm that new jobs can be launched on each host.
         6. Confirm previous jobs complete (can be successful or failed, but not pending or waiting).
            Confirm no jobs were relaunched.
@@ -629,6 +629,12 @@ class TestTraditionalHA(Base_Api_Test):
             cmd = "ansible-playbook -i {} -e network_partition_state=disabled playbooks/network_partition.yml".format(inventory_file)
             rc = subprocess.call(cmd, shell=True)
             assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
+
+            # Confirm no partitions detected
+            for host in manager.get_group_dict()['instance_group_ordinary_instances']:
+                cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'curl http://tower:tower@localhost:15672/api/nodes?columns=partitions | grep rabbitmq@'".format(host, inventory_file)
+                rc = subprocess.call(cmd, shell=True)
+                assert rc != 0, "rabbitmq reported partition(s): '{}'"
 
             for host in manager.get_group_dict()['instance_group_ordinary_instances']:
                 def tower_serving_homepage():
