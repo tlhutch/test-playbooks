@@ -634,7 +634,7 @@ class TestTraditionalHA(Base_Api_Test):
             for host in manager.get_group_dict()['instance_group_ordinary_instances']:
                 cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'curl http://tower:tower@localhost:15672/api/nodes?columns=partitions | grep rabbitmq@'".format(host, inventory_file)
                 rc = subprocess.call(cmd, shell=True)
-                assert rc != 0, "rabbitmq reported partition(s): '{}'"
+                assert rc != 0, "rabbitmq reported partition(s)"
 
             for host in manager.get_group_dict()['instance_group_ordinary_instances']:
                 def tower_serving_homepage():
