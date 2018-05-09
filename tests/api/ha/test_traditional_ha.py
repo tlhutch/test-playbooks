@@ -630,12 +630,6 @@ class TestTraditionalHA(Base_Api_Test):
             rc = subprocess.call(cmd, shell=True)
             assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
 
-            # Restart tower services on all hosts
-            for host in manager.get_group_dict()['instance_group_ordinary_instances']:
-                cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'ansible-tower-service restart'".format(host, inventory_file)
-                rc = subprocess.call(cmd, shell=True)
-                assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
-
             for host in manager.get_group_dict()['instance_group_ordinary_instances']:
                 def tower_serving_homepage():
                     contacted = ansible_module_cls.uri(url='https://' + host + '/api', validate_certs='no')
@@ -643,7 +637,6 @@ class TestTraditionalHA(Base_Api_Test):
                 utils.poll_until(tower_serving_homepage, interval=10, timeout=60)
 
         # Confirm that new jobs can be launched on each instance
-
         for index, hostname in enumerate(manager.get_group_dict()['instance_group_ordinary_instances'], start=1):
             connection = Connection('https://' + hostname)
             connection.login(admin_user.username, admin_user.password)
