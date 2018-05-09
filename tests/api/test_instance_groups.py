@@ -62,6 +62,7 @@ class TestInstanceGroups(Base_Api_Test):
             assert ig.capacity == self.find_expected_capacity(ig)
             assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/860')
     @pytest.mark.parametrize('resource_name, method', [('job_template', 'launch'),
                                                        ('project', 'update'),
                                                        ('inventory_source', 'update')],
