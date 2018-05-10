@@ -14,7 +14,7 @@
 
 ## Hotfixes 
 
-1. [ ] Org admins can gain control of any other user [Issue](https://github.com/ansible/tower/issues/1237) (cwang)
+N/A
 
 ## Regression
 1. [ ] UI regression completed (jhill)
