@@ -6,7 +6,7 @@
 
 ## Notes
 
-* Vagrant image not created for 3.1.6. (Generally omitted for older releases)
+* Vagrant image not created for 3.1.7. (Generally omitted for older releases)
 * Only running upgrades from latest point releases due to low risk / low return. Past migrations issues tend to affect major/minor releases more than patch releases.
 
 ## Resources
