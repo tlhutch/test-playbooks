@@ -2,7 +2,7 @@
 
 ## Overview
 
-* Rabbit MQ Clustering Issue [here](https://github.com/ansible/tower/issues/1712)
+* Rabbit MQ Clustering Issue [here](https://github.com/ansible/tower-qa/pull/1718)
 
 ## Resources
 * jladd/jhill
