@@ -18,15 +18,15 @@
 ## Regression
 1. [x] Limited manual UI testing completed
 1. [x] API integration - standalone
-1. [x] API integration - HA
+1. [x] API integration - cluster
 1. [x] Tower/LDAP integration
 1. [x] Tower/RADIUS integration
 1. [x] Social authentication
 1. [x] SAML authentication
 1. [x] Logging - standalone
-1. [x] Logging - HA
+1. [x] Logging - cluster
 1. [x] Backup/restore - standalone
-1. [x] Backup/restore - HA
+1. [x] Backup/restore - cluster
 
 ### Installation
 1. Installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.2/html/installandreference/requirements_refguide.html)
@@ -46,8 +46,8 @@
     * [x] rhel-7.latest
     * [x] centos-7.latest
     * [x] ol-7.latest
-1. [x] Installation completes successfully for HA deployment (RHEL-7.2)
-1. [x] Bundled installation completes successfully for HA deployment
+1. [x] Installation completes successfully for cluster deployment (RHEL-7.2)
+1. [x] Bundled installation completes successfully for cluster deployment
 
 ### Upgrades
 1. [x] Successful migrations from `3.0.0` - `3.0.4`
@@ -55,7 +55,7 @@
 1. [x] Successful upgrades on all supported platforms from `3.0.4` - standalone
 1. [x] Successful upgrades on all supported platforms from `3.1.5` - standalone
 1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.2` - standalone
-1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.2` - HA
+1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.2` - cluster
 
 * Verify the following functionality after upgrade
     * Resource migrations

@@ -1,17 +1,17 @@
 ---
-instance_name_prefix: "{{ lookup('env','USER') }}-tower-ha"
-my_inventory_file: '{{inventory_dir}}/inventory.ha'
-ha_install: true
+instance_name_prefix: "{{ lookup('env','USER') }}-tower-cluster"
+my_inventory_file: '{{inventory_dir}}/inventory.cluster'
+cluster_install: true
 
 ec2_images:
-    #- {'name': 'haproxy-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'haproxy', 'security_group': 'tower-ha'}
-    - {'name': 'ha-1-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'ha_installer, instance_group_ordinary_instances, network_partition_1, instance_group_1', 'security_group': 'tower-ha'}
-    - {'name': 'ha-2-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'tower, instance_group_ordinary_instances, network_partition_2, instance_group_2, instance_group_4', 'security_group': 'tower-ha'}
-    - {'name': 'ha-3-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'tower, instance_group_ordinary_instances, network_partition_2, instance_group_3, instance_group_4', 'security_group': 'tower-ha'}
-    - {'name': 'ha-pg-rhel-7.2.-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'database',   'security_group': 'tower-ha'}
+    #- {'name': 'haproxy-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-1-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'cluster_installer, instance_group_ordinary_instances, network_partition_1, instance_group_1', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-2-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'tower, instance_group_ordinary_instances, network_partition_2, instance_group_2, instance_group_4', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-3-rhel-7.2-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'tower, instance_group_ordinary_instances, network_partition_2, instance_group_3, instance_group_4', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-pg-rhel-7.2.-x86_64', 'user': 'ec2-user', 'id': 'ami-2051294a', 'type': 'm3.medium', 'groups': 'database',   'security_group': 'tower-cluster'}
 
 ec2_security_groups:
-    - name: tower-ha
+    - name: tower-cluster
       description: Security group for Tower HA instances
       rules:
         - proto: tcp

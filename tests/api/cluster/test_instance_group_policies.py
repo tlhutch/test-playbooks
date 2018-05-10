@@ -9,7 +9,7 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
-@pytest.mark.requires_ha
+@pytest.mark.requires_cluster
 @pytest.mark.mp_group('InstanceGroupPolicies', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroupPolicies(Base_Api_Test):
@@ -314,7 +314,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert tower_instance_group.get().instances == 5
         assert tower_ig_instances.get().count == 5
 
-    @pytest.mark.requires_openshift_ha
+    @pytest.mark.requires_openshift_cluster
     def test_instance_groups_update_for_newly_spawned_instance(self, factories, v2, tower_instance_hostnames):
         num_instances = len(tower_instance_hostnames)
 
@@ -333,7 +333,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
             utils.poll_until(lambda: igroup.get().instances == num_instances + 1, interval=1, timeout=30)
 
-    @pytest.mark.requires_openshift_ha
+    @pytest.mark.requires_openshift_cluster
     def test_instance_groups_update_for_newly_removed_instance(self, factories, v2, tower_instance_hostnames):
         num_instances = len(tower_instance_hostnames)
 

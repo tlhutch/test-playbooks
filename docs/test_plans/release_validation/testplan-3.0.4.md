@@ -6,7 +6,7 @@
 * Release involved significant packaging changes. Warrants more careful attention to upgrade testing (including HA upgrades).
 * Release also involves [security fix](https://github.com/ansible/ansible-tower/issues/7558) to be verified manually.
 * 3.0.4 issues available [here](https://github.com/ansible/ansible-tower/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_3.0.4).
-* HA integration consisted of basic sanity check on installs and job runs
+* Cluster integration consisted of basic sanity check on installs and job runs
 * AMI / Vagrant images not created given that 3.0.x is nearly EOL and those images are generally created so users can get a trial copy of the most recent version of tower
 
 ## Resources
@@ -23,7 +23,7 @@
 ## Regression
 * [x] Limited manual UI testing completed
 * [x] API regression completed
-* [x] Tower HA regression completed
+* [x] Tower cluster regression completed
 * [x] Backup/restore playbook
 * [x] Third party authentication
 
@@ -38,7 +38,7 @@
     * [x] ol-6.latest
     * [x] ol-7.latest
     * Results available [here](http://jenkins.testing.ansible.com/job/Test_Tower_Integration_3.0.4/) (Builds 1-24)
-1. HA installation completes successfully on all supported platforms
+1. Cluster installation completes successfully on all supported platforms
     * [x] ubuntu-12.04
     * [x] ubuntu-14.04
     * [x] rhel-6.latest
@@ -68,4 +68,4 @@
     1. Launch, and relaunch, existing job_templates
     1. Migrations were successful
     * [x] Standalone upgrade completes on all supported platforms from `3.0.3` (Builds available [here](http://jenkins.testing.ansible.com/job/Test_Tower_Upgrade/) (Builds 1810 - 1818)
-    * [x] HA upgrade completes on all supported platforms from `3.0.3`
+    * [x] Cluster upgrade completes on all supported platforms from `3.0.3`

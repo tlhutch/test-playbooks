@@ -14,7 +14,7 @@
 1. [x] UI regression completed (Jake)
 1. [x] API regression completed (Automated)
 1. [x] Munin monitors work on all supported platforms (Chris)
-1. [x] Tower HA installation (Jim)
+1. [x] Tower cluster installation (Jim)
     * [x] Verify successful registration of secondary instances
     * [x] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
     * [x] Verify promoting secondary instance

@@ -74,7 +74,7 @@
         * Unable to launch scan jobs
         * Unable to run cleanup_facts
 1. Basic License
-    * [X] Verified the following features are unavailable (ldap, ha, system_tracking, multiple_organizations and activity_stream)
+    * [X] Verified the following features are unavailable (ldap, cluster, system_tracking, multiple_organizations and activity_stream)
         * Unable to create job_templates with `type=scan`
         * Unable to launch scan jobs
         * Unable to run cleanup_facts
@@ -130,7 +130,7 @@
 1. [X] UI regression completed
 1. [X] API regression completed
 1. [X] Munin monitors work on all supported platforms
-1. [X] Tower HA installation
+1. [X] Tower cluster installation
     * [X] Verify successful registration of secondary instances
     * [X] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
     * [X] Verify promoting secondary instance

@@ -55,13 +55,13 @@
   template:
     src: inventory.j2
     dest: /tmp/setup/inventory
-  when: not is_awx_installed.stat.exists or not awx_upgrade or not ha_install
+  when: not is_awx_installed.stat.exists or not awx_upgrade or not cluster_install
 
-- name: create ha inventory file
+- name: create cluster inventory file
   template:
-    src: inventory_ha.j2
+    src: inventory_cluster.j2
     dest: /tmp/setup/inventory
-  when: ha_install
+  when: cluster_install
 
 - name: create vars.yml file
   template:

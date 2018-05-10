@@ -5,10 +5,10 @@
     - role: create_ec2
     - role: create_rds
     - role: save_inventory
-      my_inventory_file: '{{inventory_dir}}/inventory.ha'
+      my_inventory_file: '{{inventory_dir}}/inventory.cluster'
 
 - name: 'Add authorized keys on non-installer instances'
-  hosts: 'tower:instance_group_*:database:haproxy:managed_hosts:secondary:!ha_installer'
+  hosts: 'tower:instance_group_*:database:haproxy:managed_hosts:secondary:!cluster_installer'
   roles:
     - role: auth_keys
 
@@ -21,10 +21,10 @@
 - name: 'Configure cluster ssh keys'
   hosts: 'tower:instance_group_*:isolated_group_*:primary:secondary:database'
   roles:
-    - { role: cluster_key_config, install_group: "{{ 'ha_installer' if 'ha_installer' in groups else 'primary' }}" }
+    - { role: cluster_key_config, install_group: "{{ 'cluster_installer' if 'cluster_installer' in groups else 'primary' }}" }
 
-- name: 'Install ha tower on installer instance'
-  hosts: 'ha_installer,primary'
+- name: 'Install cluster tower on installer instance'
+  hosts: 'cluster_installer,primary'
   gather_facts: no
   become: true
   become_method: sudo

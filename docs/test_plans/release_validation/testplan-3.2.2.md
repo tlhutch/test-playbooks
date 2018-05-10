@@ -21,7 +21,7 @@
 ## Regression
 1. [x] Limited manual UI testing completed
 1. [ ] API regression completed
-1. [ ] Tower HA regression completed
+1. [ ] Tower cluster regression completed
 1. [x] Tower LDAP Integration regression completed
 1. [x] Tower RADIUS Integration regression completed
 1. [x] Social authentication regression completed
@@ -47,7 +47,7 @@
     * [x] centos-7.latest
     * [x] ol-7.latest
 1. [x] Tower installation completes successfully (RHEL-7.2)
-1. [x] Bundled installation completes successfully for HA deployment
+1. [x] Bundled installation completes successfully for cluster deployment
 
 ### Upgrades
 1. [x] Upgrade completes on all supported platforms from `3.0.0` - `3.0.4`

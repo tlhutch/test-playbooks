@@ -10,7 +10,7 @@
 ### Parameters for Scheduled and Workflow Jobs
 [Feature]()
 
-### Enhanced isolated ansible-runner 
+### Enhanced isolated ansible-runner
 [Feature]()
 
 ### Revise capacity algorithm
@@ -105,7 +105,7 @@
 1. [ ] API regression completed - standalone
 1. [ ] API regression completed - traditional cluster
 1. [ ] API regression completed - OpenShift cluster
-1. [ ] Tower HA installation regression completed
+1. [ ] Tower cluster installation regression completed
 1. [ ] Tower LDAP Integration regression completed
 1. [ ] Tower RADIUS Integration regression completed
 1. [ ] Social authentication regression completed
@@ -130,8 +130,8 @@
     * [ ] rhel-7.latest
     * [ ] centos-7.latest
     * [ ] ol-7.latest
-1. [ ] Installation completes successfully for HA deployment (RHEL-7.4)
-1. [ ] Bundled installation completes successfully for HA deployment
+1. [ ] Installation completes successfully for cluster deployment (RHEL-7.4)
+1. [ ] Bundled installation completes successfully for cluster deployment
 
 ### Upgrades
 1. [ ] Successful migrations from `3.0.0` - `3.0.4`
@@ -139,7 +139,7 @@
 1. [ ] Successful upgrades on all supported platforms from `3.0.4` - standalone
 1. [ ] Successful upgrades on all supported platforms from `3.1.5` - standalone
 1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.4` - standalone
-1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.4` - HA
+1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.4` - cluster
 
 * Verify the following functionality after upgrade
     * Resource migrations

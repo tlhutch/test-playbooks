@@ -1,4 +1,4 @@
-{% if 'ha_installer' in groups %}
+{% if 'cluster_installer' in groups %}
 [tower]
 {% for host in groups['tower'] %}
 {{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }}

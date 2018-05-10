@@ -16,15 +16,15 @@
 ## Regression
 1. [x] Limited manual UI testing completed (jhill)
 1. [x] API integration - standalone (jladd)
-1. [x] API integration - HA (jladd)
+1. [x] API integration - cluster (jladd)
 1. [x] Tower/LDAP integration (rfitz)
 1. [x] Tower/RADIUS integration (rfitz)
 1. [x] Social authentication (jladd)
 1. [x] SAML authentication (rfitz)
 1. [x] Logging - standalone (cwang)
-1. [x] Logging - HA (cwang)
+1. [x] Logging - cluster (cwang)
 1. [x] Backup/restore - standalone (jladd)
-1. [x] Backup/restore - HA (jladd)
+1. [x] Backup/restore - cluster (jladd)
 
 ### Installation
 1. Installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/requirements_refguide.html) (jladd)
@@ -44,8 +44,8 @@
     * [x] rhel-7.latest
     * [x] centos-7.latest
     * [x] ol-7.latest
-1. [x] Installation completes successfully for HA deployment (RHEL-7.2) (jladd)
-1. [x] Bundled installation completes successfully for HA deployment (jladd)
+1. [x] Installation completes successfully for cluster deployment (RHEL-7.2) (jladd)
+1. [x] Bundled installation completes successfully for cluster deployment (jladd)
 
 ### Upgrades
 1. [x] Successful migrations from `3.0.0` - `3.0.4` (jhill)
@@ -53,7 +53,7 @@
 1. [ ] Successful upgrades on all supported platforms from `3.0.4` -> `3.2.4` - standalone (jhill)
 1. [ ] Successful upgrades on all supported platforms from `3.1.6` -> `3.2.4` - standalone (jhill)
 1. [x] Successful upgrades on all supported platforms from `3.2.3` -> `3.2.4` - standalone (jhill)
-1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.3` - HA (cwang)
+1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.3` - cluster (cwang)
 
 * Verify the following functionality after upgrade
     * Resource migrations

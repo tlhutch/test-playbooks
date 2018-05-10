@@ -19,8 +19,8 @@
 ## Regression
 1. [x] UI regression completed (cwang)
 1. [ ] API regression completed - standalone (cwang)
-1. [ ] API regression completed - HA (cwang)
-1. [x] Tower HA installation regression completed (cwang)
+1. [ ] API regression completed - cluster (cwang)
+1. [x] Tower cluster installation regression completed (cwang)
 1. [x] Tower LDAP Integration regression completed (cwang)
 1. [x] Tower RADIUS Integration regression completed (cwang)
 1. [x] Social authentication regression completed (cwang)

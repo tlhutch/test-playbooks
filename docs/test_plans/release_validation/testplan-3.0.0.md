@@ -59,7 +59,7 @@
 [Issue](https://github.com/ansible/ansible-tower/issues/1194)
 
 1. [x] Single installation command via setup.sh (wrapped ansible-playbook)
-1. [x] HA Installation topology determined by inventory (includes remote datastore)
+1. [x] Cluster Installation topology determined by inventory (includes remote datastore)
 
 ### RedHat Integrations (Laska)
 [Feature](https://docs.google.com/document/d/1a3_HMixPdCTxvLW8kySjyPKygP2QoYhz6iCcseyM020/edit)
@@ -74,7 +74,7 @@
 ## Regression
 1. [x] UI regression completed (Jake/Shane)
 1. [x] API regression completed (Chris/Jim)
-1. [x] Tower HA installation regression completed (Ryan)
+1. [x] Tower cluster installation regression completed (Ryan)
 1. [x] Tower LDAP Integration regression completed (Ryan)
 1. [x] Tower RADIUS Integration regression completed (Ryan)
 1. [ ] Social authentication regression completed (Chris)

@@ -276,7 +276,7 @@ Migrations (Jake)
 ## Regression
 1. [x] UI regression completed
 1. [x] API regression completed
-1. [x] Tower HA installation regression completed
+1. [x] Tower cluster installation regression completed
 1. [X] Tower LDAP Integration regression completed
 1. [x] Tower RADIUS Integration regression completed
 1. [x] Social authentication regression completed
@@ -302,7 +302,7 @@ Migrations (Jake)
     * [x] rhel-7.latest
     * [x] centos-7.latest
     * [x] ol-7.latest
-1. [x] Bundled installation completes successfully for HA deployment
+1. [x] Bundled installation completes successfully for cluster deployment
 
 ### Upgrades
 1. [x] Upgrade completes on all supported platforms from `3.0.*`

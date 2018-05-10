@@ -14,13 +14,13 @@ defaults
     timeout client  50000
     timeout server  50000
 
-frontend tower_ha
+frontend tower_cluster
     bind *:80
     bind *:443
     mode tcp
-    default_backend tower_ha
+    default_backend tower_cluster
 
-backend tower_ha
+backend tower_cluster
     mode tcp
     balance roundrobin
     option ssl-hello-chk

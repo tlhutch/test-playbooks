@@ -1,7 +1,7 @@
 ---
 instance_name_prefix: "{{ lookup('env','USER') }}-tower-haproxy"
 my_inventory_file: '{{inventory_dir}}/inventory.haproxy'
-ha_install: true
+cluster_install: true
 
 #
 # Images used for haproxy testing

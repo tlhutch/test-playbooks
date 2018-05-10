@@ -86,7 +86,7 @@
 1. [X] UI regression completed
 1. [X] API regression completed
 1. [X] Munin monitors work on all supported platforms
-1. [X] Tower HA installation [jlaska]
+1. [X] Tower cluster installation [jlaska]
     * [X] Verify successful registration of secondary instances
     * [X] Verify secondary web traffic redirects to primary (excluding /api/v1/ping/)
     * [X] Verify promoting secondary instance

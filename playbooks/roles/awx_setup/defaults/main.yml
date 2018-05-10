@@ -2,7 +2,7 @@
 awx_upgrade: false
 
 # Whether to run an HA installation
-ha_install: false
+cluster_install: false
 
 # Whether to run any package-related OS preparations
 out_of_box_os: false
@@ -35,9 +35,9 @@ rabbitmq_port: 5672
 rabbitmq_vhost: 'tower'
 rabbitmq_username: 'tower'
 rabbitmq_password: 'tower'
-rabbitmq_use_long_name: '{{ ha_install }}'
+rabbitmq_use_long_name: '{{ cluster_install }}'
 rabbitmq_cookie: 'cookiemonster'
-rabbitmq_enable_manager: '{{ ha_install }}'
+rabbitmq_enable_manager: '{{ cluster_install }}'
 
 # Optionally customize the default awx passwords
 # admin_password: fo0m4nchU

@@ -175,7 +175,7 @@ Autospawned jobs with cache timeout:
 1. [x] Expected job events broadcasted by rbac roles filtering
 1. [ ] Expected status and events are broadcasted over cluster
 
-### Clustering/HA (Ryan)
+### Cluster (Ryan)
 1. [x] Successful installation of 3 node + 1 db clustered system
 1. [x] Successful installation of 5 node + 1 db clustered system
 1. [x] Successful installation of 10 node + 1 db clustered system
@@ -256,7 +256,7 @@ Non-trivial topology should be used when testing workflow run. A non-trivial top
 ## Regression
 1. [ ] UI regression completed
 1. [ ] API regression completed
-1. [x] Tower HA installation regression completed
+1. [x] Tower cluster installation regression completed
 1. [x] Tower LDAP Integration regression completed
 1. [x] Tower RADIUS Integration regression completed
 1. [x] Social authentication regression completed

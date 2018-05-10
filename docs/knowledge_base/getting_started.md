@@ -79,7 +79,7 @@ minimum_var_space: 0
 gpgcheck: 0
 pendo_state: 'off'
 
-ha_install: false
+cluster_install: false
 
 admin_password: fo0m4nchU
 pg_password: fo0m4nchU

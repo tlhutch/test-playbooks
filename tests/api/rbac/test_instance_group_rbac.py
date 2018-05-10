@@ -99,7 +99,7 @@ class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
             resource.remove_instance_group(ig)
             assert resource.get_related('instance_groups').count == 0
 
-    @pytest.mark.requires_traditional_ha
+    @pytest.mark.requires_traditional_cluster
     @pytest.mark.parametrize('resource_type', ['job_template', 'inventory'])
     def test_org_admin(self, v2, factories, resource_type):
         """An org admin should only be able to (un)assign instance groups associated
@@ -142,7 +142,7 @@ class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
         org_instance_group_ids = set([ig.id for ig in all_instance_groups if ig.id not in [org_ig.id for org_ig in org_instance_groups]])
         assert resource_instance_group_ids == org_instance_group_ids
 
-    @pytest.mark.requires_traditional_ha
+    @pytest.mark.requires_traditional_cluster
     def test_org_admin_managing_organization_instance_groups(self, v2, factories):
         """An org admin should not be able to (un)set instance groups on their own
         organization (or any other).

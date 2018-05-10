@@ -10,7 +10,7 @@
 ## Regression
 * [ ] UI regression completed
 * [x] API regression completed
-* [x] Tower HA installation regression completed
+* [x] Tower cluster installation regression completed
 * [x] Backup/restore playbook
 
 ### Installation

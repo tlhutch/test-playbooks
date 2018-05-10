@@ -19,8 +19,8 @@ N/A
 ## Regression
 1. [ ] UI regression completed (jhill)
 1. [ ] API regression completed - standalone ( )
-1. [ ] API regression completed - HA ( )
-1. [ ] Tower HA installation regression completed ( )
+1. [ ] API regression completed - cluster ( )
+1. [ ] Tower cluster installation regression completed ( )
 1. [ ] Backup/restore successful ( )
 
 ### Installation
