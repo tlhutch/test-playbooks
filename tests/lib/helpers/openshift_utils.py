@@ -23,7 +23,7 @@ def get_pods():
 
 def get_tower_pods():
     pods = get_pods()
-    return [pod for pod in pods if 'tower' in pod]
+    return [pod for pod in pods if 'ansible-tower' in pod]
 
 
 def scale_dc(dc, replicas):

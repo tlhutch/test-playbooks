@@ -24,7 +24,7 @@ class TestOpenShiftHA(Base_Api_Test):
 
     def test_scale_up_tower_pod(self, v2, tower_instance_group, tower_version, tower_ig_contains_all_instances):
         num_instances = v2.instances.get().count + 2
-        openshift_utils.scale_dc(dc='tower', replicas=num_instances)
+        openshift_utils.scale_dc(dc='ansible-tower', replicas=num_instances)
         utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == num_instances, interval=5, timeout=180)
         tower_pods = set(openshift_utils.get_tower_pods())
 
@@ -47,7 +47,7 @@ class TestOpenShiftHA(Base_Api_Test):
 
     def test_scale_down_tower_pod(self, v2, tower_instance_group, tower_version, tower_ig_contains_all_instances):
         num_instances = v2.instances.get().count - 2
-        openshift_utils.scale_dc(dc='tower', replicas=num_instances)
+        openshift_utils.scale_dc(dc='ansible-tower', replicas=num_instances)
         utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == num_instances, interval=5, timeout=180)
         tower_pods = set(openshift_utils.get_tower_pods())
 
@@ -70,10 +70,10 @@ class TestOpenShiftHA(Base_Api_Test):
 
     def test_tower_web_service_should_be_able_to_recover_from_zero_tower_pods(self, factories, v2, tower_instance_group,
                                                                               tower_version, tower_ig_contains_all_instances):
-        openshift_utils.scale_dc(dc='tower', replicas=0)
+        openshift_utils.scale_dc(dc='ansible-tower', replicas=0)
         utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 0, interval=5, timeout=180)
 
-        openshift_utils.scale_dc(dc='tower', replicas=1)
+        openshift_utils.scale_dc(dc='ansible-tower', replicas=1)
         utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 1, interval=5, timeout=180)
         tower_pod = openshift_utils.get_tower_pods().pop()
 
@@ -105,7 +105,7 @@ class TestOpenShiftHA(Base_Api_Test):
         assert job.execution_node == tower_pod
 
     def test_verify_jobs_fail_with_execution_node_death(self, factories, v2):
-        openshift_utils.scale_dc(dc='tower', replicas=5)
+        openshift_utils.scale_dc(dc='ansible-tower', replicas=5)
         utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 5, interval=5, timeout=180)
         utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == 5, interval=5, timeout=600)
 
