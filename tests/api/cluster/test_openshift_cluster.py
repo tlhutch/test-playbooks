@@ -1,5 +1,3 @@
-import random
-
 from towerkit import utils
 import pytest
 

@@ -6,7 +6,7 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
-@pytest.mark.requires_ha
+@pytest.mark.requires_cluster
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestClusterCommon(Base_Api_Test):
 

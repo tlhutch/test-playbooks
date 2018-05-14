@@ -135,7 +135,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert ig_instances.count == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
-    def test_correct_instances_with_existing_ig_with_multiple_rules_updated(self, factories, tower_instance_hostnames):
+    def test_ig_has_correct_instances_after_updating_multiple_rules(self, factories, tower_instance_hostnames):
         ig = factories.instance_group()
         assert ig.instances == 0
 
@@ -313,6 +313,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         for ig in (ig1, ig2):
             for instance in instances:
                 ig.add_instance(instance)
+        for ig in (ig1, ig2):
             utils.poll_until(lambda: ig.get().instances == len(instances), interval=1, timeout=30)
 
     def test_tower_ig_unaffected_by_manual_instance_association_and_disassociation_in_other_igs(self, factories, v2,
