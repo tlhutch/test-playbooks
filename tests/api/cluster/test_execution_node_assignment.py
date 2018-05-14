@@ -163,6 +163,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         job_execution_nodes = [job.execution_node for job in jobs.results]
         assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1767')
     def test_jobs_should_distribute_among_new_instance_group_members(self, factories, tower_ig_instances):
         ig = factories.instance_group()
         instances = random.sample(tower_ig_instances, 2)
