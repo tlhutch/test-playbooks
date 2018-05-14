@@ -22,6 +22,7 @@ class TestOpenShiftCluster(Base_Api_Test):
                    set(instance.id for instance in tower_instance_group.related.instances.get().results)
         return func
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1746')
     def test_scale_up_tower_pod(self, v2, tower_instance_group, tower_version, tower_ig_contains_all_instances):
         num_instances = v2.instances.get().count + 2
         openshift_utils.scale_dc(dc='ansible-tower', replicas=num_instances)
@@ -45,6 +46,7 @@ class TestOpenShiftCluster(Base_Api_Test):
 
         assert tower_ig_contains_all_instances()
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1746')
     def test_scale_down_tower_pod(self, v2, tower_instance_group, tower_version, tower_ig_contains_all_instances):
         num_instances = v2.instances.get().count - 2
         openshift_utils.scale_dc(dc='ansible-tower', replicas=num_instances)
@@ -68,6 +70,7 @@ class TestOpenShiftCluster(Base_Api_Test):
 
         assert tower_ig_contains_all_instances()
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1746')
     def test_tower_web_service_should_be_able_to_recover_from_zero_tower_pods(self, factories, v2, tower_instance_group,
                                                                               tower_version, tower_ig_contains_all_instances):
         openshift_utils.scale_dc(dc='ansible-tower', replicas=0)
