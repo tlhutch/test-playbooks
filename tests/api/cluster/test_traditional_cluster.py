@@ -562,6 +562,7 @@ class TestTraditionalCluster(Base_Api_Test):
         assert job.is_successful
 
     @pytest.mark.last
+    @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
     def test_network_partition(self, ansible_module_cls, v2, factories, admin_user):
         """
@@ -578,6 +579,10 @@ class TestTraditionalCluster(Base_Api_Test):
 
         Note: Test is designed to run from an instance in the `instance_group_partition_1` instance group.
         """
+        # As a precondition, confirm that all instances have capacity
+        for instance in v2.instances.get().results:
+            assert instance.capacity > 0
+
         # Launch job across partition
         inventory_file = ansible_module_cls.inventory
         manager = ansible_module_cls.inventory_manager
@@ -601,17 +606,6 @@ class TestTraditionalCluster(Base_Api_Test):
             rc = subprocess.call(cmd, shell=True)
             assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
 
-            # Launch second job across partition
-            with self.current_instance(connection, v2):
-                org = factories.organization()
-                ig_partition_1 = v2.instance_groups.get(name='partition_1').results.pop()
-                org.add_instance_group(ig_partition_1)
-                project = factories.project(organization=org)  # Ensure project update runs on instance from partition_1
-                host = factories.v2_host()
-                jt_during_partition = factories.v2_job_template(inventory=host.ds.inventory, project=project)
-                jt_during_partition.add_instance_group(ig)
-                job_during_partition = jt_during_partition.launch()
-
             # Confirm rabbitmq shows drop in number of running nodes
             num_ordinary_instances = len(manager.get_group_dict()['instance_group_ordinary_instances'])
             for partition in ('instance_group_partition_1', 'instance_group_partition_2'):
@@ -622,7 +616,16 @@ class TestTraditionalCluster(Base_Api_Test):
                     stdout, stderr = proc.communicate()
                     rc = proc.returncode
                     assert rc == 0, "Received non-zero response code from '{}'\n[stdout]\n{}\n[stderr]\n{}".format(cmd, stdout, stderr)
-                    node_count = re.search('running_nodes,\[([^\]]*)\]', stdout.replace('\n', '')).group(1).count('rabbitmq@')
+                    matches = re.search('Cluster status of node', stdout.replace('\n', ''))
+                    # Ensure that we are getting actual output from the command
+                    if not matches:
+                        return False
+                    matches = re.search('running_nodes,\[([^\]]*)\]', stdout.replace('\n', ''))
+                    # Ensure 'running_nodes' section isn't listed. Interpret this as either a) all nodes offline or
+                    # b) this node is offline and cannot tell the state of the other nodes.
+                    if matches is None:
+                        return True
+                    node_count = matches.group(1).count('rabbitmq@')
                     return node_count < num_ordinary_instances
                 utils.poll_until(decrease_in_rabbitmq_nodes, interval=10, timeout=60)
         finally:
@@ -632,9 +635,13 @@ class TestTraditionalCluster(Base_Api_Test):
 
             # Confirm no partitions detected
             for host in manager.get_group_dict()['instance_group_ordinary_instances']:
-                cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'curl http://tower:tower@localhost:15672/api/nodes?columns=partitions | grep rabbitmq@'".format(host, inventory_file)
-                rc = subprocess.call(cmd, shell=True)
-                assert rc != 0, "rabbitmq reported partition(s)"
+                cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'curl -s http://tower:tower@localhost:15672/api/nodes?columns=partitions'".format(host, inventory_file)
+                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                stdout, stderr = proc.communicate()
+                rc = proc.returncode
+                assert rc == 0, "Received non-zero response code from '{}'\n[stdout]\n{}\n[stderr]\n{}".format(cmd, stdout, stderr)
+                assert 'partitions' in stdout, 'Failed to receive status from rabbitmq console'
+                assert 'rabbitmq@' not in stdout, 'rabbitmq console listed partitioned node'
 
             for host in manager.get_group_dict()['instance_group_ordinary_instances']:
                 def tower_serving_homepage():
@@ -654,20 +661,19 @@ class TestTraditionalCluster(Base_Api_Test):
                 job = jt.launch().wait_until_completed()
                 assert job.is_successful
 
+        # Confirm that instances have capacity
+        for instance in v2.instances.get().results:
+            utils.poll_until(lambda: instance.capacity > 0, interval=10, timeout=60)
+
         # Confirm that previous jobs resume or are marked failed
         job_before_partition.wait_until_completed()
         log.debug("Job started before partition ({j.id}) completed with status '{j.status}' and job_explanation '{j.job_explanation}'"
                   .format(j=job_before_partition))
-        job_during_partition.wait_until_completed()
-        log.debug("Job started during partition ({j.id}) completed with status '{j.status}' and job_explanation '{j.job_explanation}'"
-                  .format(j=job_during_partition))
         celery_error_msg = 'Task was marked as running in Tower but was not present in Celery, so it has been marked as failed.'
         assert job_before_partition.job_explanation == ('' if job_before_partition.status == 'successful' else celery_error_msg)
-        assert job_during_partition.job_explanation == ('' if job_during_partition.status == 'successful' else celery_error_msg)
 
         # Confirm that no jobs were relaunched
         assert jt_before_partition.get().get_related('last_job').id == job_before_partition.id
-        assert jt_during_partition.get().get_related('last_job').id == job_during_partition.id
 
     @pytest.mark.parametrize('setting_endpoint', ['all', 'jobs'])
     def test_ensure_awx_isolated_key_fields_are_read_only(self, ansible_module_cls, factories, admin_user, user_password, v2, setting_endpoint):
