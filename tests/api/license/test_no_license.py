@@ -61,10 +61,15 @@ class TestNoLicense(LicenseTest):
             api_config_pg.post(eula_rejected_legacy_license_json)
 
     @pytest.mark.parametrize('invalid_license_json',
-                             [None, 0, 1, -1, True, fauxfactory.gen_utf8(), (), {}, {'eula_accepted': True}])
+                             [None, 0, 1, -1, True, '<unicode>', (), {}, {'eula_accepted': True}])
     def test_post_invalid_license(self, api_config_pg, invalid_license_json):
         """Verify that various bogus license formats fail to successfully install"""
         # Assert expected error when issuing a POST with an invalid license
+
+        # HACK: pytest chokes when showing debug output that includes a unicode parameter
+        if invalid_license_json == '<unicode>':
+            invalid_license_json = fauxfactory.gen_utf8()
+
         if invalid_license_json is not None:
             invalid_license_json = json.dumps(invalid_license_json)
 
