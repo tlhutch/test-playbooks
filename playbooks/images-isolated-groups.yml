@@ -3,16 +3,20 @@ instance_name_prefix: "{{ lookup('env','USER') }}-tower-isolated-groups"
 my_inventory_file: '{{inventory_dir}}/inventory.cluster'
 cluster_install: true
 
+create_ec2_assign_public_ip: true
+create_ec2_vpc_id: vpc-552da032
+create_ec2_vpc_subnet_id: subnet-9cdddbb0
+
 ec2_images:
     # - {'name': 'haproxy-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm3.medium', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-1-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm3.medium', 'groups': 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-2-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm3.medium', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-3-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm3.medium', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-4-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm3.medium', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_4, instance_group_7', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-5-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm3.medium', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-6-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm3.medium', 'groups': 'isolated_group_protected', 'controller': 'controller', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-7-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm3.medium', 'groups': 'isolated_group_protected', 'controller': 'controller', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-pg-rhel-7.4.-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm3.medium', 'groups': 'database', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-1-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm5.large', 'groups': 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-2-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-3-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-4-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_4, instance_group_7', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-5-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-6-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm5.large', 'groups': 'isolated_group_protected', 'controller': 'controller', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-7-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm5.large', 'groups': 'isolated_group_protected', 'controller': 'controller', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-pg-rhel-7.4.-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm5.large', 'groups': 'database', 'security_group': 'tower-cluster'}
     - {'name': 'cluster-managed-host-rhel-7.4.-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2', 'type': 'm3.medium', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
 
 ec2_security_groups:
