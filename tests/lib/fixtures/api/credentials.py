@@ -206,7 +206,6 @@ unencrypted_ssh_credential_params = ['unencrypted_rsa', 'unencrypted_dsa', 'unen
     params=unencrypted_ssh_credential_params,
     ids=unencrypted_ssh_credential_params,
 )
-@pytest.fixture(scope="function", params=unencrypted_ssh_credential_params)
 def unencrypted_ssh_credential_with_ssh_key_data(request):
     return (request.param, request.getfuncargvalue(request.param + '_ssh_credential'))
 
@@ -220,7 +219,6 @@ encrypted_ssh_credential_params = ['encrypted_rsa', 'encrypted_dsa', 'encrypted_
     params=encrypted_ssh_credential_params,
     ids=encrypted_ssh_credential_params,
 )
-@pytest.fixture(scope="function", params=encrypted_ssh_credential_params)
 def encrypted_ssh_credential_with_ssh_key_data(request):
     return (request.param, request.getfuncargvalue(request.param + '_ssh_credential'))
 

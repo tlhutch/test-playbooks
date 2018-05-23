@@ -86,7 +86,6 @@ def configure_auth_google(update_setting_pg, api_settings_google_pg):
                                           "configure_auth_github_org",
                                           "configure_auth_github_team",
                                           "configure_auth_google"])
-@pytest.fixture
 def configured_auth(request):
     return request.getfuncargvalue(request.param)
 
