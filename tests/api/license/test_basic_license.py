@@ -91,12 +91,6 @@ class TestBasicLicense(LicenseTest):
             "Unexpected API response when issuing a GET to /api/v1/activity_stream/ with a basic license - %s."
             % json.dumps(result))
 
-    @pytest.mark.fixture_args(older_than='1y', granularity='1y')
-    def test_unable_to_cleanup_facts(self, cleanup_facts):
-        job = cleanup_facts.wait_until_completed()
-        assert job.status == 'failed'
-        assert 'CommandError: The System Tracking feature is not enabled for your instance' in job.result_stdout
-
     def test_unable_to_get_fact_versions(self, host_local):
         """Verify that GET requests are rejected from fact_versions."""
         exc_info = pytest.raises(exc.PaymentRequired, host_local.get_related, 'fact_versions')

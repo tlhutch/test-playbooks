@@ -10,7 +10,6 @@ def convert_to_camelcase(s):
 
 @pytest.fixture(scope="function", params=['cleanup_jobs_with_status_completed',
                                           'cleanup_activitystream_with_status_completed',
-                                          'cleanup_facts_with_status_completed',
                                           'custom_inventory_update_with_status_completed',
                                           'project_update_with_status_completed',
                                           'job_with_status_completed',
@@ -27,7 +26,6 @@ def unified_job_with_status_completed(request):
 @pytest.fixture(scope="function")
 def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
                                         cleanup_activitystream_with_status_completed,
-                                        cleanup_facts_with_status_completed,
                                         custom_inventory_update_with_status_completed,
                                         project_update_with_status_completed,
                                         job_with_status_completed,
@@ -39,7 +37,6 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
     """
     return [cleanup_jobs_with_status_completed,
             cleanup_activitystream_with_status_completed,
-            cleanup_facts_with_status_completed,
             custom_inventory_update_with_status_completed,
             project_update_with_status_completed,
             job_with_status_completed,
@@ -131,16 +128,8 @@ class Test_System_Jobs(Base_Api_Test):
         assert activity_stream_pg.count == 0, \
             "After running cleanup_activitystream, activity_stream items still present (%s items found)." % activity_stream_pg.count
 
-    def test_cleanup_facts(self, cleanup_facts_template):
-        #  3.2 does not load fact_versions, so this test is now a sanity on mgmt job run.
-        #  TODO: Remove when mgmt job is removed from Tower.
-        payload = dict(extra_vars=dict(granularity='0d', older_than='0d'))
-        system_jobs_pg = cleanup_facts_template.launch(payload).wait_until_completed()
-        assert system_jobs_pg.is_successful, "Job unsuccessful - %s" % system_jobs_pg
-
     @pytest.mark.parametrize('job_type, extra_vars', [('cleanup_jobs', '{"days":"1000"}'),
-                                                      ('cleanup_activitystream', '{"days":"1000"}'),
-                                                      ('cleanup_facts', '{"older_than":"1000d","granularity":"1000w"}')])
+                                                      ('cleanup_activitystream', '{"days":"1000"}')])
     def test_cancel_system_job(self, v1, job_type, extra_vars):
         """Test that pending system_jobs may be canceled."""
         system_job_template = v1.system_job_templates.get(job_type=job_type).results.pop()

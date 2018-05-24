@@ -84,16 +84,6 @@ class TestEnterpriseLicense(LicenseTest):
     def test_able_to_create_workflow_job_template(self, factories):
         factories.v2_workflow_job_template()
 
-    @pytest.mark.fixture_args(older_than='1y', granularity='1y')
-    def test_able_to_cleanup_facts(self, cleanup_facts):
-        """Verifies that cleanup_facts may be run with an enterprise license."""
-        # wait for cleanup_facts to finish
-        job_pg = cleanup_facts.wait_until_completed()
-
-        # assert expected failure
-        assert job_pg.is_successful, "cleanup_facts job unexpectedly failed " \
-            "with an enterprise license - %s" % job_pg
-
     def test_activity_stream_settings(self, api_settings_system_pg):
         """Verify that activity stream flags are visible with an enterprise license."""
         settings_pg = api_settings_system_pg.get()

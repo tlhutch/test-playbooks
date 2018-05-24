@@ -310,11 +310,7 @@ class TestSystemJobTemplateSchedules(APITest):
         assert schedules.results.pop().extra_data == extra_data
 
     def test_sjt_can_have_multiple_schedules(self, request, system_job_template):
-        if system_job_template.job_type == 'cleanup_facts':
-            extra_data = dict(older_than='120d', granularity='1w')
-        else:
-            extra_data = dict(days='120')
-
+        extra_data = dict(days='120')
         schedules = [system_job_template.add_schedule(extra_data=extra_data) for _ in range(5)]
 
         def teardown():
