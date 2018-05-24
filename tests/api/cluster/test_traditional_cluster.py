@@ -202,6 +202,27 @@ class TestTraditionalCluster(Base_Api_Test):
             assert any(execution_host in instance.hostname for instance in instances), \
                 "Job not run on instance in assigned instance group"
 
+    def test_isolated_instance_control_node(self, v2, factories):
+        ig = v2.instance_groups.get(name='protected').results[0]
+
+        jt = factories.v2_job_template()
+        jt.add_instance_group(ig)
+
+        job = jt.launch().wait_until_completed()
+
+        assert job.get().status == 'successful'
+
+        assert job.instance_group == ig.id, \
+            "Job should run on the instance group assigned to the Job Template"
+
+        assert job.controller_node in \
+            [i.hostname for i in ig.related.controller.get().related.instances.get().results], \
+            "Job control node chosen not found in controlling instances"
+
+        assert job.execution_node in \
+            [instance.hostname for instance in ig.related.instances.get().results], \
+            "Job should execute on a node in the 'isolated' instance group"
+
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('base_resource, parent_resource', [('job_template', 'inventory'), ('job_template', 'organization'), ('inventory', 'organization')])
     def test_instance_group_hierarchy(self, v2, factories, base_resource, parent_resource):
@@ -297,7 +318,7 @@ class TestTraditionalCluster(Base_Api_Test):
             instance = [i for i in ig.get_related('instances').results if i.hostname == job.execution_node][0]
 
             assert instance.get().consumed_capacity > 0
-            assert instance.percent_capacity_remaining == round(float(instance.capacity - instance.consumed_capacity) * 100 / instance.capacity, 1)
+            assert instance.percent_capacity_remaining == round(float(instance.capacity - instance.consumed_capacity) * 100 / instance.capacity, 2)
 
     @pytest.mark.requires_isolation
     def test_controller_removal(self, admin_user, ansible_module_cls, factories, user_password, v2):

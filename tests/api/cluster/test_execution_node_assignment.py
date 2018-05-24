@@ -1,4 +1,5 @@
 import random
+import six
 
 from towerkit import utils
 import pytest
@@ -41,6 +42,27 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         # find number of jobs such that a single IG is put over capacity
         capacity = sum([instance.capacity for instance in ig.related.instances.get().results])
         return capacity / uj_impact + 1
+
+    @pytest.fixture
+    def largest_capacity(self, v2):
+        greatest_capacity = None
+        for i in v2.instances.get().results:
+            if i.capacity == 0:
+                raise RuntimeError(six.text_type("Capacity is 0 on node {}").format(i))
+            if not greatest_capacity or i.capacity > greatest_capacity:
+                greatest_capacity = i.capacity
+        return greatest_capacity
+
+    @pytest.fixture
+    def jt_generator_for_consuming_given_capacity(self, v2, organization, factories):
+        def fn(capacity_size):
+            jt = factories.v2_job_template(allow_simultaneous=True,
+                                           forks=capacity_size,
+                                           limit="all[0]")
+            map(lambda i: factories.v2_host(inventory=jt.ds.inventory),
+                xrange(0, capacity_size + 1))
+            return jt
+        return fn
 
     def test_jobs_should_distribute_among_tower_instance_group_members(self, factories, tower_instance_group):
         jt = factories.v2_job_template(allow_simultaneous=True)
@@ -412,3 +434,98 @@ class TestExecutionNodeAssignment(Base_Api_Test):
 
         assert job.wait_until_completed(timeout=300).is_successful
         assert job.execution_node == instance.hostname
+
+    def test_jobs_larger_than_max_instance_capacity_assigned_to_instances_with_greatest_capacity_first(self, v2,
+                                                                                                       largest_capacity,
+                                                                                                       jt_generator_for_consuming_given_capacity,
+                                                                                                       reset_instance,
+                                                                                                       tower_instance_group):
+        instances = v2.instances.get(order_by='hostname').results
+
+        jobs_count = len(instances)
+        forks = largest_capacity + 1
+        index = len(instances) / 2
+
+        reset_instance(instances[index])
+        instances[index].capacity_adjustment = .5
+
+        jt = jt_generator_for_consuming_given_capacity(forks)
+        jobs = [jt.launch() for i in xrange(0, jobs_count)]
+        map(lambda j: j.wait_until_completed(), jobs)
+
+        # Refresh jobs for execution_node attribute
+        jobs_execution_nodes = [j.get().execution_node for j in jobs]
+
+        for (instance, execution_node) in zip(instances[:index], jobs_execution_nodes[:index]):
+            assert execution_node == instance.hostname, \
+                "Job not run on expected instance"
+
+        # Smallest idle node chosen last when a job is too big
+        assert jobs_execution_nodes[-1] == instances[index].hostname, \
+            "Last job not run on smallest capacity Instance"
+
+        for (instance, execution_node) in zip(instances[index + 1:], jobs_execution_nodes[index:-1]):
+            assert execution_node == instance.hostname, \
+                "Job not run on expected instance"
+
+    def test_job_distribution_group_spill_over(self, v2,
+                                               factories,
+                                               largest_capacity, jt_generator_for_consuming_given_capacity,
+                                               tower_instance_group):
+        """
+        * Create a job template designed to consume (a little less than) half the capacity
+          of a given node. Configure the JT to run simultaneous jobs.
+        * Create a number of instance groups that alternately have one or two instances.
+          Assign all instance groups to the JT.
+          For Example, with 9 instances:
+
+            ig1.policy_instance_list = [ instance1, instance2 ]
+            ig2.policy_instance_list = [ instance3 ]
+            ig3.policy_instance_list = [ instance4, instance5 ]
+            ig4.policy_instance_list = [ instance6 ]
+            ig5.policy_instance_list = [ instance7, instance8 ]
+            ig6.policy_instance_list = [ instance9 ]
+        * Launch two jobs per instance (all at once).
+        * Confirm that each pair of job runs is assigned to a different instance in the
+          cluster. Jobs should be assigned to instances based on the alphabetical
+          ordering of the instances' hostnames. At the instance group level, job
+          assignment should 'spillover' from one instance group to the next (in
+          order of instance group assignment to the JT).
+        """
+        instances = v2.instances.get(order_by='hostname').results
+
+        jobs_count = len(instances) * 2
+        forks = (largest_capacity - 1) / 2
+        # 2 Jobs per Instance
+
+        jt = jt_generator_for_consuming_given_capacity(forks)
+
+        temp_instances = [i.hostname for i in instances]
+        i = 0
+        instance_groups = []
+        while temp_instances:
+            instance_list = [temp_instances.pop(0)]
+            if i % 2 == 0 and instance_list:
+                instance_list.append(temp_instances.pop(0))
+            instance_groups.append(factories.instance_group(name='group-{}'.format(i),
+                                                            policy_instance_list=instance_list))
+            i += 1
+
+        # Wait for instance topology recompute
+        utils.poll_until(lambda: sum([ig.instances
+            for ig in v2.instance_groups.get(id__in=','.join([str(ig.id) for ig in
+                instance_groups])).results]) == len(instances), interval=5, timeout=120)
+
+        map(lambda ig: jt.add_instance_group(ig), instance_groups)
+        jobs = [jt.launch() for x in xrange(0, jobs_count)]
+        map(lambda j: j.wait_until_completed(), jobs)
+
+        for ig in instance_groups:
+            if len(ig.policy_instance_list) == 2:
+                jobs.pop(0).execution_node == ig.policy_instance_list[0]
+                jobs.pop(0).execution_node == ig.policy_instance_list[1]
+                jobs.pop(0).execution_node == ig.policy_instance_list[0]
+                jobs.pop(0).execution_node == ig.policy_instance_list[1]
+            elif len(ig.policy_instance_list) == 1:
+                jobs.pop(0).execution_node == ig.policy_instance_list[0]
+                jobs.pop(0).execution_node == ig.policy_instance_list[0]
