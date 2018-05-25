@@ -301,9 +301,8 @@ class TestSystemJobTemplateSchedules(APITest):
 
     @pytest.mark.parametrize('name, extra_data',
                              [('Cleanup Job Schedule', dict(days='120')),
-                              ('Cleanup Activity Schedule', dict(days='355')),
-                              ('Cleanup Fact Schedule', dict(older_than='120d', granularity='1w'))],
-                             ids=['Cleanup Job Schedule', 'Cleanup Activity Schedule', 'Cleanup Fact Schedule'])
+                              ('Cleanup Activity Schedule', dict(days='355'))],
+                             ids=['Cleanup Job Schedule', 'Cleanup Activity Schedule'])
     def test_default_schedules_are_prepopulated(self, v2, name, extra_data):
         schedules = v2.schedules.get(name=name)
         assert schedules.count == 1
