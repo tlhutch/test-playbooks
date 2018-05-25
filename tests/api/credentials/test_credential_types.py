@@ -321,15 +321,15 @@ class TestCredentialTypes(Base_Api_Test):
                                                   ('injectors', dict(injectors='malformed')),
                                                   ('injectors', dict(injectors=dict(mal='formed'))),
                                                   ('injectors', dict(injectors=dict(env=dict(ENV_VAR=123),
-                                                                                             mal='formed')))])
+                                                                                    mal='formed')))])
     def test_confirm_bad_request_on_malformed_fields(self, factories, field, malformed):
         with pytest.raises(exc.BadRequest) as e:
             factories.credential_type(**malformed)
         message = e.value.message[field][0]
-        assert 'is not of type' in message or 'Additional properties are not allowed' in message
+        assert 'expected dict' in message or 'Additional properties are not allowed' in message
 
     @pytest.mark.parametrize('malformed, expected',
-                             [(dict(file=''), "'' is not of type 'object'"),
+                             [(dict(file=''), "expected dict"),
                               (dict(file=dict(not_template='123')),
                                "'not_template' does not match any of the regexes: "
                                "'^template(\\\\.[a-zA-Z_]+[a-zA-Z0-9_]*)?$'"),
@@ -347,13 +347,13 @@ class TestCredentialTypes(Base_Api_Test):
                               (dict(file={'template.multi': '123', 'template.999': '234'}),
                                "'template.999' does not match any of the regexes: "
                                "'^template(\\\\.[a-zA-Z_]+[a-zA-Z0-9_]*)?$'")],
-                              ids=('file is empty string', 'not_template', 'template_not_valid',
-                                   'template.not.valid', 'template.999', 'template and template.multi',
-                                   'template.multi and template.999'))
+                             ids=('file is empty string', 'not_template', 'template_not_valid',
+                                  'template.not.valid', 'template.999', 'template and template.multi',
+                                  'template.multi and template.999'))
     def test_confirm_bad_request_on_malformed_file_injectors(self, factories, malformed, expected):
         with pytest.raises(exc.BadRequest) as e:
             factories.credential_type(injectors=malformed)
-        assert e.value.message['injectors'][0] == expected
+        assert expected in e.value.message['injectors'][0]
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/1265')
     @pytest.mark.parametrize('injectors, expected',
