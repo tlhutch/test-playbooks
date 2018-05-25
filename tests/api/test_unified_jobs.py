@@ -15,7 +15,8 @@ class TestUnifiedJobs(Base_Api_Test):
                                                  ('workflow_job_template', 'launch'),
                                                  ('ad_hoc_command', None),
                                                  ('project', 'update'),
-                                                 ('custom_inventory_source', 'update')],
+                                                 ('custom_inventory_source', 'update'),
+                                                 ('cleanup_jobs_template', 'launch')],
                              ids=['job', 'workflow job', 'ad hoc command', 'project_update',
                                   'inventory_update', 'system job'])
     def test_delete_running_unified_job_forbidden(self, request, fixture, method):
