@@ -1,6 +1,7 @@
-from towerkit import exceptions as exc
+from towerkit import exceptions as exc, utils
 import fauxfactory
 import pytest
+import six
 
 from tests.api import Base_Api_Test
 
@@ -183,3 +184,25 @@ class TestInventory(Base_Api_Test):
             inv.silent_delete = noop
             inv.delete()
         assert jt.launch().wait_until_completed().is_successful
+
+    def test_confirm_large_inventory_copies_dont_overwhelm_system(self, factories):
+        """Verify that copying an inventory with many hosts doesn't affect system's ability to run jobs"""
+        total = 5000
+        jt = factories.v2_job_template()
+        script = '\n'.join([
+            "#!/usr/bin/env python",
+            "import json",
+            "data = {'_meta': {'hostvars': {}}}",
+            "for i in range({}):".format(total),
+            "   data.setdefault('hosts', []).append('Host-{}'.format(i))",
+            "print json.dumps(data, indent=2)"
+        ])
+        inv_script = factories.v2_inventory_script(script=script)
+        inv_source = factories.v2_inventory_source(inventory_script=inv_script)
+        inv = inv_source.ds.inventory
+        inv.update_inventory_sources(wait=True)
+
+        copied = inv.get_related('copy').post({'name': six.text_type('{} (Copied)').format(inv.name)})
+        assert jt.launch().wait_until_completed().is_successful
+
+        utils.poll_until(lambda: copied.get_related('hosts').count == total, interval=10, timeout=60 * 5)
