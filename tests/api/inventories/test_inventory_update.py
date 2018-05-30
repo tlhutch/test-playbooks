@@ -1,8 +1,10 @@
 import json
 
+from towerkit.config import config
 from towerkit.utils import load_json_or_yaml
 from towerkit import exceptions as exc
 import pytest
+import six
 
 from tests.api import Base_Api_Test
 
@@ -566,3 +568,61 @@ class TestInventoryUpdate(Base_Api_Test):
         assert inv_update.related.events.get().count > 0
         assert inv_update.related.events.get(search='added to group').count > 0
         assert inv_update.related.events.get(search='SOME RANDOM STRING THAT IS NOT PRESENT').count == 0
+
+    def test_tower_inventory_sync_success(self, factories):
+        target_host = factories.v2_host()
+        target_inventory = target_host.ds.inventory
+        tower_cred = factories.v2_credential(
+            kind='tower',
+            inputs={
+                'host': config.base_url,
+                'username': config.credentials.users.admin.username,
+                'password': config.credentials.users.admin.password,
+                'verify_ssl': False
+            }
+        )
+        tower_source = factories.v2_inventory_source(
+            source='tower', credential=tower_cred,
+            instance_filters=target_inventory.id
+        )
+        inv_update = tower_source.update().wait_until_completed()
+        assert inv_update.is_successful
+        assert 'Loaded 0 groups, 1 hosts' in inv_update.result_stdout
+        assert six.text_type('"{}" added'.format(target_host.name)) in inv_update.result_stdout.decode('utf-8')
+
+    def test_tower_inventory_incorrect_password(self, factories):
+        tower_cred = factories.v2_credential(
+            kind='tower',
+            inputs={
+                'host': config.base_url,
+                'username': config.credentials.users.admin.username,
+                'password': 'INVALID!',
+                'verify_ssl': False
+            }
+        )
+        tower_source = factories.v2_inventory_source(
+            source='tower', credential=tower_cred,
+            instance_filters='123',
+        )
+        inv_update = tower_source.update().wait_until_completed()
+        assert inv_update.status == 'failed'
+        assert 'Failed to validate the license' in inv_update.result_stdout
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1691')
+    @pytest.mark.parametrize('hostname, error', [
+        ['https://###/', 'Invalid URL'],
+        ['example.org', 'Failed to validate the license'],
+    ])
+    def test_tower_inventory_sync_failure_has_descriptive_error_message(self, factories, hostname, error):
+        tower_cred = factories.v2_credential(kind='tower', inputs={
+            'host': hostname,
+            'username': 'x',
+            'password': 'y'
+        })
+        tower_source = factories.v2_inventory_source(
+            source='tower', credential=tower_cred,
+            instance_filters='123'
+        )
+        inv_update = tower_source.update().wait_until_completed()
+        assert inv_update.status == 'failed'
+        assert error in inv_update.result_stdout
